@@ -77,26 +77,26 @@ async def account_confirm_pending(user: Annotated[User, web_user()]):
     return await render_response('user/account_confirm_pending.jinja2')
 
 
-@router.get('/user/forgot-password')
-async def legacy_reset_password():
-    return RedirectResponse('/reset-password', status.HTTP_301_MOVED_PERMANENTLY)
-
-
 @router.get('/reset-password')
 async def reset_password():
     return await render_response('user/reset_password.jinja2')
 
 
-@router.get('/user-id/{user_id:int}{path:path}')
+@router.get('/user/forgot-password')
+async def legacy_reset_password():
+    return RedirectResponse('/reset-password', status.HTTP_301_MOVED_PERMANENTLY)
+
+
+@router.get('/user-id/{user_id:int}{suffix:path}')
 async def permalink(
     request: Request,
-    user_id: Annotated[PositiveInt, Path()],
-    path: Annotated[str | None, Path()],
+    user_id: PositiveInt,
+    suffix: str,
 ):
     user = await UserQuery.find_one_by_id(user_id)
     if user is None:
         raise_for().user_not_found(user_id)
-    location = f'/user/{user.display_name}{path}'
+    location = f'/user/{user.display_name}{suffix}'
     if query := request.url.query:
         location += f'?{query}'
     return RedirectResponse(location, status.HTTP_307_TEMPORARY_REDIRECT)

@@ -149,19 +149,12 @@ async def personal_tagged(
     return await render_response('traces/index.jinja2', data)
 
 
-@router.get('/traces/mine')
+@router.get('/traces/mine{suffix:path}')
 async def legacy_mine(
     user: Annotated[User, web_user()],
+    suffix: str,
 ):
-    return RedirectResponse(f'/user/{user.display_name}/traces', status.HTTP_301_MOVED_PERMANENTLY)
-
-
-@router.get('/traces/mine/tag/{tag:str}')
-async def legacy_mine_tagged(
-    user: Annotated[User, web_user()],
-    tag: Annotated[str, Path(min_length=1, max_length=TRACE_TAG_MAX_LENGTH)],
-):
-    return RedirectResponse(f'/user/{user.display_name}/traces/tag/{tag}', status.HTTP_301_MOVED_PERMANENTLY)
+    return RedirectResponse(f'/user/{user.display_name}/traces{suffix}', status.HTTP_301_MOVED_PERMANENTLY)
 
 
 @router.get('/traces/new')

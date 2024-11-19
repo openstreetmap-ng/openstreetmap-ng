@@ -69,15 +69,7 @@ async def settings_connections(user: Annotated[User, web_user()]):
 
 
 @router.get('/preferences{_:path}')
-async def legacy_settings_preferences():
-    return RedirectResponse('/settings', status.HTTP_301_MOVED_PERMANENTLY)
-
-
 @router.get('/account/edit')
-async def legacy_settings_edit():
-    return RedirectResponse('/settings', status.HTTP_301_MOVED_PERMANENTLY)
-
-
 @router.get('/user/{_:str}/account')
-async def legacy_settings_account():
+async def legacy_settings():
     return RedirectResponse('/settings', status.HTTP_301_MOVED_PERMANENTLY)

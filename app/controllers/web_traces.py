@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Path, UploadFile
+from fastapi import APIRouter, Form, UploadFile
 from pydantic import PositiveInt
 
 from app.exceptions.api_error import APIError
@@ -34,7 +34,7 @@ async def upload(
 @router.post('/{trace_id:int}/update')
 async def update(
     _: Annotated[User, web_user()],
-    trace_id: Annotated[PositiveInt, Path()],
+    trace_id: PositiveInt,
     name: Annotated[Str255, Form()],
     description: Annotated[Str255, Form()],
     visibility: Annotated[TraceVisibility, Form()],
@@ -58,7 +58,7 @@ async def update(
 @router.post('/{trace_id:int}/delete')
 async def delete(
     user: Annotated[User, web_user()],
-    trace_id: Annotated[PositiveInt, Path()],
+    trace_id: PositiveInt,
 ):
     try:
         await TraceService.delete(trace_id)

@@ -1,6 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Path, Response, UploadFile
+from fastapi import APIRouter, Form, Response, UploadFile
+from pydantic import PositiveInt
 
 from app.lib.auth_context import web_user
 from app.lib.standard_feedback import StandardFeedback
@@ -31,9 +32,9 @@ async def settings_revoke_token(
 @router.post('/settings/revoke-application')
 async def settings_revoke_application(
     _: Annotated[User, web_user()],
-    application_id: Annotated[int, Form()],
+    app_id: Annotated[int, Form()],
 ):
-    await OAuth2TokenService.revoke_by_app_id(application_id)
+    await OAuth2TokenService.revoke_by_app_id(app_id)
     return Response()
 
 
@@ -46,19 +47,19 @@ async def settings_application_create(
     return {'redirect_url': f'/settings/applications/admin/{app_id}/edit'}
 
 
-@router.post('/settings/applications/admin/{id:int}/reset-client-secret')
+@router.post('/settings/applications/admin/{app_id:int}/reset-client-secret')
 async def settings_application_reset_client_secret(
     _: Annotated[User, web_user()],
-    id: Annotated[int, Path()],
+    app_id: PositiveInt,
 ):
-    client_secret = await OAuth2ApplicationService.reset_client_secret(id)
+    client_secret = await OAuth2ApplicationService.reset_client_secret(app_id)
     return {'secret': client_secret.get_secret_value()}
 
 
-@router.post('/settings/applications/admin/{id:int}/edit')
+@router.post('/settings/applications/admin/{app_id:int}/edit')
 async def settings_application_update(
     _: Annotated[User, web_user()],
-    id: Annotated[int, Path()],
+    app_id: PositiveInt,
     name: Annotated[str, Form(min_length=1, max_length=OAUTH_APP_NAME_MAX_LENGTH)],
     is_confidential: Annotated[bool, Form()],
     redirect_uris: Annotated[str, Form(max_length=OAUTH_APP_URI_LIMIT * (OAUTH_APP_URI_MAX_LENGTH + 4))],
@@ -79,7 +80,7 @@ async def settings_application_update(
         write_notes=write_notes,
     )
     await OAuth2ApplicationService.update_settings(
-        app_id=id,
+        app_id=app_id,
         name=name,
         is_confidential=is_confidential,
         redirect_uris=OAuth2ApplicationService.validate_redirect_uris(redirect_uris),
@@ -91,22 +92,22 @@ async def settings_application_update(
     return feedback.result
 
 
-@router.post('/settings/applications/admin/{id:int}/avatar')
+@router.post('/settings/applications/admin/{app_id:int}/avatar')
 async def settings_application_upload_avatar(
     _: Annotated[User, web_user()],
-    id: Annotated[int, Path()],
+    app_id: PositiveInt,
     avatar_file: Annotated[UploadFile, Form()],
 ):
-    avatar_url = await OAuth2ApplicationService.update_avatar(id, avatar_file)
+    avatar_url = await OAuth2ApplicationService.update_avatar(app_id, avatar_file)
     return {'avatar_url': avatar_url}
 
 
-@router.post('/settings/applications/admin/{id:int}/delete')
+@router.post('/settings/applications/admin/{app_id:int}/delete')
 async def settings_application_delete(
     _: Annotated[User, web_user()],
-    id: Annotated[int, Path()],
+    app_id: PositiveInt,
 ):
-    await OAuth2ApplicationService.delete(id)
+    await OAuth2ApplicationService.delete(app_id)
     return {'redirect_url': '/settings/applications/admin'}
 
 
@@ -133,19 +134,19 @@ async def settings_application_tokens_create(
     return {'token_id': str(token_id)}  # as string, avoiding loss of precision
 
 
-@router.post('/settings/applications/token/{id:int}/reset-access-token')
+@router.post('/settings/applications/token/{app_id:int}/reset-access-token')
 async def settings_application_tokens_reset_access_token(
     _: Annotated[User, web_user()],
-    id: Annotated[int, Path()],
+    app_id: PositiveInt,
 ):
-    access_token = await OAuth2TokenService.reset_pat_acess_token(id)
+    access_token = await OAuth2TokenService.reset_pat_acess_token(app_id)
     return {'secret': access_token.get_secret_value()}
 
 
-@router.post('/settings/applications/token/{id:int}/revoke')
+@router.post('/settings/applications/token/{app_id:int}/revoke')
 async def settings_application_tokens_revoke(
     _: Annotated[User, web_user()],
-    id: Annotated[int, Path()],
+    app_id: PositiveInt,
 ):
-    await OAuth2TokenService.revoke_by_id(id)
+    await OAuth2TokenService.revoke_by_id(app_id)
     return Response()

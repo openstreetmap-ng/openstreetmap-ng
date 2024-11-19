@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Path, Response, UploadFile
+from fastapi import APIRouter, Form, Response, UploadFile
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -109,8 +109,8 @@ async def settings_description(
 
 @router.post('/settings/connections/{provider:str}/disconnect')
 async def settings_connections(
-    provider: Annotated[AuthProvider, Path()],
     _: Annotated[User, web_user()],
+    provider: AuthProvider,
 ):
     await ConnectedAccountService.remove_connection(provider)
     return RedirectResponse('/settings/connections', status.HTTP_303_SEE_OTHER)
