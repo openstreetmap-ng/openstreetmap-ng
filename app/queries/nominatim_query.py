@@ -53,7 +53,7 @@ class NominatimPlace(TypedDict):
 
 class NominatimQuery:
     @staticmethod
-    async def reverse(point: Point, zoom: int) -> SearchResult | None:
+    async def reverse(point: Point, zoom: int = 14) -> SearchResult | None:
         """
         Reverse geocode a point into a human-readable name.
         """
