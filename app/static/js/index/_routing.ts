@@ -449,11 +449,13 @@ export const getRoutingController = (map: L.Map): IndexController => {
             if (routingEngine) {
                 if (engineInput.querySelector(`option[value=${routingEngine}]`)) {
                     engineInput.value = routingEngine
-                    engineInput.dispatchEvent(new Event("input"))
+                    // Don't trigger event to avoid repeated submitFormIfFilled():
+                    // engineInput.dispatchEvent(new Event("input"))
                 } else {
                     console.warn("Unsupported routing engine", routingEngine)
                 }
             }
+            submitFormIfFilled()
         },
         unload: () => {
             // Remove the routing layer

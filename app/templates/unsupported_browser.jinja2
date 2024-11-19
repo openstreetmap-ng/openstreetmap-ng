@@ -30,19 +30,21 @@
 
     <div class="row">
         <div class="col-xl-4 mb-3">
-            <a class="d-block browser-option btn btn-outline-primary py-3" href="https://www.mozilla.org/firefox/new/">
+            <a class="d-block browser-option btn btn-outline-primary fw-semibold py-3"
+                href="https://www.mozilla.org/firefox/new/">
                 <img src="/static/img/brand/firefox.png" alt="{{ t('alt.logo') }}">
                 Firefox
             </a>
         </div>
         <div class="col-xl-4 mb-3">
-            <a class="d-block browser-option btn btn-outline-primary py-3" href="https://www.google.com/chrome/">
+            <a class="d-block browser-option btn btn-outline-primary fw-semibold py-3"
+                href="https://www.google.com/chrome/">
                 <img src="/static/img/brand/google-chrome.png" alt="{{ t('alt.logo') }}">
                 Google Chrome
             </a>
         </div>
         <form class="col-xl-4 mb-3" method="POST" action="/api/web/unsupported-browser/override">
-            <button class="w-100 browser-option btn btn-light py-3" type="submit">
+            <button class="w-100 browser-option btn btn-light fw-semibold py-3" type="submit">
                 {{ t('unsupported_browser.proceed_anyway') }}
             </button>
         </form>

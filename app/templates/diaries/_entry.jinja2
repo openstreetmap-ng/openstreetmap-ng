@@ -35,7 +35,7 @@
             {% endif %}
             <div class="rich-text mx-1 mt-3">{{ diary.body_rich | safe }}</div>
             {% if diary.point is not none %}
-            <p class="diary-location mb-3">
+            <p class="diary-location fw-medium mb-3">
                 <i class="bi bi-compass"></i>{{ t('diary_entries.form.location') }}:
                 {% set _lon = diary.point.x %}
                 {% set _lat = diary.point.y %}

@@ -35,7 +35,6 @@
             }
 
             .vibrant {
-                font-weight: 600;
                 color: $vibrant-green;
             }
         }
@@ -59,7 +58,7 @@
 
     .icon {
         position: relative;
-        top: 0.125em;
+        top: 5px;
     }
 
     .icon.local {
