@@ -1,5 +1,6 @@
 from app.exceptions.auth_mixin import AuthExceptionsMixin
 from app.exceptions.changeset_mixin import ChangesetExceptionsMixin
+from app.exceptions.diary_mixin import DiaryExceptionsMixin
 from app.exceptions.diff_mixin import DiffExceptionsMixin
 from app.exceptions.element_mixin import ElementExceptionsMixin
 from app.exceptions.image_mixin import ImageExceptionsMixin
@@ -14,6 +15,7 @@ from app.exceptions.user_mixin import UserExceptionsMixin
 class Exceptions(
     AuthExceptionsMixin,
     ChangesetExceptionsMixin,
+    DiaryExceptionsMixin,
     DiffExceptionsMixin,
     ElementExceptionsMixin,
     ImageExceptionsMixin,
