@@ -21,9 +21,11 @@ from app.limits import (
     MESSAGE_SUBJECT_MAX_LENGTH,
     MESSAGES_INBOX_PAGE_SIZE,
 )
+from app.models.db.diary import Diary
 from app.models.db.message import Message
 from app.models.db.user import User
 from app.models.types import DisplayNameType
+from app.queries.diary_query import DiaryQuery
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
 
@@ -122,6 +124,7 @@ async def new_message(
     to: Annotated[DisplayNameType | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
     to_id: Annotated[PositiveInt | None, Query()] = None,
     reply: Annotated[PositiveInt | None, Query()] = None,
+    reply_diary: Annotated[PositiveInt | None, Query()] = None,
 ):
     recipient: DisplayNameType | None = None
     recipient_id: int | None = None
@@ -146,6 +149,14 @@ async def new_message(
                 (f'> {line}' for line in reply_message.body.splitlines()),
             )
         )
+    elif reply_diary is not None:
+        with options_context(joinedload(Diary.user).load_only(User.display_name)):
+            diary = await DiaryQuery.find_one_by_id(reply_diary)
+        if diary is None:
+            raise_for().diary_not_found(reply_diary)
+        recipient = diary.user.display_name
+        recipient_id = diary.user_id
+        subject = f'{t("messages.compose.reply.prefix")}: {diary.title}'
     elif to_id is not None:
         recipient_user = await UserQuery.find_one_by_id(to_id)
         if recipient_user is None:

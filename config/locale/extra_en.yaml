@@ -57,12 +57,26 @@ trace:
     Are you sure you want to delete this trace?
     This action cannot be undone.
 diary:
-  count_one: "diary"
-  count_other: "diaries"
+  entry:
+    count_one: "diary entry"
+    count_other: "diary entries"
   all_diaries: All Diaries
   only_in_language: "Only in {{language}}"
   browse_recent_diary_entries: Browse recent diary entries
+  comments: Comments
+  send_author_a_message: Send author a message
   not_found: Diary not found
+  delete_diary_entry: Delete diary entry
+  delete_confirmation: |-
+    Are you sure you want to delete this diary entry?
+    This action cannot be undone.
+  compose:
+    description: Write about your latest mapping activities and discoveries.
+    title: Title
+    title_placeholder: Enter diary title
+    language_hint: The primary language of this diary entry.
+    select_on_map: Select on map
+    remove_location: Remove location
 comment:
   count_one: "comment"
   count_other: "comments"
@@ -294,7 +308,7 @@ alt:
   map_layers_art: Artistic presentation of map layers
   happy_globe_mascot: A globe mascot with a big smile
   arm_pointing_down: An arm pointing down
-  diaries_page_navigation: Diaries page navigation
+  diary_page_navigation: Diary page navigation
   elements_page_navigation: Elements page navigation
   messages_page_navigation: Messages page navigation
   traces_page_navigation: Traces page navigation
@@ -346,6 +360,7 @@ validation:
   insecure_redirect_uri: Insecure redirect URI, use https:// for public endpoints
   cant_send_message_to_self: You can't send a message to yourself
   user_not_found: User not found
+  incomplete_location_information: Incomplete location information
 action:
   authorize: Authorize
   block_user: Block user

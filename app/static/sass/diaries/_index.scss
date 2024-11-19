@@ -1,0 +1,36 @@
+.diary-index-body {
+    .content-header {
+        img.avatar {
+            font-size: 3.2em;
+        }
+    }
+
+    .diaries-list {
+        img.avatar {
+            font-size: 3em;
+        }
+
+        > article {
+            text-wrap: pretty;
+
+            &:not(:last-child) {
+                padding-bottom: 1rem;
+                margin-bottom: 1rem;
+                border-bottom: 1px solid $border-color;
+            }
+        }
+    }
+
+    .diary-location {
+        font-weight: 500;
+
+        i.bi {
+            margin-right: 0.3rem;
+            font-size: 0.875em;
+        }
+    }
+
+    .list-group-item-action {
+        width: unset;
+    }
+}

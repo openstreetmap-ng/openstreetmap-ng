@@ -1,15 +1,15 @@
 <div>
-    <nav aria-label="{{ t('alt.diaries_page_navigation') }}">
+    <nav aria-label="{{ t('alt.diary_page_navigation') }}">
         <ul class="pagination justify-content-end">
             <li class="page-item {% if new_after is none %}disabled{% endif %}">
                 <a class="page-link" href="?after={{ new_after }}">
                     <i class="bi bi-chevron-left"></i>
-                    {{ t('traces.trace_paging_nav.newer') | capitalize }}
+                    {{ t('diary_entries.index.newer_entries') | capitalize }}
                 </a>
             </li>
             <li class="page-item {% if new_before is none %}disabled{% endif %}">
                 <a class="page-link" href="?before={{ new_before }}">
-                    {{ t('traces.trace_paging_nav.older') | capitalize }}
+                    {{ t('diary_entries.index.older_entries') | capitalize }}
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>

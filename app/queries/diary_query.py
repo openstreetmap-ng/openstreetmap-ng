@@ -1,11 +1,14 @@
-from collections.abc import Sequence
+from asyncio import TaskGroup
+from collections.abc import Iterable, Sequence
 
+from httpx import HTTPError
 from sqlalchemy import func, select, text
 
 from app.db import db
 from app.lib.options_context import apply_options_context
 from app.models.db.diary import Diary
 from app.models.types import LocaleCode
+from app.queries.nominatim_query import NominatimQuery
 
 
 class DiaryQuery:
@@ -70,3 +73,21 @@ class DiaryQuery:
             stmt = apply_options_context(stmt)
             rows = (await session.scalars(stmt)).all()
             return rows if order_desc else rows[::-1]
+
+    @staticmethod
+    async def resolve_location_name(diaries: Iterable[Diary]) -> None:
+        """
+        Resolve location name fields for diaries.
+        """
+
+        async def task(diary: Diary) -> None:
+            try:
+                result = await NominatimQuery.reverse(diary.point)  # pyright: ignore[reportArgumentType]
+                diary.location_name = result.display_name if (result is not None) else None
+            except HTTPError:
+                pass
+
+        async with TaskGroup() as tg:
+            for diary in diaries:
+                if diary.point is not None:
+                    tg.create_task(task(diary))

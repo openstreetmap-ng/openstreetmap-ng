@@ -6,18 +6,21 @@ from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import auth_user
-from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, normalize_locale
+from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, LOCALES_NAMES_MAP, normalize_locale
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale
 from app.limits import (
+    DIARY_BODY_MAX_LENGTH,
     DIARY_LIST_PAGE_SIZE,
+    DIARY_TITLE_MAX_LENGTH,
     DISPLAY_NAME_MAX_LENGTH,
     LOCALE_CODE_MAX_LENGTH,
 )
 from app.models.db.diary import Diary
 from app.models.db.user import User
 from app.models.types import DisplayNameType, LocaleCode
+from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery
 
@@ -36,7 +39,7 @@ async def _get_diaries_data(
     user_id = user.id if (user is not None) else None
     language = normalize_locale(language) if (language is not None) else None
     if language is not None:
-        locale_name = INSTALLED_LOCALES_NAMES_MAP[language]
+        locale_name = LOCALES_NAMES_MAP[language]
         language_name = locale_name.native if (language == primary_locale) else locale_name.english
     else:
         language_name = None
@@ -79,6 +82,10 @@ async def _get_diaries_data(
 
     if diaries:
         async with TaskGroup() as tg:
+            tg.create_task(DiaryQuery.resolve_location_name(diaries))
+            tg.create_task(DiaryCommentQuery.resolve_num_comments(diaries))
+            for diary in diaries:
+                tg.create_task(diary.resolve_rich_text())
             new_after_t = tg.create_task(new_after_task())
             new_before_t = tg.create_task(new_before_task())
         new_after = new_after_t.result()
@@ -116,6 +123,7 @@ async def _get_diaries_data(
         'new_after': new_after,
         'new_before': new_before,
         'diaries': diaries,
+        'LOCALES_NAMES_MAP': LOCALES_NAMES_MAP,
     }
 
 
@@ -126,6 +134,19 @@ async def index(
 ):
     data = await _get_diaries_data(user=None, language=None, after=after, before=before)
     return await render_response('diaries/index.jinja2', data)
+
+
+@router.get('/diary/new')
+async def new():
+    return await render_response(
+        'diaries/compose.jinja2',
+        {
+            'new': True,
+            'LOCALES_NAMES_MAP': LOCALES_NAMES_MAP,
+            'DIARY_TITLE_MAX_LENGTH': DIARY_TITLE_MAX_LENGTH,
+            'DIARY_BODY_MAX_LENGTH': DIARY_BODY_MAX_LENGTH,
+        },
+    )
 
 
 @router.get('/diary/{language:str}')

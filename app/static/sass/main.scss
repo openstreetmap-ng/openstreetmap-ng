@@ -87,6 +87,9 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "index/search";
 @import "index/tags";
 
+@import "diaries/compose";
+@import "diaries/index";
+
 @import "leaflet/leaflet";
 @import "leaflet/location-filter";
 @import "leaflet/main-map";

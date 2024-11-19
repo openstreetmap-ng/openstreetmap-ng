@@ -9,9 +9,9 @@ from app.lib.locale import (
 
 
 def test_locales_names_sorted():
-    strings = [locale_name.english for locale_name in LOCALES_NAMES_MAP.values()]
+    strings = [locale_name.english.casefold() for locale_name in LOCALES_NAMES_MAP.values()]
     assert sorted(strings) == strings
-    strings = [locale_name.english for locale_name in INSTALLED_LOCALES_NAMES_MAP.values()]
+    strings = [locale_name.english.casefold() for locale_name in INSTALLED_LOCALES_NAMES_MAP.values()]
     assert sorted(strings) == strings
 
 

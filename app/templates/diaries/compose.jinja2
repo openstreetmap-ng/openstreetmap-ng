@@ -1,0 +1,103 @@
+{% extends '_base.jinja2' %}
+{% block heading %}
+{% if new %}
+{{ t('diary_entries.new.title') | capitalize }}
+{% else %}
+{{ t('diary_entries.edit.title') | capitalize }}
+{% endif %}
+{% endblock %}
+{% block title_prefix %}{{ self.heading() }} | {% endblock %}
+{% block body_class %}diary-compose-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <div class="col-6 offset-3">
+        <h1>{{ self.heading() }}</h1>
+        <p class="mb-2">{{ t('diary.compose.description') }}</p>
+    </div>
+</div>
+<div class="content-body">
+    <div class="col-6 offset-3">
+        <form class="diary-form" method="POST" action="/api/web/diary">
+            <label class="form-label d-block mb-3">
+                <span class="required">{{ t('diary.compose.title') }}</span>
+                <input type="text" name="title" class="form-control mt-2"
+                    placeholder="{{ t('diary.compose.title_placeholder') }}" value="{{ title }}"
+                    maxlength="{{ DIARY_TITLE_MAX_LENGTH }}" required>
+            </label>
+
+            <label class="form-label d-block">
+                <span class="required">{{ t('messages.compose.body') }}</span>
+            </label>
+            {% set rich_text_name = 'body' %}
+            {% set rich_text_value = body %}
+            {% set rich_text_maxlength = DIARY_BODY_MAX_LENGTH %}
+            {% set rich_text_required = True %}
+            {% include 'rich_text/_control.jinja2' %}
+
+            <label class="form-label d-block mt-3">
+                {{ t('activerecord.attributes.diary_entry.language_code') }}
+                <select class="form-select format-select mt-2" name="language" required>
+                    {% set language = language or user.language %}
+                    {% for locale_code, locale_name in LOCALES_NAMES_MAP.items() %}
+                    <option value="{{ locale_code }}" {% if language == locale_code %}selected{% endif %}>
+                        {{ locale_name.display_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <p class="form-text">
+                {{ t('diary.compose.language_hint') }}
+            </p>
+
+            <h5>{{ t('diary_entries.form.location') }}</h5>
+            <div class="show-map-container">
+                <div class="row g-3">
+                    <div class="col">
+                        <label class="form-label d-block mb-3">
+                            {{ t('activerecord.attributes.diary_entry.latitude') | capitalize }}
+                            <input type="text" class="form-control mt-2" name="lat" value="{{ lat }}">
+                        </label>
+                    </div>
+                    <div class="col">
+                        <label class="form-label d-block mb-3">
+                            {{ t('activerecord.attributes.diary_entry.longitude') | capitalize }}
+                            <input type="text" class="form-control mt-2" name="lon" value="{{ lon }}">
+                        </label>
+                    </div>
+                    <div class="col-auto align-content-end">
+                        <button class="show-map-btn btn btn-outline-primary px-3 mb-3" type="button">
+                            {{ t('diary.compose.select_on_map') }}
+                        </button>
+                        <button class="remove-location-btn btn btn-light border px-3 mb-3 d-none" type="button">
+                            {{ t('diary.compose.remove_location') }}
+                        </button>
+                    </div>
+                </div>
+                <div class="leaflet-container d-none mb-4"></div>
+            </div>
+
+            <div>
+                {% if new %}
+                <button class="btn btn-primary px-3" type="submit">{{ t('helpers.submit.diary_entry.create') }}</button>
+                {% else %}
+                <input type="hidden" name="diary_id" value="{{ diary_id }}">
+                <button class="btn btn-primary px-3" type="submit">{{ t('action.save_changes') }}</button>
+                {% endif %}
+            </div>
+        </form>
+
+        {% if not new %}
+        <hr class="my-4">
+
+        <h3 class="mb-3">{{ t('settings.danger_zone') }}</h3>
+        <form class="delete-form" method="POST" action="/api/web/diary/{{ diary_id }}/delete">
+            <button class="btn btn-outline-danger" type="submit">
+                {{ t('diary.delete_diary_entry') }}
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
