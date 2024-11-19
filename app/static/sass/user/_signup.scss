@@ -46,7 +46,7 @@
     .brand-title {
         font-weight: 700;
         font-size: 4em;
-        color: color.adjust($vibrant-green, $saturation: 3);
+        color: color.adjust($vibrant-green, $saturation: 3%);
         text-shadow: 0 0 16px rgba(0, 0, 0, 0.25);
 
         img {

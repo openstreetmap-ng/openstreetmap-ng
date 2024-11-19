@@ -30,6 +30,11 @@ $custom-colors: (
 );
 $theme-colors: map.merge($theme-colors, $custom-colors);
 
+$custom-spacers: (
+    "1-5": $spacer * 0.375,
+);
+$spacers: map.merge($spacers, $custom-spacers);
+
 $action-sidebar-width: 400px;
 $leaflet-sidebar-width: 250px;
 
