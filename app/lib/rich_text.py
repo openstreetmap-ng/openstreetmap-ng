@@ -100,41 +100,42 @@ class RichTextMixin:
         logging.debug('Resolving %d rich text fields', num_fields)
         async with TaskGroup() as tg:
             for field_name, text_format in fields:
-                tg.create_task(self._resolve_rich_text_task(field_name, text_format))
+                tg.create_task(_resolve_rich_text_task(self, field_name, text_format))
 
-    async def _resolve_rich_text_task(self, field_name: str, text_format: TextFormat) -> None:
-        rich_field_name = field_name + '_rich'
-        rich_hash_field_name = field_name + '_rich_hash'
 
-        # skip if already resolved
-        if getattr(self, rich_field_name) is not None:
-            return
+async def _resolve_rich_text_task(self, field_name: str, text_format: TextFormat) -> None:
+    rich_field_name = field_name + '_rich'
+    rich_hash_field_name = field_name + '_rich_hash'
 
-        text: str = getattr(self, field_name)
-        text_rich_hash: bytes | None = getattr(self, rich_hash_field_name)
-        cache_entry = await rich_text(text, text_rich_hash, text_format)
-        cache_entry_id: bytes = cache_entry.id
+    # skip if already resolved
+    if getattr(self, rich_field_name) is not None:
+        return
 
-        # assign new hash if changed
-        if text_rich_hash != cache_entry_id:
-            async with db_commit() as session:
-                cls = type(self)
-                stmt = (
-                    update(cls)
-                    .where(
-                        cls.id == self.id,  # pyright: ignore[reportAttributeAccessIssue]
-                        getattr(cls, rich_hash_field_name) == text_rich_hash,
-                    )
-                    .values({rich_hash_field_name: cache_entry_id})
-                    .inline()
+    text: str = getattr(self, field_name)
+    text_rich_hash: bytes | None = getattr(self, rich_hash_field_name)
+    cache_entry = await rich_text(text, text_rich_hash, text_format)
+    cache_entry_id: bytes = cache_entry.id
+
+    # assign new hash if changed
+    if text_rich_hash != cache_entry_id:
+        async with db_commit() as session:
+            cls = type(self)
+            stmt = (
+                update(cls)
+                .where(
+                    cls.id == self.id,  # pyright: ignore[reportAttributeAccessIssue]
+                    getattr(cls, rich_hash_field_name) == text_rich_hash,
                 )
-                await session.execute(stmt)
+                .values({rich_hash_field_name: cache_entry_id})
+                .inline()
+            )
+            await session.execute(stmt)
 
-            logging.debug('Rich text field %r hash was changed', field_name)
-            setattr(self, rich_hash_field_name, cache_entry_id)
+        logging.debug('Rich text field %r hash was changed', field_name)
+        setattr(self, rich_hash_field_name, cache_entry_id)
 
-        # assign value to instance
-        setattr(self, rich_field_name, cache_entry.value.decode())
+    # assign value to instance
+    setattr(self, rich_field_name, cache_entry.value.decode())
 
 
 @cython.cfunc

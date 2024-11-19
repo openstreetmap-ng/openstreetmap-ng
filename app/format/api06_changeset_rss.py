@@ -45,7 +45,7 @@ def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
         if user is None:
             raise AssertionError('Changeset user must be set')
         user_display_name = user.display_name
-        user_permalink = f'{APP_URL}/user/permalink/{user.id}'
+        user_permalink = f'{APP_URL}/user-id/{user.id}'
         fe.author(name=user_display_name, uri=user_permalink)
     else:
         user_display_name = None

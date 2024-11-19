@@ -138,9 +138,7 @@ async def new_message(
         recipient_id = other_user.id
         subject = f'{t("messages.compose.reply.prefix")}: {reply_message.subject}'
         reply_header_date = format_sql_date(reply_message.created_at)
-        reply_header_user = (
-            f'[{reply_message.from_user.display_name}]({APP_URL}/user/permalink/{reply_message.from_user_id})'
-        )
+        reply_header_user = f'[{reply_message.from_user.display_name}]({APP_URL}/user-id/{reply_message.from_user_id})'
         reply_header = t('messages.compose.reply.header', date=reply_header_date, user=reply_header_user)
         body = '\n'.join(
             chain(

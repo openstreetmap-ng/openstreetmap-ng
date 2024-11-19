@@ -58,7 +58,7 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
 
     user = note.comments[0].user
     if user is not None:
-        user_permalink = f'{APP_URL}/user/permalink/{user.id}'
+        user_permalink = f'{APP_URL}/user-id/{user.id}'
         fe.author(name=user.display_name, uri=user_permalink)
         fe.dc.creator(user.display_name)  # pyright: ignore[reportAttributeAccessIssue]
 
@@ -104,7 +104,7 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
 
     user = comment.user
     if user is not None:
-        user_permalink = f'{APP_URL}/user/permalink/{user.id}'
+        user_permalink = f'{APP_URL}/user-id/{user.id}'
         fe.author(name=user.display_name, uri=user_permalink)
         fe.dc.creator(user.display_name)  # pyright: ignore[reportAttributeAccessIssue]
 

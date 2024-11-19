@@ -87,8 +87,7 @@ async def reset_password():
     return await render_response('user/reset_password.jinja2')
 
 
-# TODO: /user-id/ and other safe urls
-@router.get('/user/permalink/{user_id:int}{path:path}')
+@router.get('/user-id/{user_id:int}{path:path}')
 async def permalink(
     request: Request,
     user_id: Annotated[PositiveInt, Path()],
@@ -100,7 +99,7 @@ async def permalink(
     location = f'/user/{user.display_name}{path}'
     if query := request.url.query:
         location += f'?{query}'
-    return RedirectResponse(location, status.HTTP_302_FOUND)
+    return RedirectResponse(location, status.HTTP_307_TEMPORARY_REDIRECT)
 
 
 # TODO: optimize

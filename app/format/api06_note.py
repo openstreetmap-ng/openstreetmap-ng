@@ -61,7 +61,7 @@ def _encode_note_comment(comment: NoteComment) -> dict:
             {
                 'uid': comment.user_id,
                 'user': comment.user.display_name,  # pyright: ignore[reportOptionalMemberAccess]
-                'user_url': f'{APP_URL}/user/permalink/{comment.user_id}',
+                'user_url': f'{APP_URL}/user-id/{comment.user_id}',
             }
             if (comment.user_id is not None)
             else {}

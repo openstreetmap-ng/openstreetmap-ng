@@ -46,7 +46,7 @@ async def user_history_feed(
     return await _get_feed(user=user, geometry=geometry, limit=limit)
 
 
-@router.get('/user/permalink/{user_id:int}/history/feed')
+@router.get('/user-id/{user_id:int}/history/feed')
 async def user_permalink_history_feed(
     user_id: PositiveInt,
     bbox: Annotated[str | None, Query(min_length=1)] = None,
