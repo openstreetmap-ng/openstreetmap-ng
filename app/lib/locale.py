@@ -37,7 +37,7 @@ def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]
     raw_names: list[dict[str, str]] = orjson.loads(Path('config/locale/names.json').read_bytes())
     locale_names_map: dict[LocaleCode, LocaleName] = {}
 
-    for raw_name in sorted(raw_names, key=lambda v: v['english']):
+    for raw_name in sorted(raw_names, key=lambda v: v['english'].casefold()):
         code = LocaleCode(raw_name.pop('code'))
         installed = code in i18next_map
         locale_name = LocaleName(**raw_name, code=code, installed=installed)
