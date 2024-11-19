@@ -29,6 +29,9 @@ let
       wrapProgram "$out/bin/python3.13" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
     '';
   };
+  watchexec' = makeScript "watchexec" ''
+    exec ${pkgs.watchexec}/bin/watchexec --wrap-process=none "$@"
+  '';
 
   # https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/build-support/trivial-builders/default.nix
   makeScript = with pkgs; name: text:
@@ -53,7 +56,7 @@ let
     coreutils
     findutils
     curl
-    watchexec
+    watchexec'
     brotli
     zstd
     nil
@@ -316,7 +319,7 @@ let
     (makeScript "dev-stop" ''
       pid=$(cat data/supervisor/supervisord.pid 2> /dev/null || echo "")
       if [ -n "$pid" ] && grep -q "supervisord" "/proc/$pid/cmdline" 2> /dev/null; then
-        kill -INT "$pid"
+        kill -TERM "$pid"
         echo "Supervisor stopping..."
         while kill -0 "$pid" 2> /dev/null; do sleep 0.1; done
         echo "Supervisor stopped"

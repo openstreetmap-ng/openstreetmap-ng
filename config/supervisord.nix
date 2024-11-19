@@ -11,19 +11,16 @@ pkgs.writeText "supervisord.conf" ''
 
   [program:postgres]
   command=postgres -c config_file=${postgresConf} -D data/postgres
-  stopsignal=INT
   stdout_logfile=data/supervisor/postgres.log
   stderr_logfile=data/supervisor/postgres.log
 
   [program:valkey]
   command=valkey-server config/valkey.conf
-  stopsignal=INT
   stdout_logfile=data/supervisor/valkey.log
   stderr_logfile=data/supervisor/valkey.log
 
   [program:mailpit]
   command=mailpit -d data/mailpit/mailpit.db --enable-spamassassin spamassassin.monicz.dev:783 --smtp-auth-accept-any --smtp-auth-allow-insecure
-  stopsignal=INT
   stdout_logfile=data/supervisor/mailpit.log
   stderr_logfile=data/supervisor/mailpit.log
 
