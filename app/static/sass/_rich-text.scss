@@ -1,5 +1,6 @@
 // Styles for rich text rendered content
 .rich-text {
+    text-wrap: pretty;
     contain: content;
 
     code {
