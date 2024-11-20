@@ -13,14 +13,14 @@
     <p class="d-flex justify-content-between mx-1 my-2">
         <span>
             {% if new_after is not none %}
-            <a class="link-primary" href="?after={{ new_after }}" rel="next">
+            <a class="link-dark fw-semibold" href="?after={{ new_after }}" rel="next">
                 « {{ t('diary_entries.index.newer_entries') | capitalize }}
             </a>
             {% endif %}
         </span>
         <span>
             {% if new_before is not none %}
-            <a class="link-primary" href="?before={{ new_before }}" rel="prev">
+            <a class="link-dark fw-semibold" href="?before={{ new_before }}" rel="prev">
                 {{ t('diary_entries.index.older_entries') | capitalize }} »
             </a>
             {% endif %}
