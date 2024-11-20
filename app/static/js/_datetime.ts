@@ -3,9 +3,9 @@ import { primaryLanguage } from "./_config"
 const resolvedElements: WeakSet<HTMLTimeElement> = new WeakSet()
 
 export const resolveDatetime = (searchElement: Element): void => {
-    const elements = searchElement.querySelectorAll("time[datetime]")
-    console.debug("Resolving", elements.length, "datetime elements")
-    for (const element of elements) {
+    let absoluteCounter = 0
+    let relativeCounter = 0
+    for (const element of searchElement.querySelectorAll("time[datetime]")) {
         if (resolvedElements.has(element)) continue
         resolvedElements.add(element)
         const datetime = element.getAttribute("datetime")
@@ -29,6 +29,7 @@ export const resolveDatetime = (searchElement: Element): void => {
                 dateStyle: dateStyle ? "long" : undefined,
                 timeStyle: timeStyle ? "long" : undefined,
             }).format(date)
+            absoluteCounter++
         } else if (style) {
             // Relative date
             const [diff, unit] = getRelativeFormatValueUnit(date)
@@ -40,8 +41,10 @@ export const resolveDatetime = (searchElement: Element): void => {
                 dateStyle: "long",
                 timeStyle: "long",
             }).format(date)
+            relativeCounter++
         }
     }
+    console.debug("Resolved", absoluteCounter, "absolute and", relativeCounter, "relative datetimes")
 }
 
 const getRelativeFormatValueUnit = (date: Date): [number, Intl.RelativeTimeFormatUnitSingular] => {
