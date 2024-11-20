@@ -27,7 +27,10 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
         const button = document.createElement("button")
         button.className = "control-button"
         button.ariaLabel = buttonText
-        button.innerHTML = `<span class='icon ${className}'></span>`
+        const icon = document.createElement("img")
+        icon.className = `icon ${className}`
+        icon.src = `/static/img/leaflet/_generated/${className}.webp`
+        button.appendChild(icon)
         container.appendChild(button)
 
         new Tooltip(button, {

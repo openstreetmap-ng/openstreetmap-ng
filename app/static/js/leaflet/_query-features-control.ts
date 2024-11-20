@@ -49,7 +49,10 @@ export const getQueryFeaturesControl = () => {
         const button = document.createElement("button")
         button.className = "control-button"
         button.ariaLabel = buttonText
-        button.innerHTML = "<span class='icon query-features'></span>"
+        const icon = document.createElement("img")
+        icon.className = "icon query-features"
+        icon.src = "/static/img/leaflet/_generated/query-features.webp"
+        button.appendChild(icon)
         controlContainer.appendChild(button)
 
         new Tooltip(button, {

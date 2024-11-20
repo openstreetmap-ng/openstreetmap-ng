@@ -52,7 +52,10 @@ export const getNewNoteControl = () => {
         const button = document.createElement("button")
         button.className = "control-button"
         button.ariaLabel = buttonText
-        button.innerHTML = "<span class='icon new-note'></span>"
+        const icon = document.createElement("img")
+        icon.className = "icon new-note"
+        icon.src = "/static/img/leaflet/_generated/new-note.webp"
+        button.appendChild(icon)
         controlContainer.appendChild(button)
 
         new Tooltip(button, {

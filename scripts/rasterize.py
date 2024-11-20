@@ -26,12 +26,11 @@ def measure():
     result.ms = int(tt * 1000)
 
 
-def get_output_path(input: Path, /) -> Path:
-    output_dir = Path('_generated', input.parent)
-    output = output_dir.joinpath(input.stem + '.webp')
+def get_output_path(input: Path, /, *, root: Path) -> Path:
+    output_dir = Path(root, '_generated', input.parent.relative_to(root))
     if not output_dir.is_dir():
         output_dir.mkdir(parents=True)
-    return output
+    return output_dir.joinpath(input.stem + '.webp')
 
 
 def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
@@ -61,8 +60,9 @@ def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
 @click.option('size', '--size', '-s', default=DEFAULT_SIZE, show_default=True)
 @click.option('quality', '--quality', '-q', default=DEFAULT_QUALITY, show_default=True)
 def file(input: Iterable[Path], size: int, quality: int) -> None:
+    root = Path()
     for i in input:
-        output = get_output_path(i)
+        output = get_output_path(i, root=root)
         with measure() as time:
             rasterize(i, output, size=size, quality=quality)
 
@@ -75,18 +75,29 @@ def file(input: Iterable[Path], size: int, quality: int) -> None:
 @cli.command('static-img-pipeline')
 @click.option('verbose', '--verbose', '-v', is_flag=True)
 def static_img_pipeline(verbose: bool) -> None:
-    os.chdir('app/static/img/element')
-
     with measure() as time, Pool() as pool:
         success_counter = 0
-        for i in Path().rglob('*.svg'):
-            output = get_output_path(i)
+
+        root = Path('app/static/img/element')
+        for i in root.rglob('*.svg'):
+            output = get_output_path(i, root=root)
             if output.is_file() and i.stat().st_mtime <= output.stat().st_mtime:
                 if verbose:
                     click.secho(f'Skipped {output} (already exists)', fg='white')
                 continue
             pool.apply_async(partial(rasterize, i, output, size=128, quality=80))
             success_counter += 1
+
+        root = Path('app/static/img/leaflet')
+        for i in root.rglob('*.svg'):
+            output = get_output_path(i, root=root)
+            if output.is_file() and i.stat().st_mtime <= output.stat().st_mtime:
+                if verbose:
+                    click.secho(f'Skipped {output} (already exists)', fg='white')
+                continue
+            pool.apply_async(partial(rasterize, i, output, size=80, quality=101))
+            success_counter += 1
+
         pool.close()
         pool.join()
 

@@ -10,9 +10,9 @@ import { getZoomControl } from "../leaflet/_zoom-control"
 const antPathOptions = {
     delay: 1000,
     dashArray: [40, 60],
-    weight: 4.3,
-    color: "#7092ff",
-    pulseColor: "#139",
+    weight: 4.5,
+    color: "#F60",
+    pulseColor: "#220",
     opacity: 1,
     keyboard: false,
     interactive: false,

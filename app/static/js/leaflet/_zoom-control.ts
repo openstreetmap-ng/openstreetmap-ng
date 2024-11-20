@@ -50,7 +50,10 @@ export const getZoomControl = () => {
         const zoomInButton = document.createElement("button")
         zoomInButton.className = "zoom-in-btn control-button"
         zoomInButton.ariaLabel = zoomInText
-        zoomInButton.innerHTML = "<span class='icon zoom-in'></span>"
+        const zoomInIcon = document.createElement("img")
+        zoomInIcon.className = "icon zoom-in"
+        zoomInIcon.src = "/static/img/leaflet/_generated/zoom-in.webp"
+        zoomInButton.appendChild(zoomInIcon)
         controlContainer.appendChild(zoomInButton)
 
         new Tooltip(zoomInButton, {
@@ -62,7 +65,10 @@ export const getZoomControl = () => {
         const zoomOutButton = document.createElement("button")
         zoomOutButton.className = "zoom-out-btn control-button"
         zoomOutButton.ariaLabel = zoomOutText
-        zoomOutButton.innerHTML = "<span class='icon zoom-out'></span>"
+        const zoomOutIcon = document.createElement("img")
+        zoomOutIcon.className = "icon zoom-out"
+        zoomOutIcon.src = "/static/img/leaflet/_generated/zoom-out.webp"
+        zoomOutButton.appendChild(zoomOutIcon)
         controlContainer.appendChild(zoomOutButton)
 
         new Tooltip(zoomOutButton, {

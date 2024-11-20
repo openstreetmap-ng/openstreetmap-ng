@@ -37,7 +37,7 @@ export const getGeolocateControl = () => {
             button.ariaLabel = buttonText
             const icon = document.createElement("img")
             icon.className = options.icon
-            icon.src = "/static/img/leaflet/geolocate.webp"
+            icon.src = "/static/img/leaflet/_generated/geolocate.webp"
             button.appendChild(icon)
             container.appendChild(button)
 
