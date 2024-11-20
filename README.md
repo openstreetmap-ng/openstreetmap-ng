@@ -6,53 +6,70 @@
 [![GitHub Sponsors](https://shields.monicz.dev/github/sponsors/Zaczero?logo=github&label=Sponsors&color=%23db61a2)](https://github.com/sponsors/Zaczero)
 [![GitHub Stars](https://shields.monicz.dev/github/stars/Zaczero/openstreetmap-ng?style=social)](https://github.com/Zaczero/openstreetmap-ng)
 
-OpenStreetMap-NG is an unofficial Python fork of [openstreetmap.org](https://openstreetmap.org). It's on a mission to push the boundaries of OpenStreetMap and provide a better experience for all users. It's simply the Next Generation of OpenStreetMap.
+Welcome to OpenStreetMap-NG, an innovative unofficial Python fork of [openstreetmap.org](https://openstreetmap.org). Our mission is to revolutionize the map and provide a better experience for all users. It is simply the Next Generation of OpenStreetMap.
 
-## 📢 Development Updates
+We will provide a demo website at the end of 2024. We are working hard on the final core features — stay tuned!
 
-I actively post weekly/bi-weekly updates on the development of OpenStreetMap-NG on my [OpenStreetMap diary](https://www.openstreetmap.org/user/NorthCrab/diary). You can also subscribe to the [RSS feed](https://www.openstreetmap.org/user/NorthCrab/diary/rss) to stay up-to-date.
+🛈 This initiative is not affiliated with the OpenStreetMap Foundation.
 
-## 👷 Contributing
+## 🎯 Main Goals
 
-To get started contributing, see the [Contributing Guide](https://github.com/Zaczero/openstreetmap-ng/wiki/Contributing:-Getting-Started) on the GitHub wiki. This wiki is the primary source of information for contributors. We support Linux, macOS, and Windows (WSL2) operating systems.
+- **Performance**:\
+Create a seamless and responsive user experience. Leveraging modern technologies and native modules, featuring a brand new V2 map engine and optimized system architecture.
 
-You can also join our [Discord server](https://discord.gg/GM89hdjSCB) or [Matrix room](https://matrix.to/#/#openstreetmap-ng:matrix.org) to receive personalized support and discuss development topics — both platforms are bridged, so you'll see the same messages in either one. This is our primary internal communication channel. It's free to join and we're always happy to help you get started!
+- **New Features**:\
+Implement long-awaited features and bring OpenStreetMap into the modern era. With a strong focus on innovation, we are committed to delivering a truly next-gen experience.
 
-## ✨ The Vision
+- **Privacy**:\
+Enhance user privacy through built-in data protection mechanisms and secure defaults for all third-party integrations. Respecting users' data and privacy choices.
 
-- **Simple to contribute**: OpenStreetMap-NG requires just basic Python knowledge to contribute. There are no complex abstractions or frameworks to learn. We use Nix to provide stress-free and streamlined developer experience on all platforms.
+- **Accessibility**:\
+Make OpenStreetMap more accessible to everyone. Using the latest browser standards and new interfaces, we make the map a more enjoyable and welcoming place.
 
-- **Super efficient**: OpenStreetMap-NG uses modern programming techniques to provide high performance and low latency. Most of the codebase is compiled to C language with Cython's [Pure Python Mode](https://cython.readthedocs.io/en/latest/src/tutorial/pure.html).
+- **Openness**:\
+Lower barriers to entry and empower the developer community. Following Keep-It-Simple principles, OpenStreetMap-NG is designed in a simple and hackable way, making contributing easy and fun.
 
-- **Privacy first**: OpenStreetMap-NG is designed with privacy first approach. We give users the control over their data and privacy. The new builtin proxy for third-party requests additionally protects users identity.
+## 📢 Stay Updated
 
-- **Innovation**: OpenStreetMap-NG is a playground for new ideas and features. It's a place where the community can experiment with new features and technologies. We are not afraid of change!
+Follow our development journey through:
 
-## 🔢 KISS Principle
+**Development Blog**\
+Read updates on the ongoing development efforts.
 
-OpenStreetMap-NG follows the KISS principle (Keep It Simple, Stupid). We believe that simplicity is the key to success and that less is more. We avoid complex abstractions and frameworks. We use straightforward and easy to understand Python code.
+- [OpenStreetMap Diary](https://www.openstreetmap.org/user/NorthCrab/diary)
+- [OpenStreetMap Diary (RSS Feed)](https://www.openstreetmap.org/user/NorthCrab/diary/rss)
+
+**Developers Chat**\
+Discuss, share ideas, and collaborate with other contributors.
+
+- [Discord](https://discord.gg/GM89hdjSCB) or [Matrix](https://matrix.to/#/#openstreetmap-ng:matrix.org) *(bridged together)*
+
+## 🐤 Join Us
+
+To get started coding, see the [Contributing Guide](https://github.com/Zaczero/openstreetmap-ng/wiki/Contributing:-Getting-Started) on the GitHub wiki. This wiki is the primary source of information for new contributors. We officially support Linux, macOS, and Windows (WSL2) operating systems.
+
+We also invite you to join our [Discord server](https://discord.gg/GM89hdjSCB) or [Matrix room](https://matrix.to/#/#openstreetmap-ng:matrix.org) to receive support and chat with others — both platforms are bridged together, so you will see the same messages in either one. These are our primary communication channels. They are free to join, and we are always happy to help you get started!
 
 ## 🌍 Community Driven
 
-OpenStreetMap-NG is an open community-driven project. The best ideas come from people just like you! We believe the community is the heart of OpenStreetMap and that everyone should have an equal say.
+OpenStreetMap-NG is an open, community-driven project. The best ideas come from people just like you! We believe the community is the heart of OpenStreetMap and that everyone should have an equal say.
 
-This project is currently funded through community donations. We are not sponsored nor endorsed by the OpenStreetMap Foundation. We are ordinary mappers who want to make a difference.
-
-## 📚 Learn More
-
-More feature details can be found in the project [announcement](https://github.com/Zaczero/openstreetmap-ng/blob/main/ANNOUNCEMENT.md). This information is not strictly up-to-date, but it provides a broader view of the project. More recent updates can be found on my [OpenStreetMap diary](https://www.openstreetmap.org/user/NorthCrab/diary) but they are lesser in quantity.
+This project is funded entirely through community donations. We are not sponsored nor endorsed by the OpenStreetMap Foundation. We are everyday mappers who want to make a difference.
 
 ## 🛣️ TODOs: Public Release
 
-The following list outlines the key features and components that need to be completed before the first public release of OpenStreetMap-NG. This represents our roadmap to achieving 99% feature parity with the current OpenStreetMap website (Ruby).
+The following table outlines the notable features that need to be finished before the first public release of OpenStreetMap-NG. This represents our roadmap to achieving feature parity with the current OpenStreetMap Ruby implementation.
 
-**Release ETA**: end of 2024
+**Release ETA**: End of 2024
 
-- [90%] Authorization with third-party providers
-- [20%] Email notifications templates
-- ⬛ Reporting of users
-- ⬛ User diaries
-- [30%] Website responsiveness (mobile)
+| Missing Feature | Status |
+|---------|---------|
+| Third-Party Authorization | 95% Complete (missing: Facebook) |
+| Email Notification Templates | 20% Complete |
+| Reporting System | Planned |
+| User Diary | 60% Complete |
+| Mobile Responsiveness | 30% Complete |
+| Dark Theme | 30% Complete |
 
 ---
 
