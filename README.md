@@ -15,16 +15,16 @@ We will provide a demo website at the end of 2024. We are working hard on the fi
 ## 🎯 Main Goals
 
 \- **New Features**\
-Implement long-awaited features and bring OpenStreetMap into the modern era. With a strong focus on innovation, we are committed to delivering a truly next-gen experience for users and developers.
+Implement long-awaited features and bring OpenStreetMap into the modern era. With a strong focus on innovation, we are committed to delivering a truly next-gen experience for users and programmers.
 
 \- **Performance**\
-Create a seamless and responsive user and API experience. Leveraging modern technologies and native modules, featuring a brand new V2 map engine and optimized system architecture.
+Create a performant and responsive user and API experience. Leveraging modern technologies and CPython native modules, featuring a blazing-fast V2 map engine and optimized system architecture.
 
 \- **Privacy**\
-Enhance user privacy through built-in data protection mechanisms and secure defaults for all third-party integrations. Respecting users' data and privacy choices.
+Enhance user privacy through built-in data protection mechanisms and secure defaults for all third-party integrations. We respect users' data and privacy choices.
 
 \- **Accessibility**\
-Make OpenStreetMap more accessible to everyone. Using the latest browser standards and new interfaces, we make the map a more enjoyable and welcoming place.
+Make OpenStreetMap more accessible to everyone. Using the latest browser standards and newly designed interfaces, we make the map a more enjoyable and welcoming place.
 
 \- **Openness**\
 Lower barriers to entry and empower the developer community. Following Keep-It-Simple principles, OpenStreetMap-NG is designed in a simple and hackable way, making contributing easy and fun.
@@ -41,7 +41,7 @@ Read updates and watch videos on the ongoing development efforts:\
 Discuss, share ideas, and collaborate with other contributors:\
 [Discord](https://discord.gg/GM89hdjSCB) or [Matrix](https://matrix.to/#/#openstreetmap-ng:matrix.org) — *bridged together*
 
-## 🐤 Join Us
+## ⭐ Join Us
 
 To get started coding, see the [Contributing Guide](https://github.com/Zaczero/openstreetmap-ng/wiki/Contributing:-Getting-Started) on the GitHub wiki. This wiki is the primary source of information for new contributors. We officially support Linux, macOS, and Windows (WSL2) operating systems.
 
