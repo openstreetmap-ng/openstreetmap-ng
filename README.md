@@ -16,16 +16,12 @@ We will provide a demo website at the end of 2024. We are working hard on the fi
 
 - **Performance**:\
 Create a seamless and responsive user experience. Leveraging modern technologies and native modules, featuring a brand new V2 map engine and optimized system architecture.
-
 - **New Features**:\
 Implement long-awaited features and bring OpenStreetMap into the modern era. With a strong focus on innovation, we are committed to delivering a truly next-gen experience.
-
 - **Privacy**:\
 Enhance user privacy through built-in data protection mechanisms and secure defaults for all third-party integrations. Respecting users' data and privacy choices.
-
 - **Accessibility**:\
 Make OpenStreetMap more accessible to everyone. Using the latest browser standards and new interfaces, we make the map a more enjoyable and welcoming place.
-
 - **Openness**:\
 Lower barriers to entry and empower the developer community. Following Keep-It-Simple principles, OpenStreetMap-NG is designed in a simple and hackable way, making contributing easy and fun.
 
@@ -34,15 +30,14 @@ Lower barriers to entry and empower the developer community. Following Keep-It-S
 Follow our development journey through:
 
 **Development Blog**\
-Read updates on the ongoing development efforts.
+Read updates and watch videos on the ongoing development efforts.
 
-- [OpenStreetMap Diary](https://www.openstreetmap.org/user/NorthCrab/diary)
-- [OpenStreetMap Diary (RSS Feed)](https://www.openstreetmap.org/user/NorthCrab/diary/rss)
+- [OpenStreetMap Diary](https://www.openstreetmap.org/user/NorthCrab/diary) ([RSS Feed](https://www.openstreetmap.org/user/NorthCrab/diary/rss))
 
 **Developers Chat**\
 Discuss, share ideas, and collaborate with other contributors.
 
-- [Discord](https://discord.gg/GM89hdjSCB) or [Matrix](https://matrix.to/#/#openstreetmap-ng:matrix.org) *(bridged together)*
+- [Discord](https://discord.gg/GM89hdjSCB) or [Matrix](https://matrix.to/#/#openstreetmap-ng:matrix.org) — *bridged together*
 
 ## 🐤 Join Us
 
@@ -50,7 +45,7 @@ To get started coding, see the [Contributing Guide](https://github.com/Zaczero/o
 
 We also invite you to join our [Discord server](https://discord.gg/GM89hdjSCB) or [Matrix room](https://matrix.to/#/#openstreetmap-ng:matrix.org) to receive support and chat with others — both platforms are bridged together, so you will see the same messages in either one. These are our primary communication channels. They are free to join, and we are always happy to help you get started!
 
-## 🌍 Community Driven
+## 🌍 Community Project
 
 OpenStreetMap-NG is an open, community-driven project. The best ideas come from people just like you! We believe the community is the heart of OpenStreetMap and that everyone should have an equal say.
 
