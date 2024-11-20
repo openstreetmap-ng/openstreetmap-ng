@@ -10,7 +10,7 @@ from app.models.db.diary import Diary
 from app.models.db.user import User
 
 
-class DiaryComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
+class DiaryComment(Base.ZID, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'diary_comment'
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 

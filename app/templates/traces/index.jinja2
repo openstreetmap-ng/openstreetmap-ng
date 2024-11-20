@@ -37,42 +37,44 @@
             {% endif %}
         </p>
 
-        <ul class="nav nav-tabs">
-            <li class="nav-item">
-                <a href="/traces" {% if active_tab == 0 %} class="nav-link active" aria-current="page" {% else %}
-                    class="nav-link" {% endif %}>
-                    {{ t('traces.index.all_traces') }}
-                </a>
-            </li>
-            {% if user is not none %}
-            <li class="nav-item">
-                <a href="/user/{{ user.display_name }}/traces" {% if active_tab == 1 %} class="nav-link active"
-                    aria-current="page" {% else %} class="nav-link" {% endif %}>
-                    {{ t('traces.index.my_traces') }}
-                </a>
-            </li>
-            {% endif %}
-            {% if active_tab == 2 %}
-            <li class="nav-item">
-                <a href="/user/{{ profile.display_name }}/traces" class="nav-link active" aria-current="page">
-                    {{ t('traces.index.public_traces_from', user=profile.display_name) }}
-                </a>
-            </li>
-            {% endif %}
-            <li class="nav-item ms-auto">
+        <nav>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a href="/traces" {% if active_tab == 0 %} class="nav-link active" aria-current="page" {% else %}
+                        class="nav-link" {% endif %}>
+                        {{ t('traces.index.all_traces') }}
+                    </a>
+                </li>
                 {% if user is not none %}
-                <a class="btn btn-light border" href="/trace/upload">
-                    <i class="bi bi-pin-map me-2"></i>
-                    {{- t('traces.index.upload_trace') }}
-                </a>
+                <li class="nav-item">
+                    <a href="/user/{{ user.display_name }}/traces" {% if active_tab == 1 %} class="nav-link active"
+                        aria-current="page" {% else %} class="nav-link" {% endif %}>
+                        {{ t('traces.index.my_traces') }}
+                    </a>
+                </li>
                 {% endif %}
-                {% if active_tab == 0 %}
-                <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
-                    <i class="bi bi-rss-fill rss-color"></i>
-                </a>
+                {% if active_tab == 2 %}
+                <li class="nav-item">
+                    <a href="/user/{{ profile.display_name }}/traces" class="nav-link active" aria-current="page">
+                        {{ t('traces.index.public_traces_from', user=profile.display_name) }}
+                    </a>
+                </li>
                 {% endif %}
-            </li>
-        </ul>
+                <li class="nav-item ms-auto">
+                    {% if user is not none %}
+                    <a class="btn btn-light border" href="/trace/upload">
+                        <i class="bi bi-pin-map me-2"></i>
+                        {{- t('traces.index.upload_trace') }}
+                    </a>
+                    {% endif %}
+                    {% if active_tab == 0 %}
+                    <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
+                        <i class="bi bi-rss-fill rss-color"></i>
+                    </a>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
 <div class="content-body">

@@ -1,18 +1,16 @@
-<div>
-    <nav aria-label="{{ t('alt.traces_page_navigation') }}">
-        <ul class="pagination justify-content-end">
-            <li class="page-item {% if new_after is none %}disabled{% endif %}">
-                <a class="page-link" href="?after={{ new_after }}">
-                    <i class="bi bi-chevron-left"></i>
-                    {{ t('traces.trace_paging_nav.newer') | capitalize }}
-                </a>
-            </li>
-            <li class="page-item {% if new_before is none %}disabled{% endif %}">
-                <a class="page-link" href="?before={{ new_before }}">
-                    {{ t('traces.trace_paging_nav.older') | capitalize }}
-                    <i class="bi bi-chevron-right"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</div>
+<nav aria-label="{{ t('alt.traces_page_navigation') }}">
+    <ul class="pagination justify-content-end">
+        <li class="page-item {% if new_after is none %}disabled{% endif %}">
+            <a class="page-link" href="?after={{ new_after }}" rel="next">
+                <i class="bi bi-chevron-left"></i>
+                {{ t('traces.trace_paging_nav.newer') | capitalize }}
+            </a>
+        </li>
+        <li class="page-item {% if new_before is none %}disabled{% endif %}">
+            <a class="page-link" href="?before={{ new_before }}" rel="prev">
+                {{ t('traces.trace_paging_nav.older') | capitalize }}
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    </ul>
+</nav>

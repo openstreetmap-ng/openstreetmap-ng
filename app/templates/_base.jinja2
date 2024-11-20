@@ -38,7 +38,7 @@
         href="/static/opensearch.xml">
 </head>
 
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}{% endblock %}" {% block body_attrs %}{% endblock %}>
     {% include '_navbar.jinja2' %}
     {% block body %}{% endblock %}
     {% if user is none and self.body_class() != 'login-body' %}

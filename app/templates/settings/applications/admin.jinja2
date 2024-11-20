@@ -5,23 +5,25 @@
 {% block settings_title %}{{ t('settings.applications') }}{% endblock %}
 {% block settings_body %}
 
-<ul class="nav nav-underline mb-3">
-    <li class="nav-item">
-        <a href="/settings/applications" class="nav-link">
-            {{ t('settings.authorizations.title') }}
-        </a>
-    </li>
-    <li class="nav-item">
-        <a href="/settings/applications/admin" class="nav-link active" aria-current="page">
-            {{ t('settings.my_applications.title') }}
-        </a>
-    </li>
-    <li class="nav-item">
-        <a href="/settings/applications/tokens" class="nav-link">
-            {{ t('settings.my_tokens.title') }}
-        </a>
-    </li>
-</ul>
+<nav>
+    <ul class="nav nav-underline mb-3">
+        <li class="nav-item">
+            <a href="/settings/applications" class="nav-link">
+                {{ t('settings.authorizations.title') }}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/settings/applications/admin" class="nav-link active" aria-current="page">
+                {{ t('settings.my_applications.title') }}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/settings/applications/tokens" class="nav-link">
+                {{ t('settings.my_tokens.title') }}
+            </a>
+        </li>
+    </ul>
+</nav>
 
 <p>{{ t('settings.my_applications.description') }}</p>
 <ul class="applications-list list-unstyled">

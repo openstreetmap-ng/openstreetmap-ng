@@ -1,0 +1,30 @@
+<nav class="pt-3 pe-4">
+    <h5 class="fw-bold ms-3 mb-2">{{ t('diary.jump_to') }}:</h5>
+    <ul class="nav flex-column">
+        {% for diary in diaries %}
+        <li class="nav-item">
+            <a class="nav-link" href="#diary{{ diary.id }}">
+                <span>{{ diary.title }}</span>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% if new_before or new_after %}
+    <p class="d-flex justify-content-between mx-1 my-2">
+        <span>
+            {% if new_after is not none %}
+            <a class="link-primary" href="?after={{ new_after }}" rel="next">
+                « {{ t('diary_entries.index.newer_entries') | capitalize }}
+            </a>
+            {% endif %}
+        </span>
+        <span>
+            {% if new_before is not none %}
+            <a class="link-primary" href="?before={{ new_before }}" rel="prev">
+                {{ t('diary_entries.index.older_entries') | capitalize }} »
+            </a>
+            {% endif %}
+        </span>
+    </p>
+    {% endif %}
+</nav>

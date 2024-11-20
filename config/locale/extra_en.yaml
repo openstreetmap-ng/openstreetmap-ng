@@ -63,6 +63,7 @@ diary:
   all_diaries: All Diaries
   only_in_language: "Only in {{language}}"
   browse_recent_diary_entries: Browse recent diary entries
+  jump_to: Jump to
   comments: Comments
   send_author_a_message: Send author a message
   not_found: Diary not found

@@ -10,26 +10,28 @@
         <h1>{{ t('users.show.my messages') }}</h1>
         <p>{{ t('messages.description') }}</p>
 
-        <ul class="nav nav-tabs">
-            <li class="nav-item">
-                <a href="/messages/inbox" {% if inbox %} class="nav-link active" aria-current="page" {% else %}
-                    class="nav-link" {% endif %}>
-                    {{ t('messages.heading.my_inbox') }}
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/messages/outbox" {% if not inbox %} class="nav-link active" aria-current="page" {% else %}
-                    class="nav-link" {% endif %}>
-                    {{ t('messages.heading.my_outbox') }}
-                </a>
-            </li>
-            <li class="nav-item ms-auto">
-                <a class="btn btn-light border" href="/message/new">
-                    <i class="bi bi-envelope-plus me-2"></i>
-                    {{- t('action.send_a_message') }}
-                </a>
-            </li>
-        </ul>
+        <nav>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a href="/messages/inbox" {% if inbox %} class="nav-link active" aria-current="page" {% else %}
+                        class="nav-link" {% endif %}>
+                        {{ t('messages.heading.my_inbox') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/messages/outbox" {% if not inbox %} class="nav-link active" aria-current="page" {% else %}
+                        class="nav-link" {% endif %}>
+                        {{ t('messages.heading.my_outbox') }}
+                    </a>
+                </li>
+                <li class="nav-item ms-auto">
+                    <a class="btn btn-light border" href="/message/new">
+                        <i class="bi bi-envelope-plus me-2"></i>
+                        {{- t('action.send_a_message') }}
+                    </a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
 <div class="content-body">

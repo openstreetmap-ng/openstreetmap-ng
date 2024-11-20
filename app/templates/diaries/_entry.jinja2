@@ -1,8 +1,8 @@
-<article>
+<article id="diary{{ diary.id }}">
     <div class="row">
         {% if not entry_hide_avatar %}
         <div class="col-auto">
-            <a class="d-block" href="/user/{{ diary.user.display_name }}">
+            <a class="d-block" href="/user/{{ diary.user.display_name }}" rel="author">
                 <img class="avatar" src="{{ diary.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
             </a>
         </div>
@@ -11,7 +11,7 @@
             <h3><a href="/diary/{{ diary.id }}">{{ diary.title }}</a></h3>
             <p class="small mb-2">
                 {% set link_user -%}
-                <a href="/user/{{ diary.user.display_name }}">{{ diary.user.display_name }}</a>
+                <a href="/user/{{ diary.user.display_name }}" rel="author">{{ diary.user.display_name }}</a>
                 {%- endset %}
                 {% set created -%}
                 <time datetime="{{ diary.created_at.isoformat() }}" data-date="long" data-time="short"></time>

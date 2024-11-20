@@ -31,4 +31,42 @@
     .list-group-item-action {
         width: unset;
     }
+
+    #diary-scroll-nav {
+        max-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        contain: content;
+
+        nav {
+            text-wrap: pretty;
+            font-size: 0.85em;
+            margin-left: 0.25rem;
+        }
+
+        li:not(:last-child) {
+            border-bottom: 1px solid $gray-200;
+        }
+
+        .nav-link {
+            --bs-nav-link-padding-y: 0.425rem;
+
+            > span {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            &:hover {
+                @extend .bg-body-secondary;
+            }
+
+            &.active {
+                @extend .text-body;
+                @extend .fw-semibold;
+                box-shadow: -0.25rem 0 $primary;
+            }
+        }
+    }
 }

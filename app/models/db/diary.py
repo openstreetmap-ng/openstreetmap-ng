@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from app.models.db.diary_comment import DiaryComment
 
 
-class Diary(Base.Sequential, CreatedAtMixin, RichTextMixin):
+class Diary(Base.ZID, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'diary'
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
