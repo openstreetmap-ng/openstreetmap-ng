@@ -5,6 +5,7 @@ from starlette import status
 from starlette.datastructures import Headers
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from app.config import TEST_ENV
 from app.lib.render_response import render_response
 from app.lib.user_agent_check import is_browser_supported
 from app.middlewares.request_context_middleware import get_request
@@ -32,7 +33,7 @@ class UnsupportedBrowserMiddleware:
             or is_browser_supported(user_agent)
             or request.method != 'GET'
             or request.cookies.get('unsupported_browser_override') is not None
-        ):
+        ) and not (TEST_ENV and 'unsupported_browser' in request.query_params):
             await self.app(scope, receive, send)
             return
 
