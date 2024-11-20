@@ -8,7 +8,7 @@
 
 Welcome to OpenStreetMap-NG, an innovative unofficial Python fork of [openstreetmap.org](https://openstreetmap.org). Our mission is to revolutionize the map and provide a better experience for all users. It is simply the Next Generation of OpenStreetMap.
 
-We will provide a demo website at the end of 2024. We are working hard on the final core features — stay tuned!
+We will provide a demo website **at the end of 2024**. We are working hard on the final core features — stay tuned!
 
 🛈 This initiative is not affiliated with the OpenStreetMap Foundation.
 
