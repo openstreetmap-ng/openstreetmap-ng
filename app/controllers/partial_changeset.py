@@ -17,10 +17,12 @@ from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
+from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.proto.shared_pb2 import PartialChangesetParams, SharedBounds
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
+from app.queries.user_subscription_query import UserSubscriptionQuery
 
 router = APIRouter(prefix='/api/partial/changeset')
 
@@ -68,7 +70,7 @@ async def get_changeset(id: PositiveInt):
         tg.create_task(comments_task())
         tg.create_task(adjacent_ids_task())
         is_subscribed_task = (
-            tg.create_task(ChangesetCommentQuery.is_subscribed(id))
+            tg.create_task(UserSubscriptionQuery.is_subscribed(UserSubscriptionTarget.changeset, id))
             if auth_user() is not None  #
             else None
         )

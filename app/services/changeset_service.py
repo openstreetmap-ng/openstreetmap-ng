@@ -9,7 +9,8 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT
 from app.models.db.changeset import Changeset
-from app.services.changeset_comment_service import ChangesetCommentService
+from app.models.db.user_subscription import UserSubscriptionTarget
+from app.services.user_subscription_service import UserSubscriptionService
 
 
 class ChangesetService:
@@ -19,17 +20,16 @@ class ChangesetService:
         Create a new changeset and return its id.
         """
         user_id = auth_user(required=True).id
-
         async with db_commit() as session:
             changeset = Changeset(
                 user_id=user_id,
                 tags=tags,
             )
             session.add(changeset)
-
-        logging.debug('Created changeset %d for user %d', changeset.id, user_id)
-        await ChangesetCommentService.subscribe(changeset.id)
-        return changeset.id
+        changeset_id = changeset.id
+        logging.debug('Created changeset %d by user %d', changeset_id, user_id)
+        await UserSubscriptionService.subscribe(UserSubscriptionTarget.changeset, changeset_id)
+        return changeset_id
 
     @staticmethod
     async def update_tags(changeset_id: int, tags: dict[str, str]) -> None:

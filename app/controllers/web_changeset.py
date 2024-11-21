@@ -11,9 +11,11 @@ from app.lib.options_context import options_context
 from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_QUERY_WEB_LIMIT
 from app.models.db.changeset import Changeset
 from app.models.db.user import User
+from app.models.db.user_subscription import UserSubscriptionTarget
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.services.changeset_comment_service import ChangesetCommentService
+from app.services.user_subscription_service import UserSubscriptionService
 
 router = APIRouter(prefix='/api/web/changeset')
 
@@ -33,7 +35,7 @@ async def subscribe(
     changeset_id: PositiveInt,
     _: Annotated[User, web_user()],
 ):
-    await ChangesetCommentService.subscribe(changeset_id)
+    await UserSubscriptionService.subscribe(UserSubscriptionTarget.changeset, changeset_id)
     return Response()
 
 
@@ -42,7 +44,7 @@ async def unsubscribe(
     changeset_id: PositiveInt,
     _: Annotated[User, web_user()],
 ):
-    await ChangesetCommentService.unsubscribe(changeset_id)
+    await UserSubscriptionService.unsubscribe(UserSubscriptionTarget.changeset, changeset_id)
     return Response()
 
 

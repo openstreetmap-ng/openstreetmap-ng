@@ -3,7 +3,6 @@ import logging
 import numpy as np
 from shapely import Point, lib
 from sqlalchemy import delete, exists, func, select
-from sqlalchemy.dialects.postgresql import insert
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
@@ -12,8 +11,9 @@ from app.limits import GEO_COORDINATE_PRECISION
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, NoteEvent
-from app.models.db.note_subscription import NoteSubscription
+from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.scope import Scope
+from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.geometry import validate_geometry
 
 
@@ -51,13 +51,13 @@ class NoteService:
 
             note.updated_at = note_comment.created_at
 
+        note_id = note.id
         if user_id is not None:
-            logging.debug('Created note %d for user %s', note.id, user_id)
-            await NoteService.subscribe(note.id)
+            logging.debug('Created note %d by user %d', note_id, user_id)
+            await UserSubscriptionService.subscribe(UserSubscriptionTarget.note, note_id)
         else:
-            logging.debug('Created note %d for anonymous user', note.id)
-
-        return note.id
+            logging.debug('Created note %d by anonymous user', note_id)
+        return note_id
 
     @staticmethod
     async def comment(note_id: int, text: str, event: NoteEvent) -> None:
@@ -110,44 +110,8 @@ class NoteService:
 
             note.updated_at = note_comment.created_at
 
-        await NoteService.subscribe(note_id)
-
-    @staticmethod
-    async def subscribe(note_id: int) -> None:
-        """
-        Subscribe the current user to the note.
-        """
-        user_id = auth_user(required=True).id
-        logging.debug('Subscribing user %d to note %d', user_id, note_id)
-        async with db_commit() as session:
-            stmt = (
-                insert(NoteSubscription)
-                .values(
-                    {
-                        NoteSubscription.note_id: note_id,
-                        NoteSubscription.user_id: user_id,
-                    }
-                )
-                .on_conflict_do_nothing(
-                    index_elements=(NoteSubscription.note_id, NoteSubscription.user_id),
-                )
-                .inline()
-            )
-            await session.execute(stmt)
-
-    @staticmethod
-    async def unsubscribe(note_id: int) -> None:
-        """
-        Unsubscribe the current user from the note.
-        """
-        user_id = auth_user(required=True).id
-        logging.debug('Unsubscribing user %d from note %d', user_id, note_id)
-        async with db_commit() as session:
-            stmt = delete(NoteSubscription).where(
-                NoteSubscription.note_id == note_id,
-                NoteSubscription.user_id == user_id,
-            )
-            await session.execute(stmt)
+        logging.debug('Created note comment on note %d by user %d', note_id, user.id)
+        await UserSubscriptionService.subscribe(UserSubscriptionTarget.note, note_id)
 
     @staticmethod
     async def delete_notes_without_comments() -> None:
@@ -157,4 +121,8 @@ class NoteService:
         logging.info('Deleting notes without comments')
         async with db_commit() as session:
             stmt = delete(Note).where(~exists().where(Note.id == NoteComment.note_id))
-            await session.execute(stmt)
+            result = await session.execute(stmt)
+            if result.rowcount:
+                logging.info('Deleted %d notes without comments', result.rowcount)
+            else:
+                logging.warning('Not found any notes without comments')

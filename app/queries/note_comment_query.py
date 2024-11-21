@@ -4,29 +4,16 @@ from typing import Literal
 
 import cython
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy import Select, func, select, text, union_all
+from sqlalchemy import Select, func, select, union_all
 
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.options_context import apply_options_context
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
-from app.models.db.note_subscription import NoteSubscription
 
 
 class NoteCommentQuery:
-    @staticmethod
-    async def is_subscribed(note_id: int) -> bool:
-        """
-        Check if the user is subscribed to the note.
-        """
-        async with db() as session:
-            stmt = select(text('1')).where(
-                NoteSubscription.note_id == note_id,
-                NoteSubscription.user_id == auth_user(required=True).id,
-            )
-            return await session.scalar(stmt) is not None
-
     @staticmethod
     async def legacy_find_many_by_query(
         *,

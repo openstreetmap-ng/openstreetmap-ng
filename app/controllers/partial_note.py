@@ -17,14 +17,16 @@ from app.limits import NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
+from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.proto.shared_pb2 import PartialNoteParams
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
+from app.queries.user_subscription_query import UserSubscriptionQuery
 
 router = APIRouter(prefix='/api/partial/note')
 
 
-# TODO: pagination
+# TODO: pagination discussion, note, changeset, diary
 @router.get('/{id:int}')
 async def get_note(id: PositiveInt):
     notes = await NoteQuery.find_many_by_query(note_ids=(id,), limit=1)
@@ -38,7 +40,11 @@ async def get_note(id: PositiveInt):
 
     async with TaskGroup() as tg:
         tg.create_task(_resolve_comments_task(notes))
-        is_subscribed_task = tg.create_task(NoteCommentQuery.is_subscribed(id)) if (auth_user() is not None) else None
+        is_subscribed_task = (
+            tg.create_task(UserSubscriptionQuery.is_subscribed(UserSubscriptionTarget.note, id))
+            if (auth_user() is not None)
+            else None
+        )
 
     is_subscribed = is_subscribed_task.result() if (is_subscribed_task is not None) else False
 

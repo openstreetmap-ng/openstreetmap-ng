@@ -5,26 +5,12 @@ import cython
 from sqlalchemy import Select, func, select, text, union_all
 
 from app.db import db
-from app.lib.auth_context import auth_user
 from app.lib.options_context import apply_options_context
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
-from app.models.db.changeset_subscription import ChangesetSubscription
 
 
 class ChangesetCommentQuery:
-    @staticmethod
-    async def is_subscribed(changeset_id: int) -> bool:
-        """
-        Check if the user is subscribed to the changeset.
-        """
-        async with db() as session:
-            stmt = select(text('1')).where(
-                ChangesetSubscription.changeset_id == changeset_id,
-                ChangesetSubscription.user_id == auth_user(required=True).id,
-            )
-            return await session.scalar(stmt) is not None
-
     @staticmethod
     async def resolve_num_comments(changesets: Iterable[Changeset]) -> None:
         """

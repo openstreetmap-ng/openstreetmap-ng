@@ -16,6 +16,7 @@ from app.limits import (
 )
 from app.models.db.diary import Diary
 from app.models.db.user import User
+from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 
 router = APIRouter()
@@ -38,6 +39,7 @@ async def details(diary_id: PositiveInt):
             {'diary_id': diary_id},
             status=status.HTTP_404_NOT_FOUND,
         )
+    await DiaryCommentQuery.resolve_comments((diary,))
     return await render_response('diaries/details.jinja2', {'diary': diary})
 
 
