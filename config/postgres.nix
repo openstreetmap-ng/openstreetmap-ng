@@ -42,6 +42,10 @@ pkgs.writeText "postgres.conf" (''
   # reason: safeguard resource usage
   idle_in_transaction_session_timeout = 5min
 
+  # change toast compression
+  # reason: minimal overhead compression
+  default_toast_compression = lz4
+
   # disable replication and reduce WAL usage
   # reason: unused, reduced resource usage
   wal_level = minimal
