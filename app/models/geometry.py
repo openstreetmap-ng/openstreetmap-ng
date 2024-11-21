@@ -4,6 +4,7 @@ from typing import Annotated, override
 import numpy as np
 from annotated_types import Interval
 from shapely import MultiPolygon, Point, Polygon, lib
+from shapely._geometry import SetPrecisionMode
 from shapely.geometry.base import BaseGeometry
 from shapely.io import DecodingErrorOptions, WKBFlavorOptions
 from sqlalchemy import BindParameter
@@ -46,7 +47,7 @@ class _GeometryType(UserDefinedType, ABC):
         wkb_output_dimensions = np.intc(2)
         wkb_byte_order = np.intc(-1)
         wkb_include_srid = np.False_
-        wkb_flavor = np.intc(WKBFlavorOptions.get_value('iso'))
+        wkb_flavor = np.intc(WKBFlavorOptions.iso.value)
 
         def process(value: BaseGeometry | None):
             if value is None:
@@ -73,11 +74,17 @@ class _GeometryType(UserDefinedType, ABC):
     @override
     def result_processor(self, dialect, coltype):
         invalid_handler = np.uint8(DecodingErrorOptions.get_value('raise'))
+        precision_grid_size = 10**-GEO_COORDINATE_PRECISION
+        precision_mode = np.intc(SetPrecisionMode.pointwise.value)
 
         def process(value: bytes | None):
             if value is None:
                 return None
-            return lib.from_wkb(np.asarray(value, dtype=object).round(GEO_COORDINATE_PRECISION), invalid_handler)
+            return lib.set_precision(
+                lib.from_wkb(np.asarray(value, dtype=object), invalid_handler),
+                precision_grid_size,
+                precision_mode,
+            )
 
         return process
 
