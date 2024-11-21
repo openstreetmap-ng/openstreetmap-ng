@@ -10,6 +10,8 @@ from sqlalchemy import BindParameter
 from sqlalchemy.sql import func
 from sqlalchemy.types import UserDefinedType
 
+from app.lib.compressible_geometry import compressible_geometry
+from app.limits import GEO_COORDINATE_PRECISION
 from app.validators.geometry import GeometryValidator
 
 Geometry = Annotated[BaseGeometry, GeometryValidator]
@@ -50,7 +52,7 @@ class _GeometryType(UserDefinedType, ABC):
             if value is None:
                 return None
             return lib.to_wkb(
-                value,
+                compressible_geometry(value),
                 wkb_hex,
                 wkb_output_dimensions,
                 wkb_byte_order,
@@ -75,7 +77,7 @@ class _GeometryType(UserDefinedType, ABC):
         def process(value: bytes | None):
             if value is None:
                 return None
-            return lib.from_wkb(np.asarray(value, dtype=object), invalid_handler)
+            return lib.from_wkb(np.asarray(value, dtype=object).round(GEO_COORDINATE_PRECISION), invalid_handler)
 
         return process
 

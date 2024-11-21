@@ -9,9 +9,11 @@ import numpy as np
 import orjson
 import polars as pl
 import uvloop
+from shapely import Point
 from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
+from app.lib.compressible_geometry import compressible_geometry
 from app.models.db import *  # noqa: F403
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
@@ -128,7 +130,8 @@ def planet_worker(args: tuple[int, int, int]) -> None:
                 )
 
         if tag == 'node' and (lon := attrib.get('lon')) is not None and (lat := attrib.get('lat')) is not None:
-            point = f'POINT({lon} {lat})'
+            point = Point(float(lon), float(lat))
+            point = compressible_geometry(point).wkb_hex
         else:
             point = None
 
@@ -349,10 +352,12 @@ def notes_worker(args: tuple[int, int, int]) -> None:
                 }
             )
 
+        point = Point(float(attrib['lon']), float(attrib['lat']))
+        point = compressible_geometry(point).wkb_hex
         data.append(
             (
                 int(attrib['id']),  # note_id
-                f'POINT({attrib['lon']} {attrib['lat']})',  # point
+                point,  # point
                 comments,  # comments
                 note_created_at,  # created_at
                 note_updated_at,  # updated_at

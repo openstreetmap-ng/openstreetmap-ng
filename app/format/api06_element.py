@@ -318,12 +318,11 @@ def _decode_element(type: ElementType, data: dict, *, changeset_id: int | None):
     else:
         tags = {}
 
-    if (lon := data.get('@lon')) is None or (lat := data.get('@lat')) is None:
-        point = None
-    else:
+    if (lon := data.get('@lon')) is not None and (lat := data.get('@lat')) is not None:
         # numpy automatically parses strings
-        coordinate_precision = GEO_COORDINATE_PRECISION
-        point = lib.points(np.array((lon, lat), np.float64).round(coordinate_precision))
+        point = lib.points(np.array((lon, lat), np.float64).round(GEO_COORDINATE_PRECISION))
+    else:
+        point = None
 
     # decode members from either nd or member
     if type == 'way' and (data_nodes := data.get('nd')) is not None:
