@@ -1,4 +1,4 @@
-from math import ceil, log10
+from math import ceil, log2
 from typing import Final, TypeVar, overload
 
 import cython
@@ -14,9 +14,9 @@ _GeomT = TypeVar('_GeomT', bound=BaseGeometry)
 
 @cython.cfunc
 def _create_mentissa_mask():
-    integer_precision = 3  # 0...180
+    max_integer = 180
     fractional_precision = GEO_COORDINATE_PRECISION
-    bits_for_precision = ceil((integer_precision + fractional_precision) / log10(2))
+    bits_for_precision = ceil(log2(max_integer * 10**fractional_precision) + 1)
     zeros = 52 - bits_for_precision
     return np.uint64(((1 << 64) - 1) - ((1 << zeros) - 1))
 
