@@ -354,6 +354,11 @@ export const getMapUrl = (map: L.Map, showMarker = false): string => {
     return `${window.location.origin}/${hash}`
 }
 
+const shortDomainUpgrades = new Map<string, string>([
+    ["openstreetmap.org", "osm.org"],
+    ["openstreetmap.ng", "osm.ng"],
+])
+
 /**
  * Get a short URL for the current map location
  * @example
@@ -368,18 +373,16 @@ export const getMapShortlink = (map: L.Map, showMarker = false): string => {
     if (state.layersCode) params.layers = state.layersCode
     if (showMarker) params.m = ""
 
-    let protocol = location.protocol
-    let host = location.host
-
-    // Upgrade to short domain when on official domain
-    if (location.hostname === "www.openstreetmap.org" || location.hostname === "openstreetmap.org") {
-        protocol = "https:"
-        host = "osm.org"
-    }
+    // Upgrade to short domain when supported
+    const hostname = location.hostname
+    const tldPos = hostname.lastIndexOf(".")
+    const domainPos = hostname.lastIndexOf(".", tldPos - 1)
+    const shortDomainKey = domainPos > 0 ? hostname.substring(domainPos + 1) : hostname
+    const host = shortDomainUpgrades.get(shortDomainKey) ?? location.host
 
     return Object.keys(params).length
-        ? `${protocol}//${host}/go/${code}?${qsEncode(params)}`
-        : `${protocol}//${host}/go/${code}`
+        ? `${location.protocol}//${host}/go/${code}?${qsEncode(params)}`
+        : `${location.protocol}//${host}/go/${code}`
 }
 
 /**
