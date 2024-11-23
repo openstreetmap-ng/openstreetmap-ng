@@ -78,7 +78,7 @@
             {% if user is not none %}
             {% if is_subscribed %}
             <form class="col-auto subscription-form" method="POST"
-                action="/api/web/changeset/{{ changeset.id }}/unsubscribe">
+                action="/api/web/user-subscription/changeset/{{ changeset.id }}/unsubscribe">
                 <button class="btn btn-sm btn-light border" type="submit">
                     <i class="bi bi-bookmark-check me-1"></i>
                     {{ t('javascripts.changesets.show.unsubscribe') }}
@@ -86,7 +86,7 @@
             </form>
             {% else %}
             <form class="col-auto subscription-form" method="POST"
-                action="/api/web/changeset/{{ changeset.id }}/subscribe">
+                action="/api/web/user-subscription/changeset/{{ changeset.id }}/subscribe">
                 <button class="btn btn-sm btn-light border" type="submit">
                     {{ t('javascripts.changesets.show.subscribe') }}
                 </button>
@@ -137,11 +137,11 @@
         <div class="elements mt-4 mb-1">
             <template class="group">
                 <h4 class="title mt-3"></h4>
-                <table class="table table-borderless mb-0">
+                <table class="table table-borderless mb-2">
                     <tbody></tbody>
                 </table>
                 <nav aria-label="{{ t('alt.elements_page_navigation') }}">
-                    <ul class="pagination pagination-sm justify-content-end mt-2 mb-0"></ul>
+                    <ul class="pagination pagination-sm justify-content-end mb-0"></ul>
                 </nav>
             </template>
             <template class="entry">

@@ -1,46 +1,65 @@
+from asyncio import TaskGroup
+from collections.abc import Sequence
+from math import ceil
 from typing import Annotated
 
 from fastapi import APIRouter
 from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload
 from starlette import status
 from starlette.responses import RedirectResponse
 
+from app.controllers.diaries import get_diaries_data
 from app.lib.auth_context import web_user
 from app.lib.locale import LOCALES_NAMES_MAP
-from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.limits import (
     DIARY_BODY_MAX_LENGTH,
+    DIARY_COMMENT_BODY_MAX_LENGTH,
+    DIARY_COMMENTS_PAGE_SIZE,
     DIARY_TITLE_MAX_LENGTH,
 )
 from app.models.db.diary import Diary
 from app.models.db.user import User
-from app.queries.diary_comment_query import DiaryCommentQuery
+from app.models.db.user_subscription import UserSubscriptionTarget
 from app.queries.diary_query import DiaryQuery
+from app.queries.user_subscription_query import UserSubscriptionQuery
 
 router = APIRouter()
 
 
 @router.get('/diary/{diary_id:int}')
 async def details(diary_id: PositiveInt):
-    with options_context(
-        joinedload(Diary.user).load_only(
-            User.id,
-            User.display_name,
-            User.avatar_type,
-            User.avatar_id,
+    async with TaskGroup() as tg:
+        is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed(UserSubscriptionTarget.diary, diary_id))
+        data = await get_diaries_data(
+            user=None,
+            language=None,
+            after=diary_id - 1,
+            before=diary_id + 1,
+            user_from_diary=True,
+            with_navigation=False,
         )
-    ):
-        diary = await DiaryQuery.find_one_by_id(diary_id)
-    if diary is None:
-        return await render_response(
-            'diaries/not_found.jinja2',
-            {'diary_id': diary_id},
-            status=status.HTTP_404_NOT_FOUND,
-        )
-    await DiaryCommentQuery.resolve_comments((diary,))
-    return await render_response('diaries/details.jinja2', {'diary': diary})
+        diaries: Sequence[Diary] = data['diaries']
+        diary = diaries[0] if diaries else None
+        if diary is None:
+            return await render_response(
+                'diaries/not_found.jinja2',
+                {'diary_id': diary_id},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+    if diary.num_comments is None:
+        raise AssertionError('Diary num comments must be set')
+    comments_num_pages = ceil(diary.num_comments / DIARY_COMMENTS_PAGE_SIZE)
+    return await render_response(
+        'diaries/details.jinja2',
+        {
+            **data,
+            'diary': diary,
+            'is_subscribed': is_subscribed_t.result(),
+            'comments_num_pages': comments_num_pages,
+            'DIARY_COMMENT_BODY_MAX_LENGTH': DIARY_COMMENT_BODY_MAX_LENGTH,
+        },
+    )
 
 
 @router.get('/diary/{diary_id:int}/edit')

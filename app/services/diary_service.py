@@ -1,10 +1,14 @@
+import logging
+
 from shapely import Point
-from sqlalchemy import delete, func, update
+from sqlalchemy import delete, or_, update
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.models.db.diary import Diary
+from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.types import LocaleCode
+from app.services.user_subscription_service import UserSubscriptionService
 
 
 class DiaryService:
@@ -21,16 +25,20 @@ class DiaryService:
 
         Returns the diary id.
         """
+        user_id = auth_user(required=True).id
         async with db_commit() as session:
             diary = Diary(
-                user_id=auth_user(required=True).id,
+                user_id=user_id,
                 title=title,
                 body=body,
                 language=language,
                 point=point,
             )
             session.add(diary)
-        return diary.id
+        diary_id = diary.id
+        logging.debug('Created diary %d by user %d', diary_id, user_id)
+        await UserSubscriptionService.subscribe(UserSubscriptionTarget.diary, diary_id)
+        return diary_id
 
     @staticmethod
     async def update(
@@ -50,6 +58,13 @@ class DiaryService:
                 .where(
                     Diary.id == diary_id,
                     Diary.user_id == auth_user(required=True).id,
+                    # prevent unnecessary updates
+                    or_(
+                        Diary.title != title,
+                        Diary.body != body,
+                        Diary.language != language,
+                        Diary.point != point,
+                    ),
                 )
                 .values(
                     {
@@ -57,7 +72,6 @@ class DiaryService:
                         Diary.body: body,
                         Diary.language: language,
                         Diary.point: point,
-                        Diary.updated_at: func.statement_timestamp(),
                     }
                 )
             )

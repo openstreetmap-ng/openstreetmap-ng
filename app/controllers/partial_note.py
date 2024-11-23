@@ -9,7 +9,6 @@ from shapely import get_coordinates
 from sqlalchemy.orm import joinedload
 from starlette import status
 
-from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
@@ -40,13 +39,7 @@ async def get_note(id: PositiveInt):
 
     async with TaskGroup() as tg:
         tg.create_task(_resolve_comments_task(notes))
-        is_subscribed_task = (
-            tg.create_task(UserSubscriptionQuery.is_subscribed(UserSubscriptionTarget.note, id))
-            if (auth_user() is not None)
-            else None
-        )
-
-    is_subscribed = is_subscribed_task.result() if (is_subscribed_task is not None) else False
+        is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed(UserSubscriptionTarget.note, id))
 
     if note.closed_at is not None:
         duration = note.closed_at + NOTE_FRESHLY_CLOSED_TIMEOUT - utcnow()
@@ -64,7 +57,7 @@ async def get_note(id: PositiveInt):
             'header': note.comments[0],
             'comments': note.comments[1:],
             'status': note.status.value,
-            'is_subscribed': is_subscribed,
+            'is_subscribed': is_subscribed_t.result(),
             'disappear_days': disappear_days,
             'params': urlsafe_b64encode(params.SerializeToString()).decode(),
         },

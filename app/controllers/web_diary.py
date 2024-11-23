@@ -1,20 +1,28 @@
+from asyncio import TaskGroup
 from typing import Annotated
 
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
 from shapely import Point
+from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import web_user
+from app.lib.options_context import options_context
+from app.lib.render_response import render_response
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.limits import (
     DIARY_BODY_MAX_LENGTH,
+    DIARY_COMMENT_BODY_MAX_LENGTH,
     DIARY_TITLE_MAX_LENGTH,
     LOCALE_CODE_MAX_LENGTH,
 )
+from app.models.db.diary_comment import DiaryComment
 from app.models.db.user import User
 from app.models.geometry import Latitude, Longitude
 from app.models.types import LocaleCode
+from app.queries.diary_comment_query import DiaryCommentQuery
+from app.services.diary_comment_service import DiaryCommentService
 from app.services.diary_service import DiaryService
 
 router = APIRouter(prefix='/api/web/diary')
@@ -60,3 +68,35 @@ async def delete(
 ):
     await DiaryService.delete(diary_id)
     return {'redirect_url': f'/user/{user.display_name}/diary'}
+
+
+@router.get('/{diary_id:int}/comments')
+async def comments(
+    diary_id: PositiveInt,
+    page: Annotated[PositiveInt, Query()],
+    num_comments: Annotated[PositiveInt, Query()],
+):
+    with options_context(
+        joinedload(DiaryComment.user).load_only(
+            User.id,
+            User.display_name,
+            User.avatar_type,
+            User.avatar_id,
+        )
+    ):
+        comments = await DiaryCommentQuery.get_diary_page(diary_id, page=page, num_comments=num_comments)
+    async with TaskGroup() as tg:
+        for comment in comments:
+            tg.create_task(comment.resolve_rich_text())
+    return await render_response('diaries/details_comments.jinja2', {'comments': comments})
+
+
+# TODO: delete comment
+@router.post('/{diary_id:int}/comment')
+async def create_comment(
+    diary_id: PositiveInt,
+    body: Annotated[str, Form(min_length=1, max_length=DIARY_COMMENT_BODY_MAX_LENGTH)],
+    _: Annotated[User, web_user()],
+):
+    await DiaryCommentService.comment(diary_id, body)
+    return Response()

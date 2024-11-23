@@ -27,12 +27,14 @@ from app.queries.user_query import UserQuery
 router = APIRouter()
 
 
-async def _get_diaries_data(
+async def get_diaries_data(
     *,
     user: User | None,
     language: LocaleCode | None,
     after: int | None,
     before: int | None,
+    user_from_diary: bool = False,
+    with_navigation: bool = True,
 ) -> dict:
     primary_locale = primary_translation_locale()
     primary_locale_name = INSTALLED_LOCALES_NAMES_MAP[primary_locale].native
@@ -80,19 +82,23 @@ async def _get_diaries_data(
         )
         return before if before_diaries else None
 
+    new_after_t = None
+    new_before_t = None
     if diaries:
+        if user_from_diary:
+            user = diaries[0].user
+            user_id = user.id
+
         async with TaskGroup() as tg:
             tg.create_task(DiaryQuery.resolve_location_name(diaries))
             tg.create_task(DiaryCommentQuery.resolve_num_comments(diaries))
             for diary in diaries:
                 tg.create_task(diary.resolve_rich_text())
-            new_after_t = tg.create_task(new_after_task())
-            new_before_t = tg.create_task(new_before_task())
-        new_after = new_after_t.result()
-        new_before = new_before_t.result()
-    else:
-        new_after = None
-        new_before = None
+            if with_navigation:
+                new_after_t = tg.create_task(new_after_task())
+                new_before_t = tg.create_task(new_before_task())
+    new_after = new_after_t.result() if (new_after_t is not None) else None
+    new_before = new_before_t.result() if (new_before_t is not None) else None
 
     base_url = f'/user/{user.display_name}/diary' if (user is not None) else '/diary'
     if language is not None:
@@ -132,7 +138,7 @@ async def index(
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
-    data = await _get_diaries_data(user=None, language=None, after=after, before=before)
+    data = await get_diaries_data(user=None, language=None, after=after, before=before)
     return await render_response('diaries/index.jinja2', data)
 
 
@@ -155,7 +161,7 @@ async def language(
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
-    data = await _get_diaries_data(user=None, language=language, after=after, before=before)
+    data = await get_diaries_data(user=None, language=language, after=after, before=before)
     return await render_response('diaries/index.jinja2', data)
 
 
@@ -166,5 +172,5 @@ async def personal(
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
-    data = await _get_diaries_data(user=user, language=None, after=after, before=before)
+    data = await get_diaries_data(user=user, language=None, after=after, before=before)
     return await render_response('diaries/index.jinja2', data)

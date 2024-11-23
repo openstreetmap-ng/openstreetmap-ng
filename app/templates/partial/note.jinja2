@@ -63,14 +63,16 @@
             </div>
             {% if user is not none %}
             {% if is_subscribed %}
-            <form class="col-auto subscription-form" method="POST" action="/api/web/note/{{ note.id }}/unsubscribe">
+            <form class="col-auto subscription-form" method="POST"
+                action="/api/web/user-subscription/note/{{ note.id }}/unsubscribe">
                 <button class="btn btn-sm btn-light border" type="submit">
                     <i class="bi bi-bookmark-check me-1"></i>
                     {{ t('javascripts.changesets.show.unsubscribe') }}
                 </button>
             </form>
             {% else %}
-            <form class="col-auto subscription-form" method="POST" action="/api/web/note/{{ note.id }}/subscribe">
+            <form class="col-auto subscription-form" method="POST"
+                action="/api/web/user-subscription/note/{{ note.id }}/subscribe">
                 <button class="btn btn-sm btn-light border" type="submit">
                     {{ t('javascripts.changesets.show.subscribe') }}
                 </button>

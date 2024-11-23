@@ -118,6 +118,7 @@ async def _resolve_rich_text_task(self, field_name: str, text_format: TextFormat
 
     # assign new hash if changed
     if text_rich_hash != cache_entry_id:
+        updated_at = getattr(self, 'updated_at', None)
         async with db_commit() as session:
             cls = type(self)
             stmt = (
@@ -126,7 +127,13 @@ async def _resolve_rich_text_task(self, field_name: str, text_format: TextFormat
                     cls.id == self.id,
                     getattr(cls, rich_hash_field_name) == text_rich_hash,
                 )
-                .values({rich_hash_field_name: cache_entry_id})
+                .values(
+                    {
+                        rich_hash_field_name: cache_entry_id,
+                        # preserve updated_at if it exists
+                        **({'updated_at': updated_at} if (updated_at is not None) else {}),
+                    }
+                )
                 .inline()
             )
             await session.execute(stmt)

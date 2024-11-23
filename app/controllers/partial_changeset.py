@@ -8,7 +8,6 @@ from sqlalchemy.orm import joinedload
 from starlette import status
 
 from app.format.element_list import FormatElementList
-from app.lib.auth_context import auth_user
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.tags_format import tags_format
@@ -69,14 +68,7 @@ async def get_changeset(id: PositiveInt):
         elements_t = tg.create_task(elements_task())
         tg.create_task(comments_task())
         tg.create_task(adjacent_ids_task())
-        is_subscribed_task = (
-            tg.create_task(UserSubscriptionQuery.is_subscribed(UserSubscriptionTarget.changeset, id))
-            if auth_user() is not None  #
-            else None
-        )
-
-    elements = elements_t.result()
-    is_subscribed = is_subscribed_task.result() if (is_subscribed_task is not None) else False
+        is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed(UserSubscriptionTarget.changeset, id))
 
     changeset_tags = changeset.tags
     if not changeset_tags.get('comment'):
@@ -94,6 +86,7 @@ async def get_changeset(id: PositiveInt):
             max_lon=bounds[2],
             max_lat=bounds[3],
         )
+    elements = elements_t.result()
     params = PartialChangesetParams(
         id=id,
         bounds=params_bounds,
@@ -107,7 +100,7 @@ async def get_changeset(id: PositiveInt):
             'changeset': changeset,
             'prev_changeset_id': prev_changeset_id,
             'next_changeset_id': next_changeset_id,
-            'is_subscribed': is_subscribed,
+            'is_subscribed': is_subscribed_t.result(),
             'tags': tags.values(),
             'comment_tag': comment_tag,
             'params': urlsafe_b64encode(params.SerializeToString()).decode(),

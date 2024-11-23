@@ -14,12 +14,10 @@ from app.limits import (
 )
 from app.models.db.note_comment import NoteEvent
 from app.models.db.user import User
-from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.geometry import Latitude, Longitude
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.services.note_service import NoteService
-from app.services.user_subscription_service import UserSubscriptionService
 
 router = APIRouter(prefix='/api/web/note')
 
@@ -43,24 +41,6 @@ async def create_note_comment(
     text: Annotated[str, Form()] = '',
 ):
     await NoteService.comment(note_id, text, event)
-    return Response()
-
-
-@router.post('/{note_id:int}/subscribe')
-async def subscribe(
-    note_id: PositiveInt,
-    _: Annotated[User, web_user()],
-):
-    await UserSubscriptionService.subscribe(UserSubscriptionTarget.note, note_id)
-    return Response()
-
-
-@router.post('/{note_id:int}/unsubscribe')
-async def unsubscribe(
-    note_id: PositiveInt,
-    _: Annotated[User, web_user()],
-):
-    await UserSubscriptionService.unsubscribe(UserSubscriptionTarget.note, note_id)
     return Response()
 
 

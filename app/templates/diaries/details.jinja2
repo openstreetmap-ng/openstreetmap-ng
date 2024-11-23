@@ -1,0 +1,134 @@
+{% extends '_base.jinja2' %}
+{% block heading %}
+{% if active_tab == 3 %}
+{{ t('diary_entries.index.my_diary') }}
+{% elif active_tab == 4 %}
+{{ t('diary_entries.index.user_title', user=profile.display_name) }}
+{% endif %}
+{% endblock %}
+{% block title_prefix %}{{ self.heading() }} | {% endblock %}
+{% block body_class %}diary-details-body{% endblock %}
+{% block body %}
+
+<div class="content-header pb-0">
+    <div class="col-6 offset-3">
+        <div class="row mb-3">
+            <div class="col-auto align-content-center">
+                <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+            </div>
+            <div class="col align-content-center">
+                <h1 class="mb-0">{{ self.heading() }}</h1>
+            </div>
+        </div>
+
+        <nav>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a href="/diary" class="nav-link">
+                        {{ t('diary.all_diaries') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/diary/{{ primary_locale }}" class="nav-link">
+                        {{ t('diary.only_in_language', language=primary_locale_name) }}
+                    </a>
+                </li>
+                {% if user is not none %}
+                <li class="nav-item">
+                    <a href="/user/{{ user.display_name }}/diary" {% if active_tab == 3 %} class="nav-link active"
+                        aria-current="page" {% else %} class="nav-link" {% endif %}>
+                        {{ t('diary_entries.index.my_diary') }}
+                    </a>
+                </li>
+                {% endif %}
+                {% if active_tab == 4 %}
+                <li class="nav-item">
+                    <a href="/user/{{ profile.display_name }}/traces" class="nav-link active" aria-current="page">
+                        {{ t('diary_entries.index.user_title', user=profile.display_name) }}
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item ms-auto">
+                    {% if user is not none %}
+                    <a class="btn btn-light border" href="/diary/new">
+                        <i class="bi bi-journal-plus me-2"></i>
+                        {{- t('diary_entries.new.title') | capitalize }}
+                    </a>
+                    {% endif %}
+                    <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
+                        <i class="bi bi-rss-fill rss-color"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+<div class="content-body">
+    <div class="col-6 offset-3">
+        <div class="diary-list mb-4">
+            {% set entry_hide_avatar = True %}
+            {% include 'diaries/_entry.jinja2' %}
+        </div>
+
+        <div class="row g-1 mb-1">
+            <div class="col">
+                <h4>{{ t('browse.changeset.discussion') }}</h4>
+            </div>
+            {% if user is not none %}
+            {% if is_subscribed %}
+            <form class="col-auto subscription-form" method="POST"
+                action="/api/web/user-subscription/diary/{{ diary.id }}/unsubscribe">
+                <button class="btn btn-sm btn-light border" type="submit">
+                    <i class="bi bi-bookmark-check me-1"></i>
+                    {{ t('javascripts.changesets.show.unsubscribe') }}
+                </button>
+            </form>
+            {% else %}
+            <form class="col-auto subscription-form" method="POST"
+                action="/api/web/user-subscription/diary/{{ diary.id }}/subscribe">
+                <button class="btn btn-sm btn-light border" type="submit">
+                    {{ t('javascripts.changesets.show.subscribe') }}
+                </button>
+            </form>
+            {% endif %}
+            {% endif %}
+        </div>
+
+        <div id="comments">
+            <ul class="social-list-sm list-unstyled mb-2"></ul>
+            <nav aria-label="{{ t('alt.diary_comments_page_navigation') }}">
+                <ul class="pagination pagination-sm justify-content-end mb-0"
+                    data-action="/api/web/diary/{{ diary.id }}/comments?page={page}&num_comments={{ diary.num_comments }}"
+                    data-pages="{{ comments_num_pages }}">
+                </ul>
+            </nav>
+        </div>
+
+        {% if user is not none %}
+        <form class="comment-form" method="POST" action="/api/web/diary/{{ diary.id }}/comment">
+            <label class="form-label d-block">
+                {{ t('diary_entries.show.leave_a_comment') }}
+            </label>
+            <div class="mb-3">
+                {% set rich_text_name = 'body' %}
+                {% set rich_text_maxlength = DIARY_COMMENT_BODY_MAX_LENGTH %}
+                {% set rich_text_required = True %}
+                {% include 'rich_text/_control.jinja2' %}
+            </div>
+            <div class="text-end">
+                <button class="btn btn-primary" type="submit">
+                    {{ t('action.comment') }}
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="text-center">
+            <button class="btn btn-link" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
+                {{ t('browse.changeset.join_discussion') }}
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

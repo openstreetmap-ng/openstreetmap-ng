@@ -300,6 +300,7 @@ export const configureStandardForm = (
                 }
             })
             .catch((error: Error) => {
+                if (error.name === "AbortError") return
                 console.error("Failed to submit standard form", error)
                 handleFormFeedback("error", error.message)
                 errorCallback?.(error)

@@ -64,6 +64,7 @@ diary:
   only_in_language: "Only in {{language}}"
   browse_recent_diary_entries: Browse recent diary entries
   jump_to: Jump to
+  number_of_comments: Number of comments
   comments: Comments
   send_author_a_message: Send author a message
   not_found: Diary not found
@@ -310,6 +311,7 @@ alt:
   happy_globe_mascot: A globe mascot with a big smile
   arm_pointing_down: An arm pointing down
   diary_page_navigation: Diary page navigation
+  diary_comments_page_navigation: Diary comments page navigation
   elements_page_navigation: Elements page navigation
   messages_page_navigation: Messages page navigation
   traces_page_navigation: Traces page navigation
