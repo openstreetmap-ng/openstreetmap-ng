@@ -40,47 +40,50 @@
             <div class="col">
                 {% include 'messages/_list.jinja2' %}
             </div>
-            <div class="col message-preview card d-none">
-                <div class="message-header py-3 card-header">
-                    <div class="row g-1">
-                        <div class="col">
-                            <div class="message-sender d-flex">
-                                <img class="avatar" alt="{{ t('alt.profile_picture') }}">
-                                <div>
-                                    <a class="sender-link d-inline-block"></a>
-                                    <div class="message-time"></div>
+            <div class="col border-start d-none">
+                <div class="message-preview card sticky-top">
+                    <div class="message-header py-3 card-header">
+                        <div class="row g-1">
+                            <div class="col">
+                                <div class="message-sender d-flex">
+                                    <img class="avatar" alt="{{ t('alt.profile_picture') }}">
+                                    <div>
+                                        <a class="sender-link d-inline-block"></a>
+                                        <div class="message-time"></div>
+                                    </div>
                                 </div>
+                                <div class="btn-group" role="group">
+                                    <a class="reply-link btn btn-sm btn-light border">
+                                        <i class="bi bi-reply me-2"></i>
+                                        {{- t('messages.message_summary.reply_button') }}
+                                    </a>
+                                    {% if inbox %}
+                                    <button class="unread-btn btn btn-sm btn-light border">
+                                        <i class="bi bi-envelope me-2"></i>
+                                        {{- t('messages.message_summary.unread_button') }}
+                                    </button>
+                                    {% endif %}
+                                    <button class="delete-btn btn btn-sm btn-light border">
+                                        <i class="bi bi-trash me-2"></i>
+                                        {{- t('messages.message_summary.destroy_button') }}
+                                    </button>
+                                </div>
+                                <form class="unread-form" method="POST" action=""></form>
+                                <form class="delete-form" method="POST" action=""></form>
                             </div>
-                            <div class="btn-group" role="group">
-                                <a class="reply-link btn btn-sm btn-light border">
-                                    <i class="bi bi-reply me-2"></i>
-                                    {{- t('messages.message_summary.reply_button') }}
-                                </a>
-                                {% if inbox %}
-                                <button class="unread-btn btn btn-sm btn-light border">
-                                    <i class="bi bi-envelope me-2"></i>
-                                    {{- t('messages.message_summary.unread_button') }}
-                                </button>
-                                {% endif %}
-                                <button class="delete-btn btn btn-sm btn-light border">
-                                    <i class="bi bi-trash me-2"></i>
-                                    {{- t('messages.message_summary.destroy_button') }}
-                                </button>
+                            <div class="col-auto">
+                                <button class="btn-close" aria-label="{{ t('javascripts.close') }}"
+                                    type="button"></button>
                             </div>
-                            <form class="unread-form" method="POST" action=""></form>
-                            <form class="delete-form" method="POST" action=""></form>
-                        </div>
-                        <div class="col-auto">
-                            <button class="btn-close" aria-label="{{ t('javascripts.close') }}" type="button"></button>
                         </div>
                     </div>
-                </div>
-                <div class="card-body">
-                    <h5 class="message-title mb-3"></h5>
-                    <div class="message-body rich-text"></div>
-                    <div class="loading text-center mt-4">
-                        <div class="spinner-border text-secondary" role="status">
-                            <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>
+                    <div class="card-body">
+                        <h5 class="message-title mb-3"></h5>
+                        <div class="message-body rich-text"></div>
+                        <div class="loading text-center mt-4">
+                            <div class="spinner-border text-secondary" role="status">
+                                <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>

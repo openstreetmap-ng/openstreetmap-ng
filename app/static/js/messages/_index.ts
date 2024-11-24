@@ -7,6 +7,7 @@ const body = document.querySelector("body.messages-index-body")
 if (body) {
     const messages = body.querySelectorAll(".messages-list li.social-action")
     const messagePreview = body.querySelector(".message-preview")
+    const messagePreviewContainer = messagePreview.parentElement
     const messageSender = messagePreview.querySelector(".message-sender")
     const senderAvatar = messageSender.querySelector("img.avatar")
     const senderLink = messageSender.querySelector("a.sender-link")
@@ -39,7 +40,7 @@ if (body) {
         messageTime.innerHTML = ""
         messageTitle.innerHTML = ""
         messageBody.innerHTML = ""
-        messagePreview.classList.remove("d-none")
+        messagePreviewContainer.classList.remove("d-none")
         loadingSpinner.classList.remove("d-none")
 
         // Set show parameter in URL
@@ -85,7 +86,7 @@ if (body) {
     /** Close the message sidebar preview panel */
     const closeMessagePreview = () => {
         console.debug("closeMessagePreview", openMessageId)
-        messagePreview.classList.add("d-none")
+        messagePreviewContainer.classList.add("d-none")
         abortController?.abort()
         abortController = null
         openTarget.classList.remove("active")

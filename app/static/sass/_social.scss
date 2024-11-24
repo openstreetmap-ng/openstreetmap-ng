@@ -64,16 +64,12 @@
 }
 
 .social-list {
-    contain: content;
-
     li:not(:last-child) {
         margin-bottom: 0.625rem;
     }
 }
 
 .social-list-sm {
-    contain: content;
-
     li:not(:last-child) {
         margin-bottom: 0.5rem;
     }
