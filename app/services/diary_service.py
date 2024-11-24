@@ -1,7 +1,7 @@
 import logging
 
 from shapely import Point
-from sqlalchemy import delete, or_, update
+from sqlalchemy import delete, select
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
@@ -54,28 +54,27 @@ class DiaryService:
         """
         async with db_commit() as session:
             stmt = (
-                update(Diary)
+                select(Diary)
                 .where(
                     Diary.id == diary_id,
                     Diary.user_id == auth_user(required=True).id,
-                    # prevent unnecessary updates
-                    or_(
-                        Diary.title != title,
-                        Diary.body != body,
-                        Diary.language != language,
-                        Diary.point != point,
-                    ),
                 )
-                .values(
-                    {
-                        Diary.title: title,
-                        Diary.body: body,
-                        Diary.language: language,
-                        Diary.point: point,
-                    }
-                )
+                .with_for_update()
             )
-            await session.execute(stmt)
+            diary = await session.scalar(stmt)
+            if diary is None:
+                return
+            # prevent unnecessary updates
+            if (
+                diary.title != title  #
+                or diary.body != body
+                or diary.language != language
+                or diary.point != point
+            ):
+                diary.title = title
+                diary.body = body
+                diary.language = language
+                diary.point = point
 
     @staticmethod
     async def delete(diary_id: int) -> None:
