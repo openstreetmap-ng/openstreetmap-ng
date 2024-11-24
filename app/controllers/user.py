@@ -30,6 +30,7 @@ from app.models.db.user import User, UserStatus
 from app.models.types import DisplayNameType
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
+from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
@@ -152,6 +153,7 @@ async def index(
 
     diaries_count = await DiaryQuery.count_by_user_id(user.id)
     diaries = await DiaryQuery.find_many_recent(user_id=user.id, limit=USER_RECENT_ACTIVITY_ENTRIES)
+    await DiaryCommentQuery.resolve_num_comments(diaries)
 
     # TODO: groups
     groups_count = 0

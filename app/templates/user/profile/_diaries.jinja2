@@ -20,11 +20,31 @@
             </span>
         </h5>
 
-        <ul class="content-list content-list-sm diary-list diary-list-sm list-unstyled">
+        <ul class="content-list content-list-sm diary-list social-list-sm list-unstyled">
             {% for diary in diaries %}
-            TODO
+            <li class="social-action social-entry">
+                <p class="header text-muted d-flex justify-content-between">
+                    <span>
+                        {{ t('action.posted') | capitalize }}
+                        <time datetime="{{ diary.created_at.isoformat() }}" data-style="long"></time>
+                    </span>
+                    <a class="stretched-link" href="/diary/{{ diary.id }}">{{ diary.id }}</a>
+                </p>
+                <div class="body d-flex justify-content-between">
+                    <div class="title">{{ diary.title }}</div>
+                    {% if diary.num_comments %}
+                    <div class="num-comments">
+                        {{ diary.num_comments -}}
+                        <i class="bi bi-chat-left-text"></i>
+                    </div>
+                    {% else %}
+                    <div class="num-comments no-comments">
+                        0<i class="bi bi-chat-left"></i>
+                    </div>
+                    {% endif %}
+                </div>
+            </li>
             {% endfor %}
-
             {% if diaries_count > USER_RECENT_ACTIVITY_ENTRIES %}
             <li class="view-more">
                 <a class="btn btn-sm btn-light border" href="/user/{{ profile.display_name }}/diary">

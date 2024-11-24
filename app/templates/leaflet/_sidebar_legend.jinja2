@@ -66,7 +66,7 @@
             <tbody>
                 {% for zoom, icon, translation in config %}
                 <tr data-zoom="{{ zoom }}">
-                    <td><img src="/static/img/legend/standard/{{ icon }}.webp" loading="lazy"></td>
+                    <td><img src="/static/img/legend/standard/{{ icon }}.webp" draggable="false" loading="lazy"></td>
                     <td>{{ t('site.key.table.entry.' + translation) }}</td>
                 </tr>
                 {% endfor %}
@@ -106,7 +106,7 @@
             <tbody>
                 {% for zoom, icon, translation in config %}
                 <tr data-zoom="{{ zoom }}">
-                    <td><img src="/static/img/legend/cyclemap/{{ icon }}.webp" loading="lazy"></td>
+                    <td><img src="/static/img/legend/cyclemap/{{ icon }}.webp" draggable="false" loading="lazy"></td>
                     <td>{{ t('site.key.table.entry.' + translation) }}</td>
                 </tr>
                 {% endfor %}

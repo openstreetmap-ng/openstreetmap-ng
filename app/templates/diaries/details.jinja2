@@ -1,23 +1,42 @@
 {% extends '_base.jinja2' %}
-{% block heading %}
-{% if active_tab == 3 %}
-{{ t('diary_entries.index.my_diary') }}
-{% elif active_tab == 4 %}
-{{ t('diary_entries.index.user_title', user=profile.display_name) }}
-{% endif %}
+{% block title_prefix %}
+{{ t('diary_entries.index.user_title', user=profile.display_name) }} | {{ diary.title | truncate(80) }} |
 {% endblock %}
-{% block title_prefix %}{{ self.heading() }} | {% endblock %}
 {% block body_class %}diary-details-body{% endblock %}
 {% block body %}
 
 <div class="content-header pb-0">
     <div class="col-6 offset-3">
         <div class="row mb-3">
-            <div class="col-auto align-content-center">
+            <div class="col-auto">
                 <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
             </div>
-            <div class="col align-content-center">
-                <h1 class="mb-0">{{ self.heading() }}</h1>
+            <div class="col">
+                <h2>{{ diary.title }}</h2>
+                <p class="small mb-0">
+                    {% set link_user -%}
+                    <a href="/user/{{ diary.user.display_name }}" rel="author">{{ diary.user.display_name }}</a>
+                    {%- endset %}
+                    {% set created -%}
+                    <time datetime="{{ diary.created_at.isoformat() }}" data-date="long" data-time="short"></time>
+                    {%- endset %}
+                    {% set language_link -%}
+                    <a href="/diary/{{ diary.language }}">{{ LOCALES_NAMES_MAP[diary.language].display_name }}</a>
+                    {%- endset %}
+                    {{ t('diary_entries.diary_entry.posted_by_html',
+                        link_user=link_user,
+                        created=created,
+                        language_link=language_link,
+                    ) | safe }}
+                </p>
+                {% if diary.updated_at > diary.created_at %}
+                <p class="small text-muted fst-italic mt-2 mb-0">
+                    {% set updated -%}
+                    <time datetime="{{ diary.updated_at.isoformat() }}" data-date="long" data-time="short"></time>
+                    {%- endset %}
+                    {{ t('diary_entries.diary_entry.updated_at_html', updated=updated) | safe }}
+                </p>
+                {% endif %}
             </div>
         </div>
 
@@ -35,15 +54,14 @@
                 </li>
                 {% if user is not none %}
                 <li class="nav-item">
-                    <a href="/user/{{ user.display_name }}/diary" {% if active_tab == 3 %} class="nav-link active"
-                        aria-current="page" {% else %} class="nav-link" {% endif %}>
+                    <a href="/user/{{ user.display_name }}/diary" class="nav-link">
                         {{ t('diary_entries.index.my_diary') }}
                     </a>
                 </li>
                 {% endif %}
                 {% if active_tab == 4 %}
                 <li class="nav-item">
-                    <a href="/user/{{ profile.display_name }}/traces" class="nav-link active" aria-current="page">
+                    <a href="/user/{{ profile.display_name }}/diary" class="nav-link">
                         {{ t('diary_entries.index.user_title', user=profile.display_name) }}
                     </a>
                 </li>
@@ -67,6 +85,7 @@
     <div class="col-6 offset-3">
         <div class="diary-list mb-4">
             {% set entry_hide_avatar = True %}
+            {% set entry_hide_header = True %}
             {% include 'diaries/_entry.jinja2' %}
         </div>
 

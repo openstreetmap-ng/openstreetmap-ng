@@ -25,9 +25,9 @@
             <li class="row g-2">
                 <div class="col-auto">
                     {% if note.closed_at is none %}
-                    <img src="/static/img/marker/open.webp" alt="{{ t('state.unresolved') }}">
+                    <img src="/static/img/marker/open.webp" alt="{{ t('state.unresolved') }}" draggable="false">
                     {% else %}
-                    <img src="/static/img/marker/closed.webp" alt="{{ t('state.resolved') }}">
+                    <img src="/static/img/marker/closed.webp" alt="{{ t('state.resolved') }}" draggable="false">
                     {% endif %}
                 </div>
                 <div class="col">

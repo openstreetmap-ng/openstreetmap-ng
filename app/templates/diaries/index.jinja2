@@ -20,13 +20,13 @@
     <div class="col-6 offset-3">
         <div class="row mb-3">
             {% if _avatar_in_header %}
-            <div class="col-auto align-content-center">
+            <div class="col-auto">
                 <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
             </div>
             {% endif %}
-            <div class="col align-content-center">
+            <div class="col">
                 <h1>{{ self.heading() }}</h1>
-                <p class="mb-0">{{ t('diary.browse_recent_diary_entries') }}</p>
+                <p class="mb-0">{{ t('diary.index.description') }}</p>
             </div>
         </div>
 
@@ -61,7 +61,7 @@
                 {% endif %}
                 {% if active_tab == 4 %}
                 <li class="nav-item">
-                    <a href="/user/{{ profile.display_name }}/traces" class="nav-link active" aria-current="page">
+                    <a href="/user/{{ profile.display_name }}/diary" class="nav-link active" aria-current="page">
                         {{ t('diary_entries.index.user_title', user=profile.display_name) }}
                     </a>
                 </li>

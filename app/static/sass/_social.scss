@@ -108,6 +108,59 @@
     }
 }
 
+.diary-list {
+    .social-action {
+        padding-bottom: 0.45rem;
+
+        .body {
+            padding: 0.375rem 0.3rem;
+        }
+
+        .title {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    }
+
+    img.avatar {
+        font-size: 3em;
+    }
+
+    > article {
+        text-wrap: pretty;
+
+        &:not(:last-child) {
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid $border-color;
+        }
+    }
+
+    .diary-location {
+        i.bi {
+            margin-right: 0.3rem;
+            font-size: 0.875em;
+        }
+    }
+
+    .num-comments {
+        white-space: nowrap;
+        font-size: 0.875em;
+        margin: 0.125rem 0.25rem 0;
+
+        .bi {
+            margin-left: 0.3rem;
+            font-size: 0.9em;
+        }
+    }
+
+    .no-comments {
+        color: $gray-500;
+    }
+}
+
 .notes-list {
     img {
         width: 1.625em;
