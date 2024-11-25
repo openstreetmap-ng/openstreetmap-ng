@@ -18,7 +18,8 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
 
         const minimaps: L.Map[] = []
         const sidebar = control.sidebar
-        const layerContainers = sidebar.querySelectorAll("div.layer")
+        const layerContainers = sidebar.querySelectorAll("div.base.layer")
+        const overlayContainers = sidebar.querySelectorAll("div.overlay.layer")
         const overlayCheckboxes = sidebar.querySelectorAll("input.overlay")
         const layerIdOverlayCheckboxMap: Map<LayerId, HTMLInputElement> = new Map()
         for (const overlayCheckbox of overlayCheckboxes) {
@@ -29,9 +30,9 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
         const ensureMinimapsInitialized = (): void => {
             if (minimaps.length) return
 
-            for (const container of layerContainers) {
+            for (const container of [...layerContainers, ...overlayContainers]) {
                 const layerId = container.dataset.layerId as LayerId
-                const layer = getBaseLayerById(layerId)
+                const layer: L.TileLayer = getBaseLayerById(layerId) ?? (getOverlayLayerById(layerId) as L.TileLayer)
                 if (!layer) {
                     console.error("Base layer", layerId, "not found")
                     continue
@@ -200,6 +201,48 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
         }
         for (const layerContainer of layerContainers) {
             layerContainer.addEventListener("click", onBaseLayerClick)
+        }
+
+        const onOverlayLayerClick = (e: Event) => {
+            const layerContainer = e.currentTarget as HTMLElement
+            const layerId = layerContainer.dataset.layerId as LayerId
+            const layer = getOverlayLayerById(layerId)
+            if (!layer) {
+                console.error("Overlay layer", layerId, "not found")
+                return
+            }
+
+            const checked = !layerContainer.classList.contains("active")
+            const containsLayer = map.hasLayer(layer)
+
+            // Skip updates if the layer is already in the correct state
+            layerContainer.classList.toggle("active")
+            if (checked === containsLayer) {
+                console.warn("Overlay layer", layerId, "is already", checked ? "added" : "removed")
+                return
+            }
+
+            // Add or remove the overlay layer
+            if (checked) {
+                console.debug("Adding overlay layer", layerId)
+                map.addLayer(layer)
+
+                // Trigger the overlayadd event
+                // https://leafletjs.com/reference.html#map-overlayadd
+                // https://leafletjs.com/reference.html#layerscontrolevent
+                map.fire("overlayadd", { layer, name: layerId })
+            } else {
+                console.debug("Removing overlay layer", layerId)
+                map.removeLayer(layer)
+
+                // Trigger the overlayremove event
+                // https://leafletjs.com/reference.html#map-overlayremove
+                // https://leafletjs.com/reference.html#layerscontrolevent
+                map.fire("overlayremove", { layer, name: layerId })
+            }
+        }
+        for (const overlayContainer of overlayContainers) {
+            overlayContainer.addEventListener("click", onOverlayLayerClick)
         }
 
         /** On overlay checkbox change, add or remove the overlay layer */

@@ -122,11 +122,14 @@ layerData.set(hotosm, {
     legacyLayerIds: [],
 })
 
+// Overlay layers
+
 const aerial = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
         maxZoom: 20,
         attribution: `${aerialEsriCredit}. ${terms}`,
+        opacity: 0.6,
     },
 )
 layerData.set(aerial, {
@@ -135,7 +138,6 @@ layerData.set(aerial, {
     legacyLayerIds: [],
 })
 
-// Overlay layers
 const gps = L.tileLayer("https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png", {
     maxZoom: 21, // This layer has no zoom limits
     maxNativeZoom: 20,
@@ -190,13 +192,13 @@ layerData.set(focusLayer, {
 })
 
 const baseLayerIdMap: Map<LayerId, L.TileLayer> = new Map()
-for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrackTopo, hotosm, aerial]) {
+for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrackTopo, hotosm]) {
     const data = getLayerData(layer)
     baseLayerIdMap.set(data.layerId, layer)
 }
 
 const overlayLayerIdMap: Map<LayerId, L.Layer> = new Map()
-for (const layer of [gps, dataLayer, changesetLayer, routingLayer, searchLayer, noteLayer, focusLayer]) {
+for (const layer of [gps, dataLayer, changesetLayer, routingLayer, searchLayer, noteLayer, focusLayer, aerial]) {
     const data = getLayerData(layer)
     overlayLayerIdMap.set(data.layerId, layer)
     for (const legacyLayerId of data.legacyLayerIds) {
