@@ -54,6 +54,9 @@ const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
     interpolation: { escapeValue: false },
 })
 
+const aerialEsriCredit =
+    "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community."
+
 // Base layers
 const standardLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -119,6 +122,19 @@ layerData.set(hotosm, {
     legacyLayerIds: [],
 })
 
+const aerial = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    {
+        maxZoom: 20,
+        attribution: `${aerialEsriCredit}. ${terms}`,
+    },
+)
+layerData.set(aerial, {
+    layerId: "aerial" as LayerId,
+    layerCode: "A" as LayerCode,
+    legacyLayerIds: [],
+})
+
 // Overlay layers
 const gps = L.tileLayer("https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png", {
     maxZoom: 21, // This layer has no zoom limits
@@ -174,7 +190,7 @@ layerData.set(focusLayer, {
 })
 
 const baseLayerIdMap: Map<LayerId, L.TileLayer> = new Map()
-for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrackTopo, hotosm]) {
+for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrackTopo, hotosm, aerial]) {
     const data = getLayerData(layer)
     baseLayerIdMap.set(data.layerId, layer)
 }
