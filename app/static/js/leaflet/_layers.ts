@@ -128,7 +128,7 @@ layerData.set(hotosm, {
 const aerial = L.tileLayer(
     "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
-        maxZoom: 20,
+        maxZoom: 21, // This layer supports up to 23
         attribution: aerialEsriCredit,
         opacity: getOverlayOpacity(),
         pane: "overlayPane",
