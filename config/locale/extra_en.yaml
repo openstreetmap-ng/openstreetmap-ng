@@ -3,6 +3,8 @@ editor:
     name: Rapid
   default: Default editor
 map:
+  layers:
+    esri_world_imagery: Esri World Imagery
   overlays:
     title: Map overlays
   data:
@@ -90,6 +92,7 @@ access:
   public: Public
   private: Private
   invite_only: Invite-only
+
 user:
   new: New
   i_am_new_here: I'm new here!

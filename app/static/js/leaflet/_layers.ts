@@ -54,8 +54,9 @@ const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
     interpolation: { escapeValue: false },
 })
 
-const aerialEsriCredit =
-    "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community."
+// https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9
+// https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/0
+const aerialEsriCredit = "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
 
 // Base layers
 const standardLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -123,13 +124,11 @@ layerData.set(hotosm, {
 })
 
 // Overlay layers
-
 const aerial = L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
         maxZoom: 20,
-        attribution: `${aerialEsriCredit}. ${terms}`,
-        opacity: 0.6,
+        attribution: aerialEsriCredit,
     },
 )
 layerData.set(aerial, {

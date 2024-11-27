@@ -20,6 +20,10 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
         const sidebar = control.sidebar
         const layerContainers = sidebar.querySelectorAll("div.base.layer")
         const overlayContainers = sidebar.querySelectorAll("div.overlay.layer")
+        const layerIdOverlayContainerMap: Map<LayerId, HTMLElement> = new Map()
+        for (const overlayContainer of overlayContainers) {
+            layerIdOverlayContainerMap.set(overlayContainer.dataset.layerId as LayerId, overlayContainer)
+        }
         const overlayCheckboxes = sidebar.querySelectorAll("input.overlay")
         const layerIdOverlayCheckboxMap: Map<LayerId, HTMLInputElement> = new Map()
         for (const overlayCheckbox of overlayCheckboxes) {
@@ -32,9 +36,9 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
 
             for (const container of [...layerContainers, ...overlayContainers]) {
                 const layerId = container.dataset.layerId as LayerId
-                const layer: L.TileLayer = getBaseLayerById(layerId) ?? (getOverlayLayerById(layerId) as L.TileLayer)
+                const layer = getBaseLayerById(layerId) ?? (getOverlayLayerById(layerId) as L.TileLayer)
                 if (!layer) {
-                    console.error("Base layer", layerId, "not found")
+                    console.error("Minimap layer", layerId, "not found")
                     continue
                 }
 
@@ -81,8 +85,10 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             }
         })
 
-        // On overlay layer add, check the corresponding checkbox
+        // On overlay layer add, select the corresponding container/checkbox
         map.addEventListener("overlayadd", ({ name }) => {
+            const overlayContainer = layerIdOverlayContainerMap.get(name as LayerId)
+            overlayContainer?.classList.add("active")
             const overlayCheckbox = layerIdOverlayCheckboxMap.get(name as LayerId)
             if (overlayCheckbox && overlayCheckbox.checked !== true) {
                 overlayCheckbox.checked = true
@@ -90,8 +96,10 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             }
         })
 
-        // On overlay layer remove, uncheck the corresponding checkbox
+        // On overlay layer remove, unselect the corresponding container/checkbox
         map.addEventListener("overlayremove", ({ name }) => {
+            const overlayContainer = layerIdOverlayContainerMap.get(name as LayerId)
+            overlayContainer?.classList.remove("active")
             const overlayCheckbox = layerIdOverlayCheckboxMap.get(name as LayerId)
             if (overlayCheckbox && overlayCheckbox.checked !== false) {
                 overlayCheckbox.checked = false

@@ -129,20 +129,20 @@ const setMapLayersCode = (map: L.Map, layersCode?: string): void => {
     // Add missing layers
     for (const layerId of layersIds) {
         const baseLayer = getBaseLayerById(layerId)
-        if (baseLayer) {
-            console.debug("Adding base layer", layerId)
-            map.addLayer(baseLayer)
-
-            // Trigger the baselayerchange event
-            // https://leafletjs.com/reference.html#map-baselayerchange
-            // https://leafletjs.com/reference.html#layerscontrolevent
-            map.fire("baselayerchange", { layer: baseLayer, name: layerId })
-        } else {
-            const overlayLayer = getOverlayLayerById(layerId)
-            console.debug("Adding overlay layer", layerId)
-            map.addLayer(overlayLayer)
-            map.fire("overlayadd", { layer: overlayLayer, name: layerId })
-        }
+        if (!baseLayer) continue
+        console.debug("Adding base layer", layerId)
+        map.addLayer(baseLayer)
+        // Trigger the baselayerchange event
+        // https://leafletjs.com/reference.html#map-baselayerchange
+        // https://leafletjs.com/reference.html#layerscontrolevent
+        map.fire("baselayerchange", { layer: baseLayer, name: layerId })
+    }
+    for (const layerId of layersIds) {
+        const overlayLayer = getOverlayLayerById(layerId)
+        if (!overlayLayer) continue
+        console.debug("Adding overlay layer", layerId)
+        map.addLayer(overlayLayer)
+        map.fire("overlayadd", { layer: overlayLayer, name: layerId })
     }
 }
 
