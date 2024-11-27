@@ -1,6 +1,8 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config"
+import { getOverlayOpacity, setOverlayOpacity } from "../_local-storage"
+import { throttle } from "../_utils"
 import { type LayerId, getBaseLayerById, getLayerData, getOverlayLayerById } from "./_layers"
 import { cloneTileLayer, getMapBaseLayerId } from "./_map-utils"
 import { type SidebarToggleControl, getSidebarToggleButton } from "./_sidebar-toggle-button"
@@ -24,6 +26,8 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
         for (const overlayContainer of overlayContainers) {
             layerIdOverlayContainerMap.set(overlayContainer.dataset.layerId as LayerId, overlayContainer)
         }
+        const overlayOpacityRange = sidebar.querySelector("input.overlay-opacity")
+        overlayOpacityRange.value = (getOverlayOpacity() * 100).toString()
         const overlayCheckboxes = sidebar.querySelectorAll("input.overlay")
         const layerIdOverlayCheckboxMap: Map<LayerId, HTMLInputElement> = new Map()
         for (const overlayCheckbox of overlayCheckboxes) {
@@ -55,7 +59,9 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
                     touchZoom: false,
                 })
 
-                minimap.addLayer(cloneTileLayer(layer))
+                const cloneLayer = cloneTileLayer(layer)
+                cloneLayer.setOpacity(1)
+                minimap.addLayer(cloneLayer)
                 minimaps.push(minimap)
             }
         }
@@ -294,6 +300,19 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
         for (const overlayCheckbox of overlayCheckboxes) {
             overlayCheckbox.addEventListener("change", onOverlayCheckboxChange)
         }
+
+        // On overlay opacity change, update the layer and remember the new value
+        overlayOpacityRange.addEventListener(
+            "input",
+            throttle(({ target }) => {
+                const overlayOpacity = Number.parseFloat((target as HTMLInputElement).value) / 100
+                setOverlayOpacity(overlayOpacity)
+                for (const overlayContainer of overlayContainers) {
+                    const layer = getOverlayLayerById(overlayContainer.dataset.layerId as LayerId) as L.TileLayer
+                    layer.setOpacity(overlayOpacity)
+                }
+            }, 50),
+        )
 
         return container
     }

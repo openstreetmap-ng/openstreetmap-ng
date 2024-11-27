@@ -94,3 +94,12 @@ export const setTagsDiffMode = (state: boolean): void => {
     console.debug("setTagsDiffMode", state)
     localStorage.setItem("tagsDiffMode", state.toString())
 }
+
+/** Get overlay opacity from local storage, in the range [0, 1] */
+export const getOverlayOpacity = (): number => Number.parseFloat(localStorage.getItem("overlayOpacity") ?? "0.6")
+
+/** Set overlay opacity to local storage, in the range [0, 1] */
+export const setOverlayOpacity = (opacity: number): void => {
+    // console.debug("setOverlayOpacity", opacity)
+    localStorage.setItem("overlayOpacity", opacity.toString())
+}

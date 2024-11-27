@@ -53,6 +53,10 @@
                 <label>{{ t('map.layers.esri_world_imagery') }}</label>
                 <div class="leaflet-container"></div>
             </div>
+            <label class="form-label d-flex align-items-center gap-2 mx-1 mb-3">
+                {{ t('map.overlays.opacity') }}:
+                <input class="overlay-opacity form-range" type="range" min="0" max="100" autocomplete="off">
+            </label>
 
             <div class="ms-1">
                 <div class="form-check" data-bs-title="{{ t('javascripts.site.map_notes_zoom_in_tooltip') }}">

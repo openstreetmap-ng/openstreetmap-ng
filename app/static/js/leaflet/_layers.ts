@@ -1,5 +1,6 @@
 import i18next from "i18next"
 import * as L from "leaflet"
+import { getOverlayOpacity } from "../_local-storage"
 
 declare const brandSymbol: unique symbol
 
@@ -129,6 +130,9 @@ const aerial = L.tileLayer(
     {
         maxZoom: 20,
         attribution: aerialEsriCredit,
+        opacity: getOverlayOpacity(),
+        pane: "overlayPane",
+        zIndex: 0,
     },
 )
 layerData.set(aerial, {
