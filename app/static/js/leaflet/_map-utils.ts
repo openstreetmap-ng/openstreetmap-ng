@@ -132,7 +132,6 @@ const setMapLayersCode = (map: L.Map, layersCode?: string): void => {
         if (baseLayer) {
             console.debug("Adding base layer", layerId)
             map.addLayer(baseLayer)
-
             // Trigger the baselayerchange event
             // https://leafletjs.com/reference.html#map-baselayerchange
             // https://leafletjs.com/reference.html#layerscontrolevent

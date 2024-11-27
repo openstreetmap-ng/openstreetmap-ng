@@ -4,54 +4,40 @@
 
             <div class="row g-1 mb-3">
                 <div class="col">
-                    <h2>
-                        {{ t('javascripts.map.layers.header') }}
-                    </h2>
+                    <h2>{{ t('javascripts.map.layers.header') }}</h2>
                 </div>
                 <div class="col-auto">
                     <button class="sidebar-close-btn btn-close" aria-label="{{ t('javascripts.close') }}"></button>
                 </div>
             </div>
 
-            <div class="layer" data-layer-id="standard">
-                <label>
-                    {{ t('javascripts.map.base.standard' )}}
-                </label>
+            <div class="base layer" data-layer-id="standard">
+                <label>{{ t('javascripts.map.base.standard' )}}</label>
                 <div class="leaflet-container"></div>
             </div>
 
-            <div class="layer" data-layer-id="cyclosm">
-                <label>
-                    {{ t('javascripts.map.base.cyclosm' )}}
-                </label>
+            <div class="base layer" data-layer-id="cyclosm">
+                <label>{{ t('javascripts.map.base.cyclosm' )}}</label>
                 <div class="leaflet-container"></div>
             </div>
 
-            <div class="layer" data-layer-id="cyclemap">
-                <label>
-                    {{ t('javascripts.map.base.cycle_map' )}}
-                </label>
+            <div class="base layer" data-layer-id="cyclemap">
+                <label>{{ t('javascripts.map.base.cycle_map' )}}</label>
                 <div class="leaflet-container"></div>
             </div>
 
-            <div class="layer" data-layer-id="transportmap">
-                <label>
-                    {{ t('javascripts.map.base.transport_map' )}}
-                </label>
+            <div class="base layer" data-layer-id="transportmap">
+                <label>{{ t('javascripts.map.base.transport_map' )}}</label>
                 <div class="leaflet-container"></div>
             </div>
 
-            <div class="layer" data-layer-id="tracestracktopo">
-                <label>
-                    {{ t('javascripts.map.base.tracestracktop_topo' )}}
-                </label>
+            <div class="base layer" data-layer-id="tracestracktopo">
+                <label>{{ t('javascripts.map.base.tracestracktop_topo' )}}</label>
                 <div class="leaflet-container"></div>
             </div>
 
-            <div class="layer mb-2" data-layer-id="hot">
-                <label>
-                    {{ t('javascripts.map.base.hot' )}}
-                </label>
+            <div class="base layer mb-2" data-layer-id="hot">
+                <label>{{ t('javascripts.map.base.hot' )}}</label>
                 <div class="leaflet-container"></div>
             </div>
 
@@ -62,6 +48,15 @@
             <p class="text-body-secondary small">
                 {{ t('javascripts.map.layers.overlays') }}
             </p>
+
+            <div class="overlay layer" data-layer-id="aerial">
+                <label>{{ t('map.layers.esri_world_imagery') }}</label>
+                <div class="leaflet-container"></div>
+            </div>
+            <label class="form-label d-flex align-items-center gap-2 mx-1 mb-3">
+                {{ t('map.overlays.opacity') }}:
+                <input class="overlay-opacity form-range" type="range" min="0" max="100" autocomplete="off">
+            </label>
 
             <div class="ms-1">
                 <div class="form-check" data-bs-title="{{ t('javascripts.site.map_notes_zoom_in_tooltip') }}">

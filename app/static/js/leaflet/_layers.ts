@@ -1,5 +1,6 @@
 import i18next from "i18next"
 import * as L from "leaflet"
+import { getOverlayOpacity } from "../_local-storage"
 
 declare const brandSymbol: unique symbol
 
@@ -53,6 +54,10 @@ const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
     osm_france_link: osmFranceLink,
     interpolation: { escapeValue: false },
 })
+
+// https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9
+// https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/0
+const aerialEsriCredit = "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
 
 // Base layers
 const standardLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -120,6 +125,22 @@ layerData.set(hotosm, {
 })
 
 // Overlay layers
+const aerial = L.tileLayer(
+    "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    {
+        maxZoom: 20,
+        attribution: aerialEsriCredit,
+        opacity: getOverlayOpacity(),
+        pane: "overlayPane",
+        zIndex: 0,
+    },
+)
+layerData.set(aerial, {
+    layerId: "aerial" as LayerId,
+    layerCode: "A" as LayerCode,
+    legacyLayerIds: [],
+})
+
 const gps = L.tileLayer("https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png", {
     maxZoom: 21, // This layer has no zoom limits
     maxNativeZoom: 20,
@@ -180,7 +201,7 @@ for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrack
 }
 
 const overlayLayerIdMap: Map<LayerId, L.Layer> = new Map()
-for (const layer of [gps, dataLayer, changesetLayer, routingLayer, searchLayer, noteLayer, focusLayer]) {
+for (const layer of [gps, dataLayer, changesetLayer, routingLayer, searchLayer, noteLayer, focusLayer, aerial]) {
     const data = getLayerData(layer)
     overlayLayerIdMap.set(data.layerId, layer)
     for (const legacyLayerId of data.legacyLayerIds) {

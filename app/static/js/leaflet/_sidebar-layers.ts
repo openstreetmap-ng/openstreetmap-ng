@@ -1,6 +1,8 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config"
+import { getOverlayOpacity, setOverlayOpacity } from "../_local-storage"
+import { throttle } from "../_utils"
 import { type LayerId, getBaseLayerById, getLayerData, getOverlayLayerById } from "./_layers"
 import { cloneTileLayer, getMapBaseLayerId } from "./_map-utils"
 import { type SidebarToggleControl, getSidebarToggleButton } from "./_sidebar-toggle-button"
@@ -18,7 +20,14 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
 
         const minimaps: L.Map[] = []
         const sidebar = control.sidebar
-        const layerContainers = sidebar.querySelectorAll("div.layer")
+        const layerContainers = sidebar.querySelectorAll("div.base.layer")
+        const overlayContainers = sidebar.querySelectorAll("div.overlay.layer")
+        const layerIdOverlayContainerMap: Map<LayerId, HTMLElement> = new Map()
+        for (const overlayContainer of overlayContainers) {
+            layerIdOverlayContainerMap.set(overlayContainer.dataset.layerId as LayerId, overlayContainer)
+        }
+        const overlayOpacityRange = sidebar.querySelector("input.overlay-opacity")
+        overlayOpacityRange.value = (getOverlayOpacity() * 100).toString()
         const overlayCheckboxes = sidebar.querySelectorAll("input.overlay")
         const layerIdOverlayCheckboxMap: Map<LayerId, HTMLInputElement> = new Map()
         for (const overlayCheckbox of overlayCheckboxes) {
@@ -29,11 +38,11 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
         const ensureMinimapsInitialized = (): void => {
             if (minimaps.length) return
 
-            for (const container of layerContainers) {
+            for (const container of [...layerContainers, ...overlayContainers]) {
                 const layerId = container.dataset.layerId as LayerId
-                const layer = getBaseLayerById(layerId)
+                const layer = getBaseLayerById(layerId) ?? (getOverlayLayerById(layerId) as L.TileLayer)
                 if (!layer) {
-                    console.error("Base layer", layerId, "not found")
+                    console.error("Minimap layer", layerId, "not found")
                     continue
                 }
 
@@ -50,7 +59,9 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
                     touchZoom: false,
                 })
 
-                minimap.addLayer(cloneTileLayer(layer))
+                const cloneLayer = cloneTileLayer(layer)
+                cloneLayer.setOpacity(1)
+                minimap.addLayer(cloneLayer)
                 minimaps.push(minimap)
             }
         }
@@ -80,8 +91,10 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             }
         })
 
-        // On overlay layer add, check the corresponding checkbox
+        // On overlay layer add, select the corresponding container/checkbox
         map.addEventListener("overlayadd", ({ name }) => {
+            const overlayContainer = layerIdOverlayContainerMap.get(name as LayerId)
+            overlayContainer?.classList.add("active")
             const overlayCheckbox = layerIdOverlayCheckboxMap.get(name as LayerId)
             if (overlayCheckbox && overlayCheckbox.checked !== true) {
                 overlayCheckbox.checked = true
@@ -89,8 +102,10 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             }
         })
 
-        // On overlay layer remove, uncheck the corresponding checkbox
+        // On overlay layer remove, unselect the corresponding container/checkbox
         map.addEventListener("overlayremove", ({ name }) => {
+            const overlayContainer = layerIdOverlayContainerMap.get(name as LayerId)
+            overlayContainer?.classList.remove("active")
             const overlayCheckbox = layerIdOverlayCheckboxMap.get(name as LayerId)
             if (overlayCheckbox && overlayCheckbox.checked !== false) {
                 overlayCheckbox.checked = false
@@ -202,6 +217,48 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             layerContainer.addEventListener("click", onBaseLayerClick)
         }
 
+        const onOverlayLayerClick = (e: Event) => {
+            const layerContainer = e.currentTarget as HTMLElement
+            const layerId = layerContainer.dataset.layerId as LayerId
+            const layer = getOverlayLayerById(layerId)
+            if (!layer) {
+                console.error("Overlay layer", layerId, "not found")
+                return
+            }
+
+            const checked = !layerContainer.classList.contains("active")
+            const containsLayer = map.hasLayer(layer)
+
+            // Skip updates if the layer is already in the correct state
+            layerContainer.classList.toggle("active")
+            if (checked === containsLayer) {
+                console.warn("Overlay layer", layerId, "is already", checked ? "added" : "removed")
+                return
+            }
+
+            // Add or remove the overlay layer
+            if (checked) {
+                console.debug("Adding overlay layer", layerId)
+                map.addLayer(layer)
+
+                // Trigger the overlayadd event
+                // https://leafletjs.com/reference.html#map-overlayadd
+                // https://leafletjs.com/reference.html#layerscontrolevent
+                map.fire("overlayadd", { layer, name: layerId })
+            } else {
+                console.debug("Removing overlay layer", layerId)
+                map.removeLayer(layer)
+
+                // Trigger the overlayremove event
+                // https://leafletjs.com/reference.html#map-overlayremove
+                // https://leafletjs.com/reference.html#layerscontrolevent
+                map.fire("overlayremove", { layer, name: layerId })
+            }
+        }
+        for (const overlayContainer of overlayContainers) {
+            overlayContainer.addEventListener("click", onOverlayLayerClick)
+        }
+
         /** On overlay checkbox change, add or remove the overlay layer */
         const onOverlayCheckboxChange = (e: Event) => {
             const overlayCheckbox = e.currentTarget as HTMLInputElement
@@ -243,6 +300,19 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
         for (const overlayCheckbox of overlayCheckboxes) {
             overlayCheckbox.addEventListener("change", onOverlayCheckboxChange)
         }
+
+        // On overlay opacity change, update the layer and remember the new value
+        overlayOpacityRange.addEventListener(
+            "input",
+            throttle(({ target }) => {
+                const overlayOpacity = Number.parseFloat((target as HTMLInputElement).value) / 100
+                setOverlayOpacity(overlayOpacity)
+                for (const overlayContainer of overlayContainers) {
+                    const layer = getOverlayLayerById(overlayContainer.dataset.layerId as LayerId) as L.TileLayer
+                    layer.setOpacity(overlayOpacity)
+                }
+            }, 50),
+        )
 
         return container
     }

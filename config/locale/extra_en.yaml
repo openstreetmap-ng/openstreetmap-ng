@@ -3,8 +3,11 @@ editor:
     name: Rapid
   default: Default editor
 map:
+  layers:
+    esri_world_imagery: Esri World Imagery
   overlays:
     title: Map overlays
+    opacity: Opacity
   data:
     display_large_data_warning: |-
       Displaying a large amount of data might slow down your browser.
@@ -90,6 +93,7 @@ access:
   public: Public
   private: Private
   invite_only: Invite-only
+
 user:
   new: New
   i_am_new_here: I'm new here!

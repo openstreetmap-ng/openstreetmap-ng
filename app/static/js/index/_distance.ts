@@ -55,9 +55,10 @@ export const getDistanceController = (map: L.Map): IndexController => {
                 removeMarker(index)
             })
             // On marker drag, update the state
-            marker.addEventListener("drag", () => {
-                throttle(() => update([index]), mapThrottleDelay)
-            })
+            marker.addEventListener(
+                "drag",
+                throttle(() => update([index]), mapThrottleDelay),
+            )
         }
         map.addLayer(marker)
         return marker
