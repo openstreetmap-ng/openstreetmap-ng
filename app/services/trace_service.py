@@ -35,7 +35,7 @@ class TraceService:
         """
         file_size = file.size
         if file_size is None or file_size > TRACE_FILE_UPLOAD_MAX_SIZE:
-            raise_for().input_too_big(file_size or -1)
+            raise_for.input_too_big(file_size or -1)
 
         file_bytes = await file.read()
         segments: list[TraceSegment] = []
@@ -47,7 +47,7 @@ class TraceService:
                 track_num_start = (segments[-1].track_num + 1) if segments else 0
                 segments.extend(FormatGPX.decode_tracks(tracks, track_num_start=track_num_start))
         except Exception as e:
-            raise_for().bad_trace_file(str(e))
+            raise_for.bad_trace_file(str(e))
 
         size = sum(
             len(lib.get_coordinates(np.asarray(segment.points, dtype=object), False, False))  #
@@ -55,7 +55,7 @@ class TraceService:
         )
         logging.debug('Organized %d points into %d segments', size, len(segments))
         if size < 2:
-            raise_for().bad_trace_file('not enough points')
+            raise_for.bad_trace_file('not enough points')
 
         trace = Trace(
             **TraceValidating(
@@ -103,9 +103,9 @@ class TraceService:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
             if trace is None:
-                raise_for().trace_not_found(trace_id)
+                raise_for.trace_not_found(trace_id)
             if trace.user_id != auth_user(required=True).id:
-                raise_for().trace_access_denied(trace_id)
+                raise_for.trace_access_denied(trace_id)
 
             trace.name = name
             trace.description = description
@@ -121,9 +121,9 @@ class TraceService:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
             if trace is None:
-                raise_for().trace_not_found(trace_id)
+                raise_for.trace_not_found(trace_id)
             if trace.user_id != auth_user(required=True).id:
-                raise_for().trace_access_denied(trace_id)
+                raise_for.trace_access_denied(trace_id)
 
             await session.delete(trace)
 

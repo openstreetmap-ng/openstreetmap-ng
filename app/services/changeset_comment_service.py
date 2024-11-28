@@ -22,7 +22,7 @@ class ChangesetCommentService:
             stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()
             changeset = await session.scalar(stmt)
             if changeset is None:
-                raise_for().changeset_not_found(changeset_id)
+                raise_for.changeset_not_found(changeset_id)
             changeset_comment = ChangesetComment(
                 user_id=user_id,
                 changeset_id=changeset_id,
@@ -45,13 +45,13 @@ class ChangesetCommentService:
             comment_stmt = select(ChangesetComment).where(ChangesetComment.id == comment_id)
             comment = await session.scalar(comment_stmt)
             if comment is None:
-                raise_for().changeset_comment_not_found(comment_id)
+                raise_for.changeset_comment_not_found(comment_id)
 
             changeset_id = comment.changeset_id
             changeset_stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()
             changeset = await session.scalar(changeset_stmt)
             if changeset is None:
-                raise_for().changeset_comment_not_found(comment_id)
+                raise_for.changeset_comment_not_found(comment_id)
 
             await session.delete(comment)
             changeset.updated_at = func.statement_timestamp()

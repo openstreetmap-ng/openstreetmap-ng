@@ -13,9 +13,9 @@ class ImageQuery:
         """
         user = await UserQuery.find_one_by_id(user_id)
         if user is None:
-            raise_for().user_not_found(user_id)
+            raise_for.user_not_found(user_id)
         if user.avatar_type != AvatarType.gravatar:
-            raise_for().image_not_found()
+            raise_for.image_not_found()
         return await GRAVATAR_STORAGE.load(user.email)
 
     @staticmethod
@@ -26,7 +26,7 @@ class ImageQuery:
         try:
             return await AVATAR_STORAGE.load(avatar_id)
         except FileNotFoundError:
-            raise_for().image_not_found()
+            raise_for.image_not_found()
 
     @staticmethod
     async def get_background(background_id: StorageKey) -> bytes:
@@ -36,4 +36,4 @@ class ImageQuery:
         try:
             return await BACKGROUND_STORAGE.load(background_id)
         except FileNotFoundError:
-            raise_for().image_not_found()
+            raise_for.image_not_found()

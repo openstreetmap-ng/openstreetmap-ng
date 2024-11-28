@@ -96,7 +96,7 @@ async def permalink(
 ):
     user = await UserQuery.find_one_by_id(user_id)
     if user is None:
-        raise_for().user_not_found(user_id)
+        raise_for.user_not_found(user_id)
     location = f'/user/{user.display_name}{suffix}'
     if query := request.url.query:
         location += f'?{query}'

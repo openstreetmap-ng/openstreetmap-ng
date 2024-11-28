@@ -25,15 +25,15 @@ def xml_body(path: str) -> params.Depends:
 
         for part in parts:
             if not isinstance(data, dict):
-                raise_for().bad_xml(bad_xml_name, bad_xml_message, xml)
+                raise_for.bad_xml(bad_xml_name, bad_xml_message, xml)
 
             data = data.get(part)
             if data is None:
-                raise_for().bad_xml(bad_xml_name, bad_xml_message, xml)
+                raise_for.bad_xml(bad_xml_name, bad_xml_message, xml)
 
         # don't allow empty dicts or lists
         if not data:
-            raise_for().bad_xml(bad_xml_name, bad_xml_message, xml)
+            raise_for.bad_xml(bad_xml_name, bad_xml_message, xml)
 
         return data
 

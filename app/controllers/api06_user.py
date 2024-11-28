@@ -30,7 +30,7 @@ async def get_user(
     user = await UserQuery.find_one_by_id(user_id)
 
     if user is None:
-        raise_for().user_not_found(user_id)
+        raise_for.user_not_found(user_id)
     if False:  # TODO: if user deleted
         return Response(None, status.HTTP_410_GONE)
 

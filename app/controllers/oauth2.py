@@ -129,7 +129,7 @@ async def token(
             client_id, _, client_secret_ = b64decode(param).decode().partition(':')
             client_secret = SecretStr(client_secret_) if client_secret_ else None
     if client_id is None:
-        raise_for().oauth_bad_client_id()
+        raise_for.oauth_bad_client_id()
 
     return await OAuth2TokenService.token(
         client_id=client_id,
@@ -156,7 +156,7 @@ async def introspect(token: Annotated[str, Form(min_length=1)]):
     ):
         token_ = await OAuth2TokenQuery.find_one_authorized_by_token(token)
     if token_ is None:
-        raise_for().oauth_bad_user_token()
+        raise_for.oauth_bad_user_token()
     return {
         'active': True,
         'iss': APP_URL,

@@ -109,7 +109,7 @@ async def update_trace(
     try:
         trace = Format06.decode_gpx_file(data[0])
     except Exception as e:
-        raise_for().bad_xml('trace', str(e))
+        raise_for.bad_xml('trace', str(e))
 
     await TraceService.update(
         trace_id,
@@ -138,7 +138,7 @@ async def trackpoints(
 ):
     geometry = parse_bbox(bbox)
     if geometry.area > TRACE_POINT_QUERY_AREA_MAX_SIZE:
-        raise_for().trace_points_query_area_too_big()
+        raise_for.trace_points_query_area_too_big()
 
     async def public_task():
         with options_context(joinedload(TraceSegment.trace).load_only(Trace.name, Trace.description, Trace.visibility)):

@@ -97,11 +97,11 @@ def parse_bbox(s: str) -> Polygon | MultiPolygon:
         maxx: cython.double = round(float(parts[2].strip()), precision)
         maxy: cython.double = round(float(parts[3].strip()), precision)
     except Exception:
-        raise_for().bad_bbox(s)
+        raise_for.bad_bbox(s)
     if minx > maxx:
-        raise_for().bad_bbox(s, 'min longitude > max longitude')
+        raise_for.bad_bbox(s, 'min longitude > max longitude')
     if miny > maxy:
-        raise_for().bad_bbox(s, 'min latitude > max latitude')
+        raise_for.bad_bbox(s, 'min latitude > max latitude')
 
     # normalize latitude
     miny = max(miny, -90)

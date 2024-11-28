@@ -82,7 +82,7 @@ class SystemAppService:
 
         app_id = SYSTEM_APP_CLIENT_ID_MAP.get(client_id)
         if app_id is None:
-            raise_for().oauth_bad_client_id()
+            raise_for.oauth_bad_client_id()
         app = await OAuth2ApplicationQuery.find_one_by_id(app_id)
         if app is None:
             raise AssertionError(f'{client_id} must be initialized')

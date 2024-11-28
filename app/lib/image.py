@@ -201,7 +201,7 @@ async def _optimize_quality(img: MatLike, max_file_size: int | None) -> tuple[in
             best_img = img_
             break
     else:
-        raise_for().image_too_big()
+        raise_for.image_too_big()
 
     # fine-tune with binary search
     while low <= high:

@@ -105,10 +105,10 @@ def _get_user(require_scopes: SecurityScopes):
                 status_code=status.HTTP_303_SEE_OTHER,
                 headers={'Location': f"/login?{urlencode({'referer': _get_referer()})}"},
             )
-        raise_for().unauthorized(request_basic_auth=True)
+        raise_for.unauthorized(request_basic_auth=True)
     # and have the required scopes
     if missing_scopes := set(require_scopes.scopes).difference(user_scopes):
-        raise_for().insufficient_scopes(missing_scopes)
+        raise_for.insufficient_scopes(missing_scopes)
     return user
 
 

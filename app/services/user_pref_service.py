@@ -48,7 +48,7 @@ class UserPrefService:
         Set multiple user preferences.
         """
         if len(prefs) > USER_PREF_BULK_SET_LIMIT:
-            raise_for().pref_bulk_set_limit_exceeded()
+            raise_for.pref_bulk_set_limit_exceeded()
 
         async with db_commit() as session:
             for pref in prefs:

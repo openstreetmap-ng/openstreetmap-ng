@@ -115,7 +115,7 @@ class OAuth2ApplicationService:
             )
             result = await session.execute(stmt)
             if result.rowcount == 0:
-                raise_for().unauthorized()
+                raise_for.unauthorized()
 
             if revoke_all_authorizations:
                 await session.commit()
@@ -144,7 +144,7 @@ class OAuth2ApplicationService:
             )
             app = await session.scalar(stmt)
             if app is None:
-                raise_for().unauthorized()
+                raise_for.unauthorized()
 
             old_avatar_id = app.avatar_id
             app.avatar_id = avatar_id

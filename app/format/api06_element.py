@@ -119,7 +119,7 @@ class Element06Mixin:
                     element = _decode_element(key, data, changeset_id=changeset_id)
 
                     if element.id > 0:
-                        raise_for().diff_create_bad_id(element)
+                        raise_for.diff_create_bad_id(element)
 
                     result.append(element)
 
@@ -128,7 +128,7 @@ class Element06Mixin:
                     element = _decode_element(key, data, changeset_id=changeset_id)
 
                     if element.version <= 1:
-                        raise_for().diff_update_bad_version(element)
+                        raise_for.diff_update_bad_version(element)
 
                     result.append(element)
 
@@ -144,14 +144,14 @@ class Element06Mixin:
                     element = _decode_element(key, data, changeset_id=changeset_id)
 
                     if element.version <= 1:
-                        raise_for().diff_update_bad_version(element)
+                        raise_for.diff_update_bad_version(element)
                     if delete_if_unused:
                         element.delete_if_unused = True
 
                     result.append(element)
 
             else:
-                raise_for().diff_unsupported_action(action)
+                raise_for.diff_unsupported_action(action)
 
         return result
 

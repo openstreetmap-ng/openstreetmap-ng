@@ -29,7 +29,7 @@ class XMLToDict:
         Parse XML string to dict.
         """
         if (size_limit is not None) and len(xml_bytes) > size_limit:
-            raise_for().input_too_big(len(xml_bytes))
+            raise_for.input_too_big(len(xml_bytes))
         logging.debug('Parsing %s XML string', sizestr(len(xml_bytes)))
         root = ET.fromstring(xml_bytes, parser=_parser)  # noqa: S320
         return {_strip_namespace(root.tag): _parse_element(root)}

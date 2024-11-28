@@ -40,7 +40,7 @@ class TraceFile:
             # get the appropriate processor
             processor = _trace_processors.get(content_type)
             if processor is None:
-                raise_for().trace_file_unsupported_format(content_type)
+                raise_for.trace_file_unsupported_format(content_type)
 
             result = processor.decompress(buffer)
 
@@ -52,7 +52,7 @@ class TraceFile:
             buffer = result
 
         # raise on too many layers
-        raise_for().trace_file_archive_too_deep()
+        raise_for.trace_file_archive_too_deep()
 
     @staticmethod
     def compress(buffer: bytes) -> tuple[bytes, str]:
@@ -95,10 +95,10 @@ class _Bzip2Processor(_TraceProcessor):
         try:
             result = bz2.decompress(buffer)
         except (OSError, ValueError):
-            raise_for().trace_file_archive_corrupted(cls.media_type)
+            raise_for.trace_file_archive_corrupted(cls.media_type)
 
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
-            raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+            raise_for.input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 
         logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, sizestr(len(result)))
         return result
@@ -113,10 +113,10 @@ class _GzipProcessor(_TraceProcessor):
         try:
             result = gzip.decompress(buffer)
         except (EOFError, gzip.BadGzipFile):
-            raise_for().trace_file_archive_corrupted(cls.media_type)
+            raise_for.trace_file_archive_corrupted(cls.media_type)
 
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
-            raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+            raise_for.input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 
         logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, sizestr(len(result)))
         return result
@@ -136,14 +136,14 @@ class _TarProcessor(_TraceProcessor):
                 logging.debug('Trace %r archive contains %d files', cls.media_type, len(infos))
 
                 if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
-                    raise_for().trace_file_archive_too_many_files()
+                    raise_for.trace_file_archive_too_many_files()
 
                 # not checking for the total size of the files - there is no compression
                 # the output size will not exceed the input size
                 return tuple(archive.extractfile(info).read() for info in infos)  # pyright: ignore[reportOptionalMemberAccess]
 
         except tarfile.TarError:
-            raise_for().trace_file_archive_corrupted(cls.media_type)
+            raise_for.trace_file_archive_corrupted(cls.media_type)
 
 
 class _XmlProcessor(_TraceProcessor):
@@ -168,7 +168,7 @@ class _ZipProcessor(_TraceProcessor):
                 logging.debug('Trace %r archive contains %d files', cls.media_type, len(infos))
 
                 if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
-                    raise_for().trace_file_archive_too_many_files()
+                    raise_for.trace_file_archive_too_many_files()
 
                 result: list[bytes] = [None] * len(infos)  # pyright: ignore[reportAssignmentType]
                 result_size: cython.int = 0
@@ -178,10 +178,10 @@ class _ZipProcessor(_TraceProcessor):
                     result[i] = file
                     result_size += len(file)
                     if result_size > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
-                        raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+                        raise_for.input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 
         except zipfile.BadZipFile:
-            raise_for().trace_file_archive_corrupted(cls.media_type)
+            raise_for.trace_file_archive_corrupted(cls.media_type)
 
         logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, sizestr(result_size))
         return result
@@ -197,10 +197,10 @@ class _ZstdProcessor(_TraceProcessor):
         try:
             result = ZstdDecompressor().decompress(buffer, allow_extra_data=False)
         except ZstdError:
-            raise_for().trace_file_archive_corrupted(cls.media_type)
+            raise_for.trace_file_archive_corrupted(cls.media_type)
 
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
-            raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+            raise_for.input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 
         logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, sizestr(len(result)))
         return result

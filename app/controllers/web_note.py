@@ -48,7 +48,7 @@ async def create_note_comment(
 async def get_map(bbox: Annotated[str, Query()]):
     geometry = parse_bbox(bbox)
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
-        raise_for().notes_query_area_too_big()
+        raise_for.notes_query_area_too_big()
     notes = await NoteQuery.find_many_by_query(
         geometry=geometry,
         max_closed_days=NOTE_QUERY_DEFAULT_CLOSED,

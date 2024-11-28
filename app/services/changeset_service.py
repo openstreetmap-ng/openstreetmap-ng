@@ -46,11 +46,11 @@ class ChangesetService:
             changeset = await session.scalar(stmt)
 
             if changeset is None:
-                raise_for().changeset_not_found(changeset_id)
+                raise_for.changeset_not_found(changeset_id)
             if changeset.user_id != auth_user(required=True).id:
-                raise_for().changeset_access_denied()
+                raise_for.changeset_access_denied()
             if changeset.closed_at is not None:
-                raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
+                raise_for.changeset_already_closed(changeset_id, changeset.closed_at)
 
             changeset.tags = tags
 
@@ -69,11 +69,11 @@ class ChangesetService:
             changeset = await session.scalar(stmt)
 
             if changeset is None:
-                raise_for().changeset_not_found(changeset_id)
+                raise_for.changeset_not_found(changeset_id)
             if changeset.user_id != auth_user(required=True).id:
-                raise_for().changeset_access_denied()
+                raise_for.changeset_access_denied()
             if changeset.closed_at is not None:
-                raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
+                raise_for.changeset_already_closed(changeset_id, changeset.closed_at)
 
             changeset.closed_at = func.statement_timestamp()
 

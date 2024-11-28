@@ -31,14 +31,14 @@ def validate_geometry(value: dict[str, Any] | T) -> BaseGeometry | T:
         & (coords[:, 1] >= -90)
         & (coords[:, 1] <= 90)
     ):
-        raise_for().bad_geometry_coordinates()
+        raise_for.bad_geometry_coordinates()
 
     # optimized validation for points
     if isinstance(geom, Point):
         if coords.shape != (1, 2):
-            raise_for().bad_geometry()
+            raise_for.bad_geometry()
     elif not geom.is_valid:
-        raise_for().bad_geometry()
+        raise_for.bad_geometry()
 
     return geom
 

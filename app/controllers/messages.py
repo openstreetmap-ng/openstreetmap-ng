@@ -153,20 +153,20 @@ async def new_message(
         with options_context(joinedload(Diary.user).load_only(User.display_name)):
             diary = await DiaryQuery.find_one_by_id(reply_diary)
         if diary is None:
-            raise_for().diary_not_found(reply_diary)
+            raise_for.diary_not_found(reply_diary)
         recipient = diary.user.display_name
         recipient_id = diary.user_id
         subject = f'{t("messages.compose.reply.prefix")}: {diary.title}'
     elif to_id is not None:
         recipient_user = await UserQuery.find_one_by_id(to_id)
         if recipient_user is None:
-            raise_for().user_not_found(to_id)
+            raise_for.user_not_found(to_id)
         recipient = recipient_user.display_name
         recipient_id = to_id
     elif to is not None:
         recipient_user = await UserQuery.find_one_by_display_name(to)
         if recipient_user is None:
-            raise_for().user_not_found(to)
+            raise_for.user_not_found(to)
         recipient = to
         recipient_id = recipient_user.id
     return await render_response(

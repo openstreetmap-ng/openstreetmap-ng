@@ -33,7 +33,7 @@ class MessageQuery:
             stmt = apply_options_context(stmt)
             message = await session.scalar(stmt)
             if message is None:
-                raise_for().message_not_found(message_id)
+                raise_for.message_not_found(message_id)
             return message
 
     @staticmethod

@@ -34,7 +34,7 @@ async def create_element(
 ):
     data = _get_element_data(elements, type)
     if data is None:
-        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type} element.")
+        raise_for.bad_xml(type, f"XML doesn't contain an osm/{type} element.")
 
     data[1]['@id'] = -1  # dynamic id allocation
     data[1]['@version'] = 0
@@ -42,7 +42,7 @@ async def create_element(
     try:
         element = Format06.decode_element(data)
     except Exception as e:
-        raise_for().bad_xml(type, str(e))
+        raise_for.bad_xml(type, str(e))
 
     assigned_ref_map = await OptimisticDiff.run((element,))
     assigned_id = next(iter(assigned_ref_map.values()))[0].id
@@ -58,14 +58,14 @@ async def update_element(
 ):
     data = _get_element_data(elements, type)
     if data is None:
-        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type} element.")
+        raise_for.bad_xml(type, f"XML doesn't contain an osm/{type} element.")
 
     data[1]['@id'] = id
 
     try:
         element = Format06.decode_element(data)
     except Exception as e:
-        raise_for().bad_xml(type, str(e))
+        raise_for.bad_xml(type, str(e))
 
     await OptimisticDiff.run((element,))
     return Response(str(element.version), media_type='text/plain')
@@ -80,7 +80,7 @@ async def delete_element(
 ):
     data = _get_element_data(elements, type)
     if data is None:
-        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type} element.")
+        raise_for.bad_xml(type, f"XML doesn't contain an osm/{type} element.")
 
     data[1]['@id'] = id
     data[1]['@visible'] = False
@@ -88,7 +88,7 @@ async def delete_element(
     try:
         element = Format06.decode_element(data)
     except Exception as e:
-        raise_for().bad_xml(type, str(e))
+        raise_for.bad_xml(type, str(e))
 
     await OptimisticDiff.run((element,))
     return Response(str(element.version), media_type='text/plain')
@@ -142,7 +142,7 @@ async def get_latest(type: ElementType, id: Annotated[ElementId, PositiveInt]):
     elements = await ElementQuery.get_by_refs((ref,), limit=1)
     element = elements[0] if elements else None
     if element is None:
-        raise_for().element_not_found(ref)
+        raise_for.element_not_found(ref)
     if not element.visible:
         return Response(None, status.HTTP_410_GONE)
     return await _encode_element(element)
@@ -160,7 +160,7 @@ async def get_version(
     elements = await ElementQuery.get_by_versioned_refs((ref,), limit=1)
     element = elements[0] if elements else None
     if element is None:
-        raise_for().element_not_found(ref)
+        raise_for.element_not_found(ref)
     return await _encode_element(element)
 
 
@@ -171,7 +171,7 @@ async def get_history(type: ElementType, id: Annotated[ElementId, PositiveInt]):
     ref = ElementRef(type, id)
     elements = await ElementQuery.get_versions_by_ref(ref, limit=None)
     if not elements:
-        raise_for().element_not_found(ref)
+        raise_for.element_not_found(ref)
     return await _encode_elements(elements)
 
 
@@ -189,7 +189,7 @@ async def get_full(type: ElementType, id: Annotated[ElementId, PositiveInt]):
     element = elements[0] if elements else None
 
     if element is None:
-        raise_for().element_not_found(ref)
+        raise_for.element_not_found(ref)
     if not element.visible:
         return Response(None, status.HTTP_410_GONE)
 

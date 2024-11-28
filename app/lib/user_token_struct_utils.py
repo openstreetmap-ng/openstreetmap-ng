@@ -15,7 +15,7 @@ class UserTokenStructUtils:
         try:
             return UserTokenStruct.FromString(urlsafe_b64decode(s))
         except DecodeError:
-            raise_for().bad_user_token_struct()
+            raise_for.bad_user_token_struct()
 
     @staticmethod
     def to_str(u: UserTokenStruct) -> str:

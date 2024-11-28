@@ -603,7 +603,7 @@ class ElementQuery:
         if not nodes:
             return []
         if legacy_nodes_limit and len(nodes) > MAP_QUERY_LEGACY_NODES_LIMIT:
-            raise_for().map_query_nodes_limit_exceeded()
+            raise_for.map_query_nodes_limit_exceeded()
 
         nodes_refs = tuple(ElementRef('node', node.id) for node in nodes)
         result_sequences: list[Iterable[Element]] = [nodes]

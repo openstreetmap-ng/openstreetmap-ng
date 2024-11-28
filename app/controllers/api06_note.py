@@ -96,7 +96,7 @@ async def get_note(
 ):
     notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
     if not notes:
-        raise_for().note_not_found(note_id)
+        raise_for.note_not_found(note_id)
 
     await _resolve_comments_full(notes)
 
@@ -165,7 +165,7 @@ async def get_feed(
     if bbox is not None:
         geometry = parse_bbox(bbox)
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
-            raise_for().notes_query_area_too_big()
+            raise_for.notes_query_area_too_big()
     else:
         geometry = None
 
@@ -222,7 +222,7 @@ async def query_notes1(
 ):
     geometry = parse_bbox(bbox)
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
-        raise_for().notes_query_area_too_big()
+        raise_for.notes_query_area_too_big()
 
     notes = await NoteQuery.find_many_by_query(
         geometry=geometry,
@@ -281,18 +281,18 @@ async def query_notes2(
     if display_name is not None:
         user = await UserQuery.find_one_by_display_name(display_name)
         if user is None:
-            raise_for().user_not_found_bad_request(display_name)
+            raise_for.user_not_found_bad_request(display_name)
     elif user_id is not None:
         user = await UserQuery.find_one_by_id(user_id)
         if user is None:
-            raise_for().user_not_found_bad_request(user_id)
+            raise_for.user_not_found_bad_request(user_id)
     else:
         user = None
 
     if bbox is not None:
         geometry = parse_bbox(bbox)
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
-            raise_for().notes_query_area_too_big()
+            raise_for.notes_query_area_too_big()
     else:
         geometry = None
 

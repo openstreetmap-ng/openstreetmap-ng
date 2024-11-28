@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
+from typing import Any, cast, override
 
 from app.exceptions import Exceptions
 
@@ -18,8 +19,12 @@ def exceptions_context(implementation: Exceptions):
         _context.reset(token)
 
 
-def raise_for() -> Exceptions:
-    """
-    Get the configured exceptions implementation.
-    """
-    return _context.get()
+class _RaiseFor:
+    @override
+    def __getattribute__(self, name: str) -> Any:
+        return getattr(_context.get(), name)
+
+
+raise_for = cast(Exceptions, _RaiseFor())
+
+__all__ = ('raise_for',)

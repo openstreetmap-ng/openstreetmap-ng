@@ -41,7 +41,7 @@ class RequestBodyMiddleware:
                 break
             input_size += chunk_size
             if input_size > REQUEST_BODY_MAX_SIZE:
-                raise_for().input_too_big(input_size)
+                raise_for.input_too_big(input_size)
             buffer.write(chunk)
 
         if input_size > 0:
@@ -53,7 +53,7 @@ class RequestBodyMiddleware:
                 try:
                     body = decompressor(body)
                 except Exception:
-                    raise_for().request_decompression_failed()
+                    raise_for.request_decompression_failed()
 
                 logging.debug(
                     'Request body size: %s -> %s (decompressed; %s)',
@@ -63,7 +63,7 @@ class RequestBodyMiddleware:
                 )
 
                 if len(body) > REQUEST_BODY_MAX_SIZE:
-                    raise_for().input_too_big(len(body))
+                    raise_for.input_too_big(len(body))
             else:
                 logging.debug(
                     'Request body size: %s',

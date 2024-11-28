@@ -21,7 +21,7 @@ router = APIRouter(prefix='/api/0.6')
 async def get_map(bbox: Annotated[str, Query()]):
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
-        raise_for().map_query_area_too_big()
+        raise_for.map_query_area_too_big()
 
     elements = await ElementQuery.find_many_by_geom(
         geometry,

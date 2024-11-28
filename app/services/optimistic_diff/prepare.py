@@ -128,7 +128,7 @@ class OptimisticDiffPrepare:
                 action = 'create'
 
                 if element.id >= 0:
-                    raise_for().diff_create_bad_id(element)
+                    raise_for.diff_create_bad_id(element)
                 if element_ref in self.element_state:
                     raise AssertionError(f'Element {element_ref!r} must not exist in the element state')
 
@@ -138,13 +138,13 @@ class OptimisticDiffPrepare:
                 action = 'modify' if element.visible else 'delete'
                 entry = self.element_state.get(element_ref)
                 if entry is None:
-                    raise_for().element_not_found(element_ref)
+                    raise_for.element_not_found(element_ref)
 
                 prev = entry.current
                 if prev.version + 1 != element.version:
-                    raise_for().element_version_conflict(element, prev.version)
+                    raise_for.element_version_conflict(element, prev.version)
                 if action == 'delete' and not prev.visible:
-                    raise_for().element_already_deleted(element)
+                    raise_for.element_already_deleted(element)
 
             # update references and check if all newly added members are valid
             if element_type != 'node':
@@ -200,7 +200,7 @@ class OptimisticDiffPrepare:
         if len(elements) != refs_len:
             refs.difference_update(ElementRef(element.type, element.id) for element in elements)
             element_ref = next(iter(refs))
-            raise_for().element_not_found(element_ref)
+            raise_for.element_not_found(element_ref)
 
         # if they do, push them to the element state
         self.element_state = {
@@ -245,7 +245,7 @@ class OptimisticDiffPrepare:
         if positive_refs:
             if element.delete_if_unused is True:
                 return False
-            raise_for().element_in_use(element, positive_refs)
+            raise_for.element_in_use(element, positive_refs)
 
         # check if not referenced by database elements
         # logical optimization, only pre-existing elements
@@ -259,7 +259,7 @@ class OptimisticDiffPrepare:
             if used_by:
                 if element.delete_if_unused is True:
                     return False
-                raise_for().element_in_use(element, used_by)
+                raise_for.element_in_use(element, used_by)
 
         # mark for reference check during apply
         self.reference_check_element_refs.add(element_ref)
@@ -316,13 +316,13 @@ class OptimisticDiffPrepare:
             entry = element_state.get(member_ref)
             if entry is None and member_ref == parent_ref:  # self-reference during creation
                 if not parent.visible:
-                    raise_for().element_member_not_found(parent_ref, member_ref)
+                    raise_for.element_member_not_found(parent_ref, member_ref)
                 continue
             if entry is None:
                 notfound.add(member_ref)
                 continue
             if not entry.current.visible:
-                raise_for().element_member_not_found(parent_ref, member_ref)
+                raise_for.element_member_not_found(parent_ref, member_ref)
 
         if notfound:
             self._elements_check_members_remote.append((parent_ref, notfound))
@@ -346,7 +346,7 @@ class OptimisticDiffPrepare:
         # contains a non-visible member, determine the parent ref for a nicer error message
         for parent_ref, member_refs in self._elements_check_members_remote:
             if hidden_ref in member_refs:
-                raise_for().element_member_not_found(parent_ref, hidden_ref)
+                raise_for.element_member_not_found(parent_ref, hidden_ref)
 
     def _push_bbox_info(self, prev: Element | None, element: Element, element_type: ElementType) -> None:
         """
@@ -466,18 +466,18 @@ class OptimisticDiffPrepare:
         # currently, enforce single changeset updates
         changeset_ids: set[int] = {element.changeset_id for element, _ in self._elements}
         if len(changeset_ids) > 1:
-            raise_for().diff_multiple_changesets()
+            raise_for.diff_multiple_changesets()
         changeset_id = next(iter(changeset_ids))
 
         with options_context(joinedload(Changeset.user).load_only(User.roles)):
             self.changeset = changeset = await ChangesetQuery.find_by_id(changeset_id)
 
         if changeset is None:
-            raise_for().changeset_not_found(changeset_id)
+            raise_for.changeset_not_found(changeset_id)
         if changeset.user_id != auth_user(required=True).id:
-            raise_for().changeset_access_denied()
+            raise_for.changeset_access_denied()
         if changeset.closed_at is not None:
-            raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
+            raise_for.changeset_already_closed(changeset_id, changeset.closed_at)
 
     def _update_changeset_size(self) -> None:
         """
@@ -489,7 +489,7 @@ class OptimisticDiffPrepare:
         new_size = changeset.size + len(self.apply_elements)
         logging.debug('Optimistic increasing changeset %d size to %d', changeset.id, new_size)
         if not changeset.set_size(new_size):
-            raise_for().changeset_too_big(new_size)
+            raise_for.changeset_too_big(new_size)
 
     async def _update_changeset_bounds(self) -> None:
         """

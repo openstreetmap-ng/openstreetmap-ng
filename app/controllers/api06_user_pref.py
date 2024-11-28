@@ -34,7 +34,7 @@ async def get_pref(
     pref = await UserPrefQuery.find_one_by_app_key(app_id=None, key=key)
 
     if pref is None:
-        raise_for().pref_not_found(app_id=None, key=key)
+        raise_for.pref_not_found(app_id=None, key=key)
 
     return pref.value
 
@@ -47,7 +47,7 @@ async def update_prefs(
     try:
         prefs = Format06.decode_user_preferences(data.get('preference', ()))
     except Exception as e:
-        raise_for().bad_xml('preferences', str(e))
+        raise_for.bad_xml('preferences', str(e))
 
     await UserPrefService.upsert_many(prefs)
 

@@ -40,7 +40,7 @@ async def create_changeset(
     try:
         tags = Format06.decode_tags_and_validate(data.get('tag', ()))
     except Exception as e:
-        raise_for().bad_xml('changeset', str(e))
+        raise_for.bad_xml('changeset', str(e))
 
     changeset_id = await ChangesetService.create(tags)
     return Response(str(changeset_id), media_type='text/plain')
@@ -56,7 +56,7 @@ async def get_changeset(
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
-        raise_for().changeset_not_found(changeset_id)
+        raise_for.changeset_not_found(changeset_id)
     changesets = (changeset,)
 
     if include_discussion:
@@ -76,7 +76,7 @@ async def download_changeset(
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
-        raise_for().changeset_not_found(changeset_id)
+        raise_for.changeset_not_found(changeset_id)
 
     elements = await ElementQuery.get_by_changeset(changeset_id, sort_by='sequence_id')
     await UserQuery.resolve_elements_users(elements, display_name=True)
@@ -92,7 +92,7 @@ async def update_changeset(
     try:
         tags = Format06.decode_tags_and_validate(data.get('tag', ()))
     except Exception as e:
-        raise_for().bad_xml('changeset', str(e))
+        raise_for.bad_xml('changeset', str(e))
 
     await ChangesetService.update_tags(changeset_id, tags)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
@@ -115,7 +115,7 @@ async def upload_diff(
         # implicitly assume stings are proper types
         elements = Format06.decode_osmchange(data, changeset_id=changeset_id)
     except Exception as e:
-        raise_for().bad_xml('osmChange', str(e))
+        raise_for.bad_xml('osmChange', str(e))
 
     assigned_ref_map = await OptimisticDiff.run(elements)
     return Format06.encode_diff_result(assigned_ref_map)
@@ -170,11 +170,11 @@ async def query_changesets(
     if display_name is not None:
         user = await UserQuery.find_one_by_display_name(display_name)
         if user is None:
-            raise_for().user_not_found_bad_request(display_name)
+            raise_for.user_not_found_bad_request(display_name)
     elif user_id is not None:
         user = await UserQuery.find_one_by_id(user_id)
         if user is None:
-            raise_for().user_not_found_bad_request(user_id)
+            raise_for.user_not_found_bad_request(user_id)
 
     if time is not None:
         time_left, _, time_right = time.partition(',')

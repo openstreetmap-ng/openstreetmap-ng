@@ -69,11 +69,11 @@ class NoteService:
             stmt = select(Note).where(Note.id == note_id, Note.visible_to(user)).with_for_update()
             note = await session.scalar(stmt)
             if note is None:
-                raise_for().note_not_found(note_id)
+                raise_for.note_not_found(note_id)
 
             if event == NoteEvent.closed:
                 if note.closed_at is not None:
-                    raise_for().note_closed(note_id, note.closed_at)
+                    raise_for.note_closed(note_id, note.closed_at)
                 note.closed_at = func.statement_timestamp()
 
             elif event == NoteEvent.reopened:
@@ -83,16 +83,16 @@ class NoteService:
                 # reopen
                 else:
                     if note.closed_at is None:
-                        raise_for().note_open(note_id)
+                        raise_for.note_open(note_id)
                     note.closed_at = None
 
             elif event == NoteEvent.commented:
                 if note.closed_at is not None:
-                    raise_for().note_closed(note_id, note.closed_at)
+                    raise_for.note_closed(note_id, note.closed_at)
 
             elif event == NoteEvent.hidden:
                 if not user.is_moderator:
-                    raise_for().insufficient_scopes((Scope.role_moderator,))
+                    raise_for.insufficient_scopes((Scope.role_moderator,))
                 note.hidden_at = func.statement_timestamp()
 
             else:

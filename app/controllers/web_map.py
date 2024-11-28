@@ -23,7 +23,7 @@ async def get_map(
     logging.warning('Limit is %r', limit)
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
-        raise_for().map_query_area_too_big()
+        raise_for.map_query_area_too_big()
 
     if not limit:
         nodes_limit = MAP_QUERY_LEGACY_NODES_LIMIT

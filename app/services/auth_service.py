@@ -86,7 +86,7 @@ class AuthService:
                     user = await UserQuery.find_one_by_display_name(DisplayNameType(param))
                     scopes = _session_auth_scopes
                     if user is None:
-                        raise_for().user_not_found(param)
+                        raise_for.user_not_found(param)
 
         if user is not None:
             logging.debug('Request authenticated as user %d', user.id)
@@ -114,5 +114,5 @@ class AuthService:
         if token is None:
             return None
         if token.authorized_at is None:
-            raise_for().oauth_bad_user_token()
+            raise_for.oauth_bad_user_token()
         return token

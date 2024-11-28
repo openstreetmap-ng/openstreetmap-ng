@@ -25,9 +25,9 @@ class TraceQuery:
             trace = await session.scalar(stmt)
 
         if trace is None:
-            raise_for().trace_not_found(trace_id)
+            raise_for.trace_not_found(trace_id)
         if not trace.visible_to(*auth_user_scopes()):
-            raise_for().trace_access_denied(trace_id)
+            raise_for.trace_access_denied(trace_id)
 
         return trace
 

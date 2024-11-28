@@ -35,7 +35,7 @@ class UserTokenEmailReplyService:
         """
         token = await UserTokenEmailReplyQuery.find_one_by_reply_address(reply_address)
         if token is None:
-            raise_for().bad_user_token_struct()
+            raise_for.bad_user_token_struct()
         # TODO: if the key is leaked, there is no way to revoke it (possible targeted spam)
         with auth_context(token.user, scopes=()):
             await MessageService.send(token.to_user_id, subject, body)

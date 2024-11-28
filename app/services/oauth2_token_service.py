@@ -53,7 +53,7 @@ class OAuth2TokenService:
         In init=False mode, an authorization code is returned.
         """
         if (code_challenge_method is None) != (code_challenge is None):
-            raise_for().oauth2_bad_code_challenge_params()
+            raise_for.oauth2_bad_code_challenge_params()
 
         with options_context(
             joinedload(OAuth2Application.user).load_only(
@@ -65,15 +65,15 @@ class OAuth2TokenService:
         ):
             app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None or app.is_system_app:
-            raise_for().oauth_bad_client_id()
+            raise_for.oauth_bad_client_id()
         if redirect_uri not in app.redirect_uris:
-            raise_for().oauth_bad_redirect_uri()
+            raise_for.oauth_bad_redirect_uri()
         redirect_uri = Uri(redirect_uri)  # mark as valid
 
         user_id = auth_user(required=True).id
         scopes_set = set(scopes)
         if not scopes_set.issubset(app.scopes):
-            raise_for().oauth_bad_scopes()
+            raise_for.oauth_bad_scopes()
 
         # handle silent authentication
         if init:
@@ -134,13 +134,13 @@ class OAuth2TokenService:
         """
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None or app.is_system_app:
-            raise_for().oauth_bad_client_id()
+            raise_for.oauth_bad_client_id()
         if app.is_confidential and (
             client_secret is None
             or app.client_secret_hashed is None
             or not compare_digest(app.client_secret_hashed, hash_bytes(client_secret.get_secret_value()))
         ):
-            raise_for().oauth_bad_client_secret()
+            raise_for.oauth_bad_client_secret()
 
         authorization_code_hashed = hash_bytes(authorization_code)
         async with db_commit() as session:
@@ -155,23 +155,23 @@ class OAuth2TokenService:
             )
             token = await session.scalar(stmt)
             if token is None:
-                raise_for().oauth_bad_user_token()
+                raise_for.oauth_bad_user_token()
 
             try:
                 # verify redirect_uri
                 if token.redirect_uri != redirect_uri:
-                    raise_for().oauth_bad_redirect_uri()
+                    raise_for.oauth_bad_redirect_uri()
 
                 # verify code_challenge
                 if token.code_challenge_method is None:
                     if verifier is not None:
-                        raise_for().oauth2_challenge_method_not_set()
+                        raise_for.oauth2_challenge_method_not_set()
                 elif token.code_challenge_method == OAuth2CodeChallengeMethod.plain:
                     if token.code_challenge != verifier:
-                        raise_for().oauth2_bad_verifier(token.code_challenge_method)
+                        raise_for.oauth2_bad_verifier(token.code_challenge_method)
                 elif token.code_challenge_method == OAuth2CodeChallengeMethod.S256:
                     if verifier is None or token.code_challenge != hash_s256_code_challenge(verifier):
-                        raise_for().oauth2_bad_verifier(token.code_challenge_method)
+                        raise_for.oauth2_bad_verifier(token.code_challenge_method)
                 else:
                     raise NotImplementedError(  # noqa: TRY301
                         f'Unsupported OAuth2 code challenge method {token.code_challenge_method!r}'

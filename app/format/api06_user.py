@@ -69,7 +69,7 @@ class User06Mixin:
         for pref in prefs:
             key: str = pref['@k']
             if key in seen_keys:
-                raise_for().pref_duplicate_key(key)
+                raise_for.pref_duplicate_key(key)
             seen_keys.add(key)
 
         user_id = auth_user(required=True).id

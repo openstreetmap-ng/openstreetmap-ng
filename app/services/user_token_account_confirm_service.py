@@ -41,7 +41,7 @@ class UserTokenAccountConfirmService:
         """
         token = await UserTokenAccountConfirmQuery.find_one_by_token_struct(token_struct)
         if token is None:
-            raise_for().bad_user_token_struct()
+            raise_for.bad_user_token_struct()
 
         async with db_commit() as session:
             # prevent race conditions
@@ -49,7 +49,7 @@ class UserTokenAccountConfirmService:
 
             delete_stmt = delete(UserTokenAccountConfirm).where(UserTokenAccountConfirm.id == token_struct.id)
             if (await session.execute(delete_stmt)).rowcount != 1:
-                raise_for().bad_user_token_struct()
+                raise_for.bad_user_token_struct()
 
             update_stmt = (
                 update(User)
