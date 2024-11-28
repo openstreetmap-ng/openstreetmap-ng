@@ -104,7 +104,7 @@ class Element06Mixin:
         if isinstance(changes, dict):
             return []
 
-        result = []
+        result: list[Element] = []
         for action, elements_data in changes:
             # skip osmChange attributes
             if action.startswith('@'):

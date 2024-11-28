@@ -24,6 +24,8 @@ from app.queries.element_query import ElementQuery
 
 OSMChangeAction = Literal['create', 'modify', 'delete']
 
+__all__ = ('OSMChangeAction',)
+
 
 class ElementStateEntry:
     __slots__ = ('remote', 'current')

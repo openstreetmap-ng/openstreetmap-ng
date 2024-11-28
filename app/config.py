@@ -72,6 +72,9 @@ RAPID_URL = os.getenv('RAPID_URL', APP_URL).rstrip('/')
 GRAPHHOPPER_API_KEY = os.getenv('GRAPHHOPPER_API_KEY')
 GRAPHHOPPER_URL = os.getenv('GRAPHHOPPER_URL', 'https://graphhopper.com')
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
+OSM_REPLICATION_URL = os.getenv(
+    'OSM_REPLICATION_URL', 'https://osm-planet-eu-central-1.s3.dualstack.eu-central-1.amazonaws.com/planet/replication'
+)
 OSRM_URL = os.getenv('OSRM_URL', 'https://router.project-osrm.org')
 OVERPASS_INTERPRETER_URL = os.getenv('OVERPASS_INTERPRETER_URL', 'https://overpass-api.de/api/interpreter')
 VALHALLA_URL = os.getenv('VALHALLA_URL', 'https://valhalla1.openstreetmap.de')

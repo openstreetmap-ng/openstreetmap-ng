@@ -13,6 +13,7 @@ from app.limits import XML_PARSE_MAX_SIZE
 
 _parser = ET.XMLParser(
     ns_clean=True,
+    recover=True,
     resolve_entities=False,
     remove_comments=True,
     remove_pis=True,
@@ -23,13 +24,12 @@ _parser = ET.XMLParser(
 
 class XMLToDict:
     @staticmethod
-    def parse(xml_bytes: bytes) -> dict[str, Any]:
+    def parse(xml_bytes: bytes, *, size_limit: int | None = XML_PARSE_MAX_SIZE) -> dict[str, Any]:
         """
         Parse XML string to dict.
         """
-        if len(xml_bytes) > XML_PARSE_MAX_SIZE:
+        if (size_limit is not None) and len(xml_bytes) > size_limit:
             raise_for().input_too_big(len(xml_bytes))
-
         logging.debug('Parsing %s XML string', sizestr(len(xml_bytes)))
         root = ET.fromstring(xml_bytes, parser=_parser)  # noqa: S320
         return {_strip_namespace(root.tag): _parse_element(root)}

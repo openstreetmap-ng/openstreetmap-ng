@@ -61,7 +61,7 @@ def planet_worker(args: tuple[int, int, int]) -> None:
             pl.Struct(
                 {
                     'order': pl.UInt16,
-                    'type': pl.String,
+                    'type': pl.Enum(('node', 'way', 'relation')),
                     'id': pl.UInt64,
                     'role': pl.String,
                 }
@@ -79,6 +79,7 @@ def planet_worker(args: tuple[int, int, int]) -> None:
         else:
             input_buffer = f_in.read(to_seek)
 
+    # TODO: xmltodict
     root = ET.fromstring(  # noqa: S320
         input_buffer,
         parser=ET.XMLParser(
@@ -135,13 +136,6 @@ def planet_worker(args: tuple[int, int, int]) -> None:
         else:
             point = None
 
-        if tag == 'node':
-            visible = point is not None
-        elif tag in {'way', 'relation'}:
-            visible = bool(tags_list or members)
-        else:
-            raise NotImplementedError(f'Unsupported element type {tag!r}')
-
         uid = attrib.get('uid')
         if uid is not None:
             user_id = int(uid)
@@ -156,8 +150,8 @@ def planet_worker(args: tuple[int, int, int]) -> None:
                 tag,  # type
                 int(attrib['id']),  # id
                 int(attrib['version']),  # version
-                visible,  # visible
-                orjson.dumps(dict(tags_list)) if tags_list else '{}',  # tags
+                bool(point is not None or tags_list or members),  # visible
+                orjson.dumps(dict(tags_list)).decode() if tags_list else '{}',  # tags
                 point,  # point
                 members,  # members
                 datetime.fromisoformat(attrib['timestamp']),  # created_at  # pyright: ignore[reportArgumentType]
@@ -166,8 +160,8 @@ def planet_worker(args: tuple[int, int, int]) -> None:
             )
         )
 
-    df = pl.DataFrame(data, schema=schema, orient='row')
-    df.write_parquet(get_worker_path(PLANET_PARQUET_PATH, i), compression_level=1, statistics=False)
+    df = pl.DataFrame(data, schema, orient='row')
+    df.write_parquet(get_worker_path(PLANET_PARQUET_PATH, i), compression='lz4', statistics=False)
     gc.collect()
 
 
@@ -213,7 +207,7 @@ def merge_planet_worker_results() -> None:
     created_at_all: list[int] = []
 
     for path in tqdm(paths, desc='Assigning sequence IDs (step 1/2)'):
-        df = pl.read_parquet(path, columns=['created_at'], use_statistics=False)
+        df = pl.read_parquet(path, columns=['created_at'])
         created_at = df.to_series().dt.epoch('s').to_numpy(allow_copy=False)
         created_at_all.extend(created_at)
 
@@ -232,11 +226,11 @@ def merge_planet_worker_results() -> None:
     del created_at_argsort
 
     for path in tqdm(reversed(paths), desc='Assigning next sequence IDs', total=len(paths)):
-        df = pl.read_parquet(path, use_statistics=False)
+        df = pl.read_parquet(path)
 
         sequence_ids = sequence_ids_all[last_sequence_id_index - df.height : last_sequence_id_index]
         last_sequence_id_index -= df.height
-        df = df.with_columns(pl.Series('sequence_id', sequence_ids))
+        df = df.with_columns_seq(pl.Series('sequence_id', sequence_ids))
 
         next_sequence_ids = np.empty(df.height, dtype=np.float64)
 
@@ -246,8 +240,8 @@ def merge_planet_worker_results() -> None:
             type_id_sequence_map[type_id] = sequence_id
 
         next_sequence_ids = np.flip(next_sequence_ids)
-        df = df.with_columns(pl.Series('next_sequence_id', next_sequence_ids, pl.UInt64, nan_to_null=True))
-        df.write_parquet(path, compression_level=1, statistics=False)
+        df = df.with_columns_seq(pl.Series('next_sequence_id', next_sequence_ids, pl.UInt64, nan_to_null=True))
+        df.write_parquet(path, compression='lz4', statistics=False)
 
     # free memory
     del sequence_ids_all
@@ -255,7 +249,13 @@ def merge_planet_worker_results() -> None:
 
     print(f'Merging {len(paths)} worker files')
     lf = pl.scan_parquet(paths)
-    lf.sink_parquet(PLANET_PARQUET_PATH, compression_level=3, row_group_size=50_000, maintain_order=False)
+    lf.sink_parquet(
+        PLANET_PARQUET_PATH,
+        compression_level=3,
+        statistics=False,
+        row_group_size=100_000,
+        maintain_order=False,
+    )
 
     for path in paths:
         path.unlink()
@@ -366,8 +366,8 @@ def notes_worker(args: tuple[int, int, int]) -> None:
             )
         )
 
-    df = pl.DataFrame(data, schema=schema, orient='row')
-    df.write_parquet(get_worker_path(NOTES_PARQUET_PATH, i), compression_level=1, statistics=False)
+    df = pl.DataFrame(data, schema, orient='row')
+    df.write_parquet(get_worker_path(NOTES_PARQUET_PATH, i), compression='lz4', statistics=False)
     gc.collect()
 
 
@@ -413,7 +413,13 @@ def merge_notes_worker_results() -> None:
 
     print(f'Merging {len(paths)} worker files')
     lf = pl.scan_parquet(paths)
-    lf.sink_parquet(NOTES_PARQUET_PATH, compression_level=3, row_group_size=50_000, maintain_order=False)
+    lf.sink_parquet(
+        NOTES_PARQUET_PATH,
+        compression_level=3,
+        statistics=False,
+        row_group_size=100_000,
+        maintain_order=False,
+    )
 
     for path in paths:
         path.unlink()
@@ -428,7 +434,7 @@ def write_changeset_csv() -> None:
         pl.max('created_at').alias('closed_at'),
         pl.len().alias('size'),
     )
-    df = df.with_columns(pl.lit('{}').alias('tags'))
+    df = df.with_columns_seq(pl.lit('{}').alias('tags'))
     df.sink_csv(get_csv_path('changeset'))
 
 
@@ -475,9 +481,7 @@ def write_note_comment_csv() -> None:
     df: pl.LazyFrame = pl.scan_parquet(NOTES_PARQUET_PATH)
     df = df.select('id', 'comments')
     df = df.rename({'id': 'note_id'})
-    df = df.with_columns(
-        pl.lit(None).alias('user_ip'),
-    )
+    df = df.with_columns_seq(pl.lit(None).alias('user_ip'))
     df = df.explode('comments')
     df = df.unnest('comments')
     df = df.drop('display_name')
@@ -497,7 +501,7 @@ def write_user_csv() -> None:
     df = pl.concat((planet_df, notes_df))
     df = df.rename({'user_id': 'id'})
     df = df.unique('id').drop_nulls('id')
-    df = df.with_columns(
+    df = df.with_columns_seq(
         pl.concat_str('id', pl.lit('@localhost.invalid')).alias('email'),
         pl.lit('').alias('password_pb'),
         pl.lit('127.0.0.1').alias('created_ip'),
