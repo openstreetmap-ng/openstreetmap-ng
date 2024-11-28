@@ -119,7 +119,7 @@ class PasswordHash:
             if len(password_bytes) != 64:
                 raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
             hash_string = _hasher_v1.hash(password_bytes)
-            prefix, salt, hash = hash_string.rsplit('$', maxsplit=2)
+            prefix, salt, hash = hash_string.rsplit('$', 2)
             hash = b64decode(hash + '==')
             salt = b64decode(salt + '==')
             if prefix != '$argon2id$v=19$m=8192,t=3,p=4' or len(hash) != 32 or len(salt) != 16:

@@ -4,7 +4,6 @@ from collections.abc import Collection
 from itertools import chain
 from typing import Annotated
 
-import cython
 import numpy as np
 from fastapi import APIRouter, Query
 from shapely import Point, lib
@@ -104,7 +103,6 @@ async def _get_response(
 
     # prepare data for rendering
     renders: list[RenderElementsData] = [None] * len(results)  # pyright: ignore[reportAssignmentType]
-    i: cython.int
     for i, result in enumerate(results):
         element = result.element
         element_members = tuple(members_map[member.type, member.id] for member in element.members)  # pyright: ignore[reportOptionalIterable]

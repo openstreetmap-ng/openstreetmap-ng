@@ -85,7 +85,7 @@ def _parse_accept_language(accept_language: str) -> LocaleCode:
         else:
             lang_normal = normalize_locale(lang)
             if lang_normal is None:
-                lang_prefix = LocaleCode(lang.split('-', maxsplit=1)[0])
+                lang_prefix = LocaleCode(lang.split('-', 1)[0])
                 lang_normal = normalize_locale(lang_prefix)
                 if lang_normal is None:
                     logging.debug('Unsupported accept language %r', lang)

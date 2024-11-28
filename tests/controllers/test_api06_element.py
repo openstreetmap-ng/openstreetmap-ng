@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from typing import Any
 
 from httpx import AsyncClient
@@ -77,7 +76,7 @@ async def test_element_crud(client: AsyncClient):
     # read osmChange
     r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
     assert r.is_success, r.text
-    action: tuple[OSMChangeAction, Sequence[tuple[ElementType, Any]]] = XMLToDict.parse(r.content)['osmChange'][-1]
+    action: tuple[OSMChangeAction, list[tuple[ElementType, Any]]] = XMLToDict.parse(r.content)['osmChange'][-1]
     assert action[0] == 'create'
     assert len(action[1]) == 1
     element = action[1][0]

@@ -437,6 +437,8 @@ yarn.lock
 config/locale/gnu
 config/locale/i18next
 config/locale/postprocess
+scripts/**/*.c
+scripts/**/*.html
 app/**/*.c
 app/**/*.html
 !app/static/**/*.html

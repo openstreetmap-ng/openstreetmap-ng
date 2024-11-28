@@ -49,10 +49,7 @@ class TraceService:
         except Exception as e:
             raise_for.bad_trace_file(str(e))
 
-        size = sum(
-            len(lib.get_coordinates(np.asarray(segment.points, dtype=object), False, False))  #
-            for segment in segments
-        )
+        size = lib.count_coordinates(np.asarray(tuple(segment.points for segment in segments), dtype=object))
         logging.debug('Organized %d points into %d segments', size, len(segments))
         if size < 2:
             raise_for.bad_trace_file('not enough points')
@@ -136,4 +133,4 @@ def _get_file_name(file: UploadFile) -> str:
     If not provided, use the current time as the file name.
     """
     filename = file.filename
-    return filename if (filename is not None) else f'{utcnow().isoformat(timespec='seconds')}.gpx'
+    return filename if (filename is not None) else f'{utcnow().isoformat(timespec="seconds")}.gpx'

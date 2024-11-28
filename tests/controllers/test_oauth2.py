@@ -271,6 +271,6 @@ async def test_access_token_in_form(client: AsyncClient):
         data={'access_token': data['access_token']},
     )
     assert r.is_success, r.text
-    props: dict = XMLToDict.parse(r.content)['osm']['note']
+    props: dict = XMLToDict.parse(r.content)['osm']['note'][0]
     comments: list[dict] = props['comments']['comment']
     assert comments[-1]['user'] == 'user1'

@@ -17,7 +17,7 @@ def standard_pagination_range(
 
     Returns a tuple of (limit, offset).
     """
-    num_pages: cython.int = ceil(num_items / page_size)
+    num_pages: cython.int = int(ceil(num_items / page_size))
     if page < 1 or page > num_pages:
         return 0, 0
 

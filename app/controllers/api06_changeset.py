@@ -1,7 +1,6 @@
 from collections.abc import Sequence
 from typing import Annotated, Literal
 
-import cython
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload, raiseload
@@ -145,8 +144,8 @@ async def query_changesets(
     limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     # treat any non-empty string as True
-    open: cython.char = bool(open_str)
-    closed: cython.char = bool(closed_str)
+    open = bool(open_str)
+    closed = bool(closed_str)
     # small logical optimization
     if open and closed:
         return Format06.encode_changesets(())

@@ -1,10 +1,11 @@
 import gzip
 from asyncio import sleep
-from collections.abc import Sequence
-from dataclasses import asdict, replace
+from collections.abc import Callable
+from copy import replace
+from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import click
 import cython
@@ -51,11 +52,11 @@ class ReplicaState:
 
     @property
     def path(self) -> Path:
-        return _DATA_DIR / f'replica_{int(self.created_at.timestamp()):020}.parquet'
+        return _DATA_DIR.joinpath(f'replica_{int(self.created_at.timestamp()):020}.parquet')
 
     @property
     def bundle_path(self) -> Path:
-        return _DATA_DIR / f'bundle_{int(self.created_at.timestamp()):020}.parquet'
+        return _DATA_DIR.joinpath(f'bundle_{int(self.created_at.timestamp()):020}.parquet')
 
     @staticmethod
     def default() -> 'ReplicaState':
@@ -121,9 +122,11 @@ async def _iterate(state: AppState) -> AppState:
 
 @cython.cfunc
 def _parse_actions(
-    actions: Sequence[tuple[OSMChangeAction, Sequence[tuple[ElementType, dict]]]],
+    actions: list[tuple[OSMChangeAction, list[tuple[ElementType, dict]]]],
     *,
     last_sequence_id: int,
+    # HACK: faster lookup
+    orjson_dumps: Callable[[Any], bytes] = orjson.dumps,
 ) -> tuple[pl.DataFrame, int]:
     data: list[tuple] = []
     schema = {
@@ -148,10 +151,14 @@ def _parse_actions(
         'user_id': pl.UInt64,
         'display_name': pl.String,
     }
+    action: str
+    elements: list[tuple[ElementType, dict]]
     for action, elements in actions:
         # skip osmChange attributes
-        if action.startswith('@'):
+        if action[0] == '@':
             continue
+        element_type: str
+        element: dict
         for element_type, element in elements:
             tags = {tag['@k']: tag['@v'] for tag in element.get('tag', ())}
             point: str | None = None
@@ -160,6 +167,7 @@ def _parse_actions(
                 if (lon := element.get('@lon')) is not None and (lat := element.get('@lat')) is not None:
                     point = compressible_geometry(Point(lon, lat)).wkb_hex
             elif element_type == 'way':
+                member: dict
                 for member in element.get('nd', ()):
                     members.append(
                         {
@@ -170,6 +178,7 @@ def _parse_actions(
                         }
                     )
             elif element_type == 'relation':
+                member: dict
                 for member in element.get('member', ()):
                     members.append(
                         {
@@ -186,7 +195,7 @@ def _parse_actions(
                     element['@id'],  # id
                     element['@version'],  # version
                     bool(point is not None or tags or members),  # visible
-                    orjson.dumps(tags).decode() if tags else '{}',  # tags
+                    orjson_dumps(tags).decode() if tags else '{}',  # tags
                     point,  # point
                     members,  # members
                     element['@timestamp'],  # created_at
@@ -197,22 +206,22 @@ def _parse_actions(
     df = pl.DataFrame(data, schema, orient='row')
     df.sort('created_at', maintain_order=True)
     start_sequence_id = last_sequence_id + 1
-    last_sequence_id = start_sequence_id + len(df) - 1
+    last_sequence_id += len(df)
     sequence_ids = np.arange(start_sequence_id, last_sequence_id + 1, dtype=np.uint64)
     df = df.with_columns_seq(pl.Series('sequence_id', sequence_ids))
     return df, last_sequence_id
 
 
 @cython.cfunc
-def _clean_leftover_data(state: AppState) -> None:
+def _clean_leftover_data(state: AppState):
     if state.last_replica.sequence_number % _FREQUENCY_MERGE_EVERY[state.frequency]:
         return
     for path in _DATA_DIR.glob('replica_*.parquet'):
-        path.unlink(missing_ok=True)
+        path.unlink()
 
 
 @cython.cfunc
-def _bundle_data_if_needed(state: AppState) -> None:
+def _bundle_data_if_needed(state: AppState):
     if state.last_replica.sequence_number % _FREQUENCY_MERGE_EVERY[state.frequency]:
         return
     paths = sorted(_DATA_DIR.glob('replica_*.parquet'))
@@ -235,8 +244,8 @@ async def _increase_frequency(state: AppState) -> AppState:
     new_timedelta = _FREQUENCY_TIMEDELTA[new_frequency]
     frequency_downscale = new_timedelta.total_seconds() / current_timedelta.total_seconds()
 
-    step = 2 << 4
-    new_sequence_number = int(state.last_replica.sequence_number * frequency_downscale)
+    step: cython.int = 2 << 4
+    new_sequence_number: cython.longlong = int(state.last_replica.sequence_number * frequency_downscale)
     direction_forward: bool | None = None
     while True:
         if not step:
@@ -278,8 +287,11 @@ def _get_replication_url(frequency: _Frequency, sequence_number: int | None) -> 
 
 
 @cython.cfunc
-def _parse_replica_state(state: str) -> ReplicaState:
+def _parse_replica_state(state: str):
     data: dict[str, str] = {}
+    line: str
+    key: str
+    val: str
     for line in state.splitlines():
         if not line or line[0] == '#':
             continue
@@ -292,7 +304,7 @@ def _parse_replica_state(state: str) -> ReplicaState:
 
 
 @cython.cfunc
-def _load_app_state() -> AppState:
+def _load_app_state():
     try:
         return AppState(**orjson.loads(_APP_STATE_PATH.read_bytes()))
     except FileNotFoundError:
@@ -304,7 +316,7 @@ def _load_app_state() -> AppState:
 
 
 @cython.cfunc
-def _save_app_state(state: AppState) -> None:
+def _save_app_state(state: AppState):
     _APP_STATE_PATH.write_bytes(orjson.dumps(asdict(state)))
 
 

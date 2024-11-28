@@ -1,10 +1,12 @@
 import gc
 import os
+from collections.abc import Callable
 from datetime import datetime
 from multiprocessing import Pool
 from pathlib import Path
+from typing import Any
 
-import lxml.etree as ET
+import cython
 import numpy as np
 import orjson
 import polars as pl
@@ -14,7 +16,9 @@ from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
 from app.lib.compressible_geometry import compressible_geometry
+from app.lib.xmltodict import XMLToDict
 from app.models.db import *  # noqa: F403
+from app.models.element import ElementType
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
 PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')
@@ -26,11 +30,9 @@ NOTES_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osn.parquet')
 if not NOTES_INPUT_PATH.is_file():
     raise FileNotFoundError(f'Notes data file not found: {PLANET_INPUT_PATH}')
 
-buffering = 32 * (1024 * 1024)  # 32 MB
-read_memory_limit = 2 * (1024 * 1024 * 1024)  # 2 GB => ~50 GB total memory usage
-
-num_workers = os.cpu_count() or 1
-task_read_memory_limit = read_memory_limit // num_workers
+MEMORY_LIMIT = 2 * (1024 * 1024 * 1024)  # 2 GB => ~50 GB total memory usage
+NUM_WORKERS = os.process_cpu_count() or 1
+WORKER_MEMORY_LIMIT = MEMORY_LIMIT // NUM_WORKERS
 
 # freeze all gc objects before starting for improved performance
 gc.collect()
@@ -38,15 +40,22 @@ gc.freeze()
 gc.disable()
 
 
-def get_csv_path(name: str) -> Path:
+@cython.cfunc
+def get_csv_path(name: str):
     return PRELOAD_DIR.joinpath(f'{name}.csv')
 
 
-def get_worker_path(base: Path, i: int) -> Path:
+@cython.cfunc
+def get_worker_path(base: Path, i: int):
     return base.with_suffix(f'{base.suffix}.{i}')
 
 
-def planet_worker(args: tuple[int, int, int]) -> None:
+def planet_worker(
+    args: tuple[int, int, int],
+    *,
+    # HACK: faster lookup
+    orjson_dumps: Callable[[Any], bytes] = orjson.dumps,
+) -> None:
     i, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
     data: list[tuple] = []
     schema = {
@@ -79,87 +88,59 @@ def planet_worker(args: tuple[int, int, int]) -> None:
         else:
             input_buffer = f_in.read(to_seek)
 
-    # TODO: xmltodict
-    root = ET.fromstring(  # noqa: S320
-        input_buffer,
-        parser=ET.XMLParser(
-            ns_clean=True,
-            recover=True,
-            resolve_entities=False,
-            remove_comments=True,
-            remove_pis=True,
-            collect_ids=False,
-            compact=False,
-        ),
-    )
-
+    elements: list[tuple[ElementType, dict]]
+    elements = XMLToDict.parse(input_buffer, size_limit=None)['osm']
     # free memory
     del input_buffer
 
-    for element in root:
-        tag = element.tag
-        attrib = element.attrib
-        if tag not in {'node', 'way', 'relation'}:
+    element_type: str
+    element: dict
+    for element_type, element in elements:
+        if element_type not in {'node', 'way', 'relation'}:
             continue
-
-        tags_list: list[tuple[str, str]] = []
+        tags = {tag['@k']: tag['@v'] for tag in element.get('tag', ())}
+        point: str | None = None
         members: list[dict] = []
-
-        for child in element:
-            child_tag = child.tag
-            child_attrib = child.attrib
-
-            if child_tag == 'tag':
-                tags_list.append((child_attrib['k'], child_attrib['v']))  # pyright: ignore[reportArgumentType]
-            elif child_tag == 'nd':
+        if element_type == 'node':
+            if (lon := element.get('@lon')) is not None and (lat := element.get('@lat')) is not None:
+                point = compressible_geometry(Point(lon, lat)).wkb_hex
+        elif element_type == 'way':
+            member: dict
+            for member in element.get('nd', ()):
                 members.append(
                     {
                         'order': len(members),
                         'type': 'node',
-                        'id': int(child_attrib['ref']),
+                        'id': member['@ref'],
                         'role': '',
                     }
                 )
-            elif child_tag == 'member':
+        elif element_type == 'relation':
+            member: dict
+            for member in element.get('member', ()):
                 members.append(
                     {
                         'order': len(members),
-                        'type': child_attrib['type'],
-                        'id': int(child_attrib['ref']),
-                        'role': child_attrib['role'],
+                        'type': member['@type'],
+                        'id': member['@ref'],
+                        'role': member['@role'],
                     }
                 )
-
-        if tag == 'node' and (lon := attrib.get('lon')) is not None and (lat := attrib.get('lat')) is not None:
-            point = Point(float(lon), float(lat))
-            point = compressible_geometry(point).wkb_hex
-        else:
-            point = None
-
-        uid = attrib.get('uid')
-        if uid is not None:
-            user_id = int(uid)
-            user_display_name = attrib['user']
-        else:
-            user_id = None
-            user_display_name = None
-
         data.append(
             (
-                int(attrib['changeset']),  # changeset_id
-                tag,  # type
-                int(attrib['id']),  # id
-                int(attrib['version']),  # version
-                bool(point is not None or tags_list or members),  # visible
-                orjson.dumps(dict(tags_list)).decode() if tags_list else '{}',  # tags
+                element['@changeset'],  # changeset_id
+                element_type,  # type
+                element['@id'],  # id
+                element['@version'],  # version
+                bool(point is not None or tags or members),  # visible
+                orjson_dumps(tags).decode() if tags else '{}',  # tags
                 point,  # point
                 members,  # members
-                datetime.fromisoformat(attrib['timestamp']),  # created_at  # pyright: ignore[reportArgumentType]
-                user_id,  # user_id
-                user_display_name,  # display_name
+                element['@timestamp'],  # created_at
+                element.get('@uid'),  # user_id
+                element.get('@user'),  # display_name
             )
         )
-
     df = pl.DataFrame(data, schema, orient='row')
     df.write_parquet(get_worker_path(PLANET_PARQUET_PATH, i), compression='lz4', statistics=False)
     gc.collect()
@@ -167,31 +148,27 @@ def planet_worker(args: tuple[int, int, int]) -> None:
 
 def run_planet_workers() -> None:
     input_size = PLANET_INPUT_PATH.stat().st_size
-    num_tasks = input_size // task_read_memory_limit
+    num_tasks = input_size // WORKER_MEMORY_LIMIT
     from_seek_search = (b'  <node', b'  <way', b'  <relation')
-    from_seeks = []
+    from_seeks: list[int] = []
+    print(f'Configuring {num_tasks} tasks (using {NUM_WORKERS} workers)')
 
-    print(f'Configuring {num_tasks} tasks (using {num_workers} workers)')
     with PLANET_INPUT_PATH.open('rb') as f_in:
         for i in range(num_tasks):
             from_seek = (input_size // num_tasks) * i
-
             if i > 0:
                 f_in.seek(from_seek)
                 lookahead = f_in.read(1024 * 1024)  # 1 MB
                 lookahead_finds = (lookahead.find(search) for search in from_seek_search)
                 min_find = min(find for find in lookahead_finds if find > -1)
                 from_seek += min_find
-
             from_seeks.append(from_seek)
 
-    args = []
-    for i in range(num_tasks):
-        from_seek = from_seeks[i]
-        to_seek = from_seeks[i + 1] if i + 1 < num_tasks else input_size
-        args.append((i, from_seek, to_seek))
-
-    with Pool(num_workers) as pool:
+    args: tuple[tuple[int, int, int], ...] = tuple(
+        (i, from_seek, (from_seeks[i + 1] if i + 1 < num_tasks else input_size))
+        for i, from_seek in enumerate(from_seeks)
+    )
+    with Pool(NUM_WORKERS) as pool:
         for _ in tqdm(
             pool.imap_unordered(planet_worker, args),
             desc='Preparing planet data',
@@ -202,7 +179,7 @@ def run_planet_workers() -> None:
 
 def merge_planet_worker_results() -> None:
     input_size = PLANET_INPUT_PATH.stat().st_size
-    num_tasks = input_size // task_read_memory_limit
+    num_tasks = input_size // WORKER_MEMORY_LIMIT
     paths = [get_worker_path(PLANET_PARQUET_PATH, i) for i in range(num_tasks)]
     created_at_all: list[int] = []
 
@@ -234,6 +211,7 @@ def merge_planet_worker_results() -> None:
 
         next_sequence_ids = np.empty(df.height, dtype=np.float64)
 
+        i: cython.int
         for i, (type, id, sequence_id) in enumerate(df.select('type', 'id', 'sequence_id').reverse().iter_rows()):
             type_id = (type, id)
             next_sequence_ids[i] = type_id_sequence_map.get(type_id)
@@ -256,7 +234,6 @@ def merge_planet_worker_results() -> None:
         row_group_size=100_000,
         maintain_order=False,
     )
-
     for path in paths:
         path.unlink()
 
@@ -291,72 +268,45 @@ def notes_worker(args: tuple[int, int, int]) -> None:
         else:
             input_buffer = f_in.read(to_seek)
 
-    root = ET.fromstring(  # noqa: S320
-        input_buffer,
-        parser=ET.XMLParser(
-            ns_clean=True,
-            recover=True,
-            resolve_entities=False,
-            remove_comments=True,
-            remove_pis=True,
-            collect_ids=False,
-            compact=False,
-        ),
-    )
-
+    notes: list[dict]
+    notes = XMLToDict.parse(input_buffer, size_limit=None)['osm-notes']['note']
     # free memory
     del input_buffer
 
-    for element in root:
-        tag = element.tag
-        attrib = element.attrib
-        if tag != 'note':
-            continue
-
-        comments: list[dict] = []
+    note: dict
+    for note in notes:
         note_created_at: datetime | None = None
         note_updated_at: datetime | None = None
         note_closed_at: datetime | None = None
         note_hidden_at: datetime | None = None
-
-        for child in element:
-            child_tag = child.tag
-            child_attrib = child.attrib
-            if child_tag != 'comment':
-                continue
-
-            user_id = child_attrib.get('uid')
-            if user_id is not None:
-                user_id = int(user_id)
-
-            event = child_attrib['action']
-            created_at = datetime.fromisoformat(child_attrib['timestamp'])  # pyright: ignore[reportArgumentType]
+        comments: list[dict] = []
+        comment: dict
+        for comment in note.get('comment', ()):
+            comment_created_at = comment['@timestamp']
             if note_created_at is None:
-                note_created_at = created_at
-            note_updated_at = created_at
+                note_created_at = comment_created_at
+            note_updated_at = comment_created_at
+            event: str = comment['@action']
             if event == 'closed':
-                note_closed_at = created_at
+                note_closed_at = comment_created_at
             elif event == 'hidden':
-                note_hidden_at = created_at
+                note_hidden_at = comment_created_at
             elif event == 'reopened':
                 note_closed_at = None
                 note_hidden_at = None
-
             comments.append(
                 {
-                    'user_id': user_id,
-                    'display_name': child_attrib.get('user'),
+                    'user_id': comment.get('@uid'),
+                    'display_name': comment.get('@user'),
                     'event': event,
-                    'body': child.text or '',
-                    'created_at': created_at,
+                    'body': comment.get('#text', ''),
+                    'created_at': comment_created_at,
                 }
             )
-
-        point = Point(float(attrib['lon']), float(attrib['lat']))
-        point = compressible_geometry(point).wkb_hex
+        point = compressible_geometry(Point(note['@lon'], note['@lat'])).wkb_hex
         data.append(
             (
-                int(attrib['id']),  # note_id
+                note['@id'],  # note_id
                 point,  # point
                 comments,  # comments
                 note_created_at,  # created_at
@@ -373,31 +323,27 @@ def notes_worker(args: tuple[int, int, int]) -> None:
 
 def run_notes_workers() -> None:
     input_size = NOTES_INPUT_PATH.stat().st_size
-    num_tasks = input_size // task_read_memory_limit
+    num_tasks = input_size // WORKER_MEMORY_LIMIT
     from_seek_search = (b'<note',)
     from_seeks = []
 
-    print(f'Configuring {num_tasks} tasks (using {num_workers} workers)')
+    print(f'Configuring {num_tasks} tasks (using {NUM_WORKERS} workers)')
     with NOTES_INPUT_PATH.open('rb') as f_in:
         for i in range(num_tasks):
             from_seek = (input_size // num_tasks) * i
-
             if i > 0:
                 f_in.seek(from_seek)
                 lookahead = f_in.read(1024 * 1024)  # 1 MB
                 lookahead_finds = (lookahead.find(search) for search in from_seek_search)
                 min_find = min(find for find in lookahead_finds if find > -1)
                 from_seek += min_find
-
             from_seeks.append(from_seek)
 
-    args = []
-    for i in range(num_tasks):
-        from_seek = from_seeks[i]
-        to_seek = from_seeks[i + 1] if i + 1 < num_tasks else input_size
-        args.append((i, from_seek, to_seek))
-
-    with Pool(num_workers) as pool:
+    args: tuple[tuple[int, int, int], ...] = tuple(
+        (i, from_seek, (from_seeks[i + 1] if i + 1 < num_tasks else input_size))
+        for i, from_seek in enumerate(from_seeks)
+    )
+    with Pool(NUM_WORKERS) as pool:
         for _ in tqdm(
             pool.imap_unordered(notes_worker, args),
             desc='Preparing notes data',
@@ -408,7 +354,7 @@ def run_notes_workers() -> None:
 
 def merge_notes_worker_results() -> None:
     input_size = NOTES_INPUT_PATH.stat().st_size
-    num_tasks = input_size // task_read_memory_limit
+    num_tasks = input_size // WORKER_MEMORY_LIMIT
     paths = [get_worker_path(NOTES_PARQUET_PATH, i) for i in range(num_tasks)]
 
     print(f'Merging {len(paths)} worker files')
@@ -420,7 +366,6 @@ def merge_notes_worker_results() -> None:
         row_group_size=100_000,
         maintain_order=False,
     )
-
     for path in paths:
         path.unlink()
 

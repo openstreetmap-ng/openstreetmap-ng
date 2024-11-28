@@ -37,7 +37,7 @@ class OSRMQuery:
         data = r.json()
         if not r.is_success:
             if 'message' in data and 'code' in data:
-                raise HTTPException(r.status_code, f'{data['message']} ({data["code"]})')
+                raise HTTPException(r.status_code, f'{data["message"]} ({data["code"]})')
             raise HTTPException(r.status_code, r.text)
 
         leg = cast(OSRMResponse, data)['routes'][0]['legs'][0]
@@ -129,7 +129,7 @@ def _get_step_text(step: OSRMStep, maneuver_id: str) -> str:
         if not params:
             return t(translation_key)
 
-        with_translation_key = f'{translation_key}_with_{'_'.join(with_parts)}'
+        with_translation_key = f'{translation_key}_with_{"_".join(with_parts)}'
         return t(with_translation_key, **params)
 
     return t(f'{translation_key}_without_exit', name=name)  # noqa: INT001

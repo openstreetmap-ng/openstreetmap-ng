@@ -1,7 +1,6 @@
 from asyncio import TaskGroup
 from base64 import urlsafe_b64encode
 
-import cython
 from fastapi import APIRouter
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
@@ -77,7 +76,6 @@ async def get_changeset(id: PositiveInt):
     comment_tag = tags.pop('comment')
 
     params_bounds: list[SharedBounds] = [None] * len(changeset.bounds)  # pyright: ignore[reportAssignmentType]
-    i: cython.int
     for i, cb in enumerate(changeset.bounds):
         bounds = cb.bounds.bounds
         params_bounds[i] = SharedBounds(

@@ -64,11 +64,7 @@ class XMLToDict:
 
         result = ET.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
         logging.debug('Unparsed %s XML string', sizestr(len(result)))
-
-        if raw:
-            return result
-        else:
-            return result.decode()
+        return result if (raw is True) else result.decode()
 
 
 @cython.cfunc
@@ -199,6 +195,7 @@ def _unparse_element(key: str, value: Any) -> tuple[ET._Element, ...]:
 
 # tags that will become tuples (order-preserving): [('tag', ...), ('tag', ...), ...]
 _force_sequence_root = {
+    'bounds',
     'create',
     'modify',
     'delete',
@@ -216,6 +213,7 @@ _force_list = {
     'trkseg',
     'trkpt',
     'preference',
+    'note',
     'comment',
     'gpx_file',
 }
@@ -278,7 +276,7 @@ def _to_string(v: Any) -> str:
 
 @cython.cfunc
 def _strip_namespace(tag: str) -> str:
-    return tag.rpartition('}')[2]
+    return tag.rsplit('}', 1)[-1]
 
 
 class _XAttrCallable(Protocol):

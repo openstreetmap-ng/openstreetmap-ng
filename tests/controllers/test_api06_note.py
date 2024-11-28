@@ -69,7 +69,7 @@ async def test_note_with_xml(client: AsyncClient):
         params={'lon': 0, 'lat': 0, 'text': test_note_with_xml.__qualname__},
     )
     assert r.is_success, r.text
-    props: dict = XMLToDict.parse(r.content)['osm']['note']
+    props: dict = XMLToDict.parse(r.content)['osm']['note'][0]
     assert props['@lon'] == 0
     assert props['@lat'] == 0
     assert int(props['id']) > 0

@@ -99,19 +99,13 @@ let
     (makeScript "cython-build" "python scripts/cython_build.py build_ext --inplace --parallel \"$(nproc --all)\"")
     (makeScript "cython-clean" ''
       rm -rf build/
-      dirs=(
-        app/controllers
-        app/exceptions
-        app/exceptions06
-        app/format
-        app/lib
-        app/middlewares
-        app/responses
-        app/services
-        app/queries
-        app/validators
-      )
-      find "''${dirs[@]}" -type f \( -name '*.c' -o -name '*.html' -o -name '*.so' \) -delete
+      dirs=(app scripts)
+      find "''${dirs[@]}" \
+        -type f \
+        \( -name '*.c' -o -name '*.html' -o -name '*.so' \) \
+        -not \
+        \( -path 'app/static/*' -o -path 'app/templates/*' \) \
+        -delete
     '')
     (makeScript "watch-cython" "exec watchexec -o queue -w app --exts py cython-build")
 

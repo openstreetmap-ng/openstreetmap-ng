@@ -89,7 +89,7 @@ def parse_bbox(s: str) -> Polygon | MultiPolygon:
     >>> parse_bbox('1,2,3,4')
     POLYGON ((1 2, 1 4, 3 4, 3 2, 1 2))
     """
-    parts = s.strip().split(',', maxsplit=3)
+    parts = s.strip().split(',', 3)
     try:
         precision = GEO_COORDINATE_PRECISION
         minx: cython.double = round(float(parts[0].strip()), precision)

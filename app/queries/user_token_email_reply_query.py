@@ -23,7 +23,7 @@ class UserTokenEmailReplyQuery:
         reply_address = parseaddr(reply_address)[1]
 
         try:
-            token_str = reply_address.split('@', maxsplit=1)[0]
+            token_str = reply_address.split('@', 1)[0]
             token_struct = UserTokenStructUtils.from_str(token_str)
         except Exception:
             logging.debug('Invalid reply_address format %r', reply_address)

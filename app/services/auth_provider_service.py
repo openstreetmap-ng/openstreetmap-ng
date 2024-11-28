@@ -147,7 +147,7 @@ class AuthProviderService:
         """
         if not s:
             return None
-        parts = s.encode().split(b'.', maxsplit=1)
+        parts = s.encode().split(b'.', 1)
         if len(parts) != 2:
             return None  # malformed
         buffer_b64, hmac_b64 = parts

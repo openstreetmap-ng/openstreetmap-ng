@@ -43,5 +43,5 @@ def mercator(coords: NDArray[np.float64], width: cython.int, height: cython.int)
 
 
 @cython.cfunc
-def y_sheet(arr: NDArray[np.float64]) -> NDArray[np.float64]:
+def y_sheet(arr: NDArray[np.float64]):
     return np.degrees(np.log(np.tan((np.radians(arr) / 2) + (pi / 4))))

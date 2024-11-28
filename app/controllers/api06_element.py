@@ -3,7 +3,6 @@ from collections.abc import Collection, Iterable, Sequence
 from itertools import chain
 from typing import Annotated
 
-import cython
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 
@@ -230,8 +229,9 @@ async def get_parent_ways(id: Annotated[ElementId, PositiveInt]):
     return await _encode_elements(elements)
 
 
-@cython.cfunc
-def _get_element_data(elements: Iterable[tuple[ElementType, dict]], type: ElementType):
+def _get_element_data(
+    elements: Iterable[tuple[ElementType, dict]], type: ElementType
+) -> tuple[ElementType, dict] | None:
     """
     Get the first element of the given type from the sequence of elements.
     """

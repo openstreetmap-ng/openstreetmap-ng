@@ -30,7 +30,7 @@ def _bun_packages() -> dict[str, str]:
 
 
 _data = _bun_packages()
-ID_VERSION = _data['iD'].rpartition('#')[2]
+ID_VERSION = _data['iD'].rsplit('#', 1)[-1]
 RAPID_VERSION = _data['@rapideditor/rapid']
 logging.info('Packages versions: iD=%s, Rapid=%s', ID_VERSION, RAPID_VERSION)
 del _data

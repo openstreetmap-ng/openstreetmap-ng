@@ -48,7 +48,7 @@ class Search:
             local_max_iterations if (local_max_iterations is not None) else SEARCH_LOCAL_MAX_ITERATIONS
         )
 
-        parts = bbox.strip().split(',', maxsplit=3)
+        parts = bbox.strip().split(',', 3)
         minx: cython.double = float(parts[0])
         miny: cython.double = float(parts[1])
         maxx: cython.double = float(parts[2])
