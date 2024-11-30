@@ -83,6 +83,8 @@ diary:
     language_hint: The primary language of this diary entry.
     select_on_map: Select on map
     remove_location: Remove location
+  user_comments:
+    description: Explore diary comments made by the community.
 comment:
   count_one: "comment"
   count_other: "comments"

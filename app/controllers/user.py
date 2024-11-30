@@ -109,15 +109,12 @@ async def index(
     display_name: Annotated[DisplayNameType, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
-
     if user is None:
-        response = await render_response(
+        return await render_response(
             'user/profile/not_found.jinja2',
             {'name': display_name},
             status=status.HTTP_404_NOT_FOUND,
         )
-        response.status_code = status.HTTP_404_NOT_FOUND
-        return response
 
     await user.resolve_rich_text()
 
@@ -152,6 +149,7 @@ async def index(
     traces_lines = ';'.join(encode_lonlat(trace.coords.tolist(), 0) for trace in traces)
 
     diaries_count = await DiaryQuery.count_by_user_id(user.id)
+    diary_comments_count = await DiaryCommentQuery.count_by_user_id(user.id)
     diaries = await DiaryQuery.find_many_recent(user_id=user.id, limit=USER_RECENT_ACTIVITY_ENTRIES)
     await DiaryCommentQuery.resolve_num_comments(diaries)
 
@@ -177,6 +175,7 @@ async def index(
             'traces': traces,
             'traces_lines': traces_lines,
             'diaries_count': diaries_count,
+            'diary_comments_count': diary_comments_count,
             'diaries': diaries,
             'groups_count': groups_count,
             'groups': groups,

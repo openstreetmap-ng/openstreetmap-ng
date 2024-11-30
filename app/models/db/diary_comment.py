@@ -17,6 +17,7 @@ class DiaryComment(Base.ZID, CreatedAtMixin, RichTextMixin):
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(init=False, lazy='raise', innerjoin=True)
     diary_id: Mapped[int] = mapped_column(ForeignKey(Diary.id), nullable=False)
+    diary: Mapped[Diary] = relationship(init=False, lazy='raise', innerjoin=True)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body_rich_hash: Mapped[bytes | None] = mapped_column(
         LargeBinary(HASH_SIZE),

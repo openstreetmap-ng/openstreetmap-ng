@@ -38,9 +38,7 @@
                     </span>
                 </p>
                 <p class="body">
-                    <span class="fst-italic me-1">
-                        {{ trace.description }}
-                    </span>
+                    <span class="fst-italic me-1">{{ trace.description }}</span>
                     <span>
                         {% for tag in trace.tags %}
                         <a class="hashtag" href="{{ base_url_notag }}/tag/{{ tag }}">#{{ tag }}</a>

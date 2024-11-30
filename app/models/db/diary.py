@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from shapely import Point
 from sqlalchemy import ForeignKey, Index, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -14,11 +12,8 @@ from app.models.db.user import User
 from app.models.geometry import PointType
 from app.models.types import LocaleCode
 
-if TYPE_CHECKING:
-    pass
 
-
-class Diary(Base.ZID, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
+class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     __tablename__ = 'diary'
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 

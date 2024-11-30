@@ -3,9 +3,10 @@
     <ul class="nav flex-column">
         {% for diary in diaries %}
         <li class="nav-item">
-            <a class="nav-link d-flex align-items-center" href="#diary{{ diary.id }}">
+            <a class="nav-link d-flex justify-content-between align-items-center" href="#diary{{ diary.id }}">
                 <span class="title">{{ diary.title }}</span>
-                <span class="badge px-1-5 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}"
+                <span
+                    class="badge ms-1 px-1-5 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}"
                     title="{{ t('diary.number_of_comments') }}">
                     {{ diary.num_comments }}
                 </span>

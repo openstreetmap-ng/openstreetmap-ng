@@ -1,5 +1,5 @@
 {% for comment in comments %}
-<li class="social-entry">
+<li id="comment{{ comment.id }}" class="social-entry">
     <p class="header text-muted">
         <a href="/user/{{ comment.user.display_name }}">
             <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}" loading="lazy">
@@ -8,6 +8,6 @@
         {{ t('action.commented') }}
         <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
     </p>
-    <div class="body">{{ comment.body_rich | safe }}</div>
+    <div class="rich-text body">{{ comment.body_rich | safe }}</div>
 </li>
 {% endfor %}

@@ -12,6 +12,49 @@ from app.models.db.diary_comment import DiaryComment
 
 class DiaryCommentQuery:
     @staticmethod
+    async def count_by_user_id(user_id: int) -> int:
+        """
+        Count diary comments by user id.
+        """
+        async with db() as session:
+            stmt = select(func.count()).select_from(
+                select(text('1'))
+                .where(
+                    DiaryComment.user_id == user_id,
+                )
+                .subquery()
+            )
+            return (await session.execute(stmt)).scalar_one()
+
+    @staticmethod
+    async def find_many_by_user_id(
+        user_id: int,
+        *,
+        before: int | None = None,
+        after: int | None = None,
+        limit: int,
+    ) -> Sequence[DiaryComment]:
+        """
+        Find comments by user id.
+        """
+        async with db() as session:
+            stmt = select(DiaryComment)
+            where_and = [DiaryComment.user_id == user_id]
+
+            if before is not None:
+                where_and.append(DiaryComment.id < before)
+            if after is not None:
+                where_and.append(DiaryComment.id > after)
+
+            stmt = stmt.where(*where_and)
+            order_desc = (after is None) or (before is not None)
+            stmt = stmt.order_by(DiaryComment.id.desc() if order_desc else DiaryComment.id.asc()).limit(limit)
+
+            stmt = apply_options_context(stmt)
+            rows = (await session.scalars(stmt)).all()
+            return rows if order_desc else rows[::-1]
+
+    @staticmethod
     async def get_diary_page(
         diary_id: int,
         *,

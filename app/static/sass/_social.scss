@@ -157,6 +157,16 @@
     }
 }
 
+.diary-user-comments-list {
+    .body {
+        margin-bottom: 0.375rem;
+
+        p:last-child {
+            margin-bottom: unset;
+        }
+    }
+}
+
 .notes-list {
     img {
         width: 1.625em;
