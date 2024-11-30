@@ -64,7 +64,6 @@ The following table outlines the notable features that need to be finished befor
 | Third-Party Authorization | 95% Complete (missing: Facebook) |
 | Email Notification Templates | 20% Complete |
 | Reporting System | Planned |
-| User Diary | 60% Complete |
 | Mobile Responsiveness | 30% Complete |
 | Dark Theme | 30% Complete |
 
