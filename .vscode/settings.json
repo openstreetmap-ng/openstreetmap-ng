@@ -16,11 +16,12 @@
         "➕": true
     },
     "files.exclude": {
+        "**/*.c": true,
+        "**/*.egg-info/": true,
+        "**/*.html": true,
+        "**/*.so": true,
         "**/__pycache__/": true,
         "**/_generated/": true,
-        "*.c": true,
-        "*.html": true,
-        "*.so": true,
         ".direnv/": true,
         ".pytest_cache/": true,
         ".ruff_cache/": true,
@@ -29,7 +30,8 @@
         "app/static/**/*.html": false,
         "app/static/js/bundle-*": true,
         "build/": true,
-        "dist/": true
+        "dist/": true,
+        "node_modules/": true
     },
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,

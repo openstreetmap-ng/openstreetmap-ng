@@ -44,7 +44,7 @@ class ElementRef(NamedTuple):
         ElementRef(type='node', id=123)
         """
         type = element_type(s)
-        id = ElementId(int(s[1:]))
+        id: ElementId = int(s[1:])  # pyright: ignore[reportAssignmentType]
         if id == 0:
             raise ValueError('Element id cannot be 0')
         return cls(type, id)
@@ -75,7 +75,7 @@ class VersionedElementRef(NamedTuple):
         """
         type = element_type(s)
         idx = s.rindex('v')
-        id = ElementId(int(s[1:idx]))
+        id: ElementId = int(s[1:idx])  # pyright: ignore[reportAssignmentType]
         version = int(s[idx + 1 :])
         if id == 0:
             raise ValueError('Element id cannot be 0')
@@ -92,7 +92,7 @@ class VersionedElementRef(NamedTuple):
         VersionedElementRef(type='node', id=123, version=1)
         """
         idx = s.rindex('v')
-        id = ElementId(int(s[:idx]))
+        id: ElementId = int(s[:idx])  # pyright: ignore[reportAssignmentType]
         version = int(s[idx + 1 :])
         if id == 0:
             raise ValueError('Element id cannot be 0')

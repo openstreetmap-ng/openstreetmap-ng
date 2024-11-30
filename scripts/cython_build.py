@@ -24,6 +24,19 @@ dirs = (
     'app/validators',
 )
 
+extra_paths: Iterable[Path] = map(
+    Path,
+    (
+        'app/db.py',
+        'app/utils.py',
+        'app/models/element.py',
+        'app/models/scope.py',
+        'app/models/tags_format.py',
+        'scripts/preload_convert.py',
+        'scripts/replication.py',
+    ),
+)
+
 blacklist: dict[str, set[str]] = {
     'app/services': {
         'email_service.py',
@@ -32,16 +45,6 @@ blacklist: dict[str, set[str]] = {
         '__init__.py',
     },
 }
-
-extra_paths: Iterable[Path] = map(
-    Path,
-    (
-        'app/db.py',
-        'app/utils.py',
-        'scripts/preload_convert.py',
-        'scripts/replication.py',
-    ),
-)
 
 paths = (
     p

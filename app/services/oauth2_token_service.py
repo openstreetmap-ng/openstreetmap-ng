@@ -183,9 +183,10 @@ class OAuth2TokenService:
 
             access_token = buffered_rand_urlsafe(32)
             access_token_hashed = hash_bytes(access_token)
+            authorized_at = utcnow()
 
             token.token_hashed = access_token_hashed
-            token.authorized_at = utcnow()
+            token.authorized_at = authorized_at
             token.redirect_uri = None
             token.code_challenge_method = None
             token.code_challenge = None
@@ -194,7 +195,7 @@ class OAuth2TokenService:
             'access_token': access_token,
             'token_type': 'Bearer',
             'scope': token.scopes_str,
-            'created_at': int(token.authorized_at.timestamp()),
+            'created_at': int(authorized_at.timestamp()),
             # TODO: id_token
         }
 
