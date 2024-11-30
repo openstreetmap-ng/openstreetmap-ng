@@ -1,8 +1,7 @@
 [project]
-# TODO: add aiohttp[speedups] after https://github.com/saghul/pycares/pull/202
 dependencies = [
   "aioboto3",
-  "aiohttp",
+  "aiohttp[speedups]",
   "aiosmtplib",
   "alembic",
   "argon2-cffi",
