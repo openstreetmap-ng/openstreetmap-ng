@@ -67,7 +67,7 @@ async def _get_feed(
 ):
     with options_context(joinedload(Changeset.user).load_only(User.display_name), raiseload(Changeset.bounds)):
         changesets = await ChangesetQuery.find_many_by_query(
-            user_id=user.id if (user is not None) else None,
+            user_ids=(user.id,) if (user is not None) else None,
             geometry=geometry,
             legacy_geometry=True,
             sort='desc',

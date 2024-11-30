@@ -130,7 +130,7 @@ async def index(
     changesets_count = await ChangesetQuery.count_by_user_id(user.id)
     changeset_comments_count = 0  # TODO:
     changesets = await ChangesetQuery.find_many_by_query(
-        user_id=user.id,
+        user_ids=(user.id,),
         sort='desc',
         limit=USER_RECENT_ACTIVITY_ENTRIES,
     )

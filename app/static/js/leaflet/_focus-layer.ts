@@ -139,7 +139,7 @@ export const focusManyMapObjects = (map: L.Map, objects: OSMObject[], options?: 
     return layers
 }
 
-const getLayerBounds = (layer: any): L.LatLngBounds | null => {
+export const getLayerBounds = (layer: any): L.LatLngBounds | null => {
     if (layer.getBounds) {
         return layer.getBounds()
     }

@@ -81,7 +81,7 @@ class ChangesetQuery:
         *,
         changeset_ids: Collection[int] | None = None,
         changeset_id_before: int | None = None,
-        user_id: int | None = None,
+        user_ids: Collection[int] | None = None,
         created_before: datetime | None = None,
         closed_after: datetime | None = None,
         is_open: bool | None = None,
@@ -98,12 +98,16 @@ class ChangesetQuery:
             stmt = apply_options_context(stmt)
             where_and: list = []
 
-            if changeset_ids:
+            if changeset_ids is not None:
+                if not changeset_ids:
+                    return ()
                 where_and.append(Changeset.id.in_(text(','.join(map(str, changeset_ids)))))
             if changeset_id_before is not None:
                 where_and.append(Changeset.id < changeset_id_before)
-            if user_id is not None:
-                where_and.append(Changeset.user_id == user_id)
+            if user_ids is not None:
+                if not user_ids:
+                    return ()
+                where_and.append(Changeset.user_id.in_(text(','.join(map(str, user_ids)))))
             if created_before is not None:
                 where_and.append(Changeset.created_at < created_before)
             if closed_after is not None:

@@ -195,7 +195,7 @@ async def query_changesets(
     with options_context(joinedload(Changeset.user).load_only(User.display_name), raiseload(Changeset.bounds)):
         changesets = await ChangesetQuery.find_many_by_query(
             changeset_ids=changeset_ids,
-            user_id=user.id if (user is not None) else None,
+            user_ids=(user.id,) if (user is not None) else None,
             created_before=created_before,
             closed_after=closed_after,
             is_open=True if open else (False if closed else None),

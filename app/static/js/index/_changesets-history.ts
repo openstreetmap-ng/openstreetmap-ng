@@ -1,10 +1,11 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import i18next from "i18next"
+import i18next, { t } from "i18next"
 import * as L from "leaflet"
 import { resolveDatetime } from "../_datetime"
 import { qsEncode } from "../_qs"
 import { getPageTitle } from "../_title"
 import type { Bounds } from "../_types"
+import { getLayerBounds } from "../leaflet/_focus-layer"
 import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
 import { RenderChangesetsDataSchema, type RenderChangesetsData_Changeset } from "../proto/shared_pb"
@@ -34,7 +35,7 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
     const changesetLayer = getOverlayLayerById(changesetsLayerId) as L.FeatureGroup
     const sidebar = getActionSidebar("changesets-history")
     const parentSidebar = sidebar.closest("div.sidebar")
-    const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
+    const sidebarTitleElement = sidebar.querySelector(".sidebar-title")
     const entryTemplate = sidebar.querySelector("template.entry")
     const entryContainer = entryTemplate.parentElement
     const loadingContainer = sidebar.querySelector(".loading")
@@ -43,8 +44,10 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
 
     // Store changesets to allow loading more
     const changesets: RenderChangesetsData_Changeset[] = []
-    let changesetsBBox = ""
+    let changesetsBBox: string | undefined = undefined
     let noMoreChangesets = false
+    let loadScope: string | undefined = undefined
+    let loadDisplayName: string | undefined = undefined
     const idSidebarMap: Map<bigint, HTMLElement> = new Map()
     const idLayersMap: Map<bigint, L.Path[]> = new Map()
 
@@ -142,6 +145,21 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
         changesetLayer.clearLayers()
         changesetLayer.addLayer(L.layerGroup(layers))
         console.debug("Changesets layer showing", layers.length, "changesets")
+
+        // When initial loading for scope/user, focus on the changesets
+        if (!changesetsBBox && layers.length) {
+            let latLngBounds: L.LatLngBounds | null = null
+            for (const layer of layers) {
+                const layerBounds = getLayerBounds(layer)
+                if (layerBounds === null) continue
+                if (!latLngBounds) latLngBounds = layerBounds
+                else latLngBounds.extend(layerBounds)
+            }
+            changesetsBBox = latLngBounds.toBBoxString()
+            const latLngBoundsPadded = latLngBounds.pad(0.3)
+            console.debug("Fitting map to", layers.length, "changesets")
+            map.fitBounds(latLngBoundsPadded, { maxZoom: 16, animate: false })
+        }
     }
 
     /** On layer click, navigate to the changeset */
@@ -193,16 +211,18 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
         const minLat = bounds.getSouth()
         const maxLon = bounds.getEast()
         const maxLat = bounds.getNorth()
-        const bbox = `${minLon},${minLat},${maxLon},${maxLat}`
-        const params: { [key: string]: string } = { bbox }
+        // Request full world when initial loading for scope/user
+        const bbox =
+            !changesetsBBox && (loadScope || loadDisplayName) ? undefined : `${minLon},${minLat},${maxLon},${maxLat}`
+        const params: { [key: string]: string | undefined } = { scope: loadScope, display_name: loadDisplayName, bbox }
 
         if (changesetsBBox === bbox && changesets.length) {
             params.before = changesets[changesets.length - 1].id.toString()
         } else {
             // Clear the changesets if the bbox changed
+            changesets.length = 0
             changesetsBBox = bbox
             noMoreChangesets = false
-            changesets.length = 0
             entryContainer.innerHTML = ""
         }
 
@@ -236,8 +256,8 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch map data", error)
                 changesetLayer.clearLayers()
-                noMoreChangesets = false
                 changesets.length = 0
+                noMoreChangesets = false
             })
             .finally(() => {
                 if (signal.aborted) return
@@ -247,9 +267,29 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
     }
 
     return {
-        load: () => {
+        load: ({ scope, displayName }) => {
             switchActionSidebar(map, "changesets-history")
-            document.title = getPageTitle(sidebarTitle)
+            // TODO: handle scope
+            let sidebarTitleHtml: string
+            let sidebarTitleText: string
+            if (displayName) {
+                const userLink = document.createElement("a")
+                userLink.href = `/user/${displayName}`
+                userLink.textContent = displayName
+                sidebarTitleHtml = t("changesets.index.title_user", {
+                    user: userLink.outerHTML,
+                    interpolation: { escapeValue: false },
+                })
+                sidebarTitleText = t("changesets.index.title_user", { user: displayName })
+            } else if (scope === "nearby") {
+                sidebarTitleText = sidebarTitleHtml = t("changesets.index.title_nearby")
+            } else if (scope === "friends") {
+                sidebarTitleText = sidebarTitleHtml = t("changesets.index.title_friend")
+            } else {
+                sidebarTitleText = sidebarTitleHtml = t("changesets.index.title")
+            }
+            sidebarTitleElement.innerHTML = sidebarTitleHtml
+            document.title = getPageTitle(sidebarTitleText)
 
             // Create the changeset layer if it doesn't exist
             if (!map.hasLayer(changesetLayer)) {
@@ -259,6 +299,8 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
             }
 
             // Listen for events and run initial update
+            loadScope = scope
+            loadDisplayName = displayName
             map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
             onMapZoomOrMoveEnd()
         },
@@ -276,6 +318,7 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
             // Clear the changeset layer
             changesetLayer.clearLayers()
             changesets.length = 0
+            changesetsBBox = undefined
         },
     }
 }
