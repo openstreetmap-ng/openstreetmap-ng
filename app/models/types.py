@@ -24,12 +24,12 @@ Uri = NewType('Uri', str)
 
 
 __all__ = (
-    'Str255',
     'DisplayNameType',
-    'ValidatingDisplayNameType',
     'EmailType',
     'LocaleCode',
     'PasswordType',
     'StorageKey',
+    'Str255',
     'Uri',
+    'ValidatingDisplayNameType',
 )

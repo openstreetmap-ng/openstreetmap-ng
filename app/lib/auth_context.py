@@ -61,7 +61,7 @@ def auth_user(*, required: bool = False) -> User | None:
     Get the authenticated user.
     """
     user = _context.get()[0]
-    if user is None and required is True:
+    if user is None and required:
         raise ValueError('User must be authenticated')
     return user
 
@@ -87,7 +87,6 @@ def web_user() -> User:
     return Security(_get_user, scopes=(Scope.web_user,))
 
 
-@cython.cfunc
 def _get_user(require_scopes: SecurityScopes):
     """
     Get the authenticated user.

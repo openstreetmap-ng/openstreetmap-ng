@@ -73,7 +73,7 @@ class RequestBodyMiddleware:
             body = b''
 
         request._body = body  # update shared instance # noqa: SLF001
-        wrapper_finished: bool = False
+        wrapper_finished: cython.char = False
 
         async def wrapper() -> Message:
             nonlocal wrapper_finished

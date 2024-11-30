@@ -21,7 +21,7 @@ _default = object()
 
 class FormatGPX:
     @staticmethod
-    def encode_track(segments: Iterable[TraceSegment], trace_: Trace | None = _default) -> dict:  # pyright: ignore[reportArgumentType]
+    def encode_track(segments_groups: Iterable[Iterable[TraceSegment]], trace_: Trace | None = _default) -> dict:  # pyright: ignore[reportArgumentType]
         """
         >>> encode_track([
         ...     TraceSegment(...),
@@ -37,7 +37,7 @@ class FormatGPX:
         last_trace_id: cython.int = -1
         last_track_num: cython.int = -1
 
-        for segment in segments:
+        for segment in (s for ss in segments_groups for s in ss):
             trace = segment.trace if trace_is_default else trace_
 
             # if trace is available via api, encode full information
@@ -78,7 +78,7 @@ class FormatGPX:
                 last_track_num = -1
 
             points: list[tuple[float, float]]
-            points = lib.get_coordinates(np.asarray(segment.points, dtype=object), False, False).tolist()
+            points = lib.get_coordinates(np.asarray(segment.points, dtype=np.object_), False, False).tolist()
             capture_times = segment.capture_times
             if capture_times is None:
                 capture_times = []

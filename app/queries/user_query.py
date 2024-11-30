@@ -1,5 +1,5 @@
 from collections import defaultdict
-from collections.abc import Collection, Iterable, Sequence
+from collections.abc import Collection, Sequence
 
 from shapely import Point
 from sqlalchemy import func, null, select, text
@@ -46,10 +46,12 @@ class UserQuery:
             return await session.scalar(stmt)
 
     @staticmethod
-    async def find_many_by_ids(user_ids: Iterable[int]) -> Sequence[User]:
+    async def find_many_by_ids(user_ids: Collection[int]) -> Sequence[User]:
         """
         Find users by ids.
         """
+        if not user_ids:
+            return ()
         async with db() as session:
             stmt = select(User).where(User.id.in_(text(','.join(map(str, user_ids)))))
             stmt = apply_options_context(stmt)
@@ -132,7 +134,7 @@ class UserQuery:
         """
         if not elements:
             return
-        id_elements_map: dict[int, list[Element]] = defaultdict(list)
+        id_elements_map: defaultdict[int, list[Element]] = defaultdict(list)
         for element in elements:
             id_elements_map[element.changeset_id].append(element)
 

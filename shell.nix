@@ -26,7 +26,9 @@ let
     ];
     buildInputs = [ makeWrapper ];
     postBuild = ''
-      wrapProgram "$out/bin/python3.13" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
+      wrapProgram "$out/bin/python3.13" \
+        --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}" \
+        --unset PYTHONPATH
     '';
   };
   watchexec' = makeScript "watchexec" ''
@@ -488,8 +490,6 @@ let
     export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
     export PYTHONNOUSERSITE=1
     export TZ=UTC
-    # Automatically remove old files
-    rm -rfv .python-version typings/app
 
     current_python=$(readlink -e .venv/bin/python || echo "")
     current_python=''${current_python%/bin/*}
@@ -554,6 +554,6 @@ let
   '';
 in
 pkgs.mkShellNoCC {
-  buildInputs = packages';
+  packages = packages';
   shellHook = shell';
 }

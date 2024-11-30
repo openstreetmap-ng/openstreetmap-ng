@@ -80,6 +80,7 @@ def _get_step_text(step: OSRMStep, maneuver_id: str) -> str:
 
     step_name = step['name']
     step_ref = step.get('ref')
+    is_own_name: cython.char
     if step_name and step_ref is not None:
         name = f'{step_name} ({step_ref})'
         is_own_name = True

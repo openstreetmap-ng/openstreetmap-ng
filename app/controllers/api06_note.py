@@ -178,7 +178,7 @@ async def get_feed(
 
     # resolve legacy_note field
     if comments:
-        note_comments_map = defaultdict(list)
+        note_comments_map: defaultdict[int, list[NoteComment]] = defaultdict(list)
         for comment in comments:
             note_comments_map[comment.note_id].append(comment)
         notes_ids = note_comments_map.keys()

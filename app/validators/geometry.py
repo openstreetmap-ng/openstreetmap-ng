@@ -24,7 +24,7 @@ def validate_geometry(value: dict[str, Any] | T) -> BaseGeometry | T:
     Validate a geometry.
     """
     geom: BaseGeometry = shape(value) if isinstance(value, dict) else value
-    coords = lib.get_coordinates(np.asarray(geom, dtype=object), False, False)
+    coords = lib.get_coordinates(np.asarray(geom, dtype=np.object_), False, False)
     if not np.all(
         (coords[:, 0] >= -180)
         & (coords[:, 0] <= 180)  #

@@ -37,7 +37,7 @@ class UnsupportedBrowserMiddleware:
             await self.app(scope, receive, send)
             return
 
-        capture: bool = False
+        capture: cython.char = False
 
         async def wrapper(message: Message) -> None:
             nonlocal capture

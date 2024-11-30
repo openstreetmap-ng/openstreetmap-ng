@@ -159,7 +159,7 @@ def _encode_point_json(point: Point) -> list[float]:
     >>> _encode_point_json(Point(1, 2))
     [1, 2]
     """
-    return lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
+    return lib.get_coordinates(np.asarray(point, dtype=np.object_), False, False)[0].tolist()
 
 
 @cython.cfunc
@@ -168,5 +168,5 @@ def _encode_point_xml(point: Point) -> dict[str, float]:
     >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
-    x, y = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
+    x, y = lib.get_coordinates(np.asarray(point, dtype=np.object_), False, False)[0].tolist()
     return {'@lon': x, '@lat': y}

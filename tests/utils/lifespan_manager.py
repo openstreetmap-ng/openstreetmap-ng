@@ -4,7 +4,7 @@ from starlette.types import ASGIApp, Message
 
 
 class LifespanManager:
-    __slots__ = ('_app', '_task', '_message_queue', '_startup_finished', '_shutdown_finished', '_exc')
+    __slots__ = ('_app', '_exc', '_message_queue', '_shutdown_finished', '_startup_finished', '_task')
 
     def __init__(self, app: ASGIApp) -> None:
         self._app = app

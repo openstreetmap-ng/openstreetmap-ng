@@ -255,7 +255,7 @@ async def _increase_frequency(state: AppState) -> AppState:
         if r.status_code == status.HTTP_404_NOT_FOUND:
             if direction_forward is None:
                 direction_forward = False
-            elif direction_forward is True:
+            elif direction_forward:
                 step >>= 1
             new_sequence_number -= step
             continue
@@ -264,13 +264,13 @@ async def _increase_frequency(state: AppState) -> AppState:
         if new_replica.created_at > current_created_at:  # too late
             if direction_forward is None:
                 direction_forward = False
-            elif direction_forward is True:
+            elif direction_forward:
                 step >>= 1
             new_sequence_number -= step
         elif new_replica.created_at < current_created_at:  # too early
             if direction_forward is None:
                 direction_forward = True
-            elif direction_forward is False:
+            elif not direction_forward:
                 step >>= 1
             new_sequence_number += step
         else:  # found

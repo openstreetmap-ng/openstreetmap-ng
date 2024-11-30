@@ -1,6 +1,5 @@
 import logging
 from asyncio import TaskGroup
-from collections import defaultdict
 from collections.abc import Awaitable, Collection, Iterable, Sequence
 from itertools import chain
 from typing import Literal
@@ -117,18 +116,18 @@ class ElementQuery:
 
     @staticmethod
     async def filter_visible_refs(
-        element_refs: Iterable[ElementRef],
+        element_refs: Collection[ElementRef],
         *,
         at_sequence_id: int | None = None,
     ) -> tuple[ElementRef, ...]:
         """
         Filter the given element refs to only include the visible elements.
         """
-        type_id_map: dict[ElementType, set[ElementId]] = defaultdict(set)
+        if not element_refs:
+            return ()
+        type_id_map: dict[ElementType, set[ElementId]] = {'node': set(), 'way': set(), 'relation': set()}
         for element_ref in element_refs:
             type_id_map[element_ref.type].add(element_ref.id)
-        if not type_id_map:
-            return ()
 
         async with db() as session:
             stmt = select(Element.type, Element.id).where(
@@ -147,6 +146,7 @@ class ElementQuery:
                             Element.id.in_(text(','.join(map(str, ids)))),
                         )
                         for type, ids in type_id_map.items()
+                        if ids
                     )
                 ),
                 Element.visible == true(),
@@ -260,7 +260,7 @@ class ElementQuery:
         """
         if not element_refs:
             return []
-        type_id_map: dict[ElementType, set[ElementId]] = defaultdict(set)
+        type_id_map: dict[ElementType, set[ElementId]] = {'node': set(), 'way': set(), 'relation': set()}
         for element_ref in element_refs:
             type_id_map[element_ref.type].add(element_ref.id)
 
@@ -295,7 +295,11 @@ class ElementQuery:
                 return elements
 
         async with TaskGroup() as tg:
-            tasks = tuple(tg.create_task(task(type, ids)) for type, ids in type_id_map.items())
+            tasks = tuple(
+                tg.create_task(task(type, ids))  #
+                for type, ids in type_id_map.items()
+                if ids
+            )
 
         # remove duplicates
         result_set: set[int] = set()
@@ -383,7 +387,7 @@ class ElementQuery:
         """
         if not member_refs:
             return ()
-        type_id_map: dict[ElementType, list[ElementId]] = defaultdict(list)
+        type_id_map: dict[ElementType, list[ElementId]] = {'node': [], 'way': [], 'relation': []}
         for member_ref in member_refs:
             type_id_map[member_ref.type].append(member_ref.id)
         # optimization: ways and relations can only be members of relations
@@ -410,6 +414,7 @@ class ElementQuery:
                                 Element.id.in_(text(','.join(map(str, ids)))),
                             )
                             for type, ids in type_id_map.items()
+                            if ids
                         )
                     ),
                 )
@@ -467,7 +472,7 @@ class ElementQuery:
         """
         if not member_refs:
             return {}
-        type_id_map: dict[ElementType, list[ElementId]] = defaultdict(list)
+        type_id_map: dict[ElementType, list[ElementId]] = {'node': [], 'way': [], 'relation': []}
         for member_ref in member_refs:
             type_id_map[member_ref.type].append(member_ref.id)
 
@@ -491,6 +496,7 @@ class ElementQuery:
                                 Element.id.in_(text(','.join(map(str, ids)))),
                             )
                             for type, ids in type_id_map.items()
+                            if ids
                         )
                     ),
                 )

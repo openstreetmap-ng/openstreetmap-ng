@@ -25,11 +25,11 @@ Zoom = Annotated[int, Interval(ge=0, le=25)]
 
 __all__ = (
     'Geometry',
+    'Latitude',
+    'Longitude',
+    'MultiPolygonGeometry',
     'PointGeometry',
     'PolygonGeometry',
-    'MultiPolygonGeometry',
-    'Longitude',
-    'Latitude',
     'Zoom',
 )
 
@@ -77,8 +77,8 @@ class _GeometryType(UserDefinedType, ABC):
         def process(value: bytes | None):
             if value is None:
                 return None
-            geom = lib.from_wkb(np.asarray(value, dtype=object), invalid_handler)
-            geoms = np.asarray(geom, dtype=object)
+            geom = lib.from_wkb(np.asarray(value, dtype=np.object_), invalid_handler)
+            geoms = np.asarray(geom, dtype=np.object_)
             return lib.set_coordinates(
                 geoms,
                 lib.get_coordinates(geoms, False, False).round(GEO_COORDINATE_PRECISION),

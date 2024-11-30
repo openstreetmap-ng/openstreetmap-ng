@@ -121,7 +121,7 @@ async def _get_response(
 
         # ensure there is always a node, it's nice visually
         if not render.nodes:
-            x, y = lib.get_coordinates(np.asarray(result.point, dtype=object), False, False)[0].tolist()
+            x, y = lib.get_coordinates(np.asarray(result.point, dtype=np.object_), False, False)[0].tolist()
             render.nodes.append(RenderElementsData.Node(id=0, lon=x, lat=y))
 
         renders[i] = render

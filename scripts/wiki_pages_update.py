@@ -76,7 +76,7 @@ async def main():
         tasks = tuple(tg.create_task(fetch_and_parse_sitemap(url)) for url in urls)
 
     infos = tuple(info for task in tasks for info in task.result())
-    key_values_locales: dict[str, dict[str | None, set[str]]] = defaultdict(lambda: defaultdict(set))
+    key_values_locales: defaultdict[str, defaultdict[str | None, set[str]]] = defaultdict(lambda: defaultdict(set))
     for info in infos:
         key_values_locales[info.key][info.value].add(info.locale)
 

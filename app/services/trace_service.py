@@ -49,7 +49,7 @@ class TraceService:
         except Exception as e:
             raise_for.bad_trace_file(str(e))
 
-        size = lib.count_coordinates(np.asarray(tuple(segment.points for segment in segments), dtype=object))
+        size = lib.count_coordinates(np.asarray(tuple(segment.points for segment in segments), dtype=np.object_))
         logging.debug('Organized %d points into %d segments', size, len(segments))
         if size < 2:
             raise_for.bad_trace_file('not enough points')

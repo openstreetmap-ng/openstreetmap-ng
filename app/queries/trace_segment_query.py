@@ -1,4 +1,3 @@
-from collections import Counter
 from collections.abc import Collection, Sequence
 
 import cython
@@ -97,8 +96,8 @@ class TraceSegmentQuery:
             split_indices_ex[1:-1] = split_indices
             split_indices_ex[-1] = len(segments_parts)
             new_parts_sizes = split_indices_ex[1:] - split_indices_ex[:-1]
-            new_parts_max_size: int = new_parts_sizes.max()
-            new_parts_fixed = np.empty((len(new_parts), new_parts_max_size), dtype=object)
+            new_parts_max_size: np.signedinteger = new_parts_sizes.max()
+            new_parts_fixed = np.empty((len(new_parts), new_parts_max_size), dtype=np.object_)
             mask = np.arange(new_parts_max_size) < new_parts_sizes[:, None]
             new_parts_fixed[mask] = new_parts_flat
             new_points_list: Sequence[MultiPoint] = multipoints(new_parts_fixed)  # pyright: ignore[reportAssignmentType]
@@ -108,20 +107,19 @@ class TraceSegmentQuery:
                 segment.points = points
 
             # filter extra attributes
-            data_flat = np.empty(segments_parts_[0].size, dtype=object)
-            data_lens = Counter(segments_parts_[1]).values()
+            data_flat = np.empty_like(segments_parts_[0], dtype=np.object_)
+            data_lens = np.unique_counts(segments_parts_[1]).counts
+            data_i_stop = data_lens.cumsum()
+            data_i_start = data_i_stop - data_lens
             dirty: cython.char = False
             for attr_name in ('capture_times', 'elevations'):
                 if dirty:
                     data_flat.fill(None)
                     dirty = False
-                i: int = 0
-                for segment, data_len in zip(segments, data_lens, strict=True):
-                    data = getattr(segment, attr_name)
-                    if data:
-                        data_flat[i : i + data_len] = data
+                for segment, i_start, i_stop in zip(segments, data_i_start, data_i_stop, strict=True):
+                    if data := getattr(segment, attr_name):
+                        data_flat[i_start:i_stop] = data
                         dirty = True
-                    i += data_len
                 if dirty:
                     new_data = np.split(data_flat[intersect_indices], split_indices)
                     for segment, data in zip(segments, new_data, strict=True):
@@ -206,7 +204,7 @@ class TraceSegmentQuery:
         for trace_id, wkb in rows:
             trace = trace_id_map[trace_id]
             geom = from_wkb(wkb)
-            coords = lib.get_coordinates(np.asarray(geom, dtype=object), False, False)
+            coords = lib.get_coordinates(np.asarray(geom, dtype=np.object_), False, False)
             if resolution is not None:
                 if len(coords) < 2:
                     trace.coords = np.empty((0,), dtype=np.uint)

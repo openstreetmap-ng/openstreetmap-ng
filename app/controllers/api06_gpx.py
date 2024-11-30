@@ -1,6 +1,5 @@
 from asyncio import TaskGroup
 from collections.abc import Sequence
-from itertools import chain
 from typing import Annotated
 
 from fastapi import APIRouter, File, Form, Query, Response, UploadFile
@@ -78,7 +77,7 @@ async def get_trace_gpx(
     # ensures that user has access to the trace
     trace = await TraceQuery.get_one_by_id(trace_id)
     segments = await TraceSegmentQuery.get_many_by_trace_id(trace_id)
-    data = FormatGPX.encode_track(segments, trace)
+    data = FormatGPX.encode_track((segments,), trace)
     resp = GPXResponse.serialize(data)
     return Response(
         content=resp.body,
@@ -163,4 +162,4 @@ async def trackpoints(
 
     public_segments = public_t.result()
     private_segments = private_t.result()
-    return FormatGPX.encode_track(chain(public_segments, private_segments))
+    return FormatGPX.encode_track((public_segments, private_segments))

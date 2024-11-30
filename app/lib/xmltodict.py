@@ -64,7 +64,7 @@ class XMLToDict:
 
         result = ET.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
         logging.debug('Unparsed %s XML string', sizestr(len(result)))
-        return result if (raw is True) else result.decode()
+        return result if raw else result.decode()
 
 
 @cython.cfunc
@@ -220,7 +220,7 @@ _force_list = {
 
 
 @cython.cfunc
-def _parse_xml_bool(value: str) -> cython.char:
+def _parse_xml_bool(value: str):
     return value == 'true'
 
 
@@ -299,4 +299,4 @@ def get_xattr(*, is_json: bool | None = None) -> _XAttrCallable:
     """
     if is_json is None:
         is_json = format_is_json()
-    return _xattr_json if (is_json is True) else _xattr_xml
+    return _xattr_json if is_json else _xattr_xml

@@ -71,7 +71,7 @@ class LeafletElementMixin:
             for segment in segments:
                 if not segment:
                     continue
-                geom = lib.get_coordinates(np.asarray(segment, dtype=object), False, False).tolist()
+                geom = lib.get_coordinates(np.asarray(segment, dtype=np.object_), False, False).tolist()
                 line = encode_lonlat(geom, 6)
                 render_ways.append(RenderElementsData.Way(id=way_id, line=line, area=is_area))
 
@@ -79,7 +79,7 @@ class LeafletElementMixin:
             node_id_map.values(), member_nodes_ids, detailed=detailed
         )
         encode_points = tuple(node.point for node in encode_nodes)
-        geoms = lib.get_coordinates(np.asarray(encode_points, dtype=object), False, False).tolist()
+        geoms = lib.get_coordinates(np.asarray(encode_points, dtype=np.object_), False, False).tolist()
         render_nodes = tuple(
             RenderElementsData.Node(id=node.id, lon=geom[0], lat=geom[1])
             for node, geom in zip(encode_nodes, geoms, strict=True)
@@ -121,7 +121,7 @@ class LeafletElementMixin:
 
 
 @cython.cfunc
-def _check_way_area(tags: dict[str, str], members: Sequence[ElementMember]) -> cython.char:
+def _check_way_area(tags: dict[str, str], members: Sequence[ElementMember]):
     """
     Check if the way should be displayed as an area.
     """

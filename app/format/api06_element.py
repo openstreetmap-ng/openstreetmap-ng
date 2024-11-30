@@ -1,4 +1,3 @@
-from collections import defaultdict
 from collections.abc import Collection, Iterable, Sequence
 from typing import Any
 
@@ -41,7 +40,7 @@ class Element06Mixin:
         if format_is_json():
             return {'elements': tuple(_encode_element(element, is_json=True) for element in elements)}
         else:
-            result: dict[ElementType, list[dict]] = defaultdict(list)
+            result: dict[ElementType, list[dict]] = {'node': [], 'way': [], 'relation': []}
             # merge elements of the same type together
             for element in elements:
                 result[element.type].append(_encode_element(element, is_json=False))
@@ -354,7 +353,7 @@ def _encode_point_json(point: Point | None) -> dict[str, float]:
     """
     if point is None:
         return {}
-    x, y = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
+    x, y = lib.get_coordinates(np.asarray(point, dtype=np.object_), False, False)[0].tolist()
     return {'lon': x, 'lat': y}
 
 
@@ -366,7 +365,7 @@ def _encode_point_xml(point: Point | None) -> dict[str, float]:
     """
     if point is None:
         return {}
-    x, y = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
+    x, y = lib.get_coordinates(np.asarray(point, dtype=np.object_), False, False)[0].tolist()
     return {'@lon': x, '@lat': y}
 
 

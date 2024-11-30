@@ -28,7 +28,7 @@ __all__ = ('OSMChangeAction',)
 
 
 class ElementStateEntry:
-    __slots__ = ('remote', 'current')
+    __slots__ = ('current', 'remote')
 
     remote: Final[Element | None]
     current: Element
@@ -75,7 +75,7 @@ class OptimisticDiffPrepare:
     Local reference check state, set of element refs that need to be checked for references after last_sequence_id.
     """
 
-    _reference_override: dict[tuple[ElementRef, bool], set[ElementRef]]
+    _reference_override: defaultdict[tuple[ElementRef, bool], set[ElementRef]]
     """
     Local reference override, mapping from (element ref, override) tuple to the set of referenced element refs.
 
@@ -243,7 +243,7 @@ class OptimisticDiffPrepare:
         # check if not referenced by element state
         positive_refs = self._reference_override[(element_ref, True)]
         if positive_refs:
-            if element.delete_if_unused is True:
+            if element.delete_if_unused:
                 return False
             raise_for.element_in_use(element, positive_refs)
 
@@ -257,7 +257,7 @@ class OptimisticDiffPrepare:
             negative_refs = self._reference_override[(element_ref, False)]
             used_by = parent_refs - negative_refs
             if used_by:
-                if element.delete_if_unused is True:
+                if element.delete_if_unused:
                     return False
                 raise_for.element_in_use(element, used_by)
 

@@ -65,11 +65,13 @@ setup(
                     '-fharden-conditional-branches',
                     '-fharden-control-flow-redundancy',
                     '-fhardened',
-                    '-fsanitize=address',
                     # https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#safestack_and_shadow_stack
                     '-mshstk',
                     # https://stackoverflow.com/a/23501290
                     '--param=max-vartrack-size=0',
+                ],
+                define_macros=[
+                    ('CYTHON_PROFILE', '1'),
                 ],
             )
             for path in paths
@@ -78,6 +80,7 @@ setup(
         compiler_directives={
             # https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives
             'overflowcheck': True,
+            'profile': True,
             'language_level': 3,
         },
     ),

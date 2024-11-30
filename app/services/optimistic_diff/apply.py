@@ -1,7 +1,6 @@
 import logging
 from asyncio import Lock, TaskGroup
-from collections import defaultdict
-from collections.abc import Collection, Iterable, Mapping
+from collections.abc import Collection, Mapping
 from datetime import datetime
 
 import cython
@@ -38,10 +37,7 @@ class OptimisticDiffApply:
 
         Returns a dict, mapping original element refs to the new elements.
         """
-        assigned_ref_map: dict[ElementRef, list[Element]] = defaultdict(list)
-        for element, element_ref in prepare.apply_elements:
-            assigned_ref_map[element_ref].append(element)
-        if not assigned_ref_map:
+        if not prepare.apply_elements:
             return {}
 
         async with db_commit() as session, TaskGroup() as tg:
@@ -64,6 +60,11 @@ class OptimisticDiffApply:
             tg.create_task(_update_changeset(prepare.changeset, now, session))  # pyright: ignore[reportArgumentType]
             tg.create_task(_update_elements(prepare.apply_elements, now, session))
 
+        assigned_ref_map: dict[ElementRef, list[Element]] = {}
+        for element, element_ref in prepare.apply_elements:
+            if (v := assigned_ref_map.get(element_ref)) is None:
+                v = assigned_ref_map[element_ref] = []
+            v.append(element)
         return assigned_ref_map
 
 
@@ -124,7 +125,7 @@ async def _update_elements(
 
     current_sequence_id = current_sequence_task.result()
     current_id_map = current_id_task.result()
-    update_type_ids: dict[ElementType, list[ElementId]] = defaultdict(list)
+    update_type_ids: dict[ElementType, list[ElementId]] = {'node': [], 'way': [], 'relation': []}
     insert_members: list[ElementMember] = []
     prev_map: dict[ElementRef, Element] = {}
     assigned_id_map: dict[ElementRef, ElementId] = {}
@@ -175,7 +176,7 @@ async def _update_elements(
 
 async def _update_elements_db(
     current_sequence_id: int,
-    update_type_ids: Mapping[ElementType, Iterable[ElementId]],
+    update_type_ids: Mapping[ElementType, Collection[ElementId]],
     insert_elements: Collection[Element],
     insert_members: Collection[ElementMember],
     session: AsyncSession,
@@ -189,36 +190,38 @@ async def _update_elements_db(
         session.add_all(insert_members)
         await session.flush()
 
-    if update_type_ids:
-        E = aliased(Element)  # noqa: N806
-        stmt = (
-            update(Element)
-            .where(
-                Element.sequence_id <= current_sequence_id,
-                Element.next_sequence_id == null(),
-                or_(
-                    *(
-                        and_(
-                            Element.type == type,
-                            Element.id.in_(text(','.join(map(str, ids)))),
-                        )
-                        for type, ids in update_type_ids.items()
-                    ),
-                ),
-            )
-            .values(
-                {
-                    Element.next_sequence_id: select(E.sequence_id)
-                    .where(
-                        E.type == Element.type,
-                        E.id == Element.id,
-                        E.version > Element.version,
-                    )
-                    .order_by(E.version.asc())
-                    .limit(1)
-                    .scalar_subquery()
-                }
-            )
-            .inline()
+    where_ors = tuple(
+        and_(
+            Element.type == type,
+            Element.id.in_(text(','.join(map(str, ids)))),
         )
-        await session.execute(stmt)
+        for type, ids in update_type_ids.items()
+        if ids
+    )
+    if not where_ors:
+        return
+
+    E = aliased(Element)  # noqa: N806
+    stmt = (
+        update(Element)
+        .where(
+            Element.sequence_id <= current_sequence_id,
+            Element.next_sequence_id == null(),
+            or_(*where_ors),
+        )
+        .values(
+            {
+                Element.next_sequence_id: select(E.sequence_id)
+                .where(
+                    E.type == Element.type,
+                    E.id == Element.id,
+                    E.version > Element.version,
+                )
+                .order_by(E.version.asc())
+                .limit(1)
+                .scalar_subquery()
+            }
+        )
+        .inline()
+    )
+    await session.execute(stmt)

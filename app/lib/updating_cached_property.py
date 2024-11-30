@@ -20,7 +20,7 @@ def updating_cached_property(watch_attr_name: str):
 
 
 class _UpdatingCachedProperty(Generic[R]):
-    __slots__ = ('_cache', '_watch_attr_name', '_func')
+    __slots__ = ('_cache', '_func', '_watch_attr_name')
 
     def __init__(
         self,
