@@ -2200,6 +2200,7 @@
       "IT",
       "JA",
       "Ko",
+      "Pl",
       "Pt",
       "RU",
       "Uk"
@@ -4037,6 +4038,7 @@
       "",
       "ES",
       "FR",
+      "Pl",
       "RU",
       "Uk"
     ],
@@ -4442,6 +4444,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -5042,6 +5045,16 @@
       "DE",
       "ES",
       "RU"
+    ]
+  },
+  "animal_shelter": {
+    "*": [
+      "Pl"
+    ]
+  },
+  "animal_shelter:*": {
+    "*": [
+      "Pl"
     ]
   },
   "animal_shelter:sanctuary": {
@@ -8129,7 +8142,8 @@
       "Uk"
     ],
     "bath": [
-      ""
+      "",
+      "RU"
     ],
     "beach_hut": [
       "",
@@ -8351,6 +8365,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "JA",
       "Pl",
       "RU",
@@ -8910,6 +8925,9 @@
       "RU",
       "Uk"
     ],
+    "sauna": [
+      "RU"
+    ],
     "school": [
       "",
       "Cs",
@@ -9201,6 +9219,9 @@
       "ES",
       "RU",
       "Uk"
+    ],
+    "triumphal_arch": [
+      ""
     ],
     "true": [
       "",
@@ -9789,10 +9810,28 @@
       "Pl",
       "RU"
     ],
+    "opposite": [
+      ""
+    ],
     "opposite_lane": [
       "",
       "Cs",
       "JA"
+    ]
+  },
+  "busway:both": {
+    "*": [
+      ""
+    ]
+  },
+  "busway:left": {
+    "*": [
+      ""
+    ]
+  },
+  "busway:right": {
+    "*": [
+      ""
     ]
   },
   "butcher": {
@@ -10010,7 +10049,8 @@
   },
   "camping": {
     "*": [
-      ""
+      "",
+      "Da"
     ]
   },
   "campus": {
@@ -10160,7 +10200,8 @@
   },
   "capacity:truck": {
     "*": [
-      ""
+      "",
+      "Pl"
     ]
   },
   "capacity:women": {
@@ -11136,7 +11177,8 @@
   "communication:*": {
     "*": [
       "",
-      "DE"
+      "DE",
+      "JA"
     ]
   },
   "communication:amateur_radio": {
@@ -11243,6 +11285,7 @@
       "",
       "Cs",
       "DE",
+      "JA",
       "Pl"
     ]
   },
@@ -11263,6 +11306,7 @@
       "Cs",
       "DE",
       "ES",
+      "JA",
       "Pl"
     ],
     "fm": [
@@ -11295,6 +11339,7 @@
       "Cs",
       "DE",
       "ES",
+      "JA",
       "Pl"
     ],
     "dvb-t": [
@@ -11340,6 +11385,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -11834,8 +11880,7 @@
   },
   "contact:sip": {
     "*": [
-      "",
-      "ES"
+      ""
     ]
   },
   "contact:skype": {
@@ -11909,6 +11954,11 @@
       "ES"
     ]
   },
+  "contact:yelp": {
+    "*": [
+      ""
+    ]
+  },
   "contact:youtube": {
     "*": [
       "ES"
@@ -11916,7 +11966,8 @@
   },
   "contamination": {
     "*": [
-      ""
+      "",
+      "RU"
     ]
   },
   "content": {
@@ -13711,6 +13762,9 @@
       "ES",
       "Ko"
     ],
+    "kurdish": [
+      ""
+    ],
     "mediterranean": [
       "",
       "ES"
@@ -13899,10 +13953,12 @@
       ""
     ],
     "hairpin": [
-      ""
+      "",
+      "RU"
     ],
     "loop": [
-      ""
+      "",
+      "RU"
     ]
   },
   "curve:name": {
@@ -14790,6 +14846,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "Fi",
@@ -14885,6 +14942,11 @@
       "JA",
       "Pl",
       "Uk"
+    ]
+  },
+  "destination:*": {
+    "*": [
+      ""
     ]
   },
   "destination:arrow": {
@@ -16300,7 +16362,8 @@
       "",
       "DE",
       "ES",
-      "JA"
+      "JA",
+      "Pl"
     ],
     "key_depot": [
       "",
@@ -19382,6 +19445,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "JA",
       "Pt",
       "RU"
@@ -19434,7 +19498,8 @@
   },
   "gtfs:shape_id": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "gtfs:source_date": {
@@ -19730,7 +19795,8 @@
     ],
     "children": [
       "",
-      "DE"
+      "DE",
+      "RU"
     ],
     "cliff": [
       ""
@@ -19745,12 +19811,14 @@
     "curve": [
       "",
       "DE",
-      "Fi"
+      "Fi",
+      "RU"
     ],
     "curves": [
       "",
       "DE",
-      "Fi"
+      "Fi",
+      "RU"
     ],
     "cyclists": [
       "",
@@ -19839,6 +19907,9 @@
       "Pl"
     ],
     "nuclear": [
+      ""
+    ],
+    "pedestrian_crossing": [
       ""
     ],
     "pedestrians": [
@@ -21857,6 +21928,7 @@
     ],
     "lavoir": [
       "",
+      "FR",
       "RU"
     ],
     "lime_kiln": [
@@ -23486,6 +23558,11 @@
       "ES"
     ]
   },
+  "kartaview": {
+    "*": [
+      ""
+    ]
+  },
   "kayak": {
     "*": [
       ""
@@ -24576,6 +24653,11 @@
       "Template"
     ]
   },
+  "lanes:*": {
+    "*": [
+      ""
+    ]
+  },
   "lanes:both_ways": {
     "*": [
       ""
@@ -25127,6 +25209,9 @@
       "RU"
     ],
     "hammock": [
+      ""
+    ],
+    "high_ropes_course": [
       ""
     ],
     "horse_riding": [
@@ -26252,6 +26337,7 @@
     "antenna": [
       "",
       "DE",
+      "JA",
       "Pl",
       "Pt",
       "Zh-hans"
@@ -28445,7 +28531,8 @@
       "ES",
       "JA",
       "Pt",
-      "RU"
+      "RU",
+      "Zh-hans"
     ],
     "ammunition": [
       "",
@@ -28589,7 +28676,8 @@
       ""
     ],
     "army": [
-      ""
+      "",
+      "Zh-hans"
     ],
     "coast_guard": [
       ""
@@ -29556,6 +29644,11 @@
       "RU"
     ]
   },
+  "name:TEC": {
+    "*": [
+      ""
+    ]
+  },
   "name:aaq": {
     "*": [
       ""
@@ -29878,7 +29971,8 @@
   },
   "name:cnr": {
     "*": [
-      ""
+      "",
+      "Cnr"
     ]
   },
   "name:cnr-Cyrl": {
@@ -31363,6 +31457,11 @@
       ""
     ]
   },
+  "name:tec": {
+    "*": [
+      ""
+    ]
+  },
   "name:tet": {
     "*": [
       ""
@@ -31698,6 +31797,11 @@
     ]
   },
   "name:zh-Latn-tongyong": {
+    "*": [
+      ""
+    ]
+  },
+  "name:zh-Latn-wadegile": {
     "*": [
       ""
     ]
@@ -32428,6 +32532,7 @@
     ],
     "shrubbery": [
       "",
+      "DE",
       "ES",
       "NL",
       "Pl",
@@ -32746,6 +32851,9 @@
     ],
     "CN:AH": [
       "",
+      "Zh-hans"
+    ],
+    "CN:HN:expressway": [
       "Zh-hans"
     ],
     "CN:JS": [
@@ -36230,6 +36338,9 @@
       "IT",
       "RU"
     ],
+    "mtb": [
+      ""
+    ],
     "sidewalk": [
       "",
       "RU"
@@ -36844,6 +36955,7 @@
     "plot": [
       "",
       "Cs",
+      "Da",
       "ES",
       "FR",
       "IT",
@@ -37753,6 +37865,9 @@
       "Zh-hans"
     ],
     "antenna_line": [
+      ""
+    ],
+    "branch": [
       ""
     ],
     "busbar": [
@@ -40248,6 +40363,12 @@
       "FR"
     ]
   },
+  "ref:FR:RPPS": {
+    "*": [
+      "",
+      "FR"
+    ]
+  },
   "ref:FR:RTE": {
     "*": [
       "",
@@ -40406,6 +40527,11 @@
   "ref:HU:vatin": {
     "*": [
       ""
+    ]
+  },
+  "ref:IDFM": {
+    "*": [
+      "FR"
     ]
   },
   "ref:IE:census2015": {
@@ -42127,7 +42253,8 @@
   },
   "road_marking": {
     "*": [
-      ""
+      "",
+      "RU"
     ],
     "solid_stop_line": [
       "",
@@ -45342,6 +45469,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "RU"
@@ -46924,6 +47052,7 @@
       "Cs",
       "ES",
       "FR",
+      "IT",
       "Pl"
     ],
     "mobile": [
@@ -51199,6 +51328,7 @@
     "*": [
       "",
       "Cs",
+      "DE",
       "JA",
       "Pl",
       "RU"
@@ -51446,6 +51576,9 @@
       "",
       "Cs",
       "JA"
+    ],
+    "cat": [
+      "FR"
     ],
     "irish": [
       ""
@@ -51865,6 +51998,7 @@
     ],
     "camp_pitch": [
       "",
+      "Da",
       "ES",
       "FR",
       "RU"
@@ -51885,6 +52019,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -53254,6 +53389,9 @@
       "",
       "FR"
     ],
+    "current": [
+      ""
+    ],
     "distribution": [
       "",
       "DE",
@@ -53272,6 +53410,9 @@
     "phase_angle_regulator": [
       "",
       "FR"
+    ],
+    "potential": [
+      ""
     ],
     "traction": [
       "",
@@ -54675,6 +54816,12 @@
   "virtual": {
     "*": [
       ""
+    ]
+  },
+  "virtual_tour": {
+    "*": [
+      "",
+      "NL"
     ]
   },
   "visibility": {
@@ -56120,6 +56267,7 @@
       "FR",
       "Fi",
       "JA",
+      "Pl",
       "RU",
       "Sv"
     ]
