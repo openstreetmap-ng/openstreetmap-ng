@@ -26,9 +26,7 @@ let
     ];
     buildInputs = [ makeWrapper ];
     postBuild = ''
-      wrapProgram "$out/bin/python3.13" \
-        --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}" \
-        --unset PYTHONPATH
+      wrapProgram "$out/bin/python3.13" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
     '';
   };
   watchexec' = makeScript "watchexec" ''
@@ -510,6 +508,7 @@ let
   shell' = with pkgs; ''
     export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
     export PYTHONNOUSERSITE=1
+    export PYTHONPATH=""
     export TZ=UTC
 
     current_python=$(readlink -e .venv/bin/python || echo "")

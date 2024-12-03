@@ -168,7 +168,7 @@ dictConfig(
 if SENTRY_DSN := os.getenv('SENTRY_DSN'):
     sentry_sdk.init(
         dsn=SENTRY_DSN,
-        environment='test' if TEST_ENV else 'production',
+        environment=APP_URL,
         enable_tracing=True,
         # TODO: adjust rates
         traces_sample_rate=1.0,

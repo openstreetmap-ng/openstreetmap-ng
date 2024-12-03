@@ -14,6 +14,7 @@ import orjson
 import polars as pl
 import uvloop
 from pydantic.dataclasses import dataclass
+from sentry_sdk import set_context, set_tag, start_transaction
 from shapely import Point
 from starlette import status
 
@@ -78,11 +79,21 @@ async def main() -> None:
     state = _load_app_state()
     click.echo(f'Resuming replication after {state.frequency}/{state.last_replica.sequence_number}')
     while True:
-        _clean_leftover_data(state)
-        state = await _iterate(state)
-        _bundle_data_if_needed(state)
-        _save_app_state(state)
-        click.echo(f'Finished replication sequence {state.frequency}/{state.last_replica.sequence_number}')
+        with start_transaction(op='task', name='replication'):
+            set_tag('state.frequency', state.frequency)
+            set_context(
+                'state',
+                {
+                    'last_replica_sequence_number': state.last_replica.sequence_number,
+                    'last_replica_created_at': state.last_replica.created_at,
+                    'last_sequence_id': state.last_sequence_id,
+                },
+            )
+            _clean_leftover_data(state)
+            state = await _iterate(state)
+            _bundle_data_if_needed(state)
+            _save_app_state(state)
+            click.echo(f'Finished replication sequence {state.frequency}/{state.last_replica.sequence_number}')
 
 
 @retry(None)
