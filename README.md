@@ -4,7 +4,7 @@
 [![Matrix Developers Chat](https://shields.monicz.dev/matrix/openstreetmap-ng%3Amatrix.org?logo=matrix&label=Developers&color=111&cacheSeconds=600)](https://matrix.to/#/#openstreetmap-ng:matrix.org)
 [![Liberapay Patrons](https://shields.monicz.dev/liberapay/patrons/Zaczero?logo=liberapay&label=Patrons)](https://liberapay.com/Zaczero/)
 [![GitHub Sponsors](https://shields.monicz.dev/github/sponsors/Zaczero?logo=github&label=Sponsors&color=%23db61a2)](https://github.com/sponsors/Zaczero)
-[![GitHub Stars](https://shields.monicz.dev/github/stars/Zaczero/openstreetmap-ng?style=social)](https://github.com/Zaczero/openstreetmap-ng)
+[![GitHub Stars](https://shields.monicz.dev/github/stars/openstreetmap-ng/openstreetmap-ng?style=social)](https://github.com/openstreetmap-ng/openstreetmap-ng)
 
 Welcome to OpenStreetMap-NG, an innovative unofficial Python fork of [openstreetmap.org](https://openstreetmap.org). Our mission is to revolutionize the map and provide a better experience for all users. It is simply the Next Generation of OpenStreetMap.
 
@@ -41,11 +41,18 @@ Read updates and watch videos on the ongoing development efforts:\
 Discuss, share ideas, and collaborate with other contributors:\
 [Discord](https://discord.gg/GM89hdjSCB) or [Matrix](https://matrix.to/#/#openstreetmap-ng:matrix.org) — *bridged together*
 
-## ⭐ Join Us
+## ⭐ Join Us (Contributing)
 
-To get started coding, see the [Contributing Guide](https://github.com/Zaczero/openstreetmap-ng/wiki/Contributing:-Getting-Started) on the GitHub wiki. This wiki is the primary source of information for new contributors. We officially support Linux, macOS, and Windows (WSL2) operating systems.
+To get started coding, see
+the [Contributing Guide](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Contributing:-Getting-Started) on the
+GitHub wiki. This wiki is the primary source of information for new contributors. We officially support Linux, macOS,
+and Windows (WSL2) operating systems.
 
 We also invite you to join our [Discord server](https://discord.gg/GM89hdjSCB) or [Matrix room](https://matrix.to/#/#openstreetmap-ng:matrix.org) to receive support and chat with others — both platforms are bridged together, so you will see the same messages in either one. These are our primary communication channels. They are free to join, and we are always happy to help you get started!
+
+There are several contributor incentives available, including a unique profile badge, cash bounties, and free JetBrains
+IDE subscriptions for active code
+contributors. [Read more here](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Contributor-Incentives).
 
 ## 🌍 Community Project
 
