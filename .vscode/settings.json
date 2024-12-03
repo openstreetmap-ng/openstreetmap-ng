@@ -1,65 +1,65 @@
 {
-    "[python]": {
-        "editor.defaultFormatter": "charliermarsh.ruff"
-    },
-    "[scss]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "biomejs.biome"
-    },
-    "coverage-gutters.ignoredPathGlobs": "**/{node_modules,venv,.venv,vendor,data}/**",
-    "editor.rulers": [
-        120
-    ],
-    "editor.unicodeHighlight.allowedCharacters": {
-        "➕": true
-    },
-    "files.exclude": {
-        "**/*.c": true,
-        "**/*.egg-info/": true,
-        "**/*.html": true,
-        "**/*.so": true,
-        "**/__pycache__/": true,
-        "**/_generated/": true,
-        ".direnv/": true,
-        ".pytest_cache/": true,
-        ".ruff_cache/": true,
-        ".sass-cache/": true,
-        ".venv/": true,
-        "app/static/**/*.html": false,
-        "app/static/js/bundle-*": true,
-        "build/": true,
-        "dist/": true,
-        "node_modules/": true
-    },
-    "files.insertFinalNewline": true,
-    "files.trimFinalNewlines": true,
-    "files.trimTrailingWhitespace": true,
-    "nix.enableLanguageServer": true,
-    "nix.serverPath": "nil",
-    "nix.serverSettings": {
-        "nil": {
-            "formatting": {
-                "command": [
-                    "nixpkgs-fmt"
-                ]
-            }
-        }
-    },
-    "python.analysis.diagnosticMode": "workspace",
-    "python.analysis.packageIndexDepths": [
-        {
-            "depth": 3,
-            "includeAllSymbols": false,
-            "name": ""
-        }
-    ],
-    "python.experiments.enabled": false,
-    "python.terminal.activateEnvironment": false,
-    "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false,
-    "typescript.disableAutomaticTypeAcquisition": true,
-    "typescript.surveys.enabled": false,
-    "typescript.tsdk": "node_modules/typescript/lib"
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "coverage-gutters.ignoredPathGlobs": "**/{node_modules,venv,.venv,vendor,data}/**",
+  "editor.rulers": [
+    120
+  ],
+  "editor.unicodeHighlight.allowedCharacters": {
+    "➕": true
+  },
+  "files.exclude": {
+    "**/*.c": true,
+    "**/*.egg-info/": true,
+    "**/*.html": true,
+    "**/*.so": true,
+    "**/__pycache__/": true,
+    "**/_generated/": true,
+    ".direnv/": true,
+    ".pytest_cache/": true,
+    ".ruff_cache/": true,
+    ".sass-cache/": true,
+    ".venv/": true,
+    "app/static/**/*.html": false,
+    "app/static/js/bundle-*": true,
+    "build/": true,
+    "dist/": true,
+    "node_modules/": true
+  },
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nil",
+  "nix.serverSettings": {
+    "nil": {
+      "formatting": {
+        "command": [
+          "nixpkgs-fmt"
+        ]
+      }
+    }
+  },
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.packageIndexDepths": [
+    {
+      "depth": 3,
+      "includeAllSymbols": false,
+      "name": ""
+    }
+  ],
+  "python.experiments.enabled": false,
+  "python.terminal.activateEnvironment": false,
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "typescript.disableAutomaticTypeAcquisition": true,
+  "typescript.surveys.enabled": false,
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

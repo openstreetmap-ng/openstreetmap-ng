@@ -1,33 +1,33 @@
 {
-    "compilerOptions": {
-        "allowImportingTsExtensions": true,
-        "allowJs": true,
-        "moduleDetection": "force",
-        "moduleResolution": "bundler",
-        "noEmit": true,
-        "noFallthroughCasesInSwitch": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "skipLibCheck": true,
-        "strict": true,
-        "strictNullChecks": false,
-        "target": "ES2023",
-        "types": [
-            "@types/bootstrap",
-            "@types/leaflet",
-            "@types/leaflet.locatecontrol",
-            "@types/mapbox__polyline",
-            "bun-types",
-            "typed-query-selector"
-        ],
-        "verbatimModuleSyntax": true
-    },
-    "exclude": [
-        "app/static/js/_generated/**/*",
-        "app/static/js/bundle-*",
-        "app/static/js/proto"
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "target": "ES2023",
+    "types": [
+      "@types/bootstrap",
+      "@types/leaflet",
+      "@types/leaflet.locatecontrol",
+      "@types/mapbox__polyline",
+      "bun-types",
+      "typed-query-selector"
     ],
-    "include": [
-        "app/static/js/**/*"
-    ]
+    "verbatimModuleSyntax": true
+  },
+  "exclude": [
+    "app/static/js/_generated/**/*",
+    "app/static/js/bundle-*",
+    "app/static/js/proto"
+  ],
+  "include": [
+    "app/static/js/**/*"
+  ]
 }
