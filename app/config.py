@@ -6,6 +6,8 @@ from logging.config import dictConfig
 from pathlib import Path
 from urllib.parse import urlsplit
 
+import sentry_sdk
+
 from app.lib.local_chapters import LOCAL_CHAPTERS
 
 VERSION = 'dev'
@@ -110,6 +112,12 @@ TRUSTED_HOSTS: frozenset[str] = frozenset(
 
 TEST_USER_DOMAIN = 'test.test'
 
+# Derived configuration
+SECRET_32 = sha256(SECRET.encode()).digest()
+
+SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None
+SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
+
 # Logging configuration
 dictConfig(
     {
@@ -156,9 +164,29 @@ dictConfig(
     }
 )
 
+# Sentry configuration
+if SENTRY_DSN := os.getenv('SENTRY_DSN'):
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment='test' if TEST_ENV else 'production',
+        enable_tracing=True,
+        # TODO: adjust rates
+        traces_sample_rate=1.0,
+        trace_propagation_targets=None,
+        profiles_sample_rate=1.0,
+    )
 
-# Derived configuration
-SECRET_32 = sha256(SECRET.encode()).digest()
-
-SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None
-SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
+SENTRY_REPLICATION_MONITOR = sentry_sdk.monitor(
+    os.getenv('SENTRY_REPLICATION_MONITOR_SLUG', 'osm-ng-replication'),
+    {
+        'schedule': {
+            'type': 'interval',
+            'value': 1,
+            'unit': 'minute',
+        },
+        'checkin_margin': 5,
+        'max_runtime': 60,
+        'failure_issue_threshold': 60 * 24,
+        'recovery_threshold': 1,
+    },
+)

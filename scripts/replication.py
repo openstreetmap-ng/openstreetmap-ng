@@ -17,7 +17,7 @@ from pydantic.dataclasses import dataclass
 from shapely import Point
 from starlette import status
 
-from app.config import OSM_REPLICATION_URL, REPLICATION_DIR
+from app.config import OSM_REPLICATION_URL, REPLICATION_DIR, SENTRY_REPLICATION_MONITOR
 from app.lib.compressible_geometry import compressible_geometry
 from app.lib.retry import retry
 from app.lib.xmltodict import XMLToDict
@@ -109,10 +109,11 @@ async def _iterate(state: AppState) -> AppState:
             continue
         r.raise_for_status()
         break
-    df, last_sequence_id = _parse_actions(
-        XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange'],
-        last_sequence_id=state.last_sequence_id,
-    )
+    with SENTRY_REPLICATION_MONITOR:
+        df, last_sequence_id = _parse_actions(
+            XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange'],
+            last_sequence_id=state.last_sequence_id,
+        )
     df.write_parquet(remote_replica.path, compression='lz4', statistics=False)
     return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
 

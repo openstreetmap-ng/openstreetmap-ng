@@ -38,6 +38,7 @@ dependencies = [
   "rfc3986",
   "rtree",
   "scikit-learn",
+  "sentry-sdk[aiohttp,fastapi,httpx,pure-eval,sqlalchemy]>=2.19.0",
   "setuptools",
   "shapely",
   "sizestr>=1.0.0",
