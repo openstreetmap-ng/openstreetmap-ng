@@ -114,8 +114,8 @@ async def _iterate(state: AppState) -> AppState:
             XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange'],
             last_sequence_id=state.last_sequence_id,
         )
-    df.write_parquet(remote_replica.path, compression='lz4', statistics=False)
-    return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
+        df.write_parquet(remote_replica.path, compression='lz4', statistics=False)
+        return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
 
 
 @cython.cfunc

@@ -481,6 +481,7 @@ let
     '')
     (makeScript "pyright" "bunx pyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
+    (makeScript "replication" "python scripts/replication.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:8025")
