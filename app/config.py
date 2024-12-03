@@ -184,6 +184,7 @@ SENTRY_REPLICATION_MONITOR = sentry_sdk.monitor(
             'value': 1,
             'unit': 'minute',
         },
+        'timezone': 'UTC',
         'checkin_margin': 5,
         'max_runtime': 60,
         'failure_issue_threshold': 60 * 24,
