@@ -186,7 +186,7 @@ SENTRY_REPLICATION_MONITOR = sentry_sdk.monitor(
         },
         'checkin_margin': 5,
         'max_runtime': 60,
-        'failure_issue_threshold': 60 * 24,
+        'failure_issue_threshold': min(60 * 24, 720),
         'recovery_threshold': 1,
     },
 )
