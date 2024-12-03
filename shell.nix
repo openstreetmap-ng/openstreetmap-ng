@@ -429,13 +429,33 @@ let
 
     # -- Testing
     (makeScript "run-tests" ''
+      term_output=0
+      extended_tests=0
+      for arg in "$@"; do
+        case "$arg" in
+          --term)
+            term_output=1
+            ;;
+          --extended)
+            extended_tests=1
+            ;;
+          *)
+            echo "Unknown argument: $arg"
+            echo "Usage: $0 [--extended] [--term]"
+            exit 1
+            ;;
+        esac
+      done
+
       set +e
       COVERAGE_CORE=sysmon python -m coverage run -m pytest \
         --verbose \
-        --no-header
+        --no-header \
+        "$([ "$extended_tests" = "1" ] && echo "--extended")"
       result=$?
       set -e
-      if [ "$1" = "term" ]; then
+
+      if [ "$term_output" = "1" ]; then
         python -m coverage report --skip-covered
       else
         python -m coverage xml --quiet

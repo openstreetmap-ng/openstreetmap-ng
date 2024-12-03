@@ -75,7 +75,7 @@ jobs:
         env:
           POSTGRES_LOG: 1
         run: |
-          nix-shell --pure --run "run-tests term"
+          nix-shell --pure --run "run-tests --extended --term"
 
       - name: Export Nix store cache
         if: steps.nix-cache.outputs.cache-hit != 'true'

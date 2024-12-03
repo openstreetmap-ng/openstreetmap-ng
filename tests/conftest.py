@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Collection
 from copy import deepcopy
 from functools import cache
 from pathlib import Path
@@ -18,13 +18,33 @@ from tests.utils.event_loop_policy import CustomEventLoopPolicy
 from tests.utils.lifespan_manager import LifespanManager
 
 
-# run all tests in the session in the same event loop
-# https://pytest-asyncio.readthedocs.io/en/latest/how-to-guides/run_session_tests_in_same_loop.html
-def pytest_collection_modifyitems(items: Iterable[pytest.Item]):
-    pytest_asyncio_tests = (item for item in items if pytest_asyncio.is_async_test(item))
+def pytest_addoption(parser):
+    parser.addoption(
+        '--extended',
+        action='store_true',
+        default=False,
+        help='run extended tests',
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line('markers', 'extended: mark test as part of the extended test suite')
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: Collection[pytest.Item]):
+    # run all tests in the session in the same event loop
+    # https://pytest-asyncio.readthedocs.io/en/latest/how-to-guides/run_session_tests_in_same_loop.html
     session_scope_marker = pytest.mark.asyncio(loop_scope='session')
-    for async_test in pytest_asyncio_tests:
-        async_test.add_marker(session_scope_marker, append=False)
+    for item in items:
+        if pytest_asyncio.is_async_test(item):
+            item.add_marker(session_scope_marker, append=False)
+
+    # skip extended tests by default
+    if not config.getoption('--extended'):
+        skip_marker = pytest.mark.skip(reason='need --extended option to run')
+        for item in items:
+            if 'extended' in item.keywords:
+                item.add_marker(skip_marker)
 
 
 @pytest.fixture(scope='session')
