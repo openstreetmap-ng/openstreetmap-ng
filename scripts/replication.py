@@ -17,7 +17,7 @@ from pydantic.dataclasses import dataclass
 from shapely import Point
 from starlette import status
 
-from app.config import OSM_REPLICATION_URL
+from app.config import OSM_REPLICATION_URL, REPLICATION_DIR
 from app.lib.compressible_geometry import compressible_geometry
 from app.lib.retry import retry
 from app.lib.xmltodict import XMLToDict
@@ -39,10 +39,7 @@ _FREQUENCY_MERGE_EVERY: dict[_Frequency, int] = {
     'day': 7,
 }
 
-_DATA_DIR = Path('data/replication')
-_DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-_APP_STATE_PATH = _DATA_DIR / 'state.json'
+_APP_STATE_PATH = REPLICATION_DIR / 'state.json'
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -52,11 +49,11 @@ class ReplicaState:
 
     @property
     def path(self) -> Path:
-        return _DATA_DIR.joinpath(f'replica_{int(self.created_at.timestamp()):020}.parquet')
+        return REPLICATION_DIR.joinpath(f'replica_{int(self.created_at.timestamp()):020}.parquet')
 
     @property
     def bundle_path(self) -> Path:
-        return _DATA_DIR.joinpath(f'bundle_{int(self.created_at.timestamp()):020}.parquet')
+        return REPLICATION_DIR.joinpath(f'bundle_{int(self.created_at.timestamp()):020}.parquet')
 
     @staticmethod
     def default() -> 'ReplicaState':
@@ -216,7 +213,7 @@ def _parse_actions(
 def _clean_leftover_data(state: AppState):
     if state.last_replica.sequence_number % _FREQUENCY_MERGE_EVERY[state.frequency]:
         return
-    for path in _DATA_DIR.glob('replica_*.parquet'):
+    for path in REPLICATION_DIR.glob('replica_*.parquet'):
         path.unlink()
 
 
@@ -224,7 +221,7 @@ def _clean_leftover_data(state: AppState):
 def _bundle_data_if_needed(state: AppState):
     if state.last_replica.sequence_number % _FREQUENCY_MERGE_EVERY[state.frequency]:
         return
-    paths = sorted(_DATA_DIR.glob('replica_*.parquet'))
+    paths = sorted(REPLICATION_DIR.glob('replica_*.parquet'))
     num_paths_str = click.style(f'{len(paths)} replica files', fg='green')
     click.echo(f'Bundling {num_paths_str}')
     lf = pl.scan_parquet(paths)

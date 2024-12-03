@@ -53,6 +53,7 @@ FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', '128'))
 FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
+REPLICATION_DIR = _path(os.getenv('REPLICATION_DIR', 'data/replication'), mkdir=True)
 
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
 POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
