@@ -61,8 +61,8 @@ setup(
                 [str(path)],
                 extra_compile_args=[
                     # docs: https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc.pdf
-                    '-march=x86-64-v3',
-                    '-mtune=generic',
+                    '-march=' + os.getenv('CYTHON_MARCH', 'native'),
+                    '-mtune=' + os.getenv('CYTHON_MTUNE', 'native'),
                     '-ffast-math',
                     '-fharden-compares',
                     '-fharden-conditional-branches',
