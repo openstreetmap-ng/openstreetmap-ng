@@ -51,8 +51,8 @@ and Windows (WSL2) operating systems.
 We also invite you to join our [Discord server](https://discord.gg/GM89hdjSCB) or [Matrix room](https://matrix.to/#/#openstreetmap-ng:matrix.org) to receive support and chat with others — both platforms are bridged together, so you will see the same messages in either one. These are our primary communication channels. They are free to join, and we are always happy to help you get started!
 
 There are several contributor incentives available, including a unique profile badge, cash bounties, and free JetBrains
-IDE subscriptions for active code
-contributors. [Read more here](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Contributor-Incentives).
+IDE subscriptions for active contributors.
+[Read more here](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Contributor-Incentives).
 
 ## 🌍 Community Project
 
