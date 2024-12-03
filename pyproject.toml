@@ -55,8 +55,8 @@ name = "openstreetmap-ng"
 requires-python = "~=3.13"
 version = "0.0.0"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
   "authlib",
   "cairosvg",
   "click",
@@ -69,6 +69,8 @@ dev-dependencies = [
   "types-aioboto3[s3]",
   "types-protobuf",
 ]
+
+[tool.uv]
 package = true
 python-downloads = "never"
 python-preference = "only-system"
