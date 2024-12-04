@@ -294,8 +294,8 @@ let
 
     # -- Supervisor
     (makeScript "dev-start" ''
-      pid=$(cat data/supervisor/supervisord.pid 2> /dev/null || echo "")
-      if [ -n "$pid" ] && grep -q "supervisord" "/proc/$pid/cmdline" 2> /dev/null; then
+      pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
+      if [ -n "$pid" ] && ps -wwp "$pid" -o command | grep -q "supervisord"; then
         echo "Supervisor is already running"
         exit 0
       fi
@@ -333,8 +333,8 @@ let
       alembic-upgrade
     '')
     (makeScript "dev-stop" ''
-      pid=$(cat data/supervisor/supervisord.pid 2> /dev/null || echo "")
-      if [ -n "$pid" ] && grep -q "supervisord" "/proc/$pid/cmdline" 2> /dev/null; then
+      pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
+      if [ -n "$pid" ] && ps -wwp "$pid" -o command | grep -q "supervisord"; then
         kill -TERM "$pid"
         echo "Supervisor stopping..."
         while kill -0 "$pid" 2> /dev/null; do sleep 0.1; done
@@ -449,8 +449,8 @@ let
 
     # -- Testing
     (makeScript "run-tests" ''
-      pid=$(cat data/supervisor/supervisord.pid 2> /dev/null || echo "")
-      if [ -n "$pid" ] && grep -q "supervisord" "/proc/$pid/cmdline" 2> /dev/null; then true; else
+      pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
+      if [ -n "$pid" ] && ps -wwp "$pid" -o command | grep -q "supervisord"; then true; else
         echo "NOTICE: Supervisor is not running"
         echo "NOTICE: Run 'dev-start' before executing tests"
         exit 1
