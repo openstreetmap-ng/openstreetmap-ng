@@ -48,8 +48,8 @@ blacklist: dict[str, set[str]] = {
 
 paths = (
     p
-    for dir in dirs  #
-    for p in chain(Path(dir).rglob('*.py'), extra_paths)
+    for dir_ in dirs  #
+    for p in chain(Path(dir_).rglob('*.py'), extra_paths)
     if p.name not in blacklist.get(p.parent.as_posix(), set())
 )
 
@@ -72,6 +72,13 @@ setup(
                     '-mshstk',
                     # https://stackoverflow.com/a/23501290
                     '--param=max-vartrack-size=0',
+                    #
+                    '-flto',
+                    *os.getenv('CYTHON_FLAGS', '').split(),
+                ],
+                extra_link_args=[
+                    '-flto',
+                    *os.getenv('CYTHON_FLAGS', '').split(),
                 ],
                 define_macros=[
                     ('CYTHON_PROFILE', '1'),

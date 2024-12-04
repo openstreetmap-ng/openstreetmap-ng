@@ -244,7 +244,7 @@ strictSetInference = true
 useLibraryCodeForTypes = false
 
 [tool.pytest.ini_options]
-addopts = "--quiet"
+addopts = "--quiet --import-mode=importlib"
 asyncio_default_fixture_loop_scope = "session"
 asyncio_mode = "auto"
 minversion = "6.0"

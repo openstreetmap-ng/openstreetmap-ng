@@ -97,6 +97,28 @@ let
 
     # -- Cython
     (makeScript "cython-build" "python scripts/cython_build.py build_ext --inplace --parallel \"$(nproc --all)\"")
+    (makeScript "cython-build-pgo" ''
+      num_compiled=$(find . -type f -name "*.so" | wc -l)
+      if [ "$num_compiled" -gt 0 ]; then
+        echo "NOTICE: Found $num_compiled .so files, skipping PGO build"
+        exit 0
+      fi
+      tmpdir=$(mktemp -d)
+      trap 'rm -rf "$tmpdir"' EXIT
+      cython-clean
+      CYTHON_FLAGS="\
+        -fprofile-dir=$tmpdir \
+        -fprofile-generate \
+        -fprofile-update=prefer-atomic" \
+      cython-build
+      run-tests --extended
+      cython-clean
+      CYTHON_FLAGS="\
+        -fprofile-dir=$tmpdir \
+        -fprofile-use \
+        -fprofile-partial-training" \
+      cython-build
+    '')
     (makeScript "cython-clean" ''
       rm -rf build/
       dirs=(app scripts)
@@ -427,6 +449,13 @@ let
 
     # -- Testing
     (makeScript "run-tests" ''
+      pid=$(cat data/supervisor/supervisord.pid 2> /dev/null || echo "")
+      if [ -n "$pid" ] && grep -q "supervisord" "/proc/$pid/cmdline" 2> /dev/null; then true; else
+        echo "NOTICE: Supervisor is not running"
+        echo "NOTICE: Run 'dev-start' before executing tests"
+        exit 1
+      fi
+
       term_output=0
       extended_tests=0
       for arg in "$@"; do
@@ -446,7 +475,7 @@ let
       done
 
       set +e
-      COVERAGE_CORE=sysmon python -m coverage run -m pytest \
+      python -m coverage run -m pytest \
         --verbose \
         --no-header \
         "$([ "$extended_tests" = "1" ] && echo "--extended")"
@@ -510,6 +539,7 @@ let
     export PYTHONNOUSERSITE=1
     export PYTHONPATH=""
     export TZ=UTC
+    export COVERAGE_CORE=sysmon
 
     current_python=$(readlink -e .venv/bin/python || echo "")
     current_python=''${current_python%/bin/*}
