@@ -98,7 +98,7 @@ let
     # -- Cython
     (makeScript "cython-build" "python scripts/cython_build.py build_ext --inplace --parallel \"$(nproc --all)\"")
     (makeScript "cython-build-pgo" ''
-      num_compiled=$(find . -type f -name "*.so" | wc -l)
+      num_compiled=$(find . -type f -name "*.so" -not -path '.*' | wc -l)
       if [ "$num_compiled" -gt 0 ]; then
         echo "NOTICE: Found $num_compiled .so files, skipping PGO build"
         exit 0
@@ -126,7 +126,7 @@ let
         -type f \
         \( -name '*.c' -o -name '*.html' -o -name '*.so' \) \
         -not \
-        \( -path 'app/static/*' -o -path 'app/templates/*' \) \
+        \( -path '.*' -o -path 'app/static/*' -o -path 'app/templates/*' \) \
         -delete
     '')
     (makeScript "watch-cython" "exec watchexec -o queue -w app --exts py cython-build")
