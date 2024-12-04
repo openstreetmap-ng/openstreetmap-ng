@@ -2,9 +2,12 @@ import math
 
 import pytest
 from shapely import MultiPolygon, Point, box
+from shapely.geometry.polygon import Polygon
 
 from app.lib.geo_utils import (
+    degrees_to_meters,
     haversine_distance,
+    meters_to_degrees,
     meters_to_radians,
     parse_bbox,
     radians_to_meters,
@@ -28,6 +31,18 @@ def test_meters_radians(meters, radians):
 
 
 @pytest.mark.parametrize(
+    ('meters', 'degrees'),
+    [
+        (0, 0),
+        (_earth_radius_meters, 57.29577951308232),
+    ],
+)
+def test_meters_degrees(meters, degrees):
+    assert math.isclose(meters_to_degrees(meters), degrees, rel_tol=1e-9)
+    assert math.isclose(degrees_to_meters(degrees), meters, rel_tol=1e-9)
+
+
+@pytest.mark.parametrize(
     ('p1', 'p2', 'expected_meters'),
     [
         (Point(0, 0), Point(0, 0), 0),
@@ -39,31 +54,23 @@ def test_haversine_distance(p1, p2, expected_meters):
     assert math.isclose(haversine_distance(p1, p2), expected_meters, rel_tol=1e-9)
 
 
-def test_parse_bbox_simple():
-    assert parse_bbox('-1,-2,3.3,4.4').equals(box(-1, -2, 3.3, 4.4))
-
-
-def test_parse_bbox_wrap_around():
-    assert parse_bbox('-560,20,-550,30').equals(box(160, 20, 170, 30))
-
-
-def test_parse_bbox_cover_world():
-    assert parse_bbox('100,20,900,30').equals(box(-180, 20, 180, 30))
-
-
-def test_parse_bbox_meridian():
-    assert parse_bbox('175,10,195,20').equals(
-        MultiPolygon(
-            (
-                box(175, 10, 180, 20),
-                box(-180, 10, -165, 20),
-            )
-        )
-    )
-
-
-def test_parse_normalize_latitude():
-    assert parse_bbox('1,-95,3,4').equals(box(1, -90, 3, 4))
+@pytest.mark.parametrize(
+    ('s', 'expected'),
+    [
+        # simple
+        ('-1,-2,3.3,4.4', box(-1, -2, 3.3, 4.4)),
+        # wrap around
+        ('-560,20,-550,30', box(160, 20, 170, 30)),
+        # whole world
+        ('100,20,900,30', box(-180, 20, 180, 30)),
+        # meridian
+        ('175,10,195,20', MultiPolygon((box(175, 10, 180, 20), box(-180, 10, -165, 20)))),
+        # normalize latitude
+        ('1,-95,3,4', box(1, -90, 3, 4)),
+    ],
+)
+def test_parse_bbox(s: str, expected: Polygon | MultiPolygon):
+    assert parse_bbox(s) == expected
 
 
 @pytest.mark.parametrize(
@@ -93,6 +100,9 @@ def test_parse_bbox_invalid(bbox):
         ('1 , 2', Point(2, 1)),
         ('1,2,3', None),
         ('1,2,3,4', None),
+        ('1', None),
+        ('-,-', None),
+        ('-180,-180', None),
     ],
 )
 def test_try_parse_point(lat_lon, expected):

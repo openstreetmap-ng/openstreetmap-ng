@@ -22,9 +22,8 @@ async def test_retry():
     assert runs == 2
 
 
-@pytest.mark.extended
 async def test_retry_timeout():
-    @retry(timedelta(seconds=0.1))
+    @retry(timedelta())
     async def func():
         raise RuntimeError
 

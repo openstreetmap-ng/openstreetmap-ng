@@ -39,16 +39,16 @@ class AvatarType(str, Enum):
 class Image:
     default_avatar: bytes = Path('app/static/img/avatar.webp').read_bytes()
 
-    @overload
     @staticmethod
+    @overload
     def get_avatar_url(image_type: Literal[AvatarType.default], *, app: bool = False) -> str: ...
 
-    @overload
     @staticmethod
+    @overload
     def get_avatar_url(image_type: Literal[AvatarType.gravatar], image_id: int) -> str: ...
 
-    @overload
     @staticmethod
+    @overload
     def get_avatar_url(image_type: Literal[AvatarType.custom], image_id: StorageKey) -> str: ...
 
     @staticmethod
@@ -56,7 +56,7 @@ class Image:
         """
         Get the url of the avatar image.
 
-        >>> Image.get_avatar_url(AvatarType.custom, '123456')
+        >>> Image.get_avatar_url(AvatarType.custom, StorageKey('123456'))
         '/api/web/avatar/123456'
         """
         if image_type == AvatarType.default:
@@ -86,7 +86,7 @@ class Image:
         """
         Get the url of the background image.
 
-        >>> Image.get_background_url('123456')
+        >>> Image.get_background_url(StorageKey('123456'))
         '/api/web/background/123456'
         """
         if image_id is not None:
@@ -131,7 +131,7 @@ async def _normalize_image(
     img_width: cython.int = img.shape[1]
     ratio: cython.double = img_width / img_height
 
-    # image is too wide
+    # the image is too wide
     if max_ratio and ratio > max_ratio:
         logging.debug('Image is too wide %dx%d', img_width, img_height)
         new_width: cython.int = int(img_height * max_ratio)
@@ -140,7 +140,7 @@ async def _normalize_image(
         img = img[:, x1:x2]
         img_width = x2 - x1
 
-    # image is too tall
+    # the image is too tall
     elif min_ratio and ratio < min_ratio:
         logging.debug('Image is too tall %dx%d', img_width, img_height)
         new_height: cython.int = int(img_width / min_ratio)

@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils import extend_query_params, unicode_normalize
+from app.utils import extend_query_params, secure_referer, unicode_normalize
 
 
 @pytest.mark.parametrize(
@@ -67,3 +67,17 @@ def test_unicode_normalize(text, expected):
 def test_extend_query_params(uri, params, expected, expected_fragment):
     assert extend_query_params(uri, params) == expected
     assert extend_query_params(uri, params, fragment=True) == expected_fragment
+
+
+@pytest.mark.parametrize(
+    ('referer', 'expected'),
+    [
+        (None, '/'),
+        ('https://example.com', '/'),
+        ('https://example.com/test', '/'),
+        ('/test', '/test'),
+        ('/test?key=value', '/test?key=value'),
+    ],
+)
+def test_secure_referer(referer: str | None, expected: str):
+    assert secure_referer(referer) == expected

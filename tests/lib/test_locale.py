@@ -6,6 +6,7 @@ from app.lib.locale import (
     is_installed_locale,
     normalize_locale,
 )
+from app.models.types import LocaleCode
 
 
 def test_locales_names_sorted():
@@ -16,7 +17,7 @@ def test_locales_names_sorted():
 
 
 @pytest.mark.parametrize(
-    ('locale', 'installed'),
+    ('locale', 'expected'),
     [
         ('en', True),
         ('pl', True),
@@ -24,8 +25,8 @@ def test_locales_names_sorted():
         ('NonExistent', False),
     ],
 )
-def test_installed_locale(locale, installed):
-    assert is_installed_locale(locale) == installed
+def test_installed_locale(locale: str, expected: bool):
+    assert is_installed_locale(LocaleCode(locale)) == expected
 
 
 @pytest.mark.parametrize(
@@ -36,18 +37,19 @@ def test_installed_locale(locale, installed):
         ('NonExistent', None),
     ],
 )
-def test_normalize_locale(locale, expected):
-    assert normalize_locale(locale) == expected
+def test_normalize_locale(locale: str, expected: str | None):
+    assert normalize_locale(LocaleCode(locale)) == expected
 
 
 @pytest.mark.parametrize(
-    ('code', 'english', 'native'),
+    ('code', 'english', 'native', 'display_name'),
     [
-        ('pl', 'polish', 'polski'),
-        ('en', 'english', 'english'),
+        ('pl', 'polish', 'polski', 'polish (polski)'),
+        ('en', 'english', 'english', 'english'),
     ],
 )
-def test_locales_names(code, english, native):
+def test_locales_names(code: str, english: str, native: str, display_name: str):
     locale_name = LOCALES_NAMES_MAP[code]
     assert locale_name.english.casefold() == english
     assert locale_name.native.casefold() == native
+    assert locale_name.display_name.casefold() == display_name

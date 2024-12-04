@@ -12,7 +12,7 @@ else:
 
 
 @cython.cfunc
-def radians(degrees: cython.double) -> cython.double:
+def _radians(degrees: cython.double) -> cython.double:
     return degrees * 0.017453292519943295  # pi / 180
 
 
@@ -62,18 +62,18 @@ def haversine_distance(p1: Point, p2: Point) -> float:
 
     Returns the distance in meters.
     """
-    coords1 = get_coordinates(p1)[0]
+    coords1 = get_coordinates(p1)[0].tolist()
     lon1: cython.double = coords1[0]
     lat1: cython.double = coords1[1]
 
-    coords2 = get_coordinates(p2)[0]
+    coords2 = get_coordinates(p2)[0].tolist()
     lon2: cython.double = coords2[0]
     lat2: cython.double = coords2[1]
 
-    delta_lon: cython.double = radians(lon2 - lon1)
-    delta_lat: cython.double = radians(lat2 - lat1)
+    delta_lon: cython.double = _radians(lon2 - lon1)
+    delta_lat: cython.double = _radians(lat2 - lat1)
 
-    a = sin(delta_lat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(delta_lon / 2) ** 2
+    a = sin(delta_lat / 2) ** 2 + cos(_radians(lat1)) * cos(_radians(lat2)) * sin(delta_lon / 2) ** 2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return c * 6371000  # R
 

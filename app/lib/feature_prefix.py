@@ -19,9 +19,9 @@ def features_prefixes(elements: Iterable[Element | None]) -> tuple[str | None, .
 
 def features_prefixes(elements: Iterable[Element | None]) -> tuple[str | None, ...]:
     """
-    Returns a human readable prefix for a feature based on its type and tags.
+    Returns a human-readable prefix for a feature based on its type and tags.
 
-    >>> feature_prefix(...)
+    >>> features_prefixes(...)
     ['Restaurant', 'City', ...]
     """
     return tuple(_feature_prefix(e.type, e.tags) if (e is not None) else None for e in elements)
@@ -50,7 +50,7 @@ def _feature_prefix(type: ElementType, tags: dict[str, str]) -> str:
                 message = f'geocoder.search_osm_nominatim.prefix.{key}.yes'
                 if _t(message) != message:
                     # provide automatic feature prefix for unknown tags
-                    # e.g. amenity=cooking_school -> 'Cooking school'
+                    # e.g., amenity=cooking_school -> 'Cooking school'
                     return value.capitalize().replace('_', ' ')
 
     # type-generic translations
@@ -67,7 +67,7 @@ def _feature_prefix(type: ElementType, tags: dict[str, str]) -> str:
 @cython.cfunc
 def _feature_prefix_administrative(tags: dict[str, str]) -> str:
     """
-    Returns a human readable prefix for an administrative boundary based on its tags.
+    Returns a human-readable prefix for an administrative boundary based on its tags.
 
     >>> _feature_prefix_administrative({'admin_level': '2'})
     'Country Boundary'

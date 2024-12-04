@@ -109,7 +109,7 @@ class PasswordHash:
     @staticmethod
     def hash(password: PasswordType) -> bytes | None:
         """
-        Hash a password using latest recommended algorithm.
+        Hash a password using the latest recommended algorithm.
 
         Returns None if the given password schema cannot be used.
         """

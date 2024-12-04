@@ -97,12 +97,12 @@ def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str, ...]:
 
     Returns at most two files: primary and fallback locale.
 
-    >>> map_i18next_files(['pl', 'de', 'en'])
+    >>> map_i18next_files([LocaleCode('pl'), LocaleCode('en'), LocaleCode('de')])
     ['pl-e4c39a792074d67c.js', 'en-c39c7633ceb0ce46.js']
     """
-    # force reload map in test environment
+    # force map reload in test environment
+    global _i18next_map
     if TEST_ENV:
-        global _i18next_map
         _i18next_map = _load_locale()[0]
 
     # i18next supports only primary+fallback locale
@@ -112,16 +112,16 @@ def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str, ...]:
         return (primary_file,)
     fallback_locale = locales[-1]
     fallback_file = _i18next_map[fallback_locale]
-    return (primary_file, fallback_file)
+    return primary_file, fallback_file
 
 
 def is_installed_locale(code: LocaleCode) -> bool:
     """
     Check if the locale code is installed.
 
-    >>> is_installed_locale('en')
+    >>> is_installed_locale(LocaleCode('en'))
     True
-    >>> is_installed_locale('NonExistent')
+    >>> is_installed_locale(LocaleCode('NonExistent'))
     False
     """
     return code in INSTALLED_LOCALES_NAMES_MAP
@@ -133,9 +133,9 @@ def normalize_locale(code: LocaleCode) -> LocaleCode | None:
 
     Returns None if the locale is not installed.
 
-    >>> normalize_locale('EN')
+    >>> normalize_locale(LocaleCode('EN'))
     'en'
-    >>> normalize_locale('NonExistent')
+    >>> normalize_locale(LocaleCode('NonExistent'))
     None
     """
     # skip if already normalized

@@ -8,7 +8,7 @@ from app.models.db.element import Element
 
 def features_names(elements: Iterable[Element]) -> tuple[str | None, ...]:
     """
-    Returns human readable names for features.
+    Returns human-readable names for features.
 
     >>> features_names(...)
     ('Foo', ...)

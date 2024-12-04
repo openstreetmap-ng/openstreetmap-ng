@@ -30,7 +30,7 @@ def format_sql_date(date: datetime | None) -> str:
     """
     Format a datetime object as a string in SQL format.
 
-    >>> format_date(datetime(2021, 12, 31, 15, 30, 45))
+    >>> format_sql_date(datetime(2021, 12, 31, 15, 30, 45))
     '2021-12-31 15:30:45 UTC'
     """
     if date is None:
@@ -38,8 +38,8 @@ def format_sql_date(date: datetime | None) -> str:
     tzinfo = date.tzinfo
     if tzinfo is not None and tzinfo is not UTC:
         raise AssertionError(f'Timezone must be UTC, got {tzinfo!r}')
-    format = '%Y-%m-%d %H:%M:%S UTC' if date.microsecond == 0 else '%Y-%m-%d %H:%M:%S.%f UTC'
-    return date.strftime(format)
+    fmt = '%Y-%m-%d %H:%M:%S UTC' if date.microsecond == 0 else '%Y-%m-%d %H:%M:%S.%f UTC'
+    return date.strftime(fmt)
 
 
 def format_rfc2822_date(date: datetime) -> str:
