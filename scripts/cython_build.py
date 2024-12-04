@@ -73,11 +73,11 @@ setup(
                     # https://stackoverflow.com/a/23501290
                     '--param=max-vartrack-size=0',
                     #
-                    '-flto',
+                    '-flto=auto',
                     *os.getenv('CYTHON_FLAGS', '').split(),
                 ],
                 extra_link_args=[
-                    '-flto',
+                    '-flto=auto',
                     *os.getenv('CYTHON_FLAGS', '').split(),
                 ],
                 define_macros=[
