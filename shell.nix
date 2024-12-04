@@ -527,11 +527,6 @@ let
       if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
       docker push "$(docker load < "$(nix-build --no-out-link)" | sed -n -E 's/Loaded image: (\S+)/\1/p')"
     '')
-    (makeScript "make-version" ''
-      version=$(date --iso-8601=seconds)
-      echo "Setting application version to $version"
-      sed -i -E "s|VERSION = '.*?'|VERSION = '$version'|" app/config.py
-    '')
   ];
 
   shell' = with pkgs; ''
@@ -600,7 +595,6 @@ let
     static-img-pipeline &
     wait
   '' + lib.optionalString (!isDevelopment) ''
-    make-version
   '';
 in
 pkgs.mkShellNoCC {

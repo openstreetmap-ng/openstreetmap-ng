@@ -674,6 +674,15 @@ wheels = [
 ]
 
 [[package]]
+name = "githead"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/8d/b3508c37806f60afc9bc7b438f262789b57d38ed2d0c11a8503f44f7c576/githead-1.2.0.tar.gz", hash = "sha256:0e1ee3585ce57d02f60ed6ebbaa22282baae5c9e2149ad215666cb5994e58480", size = 4293 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/68/a0/de6c61edc5c62795a5822c4fd8b4b6ddd53108aa22aca94d034734fb1aaa/githead-1.2.0-py3-none-any.whl", hash = "sha256:fd3b573bf35571793098d27d9fc3e584b6a300601c99c18c023be4930cc84401", size = 3285 },
+]
+
+[[package]]
 name = "greenlet"
 version = "3.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1107,6 +1116,7 @@ dependencies = [
     { name = "email-validator", marker = "python_full_version >= '3.13' and python_full_version < '4'" },
     { name = "fastapi", marker = "python_full_version >= '3.13' and python_full_version < '4'" },
     { name = "feedgen", marker = "python_full_version >= '3.13' and python_full_version < '4'" },
+    { name = "githead", marker = "python_full_version >= '3.13' and python_full_version < '4'" },
     { name = "httpx", extra = ["brotli", "zstd"], marker = "python_full_version >= '3.13' and python_full_version < '4'" },
     { name = "jinja2", marker = "python_full_version >= '3.13' and python_full_version < '4'" },
     { name = "libvalkey", marker = "python_full_version >= '3.13' and python_full_version < '4'" },
@@ -1177,6 +1187,7 @@ requires-dist = [
     { name = "email-validator" },
     { name = "fastapi", specifier = ">=0" },
     { name = "feedgen" },
+    { name = "githead", specifier = ">=1.2.0" },
     { name = "httpx", extras = ["brotli", "zstd"] },
     { name = "jinja2" },
     { name = "libvalkey", specifier = ">=4.0.1b1" },

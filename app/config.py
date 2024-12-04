@@ -7,10 +7,14 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 import sentry_sdk
+from githead import githead
 
 from app.lib.local_chapters import LOCAL_CHAPTERS
 
-VERSION = 'dev'
+try:
+    VERSION = 'git#' + githead()[:7]
+except FileNotFoundError:
+    VERSION = 'dev'
 
 NAME = 'openstreetmap-website'
 WEBSITE = 'https://www.openstreetmap.org'
@@ -168,6 +172,7 @@ dictConfig(
 if SENTRY_DSN := os.getenv('SENTRY_DSN'):
     sentry_sdk.init(
         dsn=SENTRY_DSN,
+        release=VERSION,
         environment=urlsplit(APP_URL).hostname,
         keep_alive=True,
         enable_tracing=True,
