@@ -53,6 +53,7 @@ let
     };
 
   packages' = with pkgs; [
+    ps
     coreutils
     findutils
     curl
@@ -295,7 +296,7 @@ let
     # -- Supervisor
     (makeScript "dev-start" ''
       pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
-      if [ -n "$pid" ] && ps -wwp "$pid" -o command | grep -q "supervisord"; then
+      if [ -n "$pid" ] && ps -wwp "$pid" -o command= | grep -q "supervisord"; then
         echo "Supervisor is already running"
         exit 0
       fi
@@ -334,7 +335,7 @@ let
     '')
     (makeScript "dev-stop" ''
       pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
-      if [ -n "$pid" ] && ps -wwp "$pid" -o command | grep -q "supervisord"; then
+      if [ -n "$pid" ] && ps -wwp "$pid" -o command= | grep -q "supervisord"; then
         kill -TERM "$pid"
         echo "Supervisor stopping..."
         while kill -0 "$pid" 2> /dev/null; do sleep 0.1; done
@@ -450,7 +451,7 @@ let
     # -- Testing
     (makeScript "run-tests" ''
       pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
-      if [ -n "$pid" ] && ps -wwp "$pid" -o command | grep -q "supervisord"; then true; else
+      if [ -n "$pid" ] && ps -wwp "$pid" -o command= | grep -q "supervisord"; then true; else
         echo "NOTICE: Supervisor is not running"
         echo "NOTICE: Run 'dev-start' before executing tests"
         exit 1
