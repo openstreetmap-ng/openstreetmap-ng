@@ -4,14 +4,14 @@ from datetime import UTC, datetime
 from typing import Any, Literal, Protocol, overload
 
 import cython
-import lxml.etree as ET
+import lxml.etree as tree
 from sizestr import sizestr
 
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.limits import XML_PARSE_MAX_SIZE
 
-_parser = ET.XMLParser(
+_parser = tree.XMLParser(
     ns_clean=True,
     recover=True,
     resolve_entities=False,
@@ -31,19 +31,19 @@ class XMLToDict:
         if (size_limit is not None) and len(xml_bytes) > size_limit:
             raise_for.input_too_big(len(xml_bytes))
         logging.debug('Parsing %s XML string', sizestr(len(xml_bytes)))
-        root = ET.fromstring(xml_bytes, parser=_parser)  # noqa: S320
+        root = tree.fromstring(xml_bytes, parser=_parser)  # noqa: S320
         return {_strip_namespace(root.tag): _parse_element(root)}
 
-    @overload
     @staticmethod
+    @overload
     def unparse(d: dict[str, Any]) -> str: ...
 
-    @overload
     @staticmethod
+    @overload
     def unparse(d: dict[str, Any], *, raw: Literal[True]) -> bytes: ...
 
-    @overload
     @staticmethod
+    @overload
     def unparse(d: dict[str, Any], *, raw: Literal[False]) -> str: ...
 
     @staticmethod
@@ -60,15 +60,15 @@ class XMLToDict:
 
         # always return the root element, even if it's empty
         if not elements:
-            elements = (ET.Element(root_k),)
+            elements = (tree.Element(root_k),)
 
-        result = ET.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
+        result = tree.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
         logging.debug('Unparsed %s XML string', sizestr(len(result)))
         return result if raw else result.decode()
 
 
 @cython.cfunc
-def _parse_element(element: ET._Element):
+def _parse_element(element: tree._Element):
     # read property once for performance
     force_sequence_root: set[str] = _force_sequence_root
     force_list: set[str] = _force_list
@@ -133,13 +133,13 @@ def _parse_element(element: ET._Element):
 
 
 @cython.cfunc
-def _unparse_element(key: str, value: Any) -> tuple[ET._Element, ...]:
+def _unparse_element(key: str, value: Any) -> tuple[tree._Element, ...]:
     k: str
     v: Any
 
     # encode dict
     if isinstance(value, dict):
-        element = ET.Element(key)
+        element = tree.Element(key)
         element_attrib = element.attrib  # read property once for performance
         for k, v in value.items():
             if k and k[0] == '@':
@@ -165,7 +165,7 @@ def _unparse_element(key: str, value: Any) -> tuple[ET._Element, ...]:
 
         # encode sequence of (key, value) tuples
         elif isinstance(first, Sequence) and not isinstance(first, str):
-            element = ET.Element(key)
+            element = tree.Element(key)
             element_attrib = element.attrib  # read property once for performance
             for k, v in value:
                 if k and k[0] == '@':
@@ -178,17 +178,17 @@ def _unparse_element(key: str, value: Any) -> tuple[ET._Element, ...]:
 
         # encode sequence of scalars
         else:
-            result: list[ET._Element] = [None] * len(value)  # pyright: ignore[reportAssignmentType]
+            result: list[tree._Element] = [None] * len(value)  # pyright: ignore[reportAssignmentType]
             i: cython.int
             for i, v in enumerate(value):
-                element = ET.Element(key)
+                element = tree.Element(key)
                 element.text = _to_string(v)
                 result[i] = element
             return tuple(result)
 
     # encode scalar
     else:
-        element = ET.Element(key)
+        element = tree.Element(key)
         element.text = _to_string(value)
         return (element,)
 
@@ -258,7 +258,7 @@ _value_postprocessor: dict[str, Callable[[str], Any]] = {
 
 @cython.cfunc
 def _to_string(v: Any) -> str:
-    if isinstance(v, str | ET.CDATA):
+    if isinstance(v, str | tree.CDATA):
         return v
     elif isinstance(v, datetime):
         # strip timezone for backwards-compatible format
@@ -283,7 +283,7 @@ class _XAttrCallable(Protocol):
     def __call__(self, name: str, xml: str | None = None) -> str: ...
 
 
-def _xattr_json(name: str, xml=None) -> str:
+def _xattr_json(name: str, _=None) -> str:
     return name
 
 
