@@ -5,8 +5,9 @@ import pytest
 from app.lib.retry import retry
 
 
+@pytest.mark.extended
 async def test_retry():
-    runs = 0
+    runs: int = 0
 
     @retry(None)
     async def func():
@@ -21,6 +22,7 @@ async def test_retry():
     assert runs == 2
 
 
+@pytest.mark.extended
 async def test_retry_timeout():
     @retry(timedelta(seconds=0.1))
     async def func():

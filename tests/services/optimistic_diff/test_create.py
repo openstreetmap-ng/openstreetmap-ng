@@ -50,7 +50,6 @@ async def test_create_invalid_changeset_id():
         point=Point(0, 0),
         members=[],
     )
-
     with pytest.raises(Exception):
         await OptimisticDiff.run((element,))
 
@@ -78,7 +77,6 @@ async def test_create_invalid_multiple_changesets(changeset_id: int):
             members=[],
         ),
     )
-
     with pytest.raises(Exception):
         await OptimisticDiff.run(elements)
 
@@ -94,11 +92,11 @@ async def test_create_invalid_id(changeset_id: int):
         point=Point(0, 0),
         members=[],
     )
-
     with pytest.raises(Exception):
         await OptimisticDiff.run((element,))
 
 
+@pytest.mark.extended
 async def test_create_invalid_changeset_size(changeset_id: int):
     elements = tuple(
         Element(
@@ -113,14 +111,12 @@ async def test_create_invalid_changeset_size(changeset_id: int):
         )
         for i in range(-1, -UserRoleLimits.get_changeset_max_size(()) - 2, -1)
     )
-
     with pytest.raises(Exception):
         await OptimisticDiff.run(elements)
 
 
 async def test_create_invalid_changeset_closed(changeset_id: int):
     await ChangesetService.close(changeset_id)
-
     element = Element(
         changeset_id=changeset_id,
         type='node',
@@ -131,6 +127,5 @@ async def test_create_invalid_changeset_closed(changeset_id: int):
         point=Point(0, 0),
         members=[],
     )
-
     with pytest.raises(Exception):
         await OptimisticDiff.run((element,))
