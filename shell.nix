@@ -99,11 +99,19 @@ let
     # -- Cython
     (makeScript "cython-build" "python scripts/cython_build.py build_ext --inplace --parallel \"$(nproc --all)\"")
     (makeScript "cython-build-pgo" ''
-      num_compiled=$(find . -type f -name "*.so" -not -path '.*' | wc -l)
-      if [ "$num_compiled" -gt 0 ]; then
-        echo "NOTICE: Found $num_compiled .so files, skipping PGO build"
+      files_up_to_date=true
+      while IFS= read -r so_file; do
+        py_file="''${so_file%.*.*}.py"
+        if [ -f "$py_file" ] && [ "$py_file" -nt "$so_file" ]; then
+          files_up_to_date=false
+          break
+        fi
+      done < <(find . -type f -name "*.so" -not -path './.*')
+      if [ "$files_up_to_date" = true ]; then
+        echo "All cython modules are up-to-date, skipping PGO build"
         exit 0
       fi
+
       tmpdir=$(mktemp -d)
       trap 'rm -rf "$tmpdir"' EXIT
       cython-clean
@@ -127,7 +135,7 @@ let
         -type f \
         \( -name '*.c' -o -name '*.html' -o -name '*.so' \) \
         -not \
-        \( -path '.*' -o -path 'app/static/*' -o -path 'app/templates/*' \) \
+        \( -path 'app/static/*' -o -path 'app/templates/*' \) \
         -delete
     '')
     (makeScript "watch-cython" "exec watchexec -o queue -w app --exts py cython-build")
