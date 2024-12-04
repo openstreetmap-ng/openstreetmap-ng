@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 
 import sentry_sdk
 from githead import githead
+from sentry_sdk.integrations.pure_eval import PureEvalIntegration
 
 from app.lib.local_chapters import LOCAL_CHAPTERS
 
@@ -180,6 +181,10 @@ if SENTRY_DSN := os.getenv('SENTRY_DSN'):
         traces_sample_rate=1.0,
         trace_propagation_targets=None,
         profiles_sample_rate=1.0,
+        integrations=(PureEvalIntegration(),),
+        _experiments={
+            'continuous_profiling_auto_start': True,
+        },
     )
 
 SENTRY_REPLICATION_MONITOR = sentry_sdk.monitor(
