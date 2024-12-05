@@ -160,11 +160,11 @@ def _parse_actions(
         'display_name': pl.String,
     }
     action: str
-    elements: list[tuple[ElementType, dict]]
-    for action, elements in actions:
+    for action, elements_ in actions:
         # skip osmChange attributes
         if action[0] == '@':
             continue
+        elements: list[tuple[ElementType, dict]] = elements_
         element_type: str
         element: dict
         for element_type, element in elements:
