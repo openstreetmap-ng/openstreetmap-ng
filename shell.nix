@@ -121,7 +121,7 @@ let
         -fprofile-update=prefer-atomic" \
       cython-build
       run-tests --extended
-      cython-clean
+      rm -rf build/
       CYTHON_FLAGS="\
         -fprofile-dir=$tmpdir \
         -fprofile-use \
@@ -130,8 +130,7 @@ let
     '')
     (makeScript "cython-clean" ''
       rm -rf build/
-      dirs=(app scripts)
-      find "''${dirs[@]}" \
+      find app scripts \
         -type f \
         \( -name '*.c' -o -name '*.html' -o -name '*.so' \) \
         -not \
