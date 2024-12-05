@@ -79,7 +79,7 @@ async def main() -> None:
     state = _load_app_state()
     click.echo(f'Resuming replication after {state.frequency}/{state.last_replica.sequence_number}')
     while True:
-        with start_transaction(op='task', name='replication'):
+        with SENTRY_REPLICATION_MONITOR, start_transaction(op='task', name='replication'):
             set_tag('state.frequency', state.frequency)
             set_context(
                 'state',
@@ -96,7 +96,7 @@ async def main() -> None:
             click.echo(f'Finished replication sequence {state.frequency}/{state.last_replica.sequence_number}')
 
 
-@retry(None)
+@retry(timedelta(minutes=30))
 async def _iterate(state: AppState) -> AppState:
     while True:
         next_replica = state.next_replica
@@ -120,13 +120,12 @@ async def _iterate(state: AppState) -> AppState:
             continue
         r.raise_for_status()
         break
-    with SENTRY_REPLICATION_MONITOR:
-        df, last_sequence_id = _parse_actions(
-            XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange'],
-            last_sequence_id=state.last_sequence_id,
-        )
-        df.write_parquet(remote_replica.path, compression='lz4', statistics=False)
-        return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
+    df, last_sequence_id = _parse_actions(
+        XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange'],
+        last_sequence_id=state.last_sequence_id,
+    )
+    df.write_parquet(remote_replica.path, compression='lz4', statistics=False)
+    return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
 
 
 @cython.cfunc

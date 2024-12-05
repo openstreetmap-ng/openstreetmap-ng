@@ -170,7 +170,7 @@ dictConfig(
 )
 
 # Sentry configuration
-if SENTRY_DSN := os.getenv('SENTRY_DSN'):
+if ('PYTEST_CURRENT_TEST' not in os.environ) and (SENTRY_DSN := os.getenv('SENTRY_DSN')):
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         release=VERSION,

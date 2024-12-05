@@ -1,4 +1,5 @@
 from datetime import timedelta
+from inspect import unwrap
 
 import pytest
 
@@ -29,3 +30,11 @@ async def test_retry_timeout():
 
     with pytest.raises(TimeoutError):
         await func()
+
+
+async def test_retry_unwrap():
+    async def func():
+        pass
+
+    wrapper = retry(timedelta())(func)
+    assert unwrap(wrapper) == func
