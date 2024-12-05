@@ -1,5 +1,6 @@
 import contextlib
 import os
+import sys
 from hashlib import sha256
 from itertools import chain
 from logging.config import dictConfig
@@ -170,7 +171,7 @@ dictConfig(
 )
 
 # Sentry configuration
-if ('PYTEST_CURRENT_TEST' not in os.environ) and (SENTRY_DSN := os.getenv('SENTRY_DSN')):
+if ('pytest' not in sys.modules) and (SENTRY_DSN := os.getenv('SENTRY_DSN')):
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         release=VERSION,
