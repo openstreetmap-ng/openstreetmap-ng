@@ -3,10 +3,10 @@ import { resolveDatetime } from "./_datetime"
 const paginationDistance = 2
 
 export const configureStandardPagination = (container: HTMLElement): void => {
-    const renderContainer = container.firstElementChild as HTMLElement
-    const paginationContainer = container.querySelector("ul.pagination")
+    const renderContainer = container.querySelector("ul.list-unstyled")
+    const paginationContainers = container.querySelectorAll("ul.pagination")
 
-    const dataset = paginationContainer.dataset
+    const dataset = paginationContainers[paginationContainers.length - 1].dataset
     const endpointPattern = dataset.action
     const totalPages = Number.parseInt(dataset.pages, 10)
     if (!totalPages) return
@@ -50,45 +50,48 @@ export const configureStandardPagination = (container: HTMLElement): void => {
     const updatePagination = (): void => {
         if (totalPages <= 1) return
         console.debug("configureStandardPagination", "updatePagination", currentPage)
-        const paginationFragment = document.createDocumentFragment()
 
-        for (let i = 1; i <= totalPages; i++) {
-            const distance = Math.abs(i - currentPage)
-            if (distance > paginationDistance && i !== 1 && i !== totalPages) {
-                if (i === 2 || i === totalPages - 1) {
-                    const li = document.createElement("li")
-                    li.classList.add("page-item", "disabled")
-                    li.ariaDisabled = "true"
-                    li.innerHTML = `<span class="page-link">...</span>`
-                    paginationFragment.appendChild(li)
+        for (const paginationContainer of paginationContainers) {
+            const paginationFragment = document.createDocumentFragment()
+
+            for (let i = 1; i <= totalPages; i++) {
+                const distance = Math.abs(i - currentPage)
+                if (distance > paginationDistance && i !== 1 && i !== totalPages) {
+                    if (i === 2 || i === totalPages - 1) {
+                        const li = document.createElement("li")
+                        li.classList.add("page-item", "disabled")
+                        li.ariaDisabled = "true"
+                        li.innerHTML = `<span class="page-link">...</span>`
+                        paginationFragment.appendChild(li)
+                    }
+                    continue
                 }
-                continue
+
+                const li = document.createElement("li")
+                li.classList.add("page-item")
+
+                const button = document.createElement("button")
+                button.classList.add("page-link")
+                button.textContent = i.toString()
+                li.appendChild(button)
+
+                if (i === currentPage) {
+                    li.classList.add("active")
+                    li.ariaCurrent = "page"
+                } else {
+                    button.addEventListener("click", () => {
+                        currentPage = i
+                        updateCollection()
+                        updatePagination()
+                    })
+                }
+
+                paginationFragment.appendChild(li)
             }
 
-            const li = document.createElement("li")
-            li.classList.add("page-item")
-
-            const button = document.createElement("button")
-            button.classList.add("page-link")
-            button.textContent = i.toString()
-            li.appendChild(button)
-
-            if (i === currentPage) {
-                li.classList.add("active")
-                li.ariaCurrent = "page"
-            } else {
-                button.addEventListener("click", () => {
-                    currentPage = i
-                    updateCollection()
-                    updatePagination()
-                })
-            }
-
-            paginationFragment.appendChild(li)
+            paginationContainer.innerHTML = ""
+            paginationContainer.appendChild(paginationFragment)
         }
-
-        paginationContainer.innerHTML = ""
-        paginationContainer.appendChild(paginationFragment)
     }
 
     // Initial update
