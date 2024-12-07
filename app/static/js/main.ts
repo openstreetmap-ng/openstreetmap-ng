@@ -10,7 +10,6 @@ import "./_rapid"
 import "./_welcome"
 import "./diaries/_compose"
 import "./diaries/_details"
-import { configureMainMap } from "./leaflet/_main-map"
 import "./messages/_index"
 import "./messages/_new"
 import "./oauth2/_fragment-callback"
@@ -30,8 +29,7 @@ import "./user/_reset-password"
 import "./user/_signup"
 import "./user/_terms"
 
-const mapContainer = document.querySelector("div.main-map")
-if (mapContainer) configureMainMap(mapContainer)
+import "./leaflet/_main-map"
 
 import "./_bootstrap"
 import "./_copy-group"

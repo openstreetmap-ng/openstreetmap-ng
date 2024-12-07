@@ -125,7 +125,7 @@ const getMainMap = (container: HTMLElement): L.Map => {
 }
 
 /** Configure the main map and all its components */
-export const configureMainMap = (container: HTMLElement): void => {
+const configureMainMap = (container: HTMLElement): void => {
     const map = getMainMap(container)
 
     // Configure here instead of navbar to avoid global script dependency (navbar is global)
@@ -160,3 +160,6 @@ export const configureMainMap = (container: HTMLElement): void => {
     configureSearchForm(map)
     handleEditRemotePath()
 }
+
+const mapContainer = document.querySelector("div.main-map")
+if (mapContainer) configureMainMap(mapContainer)
