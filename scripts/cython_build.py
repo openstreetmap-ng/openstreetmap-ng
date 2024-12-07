@@ -60,6 +60,8 @@ setup(
                 path.with_suffix('').as_posix().replace('/', '.'),
                 [str(path)],
                 extra_compile_args=[
+                    '-g',
+                    '-O3',
                     # docs: https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc.pdf
                     '-march=' + os.getenv('CYTHON_MARCH', 'native'),
                     '-mtune=' + os.getenv('CYTHON_MTUNE', 'native'),
