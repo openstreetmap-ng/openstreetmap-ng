@@ -544,6 +544,14 @@ let
     export TZ=UTC
     export COVERAGE_CORE=sysmon
 
+    en_yaml_path="${projectDir}/config/locale/download/en.yaml"
+    en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
+    current_en_yaml=$(readlink -e "$en_yaml_sym_path" || echo "")
+    if [ "$current_en_yaml" != "$en_yaml_path" ]; then
+      echo "Creating convenience symlink for en.yaml"
+      ln -s "$en_yaml_path" "$en_yaml_sym_path"
+    fi
+
     current_python=$(readlink -e .venv/bin/python || echo "")
     current_python=''${current_python%/bin/*}
     [ "$current_python" != "${python'}" ] && rm -rf .venv/
