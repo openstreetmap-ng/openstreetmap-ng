@@ -74,8 +74,29 @@ async def get_map(bbox: Annotated[str, Query()]):
     )
 
 
+@router.get('/{note_id:int}/comments')
+async def comments_page(
+    note_id: PositiveInt,
+    page: Annotated[PositiveInt, Query()],
+    num_items: Annotated[PositiveInt, Query()],
+):
+    with options_context(
+        joinedload(NoteComment.user).load_only(
+            User.id,
+            User.display_name,
+            User.avatar_type,
+            User.avatar_id,
+        )
+    ):
+        comments = await NoteCommentQuery.get_note_comments_page(note_id, page=page, num_items=num_items)
+    async with TaskGroup() as tg:
+        for comment in comments:
+            tg.create_task(comment.resolve_rich_text())
+    return await render_response('notes/comments_page.jinja2', {'comments': comments})
+
+
 @router.get('/user/{user_id:int}')
-async def user_notes(
+async def user_notes_page(
     user_id: PositiveInt,
     page: Annotated[PositiveInt, Query()],
     num_items: Annotated[PositiveInt, Query()],

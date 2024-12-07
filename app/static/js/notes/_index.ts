@@ -9,6 +9,6 @@ if (body) {
         window.location.href = status ? `?status=${noteStatusFilter.value}` : "?"
     })
 
-    const notes = document.getElementById("notes")
+    const notes = document.querySelector("div.notes-pagination")
     if (notes) configureStandardPagination(notes)
 }

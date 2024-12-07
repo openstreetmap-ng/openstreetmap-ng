@@ -9,8 +9,10 @@ from sqlalchemy import Select, func, select, text, union_all
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.options_context import apply_options_context
+from app.lib.standard_pagination import standard_pagination_range
+from app.limits import NOTE_COMMENTS_PAGE_SIZE
 from app.models.db.note import Note
-from app.models.db.note_comment import NoteComment
+from app.models.db.note_comment import NoteComment, NoteEvent
 
 
 class NoteCommentQuery:
@@ -31,12 +33,38 @@ class NoteCommentQuery:
             if geometry is not None:
                 where_and.append(func.ST_Intersects(Note.point, func.ST_GeomFromText(geometry.wkt, 4326)))
 
-            stmt = stmt.where(*where_and).order_by(NoteComment.created_at.desc())
+            stmt = stmt.where(*where_and).order_by(NoteComment.id.desc())
 
             if limit is not None:
                 stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()
+
+    @staticmethod
+    async def get_note_comments_page(note_id: int, page: int, num_items: int) -> Sequence[NoteComment]:
+        """
+        Get comments for the given note page.
+
+        The header comment is omitted.
+        """
+        stmt_limit, stmt_offset = standard_pagination_range(
+            page,
+            page_size=NOTE_COMMENTS_PAGE_SIZE,
+            num_items=num_items,
+        )
+        async with db() as session:
+            stmt = (
+                select(NoteComment)
+                .where(NoteComment.note_id == note_id)
+                .order_by(NoteComment.id.desc())
+                .offset(stmt_offset)
+                .limit(stmt_limit)
+            )
+            stmt = apply_options_context(stmt)
+            comments = (await session.scalars(stmt)).all()
+        if page == 1 and comments and comments[-1].event == NoteEvent.opened:
+            comments = comments[:-1]
+        return comments[::-1]
 
     @staticmethod
     async def resolve_num_comments(notes: Iterable[Note]) -> None:
@@ -91,9 +119,7 @@ class NoteCommentQuery:
                 )
                 if per_note_limit is not None:
                     subq = (
-                        stmt_.order_by(
-                            NoteComment.created_at.asc() if per_note_sort == 'asc' else NoteComment.created_at.desc()
-                        )
+                        stmt_.order_by(NoteComment.id.asc() if per_note_sort == 'asc' else NoteComment.id.desc())
                         .limit(per_note_limit)
                         .subquery()
                     )
@@ -103,7 +129,7 @@ class NoteCommentQuery:
             stmt = (
                 select(NoteComment)
                 .where(NoteComment.id.in_(union_all(*stmts).subquery().select()))
-                .order_by(NoteComment.created_at.asc())
+                .order_by(NoteComment.id.asc())
             )
             stmt = apply_options_context(stmt)
             comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()

@@ -59,7 +59,7 @@ class DiaryCommentQuery:
         diary_id: int,
         *,
         page: int,
-        num_comments: int,
+        num_items: int,
     ) -> Sequence[DiaryComment]:
         """
         Get comments for the given diary page.
@@ -67,13 +67,13 @@ class DiaryCommentQuery:
         stmt_limit, stmt_offset = standard_pagination_range(
             page,
             page_size=DIARY_COMMENTS_PAGE_SIZE,
-            num_items=num_comments,
+            num_items=num_items,
         )
         async with db() as session:
             stmt = (
                 select(DiaryComment)
                 .where(DiaryComment.diary_id == diary_id)
-                .order_by(DiaryComment.created_at.desc())
+                .order_by(DiaryComment.id.desc())
                 .offset(stmt_offset)
                 .limit(stmt_limit)
             )

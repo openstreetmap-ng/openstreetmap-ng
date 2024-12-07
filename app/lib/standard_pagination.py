@@ -6,6 +6,7 @@ else:
     from math import ceil
 
 
+# TODO: support &before= for consistency
 def standard_pagination_range(
     page: cython.int,
     *,
@@ -23,5 +24,5 @@ def standard_pagination_range(
     if page < 1 or page > num_pages:
         return 0, 0
     stmt_offset: cython.longlong = (num_pages - page) * page_size
-    stmt_limit: cython.int = page_size if page > 1 else (num_items - stmt_offset)
+    stmt_limit = page_size
     return stmt_limit, stmt_offset

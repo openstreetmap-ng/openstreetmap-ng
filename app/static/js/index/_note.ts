@@ -2,6 +2,7 @@ import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import * as L from "leaflet"
 import { configureStandardForm } from "../_standard-form"
+import { configureStandardPagination } from "../_standard-pagination"
 import { getPageTitle } from "../_title"
 import { focusMapObject } from "../leaflet/_focus-layer"
 import { PartialNoteParamsSchema } from "../proto/shared_pb"
@@ -14,9 +15,6 @@ export const getNoteController = (map: L.Map): IndexController => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
         const sidebarTitle = sidebarTitleElement.textContent
-        const locationButton = sidebarContent.querySelector("button.location-btn")
-        const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
-        const commentForm = sidebarContent.querySelector("form.comment-form")
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
@@ -35,6 +33,7 @@ export const getNoteController = (map: L.Map): IndexController => {
         })
 
         // On location click, pan the map
+        const locationButton = sidebarContent.querySelector("button.location-btn")
         locationButton.addEventListener("click", () => {
             const latLng = L.latLng(params.lat, params.lon)
             const currentZoom = map.getZoom()
@@ -45,6 +44,10 @@ export const getNoteController = (map: L.Map): IndexController => {
             }
         })
 
+        const commentsPagination = sidebarContent.querySelector("div.note-comments-pagination")
+        if (commentsPagination) configureStandardPagination(commentsPagination)
+
+        const commentForm = sidebarContent.querySelector("form.comment-form")
         if (commentForm) {
             const commentInput = commentForm.elements.namedItem("text") as HTMLInputElement
             const eventInput = commentForm.elements.namedItem("event") as HTMLInputElement
@@ -59,6 +62,7 @@ export const getNoteController = (map: L.Map): IndexController => {
                 controller.unload()
                 controller.load({ id: params.id.toString() })
             }
+            const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
             configureStandardForm(subscriptionForm, onFormSuccess)
             configureStandardForm(commentForm, onFormSuccess)
 

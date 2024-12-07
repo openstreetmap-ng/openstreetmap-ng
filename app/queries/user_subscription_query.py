@@ -4,9 +4,9 @@ from sqlalchemy import select, text
 
 from app.db import db
 from app.lib.auth_context import auth_user
+from app.lib.options_context import apply_options_context
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscription, UserSubscriptionTarget
-from app.queries.user_query import UserQuery
 
 
 class UserSubscriptionQuery:
@@ -34,9 +34,14 @@ class UserSubscriptionQuery:
         Get users subscribed to the target.
         """
         async with db() as session:
-            stmt = select(UserSubscription.user_id).where(
-                UserSubscription.target == target,
-                UserSubscription.target_id == target_id,
+            subq = (
+                select(UserSubscription.user_id)
+                .where(
+                    UserSubscription.target == target,
+                    UserSubscription.target_id == target_id,
+                )
+                .subquery()
             )
-            user_ids = (await session.scalars(stmt)).all()
-        return await UserQuery.find_many_by_ids(user_ids)
+            stmt = select(User).where(User.id.in_(subq.select()))
+            stmt = apply_options_context(stmt)
+            return (await session.scalars(stmt)).all()

@@ -48,10 +48,16 @@ export const configureStandardPagination = (container: HTMLElement): void => {
     }
 
     const updatePagination = (): void => {
-        if (totalPages <= 1) return
+        if (totalPages <= 1) {
+            for (const paginationContainer of paginationContainers) {
+                paginationContainer.classList.add("d-none")
+            }
+            return
+        }
         console.debug("configureStandardPagination", "updatePagination", currentPage)
 
         for (const paginationContainer of paginationContainers) {
+            paginationContainer.classList.remove("d-none")
             const paginationFragment = document.createDocumentFragment()
 
             for (let i = 1; i <= totalPages; i++) {

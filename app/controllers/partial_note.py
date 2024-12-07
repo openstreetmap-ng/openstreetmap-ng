@@ -1,6 +1,5 @@
 from asyncio import TaskGroup
 from base64 import urlsafe_b64encode
-from collections.abc import Collection
 from math import ceil
 
 from fastapi import APIRouter
@@ -12,8 +11,7 @@ from starlette import status
 from app.lib.date_utils import utcnow
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.limits import NOTE_FRESHLY_CLOSED_TIMEOUT
-from app.models.db.note import Note
+from app.limits import NOTE_COMMENTS_PAGE_SIZE, NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscriptionTarget
@@ -37,37 +35,6 @@ async def get_note(id: PositiveInt):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    async with TaskGroup() as tg:
-        tg.create_task(_resolve_comments_task(notes))
-        is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed(UserSubscriptionTarget.note, id))
-
-    if note.closed_at is not None:
-        duration = note.closed_at + NOTE_FRESHLY_CLOSED_TIMEOUT - utcnow()
-        duration_sec = duration.total_seconds()
-        disappear_days = ceil(duration_sec / 86400) if (duration_sec > 0) else None
-    else:
-        disappear_days = None
-
-    x, y = get_coordinates(note.point)[0].tolist()
-    params = PartialNoteParams(id=id, lon=x, lat=y, open=note.closed_at is None)
-    return await render_response(
-        'partial/note.jinja2',
-        {
-            'note': note,
-            'header': note.comments[0],
-            'comments': note.comments[1:],
-            'status': note.status.value,
-            'is_subscribed': is_subscribed_t.result(),
-            'disappear_days': disappear_days,
-            'params': urlsafe_b64encode(params.SerializeToString()).decode(),
-        },
-    )
-
-
-async def _resolve_comments_task(notes: Collection[Note]) -> None:
-    """
-    Resolve note comments, their rich text and users.
-    """
     with options_context(
         joinedload(NoteComment.user).load_only(
             User.id,
@@ -76,4 +43,43 @@ async def _resolve_comments_task(notes: Collection[Note]) -> None:
             User.avatar_id,
         )
     ):
-        await NoteCommentQuery.resolve_comments(notes, per_note_limit=None)
+        async with TaskGroup() as tg:
+            tg.create_task(NoteCommentQuery.resolve_num_comments(notes))
+            tg.create_task(
+                NoteCommentQuery.resolve_comments(
+                    notes,
+                    per_note_sort='asc',
+                    per_note_limit=1,
+                    resolve_rich_text=True,
+                )
+            )
+            is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed(UserSubscriptionTarget.note, id))
+
+    if note.closed_at is not None:
+        duration = note.closed_at + NOTE_FRESHLY_CLOSED_TIMEOUT - utcnow()
+        duration_sec = duration.total_seconds()
+        disappear_days = ceil(duration_sec / 86400) if (duration_sec > 0) else None
+    else:
+        disappear_days = None
+
+    if note.num_comments is None:
+        raise AssertionError('Note num comments must be set')
+    note_comments_num_items = note.num_comments - 1
+    note_comments_num_pages = ceil(note_comments_num_items / NOTE_COMMENTS_PAGE_SIZE)
+    x, y = get_coordinates(note.point)[0].tolist()
+    place = f'{y:.5f}, {x:.5f}'
+    params = PartialNoteParams(id=id, lon=x, lat=y, open=note.closed_at is None)
+    return await render_response(
+        'partial/note.jinja2',
+        {
+            'note': note,
+            'place': place,
+            'header': note.comments[0],
+            'note_comments_num_items': note_comments_num_items,
+            'note_comments_num_pages': note_comments_num_pages,
+            'status': note.status.value,
+            'is_subscribed': is_subscribed_t.result(),
+            'disappear_days': disappear_days,
+            'params': urlsafe_b64encode(params.SerializeToString()).decode(),
+        },
+    )

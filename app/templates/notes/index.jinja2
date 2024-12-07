@@ -59,12 +59,12 @@
         <div class="col-6 offset-3">
 
             {% if notes_num_items %}
-                <div id="notes">
+                <div class="notes-pagination">
                     <nav aria-label="{{ t('alt.notes_page_navigation') }}">
                         <ul class="pagination pagination-sm justify-content-end mb-2">
                         </ul>
                     </nav>
-                    <ul class="content-list notes-list social-list list-unstyled mb-2"></ul>
+                    <ul class="notes-list social-list list-unstyled mb-2"></ul>
                     <nav aria-label="{{ t('alt.notes_page_navigation') }}">
                         <ul class="pagination pagination-sm justify-content-end mb-0"
                             data-action="/api/web/note/user/{{ profile.id }}?page={page}&num_items={{ notes_num_items }}&commented={{ commented }}&status={{ status }}"

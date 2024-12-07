@@ -49,14 +49,16 @@ async def details(diary_id: PositiveInt):
             )
     if diary.num_comments is None:
         raise AssertionError('Diary num comments must be set')
-    comments_num_pages = ceil(diary.num_comments / DIARY_COMMENTS_PAGE_SIZE)
+    diary_comments_num_items = diary.num_comments
+    diary_comments_num_pages = ceil(diary_comments_num_items / DIARY_COMMENTS_PAGE_SIZE)
     return await render_response(
         'diaries/details.jinja2',
         {
             **data,
             'diary': diary,
             'is_subscribed': is_subscribed_t.result(),
-            'comments_num_pages': comments_num_pages,
+            'diary_comments_num_items': diary_comments_num_items,
+            'diary_comments_num_pages': diary_comments_num_pages,
             'DIARY_COMMENT_BODY_MAX_LENGTH': DIARY_COMMENT_BODY_MAX_LENGTH,
         },
     )

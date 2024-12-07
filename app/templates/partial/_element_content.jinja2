@@ -2,23 +2,23 @@
     <p class="header text-muted d-flex justify-content-between">
         <span>
             {% if changeset.user is none %}
-            {{ t('browse.anonymous') }}
+                {{ t('browse.anonymous') }}
             {% else %}
-            <a href="/user/{{ changeset.user.display_name }}">
+                <a href="/user/{{ changeset.user.display_name }}">
                 <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                    loading="lazy">
+                     loading="lazy">
                 {{- changeset.user.display_name -}}
             </a>
             {% endif %}
             {% if element.visible %}
-            {{ t('action.edited') }}
+                {{ t('action.edited') }}
             {% else %}
-            {{ t('action.deleted') }}
+                {{ t('action.deleted') }}
             {% endif %}
             <time datetime="{{ element.created_at.isoformat() }}" data-style="long"></time>
         </span>
         {% if not element.visible %}
-        <span>
+            <span>
             <span class="badge text-bg-secondary">
                 <i class="bi bi-trash-fill"></i>
             </span>
@@ -29,104 +29,102 @@
         <p class="position-relative mb-1">
             {{ t('browse.in_changeset') }}
             #<a href="/changeset/{{ element.changeset_id }}">
-                {{- element.changeset_id -}}
-            </a>
+            {{- element.changeset_id -}}
+        </a>
         </p>
         <div class="fst-italic">
             {% for value in comment_tag.values %}
-            {% include 'partial/_tag_value.jinja2' %}
+                {% include 'partial/_tag_value.jinja2' %}
             {% endfor %}
         </div>
     </div>
 </div>
 
-{% if element.point is not none %}
-<p class="location-btn-container mb-2">
-    {{ t('diary_entries.form.location') }}:
-    <button class="location-btn btn btn-link stretched-link" data-lon="{{ element.point.x }}"
-        data-lat="{{ element.point.y }}">
-        {{ element.point.y }}, {{ element.point.x }}
-    </button>
-</p>
+{% if place %}
+    <p class="location-btn-container mb-2">
+        {{ t('diary_entries.form.location') }}:
+        <button class="location-btn btn btn-link stretched-link" data-lon="{{ element.point.x }}"
+                data-lat="{{ element.point.y }}">{{ place }}</button>
+    </p>
 {% endif %}
 
 {% if tags_map %}
-<div class="tags">
-    <table class="table table-sm">
-        <tbody dir="auto">
+    <div class="tags">
+        <table class="table table-sm">
+            <tbody dir="auto">
             {% for tag in tags_map.values() %}
-            <tr data-status="{{ tag.status }}">
-                <td>
-                    {% set value = tag.key %}
-                    {% include 'partial/_tag_value.jinja2' %}
-                </td>
-                <td>
-                    <div>
-                        <div class="tag-values">
-                            {% for value in tag.values %}
-                            {% include 'partial/_tag_value.jinja2' %}
-                            {% endfor %}
+                <tr data-status="{{ tag.status }}">
+                    <td>
+                        {% set value = tag.key %}
+                        {% include 'partial/_tag_value.jinja2' %}
+                    </td>
+                    <td>
+                        <div>
+                            <div class="tag-values">
+                                {% for value in tag.values %}
+                                    {% include 'partial/_tag_value.jinja2' %}
+                                {% endfor %}
+                            </div>
+                            {% if tag.previous %}
+                                <div class="tag-previous">
+                                    {% for value in tag.previous %}
+                                        {% include 'partial/_tag_value.jinja2' %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
-                        {% if tag.previous %}
-                        <div class="tag-previous">
-                            {% for value in tag.previous %}
-                            {% include 'partial/_tag_value.jinja2' %}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                </td>
-            </tr>
+                    </td>
+                </tr>
             {% endfor %}
-        </tbody>
-    </table>
-</div>
+            </tbody>
+        </table>
+    </div>
 {% endif %}
 
 {% set table %}
 {% if compact %}
-<details>
+    <details>
+        <table class="table table-borderless mb-2">
+            <tbody></tbody>
+        </table>
+        <nav aria-label="{{ t('alt.elements_page_navigation') }}">
+            <ul class="pagination pagination-sm justify-content-end mb-0"></ul>
+        </nav>
+    </details>
+{% else %}
     <table class="table table-borderless mb-2">
         <tbody></tbody>
     </table>
     <nav aria-label="{{ t('alt.elements_page_navigation') }}">
         <ul class="pagination pagination-sm justify-content-end mb-0"></ul>
     </nav>
-</details>
-{% else %}
-<table class="table table-borderless mb-2">
-    <tbody></tbody>
-</table>
-<nav aria-label="{{ t('alt.elements_page_navigation') }}">
-    <ul class="pagination pagination-sm justify-content-end mb-0"></ul>
-</nav>
 {% endif %}
 {% endset %}
 
 {% if show_parents %}
-<div class="parents mt-4 mb-1">
-    <h4 class="title"></h4>
-    {{ table }}
-    <template class="entry">
-        <tr>
-            <td><img></td>
-            <td>
-            </td>
-        </tr>
-    </template>
-</div>
+    <div class="parents mt-4 mb-1">
+        <h4 class="title"></h4>
+        {{ table }}
+        <template class="entry">
+            <tr>
+                <td><img></td>
+                <td>
+                </td>
+            </tr>
+        </template>
+    </div>
 {% endif %}
 
 {% if show_elements %}
-<div class="elements mt-4 mb-1">
-    <h4 class="title"></h4>
-    {{ table }}
-    <template class="entry">
-        <tr>
-            <td><img></td>
-            <td>
-            </td>
-        </tr>
-    </template>
-</div>
+    <div class="elements mt-4 mb-1">
+        <h4 class="title"></h4>
+        {{ table }}
+        <template class="entry">
+            <tr>
+                <td><img></td>
+                <td>
+                </td>
+            </tr>
+        </template>
+    </div>
 {% endif %}

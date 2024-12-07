@@ -5,6 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 from pydantic import PositiveInt
+from shapely.coordinates import get_coordinates
 from sqlalchemy.orm import joinedload
 from starlette import status
 
@@ -231,6 +232,12 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     comment_str = changeset.tags.get('comment') or t('browse.no_comment')
     comment_tag = tags_format({'comment': comment_str})['comment']
 
+    if (point := element.point) is not None:
+        x, y = get_coordinates(point)[0].tolist()
+        place = f'{y:.7f}, {x:.7f}'
+    else:
+        place = None
+
     prev_version = element.version - 1 if element.version > 1 else None
     next_version = element.version + 1 if (element.next_sequence_id is not None) else None
     icon = features_icons((element,))[0]
@@ -246,6 +253,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     )
     return {
         'element': element,
+        'place': place,
         'changeset': changeset,
         'prev_version': prev_version,
         'next_version': next_version,

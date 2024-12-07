@@ -37,7 +37,7 @@ class Search:
         *,
         local_only: bool = False,
         local_max_iterations: int | None = None,
-    ) -> list[tuple[str | None, Polygon | MultiPolygon | None]]:
+    ) -> list[tuple[str, Polygon | MultiPolygon] | tuple[None, None]]:
         """
         Get search bounds from a bbox string.
 
@@ -65,7 +65,7 @@ class Search:
             local_iterations = 1
         logging.debug('Searching area of %d with %d local iterations', bbox_area, local_iterations)
 
-        result: list[tuple] = [None] * local_iterations  # type: ignore
+        result: list[tuple[str, Polygon | MultiPolygon] | tuple[None, None]] = [None] * local_iterations  # type: ignore
         i: cython.int
         for i in range(local_iterations):
             bounds_width_2: cython.double = bbox_width_2 * (2**i)

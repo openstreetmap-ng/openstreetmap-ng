@@ -74,7 +74,7 @@ async def delete(
 async def comments_page(
     diary_id: PositiveInt,
     page: Annotated[PositiveInt, Query()],
-    num_comments: Annotated[PositiveInt, Query()],
+    num_items: Annotated[PositiveInt, Query()],
 ):
     with options_context(
         joinedload(DiaryComment.user).load_only(
@@ -84,7 +84,7 @@ async def comments_page(
             User.avatar_id,
         )
     ):
-        comments = await DiaryCommentQuery.get_diary_page(diary_id, page=page, num_comments=num_comments)
+        comments = await DiaryCommentQuery.get_diary_page(diary_id, page=page, num_items=num_items)
     async with TaskGroup() as tg:
         for comment in comments:
             tg.create_task(comment.resolve_rich_text())

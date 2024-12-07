@@ -327,6 +327,7 @@ alt:
   messages_page_navigation: Messages page navigation
   traces_page_navigation: Traces page navigation
   notes_page_navigation: Notes page navigation
+  note_comments_page_navigation: Note comments page navigation
   profile_picture: Profile picture
   application_image: Application image
   background_image: Background image

@@ -63,7 +63,7 @@ class ChangesetCommentQuery:
                 )
                 if limit_per_changeset is not None:
                     subq = (
-                        stmt_.order_by(ChangesetComment.created_at.desc())
+                        stmt_.order_by(ChangesetComment.id.desc())
                         .limit(limit_per_changeset)  #
                         .subquery()
                     )
@@ -73,7 +73,7 @@ class ChangesetCommentQuery:
             stmt = (
                 select(ChangesetComment)
                 .where(ChangesetComment.id.in_(union_all(*stmts).subquery().select()))
-                .order_by(ChangesetComment.created_at.asc())
+                .order_by(ChangesetComment.id.asc())
             )
             stmt = apply_options_context(stmt)
             comments = (await session.scalars(stmt)).all()

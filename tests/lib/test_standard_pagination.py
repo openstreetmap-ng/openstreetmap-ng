@@ -7,7 +7,7 @@ from app.lib.standard_pagination import standard_pagination_range
     ('page', 'expected'),
     [
         (0, (0, 0)),
-        (1, (3, 20)),
+        (1, (10, 20)),
         (2, (10, 10)),
         (3, (10, 0)),
         (4, (0, 0)),
