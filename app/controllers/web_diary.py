@@ -71,7 +71,7 @@ async def delete(
 
 
 @router.get('/{diary_id:int}/comments')
-async def comments(
+async def comments_page(
     diary_id: PositiveInt,
     page: Annotated[PositiveInt, Query()],
     num_comments: Annotated[PositiveInt, Query()],
@@ -88,7 +88,7 @@ async def comments(
     async with TaskGroup() as tg:
         for comment in comments:
             tg.create_task(comment.resolve_rich_text())
-    return await render_response('diaries/details_comments.jinja2', {'comments': comments})
+    return await render_response('diaries/comments_page.jinja2', {'comments': comments})
 
 
 # TODO: delete comment
