@@ -9,26 +9,110 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.options_context import apply_options_context
+from app.lib.standard_pagination import standard_pagination_range
+from app.limits import NOTE_USER_PAGE_SIZE
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, NoteEvent
 
 
 class NoteQuery:
     @staticmethod
-    async def count_by_user_id(user_id: int) -> int:
+    async def count_by_user_id(
+        user_id: int,
+        *,
+        commented_other: bool = False,
+        open: bool | None = None,
+    ) -> int:
         """
-        Count notes by user id.
+        Count notes interacted with by user id.
+
+        If commented_other is True, it will count activity on non-own notes.
         """
         async with db() as session:
-            stmt = select(func.count()).select_from(
-                select(text('1'))
+            cte = (
+                select(NoteComment.note_id)
                 .where(
-                    NoteComment.user_id == user_id,
                     NoteComment.event == NoteEvent.opened,
+                    NoteComment.user_id == user_id,
                 )
+                .distinct()
+                .cte()
+                .prefix_with('MATERIALIZED')
+            )
+            if commented_other:
+                cte = (
+                    select(NoteComment.note_id)
+                    .where(
+                        NoteComment.event == NoteEvent.commented,
+                        NoteComment.user_id == user_id,
+                        NoteComment.note_id.notin_(cte.select()),
+                    )
+                    .distinct()
+                    .cte()
+                    .prefix_with('MATERIALIZED')
+                )
+            where_and = [Note.visible_to(auth_user()), Note.id.in_(cte.select())]
+            if open is not None:
+                where_and.append(Note.closed_at == null() if open else Note.closed_at != null())
+            stmt = select(func.count()).select_from(
+                select(text('1'))  #
+                .where(*where_and)
                 .subquery()
             )
             return (await session.execute(stmt)).scalar_one()
+
+    @staticmethod
+    async def get_user_notes_page(
+        user_id: int,
+        *,
+        page: int,
+        num_items: int,
+        commented_other: bool,
+        open: bool | None,
+    ) -> Sequence[Note]:
+        """
+        Get comments for the given user notes page.
+        """
+        stmt_limit, stmt_offset = standard_pagination_range(
+            page,
+            page_size=NOTE_USER_PAGE_SIZE,
+            num_items=num_items,
+        )
+        async with db() as session:
+            cte = (
+                select(NoteComment.note_id)
+                .where(
+                    NoteComment.event == NoteEvent.opened,
+                    NoteComment.user_id == user_id,
+                )
+                .distinct()
+                .cte()
+                .prefix_with('MATERIALIZED')
+            )
+            if commented_other:
+                cte = (
+                    select(NoteComment.note_id)
+                    .where(
+                        NoteComment.event == NoteEvent.commented,
+                        NoteComment.user_id == user_id,
+                        NoteComment.note_id.notin_(cte.select()),
+                    )
+                    .distinct()
+                    .cte()
+                    .prefix_with('MATERIALIZED')
+                )
+            where_and = [Note.visible_to(auth_user()), Note.id.in_(cte.select())]
+            if open is not None:
+                where_and.append(Note.closed_at == null() if open else Note.closed_at != null())
+            stmt = (
+                select(Note)  #
+                .where(*where_and)
+                .order_by(Note.updated_at.desc())
+                .offset(stmt_offset)
+                .limit(stmt_limit)
+            )
+            stmt = apply_options_context(stmt)
+            return (await session.scalars(stmt)).all()[::-1]
 
     @staticmethod
     async def find_many_by_query(

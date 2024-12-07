@@ -46,6 +46,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     )
 
     # runtime
+    num_comments: int | None = None
     comments: list['NoteComment'] | Any = None
 
     __table_args__ = (
@@ -75,7 +76,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         """
         Get the note's status.
 
-        >>> note.status
+        >>> Note(...).status
         NoteStatus.open
         """
         if self.hidden_at:

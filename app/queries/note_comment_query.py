@@ -1,10 +1,10 @@
 from asyncio import TaskGroup
-from collections.abc import Collection, Sequence
+from collections.abc import Collection, Iterable, Sequence
 from typing import Literal
 
 import cython
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy import Select, func, select, union_all
+from sqlalchemy import Select, func, select, text, union_all
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -39,6 +39,32 @@ class NoteCommentQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
+    async def resolve_num_comments(notes: Iterable[Note]) -> None:
+        """
+        Resolve the number of comments for each note.
+        """
+        note_id_map = {note.id: note for note in notes}
+        if not note_id_map:
+            return
+
+        async with db() as session:
+            subq = (
+                select(NoteComment.note_id)
+                .where(NoteComment.note_id.in_(text(','.join(map(str, note_id_map)))))
+                .subquery()
+            )
+            stmt = (
+                select(subq.c.note_id, func.count())  #
+                .select_from(subq)
+                .group_by(subq.c.note_id)
+            )
+            rows: Sequence[tuple[int, int]] = (await session.execute(stmt)).all()  # pyright: ignore[reportAssignmentType]
+            id_num_map: dict[int, int] = dict(rows)
+
+        for note_id, note in note_id_map.items():
+            note.num_comments = id_num_map.get(note_id, 0)
+
+    @staticmethod
     async def resolve_comments(
         notes: Collection[Note],
         *,
@@ -56,7 +82,7 @@ class NoteCommentQuery:
             id_comments_map[note.id] = note.comments = []
 
         async with db() as session:
-            stmts: list[Select] = [None] * len(notes)  # pyright: ignore[reportAssignmentType]
+            stmts: list[Select] = [None] * len(notes)  # type: ignore
             i: cython.int
             for i, note in enumerate(notes):
                 stmt_ = select(NoteComment.id).where(
@@ -90,6 +116,10 @@ class NoteCommentQuery:
                 current_note_id = note_id
                 current_comments = id_comments_map[note_id]
             current_comments.append(comment)
+
+        if per_note_limit is None:
+            for note in notes:
+                note.num_comments = len(note.comments)
 
         if resolve_rich_text:
             async with TaskGroup() as tg:

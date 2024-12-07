@@ -1,0 +1,82 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('notes.index.heading', user=profile.display_name) }} | {% endblock %}
+{% block body_class %}notes-body{% endblock %}
+{% block body %}
+
+    <div class="content-header pb-0">
+        <div class="col-6 offset-3">
+            <div class="row mb-3">
+                <div class="col-auto">
+                    <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                </div>
+                <div class="col">
+                    <h1>{{ t('notes.index.heading', user=profile.display_name) }}</h1>
+                    <p class="mb-0">{{ t('note.user.description') }}</p>
+                </div>
+            </div>
+
+            <nav>
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a href="/user/{{ profile.display_name }}/notes" {% if active_tab == 0 %}
+                           class="nav-link active"
+                           aria-current="page" {% else %} class="nav-link" {% endif %}>
+                            {{ t('note.user.created_notes') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/user/{{ profile.display_name }}/notes/commented" {% if active_tab == 1 %}
+                           class="nav-link active" aria-current="page" {% else %} class="nav-link" {% endif %}>
+                            {{ t('note.user.commented_on_notes') }}
+                        </a>
+                    </li>
+                    <li class="nav-item ms-auto">
+                        <div class="input-group">
+                            <label for="noteStatusFilter"
+                                   class="input-group-text">{{ t('note.user.filter_by_status') }}</label>
+                            <select id="noteStatusFilter" class="form-select">
+                                <option value=""
+                                        {% if status == '' %}selected{% endif %}>
+                                    {{ t('state.any') }}
+                                </option>
+                                <option value="open"
+                                        {% if status == 'open' %}selected{% endif %}>
+                                    {{ t('state.open') }}
+                                </option>
+                                <option value="closed"
+                                        {% if status == 'closed' %}selected{% endif %}>
+                                    {{ t('browse.closed') }}
+                                </option>
+                            </select>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <div class="content-body">
+        <div class="col-6 offset-3">
+
+            {% if notes_num_items %}
+                <div id="notes">
+                    <nav aria-label="{{ t('alt.notes_page_navigation') }}">
+                        <ul class="pagination pagination-sm justify-content-end mb-2">
+                        </ul>
+                    </nav>
+                    <ul class="content-list notes-list social-list list-unstyled mb-2"></ul>
+                    <nav aria-label="{{ t('alt.notes_page_navigation') }}">
+                        <ul class="pagination pagination-sm justify-content-end mb-0"
+                            data-action="/api/web/note/user/{{ profile.id }}?page={page}&num_items={{ notes_num_items }}&commented={{ commented }}&status={{ status }}"
+                            data-pages="{{ notes_num_pages }}">
+                        </ul>
+                    </nav>
+                </div>
+            {% else %}
+                <h3>{{ t('traces.index.empty_title') }}</h3>
+            {% endif %}
+
+        </div>
+    </div>
+
+{% endblock %}

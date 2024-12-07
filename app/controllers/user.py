@@ -134,14 +134,20 @@ async def index(
     await ChangesetCommentQuery.resolve_num_comments(changesets)
 
     notes_count = await NoteQuery.count_by_user_id(user.id)
-    note_comments_count = 0  # TODO:
+    note_comments_count = await NoteQuery.count_by_user_id(user.id, commented_other=True)
     notes = await NoteQuery.find_many_by_query(
         user_id=user.id,
         event=NoteEvent.opened,
         sort_dir='desc',
         limit=USER_RECENT_ACTIVITY_ENTRIES,
     )
-    await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
+    await NoteCommentQuery.resolve_comments(
+        notes,
+        per_note_sort='asc',
+        per_note_limit=1,
+        resolve_rich_text=False,
+    )
+    await NoteCommentQuery.resolve_num_comments(notes)
 
     traces_count = await TraceQuery.count_by_user_id(user.id)
     traces = await TraceQuery.find_many_recent(user_id=user.id, limit=USER_RECENT_ACTIVITY_ENTRIES)

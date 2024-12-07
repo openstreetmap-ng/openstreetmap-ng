@@ -1,0 +1,50 @@
+{% for note in notes %}
+    {% set comment = note.comments[0] %}
+    <li class="row g-2">
+        <div class="col-auto">
+            {% if note.closed_at is none %}
+                <img class="marker" src="/static/img/marker/open.webp" alt="{{ t('state.unresolved') }}"
+                     draggable="false">
+            {% else %}
+                <img class="marker" src="/static/img/marker/closed.webp" alt="{{ t('state.resolved') }}"
+                     draggable="false">
+            {% endif %}
+        </div>
+        <div class="col">
+            <div class="social-action social-entry h-100">
+                <p class="header text-muted d-flex justify-content-between">
+                    <span>
+                        <a href="/user/{{ comment.user.display_name }}" rel="author">
+                            <img class="avatar" src="{{ comment.user.avatar_url }}"
+                                 alt="{{ t('alt.profile_picture') }}">
+                            {{- comment.user.display_name -}}
+                        </a>
+                        {{ t('browse.created') | lower }}
+                        <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
+                    </span>
+                    <span>
+                        {% if note.updated_at > comment.created_at %}
+                            {{ t('action.updated') }}
+                            <time datetime="{{ note.updated_at.isoformat() }}" data-style="long"></time>
+                            <span class="mx-1">·</span>
+                        {% endif %}
+                        <a class="stretched-link" href="/note/{{ note.id }}">{{ note.id }}</a>
+                    </span>
+                </p>
+                <div class="body d-flex justify-content-between">
+                    <div>{{ comment.body }}</div>
+                    {% if note.num_comments > 1 %}
+                        <div class="num-comments">
+                            {{ note.num_comments - 1 -}}
+                            <i class="bi bi-chat-left-text"></i>
+                        </div>
+                    {% else %}
+                        <div class="num-comments no-comments">
+                            0<i class="bi bi-chat-left"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </li>
+{% endfor %}

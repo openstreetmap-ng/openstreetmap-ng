@@ -52,7 +52,7 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
 
     __table_args__ = (
         Index('note_comment_note_created_idx', note_id, 'created_at'),
-        Index('note_comment_event_user_idx', event, user_id),
+        Index('note_comment_event_user_id_idx', event, user_id, 'id'),
         Index('note_comment_body_idx', body_tsvector, postgresql_using='gin'),
     )
 

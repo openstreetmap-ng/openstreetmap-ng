@@ -20,6 +20,21 @@
         padding: 0.375rem 0.3rem 0;
     }
 
+    .num-comments {
+        white-space: nowrap;
+        font-size: 0.875em;
+        margin: 0.125rem 0.25rem 0;
+
+        .bi {
+            margin-left: 0.3rem;
+            font-size: 0.9em;
+        }
+    }
+
+    .no-comments {
+        color: $gray-500;
+    }
+
     // Better centering of the badges
     .badge {
         position: relative;
@@ -87,21 +102,6 @@
     .comment {
         font-style: italic;
     }
-
-    .num-comments {
-        white-space: nowrap;
-        font-size: 0.875em;
-        margin: 0.125rem 0.25rem 0;
-
-        .bi {
-            margin-left: 0.3rem;
-            font-size: 0.9em;
-        }
-    }
-
-    .no-comments {
-        color: $gray-500;
-    }
 }
 
 .diary-list {
@@ -140,21 +140,6 @@
             font-size: 0.875em;
         }
     }
-
-    .num-comments {
-        white-space: nowrap;
-        font-size: 0.875em;
-        margin: 0.125rem 0.25rem 0;
-
-        .bi {
-            margin-left: 0.3rem;
-            font-size: 0.9em;
-        }
-    }
-
-    .no-comments {
-        color: $gray-500;
-    }
 }
 
 .diary-user-comments-list {
@@ -168,7 +153,7 @@
 }
 
 .notes-list {
-    img {
+    img.marker {
         width: 1.625em;
         margin-top: 0.75rem;
     }

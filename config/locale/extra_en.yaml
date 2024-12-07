@@ -52,6 +52,11 @@ note:
   title: Note
   count_one: "note"
   count_other: "notes"
+  user:
+    description: Explore user-submitted map feedback and comments.
+    created_notes: Created Notes
+    commented_on_notes: Commented on Notes
+    filter_by_status: Filter by status
 trace:
   count_one: "trace"
   count_other: "traces"
@@ -95,7 +100,6 @@ access:
   public: Public
   private: Private
   invite_only: Invite-only
-
 user:
   new: New
   i_am_new_here: I'm new here!
@@ -322,6 +326,7 @@ alt:
   elements_page_navigation: Elements page navigation
   messages_page_navigation: Messages page navigation
   traces_page_navigation: Traces page navigation
+  notes_page_navigation: Notes page navigation
   profile_picture: Profile picture
   application_image: Application image
   background_image: Background image
@@ -409,7 +414,10 @@ action:
   upload_image: Upload an image
   connect: Connect
   disconnect: Disconnect
+  updated: updated
 state:
+  any: Any
+  open: Open
   hidden: Hidden
   latest: latest
   preparing: Preparing
