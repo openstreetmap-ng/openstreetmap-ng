@@ -56,7 +56,7 @@ class EmailService:
         priority: int = 0,
     ) -> None:
         """
-        Schedule a mail and start async processing.
+        Schedule mail and start async processing.
         """
         # render in the to_user's language
         with auth_context(to_user, ()), translation_context(to_user.language):

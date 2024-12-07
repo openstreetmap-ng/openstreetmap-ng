@@ -84,7 +84,7 @@
         {% if comments %}
         <ul class="list-unstyled">
             {% for comment in comments %}
-            {% set event = comment.event.value %}
+            {% set _event = comment.event.value %}
             <li class="social-entry">
                 <p class="header text-muted">
                     <a href="/user/{{ comment.user.display_name }}">
@@ -92,13 +92,13 @@
                             loading="lazy">
                         {{- comment.user.display_name -}}
                     </a>
-                    {% if event == 'commented' %}
+                    {% if _event == 'commented' %}
                     {{ t('action.commented') }}
-                    {% elif event == 'closed' %}
+                    {% elif _event == 'closed' %}
                     {{ t('action.resolved') }}
-                    {% elif event == 'reopened' %}
+                    {% elif _event == 'reopened' %}
                     {{ t('action.reactivated') }}
-                    {% elif event == 'hidden' %}
+                    {% elif _event == 'hidden' %}
                     {{ t('action.hid') }}
                     {% endif %}
                     <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>

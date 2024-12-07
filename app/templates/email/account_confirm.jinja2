@@ -1,10 +1,11 @@
 {% extends 'email/_base.jinja2' %}
 {% block body %}
-<p>{{ t('user_mailer.signup_confirm.greeting') }}</p>
-<p>{{ t('user_mailer.signup_confirm.created', site_url=app_domain) }}</p>
-<p>{{ t('user_mailer.signup_confirm.confirm') }}</p>
-› <a href="{{ APP_URL }}/api/web/user/account-confirm?token={{ token }}">
-    {{ t('confirm_account.click_here_to_activate_account') }}
-</a>
-<p>{{ t('user_mailer.signup_confirm.welcome') }}</p>
+    <p>{{ t('user_mailer.signup_confirm.greeting') }}</p>
+    <p>{{ t('user_mailer.signup_confirm.created', site_url=app_domain) }}</p>
+    <p>{{ t('user_mailer.signup_confirm.confirm') }}</p>
+    ›
+    <a href="{{ APP_URL }}/api/web/user/account-confirm?token={{ token }}">
+        {{ t('confirm_account.click_here_to_activate_account') }}
+    </a>
+    <p>{{ t('user_mailer.signup_confirm.welcome') }}</p>
 {% endblock %}

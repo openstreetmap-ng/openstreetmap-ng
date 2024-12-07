@@ -1,28 +1,23 @@
 <!DOCTYPE html>
 <html lang="{{ lang }}" dir="{{ t('html.dir') }}">
-
 <head>
     <meta charset="utf-8">
 </head>
-
-<body style="font-family: Arial, Sans-Serif; background: #eee; margin: 0 1em">
-    <h3>
-        <a href="{{ APP_URL }}" style="text-decoration: none; color: #000">
-            <img src="{{ APP_URL }}/static/img/favicon/64.png" alt="{{ t('alt.logo') }}"
-                style="height: 1.2em; position: relative; top: 0.2em">
-            {{ t('layouts.project_name.title') }}
-        </a>
-    </h3>
-
-    <div style="background: #fff; color: #222; border: solid 1px #ccc; padding: 0 1em">
-        {% block body %}{% endblock %}
-    </div>
-
-    <p style="text-align: center">
-        <a href="{{ APP_URL }}" style="font-size: 0.8em; color: #222">
-            {{ t('layouts.project_name.title') }}
-        </a>
-    </p>
+<body style="font-family: Arial, sans-serif; background: #eee; margin: 0 1em">
+<h3>
+    <a href="{{ APP_URL }}" style="text-decoration: none; color: #000">
+        <img src="{{ APP_URL }}/static/img/favicon/64.png" alt="{{ t('alt.logo') }}" width="28" height="28"
+             style="margin-right: 0.35rem; position: relative; top: 0.4em">
+        {{- t('layouts.project_name.title') }}
+    </a>
+</h3>
+<div style="background: #fff; color: #222; border: solid 1px #ccc; padding: 0 1em">
+    {% block body %}{% endblock %}
+</div>
+<p style="text-align: center">
+    <a href="{{ APP_URL }}" style="font-size: 0.8em; color: #222">
+        {{ t('layouts.project_name.title') }}
+    </a>
+</p>
 </body>
-
 </html>

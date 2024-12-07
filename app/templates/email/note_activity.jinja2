@@ -1,0 +1,66 @@
+{% extends 'email/_base.jinja2' %}
+{% block body %}
+<p>{{ t('user_mailer.note_comment_notification.greeting') }}</p>
+<p>
+    {% set _commenter -%}
+    <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}"
+       style="text-decoration: none; color: #222"><b>{{ comment.user.display_name }}</b></a>
+    {%- endset %}
+    {% set _event = comment.event.value %}
+    {% if _event == 'commented' %}
+        {% if is_note_owner %}
+            {{ t('user_mailer.note_comment_notification.commented.your_note_html',
+                commenter=_commenter,
+                place=place
+            ) | safe }}
+        {% else %}
+            {{ t('user_mailer.note_comment_notification.commented.commented_note_html',
+                commenter=_commenter,
+                place=place
+            ) | safe }}
+        {% endif %}
+    {% elif _event == 'closed' %}
+        {% if is_note_owner %}
+            {{ t('user_mailer.note_comment_notification.closed.your_note_html',
+                commenter=_commenter,
+                place=place
+            ) | safe }}
+        {% else %}
+            {{ t('user_mailer.note_comment_notification.closed.commented_note_html',
+                commenter=_commenter,
+                place=place
+            ) | safe }}
+        {% endif %}
+    {% elif _event == 'reopened' %}
+        {% if is_note_owner %}
+            {{ t('user_mailer.note_comment_notification.reopened.your_note_html',
+                commenter=_commenter,
+                place=place
+            ) | safe }}
+        {% else %}
+            {{ t('user_mailer.note_comment_notification.reopened.commented_note_html',
+                commenter=_commenter,
+                place=place
+            ) | safe }}
+        {% endif %}
+    {% endif %}
+</p>
+{% if comment.body %}
+    <table style="width: 100%; margin: 1em 0; padding: 1em; background: #eee">
+        <tr>
+            <td style="width: 50px; padding-right: 0.75em; vertical-align: top">
+                <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}" style="position: absolute">
+                    <img src="{{ APP_URL }}{{ comment.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
+                         width="50"
+                         height="50" style="border-radius: 50%;">
+                </a>
+            </td>
+            <td style="vertical-align: top">{{ comment.body_rich | safe }}</td>
+        </tr>
+    </table>
+{% endif %}
+{% set _url -%}
+<a href="{{ APP_URL }}/note/{{ comment.note_id }}">{{ APP_URL }}/note/{{ comment.note_id }}</a>
+{%- endset %}
+<p>{{ t('user_mailer.note_comment_notification.details_html', url=_url) | safe }}</p>
+{% endblock %}

@@ -111,6 +111,7 @@ def main(verbose: bool):
         convert_placeholder_format(data)
         convert_number_format(data)
         convert_plural_structure(data)
+        rename_buggy_keys(data)
 
         # merge local chapters
         deep_dict_update(data, lc_extractor.extract(locale))
@@ -195,6 +196,32 @@ def convert_plural_structure(data: dict):
 
         # remove the original plural dict
         data.pop(k)
+
+
+def rename_buggy_keys(data: dict):
+    """
+    Rename keys that bug-out during i18next -> gnu conversion.
+
+    >>> rename_buggy_keys({'some_other': 'value'})
+    {'some other': 'value'}
+    """
+    buggy_keys = []
+    abort = False
+    for k, v in tuple(data.items()):
+        if isinstance(v, dict):
+            rename_buggy_keys(v)
+            continue
+
+        suffix = k.rsplit('_', 1)[-1]
+        if suffix == 'other':
+            buggy_keys.append(k)
+        elif suffix in {'zero', 'one', 'two', 'few', 'many'}:
+            abort = True
+    if abort:
+        return
+    for k in buggy_keys:
+        k_alt = k.replace('_other', ' other')
+        data[k_alt] = data[k]
 
 
 def deep_dict_update(d: MutableMapping, u: Mapping) -> None:
