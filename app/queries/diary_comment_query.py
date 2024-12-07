@@ -73,12 +73,12 @@ class DiaryCommentQuery:
             stmt = (
                 select(DiaryComment)
                 .where(DiaryComment.diary_id == diary_id)
-                .order_by(DiaryComment.created_at.asc())
+                .order_by(DiaryComment.created_at.desc())
                 .offset(stmt_offset)
                 .limit(stmt_limit)
             )
             stmt = apply_options_context(stmt)
-            return (await session.scalars(stmt)).all()
+            return (await session.scalars(stmt)).all()[::-1]
 
     @staticmethod
     async def resolve_num_comments(diaries: Iterable[Diary]) -> None:

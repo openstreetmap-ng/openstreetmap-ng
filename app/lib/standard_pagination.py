@@ -15,19 +15,13 @@ def standard_pagination_range(
     """
     Get the range of items for the given page.
 
+    The last page returns an offset of 0.
+
     Returns a tuple of (limit, offset).
     """
     num_pages: cython.int = int(ceil(num_items / page_size))
     if page < 1 or page > num_pages:
         return 0, 0
-
-    last_page_num_comments: cython.int = num_items - ((num_pages - 1) * page_size)
-    adjust_offset: cython.int = page_size - last_page_num_comments
-
-    stmt_limit: cython.int = page_size
-    stmt_offset: cython.longlong = (page - 1) * page_size - adjust_offset
-    if stmt_offset < 0:
-        stmt_limit += stmt_offset
-        stmt_offset = 0
-
+    stmt_offset: cython.longlong = (num_pages - page) * page_size
+    stmt_limit: cython.int = page_size if page > 1 else (num_items - stmt_offset)
     return stmt_limit, stmt_offset
