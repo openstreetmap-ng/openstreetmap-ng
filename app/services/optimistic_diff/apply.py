@@ -153,7 +153,7 @@ async def _update_elements(
             element.id = assigned_id
 
     # process members
-    insert_elements: list[Element] = [None] * len(elements)  # pyright: ignore[reportAssignmentType]
+    insert_elements: list[Element] = [None] * len(elements)  # type: ignore
     i: cython.int
     for i, element_t in enumerate(elements):
         element = insert_elements[i] = element_t[0]

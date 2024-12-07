@@ -47,7 +47,7 @@ class ValhallaQuery:
 
         leg = cast(ValhallaResponse, data)['trip']['legs'][0]
         points = decode_latlon(leg['shape'], 6)
-        routing_steps: list[RoutingResult.Step] = [None] * len(leg['maneuvers'])  # pyright: ignore[reportAssignmentType]
+        routing_steps: list[RoutingResult.Step] = [None] * len(leg['maneuvers'])  # type: ignore
 
         i: cython.int
         for i, maneuver in enumerate(leg['maneuvers']):

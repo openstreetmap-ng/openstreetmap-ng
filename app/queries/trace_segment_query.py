@@ -154,7 +154,7 @@ class TraceSegmentQuery:
             return
 
         async with db() as session:
-            stmts: list[Select] = [None] * len(traces)  # pyright: ignore[reportAssignmentType]
+            stmts: list[Select] = [None] * len(traces)  # type: ignore
             i: cython.int
             for i, trace in enumerate(traces):
                 subq = (

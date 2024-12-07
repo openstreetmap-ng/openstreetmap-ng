@@ -68,7 +68,7 @@ class Element06Mixin:
             ('modify', {'way': {'@id': 2, '@version': 2, ...}}),
         ]
         """
-        result: list[tuple[OSMChangeAction, dict[ElementType, dict]]] = [None] * len(elements)  # pyright: ignore[reportAssignmentType]
+        result: list[tuple[OSMChangeAction, dict[ElementType, dict]]] = [None] * len(elements)  # type: ignore
         action: OSMChangeAction
         i: cython.int
         for i, element in enumerate(elements):

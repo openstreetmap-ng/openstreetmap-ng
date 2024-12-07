@@ -36,7 +36,7 @@ class QueryFeatures:
             for element in overpass_elements
         }
 
-        elements_unfiltered: list[Element] = [None] * len(type_id_map)  # pyright: ignore[reportAssignmentType]
+        elements_unfiltered: list[Element] = [None] * len(type_id_map)  # type: ignore
         i: cython.int
         for i, element in enumerate(type_id_map.values()):
             elements_unfiltered[i] = Element(
@@ -54,7 +54,7 @@ class QueryFeatures:
         names = features_names(elements)
         prefixes = features_prefixes(elements)
 
-        result: list[QueryFeatureResult] = [None] * len(elements)  # pyright: ignore[reportAssignmentType]
+        result: list[QueryFeatureResult] = [None] * len(elements)  # type: ignore
         for i, element, icon, name, prefix in zip(range(len(elements)), elements, icons, names, prefixes, strict=True):
             element_type = element.type
             element_data = type_id_map[(element_type, element.id)]

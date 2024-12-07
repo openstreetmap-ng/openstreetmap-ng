@@ -30,7 +30,7 @@ def _encode_changeset(changeset: Changeset):
         )
     else:
         params_user = None
-    params_bounds: list[SharedBounds] = [None] * len(changeset.bounds)  # pyright: ignore[reportAssignmentType]
+    params_bounds: list[SharedBounds] = [None] * len(changeset.bounds)  # type: ignore
     i: cython.int
     for i, cb in enumerate(changeset.bounds):
         bounds = cb.bounds.bounds

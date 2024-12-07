@@ -102,7 +102,7 @@ async def _get_response(
     Search.remove_overlapping_points(results)
 
     # prepare data for rendering
-    renders: list[RenderElementsData] = [None] * len(results)  # pyright: ignore[reportAssignmentType]
+    renders: list[RenderElementsData] = [None] * len(results)  # type: ignore
     for i, result in enumerate(results):
         element = result.element
         element_members = tuple(members_map[member.type, member.id] for member in element.members)  # pyright: ignore[reportOptionalIterable]

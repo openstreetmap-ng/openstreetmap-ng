@@ -65,7 +65,7 @@ class Search:
             local_iterations = 1
         logging.debug('Searching area of %d with %d local iterations', bbox_area, local_iterations)
 
-        result: list[tuple] = [None] * local_iterations  # pyright: ignore[reportAssignmentType]
+        result: list[tuple] = [None] * local_iterations  # type: ignore
         i: cython.int
         for i in range(local_iterations):
             bounds_width_2: cython.double = bbox_width_2 * (2**i)

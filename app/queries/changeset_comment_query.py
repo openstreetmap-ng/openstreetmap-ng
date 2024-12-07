@@ -54,7 +54,7 @@ class ChangesetCommentQuery:
             id_comments_map[changeset.id] = changeset.comments = []
 
         async with db() as session:
-            stmts: list[Select] = [None] * len(changesets)  # pyright: ignore[reportAssignmentType]
+            stmts: list[Select] = [None] * len(changesets)  # type: ignore
             i: cython.int
             for i, changeset in enumerate(changesets):
                 stmt_ = select(ChangesetComment.id).where(

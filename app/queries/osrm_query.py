@@ -41,7 +41,7 @@ class OSRMQuery:
             raise HTTPException(r.status_code, r.text)
 
         leg = cast(OSRMResponse, data)['routes'][0]['legs'][0]
-        routing_steps: list[RoutingResult.Step] = [None] * len(leg['steps'])  # pyright: ignore[reportAssignmentType]
+        routing_steps: list[RoutingResult.Step] = [None] * len(leg['steps'])  # type: ignore
 
         i: cython.int
         for i, step in enumerate(leg['steps']):

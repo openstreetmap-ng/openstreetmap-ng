@@ -49,7 +49,7 @@ class GraphHopperQuery:
 
         path = cast(GraphHopperResponse, data)['paths'][0]
         points = decode_latlon(path['points'], 5)
-        routing_steps: list[RoutingResult.Step] = [None] * len(path['instructions'])  # pyright: ignore[reportAssignmentType]
+        routing_steps: list[RoutingResult.Step] = [None] * len(path['instructions'])  # type: ignore
 
         i: cython.int
         for i, instr in enumerate(path['instructions']):

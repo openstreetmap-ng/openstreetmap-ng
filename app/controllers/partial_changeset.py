@@ -75,7 +75,7 @@ async def get_changeset(id: PositiveInt):
     tags = tags_format(changeset.tags)
     comment_tag = tags.pop('comment')
 
-    params_bounds: list[SharedBounds] = [None] * len(changeset.bounds)  # pyright: ignore[reportAssignmentType]
+    params_bounds: list[SharedBounds] = [None] * len(changeset.bounds)  # type: ignore
     for i, cb in enumerate(changeset.bounds):
         bounds = cb.bounds.bounds
         params_bounds[i] = SharedBounds(

@@ -178,7 +178,7 @@ def _unparse_element(key: str, value: Any) -> tuple[tree._Element, ...]:
 
         # encode sequence of scalars
         else:
-            result: list[tree._Element] = [None] * len(value)  # pyright: ignore[reportAssignmentType]
+            result: list[tree._Element] = [None] * len(value)  # type: ignore
             i: cython.int
             for i, v in enumerate(value):
                 element = tree.Element(key)
