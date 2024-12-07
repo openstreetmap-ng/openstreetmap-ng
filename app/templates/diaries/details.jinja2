@@ -1,6 +1,6 @@
 {% extends '_base.jinja2' %}
 {% block title_prefix %}
-{{ t('diary_entries.index.user_title', user=profile.display_name) }} | {{ diary.title | truncate(80) }} |
+    {{ t('diary_entries.index.user_title', user=profile.display_name) }} | {{ diary.title | truncate(80) }} |
 {% endblock %}
 {% block body_class %}diary-details-body{% endblock %}
 {% block body %}
@@ -26,7 +26,7 @@
                     {{ t('diary_entries.diary_entry.posted_by_html',
                         link_user=link_user,
                         created=created,
-                        language_link=language_link,
+                        language_link=language_link
                     ) | safe }}
                 </p>
                 {% if diary.updated_at > diary.created_at %}
@@ -53,25 +53,25 @@
                     </a>
                 </li>
                 {% if user is not none %}
-                <li class="nav-item">
-                    <a href="/user/{{ user.display_name }}/diary" class="nav-link">
-                        {{ t('diary_entries.index.my_diary') }}
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a href="/user/{{ user.display_name }}/diary" class="nav-link">
+                            {{ t('diary_entries.index.my_diary') }}
+                        </a>
+                    </li>
                 {% endif %}
                 {% if active_tab == 4 %}
-                <li class="nav-item">
-                    <a href="/user/{{ profile.display_name }}/diary" class="nav-link">
-                        {{ t('diary_entries.index.user_title', user=profile.display_name) }}
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a href="/user/{{ profile.display_name }}/diary" class="nav-link">
+                            {{ t('diary_entries.index.user_title', user=profile.display_name) }}
+                        </a>
+                    </li>
                 {% endif %}
                 <li class="nav-item ms-auto">
                     {% if user is not none %}
-                    <a class="btn btn-light border" href="/diary/new">
-                        <i class="bi bi-journal-plus me-2"></i>
-                        {{- t('diary_entries.new.title') | capitalize }}
-                    </a>
+                        <a class="btn btn-light border" href="/diary/new">
+                            <i class="bi bi-journal-plus me-2"></i>
+                            {{- t('diary_entries.new.title') | capitalize }}
+                        </a>
                     {% endif %}
                     <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
                         <i class="bi bi-rss-fill rss-color"></i>
@@ -94,22 +94,22 @@
                 <h4>{{ t('browse.changeset.discussion') }}</h4>
             </div>
             {% if user is not none %}
-            {% if is_subscribed %}
-            <form class="col-auto subscription-form" method="POST"
-                action="/api/web/user-subscription/diary/{{ diary.id }}/unsubscribe">
-                <button class="btn btn-sm btn-light border" type="submit">
-                    <i class="bi bi-bookmark-check me-1"></i>
-                    {{ t('javascripts.changesets.show.unsubscribe') }}
-                </button>
-            </form>
-            {% else %}
-            <form class="col-auto subscription-form" method="POST"
-                action="/api/web/user-subscription/diary/{{ diary.id }}/subscribe">
-                <button class="btn btn-sm btn-light border" type="submit">
-                    {{ t('javascripts.changesets.show.subscribe') }}
-                </button>
-            </form>
-            {% endif %}
+                {% if is_subscribed %}
+                    <form class="col-auto subscription-form" method="POST"
+                          action="/api/web/user-subscription/diary/{{ diary.id }}/unsubscribe">
+                        <button class="btn btn-sm btn-light border" type="submit">
+                            <i class="bi bi-bookmark-check me-1"></i>
+                            {{ t('javascripts.changesets.show.unsubscribe') }}
+                        </button>
+                    </form>
+                {% else %}
+                    <form class="col-auto subscription-form" method="POST"
+                          action="/api/web/user-subscription/diary/{{ diary.id }}/subscribe">
+                        <button class="btn btn-sm btn-light border" type="submit">
+                            {{ t('javascripts.changesets.show.subscribe') }}
+                        </button>
+                    </form>
+                {% endif %}
             {% endif %}
         </div>
 
@@ -124,28 +124,28 @@
         </div>
 
         {% if user is not none %}
-        <form class="comment-form" method="POST" action="/api/web/diary/{{ diary.id }}/comment">
-            <label class="form-label d-block">
-                {{ t('diary_entries.show.leave_a_comment') }}
-            </label>
-            <div class="mb-3">
-                {% set rich_text_name = 'body' %}
-                {% set rich_text_maxlength = DIARY_COMMENT_BODY_MAX_LENGTH %}
-                {% set rich_text_required = True %}
-                {% include 'rich_text/_control.jinja2' %}
-            </div>
-            <div class="text-end">
-                <button class="btn btn-primary" type="submit">
-                    {{ t('action.comment') }}
+            <form class="comment-form" method="POST" action="/api/web/diary/{{ diary.id }}/comment">
+                <label class="form-label d-block">
+                    {{ t('diary_entries.show.leave_a_comment') }}
+                </label>
+                <div class="mb-3">
+                    {% set rich_text_name = 'body' %}
+                    {% set rich_text_maxlength = DIARY_COMMENT_BODY_MAX_LENGTH %}
+                    {% set rich_text_required = True %}
+                    {% include 'rich_text/_control.jinja2' %}
+                </div>
+                <div class="text-end">
+                    <button class="btn btn-primary" type="submit">
+                        {{ t('action.comment') }}
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <div class="text-center">
+                <button class="btn btn-link" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    {{ t('browse.changeset.join_discussion') }}
                 </button>
             </div>
-        </form>
-        {% else %}
-        <div class="text-center">
-            <button class="btn btn-link" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
-                {{ t('browse.changeset.join_discussion') }}
-            </button>
-        </div>
         {% endif %}
     </div>
 </div>

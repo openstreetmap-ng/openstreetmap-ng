@@ -1,11 +1,11 @@
 <article id="diary{{ diary.id }}">
     <div class="row">
         {% if not entry_hide_avatar %}
-        <div class="col-auto">
-            <a class="d-block" href="/user/{{ diary.user.display_name }}" rel="author">
-                <img class="avatar" src="{{ diary.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
-            </a>
-        </div>
+            <div class="col-auto">
+                <a class="d-block" href="/user/{{ diary.user.display_name }}" rel="author">
+                    <img class="avatar" src="{{ diary.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                </a>
+            </div>
         {% endif %}
         <div class="col align-content-center">
             {% if not entry_hide_header %}
@@ -23,7 +23,7 @@
                 {{ t('diary_entries.diary_entry.posted_by_html',
                     link_user=link_user,
                     created=created,
-                    language_link=language_link,
+                    language_link=language_link
                 ) | safe }}
             </p>
             {% if diary.updated_at > diary.created_at %}
@@ -37,23 +37,23 @@
             {% endif %}
             <div class="rich-text mx-1 {% if not entry_hide_header %}mt-3{% endif %}">{{ diary.body_rich | safe }}</div>
             {% if diary.point is not none %}
-            <p class="diary-location fw-medium mb-3">
-                <i class="bi bi-compass"></i>{{ t('diary_entries.form.location') }}:
-                {% set _lon = diary.point.x %}
-                {% set _lat = diary.point.y %}
-                {% set _title = _lat ~ ', ' ~ _lon %}
-                <a href="/?mlat={{ _lat }}&mlon={{ _lon }}&zoom=14" target="_blank">
-                    {% if diary.location_name %}
-                    <abbr title="{{ _title }}">{{ diary.location_name }}</abbr>
-                    {% else %}
-                    {{ _title }}
-                    {% endif %}
-                </a>
-            </p>
+                <p class="diary-location fw-medium mb-3">
+                    <i class="bi bi-compass"></i>{{ t('diary_entries.form.location') }}:
+                    {% set _lon = diary.point.x %}
+                    {% set _lat = diary.point.y %}
+                    {% set _title = _lat ~ ', ' ~ _lon %}
+                    <a href="/?mlat={{ _lat }}&mlon={{ _lon }}&zoom=14" target="_blank">
+                        {% if diary.location_name %}
+                            <abbr title="{{ _title }}">{{ diary.location_name }}</abbr>
+                        {% else %}
+                            {{ _title }}
+                        {% endif %}
+                    </a>
+                </p>
             {% endif %}
             <div class="list-group list-group-horizontal justify-content-end">
                 <a class="list-group-item list-group-item-action d-flex align-items-center"
-                    href="/diary/{{ diary.id }}#comments">
+                   href="/diary/{{ diary.id }}#comments">
                     {{ t('diary.comments') }}
                     <span
                         class="badge ms-1-5 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}">
@@ -61,18 +61,19 @@
                     </span>
                 </a>
                 {% if user is not none %}
-                {% if diary.user_id != user.id %}
-                <a class="list-group-item list-group-item-action" href="/message/new?reply_diary={{ diary.id }}">
-                    {{- t('diary.send_author_a_message') -}}
-                </a>
-                <a class="list-group-item list-group-item-action" href="#TODO">
-                    {{- t('action.report_abuse') -}}
-                </a>
-                {% else %}
-                <a class="list-group-item list-group-item-action" href="/diary/{{ diary.id }}/edit">
-                    {{- t('diary_entries.diary_entry.edit_link') -}}
-                </a>
-                {% endif %}
+                    {% if diary.user_id != user.id %}
+                        <a class="list-group-item list-group-item-action"
+                           href="/message/new?reply_diary={{ diary.id }}">
+                            {{- t('diary.send_author_a_message') -}}
+                        </a>
+                        <a class="list-group-item list-group-item-action" href="#TODO">
+                            {{- t('action.report_abuse') -}}
+                        </a>
+                    {% else %}
+                        <a class="list-group-item list-group-item-action" href="/diary/{{ diary.id }}/edit">
+                            {{- t('diary_entries.diary_entry.edit_link') -}}
+                        </a>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
