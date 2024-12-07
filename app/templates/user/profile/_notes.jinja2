@@ -22,6 +22,7 @@
 
         <ul class="content-list notes-list social-list-sm list-unstyled">
             {% for note in notes %}
+                {% set comment = note.comments[0] %}
                 <li class="row g-2">
                     <div class="col-auto">
                         {% if note.closed_at is none %}
@@ -35,14 +36,19 @@
                     <div class="col">
                         <div class="social-action social-entry h-100">
                             <p class="header text-muted d-flex justify-content-between">
-                            <span>
-                                {{ t('browse.created') }}
-                                <time datetime="{{ note.created_at.isoformat() }}" data-style="long"></time>
-                            </span>
+                                <span>
+                                    {% if note.updated_at > comment.created_at %}
+                                        {{ t('action.updated') | capitalize }}
+                                        <time datetime="{{ note.updated_at.isoformat() }}" data-style="long"></time>
+                                    {% else %}
+                                        {{ t('browse.created') }}
+                                        <time datetime="{{ note.created_at.isoformat() }}" data-style="long"></time>
+                                    {% endif %}
+                                </span>
                                 <a class="stretched-link" href="/note/{{ note.id }}">{{ note.id }}</a>
                             </p>
                             <div class="body d-flex justify-content-between">
-                                <div>{{ note.comments[0].body }}</div>
+                                <div>{{ comment.body }}</div>
                                 {% if note.num_comments > 1 %}
                                     <div class="num-comments">
                                         {{ note.num_comments - 1 -}}

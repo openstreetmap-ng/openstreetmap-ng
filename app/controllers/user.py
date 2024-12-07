@@ -138,6 +138,7 @@ async def index(
     notes = await NoteQuery.find_many_by_query(
         user_id=user.id,
         event=NoteEvent.opened,
+        sort_by='updated_at',
         sort_dir='desc',
         limit=USER_RECENT_ACTIVITY_ENTRIES,
     )
