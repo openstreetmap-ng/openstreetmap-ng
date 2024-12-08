@@ -27,6 +27,16 @@ class DiaryCommentQuery:
             return (await session.execute(stmt)).scalar_one()
 
     @staticmethod
+    async def find_one_by_id(comment_id: int) -> DiaryComment | None:
+        """
+        Find a diary comment by id.
+        """
+        async with db() as session:
+            stmt = select(DiaryComment).where(DiaryComment.id == comment_id)
+            stmt = apply_options_context(stmt)
+            return await session.scalar(stmt)
+
+    @staticmethod
     async def find_many_by_user_id(
         user_id: int,
         *,

@@ -1,6 +1,6 @@
 {% extends 'email/_base.jinja2' %}
 {% block body %}
-<p>{{ t('user_mailer.changeset_comment_notification.greeting') }}</p>
+<p>{{ t('notifications.hello_user', user=user.display_name) }}</p>
 <p>
     {% set _commenter -%}
     <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}"

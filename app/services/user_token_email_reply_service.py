@@ -1,3 +1,7 @@
+import logging
+
+from sqlalchemy.sql import update
+
 from app.config import SMTP_MESSAGES_FROM_HOST
 from app.db import db_commit
 from app.lib.auth_context import auth_context, auth_user
@@ -6,7 +10,7 @@ from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.limits import USER_TOKEN_EMAIL_REPLY_EXPIRE
+from app.limits import EMAIL_REPLY_USAGE_LIMIT, USER_TOKEN_EMAIL_REPLY_EXPIRE
 from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.db.user_token_email_reply import UserTokenEmailReply
@@ -36,7 +40,21 @@ class UserTokenEmailReplyService:
         token = await UserTokenEmailReplyQuery.find_one_by_reply_address(reply_address)
         if token is None:
             raise_for.bad_user_token_struct()
-        # TODO: if the key is leaked, there is no way to revoke it (possible targeted spam)
+
+        async with db_commit() as session:
+            stmt = (
+                update(UserTokenEmailReply)
+                .where(
+                    UserTokenEmailReply.id == token.id,
+                    UserTokenEmailReply.usage_count < EMAIL_REPLY_USAGE_LIMIT,
+                )
+                .values({'usage_count': UserTokenEmailReply.usage_count + 1})
+            )
+            rows = await session.execute(stmt)
+            if not rows.rowcount:
+                logging.warning('UserTokenEmailReply usage limit exceeded for %d', token.id)
+                raise_for.bad_user_token_struct()
+
         with auth_context(token.user, scopes=()):
             await MessageService.send(token.to_user_id, subject, body)
 
@@ -49,7 +67,7 @@ async def _create_token(replying_user: User, mail_source: MailSource) -> UserTok
     """
     user_id = replying_user.id
     user_email_hashed = hash_bytes(replying_user.email.encode())
-    token_bytes = buffered_randbytes(32)
+    token_bytes = buffered_randbytes(16)  # 128 bits
     token_hashed = hash_bytes(token_bytes)
     async with db_commit() as session:
         token = UserTokenEmailReply(
@@ -61,5 +79,4 @@ async def _create_token(replying_user: User, mail_source: MailSource) -> UserTok
             to_user_id=auth_user(required=True).id,
         )
         session.add(token)
-
     return UserTokenStruct(id=token.id, token=token_bytes)

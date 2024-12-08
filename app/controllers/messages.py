@@ -22,9 +22,11 @@ from app.limits import (
     MESSAGES_INBOX_PAGE_SIZE,
 )
 from app.models.db.diary import Diary
+from app.models.db.diary_comment import DiaryComment
 from app.models.db.message import Message
 from app.models.db.user import User
 from app.models.types import DisplayNameType
+from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
@@ -125,6 +127,7 @@ async def new_message(
     to_id: Annotated[PositiveInt | None, Query()] = None,
     reply: Annotated[PositiveInt | None, Query()] = None,
     reply_diary: Annotated[PositiveInt | None, Query()] = None,
+    reply_diary_comment: Annotated[PositiveInt | None, Query()] = None,
 ):
     recipient: DisplayNameType | None = None
     recipient_id: int | None = None
@@ -157,6 +160,17 @@ async def new_message(
         recipient = diary.user.display_name
         recipient_id = diary.user_id
         subject = f'{t("messages.compose.reply.prefix")}: {diary.title}'
+    elif reply_diary_comment is not None:
+        with options_context(
+            joinedload(DiaryComment.user).load_only(User.display_name),
+            joinedload(DiaryComment.diary).load_only(Diary.title),
+        ):
+            diary_comment = await DiaryCommentQuery.find_one_by_id(reply_diary_comment)
+        if diary_comment is None:
+            raise_for.diary_comment_not_found(reply_diary_comment)
+        recipient = diary_comment.user.display_name
+        recipient_id = diary_comment.user_id
+        subject = f'{t("messages.compose.reply.prefix")}: {diary_comment.diary.title}'
     elif to_id is not None:
         recipient_user = await UserQuery.find_one_by_id(to_id)
         if recipient_user is None:

@@ -1,4 +1,4 @@
-from base64 import urlsafe_b64decode, urlsafe_b64encode
+from base64 import b32decode, b32encode
 
 from google.protobuf.message import DecodeError
 
@@ -13,7 +13,7 @@ class UserTokenStructUtils:
         Parse the given string into a user token struct.
         """
         try:
-            return UserTokenStruct.FromString(urlsafe_b64decode(s))
+            return UserTokenStruct.FromString(b32decode(s.upper() + '======'))
         except DecodeError:
             raise_for.bad_user_token_struct()
 
@@ -22,4 +22,4 @@ class UserTokenStructUtils:
         """
         Convert the given user token struct into a string.
         """
-        return urlsafe_b64encode(u.SerializeToString()).decode()
+        return b32encode(u.SerializeToString()).rstrip(b'=').lower().decode('ascii')

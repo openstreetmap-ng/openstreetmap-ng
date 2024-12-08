@@ -114,7 +114,7 @@ class OAuth2ApplicationService:
                 .inline()
             )
             result = await session.execute(stmt)
-            if result.rowcount == 0:
+            if not result.rowcount:
                 raise_for.unauthorized()
 
             if revoke_all_authorizations:

@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager, suppress
 from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate
-from typing import Any
+from typing import Any, Literal, overload
 
 import cython
 from aiosmtplib import SMTP
@@ -43,6 +43,32 @@ class EmailService:
         task = loop.create_task(_process_task())
         yield
         task.cancel()  # avoid "Task was destroyed" warning during tests
+
+    @overload
+    @staticmethod
+    async def schedule(
+        source: Literal[MailSource.system],
+        from_user: None,
+        to_user: User,
+        subject: str,
+        template_name: str,
+        template_data: dict[str, Any],
+        ref: str | None = None,
+        priority: int = 0,
+    ) -> None: ...
+
+    @overload
+    @staticmethod
+    async def schedule(
+        source: Literal[MailSource.message, MailSource.diary_comment],
+        from_user: User,
+        to_user: User,
+        subject: str,
+        template_name: str,
+        template_data: dict[str, Any],
+        ref: str | None = None,
+        priority: int = 0,
+    ) -> None: ...
 
     @staticmethod
     async def schedule(

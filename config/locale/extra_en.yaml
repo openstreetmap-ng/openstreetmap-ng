@@ -301,15 +301,21 @@ oauth:
   authorize_app_to_access_your_account: "Authorize {{name}} to access your account?"
   you_are_currently_signed_in_as: "You are currently signed in as {{name}}"
   app_is_requesting_permissions_to: "{{name}} is requesting permissions to"
-  authorizing_will_redirect_you_to: "Authorizing will redirect you to"
-  application_information: "Application information"
-  revoke_access_anytime_in_settings: "You can revoke this access at any time through your account settings."
-  authorization_code: "Authorization code"
+  authorizing_will_redirect_you_to: Authorizing will redirect you to
+  application_information: Application information
+  revoke_access_anytime_in_settings: You can revoke this access at any time through your account settings.
+  authorization_code: Authorization code
   oob_hint: |-
     To continue, please copy the authorization code and provide it to the application.
     You can then safely close this page.
 fixthemap:
   title: Fix the map
+notifications:
+  hello_user: Hello {{user}},
+  diary_comment:
+    click_here_to_join_the_discussion: "{{click_here}} to join the discussion."
+    sending_a_message: sending a message
+    you_can_also_respond_privately_by_sending_a_message: You can also respond privately by {{sending_a_message}}.
 alt:
   logo: Logo
   country_flag: Country flag
@@ -378,6 +384,7 @@ action:
   block_user: Block user
   cancel: Cancel
   copy: Copy
+  click_here: Click here
   end_session: End session
   follow_user: Follow user
   save: Save
