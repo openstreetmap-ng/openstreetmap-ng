@@ -124,7 +124,7 @@
         </div>
 
         {% if user is not none %}
-            <form class="comment-form" method="POST" action="/api/web/diary/{{ diary.id }}/comment">
+            <form id="newcomment" class="comment-form" method="POST" action="/api/web/diary/{{ diary.id }}/comment">
                 <label class="form-label d-block">
                     {{ t('diary_entries.show.leave_a_comment') }}
                 </label>
