@@ -1,63 +1,65 @@
 {% extends '_base.jinja2' %}
 {% block heading %}
-{{ t('diary_entries.comments.heading', user=profile.display_name) }}
+    {{ t('diary_entries.comments.heading', user=profile.display_name) }}
 {% endblock %}
 {% block title_prefix %}{{ self.heading() }} | {% endblock %}
 {% block body_class %}diary-user-comments-body{% endblock %}
 {% block body %}
 
-<div class="content-header">
-    <div class="col-6 offset-3">
-        <h1>{{ self.heading() }}</h1>
-        <p class="mb-1-5">{{ t('diary.user_comments.description') }}</p>
+    <div class="content-header">
+        <div class="col-6 offset-3">
+            <h1>{{ self.heading() }}</h1>
+            <p class="mb-1-5">{{ t('diary.user_comments.description') }}</p>
+        </div>
     </div>
-</div>
-<div class="content-body">
-    <div class="col-6 offset-3">
-        {% if comments %}
-        <ul class="diary-user-comments-list social-list list-unstyled">
-            {% for comment in comments %}
-            <li class="social-action social-entry">
-                <p class="header text-muted">
-                    <a href="/user/{{ profile.display_name }}">
-                        <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                            loading="lazy">
-                        {{- profile.display_name -}}
-                    </a>
-                    {{ t('action.commented') }}
-                    <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
-                    <a class="stretched-link" href="/diary/{{ comment.diary_id }}#comment{{ comment.id }}"></a>
-                </p>
-                <div class="rich-text body">
-                    <h5><a href="/diary/{{ comment.diary_id }}">{{ comment.diary.title }}</a></h5>
-                    {{ comment.body_rich | safe }}
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
+    <div class="content-body">
+        <div class="col-6 offset-3">
+            {% if comments %}
+                <ul class="diary-user-comments-list social-list list-unstyled">
+                    {% for comment in comments %}
+                        <li class="social-action social-entry">
+                            <p class="header text-muted">
+                                <a href="/user/{{ profile.display_name }}">
+                                    <img class="avatar" src="{{ profile.avatar_url }}"
+                                         alt="{{ t('alt.profile_picture') }}"
+                                         loading="lazy">
+                                    {{- profile.display_name -}}
+                                </a>
+                                {{ t('action.commented') }}
+                                <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
+                                <a class="stretched-link"
+                                   href="/diary/{{ comment.diary_id }}#comment{{ comment.id }}"></a>
+                            </p>
+                            <div class="rich-text body">
+                                <h5><a href="/diary/{{ comment.diary_id }}">{{ comment.diary.title }}</a></h5>
+                                {{ comment.body_rich | safe }}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
 
-        {% if new_before or new_after %}
-        <nav aria-label="{{ t('alt.diary_comments_page_navigation') }}">
-            <ul class="pagination justify-content-end mb-0">
-                <li class="page-item {% if new_after is none %}disabled{% endif %}">
-                    <a class="page-link" href="?after={{ new_after }}" rel="next">
-                        <i class="bi bi-chevron-left"></i>
-                        {{ t('diary_entries.comments.newer_comments') | capitalize }}
-                    </a>
-                </li>
-                <li class="page-item {% if new_before is none %}disabled{% endif %}">
-                    <a class="page-link" href="?before={{ new_before }}" rel="prev">
-                        {{ t('diary_entries.comments.older_comments') | capitalize }}
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        {% endif %}
+                {% if new_before or new_after %}
+                    <nav aria-label="{{ t('alt.comments_page_navigation') }}">
+                        <ul class="pagination justify-content-end mb-0">
+                            <li class="page-item {% if new_after is none %}disabled{% endif %}">
+                                <a class="page-link" href="?after={{ new_after }}" rel="next">
+                                    <i class="bi bi-chevron-left"></i>
+                                    {{ t('diary_entries.comments.newer_comments') | capitalize }}
+                                </a>
+                            </li>
+                            <li class="page-item {% if new_before is none %}disabled{% endif %}">
+                                <a class="page-link" href="?before={{ new_before }}" rel="prev">
+                                    {{ t('diary_entries.comments.older_comments') | capitalize }}
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                {% endif %}
 
-        {% else %}
-        <h3>{{ t('traces.index.empty_title') }}</h3>
-        {% endif %}
+            {% else %}
+                <h3>{{ t('traces.index.empty_title') }}</h3>
+            {% endif %}
+        </div>
     </div>
-</div>
 {% endblock %}

@@ -80,7 +80,7 @@
         {% if note_comments_num_items %}
             <div class="note-comments-pagination">
                 <ul class="list-unstyled mb-2"></ul>
-                <nav aria-label="{{ t('alt.note_comments_page_navigation') }}">
+                <nav aria-label="{{ t('alt.comments_page_navigation') }}">
                     <ul class="pagination pagination-sm justify-content-end mb-2"
                         data-action="/api/web/note/{{ note.id }}/comments?page={page}&num_items={{ note_comments_num_items }}"
                         data-pages="{{ note_comments_num_pages }}">

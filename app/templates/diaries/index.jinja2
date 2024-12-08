@@ -1,124 +1,126 @@
 {% extends '_base.jinja2' %}
 {% block heading %}
-{% if active_tab == 0 %}
-{{ t('layouts.user_diaries') }}
-{% elif active_tab == 1 or active_tab == 2 %}
-{{ t('diary_entries.index.in_language_title', language=language_name) }}
-{% elif active_tab == 3 %}
-{{ t('diary_entries.index.my_diary') }}
-{% elif active_tab == 4 %}
-{{ t('diary_entries.index.user_title', user=profile.display_name) }}
-{% endif %}
+    {% if active_tab == 0 %}
+        {{ t('layouts.user_diaries') }}
+    {% elif active_tab == 1 or active_tab == 2 %}
+        {{ t('diary_entries.index.in_language_title', language=language_name) }}
+    {% elif active_tab == 3 %}
+        {{ t('diary_entries.index.my_diary') }}
+    {% elif active_tab == 4 %}
+        {{ t('diary_entries.index.user_title', user=profile.display_name) }}
+    {% endif %}
 {% endblock %}
 {% block title_prefix %}{{ self.heading() }} | {% endblock %}
 {% block body_class %}diary-index-body{% endblock %}
 {% block body_attrs %}data-bs-spy="scroll" data-bs-target="#diary-scroll-nav" data-bs-smooth-scroll="true"{% endblock %}
 {% block body %}
-{% set _avatar_in_header = profile is not none %}
+    {% set _avatar_in_header = profile is not none %}
 
-<div class="content-header pb-0">
-    <div class="col-6 offset-3">
-        <div class="row mb-3">
-            {% if _avatar_in_header %}
-            <div class="col-auto">
-                <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
-            </div>
-            {% endif %}
-            <div class="col">
-                <h1>{{ self.heading() }}</h1>
-                <p class="mb-0">{{ t('diary.index.description') }}</p>
-            </div>
-        </div>
-
-        <nav>
-            <ul class="nav nav-tabs">
-                <li class="nav-item">
-                    <a href="/diary" {% if active_tab == 0 %} class="nav-link active" aria-current="page" {% else %}
-                        class="nav-link" {% endif %}>
-                        {{ t('diary.all_diaries') }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/diary/{{ primary_locale }}" {% if active_tab == 1 %} class="nav-link active"
-                        aria-current="page" {% else %} class="nav-link" {% endif %}>
-                        {{ t('diary.only_in_language', language=primary_locale_name) }}
-                    </a>
-                </li>
-                {% if active_tab == 2 %}
-                <li class="nav-item">
-                    <a href="/diary/{{ language }}" class="nav-link active" aria-current="page">
-                        {{ t('diary.only_in_language', language=language_name) }}
-                    </a>
-                </li>
+    <div class="content-header pb-0">
+        <div class="col-6 offset-3">
+            <div class="row mb-3">
+                {% if _avatar_in_header %}
+                    <div class="col-auto">
+                        <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                    </div>
                 {% endif %}
-                {% if user is not none %}
-                <li class="nav-item">
-                    <a href="/user/{{ user.display_name }}/diary" {% if active_tab == 3 %} class="nav-link active"
-                        aria-current="page" {% else %} class="nav-link" {% endif %}>
-                        {{ t('diary_entries.index.my_diary') }}
-                    </a>
-                </li>
-                {% endif %}
-                {% if active_tab == 4 %}
-                <li class="nav-item">
-                    <a href="/user/{{ profile.display_name }}/diary" class="nav-link active" aria-current="page">
-                        {{ t('diary_entries.index.user_title', user=profile.display_name) }}
-                    </a>
-                </li>
-                {% endif %}
-                <li class="nav-item ms-auto">
-                    {% if user is not none %}
-                    <a class="btn btn-light border" href="/diary/new">
-                        <i class="bi bi-journal-plus me-2"></i>
-                        {{- t('diary_entries.new.title') | capitalize }}
-                    </a>
-                    {% endif %}
-                    <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
-                        <i class="bi bi-rss-fill rss-color"></i>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </div>
-</div>
-<div class="content-body">
-    <div class="row g-0">
-        <div id="diary-scroll-nav" class="col-2 offset-1 sticky-top">
-            {% if diaries %}
-            {% include 'diaries/_scroll_nav.jinja2' %}
-            {% endif %}
-        </div>
-        <div class="col-6">
-            {% if diaries %}
-            {% set entry_hide_avatar = _avatar_in_header %}
-            <div class="diary-list mb-3">
-                {% for diary in diaries %}
-                {% include 'diaries/_entry.jinja2' %}
-                {% endfor %}
+                <div class="col">
+                    <h1>{{ self.heading() }}</h1>
+                    <p class="mb-0">{{ t('diary.index.description') }}</p>
+                </div>
             </div>
 
-            <nav aria-label="{{ t('alt.diary_page_navigation') }}">
-                <ul class="pagination justify-content-end">
-                    <li class="page-item {% if new_after is none %}disabled{% endif %}">
-                        <a class="page-link" href="?after={{ new_after }}" rel="next">
-                            <i class="bi bi-chevron-left"></i>
-                            {{ t('diary_entries.index.newer_entries') | capitalize }}
+            <nav>
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a href="/diary" {% if active_tab == 0 %} class="nav-link active" aria-current="page" {% else %}
+                           class="nav-link" {% endif %}>
+                            {{ t('diary.all_diaries') }}
                         </a>
                     </li>
-                    <li class="page-item {% if new_before is none %}disabled{% endif %}">
-                        <a class="page-link" href="?before={{ new_before }}" rel="prev">
-                            {{ t('diary_entries.index.older_entries') | capitalize }}
-                            <i class="bi bi-chevron-right"></i>
+                    <li class="nav-item">
+                        <a href="/diary/{{ primary_locale }}" {% if active_tab == 1 %} class="nav-link active"
+                           aria-current="page" {% else %} class="nav-link" {% endif %}>
+                            {{ t('diary.only_in_language', language=primary_locale_name) }}
+                        </a>
+                    </li>
+                    {% if active_tab == 2 %}
+                        <li class="nav-item">
+                            <a href="/diary/{{ language }}" class="nav-link active" aria-current="page">
+                                {{ t('diary.only_in_language', language=language_name) }}
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% if user is not none %}
+                        <li class="nav-item">
+                            <a href="/user/{{ user.display_name }}/diary" {% if active_tab == 3 %}
+                               class="nav-link active"
+                               aria-current="page" {% else %} class="nav-link" {% endif %}>
+                                {{ t('diary_entries.index.my_diary') }}
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% if active_tab == 4 %}
+                        <li class="nav-item">
+                            <a href="/user/{{ profile.display_name }}/diary" class="nav-link active"
+                               aria-current="page">
+                                {{ t('diary_entries.index.user_title', user=profile.display_name) }}
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item ms-auto">
+                        {% if user is not none %}
+                            <a class="btn btn-light border" href="/diary/new">
+                                <i class="bi bi-journal-plus me-2"></i>
+                                {{- t('diary_entries.new.title') | capitalize }}
+                            </a>
+                        {% endif %}
+                        <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
+                            <i class="bi bi-rss-fill rss-color"></i>
                         </a>
                     </li>
                 </ul>
             </nav>
-
-            {% else %}
-            <h3>{{ t('traces.index.empty_title') }}</h3>
-            {% endif %}
         </div>
     </div>
-</div>
+    <div class="content-body">
+        <div class="row g-0">
+            <div id="diary-scroll-nav" class="col-2 offset-1 sticky-top">
+                {% if diaries %}
+                    {% include 'diaries/_scroll_nav.jinja2' %}
+                {% endif %}
+            </div>
+            <div class="col-6">
+                {% if diaries %}
+                    {% set entry_hide_avatar = _avatar_in_header %}
+                    <div class="diary-list mb-3">
+                        {% for diary in diaries %}
+                            {% include 'diaries/_entry.jinja2' %}
+                        {% endfor %}
+                    </div>
+
+                    <nav aria-label="{{ t('alt.page_navigation') }}">
+                        <ul class="pagination justify-content-end">
+                            <li class="page-item {% if new_after is none %}disabled{% endif %}">
+                                <a class="page-link" href="?after={{ new_after }}" rel="next">
+                                    <i class="bi bi-chevron-left"></i>
+                                    {{ t('diary_entries.index.newer_entries') | capitalize }}
+                                </a>
+                            </li>
+                            <li class="page-item {% if new_before is none %}disabled{% endif %}">
+                                <a class="page-link" href="?before={{ new_before }}" rel="prev">
+                                    {{ t('diary_entries.index.older_entries') | capitalize }}
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                {% else %}
+                    <h3>{{ t('traces.index.empty_title') }}</h3>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
 {% endblock %}

@@ -321,13 +321,9 @@ alt:
   map_layers_art: Artistic presentation of map layers
   happy_globe_mascot: A globe mascot with a big smile
   arm_pointing_down: An arm pointing down
-  diary_page_navigation: Diary page navigation
-  diary_comments_page_navigation: Diary comments page navigation
+  comments_page_navigation: Comments page navigation
   elements_page_navigation: Elements page navigation
-  messages_page_navigation: Messages page navigation
-  traces_page_navigation: Traces page navigation
-  notes_page_navigation: Notes page navigation
-  note_comments_page_navigation: Note comments page navigation
+  page_navigation: Page navigation
   profile_picture: Profile picture
   application_image: Application image
   background_image: Background image
