@@ -16,25 +16,25 @@
             <p class="header text-muted d-flex justify-content-between">
                 <span>
                     {% if changeset.user_id is none %}
-                    {{ t('browse.anonymous') }}
+                        {{ t('browse.anonymous') }}
                     {% else %}
-                    <a href="/user/{{ changeset.user.display_name }}" rel="author">
+                        <a href="/user/{{ changeset.user.display_name }}" rel="author">
                         <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
                         {{- changeset.user.display_name -}}
                     </a>
                     {% endif %}
                     {% if changeset.closed_at is none %}
-                    {{ t('browse.created') | lower }}
-                    <time datetime="{{ changeset.created_at.isoformat() }}" data-style="long"></time>
+                        {{ t('browse.created') | lower }}
+                        <time datetime="{{ changeset.created_at.isoformat() }}" data-style="long"></time>
                     {% else %}
-                    {{ t('browse.closed') | lower }}
-                    <time datetime="{{ changeset.closed_at.isoformat() }}" data-style="long"></time>
+                        {{ t('browse.closed') | lower }}
+                        <time datetime="{{ changeset.closed_at.isoformat() }}" data-style="long"></time>
                     {% endif %}
                 </span>
                 {% if changeset.closed_at is none %}
-                <span>
+                    <span>
                     <span class="open-badge badge text-bg-success"
-                        title="{{ t('changeset.this_changeset_is_state', state=t('changeset.open').lower()) }}">
+                          title="{{ t('changeset.this_changeset_is_state', state=t('changeset.open').lower()) }}">
                         <i class="bi bi-unlock-fill"></i>
                     </span>
                 </span>
@@ -42,31 +42,31 @@
             </p>
             <div class="body fst-italic">
                 {% for value in comment_tag.values %}
-                {% include 'partial/_tag_value.jinja2' %}
+                    {% include 'partial/_tag_value.jinja2' %}
                 {% endfor %}
             </div>
         </div>
 
         {% if tags %}
-        <div class="tags">
-            <table class="table table-sm">
-                <tbody dir="auto">
+            <div class="tags">
+                <table class="table table-sm">
+                    <tbody dir="auto">
                     {% for tag in tags %}
-                    <tr>
-                        <td>
-                            {% set value = tag.key %}
-                            {% include 'partial/_tag_value.jinja2' %}
-                        </td>
-                        <td>
-                            {% for value in tag.values %}
-                            {% include 'partial/_tag_value.jinja2' %}
-                            {% endfor %}
-                        </td>
-                    </tr>
+                        <tr>
+                            <td>
+                                {% set value = tag.key %}
+                                {% include 'partial/_tag_value.jinja2' %}
+                            </td>
+                            <td>
+                                {% for value in tag.values %}
+                                    {% include 'partial/_tag_value.jinja2' %}
+                                {% endfor %}
+                            </td>
+                        </tr>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
         {% endif %}
 
         <div class="mb-4"></div>
@@ -76,62 +76,55 @@
                 <h4>{{ t('browse.changeset.discussion') }}</h4>
             </div>
             {% if user is not none %}
-            {% if is_subscribed %}
-            <form class="col-auto subscription-form" method="POST"
-                action="/api/web/user-subscription/changeset/{{ changeset.id }}/unsubscribe">
-                <button class="btn btn-sm btn-light border" type="submit">
-                    <i class="bi bi-bookmark-check me-1"></i>
-                    {{ t('javascripts.changesets.show.unsubscribe') }}
-                </button>
-            </form>
-            {% else %}
-            <form class="col-auto subscription-form" method="POST"
-                action="/api/web/user-subscription/changeset/{{ changeset.id }}/subscribe">
-                <button class="btn btn-sm btn-light border" type="submit">
-                    {{ t('javascripts.changesets.show.subscribe') }}
-                </button>
-            </form>
-            {% endif %}
+                {% if is_subscribed %}
+                    <form class="col-auto subscription-form" method="POST"
+                          action="/api/web/user-subscription/changeset/{{ changeset.id }}/unsubscribe">
+                        <button class="btn btn-sm btn-light border" type="submit">
+                            <i class="bi bi-bookmark-check me-1"></i>
+                            {{ t('javascripts.changesets.show.unsubscribe') }}
+                        </button>
+                    </form>
+                {% else %}
+                    <form class="col-auto subscription-form" method="POST"
+                          action="/api/web/user-subscription/changeset/{{ changeset.id }}/subscribe">
+                        <button class="btn btn-sm btn-light border" type="submit">
+                            {{ t('javascripts.changesets.show.subscribe') }}
+                        </button>
+                    </form>
+                {% endif %}
             {% endif %}
         </div>
 
-        {% if changeset.comments %}
-        <ul class="list-unstyled">
-            {% for comment in changeset.comments %}
-            <li class="social-entry">
-                <p class="header text-muted">
-                    <a href="/user/{{ comment.user.display_name }}">
-                        <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                            loading="lazy">
-                        {{- comment.user.display_name -}}
-                    </a>
-                    {{ t('action.commented') }}
-                    <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
-                </p>
-                <div class="body">{{ comment.body_rich | safe }}</div>
-            </li>
-            {% endfor %}
-        </ul>
+        {% if changeset_comments_num_items %}
+            <div class="changeset-comments-pagination">
+                <ul class="list-unstyled mb-2"></ul>
+                <nav aria-label="{{ t('alt.comments_page_navigation') }}">
+                    <ul class="pagination pagination-sm justify-content-end mb-2"
+                        data-action="/api/web/changeset/{{ changeset.id }}/comments?page={page}&num_items={{ changeset_comments_num_items }}"
+                        data-pages="{{ changeset_comments_num_pages }}">
+                    </ul>
+                </nav>
+            </div>
         {% endif %}
 
         {% if user is not none %}
-        <form class="comment-form mb-2" method="POST" action="/api/web/changeset/{{ changeset.id }}/comment">
-            <div class="mb-3">
+            <form class="comment-form mb-2" method="POST" action="/api/web/changeset/{{ changeset.id }}/comment">
+                <div class="mb-3">
                 <textarea class="form-control" name="comment" rows="4"
-                    maxlength="{{ CHANGESET_COMMENT_BODY_MAX_LENGTH }}" required></textarea>
-            </div>
-            <div class="text-end">
-                <button class="btn btn-primary" type="submit">
-                    {{ t('action.comment') }}
+                          maxlength="{{ CHANGESET_COMMENT_BODY_MAX_LENGTH }}" required></textarea>
+                </div>
+                <div class="text-end">
+                    <button class="btn btn-primary" type="submit">
+                        {{ t('action.comment') }}
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <div class="text-center mb-2">
+                <button class="btn btn-link" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    {{ t('browse.changeset.join_discussion') }}
                 </button>
             </div>
-        </form>
-        {% else %}
-        <div class="text-center mb-2">
-            <button class="btn btn-link" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
-                {{ t('browse.changeset.join_discussion') }}
-            </button>
-        </div>
         {% endif %}
 
         <div class="elements mt-4 mb-1">
@@ -158,23 +151,23 @@
     </div>
     <div class="section text-center">
         {% if changeset.user_id is not none %}
-        <div class="mb-2">
-            {% if prev_changeset_id %}
-            <a href="/changeset/{{ prev_changeset_id }}" rel="prev">
-                « {{ prev_changeset_id -}}
-            </a>
-            ·
-            {% endif %}
-            <a href="/user/{{ changeset.user.display_name }}" rel="author">
-                {{- changeset.user.display_name -}}
-            </a>
-            {% if next_changeset_id %}
-            ·
-            <a href="/changeset/{{ next_changeset_id }}" rel="next">
-                {{ next_changeset_id }} »{#
+            <div class="mb-2">
+                {% if prev_changeset_id %}
+                    <a href="/changeset/{{ prev_changeset_id }}" rel="prev">
+                        « {{ prev_changeset_id -}}
+                    </a>
+                    ·
+                {% endif %}
+                <a href="/user/{{ changeset.user.display_name }}" rel="author">
+                    {{- changeset.user.display_name -}}
+                </a>
+                {% if next_changeset_id %}
+                    ·
+                    <a href="/changeset/{{ next_changeset_id }}" rel="next">
+                        {{ next_changeset_id }} »{#
             #}</a>
-            {% endif %}
-        </div>
+                {% endif %}
+            </div>
         {% endif %}
 
         <small>

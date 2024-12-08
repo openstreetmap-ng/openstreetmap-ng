@@ -41,9 +41,9 @@ class NoteCommentQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_note_comments_page(note_id: int, page: int, num_items: int) -> Sequence[NoteComment]:
+    async def get_comments_page(note_id: int, page: int, num_items: int) -> Sequence[NoteComment]:
         """
-        Get comments for the given note page.
+        Get comments for the given note comments page.
 
         The header comment is omitted.
         """

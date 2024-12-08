@@ -1,3 +1,4 @@
+from asyncio import TaskGroup
 from collections.abc import Collection
 from typing import Annotated, Literal
 
@@ -9,8 +10,10 @@ from app.format import FormatLeaflet
 from app.lib.auth_context import web_user
 from app.lib.geo_utils import parse_bbox
 from app.lib.options_context import options_context
+from app.lib.render_response import render_response
 from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_QUERY_WEB_LIMIT, DISPLAY_NAME_MAX_LENGTH
 from app.models.db.changeset import Changeset
+from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
 from app.models.types import DisplayNameType
 from app.queries.changeset_comment_query import ChangesetCommentQuery
@@ -63,3 +66,24 @@ async def get_map(
         FormatLeaflet.encode_changesets(changesets).SerializeToString(),
         media_type='application/x-protobuf',
     )
+
+
+@router.get('/{changeset_id:int}/comments')
+async def comments_page(
+    changeset_id: PositiveInt,
+    page: Annotated[PositiveInt, Query()],
+    num_items: Annotated[PositiveInt, Query()],
+):
+    with options_context(
+        joinedload(ChangesetComment.user).load_only(
+            User.id,
+            User.display_name,
+            User.avatar_type,
+            User.avatar_id,
+        )
+    ):
+        comments = await ChangesetCommentQuery.get_comments_page(changeset_id, page=page, num_items=num_items)
+    async with TaskGroup() as tg:
+        for comment in comments:
+            tg.create_task(comment.resolve_rich_text())
+    return await render_response('changesets/comments_page.jinja2', {'comments': comments})

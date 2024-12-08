@@ -88,7 +88,7 @@ async def comments_page(
             User.avatar_id,
         )
     ):
-        comments = await NoteCommentQuery.get_note_comments_page(note_id, page=page, num_items=num_items)
+        comments = await NoteCommentQuery.get_comments_page(note_id, page=page, num_items=num_items)
     async with TaskGroup() as tg:
         for comment in comments:
             tg.create_task(comment.resolve_rich_text())

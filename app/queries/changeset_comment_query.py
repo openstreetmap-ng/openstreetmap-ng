@@ -6,11 +6,34 @@ from sqlalchemy import Select, func, select, text, union_all
 
 from app.db import db
 from app.lib.options_context import apply_options_context
+from app.lib.standard_pagination import standard_pagination_range
+from app.limits import CHANGESET_COMMENTS_PAGE_SIZE
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 
 
 class ChangesetCommentQuery:
+    @staticmethod
+    async def get_comments_page(changeset_id: int, page: int, num_items: int) -> Sequence[ChangesetComment]:
+        """
+        Get comments for the given changeset comments page.
+        """
+        stmt_limit, stmt_offset = standard_pagination_range(
+            page,
+            page_size=CHANGESET_COMMENTS_PAGE_SIZE,
+            num_items=num_items,
+        )
+        async with db() as session:
+            stmt = (
+                select(ChangesetComment)
+                .where(ChangesetComment.changeset_id == changeset_id)
+                .order_by(ChangesetComment.id.desc())
+                .offset(stmt_offset)
+                .limit(stmt_limit)
+            )
+            stmt = apply_options_context(stmt)
+            return (await session.scalars(stmt)).all()[::-1]
+
     @staticmethod
     async def resolve_num_comments(changesets: Iterable[Changeset]) -> None:
         """

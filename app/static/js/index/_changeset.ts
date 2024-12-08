@@ -4,6 +4,7 @@ import i18next from "i18next"
 import type * as L from "leaflet"
 import { renderColorPreviews } from "../_color-preview"
 import { configureStandardForm } from "../_standard-form"
+import { configureStandardPagination } from "../_standard-pagination"
 import { getPageTitle } from "../_title"
 import type { Bounds, OSMChangeset } from "../_types"
 import { focusMapObject } from "../leaflet/_focus-layer"
@@ -70,6 +71,9 @@ export const getChangesetController = (map: L.Map): IndexController => {
             way: params.ways,
             relation: params.relations,
         })
+
+        const commentsPagination = sidebarContent.querySelector("div.changeset-comments-pagination")
+        if (commentsPagination) configureStandardPagination(commentsPagination)
 
         /** On success callback, reload the changeset */
         const onFormSuccess = () => {
