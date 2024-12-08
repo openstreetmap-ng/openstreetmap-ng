@@ -1,0 +1,55 @@
+{% extends 'email/_base.jinja2' %}
+{% block body %}
+<p>{{ t('user_mailer.changeset_comment_notification.greeting') }}</p>
+<p>
+    {% set _commenter -%}
+    <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}"
+       style="text-decoration: none; color: #222"><b>{{ comment.user.display_name }}</b></a>
+    {%- endset %}
+    {% set _time -%}
+    <time datetime="{{ comment.created_at.isoformat() }}">{{ format_rfc2822_date(comment.created_at) }}</time>
+    {%- endset %}
+    {% if is_changeset_owner %}
+    {{ t('user_mailer.changeset_comment_notification.commented.your_changeset_html',
+        commenter=_commenter,
+        time=_time
+    ) | safe }}
+    {% else %}
+    {% set _changeset_author -%}
+    <a href="{{ APP_URL }}/user-id/{{ changeset.user_id }}"
+       style="text-decoration: none; color: #222">{{ changeset.user.display_name }}</a>
+    {%- endset %}
+    {{ t('user_mailer.changeset_comment_notification.commented.commented_changeset_html',
+        commenter=_commenter,
+        time=_time,
+        changeset_author=_changeset_author
+    ) | safe }}
+    {% set _comment %}<i>{{ changeset_comment_str or t('browse.no_comment') }}</i>{% endset %}
+    {{ t('user_mailer.changeset_comment_notification.commented.partial_changeset_with_comment_html',
+        changeset_comment=_comment
+    ) | safe }}
+    {% endif %}
+</p>
+{% if comment.body %}
+    <table style="width: 100%; margin: 1em 0; background: #eee">
+        <tr>
+            <td style="width: 50px; padding-right: 0.875em; vertical-align: top">
+                <div style="margin: 1em">
+                    <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}" style="position: absolute">
+                        <img src="{{ APP_URL }}{{ comment.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
+                             width="50"
+                             height="50" style="border-radius: 50%">
+                    </a>
+                </div>
+            </td>
+            <td style="vertical-align: top">
+                <div style="margin: 1em">{{ comment.body_rich | safe }}</div>
+            </td>
+        </tr>
+    </table>
+{% endif %}
+{% set _url -%}
+<a href="{{ APP_URL }}/changeset/{{ comment.changeset_id }}">{{ APP_URL }}/changeset/{{ comment.changeset_id }}</a>
+{%- endset %}
+<p>{{ t('user_mailer.changeset_comment_notification.details_html', url=_url) | safe }}</p>
+{% endblock %}
