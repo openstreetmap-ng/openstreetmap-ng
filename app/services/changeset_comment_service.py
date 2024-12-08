@@ -117,6 +117,7 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
                         'comment': comment,
                         'is_changeset_owner': is_changeset_owner,
                     },
+                    ref=f'changeset-{changeset.id}',
                 )
             )
 

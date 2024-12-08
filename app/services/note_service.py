@@ -197,6 +197,7 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
                     subject=subject,
                     template_name='email/note_activity.jinja2',
                     template_data={'comment': comment, 'is_note_owner': is_note_owner, 'place': place},
+                    ref=f'note-{note.id}',
                 )
             )
 
