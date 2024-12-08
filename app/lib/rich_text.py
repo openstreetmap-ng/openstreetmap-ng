@@ -34,6 +34,7 @@ def process_rich_text(text: str, text_format: TextFormat) -> str:
 
     This function runs synchronously and does not use cache.
     """
+    text = text.strip()
     if text_format == TextFormat.markdown:
         text = _md.render(text)
         return nh3.clean(
