@@ -283,7 +283,7 @@ class _XAttrCallable(Protocol):
     def __call__(self, name: str, xml: str | None = None) -> str: ...
 
 
-def _xattr_json(name: str, _=None) -> str:
+def _xattr_json(name: str, xml=None) -> str:
     return name
 
 
