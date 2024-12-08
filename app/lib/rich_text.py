@@ -5,11 +5,13 @@ from collections.abc import Iterable, Sequence
 from enum import Enum
 from html import escape
 from pathlib import Path
+from typing import cast
 from urllib.parse import urlsplit, urlunsplit
 
 import cython
-import linkify_it
 import nh3
+from linkify_it import LinkifyIt
+from linkify_it.main import Match as LinkifyMatch
 from markdown_it import MarkdownIt
 from markdown_it.renderer import RendererHTML
 from markdown_it.token import Token
@@ -200,11 +202,12 @@ def _process_plain(text: str) -> str:
     if not text:
         return '<p></p>'
 
+    matches: Iterable[LinkifyMatch] | None = _linkify.match(text)
+    if matches is None:  # small optimization for text without links
+        return f'<p>{text}</p>'
+
     result: list[str] = ['<p>']
     last_pos: int = 0
-    matches: Iterable[linkify_it.main.Match] | None = _linkify.match(text)
-    if matches is None:
-        matches = ()
     for match in matches:
         prefix = text[last_pos : match.index]
         href = match.url
@@ -231,7 +234,7 @@ _md = MarkdownIt('commonmark', {'linkify': True, 'typographer': True})
 _md.enable(('linkify', 'smartquotes', 'replacements'))
 _md.add_render_rule('image', _render_image)
 _md.add_render_rule('link_open', _render_link)
-_linkify: linkify_it.LinkifyIt = _md.linkify  # pyright: ignore[reportAssignmentType]
+_linkify = cast(LinkifyIt, _md.linkify)
 _linkify.tlds('onion', keep_old=True)  # support onion links
 _linkify.add('ftp:', None)  # disable ftp links
 _linkify.add('//', None)  # disable double-slash links
