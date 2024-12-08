@@ -7,7 +7,7 @@ from app.lib.rich_text import TextFormat, process_rich_text
     ('input', 'output'),
     [
         ('', '<p></p>'),
-        (' ', '<p> </p>'),
+        (' ', '<p></p>'),
         ('1 line', '<p>1 line</p>'),
         ('2\nlines', '<p>2<br>lines</p>'),
         ('3\n\nlines', '<p>3<br><br>lines</p>'),
