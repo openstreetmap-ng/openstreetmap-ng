@@ -1,14 +1,17 @@
 import logging
+from asyncio import TaskGroup
 
 from sqlalchemy import and_, false, or_, select, update
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t
+from app.lib.translation import t, translation_context
+from app.models.db.mail import MailSource
 from app.models.db.message import Message
 from app.models.types import DisplayNameType
 from app.queries.user_query import UserQuery
+from app.services.email_service import EmailService
 
 
 class MessageService:
@@ -23,25 +26,28 @@ class MessageService:
                 StandardFeedback.raise_error('recipient', t('validation.user_not_found'))
             recipient = recipient_user.id
 
-        from_user_id = auth_user(required=True).id
-        if recipient == from_user_id:
+        from_user = auth_user(required=True)
+        if recipient == from_user.id:
             StandardFeedback.raise_error('recipient', t('validation.cant_send_message_to_self'))
 
         async with db_commit() as session:
             message = Message(
-                from_user_id=from_user_id,
+                from_user_id=from_user.id,
                 to_user_id=recipient,
                 subject=subject,
                 body=body,
             )
             session.add(message)
+
         logging.info(
             'Sent message %d from user %d to recipient %r with subject %r',
             message.id,
-            message.from_user_id,
+            from_user.id,
             recipient,
             subject,
         )
+        message.from_user = from_user
+        await _send_activity_email(message)
         return message.id
 
     @staticmethod
@@ -95,3 +101,22 @@ class MessageService:
                 message.to_hidden = True
             if message.from_hidden and message.to_hidden:
                 await session.delete(message)
+
+
+async def _send_activity_email(message: Message) -> None:
+    async with TaskGroup() as tg:
+        tg.create_task(message.resolve_rich_text())
+        to_user = await UserQuery.find_one_by_id(message.to_user_id)
+        if to_user is None:
+            raise AssertionError('Recipient user must exist')
+
+    with translation_context(to_user.language):
+        subject = t('user_mailer.message_notification.subject', message_title=message.subject)
+    await EmailService.schedule(
+        source=MailSource.message,
+        from_user=message.from_user,
+        to_user=to_user,
+        subject=subject,
+        template_name='email/message.jinja2',
+        template_data={'message': message},
+    )

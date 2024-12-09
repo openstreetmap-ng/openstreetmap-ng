@@ -27,7 +27,6 @@ from app.lib.translation import translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail, MailSource
 from app.models.db.user import User
-from app.services.user_token_email_reply_service import UserTokenEmailReplyService
 
 _process_lock = Lock()
 
@@ -190,6 +189,9 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
         from_user = mail.from_user
         if from_user is None:
             raise AssertionError('Mail from user must be set')
+
+        from app.services.user_token_email_reply_service import UserTokenEmailReplyService
+
         reply_address = await UserTokenEmailReplyService.create_address(
             replying_user=mail.to_user,
             mail_source=mail.source,

@@ -34,13 +34,13 @@
     {% set _click_here %}
     <a href="{{ APP_URL }}/diary/{{ comment.diary_id }}#comment{{ comment.id }}">{{ t('action.click_here') }}</a>
     {%- endset %}
-    {{ t('notifications.diary_comment.click_here_to_join_the_discussion',
+    {{ t('notifications.click_here_to_join_the_discussion',
         click_here=_click_here
     ) | safe }}
     {% set _sending_a_message %}
-    <a href="{{ APP_URL }}/message/new?reply_diary_comment={{ comment.id }}">{{ t('notifications.diary_comment.sending_a_message') }}</a>
+    <a href="{{ APP_URL }}/message/new?reply_diary_comment={{ comment.id }}">{{ t('notifications.sending_a_message') }}</a>
     {%- endset %}
-    {{ t('notifications.diary_comment.you_can_also_respond_privately_by_sending_a_message',
+    {{ t('notifications.you_can_also_respond_privately_by_sending_a_message',
         sending_a_message=_sending_a_message
     ) | safe }}
 </p>

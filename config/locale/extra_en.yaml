@@ -312,10 +312,10 @@ fixthemap:
   title: Fix the map
 notifications:
   hello_user: Hello {{user}},
-  diary_comment:
-    click_here_to_join_the_discussion: "{{click_here}} to join the discussion."
-    sending_a_message: sending a message
-    you_can_also_respond_privately_by_sending_a_message: You can also respond privately by {{sending_a_message}}.
+  click_here_to_join_the_discussion: "{{click_here}} to join the discussion."
+  click_here_to_open_this_message_in_your_browser: "{{click_here}} to open this message in your browser."
+  sending_a_message: sending a message
+  you_can_also_respond_privately_by_sending_a_message: You can also respond privately by {{sending_a_message}}.
 alt:
   logo: Logo
   country_flag: Country flag

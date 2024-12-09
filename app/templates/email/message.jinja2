@@ -1,0 +1,41 @@
+{% extends 'email/_base.jinja2' %}
+{% block body %}
+<p>{{ t('notifications.hello_user', user=user.display_name) }}</p>
+<p>
+    {% set _commenter -%}
+    <a href="{{ APP_URL }}/user-id/{{ message.from_user_id }}"
+       style="text-decoration: none; color: #222"><b>{{ message.from_user.display_name }}</b></a>
+    {%- endset %}
+    {% set _subject -%}
+    <i>{{ message.subject }}</i>
+    {%- endset %}
+    {{ t('user_mailer.message_notification.header_html',
+        from_user=_commenter,
+        subject=_subject
+    ) | safe }}
+</p>
+<table style="width: 100%; margin: 1em 0; background: #eee">
+    <tr>
+        <td style="width: 50px; vertical-align: top">
+            <div style="margin: 1em">
+                <a href="{{ APP_URL }}/user-id/{{ message.from_user_id }}">
+                    <img src="{{ APP_URL }}{{ message.from_user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
+                         width="50"
+                         height="50" style="border-radius: 50%">
+                </a>
+            </div>
+        </td>
+        <td style="vertical-align: top">
+            <div style="margin: 1em 1em 1em 0;">{{ message.body_rich | safe }}</div>
+        </td>
+    </tr>
+</table>
+<p>
+    {% set _click_here %}
+    <a href="{{ APP_URL }}/messages/inbox?show={{ message.id }}">{{ t('action.click_here') }}</a>
+    {%- endset %}
+    {{ t('notifications.click_here_to_open_this_message_in_your_browser',
+        click_here=_click_here
+    ) | safe }}
+</p>
+{% endblock %}
