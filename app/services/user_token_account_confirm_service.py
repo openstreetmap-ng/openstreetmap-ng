@@ -4,9 +4,7 @@ from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
-from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.limits import USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE
 from app.models.db.user import User, UserStatus
 from app.models.db.user_token_account_confirm import UserTokenAccountConfirm
 from app.models.proto.server_pb2 import UserTokenStruct
@@ -28,7 +26,6 @@ class UserTokenAccountConfirmService:
                 user_id=user.id,
                 user_email_hashed=user_email_hashed,
                 token_hashed=token_hashed,
-                expires_at=utcnow() + USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE,
             )
             session.add(token)
 
@@ -47,11 +44,14 @@ class UserTokenAccountConfirmService:
             # prevent race conditions
             await session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
 
-            delete_stmt = delete(UserTokenAccountConfirm).where(UserTokenAccountConfirm.id == token_struct.id)
-            if (await session.execute(delete_stmt)).rowcount != 1:
+            if (
+                await session.execute(
+                    delete(UserTokenAccountConfirm).where(UserTokenAccountConfirm.id == token_struct.id)
+                )
+            ).rowcount != 1:
                 raise_for.bad_user_token_struct()
-
-            update_stmt = (
+            await session.commit()
+            await session.execute(
                 update(User)
                 .where(
                     User.id == token.user_id,
@@ -60,4 +60,3 @@ class UserTokenAccountConfirmService:
                 .values({User.status: UserStatus.active})
                 .inline()
             )
-            await session.execute(update_stmt)

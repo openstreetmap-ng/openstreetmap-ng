@@ -54,6 +54,7 @@ TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in {'1', 'true', 'yes'}
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
 GC_LOG = os.getenv('GC_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
 
+FREEZE_TEST_USER = os.getenv('FREEZE_TEST_USER', '1').strip().lower() in {'1', 'true', 'yes'}
 LEGACY_HIGH_PRECISION_TIME = os.getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in {'1', 'true', 'yes'}
 LEGACY_SEQUENCE_ID_MARGIN = os.getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().lower() in {'1', 'true', 'yes'}
 

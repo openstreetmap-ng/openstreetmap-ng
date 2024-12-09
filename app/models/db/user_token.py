@@ -1,7 +1,4 @@
-from datetime import datetime
-
 from sqlalchemy import ForeignKey, LargeBinary
-from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
 
 from app.lib.crypto import HASH_SIZE
@@ -17,7 +14,6 @@ class UserToken(Base.ZID, CreatedAtMixin):
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user_email_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(TIMESTAMP(True), nullable=False)
 
     # requires @declared_attr since it is __abstract__
     @declared_attr

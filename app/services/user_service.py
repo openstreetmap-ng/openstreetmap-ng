@@ -4,6 +4,7 @@ from fastapi import UploadFile
 from pydantic import SecretStr
 from sqlalchemy import delete, func, update
 
+from app.config import FREEZE_TEST_USER
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.locale import is_installed_locale
@@ -14,6 +15,7 @@ from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
 from app.models.db.user import AvatarType, Editor, User, UserStatus
 from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
 from app.queries.user_query import UserQuery
+from app.services.email_change_service import EmailChangeService
 from app.services.image_service import ImageService
 from app.services.system_app_service import SystemAppService
 from app.validators.email import validate_email, validate_email_deliverability
@@ -148,11 +150,14 @@ class UserService:
             StandardFeedback.raise_error('display_name', t('validation.display_name_is_taken'))
         if not is_installed_locale(language):
             StandardFeedback.raise_error('language', t('validation.invalid_value'))
+        user = auth_user(required=True)
+        if user.is_test_user and FREEZE_TEST_USER and display_name != user.display_name:
+            StandardFeedback.raise_error('display_name', 'Changing test user display_name is disabled')
 
         async with db_commit() as session:
             stmt = (
                 update(User)
-                .where(User.id == auth_user(required=True).id)
+                .where(User.id == user.id)
                 .values(
                     {
                         User.display_name: display_name,
@@ -200,6 +205,8 @@ class UserService:
         user = auth_user(required=True)
         if user.email == new_email:
             StandardFeedback.raise_error('email', t('validation.new_email_is_current'))
+        if user.is_test_user and FREEZE_TEST_USER:
+            StandardFeedback.raise_error('email', 'Changing test user email is disabled')
 
         verification = PasswordHash.verify(
             password_pb=user.password_pb,
@@ -217,8 +224,8 @@ class UserService:
         if not await validate_email_deliverability(new_email):
             StandardFeedback.raise_error('email', t('validation.invalid_email_address'))
 
-        # await EmailChangeService.send_confirm_email(new_email)
-        # TODO: send to old email too
+        # TODO: send to old email too for security
+        await EmailChangeService.send_confirm_email(new_email)
         feedback.info(None, t('settings.email_change_confirmation_sent'))
 
     @staticmethod

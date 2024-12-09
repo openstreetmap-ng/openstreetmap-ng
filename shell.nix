@@ -575,6 +575,7 @@ let
     fi
 
     export TEST_ENV=1
+    export FREEZE_TEST_USER=0
     export SECRET=development-secret
     export APP_URL=http://127.0.0.1:8000
     export SMTP_HOST=127.0.0.1

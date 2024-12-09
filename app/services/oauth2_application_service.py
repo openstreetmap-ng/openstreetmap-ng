@@ -119,8 +119,7 @@ class OAuth2ApplicationService:
 
             if revoke_all_authorizations:
                 await session.commit()
-                stmt_delete = delete(OAuth2Token).where(OAuth2Token.application_id == app_id)
-                await session.execute(stmt_delete)
+                await session.execute(delete(OAuth2Token).where(OAuth2Token.application_id == app_id))
 
     @staticmethod
     async def update_avatar(app_id: int, avatar_file: UploadFile) -> str:

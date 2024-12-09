@@ -2,6 +2,7 @@ import logging
 from email.utils import parseaddr
 from hmac import compare_digest
 
+from pydantic import SecretStr
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
@@ -9,21 +10,23 @@ from app.db import db
 from app.lib.crypto import hash_bytes
 from app.lib.options_context import apply_options_context
 from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.limits import USER_TOKEN_EMAIL_REPLY_EXPIRE
 from app.models.db.user import User
 from app.models.db.user_token_email_reply import UserTokenEmailReply
+from app.models.types import EmailType
 
 
 class UserTokenEmailReplyQuery:
     @staticmethod
-    async def find_one_by_reply_address(reply_address: str) -> UserTokenEmailReply | None:
+    async def find_one_by_reply_address(reply_address: EmailType) -> UserTokenEmailReply | None:
         """
         Find a user email reply token by reply email address.
         """
         # strip the name part: "abc" <foo@bar.com> -> foo@bar.com
-        reply_address = parseaddr(reply_address)[1]
+        reply_address = EmailType(parseaddr(reply_address)[1])
 
         try:
-            token_str = reply_address.split('@', 1)[0]
+            token_str = SecretStr(reply_address.split('@', 1)[0])
             token_struct = UserTokenStructUtils.from_str(token_str)
         except Exception:
             logging.debug('Invalid reply_address format %r', reply_address)
@@ -35,7 +38,7 @@ class UserTokenEmailReplyQuery:
                 .options(joinedload(UserTokenEmailReply.user).load_only(User.email))
                 .where(
                     UserTokenEmailReply.id == token_struct.id,
-                    UserTokenEmailReply.expires_at > func.statement_timestamp(),
+                    UserTokenEmailReply.created_at + USER_TOKEN_EMAIL_REPLY_EXPIRE > func.statement_timestamp(),
                 )
             )
             stmt = apply_options_context(stmt)

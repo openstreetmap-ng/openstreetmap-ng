@@ -312,10 +312,13 @@ fixthemap:
   title: Fix the map
 notifications:
   hello_user: Hello {{user}},
+  click_here_to_activate_your_account: Click here to activate your account
+  click_here_to_update_your_email: Click here to update your email
   click_here_to_join_the_discussion: "{{click_here}} to join the discussion."
   click_here_to_open_this_message_in_your_browser: "{{click_here}} to open this message in your browser."
   sending_a_message: sending a message
   you_can_also_respond_privately_by_sending_a_message: You can also respond privately by {{sending_a_message}}.
+  otherwise_please_ignore_this_email: Otherwise, please ignore this email.
 alt:
   logo: Logo
   country_flag: Country flag
@@ -358,8 +361,6 @@ signup:
   i_agree_to_the_terms_privacy_and_contributor: "I agree to the {{terms}}, {{privacy}}, and {{contributor}}."
 pagination:
   range: "{{x}} of {{y}}"
-confirm_account:
-  click_here_to_activate_account: Click here to activate your account
 time:
   never: Never
 validation:

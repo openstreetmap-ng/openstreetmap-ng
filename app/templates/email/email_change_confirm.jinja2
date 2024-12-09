@@ -1,0 +1,11 @@
+{% extends 'email/_base.jinja2' %}
+{% block body %}
+    <p>{{ t('notifications.hello_user', user=user.display_name) }}</p>
+    <p>{{ t('user_mailer.email_confirm.hopefully_you', server_url=app_domain, new_address=new_email) }}</p>
+    <p>{{ t('user_mailer.email_confirm.click_the_link') }}</p>
+    ›
+    <a href="{{ APP_URL }}/api/web/user/email-change-confirm?token={{ token }}">
+        {{ t('notifications.click_here_to_update_your_email') }}
+    </a>
+    <p>{{ t('notifications.otherwise_please_ignore_this_email') }}</p>
+{% endblock %}

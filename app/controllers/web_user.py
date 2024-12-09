@@ -22,6 +22,7 @@ from app.services.reset_password_service import ResetPasswordService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
+from app.services.user_token_email_change_service import UserTokenEmailChangeService
 from app.validators.email import ValidatingEmailType
 
 router = APIRouter(prefix='/api/web/user')
@@ -100,7 +101,7 @@ async def signup(
 
 @router.get('/account-confirm')
 async def account_confirm(
-    token: Annotated[str, Query(min_length=1)],
+    token: Annotated[SecretStr, Query(min_length=1)],
 ):
     # TODO: check errors
     token_struct = UserTokenStructUtils.from_str(token)
@@ -118,6 +119,16 @@ async def account_confirm_resend(
     feedback = StandardFeedback()
     feedback.success(None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email))
     return feedback.result
+
+
+@router.get('/email-change-confirm')
+async def email_change_confirm(
+    token: Annotated[SecretStr, Query(min_length=1)],
+):
+    # TODO: check errors
+    token_struct = UserTokenStructUtils.from_str(token)
+    await UserTokenEmailChangeService.confirm(token_struct)
+    return RedirectResponse('/settings', status.HTTP_303_SEE_OTHER)
 
 
 @router.post('/reset-password')
