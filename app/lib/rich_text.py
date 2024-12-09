@@ -203,28 +203,29 @@ def _process_plain(text: str) -> str:
         return '<p></p>'
 
     matches: Iterable[LinkifyMatch] | None = _linkify.match(text)
-    if matches is None:  # small optimization for text without links
-        return f'<p>{text}</p>'
+    if matches is None:
+        # small optimization for text without links (most common)
+        text = f'<p>{text}</p>'
+    else:
+        result: list[str] = ['<p>']
+        last_pos: int = 0
+        for match in matches:
+            prefix = text[last_pos : match.index]
+            href = match.url
+            trusted_href = _process_trusted_link(href)
+            if trusted_href is not None:
+                result.append(f'{prefix}<a href="{trusted_href}" rel="{_trusted_link_rel}">{match.text}</a>')
+            else:
+                result.append(f'{prefix}<a href="{href}" rel="{_untrusted_link_rel}">{match.text}</a>')
+            last_pos = match.last_index
+        # add remaining text after last link
+        if last_pos < len(text):
+            suffix = text[last_pos:]
+            result.append(suffix)
+        result.append('</p>')
+        text = ''.join(result)
 
-    result: list[str] = ['<p>']
-    last_pos: int = 0
-    for match in matches:
-        prefix = text[last_pos : match.index]
-        href = match.url
-        trusted_href = _process_trusted_link(href)
-        if trusted_href is not None:
-            result.append(f'{prefix}<a href="{trusted_href}" rel="{_trusted_link_rel}">{match.text}</a>')
-        else:
-            result.append(f'{prefix}<a href="{href}" rel="{_untrusted_link_rel}">{match.text}</a>')
-        last_pos = match.last_index
-
-    # add remaining text after last link
-    if last_pos < len(text):
-        suffix = text[last_pos:]
-        result.append(suffix)
-
-    result.append('</p>')
-    return ''.join(result).replace('\n', '<br>')
+    return text.replace('\n', '<br>')
 
 
 _allowed_tags, _allowed_attributes = _get_allowed_tags_and_attributes()
