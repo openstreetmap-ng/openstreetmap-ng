@@ -149,7 +149,7 @@ def planet_worker(
             )
         )
 
-    pl.LazyFrame(data, schema, orient='row').sink_parquet(
+    pl.DataFrame(data, schema, orient='row').write_parquet(
         get_worker_path(PLANET_PARQUET_PATH, i), compression='lz4', statistics=False
     )
     gc.collect()
@@ -324,7 +324,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
             )
         )
 
-    pl.LazyFrame(data, schema, orient='row').sink_parquet(
+    pl.DataFrame(data, schema, orient='row').write_parquet(
         get_worker_path(NOTES_PARQUET_PATH, i), compression='lz4', statistics=False
     )
     gc.collect()

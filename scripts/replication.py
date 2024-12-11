@@ -145,11 +145,11 @@ async def _iterate(state: AppState) -> AppState:
             continue
         r.raise_for_status()
         break
-    lf, last_sequence_id = _parse_actions(
+    df, last_sequence_id = _parse_actions(
         XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange'],
         last_sequence_id=state.last_sequence_id,
     )
-    lf.sink_parquet(remote_replica.path, compression='lz4', statistics=False)
+    df.write_parquet(remote_replica.path, compression='lz4', statistics=False)
     return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
 
 
@@ -160,7 +160,7 @@ def _parse_actions(
     last_sequence_id: int,
     # HACK: faster lookup
     orjson_dumps: Callable[[Any], bytes] = orjson.dumps,
-) -> tuple[pl.LazyFrame, int]:
+) -> tuple[pl.DataFrame, int]:
     data: list[tuple] = []
     action: str
     for action, elements_ in actions:
@@ -228,12 +228,13 @@ def _parse_actions(
     sequence_ids = np.arange(start_sequence_id, last_sequence_id + 1, dtype=np.uint64)
     schema = dict(_PARQUET_SCHEMA)
     del schema['sequence_id']
-    lf = (
+    df = (
         pl.LazyFrame(data, schema, orient='row')
         .sort('created_at', maintain_order=True)
         .with_columns_seq(pl.Series('sequence_id', sequence_ids))
+        .collect()
     )
-    return lf, last_sequence_id
+    return df, last_sequence_id
 
 
 @cython.cfunc
