@@ -36,7 +36,7 @@ class NoteQuery:
                     NoteComment.user_id == user_id,
                 )
                 .distinct()
-                .cte()
+                .cte('cte_opened')
                 .prefix_with('MATERIALIZED')
             )
             if commented_other:
@@ -48,7 +48,7 @@ class NoteQuery:
                         NoteComment.note_id.notin_(cte.select()),
                     )
                     .distinct()
-                    .cte()
+                    .cte('cte_commented_other')
                     .prefix_with('MATERIALIZED')
                 )
             where_and = [Note.visible_to(auth_user()), Note.id.in_(cte.select())]
