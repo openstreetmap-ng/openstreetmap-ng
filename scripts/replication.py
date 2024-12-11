@@ -243,8 +243,7 @@ def _bundle_data_if_needed(state: AppState):
     paths = sorted(REPLICATION_DIR.glob('replica_*.parquet'))
     num_paths_str = click.style(f'{len(paths)} replica files', fg='green')
     click.echo(f'Bundling {num_paths_str}')
-    lf = pl.scan_parquet(paths)
-    lf.sink_parquet(
+    pl.scan_parquet(paths).sink_parquet(
         state.last_replica.bundle_path,
         compression_level=9,
         statistics=False,
