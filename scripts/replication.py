@@ -13,6 +13,7 @@ import numpy as np
 import orjson
 import polars as pl
 import uvloop
+from polars._typing import SchemaDict
 from pydantic.dataclasses import dataclass
 from sentry_sdk import set_context, set_tag, start_transaction
 from shapely import Point
@@ -38,6 +39,30 @@ _FREQUENCY_MERGE_EVERY: dict[_Frequency, int] = {
     'minute': 7 * 24 * 60,
     'hour': 7 * 24,
     'day': 7,
+}
+
+_PARQUET_SCHEMA: SchemaDict = {
+    'sequence_id': pl.UInt64,
+    'changeset_id': pl.UInt64,
+    'type': pl.Enum(('node', 'way', 'relation')),
+    'id': pl.UInt64,
+    'version': pl.UInt64,
+    'visible': pl.Boolean,
+    'tags': pl.String,
+    'point': pl.String,
+    'members': pl.List(
+        pl.Struct(
+            {
+                'order': pl.UInt16,
+                'type': pl.Enum(('node', 'way', 'relation')),
+                'id': pl.UInt64,
+                'role': pl.String,
+            }
+        )
+    ),
+    'created_at': pl.Datetime,
+    'user_id': pl.UInt64,
+    'display_name': pl.String,
 }
 
 _APP_STATE_PATH = REPLICATION_DIR / 'state.json'
@@ -120,11 +145,11 @@ async def _iterate(state: AppState) -> AppState:
             continue
         r.raise_for_status()
         break
-    df, last_sequence_id = _parse_actions(
+    lf, last_sequence_id = _parse_actions(
         XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange'],
         last_sequence_id=state.last_sequence_id,
     )
-    df.write_parquet(remote_replica.path, compression='lz4', statistics=False)
+    lf.sink_parquet(remote_replica.path, compression='lz4', statistics=False)
     return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
 
 
@@ -135,30 +160,8 @@ def _parse_actions(
     last_sequence_id: int,
     # HACK: faster lookup
     orjson_dumps: Callable[[Any], bytes] = orjson.dumps,
-) -> tuple[pl.DataFrame, int]:
+) -> tuple[pl.LazyFrame, int]:
     data: list[tuple] = []
-    schema = {
-        'changeset_id': pl.UInt64,
-        'type': pl.Enum(('node', 'way', 'relation')),
-        'id': pl.UInt64,
-        'version': pl.UInt64,
-        'visible': pl.Boolean,
-        'tags': pl.String,
-        'point': pl.String,
-        'members': pl.List(
-            pl.Struct(
-                {
-                    'order': pl.UInt16,
-                    'type': pl.Enum(('node', 'way', 'relation')),
-                    'id': pl.UInt64,
-                    'role': pl.String,
-                }
-            )
-        ),
-        'created_at': pl.Datetime,
-        'user_id': pl.UInt64,
-        'display_name': pl.String,
-    }
     action: str
     for action, elements_ in actions:
         # skip osmChange attributes
@@ -220,12 +223,17 @@ def _parse_actions(
                     element.get('@user'),  # display_name
                 )
             )
-    df = pl.DataFrame(data, schema, orient='row').sort('created_at', maintain_order=True)
     start_sequence_id = last_sequence_id + 1
-    last_sequence_id += len(df)
+    last_sequence_id += len(data)
     sequence_ids = np.arange(start_sequence_id, last_sequence_id + 1, dtype=np.uint64)
-    df = df.with_columns_seq(pl.Series('sequence_id', sequence_ids))
-    return df, last_sequence_id
+    schema = dict(_PARQUET_SCHEMA)
+    del schema['sequence_id']
+    lf = (
+        pl.LazyFrame(data, schema, orient='row')
+        .sort('created_at', maintain_order=True)
+        .with_columns_seq(pl.Series('sequence_id', sequence_ids))
+    )
+    return lf, last_sequence_id
 
 
 @cython.cfunc
@@ -243,7 +251,7 @@ def _bundle_data_if_needed(state: AppState):
     paths = sorted(REPLICATION_DIR.glob('replica_*.parquet'))
     num_paths_str = click.style(f'{len(paths)} replica files', fg='green')
     click.echo(f'Bundling {num_paths_str}')
-    pl.scan_parquet(paths).sink_parquet(
+    pl.scan_parquet(paths, schema=_PARQUET_SCHEMA).sink_parquet(
         state.last_replica.bundle_path,
         compression_level=9,
         statistics=False,

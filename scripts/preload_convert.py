@@ -96,8 +96,6 @@ def planet_worker(
     element_type: str
     element: dict
     for element_type, element in elements:
-        if element_type not in {'node', 'way', 'relation'}:
-            continue
         tags = {tag['@k']: tag['@v'] for tag in tags_} if (tags_ := element.get('tag')) is not None else None
         point: str | None = None
         members: tuple[dict, ...]
@@ -150,7 +148,8 @@ def planet_worker(
                 element.get('@user'),  # display_name
             )
         )
-    pl.DataFrame(data, schema, orient='row').write_parquet(
+
+    pl.LazyFrame(data, schema, orient='row').sink_parquet(
         get_worker_path(PLANET_PARQUET_PATH, i), compression='lz4', statistics=False
     )
     gc.collect()
@@ -325,7 +324,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
             )
         )
 
-    pl.DataFrame(data, schema, orient='row').write_parquet(
+    pl.LazyFrame(data, schema, orient='row').sink_parquet(
         get_worker_path(NOTES_PARQUET_PATH, i), compression='lz4', statistics=False
     )
     gc.collect()
