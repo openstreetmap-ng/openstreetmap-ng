@@ -98,42 +98,51 @@ def planet_worker(
     for element_type, element in elements:
         if element_type not in {'node', 'way', 'relation'}:
             continue
-        tags = {tag['@k']: tag['@v'] for tag in element.get('tag', ())}
+        tags = {tag['@k']: tag['@v'] for tag in tags_} if (tags_ := element.get('tag')) is not None else None
         point: str | None = None
-        members: list[dict] = []
+        members: tuple[dict, ...]
         if element_type == 'node':
+            members = ()
             if (lon := element.get('@lon')) is not None and (lat := element.get('@lat')) is not None:
                 point = compressible_geometry(Point(lon, lat)).wkb_hex
         elif element_type == 'way':
-            member: dict
-            for member in element.get('nd', ()):
-                members.append(
+            members = (
+                tuple(
                     {
-                        'order': len(members),
+                        'order': order,
                         'type': 'node',
                         'id': member['@ref'],
                         'role': '',
                     }
+                    for order, member in enumerate(members_)
                 )
+                if (members_ := element.get('nd')) is not None
+                else ()
+            )
         elif element_type == 'relation':
-            member: dict
-            for member in element.get('member', ()):
-                members.append(
+            members = (
+                tuple(
                     {
-                        'order': len(members),
+                        'order': order,
                         'type': member['@type'],
                         'id': member['@ref'],
                         'role': member['@role'],
                     }
+                    for order, member in enumerate(members_)
                 )
+                if (members_ := element.get('member')) is not None
+                else ()
+            )
+        else:
+            raise NotImplementedError(f'Unsupported element type {element_type!r}')
         data.append(
             (
                 element['@changeset'],  # changeset_id
                 element_type,  # type
                 element['@id'],  # id
                 element['@version'],  # version
-                bool(point is not None or tags or members),  # visible
-                orjson_dumps(tags).decode() if tags else '{}',  # tags
+                (tags is not None) or (point is not None) or bool(members),  # visible
+                orjson_dumps(tags).decode() if (tags is not None) else '{}',  # tags
                 point,  # point
                 members,  # members
                 element['@timestamp'],  # created_at
@@ -212,7 +221,7 @@ def merge_planet_worker_results() -> None:
         next_sequence_ids = np.empty(df.height, dtype=np.float64)
 
         i: cython.int
-        for i, (type, id, sequence_id) in enumerate(df.select('type', 'id', 'sequence_id').reverse().iter_rows()):
+        for i, (type, id, sequence_id) in enumerate(df.select_seq('type', 'id', 'sequence_id').reverse().iter_rows()):
             type_id = (type, id)
             next_sequence_ids[i] = type_id_sequence_map.get(type_id)
             type_id_sequence_map[type_id] = sequence_id
@@ -372,7 +381,7 @@ def merge_notes_worker_results() -> None:
 
 def write_changeset_csv() -> None:
     df = pl.scan_parquet(PLANET_PARQUET_PATH)
-    df = df.select('changeset_id', 'created_at', 'user_id')
+    df = df.select_seq('changeset_id', 'created_at', 'user_id')
     df = df.rename({'changeset_id': 'id'})
     df = df.group_by('id').agg(
         pl.first('user_id'),
@@ -385,7 +394,7 @@ def write_changeset_csv() -> None:
 
 def write_element_csv() -> None:
     df: pl.LazyFrame = pl.scan_parquet(PLANET_PARQUET_PATH)
-    df = df.select(
+    df = df.select_seq(
         'sequence_id',
         'changeset_id',
         'type',
@@ -402,7 +411,7 @@ def write_element_csv() -> None:
 
 def write_element_member_csv() -> None:
     df: pl.LazyFrame = pl.scan_parquet(PLANET_PARQUET_PATH)
-    df = df.select('sequence_id', 'members')
+    df = df.select_seq('sequence_id', 'members')
     df = df.filter(pl.col('members').list.len() > 0)
     df = df.explode('members')
     df = df.unnest('members')
@@ -411,7 +420,7 @@ def write_element_member_csv() -> None:
 
 def write_note_csv() -> None:
     df: pl.LazyFrame = pl.scan_parquet(NOTES_PARQUET_PATH)
-    df = df.select(
+    df = df.select_seq(
         'id',
         'point',
         'created_at',
@@ -424,7 +433,7 @@ def write_note_csv() -> None:
 
 def write_note_comment_csv() -> None:
     df: pl.LazyFrame = pl.scan_parquet(NOTES_PARQUET_PATH)
-    df = df.select('id', 'comments')
+    df = df.select_seq('id', 'comments')
     df = df.rename({'id': 'note_id'})
     df = df.with_columns_seq(pl.lit(None).alias('user_ip'))
     df = df.explode('comments')
@@ -435,13 +444,13 @@ def write_note_comment_csv() -> None:
 
 def write_user_csv() -> None:
     planet_df = pl.scan_parquet(PLANET_PARQUET_PATH)
-    planet_df = planet_df.select('user_id', 'display_name')
+    planet_df = planet_df.select_seq('user_id', 'display_name')
 
     notes_df = pl.scan_parquet(NOTES_PARQUET_PATH)
-    notes_df = notes_df.select('comments')
+    notes_df = notes_df.select_seq('comments')
     notes_df = notes_df.explode('comments')
     notes_df = notes_df.unnest('comments')
-    notes_df = notes_df.select('user_id', 'display_name')
+    notes_df = notes_df.select_seq('user_id', 'display_name')
 
     df = pl.concat((planet_df, notes_df))
     df = df.rename({'user_id': 'id'})

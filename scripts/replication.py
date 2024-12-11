@@ -168,42 +168,51 @@ def _parse_actions(
         element_type: str
         element: dict
         for element_type, element in elements:
-            tags = {tag['@k']: tag['@v'] for tag in element.get('tag', ())}
+            tags = {tag['@k']: tag['@v'] for tag in tags_} if (tags_ := element.get('tag')) is not None else None
             point: str | None = None
-            members: list[dict] = []
+            members: tuple[dict, ...]
             if element_type == 'node':
+                members = ()
                 if (lon := element.get('@lon')) is not None and (lat := element.get('@lat')) is not None:
                     point = compressible_geometry(Point(lon, lat)).wkb_hex
             elif element_type == 'way':
-                member: dict
-                for member in element.get('nd', ()):
-                    members.append(
+                members = (
+                    tuple(
                         {
-                            'order': len(members),
+                            'order': order,
                             'type': 'node',
                             'id': member['@ref'],
                             'role': '',
                         }
+                        for order, member in enumerate(members_)
                     )
+                    if (members_ := element.get('nd')) is not None
+                    else ()
+                )
             elif element_type == 'relation':
-                member: dict
-                for member in element.get('member', ()):
-                    members.append(
+                members = (
+                    tuple(
                         {
-                            'order': len(members),
+                            'order': order,
                             'type': member['@type'],
                             'id': member['@ref'],
                             'role': member['@role'],
                         }
+                        for order, member in enumerate(members_)
                     )
+                    if (members_ := element.get('member')) is not None
+                    else ()
+                )
+            else:
+                raise NotImplementedError(f'Unsupported element type {element_type!r}')
             data.append(
                 (
                     element['@changeset'],  # changeset_id
                     element_type,  # type
                     element['@id'],  # id
                     element['@version'],  # version
-                    bool(point is not None or tags or members),  # visible
-                    orjson_dumps(tags).decode() if tags else '{}',  # tags
+                    (tags is not None) or (point is not None) or bool(members),  # visible
+                    orjson_dumps(tags).decode() if (tags is not None) else '{}',  # tags
                     point,  # point
                     members,  # members
                     element['@timestamp'],  # created_at
