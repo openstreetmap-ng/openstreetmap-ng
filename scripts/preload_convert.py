@@ -150,8 +150,9 @@ def planet_worker(
                 element.get('@user'),  # display_name
             )
         )
-    df = pl.DataFrame(data, schema, orient='row')
-    df.write_parquet(get_worker_path(PLANET_PARQUET_PATH, i), compression='lz4', statistics=False)
+    pl.DataFrame(data, schema, orient='row').write_parquet(
+        get_worker_path(PLANET_PARQUET_PATH, i), compression='lz4', statistics=False
+    )
     gc.collect()
 
 
@@ -235,8 +236,7 @@ def merge_planet_worker_results() -> None:
     del type_id_sequence_map
 
     print(f'Merging {len(paths)} worker files')
-    lf = pl.scan_parquet(paths)
-    lf.sink_parquet(
+    pl.scan_parquet(paths).sink_parquet(
         PLANET_PARQUET_PATH,
         compression_level=3,
         statistics=False,
@@ -325,8 +325,9 @@ def notes_worker(args: tuple[int, int, int]) -> None:
             )
         )
 
-    df = pl.DataFrame(data, schema, orient='row')
-    df.write_parquet(get_worker_path(NOTES_PARQUET_PATH, i), compression='lz4', statistics=False)
+    pl.DataFrame(data, schema, orient='row').write_parquet(
+        get_worker_path(NOTES_PARQUET_PATH, i), compression='lz4', statistics=False
+    )
     gc.collect()
 
 
@@ -367,8 +368,7 @@ def merge_notes_worker_results() -> None:
     paths = [get_worker_path(NOTES_PARQUET_PATH, i) for i in range(num_tasks)]
 
     print(f'Merging {len(paths)} worker files')
-    lf = pl.scan_parquet(paths)
-    lf.sink_parquet(
+    pl.scan_parquet(paths).sink_parquet(
         NOTES_PARQUET_PATH,
         compression_level=3,
         statistics=False,
@@ -380,91 +380,104 @@ def merge_notes_worker_results() -> None:
 
 
 def write_changeset_csv() -> None:
-    df = pl.scan_parquet(PLANET_PARQUET_PATH)
-    df = df.select_seq('changeset_id', 'created_at', 'user_id')
-    df = df.rename({'changeset_id': 'id'})
-    df = df.group_by('id').agg(
-        pl.first('user_id'),
-        pl.max('created_at').alias('closed_at'),
-        pl.len().alias('size'),
+    (
+        pl.scan_parquet(PLANET_PARQUET_PATH)
+        .select_seq('changeset_id', 'created_at', 'user_id')
+        .rename({'changeset_id': 'id'})
+        .group_by('id')
+        .agg(
+            pl.first('user_id'),
+            closed_at=pl.max('created_at'),
+            size=pl.len(),
+        )
+        .with_columns_seq(tags=pl.lit('{}'))
+        .sink_csv(get_csv_path('changeset'))
     )
-    df = df.with_columns_seq(pl.lit('{}').alias('tags'))
-    df.sink_csv(get_csv_path('changeset'))
 
 
 def write_element_csv() -> None:
-    df: pl.LazyFrame = pl.scan_parquet(PLANET_PARQUET_PATH)
-    df = df.select_seq(
-        'sequence_id',
-        'changeset_id',
-        'type',
-        'id',
-        'version',
-        'visible',
-        'tags',
-        'point',
-        'created_at',
-        'next_sequence_id',
+    (
+        pl.scan_parquet(PLANET_PARQUET_PATH)
+        .select_seq(
+            'sequence_id',
+            'changeset_id',
+            'type',
+            'id',
+            'version',
+            'visible',
+            'tags',
+            'point',
+            'created_at',
+            'next_sequence_id',
+        )
+        .sink_csv(get_csv_path('element'))
     )
-    df.sink_csv(get_csv_path('element'))
 
 
 def write_element_member_csv() -> None:
-    df: pl.LazyFrame = pl.scan_parquet(PLANET_PARQUET_PATH)
-    df = df.select_seq('sequence_id', 'members')
-    df = df.filter(pl.col('members').list.len() > 0)
-    df = df.explode('members')
-    df = df.unnest('members')
-    df.sink_csv(get_csv_path('element_member'))
+    (
+        pl.scan_parquet(PLANET_PARQUET_PATH)
+        .select_seq('sequence_id', 'members')
+        .filter(pl.col('members').list.len() > 0)
+        .explode('members')
+        .unnest('members')
+        .sink_csv(get_csv_path('element_member'))
+    )
 
 
 def write_note_csv() -> None:
-    df: pl.LazyFrame = pl.scan_parquet(NOTES_PARQUET_PATH)
-    df = df.select_seq(
-        'id',
-        'point',
-        'created_at',
-        'updated_at',
-        'closed_at',
-        'hidden_at',
+    (
+        pl.scan_parquet(NOTES_PARQUET_PATH)
+        .select_seq(
+            'id',
+            'point',
+            'created_at',
+            'updated_at',
+            'closed_at',
+            'hidden_at',
+        )
+        .sink_csv(get_csv_path('note'))
     )
-    df.sink_csv(get_csv_path('note'))
 
 
 def write_note_comment_csv() -> None:
-    df: pl.LazyFrame = pl.scan_parquet(NOTES_PARQUET_PATH)
-    df = df.select_seq('id', 'comments')
-    df = df.rename({'id': 'note_id'})
-    df = df.with_columns_seq(pl.lit(None).alias('user_ip'))
-    df = df.explode('comments')
-    df = df.unnest('comments')
-    df = df.drop('display_name')
-    df.sink_csv(get_csv_path('note_comment'))
+    (
+        pl.scan_parquet(NOTES_PARQUET_PATH)
+        .select_seq('id', 'comments')
+        .rename({'id': 'note_id'})
+        .with_columns_seq(user_ip=pl.lit(None))
+        .explode('comments')
+        .unnest('comments')
+        .drop('display_name')
+        .sink_csv(get_csv_path('note_comment'))
+    )
 
 
 def write_user_csv() -> None:
-    planet_df = pl.scan_parquet(PLANET_PARQUET_PATH)
-    planet_df = planet_df.select_seq('user_id', 'display_name')
-
-    notes_df = pl.scan_parquet(NOTES_PARQUET_PATH)
-    notes_df = notes_df.select_seq('comments')
-    notes_df = notes_df.explode('comments')
-    notes_df = notes_df.unnest('comments')
-    notes_df = notes_df.select_seq('user_id', 'display_name')
-
-    df = pl.concat((planet_df, notes_df))
-    df = df.rename({'user_id': 'id'})
-    df = df.unique('id').drop_nulls('id')
-    df = df.with_columns_seq(
-        pl.concat_str('id', pl.lit('@localhost.invalid')).alias('email'),
-        pl.lit('').alias('password_pb'),
-        pl.lit('127.0.0.1').alias('created_ip'),
-        pl.lit('active').alias('status'),
-        pl.lit('en').alias('language'),
-        pl.lit(True).alias('activity_tracking'),
-        pl.lit(True).alias('crash_reporting'),
+    planet_lf = pl.scan_parquet(PLANET_PARQUET_PATH).select_seq('user_id', 'display_name')  #
+    notes_lf = (
+        pl.scan_parquet(NOTES_PARQUET_PATH)
+        .select_seq('comments')
+        .explode('comments')
+        .unnest('comments')
+        .select_seq('user_id', 'display_name')
     )
-    df.sink_csv(get_csv_path('user'))
+    (
+        pl.concat((planet_lf, notes_lf))
+        .rename({'user_id': 'id'})
+        .unique('id')
+        .drop_nulls('id')
+        .with_columns_seq(
+            email=pl.concat_str('id', pl.lit('@localhost.invalid')),
+            password_pb=pl.lit(''),
+            created_ip=pl.lit('127.0.0.1'),
+            status=pl.lit('active'),
+            language=pl.lit('en'),
+            activity_tracking=pl.lit(True),
+            crash_reporting=pl.lit(True),
+        )
+        .sink_csv(get_csv_path('user'))
+    )
 
 
 async def main() -> None:

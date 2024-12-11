@@ -220,8 +220,7 @@ def _parse_actions(
                     element.get('@user'),  # display_name
                 )
             )
-    df = pl.DataFrame(data, schema, orient='row')
-    df.sort('created_at', maintain_order=True)
+    df = pl.DataFrame(data, schema, orient='row').sort('created_at', maintain_order=True)
     start_sequence_id = last_sequence_id + 1
     last_sequence_id += len(df)
     sequence_ids = np.arange(start_sequence_id, last_sequence_id + 1, dtype=np.uint64)
