@@ -8,7 +8,7 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import TEST_ENV
-from app.lib.auth_context import web_user
+from app.lib.auth_context import auth_user, web_user
 from app.lib.redirect_referrer import redirect_referrer
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
@@ -18,11 +18,11 @@ from app.models.db.user import User, UserStatus
 from app.models.types import DisplayNameType, EmailType, PasswordType, ValidatingDisplayNameType
 from app.services.auth_provider_service import AuthProviderService
 from app.services.oauth2_token_service import OAuth2TokenService
-from app.services.reset_password_service import ResetPasswordService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 from app.services.user_token_email_change_service import UserTokenEmailChangeService
+from app.services.user_token_reset_password_service import UserTokenResetPasswordService
 from app.validators.email import ValidatingEmailType
 
 router = APIRouter(prefix='/api/web/user')
@@ -115,7 +115,7 @@ async def account_confirm_resend(
 ):
     if user.status != UserStatus.pending_activation:
         return {'is_active': True}
-    await UserSignupService.send_confirm_email()
+    await UserTokenAccountConfirmService.send_email()
     feedback = StandardFeedback()
     feedback.success(None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email))
     return feedback.result
@@ -135,7 +135,27 @@ async def email_change_confirm(
 async def reset_password(
     email: Annotated[EmailType, Form()],
 ):
-    await ResetPasswordService.send_reset_link(email)
+    await UserTokenResetPasswordService.send_email(email)
     feedback = StandardFeedback()
     feedback.success(None, t('settings.password_reset_link_sent'))
+    return feedback.result
+
+
+@router.post('/reset-password/token')
+async def reset_password_token(
+    token: Annotated[SecretStr, Form()],
+    new_password: Annotated[PasswordType, Form()],
+):
+    revoke_other_sessions = auth_user() is None
+    await UserService.reset_password(
+        token=token,
+        new_password=new_password,
+        revoke_other_sessions=revoke_other_sessions,
+    )
+    feedback = StandardFeedback()
+    feedback.success(
+        None,
+        t('settings.password_reset_success')
+        + ((' ' + t('settings.password_reset_security_logout')) if revoke_other_sessions else ''),
+    )
     return feedback.result

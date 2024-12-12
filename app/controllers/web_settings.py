@@ -6,6 +6,7 @@ from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import web_user
 from app.lib.standard_feedback import StandardFeedback
+from app.lib.translation import t
 from app.limits import USER_DESCRIPTION_MAX_LENGTH
 from app.models.auth_provider import AuthProvider
 from app.models.db.user import AvatarType, Editor, User
@@ -70,12 +71,12 @@ async def settings_email(
     email: Annotated[ValidatingEmailType, Form()],
     password: Annotated[PasswordType, Form()],
 ):
-    feedback = StandardFeedback()
     await UserService.update_email(
-        feedback,
         new_email=email,
         password=password,
     )
+    feedback = StandardFeedback()
+    feedback.info(None, t('settings.email_change_confirmation_sent'))
     return feedback.result
 
 
@@ -86,15 +87,15 @@ async def settings_password(
     new_password: Annotated[PasswordType, Form()],
     revoke_other_sessions: Annotated[bool, Form()] = False,
 ):
-    feedback = StandardFeedback()
     await UserService.update_password(
-        feedback,
         old_password=old_password,
         new_password=new_password,
     )
     if revoke_other_sessions:
         current_session = await AuthService.authenticate_oauth2(None)
         await OAuth2TokenService.revoke_by_client_id('SystemApp.web', skip_ids=(current_session.id,))  # pyright: ignore[reportOptionalMemberAccess]
+    feedback = StandardFeedback()
+    feedback.success(None, t('settings.password_has_been_changed'))
     return feedback.result
 
 

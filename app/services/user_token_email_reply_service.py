@@ -1,5 +1,6 @@
 import logging
 
+from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import update
 
 from app.config import SMTP_MESSAGES_FROM_HOST
@@ -8,6 +9,7 @@ from app.lib.auth_context import auth_context, auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
+from app.lib.options_context import options_context
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import EMAIL_REPLY_USAGE_LIMIT
 from app.models.db.mail import MailSource
@@ -36,9 +38,10 @@ class UserTokenEmailReplyService:
         """
         Reply to a user with a message.
         """
-        token = await UserTokenEmailReplyQuery.find_one_by_reply_address(reply_address)
-        if token is None:
-            raise_for.bad_user_token_struct()
+        with options_context(joinedload(UserTokenEmailReply.user)):
+            token = await UserTokenEmailReplyQuery.find_one_by_reply_address(reply_address)
+            if token is None:
+                raise_for.bad_user_token_struct()
 
         async with db_commit() as session:
             stmt = (

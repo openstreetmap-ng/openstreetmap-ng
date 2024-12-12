@@ -12,19 +12,19 @@
     <label class="form-label d-block mb-3">
         <span class="required">{{ t('settings.current_password') }}</span>
         <input type="password" class="form-control mt-2" data-name="old_password" autocomplete="current-password"
-            required>
+               required>
     </label>
 
     <label class="form-label d-block mb-3">
         <span class="required">{{ t('settings.new_password') }}</span>
         <input type="password" class="form-control mt-2" data-name="new_password" minlength="{{ PASSWORD_MIN_LENGTH }}"
-            autocomplete="new-password" required>
+               autocomplete="new-password" required>
     </label>
 
     <label class="form-label d-block mb-3">
         <span class="required">{{ t('settings.new_password_repeat') }}</span>
         <input type="password" class="form-control mt-2" data-name="new_password_confirm"
-            minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
+               minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
     </label>
 
     <div class="row align-items-center">
@@ -32,7 +32,7 @@
             <div class="form-check ms-1">
                 <label class="form-check-label">
                     <input class="form-check-input" type="checkbox" name="revoke_other_sessions" value="true"
-                        autocomplete="off">
+                           autocomplete="off">
                     {{ t('settings.logout_from_browsers') }}
                 </label>
             </div>
@@ -67,10 +67,9 @@
             <div class="col">
                 <h6 class="mb-1">
                     {% if session.id == current_session_id %}
-                    <span class="current-session me-1" data-bs-toggle="tooltip"
-                        data-bs-title="{{ t('settings.this_is_your_current_session') }}"
-                        aria-label="{{ t('settings.this_is_your_current_session') }}">
-                    </span>
+                        <span class="current-session me-1" data-bs-toggle="tooltip"
+                              data-bs-title="{{ t('settings.this_is_your_current_session') }}"
+                              aria-label="{{ t('settings.this_is_your_current_session') }}"></span>
                     {% endif %}
                     {% set id %}
                     <span class="session-id">

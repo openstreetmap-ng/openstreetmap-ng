@@ -7,17 +7,22 @@ from sqlalchemy import delete, func, update
 from app.config import FREEZE_TEST_USER
 from app.db import db_commit
 from app.lib.auth_context import auth_user
+from app.lib.exceptions_context import raise_for
 from app.lib.locale import is_installed_locale
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
 from app.models.db.user import AvatarType, Editor, User, UserStatus
+from app.models.db.user_token_reset_password import UserTokenResetPassword
 from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
 from app.queries.user_query import UserQuery
-from app.services.email_change_service import EmailChangeService
+from app.queries.user_token_query import UserTokenQuery
 from app.services.image_service import ImageService
+from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
+from app.services.user_token_email_change_service import UserTokenEmailChangeService
 from app.validators.email import validate_email, validate_email_deliverability
 
 
@@ -192,7 +197,6 @@ class UserService:
 
     @staticmethod
     async def update_email(
-        feedback: StandardFeedback,
         *,
         new_email: EmailType,
         password: PasswordType,
@@ -225,12 +229,10 @@ class UserService:
             StandardFeedback.raise_error('email', t('validation.invalid_email_address'))
 
         # TODO: send to old email too for security
-        await EmailChangeService.send_confirm_email(new_email)
-        feedback.info(None, t('settings.email_change_confirmation_sent'))
+        await UserTokenEmailChangeService.send_email(new_email)
 
     @staticmethod
     async def update_password(
-        feedback: StandardFeedback,
         *,
         old_password: PasswordType,
         new_password: PasswordType,
@@ -255,7 +257,7 @@ class UserService:
             raise AssertionError('Provided password schemas cannot be used during update_password')
 
         async with db_commit() as session:
-            stmt = (
+            await session.execute(
                 update(User)
                 .where(User.id == user.id)
                 .values(
@@ -266,10 +268,53 @@ class UserService:
                 )
                 .inline()
             )
-            await session.execute(stmt)
-
-        feedback.success(None, t('settings.password_has_been_changed'))
         logging.debug('Changed password for user %r', user.id)
+
+    @staticmethod
+    async def reset_password(
+        token: SecretStr,
+        *,
+        new_password: PasswordType,
+        revoke_other_sessions: bool,
+    ) -> None:
+        """
+        Reset the user password.
+        """
+        token_struct = UserTokenStructUtils.from_str(token)
+        if token_struct is None:
+            raise_for.bad_user_token_struct()
+        user_token = await UserTokenQuery.find_one_by_token_struct(UserTokenResetPassword, token_struct)
+        if user_token is None:
+            raise_for.bad_user_token_struct()
+        new_password_pb = PasswordHash.hash(new_password)
+        if new_password_pb is None:
+            raise AssertionError('Provided password schemas cannot be used during reset_password')
+
+        if revoke_other_sessions:
+            await OAuth2TokenService.revoke_by_client_id('SystemApp.web', user_id=user_token.user_id)
+
+        async with db_commit() as session:
+            # prevent race conditions
+            await session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
+            if (
+                await session.execute(
+                    delete(UserTokenResetPassword).where(UserTokenResetPassword.id == token_struct.id)
+                )
+            ).rowcount != 1:
+                raise_for.bad_user_token_struct()
+            await session.commit()
+            await session.execute(
+                update(User)
+                .where(User.id == user_token.user_id)
+                .values(
+                    {
+                        User.password_pb: new_password_pb,
+                        User.password_changed_at: func.statement_timestamp(),
+                    }
+                )
+                .inline()
+            )
+        logging.debug('Reset password for user %r', user_token.user_id)
 
     # TODO: UI
     @staticmethod

@@ -5,16 +5,19 @@ from typing import Annotated
 
 import numpy as np
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
-from fastapi import APIRouter, Cookie, Path, Request
+from fastapi import APIRouter, Cookie, Path, Query, Request
 from polyline_rs import encode_lonlat
-from pydantic import PositiveInt
+from pydantic import PositiveInt, SecretStr
+from sqlalchemy.orm import joinedload
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import format_short_date, get_month_name, get_weekday_name, utcnow
 from app.lib.exceptions_context import raise_for
+from app.lib.options_context import options_context
 from app.lib.render_response import render_response
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
     EMAIL_MIN_LENGTH,
@@ -27,6 +30,7 @@ from app.limits import (
 )
 from app.models.db.note_comment import NoteEvent
 from app.models.db.user import User, UserStatus
+from app.models.db.user_token_reset_password import UserTokenResetPassword
 from app.models.types import DisplayNameType
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -37,6 +41,7 @@ from app.queries.note_query import NoteQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
+from app.queries.user_token_query import UserTokenQuery
 from app.services.auth_provider_service import AuthProviderService
 
 router = APIRouter()
@@ -79,13 +84,42 @@ async def account_confirm_pending(user: Annotated[User, web_user()]):
 
 
 @router.get('/reset-password')
-async def reset_password():
-    return await render_response('user/reset_password.jinja2')
+async def reset_password(token: Annotated[SecretStr | None, Query(min_length=1)] = None):
+    if token is None:
+        return await render_response('user/reset_password.jinja2')
+    # TODO: check errors
+    token_struct = UserTokenStructUtils.from_str(token)
+    with options_context(
+        joinedload(UserTokenResetPassword.user).load_only(
+            User.id,
+            User.display_name,
+            User.avatar_type,
+            User.avatar_id,
+        )
+    ):
+        user_token = await UserTokenQuery.find_one_by_token_struct(
+            UserTokenResetPassword, token_struct, check_email_hash=False
+        )
+        if user_token is None:
+            return await render_response('user/reset_password.jinja2')
+    return await render_response(
+        'user/reset_password_token.jinja2',
+        {
+            'token': token.get_secret_value(),
+            'profile': user_token.user,
+            'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
+        },
+    )
 
 
 @router.get('/user/forgot-password')
-async def legacy_reset_password():
+async def legacy_forgot_password():
     return RedirectResponse('/reset-password', status.HTTP_301_MOVED_PERMANENTLY)
+
+
+@router.get('/user/reset-password')
+async def legacy_reset_password(token: Annotated[SecretStr, Query(min_length=1)]):
+    return RedirectResponse(f'/reset-password?token={token}', status.HTTP_301_MOVED_PERMANENTLY)
 
 
 @router.get('/user-id/{user_id:int}{suffix:path}')

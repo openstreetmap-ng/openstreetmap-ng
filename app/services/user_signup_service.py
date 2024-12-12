@@ -1,20 +1,14 @@
-from urllib.parse import urlsplit
-
 from pydantic import SecretStr
 
-from app.config import APP_URL
 from app.db import db_commit
-from app.lib.auth_context import auth_context, auth_user
+from app.lib.auth_context import auth_context
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import primary_translation_locale, t
-from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.middlewares.request_context_middleware import get_request_ip
-from app.models.db.mail import MailSource
 from app.models.db.user import User, UserStatus
 from app.models.types import DisplayNameType, EmailType, PasswordType
 from app.queries.user_query import UserQuery
-from app.services.email_service import EmailService
 from app.services.system_app_service import SystemAppService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 from app.validators.email import validate_email_deliverability
@@ -63,22 +57,6 @@ class UserSignupService:
 
         if not email_confirmed:
             with auth_context(user, scopes=()):
-                await UserSignupService.send_confirm_email()
+                await UserTokenAccountConfirmService.send_email()
 
         return await SystemAppService.create_access_token('SystemApp.web', user_id=user.id)
-
-    @staticmethod
-    async def send_confirm_email() -> None:
-        """
-        Send a confirmation email for the current user.
-        """
-        app_domain = urlsplit(APP_URL).netloc
-        token = await UserTokenAccountConfirmService.create()
-        await EmailService.schedule(
-            source=MailSource.system,
-            from_user=None,
-            to_user=auth_user(required=True),
-            subject=t('user_mailer.signup_confirm.subject'),
-            template_name='email/account_confirm.jinja2',
-            template_data={'token': UserTokenStructUtils.to_str(token), 'app_domain': app_domain},
-        )

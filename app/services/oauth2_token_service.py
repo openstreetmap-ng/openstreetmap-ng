@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterable
 from hmac import compare_digest
 
@@ -222,7 +223,7 @@ class OAuth2TokenService:
         return token.id
 
     @staticmethod
-    async def reset_pat_acess_token(pat_id: int) -> SecretStr:
+    async def reset_pat_access_token(pat_id: int) -> SecretStr:
         """
         Reset the personal access token and return the new secret.
         """
@@ -260,6 +261,7 @@ class OAuth2TokenService:
                 OAuth2Token.id == token_id,
             )
             await session.execute(stmt)
+        logging.debug('Revoked OAuth2 token %d', token_id)
 
     @staticmethod
     async def revoke_by_access_token(access_token: SecretStr) -> None:
@@ -270,28 +272,41 @@ class OAuth2TokenService:
         async with db_commit() as session:
             stmt = delete(OAuth2Token).where(OAuth2Token.token_hashed == access_token_hashed)
             await session.execute(stmt)
+        logging.debug('Revoked OAuth2 access token')
 
     @staticmethod
-    async def revoke_by_app_id(app_id: int, *, skip_ids: Iterable[int] | None = None) -> None:
+    async def revoke_by_app_id(
+        app_id: int,
+        *,
+        user_id: int | None = None,
+        skip_ids: Iterable[int] | None = None,
+    ) -> None:
         """
         Revoke all current user tokens for the given OAuth2 application.
         """
+        if user_id is None:
+            user_id = auth_user(required=True).id
         if skip_ids is None:
             skip_ids = ()
         async with db_commit() as session:
             stmt = delete(OAuth2Token).where(
-                OAuth2Token.user_id == auth_user(required=True).id,
+                OAuth2Token.user_id == user_id,
                 OAuth2Token.application_id == app_id,
                 OAuth2Token.id.notin_(skip_ids),
             )
             await session.execute(stmt)
+        logging.debug('Revoked OAuth2 app tokens %d for user %d', app_id, user_id)
 
     @staticmethod
-    async def revoke_by_client_id(client_id: str, *, skip_ids: Iterable[int] | None = None) -> None:
+    async def revoke_by_client_id(
+        client_id: str,
+        *,
+        user_id: int | None = None,
+        skip_ids: Iterable[int] | None = None,
+    ) -> None:
         """
         Revoke all current user tokens for the given OAuth2 client.
         """
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
-        if app is None:
-            return
-        await OAuth2TokenService.revoke_by_app_id(app.id, skip_ids=skip_ids)
+        if app is not None:
+            await OAuth2TokenService.revoke_by_app_id(app.id, user_id=user_id, skip_ids=skip_ids)

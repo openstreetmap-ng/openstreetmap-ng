@@ -27,6 +27,7 @@ import "./traces/_upload"
 import "./user/_account-confirm"
 import "./user/_profile"
 import "./user/_reset-password"
+import "./user/_reset-password-token"
 import "./user/_signup"
 import "./user/_terms"
 

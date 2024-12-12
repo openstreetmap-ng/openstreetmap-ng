@@ -181,6 +181,7 @@ settings:
     Please check your inbox and click on the confirmation link to verify your new email address.
     It may take a few minutes for the email to arrive.
   change_password: Change password
+  please_choose_a_new_password_for_your_account: Please choose a new password for your account.
   changes_have_been_saved: Changes have been saved
   password_last_changed: Password last changed
   current_password: Current password
@@ -281,6 +282,10 @@ settings:
     If an account with that email address exists, you will receive a password reset link shortly.
     Please check your inbox and click on the reset link to set a new password.
     It may take a few minutes for the email to arrive.
+  password_reset_success: |-
+    Your account password has been changed successfully.
+  password_reset_security_logout: |-
+    As a security measure, you'll need to sign in again on all your devices.
   danger_zone: Danger zone
   delete_account: Delete account
   delete_application: Delete application
@@ -314,6 +319,7 @@ notifications:
   hello_user: Hello {{user}},
   click_here_to_activate_your_account: Click here to activate your account
   click_here_to_update_your_email: Click here to update your email
+  click_here_to_reset_your_password: Click here to reset your password
   click_here_to_join_the_discussion: "{{click_here}} to join the discussion."
   click_here_to_open_this_message_in_your_browser: "{{click_here}} to open this message in your browser."
   sending_a_message: sending a message
@@ -413,6 +419,7 @@ action:
   send: Send
   send_a_message: Send a message
   submit: Submit
+  continue: Continue
   view_all: View all
   view_more: View more
   remove_image: Remove image

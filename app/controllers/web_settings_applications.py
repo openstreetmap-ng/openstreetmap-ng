@@ -139,7 +139,7 @@ async def settings_application_tokens_reset_access_token(
     _: Annotated[User, web_user()],
     app_id: PositiveInt,
 ):
-    access_token = await OAuth2TokenService.reset_pat_acess_token(app_id)
+    access_token = await OAuth2TokenService.reset_pat_access_token(app_id)
     return {'secret': access_token.get_secret_value()}
 
 

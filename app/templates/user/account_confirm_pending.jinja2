@@ -7,7 +7,7 @@
         <h1>
             <span>{{ t('confirmations.confirm.heading') }}</span>
             <img class="illustration" src="/static/img/account-confirm/illustration.webp"
-                alt="{{ t('alt.happy_globe_mascot') }}">
+                 alt="{{ t('alt.happy_globe_mascot') }}">
         </h1>
     </div>
 </div>
@@ -22,9 +22,9 @@
             </button>
             {% endset %}
             {{ t(
-                    'confirmations.confirm.resend_html',
-                    reconfirm_link=reconfirm_link,
-                ) | safe }}
+                'confirmations.confirm.resend_html',
+                reconfirm_link=reconfirm_link
+            ) | safe }}
         </p>
     </form>
 </div>
