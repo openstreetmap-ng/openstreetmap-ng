@@ -116,9 +116,9 @@ async def account_confirm_resend(
     if user.status != UserStatus.pending_activation:
         return {'is_active': True}
     await UserTokenAccountConfirmService.send_email()
-    feedback = StandardFeedback()
-    feedback.success(None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email))
-    return feedback.result
+    return StandardFeedback.success_result(
+        None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email)
+    )
 
 
 @router.get('/email-change-confirm')
@@ -136,9 +136,7 @@ async def reset_password(
     email: Annotated[EmailType, Form()],
 ):
     await UserTokenResetPasswordService.send_email(email)
-    feedback = StandardFeedback()
-    feedback.success(None, t('settings.password_reset_link_sent'))
-    return feedback.result
+    return StandardFeedback.success_result(None, t('settings.password_reset_link_sent'))
 
 
 @router.post('/reset-password/token')
@@ -152,10 +150,8 @@ async def reset_password_token(
         new_password=new_password,
         revoke_other_sessions=revoke_other_sessions,
     )
-    feedback = StandardFeedback()
-    feedback.success(
+    return StandardFeedback.success_result(
         None,
         t('settings.password_reset_success')
         + ((' ' + t('settings.password_reset_security_logout')) if revoke_other_sessions else ''),
     )
-    return feedback.result

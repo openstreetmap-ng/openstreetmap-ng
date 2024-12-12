@@ -75,9 +75,7 @@ async def settings_email(
         new_email=email,
         password=password,
     )
-    feedback = StandardFeedback()
-    feedback.info(None, t('settings.email_change_confirmation_sent'))
-    return feedback.result
+    return StandardFeedback.info_result(None, t('settings.email_change_confirmation_sent'))
 
 
 @router.post('/settings/password')
@@ -94,9 +92,7 @@ async def settings_password(
     if revoke_other_sessions:
         current_session = await AuthService.authenticate_oauth2(None)
         await OAuth2TokenService.revoke_by_client_id('SystemApp.web', skip_ids=(current_session.id,))  # pyright: ignore[reportOptionalMemberAccess]
-    feedback = StandardFeedback()
-    feedback.success(None, t('settings.password_has_been_changed'))
-    return feedback.result
+    return StandardFeedback.success_result(None, t('settings.password_has_been_changed'))
 
 
 @router.post('/settings/description')
