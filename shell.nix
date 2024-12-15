@@ -85,7 +85,7 @@ let
       python -m alembic -c config/alembic.ini revision --autogenerate --message "$name"
     '')
     (makeScript "alembic-upgrade" ''
-      lataest_version=4
+      lataest_version=5
       current_version=$(cat data/alembic/version.txt 2> /dev/null || echo "")
       if [ -n "$current_version" ] && [ "$current_version" -ne "$lataest_version" ]; then
         echo "NOTICE: Database migrations are not compatible"
