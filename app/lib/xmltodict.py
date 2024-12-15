@@ -14,11 +14,11 @@ from app.limits import XML_PARSE_MAX_SIZE
 _parser = tree.XMLParser(
     ns_clean=True,
     recover=True,
-    resolve_entities=False,
+    remove_blank_text=True,
     remove_comments=True,
     remove_pis=True,
     collect_ids=False,
-    compact=False,
+    resolve_entities=False,
 )
 
 
