@@ -52,7 +52,7 @@ async def _create_token(user: User) -> UserTokenStruct:
     """
     Create a new user reset password token.
     """
-    user_email_hashed = hash_bytes(user.email.encode())
+    user_email_hashed = hash_bytes(user.email)
     token_bytes = buffered_randbytes(32)
     token_hashed = hash_bytes(token_bytes)
     async with db_commit() as session:
@@ -62,5 +62,4 @@ async def _create_token(user: User) -> UserTokenStruct:
             token_hashed=token_hashed,
         )
         session.add(token)
-
     return UserTokenStruct(id=token.id, token=token_bytes)

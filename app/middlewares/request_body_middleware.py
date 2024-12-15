@@ -13,7 +13,7 @@ from app.lib.exceptions_context import raise_for
 from app.limits import REQUEST_BODY_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
 
-_zstd_decompress = ZstdDecompressor().decompress
+_ZSTD_DECOMPRESS = ZstdDecompressor().decompress
 
 
 class RequestBodyMiddleware:
@@ -87,7 +87,7 @@ class RequestBodyMiddleware:
 
 @cython.cfunc
 def _decompress_zstd(buffer: bytes) -> bytes:
-    return _zstd_decompress(buffer, allow_extra_data=False)
+    return _ZSTD_DECOMPRESS(buffer, allow_extra_data=False)
 
 
 @cython.cfunc

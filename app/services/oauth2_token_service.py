@@ -1,6 +1,5 @@
 import logging
 from collections.abc import Iterable
-from hmac import compare_digest
 
 from pydantic import SecretStr
 from sqlalchemy import delete, func, null, select, update
@@ -9,7 +8,7 @@ from sqlalchemy.orm import joinedload
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
-from app.lib.crypto import hash_bytes, hash_s256_code_challenge
+from app.lib.crypto import hash_bytes, hash_compare, hash_s256_code_challenge
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
@@ -139,7 +138,7 @@ class OAuth2TokenService:
         if app.is_confidential and (
             client_secret is None
             or app.client_secret_hashed is None
-            or not compare_digest(app.client_secret_hashed, hash_bytes(client_secret.get_secret_value()))
+            or not hash_compare(client_secret.get_secret_value(), app.client_secret_hashed)
         ):
             raise_for.oauth_bad_client_secret()
 

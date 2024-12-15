@@ -1,11 +1,10 @@
 import logging
-from hmac import compare_digest
 from typing import TypeVar
 
 from sqlalchemy import func, select
 
 from app.db import db
-from app.lib.crypto import hash_bytes
+from app.lib.crypto import hash_compare
 from app.lib.options_context import apply_options_context
 from app.models.db.user import User
 from app.models.db.user_token import UserToken
@@ -32,9 +31,7 @@ class UserTokenQuery:
             token = await session.scalar(stmt)
             if token is None:
                 return None
-
-            token_hashed = hash_bytes(token_struct.token)
-            if not compare_digest(token.token_hashed, token_hashed):
+            if not hash_compare(token_struct.token, token.token_hashed):
                 logging.debug('Invalid user token secret for id %r', token_struct.id)
                 return None
 
@@ -43,8 +40,7 @@ class UserTokenQuery:
                 user_email = await session.scalar(stmt)
                 if user_email is None:
                     return None
-                user_email_hashed = hash_bytes(user_email.encode())
-                if not compare_digest(token.user_email_hashed, user_email_hashed):
+                if not hash_compare(user_email, token.user_email_hashed):
                     logging.debug('Invalid user token email for id %r', token_struct.id)
                     return None
 

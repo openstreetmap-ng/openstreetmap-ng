@@ -1,39 +1,58 @@
 from base64 import urlsafe_b64encode
+from collections.abc import Callable
 from hashlib import sha256
-from hmac import HMAC
+from hmac import compare_digest
+from typing import TypeVar
 
 import cython
+from blake3 import blake3
 from Cryptodome.Cipher import AES
 
 from app.config import SECRET_32
 from app.lib.buffered_random import buffered_randbytes
+
+_T = TypeVar('_T')
 
 HASH_SIZE = 32
 
 
 @cython.cfunc
 def _hash(s: str | bytes):
-    if isinstance(s, str):
-        s = s.encode()
-    return sha256(s)
+    return blake3(s.encode() if isinstance(s, str) else s)
 
 
 def hash_bytes(s: str | bytes) -> bytes:
     """
-    Hash a string using SHA-256.
+    Hash a string using Blake3.
 
-    Returns a buffer of the hash.
+    :return: Bytes digest of the hash.
     """
     return _hash(s).digest()
 
 
 def hash_hex(s: str | bytes) -> str:
     """
-    Hash a string using SHA-256.
+    Hash a string using Blake3.
 
-    Returns a hex-encoded string of the hash.
+    :return: Hex-encoded digest of the hash.
     """
     return _hash(s).hexdigest()
+
+
+def hmac_bytes(s: str | bytes) -> bytes:
+    """
+    Compute a keyed hash of a string using Blake3 and the app secret.
+
+    :return: Bytes digest of the hash.
+    """
+    return blake3(s.encode() if isinstance(s, str) else s, key=SECRET_32).digest()
+
+
+def hash_compare(s: _T, expected: bytes, *, hash_func: Callable[[_T], bytes] = hash_bytes) -> bool:
+    """
+    Compute and compare the hash of the input in a time-constant manner.
+    """
+    return compare_digest(hash_func(s), expected)
 
 
 def hash_s256_code_challenge(verifier: str) -> str:
@@ -41,13 +60,6 @@ def hash_s256_code_challenge(verifier: str) -> str:
     Compute the S256 code challenge from the verifier.
     """
     return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')
-
-
-def hmac_bytes(s: bytes) -> bytes:
-    """
-    Compute the HMAC of a string using SHA-256 and the app secret.
-    """
-    return HMAC(SECRET_32, s, sha256).digest()
 
 
 def encrypt(s: str) -> bytes:

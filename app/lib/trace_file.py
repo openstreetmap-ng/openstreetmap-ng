@@ -68,10 +68,7 @@ class TraceFile:
         """
         Decompress the trace file buffer if needed.
         """
-        if file_id.endswith(_ZstdProcessor.suffix):
-            return _ZstdProcessor.decompress(buffer)
-
-        return buffer
+        return _ZstdProcessor.decompress(buffer) if file_id.endswith(_ZstdProcessor.suffix) else buffer
 
 
 class _TraceProcessor(ABC):
@@ -89,8 +86,8 @@ class _TraceProcessor(ABC):
 class _Bzip2Processor(_TraceProcessor):
     media_type = 'application/x-bzip2'
 
-    @override
     @classmethod
+    @override
     def decompress(cls, buffer: bytes) -> bytes:
         try:
             result = bz2.decompress(buffer)
@@ -107,8 +104,8 @@ class _Bzip2Processor(_TraceProcessor):
 class _GzipProcessor(_TraceProcessor):
     media_type = 'application/gzip'
 
-    @override
     @classmethod
+    @override
     def decompress(cls, buffer: bytes) -> bytes:
         try:
             result = gzip.decompress(buffer)
@@ -125,8 +122,8 @@ class _GzipProcessor(_TraceProcessor):
 class _TarProcessor(_TraceProcessor):
     media_type = 'application/x-tar'
 
-    @override
     @classmethod
+    @override
     def decompress(cls, buffer: bytes) -> tuple[bytes, ...]:
         try:
             # pure tar uses no compression, so it's efficient to read files from the memory buffer
@@ -149,8 +146,8 @@ class _TarProcessor(_TraceProcessor):
 class _XmlProcessor(_TraceProcessor):
     media_type = 'text/xml'
 
-    @override
     @classmethod
+    @override
     def decompress(cls, buffer: bytes) -> tuple[bytes]:
         logging.debug('Trace %r uncompressed size is %s', cls.media_type, sizestr(len(buffer)))
         return (buffer,)
@@ -159,8 +156,8 @@ class _XmlProcessor(_TraceProcessor):
 class _ZipProcessor(_TraceProcessor):
     media_type = 'application/zip'
 
-    @override
     @classmethod
+    @override
     def decompress(cls, buffer: bytes) -> list[bytes]:
         try:
             with zipfile.ZipFile(BytesIO(buffer)) as archive:
@@ -187,15 +184,19 @@ class _ZipProcessor(_TraceProcessor):
         return result
 
 
+_ZSTD_COMPRESS = ZstdCompressor(level=TRACE_FILE_COMPRESS_ZSTD_LEVEL, threads=TRACE_FILE_COMPRESS_ZSTD_THREADS).compress
+_ZSTD_DECOMPRESS = ZstdDecompressor().decompress
+
+
 class _ZstdProcessor(_TraceProcessor):
     media_type = 'application/zstd'
     suffix = '.zst'
 
-    @override
     @classmethod
+    @override
     def decompress(cls, buffer: bytes) -> bytes:
         try:
-            result = ZstdDecompressor().decompress(buffer, allow_extra_data=False)
+            result = _ZSTD_DECOMPRESS(buffer, allow_extra_data=False)
         except ZstdError:
             raise_for.trace_file_archive_corrupted(cls.media_type)
 
@@ -207,11 +208,7 @@ class _ZstdProcessor(_TraceProcessor):
 
     @classmethod
     def compress(cls, buffer: bytes) -> bytes:
-        result = ZstdCompressor(
-            level=TRACE_FILE_COMPRESS_ZSTD_LEVEL,
-            threads=TRACE_FILE_COMPRESS_ZSTD_THREADS,
-        ).compress(buffer)
-
+        result = _ZSTD_COMPRESS(buffer)
         logging.debug('Trace %r archive compressed size is %s', cls.media_type, sizestr(len(result)))
         return result
 
