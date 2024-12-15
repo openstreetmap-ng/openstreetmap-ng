@@ -12,6 +12,7 @@ def test_validating_email_type():
     assert TestModel(email=EmailType('example@ツ.ⓁⒾⒻⒺ')).email == EmailType('example@ツ.life')
 
 
+@pytest.mark.extended
 @pytest.mark.parametrize(
     ('email', 'expected'),
     [
