@@ -52,8 +52,8 @@ class UserTokenEmailReplyService:
                 )
                 .values({'usage_count': UserTokenEmailReply.usage_count + 1})
             )
-            rows = await session.execute(stmt)
-            if not rows.rowcount:
+            result = await session.execute(stmt)
+            if not result.rowcount:
                 logging.warning('UserTokenEmailReply usage limit exceeded for %d', token.id)
                 raise_for.bad_user_token_struct()
 

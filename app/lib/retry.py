@@ -32,7 +32,6 @@ def retry(timeout: timedelta | None, *, sleep_init: cython.double = 0.15, sleep_
                     next_timeout_seconds: cython.double = now + sleep - ts
                     if next_timeout_seconds >= timeout_seconds and timeout is not None:
                         raise TimeoutError(f'{func.__qualname__} failed and timed out after {attempt} attempts') from e
-
                     # retry is still possible
                     logging.info(
                         '%s failed (attempt %d), retrying in %.3f sec',
@@ -41,11 +40,8 @@ def retry(timeout: timedelta | None, *, sleep_init: cython.double = 0.15, sleep_
                         sleep,
                         exc_info=True,
                     )
-
                     await asyncio.sleep(sleep)
-                    noise: cython.double = random.random()  # noqa: S311
-                    new_sleep: cython.double = sleep * (1.5 + noise)
-                    sleep = min(new_sleep, sleep_limit)
+                    sleep = min(random.uniform(sleep * 1.5, sleep * 2.5), sleep_limit)  # noqa: S311
 
         return wrapper
 
