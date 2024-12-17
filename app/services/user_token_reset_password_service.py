@@ -29,9 +29,8 @@ class UserTokenResetPasswordService:
         to_user = await UserQuery.find_one_by_email(email)
         if to_user is None:
             # simulate latency to harden against time-based attacks
-            sleep_time = median(_SEND_EMAIL_LATENCY) - (time.perf_counter() - ts)
-            if sleep_time > 0:
-                await asyncio.sleep(median(_SEND_EMAIL_LATENCY))
+            delay = median(_SEND_EMAIL_LATENCY) - (time.perf_counter() - ts)
+            await asyncio.sleep(delay)
             return
 
         token = await _create_token(to_user)
