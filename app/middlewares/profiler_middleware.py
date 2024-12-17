@@ -5,7 +5,6 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from app.middlewares.request_context_middleware import get_request
 
 
-# https://pyinstrument.readthedocs.io/en/latest/guide.html#profile-a-web-request-in-fastapi
 class ProfilerMiddleware:
     """
     Request profiling middleware.
@@ -38,4 +37,8 @@ class ProfilerMiddleware:
             response = HTMLResponse(profiler.output_html())
             await response(scope, receive, send)
 
-        await self.app(scope, receive, wrapper)
+        try:
+            await self.app(scope, receive, wrapper)
+        finally:
+            if profiler.is_running:
+                profiler.stop()
