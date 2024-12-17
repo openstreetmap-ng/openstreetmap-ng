@@ -35,8 +35,8 @@ def _testmethod(func):
 
 
 class TestService:
-    @_testmethod
     @staticmethod
+    @_testmethod
     async def on_startup():
         """
         Prepare the test environment.
@@ -77,8 +77,8 @@ class TestService:
                     )
                 )
 
-    @_testmethod
     @staticmethod
+    @_testmethod
     async def create_user(
         name: DisplayNameType,
         *,
@@ -127,8 +127,8 @@ class TestService:
 
         logging.info('Upserted test user %r', name)
 
-    @_testmethod
     @staticmethod
+    @_testmethod
     async def create_oauth2_application(
         *,
         name: str,

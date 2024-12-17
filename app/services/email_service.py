@@ -32,8 +32,8 @@ _process_lock = Lock()
 
 
 class EmailService:
-    @asynccontextmanager
     @staticmethod
+    @asynccontextmanager
     async def context():
         """
         Context manager for email service.
@@ -43,8 +43,8 @@ class EmailService:
         yield
         task.cancel()  # avoid "Task was destroyed" warning during tests
 
-    @overload
     @staticmethod
+    @overload
     async def schedule(
         source: Literal[MailSource.system],
         from_user: None,
@@ -56,8 +56,8 @@ class EmailService:
         priority: int = 0,
     ) -> None: ...
 
-    @overload
     @staticmethod
+    @overload
     async def schedule(
         source: Literal[MailSource.message, MailSource.diary_comment],
         from_user: User,
