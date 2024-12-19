@@ -1,3 +1,4 @@
+import asyncio
 import gc
 import os
 from collections.abc import Callable
@@ -10,7 +11,6 @@ import cython
 import numpy as np
 import orjson
 import polars as pl
-import uvloop
 from shapely import Point
 from tqdm import tqdm
 
@@ -500,5 +500,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    uvloop.run(main())
+    asyncio.run(main())
     print('Done! Done! Done!')

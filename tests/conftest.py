@@ -14,7 +14,6 @@ from app.lib.xmltodict import XMLToDict
 from app.main import main
 from app.models.types import DisplayNameType
 from app.queries.user_query import UserQuery
-from tests.utils.event_loop_policy import CustomEventLoopPolicy
 from tests.utils.lifespan_manager import LifespanManager
 
 
@@ -45,13 +44,6 @@ def pytest_collection_modifyitems(config: pytest.Config, items: Collection[pytes
         for item in items:
             if 'extended' in item.keywords:
                 item.add_marker(skip_marker)
-
-
-@pytest.fixture(scope='session')
-def event_loop_policy():
-    policy = CustomEventLoopPolicy()
-    yield policy
-    policy.get_event_loop().close()
 
 
 @pytest_asyncio.fixture(scope='session')

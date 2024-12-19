@@ -1,3 +1,4 @@
+import asyncio
 import gzip
 from asyncio import sleep
 from collections.abc import Callable
@@ -12,7 +13,6 @@ import cython
 import numpy as np
 import orjson
 import polars as pl
-import uvloop
 from polars._typing import SchemaDict
 from pydantic.dataclasses import dataclass
 from sentry_sdk import set_context, set_tag, start_transaction
@@ -344,4 +344,4 @@ def _save_app_state(state: AppState):
 
 
 if __name__ == '__main__':
-    uvloop.run(main())
+    asyncio.run(main())

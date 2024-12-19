@@ -1,10 +1,10 @@
+import asyncio
 import tomllib
 from asyncio import Semaphore, Task, TaskGroup
 from datetime import timedelta
 from pathlib import Path
 
 import orjson
-import uvloop
 
 from app.lib.retry import retry
 from app.utils import HTTP
@@ -52,4 +52,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    uvloop.run(main())
+    asyncio.run(main())

@@ -1,3 +1,4 @@
+import asyncio
 import gc
 import subprocess
 from asyncio import Semaphore, TaskGroup
@@ -5,7 +6,6 @@ from functools import cache
 from pathlib import Path
 from subprocess import Popen
 
-import uvloop
 from sqlalchemy import Index, quoted_name, select, text
 from sqlalchemy.orm import DeclarativeBase
 
@@ -120,5 +120,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    uvloop.run(main())
+    asyncio.run(main())
     print('Done! Done! Done!')
