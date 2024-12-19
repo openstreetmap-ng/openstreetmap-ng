@@ -62,14 +62,19 @@ setup(
                 extra_compile_args=[
                     '-g',
                     '-O3',
+                    '-pipe',
                     # docs: https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc.pdf
                     '-march=' + os.getenv('CYTHON_MARCH', 'native'),
                     '-mtune=' + os.getenv('CYTHON_MTUNE', 'native'),
-                    '-ffast-math',
                     '-fharden-compares',
                     '-fharden-conditional-branches',
                     '-fharden-control-flow-redundancy',
                     '-fhardened',
+                    '-funsafe-math-optimizations',
+                    '-fno-semantic-interposition',
+                    '-fno-plt',
+                    '-fvisibility=hidden',
+                    '-fipa-pta',
                     # https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#safestack_and_shadow_stack
                     '-mshstk',
                     # https://stackoverflow.com/a/23501290
