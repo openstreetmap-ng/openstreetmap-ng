@@ -9,14 +9,15 @@ let
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
   supervisordConf = import ./config/supervisord.nix { inherit pkgs projectDir; };
 
-  wrapPrefix = if (!pkgs.stdenv.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
+  stdenv' = pkgs.gcc14Stdenv;
+  wrapPrefix = if (!stdenv'.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
   pythonLibs = with pkgs; [
     cairo.out
     file.out
     libxml2.out
     libyaml.out
     zlib.out
-    stdenv.cc.cc.lib
+    stdenv'.cc.cc.lib
   ];
   python' = with pkgs; symlinkJoin {
     name = "python";
@@ -46,7 +47,7 @@ let
         ${text}
       '';
       checkPhase = ''
-        ${stdenv.shellDryRun} "$target"
+        ${stdenv'.shellDryRun} "$target"
         ${shellcheck}/bin/shellcheck --severity=style "$target"
       '';
       meta.mainProgram = name;
@@ -66,7 +67,6 @@ let
     python'
     uv
     ruff
-    gcc14
     gettext
     protobuf
     # Frontend:
@@ -614,7 +614,7 @@ let
   '' + lib.optionalString (!isDevelopment) ''
   '';
 in
-pkgs.mkShellNoCC {
+pkgs.mkShell.override { stdenv = stdenv'; } {
   packages = packages';
   shellHook = shell';
 }
