@@ -1,4 +1,7 @@
 .navbar {
+    background: $white;
+    z-index: 1005; // leaflet controls are 1000
+
     .edit-link img {
         margin-left: 0.15em;
         position: relative;
@@ -16,6 +19,29 @@
     .dropdown-toggle {
         .badge {
             position: static;
+        }
+    }
+
+    @include media-breakpoint-down(md) {
+        .navbar-collapse {
+            > :first-child {
+                margin-top: 0.625rem;
+            }
+
+            > :last-child {
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        .profile-btn::after {
+            margin-left: auto;
+        }
+
+        border-bottom: 0 solid $gray-400;
+        transition: border-bottom 0.04s ease-out;
+
+        &:has(.navbar-collapse.show) {
+            border-bottom: 2px solid $gray-400;
         }
     }
 }

@@ -1,13 +1,16 @@
-import { Dropdown, Tooltip } from "bootstrap"
+import { Collapse, Dropdown, Tooltip } from "bootstrap"
 import { qsParse } from "./_qs"
 import { remoteEdit } from "./_remote-edit"
 import type { OSMObject } from "./_types"
 import { isHrefCurrentPage } from "./_utils"
 import { routerNavigateStrict } from "./index/_router"
-import { type LonLatZoom, type MapState, encodeMapState } from "./leaflet/_map-utils"
+import { encodeMapState, type LonLatZoom, type MapState } from "./leaflet/_map-utils"
 
 const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
+const navbarCollapseInstance = Collapse.getOrCreateInstance(navbar.querySelector(".navbar-collapse"), {
+    toggle: false,
+})
 
 // Add active class to current nav-lik
 const navLinks = navbar.querySelectorAll("a.nav-link")
@@ -161,6 +164,14 @@ export const handleEditRemotePath = (): void => {
     console.debug("handleEditRemotePath")
     routerNavigateStrict("/")
     remoteEditButton.click()
+}
+
+/**
+ * Collapse mobile navbar if expanded.
+ * Improves user experience when navigating to a new page in SPA mode.
+ */
+export const collapseNavbar = (): void => {
+    navbarCollapseInstance.hide()
 }
 
 const newUnreadMessagesBadge = navbar.querySelector(".new-unread-messages-badge")

@@ -1,6 +1,6 @@
 // Style the alert container that appears on top of the map
 .map-alert-container {
-    z-index: 1000;
+    z-index: 1003; // leaflet controls are 1000
     position: absolute;
     top: 2rem;
     left: 0;

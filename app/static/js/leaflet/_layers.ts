@@ -114,8 +114,9 @@ layerData.set(tracestrackTopo, {
     legacyLayerIds: [],
 })
 
-const hotosm = L.tileLayer("https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+const hotosm = L.tileLayer("https://tile-{s}.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
     maxZoom: 20,
+    subdomains: "abc",
     attribution: `${copyright}. ${hotosmCredit}. ${terms}`,
 })
 layerData.set(hotosm, {

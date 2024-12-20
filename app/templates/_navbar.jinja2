@@ -1,191 +1,182 @@
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-md">
     <div class="container-fluid">
-
         <a class="navbar-brand fw-semibold" href="/">
             <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo') }}">
             {{ t('layouts.project_name.title') }}
         </a>
 
-        <div class="btn-group dropdown" role="group">
-            <div class="btn-group edit-group" data-bs-title="{{ t('javascripts.site.edit_disabled_tooltip') }}">
-                {% if user is none %}
-                {% set editor = DEFAULT_EDITOR %}
-                {% else %}
-                {% set editor = user.editor.value or DEFAULT_EDITOR %}
-                {% endif %}
-                <a class="btn btn-outline-green map-link edit-link default" href="/edit?editor={{ editor }}">
-                    {{ t('layouts.edit') }}
-                    {% if editor == 'id' %}
-                    <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}">
-                    {% elif editor == 'rapid' %}
-                    <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}">
-                    {% elif editor == 'remote' %}
-                    <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}">
-                    {% endif %}
-                </a>
-
-                <button class="btn btn-outline-green dropdown-toggle dropdown-toggle-split rounded-0"
-                    data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
-                    aria-label="Toggle editor selection">
-                </button>
-                <div class="dropdown-menu dropdown-menu-green">
-                    <a class="dropdown-item map-link edit-link" data-editor="id" href="/edit?editor=id">
-                        {% set editor %}
-                        <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}" loading="lazy">
-                        {{ t('editor.id.description') }}
-                        {% endset %}
-                        {{ t('layouts.edit_with', editor=editor) | safe }}
-                    </a>
-                    <a class="dropdown-item map-link edit-link" data-editor="rapid" href="/edit?editor=rapid">
-                        {% set editor %}
-                        <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}" loading="lazy">
-                        {{ t('editor.rapid.name') }}
-                        {% endset %}
-                        {{ t('layouts.edit_with', editor=editor) | safe }}
-                    </a>
-                    <button class="dropdown-item map-link edit-link" data-editor="remote">
-                        {% set editor %}
-                        <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}" loading="lazy">
-                        {{ t('editor.remote.description') }}
-                        {% endset %}
-                        {{ t('layouts.edit_with', editor=editor) | safe }}
-                    </button>
-                    <hr class="dropdown-divider">
-                    {% if user is none %}
-                    <div class="form-check mx-3 disabled" data-bs-toggle="tooltip"
-                        data-bs-title="{{ t('validation.you_must_be_logged_in_to_perform_this_action') }}"
-                        data-bs-placement="bottom">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" name="remember-choice" disabled>
-                            {{ t('action.remember_my_choice') }}
-                        </label>
-                    </div>
-                    {% else %}
-                    <div class="form-check mx-3">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" name="remember-choice">
-                            {{ t('action.remember_my_choice') }}
-                        </label>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <a class="btn btn-outline-green map-link" href="/history">
-                {{ t('layouts.history') }}
-            </a>
-            <a class="btn btn-outline-green map-link" href="/export">
-                {{ t('site.export.title') }}
-            </a>
-        </div>
-
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 me-3">
-                <li class="nav-item">
-                    <a class="nav-link" href="/traces" title="{{ t('layouts.gps_traces_tooltip') }}">
-                        {{ t('layouts.gps_traces') }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/diary" title="{{ t('layouts.user_diaries_tooltip') }}">
-                        {{ t('layouts.user_diaries') }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/communities">
-                        {{ t('site.communities.title') }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/copyright" rel="license">
-                        {{ t('layouts.copyright') }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/help">
-                        {{ t('layouts.help') }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/about">
-                        {{ t('layouts.about') }}
-                    </a>
-                </li>
-            </ul>
-
-            {% if user is not none %}
-
-            <div class="dropdown">
-                <button class="btn btn-light btn-bg-initial border dropdown-toggle d-flex align-items-center"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    <img class="avatar me-2" src="{{ user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
-                    {{ user.display_name }}
-                    <span class="new-unread-messages-badge badge text-bg-light-green fw-light ms-1-5">
-                        {%- if MESSAGES_COUNT_UNREAD > 0 %}{{ MESSAGES_COUNT_UNREAD }}{% endif -%}
-                    </span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="/dashboard">
-                            {{ t('dashboards.show.title') }}
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center" href="/messages/inbox">
-                            {{ t('users.show.my messages') }}
-                            <span class="unread-messages-badge badge text-bg-light-green fw-light ms-2">
-                                {{ MESSAGES_COUNT_UNREAD }}
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="/user/{{ user.display_name }}">
-                            {{ t('users.show.my profile') }}
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="/settings">
-                            {{ t('accounts.edit.my settings') }}
-                        </a>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    {% if user.home_point is not none %}
-                    <li class="find-home-container d-none">
-                        <button class="dropdown-item">
-                            {{ t('layouts.home') }}
-                        </button>
-                    </li>
+            <div class="btn-group dropdown d-flex d-md-inline-flex me-auto" role="group">
+                <div class="btn-group edit-group flex-grow-1"
+                     data-bs-title="{{ t('javascripts.site.edit_disabled_tooltip') }}">
+                    {% if user is none %}
+                        {% set _editor = DEFAULT_EDITOR %}
+                    {% else %}
+                        {% set _editor = user.editor.value or DEFAULT_EDITOR %}
                     {% endif %}
-                    <li>
-                        <form method="POST" action="/api/web/user/logout">
-                            <button class="dropdown-item" type="submit">
-                                {{ t('layouts.logout') }}
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
+                    <a class="btn btn-outline-green map-link edit-link default" href="/edit?editor={{ _editor }}">
+                        {{ t('layouts.edit') }}
+                        {% if _editor == 'id' %}
+                            <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}">
+                        {% elif _editor == 'rapid' %}
+                            <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}">
+                        {% elif _editor == 'remote' %}
+                            <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}">
+                        {% endif %}
+                    </a>
 
-            {% else %}
+                    <button class="btn btn-outline-green dropdown-toggle dropdown-toggle-split rounded-0"
+                            data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                            aria-label="Toggle editor selection">
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-green">
+                        <a class="dropdown-item map-link edit-link" data-editor="id" href="/edit?editor=id">
+                            {% set _editor %}
+                            <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                            {{ t('editor.id.description') }}
+                            {% endset %}
+                            {{ t('layouts.edit_with', editor=_editor) | safe }}
+                        </a>
+                        <a class="dropdown-item map-link edit-link" data-editor="rapid" href="/edit?editor=rapid">
+                            {% set _editor %}
+                            <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                            {{ t('editor.rapid.name') }}
+                            {% endset %}
+                            {{ t('layouts.edit_with', editor=_editor) | safe }}
+                        </a>
+                        <button class="dropdown-item map-link edit-link" data-editor="remote">
+                            {% set _editor %}
+                            <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                            {{ t('editor.remote.description') }}
+                            {% endset %}
+                            {{ t('layouts.edit_with', editor=_editor) | safe }}
+                        </button>
+                        <hr class="dropdown-divider">
+                        {% if user is none %}
+                            <div class="form-check mx-3 disabled" data-bs-toggle="tooltip"
+                                 data-bs-title="{{ t('validation.you_must_be_logged_in_to_perform_this_action') }}"
+                                 data-bs-placement="bottom">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="checkbox" name="remember-choice" disabled>
+                                    {{ t('action.remember_my_choice') }}
+                                </label>
+                            </div>
+                        {% else %}
+                            <div class="form-check mx-3">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="checkbox" name="remember-choice">
+                                    {{ t('action.remember_my_choice') }}
+                                </label>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
 
-            <div class="btn-group" role="group">
-                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
-                    data-bs-target="#loginModal">
-                    {{ t('login.sign_in') }}
-                </button>
-                <a class="btn btn-outline-secondary" href="/signup">
-                    {{ t('users.new.title') | capitalize }}
+                <a class="btn btn-outline-green map-link" href="/history">
+                    {{ t('layouts.history') }}
+                </a>
+                <a class="btn btn-outline-green map-link" href="/export">
+                    {{ t('site.export.title') }}
                 </a>
             </div>
 
+            {% set _links = (
+                ('/traces', t('layouts.gps_traces'), 'title="' + t('layouts.gps_traces_tooltip') + '"'),
+                ('/diary', t('layouts.user_diaries'), 'title="' + t('layouts.user_diaries_tooltip') + '"'),
+                ('/communities', t('site.communities.title'), ''),
+                ('/copyright', t('layouts.copyright'), 'rel="license"'),
+                ('/help', t('layouts.help'), ''),
+                ('/about', t('layouts.about'), ''),
+            ) %}
+            <ul class="navbar-nav d-flex d-md-none d-xl-flex my-2 my-md-0 me-0 me-md-3">
+                {% for _href, _text, _extra in _links %}
+                    <li class="nav-item"><a class="nav-link" href="{{ _href }}" {{ _extra | safe }}>{{ _text }}</a></li>
+                {% endfor %}
+            </ul>
+
+            <div class="btn-group d-none d-md-block d-xl-none">
+                <button class="btn btn-link link-dark dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                    {{ t('layouts.more') }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    {% for _href, _text, _extra in _links %}
+                        <li><a class="dropdown-item" href="{{ _href }}" {{ _extra | safe }}>{{ _text }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {% if user is not none %}
+                <div class="dropdown d-flex d-md-inline-flex">
+                    <button
+                        class="profile-btn btn btn-light btn-bg-initial border dropdown-toggle d-flex align-items-center flex-grow-1"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <img class="avatar me-2" src="{{ user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                        {{ user.display_name }}
+                        <span class="new-unread-messages-badge badge text-bg-light-green fw-light ms-1-5">
+                            {%- if MESSAGES_COUNT_UNREAD > 0 %}{{ MESSAGES_COUNT_UNREAD }}{% endif -%}
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="/dashboard">
+                                {{ t('dashboards.show.title') }}
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="/messages/inbox">
+                                {{ t('users.show.my messages') }}
+                                <span class="unread-messages-badge badge text-bg-light-green fw-light ms-2">
+                                {{ MESSAGES_COUNT_UNREAD }}
+                            </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/user/{{ user.display_name }}">
+                                {{ t('users.show.my profile') }}
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/settings">
+                                {{ t('accounts.edit.my settings') }}
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        {% if user.home_point is not none %}
+                            <li class="find-home-container d-none">
+                                <button class="dropdown-item">
+                                    {{ t('layouts.home') }}
+                                </button>
+                            </li>
+                        {% endif %}
+                        <li>
+                            <form method="POST" action="/api/web/user/logout">
+                                <button class="dropdown-item" type="submit">
+                                    {{ t('layouts.logout') }}
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            {% else %}
+                <div class="btn-group d-flex d-md-inline-flex" role="group">
+                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
+                            data-bs-target="#loginModal">
+                        {{ t('login.sign_in') }}
+                    </button>
+                    <a class="btn btn-outline-secondary" href="/signup">
+                        {{ t('users.new.title') | capitalize }}
+                    </a>
+                </div>
             {% endif %}
 
         </div>

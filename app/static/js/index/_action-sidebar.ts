@@ -1,4 +1,5 @@
 import type * as L from "leaflet"
+import { collapseNavbar } from "../_navbar"
 import { routerNavigateStrict } from "./_router"
 
 const actionSidebars = document.querySelectorAll("div.action-sidebar")
@@ -24,6 +25,7 @@ export const switchActionSidebar = (map: L.Map, className: string): void => {
 
     // Invalidate the map size
     map.invalidateSize(false)
+    collapseNavbar()
 }
 
 /** On sidebar close button click, navigate to index */

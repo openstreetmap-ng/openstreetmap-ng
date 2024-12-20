@@ -11,15 +11,20 @@
     position: relative;
     display: flex;
 
-    // Expand main map (tiles)
-    .main-map {
-        flex-grow: 1;
+    @include media-breakpoint-down(md) {
+        flex-direction: column;
+        position: absolute;
+        top: $navbar-mobile-height;
+        left: 0;
+        right: 0;
+        bottom: 0;
     }
 }
 
 .main-map {
     // Disable outline on main map (appears too often by accident)
     outline: none;
+    flex-grow: 1;
 
     // Merge zoom and geolocate controls
     .leaflet-control.zoom {
@@ -27,6 +32,7 @@
             border-end-start-radius: 0;
         }
     }
+
     .leaflet-control.geolocate {
         .control-button:first-child {
             margin-top: 0;
@@ -34,5 +40,3 @@
         }
     }
 }
-
-// TODO: media-breakpoint-down(md)
