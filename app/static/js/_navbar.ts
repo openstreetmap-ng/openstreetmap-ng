@@ -4,7 +4,7 @@ import { remoteEdit } from "./_remote-edit"
 import type { OSMObject } from "./_types"
 import { isHrefCurrentPage } from "./_utils"
 import { routerNavigateStrict } from "./index/_router"
-import { encodeMapState, type LonLatZoom, type MapState } from "./leaflet/_map-utils"
+import { type LonLatZoom, type MapState, encodeMapState } from "./leaflet/_map-utils"
 
 const minEditZoom = 13
 const navbar = document.querySelector(".navbar")

@@ -29,7 +29,7 @@
 // Support action sidebar overlaying the map
 .sidebar-overlay {
     position: absolute;
-    z-index: 800;
+    z-index: 1001; // leaflet controls are 1000
 
     .sidebar-content {
         position: static;
@@ -62,7 +62,7 @@
 .leaflet-sidebar {
     position: relative;
     width: $leaflet-sidebar-width;
-    z-index: 900;
+    z-index: 1003; // higher than .sidebar-overlay
 
     @include media-breakpoint-down(md) {
         width: 100%;
