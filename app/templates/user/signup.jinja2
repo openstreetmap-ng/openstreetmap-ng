@@ -5,10 +5,10 @@
 
 <div class="content-body">
     <div class="row g-0">
-        <div class="col-7">
+        <div class="col-7 d-none d-xl-block">
             <div class="brand-content">
                 <img class="background-image" src="/static/img/signup/background.webp"
-                    alt="{{ t('alt.image_of_planet_earth') }}">
+                     alt="{{ t('alt.image_of_planet_earth') }}">
 
                 <div>
                     <h1 class="brand-title fw-bold">
@@ -24,10 +24,15 @@
             </div>
         </div>
         <div class="signup-content col">
-            <div class="col-9">
+            <div class="col-12 col-xl-9">
                 <form class="signup-form" method="POST" action="/api/web/user/signup">
                     <div class="text-center">
-                        <h2>{{ t('signup.get_started_contributing') }}</h2>
+                        <h1 class="brand-title-sm fw-bold d-xl-none">
+                            <img class="d-none d-sm-inline-block" src="/static/img/favicon/256.webp"
+                                 alt="{{ t('alt.logo') }}" draggable="false">
+                            {{- t('layouts.project_name.title') }}
+                        </h1>
+                        <h2 class="brand-subtitle">{{ t('signup.get_started_contributing') }}</h2>
                         <p class="text-secondary small mb-4">
                             {{ t('signup.already_have_an_account') }}
                             <a class="link-primary" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
@@ -39,8 +44,8 @@
                     <label class="form-label d-block">
                         {{ t('activerecord.attributes.user.display_name') | capitalize }}
                         <input type="text" class="form-control mt-2" name="display_name"
-                            data-blacklist="{{ URLSAFE_BLACKLIST }}" value="{{ display_name_value }}"
-                            autocomplete="username" required>
+                               data-blacklist="{{ URLSAFE_BLACKLIST }}" value="{{ display_name_value }}"
+                               autocomplete="username" required>
                     </label>
                     <p class="form-text">
                         {{ t('settings.your_public_username') }}
@@ -50,22 +55,22 @@
                     <label class="form-label d-block">
                         {{ t('passwords.new.email address') | capitalize }}
                         <input type="email" class="form-control mt-2 {% if email_value %}bg-body-tertiary{% endif %}"
-                            name="email" minlength="{{ EMAIL_MIN_LENGTH }}" maxlength="{{ EMAIL_MAX_LENGTH }}"
-                            value="{{ email_value }}" autocomplete="email" {% if email_value %}readonly{% endif %}
-                            required>
+                               name="email" minlength="{{ EMAIL_MIN_LENGTH }}" maxlength="{{ EMAIL_MAX_LENGTH }}"
+                               value="{{ email_value }}" autocomplete="email" {% if email_value %}readonly{% endif %}
+                               required>
                     </label>
                     <p class="form-text">{{ t('settings.your_email_address_is_not_displayed_publicly') }}</p>
 
                     <label class="form-label d-block mb-3">
                         {{ t('sessions.new.password') | capitalize }}
                         <input type="password" class="form-control mt-2" data-name="password"
-                            minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
+                               minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
                     </label>
 
                     <label class="form-label d-block mb-4">
                         {{ t('activerecord.attributes.user.pass_crypt_confirmation') | capitalize }}
                         <input type="password" class="form-control mt-2" data-name="password_confirm"
-                            minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
+                               minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
                     </label>
 
                     <div class="form-check small mx-1 mb-3">
@@ -73,13 +78,13 @@
                             <input class="form-check-input" type="checkbox" autocomplete="off" required>
                             {% set terms_link %}
                             <a href="https://osmfoundation.org/wiki/Terms_of_Use" rel="terms-of-service"
-                                target="_blank">
+                               target="_blank">
                                 {{- t('layouts.tou') | lower -}}
                             </a>
                             {%- endset %}
                             {% set privacy_link %}
                             <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy"
-                                target="_blank">
+                               target="_blank">
                                 {{- t('users.new.privacy_policy') -}}
                             </a>
                             {%- endset %}
@@ -100,25 +105,26 @@
 
                     <input type="hidden" name="tracking" autocomplete="off" required>
                     <button class="btn btn-lg btn-primary rounded-pill fw-medium w-100"
-                        type="submit">{{ t('layouts.sign_up') | capitalize }}</button>
+                            type="submit">{{ t('layouts.sign_up') | capitalize }}</button>
                 </form>
 
                 {% if not display_name_value and not email_value %}
-                <div class="divider mt-4 mb-3">
-                    <span class="divider-text">{{ t('login.or_continue_with') }}</span>
-                </div>
+                    <div class="divider mt-4 mb-3">
+                        <span class="divider-text">{{ t('login.or_continue_with') }}</span>
+                    </div>
 
-                <div class="auth-providers d-flex justify-content-center gap-4 mb-3">
-                    {% for service in ('google', 'facebook', 'microsoft', 'github', 'wikimedia') %}
-                    <form method="POST" action="/oauth2/{{ service }}/authorize">
-                        <button type="submit" class="btn btn-link border"
-                            title="{{ t('settings.connections.service.' ~ service ~ '.title') }}" name="action"
-                            value="signup">
-                            <img src="/static/img/brand/{{ service }}.webp" draggable="false" loading="lazy">
-                        </button>
-                    </form>
-                    {% endfor %}
-                </div>
+                    <div class="auth-providers d-flex justify-content-center gap-3 gap-sm-4 mb-3">
+                        {% for service in ('google', 'facebook', 'microsoft', 'github', 'wikimedia') %}
+                            <form method="POST" action="/oauth2/{{ service }}/authorize">
+                                <button type="submit" class="btn btn-link border"
+                                        title="{{ t('settings.connections.service.' ~ service ~ '.title') }}"
+                                        name="action"
+                                        value="signup">
+                                    <img src="/static/img/brand/{{ service }}.webp" draggable="false" loading="lazy">
+                                </button>
+                            </form>
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
         </div>

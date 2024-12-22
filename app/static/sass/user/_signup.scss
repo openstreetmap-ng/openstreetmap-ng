@@ -20,7 +20,7 @@
         align-items: center;
         height: 100%;
         box-shadow: inset -6rem 0 4rem -4rem rgba(0, 0, 0, 0.3);
-        padding: 0 4.5rem;
+        padding: 0 2.5rem 0 4.5rem;
     }
 
     img.background-image {
@@ -47,6 +47,7 @@
         font-size: 4em;
         color: color.adjust($vibrant-green, $saturation: 3%);
         text-shadow: 0 0 16px rgba(0, 0, 0, 0.25);
+        text-wrap: nowrap;
 
         img {
             position: relative;
@@ -54,6 +55,25 @@
             height: 1.125em;
             width: 1.125em;
             margin-right: 1.125rem;
+        }
+    }
+
+    .brand-title-sm {
+        @extend .display-4;
+        color: color.adjust($vibrant-green, $saturation: 3%);
+
+        img {
+            position: relative;
+            top: -2px;
+            height: 1.125em;
+            width: 1.125em;
+            margin-right: 1rem;
+        }
+    }
+
+    .brand-subtitle {
+        @include media-breakpoint-down(sm) {
+            font-size: calc(1.25rem + 0.9vw);
         }
     }
 
@@ -69,6 +89,10 @@
         align-items: center;
         border-top: 3rem solid $body-tertiary-bg;
         padding: 1.5rem 4rem 3rem;
+
+        @include media-breakpoint-down(sm) {
+            padding: 1.5rem 2rem 3rem;
+        }
     }
 
     .divider {
