@@ -1,10 +1,10 @@
+import asyncio
 import re
 from asyncio import Semaphore, TaskGroup
 from datetime import timedelta
 from pathlib import Path
 
 import orjson
-import uvloop
 
 from app.lib.locale import LocaleName
 from app.lib.retry import retry
@@ -111,4 +111,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    uvloop.run(main())
+    asyncio.run(main())

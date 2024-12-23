@@ -36,8 +36,9 @@ $custom-spacers: (
 );
 $spacers: map.merge($spacers, $custom-spacers);
 
-$action-sidebar-width: 400px;
+$action-sidebar-width: min(400px, calc(100vw - 50px));
 $leaflet-sidebar-width: 250px;
+$navbar-mobile-height: 56px;
 
 $zindex-dropdown: 1010;
 

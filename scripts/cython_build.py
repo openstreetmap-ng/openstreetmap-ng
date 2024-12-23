@@ -53,35 +53,35 @@ paths = (
     if p.name not in blacklist.get(p.parent.as_posix(), set())
 )
 
+extra_args: list[str] = [
+    '-g',
+    '-O3',
+    '-flto=auto',
+    '-pipe',
+    # docs: https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc.pdf
+    '-march=' + os.getenv('CYTHON_MARCH', 'native'),
+    '-mtune=' + os.getenv('CYTHON_MTUNE', 'native'),
+    '-fhardened',
+    '-funsafe-math-optimizations',
+    '-fno-semantic-interposition',
+    '-fno-plt',
+    '-fvisibility=hidden',
+    '-fipa-pta',
+    # https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#safestack_and_shadow_stack
+    '-mshstk',
+    # https://stackoverflow.com/a/23501290
+    '--param=max-vartrack-size=0',
+    *os.getenv('CYTHON_FLAGS', '').split(),
+]
+
 setup(
     ext_modules=cythonize(
         [
             Extension(
                 path.with_suffix('').as_posix().replace('/', '.'),
                 [str(path)],
-                extra_compile_args=[
-                    '-g',
-                    '-O3',
-                    # docs: https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc.pdf
-                    '-march=' + os.getenv('CYTHON_MARCH', 'native'),
-                    '-mtune=' + os.getenv('CYTHON_MTUNE', 'native'),
-                    '-ffast-math',
-                    '-fharden-compares',
-                    '-fharden-conditional-branches',
-                    '-fharden-control-flow-redundancy',
-                    '-fhardened',
-                    # https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#safestack_and_shadow_stack
-                    '-mshstk',
-                    # https://stackoverflow.com/a/23501290
-                    '--param=max-vartrack-size=0',
-                    #
-                    '-flto=auto',
-                    *os.getenv('CYTHON_FLAGS', '').split(),
-                ],
-                extra_link_args=[
-                    '-flto=auto',
-                    *os.getenv('CYTHON_FLAGS', '').split(),
-                ],
+                extra_compile_args=extra_args,
+                extra_link_args=extra_args,
                 define_macros=[
                     ('CYTHON_PROFILE', '1'),
                 ],

@@ -1,8 +1,8 @@
+import asyncio
 from math import isclose
 from pathlib import Path
 
 import orjson
-import uvloop
 from pytz import country_timezones
 from shapely.geometry import shape
 from zstandard import ZstdDecompressor
@@ -95,4 +95,4 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    uvloop.run(main())
+    asyncio.run(main())

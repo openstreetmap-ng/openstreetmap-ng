@@ -52,8 +52,8 @@ class UserTokenEmailReplyService:
                 )
                 .values({'usage_count': UserTokenEmailReply.usage_count + 1})
             )
-            rows = await session.execute(stmt)
-            if not rows.rowcount:
+            result = await session.execute(stmt)
+            if not result.rowcount:
                 logging.warning('UserTokenEmailReply usage limit exceeded for %d', token.id)
                 raise_for.bad_user_token_struct()
 
@@ -68,7 +68,7 @@ async def _create_token(replying_user: User, mail_source: MailSource) -> UserTok
     Replying user can use this token to send a message to the current user.
     """
     user_id = replying_user.id
-    user_email_hashed = hash_bytes(replying_user.email.encode())
+    user_email_hashed = hash_bytes(replying_user.email)
     token_bytes = buffered_randbytes(16)  # 128 bits
     token_hashed = hash_bytes(token_bytes)
     async with db_commit() as session:

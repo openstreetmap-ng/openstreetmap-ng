@@ -29,9 +29,8 @@ class UserTokenResetPasswordService:
         to_user = await UserQuery.find_one_by_email(email)
         if to_user is None:
             # simulate latency to harden against time-based attacks
-            sleep_time = median(_SEND_EMAIL_LATENCY) - (time.perf_counter() - ts)
-            if sleep_time > 0:
-                await asyncio.sleep(median(_SEND_EMAIL_LATENCY))
+            delay = median(_SEND_EMAIL_LATENCY) - (time.perf_counter() - ts)
+            await asyncio.sleep(delay)
             return
 
         token = await _create_token(to_user)
@@ -52,7 +51,7 @@ async def _create_token(user: User) -> UserTokenStruct:
     """
     Create a new user reset password token.
     """
-    user_email_hashed = hash_bytes(user.email.encode())
+    user_email_hashed = hash_bytes(user.email)
     token_bytes = buffered_randbytes(32)
     token_hashed = hash_bytes(token_bytes)
     async with db_commit() as session:
@@ -62,5 +61,4 @@ async def _create_token(user: User) -> UserTokenStruct:
             token_hashed=token_hashed,
         )
         session.add(token)
-
     return UserTokenStruct(id=token.id, token=token_bytes)

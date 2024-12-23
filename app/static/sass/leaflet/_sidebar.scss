@@ -6,6 +6,7 @@
     // Add padding to the sidebar sections
     .section {
         padding: 1.2em 1em;
+        background: $white;
 
         &:not(:last-child) {
             border-bottom: 1px solid $border-color;
@@ -28,7 +29,7 @@
 // Support action sidebar overlaying the map
 .sidebar-overlay {
     position: absolute;
-    z-index: 1000;
+    z-index: 1001; // leaflet controls are 1000
 
     .sidebar-content {
         position: static;
@@ -39,6 +40,13 @@
 .action-sidebar {
     position: relative;
     width: $action-sidebar-width;
+
+    @include media-breakpoint-down(md) {
+        &:not(.index) {
+            width: 100%;
+            height: 40vh;
+        }
+    }
 }
 
 // Fill sidebar with content
@@ -54,4 +62,10 @@
 .leaflet-sidebar {
     position: relative;
     width: $leaflet-sidebar-width;
+    z-index: 1003; // higher than .sidebar-overlay
+
+    @include media-breakpoint-down(md) {
+        width: 100%;
+        height: 50vh;
+    }
 }

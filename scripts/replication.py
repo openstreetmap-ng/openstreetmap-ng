@@ -1,3 +1,4 @@
+import asyncio
 import gzip
 from asyncio import sleep
 from collections.abc import Callable
@@ -12,7 +13,6 @@ import cython
 import numpy as np
 import orjson
 import polars as pl
-import uvloop
 from polars._typing import SchemaDict
 from pydantic.dataclasses import dataclass
 from sentry_sdk import set_context, set_tag, start_transaction
@@ -252,12 +252,11 @@ def _bundle_data_if_needed(state: AppState):
     paths = sorted(REPLICATION_DIR.glob('replica_*.parquet'))
     num_paths_str = click.style(f'{len(paths)} replica files', fg='green')
     click.echo(f'Bundling {num_paths_str}')
-    pl.scan_parquet(paths, schema=_PARQUET_SCHEMA).sink_parquet(
+    pl.read_parquet(paths, schema=_PARQUET_SCHEMA).write_parquet(
         state.last_replica.bundle_path,
         compression_level=9,
         statistics=False,
-        row_group_size=100_000,
-        maintain_order=True,
+        data_page_size=128 * 1024 * 1024,
     )
 
 
@@ -345,4 +344,4 @@ def _save_app_state(state: AppState):
 
 
 if __name__ == '__main__':
-    uvloop.run(main())
+    asyncio.run(main())

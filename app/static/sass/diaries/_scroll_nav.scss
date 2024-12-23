@@ -1,8 +1,7 @@
 #diary-scroll-nav {
-    max-height: 100vh;
+    max-height: max-content;
     overflow-x: hidden;
     overflow-y: scroll;
-    contain: content;
 
     nav {
         text-wrap: pretty;

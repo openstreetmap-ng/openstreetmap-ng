@@ -16,8 +16,8 @@
 {% block body %}
     {% set _avatar_in_header = profile is not none %}
 
-    <div class="content-header pb-0">
-        <div class="col-6 offset-3">
+    <div class="container-fluid content-header pb-0">
+        <div class="col-lg-10 offset-lg-2 col-xl-8 offset-xl-3">
             <div class="row mb-3">
                 {% if _avatar_in_header %}
                     <div class="col-auto">
@@ -83,14 +83,26 @@
             </nav>
         </div>
     </div>
-    <div class="content-body">
+    <div class="container-fluid content-body">
         <div class="row g-0">
-            <div id="diary-scroll-nav" class="col-2 offset-1 sticky-top">
+            <div id="diary-scroll-nav" class="col-lg-3 offset-xl-1 sticky-top">
                 {% if diaries %}
-                    {% include 'diaries/_scroll_nav.jinja2' %}
+                    <div id="diary-scroll-nav-offcanvas" class="offcanvas-lg offcanvas-start" tabindex="-1">
+                        <div class="text-end d-lg-none">
+                            <button type="button" class="btn-close p-3 d-lg-none" data-bs-dismiss="offcanvas"
+                                    data-bs-target="#diary-scroll-nav-offcanvas"
+                                    aria-label="{{ t('javascripts.close') }}"></button>
+                        </div>
+                        {% include 'diaries/_scroll_nav.jinja2' %}
+                    </div>
+                    <button class="btn btn-primary btn-floating-bottom-left d-lg-none" type="button"
+                            data-bs-toggle="offcanvas"
+                            data-bs-target="#diary-scroll-nav-offcanvas" aria-controls="diary-scroll-nav-offcanvas">
+                        <i class="bi bi-list me-2"></i>{{ t('diary.jump_to') }}
+                    </button>
                 {% endif %}
             </div>
-            <div class="col-6">
+            <div class="col-lg-9 col-xl-7">
                 {% if diaries %}
                     {% set entry_hide_avatar = _avatar_in_header %}
                     <div class="diary-list mb-3">

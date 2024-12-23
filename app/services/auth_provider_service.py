@@ -1,6 +1,5 @@
 import logging
 from base64 import urlsafe_b64decode, urlsafe_b64encode
-from hmac import compare_digest
 from time import time
 from typing import cast
 
@@ -12,7 +11,7 @@ from starlette.responses import RedirectResponse
 from app.config import TEST_ENV
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
-from app.lib.crypto import hmac_bytes
+from app.lib.crypto import hash_compare, hmac_bytes
 from app.limits import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_MAX_AGE, COOKIE_AUTH_MAX_AGE
 from app.models.auth_provider import AuthProvider, AuthProviderAction
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
@@ -60,9 +59,7 @@ class AuthProviderService:
         Parse and validate an auth provider state.
         """
         buffer_b64 = cookie_state.encode()
-        provided_hmac = urlsafe_b64decode(query_state)
-        expected_hmac = hmac_bytes(buffer_b64)
-        if not compare_digest(provided_hmac, expected_hmac):
+        if not hash_compare(buffer_b64, urlsafe_b64decode(query_state), hash_func=hmac_bytes):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state hmac')
         state = AuthProviderState.FromString(urlsafe_b64decode(buffer_b64))
         if state.timestamp + AUTH_PROVIDER_STATE_MAX_AGE < time():
@@ -151,9 +148,7 @@ class AuthProviderService:
         if len(parts) != 2:
             return None  # malformed
         buffer_b64, hmac_b64 = parts
-        provided_hmac = urlsafe_b64decode(hmac_b64)
-        expected_hmac = hmac_bytes(buffer_b64)
-        if not compare_digest(provided_hmac, expected_hmac):
+        if not hash_compare(buffer_b64, urlsafe_b64decode(hmac_b64), hash_func=hmac_bytes):
             return None  # invalid HMAC
         verification = AuthProviderVerification.FromString(urlsafe_b64decode(buffer_b64))
         if verification.timestamp + AUTH_PROVIDER_VERIFICATION_MAX_AGE < time():

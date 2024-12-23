@@ -2,21 +2,22 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/af51545ec9a44eadf3fe3547610a5cdd882bc34e.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4989a246d7a390a859852baddb1013f825435cee.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
   supervisordConf = import ./config/supervisord.nix { inherit pkgs projectDir; };
 
-  wrapPrefix = if (!pkgs.stdenv.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
+  stdenv' = pkgs.gcc14Stdenv;
+  wrapPrefix = if (!stdenv'.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
   pythonLibs = with pkgs; [
     cairo.out
     file.out
     libxml2.out
     libyaml.out
     zlib.out
-    stdenv.cc.cc.lib
+    stdenv'.cc.cc.lib
   ];
   python' = with pkgs; symlinkJoin {
     name = "python";
@@ -46,7 +47,7 @@ let
         ${text}
       '';
       checkPhase = ''
-        ${stdenv.shellDryRun} "$target"
+        ${stdenv'.shellDryRun} "$target"
         ${shellcheck}/bin/shellcheck --severity=style "$target"
       '';
       meta.mainProgram = name;
@@ -66,7 +67,6 @@ let
     python'
     uv
     ruff
-    gcc14
     gettext
     protobuf
     # Frontend:
@@ -85,7 +85,7 @@ let
       python -m alembic -c config/alembic.ini revision --autogenerate --message "$name"
     '')
     (makeScript "alembic-upgrade" ''
-      lataest_version=4
+      lataest_version=5
       current_version=$(cat data/alembic/version.txt 2> /dev/null || echo "")
       if [ -n "$current_version" ] && [ "$current_version" -ne "$lataest_version" ]; then
         echo "NOTICE: Database migrations are not compatible"
@@ -614,7 +614,7 @@ let
   '' + lib.optionalString (!isDevelopment) ''
   '';
 in
-pkgs.mkShellNoCC {
+pkgs.mkShell.override { stdenv = stdenv'; } {
   packages = packages';
   shellHook = shell';
 }

@@ -70,7 +70,7 @@ async def _create_token(new_email: EmailType) -> UserTokenStruct:
     Create a new user email change token.
     """
     user = auth_user(required=True)
-    user_email_hashed = hash_bytes(user.email.encode())
+    user_email_hashed = hash_bytes(user.email)
     token_bytes = buffered_randbytes(32)
     token_hashed = hash_bytes(token_bytes)
     async with db_commit() as session:
@@ -81,5 +81,4 @@ async def _create_token(new_email: EmailType) -> UserTokenStruct:
             new_email=new_email,
         )
         session.add(token)
-
     return UserTokenStruct(id=token.id, token=token_bytes)

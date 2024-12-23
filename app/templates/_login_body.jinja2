@@ -42,14 +42,14 @@
     {{ t('login.sign_in_with_a_passkey') }}
 </button>
 
-<div class="auth-providers d-flex justify-content-center gap-4 mb-3">
+<div class="auth-providers d-flex justify-content-center gap-3 gap-sm-4 mb-3">
     {% for service in ('google', 'facebook', 'microsoft', 'github', 'wikimedia') %}
-    <form method="POST" action="/oauth2/{{ service }}/authorize">
-        <input type="hidden" name="referer" required>
-        <button type="submit" class="btn btn-link border"
-            title="{{ t('settings.connections.service.' ~ service ~ '.title') }}" name="action" value="login">
-            <img src="/static/img/brand/{{ service }}.webp" draggable="false" loading="lazy">
-        </button>
-    </form>
+        <form method="POST" action="/oauth2/{{ service }}/authorize">
+            <input type="hidden" name="referer" required>
+            <button type="submit" class="btn btn-link border"
+                    title="{{ t('settings.connections.service.' ~ service ~ '.title') }}" name="action" value="login">
+                <img src="/static/img/brand/{{ service }}.webp" draggable="false" loading="lazy">
+            </button>
+        </form>
     {% endfor %}
 </div>

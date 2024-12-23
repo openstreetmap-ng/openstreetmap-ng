@@ -76,6 +76,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             const zoom = Math.max(map.getZoom() - minimapZoomOut, 0)
 
             for (const minimap of minimaps) {
+                minimap.invalidateSize(false)
                 minimap.setView(center, zoom, { animate: false })
             }
 

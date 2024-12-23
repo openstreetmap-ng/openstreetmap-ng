@@ -38,8 +38,6 @@ import { getShareSidebarToggleButton } from "./_sidebar-share"
 import { getMarkerIcon } from "./_utils"
 import { getZoomControl } from "./_zoom-control"
 
-// TODO: map.invalidateSize(false) on sidebar-content
-
 /** Get the main map instance */
 const getMainMap = (container: HTMLElement): L.Map => {
     console.debug("Initializing main map")

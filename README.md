@@ -62,15 +62,14 @@ This project is funded entirely through community donations. We are not sponsore
 
 ## 🛣️ TODOs: Public Release
 
-The following table outlines the notable features that need to be finished before the first public release of OpenStreetMap-NG. This represents our roadmap to achieving feature parity with the current OpenStreetMap Ruby implementation.
+The following table outlines the notable features that need to be finished before the first public release of OpenStreetMap-NG. This represents our roadmap to achieving release-ready feature parity with the current OpenStreetMap Ruby implementation.
 
 **Release ETA**: End of 2024
 
-| Missing Feature           | Status                           |
-|---------------------------|----------------------------------|
-| Third-Party Authorization | 95% Complete (missing: Facebook) |
-| Mobile Responsiveness     | 30% Complete                     |
-| Dark Theme                | 30% Complete                     |
+| Missing Feature       | Status       |
+|-----------------------|--------------|
+| Mobile Responsiveness | 60% Complete |
+| Dark Theme            | 30% Complete |
 
 ---
 

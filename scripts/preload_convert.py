@@ -1,3 +1,4 @@
+import asyncio
 import gc
 import os
 from collections.abc import Callable
@@ -10,7 +11,6 @@ import cython
 import numpy as np
 import orjson
 import polars as pl
-import uvloop
 from shapely import Point
 from tqdm import tqdm
 
@@ -239,7 +239,7 @@ def merge_planet_worker_results() -> None:
         PLANET_PARQUET_PATH,
         compression_level=3,
         statistics=False,
-        row_group_size=100_000,
+        data_page_size=128 * 1024 * 1024,
         maintain_order=False,
     )
     for path in paths:
@@ -371,7 +371,7 @@ def merge_notes_worker_results() -> None:
         NOTES_PARQUET_PATH,
         compression_level=3,
         statistics=False,
-        row_group_size=100_000,
+        data_page_size=128 * 1024 * 1024,
         maintain_order=False,
     )
     for path in paths:
@@ -500,5 +500,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    uvloop.run(main())
+    asyncio.run(main())
     print('Done! Done! Done!')

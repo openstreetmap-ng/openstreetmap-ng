@@ -1,14 +1,9 @@
 .content-header {
-    padding: 1.5rem 0;
+    padding-top: 1.5rem;
     background: $body-tertiary-bg;
 }
 
 .content-body {
-    margin: 1.5rem 0 3rem;
-}
-
-.modal,
-.modal-dialog,
-.modal-content {
-    contain: content;
+    margin-top: 1.5rem;
+    margin-bottom: 3rem;
 }

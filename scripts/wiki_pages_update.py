@@ -1,3 +1,4 @@
+import asyncio
 import gzip
 import re
 from asyncio import Semaphore, TaskGroup
@@ -8,7 +9,6 @@ from typing import NamedTuple
 from urllib.parse import unquote_plus
 
 import orjson
-import uvloop
 
 from app.lib.retry import retry
 from app.utils import HTTP
@@ -92,4 +92,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    uvloop.run(main())
+    asyncio.run(main())
