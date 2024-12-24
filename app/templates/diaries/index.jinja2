@@ -31,7 +31,7 @@
             </div>
 
             <nav>
-                <ul class="nav nav-tabs">
+                <ul class="nav nav-tabs nav-tabs-md flex-column flex-md-row">
                     <li class="nav-item">
                         <a href="/diary" {% if active_tab == 0 %} class="nav-link active" aria-current="page" {% else %}
                            class="nav-link" {% endif %}>
@@ -72,7 +72,7 @@
                         {% if user is not none %}
                             <a class="btn btn-light border" href="/diary/new">
                                 <i class="bi bi-journal-plus me-2"></i>
-                                {{- t('diary_entries.new.title') | capitalize }}
+                                {{- t('diary.new_entry') | capitalize }}
                             </a>
                         {% endif %}
                         <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">

@@ -1,9 +1,11 @@
 <article id="diary{{ diary.id }}">
     <div class="row">
         {% if not entry_hide_avatar %}
-            <div class="col-auto">
+            <div class="col-auto d-none d-md-block">
                 <a class="d-block" href="/user/{{ diary.user.display_name }}" rel="author">
-                    <img class="avatar" src="{{ diary.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                    <img class="side-avatar avatar" src="{{ diary.user.avatar_url }}"
+                         alt="{{ t('alt.profile_picture') }}"
+                         loading="lazy">
                 </a>
             </div>
         {% endif %}
@@ -12,7 +14,12 @@
             <h3><a href="/diary/{{ diary.id }}">{{ diary.title }}</a></h3>
             <p class="small mb-2">
                 {% set link_user -%}
-                <a href="/user/{{ diary.user.display_name }}" rel="author">{{ diary.user.display_name }}</a>
+                <a href="/user/{{ diary.user.display_name }}" rel="author">
+                    <img class="avatar d-md-none" src="{{ diary.user.avatar_url }}"
+                         alt="{{ t('alt.profile_picture') }}"
+                         loading="lazy">
+                    {{- diary.user.display_name -}}
+                </a>
                 {%- endset %}
                 {% set created -%}
                 <time datetime="{{ diary.created_at.isoformat() }}" data-date="long" data-time="short"></time>
@@ -51,30 +58,45 @@
                     </a>
                 </p>
             {% endif %}
-            <div class="list-group list-group-horizontal justify-content-end">
-                <a class="list-group-item list-group-item-action d-flex align-items-center"
-                   href="/diary/{{ diary.id }}#comments">
-                    {{ t('diary.comments') }}
-                    <span
-                        class="badge ms-1-5 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}">
+            <div class="text-end">
+                <div class="{% if user is not none %}btn-group{% else %}d-inline-flex{% endif %}">
+                    <a class="btn btn-light border d-flex align-items-center"
+                       href="/diary/{{ diary.id }}#comments">
+                        {{ t('diary.comments') }}
+                        <span
+                            class="badge ms-1-5 {% if diary.num_comments %}text-bg-green{% else %}text-dark bg-white{% endif %}">
                         {{ diary.num_comments }}
                     </span>
-                </a>
-                {% if user is not none %}
-                    {% if diary.user_id != user.id %}
-                        <a class="list-group-item list-group-item-action"
-                           href="/message/new?reply_diary={{ diary.id }}">
-                            {{- t('diary.send_author_a_message') -}}
-                        </a>
-                        <a class="list-group-item list-group-item-action" href="#TODO">
-                            {{- t('action.report_abuse') -}}
-                        </a>
-                    {% else %}
-                        <a class="list-group-item list-group-item-action" href="/diary/{{ diary.id }}/edit">
-                            {{- t('diary_entries.diary_entry.edit_link') -}}
-                        </a>
+                    </a>
+                    {% if user is not none %}
+                        <button type="button" class="btn btn-light border dropdown-toggle dropdown-toggle-split"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden">{{ t('action.show_more') }}</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% if diary.user_id != user.id %}
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="/message/new?reply_diary={{ diary.id }}">
+                                        {{- t('diary.send_author_a_message') -}}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#TODO">
+                                        {{- t('action.report_abuse') -}}
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="/diary/{{ diary.id }}/edit">
+                                        {{- t('diary_entries.diary_entry.edit_link') -}}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
                     {% endif %}
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>

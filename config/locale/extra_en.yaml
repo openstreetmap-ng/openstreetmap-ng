@@ -70,6 +70,7 @@ diary:
     count_other: "diary entries"
   all_diaries: All Diaries
   only_in_language: "Only in {{language}}"
+  new_entry: New entry
   jump_to: Jump to
   number_of_comments: Number of comments
   comments: Comments

@@ -70,3 +70,23 @@
         }
     }
 }
+
+@include media-breakpoint-down(md) {
+    .nav-tabs-md {
+        //border-bottom: unset;
+
+        &.nav-tabs .nav-link {
+            border-bottom-left-radius: $nav-tabs-border-radius;
+            border-bottom-right-radius: $nav-tabs-border-radius;
+        }
+
+        &.nav-tabs .nav-link.active,
+        &.nav-tabs .nav-item.show .nav-link {
+            border-bottom-color: $nav-tabs-border-color;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+    }
+}
