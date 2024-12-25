@@ -24,7 +24,7 @@ console.debug("Initializing", richTextContainers.length, "rich text containers")
 for (const container of richTextContainers) {
     const sourceTextArea = container.querySelector("textarea.rich-text-source")
     const previewDiv = container.querySelector(".rich-text-preview")
-    const helpDiv = container.querySelector(".rich-text-tips-content")
+    const helpDiv = container.querySelector(".rich-text-tips")
 
     /** On edit button click, abort any requests and show the source textarea */
     const onEditClick = () => {

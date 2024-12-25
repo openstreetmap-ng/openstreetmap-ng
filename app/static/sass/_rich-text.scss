@@ -33,10 +33,15 @@
     }
 }
 
-// Seamless preview experience: copy padding and border size from textarea
 .rich-text-preview {
+    // Seamless preview experience: copy padding and border size from textarea
     padding: 0.375rem 0.75rem;
     border: 1px solid transparent;
+
+    @include media-breakpoint-down(md) {
+        // Same default height as the source textarea: better UX when scaling
+        min-height: 494px;
+    }
 }
 
 .rich-text-tips {
