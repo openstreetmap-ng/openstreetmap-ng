@@ -24,29 +24,36 @@ console.debug("Initializing", richTextContainers.length, "rich text containers")
 for (const container of richTextContainers) {
     const sourceTextArea = container.querySelector("textarea.rich-text-source")
     const previewDiv = container.querySelector(".rich-text-preview")
+    const helpDiv = container.querySelector(".rich-text-tips-content")
 
-    const editButton = container.querySelector("button.edit-btn")
-    // On edit button click, abort any requests and show the source textarea
-    editButton.addEventListener("click", () => {
+    /** On edit button click, abort any requests and show the source textarea */
+    const onEditClick = () => {
         abortRequest(sourceTextArea, false)
 
-        editButton.disabled = true
-        previewButton.disabled = false
+        for (const button of editButtons) button.disabled = true
+        for (const button of previewButtons) button.disabled = false
+        for (const button of helpButtons) button.disabled = false
+
         sourceTextArea.classList.remove("d-none")
         previewDiv.classList.add("d-none")
         previewDiv.innerHTML = ""
-    })
+        helpDiv.classList.add("d-none")
+    }
+    const editButtons = container.querySelectorAll("button.edit-btn")
+    for (const button of editButtons) button.addEventListener("click", onEditClick)
 
-    const previewButton = container.querySelector("button.preview-btn")
-    // On preview button click, abort any requests and fetch the preview
-    previewButton.addEventListener("click", () => {
+    /** On preview button click, abort any requests and fetch the preview */
+    const onPreviewClick = () => {
         const abortController = abortRequest(sourceTextArea, true)
 
-        editButton.disabled = false
-        previewButton.disabled = true
+        for (const button of editButtons) button.disabled = false
+        for (const button of previewButtons) button.disabled = true
+        for (const button of helpButtons) button.disabled = false
+
         sourceTextArea.classList.add("d-none")
         previewDiv.classList.remove("d-none")
         previewDiv.innerHTML = i18next.t("browse.start_rjs.loading")
+        helpDiv.classList.add("d-none")
 
         const formData = new FormData()
         formData.append("text", sourceTextArea.value)
@@ -68,5 +75,23 @@ for (const container of richTextContainers) {
                 previewDiv.innerHTML = error.message
                 // TODO: standard alert
             })
-    })
+    }
+    const previewButtons = container.querySelectorAll("button.preview-btn")
+    for (const button of previewButtons) button.addEventListener("click", onPreviewClick)
+
+    /** On help button click, show the help content */
+    const onHelpClick = () => {
+        abortRequest(sourceTextArea, false)
+
+        for (const button of editButtons) button.disabled = false
+        for (const button of previewButtons) button.disabled = false
+        for (const button of helpButtons) button.disabled = true
+
+        sourceTextArea.classList.add("d-none")
+        previewDiv.classList.add("d-none")
+        previewDiv.innerHTML = ""
+        helpDiv.classList.remove("d-none")
+    }
+    const helpButtons = container.querySelectorAll("button.help-btn")
+    for (const button of helpButtons) button.addEventListener("click", onHelpClick)
 }

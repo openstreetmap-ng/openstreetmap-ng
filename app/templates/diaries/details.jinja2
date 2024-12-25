@@ -6,7 +6,7 @@
 {% block body %}
 
 <div class="content-header pb-0">
-    <div class="col-6 offset-3">
+    <div class="col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
         <div class="row mb-3">
             <div class="col-auto">
                 <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
@@ -41,7 +41,7 @@
         </div>
 
         <nav>
-            <ul class="nav nav-tabs">
+            <ul class="nav nav-tabs nav-tabs-md flex-column flex-md-row">
                 <li class="nav-item">
                     <a href="/diary" class="nav-link">
                         {{ t('diary.all_diaries') }}
@@ -70,7 +70,7 @@
                     {% if user is not none %}
                         <a class="btn btn-light border" href="/diary/new">
                             <i class="bi bi-journal-plus me-2"></i>
-                            {{- t('diary_entries.new.title') | capitalize }}
+                            {{- t('diary.new_entry') | capitalize }}
                         </a>
                     {% endif %}
                     <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
@@ -82,7 +82,7 @@
     </div>
 </div>
 <div class="content-body">
-    <div class="col-6 offset-3">
+    <div class="col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
         <div class="diary-list mb-4">
             {% set entry_hide_avatar = True %}
             {% set entry_hide_header = True %}

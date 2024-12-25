@@ -1,15 +1,15 @@
-<div class="rich-text-container row">
-    <div class="col-8">
+<div class="rich-text-container row flex-column-reverse flex-md-row">
+    <div class="col-md-8">
         <div class="edit-preview-container">
             <textarea class="rich-text-source form-control" name="{{ rich_text_name }}" rows="20"
-                maxlength="{{ rich_text_maxlength }}"
-                {% if rich_text_required %}required{% endif %}>{{ rich_text_value }}</textarea>
+                      maxlength="{{ rich_text_maxlength }}"
+                      {% if rich_text_required %}required{% endif %}>{{ rich_text_value }}</textarea>
             <div class="rich-text rich-text-preview d-none"></div>
         </div>
     </div>
-    <div class="col-4">
+    <div class="col-md-4">
         <div class="rich-text-tips sticky-top pt-2">
-            <div class="btn-group mb-4" role="group">
+            <div class="btn-group mb-4 d-none d-md-inline-flex" role="group">
                 <button class="edit-btn btn btn-primary" type="button" disabled>
                     {{ t('layouts.edit') }}
                 </button>
@@ -17,10 +17,21 @@
                     {{ t('shared.richtext_field.preview') }}
                 </button>
             </div>
-            <div>
+            <div class="btn-group mb-2 d-flex d-md-none" role="group">
+                <button class="edit-btn btn btn-primary" type="button" disabled>
+                    {{ t('layouts.edit') }}
+                </button>
+                <button class="preview-btn btn btn-primary" type="button">
+                    {{ t('shared.richtext_field.preview') }}
+                </button>
+                <button class="help-btn btn btn-light border" type="button">
+                    {{ t('rich_text.formatting_tips') }}
+                </button>
+            </div>
+            <div class="rich-text-tips-content p-2 p-md-0 d-none d-md-block">
                 <h5>
                     <img class="markdown-logo me-2" src="/static/img/brand/markdown.webp" alt="Markdown"
-                        title="Markdown">{{ t('rich_text.formatting_tips') }}
+                         title="Markdown">{{ t('rich_text.formatting_tips') }}
                 </h5>
                 <dl>
                     <dt>{{ t('shared.markdown_help.headings') }}</dt>

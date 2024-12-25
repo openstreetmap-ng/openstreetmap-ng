@@ -16,7 +16,7 @@
 {% block body %}
     {% set _avatar_in_header = profile is not none %}
 
-    <div class="container-fluid content-header pb-0">
+    <div class="content-header pb-0">
         <div class="col-lg-10 offset-lg-2 col-xl-8 offset-xl-3">
             <div class="row mb-3">
                 {% if _avatar_in_header %}
@@ -83,7 +83,7 @@
             </nav>
         </div>
     </div>
-    <div class="container-fluid content-body">
+    <div class="content-body">
         <div class="row g-0">
             <div id="diary-scroll-nav" class="col-lg-3 offset-xl-1 sticky-top">
                 {% if diaries %}
