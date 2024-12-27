@@ -120,7 +120,17 @@ let
         -fprofile-generate \
         -fprofile-update=prefer-atomic" \
       cython-build
+
+      set +e
       run-tests --extended
+      result=$?
+      set -e
+      if [ "$result" -ne 0 ]; then
+        echo "Aborting PGO build due to test failure"
+        cython-clean
+        exit $result
+      fi
+
       rm -rf build/
       CYTHON_FLAGS="\
         -fprofile-dir=$tmpdir \
