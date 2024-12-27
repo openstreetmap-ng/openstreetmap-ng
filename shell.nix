@@ -99,15 +99,17 @@ let
     # -- Cython
     (makeScript "cython-build" "python scripts/cython_build.py build_ext --inplace --parallel \"$(nproc --all)\"")
     (makeScript "cython-build-pgo" ''
+      found_so=false
       files_up_to_date=true
       while IFS= read -r so_file; do
+        found_so=true
         py_file="''${so_file%.*.*}.py"
         if [ -f "$py_file" ] && [ "$py_file" -nt "$so_file" ]; then
           files_up_to_date=false
           break
         fi
       done < <(find . -type f -name "*.so" -not -path './.*')
-      if [ "$files_up_to_date" = true ]; then
+      if [ "$found_so" = true ] && [ "$files_up_to_date" = true ]; then
         echo "All cython modules are up-to-date, skipping PGO build"
         exit 0
       fi
