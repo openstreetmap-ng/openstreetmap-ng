@@ -343,5 +343,82 @@ def _save_app_state(state: AppState):
     _APP_STATE_PATH.write_bytes(orjson.dumps(asdict(state)))
 
 
+async def migrate():
+    paths = sorted(REPLICATION_DIR.glob('bundle_*.parquet'))
+    for i, path in enumerate(paths):
+        ts = int(path.stem.split('_', 1)[1])
+        if ts <= 1608681600:
+            continue
+        print(f'Migrating {ts}')
+        lf = pl.scan_parquet(path)
+
+        start_sequence_id = lf.select('sequence_id').head(1).collect()['sequence_id'][0]
+        end_sequence_id = lf.select('sequence_id').tail(1).collect()['sequence_id'][0]
+        print(f'[{ts}] Sequence range: {start_sequence_id} - {end_sequence_id}')
+        actual_data_size = lf.select('sequence_id').unique().collect().height
+        expected_data_size = end_sequence_id - start_sequence_id + 1
+        if actual_data_size != expected_data_size:
+            del lf
+            print(f'[{ts}] Corrupted at {datetime.fromtimestamp(ts, UTC)}, regenerating...')
+            app_state = AppState(
+                frequency='day',
+                last_replica=ReplicaState(
+                    sequence_number=i * 7,
+                    created_at=datetime.fromtimestamp(int(paths[i - 1].stem.split('_', 1)[1]), UTC),
+                ),
+                last_sequence_id=pl.scan_parquet(paths[i - 1])
+                .select('sequence_id')
+                .tail(1)
+                .collect()['sequence_id'][0],
+            )
+            for ii in range(7):
+                print(f'{ii + 1}/{7} ...')
+                app_state = await _iterate(app_state)
+            _bundle_data_if_needed(app_state)
+            lf = pl.scan_parquet(path)
+            seq_sorted = lf.select('sequence_id').collect()['sequence_id'].is_sorted()
+            print(f'[{ts}] Is sequence sorted: {seq_sorted}')
+            assert seq_sorted
+            _clean_leftover_data(app_state)
+            start_sequence_id = lf.select('sequence_id').head(1).collect()['sequence_id'][0]
+            end_sequence_id = lf.select('sequence_id').tail(1).collect()['sequence_id'][0]
+            print(f'[{ts}] Sequence range: {start_sequence_id} - {end_sequence_id}')
+
+        seq_sorted = lf.select('sequence_id').collect()['sequence_id'].is_sorted()
+        print(f'[{ts}] Is sequence sorted: {seq_sorted}')
+        time_sorted = lf.select('created_at').collect()['created_at'].is_sorted()
+        print(f'[{ts}] Is time sorted: {time_sorted}')
+
+        prev_end_sequence_id = 0
+        if i > 0:
+            prev_end_sequence_id = (
+                pl.scan_parquet(paths[i - 1]).select('sequence_id').tail(1).collect()['sequence_id'][0]
+            )
+        if seq_sorted and time_sorted and start_sequence_id == prev_end_sequence_id + 1:
+            print(f'[{ts}] Skipping')
+            continue
+        start_sequence_id = max(start_sequence_id, prev_end_sequence_id + 1)
+        end_sequence_id = start_sequence_id + actual_data_size - 1
+
+        print(f'[{ts}] New sequence range: {start_sequence_id} - {end_sequence_id}')
+        print(f'[{ts}] Sorting...')
+        tmp_path = path.with_name(f'{path.name}.tmp')
+        sequence_ids = np.arange(start_sequence_id, end_sequence_id + 1, dtype=np.uint64)
+        pl.DataFrame(
+            lf.sort('created_at', maintain_order=True)
+            .with_columns_seq(pl.Series('sequence_id', sequence_ids))
+            .select(_PARQUET_SCHEMA.keys())
+            .collect(),
+            schema=_PARQUET_SCHEMA,
+            orient='row',
+        ).write_parquet(
+            tmp_path,
+            compression_level=9,
+            statistics=False,
+            data_page_size=128 * 1024 * 1024,
+        )
+        tmp_path.rename(path)
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(migrate())
