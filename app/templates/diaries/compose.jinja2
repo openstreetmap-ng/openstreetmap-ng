@@ -11,13 +11,13 @@
 {% block body %}
 
     <div class="content-header">
-        <div class="col-6 offset-3">
+        <div class="col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
             <h1>{{ self.heading() }}</h1>
             <p class="mb-2">{{ t('diary.compose.description') }}</p>
         </div>
     </div>
     <div class="content-body">
-        <div class="col-6 offset-3">
+        <div class="col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
             <form class="diary-form" method="POST" action="/api/web/diary">
                 <label class="form-label d-block mb-3">
                     <span class="required">{{ t('diary.compose.title') }}</span>
@@ -52,24 +52,26 @@
 
                 <h5>{{ t('diary_entries.form.location') }}</h5>
                 <div class="show-map-container">
-                    <div class="row g-3">
-                        <div class="col">
-                            <label class="form-label d-block mb-3">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md">
+                            <label class="form-label d-block mb-0">
                                 {{ t('activerecord.attributes.diary_entry.latitude') | capitalize }}
-                                <input type="text" class="form-control mt-2" name="lat" value="{{ lat }}">
+                                <input type="number" class="form-control mt-2" name="lat" min="-85" max="85"
+                                       value="{{ lat }}">
                             </label>
                         </div>
-                        <div class="col">
-                            <label class="form-label d-block mb-3">
+                        <div class="col-md">
+                            <label class="form-label d-block mb-0">
                                 {{ t('activerecord.attributes.diary_entry.longitude') | capitalize }}
-                                <input type="text" class="form-control mt-2" name="lon" value="{{ lon }}">
+                                <input type="number" class="form-control mt-2" name="lon" min="-180" max="180"
+                                       value="{{ lon }}">
                             </label>
                         </div>
-                        <div class="col-auto align-content-end">
-                            <button class="show-map-btn btn btn-outline-primary px-3 mb-3" type="button">
+                        <div class="col-md-auto align-content-end text-end">
+                            <button class="show-map-btn btn btn-outline-primary px-3" type="button">
                                 {{ t('diary.compose.select_on_map') }}
                             </button>
-                            <button class="remove-location-btn btn btn-light border px-3 mb-3 d-none" type="button">
+                            <button class="remove-location-btn btn btn-light border px-3 d-none" type="button">
                                 {{ t('diary.compose.remove_location') }}
                             </button>
                         </div>
