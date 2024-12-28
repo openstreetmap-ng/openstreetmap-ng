@@ -145,11 +145,13 @@ async def _iterate(state: AppState) -> AppState:
             continue
         r.raise_for_status()
         break
-    df, last_sequence_id = _parse_actions(
-        XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange'],
-        last_sequence_id=state.last_sequence_id,
-    )
-    df.write_parquet(remote_replica.path, compression='lz4', statistics=False)
+    actions = XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange']
+    if isinstance(actions, dict):
+        click.echo('Skipped empty osmChange')
+        last_sequence_id = state.last_sequence_id
+    else:
+        df, last_sequence_id = _parse_actions(actions, last_sequence_id=state.last_sequence_id)
+        df.write_parquet(remote_replica.path, compression='lz4', statistics=False)
     return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
 
 

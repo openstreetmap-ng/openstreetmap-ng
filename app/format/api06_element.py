@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Collection, Iterable, Sequence
 from typing import Any
 
@@ -99,8 +100,9 @@ class Element06Mixin:
         ... ])
         [Element(type=ElementType, ...), Element(type=ElementType.way, ...)]
         """
-        # skip attributes-only osmChange
+        # skip attributes-only osmChange (empty)
         if isinstance(changes, dict):
+            logging.debug('Skipped empty osmChange')
             return []
 
         result: list[Element] = []
