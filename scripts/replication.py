@@ -267,6 +267,7 @@ async def _increase_frequency(state: AppState) -> AppState:
     current_created_at = state.last_replica.created_at
     new_frequency: _Frequency = 'minute' if state.frequency == 'hour' else 'hour'
     new_timedelta = _FREQUENCY_TIMEDELTA[new_frequency]
+    found_threshold = new_timedelta / 2
     frequency_downscale = current_timedelta.total_seconds() / new_timedelta.total_seconds()
 
     step: cython.int = 2 << 4
@@ -286,20 +287,20 @@ async def _increase_frequency(state: AppState) -> AppState:
             continue
         r.raise_for_status()
         new_replica = _parse_replica_state(r.text)
+        if abs(new_replica.created_at - current_created_at) < found_threshold:  # found
+            return replace(state, frequency=new_frequency, last_replica=new_replica)
         if new_replica.created_at > current_created_at:  # too late
             if direction_forward is None:
                 direction_forward = False
             elif direction_forward:
                 step >>= 1
             new_sequence_number -= step
-        elif new_replica.created_at < current_created_at:  # too early
+        else:  # too early
             if direction_forward is None:
                 direction_forward = True
             elif not direction_forward:
                 step >>= 1
             new_sequence_number += step
-        else:  # found
-            return replace(state, frequency=new_frequency, last_replica=new_replica)
 
 
 @cython.cfunc
