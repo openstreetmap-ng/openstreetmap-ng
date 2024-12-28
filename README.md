@@ -1,7 +1,6 @@
 # <img src="https://files.monicz.dev/osm/openstreetmap-ng.webp" alt="OpenStreetMap-NG logo" align="left" height="96px"> OpenStreetMap-NG
 
 [![Discord Developers Chat](https://shields.monicz.dev/discord/1246123404613128203?logo=discord&logoColor=FFF&label=Developers&color=5865F2&cacheSeconds=600)](https://discord.gg/GM89hdjSCB)
-[![Matrix Developers Chat](https://shields.monicz.dev/matrix/openstreetmap-ng%3Amatrix.org?logo=matrix&label=Developers&color=111&cacheSeconds=600)](https://matrix.to/#/#openstreetmap-ng:matrix.org)
 [![Liberapay Patrons](https://shields.monicz.dev/liberapay/patrons/Zaczero?logo=liberapay&label=Patrons)](https://liberapay.com/Zaczero/)
 [![GitHub Sponsors](https://shields.monicz.dev/github/sponsors/Zaczero?logo=github&label=Sponsors&color=%23db61a2)](https://github.com/sponsors/Zaczero)
 [![GitHub Stars](https://shields.monicz.dev/github/stars/openstreetmap-ng/openstreetmap-ng?style=social)](https://github.com/openstreetmap-ng/openstreetmap-ng)
@@ -59,6 +58,16 @@ IDE subscriptions for active contributors.
 OpenStreetMap-NG is an open, community-driven project. The best ideas come from people just like you! We believe the community is the heart of OpenStreetMap and that everyone should have an equal say.
 
 This project is funded entirely through community donations. We are not sponsored nor endorsed by the OpenStreetMap Foundation. We are everyday mappers who want to make a difference.
+
+## 🤝️ Meet Our Sponsors
+
+We are deeply grateful to the individuals and organizations who support OpenStreetMap-NG through their generous contributions. Their commitment fuels our mission to revolutionize open-source mapping and helps maintain the project's independence.
+
+### Individual Sponsors
+
+Public supporters on [Liberapay](https://liberapay.com/Zaczero/) and [GitHub Sponsors](https://github.com/sponsors/Zaczero).
+
+[![Individual sponsors banner](https://monicz.dev/sponsors.svg)](https://monicz.dev/sponsors.svg)
 
 ## 🛣️ TODOs: Public Release
 
