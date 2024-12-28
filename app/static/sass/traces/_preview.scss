@@ -4,6 +4,10 @@
     border: 1px solid $border-color;
     border-radius: $border-radius;
 
+    @include media-breakpoint-down(md) {
+        height: max(40em - (breakpoint-max(md) - 100vw) * 0.5, 30em);
+    }
+
     &.trace-preview-sm {
         height: 20em;
     }

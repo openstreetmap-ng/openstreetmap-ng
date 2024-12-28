@@ -1,0 +1,63 @@
+<li class="row g-2">
+    {% if not entry_hide_preview %}
+        <div class="col-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="-1 -1 92 92"></svg>
+        </div>
+    {% endif %}
+    <div class="col">
+        <div class="social-action social-entry">
+            <div class="header text-muted d-flex justify-content-between">
+                <div>
+                    <a href="/user/{{ trace.user.display_name }}">
+                        <img class="avatar" src="{{ trace.user.avatar_url }}"
+                             alt="{{ t('alt.profile_picture') }}"
+                             loading="lazy">
+                        {{- trace.user.display_name -}}
+                    </a>
+                    {{ t('action.uploaded') }}
+                    <time datetime="{{ trace.created_at.isoformat() }}" data-style="long"></time>
+                    &mdash;
+                    (<a class="stretched-link" href="/trace/{{ trace.id }}">
+                    {{- trace.name -}}
+                </a>)
+                </div>
+                <div class="d-flex flex-wrap-reverse justify-content-end">
+                    <div>
+                        <span class="badge text-bg-secondary">
+                            {{ nt('traces.trace.count_points', trace.size) }}
+                        </span>
+                    </div>
+                    <div class="ms-1">
+                        {% if trace.visibility == 'identifiable' %}
+                            <span class="badge text-bg-green">{{ t('traces.trace.identifiable') }}</span>
+                        {% elif trace.visibility == 'public' %}
+                            <span class="badge text-bg-green">{{ t('traces.trace.public') }}</span>
+                        {% elif trace.visibility == 'trackable' %}
+                            <span class="badge text-bg-danger">{{ t('traces.trace.trackable') }}</span>
+                        {% elif trace.visibility == 'private' %}
+                            <span class="badge text-bg-danger">{{ t('traces.trace.private') }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <p class="body">
+                <span class="fst-italic me-1">{{ trace.description }}</span>
+                <span>
+                {% for tag in trace.tags %}
+                    <a class="hashtag" href="{{ base_url_notag }}/tag/{{ tag }}">#{{ tag }}</a>
+                {% endfor %}
+            </span>
+            </p>
+        </div>
+    </div>
+    {% if user is not none %}
+        <div class="col-auto d-none d-md-block">
+            <div class="btn-group" role="group">
+                <a class="btn btn-sm btn-link" href="/edit?gpx={{ trace.id }}">
+                    <i class="bi bi-pencil fs-5"></i>
+                    <span>{{ t('traces.trace.edit_map') | capitalize }}</span>
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</li>

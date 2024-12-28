@@ -4,93 +4,93 @@
 {% block body_class %}traces-edit-body{% endblock %}
 {% block body %}
 
-<div class="content-header">
-    <div class="col-6 offset-3">
-        <h1>{{ title }}</h1>
-    </div>
-</div>
-<div class="content-body">
-    <div class="col-6 offset-3">
-        <div class="trace-preview trace-preview-sm leaflet-container mb-3" data-line="{{ trace_line | safe }}">
+    <div class="content-header">
+        <div class="col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
+            <h1>{{ title }}</h1>
         </div>
+    </div>
+    <div class="content-body">
+        <div class="col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
+            <div class="trace-preview trace-preview-sm leaflet-container mb-3" data-line="{{ trace_line | safe }}">
+            </div>
 
-        <form class="update-form" method="POST" action="/api/web/traces/{{ trace.id }}/update">
+            <form class="update-form" method="POST" action="/api/web/traces/{{ trace.id }}/update">
 
-            <label class="form-label d-block mb-3">
-                <span class="required">{{ t('oauth2_applications.index.name') }}</span>
-                <input type="text" class="form-control mt-2" name="name" value="{{ trace.name }}" required>
-            </label>
+                <label class="form-label d-block mb-3">
+                    <span class="required">{{ t('oauth2_applications.index.name') }}</span>
+                    <input type="text" class="form-control mt-2" name="name" value="{{ trace.name }}" required>
+                </label>
 
-            <label class="form-label d-block mb-3">
-                <span class="required">{{ t('notes.show.description') }}</span>
-                <input type="text" class="form-control mt-2" name="description" value="{{ trace.description }}"
-                    required>
-            </label>
+                <label class="form-label d-block mb-3">
+                    <span class="required">{{ t('notes.show.description') }}</span>
+                    <input type="text" class="form-control mt-2" name="description" value="{{ trace.description }}"
+                           required>
+                </label>
 
-            <label class="form-label d-block">
-                {{ t('browse.tag_details.tags') }}
-                <input type="text" class="form-control mt-2" name="tags" value="{{ trace.tag_string }}">
-            </label>
-            <p class="form-text">
-                {{ t('activerecord.help.trace.tagstring') }}
-            </p>
+                <label class="form-label d-block">
+                    {{ t('browse.tag_details.tags') }}
+                    <input type="text" class="form-control mt-2" name="tags" value="{{ trace.tag_string }}">
+                </label>
+                <p class="form-text">
+                    {{ t('activerecord.help.trace.tagstring') }}
+                </p>
 
-            <label class="form-label">
-                <span class="required">{{ t('activerecord.attributes.trace.visibility') }}</span>
-                <span class="small">
+                <label class="form-label">
+                    <span class="required">{{ t('activerecord.attributes.trace.visibility') }}</span>
+                    <span class="small">
                     &mdash;
                     <a class="link-primary" href="https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces"
-                        target="_blank" rel="help">
+                       target="_blank" rel="help">
                         {{ t('traces.edit.visibility_help') }}
                     </a>
                 </span>
-            </label>
-            <div class="ms-1">
-                <div class="form-check mb-3">
-                    {% set visibility = trace.visibility %}
-                    <label class="form-check-label w-100 mb-2">
-                        <input class="form-check-input" type="radio" name="visibility" value="private"
-                            {% if visibility == "private" %}checked{% endif %}>
-                        {{ t('traces.visibility.private') }}
-                    </label>
-                    <label class="form-check-label w-100 mb-2">
-                        <input class="form-check-input" type="radio" name="visibility" value="trackable"
-                            {% if visibility == "trackable" %}checked{% endif %}>
-                        {{ t('traces.visibility.trackable') }}
-                    </label>
-                    <label class="form-check-label w-100 mb-2">
-                        <input class="form-check-input" type="radio" name="visibility" value="public"
-                            {% if visibility == "public" %}checked{% endif %}>
-                        {{ t('traces.visibility.public') }}
-                    </label>
-                    <label class="form-check-label w-100 mb-2">
-                        <input class="form-check-input" type="radio" name="visibility" value="identifiable"
-                            {% if visibility == "identifiable" %}checked{% endif %}>
-                        {{ t('traces.visibility.identifiable') }}
-                    </label>
+                </label>
+                <div class="ms-1">
+                    <div class="form-check mb-3">
+                        {% set visibility = trace.visibility %}
+                        <label class="form-check-label w-100 mb-2">
+                            <input class="form-check-input" type="radio" name="visibility" value="private"
+                                   {% if visibility == "private" %}checked{% endif %}>
+                            {{ t('traces.visibility.private') }}
+                        </label>
+                        <label class="form-check-label w-100 mb-2">
+                            <input class="form-check-input" type="radio" name="visibility" value="trackable"
+                                   {% if visibility == "trackable" %}checked{% endif %}>
+                            {{ t('traces.visibility.trackable') }}
+                        </label>
+                        <label class="form-check-label w-100 mb-2">
+                            <input class="form-check-input" type="radio" name="visibility" value="public"
+                                   {% if visibility == "public" %}checked{% endif %}>
+                            {{ t('traces.visibility.public') }}
+                        </label>
+                        <label class="form-check-label w-100 mb-2">
+                            <input class="form-check-input" type="radio" name="visibility" value="identifiable"
+                                   {% if visibility == "identifiable" %}checked{% endif %}>
+                            {{ t('traces.visibility.identifiable') }}
+                        </label>
+                    </div>
                 </div>
-            </div>
 
-            <div class="d-flex justify-content-between">
-                <a class="btn btn-secondary px-3" href="/trace/{{ trace.id }}">
-                    {{ t('action.cancel') }}
-                </a>
-                <button class="btn btn-primary px-3" type="submit">
-                    {{- t('action.save_changes') }}
+                <div class="d-flex justify-content-between">
+                    <a class="btn btn-secondary px-3" href="/trace/{{ trace.id }}">
+                        {{ t('action.cancel') }}
+                    </a>
+                    <button class="btn btn-primary px-3" type="submit">
+                        {{- t('action.save_changes') }}
+                    </button>
+                </div>
+
+            </form>
+
+            <hr class="my-4">
+
+            <h3 class="mb-3">{{ t('settings.danger_zone') }}</h3>
+            <form class="delete-form" method="POST" action="/api/web/traces/{{ trace.id }}/delete">
+                <button class="btn btn-outline-danger" type="submit">
+                    {{ t('trace.delete_trace') }}
                 </button>
-            </div>
-
-        </form>
-
-        <hr class="my-4">
-
-        <h3 class="mb-3">{{ t('settings.danger_zone') }}</h3>
-        <form class="delete-form" method="POST" action="/api/web/traces/{{ trace.id }}/delete">
-            <button class="btn btn-outline-danger" type="submit">
-                {{ t('trace.delete_trace') }}
-            </button>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 
 {% endblock %}

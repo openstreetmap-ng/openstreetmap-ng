@@ -3,75 +3,75 @@
 {% block body_class %}traces-upload-body{% endblock %}
 {% block body %}
 
-<div class="content-header">
-    <div class="col-6 offset-3">
-        <h1>
-            {{ t('traces.new.upload_trace') }}
-        </h1>
+    <div class="content-header">
+        <div class="col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
+            <h1>
+                {{ t('traces.new.upload_trace') }}
+            </h1>
+        </div>
     </div>
-</div>
-<div class="content-body">
-    <div class="col-6 offset-3">
-        <form class="upload-form" method="POST" action="/api/web/traces/upload" enctype="multipart/form-data">
+    <div class="content-body">
+        <div class="col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
+            <form class="upload-form" method="POST" action="/api/web/traces/upload" enctype="multipart/form-data">
 
-            <label class="form-label d-block mb-3">
-                <span class="required">{{ t('activerecord.attributes.trace.gpx_file') }}</span>
-                <input type="file" class="form-control mt-2"
-                    accept=".gpx,application/gpx+xml,application/x-bzip2,application/gzip,application/x-tar,text/xml,application/zip,application/zstd"
-                    name="file" required>
-            </label>
+                <label class="form-label d-block mb-3">
+                    <span class="required">{{ t('activerecord.attributes.trace.gpx_file') }}</span>
+                    <input type="file" class="form-control mt-2"
+                           accept=".gpx,application/gpx+xml,application/x-bzip2,application/gzip,application/x-tar,text/xml,application/zip,application/zstd"
+                           name="file" required>
+                </label>
 
-            <label class="form-label d-block mb-3">
-                <span class="required">{{ t('notes.show.description') }}</span>
-                <input type="text" class="form-control mt-2" name="description" required>
-            </label>
+                <label class="form-label d-block mb-3">
+                    <span class="required">{{ t('notes.show.description') }}</span>
+                    <input type="text" class="form-control mt-2" name="description" required>
+                </label>
 
-            <label class="form-label d-block">
-                {{ t('browse.tag_details.tags') }}
-                <input type="text" class="form-control mt-2" name="tags">
-            </label>
-            <p class="form-text">
-                {{ t('activerecord.help.trace.tagstring') }}
-            </p>
+                <label class="form-label d-block">
+                    {{ t('browse.tag_details.tags') }}
+                    <input type="text" class="form-control mt-2" name="tags">
+                </label>
+                <p class="form-text">
+                    {{ t('activerecord.help.trace.tagstring') }}
+                </p>
 
-            <label class="form-label">
-                <span class="required">{{ t('activerecord.attributes.trace.visibility') }}</span>
-                <span class="small">
+                <label class="form-label">
+                    <span class="required">{{ t('activerecord.attributes.trace.visibility') }}</span>
+                    <span class="small">
                     &mdash;
                     <a class="link-primary" href="https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces"
-                        target="_blank" rel="help">
+                       target="_blank" rel="help">
                         {{ t('traces.edit.visibility_help') }}
                     </a>
                 </span>
-            </label>
-            <div class="ms-1">
-                <div class="form-check mb-3">
-                    <label class="form-check-label w-100 mb-2">
-                        <input class="form-check-input" type="radio" name="visibility" value="private" checked>
-                        {{ t('traces.visibility.private') }}
-                    </label>
-                    <label class="form-check-label w-100 mb-2">
-                        <input class="form-check-input" type="radio" name="visibility" value="trackable">
-                        {{ t('traces.visibility.trackable') }}
-                    </label>
-                    <label class="form-check-label w-100 mb-2">
-                        <input class="form-check-input" type="radio" name="visibility" value="public">
-                        {{ t('traces.visibility.public') }}
-                    </label>
-                    <label class="form-check-label w-100 mb-2">
-                        <input class="form-check-input" type="radio" name="visibility" value="identifiable">
-                        {{ t('traces.visibility.identifiable') }}
-                    </label>
+                </label>
+                <div class="ms-1">
+                    <div class="form-check mb-3">
+                        <label class="form-check-label w-100 mb-2">
+                            <input class="form-check-input" type="radio" name="visibility" value="private" checked>
+                            {{ t('traces.visibility.private') }}
+                        </label>
+                        <label class="form-check-label w-100 mb-2">
+                            <input class="form-check-input" type="radio" name="visibility" value="trackable">
+                            {{ t('traces.visibility.trackable') }}
+                        </label>
+                        <label class="form-check-label w-100 mb-2">
+                            <input class="form-check-input" type="radio" name="visibility" value="public">
+                            {{ t('traces.visibility.public') }}
+                        </label>
+                        <label class="form-check-label w-100 mb-2">
+                            <input class="form-check-input" type="radio" name="visibility" value="identifiable">
+                            {{ t('traces.visibility.identifiable') }}
+                        </label>
+                    </div>
                 </div>
-            </div>
 
-            <div class="d-flex justify-content-between">
-                <a class="btn btn-secondary px-3" href="/traces">
-                    {{ t('action.cancel') }}
-                </a>
-                <span>
+                <div class="d-flex justify-content-between">
+                    <a class="btn btn-secondary px-3" href="/traces">
+                        {{ t('action.cancel') }}
+                    </a>
+                    <span>
                     <a class="btn btn-link me-3" href="https://wiki.openstreetmap.org/wiki/Upload_GPS_tracks"
-                        target="_blank" rel="help">
+                       target="_blank" rel="help">
                         <i class="bi bi-question-circle me-2"></i>
                         {{- t('layouts.help') }}
                     </a>
@@ -80,10 +80,10 @@
                         {{- t('action.submit') }}
                     </button>
                 </span>
-            </div>
+                </div>
 
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 
 {% endblock %}

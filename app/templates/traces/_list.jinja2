@@ -2,80 +2,25 @@
 {% include 'traces/_list_nav.jinja2' %}
 <ul class="traces-list social-list list-unstyled" data-lines="{{ traces_lines | safe }}">
     {% for trace in traces %}
-    <li class="row g-2">
-        <div class="col-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="-1 -1 92 92"></svg>
-        </div>
-        <div class="col">
-            <div class="social-action social-entry">
-                <p class="header text-muted d-flex justify-content-between">
-                    <span>
-                        <a href="/user/{{ trace.user.display_name }}">
-                            <img class="avatar" src="{{ trace.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                                loading="lazy">
-                            {{- trace.user.display_name -}}
-                        </a>
-                        {{ t('action.uploaded') }}
-                        <time datetime="{{ trace.created_at.isoformat() }}" data-style="long"></time>
-                        &mdash;
-                        (<a class="stretched-link" href="/trace/{{ trace.id }}">
-                            {{- trace.name -}}
-                        </a>)
-                    </span>
-                    <span>
-                        <span class="badge text-bg-secondary">
-                            {{ nt('traces.trace.count_points', trace.size) }}
-                        </span>
-                        {% if trace.visibility == 'identifiable' %}
-                        <span class="badge text-bg-green">{{ t('traces.trace.identifiable') }}</span>
-                        {% elif trace.visibility == 'public' %}
-                        <span class="badge text-bg-green">{{ t('traces.trace.public') }}</span>
-                        {% elif trace.visibility == 'trackable' %}
-                        <span class="badge text-bg-danger">{{ t('traces.trace.trackable') }}</span>
-                        {% elif trace.visibility == 'private' %}
-                        <span class="badge text-bg-danger">{{ t('traces.trace.private') }}</span>
-                        {% endif %}
-                    </span>
-                </p>
-                <p class="body">
-                    <span class="fst-italic me-1">{{ trace.description }}</span>
-                    <span>
-                        {% for tag in trace.tags %}
-                        <a class="hashtag" href="{{ base_url_notag }}/tag/{{ tag }}">#{{ tag }}</a>
-                        {% endfor %}
-                    </span>
-                </p>
-            </div>
-        </div>
-        {% if user is not none %}
-        <div class="col-auto">
-            <div class="btn-group" role="group">
-                <a class="btn btn-sm btn-link" href="/edit?gpx={{ trace.id }}">
-                    <i class="bi bi-pencil fs-5"></i>
-                    <span>{{ t('traces.trace.edit_map') | capitalize }}</span>
-                </a>
-            </div>
-        </div>
-        {% endif %}
-    </li>
+        {% include 'traces/_list_entry.jinja2' %}
     {% endfor %}
 </ul>
 {% include 'traces/_list_nav.jinja2' %}
 {% else %}
 <h3>{{ t('traces.index.empty_title') }}</h3>
 <p>
-    {% set upload_link %}
+    {% set _upload_link %}
     <a href="/trace/upload">{{ t('traces.index.upload_new') }}</a>
     {%- endset %}
-    {% set wiki_link %}
+    {% set _wiki_link %}
     <a href="https://wiki.openstreetmap.org/wiki/Beginners_Guide_1.2" rel="help">
         {{- t('traces.index.wiki_page') -}}
     </a>
     {%- endset %}
     {{ t(
         'traces.index.empty_upload_html',
-        upload_link=upload_link,
-        wiki_link=wiki_link,
+        upload_link=_upload_link,
+        wiki_link=_wiki_link
     ) | safe }}
 </p>
 {% endif %}
