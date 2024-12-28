@@ -267,7 +267,7 @@ async def _increase_frequency(state: AppState) -> AppState:
     current_created_at = state.last_replica.created_at
     new_frequency: _Frequency = 'minute' if state.frequency == 'hour' else 'hour'
     new_timedelta = _FREQUENCY_TIMEDELTA[new_frequency]
-    frequency_downscale = new_timedelta.total_seconds() / current_timedelta.total_seconds()
+    frequency_downscale = current_timedelta.total_seconds() / new_timedelta.total_seconds()
 
     step: cython.int = 2 << 4
     new_sequence_number: cython.longlong = int(state.last_replica.sequence_number * frequency_downscale)
