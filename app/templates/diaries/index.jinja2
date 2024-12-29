@@ -17,7 +17,7 @@
     {% set _avatar_in_header = profile is not none %}
 
     <div class="content-header pb-0">
-        <div class="col-lg-9 offset-lg-2 col-xl-6 offset-xl-3">
+        <div class="col-lg-9 offset-lg-2 col-xxl-6 offset-xxl-3">
             <div class="row mb-3">
                 {% if _avatar_in_header %}
                     <div class="col-auto">
@@ -87,7 +87,8 @@
         <div class="row g-0">
             <div id="diary-scroll-nav" class="col-lg-3 sticky-top">
                 {% if diaries %}
-                    <div id="diary-scroll-nav-offcanvas" class="offcanvas-lg offcanvas-start offset-xl-1" tabindex="-1">
+                    <div id="diary-scroll-nav-offcanvas" class="offcanvas-lg offcanvas-start offset-xxl-1"
+                         tabindex="-1">
                         <div class="text-end d-lg-none">
                             <button type="button" class="btn-close p-3 d-lg-none" data-bs-dismiss="offcanvas"
                                     data-bs-target="#diary-scroll-nav-offcanvas"
@@ -102,7 +103,7 @@
                     </button>
                 {% endif %}
             </div>
-            <div class="col-lg-8 col-xl-6">
+            <div class="col-lg-8 col-xxl-6">
                 {% if diaries %}
                     {% set entry_hide_avatar = _avatar_in_header %}
                     <div class="diary-list mb-3">

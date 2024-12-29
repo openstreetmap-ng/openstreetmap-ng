@@ -1,11 +1,11 @@
 <div class="content-header pb-5">
-    <div class="col-6 offset-3">
+    <div class="col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3">
         <div class="row g-0">
-            <div class="col-6 landing-image ">
+            <div class="col-md-6 landing-image">
                 <img src="/static/img/about/map.webp" alt="{{ t('alt.map_layers_art') }}" draggable="false">
                 <span class="attribution fs-4">© {{ t('javascripts.map.openstreetmap_contributors') }}</span>
             </div>
-            <div class="col-6 landing-text">
+            <div class="col-md-6 landing-text">
                 <h2 class="fw-light">
                     <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo') }}" draggable="false">
                     {% set name %}
@@ -55,7 +55,7 @@
                     osm_blog_link=osm_blog_link,
                     user_diaries_link=user_diaries_link,
                     community_blogs_link=community_blogs_link,
-                    osm_foundation_link=osm_foundation_link,
+                    osm_foundation_link=osm_foundation_link
                 ) | safe }}
             </p>
 
@@ -73,7 +73,7 @@
                 {{ t(
                     'site.about.open_data_1_html',
                     open_data=open_data,
-                    copyright_license_link=copyright_license_link,
+                    copyright_license_link=copyright_license_link
                 ) | safe }}
             </p>
 
@@ -107,7 +107,7 @@
                     openstreetmap_foundation_link=openstreetmap_foundation_link,
                     terms_of_use_link=terms_of_use_link,
                     aup_link=aup_link,
-                    privacy_policy_link=privacy_policy_link,
+                    privacy_policy_link=privacy_policy_link
                 ) | safe }}
             </p>
             <p>
@@ -118,7 +118,7 @@
                 {%- endset %}
                 {{ t(
                     'site.copyright.legal_babble.trademarks_1_1_html',
-                    trademark_policy_link=trademark_policy_link,
+                    trademark_policy_link=trademark_policy_link
                 ) | safe }}
             </p>
             <p>
@@ -129,7 +129,7 @@
                 {%- endset %}
                 {{ t(
                     'site.about.legal_2_1_html',
-                    contact_the_osmf_link=contact_the_osmf_link,
+                    contact_the_osmf_link=contact_the_osmf_link
                 ) | safe }}
             </p>
 
@@ -163,12 +163,9 @@
                     ucl=ucl,
                     fastly=fastly,
                     bytemark=bytemark,
-                    partners=partners,
+                    partners=partners
                 ) | safe }}
             </p>
         </div>
-
     </div>
-
-</div>
 </div>

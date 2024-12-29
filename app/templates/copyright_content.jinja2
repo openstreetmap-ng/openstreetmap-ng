@@ -35,7 +35,7 @@
             {%- endset %}
             {{ t(
                 'site.copyright.legal_babble.introduction_2_html',
-                legal_code_link=legal_code_link,
+                legal_code_link=legal_code_link
             ) | safe }}
         </p>
         <p>
@@ -46,7 +46,7 @@
             {%- endset %}
             {{ t(
                 'site.copyright.legal_babble.introduction_3_html',
-                creative_commons_link=creative_commons_link,
+                creative_commons_link=creative_commons_link
             ) | safe }}
         </p>
 
@@ -64,7 +64,7 @@
             {%- endset %}
             {{ t(
                 'site.copyright.legal_babble.credit_3_html',
-                attribution_guidelines_link=attribution_guidelines_link,
+                attribution_guidelines_link=attribution_guidelines_link
             ) | safe }}
         </p>
         <p>
@@ -75,11 +75,11 @@
             {%- endset %}
             {{ t(
                 'site.copyright.legal_babble.credit_4_1_html',
-                this_copyright_page_link=this_copyright_page_link,
+                this_copyright_page_link=this_copyright_page_link
             ) | safe }}
         </p>
         <img class="img-thumbnail mb-3" src="/static/img/copyright/attribution-example.webp"
-            alt="{{ t('site.copyright.legal_babble.attribution_example.title') }}">
+             alt="{{ t('site.copyright.legal_babble.attribution_example.title') }}">
 
         <h3>{{ t('site.copyright.legal_babble.more_title_html') }}</h3>
         <p>
@@ -90,7 +90,7 @@
             {%- endset %}
             {{ t(
                 'site.copyright.legal_babble.more_1_1_html',
-                osmf_licence_page_link=osmf_licence_page_link,
+                osmf_licence_page_link=osmf_licence_page_link
             ) | safe }}
         </p>
         <p>
@@ -113,7 +113,7 @@
                 'site.copyright.legal_babble.more_2_1_html',
                 api_usage_policy_link=api_usage_policy_link,
                 tile_usage_policy_link=tile_usage_policy_link,
-                nominatim_usage_policy_link=nominatim_usage_policy_link,
+                nominatim_usage_policy_link=nominatim_usage_policy_link
             ) | safe }}
         </p>
 
@@ -144,7 +144,7 @@
                     stadt_wien_link=stadt_wien_link,
                     cc_by_link=cc_by_30_link,
                     land_vorarlberg_link=land_vorarlberg_link,
-                    cc_by_at_with_amendments_link=cc_by_at_with_amendments_link,
+                    cc_by_at_with_amendments_link=cc_by_at_with_amendments_link
                 ) | safe }}
             </li>
 
@@ -159,7 +159,7 @@
                     'site.copyright.legal_babble.contributors_au_credit_html',
                     australia=australia,
                     geoscape_australia_link=geoscape_australia_link,
-                    cc_licence_link=cc_by_40_link,
+                    cc_licence_link=cc_by_40_link
                 ) | safe }}
             </li>
 
@@ -173,7 +173,7 @@
                 {{ t(
                     'site.copyright.legal_babble.contributors_cz_credit_html',
                     czechia=czechia,
-                    cc_licence_link=cc_by_40_link,
+                    cc_licence_link=cc_by_40_link
                 ) | safe }}
             </li>
 
@@ -187,7 +187,7 @@
                 {{ t(
                     'site.copyright.legal_babble.contributors_fi_credit_html',
                     finland=finland,
-                    nlsfi_license_link=nlsfi_license_link,
+                    nlsfi_license_link=nlsfi_license_link
                 ) | safe }}
             </li>
 
@@ -202,7 +202,7 @@
                 {{ t(
                     'site.copyright.legal_babble.contributors_nl_credit_html',
                     netherlands=netherlands,
-                    and_link=and_link,
+                    and_link=and_link
                 ) | safe }}
             </li>
 
@@ -217,7 +217,7 @@
                     'site.copyright.legal_babble.contributors_nz_credit_html',
                     new_zealand=new_zealand,
                     linz_data_service_link=linz_data_service_link,
-                    cc_by_link=cc_by_40_link,
+                    cc_by_link=cc_by_40_link
                 ) | safe }}
             </li>
 
@@ -237,7 +237,7 @@
                     'site.copyright.legal_babble.contributors_rs_credit_html',
                     serbia=serbia,
                     rgz_link=rgz_link,
-                    open_data_portal=open_data_portal,
+                    open_data_portal=open_data_portal
                 ) | safe }}
             </li>
 
@@ -245,13 +245,13 @@
                 {% set slovenia %}<b>{{ t('site.copyright.legal_babble.contributors_si_slovenia') }}</b>{% endset %}
                 {% set gu_link %}
                 <a href="https://www.gov.si/en/state-authorities/bodies-within-ministries/surveying-and-mapping-authority/"
-                    rel="noopener">
+                   rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_si_gu') -}}
                 </a>
                 {%- endset %}
                 {% set mkgp_link %}
                 <a href="https://www.gov.si/en/state-authorities/ministries/ministry-of-agriculture-forestry-and-food/"
-                    rel="noopener">
+                   rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_si_mkgp') -}}
                 </a>
                 {%- endset %}
@@ -259,7 +259,7 @@
                     'site.copyright.legal_babble.contributors_si_credit_html',
                     slovenia=slovenia,
                     gu_link=gu_link,
-                    mkgp_link=mkgp_link,
+                    mkgp_link=mkgp_link
                 ) | safe }}
             </li>
 
@@ -280,7 +280,7 @@
                     spain=spain,
                     ign_link=ign_link,
                     scne_link=scne_link,
-                    cc_by_link=cc_by_40_link,
+                    cc_by_link=cc_by_40_link
                 ) | safe }}
             </li>
 
@@ -294,7 +294,7 @@
                 {{ t(
                     'site.copyright.legal_babble.contributors_za_credit_html',
                     south_africa=south_africa,
-                    ngi_link=ngi_link,
+                    ngi_link=ngi_link
                 ) | safe }}
             </li>
 
@@ -312,7 +312,7 @@
             {%- endset %}
             {{ t(
                 'site.copyright.legal_babble.contributors_2_html',
-                contributors_page_link=contributors_page_link,
+                contributors_page_link=contributors_page_link
             ) | safe }}
         </p>
         <p>{{ t('site.copyright.legal_babble.contributors_footer_2_html') }}</p>
@@ -333,7 +333,7 @@
             {{ t(
                 'site.copyright.legal_babble.infringement_2_1_html',
                 takedown_procedure_link=takedown_procedure_link,
-                online_filing_page_link=online_filing_page_link,
+                online_filing_page_link=online_filing_page_link
             ) | safe }}
         </p>
 
@@ -346,7 +346,7 @@
             {%- endset %}
             {{ t(
                 'site.copyright.legal_babble.trademarks_1_1_html',
-                trademark_policy_link=trademark_policy_link,
+                trademark_policy_link=trademark_policy_link
             ) | safe }}
         </p>
     </div>
