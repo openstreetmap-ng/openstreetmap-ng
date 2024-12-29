@@ -17,12 +17,12 @@
         <p>{{ t('site.communities.local_chapters.list_text') }}</p>
         <ul>
             {% for id, url in local_chapters %}
-            <li>
-                <a href="{{ url }}" rel="noopener"
-                    title="{{ t('osm_community_index.communities.' ~ id ~ '.description') }}">
-                    {{ t('osm_community_index.communities.' ~ id ~ '.name') }}
-                </a>
-            </li>
+                <li>
+                    <a href="{{ url }}" rel="noopener"
+                       title="{{ t('osm_community_index.communities.' ~ id ~ '.description') }}">
+                        {{ t('osm_community_index.communities.' ~ id ~ '.name') }}
+                    </a>
+                </li>
             {% endfor %}
         </ul>
 
@@ -35,7 +35,7 @@
             {%- endset %}
             {{ t(
                 'site.communities.other_groups.other_groups_html',
-                communities_wiki_link=communities_wiki_link,
+                communities_wiki_link=communities_wiki_link
             ) | safe }}
         </p>
     </div>
