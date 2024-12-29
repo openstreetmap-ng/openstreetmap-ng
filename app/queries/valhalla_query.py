@@ -36,7 +36,8 @@ class ValhallaQuery:
                 'elevation_interval': '30',
             },
         )
-        if not cast(str, r.headers.get('Content-Type', '')).startswith('application/json'):
+        content_type: str = r.headers.get('Content-Type', '')
+        if not content_type.startswith('application/json'):
             raise HTTPException(r.status_code, r.text)
 
         data = r.json()

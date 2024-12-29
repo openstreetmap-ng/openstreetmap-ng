@@ -8,7 +8,7 @@ else:
     from math import pi
 
 
-def mercator(coords: NDArray[np.float64], width: cython.int, height: cython.int) -> NDArray[np.float64]:
+def mercator(coords: NDArray[np.floating], width: cython.int, height: cython.int) -> NDArray[np.floating]:
     xs = coords[:, 0]
     ys = y_sheet(coords[:, 1])
 
@@ -30,12 +30,12 @@ def mercator(coords: NDArray[np.float64], width: cython.int, height: cython.int)
     by = max_lat + half_y_pad
 
     if bx - tx <= 0:
-        x = np.full(coords.shape[0], width / 2)
+        x = np.full(coords.shape[0], width / 2, dtype=np.float64)
     else:
         x = (xs - tx) / (bx - tx) * width
 
     if by - ty <= 0:
-        y = np.full(coords.shape[0], height / 2)
+        y = np.full(coords.shape[0], height / 2, dtype=np.float64)
     else:
         y = height - ((ys - ty) / (by - ty) * height)
 
@@ -43,5 +43,5 @@ def mercator(coords: NDArray[np.float64], width: cython.int, height: cython.int)
 
 
 @cython.cfunc
-def y_sheet(arr: NDArray[np.float64]):
+def y_sheet(arr: NDArray[np.floating]):
     return np.degrees(np.log(np.tan((np.radians(arr) / 2) + (pi / 4))))

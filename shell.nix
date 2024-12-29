@@ -528,7 +528,7 @@ let
       ruff check . --fix
       python -m pre_commit run -c ${preCommitConf} --all-files
     '')
-    (makeScript "pyright" "bunx pyright")
+    (makeScript "pyright" "bunx basedpyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (makeScript "replication" "python scripts/replication.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")

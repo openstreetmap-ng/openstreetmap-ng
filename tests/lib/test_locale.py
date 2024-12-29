@@ -48,7 +48,7 @@ def test_normalize_locale(locale: str, expected: str | None):
         ('en', 'english', 'english', 'english'),
     ],
 )
-def test_locales_names(code: str, english: str, native: str, display_name: str):
+def test_locales_names(code: LocaleCode, english: str, native: str, display_name: str):
     locale_name = LOCALES_NAMES_MAP[code]
     assert locale_name.english.casefold() == english
     assert locale_name.native.casefold() == native

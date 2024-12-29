@@ -71,18 +71,20 @@ class LeafletElementMixin:
             for segment in segments:
                 if not segment:
                     continue
-                geom = lib.get_coordinates(np.asarray(segment, dtype=np.object_), False, False).tolist()
-                line = encode_lonlat(geom, 6)
+                segment_geom: list[list[float]]
+                segment_geom = lib.get_coordinates(np.asarray(segment, dtype=np.object_), False, False).tolist()  # type: ignore
+                line = encode_lonlat(segment_geom, 6)
                 render_ways.append(RenderElementsData.Way(id=way_id, line=line, area=is_area))
 
         encode_nodes = ElementsFilter.filter_nodes_interesting(
             node_id_map.values(), member_nodes_ids, detailed=detailed
         )
         encode_points = tuple(node.point for node in encode_nodes)
-        geoms = lib.get_coordinates(np.asarray(encode_points, dtype=np.object_), False, False).tolist()
+        encode_geom: list[list[float]]
+        encode_geom = lib.get_coordinates(np.asarray(encode_points, dtype=np.object_), False, False).tolist()  # type: ignore
         render_nodes = tuple(
             RenderElementsData.Node(id=node.id, lon=geom[0], lat=geom[1])
-            for node, geom in zip(encode_nodes, geoms, strict=True)
+            for node, geom in zip(encode_nodes, encode_geom, strict=True)
         )
         return RenderElementsData(
             nodes=render_nodes,

@@ -9,7 +9,7 @@ def test_compressible_geometry():
     rng = np.random.default_rng(42)
     coords = rng.random((32, 2), dtype=np.float64) * (360, 170) - (180, 85)
     coords = coords.round(GEO_COORDINATE_PRECISION)
-    geoms: list[Point] = points(coords).tolist()  # pyright: ignore[reportAttributeAccessIssue]
+    geoms: list[Point] = points(coords).tolist()  # type: ignore
     some_different = False
     for geom in geoms:
         processed = compressible_geometry(geom)

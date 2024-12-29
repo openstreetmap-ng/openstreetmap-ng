@@ -48,31 +48,31 @@ async def _get_traces_data(
         )
 
     async def new_after_task():
-        after = traces[0].id
+        after_ = traces[0].id
         after_traces = await TraceQuery.find_many_recent(
             user_id=user_id,
             tag=tag,
-            after=after,
+            after=after_,
             limit=1,
         )
-        return after if after_traces else None
+        return after_ if after_traces else None
 
     async def new_before_task():
-        before = traces[-1].id
+        before_ = traces[-1].id
         before_traces = await TraceQuery.find_many_recent(
             user_id=user_id,
             tag=tag,
-            before=before,
+            before=before_,
             limit=1,
         )
-        return before if before_traces else None
+        return before_ if before_traces else None
 
     if traces:
         async with TaskGroup() as tg:
             tg.create_task(TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=90))
             new_after_t = tg.create_task(new_after_task())
             new_before_t = tg.create_task(new_before_task())
-        traces_lines = ';'.join(encode_lonlat(trace.coords.tolist(), 0) for trace in traces)
+        traces_lines = ';'.join(encode_lonlat(trace.coords.tolist(), 0) for trace in traces)  # type: ignore
         new_after = new_after_t.result()
         new_before = new_before_t.result()
     else:

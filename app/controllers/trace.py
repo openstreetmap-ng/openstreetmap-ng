@@ -37,7 +37,7 @@ async def details(trace_id: PositiveInt):
     ):
         trace = await TraceQuery.get_one_by_id(trace_id)
     await TraceSegmentQuery.resolve_coords((trace,), limit_per_trace=500, resolution=None)
-    trace_line = encode_lonlat(trace.coords.tolist(), 6)
+    trace_line = encode_lonlat(trace.coords.tolist(), 6)  # type: ignore
     return await render_response('traces/details.jinja2', {'trace': trace, 'trace_line': trace_line})
 
 
@@ -48,7 +48,7 @@ async def edit(trace_id: PositiveInt, user: Annotated[User, web_user()]):
         # TODO: this could be nicer?
         return Response(None, status.HTTP_403_FORBIDDEN)
     await TraceSegmentQuery.resolve_coords((trace,), limit_per_trace=500, resolution=None)
-    trace_line = encode_lonlat(trace.coords.tolist(), 6)
+    trace_line = encode_lonlat(trace.coords.tolist(), 6)  # type: ignore
     return await render_response('traces/edit.jinja2', {'trace': trace, 'trace_line': trace_line})
 
 

@@ -187,7 +187,7 @@ async def index(
     traces_count = await TraceQuery.count_by_user_id(user.id)
     traces = await TraceQuery.find_many_recent(user_id=user.id, limit=USER_RECENT_ACTIVITY_ENTRIES)
     await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=90)
-    traces_lines = ';'.join(encode_lonlat(trace.coords.tolist(), 0) for trace in traces)
+    traces_lines = ';'.join(encode_lonlat(trace.coords.tolist(), 0) for trace in traces)  # type: ignore
 
     diaries_count = await DiaryQuery.count_by_user_id(user.id)
     diary_comments_count = await DiaryCommentQuery.count_by_user_id(user.id)
@@ -237,12 +237,12 @@ async def _get_activity_data(user: User) -> dict:
     weekday = (today.weekday() + 1) % 7  # put sunday on top
     created_since = today - timedelta(days=USER_ACTIVITY_CHART_WEEKS * 7 + weekday)
     changesets_count_per_day = await ChangesetQuery.count_per_day_by_user_id(user.id, created_since)
-    dates_range = np.arange(
+    dates_range: list[datetime] = np.arange(
         created_since,
         today + timedelta(days=1),
         timedelta(days=1),
         dtype=datetime,
-    )
+    ).tolist()
     activity = np.array(
         tuple(changesets_count_per_day.get(date.replace(tzinfo=UTC), 0) for date in dates_range),
         dtype=np.uint64,

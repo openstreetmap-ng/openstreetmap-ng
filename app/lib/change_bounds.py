@@ -14,7 +14,7 @@ from app.models.db.changeset_bounds import ChangesetBounds
 def change_bounds(bounds: Collection[ChangesetBounds], points: Sequence[Point]) -> list[ChangesetBounds]:
     bbox_limit: cython.int = CHANGESET_BBOX_LIMIT
     bboxes: list[tuple[float, float, float, float]]
-    bboxes = measurement.bounds(tuple(cb.bounds for cb in bounds)).tolist()
+    bboxes = measurement.bounds(tuple(cb.bounds for cb in bounds)).tolist()  # type: ignore
     dirty_mask: list[bool] = [False] * bbox_limit
 
     # create index
@@ -97,7 +97,7 @@ def _cluster_points(points: Sequence[Point]) -> tuple[list[NDArray[np.float64]],
         n_clusters = CHANGESET_BBOX_LIMIT
         distance_threshold = None
     clustering = AgglomerativeClustering(
-        n_clusters=n_clusters,  # pyright: ignore[reportArgumentType]
+        n_clusters=n_clusters,
         metric='chebyshev',
         linkage='single',
         distance_threshold=distance_threshold,

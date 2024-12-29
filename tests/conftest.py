@@ -17,7 +17,7 @@ from app.queries.user_query import UserQuery
 from tests.utils.lifespan_manager import LifespanManager
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser):
     parser.addoption(
         '--extended',
         action='store_true',
@@ -26,7 +26,7 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config):
     config.addinivalue_line('markers', 'extended: mark test as part of the extended test suite')
 
 
@@ -46,10 +46,10 @@ def pytest_collection_modifyitems(config: pytest.Config, items: Collection[pytes
                 item.add_marker(skip_marker)
 
 
-@pytest_asyncio.fixture(scope='session')
+@pytest_asyncio.fixture(scope='session')  # pyright: ignore[reportUntypedFunctionDecorator]
 async def transport():
     async with LifespanManager(main):
-        yield ASGITransport(main)  # pyright: ignore[reportArgumentType]
+        yield ASGITransport(main)
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def client(transport: ASGITransport) -> AsyncClient:
     return AsyncClient(base_url='http://127.0.0.1:8000', transport=transport)
 
 
-@pytest_asyncio.fixture()
+@pytest_asyncio.fixture  # pyright: ignore[reportUntypedFunctionDecorator]
 async def changeset_id(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 

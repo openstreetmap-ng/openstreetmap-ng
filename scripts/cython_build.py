@@ -88,7 +88,7 @@ setup(
             )
             for path in paths
         ],
-        nthreads=os.process_cpu_count(),  # pyright: ignore[reportArgumentType]
+        nthreads=os.process_cpu_count(),
         compiler_directives={
             # https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives
             'overflowcheck': True,

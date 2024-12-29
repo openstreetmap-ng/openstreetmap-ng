@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 
 import cython
+from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
 
 from app.config import APP_URL
@@ -23,7 +24,7 @@ class ChangesetRSS06Mixin:
 
 @cython.cfunc
 def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
-    fe = fg.add_entry(order='append')
+    fe: FeedEntry = fg.add_entry(order='append')
     fe.id(f'{APP_URL}/changeset/{changeset.id}')
     fe.published(changeset.created_at)
     fe.updated(changeset.updated_at)
@@ -53,7 +54,7 @@ def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
 
     if changeset.union_bounds is not None:
         minx, miny, maxx, maxy = changeset.union_bounds.bounds
-        fe.geo.box(f'{miny} {minx} {maxy} {maxx}')  # pyright: ignore[reportAttributeAccessIssue]
+        fe.geo.box(f'{miny} {minx} {maxy} {maxx}')
 
     fe.content(
         render(

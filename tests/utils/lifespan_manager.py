@@ -52,6 +52,6 @@ class LifespanManager:
         self._message_queue.put_nowait({'type': 'lifespan.shutdown'})
         await self._shutdown_finished.wait()
         if self._exc is not None:
-            raise self._exc  # pyright: ignore[reportGeneralTypeIssues]
+            raise self._exc
         self._task.cancel()
         self._task = None

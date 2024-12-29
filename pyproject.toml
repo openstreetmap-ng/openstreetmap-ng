@@ -105,82 +105,85 @@ target-version = "py313"
 [tool.ruff.lint]
 # custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 ignore = [
-  "ARG001",  # unused-function-argument
-  "ARG002",  # unused-method-argument
-  "B017",    # assert-raises-exception
-  "COM812",  # missing-trailing-comma
-  "COM819",  # prohibited-trailing-comma
-  "D206",    # indent-with-spaces
-  "D300",    # triple-single-quotes
-  "E111",    # indentation-with-invalid-multiple
-  "E114",    # indentation-with-invalid-multiple-comment
-  "E117",    # over-indented
-  "E501",    # line-too-long
-  "ISC001",  # single-line-implicit-string-concatenation
-  "ISC002",  # multi-line-implicit-string-concatenation
-  "PLR09",   # too-many-*
+  "ARG001", # unused-function-argument
+  "ARG002", # unused-method-argument
+  "B017", # assert-raises-exception
+  "COM812", # missing-trailing-comma
+  "COM819", # prohibited-trailing-comma
+  "D206", # indent-with-spaces
+  "D300", # triple-single-quotes
+  "E111", # indentation-with-invalid-multiple
+  "E114", # indentation-with-invalid-multiple-comment
+  "E117", # over-indented
+  "E501", # line-too-long
+  "ISC001", # single-line-implicit-string-concatenation
+  "ISC002", # multi-line-implicit-string-concatenation
+  "PLR09", # too-many-*
   "PLR1702", # too-many-nested-blocks
   "PLR2",
   "PLW0603", # global-statement
   "PLW2901", # redefined-loop-name
-  "PT011",   # pytest-raises-too-broad
-  "PYI025",  # unaliased-collections-abc-set-import
-  "Q000",    # bad-quotes-inline-string
-  "Q001",    # bad-quotes-multiline-string
-  "Q002",    # bad-quotes-docstring
-  "Q003",    # avoidable-escaped-quote
-  "S101",    # assert
-  "S105",    # hardcoded-password-string
-  "SIM108",  # if-else-block-instead-of-if-exp
-  "TRY003",  # raise-vanilla-args
-  "W191",    # tab-indentation
+  "PT001", # pytest-fixture-incorrect-parentheses-style
+  "PT006", # pytest-parametrize-names-wrong-type
+  "PT011", # pytest-raises-too-broad
+  "PT023", # pytest-incorrect-mark-parentheses-style
+  "PYI025", # unaliased-collections-abc-set-import
+  "Q000", # bad-quotes-inline-string
+  "Q001", # bad-quotes-multiline-string
+  "Q002", # bad-quotes-docstring
+  "Q003", # avoidable-escaped-quote
+  "S101", # assert
+  "S105", # hardcoded-password-string
+  "SIM108", # if-else-block-instead-of-if-exp
+  "TRY003", # raise-vanilla-args
+  "W191", # tab-indentation
 ]
 # see https://docs.astral.sh/ruff/rules/ for rules documentation
 select = [
-  "A",     # flake8-builtins
-  "ARG",   # flake8-unused-arguments
+  "A", # flake8-builtins
+  "ARG", # flake8-unused-arguments
   "ASYNC", # flake8-async
-  "B",     # flake8-bugbear
-  "C4",    # flake8-comprehensions
-  "DTZ",   # flake8-datetimez
-  "E4",    # pycodestyle
+  "B", # flake8-bugbear
+  "C4", # flake8-comprehensions
+  "DTZ", # flake8-datetimez
+  "E4", # pycodestyle
   "E7",
   "E9",
-  "F",     # pyflakes
-  "FA",    # flake8-future-annotations
+  "F", # pyflakes
+  "FA", # flake8-future-annotations
   # "FAST",  # fastapi
-  "FLY",  # flynt
+  "FLY", # flynt
   "FURB", # refurb
-  "G",    # flake8-logging-format
-  "I",    # isort
-  "ICN",  # flake8-import-conventions
-  "INT",  # flake8-gettext
-  "ISC",  # flake8-implicit-str-concat
-  "LOG",  # flake8-logging
-  "N",    # pep8-naming
-  "NPY",  # numpy
+  "G", # flake8-logging-format
+  "I", # isort
+  "ICN", # flake8-import-conventions
+  "INT", # flake8-gettext
+  "ISC", # flake8-implicit-str-concat
+  "LOG", # flake8-logging
+  "N", # pep8-naming
+  "NPY", # numpy
   "PERF", # perflint
-  "PIE",  # flake8-pie
-  "PLC",  # pylint
-  "PLE",  # pylint
-  "PLR",  # pylint
-  "PLW",  # pylint
-  "PT",   # flake8-pytest-style
-  "PTH",  # flake8-use-pathlib
-  "PYI",  # flake8-pyi
-  "Q",    # flake8-quotes
-  "RSE",  # flake8-raise
-  "RUF",  # ruff
-  "S",    # flake8-bandit
-  "SIM",  # flake8-simplify
-  "SLF",  # flake8-self
+  "PIE", # flake8-pie
+  "PLC", # pylint
+  "PLE", # pylint
+  "PLR", # pylint
+  "PLW", # pylint
+  "PT", # flake8-pytest-style
+  "PTH", # flake8-use-pathlib
+  "PYI", # flake8-pyi
+  "Q", # flake8-quotes
+  "RSE", # flake8-raise
+  "RUF", # ruff
+  "S", # flake8-bandit
+  "SIM", # flake8-simplify
+  "SLF", # flake8-self
   "SLOT", # flake8-slots
-  "T10",  # flake8-debugger
-  "TID",  # flake8-tidy-imports
-  "TRY",  # tryceratops
-  "UP",   # pyupgrade
+  "T10", # flake8-debugger
+  "TID", # flake8-tidy-imports
+  "TRY", # tryceratops
+  "UP", # pyupgrade
   "W6",
-  "YTT",  # flake8-2020
+  "YTT", # flake8-2020
 ]
 
 fixable = ["ALL"]
@@ -242,6 +245,7 @@ reportUntypedFunctionDecorator = "information"
 reportUntypedNamedTuple = "warning"
 strictListInference = true
 strictSetInference = true
+typeCheckingMode = "standard"
 useLibraryCodeForTypes = false
 
 [tool.pytest.ini_options]

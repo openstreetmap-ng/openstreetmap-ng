@@ -77,8 +77,8 @@ class FormatGPX:
                 last_trace_id = -1
                 last_track_num = -1
 
-            points: list[tuple[float, float]]
-            points = lib.get_coordinates(np.asarray(segment.points, dtype=np.object_), False, False).tolist()
+            points: list[list[float]]
+            points = lib.get_coordinates(np.asarray(segment.points, dtype=np.object_), False, False).tolist()  # type: ignore
             capture_times = segment.capture_times
             if capture_times is None:
                 capture_times = []

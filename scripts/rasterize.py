@@ -38,7 +38,7 @@ def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
     import cv2
     import numpy as np
 
-    png_data: bytes = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)  # pyright: ignore[reportAssignmentType]
+    png_data: bytes = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)
     img = cv2.imdecode(np.frombuffer(png_data, np.uint8), cv2.IMREAD_UNCHANGED)
     _, img = cv2.imencode(output.suffix, img, (cv2.IMWRITE_WEBP_QUALITY, quality))
 

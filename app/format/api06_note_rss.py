@@ -54,13 +54,13 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
     fe.updated(note.updated_at)
 
     x, y = get_coordinates(note.point)[0].tolist()
-    fe.geo.point(f'{y} {x}')  # pyright: ignore[reportAttributeAccessIssue]
+    fe.geo.point(f'{y} {x}')
 
     user = note.comments[0].user
     if user is not None:
         user_permalink = f'{APP_URL}/user-id/{user.id}'
         fe.author(name=user.display_name, uri=user_permalink)
-        fe.dc.creator(user.display_name)  # pyright: ignore[reportAttributeAccessIssue]
+        fe.dc.creator(user.display_name)
 
     place = f'{y:.5f}, {x:.5f}'
     try:
@@ -100,13 +100,13 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
     fe.published(comment.created_at)
 
     x, y = get_coordinates(point)[0].tolist()
-    fe.geo.point(f'{y} {x}')  # pyright: ignore[reportAttributeAccessIssue]
+    fe.geo.point(f'{y} {x}')
 
     user = comment.user
     if user is not None:
         user_permalink = f'{APP_URL}/user-id/{user.id}'
         fe.author(name=user.display_name, uri=user_permalink)
-        fe.dc.creator(user.display_name)  # pyright: ignore[reportAttributeAccessIssue]
+        fe.dc.creator(user.display_name)
 
     place = f'{y:.5f}, {x:.5f}'
     try:
