@@ -494,11 +494,13 @@ let
         esac
       done
 
+      args=(
+        --verbose
+        --no-header
+      )
+      [ "$extended_tests" = "1" ] && args+=(--extended)
       set +e
-      python -m coverage run -m pytest \
-        --verbose \
-        --no-header \
-        "$([ "$extended_tests" = "1" ] && echo "--extended")"
+      python -m coverage run -m pytest "''${args[@]}"
       result=$?
       set -e
 
