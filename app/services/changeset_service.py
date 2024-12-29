@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import random
-from asyncio import Event, TaskGroup, get_running_loop
+from asyncio import Event, TaskGroup
 from contextlib import asynccontextmanager
 from time import perf_counter
 
@@ -21,7 +21,8 @@ from app.models.db.changeset import Changeset
 from app.models.db.user_subscription import UserSubscriptionTarget
 from app.services.user_subscription_service import UserSubscriptionService
 
-_PROCESS_EVENT = Event()
+_PROCESS_REQUEST_EVENT = Event()
+_PROCESS_DONE_EVENT = Event()
 
 
 class ChangesetService:
@@ -91,21 +92,23 @@ class ChangesetService:
         """
         Context manager for closing idle changesets.
         """
-        loop = get_running_loop()
-        task = loop.create_task(_process_task())
-        yield
-        task.cancel()  # avoid "Task was destroyed" warning during tests
+        async with TaskGroup() as tg:
+            task = tg.create_task(_process_task())
+            yield
+            task.cancel()  # avoid "Task was destroyed" warning during tests
 
     @staticmethod
     @testmethod
     async def force_process():
         """
-        Force the changeset processing loop to wake up early.
+        Force the changeset processing loop to wake up early, and wait for it to finish.
 
         This method is only available during testing, and is limited to the current process.
         """
         logging.debug('Requesting changeset processing loop early wakeup')
-        _PROCESS_EVENT.set()
+        _PROCESS_REQUEST_EVENT.set()
+        _PROCESS_DONE_EVENT.clear()
+        await _PROCESS_DONE_EVENT.wait()
 
 
 @retry(None)
@@ -131,12 +134,13 @@ async def _process_task() -> None:
                 delay = random.uniform(1800, 5400)  # noqa: S311
 
         if test_env:
+            _PROCESS_DONE_EVENT.set()
             async with TaskGroup() as tg:
-                event_task = tg.create_task(_PROCESS_EVENT.wait())
+                event_task = tg.create_task(_PROCESS_REQUEST_EVENT.wait())
                 await asyncio.wait((event_task,), timeout=delay)
                 if event_task.done():
                     logging.debug('Changeset processing loop early wakeup')
-                    _PROCESS_EVENT.clear()
+                    _PROCESS_REQUEST_EVENT.clear()
                 else:
                     event_task.cancel()
         else:

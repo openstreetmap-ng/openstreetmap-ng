@@ -1,5 +1,5 @@
 import logging
-from asyncio import Lock, get_running_loop, timeout
+from asyncio import Lock, TaskGroup, get_running_loop, timeout
 from contextlib import asynccontextmanager, suppress
 from datetime import timedelta
 from email.message import EmailMessage
@@ -38,10 +38,10 @@ class EmailService:
         """
         Context manager for email service.
         """
-        loop = get_running_loop()
-        task = loop.create_task(_process_task())
-        yield
-        task.cancel()  # avoid "Task was destroyed" warning during tests
+        async with TaskGroup() as tg:
+            task = tg.create_task(_process_task())
+            yield
+            task.cancel()  # avoid "Task was destroyed" warning during tests
 
     @staticmethod
     @overload
