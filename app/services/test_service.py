@@ -1,17 +1,17 @@
 import logging
 from asyncio import TaskGroup
 from datetime import datetime
-from functools import wraps
 from ipaddress import IPv4Address
 
 from sqlalchemy import select
 from sqlalchemy.orm import load_only
 
-from app.config import TEST_ENV, TEST_USER_DOMAIN
+from app.config import TEST_USER_DOMAIN
 from app.db import db_commit
 from app.lib.auth_context import auth_context
 from app.lib.crypto import hash_bytes
 from app.lib.locale import DEFAULT_LOCALE
+from app.lib.testmethod import testmethod
 from app.limits import OAUTH_SECRET_PREVIEW_LENGTH
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import User, UserRole, UserStatus
@@ -20,23 +20,9 @@ from app.models.types import DisplayNameType, EmailType, LocaleCode, Uri
 from app.queries.user_query import UserQuery
 
 
-def _testmethod(func):
-    """
-    Decorator to mark a method as runnable only in test environment.
-    """
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not TEST_ENV:
-            raise AssertionError('Test method cannot be called outside test environment')
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
 class TestService:
     @staticmethod
-    @_testmethod
+    @testmethod
     async def on_startup():
         """
         Prepare the test environment.
@@ -78,7 +64,7 @@ class TestService:
                 )
 
     @staticmethod
-    @_testmethod
+    @testmethod
     async def create_user(
         name: DisplayNameType,
         *,
@@ -128,7 +114,7 @@ class TestService:
         logging.info('Upserted test user %r', name)
 
     @staticmethod
-    @_testmethod
+    @testmethod
     async def create_oauth2_application(
         *,
         name: str,

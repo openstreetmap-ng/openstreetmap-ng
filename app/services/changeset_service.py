@@ -1,22 +1,27 @@
 import asyncio
 import logging
 import random
-from asyncio import TaskGroup, get_running_loop
+from asyncio import Event, TaskGroup, get_running_loop
 from contextlib import asynccontextmanager
 from time import perf_counter
 
+import cython
 from sqlalchemy import and_, delete, func, null, or_, select, text, update
 from sqlalchemy.orm import load_only
 
+from app.config import TEST_ENV
 from app.db import db, db_commit
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
+from app.lib.testmethod import testmethod
 from app.limits import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT
 from app.models.db.changeset import Changeset
 from app.models.db.user_subscription import UserSubscriptionTarget
 from app.services.user_subscription_service import UserSubscriptionService
+
+_PROCESS_EVENT = Event()
 
 
 class ChangesetService:
@@ -91,11 +96,25 @@ class ChangesetService:
         yield
         task.cancel()  # avoid "Task was destroyed" warning during tests
 
+    @staticmethod
+    @testmethod
+    async def force_process():
+        """
+        Force the changeset processing loop to wake up early.
+
+        This method is only available during testing, and is limited to the current process.
+        """
+        logging.debug('Requesting changeset processing loop early wakeup')
+        _PROCESS_EVENT.set()
+
 
 @retry(None)
 async def _process_task() -> None:
+    test_env: cython.char = bool(TEST_ENV)
+
     while True:
         async with db() as session:
+            # lock is just a random unique number
             acquired: bool = (
                 await session.execute(text('SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)'))
             ).scalar_one()
@@ -110,7 +129,18 @@ async def _process_task() -> None:
             else:
                 # on failure, sleep ~1h
                 delay = random.uniform(1800, 5400)  # noqa: S311
-        await asyncio.sleep(delay)
+
+        if test_env:
+            async with TaskGroup() as tg:
+                event_task = tg.create_task(_PROCESS_EVENT.wait())
+                await asyncio.wait((event_task,), timeout=delay)
+                if event_task.done():
+                    logging.debug('Changeset processing loop early wakeup')
+                    _PROCESS_EVENT.clear()
+                else:
+                    event_task.cancel()
+        else:
+            await asyncio.sleep(delay)
 
 
 async def _close_inactive() -> None:
