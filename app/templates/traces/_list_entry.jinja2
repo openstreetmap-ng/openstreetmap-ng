@@ -21,7 +21,7 @@
                         (<a class="stretched-link" href="/trace/{{ trace.id }}">{{- trace.name -}}</a>)
                     {% endif %}
                 </div>
-                <div class="d-flex flex-wrap-reverse justify-content-end">
+                <div class="d-flex flex-column flex-lg-row flex-wrap-reverse justify-content-lg-end text-end">
                     <div>
                         <span class="badge text-bg-secondary">
                             {{ nt('traces.trace.count_points', trace.size) }}
