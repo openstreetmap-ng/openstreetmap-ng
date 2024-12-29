@@ -5,7 +5,7 @@
         </div>
     {% endif %}
     <div class="col">
-        <div class="social-action social-entry">
+        <div class="{% if not entry_no_link %}social-action{% endif %} social-entry">
             <div class="header text-muted d-flex justify-content-between">
                 <div>
                     <a href="/user/{{ trace.user.display_name }}">
@@ -16,10 +16,10 @@
                     </a>
                     {{ t('action.uploaded') }}
                     <time datetime="{{ trace.created_at.isoformat() }}" data-style="long"></time>
-                    &mdash;
-                    (<a class="stretched-link" href="/trace/{{ trace.id }}">
-                    {{- trace.name -}}
-                </a>)
+                    {% if not entry_no_link %}
+                        &mdash;
+                        (<a class="stretched-link" href="/trace/{{ trace.id }}">{{- trace.name -}}</a>)
+                    {% endif %}
                 </div>
                 <div class="d-flex flex-wrap-reverse justify-content-end">
                     <div>
