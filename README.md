@@ -13,30 +13,37 @@ We will provide a demo website **at the end of 2024**. We are working hard on th
 
 ## 🎯 Main Goals
 
-\- **New Features**\
+### **New Features**
+
 Implement long-awaited features and bring OpenStreetMap into the modern era. With a strong focus on innovation, we are committed to delivering a truly next-gen experience for users and programmers.
 
-\- **Performance**\
+### **Performance**
+
 Create a performant and responsive user and API experience. Leveraging modern technologies and CPython native modules, featuring a blazing-fast V2 map engine and optimized system architecture.
 
-\- **Privacy**\
+### **Privacy**
+
 Enhance user privacy through built-in data protection mechanisms and secure defaults for all third-party integrations. We respect users' data and privacy choices.
 
-\- **Accessibility**\
-Make OpenStreetMap more accessible to everyone. Using the latest browser standards and newly designed interfaces, we make the map a more enjoyable and welcoming place.
+### **Accessibility**
 
-\- **Openness**\
+Make OpenStreetMap more accessible to everyone — including mobile and impaired users. Using the latest browser standards and newly designed interfaces, we make the map a more enjoyable and welcoming place.
+
+### **Openness**
+
 Lower barriers to entry and empower the developer community. Following Keep-It-Simple principles, OpenStreetMap-NG is designed in a simple and hackable way, making contributing easy and fun.
 
 ## 📢 Stay Updated
 
 Follow our development journey through:
 
-\- **Development Blog**\
+### **Development Blog**
+
 Read updates and watch videos on the ongoing development efforts:\
 [OpenStreetMap Diary](https://www.openstreetmap.org/user/NorthCrab/diary) ([RSS Feed](https://www.openstreetmap.org/user/NorthCrab/diary/rss))
 
-\- **Developers Chat**\
+### **Developers Chat**
+
 Discuss, share ideas, and collaborate with other contributors:\
 [Discord](https://discord.gg/GM89hdjSCB) or [Matrix](https://matrix.to/#/#openstreetmap-ng:matrix.org) — *bridged together*
 
@@ -59,7 +66,7 @@ OpenStreetMap-NG is an open, community-driven project. The best ideas come from 
 
 This project is funded entirely through community donations. We are not sponsored nor endorsed by the OpenStreetMap Foundation. We are everyday mappers who want to make a difference.
 
-## 🤝️ Meet Our Sponsors
+## 🤝️ Meet The Sponsors
 
 We are deeply grateful to the individuals and organizations who support OpenStreetMap-NG through their generous contributions. Their commitment fuels our mission to revolutionize open-source mapping and helps maintain the project's independence.
 
