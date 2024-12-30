@@ -5,141 +5,125 @@
 {% block settings_title %}{{ t('settings.applications') }}{% endblock %}
 {% block settings_body %}
 
-<nav>
-    <ul class="nav nav-underline mb-3">
-        <li class="nav-item">
-            <a href="/settings/applications" class="nav-link">
-                {{ t('settings.authorizations.title') }}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/settings/applications/admin" class="nav-link">
-                {{ t('settings.my_applications.title') }}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/settings/applications/tokens" class="nav-link active" aria-current="page">
-                {{ t('settings.my_tokens.title') }}
-            </a>
-        </li>
+    {% set nav_active_href = "/settings/applications/tokens" %}
+    {% include 'settings/applications/_nav.jinja2' %}
+
+    <p>{{ t('settings.my_tokens.description') }}</p>
+    <ul class="applications-list list-unstyled">
+        {% for token in tokens %}
+            {% set expanded = token.id == expand_id %}
+            <li>{% include 'settings/applications/_token_entry.jinja2' %}</li>
+        {% endfor %}
     </ul>
-</nav>
+    {% if not tokens %}
+        <p class="form-text">
+            <i class="bi bi-info-circle me-2"></i>
+            {{- t('settings.my_tokens.you_have_not_created_any_tokens_yet') }}
+        </p>
+    {% endif %}
 
-<p>{{ t('settings.my_tokens.description') }}</p>
-<ul class="applications-list list-unstyled">
-    {% for token in tokens %}
-    {% set expanded = token.id == expand_id %}
-    <li>{% include 'settings/applications/_token_entry.jinja2' %}</li>
-    {% endfor %}
-</ul>
-{% if not tokens %}
-<p class="form-text">
-    <i class="bi bi-info-circle me-2"></i>
-    {{- t('settings.my_tokens.you_have_not_created_any_tokens_yet') }}
-</p>
-{% endif %}
+    <div class="accordion mb-4">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#create-accordion"
+                        aria-expanded="false" aria-controls="create-accordion">
+                    {{ t('settings.my_tokens.create_a_new_token') }}
+                </button>
+            </h2>
+            <div id="create-accordion" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <form class="create-token-form" method="POST" action="/api/web/settings/applications/token/create">
 
-<div class="accordion mb-4">
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#create-accordion"
-                aria-expanded="false" aria-controls="create-accordion">
-                {{ t('settings.my_tokens.create_a_new_token') }}
-            </button>
-        </h2>
-        <div id="create-accordion" class="accordion-collapse collapse">
-            <div class="accordion-body">
-                <form class="create-token-form" method="POST" action="/api/web/settings/applications/token/create">
+                        <label class="form-label d-block">
+                            <span class="required">{{ t('settings.name') }}</span>
+                            <input type="text" class="form-control mt-2" name="name"
+                                   maxlength="{{ OAUTH_PAT_NAME_MAX_LENGTH }}" required>
+                        </label>
+                        <p class="form-text mb-3">
+                            {{ t('settings.my_tokens.name_hint') }}
+                        </p>
 
-                    <label class="form-label d-block">
-                        <span class="required">{{ t('settings.name') }}</span>
-                        <input type="text" class="form-control mt-2" name="name"
-                            maxlength="{{ OAUTH_PAT_NAME_MAX_LENGTH }}" required>
-                    </label>
-                    <p class="form-text mb-3">
-                        {{ t('settings.my_tokens.name_hint') }}
-                    </p>
+                        <p class="form-label">{{ t('settings.requested_permissions') }}</p>
+                        <ul class="list-unstyled ms-1">
+                            <li class="form-check">
+                                <label class="form-check-label d-block">
+                                    <input class="form-check-input" type="checkbox" name="read_prefs" value="true">
+                                    {{ t('permissions.read_user_preferences') }}
+                                    <span class="scope">(read_prefs)</span>
+                                </label>
+                            </li>
+                            <li class="form-check">
+                                <label class="form-check-label d-block">
+                                    <input class="form-check-input" type="checkbox" name="write_prefs" value="true">
+                                    {{ t('permissions.modify_user_preferences') }}
+                                    <span class="scope">(write_prefs)</span>
+                                </label>
+                            </li>
+                            <li class="form-check">
+                                <label class="form-check-label d-block">
+                                    <input class="form-check-input" type="checkbox" name="write_api" value="true">
+                                    {{ t('permissions.manage_changesets_and_map_data') }}
+                                    <span class="scope">(write_api)</span>
+                                </label>
+                            </li>
+                            <li class="form-check">
+                                <label class="form-check-label d-block">
+                                    <input class="form-check-input" type="checkbox" name="read_gpx" value="true">
+                                    {{ t('permissions.read_all_gps_traces') }}
+                                    <span class="scope">(read_gpx)</span>
+                                </label>
+                            </li>
+                            <li class="form-check">
+                                <label class="form-check-label d-block">
+                                    <input class="form-check-input" type="checkbox" name="write_gpx" value="true">
+                                    {{ t('permissions.manage_gps_traces') }}
+                                    <span class="scope">(write_gpx)</span>
+                                </label>
+                            </li>
+                            <li class="form-check">
+                                <label class="form-check-label d-block">
+                                    <input class="form-check-input" type="checkbox" name="write_notes" value="true">
+                                    {{ t('permissions.manage_notes') }}
+                                    <span class="scope">(write_notes)</span>
+                                </label>
+                            </li>
+                        </ul>
 
-                    <p class="form-label">{{ t('settings.requested_permissions') }}</p>
-                    <ul class="list-unstyled ms-1">
-                        <li class="form-check">
-                            <label class="form-check-label d-block">
-                                <input class="form-check-input" type="checkbox" name="read_prefs" value="true">
-                                {{ t('permissions.read_user_preferences') }}
-                                <span class="scope">(read_prefs)</span>
-                            </label>
-                        </li>
-                        <li class="form-check">
-                            <label class="form-check-label d-block">
-                                <input class="form-check-input" type="checkbox" name="write_prefs" value="true">
-                                {{ t('permissions.modify_user_preferences') }}
-                                <span class="scope">(write_prefs)</span>
-                            </label>
-                        </li>
-                        <li class="form-check">
-                            <label class="form-check-label d-block">
-                                <input class="form-check-input" type="checkbox" name="write_api" value="true">
-                                {{ t('permissions.manage_changesets_and_map_data') }}
-                                <span class="scope">(write_api)</span>
-                            </label>
-                        </li>
-                        <li class="form-check">
-                            <label class="form-check-label d-block">
-                                <input class="form-check-input" type="checkbox" name="read_gpx" value="true">
-                                {{ t('permissions.read_all_gps_traces') }}
-                                <span class="scope">(read_gpx)</span>
-                            </label>
-                        </li>
-                        <li class="form-check">
-                            <label class="form-check-label d-block">
-                                <input class="form-check-input" type="checkbox" name="write_gpx" value="true">
-                                {{ t('permissions.manage_gps_traces') }}
-                                <span class="scope">(write_gpx)</span>
-                            </label>
-                        </li>
-                        <li class="form-check">
-                            <label class="form-check-label d-block">
-                                <input class="form-check-input" type="checkbox" name="write_notes" value="true">
-                                {{ t('permissions.manage_notes') }}
-                                <span class="scope">(write_notes)</span>
-                            </label>
-                        </li>
-                    </ul>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">{{ t('action.submit') }}</button>
+                        </div>
 
-                    <div class="text-end">
-                        <button type="submit" class="btn btn-primary">{{ t('action.submit') }}</button>
-                    </div>
-
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<hr class="my-4">
+    <hr class="my-4">
 
-<h3>{{ t('settings.my_tokens.how_to_use.title') }}</h3>
-<p>{{ t('settings.my_tokens.how_to_use.description') }}</p>
-<div class="card mb-3">
-    <div class="card-header">
-        <i class="bi bi-globe2 me-2"></i>
-        {{- t('settings.my_tokens.how_to_use.example_http_request') }}
-    </div>
-    <div class="card-body">
+    <h3>{{ t('settings.my_tokens.how_to_use.title') }}</h3>
+    <p>{{ t('settings.my_tokens.how_to_use.description') }}</p>
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-globe2 me-2"></i>
+            {{- t('settings.my_tokens.how_to_use.example_http_request') }}
+        </div>
+        <div class="card-body">
         <pre class="mb-0"><code>GET /api/0.7/user/details HTTP/1.1
 Host: {{ API_HOST }}
 Authorization: Bearer your_access_token_here</code></pre>
+        </div>
     </div>
-</div>
-<div class="card">
-    <div class="card-header">
-        <i class="bi bi-terminal me-2"></i>
-        {{- t('settings.my_tokens.how_to_use.example_curl_command') }}
-    </div>
-    <div class="card-body">
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-terminal me-2"></i>
+            {{- t('settings.my_tokens.how_to_use.example_curl_command') }}
+        </div>
+        <div class="card-body">
         <pre
-            class="mb-0"><code>curl -H "Authorization: Bearer your_access_token_here" {{ API_URL }}/api/0.7/user/details</code></pre>
+            class="mb-0"><code>curl -H "Authorization: Bearer your_access_token_here" \
+    {{ API_URL }}/api/0.7/user/details</code></pre>
+        </div>
     </div>
-</div>
 
 {% endblock %}

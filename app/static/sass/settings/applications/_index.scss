@@ -1,5 +1,19 @@
 .settings-applications-body {
     .applications-list {
+        .accordion-button {
+            @include media-breakpoint-down(lg) {
+                padding-left: unset;
+                padding-right: unset;
+            }
+        }
+
+        .accordion-body {
+            @include media-breakpoint-down(lg) {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+        }
+
         > li:not(:last-child) {
             border-bottom: 1px solid $border-color;
         }

@@ -5,35 +5,18 @@
 {% block settings_title %}{{ t('settings.applications') }}{% endblock %}
 {% block settings_body %}
 
-<nav>
-    <ul class="nav nav-underline mb-3">
-        <li class="nav-item">
-            <a href="/settings/applications" class="nav-link active" aria-current="page">
-                {{ t('settings.authorizations.title') }}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/settings/applications/admin" class="nav-link">
-                {{ t('settings.my_applications.title') }}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/settings/applications/tokens" class="nav-link">
-                {{ t('settings.my_tokens.title') }}
-            </a>
-        </li>
-    </ul>
-</nav>
+    {% set nav_active_href = "/settings/applications" %}
+    {% include 'settings/applications/_nav.jinja2' %}
 
-<p>{{ t('settings.authorizations.description') }}</p>
-<ul class="applications-list list-unstyled">
-    {% set expanded = false %}
-    {% for token in tokens %}
-    {% set app = token.application %}
-    {% if app.client_id != 'SystemApp.pat' %}
-    <li>{% include 'settings/applications/_application_entry.jinja2' %}</li>
-    {% endif %}
-    {% endfor %}
-</ul>
+    <p>{{ t('settings.authorizations.description') }}</p>
+    <ul class="applications-list list-unstyled">
+        {% set expanded = false %}
+        {% for token in tokens %}
+            {% set app = token.application %}
+            {% if app.client_id != 'SystemApp.pat' %}
+                <li>{% include 'settings/applications/_application_entry.jinja2' %}</li>
+            {% endif %}
+        {% endfor %}
+    </ul>
 
 {% endblock %}

@@ -233,7 +233,7 @@ settings:
     my_tokens_hint: |-
       Consider using access tokens when working on personal projects.
     you_have_not_registered_any_applications_yet: You haven't registered any applications yet.
-    register_a_new_application: Register a new application
+    new_application: New application
   my_tokens:
     title: My tokens
     description: |-

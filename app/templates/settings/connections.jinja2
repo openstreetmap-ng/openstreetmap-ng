@@ -13,7 +13,7 @@
             {% for service in ('google', 'facebook', 'microsoft', 'github', 'wikimedia') %}
                 <tr>
                     <td class="d-flex align-items-center">
-                        <img class="auth-provider-icon border me-4" src="/static/img/brand/{{ service }}.webp"
+                        <img class="auth-provider-icon border me-3 me-lg-4" src="/static/img/brand/{{ service }}.webp"
                              alt="{{ t('alt.service_image') }}">
                         <div>
                             <h6 class="mb-0">{{ t('settings.connections.service.' ~ service ~ '.title') }}</h6>

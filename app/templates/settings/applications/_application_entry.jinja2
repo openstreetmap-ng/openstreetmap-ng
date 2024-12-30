@@ -1,13 +1,13 @@
 <div class="accordion">
     <div class="accordion-header">
         <button class="accordion-button {% if not expanded %}collapsed{% endif %}"
-            data-bs-target="#application-entry-{{ app.id }}" aria-expanded="{{ expanded | lower }}"
-            aria-controls="application-entry-{{ app.id }}">
+                data-bs-target="#application-entry-{{ app.id }}" aria-expanded="{{ expanded | lower }}"
+                aria-controls="application-entry-{{ app.id }}">
 
-            <div class="row align-items-center">
+            <div class="row align-items-center g-3 g-lg-4">
                 <div class="col-auto">
                     <img class="app-avatar avatar" src="{{ app.avatar_url }}" alt="{{ t('alt.application_image') }}"
-                        loading="lazy">
+                         loading="lazy">
                 </div>
                 <div class="col">
                     <h6 class="mb-1">{{ app.name }}</h6>
@@ -15,15 +15,19 @@
                         {% if token %}
                         {% set date %}
                         <time class="fw-medium" datetime="{{ token.authorized_at.isoformat() }}" data-date="long"
-                            data-time="short"></time>
-                        (<time datetime="{{ token.authorized_at.isoformat() }}" data-style="long"></time>)
+                              data-time="short"></time>
+                        ({#--#}
+                        <time datetime="{{ token.authorized_at.isoformat() }}" data-style="long"></time>
+                        {#--#})
                         {% endset %}
                         {{ t('settings.authorized_at', date=date) | safe }}
                         {% else %}
                         {% set date %}
                         <time class="fw-medium" datetime="{{ app.created_at.isoformat() }}" data-date="long"
-                            data-time="short"></time>
-                        (<time datetime="{{ app.created_at.isoformat() }}" data-style="long"></time>)
+                              data-time="short"></time>
+                        ({#--#}
+                        <time datetime="{{ app.created_at.isoformat() }}" data-style="long"></time>
+                        {#--#})
                         {% endset %}
                         {{ t('settings.created_at', date=date) | safe }}
                         {% endif %}
@@ -45,7 +49,7 @@
                         {% set name %}
                         <a href="/user/{{ app.user.display_name }}">
                             <img class="avatar me-1" src="{{ app.user.avatar_url }}"
-                                alt="{{ t('alt.profile_picture') }}" loading="lazy">
+                                 alt="{{ t('alt.profile_picture') }}" loading="lazy">
                             {{- app.user.display_name -}}
                         </a>
                         {% endset %}
@@ -60,68 +64,71 @@
     </div>
     <div id="application-entry-{{ app.id }}" class="accordion-collapse collapse {% if expanded %}show{% endif %}">
         <div class="accordion-body">
-            <div class="row">
-                <div class="col">
+            <div class="row g-2">
+                <div class="col-md mb-2 mb-md-0">
 
                     <h6>{{ t('settings.requested_permissions') }}</h6>
                     <ul class="list-unstyled">
                         {% for scope in app.scopes %}
-                        {% set scope = scope.value %}
-                        <li>
-                            <i class="bi bi-check text-success"></i>
-                            {% if scope == 'read_prefs' %}
-                            {{ t('permissions.read_user_preferences') }}
-                            {% elif scope == 'write_prefs' %}
-                            {{ t('permissions.modify_user_preferences') }}
-                            {% elif scope == 'write_api' %}
-                            {{ t('permissions.manage_changesets_and_map_data') }}
-                            {% elif scope == 'read_gpx' %}
-                            {{ t('permissions.read_all_gps_traces') }}
-                            {% elif scope == 'write_gpx' %}
-                            {{ t('permissions.manage_gps_traces') }}
-                            {% elif scope == 'write_notes' %}
-                            {{ t('permissions.manage_notes') }}
-                            {% elif scope == 'web_user' %}
-                            {{ t('permissions.access_the_website') }}
-                            {% endif %}
-                            <span class="scope">({{ scope }})</span>
-                        </li>
+                            {% set scope = scope.value %}
+                            <li class="d-flex">
+                                <i class="bi bi-check text-success me-1"></i>
+                                <span>
+                                    {% if scope == 'read_prefs' %}
+                                        {{ t('permissions.read_user_preferences') }}
+                                    {% elif scope == 'write_prefs' %}
+                                        {{ t('permissions.modify_user_preferences') }}
+                                    {% elif scope == 'write_api' %}
+                                        {{ t('permissions.manage_changesets_and_map_data') }}
+                                    {% elif scope == 'read_gpx' %}
+                                        {{ t('permissions.read_all_gps_traces') }}
+                                    {% elif scope == 'write_gpx' %}
+                                        {{ t('permissions.manage_gps_traces') }}
+                                    {% elif scope == 'write_notes' %}
+                                        {{ t('permissions.manage_notes') }}
+                                    {% elif scope == 'web_user' %}
+                                        {{ t('permissions.access_the_website') }}
+                                    {% endif %}
+                                    <span class="scope">({{ scope }})</span>
+                                </span>
+                            </li>
                         {% endfor %}
                         {% if not app.scopes %}
-                        <li>
-                            <i class="bi bi-dot text-muted"></i>
-                            {{ t('permissions.no_permissions') }}
-                        </li>
+                            <li class="d-flex">
+                                <i class="bi bi-dot text-muted me-1"></i>
+                                <span>{{ t('permissions.no_permissions') }}</span>
+                            </li>
                         {% endif %}
                     </ul>
 
                 </div>
-                {% if app.client_id == 'SystemApp.web' %}
-                {% elif token %}
-                <form class="col-auto align-self-end revoke-application-form btn-group" method="POST"
-                    action="/api/web/settings/revoke-application">
-                    <button class="btn btn-light border" type="submit">{{ t('action.revoke_access') }}</button>
-                    <button class="btn btn-light border dropdown-toggle dropdown-toggle-split" type="button"
-                        data-bs-toggle="dropdown" aria-expanded="{{ expanded | lower }}">
-                        <span class="visually-hidden">{{ t('action.show_more') }}</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <button class="dropdown-item">
-                                TODO:
-                                {{ t('action.report_abuse') }}
+                <div class="col-md-auto align-self-end text-end">
+                    {% if app.client_id == 'SystemApp.web' %}
+                    {% elif token %}
+                        <form class="revoke-application-form btn-group"
+                              method="POST"
+                              action="/api/web/settings/revoke-application">
+                            <button class="btn btn-light border" type="submit">{{ t('action.revoke_access') }}</button>
+                            <button class="btn btn-light border dropdown-toggle dropdown-toggle-split" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="{{ expanded | lower }}">
+                                <span class="visually-hidden">{{ t('action.show_more') }}</span>
                             </button>
-                        </li>
-                    </ul>
-                    <input type="hidden" name="app_id" value="{{ app.id }}">
-                </form>
-                {% else %}
-                <div class="col-auto align-self-end">
-                    <a class="btn btn-light border" href="/settings/applications/admin/{{ app.id }}/edit">
-                        {{ t('layouts.edit') }}
-                    </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <button class="dropdown-item">
+                                        TODO:
+                                        {{ t('action.report_abuse') }}
+                                    </button>
+                                </li>
+                            </ul>
+                            <input type="hidden" name="app_id" value="{{ app.id }}">
+                        </form>
+                    {% else %}
+                        <a class="btn btn-light border" href="/settings/applications/admin/{{ app.id }}/edit">
+                            {{ t('layouts.edit') }}
+                        </a>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>

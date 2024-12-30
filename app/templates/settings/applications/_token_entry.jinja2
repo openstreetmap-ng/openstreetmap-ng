@@ -1,10 +1,10 @@
 <div class="accordion">
     <div class="accordion-header">
         <button class="accordion-button {% if not expanded %}collapsed{% endif %}"
-            data-bs-target="#token-entry-{{ token.id }}" aria-expanded="{{ expanded | lower }}"
-            aria-controls="token-entry-{{ token.id }}">
+                data-bs-target="#token-entry-{{ token.id }}" aria-expanded="{{ expanded | lower }}"
+                aria-controls="token-entry-{{ token.id }}">
 
-            <div class="row align-items-center">
+            <div class="row align-items-center g-3 g-lg-4">
                 <div class="col-auto">
                     <i class="token-icon bi bi-key{% if token.authorized_at is not none %}-fill{% endif %}"></i>
                 </div>
@@ -14,15 +14,19 @@
                         {% if token.authorized_at is not none %}
                         {% set date %}
                         <time class="fw-medium" datetime="{{ token.authorized_at.isoformat() }}" data-date="long"
-                            data-time="short"></time>
-                        (<time datetime="{{ token.authorized_at.isoformat() }}" data-style="long"></time>)
+                              data-time="short"></time>
+                        ({#--#}
+                        <time datetime="{{ token.authorized_at.isoformat() }}" data-style="long"></time>
+                        {#--#})
                         {% endset %}
                         {{ t('settings.updated_at', date=date) | safe }}
                         {% else %}
                         {% set date %}
                         <time class="fw-medium" datetime="{{ token.created_at.isoformat() }}" data-date="long"
-                            data-time="short"></time>
-                        (<time datetime="{{ token.created_at.isoformat() }}" data-style="long"></time>)
+                              data-time="short"></time>
+                        ({#--#}
+                        <time datetime="{{ token.created_at.isoformat() }}" data-style="long"></time>
+                        {#--#})
                         {% endset %}
                         {{ t('settings.created_at', date=date) | safe }}
                         {% endif %}
@@ -37,10 +41,10 @@
                 <span class="h6">{{ t('settings.access_token') }}</span>
                 <div class="input-group copy-group mt-2">
                     <input type="text" class="form-control font-monospace bg-body-tertiary"
-                        value="{% if token.token_preview is not none %}{{ token.token_preview }}...{% endif %}"
-                        readonly>
+                           value="{% if token.token_preview is not none %}{{ token.token_preview }}...{% endif %}"
+                           readonly>
                     <button class="btn btn-light border reset-secret-button" type="button"
-                        data-token-id="{{ token.id }}">
+                            data-token-id="{{ token.id }}">
                         <i class="bi bi-arrow-clockwise"></i>
                         {{ t('settings.new_access_token') }}
                     </button>
@@ -49,45 +53,47 @@
                     </button>
                 </div>
                 <form class="reset-secret-form" method="POST"
-                    action="/api/web/settings/applications/token/{{ token.id }}/reset-access-token">
+                      action="/api/web/settings/applications/token/{{ token.id }}/reset-access-token">
                 </form>
             </label>
 
-            <div class="row">
-                <div class="col">
+            <div class="row g-2">
+                <div class="col-md mb-2 mb-md-0">
                     <h6>{{ t('settings.requested_permissions') }}</h6>
                     <ul class="list-unstyled">
                         {% for scope in token.scopes %}
-                        {% set scope = scope.value %}
-                        <li>
-                            <i class="bi bi-check text-success"></i>
-                            {% if scope == 'read_prefs' %}
-                            {{ t('permissions.read_user_preferences') }}
-                            {% elif scope == 'write_prefs' %}
-                            {{ t('permissions.modify_user_preferences') }}
-                            {% elif scope == 'write_api' %}
-                            {{ t('permissions.manage_changesets_and_map_data') }}
-                            {% elif scope == 'read_gpx' %}
-                            {{ t('permissions.read_all_gps_traces') }}
-                            {% elif scope == 'write_gpx' %}
-                            {{ t('permissions.manage_gps_traces') }}
-                            {% elif scope == 'write_notes' %}
-                            {{ t('permissions.manage_notes') }}
-                            {% endif %}
-                            <span class="scope">({{ scope }})</span>
-                        </li>
+                            {% set scope = scope.value %}
+                            <li class="d-flex">
+                                <i class="bi bi-check text-success me-1"></i>
+                                <span>
+                                    {% if scope == 'read_prefs' %}
+                                        {{ t('permissions.read_user_preferences') }}
+                                    {% elif scope == 'write_prefs' %}
+                                        {{ t('permissions.modify_user_preferences') }}
+                                    {% elif scope == 'write_api' %}
+                                        {{ t('permissions.manage_changesets_and_map_data') }}
+                                    {% elif scope == 'read_gpx' %}
+                                        {{ t('permissions.read_all_gps_traces') }}
+                                    {% elif scope == 'write_gpx' %}
+                                        {{ t('permissions.manage_gps_traces') }}
+                                    {% elif scope == 'write_notes' %}
+                                        {{ t('permissions.manage_notes') }}
+                                    {% endif %}
+                                    <span class="scope">({{ scope }})</span>
+                                </span>
+                            </li>
                         {% endfor %}
                         {% if not token.scopes %}
-                        <li>
-                            <i class="bi bi-dot text-muted"></i>
-                            {{ t('permissions.no_permissions') }}
-                        </li>
+                            <li class="d-flex">
+                                <i class="bi bi-dot text-muted me-1"></i>
+                                <span>{{ t('permissions.no_permissions') }}</span>
+                            </li>
                         {% endif %}
                     </ul>
                 </div>
-                <div class="col-auto align-self-end">
+                <div class="col-md-auto align-self-end text-end">
                     <form class="revoke-application-form" method="POST"
-                        action="/api/web/settings/applications/token/{{ token.id }}/revoke">
+                          action="/api/web/settings/applications/token/{{ token.id }}/revoke">
                         <button class="btn btn-light border" type="submit">{{ t('action.revoke_key') }}</button>
                     </form>
                 </div>

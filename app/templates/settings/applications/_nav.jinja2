@@ -1,0 +1,28 @@
+<nav>
+    <ul class="nav nav-underline gap-2 gap-sm-3 justify-content-around justify-content-sm-start mb-3">
+        <li class="nav-item">
+            {% set _href = '/settings/applications' %}
+            {% set _active = nav_active_href == _href %}
+            <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
+               {% if _active %}aria-current=page{% endif %}>
+                {{ t('settings.authorizations.title') }}
+            </a>
+        </li>
+        <li class="nav-item">
+            {% set _href = '/settings/applications/admin' %}
+            {% set _active = nav_active_href == _href %}
+            <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
+               {% if _active %}aria-current=page{% endif %}>
+                {{ t('settings.my_applications.title') }}
+            </a>
+        </li>
+        <li class="nav-item">
+            {% set _href = '/settings/applications/tokens' %}
+            {% set _active = nav_active_href == _href %}
+            <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
+               {% if _active %}aria-current=page{% endif %}>
+                {{ t('settings.my_tokens.title') }}
+            </a>
+        </li>
+    </ul>
+</nav>

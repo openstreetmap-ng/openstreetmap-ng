@@ -62,7 +62,7 @@
     {% for session in active_sessions %}
     <li>
         <div class="row align-items-center">
-            <div class="col-sm">
+            <div class="col-sm mb-2 mb-sm-0">
                 <h6 class="mb-1">
                     {% if session.id == current_session_id %}
                         <span class="current-session me-1" data-bs-toggle="tooltip"
@@ -89,7 +89,7 @@
                     {{ t('settings.authorized_at', date=date) | safe }}
                 </p>
             </div>
-            <div class="col-sm-auto align-self-center text-end mt-2 mt-sm-0">
+            <div class="col-sm-auto align-self-center text-end">
                 <form class="revoke-token-form" method="POST" action="/api/web/settings/revoke-token">
                     <input type="hidden" name="token_id" value="{{ session.id }}">
                     <button class="btn btn-sm btn-light border" type="submit">

@@ -5,51 +5,34 @@
 {% block settings_title %}{{ t('settings.applications') }}{% endblock %}
 {% block settings_body %}
 
-<nav>
-    <ul class="nav nav-underline mb-3">
-        <li class="nav-item">
-            <a href="/settings/applications" class="nav-link">
-                {{ t('settings.authorizations.title') }}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/settings/applications/admin" class="nav-link active" aria-current="page">
-                {{ t('settings.my_applications.title') }}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/settings/applications/tokens" class="nav-link">
-                {{ t('settings.my_tokens.title') }}
-            </a>
-        </li>
+    {% set nav_active_href = "/settings/applications/admin" %}
+    {% include 'settings/applications/_nav.jinja2' %}
+
+    <p>{{ t('settings.my_applications.description') }}</p>
+    <ul class="applications-list list-unstyled">
+        {% set expanded = false %}
+        {% for app in apps %}
+            <li>{% include 'settings/applications/_application_entry.jinja2' %}</li>
+        {% endfor %}
     </ul>
-</nav>
+    {% if not apps %}
+        <p class="form-text">
+            <i class="bi bi-info-circle me-2"></i>
+            {{- t('settings.my_applications.you_have_not_registered_any_applications_yet') }}
+        </p>
+    {% endif %}
 
-<p>{{ t('settings.my_applications.description') }}</p>
-<ul class="applications-list list-unstyled">
-    {% set expanded = false %}
-    {% for app in apps %}
-    <li>{% include 'settings/applications/_application_entry.jinja2' %}</li>
-    {% endfor %}
-</ul>
-{% if not apps %}
-<p class="form-text">
-    <i class="bi bi-info-circle me-2"></i>
-    {{- t('settings.my_applications.you_have_not_registered_any_applications_yet') }}
-</p>
-{% endif %}
-
-<div class="text-end mb-2">
-    <button class="create-application-btn btn btn-primary" type="button">
-        <i class="bi bi-plus-lg"></i>
-        {{ t('settings.my_applications.register_a_new_application') }}
-    </button>
-    <form class="create-application-form offset-8 d-flex d-none" method="POST"
-        action="/api/web/settings/applications/admin/create">
-        <input type="text" class="form-control me-2" name="name" placeholder="{{ t('settings.name') }}"
-            maxlength="{{ OAUTH_APP_NAME_MAX_LENGTH }}" autocomplete="off" required>
-        <button class="btn btn-primary" type="submit">{{ t('action.submit') }}</button>
-    </form>
-</div>
+    <div class="d-flex justify-content-end mb-2">
+        <button class="create-application-btn btn btn-primary" type="button">
+            <i class="bi bi-plus-lg"></i>
+            {{ t('settings.my_applications.new_application') }}
+        </button>
+        <form class="create-application-form d-flex d-none" method="POST"
+              action="/api/web/settings/applications/admin/create">
+            <input type="text" class="form-control me-2" name="name" placeholder="{{ t('settings.name') }}"
+                   maxlength="{{ OAUTH_APP_NAME_MAX_LENGTH }}" autocomplete="off" required>
+            <button class="btn btn-primary" type="submit">{{ t('action.submit') }}</button>
+        </form>
+    </div>
 
 {% endblock %}
