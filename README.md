@@ -72,7 +72,7 @@ We are deeply grateful to the individuals and organizations who support OpenStre
 
 ### Individual Sponsors
 
-Public supporters on [Liberapay](https://liberapay.com/Zaczero/) and [GitHub Sponsors](https://github.com/sponsors/Zaczero).
+Public supporters on [Liberapay](https://liberapay.com/Zaczero/) and [GitHub Sponsors](https://github.com/sponsors/Zaczero). You can click the image below to open it in a new tab. From there, you can click on the avatars to see their profiles.
 
 [![Individual sponsors banner](https://monicz.dev/sponsors.svg)](https://monicz.dev/sponsors.svg)
 
