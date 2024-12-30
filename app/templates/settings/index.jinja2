@@ -5,12 +5,13 @@
 {% block settings_title %}{{ t('accounts.edit.my settings') | capitalize }}{% endblock %}
 {% block settings_body %}
 
+<h3 class="mb-3">{{ t('settings.main_settings') }}</h3>
 <form class="settings-form" method="POST" action="/api/web/settings">
 
     <label class="form-label d-block mb-3">
         {{ t('activerecord.attributes.user.display_name') | capitalize }}
         <input type="text" class="form-control mt-2" name="display_name" data-blacklist="{{ URLSAFE_BLACKLIST }}"
-            value="{{ user.display_name }}" required>
+               value="{{ user.display_name }}" required>
     </label>
 
     <label class="form-label d-block">
@@ -40,9 +41,9 @@
         {{ t('settings.preferred_language') }}
         <select class="form-select format-select mt-2" name="language" required>
             {% for locale_code, locale_name in INSTALLED_LOCALES_NAMES_MAP.items() %}
-            <option value="{{ locale_code }}" {% if user.language == locale_code %}selected{% endif %}>
-                {{ locale_name.display_name }}
-            </option>
+                <option value="{{ locale_code }}" {% if user.language == locale_code %}selected{% endif %}>
+                    {{ locale_name.display_name }}
+                </option>
             {% endfor %}
         </select>
     </label>
@@ -58,7 +59,7 @@
     <div class="form-check ms-1">
         <label class="form-check-label d-block">
             <input class="form-check-input" type="checkbox" name="activity_tracking" value="true"
-                {% if user.activity_tracking %}checked{% endif %}>
+                   {% if user.activity_tracking %}checked{% endif %}>
             <i class="bi bi-graph-up text-primary"></i>
             {{ t('privacy.enable_activity_tracking.title') }}
         </label>
@@ -71,7 +72,7 @@
     <div class="form-check ms-1">
         <label class="form-check-label d-block">
             <input class="form-check-input" type="checkbox" name="crash_reporting" value="true"
-                {% if user.crash_reporting %}checked{% endif %}>
+                   {% if user.crash_reporting %}checked{% endif %}>
             <i class="bi bi-bug text-primary"></i>
             {{ t('privacy.enable_crash_reporting.title') }}
         </label>

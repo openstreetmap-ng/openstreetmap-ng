@@ -3,70 +3,23 @@
 {% block settings_active_href %}{% endblock %}
 {% block body %}
 
-<div class="content-header">
-    <h1 class="container">
-        {% block settings_title %}{% endblock %}
-    </h1>
-</div>
-<div class="content-body">
-    <div class="container">
-        <div class="row">
-            <nav class="col-auto">
-                <ul class="nav flex-column settings-nav">
-                    <li class="nav-item">
-                        {% set _href = '/settings' %}
-                        {% set _active = self.settings_active_href() == _href %}
-                        <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
-                            {% if _active %}aria-current=page{% endif %}>
-                            <i class="bi bi-gear"></i>
-                            {{ t('accounts.edit.my settings') | lower | capitalize }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        {% set _href = '/settings/security' %}
-                        {% set _active = self.settings_active_href() == _href %}
-                        <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
-                            {% if _active %}aria-current=page{% endif %}>
-                            <i class="bi bi-shield-lock"></i>
-                            {{ t('settings.password_and_security') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        {% set _href = '/settings/connections' %}
-                        {% set _active = self.settings_active_href() == _href %}
-                        <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
-                            {% if _active %}aria-current=page{% endif %}>
-                            <i class="bi bi-diagram-3"></i>
-                            {{ t('settings.connected_accounts') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        {% set _href = '/settings/applications' %}
-                        {% set _active = self.settings_active_href() == _href %}
-                        <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
-                            {% if _active %}aria-current=page{% endif %}>
-                            <i class="bi bi-boxes"></i>
-                            {{ t('settings.applications') }}
-                        </a>
-                    </li>
-                    <hr>
-                    <li class="nav-item">
-                        {% set _href = '/settings/delete-account' %}
-                        {% set _active = self.settings_active_href() == _href %}
-                        <a class="nav-link text-secondary {% if _active %}active{% endif %}" href="{{ _href }}"
-                            {% if _active %}aria-current=page{% endif %}>
-                            <i class="bi bi-trash"></i>
-                            {{ t('settings.delete_account') }}
-                        </a>
-                    </li>
-                </ul>
-
-            </nav>
-            <div class="col">
-                {% block settings_body %}{% endblock %}
+    <div class="content-header">
+        <h1 class="container">
+            {% block settings_title %}{% endblock %}
+        </h1>
+    </div>
+    <div class="content-body">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-auto mb-4">
+                    {% set nav_active_href = self.settings_active_href() %}
+                    {% include 'settings/_nav.jinja2' %}
+                </div>
+                <div class="col-lg">
+                    {% block settings_body %}{% endblock %}
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 {% endblock %}

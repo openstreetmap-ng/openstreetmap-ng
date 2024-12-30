@@ -1,0 +1,53 @@
+<nav>
+    <ul class="nav flex-column settings-nav">
+        <li class="nav-item">
+            {% set _href = '/settings' %}
+            {% set _active = nav_active_href == _href %}
+            <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
+               {% if _active %}aria-current=page{% endif %}>
+                <i class="bi bi-gear"></i>
+                {{ t('accounts.edit.my settings') | lower | capitalize }}
+            </a>
+        </li>
+        <li class="nav-item">
+            {% set _href = '/settings/security' %}
+            {% set _active = nav_active_href == _href %}
+            <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
+               {% if _active %}aria-current=page{% endif %}>
+                <i class="bi bi-shield-lock"></i>
+                {{ t('settings.password_and_security') }}
+            </a>
+        </li>
+        <li class="nav-item">
+            {% set _href = '/settings/connections' %}
+            {% set _active = nav_active_href == _href %}
+            <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
+               {% if _active %}aria-current=page{% endif %}>
+                <i class="bi bi-diagram-3"></i>
+                {{ t('settings.connected_accounts') }}
+            </a>
+        </li>
+        <li class="nav-item">
+            {% set _href = '/settings/applications' %}
+            {% set _active = nav_active_href == _href %}
+            <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
+               {% if _active %}aria-current=page{% endif %}>
+                <i class="bi bi-boxes"></i>
+                {{ t('settings.applications') }}
+            </a>
+        </li>
+        <li>
+            <hr>
+        </li>
+        <li class="nav-item">
+            {% set _href = '/settings/delete-account' %}
+            {% set _active = nav_active_href == _href %}
+            <a class="nav-link text-secondary {% if _active %}active{% endif %}" href="{{ _href }}"
+               {% if _active %}aria-current=page{% endif %}>
+                <i class="bi bi-trash"></i>
+                {{ t('settings.delete_account') }}
+            </a>
+        </li>
+    </ul>
+
+</nav>

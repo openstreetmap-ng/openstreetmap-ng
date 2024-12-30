@@ -28,7 +28,7 @@
     </label>
 
     <div class="row align-items-center">
-        <div class="col">
+        <div class="col-md mb-2 mb-md-0">
             <div class="form-check ms-1">
                 <label class="form-check-label">
                     <input class="form-check-input" type="checkbox" name="revoke_other_sessions" value="true"
@@ -37,10 +37,8 @@
                 </label>
             </div>
         </div>
-        <div class="col-auto">
-            <a class="link-primary" href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
-        </div>
-        <div class="col-auto">
+        <div class="col-md-auto text-end">
+            <a class="link-primary me-3" href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
             <button class="btn btn-primary px-3" type="submit">
                 {{ t('action.submit') }}
             </button>
@@ -64,7 +62,7 @@
     {% for session in active_sessions %}
     <li>
         <div class="row align-items-center">
-            <div class="col">
+            <div class="col-sm">
                 <h6 class="mb-1">
                     {% if session.id == current_session_id %}
                         <span class="current-session me-1" data-bs-toggle="tooltip"
@@ -83,13 +81,15 @@
                 <p class="form-text mb-0">
                     {% set date %}
                     <time class="fw-medium" datetime="{{ session.authorized_at.isoformat() }}" data-date="long"
-                        data-time="short"></time>
-                    (<time datetime="{{ session.authorized_at.isoformat() }}" data-style="long"></time>)
+                          data-time="short"></time>
+                    ({#--#}
+                    <time datetime="{{ session.authorized_at.isoformat() }}" data-style="long"></time>
+                    {#--#})
                     {% endset %}
                     {{ t('settings.authorized_at', date=date) | safe }}
                 </p>
             </div>
-            <div class="col-auto align-self-center">
+            <div class="col-sm-auto align-self-center text-end mt-2 mt-sm-0">
                 <form class="revoke-token-form" method="POST" action="/api/web/settings/revoke-token">
                     <input type="hidden" name="token_id" value="{{ session.id }}">
                     <button class="btn btn-sm btn-light border" type="submit">

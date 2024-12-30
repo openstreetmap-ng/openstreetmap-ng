@@ -172,6 +172,7 @@ settings:
   preferred_language: Preferred language
   your_public_username: Your public username.
   you_can_change_it_later_in_the_settings: You can change it later in the settings.
+  main_settings: Main settings
   change_email: Change email
   current_email_address: Current email address
   email_settings: Email settings

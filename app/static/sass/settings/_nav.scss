@@ -8,4 +8,11 @@
     .bi {
         margin-right: 0.3em;
     }
+
+    .nav-link {
+        @include media-breakpoint-down(lg) {
+            padding-left: unset;
+            padding-right: unset;
+        }
+    }
 }
