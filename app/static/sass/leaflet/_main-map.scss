@@ -32,6 +32,12 @@
         }
     }
 
+    .leaflet-bottom.leaflet-left {
+        @include media-breakpoint-down(sm) {
+            margin-bottom: min((breakpoint-max(sm) - 100vw) * 0.5 * (2.125 / 3.125), 2.125rem);
+        }
+    }
+
     // Merge zoom and geolocate controls
     .leaflet-control.zoom {
         .control-button:last-child {
