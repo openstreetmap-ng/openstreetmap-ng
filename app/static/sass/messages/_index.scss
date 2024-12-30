@@ -1,4 +1,10 @@
 .messages-index-body {
+    .col-lg:not(:first-child) {
+        @include media-breakpoint-up(lg) {
+            border-left: 1px solid $border-color;
+        }
+    }
+
     .message-preview {
         border: unset;
 

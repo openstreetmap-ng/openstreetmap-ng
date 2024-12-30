@@ -53,6 +53,12 @@ if (body) {
         abortController?.abort()
         abortController = new AbortController()
 
+        // Scroll to the message container
+        messagePreviewContainer.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+        })
+
         fetch(`/api/web/messages/${openMessageId}`, {
             method: "GET",
             mode: "same-origin",
