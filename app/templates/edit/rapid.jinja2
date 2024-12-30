@@ -1,8 +1,10 @@
 {% extends '_base.jinja2' %}
 {% block body_class %}map-body{% endblock %}
 {% block body %}
-<iframe class="map-container rapid-iframe"
-    sandbox="allow-downloads allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
-    data-url="{{ RAPID_URL }}">
-</iframe>
+    <div class="map-container">
+        <iframe class="main-map rapid-iframe"
+                sandbox="allow-downloads allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+                data-url="{{ RAPID_URL }}">
+        </iframe>
+    </div>
 {% endblock %}
