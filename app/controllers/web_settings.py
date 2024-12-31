@@ -5,11 +5,12 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import web_user
+from app.lib.image import AvatarType
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.limits import USER_DESCRIPTION_MAX_LENGTH
 from app.models.auth_provider import AuthProvider
-from app.models.db.user import AvatarType, Editor, User
+from app.models.db.user import Editor, User
 from app.models.types import LocaleCode, PasswordType, ValidatingDisplayNameType
 from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService

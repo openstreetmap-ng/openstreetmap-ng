@@ -25,6 +25,6 @@ class _RaiseFor:
         return getattr(_context.get(), name)
 
 
-raise_for = cast(Exceptions, _RaiseFor())
+raise_for = cast(Exceptions, cast(object, _RaiseFor()))
 
 __all__ = ('raise_for',)

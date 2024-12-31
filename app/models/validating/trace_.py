@@ -5,8 +5,9 @@ from pydantic import PositiveInt
 
 from app.models.db.base import Base
 from app.models.db.trace_ import TraceVisibility
-from app.models.types import Str255, UrlSafeValidator
+from app.models.types import Str255
 from app.validators.filename import FileNameValidator
+from app.validators.url import UrlSafeValidator
 
 
 class TraceValidating(Base.Validating):

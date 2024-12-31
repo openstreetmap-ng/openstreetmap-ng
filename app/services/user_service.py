@@ -8,13 +8,14 @@ from app.config import FREEZE_TEST_USER
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
+from app.lib.image import AvatarType
 from app.lib.locale import is_installed_locale
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
-from app.models.db.user import AvatarType, Editor, User, UserStatus
+from app.models.db.user import Editor, User, UserStatus
 from app.models.db.user_token_reset_password import UserTokenResetPassword
 from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
 from app.queries.user_query import UserQuery

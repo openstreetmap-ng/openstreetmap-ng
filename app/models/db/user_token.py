@@ -20,7 +20,7 @@ else:
 
 
 # TODO: validate from address
-class UserToken(Base.ZID, CreatedAtMixin, _HasExpire):
+class UserToken(Base.ZID, CreatedAtMixin, _HasExpire):  # type: ignore
     __abstract__ = True
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)

@@ -48,8 +48,8 @@ class Base:
             validate_default=True,
         )
 
-        @field_validator('*')
         @classmethod
+        @field_validator('*')
         def str_validator(cls, v):
             if isinstance(v, str) and v:
                 # check for invalid XML/1.0 characters

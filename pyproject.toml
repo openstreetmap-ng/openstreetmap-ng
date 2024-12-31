@@ -248,6 +248,11 @@ strictSetInference = true
 typeCheckingMode = "standard"
 useLibraryCodeForTypes = false
 
+# basedpyright specific:
+reportPrivateLocalImportUsage = "warning"
+reportInvalidCast = "warning"
+reportImplicitAbstractClass = "information"
+
 [tool.pytest.ini_options]
 addopts = "--quiet --import-mode=importlib"
 asyncio_default_fixture_loop_scope = "session"
