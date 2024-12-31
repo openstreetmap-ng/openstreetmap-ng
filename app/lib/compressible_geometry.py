@@ -1,5 +1,5 @@
 from math import ceil, log2
-from typing import Final, TypeVar, overload
+from typing import TypeVar, overload
 
 import cython
 import numpy as np
@@ -21,7 +21,7 @@ def _create_mentissa_mask():
     return np.uint64(((1 << 64) - 1) - ((1 << zeros) - 1))
 
 
-_MASK: Final[np.uint64] = _create_mentissa_mask()
+_MASK: np.uint64 = _create_mentissa_mask()
 
 
 @overload

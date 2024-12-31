@@ -140,18 +140,18 @@ ignore = [
 ]
 # see https://docs.astral.sh/ruff/rules/ for rules documentation
 select = [
-  "A", # flake8-builtins
   "ARG", # flake8-unused-arguments
   "ASYNC", # flake8-async
   "B", # flake8-bugbear
   "C4", # flake8-comprehensions
+  "D418", # overload-with-docstring
+  "D419", # empty-docstring
   "DTZ", # flake8-datetimez
   "E4", # pycodestyle
   "E7",
   "E9",
   "F", # pyflakes
-  "FA", # flake8-future-annotations
-  # "FAST",  # fastapi
+  "FAST", # fastapi
   "FLY", # flynt
   "FURB", # refurb
   "G", # flake8-logging-format
@@ -179,6 +179,7 @@ select = [
   "SLF", # flake8-self
   "SLOT", # flake8-slots
   "T10", # flake8-debugger
+  "TD006", # invalid-todo-capitalization
   "TID", # flake8-tidy-imports
   "TRY", # tryceratops
   "UP", # pyupgrade
@@ -194,9 +195,6 @@ indent-style = "space"
 line-ending = "lf"
 quote-style = "single"
 skip-magic-trailing-comma = false
-
-[tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["dir", "format", "hash", "id", "input", "open", "type"]
 
 [tool.ruff.lint.flake8-gettext]
 function-names = ["nt", "t"]
@@ -225,12 +223,14 @@ include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
 pythonVersion = "3.13"
 reportCallInDefaultInitializer = "error"
+reportConstantRedefinition = "warning"
 reportDeprecated = "warning"
 reportImplicitOverride = "warning"
 reportInconsistentConstructor = "error"
 reportInvalidStubStatement = "information"
 reportMatchNotExhaustive = "error"
 reportMissingModuleSource = "none"
+reportPrivateImportUsage = "none"
 reportPropertyTypeMismatch = "error"
 reportShadowedImports = "warning"
 reportUninitializedInstanceVariable = "error"

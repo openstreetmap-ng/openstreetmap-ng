@@ -16,7 +16,7 @@ from app.lib.local_chapters import LOCAL_CHAPTERS
 try:
     VERSION = 'git#' + githead()[:7]
 except FileNotFoundError:
-    VERSION = 'dev'
+    VERSION = 'dev'  # pyright: ignore [reportConstantRedefinition]
 
 NAME = 'openstreetmap-website'
 WEBSITE = 'https://www.openstreetmap.org'
