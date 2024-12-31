@@ -23,8 +23,8 @@ from app.lib.rich_text import TextFormat, process_rich_text
             '<p>unsafe <a href="https://example.com" rel="noopener nofollow">https://example.com</a></p>',
         ),
         (
-            'upgrade safe http://example.osm.org',
-            '<p>upgrade safe <a href="https://example.osm.org" rel="noopener">http://example.osm.org</a></p>',
+            'upgrade safe https://example.osm.org',
+            '<p>upgrade safe <a href="https://example.osm.org" rel="noopener">https://example.osm.org</a></p>',
         ),
         (
             '<a href="https://example.com">visit</a>',
@@ -66,12 +66,12 @@ def test_plain_formatting(input: str, output: str):
             '<p>safe <a href="https://osm.org" rel="noopener">https://osm.org</a></p>',
         ),
         (
-            'unsafe http://example.com',
-            '<p>unsafe <a href="http://example.com" rel="noopener nofollow">http://example.com</a></p>',
+            'unsafe https://example.com',
+            '<p>unsafe <a href="https://example.com" rel="noopener nofollow">https://example.com</a></p>',
         ),
         (
-            'upgrade safe http://example.osm.org',
-            '<p>upgrade safe <a href="https://example.osm.org" rel="noopener">http://example.osm.org</a></p>',
+            'upgrade safe https://example.osm.org',
+            '<p>upgrade safe <a href="https://example.osm.org" rel="noopener">https://example.osm.org</a></p>',
         ),
     ],
 )

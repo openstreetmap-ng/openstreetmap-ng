@@ -27,10 +27,10 @@ def extend_query_params(uri: str, params: dict[str, str], *, fragment: bool = Fa
     """
     Extend the query parameters of a URI.
 
-    >>> extend_query_params('http://example.com', {'foo': 'bar'})
-    'http://example.com?foo=bar'
-    >>> extend_query_params('http://example.com', {'foo': 'bar'}, fragment=True)
-    'http://example.com#foo=bar'
+    >>> extend_query_params('https://example.com', {'foo': 'bar'})
+    'https://example.com?foo=bar'
+    >>> extend_query_params('https://example.com', {'foo': 'bar'}, fragment=True)
+    'https://example.com#foo=bar'
     """
     if not params:
         return uri
