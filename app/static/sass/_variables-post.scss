@@ -1,0 +1,22 @@
+@use "sass:map";
+
+// https://getbootstrap.com/docs/5.3/customize/color-modes/#adding-theme-colors
+$custom-colors: (
+    "blue": $blue,
+    "green": $green,
+    "light-green": $light-green,
+);
+$theme-colors: map.merge($theme-colors, $custom-colors);
+
+$custom-spacers: (
+    "1-5": $spacer * 0.375,
+);
+$spacers: map.merge($spacers, $custom-spacers);
+
+$input-btn-padding-y-lg: $input-btn-padding-y;
+$input-btn-padding-x-lg: $input-btn-padding-x;
+$input-btn-font-size-lg: $font-size-base * 1.125;
+
+$btn-padding-y-lg: $input-btn-padding-y-lg;
+$btn-padding-x-lg: $input-btn-padding-x-lg;
+$btn-font-size-lg: $input-btn-font-size-lg;

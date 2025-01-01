@@ -1,47 +1,27 @@
 @use "sass:map";
-
-$min-contrast-ratio: 2;
+@use "bootstrap/scss/functions";
 
 $blue: #7092ff;
 $green: #7ebc6f;
-$light-green: tint-color($green, 70%);
+$light-green: functions.tint-color($green, 70%);
 $vibrant-green: #76c551;
 $off-white: #f8f8ff;
-
-$primary: $blue;
-$dropdown-link-active-bg: $blue;
-$form-range-thumb-bg: $blue;
-$pagination-active-bg: $blue;
-$pagination-active-border-color: $blue;
-
-$link-color: #24d;
-$link-decoration: none;
-$link-hover-color: #24d;
-$link-hover-decoration: underline;
 
 $list-highlight: #ffc;
 $message-unread-bg: #cbeea7;
 $table-striped-bg: $off-white;
 
-// https://getbootstrap.com/docs/5.3/customize/color-modes/#adding-theme-colors
-$custom-colors: (
-    "primary": $primary,
-    "blue": $blue,
-    "green": $green,
-    "light-green": $light-green,
-);
-$theme-colors: map.merge($theme-colors, $custom-colors);
-
-$custom-spacers: (
-    "1-5": $spacer * 0.375,
-);
-$spacers: map.merge($spacers, $custom-spacers);
-
 $action-sidebar-width: min(400px, calc(100vw - 50px));
 $leaflet-sidebar-width: 250px;
 $navbar-mobile-height: 56px;
 
-$zindex-dropdown: 1010;
+// Boostrap configuration
+$min-contrast-ratio: 2;
+
+$link-color: #24d;
+$link-decoration: none;
+$link-hover-color: #24d;
+$link-hover-decoration: underline;
 
 $spinner-width: 3rem;
 $spinner-height: 3rem;
@@ -49,10 +29,4 @@ $spinner-height: 3rem;
 $accordion-button-active-bg: inherit;
 $accordion-button-active-color: inherit;
 
-$input-btn-padding-y-lg: $input-btn-padding-y;
-$input-btn-padding-x-lg: $input-btn-padding-x;
-$input-btn-font-size-lg: $font-size-base * 1.125;
-
-$btn-padding-y-lg: $input-btn-padding-y-lg;
-$btn-padding-x-lg: $input-btn-padding-x-lg;
-$btn-font-size-lg: $input-btn-font-size-lg;
+$zindex-dropdown: 1010;
