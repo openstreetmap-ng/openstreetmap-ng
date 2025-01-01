@@ -5,213 +5,234 @@
 {% block settings_title %}{{ t('settings.applications') }}{% endblock %}
 {% block settings_body %}
 
-<nav>
-    <ul class="nav nav-underline mb-3">
-        <li class="nav-item">
-            <a href="/settings/applications" class="nav-link">
-                {{ t('settings.authorizations.title') }}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/settings/applications/admin" class="nav-link active" aria-current="page">
-                {{ t('settings.my_applications.title') }}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/settings/applications/tokens" class="nav-link">
-                {{ t('settings.my_tokens.title') }}
-            </a>
-        </li>
-    </ul>
-</nav>
 
-<div class="row g-5">
-    <form class="edit-form col" method="POST" action="/api/web/settings/applications/admin/{{ app.id }}/edit">
+    {% set nav_active_href = "/settings/applications/admin" %}
+    {% include 'settings/applications/_nav.jinja2' %}
 
-        <label class="form-label d-block mb-3">
-            <span class="required">{{ t('settings.name') }}</span>
-            <input type="text" class="form-control mt-2" name="name" maxlength="{{ OAUTH_APP_NAME_MAX_LENGTH }}"
-                value="{{ app.name }}" required>
-        </label>
+    <div class="row g-3 g-lg-5 flex-wrap-reverse">
+        <form class="edit-form col-lg" method="POST" action="/api/web/settings/applications/admin/{{ app.id }}/edit">
 
-        <label class="form-label d-block mb-3">
-            {{ t('settings.client_id') }}
-            <div class="input-group copy-group mt-2">
-                <input type="text" class="form-control font-monospace bg-body-tertiary" value="{{ app.client_id }}"
-                    readonly>
-                <button class="btn btn-primary" title="{{ t('action.copy') }}" type="button">
-                    <i class="bi bi-copy"></i>
-                </button>
-            </div>
-        </label>
+            <label class="form-label d-block mb-3">
+                <span class="required">{{ t('settings.name') }}</span>
+                <input type="text" class="form-control mt-2" name="name" maxlength="{{ OAUTH_APP_NAME_MAX_LENGTH }}"
+                       value="{{ app.name }}" required>
+            </label>
 
-        <label class="reset-secret-control form-label d-block mb-3 {% if not app.is_confidential %}d-none{% endif %}">
-            {{ t('settings.client_secret') }}
-            <div class="input-group copy-group mt-2">
-                <input type="text" class="form-control font-monospace bg-body-tertiary"
-                    value="{% if app.client_secret_preview is not none %}{{ app.client_secret_preview }}...{% endif %}"
-                    readonly>
-                <button class="btn btn-light border reset-secret-button" type="button">
-                    <i class="bi bi-arrow-clockwise"></i>
-                    {{ t('settings.new_client_secret') }}
-                </button>
-                <button class="btn btn-primary" title="{{ t('action.copy') }}" type="button">
-                    <i class="bi bi-copy"></i>
-                </button>
-            </div>
-        </label>
+            <label class="form-label d-block mb-3">
+                {{ t('settings.client_id') }}
+                <div class="input-group copy-group mt-2">
+                    <input type="text" class="form-control font-monospace bg-body-tertiary" value="{{ app.client_id }}"
+                           readonly>
+                    <button class="btn btn-primary" title="{{ t('action.copy') }}" type="button">
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </div>
+            </label>
 
-        <label class="form-label">
-            <span class="required">{{ t('settings.client_type') }}</span>
-        </label>
-        <div class="ms-1">
-            <div class="form-check">
-                <label class="form-check-label w-100">
-                    <input class="form-check-input" type="radio" name="is_confidential" value="false"
-                        {% if not app.is_confidential %}checked{% endif %}>
-                    <i class="bi bi-unlock text-primary"></i>
-                    {{ t('settings.public_client') }}
-                </label>
-                <p class="form-text">
-                    {{ t('settings.public_client_description') }}
-                </p>
-                <label class="form-check-label w-100">
-                    <input class="form-check-input" type="radio" name="is_confidential" value="true"
-                        {% if app.is_confidential %}checked{% endif %}>
-                    <i class="bi bi-key text-primary"></i>
-                    {{ t('settings.confidential_client') }}
-                </label>
-                <p class="form-text">
-                    {{ t('settings.confidential_client_description') }}
-                </p>
-            </div>
-        </div>
+            <label
+                class="reset-secret-control form-label d-block mb-3 {% if not app.is_confidential %}d-none{% endif %}">
+                {{ t('settings.client_secret') }}
+                <div class="input-group copy-group mt-2">
+                    <input type="text" class="form-control font-monospace bg-body-tertiary"
+                           value="
 
-        <label class="form-label d-block">
-            {{ t('settings.redirect_uris') }}
-            <textarea class="form-control mt-2" name="redirect_uris" rows="4"
-                placeholder="http://127.0.0.1/callback">{{ app.redirect_uris_str }}</textarea>
-        </label>
-        <p class="form-text mb-3">
-            {{ t('settings.redirect_uris_description') }}
-        </p>
 
-        <p class="form-label">{{ t('settings.requested_permissions') }}</p>
-        <ul class="list-unstyled ms-1">
-            <li class="form-check">
-                <label class="form-check-label d-block">
-                    <input class="form-check-input" type="checkbox" name="read_prefs" value="true"
-                        {% if 'read_prefs' in app.scopes %}checked{% endif %}>
-                    {{ t('permissions.read_user_preferences') }}
-                    <span class="scope">(read_prefs)</span>
-                </label>
-            </li>
-            <li class="form-check">
-                <label class="form-check-label d-block">
-                    <input class="form-check-input" type="checkbox" name="write_prefs" value="true"
-                        {% if 'write_prefs' in app.scopes %}checked{% endif %}>
-                    {{ t('permissions.modify_user_preferences') }}
-                    <span class="scope">(write_prefs)</span>
-                </label>
-            </li>
-            <li class="form-check">
-                <label class="form-check-label d-block">
-                    <input class="form-check-input" type="checkbox" name="write_api" value="true"
-                        {% if 'write_api' in app.scopes %}checked{% endif %}>
-                    {{ t('permissions.manage_changesets_and_map_data') }}
-                    <span class="scope">(write_api)</span>
-                </label>
-            </li>
-            <li class="form-check">
-                <label class="form-check-label d-block">
-                    <input class="form-check-input" type="checkbox" name="read_gpx" value="true"
-                        {% if 'read_gpx' in app.scopes %}checked{% endif %}>
-                    {{ t('permissions.read_all_gps_traces') }}
-                    <span class="scope">(read_gpx)</span>
-                </label>
-            </li>
-            <li class="form-check">
-                <label class="form-check-label d-block">
-                    <input class="form-check-input" type="checkbox" name="write_gpx" value="true"
-                        {% if 'write_gpx' in app.scopes %}checked{% endif %}>
-                    {{ t('permissions.manage_gps_traces') }}
-                    <span class="scope">(write_gpx)</span>
-                </label>
-            </li>
-            <li class="form-check">
-                <label class="form-check-label d-block">
-                    <input class="form-check-input" type="checkbox" name="write_notes" value="true"
-                        {% if 'write_notes' in app.scopes %}checked{% endif %}>
-                    {{ t('permissions.manage_notes') }}
-                    <span class="scope">(write_notes)</span>
-                </label>
-            </li>
-        </ul>
 
-        <div class="row align-items-center">
-            <div class="col">
-            </div>
-            <div class="col-auto">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                               {% if app.client_secret_preview is not none %}{{ app.client_secret_preview }}...{% endif %}"
+                           readonly>
+                    <button class="btn btn-light border reset-secret-button" type="button">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        {{ t('settings.new_client_secret') }}
+                    </button>
+                    <button class="btn btn-primary" title="{{ t('action.copy') }}" type="button">
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </div>
+            </label>
+
+            <label class="form-label">
+                <span class="required">{{ t('settings.client_type') }}</span>
+            </label>
+            <div class="ms-1">
                 <div class="form-check">
-                    <label class="form-check-label">
-                        <input class="form-check-input" type="checkbox" name="revoke_all_authorizations" value="true">
-                        {{ t('settings.revoke_all_authorizations') }}
+                    <label class="form-check-label w-100">
+                        <input class="form-check-input" type="radio" name="is_confidential" value="false"
+                               {% if not app.is_confidential %}checked{% endif %}>
+                        <i class="bi bi-unlock text-primary"></i>
+                        {{ t('settings.public_client') }}
                     </label>
+                    <p class="form-text">
+                        {{ t('settings.public_client_description') }}
+                    </p>
+                    <label class="form-check-label w-100">
+                        <input class="form-check-input" type="radio" name="is_confidential" value="true"
+                               {% if app.is_confidential %}checked{% endif %}>
+                        <i class="bi bi-key text-primary"></i>
+                        {{ t('settings.confidential_client') }}
+                    </label>
+                    <p class="form-text">
+                        {{ t('settings.confidential_client_description') }}
+                    </p>
                 </div>
             </div>
-            <div class="col-auto">
-                <button class="btn btn-primary px-3" type="submit">
-                    {{ t('action.save_changes') }}
-                </button>
+
+            <label class="form-label d-block">
+                {{ t('settings.redirect_uris') }}
+                <textarea class="form-control mt-2" name="redirect_uris" rows="4"
+                          placeholder="http://127.0.0.1/callback">{{ app.redirect_uris_str }}</textarea>
+            </label>
+            <p class="form-text mb-3">
+                {{ t('settings.redirect_uris_description') }}
+            </p>
+
+            <p class="form-label">{{ t('settings.requested_permissions') }}</p>
+            <ul class="list-unstyled ms-1">
+                <li class="form-check">
+                    <label class="form-check-label d-block">
+                        <input class="form-check-input" type="checkbox" name="read_prefs" value="true"
+                               {% if 'read_prefs' in app.scopes %}checked{% endif %}>
+                        {{ t('permissions.read_user_preferences') }}
+                        <span class="scope">(read_prefs)</span>
+                    </label>
+                </li>
+                <li class="form-check">
+                    <label class="form-check-label d-block">
+                        <input class="form-check-input" type="checkbox" name="write_prefs" value="true"
+                               {% if 'write_prefs' in app.scopes %}checked{% endif %}>
+                        {{ t('permissions.modify_user_preferences') }}
+                        <span class="scope">(write_prefs)</span>
+                    </label>
+                </li>
+                <li class="form-check">
+                    <label class="form-check-label d-block">
+                        <input class="form-check-input" type="checkbox" name="write_api" value="true"
+                               {% if 'write_api' in app.scopes %}checked{% endif %}>
+                        {{ t('permissions.manage_changesets_and_map_data') }}
+                        <span class="scope">(write_api)</span>
+                    </label>
+                </li>
+                <li class="form-check">
+                    <label class="form-check-label d-block">
+                        <input class="form-check-input" type="checkbox" name="read_gpx" value="true"
+                               {% if 'read_gpx' in app.scopes %}checked{% endif %}>
+                        {{ t('permissions.read_all_gps_traces') }}
+                        <span class="scope">(read_gpx)</span>
+                    </label>
+                </li>
+                <li class="form-check">
+                    <label class="form-check-label d-block">
+                        <input class="form-check-input" type="checkbox" name="write_gpx" value="true"
+                               {% if 'write_gpx' in app.scopes %}checked{% endif %}>
+                        {{ t('permissions.manage_gps_traces') }}
+                        <span class="scope">(write_gpx)</span>
+                    </label>
+                </li>
+                <li class="form-check">
+                    <label class="form-check-label d-block">
+                        <input class="form-check-input" type="checkbox" name="write_notes" value="true"
+                               {% if 'write_notes' in app.scopes %}checked{% endif %}>
+                        {{ t('permissions.manage_notes') }}
+                        <span class="scope">(write_notes)</span>
+                    </label>
+                </li>
+            </ul>
+
+            <div class="row g-2 g-xl-3 align-items-center text-end">
+                <div class="col-xl">
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="checkbox" name="revoke_all_authorizations"
+                                   value="true">
+                            {{ t('settings.revoke_all_authorizations') }}
+                        </label>
+                    </div>
+                </div>
+                <div class="col-xl-auto">
+                    <button class="btn btn-primary px-3" type="submit">
+                        {{ t('action.save_changes') }}
+                    </button>
+                </div>
+            </div>
+
+        </form>
+
+        <div class="col-lg-auto">
+            <div class="d-flex justify-content-center mt-lg-2">
+                <form class="avatar-form" method="POST"
+                      action="/api/web/settings/applications/admin/{{ app.id }}/avatar"
+                      enctype="multipart/form-data">
+                    <input class="visually-hidden" type="file" name="avatar_file" accept="image/*">
+                    <img class="avatar" src="{{ app.avatar_url }}" alt="{{ t('alt.application_image') }}">
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light border dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            {{ t('layouts.edit') }}
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <h6 class="dropdown-header">
+                                    {{ t('alt.application_image') }}
+                                </h6>
+                            </li>
+                            <li>
+                                <button class="dropdown-item upload-btn" type="button">
+                                    {{ t('action.upload_image') }}...
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item remove-btn" type="button">
+                                    {{ t('action.remove_image') }}
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
 
+    <form class="reset-secret-form" method="POST"
+          action="/api/web/settings/applications/admin/{{ app.id }}/reset-client-secret">
     </form>
 
-    <div class="col-auto">
-        <form class="avatar-form mt-2" method="POST" action="/api/web/settings/applications/admin/{{ app.id }}/avatar"
-            enctype="multipart/form-data">
-            <input class="visually-hidden" type="file" name="avatar_file" accept="image/*">
-            <img class="avatar" src="{{ app.avatar_url }}" alt="{{ t('alt.application_image') }}">
+    <hr class="my-4">
 
-            <div class="dropdown">
-                <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    {{ t('layouts.edit') }}
-                </button>
-                <ul class="dropdown-menu">
-                    <li>
-                        <h6 class="dropdown-header">
-                            {{ t('alt.application_image') }}
-                        </h6>
-                    </li>
-                    <li>
-                        <button class="dropdown-item upload-btn" type="button">
-                            {{ t('action.upload_image') }}...
-                        </button>
-                    </li>
-                    <li>
-                        <button class="dropdown-item remove-btn" type="button">
-                            {{ t('action.remove_image') }}
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </form>
-    </div>
-</div>
-
-<form class="reset-secret-form" method="POST"
-    action="/api/web/settings/applications/admin/{{ app.id }}/reset-client-secret">
-</form>
-
-<hr class="my-4">
-
-<h3 class="mb-3">{{ t('settings.danger_zone') }}</h3>
-<form class="delete-form" method="POST" action="/api/web/settings/applications/admin/{{ app.id }}/delete">
-    <button class="btn btn-outline-danger" type="submit">
-        {{ t('settings.delete_application') }}
-    </button>
-</form>
+    <h3 class="mb-3">{{ t('settings.danger_zone') }}</h3>
+    <form class="delete-form" method="POST" action="/api/web/settings/applications/admin/{{ app.id }}/delete">
+        <button class="btn btn-outline-danger" type="submit">
+            {{ t('settings.delete_application') }}
+        </button>
+    </form>
 
 {% endblock %}

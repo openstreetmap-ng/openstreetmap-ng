@@ -27,8 +27,8 @@
                minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
     </label>
 
-    <div class="row align-items-center">
-        <div class="col-md mb-2 mb-md-0">
+    <div class="row g-2 g-md-3 align-items-center">
+        <div class="col-md">
             <div class="form-check ms-1">
                 <label class="form-check-label">
                     <input class="form-check-input" type="checkbox" name="revoke_other_sessions" value="true"
@@ -61,8 +61,8 @@
 <ul class="active-sessions list-unstyled">
     {% for session in active_sessions %}
     <li>
-        <div class="row align-items-center">
-            <div class="col-sm mb-2 mb-sm-0">
+        <div class="row g-2 align-items-center">
+            <div class="col-sm">
                 <h6 class="mb-1">
                     {% if session.id == current_session_id %}
                         <span class="current-session me-1" data-bs-toggle="tooltip"
