@@ -3,7 +3,7 @@
 {% block body_class %}user-profile-body{% endblock %}
 {% block body %}
 
-    <div class="content-header">
+    <div class="content-header px-0">
         <form class="background-form" method="POST" action="/api/web/settings/background" enctype="multipart/form-data">
             <input class="visually-hidden" type="file" name="background_file" accept="image/*">
             <img class="background" {% if profile.background_url %} src="{{ profile.background_url }}" {% endif %}
@@ -37,153 +37,150 @@
             {% endif %}
         </form>
 
-        <div class="container-fluid">
-            <div class="col-7 offset-3 d-flex">
-                <form class="avatar-form" method="POST" action="/api/web/settings/avatar" enctype="multipart/form-data">
-                    <input type="hidden" name="avatar_type" autocomplete="off" required>
-                    <input class="visually-hidden" type="file" name="avatar_file" accept="image/*">
-                    <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+        <div class="header-footer">
+            <div class="container">
+                <div class="d-flex offset-xxl-1">
+                    <form class="avatar-form" method="POST" action="/api/web/settings/avatar"
+                          enctype="multipart/form-data">
+                        <input type="hidden" name="avatar_type" autocomplete="off" required>
+                        <input class="visually-hidden" type="file" name="avatar_file" accept="image/*">
+                        <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
 
-                    {% if is_self %}
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-light border dropdown-toggle" type="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false">
-                                <i class="bi bi-person-circle text-muted me-1"></i>
-                                {{- t('layouts.edit') }}
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <h6 class="dropdown-header">
-                                        {{ t('alt.profile_picture') }}
-                                    </h6>
-                                </li>
-                                <li>
-                                    <button class="dropdown-item upload-btn" type="button">
-                                        {{ t('action.upload_image') }}...
-                                    </button>
-                                </li>
-                                <li>
-                                    <button class="dropdown-item gravatar-btn" type="button">
-                                        {{ t('profiles.edit.gravatar.gravatar') }}
-                                    </button>
-                                </li>
-                                <li>
-                                    <button class="dropdown-item remove-btn" type="button">
-                                        {{ t('action.remove_image') }}
-                                    </button>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="https://wiki.openstreetmap.org/wiki/Gravatar"
-                                       target="_blank">
-                                        {{ t('profiles.edit.gravatar.what_is_gravatar') }}
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    {% endif %}
-                </form>
+                        {% if is_self %}
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    <i class="bi bi-person-circle text-muted me-1"></i>
+                                    {{- t('layouts.edit') }}
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <h6 class="dropdown-header">
+                                            {{ t('alt.profile_picture') }}
+                                        </h6>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item upload-btn" type="button">
+                                            {{ t('action.upload_image') }}...
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item gravatar-btn" type="button">
+                                            {{ t('profiles.edit.gravatar.gravatar') }}
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item remove-btn" type="button">
+                                            {{ t('action.remove_image') }}
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="https://wiki.openstreetmap.org/wiki/Gravatar"
+                                           target="_blank">
+                                            {{ t('profiles.edit.gravatar.what_is_gravatar') }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </form>
 
-                <div class="info">
-                    <h1 class="d-flex align-items-center">
-                        {{ profile.display_name }}
-                        {# TODO: moderator/admin icon #}
-                        {% if is_new_user %}
-                            <span class="badge rounded-pill text-bg-green" data-bs-toggle="tooltip"
-                                  data-bs-title="{{ t('user.i_am_new_here') }}">
+                    <div class="info">
+                        <h1 class="d-flex align-items-center">
+                            {{ profile.display_name }}
+                            {# TODO: moderator/admin icon #}
+                            {% if is_new_user %}
+                                <span class="badge rounded-pill text-bg-green" data-bs-toggle="tooltip"
+                                      data-bs-title="{{ t('user.i_am_new_here') }}">
                         {{ t('user.new') }}
                     </span>
-                        {% endif %}
-                    </h1>
-                    <p class="mapper-since mb-2">
-                        {{ t('users.show.mapper since') | title }}
-                        <time datetime="{{ profile.created_at.date().isoformat() }}" data-date="long"></time>
-                    </p>
-                    <div class="user-actions mb-2">
-                        {% if user is not none and not is_self %}
-                            <address>
-                                <a href="/message/new?to_id={{ profile.id }}" class="btn btn-sm btn-light border">
-                                    <i class="bi bi-envelope-plus me-2"></i>
-                                    {{- t('action.send_a_message') }}
-                                </a>
-                            </address>
-                        {% endif %}
+                            {% endif %}
+                        </h1>
+                        <p class="mapper-since mb-2">
+                            {{ t('users.show.mapper since') | title }}
+                            <time datetime="{{ profile.created_at.date().isoformat() }}" data-date="long"></time>
+                        </p>
+                        <div class="user-actions mb-2">
+                            {% if user is not none and not is_self %}
+                                <address>
+                                    <a href="/message/new?to_id={{ profile.id }}" class="btn btn-sm btn-light border">
+                                        <i class="bi bi-envelope-plus me-2"></i>
+                                        {{- t('action.send_a_message') }}
+                                    </a>
+                                </address>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="content-body g-5">
-        <div class="row g-5">
-            <div class="col-5 offset-2">
-                {% if profile.description or is_self %}
-                    <h3 class="ms-1 mb-3 d-flex align-items-center">
-                        {{ t('user.about_me' ) }}
-                        {% if is_self %}
-                            <button class="btn btn-sm btn-light border ms-3" data-bs-toggle="modal"
-                                    data-bs-target="#profileDescriptionModal">
-                                <i class="bi bi-pencil-square me-1"></i>
-                                {{- t('user.edit_description') }}
-                            </button>
+    <div class="content-body">
+        <div class="container">
+            <div class="row g-4 g-xl-5">
+                <div class="col-lg-7">
+                    {% if profile.description or is_self %}
+                        <h3 class="ms-1 mb-3 d-flex align-items-center">
+                            {{ t('user.about_me' ) }}
+                            {% if is_self %}
+                                <button class="btn btn-sm btn-light border ms-3" data-bs-toggle="modal"
+                                        data-bs-target="#profileDescriptionModal">
+                                    <i class="bi bi-pencil-square me-1"></i>
+                                    {{- t('user.edit_description') }}
+                                </button>
+                            {% endif %}
+                        </h3>
+                        {% if profile.description %}
+                            <div class="mb-4 ms-1 rich-text">{{ profile.description_rich | safe }}</div>
+                        {% else %}
+                            <div class="mb-4 ms-1 form-text">{{ t('user.you_have_not_provided_a_description') }}</div>
                         {% endif %}
-                    </h3>
-                    {% if profile.description %}
-                        <div class="mb-4 ms-1 rich-text">{{ profile.description_rich | safe }}</div>
-                    {% else %}
-                        <div class="mb-4 ms-1 form-text">{{ t('user.you_have_not_provided_a_description') }}</div>
                     {% endif %}
-                {% endif %}
 
-                <h3 class="ms-1 mb-3">{{ t('user.contributions' ) }}</h3>
-                <div class="row g-3">
-                    <div class="col-6">
-                        {% include 'user/profile/_edits.jinja2' %}
-                    </div>
-                    <div class="col-6">
-                        {% include 'user/profile/_notes.jinja2' %}
-                    </div>
-                    <div class="col-6">
-                        {% include 'user/profile/_traces.jinja2' %}
-                    </div>
-                    <div class="col-6">
-                        {% include 'user/profile/_diaries.jinja2' %}
+                    <h3 class="ms-1 mb-3">{{ t('user.contributions' ) }}</h3>
+                    <div class="row row-cols-sm-2 g-3">
+                        <div>{% include 'user/profile/_edits.jinja2' %}</div>
+                        <div>{% include 'user/profile/_notes.jinja2' %}</div>
+                        <div>{% include 'user/profile/_traces.jinja2' %}</div>
+                        <div>{% include 'user/profile/_diaries.jinja2' %}</div>
                     </div>
                 </div>
-            </div>
-            <div class="col-3">
-                {% include 'user/profile/_activity.jinja2' %}
-                <hr>
-                {% include 'user/profile/_groups.jinja2' %}
+                <div class="col-lg-5">
+                    {% include 'user/profile/_activity.jinja2' %}
+                    <hr>
+                    {% include 'user/profile/_groups.jinja2' %}
 
-                {# TODO: if user is none or user.id != profile.id #}
-                <button class="btn btn-light border w-100 mt-4">
-                    {{ t('action.follow_user') }}
-                    <i class="bi bi-bookmark-plus"></i>
-                </button>
-                <p class="form-text mx-1">
-                    {# TODO: localize #}
-                    Following a user will allow you to quickly access their profile and see their activity.
-                    You can always unfollow any user from your follow list.
-                </p>
+                    {# TODO: if user is none or user.id != profile.id #}
+                    <button class="btn btn-light border w-100 mt-4">
+                        {{ t('action.follow_user') }}
+                        <i class="bi bi-bookmark-plus"></i>
+                    </button>
+                    <p class="form-text mx-1">
+                        {# TODO: localize #}
+                        Following a user will allow you to quickly access their profile and see their activity.
+                        You can always unfollow any user from your follow list.
+                    </p>
 
-                <div class="text-end">
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-danger">{{ t('action.report_abuse') }}</button>
-                        <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="visually-hidden">{{ t('action.show_more') }}</span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <button class="dropdown-item">
-                                    TODO:
-                                    {{ t('action.block_user') }}
-                                </button>
-                            </li>
-                        </ul>
+                    <div class="text-end">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-danger">{{ t('action.report_abuse') }}</button>
+                            <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">{{ t('action.show_more') }}</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <button class="dropdown-item">
+                                        TODO:
+                                        {{ t('action.block_user') }}
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
