@@ -7,6 +7,7 @@ from sqlalchemy import func, null, select, text
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.options_context import apply_options_context
+from app.lib.user_name_blacklist import is_user_name_blacklisted
 from app.limits import NEARBY_USERS_RADIUS_METERS
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
@@ -91,19 +92,15 @@ class UserQuery:
         Check if a display name is available.
         """
         user = auth_user()
-        if user is not None:
-            # check if the name is unchanged
-            if user.display_name == display_name:
-                return True
-
-            # check if the name is available
-            other_user = await UserQuery.find_one_by_display_name(display_name)
-            return other_user is None or other_user.id == user.id
-
-        else:
-            # check if the name is available
-            other_user = await UserQuery.find_one_by_display_name(display_name)
-            return other_user is None
+        # check if the name is unchanged
+        if user is not None and user.display_name == display_name:
+            return True
+        # check if the name is blacklisted
+        if is_user_name_blacklisted(display_name):
+            return False
+        # check if the name is available
+        other_user = await UserQuery.find_one_by_display_name(display_name)
+        return other_user is None or (user is not None and other_user.id == user.id)
 
     @staticmethod
     async def check_email_available(email: EmailType) -> bool:
@@ -111,19 +108,12 @@ class UserQuery:
         Check if an email is available.
         """
         user = auth_user()
-        if user is not None:
-            # check if the email is unchanged
-            if user.email == email:
-                return True
-
-            # check if the email is available
-            other_user = await UserQuery.find_one_by_email(email)
-            return other_user is None or other_user.id == user.id
-
-        else:
-            # check if the email is available
-            other_user = await UserQuery.find_one_by_email(email)
-            return other_user is None
+        # check if the email is unchanged
+        if user is not None and user.email == email:
+            return True
+        # check if the email is available
+        other_user = await UserQuery.find_one_by_email(email)
+        return other_user is None or (user is not None and other_user.id == user.id)
 
     @staticmethod
     async def resolve_elements_users(elements: Collection[Element], *, display_name: bool) -> None:

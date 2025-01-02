@@ -22,6 +22,7 @@ from app.config import (
 )
 from app.lib.bun_packages import ID_VERSION, RAPID_VERSION
 from app.lib.starlette_convertor import ElementTypeConvertor
+from app.lib.user_name_blacklist import user_name_blacklist_routes
 from app.limits import (
     COMPRESS_HTTP_BROTLI_QUALITY,
     COMPRESS_HTTP_GZIP_LEVEL,
@@ -141,32 +142,30 @@ main.mount(
 )
 
 
-def _make_router(path: str, prefix: str) -> APIRouter:
+def _make_router(path: pathlib.Path, prefix: str) -> APIRouter:
     """
     Create a router from all modules in the given path.
     """
     router = APIRouter(prefix=prefix)
-    router_counter = 0
-    routes_counter = 0
-
-    for p in pathlib.Path(path).glob('*.py'):
-        module_name = p.with_suffix('').as_posix().replace('/', '.')
+    router_counter: int = 0
+    routes_counter: int = 0
+    for p in path.glob('*.py'):
+        module_name = p.as_posix().replace('/', '.')[:-3]
         module = importlib.import_module(module_name)
         router_attr: APIRouter | None = getattr(module, 'router', None)
-
-        if isinstance(router_attr, APIRouter):
-            setup_api_router_response(router_attr)
-            router.include_router(router_attr)
-            router_counter += 1
-            routes_counter += len(router_attr.routes)
-        else:
+        if not isinstance(router_attr, APIRouter):
             logging.warning('APIRouter not found in %s', module_name)
-
+            continue
+        setup_api_router_response(router_attr)
+        router.include_router(router_attr)
+        router_counter += 1
+        routes_counter += len(router_attr.routes)
     logging.info('Loaded (%d routers, %d routes) from %s as %r', router_counter, routes_counter, path, prefix)
     return router
 
 
-main.include_router(_make_router('app/controllers', ''))
+main.include_router(_make_router(pathlib.Path('app/controllers'), ''))
+user_name_blacklist_routes(main)
 
 
 @main.exception_handler(ExceptionGroup)
