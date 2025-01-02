@@ -90,16 +90,26 @@
                     </form>
 
                     <div class="info">
-                        <h1 class="d-flex align-items-center">
-                            {{ profile.display_name }}
-                            {# TODO: moderator/admin icon #}
+                        <div class="row g-2 g-md-3 h1">
+                            <h1 class="col-auto d-flex align-items-center mb-0">
+                                {{ profile.display_name }}
+                                {% if profile.is_administrator %}
+                                    <i class="role bi bi-star-fill text-danger ms-2" data-bs-toggle="tooltip"
+                                       data-bs-title="{{ t('users.show.role.administrator') }}"></i>
+                                {% elif profile.is_moderator %}
+                                    <i class="role bi bi-star-fill text-blue ms-2" data-bs-toggle="tooltip"
+                                       data-bs-title="{{ t('users.show.role.moderator') }}"></i>
+                                {% endif %}
+                            </h1>
                             {% if is_new_user %}
-                                <span class="badge rounded-pill text-bg-green" data-bs-toggle="tooltip"
-                                      data-bs-title="{{ t('user.i_am_new_here') }}">
-                        {{ t('user.new') }}
-                    </span>
+                                <div class="col-auto d-flex align-items-center">
+                                    <span class="badge rounded-pill text-bg-green" data-bs-toggle="tooltip"
+                                          data-bs-title="{{ t('user.i_am_new_here') }}">
+                                        {{- t('user.new') -}}
+                                    </span>
+                                </div>
                             {% endif %}
-                        </h1>
+                        </div>
                         <p class="mapper-since mb-2">
                             {{ t('users.show.mapper since') | title }}
                             <time datetime="{{ profile.created_at.date().isoformat() }}" data-date="long"></time>

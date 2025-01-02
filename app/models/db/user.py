@@ -198,7 +198,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
             extra.append(Scope.role_administrator)
         if self.is_moderator:
             extra.append(Scope.role_moderator)
-        return (*scopes, *extra)
+        return *scopes, *extra
 
     @property
     def avatar_url(self) -> str:

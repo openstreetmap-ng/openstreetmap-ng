@@ -26,14 +26,12 @@
 
         .info {
             margin-top: 6.5rem;
-            margin-left: calc(8em * 1.5 + 1.5em);
+            margin-left: calc(min(5rem + 2.5vw, 8rem) * 1.5 + 1rem + 0.5vw);
             transition: margin-top 0.3s;
 
+            .role,
             .badge {
-                margin-left: 0.55em;
-                position: relative;
                 font-size: 0.5em;
-                top: 0.1em;
                 cursor: help;
             }
         }
@@ -96,7 +94,7 @@
         bottom: -0.75rem;
 
         img.avatar {
-            font-size: 8em;
+            font-size: min(5rem + 2.5vw, 8rem);
             box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.05);
             pointer-events: none;
             transition: opacity 0.3s;

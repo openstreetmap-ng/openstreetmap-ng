@@ -12,29 +12,28 @@
 <table class="activity-chart mb-2">
     <tr class="months-row">
         {% for month in activity_months %}
-        {% if month is not none %}
-        <td class="month-cell">{{ month }}</td>
-        {% else %}
-        <td></td>
-        {% endif %}
+            {% if month is not none %}
+                <td class="month-cell">{{ month }}</td>
+            {% else %}
+                <td></td>
+            {% endif %}
         {% endfor %}
     </tr>
     {% for weekday, row in zip(activity_weekdays, activity_rows) %}
-    <tr>
-        <td class="week-cell">{{ weekday }}</td>
-        {% for day in row %}
-        <td>
-            {% if day.value > 0 %}
-            {% set title = nt('user.activity.details.count', day.value, date=day.date) %}
-            {% else %}
-            {% set title = t('user.activity.details.no_activity', date=day.date) %}
-            {% endif %}
-            <div class="activity activity-{{ day.level }}" data-bs-title="{{ title }}" data-bs-toggle="tooltip"
-                data-bs-placement="bottom">
-            </div>
-        </td>
-        {% endfor %}
-    </tr>
+        <tr>
+            <td class="week-cell">{{ weekday }}</td>
+            {% for day in row %}
+                <td>
+                    {% if day.value > 0 %}
+                        {% set title = nt('user.activity.details.count', day.value, date=day.date) %}
+                    {% else %}
+                        {% set title = t('user.activity.details.no_activity', date=day.date) %}
+                    {% endif %}
+                    <div class="activity activity-{{ day.level }}" data-bs-title="{{ title }}"
+                         data-bs-toggle="tooltip"></div>
+                </td>
+            {% endfor %}
+        </tr>
     {% endfor %}
 </table>
 
