@@ -3,24 +3,23 @@
 {% block body %}
 
 <div class="content-header">
-    <div class="col-6 offset-3">
-        <h1>
-            <span>{{ t('confirmations.confirm.heading') }}</span>
-            <img class="illustration" src="/static/img/account-confirm/illustration.webp"
-                 alt="{{ t('alt.happy_globe_mascot') }}">
-        </h1>
-    </div>
+    <h1 class="col-lg-9 offset-lg-2 col-xxl-8 offset-xxl-3">
+        <span>{{ t('confirmations.confirm.heading') }}</span>
+        <img class="illustration" src="/static/img/account-confirm/illustration.webp"
+             alt="{{ t('alt.happy_globe_mascot') }}">
+    </h1>
 </div>
 <div class="content-body">
-    <form class="col-6 offset-3 resend-form" method="POST" action="/api/web/user/account-confirm/resend">
+    <form class="resend-form col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3" method="POST"
+          action="/api/web/user/account-confirm/resend">
         <h3 class="mb-3">{{ t('confirmations.confirm.introduction_1') }}</h3>
         <p class="mb-3">{{ t('confirmations.confirm.introduction_2') }}</p>
         <p>
-            {% set reconfirm_link %}
+            {% set reconfirm_link -%}
             <button class="btn btn-link p-0" type="submit">
-                {{ t('confirmations.confirm.click_here') }}
+                {{- t('confirmations.confirm.click_here') -}}
             </button>
-            {% endset %}
+            {%- endset %}
             {{ t(
                 'confirmations.confirm.resend_html',
                 reconfirm_link=reconfirm_link
