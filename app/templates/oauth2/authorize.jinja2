@@ -4,64 +4,71 @@
 {% block body %}
 
 <div class="content-header"></div>
-<div class="content-body mt-5">
-    <div class="col-6 offset-3">
+<div class="content-body mt-4 mt-sm-5">
+    <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
         <form class="authorize-form card" method="POST">
-            <div class="card-body p-5">
+            <div class="card-body py-4 py-sm-5 px-3 px-sm-4 px-md-5">
                 <div class="d-flex justify-content-center align-items-center mb-3">
                     <img class="header-avatar avatar" src="{{ app.avatar_url }}" alt="{{ t('alt.application_image') }}">
-                    <i class="bi bi-arrow-right fs-4 mx-3"></i>
-                    <img class="header-avatar avatar" src="{{ user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                    <i class="bi bi-arrow-right fs-4 mx-3 d-none d-md-block"></i>
+                    <img class="header-avatar avatar d-none d-md-block" src="{{ user.avatar_url }}"
+                         alt="{{ t('alt.profile_picture') }}">
                 </div>
                 <h4 class="card-title text-center mb-0">
-                    {% set app_name %}
+                    {% set _app_name %}
                     <b>{{ app.name }}</b>
                     {% endset %}
-                    {{ t('oauth.authorize_app_to_access_your_account', name=app_name) | safe }}
+                    {{ t('oauth.authorize_app_to_access_your_account', name=_app_name) | safe }}
                 </h4>
                 <p class="text-secondary small text-center mb-4">
-                    {% set user_link %}
-                    <a href="/user/{{ user.display_name }}" target="_blank">{{ user.display_name }}</a>
+                    {% set _user_link %}
+                    <a href="/user/{{ user.display_name }}" target="_blank">
+                        <img class="avatar me-1 d-md-none" src="{{ user.avatar_url }}"
+                             alt="{{ t('alt.profile_picture') }}">
+                        {{- user.display_name -}}
+                    </a>
                     {% endset %}
-                    {{ t('oauth.you_are_currently_signed_in_as', name=user_link) | safe }}
+                    {{ t('oauth.you_are_currently_signed_in_as', name=_user_link) | safe }}
                 </p>
 
-                <div class="row g-2 mb-5">
-                    <div class="col">
-                        <h5>{{ t('oauth.app_is_requesting_permissions_to', name=app_name) | safe }}</h5>
+                <div class="row row-cols-lg-2 g-3 mb-4 mb-lg-5">
+                    <div>
+                        <h5>{{ t('oauth.app_is_requesting_permissions_to', name=_app_name) | safe }}</h5>
                         <ul class="list-unstyled mb-0">
                             {% for scope in scopes %}
-                            {% set scope = scope.value %}
-                            <li>
-                                <i class="bi bi-check text-success"></i>
-                                {% if scope == 'read_prefs' %}
-                                {{ t('permissions.read_user_preferences') }}
-                                {% elif scope == 'write_prefs' %}
-                                {{ t('permissions.modify_user_preferences') }}
-                                {% elif scope == 'write_api' %}
-                                {{ t('permissions.manage_changesets_and_map_data') }}
-                                {% elif scope == 'read_gpx' %}
-                                {{ t('permissions.read_all_gps_traces') }}
-                                {% elif scope == 'write_gpx' %}
-                                {{ t('permissions.manage_gps_traces') }}
-                                {% elif scope == 'write_notes' %}
-                                {{ t('permissions.manage_notes') }}
-                                {% elif scope == 'web_user' %}
-                                {{ t('permissions.access_the_website') }}
-                                {% endif %}
-                                <span class="scope">({{ scope }})</span>
-                            </li>
+                                {% set scope = scope.value %}
+                                <li class="d-flex">
+                                    <i class="bi bi-check text-success me-1"></i>
+                                    <span>
+                                        {% if scope == 'read_prefs' %}
+                                            {{ t('permissions.read_user_preferences') }}
+                                        {% elif scope == 'write_prefs' %}
+                                            {{ t('permissions.modify_user_preferences') }}
+                                        {% elif scope == 'write_api' %}
+                                            {{ t('permissions.manage_changesets_and_map_data') }}
+                                        {% elif scope == 'read_gpx' %}
+                                            {{ t('permissions.read_all_gps_traces') }}
+                                        {% elif scope == 'write_gpx' %}
+                                            {{ t('permissions.manage_gps_traces') }}
+                                        {% elif scope == 'write_notes' %}
+                                            {{ t('permissions.manage_notes') }}
+                                        {% elif scope == 'web_user' %}
+                                            {{ t('permissions.access_the_website') }}
+                                        {% endif %}
+                                        <span class="scope">({{ scope }})</span>
+                                    </span>
+                                </li>
                             {% endfor %}
                             {% if not scopes %}
-                            <li>
-                                <i class="bi bi-dot text-muted"></i>
-                                {{ t('permissions.no_permissions') }}
-                            </li>
+                                <li>
+                                    <i class="bi bi-dot text-muted"></i>
+                                    {{ t('permissions.no_permissions') }}
+                                </li>
                             {% endif %}
                         </ul>
                     </div>
 
-                    <div class="col">
+                    <div>
                         <h5>{{ t('oauth.authorizing_will_redirect_you_to') }}</h5>
                         <ul class="list-unstyled">
                             <li>
@@ -72,30 +79,30 @@
 
                         <h5>{{ t('oauth.application_information') }}</h5>
                         <ul class="list-unstyled mb-0">
-                            {% set owner_link %}
+                            {% set _owner_link %}
                             <a href="/user/{{ app.user.display_name }}" target="_blank">
                                 <img class="avatar me-1" src="{{ app.user.avatar_url }}"
-                                    alt="{{ t('alt.profile_picture') }}">
+                                     alt="{{ t('alt.profile_picture') }}">
                                 {{- app.user.display_name -}}
                             </a>
                             {% endset %}
-                            {{ t('settings.owned_by_user', name=owner_link) | safe }}
+                            {{ t('settings.owned_by_user', name=_owner_link) | safe }}
                             ·
-                            {% set time_ago -%}
+                            {% set _time_ago -%}
                             <time datetime="{{ app.created_at.isoformat() }}" data-style="long"></time>
                             {%- endset %}
-                            {{ t('browse.created_ago_html', time_ago=time_ago) | safe }}
+                            {{ t('browse.created_ago_html', time_ago=_time_ago) | safe }}
                         </ul>
                     </div>
                 </div>
 
                 <hr class="mb-4">
 
-                <div class="row g-2 mb-2">
-                    <div class="col">
+                <div class="row row-cols-sm-2 flex-wrap-reverse g-2 mb-2">
+                    <div>
                         <a href="/" class="btn btn-lg btn-outline-secondary d-block">{{ t('action.cancel') }}</a>
                     </div>
-                    <div class="col">
+                    <div>
                         <button class="btn btn-lg btn-primary w-100" type="submit">{{ t('action.authorize') }}</button>
                     </div>
                 </div>

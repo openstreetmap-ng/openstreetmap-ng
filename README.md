@@ -104,7 +104,7 @@ The following table outlines the notable features that need to be finished befor
 
 | Missing Feature       | Status       |
 |-----------------------|--------------|
-| Mobile Responsiveness | 80% Complete |
+| Mobile Responsiveness | 85% Complete |
 | Dark Theme            | 30% Complete |
 
 ---
