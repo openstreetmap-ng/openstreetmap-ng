@@ -9,29 +9,29 @@
         {% endset %}
 
         {% if comment.event.value == 'opened' %}
-        {{ t('api.notes.comment.opened_at_by_html', when=when, user=user) | safe }}
-        {% elseif comment.event.value == 'closed' %}
-        {{ t('api.notes.comment.closed_at_by_html', when=when, user=user) | safe }}
-        {% elseif comment.event.value == 'reopened' %}
-        {{ t('api.notes.comment.reopened_at_by_html', when=when, user=user) | safe }}
-        {% elseif comment.event.value == 'commented' %}
-        {{ t('api.notes.comment.commented_at_by_html', when=when, user=user) | safe }}
-        {% elseif comment.event.value == 'hidden' %}
-        {{ t('api.notes.comment.hidden_at_by_html', when=when, user=user) | safe }}
+            {{ t('api.notes.comment.opened_at_by_html', when=when, user=user) | safe }}
+            {% elseif comment.event.value == 'closed' %}
+            {{ t('api.notes.comment.closed_at_by_html', when=when, user=user) | safe }}
+            {% elseif comment.event.value == 'reopened' %}
+            {{ t('api.notes.comment.reopened_at_by_html', when=when, user=user) | safe }}
+            {% elseif comment.event.value == 'commented' %}
+            {{ t('api.notes.comment.commented_at_by_html', when=when, user=user) | safe }}
+            {% elseif comment.event.value == 'hidden' %}
+            {{ t('api.notes.comment.hidden_at_by_html', when=when, user=user) | safe }}
         {% endif %}
 
         {% else %}
 
         {% if comment.event.value == 'opened' %}
-        {{ t('api.notes.comment.opened_at_html', when=when) | safe }}
-        {% elseif comment.event.value == 'closed' %}
-        {{ t('api.notes.comment.closed_at_html', when=when) | safe }}
-        {% elseif comment.event.value == 'reopened' %}
-        {{ t('api.notes.comment.reopened_at_html', when=when) | safe }}
-        {% elseif comment.event.value == 'commented' %}
-        {{ t('api.notes.comment.commented_at_html', when=when) | safe }}
-        {% elseif comment.event.value == 'hidden' %}
-        {{ t('api.notes.comment.hidden_at_html', when=when) | safe }}
+            {{ t('api.notes.comment.opened_at_html', when=when) | safe }}
+            {% elseif comment.event.value == 'closed' %}
+            {{ t('api.notes.comment.closed_at_html', when=when) | safe }}
+            {% elseif comment.event.value == 'reopened' %}
+            {{ t('api.notes.comment.reopened_at_html', when=when) | safe }}
+            {% elseif comment.event.value == 'commented' %}
+            {{ t('api.notes.comment.commented_at_html', when=when) | safe }}
+            {% elseif comment.event.value == 'hidden' %}
+            {{ t('api.notes.comment.hidden_at_html', when=when) | safe }}
         {% endif %}
 
         {% endif %}
