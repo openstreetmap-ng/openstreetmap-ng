@@ -6,13 +6,11 @@
     // Add background to the note icon
     // (it's used as an example at the fixthemap page)
     .note-link {
-        position: relative;
-        top: 0.38em;
         display: inline-block;
         background: rgba(0, 0, 0, 0.6);
         border-radius: $border-radius-sm;
         line-height: 1;
-        padding: 0 1px;
+        padding: 1px;
 
         .icon.new-note {
             margin: unset;

@@ -4,14 +4,12 @@
 {% block body %}
 
     <div class="content-header">
-        <div class="col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3">
-            <h1>
-                {{ t('traces.new.upload_trace') }}
-            </h1>
-        </div>
+        <h1 class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
+            {{ t('traces.new.upload_trace') }}
+        </h1>
     </div>
     <div class="content-body">
-        <div class="col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3">
+        <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
             <form class="upload-form" method="POST" action="/api/web/traces/upload" enctype="multipart/form-data">
 
                 <label class="form-label d-block mb-3">

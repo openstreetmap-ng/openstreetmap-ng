@@ -24,7 +24,7 @@
             </div>
         </div>
         <div class="signup-content col">
-            <div class="col-12 col-xl-9">
+            <div class="col-12 col-xxl-9">
                 <form class="signup-form" method="POST" action="/api/web/user/signup">
                     <div class="text-center">
                         <h1 class="brand-title-sm fw-bold d-xl-none">
@@ -76,36 +76,37 @@
                     <div class="form-check small mx-1 mb-3">
                         <label class="form-check-label">
                             <input class="form-check-input" type="checkbox" autocomplete="off" required>
-                            {% set terms_link %}
+                            {% set _terms_link %}
                             <a href="https://osmfoundation.org/wiki/Terms_of_Use" rel="terms-of-service"
                                target="_blank">
                                 {{- t('layouts.tou') | lower -}}
                             </a>
                             {%- endset %}
-                            {% set privacy_link %}
+                            {% set _privacy_link %}
                             <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy"
                                target="_blank">
                                 {{- t('users.new.privacy_policy') -}}
                             </a>
                             {%- endset %}
-                            {% set contributor_link %}
+                            {% set _contributor_link %}
                             <a href="https://osmfoundation.org/wiki/Licence/Contributor_Terms" target="_blank">
                                 {{- t('accounts.edit.contributor terms.heading') | lower -}}
                             </a>
                             {%- endset %}
                             <span class="required">
                                 {{ t('signup.i_agree_to_the_terms_privacy_and_contributor',
-                                    terms=terms_link,
-                                    privacy=privacy_link,
-                                    contributor=contributor_link
+                                    terms=_terms_link,
+                                    privacy=_privacy_link,
+                                    contributor=_contributor_link
                                 ) | safe -}}
                             </span>
                         </label>
                     </div>
 
                     <input type="hidden" name="tracking" autocomplete="off" required>
-                    <button class="btn btn-lg btn-primary rounded-pill fw-medium w-100"
-                            type="submit">{{ t('layouts.sign_up') | capitalize }}</button>
+                    <button
+                        class="btn btn-lg py-2 btn-primary rounded-pill fw-medium col-12 col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-6 offset-lg-3 col-xl-12 offset-xl-0"
+                        type="submit">{{ t('layouts.sign_up') | capitalize }}</button>
                 </form>
 
                 {% if not display_name_value and not email_value %}

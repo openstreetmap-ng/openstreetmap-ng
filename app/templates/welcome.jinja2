@@ -13,16 +13,16 @@
         <p class="lead mb-4">{{ t('site.welcome.introduction') }}</p>
 
         <h3 class="mb-3">{{ t('site.welcome.whats_on_the_map.title') }}</h3>
-        <div class="row row-cols-2 g-4 mb-4">
+        <div class="row row-cols-md-2 g-3 g-md-4 mb-4">
 
-            <div class="col">
+            <div>
                 <div class="card h-100 tutorial-card should">
                     <div class="card-body">
                         <p class="mb-0">
-                            {% set real_and_current %}<i>{{ t('site.welcome.whats_on_the_map.real_and_current') }}</i>{% endset %}
+                            {% set _real_and_current %}<i>{{ t('site.welcome.whats_on_the_map.real_and_current') }}</i>{% endset %}
                             {{ t(
                                 'site.welcome.whats_on_the_map.on_the_map_html',
-                                real_and_current=real_and_current,
+                                real_and_current=_real_and_current
                             ) | safe }}
                         </p>
                     </div>
@@ -30,14 +30,14 @@
                 </div>
             </div>
 
-            <div class="col">
+            <div>
                 <div class="card h-100 tutorial-card should-not">
                     <div class="card-body">
                         <p class="mb-0">
-                            {% set doesnt %}<i>{{ t('site.welcome.whats_on_the_map.doesnt') }}</i>{% endset %}
+                            {% set _doesnt %}<i>{{ t('site.welcome.whats_on_the_map.doesnt') }}</i>{% endset %}
                             {{ t(
                                 'site.welcome.whats_on_the_map.off_the_map_html',
-                                doesnt=doesnt,
+                                doesnt=_doesnt
                             ) | safe }}
                         </p>
                     </div>
@@ -50,9 +50,9 @@
         <h3>{{ t('site.welcome.basic_terms.title') }}</h3>
         <p>{{ t('site.welcome.basic_terms.paragraph_1') }}</p>
 
-        <div class="row row-cols-4 g-3 mb-4">
+        <div class="row row-cols-sm-2 row-cols-lg-4 g-3 mb-4">
 
-            <div class="col">
+            <div>
                 <div class="card h-100">
                     <div class="card-header bg-transparent text-center text-primary fw-bold">
                         <i class="bi bi-pencil-fill"></i>
@@ -62,7 +62,7 @@
                         <p class="card-text">
                             {{ t(
                                 'site.welcome.basic_terms.an_editor_html',
-                                editor=t('site.welcome.basic_terms.editor'),
+                                editor=t('site.welcome.basic_terms.editor')
                             ) | safe }}
                         </p>
                     </div>
@@ -77,7 +77,7 @@
                 </div>
             </div>
 
-            <div class="col">
+            <div>
                 <div class="card h-100">
                     <div class="card-header bg-transparent text-center text-primary fw-bold">
                         <i class="bi bi-geo-alt-fill"></i>
@@ -87,7 +87,7 @@
                         <p class="card-text">
                             {{ t(
                                 'site.welcome.basic_terms.a_node_html',
-                                node=t('javascripts.query.node').lower(),
+                                node=t('javascripts.query.node').lower()
                             ) | safe }}
                         </p>
                     </div>
@@ -102,7 +102,7 @@
                 </div>
             </div>
 
-            <div class="col">
+            <div>
                 <div class="card h-100">
                     <div class="card-header bg-transparent text-center text-primary fw-bold">
                         <i class="bi bi-sign-turn-right-fill"></i>
@@ -112,7 +112,7 @@
                         <p class="card-text">
                             {{ t(
                                 'site.welcome.basic_terms.a_way_html',
-                                way=t('javascripts.query.way').lower(),
+                                way=t('javascripts.query.way').lower()
                             ) | safe }}
                         </p>
                     </div>
@@ -127,7 +127,7 @@
                 </div>
             </div>
 
-            <div class="col">
+            <div>
                 <div class="card h-100">
                     <div class="card-header bg-transparent text-center text-primary fw-bold">
                         <i class="bi bi-tag-fill"></i>
@@ -137,7 +137,7 @@
                         <p class="card-text">
                             {{ t(
                                 'site.welcome.basic_terms.a_tag_html',
-                                tag=t('site.welcome.basic_terms.tag'),
+                                tag=t('site.welcome.basic_terms.tag')
                             ) | safe }}
                         </p>
                     </div>
@@ -156,54 +156,55 @@
 
         <h3>{{ t('site.welcome.rules.title') | stripspecial }}</h3>
         <p>
-            {% set imports_link %}
+            {% set _imports_link %}
             <a href="https://wiki.openstreetmap.org/wiki/Import/Guidelines">
                 {{ t('site.welcome.rules.imports') | lower -}}
             </a>
             {%- endset %}
-            {% set automated_edits_link %}
+            {% set _automated_edits_link %}
             <a href="https://wiki.openstreetmap.org/wiki/Automated_Edits_code_of_conduct">
                 {{ t('site.welcome.rules.automated_edits') | lower -}}
             </a>
             {%- endset %}
             {{ t(
                 'site.welcome.rules.para_1_html',
-                imports_link=imports_link,
-                automated_edits_link=automated_edits_link
+                imports_link=_imports_link,
+                automated_edits_link=_automated_edits_link
             ) | safe }}
         </p>
 
         <h3>{{ t('site.any_questions.title') }}</h3>
         <p class="mb-4">
-            {% set help_link %}
+            {% set _help_link %}
             <a href="/help">
                 {{ t('site.any_questions.get_help_here') -}}
             </a>
             {%- endset %}
-            {% set welcome_mat_link %}
+            {% set _welcome_mat_link %}
             <a href="https://welcome.openstreetmap.org">
                 {{ t('site.any_questions.welcome_mat') -}}
             </a>
             {%- endset %}
             {{ t(
                 'site.any_questions.paragraph_1_html',
-                help_link=help_link,
-                welcome_mat_link=welcome_mat_link
+                help_link=_help_link,
+                welcome_mat_link=_welcome_mat_link
             ) | safe }}
         </p>
 
         <h3>{{ t('site.welcome.add_a_note.title') | stripspecial }}</h3>
         <p class="mb-1">{{ t('site.welcome.add_a_note.para_1') }}</p>
         <p class="mb-4">
-            {% set note_icon %}
+            {% set _note_icon %}
             <a class="note-link">
-                <span class="icon new-note"></span>
+                <img class="icon new-note" src="/static/img/leaflet/_generated/new-note.webp"
+                     alt="{{ t('alt.new_note_icon') }}">
             </a>
             {% endset %}
             {{ t(
                 'site.fixthemap.how_to_help.add_a_note.instructions_1_html',
                 map_link=map_link,
-                note_icon=note_icon
+                note_icon=_note_icon
             ) | safe }}
         </p>
 

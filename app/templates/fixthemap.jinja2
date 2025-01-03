@@ -14,9 +14,9 @@
         <p class="lead mb-4">{{ t('layouts.intro_text') }}</p>
 
         <h3 class="mb-3">{{ t('site.fixthemap.how_to_help.title') }}</h3>
-        <div class="row row-cols-2 g-3 mb-4">
+        <div class="row row-cols-md-2 g-3 mb-4">
 
-            <div class="col">
+            <div>
                 <div class="card h-100 bg-transparent">
                     <div class="card-body">
                         <h5 class="card-title">{{ t('site.fixthemap.how_to_help.join_the_community.title') }}</h5>
@@ -25,35 +25,36 @@
                         </p>
                         <div class="text-center">
                             {% if user is none %}
-                            <a class="btn btn-primary px-4" href="/signup">
-                                {{ t('layouts.start_mapping') }}
-                            </a>
+                                <a class="btn btn-primary px-4" href="/signup">
+                                    {{ t('layouts.start_mapping') }}
+                                </a>
                             {% else %}
-                            <a class="btn btn-primary px-4" href="/?edit_help=1">
-                                {{ t('layouts.start_mapping') }}
-                            </a>
+                                <a class="btn btn-primary px-4" href="/?edit_help=1">
+                                    {{ t('layouts.start_mapping') }}
+                                </a>
                             {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col">
+            <div>
                 <div class="card h-100 bg-transparent">
                     <div class="card-body">
                         <h5 class="card-title">{{ t('site.welcome.add_a_note.title') | stripspecial }}</h5>
                         <p class="mb-0">{{ t('site.welcome.add_a_note.para_1') }}</p>
                         <p class="card-text">
-                            {% set note_icon %}
+                            {% set _note_icon %}
                             <a class="note-link">
-                                <span class="icon new-note"></span>
+                                <img class="icon new-note" src="/static/img/leaflet/_generated/new-note.webp"
+                                     alt="{{ t('alt.new_note_icon') }}">
                             </a>
                             {% endset %}
                             {{ t(
-                                    'site.fixthemap.how_to_help.add_a_note.instructions_1_html',
-                                    map_link=map_link,
-                                    note_icon=note_icon
-                                ) | safe }}
+                                'site.fixthemap.how_to_help.add_a_note.instructions_1_html',
+                                map_link=map_link,
+                                note_icon=_note_icon
+                            ) | safe }}
                         </p>
                     </div>
                 </div>
@@ -63,21 +64,21 @@
 
         <h3>{{ t('site.fixthemap.other_concerns.title') }}</h3>
         <p>
-            {% set copyright_link %}
+            {% set _copyright_link %}
             <a href="/copyright" rel="license">
-                {{ t('site.fixthemap.other_concerns.copyright') }}
+                {{- t('site.fixthemap.other_concerns.copyright') -}}
             </a>
-            {% endset %}
-            {% set working_group_link %}
+            {%- endset %}
+            {% set _working_group_link %}
             <a href="https://osmfoundation.org/wiki/Working_Groups">
-                {{ t('site.fixthemap.other_concerns.working_group') }}
+                {{- t('site.fixthemap.other_concerns.working_group') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.fixthemap.other_concerns.concerns_html',
-                    copyright_link=copyright_link,
-                    working_group_link=working_group_link
-                ) | safe }}
+                'site.fixthemap.other_concerns.concerns_html',
+                copyright_link=_copyright_link,
+                working_group_link=_working_group_link
+            ) | safe }}
         </p>
 
         <h3>{{ t('site.any_questions.title') }}</h3>
@@ -86,20 +87,20 @@
                 <i class="bi bi-question-circle-fill text-primary fs-1"></i>
             </div>
             <p class="flex-grow-1 ms-3">
-                {% set help_link %}
+                {% set _help_link %}
                 <a href="/help">
-                    {{ t('site.any_questions.get_help_here') }}
+                    {{- t('site.any_questions.get_help_here') -}}
                 </a>
-                {% endset %}
-                {% set welcome_mat_link %}
+                {%- endset %}
+                {% set _welcome_mat_link %}
                 <a href="https://welcome.openstreetmap.org">
-                    {{ t('site.any_questions.welcome_mat') }}
+                    {{- t('site.any_questions.welcome_mat') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
                     'site.any_questions.paragraph_1_html',
-                    help_link=help_link,
-                    welcome_mat_link=welcome_mat_link
+                    help_link=_help_link,
+                    welcome_mat_link=_welcome_mat_link
                 ) | safe }}
             </p>
         </div>

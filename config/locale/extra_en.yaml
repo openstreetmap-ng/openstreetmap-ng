@@ -347,6 +347,7 @@ alt:
   service_image: Service image
   passkey_icon: Passkey icon
   image_of_planet_earth: Image of planet Earth
+  new_note_icon: New note icon
 internalization:
   get_started: |-
     Translation of OpenStreetMap is done by individual volunteers.

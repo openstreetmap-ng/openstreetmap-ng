@@ -25,7 +25,7 @@
 {% block body %}
 
     <div class="content-header pb-0">
-        <div class="col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3">
+        <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
             <h1>{{ self.heading() }}</h1>
             <p>
                 {{ t('traces.index.description') }}
@@ -37,52 +37,11 @@
                 {% endif %}
             </p>
 
-            <nav>
-                <ul class="nav nav-tabs nav-tabs-md flex-column flex-md-row">
-                    <li class="nav-item">
-                        <a href="/traces" {% if active_tab == 0 %} class="nav-link active"
-                           aria-current="page" {% else %}
-                           class="nav-link" {% endif %}>
-                            {{ t('traces.index.all_traces') }}
-                        </a>
-                    </li>
-                    {% if user is not none %}
-                        <li class="nav-item">
-                            <a href="/user/{{ user.display_name }}/traces" {% if active_tab == 1 %}
-                               class="nav-link active"
-                               aria-current="page" {% else %} class="nav-link" {% endif %}>
-                                {{ t('traces.index.my_traces') }}
-                            </a>
-                        </li>
-                    {% endif %}
-                    {% if active_tab == 2 %}
-                        <li class="nav-item">
-                            <a href="/user/{{ profile.display_name }}/traces" class="nav-link active"
-                               aria-current="page">
-                                {{ t('traces.index.public_traces_from', user=profile.display_name) }}
-                            </a>
-                        </li>
-                    {% endif %}
-                    <li class="nav-item ms-auto">
-                        {% if user is not none %}
-                            <a class="btn btn-light border" href="/trace/upload">
-                                <i class="bi bi-pin-map me-2"></i>
-                                {{- t('traces.index.upload_trace') }}
-                            </a>
-                        {% endif %}
-                        {% if active_tab == 0 %}
-                            <a class="btn btn-light border" href="{{ base_url }}/rss"
-                               aria-label="{{ t('alt.rss_feed') }}">
-                                <i class="bi bi-rss-fill rss-color"></i>
-                            </a>
-                        {% endif %}
-                    </li>
-                </ul>
-            </nav>
+            {% include 'traces/_nav.jinja2' %}
         </div>
     </div>
     <div class="content-body">
-        <div class="col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3">
+        <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
             {% include 'traces/_list.jinja2' %}
         </div>
     </div>

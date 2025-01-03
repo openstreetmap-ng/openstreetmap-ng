@@ -3,14 +3,14 @@
 {% block body %}
 
 <div class="content-header">
-    <h1 class="col-lg-9 offset-lg-2 col-xxl-8 offset-xxl-3">
+    <h1 class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
         <span>{{ t('confirmations.confirm.heading') }}</span>
         <img class="illustration" src="/static/img/account-confirm/illustration.webp"
              alt="{{ t('alt.happy_globe_mascot') }}">
     </h1>
 </div>
 <div class="content-body">
-    <form class="resend-form col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3" method="POST"
+    <form class="resend-form col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3" method="POST"
           action="/api/web/user/account-confirm/resend">
         <h3 class="mb-3">{{ t('confirmations.confirm.introduction_1') }}</h3>
         <p class="mb-3">{{ t('confirmations.confirm.introduction_2') }}</p>

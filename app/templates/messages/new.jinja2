@@ -4,13 +4,13 @@
 {% block body %}
 
     <div class="content-header">
-        <div class="col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3">
+        <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
             <h1>{{ t('action.send_a_message') }}</h1>
             <p class="mb-2">{{ t('messages.compose.description') }}</p>
         </div>
     </div>
     <div class="content-body">
-        <div class="col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3">
+        <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
             <form class="message-form" method="POST" action="/api/web/messages">
                 <label class="form-label d-block mb-3">
                     {% if recipient is not none %}
