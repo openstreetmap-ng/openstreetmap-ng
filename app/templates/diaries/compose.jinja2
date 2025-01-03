@@ -11,13 +11,13 @@
 {% block body %}
 
     <div class="content-header">
-        <div class="col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3">
+        <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
             <h1>{{ self.heading() }}</h1>
             <p class="mb-2">{{ t('diary.compose.description') }}</p>
         </div>
     </div>
     <div class="content-body">
-        <div class="col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3">
+        <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
             <form class="diary-form" method="POST" action="/api/web/diary">
                 <label class="form-label d-block mb-3">
                     <span class="required">{{ t('diary.compose.title') }}</span>

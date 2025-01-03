@@ -7,13 +7,13 @@
 {% block body %}
 
     <div class="content-header">
-        <div class="col-6 offset-3">
+        <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
             <h1>{{ self.heading() }}</h1>
             <p class="mb-1-5">{{ t('diary.user_comments.description') }}</p>
         </div>
     </div>
     <div class="content-body">
-        <div class="col-6 offset-3">
+        <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
             {% if comments %}
                 <ul class="diary-user-comments-list social-list list-unstyled">
                     {% for comment in comments %}

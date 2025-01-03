@@ -1,0 +1,51 @@
+<nav>
+    <ul class="nav nav-tabs nav-tabs-md flex-column flex-md-row">
+        <li class="nav-item">
+            <a href="/diary" {% if active_tab == 0 %} class="nav-link active" aria-current="page" {% else %}
+               class="nav-link" {% endif %}>
+                {{ t('diary.all_diaries') }}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/diary/{{ primary_locale }}" {% if active_tab == 1 %} class="nav-link active"
+               aria-current="page" {% else %} class="nav-link" {% endif %}>
+                {{ t('diary.only_in_language', language=primary_locale_name) }}
+            </a>
+        </li>
+        {% if active_tab == 2 %}
+            <li class="nav-item">
+                <a href="/diary/{{ language }}" class="nav-link active" aria-current="page">
+                    {{ t('diary.only_in_language', language=language_name) }}
+                </a>
+            </li>
+        {% endif %}
+        {% if user is not none %}
+            <li class="nav-item">
+                <a href="/user/{{ user.display_name }}/diary" {% if active_tab == 3 %}
+                   class="nav-link active"
+                   aria-current="page" {% else %} class="nav-link" {% endif %}>
+                    {{ t('diary_entries.index.my_diary') }}
+                </a>
+            </li>
+        {% endif %}
+        {% if active_tab == 4 %}
+            <li class="nav-item">
+                <a href="/user/{{ profile.display_name }}/diary" class="nav-link active"
+                   aria-current="page">
+                    {{ t('diary_entries.index.user_title', user=profile.display_name) }}
+                </a>
+            </li>
+        {% endif %}
+        <li class="nav-item ms-auto">
+            {% if user is not none %}
+                <a class="btn btn-light border" href="/diary/new">
+                    <i class="bi bi-journal-plus me-2"></i>
+                    {{- t('diary.new_entry') | capitalize }}
+                </a>
+            {% endif %}
+            <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
+                <i class="bi bi-rss-fill rss-color"></i>
+            </a>
+        </li>
+    </ul>
+</nav>
