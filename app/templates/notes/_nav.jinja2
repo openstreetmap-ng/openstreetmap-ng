@@ -1,0 +1,37 @@
+<nav>
+    <ul class="nav nav-tabs nav-tabs-md flex-column flex-md-row">
+        <li class="nav-item">
+            <a href="/user/{{ profile.display_name }}/notes" {% if active_tab == 0 %}
+               class="nav-link active"
+               aria-current="page" {% else %} class="nav-link" {% endif %}>
+                {{ t('note.user.created_notes') }}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/user/{{ profile.display_name }}/notes/commented" {% if active_tab == 1 %}
+               class="nav-link active" aria-current="page" {% else %} class="nav-link" {% endif %}>
+                {{ t('note.user.commented_on_notes') }}
+            </a>
+        </li>
+        <li class="nav-item ms-auto">
+            <div class="input-group">
+                <label for="noteStatusFilter"
+                       class="input-group-text">{{ t('note.user.filter_by_status') }}</label>
+                <select id="noteStatusFilter" class="form-select">
+                    <option value=""
+                            {% if status == '' %}selected{% endif %}>
+                        {{ t('state.any') }}
+                    </option>
+                    <option value="open"
+                            {% if status == 'open' %}selected{% endif %}>
+                        {{ t('state.open') }}
+                    </option>
+                    <option value="closed"
+                            {% if status == 'closed' %}selected{% endif %}>
+                        {{ t('browse.closed') }}
+                    </option>
+                </select>
+            </div>
+        </li>
+    </ul>
+</nav>

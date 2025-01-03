@@ -12,8 +12,8 @@
         </div>
         <div class="col">
             <div class="social-action social-entry h-100">
-                <p class="header text-muted d-flex justify-content-between">
-                    <span>
+                <div class="header text-muted d-flex justify-content-between">
+                    <div>
                         <a href="/user/{{ comment.user.display_name }}" rel="author">
                             <img class="avatar" src="{{ comment.user.avatar_url }}"
                                  alt="{{ t('alt.profile_picture') }}">
@@ -21,16 +21,18 @@
                         </a>
                         {{ t('browse.created') | lower }}
                         <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
-                    </span>
-                    <span>
+                    </div>
+                    <div class="row row-cols-md-auto flex-wrap-reverse text-end g-0 g-md-1 g-lg-2">
                         {% if note.updated_at > comment.created_at %}
-                            {{ t('action.updated') }}
-                            <time datetime="{{ note.updated_at.isoformat() }}" data-style="long"></time>
-                            <span class="mx-1">·</span>
+                            <span>
+                                {{ t('action.updated') }}
+                                <time datetime="{{ note.updated_at.isoformat() }}" data-style="long"></time>
+                            </span>
+                            <span class="d-none d-md-block">·</span>
                         {% endif %}
                         <a class="stretched-link" href="/note/{{ note.id }}">{{ note.id }}</a>
-                    </span>
-                </p>
+                    </div>
+                </div>
                 <div class="body d-flex justify-content-between">
                     <div>{{ comment.body }}</div>
                     {% if note.num_comments > 1 %}
