@@ -21,8 +21,16 @@ export const getBaseFetchController = (
 
     let abortController: AbortController | null = null
 
+
+    // store scroll position
+    let scrollPosition: number = 0
+    let sidebarScrollPosition: number = 0
+
+
     /** On sidebar loading, display loading content */
     const onSidebarLoading = () => {
+        scrollPosition = window.scrollY
+        sidebarScrollPosition = dynamicContent.scrollTop
         dynamicContent.innerHTML = loadingHtml
     }
 
@@ -31,6 +39,14 @@ export const getBaseFetchController = (
         dynamicContent.innerHTML = html
         resolveDatetime(dynamicContent)
         configureActionSidebar(sidebar)
+
+          // Restore global scroll position
+        window.setTimeout(() => {
+            window.scrollTo(0, scrollPosition)
+        }, 50)
+
+        // Restore sidebar scroll position
+        dynamicContent.scrollTop = sidebarScrollPosition
     }
 
     return {
