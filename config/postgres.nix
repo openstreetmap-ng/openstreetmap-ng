@@ -8,6 +8,10 @@
 # - 300GB SSD
 
 pkgs.writeText "postgres.conf" (''
+  # change default port
+  # reason: avoid conflicts with other services
+  port = 49560
+
   # listen on socket
   # reason: reduce latency
   unix_socket_directories = '${projectDir}/data/postgres_unix'

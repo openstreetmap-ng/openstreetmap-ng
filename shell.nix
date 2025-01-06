@@ -327,9 +327,8 @@ let
           --icu-locale=und \
           --no-locale \
           --text-search-config=pg_catalog.simple \
-          --auth=password \
-          --username=postgres \
-          --pwfile=<(echo postgres)
+          --auth=trust \
+          --username=postgres
       fi
 
       mkdir -p data/alembic data/mailpit data/postgres_unix data/supervisor
@@ -338,7 +337,7 @@ let
 
       echo "Waiting for Postgres to start..."
       time_start=$(date +%s)
-      while ! pg_isready -q -h "${projectDir}/data/postgres_unix"; do
+      while ! pg_isready -q -h "${projectDir}/data/postgres_unix" -p 49560; do
         elapsed=$(($(date +%s) - time_start))
         if [ "$elapsed" -gt 10 ]; then
           tail -n 15 data/supervisor/supervisord.log data/supervisor/postgres.log
@@ -533,7 +532,7 @@ let
     (makeScript "replication" "python scripts/replication.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
-    (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:8025")
+    (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
     (makeScript "nixpkgs-update" ''
       hash=$(
@@ -593,7 +592,7 @@ let
     export SECRET=development-secret
     export APP_URL=http://127.0.0.1:8000
     export SMTP_HOST=127.0.0.1
-    export SMTP_PORT=1025
+    export SMTP_PORT=49565
     export SMTP_USER=mail@openstreetmap.org
     export SMTP_PASS=anything
     export NOMINATIM_URL=https://nominatim.monicz.dev

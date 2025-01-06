@@ -20,7 +20,7 @@ pkgs.writeText "supervisord.conf" ''
   stderr_logfile=data/supervisor/valkey.log
 
   [program:mailpit]
-  command=mailpit -d data/mailpit/mailpit.db --enable-spamassassin spamassassin.monicz.dev:783 --smtp-auth-accept-any --smtp-auth-allow-insecure
+  command=mailpit -d data/mailpit/mailpit.db -l "127.0.0.1:49566" -s "127.0.0.1:49565" --smtp-auth-accept-any --smtp-auth-allow-insecure --enable-spamassassin spamassassin.monicz.dev:783
   stdout_logfile=data/supervisor/mailpit.log
   stderr_logfile=data/supervisor/mailpit.log
 
