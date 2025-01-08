@@ -7,11 +7,14 @@
 # - 8GB RAM
 # - 300GB SSD
 
+
+
+
 pkgs.writeText "postgres.conf" (''
   # listen on socket
   # reason: reduce latency
   unix_socket_directories = '${projectDir}/data/postgres_unix'
-
+  listen_addresses = '''
   # increase buffers and memory usage
   shared_buffers = 2GB
   effective_cache_size = 4GB

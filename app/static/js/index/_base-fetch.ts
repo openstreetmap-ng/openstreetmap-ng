@@ -20,19 +20,34 @@ export const getBaseFetchController = (
     const loadingHtml = dynamicContent.innerHTML
 
     let abortController: AbortController | null = null
+    //store scroll position
+    let previousUrl: string | null = null // To track the previous URL for differentiation
+    let sidebarScrollPosition: number = 0
 
     /** On sidebar loading, display loading content */
     const onSidebarLoading = () => {
+        sidebarScrollPosition = dynamicContent.scrollTop
         dynamicContent.innerHTML = loadingHtml
     }
 
     /** On sidebar loaded, display content and call callback */
-    const onSidebarLoaded = (html: string): void => {
+    const onSidebarLoaded = (html: string, currentUrl: string): void => {
         dynamicContent.innerHTML = html
         resolveDatetime(dynamicContent)
         configureActionSidebar(sidebar)
-    }
 
+        // Check if we are navigating to the same URL
+        if (currentUrl === previousUrl) {
+            // Restore sidebar scroll position only if the URL is the same
+            dynamicContent.scrollTop = sidebarScrollPosition
+        } else {
+            // If not the same URL, reset the scroll position
+            dynamicContent.scrollTop = 0
+        }
+
+        // Update the previousUrl to track the current one
+        previousUrl = currentUrl
+    }
     return {
         load: ({ url }) => {
             switchActionSidebar(map, className)
