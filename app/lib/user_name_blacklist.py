@@ -13,21 +13,22 @@ _BLACKLIST: set[str] = set()
 def user_name_blacklist_routes(app: Starlette) -> None:
     """Blacklist usernames that could conflict with application routes."""
     path_re = re.compile(r'^/user/(?P<display_name>[^/]+)')
-    last_capture_path: str | None = None
+    capture_paths: list[re.Pattern[str]] = []
     result: list[str] = []
     for route in app.routes:
         if not isinstance(route, Route):
             continue
-        match = path_re.search(route.path)
+        route_path = route.path
+        match = path_re.search(route_path)
         if match is None:
             continue
         name = match['display_name']
         if name[0] == '{':
-            last_capture_path = route.path
+            capture_paths.append(route.path_regex)
             continue
-        if last_capture_path is not None:
+        if any(path_re.match(route_path) for path_re in capture_paths):
             raise AssertionError(
-                f'Route {route.path!r} is ordered after capturing {last_capture_path!r}, this will probably not work'
+                f'Route {route_path!r} is ordered after matching {capture_paths!r}, this will probably not work'
             )
         result.append(_normalize(name))
     _BLACKLIST.update(result)
