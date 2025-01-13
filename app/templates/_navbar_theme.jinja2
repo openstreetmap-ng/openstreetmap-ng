@@ -1,0 +1,27 @@
+<div class="navbar-theme btn-group dropdown d-flex d-md-inline-flex me-2" role="group">
+    <button class="btn btn-sm btn-light btn-bg-initial dropdown-toggle" type="button"
+            data-bs-toggle="dropdown" aria-expanded="false"
+            title="{{ t('theme.toggle_theme') }} ({{ t('theme.auto') }})">
+        <i class="bi bi-circle-half"></i>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+            <h6 class="dropdown-item-text">{{ t('theme.toggle_theme') }}</h6>
+        </li>
+        <li>
+            <button class="dropdown-item" type="button" data-bs-theme-value="light">
+                <i class="bi bi-sun-fill me-2"></i>{{ t('theme.light') }}
+            </button>
+        </li>
+        <li>
+            <button class="dropdown-item" type="button" data-bs-theme-value="dark">
+                <i class="bi bi-moon-stars-fill me-2"></i>{{ t('theme.dark') }}
+            </button>
+        </li>
+        <li>
+            <button class="dropdown-item active" type="button" data-bs-theme-value="auto">
+                <i class="bi bi-circle-half me-2"></i>{{ t('theme.auto') }}
+            </button>
+        </li>
+    </ul>
+</div>

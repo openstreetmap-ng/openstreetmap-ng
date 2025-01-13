@@ -95,7 +95,7 @@
                 ('/help', t('layouts.help'), ''),
                 ('/about', t('layouts.about'), ''),
             ) %}
-            <ul class="navbar-nav d-flex d-md-none d-xl-flex my-2 my-md-0 me-0 me-md-3">
+            <ul class="navbar-nav d-flex d-md-none d-xl-flex my-2 my-md-0 me-0 me-md-2">
                 {% for _href, _text, _extra in _links %}
                     <li class="nav-item"><a class="nav-link" href="{{ _href }}" {{ _extra | safe }}>{{ _text }}</a></li>
                 {% endfor %}
@@ -112,6 +112,8 @@
                     {% endfor %}
                 </ul>
             </div>
+
+            {% include '_navbar_theme.jinja2' %}
 
             {% if user is not none %}
                 <div class="dropdown d-flex d-md-inline-flex">

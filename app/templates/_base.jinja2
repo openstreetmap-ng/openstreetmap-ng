@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}" dir="{{ t('html.dir') }}" data-config="{{ WEB_CONFIG }}">
+<html lang="{{ lang }}" dir="{{ t('html.dir') }}" data-config="{{ WEB_CONFIG }}" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8">
@@ -14,7 +14,7 @@
 
     <link rel="stylesheet" href="/static/css/main.css" fetchpriority="high">
     {% for file in I18NEXT_FILES %}
-    <script src="/static-locale/{{ file }}" fetchpriority="high" defer></script>
+        <script src="/static-locale/{{ file }}" fetchpriority="high" defer></script>
     {% endfor %}
     <script src="/static/js/bundle-main.js" type="module" fetchpriority="high" defer></script>
 
@@ -35,15 +35,15 @@
     <meta property="og:image:height" content="512">
 
     <link rel="search" type="application/opensearchdescription+xml" title="OpenStreetMap Search"
-        href="/static/opensearch.xml">
+          href="/static/opensearch.xml">
 </head>
 
 <body class="{% block body_class %}{% endblock %}" {% block body_attrs %}{% endblock %}>
-    {% include '_navbar.jinja2' %}
-    {% block body %}{% endblock %}
-    {% if user is none and self.body_class() != 'login-body' %}
+{% include '_navbar.jinja2' %}
+{% block body %}{% endblock %}
+{% if user is none and self.body_class() != 'login-body' %}
     {% include '_login.jinja2' %}
-    {% endif %}
+{% endif %}
 </body>
 
 </html>

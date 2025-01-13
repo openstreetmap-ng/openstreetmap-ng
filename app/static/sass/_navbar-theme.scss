@@ -1,0 +1,21 @@
+@use "bootstrap/scss/functions";
+
+.navbar-theme {
+    .dropdown-toggle {
+        .bi {
+            opacity: 0.5;
+        }
+    }
+
+    .dropdown-item {
+        .bi {
+            opacity: 0.8;
+        }
+    }
+
+    .dropdown-item:not(.active) {
+        .bi {
+            color: $primary;
+        }
+    }
+}

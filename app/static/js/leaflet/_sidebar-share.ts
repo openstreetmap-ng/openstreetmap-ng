@@ -1,6 +1,6 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { getLastSelectedExportFormat, setLastSelectedExportFormat } from "../_local-storage"
+import { getLastShareExportFormat, setLastShareExportFormat } from "../_local-storage"
 import type { Bounds } from "../_types"
 import { exportMapImage, getOptimalExportParams } from "./_image-export"
 import { getLocationFilter } from "./_location-filter"
@@ -157,7 +157,7 @@ export const getShareSidebarToggleButton = () => {
         formatSelect.addEventListener("change", () => {
             const format = formatSelect.value
             console.debug("onFormatSelectChange", format)
-            setLastSelectedExportFormat(format)
+            setLastShareExportFormat(format)
         })
 
         /** On map move, update marker position if marker is enabled */
@@ -222,20 +222,18 @@ export const getShareSidebarToggleButton = () => {
         }
         map.addEventListener("zoomend baselayerchange", onMapZoomOrLayerChange)
 
-        const restoreLastSelectedExportFormat = (): void => {
-            const lastSelectedExportFormat = getLastSelectedExportFormat()
-            if (!lastSelectedExportFormat) return
+        const lastShareExportFormat = getLastShareExportFormat()
+        if (lastShareExportFormat) {
             // for loop instead of
             //   formatSelect.value = lastSelectedExportFormat
             // to avoid setting invalid value from local storage
             for (const option of formatSelect.options) {
-                if (option.value === lastSelectedExportFormat) {
+                if (option.value === lastShareExportFormat) {
                     option.selected = true
                     break
                 }
             }
         }
-        restoreLastSelectedExportFormat()
 
         return container
     }

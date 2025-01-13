@@ -452,3 +452,8 @@ javascripts:
   context:
     suggest_edit: Suggest an edit
     measure_distance: Measure distance
+theme:
+  toggle_theme: Toggle theme
+  light: Light
+  dark: Dark
+  auto: Auto

@@ -1,11 +1,11 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config"
-import { getOverlayOpacity, setOverlayOpacity } from "../_local-storage"
+import { getMapOverlayOpacity, setMapOverlayOpacity } from "../_local-storage"
 import { throttle } from "../_utils"
-import { type LayerId, getBaseLayerById, getLayerData, getOverlayLayerById } from "./_layers"
+import { getBaseLayerById, getLayerData, getOverlayLayerById, type LayerId } from "./_layers"
 import { cloneTileLayer, getMapBaseLayerId } from "./_map-utils"
-import { type SidebarToggleControl, getSidebarToggleButton } from "./_sidebar-toggle-button"
+import { getSidebarToggleButton, type SidebarToggleControl } from "./_sidebar-toggle-button"
 import { getLatLngBoundsSize } from "./_utils"
 
 const minimapZoomOut = 2
@@ -27,7 +27,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             layerIdOverlayContainerMap.set(overlayContainer.dataset.layerId as LayerId, overlayContainer)
         }
         const overlayOpacityRange = sidebar.querySelector("input.overlay-opacity")
-        overlayOpacityRange.value = (getOverlayOpacity() * 100).toString()
+        overlayOpacityRange.value = (getMapOverlayOpacity() * 100).toString()
         const overlayCheckboxes = sidebar.querySelectorAll("input.overlay")
         const layerIdOverlayCheckboxMap: Map<LayerId, HTMLInputElement> = new Map()
         for (const overlayCheckbox of overlayCheckboxes) {
@@ -307,7 +307,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             "input",
             throttle(({ target }) => {
                 const overlayOpacity = Number.parseFloat((target as HTMLInputElement).value) / 100
-                setOverlayOpacity(overlayOpacity)
+                setMapOverlayOpacity(overlayOpacity)
                 for (const overlayContainer of overlayContainers) {
                     const layer = getOverlayLayerById(overlayContainer.dataset.layerId as LayerId) as L.TileLayer
                     layer.setOpacity(overlayOpacity)
