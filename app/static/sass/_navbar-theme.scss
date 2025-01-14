@@ -1,15 +1,15 @@
 @use "bootstrap/scss/functions";
 
 .navbar-theme {
-    .dropdown-toggle {
-        .bi {
-            opacity: 0.5;
-        }
+    .bi {
+        opacity: 0.8;
     }
 
-    .dropdown-item {
-        .bi {
-            opacity: 0.8;
+    .dropdown-toggle {
+        border: unset;
+
+        @include media-breakpoint-down(lg) {
+            border: 1px solid $secondary;
         }
     }
 
