@@ -65,8 +65,10 @@
 .navbar-nav {
     font-size: 0.9em;
 
-    .nav-item:not(:last-child) {
-        border-bottom: 1px solid $gray-200;
+    @include media-breakpoint-down(lg) {
+        .nav-item:not(:last-child) {
+            border-bottom: 1px solid $gray-200;
+        }
     }
 
     .nav-link {
