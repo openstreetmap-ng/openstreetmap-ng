@@ -1,0 +1,11 @@
+@include color-mode(light) {
+    .d-only-dark {
+        display: none;
+    }
+}
+
+@include color-mode(dark) {
+    .d-only-light {
+        display: none;
+    }
+}

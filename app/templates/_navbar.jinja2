@@ -24,7 +24,10 @@
                     <a class="btn btn-outline-green map-link edit-link default" href="/edit?editor={{ _editor }}">
                         {{ t('layouts.edit') }}
                         {% if _editor == 'id' %}
-                            <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}">
+                            <img class="d-only-light" src="/static/img/brand/id-dark.webp" alt="{{ t('alt.logo') }}"
+                                 loading="lazy">
+                            <img class="d-only-dark" src="/static/img/brand/id-light.webp" alt="{{ t('alt.logo') }}"
+                                 loading="lazy">
                         {% elif _editor == 'rapid' %}
                             <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}">
                         {% elif _editor == 'remote' %}
@@ -39,7 +42,10 @@
                     <div class="dropdown-menu dropdown-menu-green">
                         <a class="dropdown-item map-link edit-link" data-editor="id" href="/edit?editor=id">
                             {% set _editor %}
-                            <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                            <img class="d-only-light" src="/static/img/brand/id-dark.webp" alt="{{ t('alt.logo') }}"
+                                 loading="lazy">
+                            <img class="d-only-dark" src="/static/img/brand/id-light.webp" alt="{{ t('alt.logo') }}"
+                                 loading="lazy">
                             {{ t('editor.id.description') }}
                             {% endset %}
                             {{ t('layouts.edit_with', editor=_editor) | safe }}

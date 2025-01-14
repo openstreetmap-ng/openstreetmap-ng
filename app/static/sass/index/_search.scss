@@ -1,7 +1,7 @@
 // Style the search form
 .search-form {
     padding: 0.375rem;
-    background: $gray-200;
+    background: var(--bs-secondary-bg);
 
     // Overlay the where-is-this button on the input
     .where-is-this {
@@ -15,7 +15,7 @@
         transition: opacity 0.08s ease-out;
 
         &:hover {
-            color: $black;
+            color: var(--bs-emphasis-color);
             opacity: 1;
             text-decoration: unset;
         }
