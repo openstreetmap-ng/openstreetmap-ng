@@ -2,7 +2,7 @@
     @extend .container-fluid;
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
-    background: $body-tertiary-bg;
+    background: var(--bs-tertiary-bg);
 
     > .container {
         padding-left: unset;

@@ -19,7 +19,7 @@
         }
     }
 
-    .dropdown-item:not(.active) {
+    .dropdown-item:not(.active):not(:active) {
         .bi {
             color: $primary;
         }

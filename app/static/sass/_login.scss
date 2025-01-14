@@ -17,7 +17,7 @@
             left: 0;
             right: 0;
             height: 1px;
-            background: $border-color;
+            background: var(--bs-secondary-bg);
         }
 
         .divider-text {

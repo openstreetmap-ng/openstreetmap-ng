@@ -89,7 +89,7 @@
     .signup-content {
         display: flex;
         align-items: center;
-        border-top: 3rem solid $body-tertiary-bg;
+        border-top: 3rem solid var(--bs-tertiary-bg);
         padding: 1.5rem 4rem 3rem;
 
         @include media-breakpoint-down(sm) {
@@ -108,7 +108,7 @@
             left: 0;
             right: 0;
             height: 1px;
-            background: $border-color;
+            background: var(--bs-secondary-bg);
         }
 
         .divider-text {

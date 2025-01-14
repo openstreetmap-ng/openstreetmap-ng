@@ -1,9 +1,18 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}" dir="{{ t('html.dir') }}" data-config="{{ WEB_CONFIG }}" data-bs-theme="light">
+<html lang="{{ lang }}" dir="{{ t('html.dir') }}" data-config="{{ WEB_CONFIG }}">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="/static/js/bundle-main-sync.js"></script>
+    {% for file in I18NEXT_FILES %}
+        <script src="/static-locale/{{ file }}" defer></script>
+    {% endfor %}
+    <script src="/static/js/bundle-main.js" type="module" defer></script>
+
+    {% block head %}{% endblock %}
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{% block site_name %}{{ t('layouts.project_name.title') }}{% endblock %}">
@@ -11,14 +20,6 @@
 
     <title>{% block title %}{% block title_prefix %}{% endblock %}{{ self.site_name() }}{% endblock %}</title>
     <meta property="og:title" content="{{ self.title() }}">
-
-    <link rel="stylesheet" href="/static/css/main.css" fetchpriority="high">
-    {% for file in I18NEXT_FILES %}
-        <script src="/static-locale/{{ file }}" fetchpriority="high" defer></script>
-    {% endfor %}
-    <script src="/static/js/bundle-main.js" type="module" fetchpriority="high" defer></script>
-
-    {% block head %}{% endblock %}
 
     <link rel="icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
     <link rel="icon" sizes="512x512" type="image/webp" href="/static/img/favicon/512.webp">

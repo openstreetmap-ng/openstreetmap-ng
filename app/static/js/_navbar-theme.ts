@@ -9,7 +9,7 @@ const themeIconMap = new Map<AppTheme, string>()
 for (const itemButton of control.querySelectorAll("button.dropdown-item[data-bs-theme-value]")) {
     const key = itemButton.dataset.bsThemeValue as AppTheme
     const iconClass = Array.from(itemButton.querySelector("i.bi").classList).find((c) => c.startsWith("bi-"))
-    console.debug("Theme", key, "icon:", iconClass)
+    console.debug("Theme", key, "icon", iconClass)
     themeItemButtonMap.set(key, itemButton)
     themeIconMap.set(key, iconClass)
 }

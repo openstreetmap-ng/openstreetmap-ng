@@ -10,7 +10,7 @@ const mapStateVersion = 1
  * getAppTheme()
  * // => "auto"
  */
-export const getAppTheme = (): AppTheme => (localStorage.getItem("theme") ?? "auto") as AppTheme
+export const getAppTheme = (): AppTheme => (localStorage.getItem("theme") || "auto") as AppTheme
 
 /** Set app theme to local storage */
 export const setAppTheme = (theme: AppTheme): void => {
@@ -93,7 +93,7 @@ export const setLastRoutingEngine = (engine: string): void => {
 }
 
 /** Get overlay opacity from local storage, in the range [0, 1] */
-export const getMapOverlayOpacity = (): number => Number.parseFloat(localStorage.getItem("overlayOpacity") ?? "0.6")
+export const getMapOverlayOpacity = (): number => Number.parseFloat(localStorage.getItem("overlayOpacity") || "0.6")
 
 /** Set overlay opacity to local storage, in the range [0, 1] */
 export const setMapOverlayOpacity = (opacity: number): void => {
@@ -111,7 +111,7 @@ export const setLastShareExportFormat = (format: string): void => {
 }
 
 /** Get tags diff mode state from local storage */
-export const getTagsDiffMode = (): boolean => (localStorage.getItem("tagsDiffMode") ?? "true") === "true"
+export const getTagsDiffMode = (): boolean => (localStorage.getItem("tagsDiffMode") || "true") === "true"
 
 /** Set tags diff mode to local storage */
 export const setTagsDiffMode = (state: boolean): void => {
