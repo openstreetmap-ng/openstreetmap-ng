@@ -7,6 +7,12 @@
     --bs-btn-bg: initial;
 }
 
+@include color-mode(dark) {
+    .btn-light:not(.btn-bg-initial) {
+        @extend .btn-dark;
+    }
+}
+
 .location-btn-container {
     background: $gray-100;
     border: 1px solid transparent;

@@ -60,7 +60,7 @@
         cursor: pointer;
 
         td {
-            background: $list-highlight;
+            background: var(--bs-highlight-bg);
         }
     }
 

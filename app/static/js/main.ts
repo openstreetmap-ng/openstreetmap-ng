@@ -1,12 +1,12 @@
 import "./_tracking"
 
 import "./_datetime"
+import "./_navbar-theme"
 import "./_i18n"
 
 import "./_fixthemap"
 import "./_id"
 import "./_login"
-import "./_navbar-theme"
 import "./_rapid"
 import "./_welcome"
 import "./diaries/_compose"

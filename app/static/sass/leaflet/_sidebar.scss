@@ -6,7 +6,7 @@
     // Add padding to the sidebar sections
     .section {
         padding: 1.2em 1em;
-        background: $white;
+        background: var(--bs-body-bg);
 
         &:not(:last-child) {
             border-bottom: 1px solid $border-color;

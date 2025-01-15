@@ -1,7 +1,7 @@
 .action-sidebar.index {
     // Style the welcome banner
     .welcome-banner {
-        background: $body-bg;
+        background: var(--bs-body-bg);
 
         p {
             font-size: 1.1em;
@@ -21,7 +21,7 @@
             position: absolute;
             top: calc(1.1em - 0.5em / 2);
             right: calc(1em - 0.5em / 2);
-            background: $body-bg;
+            background: var(--bs-body-bg);
             border-radius: $border-radius-sm;
 
             .btn-close {
