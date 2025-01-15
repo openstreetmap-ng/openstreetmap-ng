@@ -4,12 +4,9 @@
 $blue: #7092ff;
 $green: #7ebc6f;
 $light-green: functions.tint-color($green, 70%);
+$dark-green: functions.shade-color($green, 55%);
 $vibrant-green: #76c551;
 $yellow: #fff208;
-$off-white: #f8f8ff;
-
-$message-unread-bg: #cbeea7;
-$table-striped-bg: $off-white;
 
 $action-sidebar-width: min(400px, calc(100vw - 50px));
 $leaflet-sidebar-width: 250px;

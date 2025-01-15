@@ -1,7 +1,7 @@
 .messages-index-body {
     .col-lg:not(:first-child) {
         @include media-breakpoint-up(lg) {
-            border-left: 1px solid $border-color;
+            border-left: 1px solid var(--bs-border-color);
         }
     }
 

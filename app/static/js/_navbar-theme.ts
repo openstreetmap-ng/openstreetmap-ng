@@ -23,7 +23,7 @@ const updateState = (forceAppTheme?: AppTheme): void => {
     console.debug("Updating theme state, preference:", appTheme, "active:", activeTheme)
 
     document.documentElement.dataset.bsTheme = activeTheme
-    buttonIcon.classList.remove(...themeIconMap.values())
+    buttonIcon.classList.remove(...themeIconMap.values(), "opacity-0")
     buttonIcon.classList.add(themeIconMap.get(appTheme))
     for (const [theme, itemButton] of themeItemButtonMap) {
         itemButton.classList.toggle("active", theme === appTheme)

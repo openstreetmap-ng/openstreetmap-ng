@@ -2,4 +2,8 @@
     .badge.text-bg-light {
         @extend .text-bg-dark;
     }
+
+    .badge.text-bg-light-green {
+        @extend .text-bg-dark-green;
+    }
 }

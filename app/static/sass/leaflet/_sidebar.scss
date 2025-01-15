@@ -9,7 +9,7 @@
         background: var(--bs-body-bg);
 
         &:not(:last-child) {
-            border-bottom: 1px solid $border-color;
+            @extend .border-bottom;
         }
     }
 

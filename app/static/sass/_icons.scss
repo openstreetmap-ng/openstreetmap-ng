@@ -1,5 +1,3 @@
-@use "sass:color";
-
 .icon.zoom-in,
 .icon.zoom-out,
 .icon.geolocate,
@@ -36,5 +34,5 @@
 
 .yellow-glow {
     color: $yellow-500;
-    text-shadow: 0 0 0.5em color.adjust($yellow-500, $alpha: -0.5);
+    text-shadow: 0 0 0.5em rgba($yellow-500, 0.5);
 }

@@ -7,6 +7,18 @@
     .btn-light {
         @extend .btn-dark;
     }
+
+    .btn-green {
+        --bs-btn-color: #{$body-bg-dark};
+        --bs-btn-hover-color: #{$body-bg-dark};
+        --bs-btn-active-color: #{$body-bg-dark};
+        --bs-btn-disabled-color: #{$body-bg-dark};
+    }
+
+    .btn-outline-green {
+        --bs-btn-hover-color: #{$body-bg-dark};
+        --bs-btn-active-color: #{$body-bg-dark};
+    }
 }
 
 .btn-bg-initial {

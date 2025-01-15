@@ -15,7 +15,7 @@
         }
 
         > li:not(:last-child) {
-            border-bottom: 1px solid $border-color;
+            @extend .border-bottom;
         }
 
         .token-icon::before {

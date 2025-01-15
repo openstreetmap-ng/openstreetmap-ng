@@ -21,7 +21,7 @@
     }
 
     td:first-child {
-        background: $gray-100;
+        background: var(--bs-tertiary-bg);
         border-right: 1px solid $table-border-color;
     }
 
@@ -29,6 +29,7 @@
         // Style the color preview box
         // (used with colour, roof:colour, etc.)
         .color-preview {
+            @extend .border;
             @extend .rounded-1;
             display: inline-block;
             width: 1.1em;
@@ -36,7 +37,6 @@
             position: relative;
             top: 0.2em;
             margin-right: 0.1em;
-            border: 1px solid $gray-200;
         }
     }
 

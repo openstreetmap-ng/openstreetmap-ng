@@ -10,6 +10,10 @@
 
         .bi {
             opacity: 0.85;
+
+            &::before {
+                width: 1em;
+            }
         }
     }
 

@@ -1,5 +1,3 @@
-@use "sass:color";
-
 // Style the "Map Layers" sidebar picker
 .leaflet-sidebar.layers {
     // Make each layer clickable and overlay a label on top of it
@@ -24,7 +22,7 @@
             padding: 0.15rem 0.5rem;
             font-weight: bold;
             color: $body-color;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba($body-bg, 0.8);
             backdrop-filter: blur(0.5rem);
             border-bottom-right-radius: $border-radius-sm;
             z-index: 850;
@@ -40,7 +38,7 @@
         }
 
         &:hover {
-            box-shadow: 0 0 0 0.25rem color.adjust($primary, $alpha: -0.6);
+            box-shadow: 0 0 0 0.25rem rgba($primary, 0.4);
 
             &.active {
                 box-shadow: 0 0 0 0.25rem shade-color($primary, 20%);
