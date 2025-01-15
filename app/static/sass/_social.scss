@@ -12,6 +12,12 @@
         margin-bottom: unset;
     }
 
+    &:not(:has(.body)) {
+        .header {
+            border-radius: $border-radius-sm;
+        }
+    }
+
     .body {
         padding: 0.375rem 0.3rem 0;
     }

@@ -4,8 +4,7 @@
 @mixin legacy-routing-icon($x, $y) {
     width: 20px;
     height: 20px;
-    background: url("/static/img/routing/sprite.webp");
-    background-position: $x $y;
+    background: url("/static/img/routing/sprite.webp") $x $y;
 }
 
 // TODO: hover action
@@ -27,8 +26,8 @@
 }
 
 .route-elevation-info {
+    @extend .text-muted;
     font-size: 0.9em;
-    color: $gray-600;
 }
 
 .route-steps {
@@ -43,7 +42,7 @@
 
     // Style the distance text for each turn
     .distance {
-        color: $gray-600;
+        @extend .text-muted;
         font-size: 0.75em;
         text-align: right;
         vertical-align: middle;
@@ -68,6 +67,14 @@
     tr:last-child {
         td {
             border-bottom: unset;
+        }
+    }
+}
+
+@include color-mode(dark) {
+    .route-steps {
+        .icon > div {
+            filter: invert(1);
         }
     }
 }
