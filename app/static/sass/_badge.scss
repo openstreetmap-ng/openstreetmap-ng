@@ -1,0 +1,5 @@
+@include color-mode(dark) {
+    .badge.text-bg-light {
+        @extend .text-bg-dark;
+    }
+}

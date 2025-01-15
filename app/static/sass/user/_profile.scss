@@ -1,5 +1,3 @@
-@use "sass:color";
-
 .user-profile-body {
     .content-header {
         position: relative;
@@ -9,8 +7,8 @@
         background: unset;
 
         > .header-footer {
-            background: color.adjust($body-bg, $alpha: -0.8);
-            box-shadow: inset 0 -13.5rem 5rem -5rem $body-bg;
+            background: rgba(var(--bs-body-bg-rgb), 0.2);
+            box-shadow: inset 0 -13.5rem 5rem -5rem var(--bs-body-bg);
             backdrop-filter: blur(2px);
         }
 
@@ -19,7 +17,7 @@
             padding-top: 0;
 
             > .header-footer {
-                background: $body-tertiary-bg;
+                background: var(--bs-tertiary-bg);
                 box-shadow: unset;
             }
         }
@@ -49,7 +47,7 @@
         }
 
         .mapper-since {
-            color: $text-muted;
+            @extend .text-muted;
         }
 
         .user-actions {
@@ -68,6 +66,7 @@
             object-fit: cover;
             font-size: 0; // hide alt text
             pointer-events: none;
+            background: var(--bs-body-bg);
             opacity: 0.9; // slightly reduce background "pop"
             transition: opacity 0.3s;
 
@@ -95,7 +94,7 @@
 
         img.avatar {
             font-size: min(5rem + 2.5vw, 8rem);
-            box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 8px -2px rgba($black, 0.05);
             pointer-events: none;
             transition: opacity 0.3s;
         }
@@ -140,7 +139,7 @@
     }
 
     .no-activity {
+        @extend .text-muted;
         margin-left: 0.25rem;
-        color: $text-muted;
     }
 }

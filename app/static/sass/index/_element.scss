@@ -14,7 +14,7 @@
     }
 
     .version-badge {
-        color: $text-muted;
+        @extend .text-muted;
         background: $gray-200;
 
         &.is-latest {

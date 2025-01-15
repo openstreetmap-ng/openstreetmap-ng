@@ -3,18 +3,18 @@
     // (e.g. zoom in/out, layers, etc.)
     .control-button {
         display: block;
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba($black, 0.6);
         padding: unset;
         border: unset;
         line-height: 0;
 
         &:hover,
         &:focus {
-            background: black;
+            background: $black;
         }
 
         &:disabled {
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba($black, 0.5);
             cursor: default;
         }
 

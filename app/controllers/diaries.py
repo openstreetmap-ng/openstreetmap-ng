@@ -133,15 +133,6 @@ async def get_diaries_data(
     }
 
 
-@router.get('/diary')
-async def index(
-    after: Annotated[PositiveInt | None, Query()] = None,
-    before: Annotated[PositiveInt | None, Query()] = None,
-):
-    data = await get_diaries_data(user=None, language=None, after=after, before=before)
-    return await render_response('diaries/index.jinja2', data)
-
-
 @router.get('/diary/new')
 async def new():
     return await render_response(
@@ -155,8 +146,17 @@ async def new():
     )
 
 
+@router.get('/diary')
+async def index(
+    after: Annotated[PositiveInt | None, Query()] = None,
+    before: Annotated[PositiveInt | None, Query()] = None,
+):
+    data = await get_diaries_data(user=None, language=None, after=after, before=before)
+    return await render_response('diaries/index.jinja2', data)
+
+
 @router.get('/diary/{language:str}')
-async def language(
+async def language_index(
     language: Annotated[LocaleCode, Path(min_length=1, max_length=LOCALE_CODE_MAX_LENGTH)],
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
@@ -166,7 +166,7 @@ async def language(
 
 
 @router.get('/user/{display_name:str}/diary')
-async def personal(
+async def personal_index(
     display_name: Annotated[DisplayNameType, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,

@@ -64,15 +64,13 @@ class DiaryService:
             diary = await session.scalar(stmt)
             if diary is None:
                 return
-            # prevent unnecessary updates
-            if (
-                diary.title != title  #
-                or diary.body != body
-                or diary.language != language
-                or diary.point != point
-            ):
-                diary.title = title
+
+            if diary.body != body:
                 diary.body = body
+                diary.body_rich_hash = None
+
+            if diary.title != title or diary.language != language or diary.point != point:
+                diary.title = title
                 diary.language = language
                 diary.point = point
 

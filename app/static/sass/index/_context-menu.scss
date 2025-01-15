@@ -1,5 +1,5 @@
 .context-menu {
-    // Display on bottom-right
+    // Position at bottom-right of cursor
     top: 5px !important;
     left: 5px !important;
     bottom: unset !important;
@@ -7,6 +7,7 @@
 
     .leaflet-popup-content-wrapper {
         @extend .rounded-1;
+        background: var(--bs-body-bg);
         padding-left: 0;
         padding-right: 0;
     }
@@ -26,6 +27,7 @@
     }
 
     .btn {
+        @extend .btn-light;
         @extend .rounded-0;
         font-size: 0.875rem;
         text-align: left;
@@ -34,21 +36,27 @@
         padding: 2px 12px;
 
         &:hover {
-            background: $gray-200;
-
             & + .dropdown-toggle {
-                background: $gray-200;
+                background: shade-color($light, $btn-hover-bg-shade-amount);
             }
         }
     }
 
     .dropdown-toggle {
-        &:hover {
-            background-color: $gray-400;
-        }
-
         &::after {
             margin-left: unset;
+        }
+    }
+}
+
+@include color-mode(dark) {
+    .context-menu {
+        .btn {
+            &:hover {
+                & + .dropdown-toggle {
+                    background: tint-color($dark, $btn-hover-bg-shade-amount);
+                }
+            }
         }
     }
 }

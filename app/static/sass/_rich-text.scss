@@ -5,12 +5,12 @@
     overflow-y: clip;
 
     code {
-        background: tint-color($gray-500, 85%);
+        background: var(--bs-tertiary-bg);
         padding: 0.15em 0.2em 0;
     }
 
     pre {
-        background: tint-color($gray-500, 85%);
+        background: var(--bs-tertiary-bg);
         padding: 0 0.2em;
         white-space: pre-wrap;
 
@@ -21,14 +21,14 @@
     }
 
     blockquote {
-        border-left: 1.5em solid tint-color($gray-500, 85%);
+        border-left: 1.5em solid var(--bs-tertiary-bg);
         padding-left: 1.5em;
-        color: $gray-700;
+        color: var(--bs-secondary-color);
     }
 
     img {
         padding: 1.5em;
-        background: tint-color($gray-500, 85%);
+        background: var(--bs-tertiary-bg);
         display: block;
         margin: auto;
         max-width: 100%;

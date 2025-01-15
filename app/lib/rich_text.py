@@ -91,9 +91,7 @@ class RichTextMixin:
     __rich_text_fields__: tuple[tuple[str, TextFormat], ...] = ()
 
     async def resolve_rich_text(self) -> None:
-        """
-        Resolve rich text fields.
-        """
+        """Resolve rich text fields."""
         fields = self.__rich_text_fields__
         num_fields: int = len(fields)
         if num_fields == 0:

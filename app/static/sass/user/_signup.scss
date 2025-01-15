@@ -112,11 +112,11 @@
         }
 
         .divider-text {
+            @extend .text-muted;
             position: relative;
             top: -1px;
             background: $modal-content-bg;
             padding: 0 1rem;
-            color: $text-muted;
             font-size: 0.875rem;
         }
     }
