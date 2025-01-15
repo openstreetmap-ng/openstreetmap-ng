@@ -54,7 +54,7 @@
 @include color-mode(dark) {
     .social-entry {
         .header {
-            background: color.adjust($gray-800, $alpha: -0.6);
+            background: color.adjust(mix($gray-700, $gray-800, 50%), $alpha: -0.6);
         }
     }
 }
@@ -94,7 +94,7 @@
 @include color-mode(dark) {
     .social-action {
         &::after {
-            background: color.adjust($gray-800, $alpha: -0.6);
+            background: color.adjust(mix($gray-700, $gray-800, 50%), $alpha: -0.6);
         }
     }
 }
