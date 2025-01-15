@@ -5,12 +5,12 @@
 
 .custom-input-group {
     label {
+        @extend .border;
+        @extend .rounded-2;
         position: relative;
         left: 0.5em;
         top: 0.45em;
-        background: $body-bg;
-        border: 1px solid $border-color;
-        border-radius: $border-radius;
+        background: $input-bg;
         font-size: 0.9em;
         font-weight: 600;
         padding: 0.12em 0.7em;

@@ -7,7 +7,7 @@
 
     .header {
         font-size: 0.9em;
-        background: color.adjust($gray-200, $alpha: -0.7);
+        background: color.adjust($body-secondary-bg, $alpha: -0.7);
         border-top-left-radius: $border-radius-sm;
         border-top-right-radius: $border-radius-sm;
         padding: 0.16rem 0.3rem;
@@ -54,7 +54,7 @@
 @include color-mode(dark) {
     .social-entry {
         .header {
-            background: color.adjust(mix($gray-700, $gray-800, 50%), $alpha: -0.6);
+            background: color.adjust(mix($gray-700, $gray-800, 40%), $alpha: -0.6);
         }
     }
 }
@@ -62,9 +62,10 @@
 // Style generic result actions (clickable) in the sidebar
 // (search results, changesets, etc.)
 .social-action {
+    @extend .rounded-1;
     position: relative;
     cursor: pointer;
-    border-radius: $border-radius-sm;
+    padding-bottom: 6px;
 
     &::after {
         content: "";
@@ -73,7 +74,7 @@
         left: 0;
         right: 0;
         height: 6px;
-        background: color.adjust($gray-200, $alpha: -0.7);
+        background: color.adjust($body-secondary-bg, $alpha: -0.7);
         border-bottom-left-radius: $border-radius-sm;
         border-bottom-right-radius: $border-radius-sm;
     }
@@ -94,7 +95,7 @@
 @include color-mode(dark) {
     .social-action {
         &::after {
-            background: color.adjust(mix($gray-700, $gray-800, 50%), $alpha: -0.6);
+            background: color.adjust(mix($gray-700, $gray-800, 40%), $alpha: -0.6);
         }
     }
 }
@@ -156,7 +157,7 @@
         &:not(:last-child) {
             padding-bottom: 1rem;
             margin-bottom: 1rem;
-            border-bottom: 1px solid $border-color;
+            border-bottom: 1px solid var(--bs-secondary-bg);
         }
     }
 
@@ -283,9 +284,9 @@
 
 .groups-list {
     img {
+        @extend .rounded-2;
         // TODO: width: 4em;
         margin-top: 0.75rem;
-        border-radius: $border-radius;
     }
 
     .body {

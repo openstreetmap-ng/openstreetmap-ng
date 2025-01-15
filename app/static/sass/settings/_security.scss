@@ -14,12 +14,12 @@
     }
 
     .current-session {
+        @extend .rounded-circle;
         position: relative;
         top: -1px;
         display: inline-block;
         width: 0.625em;
         height: 0.625em;
-        border-radius: 50%;
         background: radial-gradient(circle, tint-color($vibrant-green, 35%) 0%, $vibrant-green 70%);
         animation: pulse-shadow 3s infinite;
         cursor: help;

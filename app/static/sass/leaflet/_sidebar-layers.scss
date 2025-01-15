@@ -4,9 +4,9 @@
 .leaflet-sidebar.layers {
     // Make each layer clickable and overlay a label on top of it
     .layer {
+        @extend .rounded-2;
         cursor: pointer;
         position: relative;
-        border-radius: $border-radius;
         overflow: hidden;
         transition: box-shadow 0.08s ease-out;
 
@@ -23,6 +23,7 @@
             left: 0;
             padding: 0.15rem 0.5rem;
             font-weight: bold;
+            color: $body-color;
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(0.5rem);
             border-bottom-right-radius: $border-radius-sm;

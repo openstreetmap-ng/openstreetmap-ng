@@ -3,20 +3,20 @@
     top: unset;
 }
 
-.btn-bg-initial {
-    --bs-btn-bg: initial;
-}
-
 @include color-mode(dark) {
-    .btn-light:not(.btn-bg-initial) {
+    .btn-light {
         @extend .btn-dark;
     }
 }
 
+.btn-bg-initial {
+    --bs-btn-bg: initial;
+}
+
 .location-btn-container {
+    @extend .rounded-2;
     background: $gray-100;
     border: 1px solid transparent;
-    border-radius: $border-radius;
     padding: 0.15rem 0.55rem;
     display: flex;
     align-items: center;

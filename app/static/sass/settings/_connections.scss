@@ -1,7 +1,7 @@
 .settings-connections-body {
     img.auth-provider-icon {
+        @extend .rounded-2;
         height: 2.75em;
-        border-radius: $border-radius;
     }
 
     .table {

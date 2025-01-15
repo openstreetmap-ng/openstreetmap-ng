@@ -25,7 +25,7 @@
 
     // // Style the map popup
     // .leaflet-popup-content-wrapper {
-    //     border-radius: $border-radius;
+    //     @extend .rounded-2;
     // }
 
     // // Style the cursor depending on the action
@@ -63,6 +63,7 @@
 .leaflet-top.leaflet-left .leaflet-control {
     margin-left: 0;
 }
+
 .leaflet-top.leaflet-right .leaflet-control {
     margin-right: 0;
 }
@@ -90,10 +91,10 @@
     justify-content: center;
 
     div {
+        @extend .rounded-1;
         padding: 0 0.25rem;
         color: $white;
         background: $blue-500;
-        border-radius: $border-radius-sm;
     }
 }
 

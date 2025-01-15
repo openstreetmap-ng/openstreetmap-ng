@@ -6,9 +6,9 @@
     transition: none !important;
 
     .leaflet-popup-content-wrapper {
-        border-radius: $border-radius-sm;
-        padding-left: 0px;
-        padding-right: 0px;
+        @extend .rounded-1;
+        padding-left: 0;
+        padding-right: 0;
     }
 
     .leaflet-popup-content {
@@ -26,11 +26,11 @@
     }
 
     .btn {
+        @extend .rounded-0;
         font-size: 0.875rem;
         text-align: left;
         white-space: nowrap;
         border: none;
-        border-radius: unset;
         padding: 2px 12px;
 
         &:hover {
@@ -46,6 +46,7 @@
         &:hover {
             background-color: $gray-400;
         }
+
         &::after {
             margin-left: unset;
         }

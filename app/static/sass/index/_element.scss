@@ -3,13 +3,13 @@
 .action-sidebar.element,
 .action-sidebar.element-history {
     .sidebar-title-icon {
+        @extend .border;
+        @extend .rounded-2;
         position: relative;
         top: -0.1em;
         width: 1em;
         height: 1em;
         object-fit: contain;
-        border: 1px solid $border-color;
-        border-radius: $border-radius;
         padding: 0.125em;
     }
 

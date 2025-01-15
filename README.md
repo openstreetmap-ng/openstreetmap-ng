@@ -104,7 +104,7 @@ The following table outlines the notable features that need to be finished befor
 
 | Missing Feature | Status       |
 |-----------------|--------------|
-| Dark Theme      | 50% Complete |
+| Dark Theme      | 70% Complete |
 
 ---
 

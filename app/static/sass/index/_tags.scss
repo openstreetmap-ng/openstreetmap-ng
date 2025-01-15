@@ -1,7 +1,7 @@
 // Style the tags table
 .tags {
+    @extend .rounded-2;
     border: 1px solid $table-border-color;
-    border-radius: $border-radius;
     overflow: hidden;
 
     table {
@@ -29,6 +29,7 @@
         // Style the color preview box
         // (used with colour, roof:colour, etc.)
         .color-preview {
+            @extend .rounded-1;
             display: inline-block;
             width: 1.1em;
             height: 1.1em;
@@ -36,7 +37,6 @@
             top: 0.2em;
             margin-right: 0.1em;
             border: 1px solid $gray-200;
-            border-radius: $border-radius-sm;
         }
     }
 

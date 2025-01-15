@@ -27,8 +27,8 @@
         }
 
         img.avatar.app-avatar {
+            @extend .border;
             font-size: 3em;
-            border: 1px solid $border-color;
         }
 
         .form-text {

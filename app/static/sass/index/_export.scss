@@ -1,9 +1,9 @@
 .action-sidebar.export {
     // Style the export box
     .export-box {
+        @extend .border;
+        @extend .rounded-2;
         background: $gray-200;
-        border: 1px solid $border-color;
-        border-radius: $border-radius;
 
         input {
             width: 7em;

@@ -1,9 +1,7 @@
-// Style the avatars
 .avatar {
-    border-radius: 50%;
+    @extend .rounded-circle;
+    background: var(--bs-body-bg);
     width: 1.5em;
     height: 1.5em;
     object-fit: cover;
 }
-
-// TODO: different shadows for different sizes

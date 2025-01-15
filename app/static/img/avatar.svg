@@ -2,53 +2,42 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   id="svg54671"
-   version="1.1"
-   width="99.999969"
-   height="100.00001"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:dc="http://purl.org/dc/elements/1.1/">
-  <metadata
-     id="metadata54677">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <defs
-     id="defs54675">
-    <clipPath
-       clipPathUnits="userSpaceOnUse"
-       id="clipPath55579">
-      <rect
-         y="701"
-         x="157"
-         height="23.000002"
-         width="49.999985"
-         id="rect55581"
-         style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:accumulate" />
-    </clipPath>
-  </defs>
-  <g
-     id="g55329"
-     transform="translate(-785,-42)">
-    <rect
-       y="42"
-       x="785"
-       height="100.00001"
-       width="99.999969"
-       id="rect54702"
-       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:accumulate" />
+    id="svg54671"
+    version="1.1"
+    width="99.999969"
+    height="100.00001"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:cc="http://creativecommons.org/ns#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <metadata
+        id="metadata54677">
+        <rdf:RDF>
+            <cc:Work
+                rdf:about="">
+                <dc:format>image/svg+xml</dc:format>
+                <dc:type
+                    rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+            </cc:Work>
+        </rdf:RDF>
+    </metadata>
+    <defs
+        id="defs54675">
+        <clipPath
+            clipPathUnits="userSpaceOnUse"
+            id="clipPath55579">
+            <rect
+                y="701"
+                x="157"
+                height="23.000002"
+                width="49.999985"
+                id="rect55581"
+                style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:accumulate"/>
+        </clipPath>
+    </defs>
     <path
-       id="path54704"
-       d="m 834.99998,53.000004 c -8,0 -12,5 -14,9 -2,4 -2,13 -1,19 0.98639,5.918364 3.9723,8.164584 5,12 0,0 0,3 0,4 l -14,2.999996 c -9.47814,2.03103 -13.23303,8.02944 -14,18 l -1,13 h 78 l -1,-13 c -0.76697,-9.97056 -4.40411,-16.62916 -14,-18 L 845,97 l -2e-5,-3.999996 c -2e-5,-4.000002 4.01361,-6.081636 5,-12 1,-6 1,-15 -1,-19 -2.0728,-4.145608 -6,-9 -14,-9 z"
-       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#dadaff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:accumulate" />
-  </g>
+        id="path54704"
+        d="m 834.99998,53.000004 c -8,0 -12,5 -14,9 -2,4 -2,13 -1,19 0.98639,5.918364 3.9723,8.164584 5,12 v 4 l -14,2.999996 c -9.47814,2.03103 -13.23303,8.02944 -14,18 l -1,13 h 13.07907 64.92093 l -1,-13 c -0.76697,-9.97056 -4.40411,-16.62916 -14,-18 L 845,97 l -2e-5,-3.999996 c -2e-5,-4.000002 4.01361,-6.081636 5,-12 1,-6 1,-15 -1,-19 -2.0728,-4.145608 -6,-9 -14,-9 z"
+        style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#dadaff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:accumulate"
+        transform="translate(-785,-42)"/>
 </svg>
