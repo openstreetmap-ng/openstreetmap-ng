@@ -1,22 +1,21 @@
+import { fromBinary } from "@bufbuild/protobuf"
 import * as L from "leaflet"
 import { mapQueryAreaMaxSize } from "../_config"
-
-import { fromBinary } from "@bufbuild/protobuf"
 import { qsEncode } from "../_qs"
 import type { OSMNode, OSMWay } from "../_types"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderElementsDataSchema } from "../proto/shared_pb"
-import { type LayerId, getOverlayLayerById } from "./_layers"
+import { getOverlayLayerById, type LayerId } from "./_layers"
 import { getMapAlert } from "./_map-utils"
-import { type RenderStyles, convertRenderElementsData, renderObjects } from "./_render-objects"
-import { getLatLngBoundsSize } from "./_utils"
+import { convertRenderElementsData, renderObjects, type RenderStyles } from "./_render-objects"
+import { getLngLatBoundsSize } from "./_utils"
 
 const loadDataAlertThreshold = 8000
 const dataLayerId = "data" as LayerId
 
 export const dataStyles: RenderStyles = {
     element: {
-        color: "#3388FF",
+        color: "#3388ff",
         weight: 3,
         opacity: 1,
         fillOpacity: 0.4,
@@ -109,7 +108,7 @@ export const configureDataLayer = (map: L.Map): void => {
         const bounds = viewBounds.pad(0.3)
 
         // Skip updates if the area is too big
-        const area = getLatLngBoundsSize(bounds)
+        const area = getLngLatBoundsSize(bounds)
         if (area > mapQueryAreaMaxSize) {
             errorDataAlert.classList.remove("d-none")
             loadDataAlert.classList.add("d-none")

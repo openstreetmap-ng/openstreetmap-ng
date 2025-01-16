@@ -120,3 +120,8 @@ async def login(referer: Annotated[str | None, Query()] = None):
 @router.get('/welcome')
 async def welcome(_: Annotated[User, web_user()]):
     return await render_response('welcome.jinja2')
+
+
+@router.get('/export/embed.html')
+async def export_embed():
+    return await render_response('embed.jinja2')

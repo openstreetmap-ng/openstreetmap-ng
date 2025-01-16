@@ -6,11 +6,11 @@ import { qsEncode, qsParse } from "../_qs"
 import { getPageTitle } from "../_title"
 import type { Bounds } from "../_types"
 import { isLongitude, zoomPrecision } from "../_utils"
-import { type FocusOptions, focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
-import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
+import { focusManyMapObjects, focusMapObject, type FocusOptions } from "../leaflet/_focus-layer"
+import { getOverlayLayerById, type LayerId } from "../leaflet/_layers"
 import { getMapAlert } from "../leaflet/_map-utils"
 import { convertRenderElementsData } from "../leaflet/_render-objects"
-import { getLatLngBoundsIntersection, getLatLngBoundsSize, getMarkerIcon } from "../leaflet/_utils"
+import { getLngLatBoundsIntersection, getLngLatBoundsSize, getMarkerIcon } from "../leaflet/_utils"
 import { PartialSearchParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
@@ -66,11 +66,11 @@ export const getSearchController = (map: L.Map): IndexController => {
         if (!searchAlert.classList.contains("d-none")) return
 
         const mapBounds = map.getBounds()
-        const intersectionBounds = getLatLngBoundsIntersection(initialBounds, mapBounds)
-        const intersectionBoundsSize = getLatLngBoundsSize(intersectionBounds)
+        const intersectionBounds = getLngLatBoundsIntersection(initialBounds, mapBounds)
+        const intersectionBoundsSize = getLngLatBoundsSize(intersectionBounds)
 
-        const mapBoundsSize = getLatLngBoundsSize(mapBounds)
-        const initialBoundsSize = getLatLngBoundsSize(initialBounds)
+        const mapBoundsSize = getLngLatBoundsSize(mapBounds)
+        const initialBoundsSize = getLngLatBoundsSize(initialBounds)
         const proportion = Math.min(intersectionBoundsSize / mapBoundsSize, intersectionBoundsSize / initialBoundsSize)
         if (proportion > searchAlertChangeThreshold) return
 

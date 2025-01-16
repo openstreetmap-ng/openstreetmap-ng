@@ -52,9 +52,6 @@
 $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "bootstrap-icons/font/bootstrap-icons";
 
-// (Leaflet)
-@import "leaflet/dist/leaflet";
-
 @import "about";
 @import "avatar";
 @import "badge";
@@ -91,17 +88,17 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "diaries/index";
 @import "diaries/scroll_nav";
 
-@import "leaflet/leaflet";
-@import "leaflet/location-filter";
-@import "leaflet/main-map";
-@import "leaflet/map-alert";
-@import "leaflet/map-attribution";
-@import "leaflet/sidebar-layers";
-@import "leaflet/sidebar-legend";
-@import "leaflet/sidebar-share";
-@import "leaflet/sidebar-toggle-button";
-@import "leaflet/sidebar";
-@import "leaflet/user-popup";
+//@import "leaflet/attribution";
+//@import "leaflet/leaflet";
+//@import "leaflet/location-filter";
+//@import "leaflet/main-map";
+//@import "leaflet/map-alert";
+//@import "leaflet/sidebar-layers";
+//@import "leaflet/sidebar-legend";
+//@import "leaflet/sidebar-share";
+//@import "leaflet/sidebar-toggle-button";
+//@import "leaflet/sidebar";
+//@import "leaflet/user-popup";
 
 @import "messages/index";
 

@@ -3,6 +3,7 @@ Disallow: /api
 Disallow: /changeset
 Disallow: */diary/comments
 Disallow: /edit
+Disallow: /export/embed.html
 Disallow: */history
 Disallow: /note
 Allow: /note/new

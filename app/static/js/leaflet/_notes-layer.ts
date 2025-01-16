@@ -1,11 +1,10 @@
+import { fromBinary } from "@bufbuild/protobuf"
 import * as L from "leaflet"
 import { noteQueryAreaMaxSize } from "../_config"
-
-import { fromBinary } from "@bufbuild/protobuf"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderNotesDataSchema } from "../proto/shared_pb"
-import { type LayerId, getOverlayLayerById } from "./_layers"
-import { getLatLngBoundsSize, getMarkerIcon } from "./_utils"
+import { getOverlayLayerById, type LayerId } from "./_layers"
+import { getLngLatBoundsSize, getMarkerIcon } from "./_utils"
 
 const notesLayerId = "notes" as LayerId
 
@@ -31,7 +30,7 @@ export const configureNotesLayer = (map: L.Map): void => {
 
         // Skip updates if the area is too big
         const bounds = map.getBounds()
-        const area = getLatLngBoundsSize(bounds)
+        const area = getLngLatBoundsSize(bounds)
         if (area > noteQueryAreaMaxSize) return
 
         const minLon = bounds.getWest()

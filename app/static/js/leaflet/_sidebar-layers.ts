@@ -6,7 +6,7 @@ import { throttle } from "../_utils"
 import { getBaseLayerById, getLayerData, getOverlayLayerById, type LayerId } from "./_layers"
 import { cloneTileLayer, getMapBaseLayerId } from "./_map-utils"
 import { getSidebarToggleButton, type SidebarToggleControl } from "./_sidebar-toggle-button"
-import { getLatLngBoundsSize } from "./_utils"
+import { getLngLatBoundsSize } from "./_utils"
 
 const minimapZoomOut = 2
 
@@ -131,7 +131,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 
-            const currentViewAreaSize = getLatLngBoundsSize(map.getBounds())
+            const currentViewAreaSize = getLngLatBoundsSize(map.getBounds())
 
             for (const [layerId, areaMaxSize] of [
                 ["notes", noteQueryAreaMaxSize],

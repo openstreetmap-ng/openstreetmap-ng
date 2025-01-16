@@ -1,9 +1,9 @@
 import * as L from "leaflet"
 
 import type { OSMObject } from "../_types"
-import { type LayerId, getOverlayLayerById } from "./_layers"
-import { type RenderStyles, renderObjects } from "./_render-objects"
-import { getLatLngBoundsSize } from "./_utils"
+import { getOverlayLayerById, type LayerId } from "./_layers"
+import { renderObjects, type RenderStyles } from "./_render-objects"
+import { getLngLatBoundsSize } from "./_utils"
 
 export interface FocusOptions {
     /** Fit the map to the focused objects */
@@ -23,16 +23,16 @@ const focusLayerId = "focus" as LayerId
 export const focusStyles: RenderStyles = {
     changeset: {
         pane: "focus",
-        color: "#F90",
+        color: "#f90",
         weight: 3,
         opacity: 1,
-        fillColor: "#FFFFAF",
+        fillColor: "#ffffaf",
         fillOpacity: 0,
         interactive: false,
     },
     element: {
         pane: "focus",
-        color: "#F60",
+        color: "#f60",
         weight: 4,
         opacity: 1,
         fillOpacity: 0.5,
@@ -43,7 +43,7 @@ export const focusStyles: RenderStyles = {
     },
     noteHalo: {
         radius: 20,
-        color: "#F60",
+        color: "#f60",
         weight: 2.5,
         opacity: 1,
         fillOpacity: 0.5,
@@ -126,8 +126,8 @@ export const focusManyMapObjects = (map: L.Map, objects: OSMObject[], options?: 
             console.debug("Fitting map to", layers.length, "focus layers with zoom", fitMaxZoom, "(offscreen)")
             map.fitBounds(latLngBoundsPadded, { maxZoom: fitMaxZoom, animate: false })
         } else if ((options?.proportionCheck ?? true) && fitMaxZoom > currentZoom) {
-            const latLngSize = getLatLngBoundsSize(latLngBounds)
-            const mapBoundsSize = getLatLngBoundsSize(mapBounds)
+            const latLngSize = getLngLatBoundsSize(latLngBounds)
+            const mapBoundsSize = getLngLatBoundsSize(mapBounds)
             const proportion = latLngSize / mapBoundsSize
             if (proportion > 0 && proportion < 0.00035) {
                 console.debug("Fitting map to", layers.length, "focus layers with zoom", fitMaxZoom, "(small)")

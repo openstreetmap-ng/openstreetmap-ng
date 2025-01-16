@@ -1,35 +1,44 @@
-import * as L from "leaflet"
+import { LngLatBounds, type Map as MaplibreMap, type PositionAnchor } from "maplibre-gl"
+
 import type { Bounds } from "../_types"
 
 const minBoundsSizePx = 20
 
-/** Get a marker icon */
-export const getMarkerIcon = (color: string, showShadow: boolean): L.Icon => {
-    let shadowUrl: string | null = null
-    let shadowSize: [number, number] | null = null
+export const markerIconAnchor: PositionAnchor = "top"
+
+export const getMarkerIconElement = (color: string, showShadow: boolean): HTMLElement => {
+    const container = document.createElement("div")
+    container.classList.add("marker-icon")
     if (showShadow) {
-        shadowUrl = "/static/img/marker/shadow.webp"
-        shadowSize = [41, 41]
+        const shadow = document.createElement("img")
+        shadow.classList.add("marker-shadow")
+        shadow.src = "/static/img/marker/shadow.webp"
+        shadow.width = 41
+        shadow.height = 41
+        shadow.draggable = false
+        container.appendChild(shadow)
     }
-    return L.icon({
-        iconUrl: `/static/img/marker/${color}.webp`,
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowUrl: shadowUrl,
-        shadowSize: shadowSize,
-    })
+    const icon = document.createElement("img")
+    icon.classList.add("marker-icon-inner")
+    icon.src = `/static/img/marker/${color}.webp`
+    icon.width = 25
+    icon.height = 41
+    icon.draggable = false
+    container.appendChild(icon)
+    // TODO: leaflet leftover
+    // iconAnchor: [12, 41]
+    return container
 }
 
 /** Get the bounds area in square degrees */
-export const getLatLngBoundsSize = (bounds: L.LatLngBounds): number => {
+export const getLngLatBoundsSize = (bounds: LngLatBounds): number => {
     const sw = bounds.getSouthWest()
     const ne = bounds.getNorthEast()
     return (ne.lng - sw.lng) * (ne.lat - sw.lat)
 }
 
 /** Get the intersection of two bounds */
-export const getLatLngBoundsIntersection = (bounds1: L.LatLngBounds, bounds2: L.LatLngBounds): L.LatLngBounds => {
+export const getLngLatBoundsIntersection = (bounds1: LngLatBounds, bounds2: LngLatBounds): LngLatBounds => {
     const minLat1 = bounds1.getSouth()
     const maxLat1 = bounds1.getNorth()
     const minLon1 = bounds1.getWest()
@@ -47,17 +56,17 @@ export const getLatLngBoundsIntersection = (bounds1: L.LatLngBounds, bounds2: L.
 
     // Return null bounds if no intersection
     if (minLat > maxLat || minLon > maxLon) {
-        return L.latLngBounds(L.latLng(0, 0), L.latLng(0, 0))
+        return new LngLatBounds([0, 0, 0, 0])
     }
 
-    return L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
+    return new LngLatBounds([minLon, minLat, maxLon, maxLat])
 }
 
 /** Make bounds minimum size to make them easier to click */
-export const makeBoundsMinimumSize = (map: L.Map, bounds: Bounds): Bounds => {
+export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds): Bounds => {
     const [minLon, minLat, maxLon, maxLat] = bounds
-    const mapBottomLeft = map.project(L.latLng(minLat, minLon))
-    const mapTopRight = map.project(L.latLng(maxLat, maxLon))
+    const mapBottomLeft = map.project([minLon, minLat])
+    const mapTopRight = map.project([maxLon, maxLat])
     const width = mapTopRight.x - mapBottomLeft.x
     const height = mapBottomLeft.y - mapTopRight.y
 
@@ -76,4 +85,10 @@ export const makeBoundsMinimumSize = (map: L.Map, bounds: Bounds): Bounds => {
     const latLngBottomLeft = map.unproject(mapBottomLeft)
     const latLngTopRight = map.unproject(mapTopRight)
     return [latLngBottomLeft.lng, latLngBottomLeft.lat, latLngTopRight.lng, latLngTopRight.lat]
+}
+
+export const disableMapRotation = (map: MaplibreMap): void => {
+    map.dragRotate.disable()
+    map.keyboard.disableRotation()
+    map.touchZoomRotate.disableRotation()
 }
