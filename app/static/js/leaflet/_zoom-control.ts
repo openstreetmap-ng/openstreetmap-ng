@@ -48,6 +48,7 @@ export const getZoomControl = () => {
         // Create buttons and tooltips
         const zoomInText = i18next.t("javascripts.map.zoom.in")
         const zoomInButton = document.createElement("button")
+        zoomInButton.type = "button"
         zoomInButton.className = "zoom-in-btn control-button"
         zoomInButton.ariaLabel = zoomInText
         const zoomInIcon = document.createElement("img")
@@ -63,6 +64,7 @@ export const getZoomControl = () => {
 
         const zoomOutText = i18next.t("javascripts.map.zoom.out")
         const zoomOutButton = document.createElement("button")
+        zoomOutButton.type = "button"
         zoomOutButton.className = "zoom-out-btn control-button"
         zoomOutButton.ariaLabel = zoomOutText
         const zoomOutIcon = document.createElement("img")

@@ -25,6 +25,7 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
         // Create button and tooltip
         const buttonText = i18next.t(tooltipTitle)
         const button = document.createElement("button")
+        button.type = "button"
         button.className = "control-button"
         button.ariaLabel = buttonText
         const icon = document.createElement("img")

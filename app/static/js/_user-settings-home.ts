@@ -2,7 +2,7 @@ import * as L from "leaflet"
 import { zoomPrecision } from "./_utils"
 import { getGeolocateControl } from "./leaflet/_geolocate-control"
 import { getDefaultBaseLayer } from "./leaflet/_layers"
-import { type LonLat, addControlGroup } from "./leaflet/_map-utils"
+import { addControlGroup, disableControlsClickPropagation, type LonLat } from "./leaflet/_map-utils"
 import { getMarkerIcon } from "./leaflet/_utils"
 import { getZoomControl } from "./leaflet/_zoom-control"
 
@@ -23,11 +23,14 @@ if (userSettingsForm) {
     // TODO: draggable marker
     // TODO: icon licenses
 
-    // Add default layer
-    map.addLayer(getDefaultBaseLayer())
-
     // Add custom zoom and location controls
     addControlGroup(map, [getZoomControl(), getGeolocateControl()])
+
+    // Disable click propagation on controls
+    disableControlsClickPropagation(map)
+
+    // Add default layer
+    map.addLayer(getDefaultBaseLayer())
 
     // Null value until the marker is initialized
     let marker: L.Marker | null = null

@@ -4,14 +4,14 @@ import * as L from "leaflet"
 import { antPath } from "leaflet-ant-path"
 import { getGeolocateControl } from "../leaflet/_geolocate-control"
 import { getDefaultBaseLayer } from "../leaflet/_layers"
-import { addControlGroup } from "../leaflet/_map-utils"
+import { addControlGroup, disableControlsClickPropagation } from "../leaflet/_map-utils"
 import { getZoomControl } from "../leaflet/_zoom-control"
 
 const antPathOptions = {
     delay: 1000,
     dashArray: [40, 60],
     weight: 4.5,
-    color: "#F60",
+    color: "#f60",
     pulseColor: "#220",
     opacity: 1,
     keyboard: false,
@@ -44,6 +44,9 @@ if (tracePreviewContainer) {
         // Add custom zoom controls
         addControlGroup(map, [getZoomControl()])
     }
+
+    // Disable click propagation on controls
+    disableControlsClickPropagation(map)
 
     // Add default layer
     map.addLayer(getDefaultBaseLayer())

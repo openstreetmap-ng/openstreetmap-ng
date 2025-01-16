@@ -33,6 +33,7 @@ export const getGeolocateControl = () => {
             // Create button and tooltip
             const buttonText = i18next.t("javascripts.map.locate.title")
             const button = document.createElement("button")
+            button.type = "button"
             button.className = "control-button"
             button.ariaLabel = buttonText
             const icon = document.createElement("img")

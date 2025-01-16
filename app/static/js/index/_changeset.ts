@@ -11,8 +11,8 @@ import { focusMapObject } from "../leaflet/_focus-layer"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
 import {
     type PartialChangesetParams,
-    PartialChangesetParamsSchema,
     type PartialChangesetParams_Element,
+    PartialChangesetParamsSchema,
 } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
@@ -237,6 +237,7 @@ const renderElementType = (
                 li.classList.add("page-item")
 
                 const button = document.createElement("button")
+                button.type = "button"
                 button.classList.add("page-link")
                 button.textContent = i.toString()
                 li.appendChild(button)

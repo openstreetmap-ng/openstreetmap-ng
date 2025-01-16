@@ -54,9 +54,6 @@ const getMainMap = (container: HTMLElement): L.Map => {
     // Add native controls
     map.addControl(L.control.scale())
 
-    // Disable click propagation on controls
-    disableControlsClickPropagation(map)
-
     // Add custom controls
     addControlGroup(map, [getZoomControl(), getGeolocateControl()])
     addControlGroup(map, [
@@ -66,6 +63,9 @@ const getMainMap = (container: HTMLElement): L.Map => {
     ])
     addControlGroup(map, [getNewNoteControl()])
     addControlGroup(map, [getQueryFeaturesControl()])
+
+    // Disable click propagation on controls
+    disableControlsClickPropagation(map)
 
     // Configure map handlers
     configureNotesLayer(map)

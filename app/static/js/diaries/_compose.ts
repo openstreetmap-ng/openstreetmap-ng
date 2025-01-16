@@ -3,7 +3,7 @@ import * as L from "leaflet"
 import { configureStandardForm } from "../_standard-form"
 import { isLatitude, isLongitude, zoomPrecision } from "../_utils"
 import { getDefaultBaseLayer } from "../leaflet/_layers"
-import { type LonLatZoom, getInitialMapState } from "../leaflet/_map-utils"
+import { disableControlsClickPropagation, getInitialMapState, type LonLatZoom } from "../leaflet/_map-utils"
 import { getMarkerIcon } from "../leaflet/_utils"
 import { getZoomControl } from "../leaflet/_zoom-control"
 
@@ -86,6 +86,9 @@ if (body) {
 
             // Add native controls
             map.addControl(getZoomControl())
+
+            // Disable click propagation on controls
+            disableControlsClickPropagation(map)
 
             // Add default layer
             map.addLayer(getDefaultBaseLayer())

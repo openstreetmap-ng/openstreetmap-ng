@@ -50,6 +50,7 @@ export const getNewNoteControl = () => {
         // Create a button and a tooltip
         const buttonText = i18next.t("javascripts.site.createnote_tooltip")
         const button = document.createElement("button")
+        button.type = "button"
         button.className = "control-button"
         button.ariaLabel = buttonText
         const icon = document.createElement("img")

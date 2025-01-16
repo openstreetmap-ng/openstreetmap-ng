@@ -77,6 +77,7 @@ export const configureStandardPagination = (container: HTMLElement): void => {
                 li.classList.add("page-item")
 
                 const button = document.createElement("button")
+                button.type = "button"
                 button.classList.add("page-link")
                 button.textContent = i.toString()
                 li.appendChild(button)

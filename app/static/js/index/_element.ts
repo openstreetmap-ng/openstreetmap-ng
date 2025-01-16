@@ -7,8 +7,8 @@ import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
 import { convertRenderElementsData } from "../leaflet/_render-objects"
 import {
     type PartialElementParams,
-    PartialElementParamsSchema,
     type PartialElementParams_Entry,
+    PartialElementParamsSchema,
 } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
@@ -217,6 +217,7 @@ const renderElementsComponent = (
                 li.classList.add("page-item")
 
                 const button = document.createElement("button")
+                button.type = "button"
                 button.classList.add("page-link")
                 button.textContent = i.toString()
                 li.appendChild(button)

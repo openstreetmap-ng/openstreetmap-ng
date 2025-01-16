@@ -47,6 +47,7 @@ export const getQueryFeaturesControl = () => {
         // Create a button and a tooltip
         const buttonText = i18next.t("javascripts.site.queryfeature_tooltip")
         const button = document.createElement("button")
+        button.type = "button"
         button.className = "control-button"
         button.ariaLabel = buttonText
         const icon = document.createElement("img")
