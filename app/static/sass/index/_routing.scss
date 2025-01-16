@@ -70,11 +70,3 @@
         }
     }
 }
-
-@include color-mode(dark) {
-    .route-steps {
-        .icon > div {
-            filter: invert(1);
-        }
-    }
-}

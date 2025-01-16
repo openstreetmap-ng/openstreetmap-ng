@@ -8,7 +8,7 @@ import { qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
 import { getPageTitle } from "../_title"
 import { zoomPrecision } from "../_utils"
-import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
+import { getOverlayLayerById, type LayerId } from "../leaflet/_layers"
 import { getMarkerIcon } from "../leaflet/_utils"
 import { type RoutingResult, RoutingResultSchema } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
@@ -343,7 +343,7 @@ export const getRoutingController = (map: L.Map): IndexController => {
             stepNumber += 1
 
             const div = (stepTemplate.content.cloneNode(true) as DocumentFragment).children[0]
-            div.querySelector(".icon div").classList.add(`icon-${step.iconNum}`)
+            div.querySelector(".icon div").classList.add(`icon-${step.iconNum}`, "dark-filter-invert")
             div.querySelector(".number").textContent = `${stepNumber}.`
             div.querySelector(".instruction").textContent = step.text
             div.querySelector(".distance").textContent = formatDistanceRounded(step.distance)

@@ -100,3 +100,15 @@
         }
     }
 }
+
+@include color-mode(dark) {
+    .dark-filter-invert {
+        filter: invert(1);
+    }
+
+    .navbar {
+        .edit-link.default img.dark-filter-invert {
+            filter: grayscale(10%) invert(1);
+        }
+    }
+}
