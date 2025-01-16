@@ -20,7 +20,7 @@
                     {% endset %}
                     {{ t('oauth.authorize_app_to_access_your_account', name=_app_name) | safe }}
                 </h4>
-                <p class="text-secondary small text-center mb-4">
+                <p class="form-text text-center mt-0 mb-4">
                     {% set _user_link %}
                     <a href="/user/{{ user.display_name }}" target="_blank">
                         <img class="avatar me-1 d-md-none" src="{{ user.avatar_url }}"

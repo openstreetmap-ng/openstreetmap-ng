@@ -1,7 +1,7 @@
 .action-sidebar.note {
     .status-badge {
         @extend .text-muted;
-        background: var(--bs-secondary-bg);
+        @extend .bg-body-secondary;
         position: relative;
         top: -0.3em;
         padding: 0.3em 0.45em;

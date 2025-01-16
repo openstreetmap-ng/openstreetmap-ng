@@ -1,7 +1,7 @@
 <div class="text-center mb-4">
     <img class="brand-img mb-2" src="/static/img/favicon/256.webp" alt="{{ t('alt.logo') }}">
     <h4 class="modal-title">{{ t('login.welcome_back') }}</h4>
-    <p class="text-secondary small">
+    <p class="form-text mt-0">
         {{ t('sessions.new.no account') }}
         <a href="/signup" class="link-primary">{{ t('sessions.new.register now') }}</a>
     </p>
@@ -38,7 +38,8 @@
 </div>
 
 <button type="button" class="passkey-btn btn btn-light border w-100 mb-4">
-    <img src="/static/img/brand/passkeys-black.webp" alt="{{ t('alt.passkey_icon') }}" draggable="false" loading="lazy">
+    <img class="dark-filter-invert" src="/static/img/brand/passkeys-black.webp" alt="{{ t('alt.passkey_icon') }}"
+         draggable="false" loading="lazy">
     {{ t('login.sign_in_with_a_passkey') }}
 </button>
 

@@ -15,7 +15,7 @@
 
     .version-badge {
         @extend .text-muted;
-        background: var(--bs-secondary-bg);
+        @extend .bg-body-secondary;
 
         &.is-latest {
             @extend .text-bg-green;

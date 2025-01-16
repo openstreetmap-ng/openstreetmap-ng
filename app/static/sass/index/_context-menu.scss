@@ -6,8 +6,8 @@
     transition: none !important;
 
     .leaflet-popup-content-wrapper {
+        @extend .bg-body;
         @extend .rounded-1;
-        background: var(--bs-body-bg);
         padding-left: 0;
         padding-right: 0;
     }

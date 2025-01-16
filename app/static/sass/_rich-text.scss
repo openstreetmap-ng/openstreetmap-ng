@@ -5,12 +5,12 @@
     overflow-y: clip;
 
     code {
-        background: var(--bs-tertiary-bg);
+        @extend .bg-body-tertiary;
         padding: 0.15em 0.2em 0;
     }
 
     pre {
-        background: var(--bs-tertiary-bg);
+        @extend .bg-body-tertiary;
         padding: 0 0.2em;
         white-space: pre-wrap;
 
@@ -21,14 +21,14 @@
     }
 
     blockquote {
+        @extend .text-body-secondary;
         border-left: 1.5em solid var(--bs-tertiary-bg);
         padding-left: 1.5em;
-        color: var(--bs-secondary-color);
     }
 
     img {
+        @extend .bg-body-tertiary;
         padding: 1.5em;
-        background: var(--bs-tertiary-bg);
         display: block;
         margin: auto;
         max-width: 100%;

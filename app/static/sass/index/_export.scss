@@ -3,11 +3,11 @@
     .export-box {
         @extend .border;
         @extend .rounded-2;
-        background: var(--bs-secondary-bg);
+        @extend .bg-body-secondary;
 
         input {
+            @extend .bg-body-tertiary;
             width: 7em;
-            background: var(--bs-tertiary-bg);
             text-align: center;
         }
 

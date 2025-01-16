@@ -5,8 +5,8 @@
 
     // Add padding to the sidebar sections
     .section {
+        @extend .bg-body;
         padding: 1.2em 1em;
-        background: var(--bs-body-bg);
 
         &:not(:last-child) {
             @extend .border-bottom;

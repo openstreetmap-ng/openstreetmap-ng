@@ -14,6 +14,7 @@
         }
 
         label {
+            @extend .text-body;
             cursor: pointer;
             user-select: none;
             position: absolute;
@@ -21,7 +22,6 @@
             left: 0;
             padding: 0.15rem 0.5rem;
             font-weight: bold;
-            color: var(--bs-body-color);
             background: rgba($body-bg, 0.8);
             backdrop-filter: blur(0.5rem);
             border-bottom-right-radius: $border-radius-sm;

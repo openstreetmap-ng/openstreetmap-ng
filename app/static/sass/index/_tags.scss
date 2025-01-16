@@ -21,7 +21,7 @@
     }
 
     td:first-child {
-        background: var(--bs-tertiary-bg);
+        @extend .bg-body-tertiary;
         border-right: 1px solid $table-border-color;
     }
 

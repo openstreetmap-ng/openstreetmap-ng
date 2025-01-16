@@ -17,7 +17,7 @@
             padding-top: 0;
 
             > .header-footer {
-                background: var(--bs-tertiary-bg);
+                @extend .bg-body-tertiary;
                 box-shadow: unset;
             }
         }
@@ -59,6 +59,7 @@
         overflow: hidden;
 
         img.background {
+            @extend .bg-body;
             position: absolute;
             top: 0;
             width: 100%;
@@ -66,7 +67,6 @@
             object-fit: cover;
             font-size: 0; // hide alt text
             pointer-events: none;
-            background: var(--bs-body-bg);
             opacity: 0.9; // slightly reduce background "pop"
             transition: opacity 0.3s;
 

@@ -3,7 +3,7 @@
 @use "bootstrap/scss/functions";
 
 .activity-chart {
-    color: var(--bs-secondary-color);
+    @extend .text-body-secondary;
     width: 100%;
     border-spacing: 1px;
     border-collapse: separate;
@@ -49,7 +49,7 @@
 }
 
 .activity-0 {
-    background: var(--bs-secondary-bg);
+    @extend .bg-body-secondary;
 }
 
 @include color-mode(light) {

@@ -1,8 +1,8 @@
 .content-header {
     @extend .container-fluid;
+    @extend .bg-body-tertiary;
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
-    background: var(--bs-tertiary-bg);
 
     > .container {
         padding-left: unset;

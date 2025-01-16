@@ -1,5 +1,5 @@
 .navbar {
-    background: var(--bs-body-bg);
+    @extend .bg-body;
     z-index: 1005; // leaflet controls are 1000
 
     .edit-link img {

@@ -102,9 +102,9 @@ The following table outlines the notable features that need to be finished befor
 
 **Release ETA**: ~~End of 2024~~
 
-| Missing Feature | Status       |
-|-----------------|--------------|
-| Dark Theme      | 70% Complete |
+| Missing Feature | Status        |
+|-----------------|---------------|
+| Dark Theme      | 100% Complete |
 
 ---
 

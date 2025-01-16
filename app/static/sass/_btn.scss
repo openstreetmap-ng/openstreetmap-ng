@@ -26,8 +26,8 @@
 }
 
 .location-btn-container {
+    @extend .bg-body-tertiary;
     @extend .rounded-2;
-    background: var(--bs-tertiary-bg);
     border: 1px solid transparent;
     padding: 0.15rem 0.55rem;
     display: flex;

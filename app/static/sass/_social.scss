@@ -217,8 +217,8 @@
     }
 
     .hashtag:not(:last-child)::after {
+        @extend .text-body;
         content: ",";
-        color: var(--bs-body-color);
     }
 
     .btn-group {

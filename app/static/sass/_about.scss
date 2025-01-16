@@ -47,8 +47,8 @@ $_icon-color: var(--bs-tertiary-color);
         }
 
         .header-body {
+            @extend .bg-body;
             padding: 2rem 2.5rem;
-            background: var(--bs-body-bg);
         }
     }
 

@@ -43,8 +43,8 @@
 .settings-application-edit-body,
 .oauth-authorize-body {
     .scope {
+        @extend .text-body-tertiary;
         font-size: 0.875em;
         font-family: monospace;
-        color: var(--bs-tertiary-color);
     }
 }

@@ -42,7 +42,7 @@
         <li class="nav-item">
             {% set _href = '/settings/delete-account' %}
             {% set _active = nav_active_href == _href %}
-            <a class="nav-link text-secondary {% if _active %}active{% endif %}" href="{{ _href }}"
+            <a class="nav-link text-body-secondary {% if _active %}active{% endif %}" href="{{ _href }}"
                {% if _active %}aria-current=page{% endif %}>
                 <i class="bi bi-trash"></i>
                 {{ t('settings.delete_account') }}

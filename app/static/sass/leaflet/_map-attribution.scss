@@ -1,5 +1,5 @@
 .leaflet-control-attribution {
-    color: var(--bs-body-color);
+    @extend .text-body-secondary;
     background: rgba($body-bg, 0.8);
     backdrop-filter: blur(0.5rem);
     border-top-left-radius: $border-radius-sm;
