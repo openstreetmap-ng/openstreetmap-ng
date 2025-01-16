@@ -1,3 +1,5 @@
+@use "sass:color";
+
 .social-entry {
     .avatar {
         margin-right: 0.3rem;
@@ -58,7 +60,7 @@
 @include color-mode(dark) {
     .social-entry {
         .header {
-            background: rgba(mix($gray-700, $gray-800, 40%), 0.4);
+            background: rgba(color.mix($gray-700, $gray-800, 40%), 0.4);
         }
     }
 }
@@ -99,7 +101,7 @@
 @include color-mode(dark) {
     .social-action {
         &::after {
-            background: rgba(mix($gray-700, $gray-800, 40%), 0.4);
+            background: rgba(color.mix($gray-700, $gray-800, 40%), 0.4);
         }
     }
 }

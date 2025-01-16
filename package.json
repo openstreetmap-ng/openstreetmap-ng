@@ -1,22 +1,6 @@
 {
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "corejs": {
-            "version": "3.38.1"
-          },
-          "modules": false,
-          "useBuiltIns": "usage"
-        }
-      ],
-      "@babel/preset-typescript"
-    ]
-  },
-  "browserslist": [
-    "supports abortcontroller and supports bigint and partially supports contentsecuritypolicy2 and partially supports cors and supports es6 and supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
-  ],
+  "name": "openstreetmap-ng",
+  "private": true,
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.3",
     "@mapbox/polyline": "^1.2.1",
@@ -51,12 +35,31 @@
     "typed-query-selector": "^2.12.0",
     "typescript": "^5.7.2"
   },
-  "name": "openstreetmap-ng",
+  "trustedDependencies": [],
+  "scripts": {
+    "postinstall": "rm -rf node_modules/bootstrap/dist/css"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "corejs": {
+            "version": "3.38.1"
+          },
+          "modules": false,
+          "useBuiltIns": "usage"
+        }
+      ],
+      "@babel/preset-typescript"
+    ]
+  },
+  "browserslist": [
+    "supports abortcontroller and supports bigint and partially supports contentsecuritypolicy2 and partially supports cors and supports es6 and supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
+  ],
   "prettier": {
     "printWidth": 120,
     "semi": false,
     "tabWidth": 4
-  },
-  "private": true,
-  "trustedDependencies": []
+  }
 }

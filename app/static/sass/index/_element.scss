@@ -1,3 +1,5 @@
+@use "sass:color";
+
 .action-sidebar.element,
 .action-sidebar.element-history {
     .sidebar-title-icon {
@@ -58,11 +60,11 @@
 
     .sidebar-content[data-tags-diff-mode="True"] .tags {
         tr[data-status="added"] > td {
-            background: mix($green, $body-bg, 20%);
+            background: color.mix($green, $body-bg, 20%);
         }
 
         tr[data-status="modified"] > td {
-            background: mix($orange, $body-bg, 20%);
+            background: color.mix($orange, $body-bg, 20%);
         }
 
         tr[data-status="modified"] > td:nth-child(2) {
@@ -93,7 +95,7 @@
         }
 
         tr[data-status="deleted"] > td {
-            background: mix($red, $body-bg, 20%);
+            background: color.mix($red, $body-bg, 20%);
 
             .tag-value {
                 color: $red-600;
@@ -108,11 +110,11 @@
     .action-sidebar.element-history {
         .sidebar-content[data-tags-diff-mode="True"] .tags {
             tr[data-status="added"] > td {
-                background: mix($green, $body-bg-dark, 20%);
+                background: color.mix($green, $body-bg-dark, 20%);
             }
 
             tr[data-status="modified"] > td {
-                background: mix($orange, $body-bg-dark, 20%);
+                background: color.mix($orange, $body-bg-dark, 20%);
             }
 
             tr[data-status="modified"] > td:nth-child(2) {
@@ -125,7 +127,7 @@
             }
 
             tr[data-status="deleted"] > td {
-                background: mix($red, $body-bg-dark, 20%);
+                background: color.mix($red, $body-bg-dark, 20%);
 
                 .tag-value {
                     color: $red-400;
