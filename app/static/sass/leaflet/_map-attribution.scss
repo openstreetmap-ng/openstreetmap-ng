@@ -1,8 +1,18 @@
 .leaflet-control-attribution {
+    color: var(--bs-body-color);
+    background: rgba($body-bg, 0.8);
+    backdrop-filter: blur(0.5rem);
+    border-top-left-radius: $border-radius-sm;
     text-wrap: pretty;
 
     // Style the donation link
     .donate {
-        color: #60a94f;
+        @extend .link-green;
+    }
+}
+
+@include color-mode(dark) {
+    .leaflet-control-attribution {
+        background: rgba($body-bg-dark, 0.8);
     }
 }

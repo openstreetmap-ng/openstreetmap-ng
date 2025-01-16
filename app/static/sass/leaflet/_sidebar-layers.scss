@@ -21,7 +21,7 @@
             left: 0;
             padding: 0.15rem 0.5rem;
             font-weight: bold;
-            color: $body-color;
+            color: var(--bs-body-color);
             background: rgba($body-bg, 0.8);
             backdrop-filter: blur(0.5rem);
             border-bottom-right-radius: $border-radius-sm;
@@ -30,6 +30,8 @@
 
         .leaflet-container {
             height: 3.5rem;
+            // Fix small "white pop" visual glitch in Dark Mode on Chrome
+            border-top-left-radius: calc($border-radius + 2px);
         }
 
         // Change border color depending on the state
@@ -42,6 +44,16 @@
 
             &.active {
                 box-shadow: 0 0 0 0.25rem shade-color($primary, 20%);
+            }
+        }
+    }
+}
+
+@include color-mode(dark) {
+    .leaflet-sidebar.layers {
+        .layer {
+            label {
+                background: rgba($body-bg-dark, 0.8);
             }
         }
     }

@@ -4,7 +4,7 @@
     }
 
     img.avatar.header-avatar {
-        @extend .border;
         font-size: 4em;
+        border: 1px solid var(--bs-secondary-bg);
     }
 }

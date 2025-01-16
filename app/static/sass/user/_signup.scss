@@ -21,7 +21,7 @@
         display: flex;
         align-items: center;
         height: 100%;
-        box-shadow: inset -6rem 0 4rem -4rem rgba(0, 0, 0, 0.3);
+        box-shadow: inset -6rem 0 4rem -4rem rgba($black, 0.3);
         padding: 0 2.5rem 0 4.5rem;
     }
 
@@ -41,14 +41,14 @@
         left: 0;
         width: 100%;
         font-size: 0.875em;
-        color: rgba(255, 255, 255, 0.6);
-        text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        color: rgba($white, 0.6);
+        text-shadow: 0 0 8px rgba($white, 0.2);
     }
 
     .brand-title {
         font-size: 4em;
         color: color.adjust($vibrant-green, $saturation: 3%);
-        text-shadow: 0 0 16px rgba(0, 0, 0, 0.25);
+        text-shadow: 0 0 16px rgba($black, 0.25);
         text-wrap: nowrap;
 
         img {
@@ -83,7 +83,7 @@
         color: #eee;
         font-size: 2em;
         text-wrap: pretty;
-        text-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+        text-shadow: 0 0 8px rgba($black, 0.3);
     }
 
     .signup-content {

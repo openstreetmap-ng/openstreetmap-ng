@@ -11,7 +11,7 @@
 }
 
 .map-alert {
+    @extend .shadow;
     margin-bottom: 0;
     cursor: initial;
-    box-shadow: $box-shadow;
 }

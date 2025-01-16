@@ -1,4 +1,8 @@
 .leaflet-container {
+    a {
+        @extend .link-primary;
+    }
+
     // Style buttons displayed on the side of the map
     // (e.g. zoom in/out, layers, etc.)
     .control-button {

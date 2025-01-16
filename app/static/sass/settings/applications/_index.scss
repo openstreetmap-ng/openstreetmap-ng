@@ -1,3 +1,5 @@
+@use "bootstrap/scss/functions";
+
 .settings-applications-body {
     .applications-list {
         .accordion-button {
@@ -22,13 +24,13 @@
             position: relative;
             top: 1px;
             font-size: 2em;
-            color: shade-color($primary, 30%);
+            color: functions.shade-color($primary, 30%);
             transform: rotate(45deg);
         }
 
         img.avatar.app-avatar {
-            @extend .border;
             font-size: 3em;
+            border: 1px solid var(--bs-secondary-bg);
         }
 
         .form-text {
@@ -43,6 +45,6 @@
     .scope {
         font-size: 0.875em;
         font-family: monospace;
-        color: $gray-600;
+        color: var(--bs-tertiary-color);
     }
 }

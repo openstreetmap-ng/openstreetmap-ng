@@ -1,3 +1,5 @@
+@use "bootstrap/scss/functions";
+
 .settings-security-body {
     .active-sessions li {
         padding: 0.875rem 0;
@@ -18,7 +20,7 @@
         display: inline-block;
         width: 0.625em;
         height: 0.625em;
-        background: radial-gradient(circle, tint-color($vibrant-green, 35%) 0%, $vibrant-green 70%);
+        background: radial-gradient(circle, functions.tint-color($vibrant-green, 35%) 0%, $vibrant-green 70%);
         animation: pulse-shadow 3s infinite;
         cursor: help;
 

@@ -14,7 +14,8 @@
         font-size: 0.9em;
         font-weight: 600;
         padding: 0.12em 0.7em;
-        z-index: 2;
+        // .input-group>.form-control:focus, has z-index of 5
+        z-index: 6;
     }
 }
 
