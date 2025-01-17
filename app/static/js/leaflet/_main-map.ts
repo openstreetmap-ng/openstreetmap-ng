@@ -1,4 +1,4 @@
-import * as L from "leaflet"
+import { Map as MaplibreMap } from "maplibre-gl"
 import { homePoint } from "../_config"
 import { handleEditRemotePath, updateNavbarAndHash } from "../_navbar"
 import { qsParse } from "../_qs"
@@ -41,15 +41,11 @@ import { getZoomControl } from "./_zoom-control"
 /** Get the main map instance */
 const getMainMap = (container: HTMLElement): L.Map => {
     console.debug("Initializing main map")
-    const map = L.map(container, {
+    const map = new MaplibreMap({
+        container,
         zoomControl: false,
-        maxBoundsViscosity: 1,
         minZoom: 3, // 2 would be better, but is buggy with leaflet animated pan
-        maxBounds: L.latLngBounds(L.latLng(-85, Number.NEGATIVE_INFINITY), L.latLng(85, Number.POSITIVE_INFINITY)),
     })
-
-    // Disable Leaflet's attribution prefix
-    map.attributionControl.setPrefix(false)
 
     // Add native controls
     map.addControl(L.control.scale())

@@ -4,7 +4,7 @@ import type { Bounds } from "../_types"
 
 const minBoundsSizePx = 20
 
-export const markerIconAnchor: PositionAnchor = "top"
+export const markerIconAnchor: PositionAnchor = "bottom"
 
 export const getMarkerIconElement = (color: string, showShadow: boolean): HTMLElement => {
     const container = document.createElement("div")

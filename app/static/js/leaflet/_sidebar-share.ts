@@ -1,5 +1,4 @@
 import i18next from "i18next"
-import * as L from "leaflet"
 import { getLastShareExportFormat, setLastShareExportFormat } from "../_local-storage"
 import type { Bounds } from "../_types"
 import { exportMapImage, getOptimalExportParams } from "./_image-export"

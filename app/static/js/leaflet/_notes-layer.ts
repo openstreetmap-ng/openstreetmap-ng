@@ -1,5 +1,4 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import * as L from "leaflet"
 import { noteQueryAreaMaxSize } from "../_config"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderNotesDataSchema } from "../proto/shared_pb"

@@ -1,5 +1,3 @@
-import * as L from "leaflet"
-
 import type { OSMObject } from "../_types"
 import { getOverlayLayerById, type LayerId } from "./_layers"
 import { renderObjects, type RenderStyles } from "./_render-objects"

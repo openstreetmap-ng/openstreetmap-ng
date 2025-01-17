@@ -1,7 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
-import * as L from "leaflet"
 import { prefersReducedMotion } from "../_config"
 import { qsEncode, qsParse } from "../_qs"
 import { getPageTitle } from "../_title"

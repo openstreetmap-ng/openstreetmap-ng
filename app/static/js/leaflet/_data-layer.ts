@@ -1,12 +1,11 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import * as L from "leaflet"
 import { mapQueryAreaMaxSize } from "../_config"
 import { qsEncode } from "../_qs"
 import type { OSMNode, OSMWay } from "../_types"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderElementsDataSchema } from "../proto/shared_pb"
+import { getMapAlert } from "./_alert"
 import { getOverlayLayerById, type LayerId } from "./_layers"
-import { getMapAlert } from "./_map-utils"
 import { convertRenderElementsData, renderObjects, type RenderStyles } from "./_render-objects"
 import { getLngLatBoundsSize } from "./_utils"
 

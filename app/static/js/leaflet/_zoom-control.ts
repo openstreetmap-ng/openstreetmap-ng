@@ -1,6 +1,5 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
-import * as L from "leaflet"
 
 const zoomAcceleration = 3
 

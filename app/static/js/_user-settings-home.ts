@@ -1,4 +1,3 @@
-import * as L from "leaflet"
 import { zoomPrecision } from "./_utils"
 import { getGeolocateControl } from "./leaflet/_geolocate-control"
 import { getDefaultBaseLayer } from "./leaflet/_layers"

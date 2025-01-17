@@ -1,5 +1,4 @@
 import { decode, encode } from "@mapbox/polyline"
-import * as L from "leaflet"
 import { formatDistance } from "../_format-utils"
 import { qsParse } from "../_qs"
 import { range, throttle } from "../_utils"

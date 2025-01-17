@@ -12,7 +12,7 @@ const mapContainer = document.getElementById("map")
 const attributionControl = new AttributionControl()
 const map = new MaplibreMap({
     container: mapContainer,
-    center: [0, 0],
+    maxZoom: 19,
     zoom: 1,
     attributionControl: false,
 })

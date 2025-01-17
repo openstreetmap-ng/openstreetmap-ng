@@ -1,4 +1,3 @@
-import * as L from "leaflet"
 import type { Bounds } from "../_types"
 import type { LonLat, LonLatZoom } from "./_map-utils"
 

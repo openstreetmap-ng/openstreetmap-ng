@@ -192,7 +192,6 @@ let
         -maxdepth 1 \
         -type f \
         -name "*.js" \
-        -not -name "main*" \
         -not -name "_*")
 
       if [ -n "$mode_hash" ]; then

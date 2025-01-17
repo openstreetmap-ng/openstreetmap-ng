@@ -1,7 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { decode } from "@mapbox/polyline"
 import i18next from "i18next"
-import * as L from "leaflet"
 import { formatDistance, formatDistanceRounded, formatHeight, formatTime } from "../_format-utils"
 import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage"
 import { qsParse } from "../_qs"

@@ -63,7 +63,7 @@ interface LayerConfig {
     priority?: number
 }
 
-const layersConfig: Map<LayerId, LayerConfig> = new Map()
+export const layersConfig: Map<LayerId, LayerConfig> = new Map()
 
 layersConfig.set("standard" as LayerId, {
     specification: {
@@ -142,7 +142,7 @@ layersConfig.set("hot" as LayerId, {
 layersConfig.set("aerial" as LayerId, {
     specification: {
         type: "raster",
-        maxzoom: 21, // This layer supports up to 23
+        maxzoom: 23,
         tiles: ["https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
         tileSize: 256,
         attribution: aerialEsriCredit,
@@ -159,7 +159,7 @@ layersConfig.set("aerial" as LayerId, {
 layersConfig.set("gps" as LayerId, {
     specification: {
         type: "raster",
-        maxzoom: 20, // This layer has no zoom limits
+        // This layer has no zoom limits
         tiles: ["https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png"],
         tileSize: 256,
     },
@@ -168,6 +168,7 @@ layersConfig.set("gps" as LayerId, {
     priority: 60,
 })
 
+// TODO: move to a separate file
 layersConfig.set("data" as LayerId, {
     specification: {
         type: "geojson",
@@ -279,9 +280,9 @@ export const addMapLayerSources = (map: MaplibreMap, kind: "base" | "all"): void
     }
 }
 
-const makeExtendedLayerId = (layerId: LayerId, type: string): string => `${layerId}:${type}`
+export const makeExtendedLayerId = (layerId: LayerId, type: string): string => `${layerId}:${type}`
 
-const resolveExtendedLayerId = (extendedLayerId: string): LayerId => {
+export const resolveExtendedLayerId = (extendedLayerId: string): LayerId => {
     const i = extendedLayerId.indexOf(":")
     const layerId = i === -1 ? extendedLayerId : extendedLayerId.slice(0, i)
     return layerId as LayerId
@@ -358,14 +359,13 @@ export const addMapLayer = (
 
 export const removeMapLayer = (map: MaplibreMap, layerId: LayerId): void => {
     let removed = false
-    for (const mapLayerId of map.getLayersOrder()) {
-        if (resolveExtendedLayerId(mapLayerId) === layerId) {
-            console.debug("Removing layer", mapLayerId)
-            map.removeLayer(mapLayerId)
-            removed = true
-        }
+    for (const extendedLayerId of map.getLayersOrder()) {
+        if (resolveExtendedLayerId(extendedLayerId) !== layerId) continue
+        console.debug("Removing layer", extendedLayerId, "because of", layerId)
+        map.removeLayer(extendedLayerId)
+        removed = true
     }
     if (!removed) {
-        console.debug("Removed no layers with ID", layerId)
+        console.debug("Removed no layers with id", layerId)
     }
 }

@@ -1,5 +1,3 @@
-import * as L from "leaflet"
-
 import { decode } from "@mapbox/polyline"
 import type { OSMChangeset, OSMNode, OSMNote, OSMObject, OSMWay } from "../_types"
 import type { RenderElementsData } from "../proto/shared_pb"

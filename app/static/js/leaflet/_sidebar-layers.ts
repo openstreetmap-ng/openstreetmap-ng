@@ -1,5 +1,4 @@
 import { Tooltip } from "bootstrap"
-import * as L from "leaflet"
 import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config"
 import { getMapOverlayOpacity, setMapOverlayOpacity } from "../_local-storage"
 import { throttle } from "../_utils"

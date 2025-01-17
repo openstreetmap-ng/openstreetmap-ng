@@ -1,5 +1,4 @@
 import { decode } from "@mapbox/polyline"
-import * as L from "leaflet"
 // @ts-ignore
 import { antPath } from "leaflet-ant-path"
 import { getGeolocateControl } from "../leaflet/_geolocate-control"
@@ -26,15 +25,10 @@ if (tracePreviewContainer) {
     const map = L.map(tracePreviewContainer, {
         attributionControl: !isSmall,
         zoomControl: false,
-        maxBoundsViscosity: 1,
         minZoom: 3, // 2 would be better, but is buggy with leaflet animated pan
-        maxBounds: L.latLngBounds(L.latLng(-85, Number.NEGATIVE_INFINITY), L.latLng(85, Number.POSITIVE_INFINITY)),
     })
 
     if (!isSmall) {
-        // Disable Leaflet's attribution prefix
-        map.attributionControl.setPrefix(false)
-
         // Add native controls
         map.addControl(L.control.scale())
 

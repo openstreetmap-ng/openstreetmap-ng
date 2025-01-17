@@ -6,7 +6,6 @@
  * Modification licensed under the Unlicense <https://unlicense.org/>.
  */
 // @ts-nocheck
-import * as L from "leaflet"
 
 L.LatLngBounds.prototype.modify = function (map, amount) {
     let sw = this.getSouthWest()

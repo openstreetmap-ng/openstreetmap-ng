@@ -1,26 +1,28 @@
-import * as L from "leaflet"
+import { type Map as MaplibreMap, Marker } from "maplibre-gl"
 import type { LonLat } from "./_map-utils"
-import { getMarkerIcon } from "./_utils"
+import { getMarkerIconElement, markerIconAnchor } from "./_utils.ts"
 
 /** Configure the find home button */
-export const configureFindHomeButton = (map: L.Map, button: HTMLButtonElement, { lon, lat }: LonLat): void => {
-    const latLng = L.latLng(lat, lon)
-    let marker: L.Marker | null = null
+export const configureFindHomeButton = (map: MaplibreMap, button: HTMLButtonElement, { lon, lat }: LonLat): void => {
+    let marker: Marker | null = null
 
     // On click, create a marker and zoom to it
     button.addEventListener("click", () => {
         console.debug("onFindHomeButtonClick")
 
         if (!marker) {
-            marker = L.marker(latLng, {
-                icon: getMarkerIcon("blue-home", true), // TODO: revise icon
-                keyboard: false,
-                interactive: false,
+            marker = new Marker({
+                anchor: markerIconAnchor,
+                element: getMarkerIconElement("blue-home", true),
             })
-            map.addLayer(marker)
+                .setLngLat([lon, lat])
+                .addTo(map)
         }
 
         // Home zoom defaults to 15
-        map.setView(latLng, 15)
+        map.flyTo({
+            center: [lon, lat],
+            zoom: 15,
+        })
     })
 }

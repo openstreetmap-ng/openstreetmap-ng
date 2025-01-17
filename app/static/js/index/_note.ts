@@ -1,6 +1,5 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import * as L from "leaflet"
 import { configureStandardForm } from "../_standard-form"
 import { configureStandardPagination } from "../_standard-pagination"
 import { getPageTitle } from "../_title"
