@@ -1,25 +1,25 @@
 import i18next from "i18next"
+import { type Map as MaplibreMap, Marker } from "maplibre-gl"
 import { getLastShareExportFormat, setLastShareExportFormat } from "../_local-storage"
-import type { Bounds } from "../_types"
-import { exportMapImage, getOptimalExportParams } from "./_image-export"
-import { getLocationFilter } from "./_location-filter"
-import { getMapBaseLayer, getMapEmbedHtml, getMapGeoUri, getMapShortlink } from "./_map-utils"
-import { getSidebarToggleButton } from "./_sidebar-toggle-button"
-import { getMarkerIcon } from "./_utils"
+import { exportMapImage } from "./_image-export"
+import { LocationFilterControl } from "./_location-filter"
+import { getMapEmbedHtml, getMapGeoUri, getMapShortlink } from "./_map-utils"
+import { SidebarToggleControl } from "./_sidebar-toggle-button"
+import { getMarkerIconElement, markerIconAnchor, padLngLatBounds } from "./_utils.ts"
 
-export const getShareSidebarToggleButton = () => {
-    const control = getSidebarToggleButton("share", "javascripts.share.title")
-    const controlOnAdd = control.onAdd
+export class ShareSidebarToggleControl extends SidebarToggleControl {
+    constructor() {
+        super("share", "javascripts.share.title")
+    }
 
-    control.onAdd = (map: L.Map): HTMLElement => {
-        const container = controlOnAdd(map)
+    onAdd(map: MaplibreMap): HTMLElement {
+        const container = super.onAdd(map)
         const button = container.querySelector("button")
 
         button.addEventListener("click", () => {
             if (button.classList.contains("active")) {
                 // On sidebar shown, force update
-                onMapZoomOrMoveEnd()
-                onMapZoomOrLayerChange()
+                updateSidebar()
             } else {
                 // On sidebar hidden, deselect the marker checkbox
                 if (markerCheckbox.checked) {
@@ -34,60 +34,44 @@ export const getShareSidebarToggleButton = () => {
             }
         })
 
-        const sidebar = control.sidebar
-        const linkInput = sidebar.querySelector("input.link-input")
-        const geoUriInput = sidebar.querySelector("input.geo-uri-input")
-        const embedInput = sidebar.querySelector("input.embed-input")
+        const exportForm = this.sidebar.querySelector("form.export-form")
+        const exportSubmitButton = exportForm.querySelector("button[type=submit]")
+        const attributionCheckbox = exportForm.elements.namedItem("attribution") as HTMLInputElement
 
-        let marker: L.Marker | null = null
-        let locationFilter: any | null = null
-        let optimalExportParams: { zoom: number; xResolution: number; yResolution: number } | null = null
-
-        /** On marker drag end, center map on marker */
-        const onMarkerDragEnd = () => {
-            map.removeEventListener("move", onMapMove)
-            map.panTo(marker.getLatLng())
-            map.addOneTimeEventListener("moveend", () => {
-                map.addEventListener("move", onMapMove)
-            })
-        }
-
-        const markerCheckbox = sidebar.querySelector("input.marker-check")
+        let marker: Marker | null = null
+        const markerCheckbox = this.sidebar.querySelector("input.marker-check")
         markerCheckbox.addEventListener("change", () => {
             // On marker checkbox change, display/hide the marker
             if (markerCheckbox.checked) {
                 if (!marker) {
-                    marker = L.marker(map.getCenter(), {
-                        icon: getMarkerIcon("blue", true),
+                    marker = new Marker({
+                        anchor: markerIconAnchor,
+                        element: getMarkerIconElement("blue", true),
                         draggable: true,
-                        autoPan: true,
                     })
-                    marker.addEventListener("dragend", onMarkerDragEnd)
-                } else {
-                    marker.setLatLng(map.getCenter())
                 }
-
-                // Display marker and chance zoom mode to center
-                map.addLayer(marker)
-                map.options.scrollWheelZoom = map.options.doubleClickZoom = "center"
+                marker.setLngLat(map.getCenter())
+                marker.addTo(map)
             } else {
-                // Hide marker and reset zoom mode
-                map.removeLayer(marker)
-                map.options.scrollWheelZoom = map.options.doubleClickZoom = true
+                marker.remove()
             }
         })
 
-        const exportForm = sidebar.querySelector("form.export-form")
-        const exportSubmitButton = exportForm.querySelector("button[type=submit]")
-
-        // TODO: disable unavailable zoom levels (on zoomend)
-        const detailOffsetsWithElements: [number, [HTMLInputElement, HTMLSpanElement]][] = []
-        const detailInputs = exportForm.querySelectorAll("input[name=detail]")
-        for (const input of detailInputs) {
-            const zoomOffset = Number.parseInt(input.value, 10)
-            const resolutionSpan = input.closest("label").querySelector("span.resolution")
-            detailOffsetsWithElements.push([zoomOffset, [input, resolutionSpan]])
-        }
+        // On custom region checkbox change, enable/disable the location filter
+        let locationFilter: LocationFilterControl | null = null
+        const customRegionCheckbox = exportForm.querySelector("input.custom-region-check")
+        customRegionCheckbox.addEventListener("change", () => {
+            if (customRegionCheckbox.checked) {
+                if (!locationFilter) {
+                    locationFilter = new LocationFilterControl()
+                }
+                // By default, location filter is slightly smaller than the current view
+                locationFilter.setBounds(padLngLatBounds(map.getBounds(), -0.2))
+                locationFilter.addTo(map)
+            } else {
+                locationFilter.remove()
+            }
+        })
 
         exportForm.addEventListener("submit", async (e) => {
             e.preventDefault()
@@ -100,19 +84,12 @@ export const getShareSidebarToggleButton = () => {
 
             try {
                 // Get export params from the form
+                const attribution = attributionCheckbox.checked
                 const mimeType = formatSelect.value
                 const fileSuffix = formatSelect.selectedOptions[0].dataset.suffix
-                const leafletBounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
-                const sw = leafletBounds.getSouthWest()
-                const ne = leafletBounds.getNorthEast()
-                const bounds: Bounds = [sw.lng, sw.lat, ne.lng, ne.lat] as const
-                const selectedDetailInput = exportForm.querySelector("input[name=detail]:checked")
-                const zoomOffset = Number.parseInt(selectedDetailInput.value, 10)
-                const zoom = optimalExportParams.zoom + zoomOffset
-                const baseLayer = getMapBaseLayer(map)
 
                 // Create image blob and download it
-                const blob = await exportMapImage(mimeType, bounds, zoom, baseLayer)
+                const blob = await exportMapImage(mimeType, map, locationFilter?.getBounds(), attribution)
                 const url = URL.createObjectURL(blob)
 
                 const now = new Date()
@@ -130,28 +107,7 @@ export const getShareSidebarToggleButton = () => {
             }
         })
 
-        // On custom region checkbox change, enable/disable the location filter
-        const customRegionCheckbox = exportForm.querySelector("input.custom-region-check")
-        customRegionCheckbox.addEventListener("change", () => {
-            if (customRegionCheckbox.checked) {
-                if (!locationFilter) {
-                    locationFilter = getLocationFilter()
-                    locationFilter.addEventListener("change", onMapZoomOrLayerChange)
-                }
-
-                map.addLayer(locationFilter)
-
-                // By default, location filter is slightly smaller than the current view
-                locationFilter.setBounds(map.getBounds().pad(-0.2))
-                locationFilter.enable()
-            } else {
-                map.removeLayer(locationFilter)
-            }
-
-            onMapZoomOrLayerChange()
-        })
-
-        // TODO: support svg/pdf fallback
+        // On format change, remember the selection
         const formatSelect = exportForm.querySelector("select.format-select")
         formatSelect.addEventListener("change", () => {
             const format = formatSelect.value
@@ -159,68 +115,7 @@ export const getShareSidebarToggleButton = () => {
             setLastShareExportFormat(format)
         })
 
-        /** On map move, update marker position if marker is enabled */
-        const onMapMove = () => {
-            // Skip updates if the sidebar is hidden
-            if (!button.classList.contains("active")) return
-            if (markerCheckbox.checked) marker.setLatLng(map.getCenter())
-        }
-        map.addEventListener("move", onMapMove)
-
-        /** On map zoomend or moveend, update sidebar data */
-        const onMapZoomOrMoveEnd = () => {
-            // Skip updates if the sidebar is hidden
-            if (!button.classList.contains("active")) return
-
-            const showMarker = markerCheckbox.checked
-            linkInput.value = getMapShortlink(map, showMarker)
-            geoUriInput.value = getMapGeoUri(map)
-            embedInput.value = getMapEmbedHtml(map, showMarker ? marker.getLatLng() : null)
-        }
-        map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
-
-        /** On map zoomend or baselayerchange, update the optimal export params */
-        const onMapZoomOrLayerChange = () => {
-            // Skip updates if the sidebar is hidden
-            if (!button.classList.contains("active")) return
-
-            const baseLayer = getMapBaseLayer(map)
-
-            // Get the current base layer's min and max zoom
-            const minZoom = baseLayer.options.minZoom
-            const maxZoom = baseLayer.options.maxNativeZoom ?? baseLayer.options.maxZoom
-
-            const leafletBounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
-            const sw = leafletBounds.getSouthWest()
-            const ne = leafletBounds.getNorthEast()
-            const bounds: Bounds = [sw.lng, sw.lat, ne.lng, ne.lat] as const
-            optimalExportParams = getOptimalExportParams(bounds)
-
-            // Update the radio inputs availability
-            for (const [zoomOffset, [input, _]] of detailOffsetsWithElements) {
-                const zoom = optimalExportParams.zoom + zoomOffset
-                const isAvailable = minZoom <= zoom && zoom <= maxZoom
-                const isDisabled = !isAvailable
-
-                // Skip updates if the input is already in the correct state
-                if (input.disabled === isDisabled) continue
-
-                // Don't show resolution for now: it's not compatible with SVG, PDF
-                // const xResolution = Math.round(optimalExportParams.xResolution * 2 ** zoomOffset)
-                // const yResolution = Math.round(optimalExportParams.yResolution * 2 ** zoomOffset)
-                // resolutionSpan.textContent = `${xResolution}⨯${yResolution} px`
-
-                input.disabled = isDisabled
-                input.closest(".form-check").classList.toggle("disabled", isDisabled)
-
-                if (input.checked && isDisabled) {
-                    input.checked = false
-                    input.dispatchEvent(new Event("change"))
-                }
-            }
-        }
-        map.addEventListener("zoomend baselayerchange", onMapZoomOrLayerChange)
-
+        // Restore last form values
         const lastShareExportFormat = getLastShareExportFormat()
         if (lastShareExportFormat) {
             // for loop instead of
@@ -234,8 +129,20 @@ export const getShareSidebarToggleButton = () => {
             }
         }
 
+        const linkInput = this.sidebar.querySelector("input.link-input")
+        const geoUriInput = this.sidebar.querySelector("input.geo-uri-input")
+        const embedInput = this.sidebar.querySelector("input.embed-input")
+        const updateSidebar = () => {
+            // Skip updates if the sidebar is hidden
+            if (!button.classList.contains("active")) return
+
+            const showMarker = markerCheckbox.checked
+            linkInput.value = getMapShortlink(map, showMarker)
+            geoUriInput.value = getMapGeoUri(map)
+            embedInput.value = getMapEmbedHtml(map, showMarker ? marker.getLngLat() : null)
+        }
+        map.on("zoomend moveend", updateSidebar)
+
         return container
     }
-
-    return control
 }

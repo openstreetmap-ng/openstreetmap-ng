@@ -372,9 +372,9 @@ export const getMapShortlink = (map: MaplibreMap, showMarker = false): string =>
  * getMapEmbedHtml(map, [-0.09, 51.505])
  */
 export const getMapEmbedHtml = (map: MaplibreMap, markerLngLat?: LngLat): string => {
-    const bounds = map.getBounds().toArray()
+    const [[minLon, minLat], [maxLon, maxLat]] = map.getBounds().toArray()
     const params: { [key: string]: string } = {
-        bbox: `${bounds[0][0]},${bounds[0][1]},${bounds[1][0]},${bounds[1][1]}`,
+        bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
         layer: getMapBaseLayerId(map),
     }
 

@@ -1,38 +1,42 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
-
-export interface SidebarToggleControl extends L.Control {
-    sidebar?: HTMLElement
-}
+import type { IControl, Map as MaplibreMap } from "maplibre-gl"
 
 const sidebarToggleContainers: HTMLElement[] = []
 
-/** Create a sidebar toggle button */
-export const getSidebarToggleButton = (className: string, tooltipTitle: string): SidebarToggleControl => {
-    const control = new L.Control() as SidebarToggleControl
+export class SidebarToggleControl implements IControl {
+    public sidebar?: HTMLElement
+    private readonly _className: string
+    private readonly _tooltipTitle: string
 
-    control.onAdd = (map: L.Map): HTMLElement => {
+    constructor(className: string, tooltipTitle: string) {
+        this._className = className
+        this._tooltipTitle = tooltipTitle
+    }
+
+    onAdd(map: MaplibreMap): HTMLElement {
         // Find corresponding sidebar
-        const sidebar = document.querySelector(`div.leaflet-sidebar.${className}`)
-        if (!sidebar) console.error("Sidebar", className, "not found")
-        control.sidebar = sidebar
+        const sidebar = document.querySelector(`div.leaflet-sidebar.${this._className}`)
+        if (!sidebar) console.error("Sidebar", this._className, "not found")
+        this.sidebar = sidebar
 
         // Create container
         const container = document.createElement("div")
-        container.className = `leaflet-control ${className}`
+        container.className = `leaflet-control ${this._className}`
 
         // Create button and tooltip
-        const buttonText = i18next.t(tooltipTitle)
+        const buttonText = i18next.t(this._tooltipTitle)
         const button = document.createElement("button")
         button.type = "button"
         button.className = "control-button"
         button.ariaLabel = buttonText
         const icon = document.createElement("img")
-        icon.className = `icon ${className}`
-        icon.src = `/static/img/leaflet/_generated/${className}.webp`
+        icon.className = `icon ${this._className}`
+        icon.src = `/static/img/leaflet/_generated/${this._className}.webp`
         button.appendChild(icon)
         container.appendChild(button)
 
+        // noinspection ObjectAllocationIgnored
         new Tooltip(button, {
             title: buttonText,
             placement: "left",
@@ -40,7 +44,7 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
 
         // On click, toggle sidebar visibility and invalidate map size
         button.addEventListener("click", () => {
-            console.debug("onSidebarToggleButtonClick", className)
+            console.debug("onSidebarToggleButtonClick", this._className)
 
             // Unselect other buttons
             for (const otherContainer of sidebarToggleContainers) {
@@ -57,7 +61,7 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
 
             const isActive = button.classList.toggle("active")
             sidebar.classList.toggle("d-none", !isActive)
-            map.invalidateSize(false)
+            map.resize()
         })
 
         // On sidebar close button, trigger the sidebar toggle button
@@ -72,5 +76,7 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
         return container
     }
 
-    return control
+    onRemove(_: MaplibreMap): void {
+        // Do nothing
+    }
 }

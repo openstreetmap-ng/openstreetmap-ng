@@ -56,9 +56,10 @@ const aerialEsriCredit = "Esri, Maxar, Earthstar Geographics, and the GIS User C
 
 interface LayerConfig {
     specification: SourceSpecification
-    isBaseLayer: boolean
+    isBaseLayer?: boolean
     layerCode?: LayerCode
     legacyLayerIds?: LayerId[]
+    layerTypes?: LayerType[]
     /** Layers with higher priority are drawn on top of others, defaults to 0. */
     priority?: number
 }
@@ -147,7 +148,6 @@ layersConfig.set("aerial" as LayerId, {
         tileSize: 256,
         attribution: aerialEsriCredit,
     },
-    isBaseLayer: false,
     layerCode: "A" as LayerCode,
     priority: 50,
 })
@@ -163,7 +163,6 @@ layersConfig.set("gps" as LayerId, {
         tiles: ["https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png"],
         tileSize: 256,
     },
-    isBaseLayer: false,
     layerCode: "G" as LayerCode,
     priority: 60,
 })
@@ -177,7 +176,6 @@ layersConfig.set("data" as LayerId, {
             features: [],
         },
     },
-    isBaseLayer: false,
     layerCode: "D" as LayerCode,
     priority: 100,
 })
@@ -190,7 +188,7 @@ layersConfig.set("routing" as LayerId, {
             features: [],
         },
     },
-    isBaseLayer: false,
+    layerTypes: ["line"],
     priority: 110,
 })
 
@@ -202,7 +200,7 @@ layersConfig.set("changesets" as LayerId, {
             features: [],
         },
     },
-    isBaseLayer: false,
+    layerTypes: ["line"],
     priority: 120,
 })
 
@@ -214,8 +212,8 @@ layersConfig.set("notes" as LayerId, {
             features: [],
         },
     },
-    isBaseLayer: false,
     layerCode: "N" as LayerCode,
+    layerTypes: ["symbol"],
     priority: 130,
 })
 
@@ -227,7 +225,7 @@ layersConfig.set("search" as LayerId, {
             features: [],
         },
     },
-    isBaseLayer: false,
+    layerTypes: ["symbol"],
     priority: 140,
 })
 
@@ -239,24 +237,28 @@ layersConfig.set("focus" as LayerId, {
             features: [],
         },
     },
-    isBaseLayer: false,
     priority: 150,
 })
 
-const legacyLayerIdMap: Map<LayerId | LayerCode, LayerId> = new Map()
-for (const [layerId, config] of layersConfig) {
-    legacyLayerIdMap.set(layerId, layerId)
-    if (layerId === "standard") {
-        legacyLayerIdMap.set("" as LayerCode, layerId)
-    }
-    if (config.layerCode) {
-        legacyLayerIdMap.set(config.layerCode, layerId)
-    }
-    if (config.legacyLayerIds) {
-        for (const legacyLayerId of config.legacyLayerIds) {
-            legacyLayerIdMap.set(legacyLayerId, layerId)
+let layerLookupMap = (): Map<LayerId | LayerCode, LayerId> => {
+    console.debug("Lazily initializing layerLookupMap")
+    const result: Map<LayerId | LayerCode, LayerId> = new Map()
+    for (const [layerId, config] of layersConfig) {
+        result.set(layerId, layerId)
+        if (layerId === "standard") {
+            result.set("" as LayerCode, layerId)
+        }
+        if (config.layerCode) {
+            result.set(config.layerCode, layerId)
+        }
+        if (config.legacyLayerIds) {
+            for (const legacyLayerId of config.legacyLayerIds) {
+                result.set(legacyLayerId, layerId)
+            }
         }
     }
+    layerLookupMap = () => result
+    return result
 }
 
 /**
@@ -267,7 +269,7 @@ for (const [layerId, config] of layersConfig) {
  * // => "standard"
  */
 export const resolveLayerCodeOrId = (layerCodeOrId: LayerCode | LayerId): LayerId | undefined =>
-    legacyLayerIdMap.get(layerCodeOrId)
+    layerLookupMap().get(layerCodeOrId)
 
 export const defaultLayerId = resolveLayerCodeOrId("" as LayerCode)
 
@@ -306,13 +308,11 @@ const layerTypeFilters: Map<LayerType, FilterSpecification> = new Map([
     ["symbol", ["==", ["geometry-type"], "Point"]],
 ])
 
-export const addMapLayer = (
-    map: MaplibreMap,
-    layerId: LayerId,
-    options?: {
-        [key: LayerId | string]: Omit<LayerSpecification, "id" | "type" | "source" | "filter">
-    },
-): void => {
+export type AddMapLayerOptions = {
+    [key: LayerId | string]: Omit<LayerSpecification, "id" | "type" | "source" | "filter">
+}
+
+export const addMapLayer = (map: MaplibreMap, layerId: LayerId, options?: AddMapLayerOptions): void => {
     const config = layersConfig.get(layerId)
     if (!config) {
         console.warn("Layer", layerId, "not found in", layersConfig.keys())
@@ -321,16 +321,14 @@ export const addMapLayer = (
 
     const type = config.specification.type
     let addLayerTypes: LayerType[]
-    if (layerId === "notes" || layerId === "search") {
-        addLayerTypes = ["symbol"]
-    } else if (layerId === "routing" || layerId === "changesets") {
-        addLayerTypes = ["line"]
+    if (config.layerTypes) {
+        addLayerTypes = config.layerTypes
     } else if (type === "raster") {
         addLayerTypes = ["raster"]
     } else if (type === "geojson") {
         addLayerTypes = ["fill", "line", "circle"]
     } else {
-        console.warn("Unsupported layer", layerId, "with specification type", type)
+        console.warn("Unsupported specification type", type, "on layer", layerId)
         return
     }
 

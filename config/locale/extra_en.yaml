@@ -24,16 +24,8 @@ map:
     max_lon: Maximum longitude
     min_lat: Minimum latitude
     max_lat: Maximum latitude
-    level_of_detail:
-      title: Level of detail
-      very_low: Very low
-      low: Low
-      normal: Normal
-      high: High
-      very_high: Very high
-    description: |-
-      The exported file will contain only the map background.
-      It will not contain any pins, routes, selections or other dynamic elements.
+    include_attribution_text: Include attribution text
+    exported_image_will_include: The exported image will include the map background, markers, routes, and all visible elements.
   routing:
     failed_to_retrieve_directions: "Failed to retrieve directions"
     drag_and_drop:

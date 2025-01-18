@@ -32,22 +32,14 @@ export const getMarkerIconElement = (color: string, showShadow: boolean): HTMLEl
 
 /** Get the bounds area in square degrees */
 export const getLngLatBoundsSize = (bounds: LngLatBounds): number => {
-    const sw = bounds.getSouthWest()
-    const ne = bounds.getNorthEast()
-    return (ne.lng - sw.lng) * (ne.lat - sw.lat)
+    const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
+    return (maxLon - minLon) * (maxLat - minLat)
 }
 
 /** Get the intersection of two bounds */
 export const getLngLatBoundsIntersection = (bounds1: LngLatBounds, bounds2: LngLatBounds): LngLatBounds => {
-    const minLat1 = bounds1.getSouth()
-    const maxLat1 = bounds1.getNorth()
-    const minLon1 = bounds1.getWest()
-    const maxLon1 = bounds1.getEast()
-
-    const minLat2 = bounds2.getSouth()
-    const maxLat2 = bounds2.getNorth()
-    const minLon2 = bounds2.getWest()
-    const maxLon2 = bounds2.getEast()
+    const [[minLon1, minLat1], [maxLon1, maxLat1]] = bounds1.adjustAntiMeridian().toArray()
+    const [[minLon2, minLat2], [maxLon2, maxLat2]] = bounds2.adjustAntiMeridian().toArray()
 
     const minLat = Math.max(minLat1, minLat2)
     const maxLat = Math.min(maxLat1, maxLat2)
@@ -60,6 +52,19 @@ export const getLngLatBoundsIntersection = (bounds1: LngLatBounds, bounds2: LngL
     }
 
     return new LngLatBounds([minLon, minLat, maxLon, maxLat])
+}
+
+/** Pad bounds to grow/shrink them */
+export const padLngLatBounds = (bounds: LngLatBounds, padding: number): LngLatBounds => {
+    const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
+    const paddingX = padding * (maxLon - minLon)
+    const paddingY = padding * (maxLat - minLat)
+    return new LngLatBounds([
+        minLon - paddingX,
+        Math.max(minLat - paddingY, -85),
+        maxLon + paddingX,
+        Math.min(maxLat + paddingY, 85),
+    ])
 }
 
 /** Make bounds minimum size to make them easier to click */

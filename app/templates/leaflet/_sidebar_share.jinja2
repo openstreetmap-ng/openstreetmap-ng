@@ -19,7 +19,7 @@
                     {{ t('javascripts.share.include_marker') }}
                     <span class="text-body-tertiary">
                         (<img class="marker-icon" src="/static/img/marker/blue.webp" alt="{{ t('alt.marker.blue') }}"
-                            loading="lazy">)
+                              loading="lazy">)
                     </span>
                 </label>
             </div>
@@ -68,45 +68,6 @@
                 </label>
             </div>
 
-            <label class="form-label">{{ t('map.export.level_of_detail.title') }}</label>
-            <div class="ms-1 mb-3">
-                <div class="form-check">
-                    <label class="form-check-label w-100">
-                        <input class="form-check-input" type="radio" name="detail" value="-2">
-                        {{ t('map.export.level_of_detail.very_low') }}
-                        <span class="resolution"></span>
-                    </label>
-                </div>
-                <div class="form-check">
-                    <label class="form-check-label w-100">
-                        <input class="form-check-input" type="radio" name="detail" value="-1">
-                        {{ t('map.export.level_of_detail.low') }}
-                        <span class="resolution"></span>
-                    </label>
-                </div>
-                <div class="form-check">
-                    <label class="form-check-label w-100">
-                        <input class="form-check-input" type="radio" name="detail" value="0" checked>
-                        {{ t('map.export.level_of_detail.normal') }}
-                        <span class="resolution"></span>
-                    </label>
-                </div>
-                <div class="form-check">
-                    <label class="form-check-label w-100">
-                        <input class="form-check-input" type="radio" name="detail" value="1">
-                        {{ t('map.export.level_of_detail.high') }}
-                        <span class="resolution"></span>
-                    </label>
-                </div>
-                <div class="form-check">
-                    <label class="form-check-label w-100">
-                        <input class="form-check-input" type="radio" name="detail" value="2">
-                        {{ t('map.export.level_of_detail.very_high') }}
-                        <span class="resolution"></span>
-                    </label>
-                </div>
-            </div>
-
             <label class="form-label">
                 {{ t('action.save_as') }}
             </label>
@@ -114,15 +75,15 @@
                 <option value="image/png" data-suffix=".png" selected>PNG</option>
                 <option value="image/webp" data-suffix=".webp">WebP</option>
                 <option value="image/jpeg" data-suffix=".jpg">JPEG</option>
-                <option value="image/svg+xml" data-suffix=".svg">SVG</option>
-                <option value="application/pdf" data-suffix=".pdf">PDF</option>
+                {# <option value="image/svg+xml" data-suffix=".svg">SVG</option> #}
+                {# <option value="application/pdf" data-suffix=".pdf">PDF</option> #}
             </select>
 
             <button class="btn btn-primary px-4 mb-2" type="submit">
                 {{ t('action.download') }}
             </button>
             <p class="form-text">
-                {{ t('map.export.description') }}
+                {{ t('map.export.exported_image_will_include') }}
             </p>
         </form>
     </div>

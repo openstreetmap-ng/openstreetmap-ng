@@ -20,6 +20,7 @@
     "@babel/preset-typescript": "^7.26.0",
     "@bufbuild/protoc-gen-es": "^2.2.3",
     "@types/bootstrap": "^5.2.10",
+    "@types/geojson": "^7946.0.15",
     "@types/mapbox__polyline": "^1.0.5",
     "autoprefixer": "^10.4.20",
     "bun-types": "^1.1.42",
