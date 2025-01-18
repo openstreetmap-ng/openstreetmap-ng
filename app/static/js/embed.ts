@@ -6,7 +6,7 @@ import { qsParse } from "./_qs"
 import { isLatitude, isLongitude, zoomPrecision } from "./_utils"
 import { addMapLayer, addMapLayerSources, defaultLayerId, type LayerId, resolveLayerCodeOrId } from "./leaflet/_layers"
 import type { LonLatZoom } from "./leaflet/_map-utils"
-import { disableMapRotation, getMarkerIconElement, markerIconAnchor } from "./leaflet/_utils"
+import { configureDefaultMapBehavior, getMarkerIconElement, markerIconAnchor } from "./leaflet/_utils"
 
 const mapContainer = document.getElementById("map")
 const attributionControl = new AttributionControl()
@@ -15,8 +15,9 @@ const map = new MaplibreMap({
     maxZoom: 19,
     zoom: 1,
     attributionControl: false,
+    refreshExpiredTiles: false,
 })
-disableMapRotation(map)
+configureDefaultMapBehavior(map)
 addMapLayerSources(map, "base")
 map.addControl(new NavigationControl({ showCompass: false }))
 map.addControl(attributionControl)

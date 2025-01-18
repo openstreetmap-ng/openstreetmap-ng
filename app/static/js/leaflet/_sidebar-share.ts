@@ -12,7 +12,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
         super("share", "javascripts.share.title")
     }
 
-    onAdd(map: MaplibreMap): HTMLElement {
+    public onAdd(map: MaplibreMap): HTMLElement {
         const container = super.onAdd(map)
         const button = container.querySelector("button")
 
@@ -66,8 +66,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                     locationFilter = new LocationFilterControl()
                 }
                 // By default, location filter is slightly smaller than the current view
-                locationFilter.setBounds(padLngLatBounds(map.getBounds(), -0.2))
-                locationFilter.addTo(map)
+                locationFilter.addTo(map, padLngLatBounds(map.getBounds(), -0.2))
             } else {
                 locationFilter.remove()
             }
@@ -141,7 +140,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
             geoUriInput.value = getMapGeoUri(map)
             embedInput.value = getMapEmbedHtml(map, showMarker ? marker.getLngLat() : null)
         }
-        map.on("zoomend moveend", updateSidebar)
+        map.on("moveend", updateSidebar)
 
         return container
     }

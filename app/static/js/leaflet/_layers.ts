@@ -1,3 +1,4 @@
+import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
 import type {
     AddLayerObject,
@@ -54,12 +55,22 @@ const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
 // https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/0
 const aerialEsriCredit = "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
 
+export const emptyFeatureCollection: FeatureCollection = {
+    type: "FeatureCollection",
+    features: [],
+}
+
+export type AddMapLayerOptions = {
+    [key: LayerId | string]: Omit<LayerSpecification, "id" | "type" | "source" | "filter">
+}
+
 interface LayerConfig {
     specification: SourceSpecification
     isBaseLayer?: boolean
     layerCode?: LayerCode
     legacyLayerIds?: LayerId[]
     layerTypes?: LayerType[]
+    defaultLayerOptions?: AddMapLayerOptions
     /** Layers with higher priority are drawn on top of others, defaults to 0. */
     priority?: number
 }
@@ -204,19 +215,6 @@ layersConfig.set("changesets" as LayerId, {
     priority: 120,
 })
 
-layersConfig.set("notes" as LayerId, {
-    specification: {
-        type: "geojson",
-        data: {
-            type: "FeatureCollection",
-            features: [],
-        },
-    },
-    layerCode: "N" as LayerCode,
-    layerTypes: ["symbol"],
-    priority: 130,
-})
-
 layersConfig.set("search" as LayerId, {
     specification: {
         type: "geojson",
@@ -290,6 +288,25 @@ export const resolveExtendedLayerId = (extendedLayerId: string): LayerId => {
     return layerId as LayerId
 }
 
+type LayerEventHandler = (isAdded: boolean, layerId: LayerId, config: LayerConfig) => void
+
+const layerEventHandlers: LayerEventHandler[] = []
+
+/** Add a layer event handler, called when a layer is added or removed */
+export const addLayerEventHandler = (handler: LayerEventHandler): void => {
+    layerEventHandlers.push(handler)
+}
+
+// /** Remove a layer event handler and stop receiving events */
+// export const removeLayerEventHandler = (handler: LayerEventHandler): void => {
+//     const handlerIndex = layerEventHandlers.indexOf(handler)
+//     if (handlerIndex === -1) {
+//         console.warn("Layer event handler not found", handler)
+//         return
+//     }
+//     layerEventHandlers.splice(handlerIndex, 1)
+// }
+
 type LayerType =
     | "fill"
     | "line"
@@ -308,11 +325,12 @@ const layerTypeFilters: Map<LayerType, FilterSpecification> = new Map([
     ["symbol", ["==", ["geometry-type"], "Point"]],
 ])
 
-export type AddMapLayerOptions = {
-    [key: LayerId | string]: Omit<LayerSpecification, "id" | "type" | "source" | "filter">
-}
-
-export const addMapLayer = (map: MaplibreMap, layerId: LayerId, options?: AddMapLayerOptions): void => {
+export const addMapLayer = (
+    map: MaplibreMap,
+    layerId: LayerId,
+    options?: AddMapLayerOptions,
+    triggerEvent = true,
+): void => {
     const config = layersConfig.get(layerId)
     if (!config) {
         console.warn("Layer", layerId, "not found in", layersConfig.keys())
@@ -341,6 +359,7 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, options?: AddMap
     for (const addLayerType of addLayerTypes) {
         const extendedLayerId = addLayerTypes.length > 1 ? makeExtendedLayerId(layerId, addLayerType) : layerId
         const layerObject: AddLayerObject = {
+            ...(config.defaultLayerOptions?.[extendedLayerId] ?? {}),
             ...(options?.[extendedLayerId] ?? {}),
             id: extendedLayerId,
             // @ts-ignore
@@ -353,9 +372,14 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, options?: AddMap
         if (filter) layerObject.filter = filter
         map.addLayer(layerObject, beforeId)
     }
+    if (triggerEvent) {
+        for (const handler of layerEventHandlers) {
+            handler(true, layerId, config)
+        }
+    }
 }
 
-export const removeMapLayer = (map: MaplibreMap, layerId: LayerId): void => {
+export const removeMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = true): void => {
     let removed = false
     for (const extendedLayerId of map.getLayersOrder()) {
         if (resolveExtendedLayerId(extendedLayerId) !== layerId) continue
@@ -363,7 +387,22 @@ export const removeMapLayer = (map: MaplibreMap, layerId: LayerId): void => {
         map.removeLayer(extendedLayerId)
         removed = true
     }
-    if (!removed) {
+    if (removed) {
+        if (triggerEvent) {
+            const config = layersConfig.get(layerId)
+            for (const handler of layerEventHandlers) {
+                handler(false, layerId, config)
+            }
+        }
+    } else {
         console.debug("Removed no layers with id", layerId)
     }
+}
+
+/** Test if a layer is present in the map */
+export const hasMapLayer = (map: MaplibreMap, layerId: LayerId): boolean => {
+    for (const extendedLayerId of map.getLayersOrder()) {
+        if (resolveExtendedLayerId(extendedLayerId) === layerId) return true
+    }
+    return false
 }

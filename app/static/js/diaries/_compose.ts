@@ -4,7 +4,7 @@ import { configureStandardForm } from "../_standard-form"
 import { isLatitude, isLongitude, zoomPrecision } from "../_utils"
 import { addMapLayer, addMapLayerSources, defaultLayerId } from "../leaflet/_layers.ts"
 import { getInitialMapState, type LonLatZoom } from "../leaflet/_map-utils"
-import { disableMapRotation, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils.ts"
+import { configureDefaultMapBehavior, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils.ts"
 
 const body = document.querySelector("body.diary-compose-body")
 if (body) {
@@ -86,8 +86,9 @@ if (body) {
                 container: mapDiv,
                 maxZoom: 19,
                 attributionControl: false,
+                refreshExpiredTiles: false,
             })
-            disableMapRotation(map)
+            configureDefaultMapBehavior(map)
             addMapLayerSources(map, "base")
             map.addControl(new NavigationControl({ showCompass: false }))
             addMapLayer(map, defaultLayerId)

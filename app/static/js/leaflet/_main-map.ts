@@ -31,7 +31,7 @@ import {
 } from "./_map-utils"
 import { getNewNoteControl } from "./_new-note-control"
 import { configureNotesLayer } from "./_notes-layer"
-import { getQueryFeaturesControl } from "./_query-features-control"
+import { getQueryFeaturesControl } from "./_query-features.ts"
 import { getLayersSidebarToggleButton } from "./_sidebar-layers"
 import { getLegendSidebarToggleButton } from "./_sidebar-legend"
 import { getShareSidebarToggleButton } from "./_sidebar-share"

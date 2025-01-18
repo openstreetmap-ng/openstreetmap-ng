@@ -1,6 +1,7 @@
 export interface OSMNode {
     type: "node"
     id: bigint
+    // TODO: leaflet leftover [lon, lat]
     /** [lat, lon] */
     geom: [number, number]
     version?: bigint
@@ -9,6 +10,7 @@ export interface OSMNode {
 export interface OSMWay {
     type: "way"
     id: bigint
+    // TODO: leaflet leftover [lon, lat]
     /** [[lat, lon], ...] */
     geom: [number, number][]
     version?: bigint
@@ -25,10 +27,11 @@ export interface OSMNote {
     type: "note"
     id?: bigint
     /** [lat, lon] */
+    // TODO: leaflet leftover [lon, lat]
     geom: [number, number]
-    icon: string
-    draggable?: boolean
-    interactive?: boolean
+    open: boolean
+    text: string
+    draggable?: boolean // default false
 }
 
 /** [minLon, minLat, maxLon, maxLat] */

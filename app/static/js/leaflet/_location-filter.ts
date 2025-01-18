@@ -1,27 +1,24 @@
 import type { GeoJSON } from "geojson"
 import { type GeoJSONSource, type IControl, LngLatBounds, type Map as MaplibreMap, Marker } from "maplibre-gl"
 import type { Bounds } from "../_types.ts"
-import { addMapLayer, type AddMapLayerOptions, type LayerId, layersConfig, removeMapLayer } from "./_layers.ts"
+import { addMapLayer, emptyFeatureCollection, type LayerId, layersConfig, removeMapLayer } from "./_layers.ts"
 
 const layerId: LayerId = "location-filter" as LayerId
 layersConfig.set(layerId as LayerId, {
     specification: {
         type: "geojson",
-        data: {
-            type: "FeatureCollection",
-            features: [],
-        },
+        data: emptyFeatureCollection,
     },
     layerTypes: ["fill"],
-    priority: 200,
-})
-const layerOptions: AddMapLayerOptions = {}
-layerOptions[layerId] = {
-    paint: {
-        "fill-color": "black",
-        "fill-opacity": 0.3,
+    defaultLayerOptions: {
+        [layerId]: {
+            paint: {
+                "fill-color": "black",
+                "fill-opacity": 0.3,
+            },
+        },
     },
-}
+})
 
 export class LocationFilterControl implements IControl {
     private _map: MaplibreMap
@@ -31,7 +28,7 @@ export class LocationFilterControl implements IControl {
 
     public addTo(map: MaplibreMap, bounds: LngLatBounds): this {
         this._map = map
-        addMapLayer(map, layerId, layerOptions)
+        addMapLayer(map, layerId)
 
         const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
         this._bounds = [minLon, minLat, maxLon, maxLat]
@@ -73,6 +70,12 @@ export class LocationFilterControl implements IControl {
         this._grabber.remove()
         this._grabber = null
     }
+
+    // public setBounds(bounds: LngLatBounds): void {
+    //     const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
+    //     this._bounds = [minLon, minLat, maxLon, maxLat]
+    //     this._render()
+    // }
 
     public getBounds(): LngLatBounds {
         return new LngLatBounds(this._bounds)

@@ -104,7 +104,7 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
  * getMapBaseLayerId(map)
  * // => "standard"
  */
-export const getMapBaseLayerId = (map: MaplibreMap): LayerId => {
+export const getMapBaseLayerId = (map: MaplibreMap): LayerId | null => {
     let baseLayerId: LayerId | null = null
     for (const extendedLayerId of map.getLayersOrder()) {
         const layerId = extendedLayerId as LayerId // base layers have no extensions
@@ -114,7 +114,6 @@ export const getMapBaseLayerId = (map: MaplibreMap): LayerId => {
             baseLayerId = layerId
         }
     }
-    if (!baseLayerId) throw new Error("No base layer found")
     return baseLayerId
 }
 

@@ -1,87 +1,100 @@
 import { decode } from "@mapbox/polyline"
+import type { Feature, GeoJSON, Position } from "geojson"
 import type { OSMChangeset, OSMNode, OSMNote, OSMObject, OSMWay } from "../_types"
-import type { RenderElementsData } from "../proto/shared_pb"
-import { getMarkerIcon } from "./_utils"
-
-export interface RenderStyles {
-    changeset?: Partial<L.PolylineOptions>
-    element?: Partial<L.CircleMarkerOptions>
-    note?: Partial<L.MarkerOptions>
-    noteHalo?: Partial<L.CircleMarkerOptions>
-}
+import type { RenderElementsData, RenderNotesData } from "../proto/shared_pb"
 
 interface RenderOptions {
     /** Whether to render areas */
     renderAreas: boolean
 }
 
-/** Add objects to the feature group layer */
-export const renderObjects = (
-    layerGroup: L.LayerGroup,
-    objects: OSMObject[],
-    styles: RenderStyles,
-    options?: Partial<RenderOptions>,
-): L.Layer[] => {
-    const layers: L.Layer[] = []
-    const markers: L.Marker[] = []
+/** Render OSMObjects to GeoJSON data */
+export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOptions>): GeoJSON => {
+    const features: Feature[] = []
 
     const processChangeset = (changeset: OSMChangeset): void => {
+        const coordinates: Position[][][] = []
         for (const [minLon, minLat, maxLon, maxLat] of changeset.bounds ?? []) {
-            const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
-            const layer = L.rectangle(latLngBounds, styles.changeset)
-            // @ts-ignore
-            layer.object = changeset
-            layers.push(layer)
+            coordinates.push([
+                [
+                    [minLon, minLat],
+                    [minLon, maxLat],
+                    [maxLon, maxLat],
+                    [maxLon, minLat],
+                    [minLon, minLat],
+                ],
+            ])
         }
-    }
-
-    const processNote = (note: OSMNote): void => {
-        const interactive = note.interactive !== undefined ? Boolean(note.interactive) : true
-        const draggable = note.draggable !== undefined ? Boolean(note.draggable) : false
-        const latLng = L.latLng(note.geom)
-        const layer = L.circleMarker(latLng, styles.noteHalo as L.CircleMarkerOptions)
-        const marker = L.marker(latLng, {
-            ...styles.note,
-            icon: getMarkerIcon(note.icon, false),
-            keyboard: interactive,
-            interactive: interactive,
-            draggable: draggable,
-            autoPan: draggable,
+        features.push({
+            type: "Feature",
+            properties: {
+                type: changeset.type,
+                id: changeset.id,
+            },
+            geometry: {
+                type: "MultiPolygon",
+                coordinates,
+            },
         })
-        // @ts-ignore
-        layer.object = note
-        // @ts-ignore
-        layer.marker = marker
-        layers.push(layer)
-        markers.push(marker)
     }
 
     const processNode = (node: OSMNode): void => {
-        const layer = L.circleMarker(node.geom, styles.element as L.CircleMarkerOptions)
-        // @ts-ignore
-        layer.object = node
-        layers.push(layer)
+        features.push({
+            type: "Feature",
+            properties: {
+                type: node.type,
+                id: node.id,
+                version: node.version,
+            },
+            geometry: {
+                type: "Point",
+                coordinates: node.geom,
+            },
+        })
     }
 
     const processWay = (way: OSMWay): void => {
-        let geom = way.geom
-        let layer: L.Layer
-        if ((options?.renderAreas ?? true) && way.area) {
-            geom = geom.slice(0, -1) // remove last == first
-            layer = L.polygon(geom, styles.element)
-        } else {
-            layer = L.polyline(geom, styles.element)
-        }
-        // @ts-ignore
-        layer.object = way
-        layers.push(layer)
+        features.push({
+            type: "Feature",
+            properties: {
+                type: way.type,
+                id: way.id,
+                version: way.version,
+            },
+            geometry:
+                (options?.renderAreas ?? true) && way.area
+                    ? {
+                          type: "Polygon",
+                          coordinates: [way.geom],
+                      }
+                    : {
+                          type: "LineString",
+                          coordinates: way.geom,
+                      },
+        })
+    }
+
+    const processNote = (note: OSMNote): void => {
+        features.push({
+            type: "Feature",
+            properties: {
+                type: note.type,
+                id: note.id,
+                open: note.open,
+                text: note.text,
+            },
+            geometry: {
+                type: "Point",
+                coordinates: note.geom,
+            },
+        })
     }
 
     const processFnMap = {
         changeset: processChangeset,
-        note: processNote,
         node: processNode,
         way: processWay,
+        note: processNote,
     }
 
     for (const object of objects) {
@@ -91,17 +104,8 @@ export const renderObjects = (
         else console.error("Unsupported feature type", object)
     }
 
-    // Render icons on top of the feature layers
-    if (layers.length) {
-        console.debug("Render", layers.length, "objects")
-        layerGroup.addLayer(L.layerGroup(layers))
-    }
-    if (markers.length) {
-        console.debug("Render", markers.length, "markers")
-        layerGroup.addLayer(L.layerGroup(markers))
-    }
-
-    return layers
+    console.debug("Rendered", features.length, "features")
+    return { type: "FeatureCollection", features }
 }
 
 /** Convert render data to OSMObjects */
@@ -118,7 +122,22 @@ export const convertRenderElementsData = (render: RenderElementsData): (OSMNode 
         result.push({
             type: "node",
             id: node.id,
-            geom: [node.lat, node.lon],
+            geom: [node.lon, node.lat],
+        })
+    }
+    return result
+}
+
+/** Convert render notes data to OSMNotes */
+export const convertRenderNotesData = (render: RenderNotesData): OSMNote[] => {
+    const result: OSMNote[] = []
+    for (const note of render.notes) {
+        result.push({
+            type: "note",
+            id: note.id,
+            geom: [note.lon, note.lat],
+            open: note.open,
+            text: note.text,
         })
     }
     return result
