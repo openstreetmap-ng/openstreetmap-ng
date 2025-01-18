@@ -1,15 +1,15 @@
 import { encode } from "@mapbox/polyline"
 import { Dropdown } from "bootstrap"
+import { type Map as MaplibreMap, type MapMouseEvent, Popup } from "maplibre-gl"
 import { formatCoordinate } from "../_format-utils"
 import { qsEncode } from "../_qs"
 import { zoomPrecision } from "../_utils"
 import { routerNavigateStrict } from "../index/_router"
-
-export const newNoteMinZoom = 12
-export const queryFeaturesMinZoom = 14
+import { newNoteMinZoom } from "./_new-note"
+import { queryFeaturesMinZoom } from "./_query-features"
 
 /** Configure the map context menu */
-export const configureContextMenu = (map: L.Map): void => {
+export const configureContextMenu = (map: MaplibreMap): void => {
     const mapContainer = map.getContainer()
 
     const containerTemplate = document.querySelector("template.context-menu-template")
@@ -28,14 +28,12 @@ export const configureContextMenu = (map: L.Map): void => {
     const centerHereButton = container.querySelector("button.center-here")
     const measureDistanceButton = container.querySelector("button.measure-distance")
 
-    const popup = L.popup({
-        content: container,
-        className: "context-menu",
-        autoPan: false,
+    const popup = new Popup({
         closeButton: false,
-        // @ts-ignore
-        bubblingMouseEvents: false,
-    })
+        closeOnMove: true,
+        anchor: "top-left",
+        className: "context-menu",
+    }).setDOMContent(container)
 
     /**
      * Get the simplified position of the popup
@@ -46,10 +44,10 @@ export const configureContextMenu = (map: L.Map): void => {
     const getPopupPosition = (): { lon: string; lat: string; zoom: number } => {
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
-        const { lat, lng } = popup.getLatLng()
+        const lngLat = popup.getLngLat()
         return {
-            lon: lng.toFixed(precision),
-            lat: lat.toFixed(precision),
+            lon: lngLat.lng.toFixed(precision),
+            lat: lngLat.lat.toFixed(precision),
             zoom,
         }
     }
@@ -57,40 +55,39 @@ export const configureContextMenu = (map: L.Map): void => {
     /** On map interactions, close the popup */
     const closePopup = () => {
         dropdown.hide()
-        map.closePopup(popup)
+        popup.remove()
     }
-    map.addEventListener("zoomstart movestart mouseout", closePopup)
 
     // On map contextmenu, open the popup
-    map.addEventListener("contextmenu", ({ latlng, containerPoint }: L.LeafletMouseEvent) => {
-        console.debug("onMapContextMenu", latlng)
+    map.on("contextmenu", ({ point, lngLat }: MapMouseEvent) => {
+        console.debug("onMapContextMenu", lngLat)
 
         // Update the geolocation fields
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
-        const lon = latlng.lng.toFixed(precision)
-        const lat = latlng.lat.toFixed(precision)
+        const lon = lngLat.lng.toFixed(precision)
+        const lat = lngLat.lat.toFixed(precision)
         geolocationField.textContent = `${lat}, ${lon}`
-        geolocationGeoField.textContent = formatCoordinate({ lon: latlng.lng, lat: latlng.lat })
+        geolocationGeoField.textContent = formatCoordinate({ lon: lngLat.lng, lat: lngLat.lat })
         geolocationUriField.textContent = `geo:${lat},${lon}?z=${zoom}`
 
         // Open the context menu
-        popup.setLatLng(latlng)
-        map.openPopup(popup)
+        popup.setLngLat(lngLat).addTo(map)
 
         // Ensure the popup is visible
+        // TODO: is that still needed?
         const element = popup.getElement()
         const popupSize = [element.clientWidth, element.clientHeight] as const
         const containerSize = [mapContainer.clientWidth, mapContainer.clientHeight] as const
-        const isOverflowX = containerPoint.x + popupSize[0] + 30 >= containerSize[0]
-        const isOverflowY = containerPoint.y + popupSize[1] + 30 >= containerSize[1]
+        const isOverflowX = point.x + popupSize[0] + 30 >= containerSize[0]
+        const isOverflowY = point.y + popupSize[1] + 30 >= containerSize[1]
         const translateX = isOverflowX ? "-100%" : "0%"
         const translateY = isOverflowY ? "-100%" : "0%"
         element.style.translate = `${translateX} ${translateY}`
     })
 
-    map.addEventListener("zoomend", () => {
-        // On map zoomend, update the available buttons
+    // On map zoomend, update the available buttons
+    map.on("zoomend", () => {
         const zoom = map.getZoom()
         newNoteButton.disabled = zoom < newNoteMinZoom
         queryFeaturesButton.disabled = zoom < queryFeaturesMinZoom
@@ -114,8 +111,8 @@ export const configureContextMenu = (map: L.Map): void => {
     // On routing from button click, navigate to routing page
     routingFromButton.addEventListener("click", () => {
         console.debug("onRoutingFromButtonClick")
-        closePopup()
         const { lon, lat } = getPopupPosition()
+        closePopup()
         const from = `${lat}, ${lon}`
         routerNavigateStrict(`/directions?${qsEncode({ from })}`)
     })
@@ -123,8 +120,8 @@ export const configureContextMenu = (map: L.Map): void => {
     // On routing to button click, navigate to routing page
     routingToButton.addEventListener("click", () => {
         console.debug("onRoutingToButtonClick")
-        closePopup()
         const { lon, lat } = getPopupPosition()
+        closePopup()
         const to = `${lat}, ${lon}`
         routerNavigateStrict(`/directions?${qsEncode({ to })}`)
     })
@@ -132,16 +129,16 @@ export const configureContextMenu = (map: L.Map): void => {
     // On new note button click, navigate to new-note page
     newNoteButton.addEventListener("click", () => {
         console.debug("onNewNoteButtonClick")
-        closePopup()
         const { lon, lat, zoom } = getPopupPosition()
+        closePopup()
         routerNavigateStrict(`/note/new?lat=${lat}&lon=${lon}&zoom=${zoom}`)
     })
 
     // On show address button click, navigate to search page
     showAddressButton.addEventListener("click", () => {
         console.debug("onShowAddressButtonClick")
-        closePopup()
         const { lon, lat } = getPopupPosition()
+        closePopup()
         routerNavigateStrict(
             `/search?${qsEncode({
                 whereami: "1",
@@ -153,23 +150,23 @@ export const configureContextMenu = (map: L.Map): void => {
     // On query features button click, navigate to query-features page
     queryFeaturesButton.addEventListener("click", () => {
         console.debug("onQueryFeaturesButtonClick")
-        closePopup()
         const { lon, lat, zoom } = getPopupPosition()
+        closePopup()
         routerNavigateStrict(`/query?lat=${lat}&lon=${lon}&zoom=${zoom}`)
     })
 
     // On center here button click, center the map
     centerHereButton.addEventListener("click", () => {
         console.debug("onCenterHereButtonClick")
+        map.panTo(popup.getLngLat())
         closePopup()
-        map.panTo(popup.getLatLng())
     })
 
     // On measure distance button click, open the distance tool
     measureDistanceButton.addEventListener("click", () => {
         console.debug("onMeasureDistanceButtonClick")
-        closePopup()
         const { lon, lat } = getPopupPosition()
+        closePopup()
         const line = encode([[Number(lat), Number(lon)]], 5)
         routerNavigateStrict(`/distance?${qsEncode({ line })}`)
     })

@@ -10,9 +10,9 @@ import {
     type LayerId,
     layersConfig,
     removeMapLayer,
-} from "./_layers.ts"
-import { getMapBaseLayerId } from "./_map-utils.ts"
-import { SidebarToggleControl } from "./_sidebar-toggle-button.ts"
+} from "./_layers"
+import { getMapBaseLayerId } from "./_map-utils"
+import { SidebarToggleControl } from "./_sidebar-toggle-button"
 import { configureDefaultMapBehavior, getLngLatBoundsSize } from "./_utils"
 
 const minimapZoomOut = 2
@@ -62,7 +62,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
                 })
                 configureDefaultMapBehavior(minimap)
                 addMapLayerSources(minimap, layerConfig.isBaseLayer ? "base" : "all")
-                addMapLayer(minimap, layerId, null, false)
+                addMapLayer(minimap, layerId, false)
                 // TODO: leaflet leftover: opacity 1
                 minimaps.push(minimap)
             }

@@ -1,7 +1,7 @@
 import type { GeoJSON } from "geojson"
 import { type GeoJSONSource, type IControl, LngLatBounds, type Map as MaplibreMap, Marker } from "maplibre-gl"
-import type { Bounds } from "../_types.ts"
-import { addMapLayer, emptyFeatureCollection, type LayerId, layersConfig, removeMapLayer } from "./_layers.ts"
+import type { Bounds } from "../_types"
+import { addMapLayer, emptyFeatureCollection, type LayerId, layersConfig, removeMapLayer } from "./_layers"
 
 const layerId: LayerId = "location-filter" as LayerId
 layersConfig.set(layerId as LayerId, {
@@ -10,12 +10,10 @@ layersConfig.set(layerId as LayerId, {
         data: emptyFeatureCollection,
     },
     layerTypes: ["fill"],
-    defaultLayerOptions: {
-        [layerId]: {
-            paint: {
-                "fill-color": "black",
-                "fill-opacity": 0.3,
-            },
+    layerOptions: {
+        paint: {
+            "fill-color": "black",
+            "fill-opacity": 0.3,
         },
     },
 })

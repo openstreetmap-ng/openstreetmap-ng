@@ -11,7 +11,7 @@ import {
     type LayerId,
     layersConfig,
 } from "./_layers"
-import { convertRenderNotesData, renderObjects } from "./_render-objects.ts"
+import { convertRenderNotesData, renderObjects } from "./_render-objects"
 import { getLngLatBoundsSize } from "./_utils"
 
 const layerId = "notes" as LayerId
@@ -22,17 +22,15 @@ layersConfig.set(layerId as LayerId, {
     },
     layerCode: "N" as LayerCode,
     layerTypes: ["symbol"],
-    defaultLayerOptions: {
-        [layerId]: {
-            layout: {
-                "icon-image": ["case", ["boolean", ["get", "open"], false], "note-open", "note-closed"],
-                "icon-allow-overlap": true,
-                "icon-padding": 0,
-                "icon-anchor": "bottom",
-            },
-            paint: {
-                "icon-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 1, 0.8],
-            },
+    layerOptions: {
+        layout: {
+            "icon-image": ["case", ["boolean", ["get", "open"], false], "note-open", "note-closed"],
+            "icon-allow-overlap": true,
+            "icon-padding": 0,
+            "icon-anchor": "bottom",
+        },
+        paint: {
+            "icon-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 1, 0.8],
         },
     },
     priority: 130,
@@ -51,7 +49,15 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
     map.loadImage(openImageUrl).then((resp) => map.addImage("note-open", resp.data))
     map.loadImage(closedImageUrl).then((resp) => map.addImage("note-closed", resp.data))
 
-    // On marker click, navigate to the note
+    // On layer hover, change cursor to pointer
+    map.on("mouseenter", layerId, () => {
+        map.getCanvas().style.cursor = "pointer"
+    })
+    map.on("mouseleave", layerId, () => {
+        map.getCanvas().style.cursor = ""
+    })
+
+    // On feature click, navigate to the note
     map.on("click", layerId, (e) => {
         const noteId = e.features[0].properties.id
         routerNavigateStrict(`/note/${noteId}`)

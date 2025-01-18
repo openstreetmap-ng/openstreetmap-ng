@@ -1,8 +1,9 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
-import { queryFeaturesMinZoom } from "./_context-menu"
-import { emptyFeatureCollection, type LayerId, layersConfig } from "./_layers.ts"
+import { emptyFeatureCollection, type LayerId, layersConfig } from "./_layers"
+
+export const queryFeaturesMinZoom = 14
 
 const layerId: LayerId = "query-features" as LayerId
 layersConfig.set(layerId as LayerId, {
@@ -11,11 +12,9 @@ layersConfig.set(layerId as LayerId, {
         data: emptyFeatureCollection,
     },
     layerTypes: ["circle"],
-    defaultLayerOptions: {
-        [layerId]: {
-            paint: {
-                // TODO: https://maplibre.org/maplibre-style-spec/layers/#circle
-            },
+    layerOptions: {
+        paint: {
+            // TODO: https://maplibre.org/maplibre-style-spec/layers/#circle
         },
     },
 })

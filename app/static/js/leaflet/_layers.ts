@@ -60,9 +60,7 @@ export const emptyFeatureCollection: FeatureCollection = {
     features: [],
 }
 
-export type AddMapLayerOptions = {
-    [key: LayerId | string]: Omit<LayerSpecification, "id" | "type" | "source" | "filter">
-}
+export type AddMapLayerOptions = Omit<LayerSpecification, "id" | "type" | "source" | "filter">
 
 interface LayerConfig {
     specification: SourceSpecification
@@ -70,7 +68,7 @@ interface LayerConfig {
     layerCode?: LayerCode
     legacyLayerIds?: LayerId[]
     layerTypes?: LayerType[]
-    defaultLayerOptions?: AddMapLayerOptions
+    layerOptions?: AddMapLayerOptions
     /** Layers with higher priority are drawn on top of others, defaults to 0. */
     priority?: number
 }
@@ -227,17 +225,6 @@ layersConfig.set("search" as LayerId, {
     priority: 140,
 })
 
-layersConfig.set("focus" as LayerId, {
-    specification: {
-        type: "geojson",
-        data: {
-            type: "FeatureCollection",
-            features: [],
-        },
-    },
-    priority: 150,
-})
-
 let layerLookupMap = (): Map<LayerId | LayerCode, LayerId> => {
     console.debug("Lazily initializing layerLookupMap")
     const result: Map<LayerId | LayerCode, LayerId> = new Map()
@@ -325,12 +312,7 @@ const layerTypeFilters: Map<LayerType, FilterSpecification> = new Map([
     ["symbol", ["==", ["geometry-type"], "Point"]],
 ])
 
-export const addMapLayer = (
-    map: MaplibreMap,
-    layerId: LayerId,
-    options?: AddMapLayerOptions,
-    triggerEvent = true,
-): void => {
+export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = true): void => {
     const config = layersConfig.get(layerId)
     if (!config) {
         console.warn("Layer", layerId, "not found in", layersConfig.keys())
@@ -356,11 +338,11 @@ export const addMapLayer = (
         .find((id) => priority < (layersConfig.get(resolveExtendedLayerId(id))?.priority ?? 0))
 
     console.debug("Adding layer", layerId, "with types", addLayerTypes, "before", beforeId)
+    const layerOptions = config.layerOptions ?? {}
     for (const addLayerType of addLayerTypes) {
         const extendedLayerId = addLayerTypes.length > 1 ? makeExtendedLayerId(layerId, addLayerType) : layerId
         const layerObject: AddLayerObject = {
-            ...(config.defaultLayerOptions?.[extendedLayerId] ?? {}),
-            ...(options?.[extendedLayerId] ?? {}),
+            ...layerOptions,
             id: extendedLayerId,
             // @ts-ignore
             type: addLayerType as string,

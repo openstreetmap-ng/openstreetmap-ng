@@ -65,14 +65,6 @@ export const throttle = <T extends any[]>(func: (...args: T) => void, delay: num
     }
 }
 
-// This is currently not possible with out i18n translations
-// as we don't distinguish between en, en-GB, en-US, etc.
-// Perhaps, it could be configured in the settings?
-// For now, don't support imperial units.
-// Also, such simple startsWith check is bug-prone:
-// export const isMetricUnit = !(navigator.language.startsWith("en-US") || navigator.language.startsWith("my"))
-export const isMetricUnit = true
-
 /** Check if the given href is the current page */
 export const isHrefCurrentPage = (href: string): boolean => {
     const hrefPathname = new URL(href).pathname

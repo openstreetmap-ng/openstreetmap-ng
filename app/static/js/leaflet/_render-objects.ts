@@ -1,5 +1,5 @@
 import { decode } from "@mapbox/polyline"
-import type { Feature, GeoJSON, Position } from "geojson"
+import type { Feature, FeatureCollection, Position } from "geojson"
 import type { OSMChangeset, OSMNode, OSMNote, OSMObject, OSMWay } from "../_types"
 import type { RenderElementsData, RenderNotesData } from "../proto/shared_pb"
 
@@ -9,7 +9,7 @@ interface RenderOptions {
 }
 
 /** Render OSMObjects to GeoJSON data */
-export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOptions>): GeoJSON => {
+export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOptions>): FeatureCollection => {
     const features: Feature[] = []
 
     const processChangeset = (changeset: OSMChangeset): void => {
@@ -53,6 +53,7 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
         })
     }
 
+    const renderAreas = options?.renderAreas ?? true
     const processWay = (way: OSMWay): void => {
         features.push({
             type: "Feature",
@@ -62,7 +63,7 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
                 version: way.version,
             },
             geometry:
-                (options?.renderAreas ?? true) && way.area
+                renderAreas && way.area
                     ? {
                           type: "Polygon",
                           coordinates: [way.geom],

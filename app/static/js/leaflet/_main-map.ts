@@ -19,8 +19,8 @@ import { getSearchController } from "../index/_search"
 import { configureSearchForm } from "../index/_search-form"
 import { configureContextMenu } from "./_context-menu"
 import { configureDataLayer } from "./_data-layer"
-import { configureFindHomeButton } from "./_find-home-button"
-import { getGeolocateControl } from "./_geolocate-control"
+import { configureFindHomeButton } from "./_find-home"
+import { getGeolocateControl } from "./_geolocate"
 import {
     addControlGroup,
     disableControlsClickPropagation,
@@ -29,14 +29,14 @@ import {
     parseMapState,
     setMapState,
 } from "./_map-utils"
-import { getNewNoteControl } from "./_new-note-control"
+import { getNewNoteControl } from "./_new-note"
 import { configureNotesLayer } from "./_notes-layer"
-import { getQueryFeaturesControl } from "./_query-features.ts"
+import { getQueryFeaturesControl } from "./_query-features"
 import { getLayersSidebarToggleButton } from "./_sidebar-layers"
 import { getLegendSidebarToggleButton } from "./_sidebar-legend"
 import { getShareSidebarToggleButton } from "./_sidebar-share"
 import { getMarkerIcon } from "./_utils"
-import { getZoomControl } from "./_zoom-control"
+import { getZoomControl } from "./_zoom"
 
 /** Get the main map instance */
 const getMainMap = (container: HTMLElement): L.Map => {

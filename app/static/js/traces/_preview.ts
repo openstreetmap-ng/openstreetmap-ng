@@ -1,10 +1,10 @@
 import { decode } from "@mapbox/polyline"
 // @ts-ignore
 import { antPath } from "leaflet-ant-path"
-import { getGeolocateControl } from "../leaflet/_geolocate-control"
+import { getGeolocateControl } from "../leaflet/_geolocate"
 import { getDefaultBaseLayer } from "../leaflet/_layers"
 import { addControlGroup, disableControlsClickPropagation } from "../leaflet/_map-utils"
-import { getZoomControl } from "../leaflet/_zoom-control"
+import { getZoomControl } from "../leaflet/_zoom"
 
 const antPathOptions = {
     delay: 1000,

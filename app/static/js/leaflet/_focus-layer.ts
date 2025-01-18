@@ -1,7 +1,19 @@
+import type { Geometry } from "geojson"
+import { type GeoJSONSource, LngLatBounds, type LngLatLike, type Map as MaplibreMap } from "maplibre-gl"
 import type { OSMObject } from "../_types"
-import { getOverlayLayerById, type LayerId } from "./_layers"
-import { renderObjects, type RenderStyles } from "./_render-objects"
-import { getLngLatBoundsSize } from "./_utils"
+import {
+    addMapLayer,
+    type AddMapLayerOptions,
+    emptyFeatureCollection,
+    type LayerId,
+    layersConfig,
+    makeExtendedLayerId,
+    removeMapLayer,
+} from "./_layers"
+import { renderObjects } from "./_render-objects"
+import { getLngLatBoundsIntersection, getLngLatBoundsSize, padLngLatBounds } from "./_utils"
+
+export type FocusLayerPaint = AddMapLayerOptions["paint"]
 
 export interface FocusOptions {
     /** Fit the map to the focused objects */
@@ -16,134 +28,171 @@ export interface FocusOptions {
     proportionCheck?: boolean
 }
 
-const focusLayerId = "focus" as LayerId
+export const focusLayerId = "focus" as LayerId
+layersConfig.set(focusLayerId as LayerId, {
+    specification: {
+        type: "geojson",
+        data: emptyFeatureCollection,
+    },
+    layerTypes: ["fill", "line", "circle"],
+    layerOptions: {
+        layout: {
+            "line-cap": "round",
+            "line-join": "round",
+        },
+        paint: {
+            "circle-radius": 10,
+        },
+    },
+    priority: 150,
+})
 
-export const focusStyles: RenderStyles = {
-    changeset: {
-        pane: "focus",
-        color: "#f90",
-        weight: 3,
-        opacity: 1,
-        fillColor: "#ffffaf",
-        fillOpacity: 0,
-        interactive: false,
-    },
-    element: {
-        pane: "focus",
-        color: "#f60",
-        weight: 4,
-        opacity: 1,
-        fillOpacity: 0.5,
-        interactive: false,
-    },
-    note: {
-        pane: "focus",
-    },
-    noteHalo: {
-        radius: 20,
-        color: "#f60",
-        weight: 2.5,
-        opacity: 1,
-        fillOpacity: 0.5,
-        interactive: false,
-    },
-}
+let enabled = false
 
-let paneCreated = false
+// TODO: leaflet leftover
+// note: {
+//     pane: "focus",
+// },
+// noteHalo: {
+//     radius: 20,
+//     color: "#f60",
+//     weight: 2.5,
+//     opacity: 1,
+//     fillOpacity: 0.5,
+//     interactive: false,
+// },
+// export const focusStyles: RenderStyles = {
+//     changeset: {
+//         pane: "focus",
+//         color: "#f90",
+//         weight: 3,
+//         opacity: 1,
+//         fillColor: "#ffffaf",
+//         fillOpacity: 0,
+//         interactive: false,
+//     },
+//     element: {
+//         pane: "focus",
+//         color: "#f60",
+//         weight: 4,
+//         opacity: 1,
+//         fillOpacity: 0.5,
+//         interactive: false,
+//     },
+// }
 
 /**
  * Focus an object on the map and return its layer.
  * To unfocus, pass null as the object.
  */
-export const focusMapObject = (map: L.Map, object: OSMObject | null, options?: FocusOptions): L.Layer[] => {
-    if (object) {
-        return focusManyMapObjects(map, [object], options)
-    }
-    focusManyMapObjects(map, [], options)
-    return []
-}
+export const focusMapObject = (
+    map: MaplibreMap,
+    object: OSMObject | null,
+    paint: FocusLayerPaint,
+    options?: FocusOptions,
+): void => focusManyMapObjects(map, object ? [object] : [], paint, options)
 
 /**
  * Focus many objects on the map and return their layers.
  * To unfocus, pass an empty array as the objects.
  */
-export const focusManyMapObjects = (map: L.Map, objects: OSMObject[], options?: FocusOptions): L.Layer[] => {
-    const focusLayer = getOverlayLayerById(focusLayerId) as L.FeatureGroup
-
-    // Always clear the focus layer
-    focusLayer.clearLayers()
+export const focusManyMapObjects = (
+    map: MaplibreMap,
+    objects: OSMObject[],
+    paint: FocusLayerPaint,
+    options?: FocusOptions,
+): void => {
+    const source = map.getSource(focusLayerId) as GeoJSONSource
 
     // If there are no objects to focus, remove the focus layer
     if (!objects.length) {
-        if (map.hasLayer(focusLayer)) {
-            map.removeLayer(focusLayer)
-
-            // Trigger the overlayremove event
-            // https://leafletjs.com/reference.html#map-overlayremove
-            // https://leafletjs.com/reference.html#layerscontrolevent
-            map.fire("overlayremove", { layer: focusLayer, name: focusLayerId })
+        if (enabled) {
+            enabled = false
+            removeMapLayer(map, focusLayerId)
+            source.setData(emptyFeatureCollection)
         }
-
-        return []
+        return
     }
 
-    // Create the focus layer if it doesn't exist
-    if (!map.hasLayer(focusLayer)) {
-        if (!paneCreated) {
-            console.debug("Creating focus pane")
-            map.createPane("focus")
-            paneCreated = true
-        }
-        map.addLayer(focusLayer)
-
-        // Trigger the overlayadd event
-        // https://leafletjs.com/reference.html#map-overlayadd
-        // https://leafletjs.com/reference.html#layerscontrolevent
-        map.fire("overlayadd", { layer: focusLayer, name: focusLayerId })
+    if (!enabled) {
+        enabled = true
+        addMapLayer(map, focusLayerId)
     }
 
-    const layers = renderObjects(focusLayer, objects, focusStyles)
+    source.setData(emptyFeatureCollection)
+
+    for (const type of ["fill", "line", "circle"]) {
+        const layer = map.getLayer(makeExtendedLayerId(focusLayerId, type))
+        for (const [k, v] of Object.entries(paint)) {
+            layer.setPaintProperty(k, v)
+        }
+    }
+
+    const data = renderObjects(objects)
+    source.setData(data)
 
     // Focus on the layers if they are offscreen
-    if (layers.length && (options?.fitBounds ?? true)) {
-        let latLngBounds: L.LatLngBounds | null = null
-        for (const layer of layers) {
-            const layerBounds = getLayerBounds(layer)
-            if (layerBounds === null) continue
-            if (!latLngBounds) latLngBounds = layerBounds
-            else latLngBounds.extend(layerBounds)
+    if (options?.fitBounds ?? true) {
+        let bounds: LngLatBounds | null = null
+        for (const feature of data.features) {
+            const geometryBounds = getGeometryBounds(feature.geometry)
+            bounds = bounds ? bounds.extend(geometryBounds) : geometryBounds
         }
-        const latLngBoundsPadded = options?.padBounds ? latLngBounds.pad(options.padBounds) : latLngBounds
+        const boundsPadded = options?.padBounds ? padLngLatBounds(bounds, options.padBounds) : bounds
         const mapBounds = map.getBounds()
 
         const maxZoom = options?.maxZoom ?? 18
         const currentZoom = map.getZoom()
         const fitMaxZoom = maxZoom >= currentZoom ? maxZoom : null
 
-        if (options?.intersects ? !mapBounds.intersects(latLngBounds) : !mapBounds.contains(latLngBounds)) {
-            console.debug("Fitting map to", layers.length, "focus layers with zoom", fitMaxZoom, "(offscreen)")
-            map.fitBounds(latLngBoundsPadded, { maxZoom: fitMaxZoom, animate: false })
+        if (
+            options?.intersects
+                ? getLngLatBoundsIntersection(mapBounds, bounds).isEmpty()
+                : !(mapBounds.contains(bounds.getSouthWest()) && mapBounds.contains(bounds.getNorthEast()))
+        ) {
+            console.debug("Fitting map to", objects.length, "focus objects with zoom", fitMaxZoom, "(offscreen)")
+            map.fitBounds(boundsPadded, { maxZoom: fitMaxZoom, animate: false })
         } else if ((options?.proportionCheck ?? true) && fitMaxZoom > currentZoom) {
-            const latLngSize = getLngLatBoundsSize(latLngBounds)
+            const latLngSize = getLngLatBoundsSize(bounds)
             const mapBoundsSize = getLngLatBoundsSize(mapBounds)
             const proportion = latLngSize / mapBoundsSize
             if (proportion > 0 && proportion < 0.00035) {
-                console.debug("Fitting map to", layers.length, "focus layers with zoom", fitMaxZoom, "(small)")
-                map.fitBounds(latLngBoundsPadded, { maxZoom: fitMaxZoom, animate: false })
+                console.debug("Fitting map to", objects.length, "focus objects with zoom", fitMaxZoom, "(small)")
+                map.fitBounds(boundsPadded, { maxZoom: fitMaxZoom, animate: false })
             }
         }
     }
-
-    return layers
 }
 
-export const getLayerBounds = (layer: any): L.LatLngBounds | null => {
-    if (layer.getBounds) {
-        return layer.getBounds()
+const getGeometryBounds = (g: Geometry): LngLatBounds => {
+    if (g.type === "Point") {
+        return new LngLatBounds(g.coordinates as LngLatLike)
     }
-    if (layer.getLatLng) {
-        return L.latLngBounds([layer.getLatLng()])
+    if (g.type === "LineString") {
+        return g.coordinates
+            .slice(1)
+            .reduce(
+                (bounds, coord) => bounds.extend(coord as LngLatLike),
+                new LngLatBounds(g.coordinates[0] as LngLatLike),
+            )
     }
-    console.warn("Focus layer has no bounds", layer)
-    return null
+    if (g.type === "Polygon") {
+        const outer = g.coordinates[0]
+        return outer
+            .slice(1, outer.length - 1)
+            .reduce((bounds, inner) => bounds.extend(inner as LngLatLike), new LngLatBounds(outer[0] as LngLatLike))
+    }
+    if (g.type === "MultiPolygon") {
+        let bounds: LngLatBounds | null = null
+        for (const polygon of g.coordinates) {
+            const outer = polygon[0]
+            const polygonBounds = outer
+                .slice(1, outer.length - 1)
+                .reduce((bounds, inner) => bounds.extend(inner as LngLatLike), new LngLatBounds(outer[0] as LngLatLike))
+            bounds = bounds ? bounds.extend(polygonBounds) : polygonBounds
+        }
+        return bounds
+    }
+    console.warn("Unsupported geometry type", g.type, "by getGeometryBounds")
+    return new LngLatBounds()
 }

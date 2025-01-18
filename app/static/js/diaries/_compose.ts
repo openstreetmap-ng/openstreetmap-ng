@@ -2,9 +2,9 @@ import i18next from "i18next"
 import { type LngLatLike, Map as MaplibreMap, type MapMouseEvent, Marker, NavigationControl, Popup } from "maplibre-gl"
 import { configureStandardForm } from "../_standard-form"
 import { isLatitude, isLongitude, zoomPrecision } from "../_utils"
-import { addMapLayer, addMapLayerSources, defaultLayerId } from "../leaflet/_layers.ts"
+import { addMapLayer, addMapLayerSources, defaultLayerId } from "../leaflet/_layers"
 import { getInitialMapState, type LonLatZoom } from "../leaflet/_map-utils"
-import { configureDefaultMapBehavior, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils.ts"
+import { configureDefaultMapBehavior, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
 
 const body = document.querySelector("body.diary-compose-body")
 if (body) {

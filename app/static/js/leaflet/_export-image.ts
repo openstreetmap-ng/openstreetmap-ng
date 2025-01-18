@@ -1,6 +1,6 @@
 import i18next from "i18next"
 import type { LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
-import { getLngLatBoundsIntersection } from "./_utils.ts"
+import { getLngLatBoundsIntersection } from "./_utils"
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#quality
 const imageQuality = 0.98
