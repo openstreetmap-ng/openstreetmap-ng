@@ -28,7 +28,7 @@ const throttledHistoryReplaceState = throttle(
 )
 
 /** Create a new distance measuring controller */
-export const getDistanceController = (map: L.Map): IndexController => {
+export const getDistanceController = (map: MaplibreMap): IndexController => {
     const mapContainer = map.getContainer()
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")

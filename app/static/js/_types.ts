@@ -31,7 +31,6 @@ export interface OSMNote {
     geom: [number, number]
     open: boolean
     text: string
-    draggable?: boolean // default false
 }
 
 /** [minLon, minLat, maxLon, maxLat] */

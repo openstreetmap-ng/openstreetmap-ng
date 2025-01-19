@@ -97,3 +97,7 @@ export const range = (start: number, stop: number, step = 1): number[] => {
  */
 export const requestAnimationFramePolyfill: (callback: FrameRequestCallback) => number =
     window.requestAnimationFrame || ((callback) => window.setTimeout(() => callback(performance.now()), 30))
+
+/** Get the device theme */
+export const getDeviceTheme = (): "light" | "dark" =>
+    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"

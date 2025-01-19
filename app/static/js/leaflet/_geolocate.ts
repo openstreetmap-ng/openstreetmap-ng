@@ -3,7 +3,7 @@ import i18next from "i18next"
 import { GeolocateControl, type Map as MaplibreMap } from "maplibre-gl"
 
 export class CustomGeolocateControl extends GeolocateControl {
-    constructor() {
+    public constructor() {
         super({
             positionOptions: {
                 maximumAge: 300_000, // 5 minutes
@@ -12,7 +12,7 @@ export class CustomGeolocateControl extends GeolocateControl {
         })
     }
 
-    public onAdd(map: MaplibreMap): HTMLElement {
+    public override onAdd(map: MaplibreMap): HTMLElement {
         const container = super.onAdd(map)
         const button = container.querySelector("button.maplibregl-ctrl-geolocate")
         const buttonText = i18next.t("javascripts.map.locate.title")

@@ -1,6 +1,8 @@
 import i18next from "i18next"
 import { type Map as MaplibreMap, Marker } from "maplibre-gl"
 import { getLastShareExportFormat, setLastShareExportFormat } from "../_local-storage"
+import { qsParse } from "../_qs.ts"
+import { isLatitude, isLongitude } from "../_utils.ts"
 import { exportMapImage } from "./_export-image"
 import { LocationFilterControl } from "./_location-filter"
 import { getMapEmbedHtml, getMapGeoUri, getMapShortlink } from "./_map-utils"
@@ -8,11 +10,11 @@ import { SidebarToggleControl } from "./_sidebar-toggle-button"
 import { getMarkerIconElement, markerIconAnchor, padLngLatBounds } from "./_utils"
 
 export class ShareSidebarToggleControl extends SidebarToggleControl {
-    constructor() {
+    public constructor() {
         super("share", "javascripts.share.title")
     }
 
-    public onAdd(map: MaplibreMap): HTMLElement {
+    public override onAdd(map: MaplibreMap): HTMLElement {
         const container = super.onAdd(map)
         const button = container.querySelector("button")
 
@@ -20,17 +22,10 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
             if (button.classList.contains("active")) {
                 // On sidebar shown, force update
                 updateSidebar()
-            } else {
-                // On sidebar hidden, deselect the marker checkbox
-                if (markerCheckbox.checked) {
-                    markerCheckbox.checked = false
-                    markerCheckbox.dispatchEvent(new Event("change"))
-                }
+            } else if (customRegionCheckbox.checked) {
                 // On sidebar hidden, deselect the custom region checkbox
-                if (customRegionCheckbox.checked) {
-                    customRegionCheckbox.checked = false
-                    customRegionCheckbox.dispatchEvent(new Event("change"))
-                }
+                customRegionCheckbox.checked = false
+                customRegionCheckbox.dispatchEvent(new Event("change"))
             }
         })
 
@@ -56,6 +51,19 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                 marker.remove()
             }
         })
+
+        // Initialize marker from URL search parameters
+        const searchParams = qsParse(location.search.substring(1))
+        if (searchParams.mlon && searchParams.mlat) {
+            const mlon = Number.parseFloat(searchParams.mlon)
+            const mlat = Number.parseFloat(searchParams.mlat)
+            if (isLongitude(mlon) && isLatitude(mlat)) {
+                console.debug("Initializing marker from search params", [mlon, mlat])
+                markerCheckbox.checked = true
+                markerCheckbox.dispatchEvent(new Event("change"))
+                marker.setLngLat([mlon, mlat])
+            }
+        }
 
         // On custom region checkbox change, enable/disable the location filter
         let locationFilter: LocationFilterControl | null = null

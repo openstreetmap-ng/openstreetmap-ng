@@ -87,9 +87,9 @@ export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds): Bounds 
         mapTopRight.y -= diff / 2
     }
 
-    const latLngBottomLeft = map.unproject(mapBottomLeft)
-    const latLngTopRight = map.unproject(mapTopRight)
-    return [latLngBottomLeft.lng, latLngBottomLeft.lat, latLngTopRight.lng, latLngTopRight.lat]
+    const lngLatBottomLeft = map.unproject(mapBottomLeft)
+    const lngLatTopRight = map.unproject(mapTopRight)
+    return [lngLatBottomLeft.lng, lngLatBottomLeft.lat, lngLatTopRight.lng, lngLatTopRight.lat]
 }
 
 export const configureDefaultMapBehavior = (map: MaplibreMap): void => {

@@ -1,8 +1,6 @@
-import { Map as MaplibreMap } from "maplibre-gl"
+import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
 import { homePoint } from "../_config"
 import { handleEditRemotePath, updateNavbarAndHash } from "../_navbar"
-import { qsParse } from "../_qs"
-import { isLatitude, isLongitude } from "../_utils"
 import { getChangesetController } from "../index/_changeset"
 import { getChangesetsHistoryController } from "../index/_changesets-history"
 import { getDistanceController } from "../index/_distance"
@@ -20,96 +18,66 @@ import { configureSearchForm } from "../index/_search-form"
 import { configureContextMenu } from "./_context-menu"
 import { configureDataLayer } from "./_data-layer"
 import { configureFindHomeButton } from "./_find-home"
-import { getGeolocateControl } from "./_geolocate"
-import {
-    addControlGroup,
-    disableControlsClickPropagation,
-    getInitialMapState,
-    getMapState,
-    parseMapState,
-    setMapState,
-} from "./_map-utils"
-import { getNewNoteControl } from "./_new-note"
+import { CustomGeolocateControl } from "./_geolocate.ts"
+import { addLayerEventHandler, addMapLayerSources } from "./_layers.ts"
+import { addControlGroup, getInitialMapState, getMapState, parseMapState, setMapState } from "./_map-utils"
+import { NewNoteControl } from "./_new-note.ts"
 import { configureNotesLayer } from "./_notes-layer"
-import { getQueryFeaturesControl } from "./_query-features"
-import { getLayersSidebarToggleButton } from "./_sidebar-layers"
-import { getLegendSidebarToggleButton } from "./_sidebar-legend"
-import { getShareSidebarToggleButton } from "./_sidebar-share"
-import { getMarkerIcon } from "./_utils"
-import { getZoomControl } from "./_zoom"
+import { QueryFeaturesControl } from "./_query-features.ts"
+import { LayersSidebarToggleControl } from "./_sidebar-layers.ts"
+import { LegendSidebarToggleControl } from "./_sidebar-legend.ts"
+import { ShareSidebarToggleControl } from "./_sidebar-share.ts"
+import { configureDefaultMapBehavior } from "./_utils.ts"
+import { CustomZoomControl } from "./_zoom.ts"
 
 /** Get the main map instance */
-const getMainMap = (container: HTMLElement): L.Map => {
+const createMainMap = (container: HTMLElement): MaplibreMap => {
     console.debug("Initializing main map")
     const map = new MaplibreMap({
         container,
-        zoomControl: false,
-        minZoom: 3, // 2 would be better, but is buggy with leaflet animated pan
+        maxZoom: 19,
+        refreshExpiredTiles: false,
     })
+    configureDefaultMapBehavior(map)
+    addMapLayerSources(map, "all")
 
-    // Add native controls
-    map.addControl(L.control.scale())
+    const isMetricUnit = !(navigator.language.startsWith("en-US") || navigator.language.startsWith("my"))
+    map.addControl(
+        new ScaleControl({
+            unit: isMetricUnit ? "metric" : "imperial",
+        }),
+    )
 
     // Add custom controls
-    addControlGroup(map, [getZoomControl(), getGeolocateControl()])
+    addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
     addControlGroup(map, [
-        getLayersSidebarToggleButton(),
-        getLegendSidebarToggleButton(),
-        getShareSidebarToggleButton(),
+        new LayersSidebarToggleControl(),
+        new LegendSidebarToggleControl(),
+        new ShareSidebarToggleControl(),
     ])
-    addControlGroup(map, [getNewNoteControl()])
-    addControlGroup(map, [getQueryFeaturesControl()])
-
-    // Disable click propagation on controls
-    disableControlsClickPropagation(map)
+    addControlGroup(map, [new NewNoteControl()])
+    addControlGroup(map, [new QueryFeaturesControl()])
 
     // Configure map handlers
     configureNotesLayer(map)
     configureDataLayer(map)
     configureContextMenu(map)
 
-    // Add optional map marker
-    const searchParams = qsParse(location.search.substring(1))
-    if (searchParams.mlon && searchParams.mlat) {
-        const mlon = Number.parseFloat(searchParams.mlon)
-        const mlat = Number.parseFloat(searchParams.mlat)
-        if (isLongitude(mlon) && isLatitude(mlat)) {
-            const marker = L.marker(L.latLng(mlat, mlon), {
-                icon: getMarkerIcon("blue", true),
-                keyboard: false,
-                interactive: false,
-            })
-            map.addLayer(marker)
-        }
-    }
+    // On map state change, update the navbar and hash
+    map.on("moveend", () => updateNavbarAndHash(getMapState(map)))
+    addLayerEventHandler(() => updateNavbarAndHash(getMapState(map)))
 
     // On hash change, update the map view
     window.addEventListener("hashchange", () => {
         // TODO: check if no double setMapState triggered
         console.debug("onHashChange", location.hash)
         let newState = parseMapState(location.hash)
-
-        // Get the current state if empty/invalid and replace the hash
         if (!newState) {
+            // Get the current state if empty/invalid and replace the hash
             newState = getMapState(map)
             updateNavbarAndHash(newState)
         }
-
-        // Change the map view
         setMapState(map, newState)
-    })
-
-    // On base layer change, limit max zoom and zoom to max if needed
-    map.addEventListener("baselayerchange", ({ layer }: L.LayersControlEvent) => {
-        if (!(layer instanceof L.TileLayer)) return
-        const maxZoom = layer.options.maxZoom
-        map.setMaxZoom(maxZoom)
-        if (map.getZoom() > maxZoom) map.setZoom(maxZoom)
-    })
-
-    // On map state change, update the navbar and hash
-    map.addEventListener("zoomend moveend baselayerchange overlayadd overlayremove", () => {
-        updateNavbarAndHash(getMapState(map))
     })
 
     // TODO: support this on more maps
@@ -120,7 +88,7 @@ const getMainMap = (container: HTMLElement): L.Map => {
 
 /** Configure the main map and all its components */
 const configureMainMap = (container: HTMLElement): void => {
-    const map = getMainMap(container)
+    const map = createMainMap(container)
 
     // Configure here instead of navbar to avoid global script dependency (navbar is global)
     // Find home button is only available for the users with configured home location

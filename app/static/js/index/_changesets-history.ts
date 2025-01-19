@@ -1,37 +1,50 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import i18next, { t } from "i18next"
+import { type GeoJSONSource, LngLatBounds, type MapGeoJSONFeature, type Map as MaplibreMap } from "maplibre-gl"
 import { resolveDatetime } from "../_datetime"
 import { qsEncode } from "../_qs"
-import { getPageTitle } from "../_title"
-import type { Bounds } from "../_types"
-import { getLayerBounds } from "../leaflet/_focus-layer"
-import { getOverlayLayerById, type LayerId } from "../leaflet/_layers"
-import { makeBoundsMinimumSize } from "../leaflet/_utils"
-import { type RenderChangesetsData_Changeset, RenderChangesetsDataSchema } from "../proto/shared_pb"
+import { setPageTitle } from "../_title"
+import type { OSMChangeset } from "../_types"
+import {
+    type LayerId,
+    addMapLayer,
+    emptyFeatureCollection,
+    layersConfig,
+    makeExtendedLayerId,
+    removeMapLayer,
+} from "../leaflet/_layers.ts"
+import { convertRenderChangesetsData, renderObjects } from "../leaflet/_render-objects.ts"
+import { makeBoundsMinimumSize, padLngLatBounds } from "../leaflet/_utils"
+import { RenderChangesetsDataSchema, type RenderChangesetsData_Changeset } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
-const changesetsLayerId = "changesets" as LayerId
-
-const styles: { [key: string]: L.PolylineOptions } = {
-    default: {
-        color: "#F90",
-        weight: 2,
-        opacity: 1,
-        fillColor: "#FFC",
-        fillOpacity: 0,
+const layerId = "changesets-history" as LayerId
+layersConfig.set(layerId as LayerId, {
+    specification: {
+        type: "geojson",
+        data: emptyFeatureCollection,
     },
-    hover: {
-        color: "#F60",
-        weight: 3,
-        fillOpacity: 0.45,
+    layerTypes: ["fill", "line"],
+    layerOptions: {
+        layout: {
+            "line-cap": "round",
+            "line-join": "round",
+        },
+        paint: {
+            "fill-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 0.45, 0],
+            "fill-color": "#ffc",
+            "line-color": ["case", ["boolean", ["feature-state", "hover"], false], "#f60", "#f90"],
+            "line-width": ["case", ["boolean", ["feature-state", "hover"], false], 3, 2],
+        },
     },
-}
+    priority: 120,
+})
 
 /** Create a new changesets history controller */
-export const getChangesetsHistoryController = (map: L.Map): IndexController => {
-    const changesetLayer = getOverlayLayerById(changesetsLayerId) as L.FeatureGroup
+export const getChangesetsHistoryController = (map: MaplibreMap): IndexController => {
+    const source = map.getSource(layerId) as GeoJSONSource
     const sidebar = getActionSidebar("changesets-history")
     const parentSidebar = sidebar.closest("div.sidebar")
     const sidebarTitleElement = sidebar.querySelector(".sidebar-title")
@@ -48,7 +61,6 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
     let loadScope: string | undefined = undefined
     let loadDisplayName: string | undefined = undefined
     const idSidebarMap: Map<bigint, HTMLElement> = new Map()
-    const idLayersMap: Map<bigint, L.Path[]> = new Map()
 
     const updateSidebar = (): void => {
         idSidebarMap.clear()
@@ -94,9 +106,8 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
 
             changesetLink.href = `/changeset/${changeset.id}`
             changesetLink.textContent = changeset.id.toString()
-            ;(changesetLink as any).changesetId = changeset.id
-            changesetLink.addEventListener("mouseover", onMouseover)
-            changesetLink.addEventListener("mouseout", onMouseout)
+            changesetLink.addEventListener("mouseenter", () => setHover(changeset.id, changeset.bounds.length, true))
+            changesetLink.addEventListener("mouseleave", () => setHover(changeset.id, changeset.bounds.length, false))
             fragment.appendChild(div)
 
             idSidebarMap.set(changeset.id, div)
@@ -107,99 +118,90 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
     }
 
     const updateLayers = () => {
-        idLayersMap.clear()
-
-        // Sort by bounds area (descending)
-        const changesetsSorted: [RenderChangesetsData_Changeset, L.Path[], Bounds, number][] = []
-        for (const changeset of changesets) {
-            const changesetLayers: L.Path[] = []
-            idLayersMap.set(changeset.id, changesetLayers)
-            for (const bounds of changeset.bounds) {
-                const { minLon, minLat, maxLon, maxLat } = bounds
-                const minimumBounds = makeBoundsMinimumSize(map, [minLon, minLat, maxLon, maxLat])
-                const boundsArea = (minimumBounds[2] - minimumBounds[0]) * (minimumBounds[3] - minimumBounds[1])
-                changesetsSorted.push([changeset, changesetLayers, minimumBounds, boundsArea])
-            }
+        const changesetsMinimumSize: OSMChangeset[] = []
+        for (const changeset of convertRenderChangesetsData(changesets)) {
+            changeset.bounds = changeset.bounds.map((bounds) => makeBoundsMinimumSize(map, bounds))
+            changesetsMinimumSize.push(changeset)
         }
-        changesetsSorted.sort((a, b) => b[3] - a[3])
-
-        // Create layers
-        const layers: L.Path[] = []
-        for (const [changeset, changesetLayers, bounds] of changesetsSorted) {
-            const layer = L.rectangle(
-                [
-                    [bounds[1], bounds[0]],
-                    [bounds[3], bounds[2]],
-                ],
-                styles.default,
-            )
-            ;(layer as any).changesetId = changeset.id
-            layer.addEventListener("mouseover", onMouseover)
-            layer.addEventListener("mouseout", onMouseout)
-            layer.addEventListener("click", onLayerClick)
-            layers.push(layer)
-            changesetLayers.push(layer)
-        }
-
-        changesetLayer.clearLayers()
-        changesetLayer.addLayer(L.layerGroup(layers))
-        console.debug("Changesets layer showing", layers.length, "changesets")
+        source.setData(renderObjects(changesetsMinimumSize))
+        console.debug("Changesets layer showing", changesets.length, "changesets")
 
         // When initial loading for scope/user, focus on the changesets
-        if (!changesetsBBox && layers.length) {
-            let latLngBounds: L.LatLngBounds | null = null
-            for (const layer of layers) {
-                const layerBounds = getLayerBounds(layer)
-                if (layerBounds === null) continue
-                if (!latLngBounds) latLngBounds = layerBounds
-                else latLngBounds.extend(layerBounds)
+        if (!changesetsBBox && changesets.length) {
+            let lngLatBounds: LngLatBounds | null = null
+            for (const changeset of changesetsMinimumSize) {
+                if (!changeset.bounds.length) continue
+                let changesetBounds = new LngLatBounds(changeset.bounds[0])
+                for (const bounds of changeset.bounds.slice(1)) {
+                    changesetBounds = changesetBounds.extend(bounds)
+                }
+                lngLatBounds = lngLatBounds ? lngLatBounds.extend(changesetBounds) : changesetBounds
             }
-            changesetsBBox = latLngBounds.toBBoxString()
-            const latLngBoundsPadded = latLngBounds.pad(0.3)
-            console.debug("Fitting map to", layers.length, "changesets")
-            map.fitBounds(latLngBoundsPadded, { maxZoom: 16, animate: false })
+            if (lngLatBounds) {
+                console.debug("Fitting map to shown changesets")
+                const lngLatBoundsPadded = padLngLatBounds(lngLatBounds, 0.3)
+                map.fitBounds(lngLatBoundsPadded, { maxZoom: 16, animate: false })
+            }
         }
     }
 
-    /** On layer click, navigate to the changeset */
-    const onLayerClick = ({ target }: L.LeafletMouseEvent): void => {
-        const changesetId: bigint = target.changesetId
+    /** Set the hover state of the changeset features */
+    const setHover = (id: bigint, numBounds: number, hover: boolean): void => {
+        const result = idSidebarMap.get(id)
+        result.classList.toggle("hover", hover)
+        if (hover) {
+            // Scroll result into view
+            const sidebarRect = parentSidebar.getBoundingClientRect()
+            const resultRect = result.getBoundingClientRect()
+            const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
+            if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+        for (let i = 0; i < numBounds; i++) {
+            for (const featureId of [`changeset${id}-${i}`, `changeset${id}-${i}-area`]) {
+                map.setFeatureState({ source: layerId, id: featureId }, { hover })
+            }
+        }
+    }
+
+    // On feature click, navigate to the changeset
+    const layerIdFill = makeExtendedLayerId(layerId, "fill")
+    map.on("click", layerIdFill, (e) => {
+        // Find feature with the smallest bounds area
+        const feature = e.features.reduce((a, b) => (a.properties.boundsArea < b.properties.boundsArea ? a : b))
+        const changesetId = feature.properties.id
         routerNavigateStrict(`/changeset/${changesetId}`)
-    }
+    })
 
-    /** On mouseover, scroll result into view and focus the changeset */
-    const onMouseover = ({ target }: Event | L.LeafletEvent): void => {
-        const changesetId: bigint = target.changesetId
-        const result = idSidebarMap.get(changesetId)
-
-        const sidebarRect = parentSidebar.getBoundingClientRect()
-        const resultRect = result.getBoundingClientRect()
-        const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
-        if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
-
-        result.classList.add("hover")
-        const layers = idLayersMap.get(changesetId)
-        for (const layer of layers) layer.setStyle(styles.hover)
-    }
-
-    /** On mouseout, unfocus the changeset */
-    const onMouseout = ({ target }: Event | L.LeafletEvent): void => {
-        const changesetId: bigint = target.changesetId
-        const result = idSidebarMap.get(changesetId)
-        result.classList.remove("hover")
-        const layers = idLayersMap.get(changesetId)
-        for (const layer of layers) layer.setStyle(styles.default)
-    }
+    let hoveredFeature: MapGeoJSONFeature | null = null
+    map.on("mouseover", layerIdFill, (e) => {
+        // Find feature with the smallest bounds area
+        const feature = e.features.reduce((a, b) => (a.properties.boundsArea < b.properties.boundsArea ? a : b))
+        if (hoveredFeature) {
+            if (hoveredFeature.id === feature.id) return
+            setHover(hoveredFeature.properties.id, hoveredFeature.properties.numBounds, false)
+        } else {
+            map.getCanvas().style.cursor = "pointer"
+        }
+        hoveredFeature = feature
+        setHover(hoveredFeature.properties.id, hoveredFeature.properties.numBounds, true)
+    })
+    map.on("mouseleave", layerIdFill, () => {
+        if (hoveredFeature) {
+            setHover(hoveredFeature.properties.id, hoveredFeature.properties.numBounds, false)
+            hoveredFeature = null
+        }
+        map.getCanvas().style.cursor = ""
+    })
 
     /** On sidebar scroll bottom, load more changesets */
     const onSidebarScroll = (): void => {
         if (parentSidebar.offsetHeight + parentSidebar.scrollTop < parentSidebar.scrollHeight) return
         console.debug("Sidebar scrolled to the bottom")
-        onMapZoomOrMoveEnd()
+        updateState()
     }
 
     /** On map update, fetch the changesets in view and update the changesets layer */
-    const onMapZoomOrMoveEnd = (): void => {
+    const updateState = (): void => {
         // Abort any pending request
         abortController?.abort()
         abortController = new AbortController()
@@ -254,7 +256,7 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
             .catch((error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch map data", error)
-                changesetLayer.clearLayers()
+                source.setData(emptyFeatureCollection)
                 changesets.length = 0
                 noMoreChangesets = false
             })
@@ -267,7 +269,10 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
 
     return {
         load: ({ scope, displayName }) => {
-            switchActionSidebar(map, "changesets-history")
+            loadScope = scope
+            loadDisplayName = displayName
+
+            switchActionSidebar(map, sidebar)
             // TODO: handle scope
             let sidebarTitleHtml: string
             let sidebarTitleText: string
@@ -281,41 +286,27 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
                 })
                 sidebarTitleText = t("changesets.index.title_user", { user: displayName })
             } else if (scope === "nearby") {
-                sidebarTitleText = sidebarTitleHtml = t("changesets.index.title_nearby")
+                sidebarTitleHtml = t("changesets.index.title_nearby")
+                sidebarTitleText = sidebarTitleHtml
             } else if (scope === "friends") {
-                sidebarTitleText = sidebarTitleHtml = t("changesets.index.title_friend")
+                sidebarTitleHtml = t("changesets.index.title_friend")
+                sidebarTitleText = sidebarTitleHtml
             } else {
-                sidebarTitleText = sidebarTitleHtml = t("changesets.index.title")
+                sidebarTitleHtml = t("changesets.index.title")
+                sidebarTitleText = sidebarTitleHtml
             }
             sidebarTitleElement.innerHTML = sidebarTitleHtml
-            document.title = getPageTitle(sidebarTitleText)
+            setPageTitle(sidebarTitleText)
 
-            // Create the changeset layer if it doesn't exist
-            if (!map.hasLayer(changesetLayer)) {
-                console.debug("Adding overlay layer", changesetsLayerId)
-                map.addLayer(changesetLayer)
-                map.fire("overlayadd", { layer: changesetLayer, name: changesetsLayerId })
-            }
-
-            // Listen for events and run initial update
-            loadScope = scope
-            loadDisplayName = displayName
-            map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
-            onMapZoomOrMoveEnd()
+            addMapLayer(map, layerId)
+            map.on("moveend", updateState)
+            updateState()
         },
         unload: () => {
-            map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+            map.off("moveend", updateState)
             parentSidebar.removeEventListener("scroll", onSidebarScroll)
-
-            // Remove the changeset layer
-            if (map.hasLayer(changesetLayer)) {
-                console.debug("Removing overlay layer", changesetsLayerId)
-                map.removeLayer(changesetLayer)
-                map.fire("overlayremove", { layer: changesetLayer, name: changesetsLayerId })
-            }
-
-            // Clear the changeset layer
-            changesetLayer.clearLayers()
+            removeMapLayer(map, layerId)
+            source.setData(emptyFeatureCollection)
             changesets.length = 0
             changesetsBBox = undefined
         },

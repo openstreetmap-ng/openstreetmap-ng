@@ -3,10 +3,10 @@ import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
 import { prefersReducedMotion } from "../_config"
 import { qsEncode, qsParse } from "../_qs"
-import { getPageTitle } from "../_title"
+import { setPageTitle } from "../_title"
 import { isLatitude, isLongitude, requestAnimationFramePolyfill } from "../_utils"
 import { queryFeaturesMinZoom } from "../leaflet/_context-menu"
-import { focusManyMapObjects, focusMapObject, focusStyles } from "../leaflet/_focus-layer"
+import { focusObjects, focusStyles } from "../leaflet/_focus-layer"
 import type { LonLatZoom } from "../leaflet/_map-utils"
 import { convertRenderElementsData } from "../leaflet/_render-objects"
 import { PartialQueryFeaturesParamsSchema } from "../proto/shared_pb"
@@ -16,7 +16,7 @@ import type { IndexController } from "./_router"
 // TODO: finish this controller
 
 /** Create a new query features controller */
-export const getQueryFeaturesController = (map: L.Map): IndexController => {
+export const getQueryFeaturesController = (map: MaplibreMap): IndexController => {
     const sidebar = getActionSidebar("query-features")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const nearbyContainer = sidebar.querySelector("div.nearby-container")
@@ -49,17 +49,15 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
         for (let i = 0; i < resultActions.length; i++) {
             const resultAction = resultActions[i]
             const render = params.renders[i]
-            const elements = convertRenderElementsData(render)
+            let elements = () => {
+                const cache = convertRenderElementsData(render)
+                elements = () => cache
+                return cache
+            }
 
             // TODO: check event order on high activity
-            // On hover, focus on the element
-            resultAction.addEventListener("mouseenter", () => {
-                focusManyMapObjects(map, elements)
-            })
-            // On hover end, unfocus the element
-            resultAction.addEventListener("mouseleave", () => {
-                focusMapObject(map, null)
-            })
+            resultAction.addEventListener("mouseenter", () => focusObjects(map, elements()))
+            resultAction.addEventListener("mouseleave", () => focusObjects(map)) // remove focus
         }
     }
 
@@ -103,7 +101,7 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
     return {
         load: () => {
             switchActionSidebar(map, "query-features")
-            document.title = getPageTitle(sidebarTitle)
+            setPageTitle(sidebarTitle)
 
             const position = getURLQueryPosition()
             if (!position) {
@@ -186,7 +184,7 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
         unload: () => {
             abortController?.abort()
             abortController = null
-            focusMapObject(map, null)
+            focusObjects(map)
         },
     }
 }

@@ -5,9 +5,9 @@ import { formatDistance, formatDistanceRounded, formatHeight, formatTime } from 
 import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage"
 import { qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
-import { getPageTitle } from "../_title"
+import { setPageTitle } from "../_title"
 import { zoomPrecision } from "../_utils"
-import { getOverlayLayerById, type LayerId } from "../leaflet/_layers"
+import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
 import { getMarkerIcon } from "../leaflet/_utils"
 import { type RoutingResult, RoutingResultSchema } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
@@ -38,7 +38,7 @@ const routingLayerId = "routing" as LayerId
 let paneCreated = false
 
 /** Create a new routing controller */
-export const getRoutingController = (map: L.Map): IndexController => {
+export const getRoutingController = (map: MaplibreMap): IndexController => {
     const mapContainer = map.getContainer()
     const routingLayer = getOverlayLayerById(routingLayerId) as L.FeatureGroup
     const sidebar = getActionSidebar("routing")
@@ -379,11 +379,11 @@ export const getRoutingController = (map: L.Map): IndexController => {
             }
 
             // Listen for events
-            div.addEventListener("mouseover", onMouseover)
-            div.addEventListener("mouseout", onMouseout)
+            div.addEventListener("mouseenter", onMouseover)
+            div.addEventListener("mouseleave", onMouseout)
             div.addEventListener("click", onClick)
-            layer.addEventListener("mouseover", onMouseover)
-            layer.addEventListener("mouseout", onMouseout)
+            layer.addEventListener("mouseenter", onMouseover)
+            layer.addEventListener("mouseleave", onMouseout)
             layer.addEventListener("click", onClick)
         }
 
@@ -421,7 +421,7 @@ export const getRoutingController = (map: L.Map): IndexController => {
             }
 
             switchActionSidebar(map, "routing")
-            document.title = getPageTitle(sidebarTitle)
+            setPageTitle(sidebarTitle)
 
             // Initial update to set the inputs
             onMapZoomOrMoveEnd()

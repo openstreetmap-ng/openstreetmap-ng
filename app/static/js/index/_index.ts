@@ -1,12 +1,11 @@
-import type * as L from "leaflet"
 import { isBannerHidden, markBannerHidden } from "../_local-storage"
-import { getPageTitle } from "../_title"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 import { setSearchFormQuery } from "./_search-form"
+import { setPageTitle } from "../_title"
 
 /** Create a new index controller */
-export const getIndexController = (map: L.Map): IndexController => {
+export const getIndexController = (map: MaplibreMap): IndexController => {
     const sidebar = getActionSidebar("index")
     const banners = sidebar.querySelectorAll("div.sidebar-banner")
 
@@ -33,7 +32,7 @@ export const getIndexController = (map: L.Map): IndexController => {
     return {
         load: () => {
             switchActionSidebar(map, "index")
-            document.title = getPageTitle()
+            setPageTitle()
             setSearchFormQuery("")
         },
         unload: () => {},

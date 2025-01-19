@@ -1,7 +1,7 @@
 import { decode } from "@mapbox/polyline"
-import type { Feature, FeatureCollection, Position } from "geojson"
-import type { OSMChangeset, OSMNode, OSMNote, OSMObject, OSMWay } from "../_types"
-import type { RenderElementsData, RenderNotesData } from "../proto/shared_pb"
+import type { Feature, FeatureCollection } from "geojson"
+import type { Bounds, OSMChangeset, OSMNode, OSMNote, OSMObject, OSMWay } from "../_types"
+import type { RenderChangesetsData_Changeset, RenderElementsData, RenderNotesData } from "../proto/shared_pb"
 
 interface RenderOptions {
     /** Whether to render areas */
@@ -13,36 +13,49 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
     const features: Feature[] = []
 
     const processChangeset = (changeset: OSMChangeset): void => {
-        const coordinates: Position[][][] = []
-        for (const [minLon, minLat, maxLon, maxLat] of changeset.bounds ?? []) {
-            coordinates.push([
-                [
-                    [minLon, minLat],
-                    [minLon, maxLat],
-                    [maxLon, maxLat],
-                    [maxLon, minLat],
-                    [minLon, minLat],
-                ],
-            ])
+        const properties = {
+            type: "changeset",
+            id: changeset.id,
+            numBounds: changeset.bounds.length,
         }
-        features.push({
-            type: "Feature",
-            properties: {
-                type: changeset.type,
-                id: changeset.id,
-            },
-            geometry: {
-                type: "MultiPolygon",
-                coordinates,
-            },
-        })
+        for (const [i, bounds] of changeset.bounds.entries()) {
+            const [minLon, minLat, maxLon, maxLat] = bounds
+            const boundsArea = (maxLon - minLon) * (maxLat - minLat)
+            const boundsProperties = { ...properties, boundsArea }
+            const outer = [
+                [minLon, minLat],
+                [minLon, maxLat],
+                [maxLon, maxLat],
+                [maxLon, minLat],
+                [minLon, minLat],
+            ]
+            features.push({
+                type: "Feature",
+                id: `changeset${changeset.id}-${i}`,
+                properties: boundsProperties,
+                geometry: {
+                    type: "LineString",
+                    coordinates: outer,
+                },
+            })
+            features.push({
+                type: "Feature",
+                id: `changeset${changeset.id}-${i}-area`,
+                properties: boundsProperties,
+                geometry: {
+                    type: "Polygon",
+                    coordinates: [outer],
+                },
+            })
+        }
     }
 
     const processNode = (node: OSMNode): void => {
         features.push({
             type: "Feature",
+            id: `node${node.id}`,
             properties: {
-                type: node.type,
+                type: "node",
                 id: node.id,
                 version: node.version,
             },
@@ -55,31 +68,39 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
 
     const renderAreas = options?.renderAreas ?? true
     const processWay = (way: OSMWay): void => {
+        const properties = {
+            type: "way",
+            id: way.id,
+            version: way.version,
+        }
         features.push({
             type: "Feature",
-            properties: {
-                type: way.type,
-                id: way.id,
-                version: way.version,
+            id: `way${way.id}`,
+            properties,
+            geometry: {
+                type: "LineString",
+                coordinates: way.geom,
             },
-            geometry:
-                renderAreas && way.area
-                    ? {
-                          type: "Polygon",
-                          coordinates: [way.geom],
-                      }
-                    : {
-                          type: "LineString",
-                          coordinates: way.geom,
-                      },
         })
+        if (renderAreas && way.area) {
+            features.push({
+                type: "Feature",
+                id: `way${way.id}-area`,
+                properties,
+                geometry: {
+                    type: "Polygon",
+                    coordinates: [way.geom],
+                },
+            })
+        }
     }
 
     const processNote = (note: OSMNote): void => {
         features.push({
             type: "Feature",
+            id: `note${note.id}`,
             properties: {
-                type: note.type,
+                type: "note",
                 id: note.id,
                 open: note.open,
                 text: note.text,
@@ -107,6 +128,23 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
 
     console.debug("Rendered", features.length, "features")
     return { type: "FeatureCollection", features }
+}
+
+/** Convert render data to OSMChangesets */
+export const convertRenderChangesetsData = (changesets: RenderChangesetsData_Changeset[]): OSMChangeset[] => {
+    const result: OSMChangeset[] = []
+    for (const changeset of changesets) {
+        const bounds: Bounds[] = []
+        for (const { minLon, minLat, maxLon, maxLat } of changeset.bounds) {
+            bounds.push([minLon, minLat, maxLon, maxLat])
+        }
+        result.push({
+            type: "changeset",
+            id: changeset.id,
+            bounds: bounds,
+        })
+    }
+    return result
 }
 
 /** Convert render data to OSMObjects */

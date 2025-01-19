@@ -1,13 +1,14 @@
-import type * as L from "leaflet"
+import type { Map as MaplibreMap } from "maplibre-gl"
 import { mapQueryAreaMaxSize } from "../_config"
-import { getPageTitle } from "../_title"
-import { zoomPrecision } from "../_utils"
-import { getLocationFilter } from "../leaflet/_location-filter"
+import { setPageTitle } from "../_title"
+import { throttle, zoomPrecision } from "../_utils"
+import { LocationFilterControl } from "../leaflet/_location-filter.ts"
+import { padLngLatBounds } from "../leaflet/_utils.ts"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 
 /** Create a new export controller */
-export const getExportController = (map: L.Map): IndexController => {
+export const getExportController = (map: MaplibreMap): IndexController => {
     const sidebar = getActionSidebar("export")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const minLonInput = sidebar.querySelector("input[name=min_lon]")
@@ -23,43 +24,34 @@ export const getExportController = (map: L.Map): IndexController => {
     const exportOverpassBaseHref = exportOverpassLink.href
 
     // Null values until initialized
-    let locationFilter: any | null = null
+    let locationFilter: LocationFilterControl | null = null
 
     // On custom region checkbox change, enable/disable the location filter
     customRegionCheckbox.addEventListener("change", () => {
         console.debug("onCustomRegionCheckboxChange", customRegionCheckbox.checked)
         if (customRegionCheckbox.checked) {
             if (!locationFilter) {
-                locationFilter = getLocationFilter()
-                locationFilter.addEventListener("change", onMapMoveEnd)
+                locationFilter = new LocationFilterControl()
+                locationFilter.addOnRenderHandler(throttle(() => updateState(), 250))
             }
-
-            map.addLayer(locationFilter)
-
             // By default, location filter is slightly smaller than the current view
-            locationFilter.setBounds(map.getBounds().pad(-0.2))
-            locationFilter.enable()
+            locationFilter.addTo(map, padLngLatBounds(map.getBounds(), -0.2))
         } else {
-            map.removeLayer(locationFilter)
+            locationFilter.remove()
         }
-        onMapMoveEnd()
+        updateState()
     })
 
     /** On map move end, update the inputs */
-    const onMapMoveEnd = () => {
+    const updateState = () => {
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
         const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
-        const minLon = bounds.getWest().toFixed(precision)
-        const minLat = bounds.getSouth().toFixed(precision)
-        const maxLon = bounds.getEast().toFixed(precision)
-        const maxLat = bounds.getNorth().toFixed(precision)
-
-        minLonInput.value = minLon
-        minLatInput.value = minLat
-        maxLonInput.value = maxLon
-        maxLatInput.value = maxLat
-
+        const [[minLon, minLat], [maxLon, maxLat]] = bounds.toArray()
+        minLonInput.value = minLon.toFixed(precision)
+        minLatInput.value = minLat.toFixed(precision)
+        maxLonInput.value = maxLon.toFixed(precision)
+        maxLatInput.value = maxLat.toFixed(precision)
         updateElements(minLon, minLat, maxLon, maxLat)
     }
 
@@ -78,18 +70,13 @@ export const getExportController = (map: L.Map): IndexController => {
 
     return {
         load: () => {
-            switchActionSidebar(map, "export")
-            document.title = getPageTitle(sidebarTitle)
-
-            // Listen for events
-            map.addEventListener("moveend", onMapMoveEnd)
-
-            // Initial update to set the inputs
-            onMapMoveEnd()
+            switchActionSidebar(map, sidebar)
+            setPageTitle(sidebarTitle)
+            map.on("moveend", updateState)
+            updateState()
         },
         unload: () => {
-            map.removeEventListener("moveend", onMapMoveEnd)
-
+            map.off("moveend", updateState)
             // On sidebar hidden, deselect the custom region checkbox
             if (customRegionCheckbox.checked) {
                 customRegionCheckbox.checked = false

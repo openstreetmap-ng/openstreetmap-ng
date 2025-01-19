@@ -2,13 +2,12 @@ import type { Geometry } from "geojson"
 import { type GeoJSONSource, LngLatBounds, type LngLatLike, type Map as MaplibreMap } from "maplibre-gl"
 import type { OSMObject } from "../_types"
 import {
-    addMapLayer,
     type AddMapLayerOptions,
-    emptyFeatureCollection,
     type LayerId,
+    addMapLayer,
+    emptyFeatureCollection,
     layersConfig,
     makeExtendedLayerId,
-    removeMapLayer,
 } from "./_layers"
 import { renderObjects } from "./_render-objects"
 import { getLngLatBoundsIntersection, getLngLatBoundsSize, padLngLatBounds } from "./_utils"
@@ -47,7 +46,8 @@ layersConfig.set(focusLayerId as LayerId, {
     priority: 150,
 })
 
-let enabled = false
+let lastPaint: FocusLayerPaint | null = null
+let layerAdded = false
 
 // TODO: leaflet leftover
 // note: {
@@ -82,49 +82,33 @@ let enabled = false
 // }
 
 /**
- * Focus an object on the map and return its layer.
- * To unfocus, pass null as the object.
- */
-export const focusMapObject = (
-    map: MaplibreMap,
-    object: OSMObject | null,
-    paint: FocusLayerPaint,
-    options?: FocusOptions,
-): void => focusManyMapObjects(map, object ? [object] : [], paint, options)
-
-/**
  * Focus many objects on the map and return their layers.
  * To unfocus, pass an empty array as the objects.
  */
-export const focusManyMapObjects = (
+export const focusObjects = (
     map: MaplibreMap,
-    objects: OSMObject[],
-    paint: FocusLayerPaint,
+    objects?: OSMObject[],
+    paint?: FocusLayerPaint,
     options?: FocusOptions,
 ): void => {
     const source = map.getSource(focusLayerId) as GeoJSONSource
+    source.setData(emptyFeatureCollection)
 
     // If there are no objects to focus, remove the focus layer
-    if (!objects.length) {
-        if (enabled) {
-            enabled = false
-            removeMapLayer(map, focusLayerId)
-            source.setData(emptyFeatureCollection)
-        }
-        return
-    }
+    if (!objects?.length) return
 
-    if (!enabled) {
-        enabled = true
+    if (!layerAdded) {
+        layerAdded = true
         addMapLayer(map, focusLayerId)
     }
 
-    source.setData(emptyFeatureCollection)
-
-    for (const type of ["fill", "line", "circle"]) {
-        const layer = map.getLayer(makeExtendedLayerId(focusLayerId, type))
-        for (const [k, v] of Object.entries(paint)) {
-            layer.setPaintProperty(k, v)
+    if (paint && lastPaint !== paint) {
+        lastPaint = paint
+        for (const type of ["fill", "line", "circle"] as const) {
+            const layer = map.getLayer(makeExtendedLayerId(focusLayerId, type))
+            for (const [k, v] of Object.entries(paint)) {
+                layer.setPaintProperty(k, v)
+            }
         }
     }
 
@@ -153,9 +137,9 @@ export const focusManyMapObjects = (
             console.debug("Fitting map to", objects.length, "focus objects with zoom", fitMaxZoom, "(offscreen)")
             map.fitBounds(boundsPadded, { maxZoom: fitMaxZoom, animate: false })
         } else if ((options?.proportionCheck ?? true) && fitMaxZoom > currentZoom) {
-            const latLngSize = getLngLatBoundsSize(bounds)
+            const boundsSize = getLngLatBoundsSize(bounds)
             const mapBoundsSize = getLngLatBoundsSize(mapBounds)
-            const proportion = latLngSize / mapBoundsSize
+            const proportion = boundsSize / mapBoundsSize
             if (proportion > 0 && proportion < 0.00035) {
                 console.debug("Fitting map to", objects.length, "focus objects with zoom", fitMaxZoom, "(small)")
                 map.fitBounds(boundsPadded, { maxZoom: fitMaxZoom, animate: false })

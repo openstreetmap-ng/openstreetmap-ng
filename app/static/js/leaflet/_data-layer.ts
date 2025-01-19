@@ -1,5 +1,5 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import type { GeoJSONSource, LngLatBounds, Map as MaplibreMap, MapGeoJSONFeature, MapMouseEvent } from "maplibre-gl"
+import type { GeoJSONSource, LngLatBounds, MapGeoJSONFeature, MapMouseEvent, Map as MaplibreMap } from "maplibre-gl"
 import { mapQueryAreaMaxSize } from "../_config"
 import { qsEncode } from "../_qs"
 import type { OSMNode, OSMWay } from "../_types"
@@ -7,11 +7,10 @@ import { routerNavigateStrict } from "../index/_router"
 import { RenderElementsDataSchema } from "../proto/shared_pb"
 import { getMapAlert } from "./_alert"
 import {
-    addLayerEventHandler,
-    emptyFeatureCollection,
-    hasMapLayer,
     type LayerCode,
     type LayerId,
+    addLayerEventHandler,
+    emptyFeatureCollection,
     layersConfig,
     makeExtendedLayerId,
 } from "./_layers"
@@ -58,7 +57,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
     const showDataButton = loadDataAlert.querySelector("button.show-data-btn")
     const dataOverlayCheckbox = document.querySelector(".leaflet-sidebar.layers input.overlay[value=data]")
 
-    let enabled = hasMapLayer(map, layerId)
+    let enabled = false
     let abortController: AbortController | null = null
     let fetchedBounds: LngLatBounds | null = null
     let fetchedElements: (OSMNode | OSMWay)[] | null = null
@@ -75,7 +74,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
         const props = e.features[0].properties
         routerNavigateStrict(`/${props.type}/${props.id}`)
     }
-    for (const type of ["fill", "line", "circle"]) {
+    for (const type of ["fill", "line", "circle"] as const) {
         map.on("click", makeExtendedLayerId(layerId, type), onFeatureClick)
     }
 

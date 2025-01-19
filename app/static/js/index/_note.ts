@@ -1,45 +1,69 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
+import { type Map as MaplibreMap, Marker } from "maplibre-gl"
 import { configureStandardForm } from "../_standard-form"
 import { configureStandardPagination } from "../_standard-pagination"
-import { getPageTitle } from "../_title"
-import { focusMapObject } from "../leaflet/_focus-layer"
+import { setPageTitle } from "../_title"
+import { type FocusLayerPaint, focusObjects } from "../leaflet/_focus-layer"
+import { getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils.ts"
 import { PartialNoteParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 
-/** Create a new note controller */
-export const getNoteController = (map: L.Map): IndexController => {
-    const base = getBaseFetchController(map, "note", (sidebarContent) => {
-        // Get elements
-        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
-        const sidebarTitle = sidebarTitleElement.textContent
+const themeColor = "#f60"
+const focusPaintHalo: FocusLayerPaint = {
+    "circle-radius": 20,
+    "circle-color": themeColor,
+    "circle-opacity": 0.5,
+    "circle-stroke-width": 2.5,
+    "circle-stroke-color": themeColor,
+}
 
-        // Set page title
-        document.title = getPageTitle(sidebarTitle)
+/** Create a new note controller */
+export const getNoteController = (map: MaplibreMap): IndexController => {
+    let marker: Marker | null = null
+
+    const base = getBaseFetchController(map, "note", (sidebarContent) => {
+        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
+        setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found
         if (!sidebarTitleElement.dataset.params) return
 
         // Get params
         const params = fromBinary(PartialNoteParamsSchema, base64Decode(sidebarTitleElement.dataset.params))
+        const center: [number, number] = [params.lon, params.lat]
 
-        focusMapObject(map, {
-            type: "note",
-            id: params.id,
-            geom: [params.lat, params.lon],
-            icon: params.open ? "open" : "closed",
+        marker = new Marker({
+            anchor: markerIconAnchor,
+            element: getMarkerIconElement(params.open ? "open" : "closed", false),
         })
+            .setLngLat(center)
+            .addTo(map)
+
+        focusObjects(
+            map,
+            [
+                {
+                    type: "note",
+                    id: null,
+                    geom: center,
+                    open: true,
+                    text: "",
+                },
+            ],
+            focusPaintHalo,
+            { fitBounds: false },
+        )
 
         // On location click, pan the map
         const locationButton = sidebarContent.querySelector("button.location-btn")
         locationButton.addEventListener("click", () => {
-            const latLng = L.latLng(params.lat, params.lon)
             const currentZoom = map.getZoom()
             if (currentZoom < 16) {
-                map.setView(latLng, 18)
+                map.flyTo({ center, zoom: 18 })
             } else {
-                map.panTo(latLng)
+                map.panTo(center)
             }
         })
 
@@ -57,7 +81,7 @@ export const getNoteController = (map: L.Map): IndexController => {
 
             /** On success callback, reload the note and simulate map move (reload notes layer) */
             const onFormSuccess = () => {
-                map.panTo(map.getCenter(), { animate: false })
+                map.panBy([0, 0], { animate: false })
                 controller.unload()
                 controller.load({ id: params.id.toString() })
             }
@@ -97,10 +121,12 @@ export const getNoteController = (map: L.Map): IndexController => {
     const controller: IndexController = {
         load: ({ id }) => {
             const url = `/api/partial/note/${id}`
-            base.load({ url })
+            base.load(url)
         },
         unload: () => {
-            focusMapObject(map, null)
+            focusObjects(map)
+            marker.remove()
+            marker = null
             base.unload()
         },
     }

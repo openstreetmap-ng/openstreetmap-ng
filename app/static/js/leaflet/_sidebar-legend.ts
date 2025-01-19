@@ -8,11 +8,11 @@ import { SidebarToggleControl } from "./_sidebar-toggle-button"
 const precomputeMaxZoom = 25
 
 export class LegendSidebarToggleControl extends SidebarToggleControl {
-    constructor() {
+    public constructor() {
         super("legend", "javascripts.key.tooltip")
     }
 
-    public onAdd(map: MaplibreMap): HTMLElement {
+    public override onAdd(map: MaplibreMap): HTMLElement {
         const container = super.onAdd(map)
         const button = container.querySelector("button")
 

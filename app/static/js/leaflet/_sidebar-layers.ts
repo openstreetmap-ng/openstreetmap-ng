@@ -18,11 +18,11 @@ import { configureDefaultMapBehavior, getLngLatBoundsSize } from "./_utils"
 const minimapZoomOut = 2
 
 export class LayersSidebarToggleControl extends SidebarToggleControl {
-    constructor() {
+    public constructor() {
         super("layers", "javascripts.map.layers.title")
     }
 
-    public onAdd(map: MaplibreMap): HTMLElement {
+    public override onAdd(map: MaplibreMap): HTMLElement {
         const container = super.onAdd(map)
         const button = container.querySelector("button")
 

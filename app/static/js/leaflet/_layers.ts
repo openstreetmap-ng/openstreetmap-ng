@@ -7,6 +7,7 @@ import type {
     Map as MaplibreMap,
     SourceSpecification,
 } from "maplibre-gl"
+import { getDeviceTheme } from "../_utils.ts"
 
 declare const brandSymbol: unique symbol
 
@@ -112,11 +113,14 @@ layersConfig.set("cyclemap" as LayerId, {
     legacyLayerIds: ["cycle map"] as LayerId[],
 })
 
+// TODO: would be nice to support changing in runtime
 layersConfig.set("transportmap" as LayerId, {
     specification: {
         type: "raster",
         maxzoom: 21,
-        tiles: [`https://tile.thunderforest.com/transport/{z}/{x}/{y}{r}.png?apikey=${thunderforestApiKey}`],
+        tiles: [
+            `https://tile.thunderforest.com/transport${getDeviceTheme() === "dark" ? "-dark" : ""}/{z}/{x}/{y}{r}.png?apikey=${thunderforestApiKey}`,
+        ],
         tileSize: 256,
         attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
     },
@@ -201,18 +205,6 @@ layersConfig.set("routing" as LayerId, {
     priority: 110,
 })
 
-layersConfig.set("changesets" as LayerId, {
-    specification: {
-        type: "geojson",
-        data: {
-            type: "FeatureCollection",
-            features: [],
-        },
-    },
-    layerTypes: ["line"],
-    priority: 120,
-})
-
 layersConfig.set("search" as LayerId, {
     specification: {
         type: "geojson",
@@ -267,7 +259,7 @@ export const addMapLayerSources = (map: MaplibreMap, kind: "base" | "all"): void
     }
 }
 
-export const makeExtendedLayerId = (layerId: LayerId, type: string): string => `${layerId}:${type}`
+export const makeExtendedLayerId = (layerId: LayerId, type: LayerType): string => `${layerId}:${type}`
 
 export const resolveExtendedLayerId = (extendedLayerId: string): LayerId => {
     const i = extendedLayerId.indexOf(":")

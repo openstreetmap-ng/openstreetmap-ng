@@ -1,4 +1,4 @@
-import type * as L from "leaflet"
+import type { Map as MaplibreMap } from "maplibre-gl"
 import { resolveDatetime } from "../_datetime"
 import { requestAnimationFramePolyfill } from "../_utils"
 import { configureActionSidebar, getActionSidebar, switchActionSidebar } from "./_action-sidebar"
@@ -6,19 +6,13 @@ import { configureActionSidebar, getActionSidebar, switchActionSidebar } from ".
 let currentUrl: string | null = null
 let sidebarScrollPosition = 0
 
-export interface BaseFetchController {
-    load: ({ url }: { url: string | null }) => void
-    unload: () => void
-}
-
-/** Create a base fetch controller */
 export const getBaseFetchController = (
-    map: L.Map,
+    map: MaplibreMap,
     className: string,
-    successCallback?: (dynamicContent: HTMLElement) => void,
-): BaseFetchController => {
+    successCallback?: (sidebarContent: HTMLElement) => void,
+) => {
     const sidebar = getActionSidebar(className)
-    const scrollSidebar = sidebar.closest(".sidebar")
+    const scrollSidebar = sidebar.closest(".sidebar") as HTMLElement
     const dynamicContent = sidebar.classList.contains("dynamic-content")
         ? sidebar
         : sidebar.querySelector("div.dynamic-content")
@@ -26,15 +20,15 @@ export const getBaseFetchController = (
 
     let abortController: AbortController | null = null
 
-    /** On sidebar loading, display loading content */
-    const onSidebarLoading = () => {
+    const onSidebarLoading = (): void => {
+        // On sidebar loading, display loading content
         sidebarScrollPosition = scrollSidebar.scrollTop
         console.debug("Save sidebar scroll position", sidebarScrollPosition)
         dynamicContent.innerHTML = loadingHtml
     }
 
-    /** On sidebar loaded, display content and call callback */
     const onSidebarLoaded = (html: string, newUrl: string): void => {
+        // On sidebar loaded, display content and call callback
         dynamicContent.innerHTML = html
         resolveDatetime(dynamicContent)
         configureActionSidebar(sidebar)
@@ -42,7 +36,7 @@ export const getBaseFetchController = (
         if (currentUrl === newUrl) {
             // If reload, restore sidebar scroll position
             const startTime = performance.now()
-            const tryRestoreScroll = () => {
+            const tryRestoreScroll = (): void => {
                 if (scrollSidebar.scrollHeight > sidebarScrollPosition) {
                     scrollSidebar.scrollTop = sidebarScrollPosition
                     console.debug("Restore sidebar scroll position", sidebarScrollPosition)
@@ -65,8 +59,8 @@ export const getBaseFetchController = (
     }
 
     return {
-        load: ({ url }) => {
-            switchActionSidebar(map, className)
+        load: (url?: string): void => {
+            switchActionSidebar(map, sidebar)
             if (!url) {
                 currentUrl = url
                 return
@@ -81,13 +75,12 @@ export const getBaseFetchController = (
             fetch(url, {
                 method: "GET",
                 mode: "same-origin",
-                cache: "no-store",
+                cache: "no-store", // request params are too volatile to cache
                 signal: abortController.signal,
                 priority: "high",
             })
                 .then(async (resp) => {
                     if (!resp.ok && resp.status !== 404) throw new Error(`${resp.status} ${resp.statusText}`)
-
                     onSidebarLoaded(await resp.text(), url)
                     successCallback?.(dynamicContent)
                 })
@@ -98,6 +91,9 @@ export const getBaseFetchController = (
                     alert(error.message)
                 })
         },
-        unload: () => {},
+        unload: () => {
+            abortController?.abort()
+            abortController = null
+        },
     }
 }

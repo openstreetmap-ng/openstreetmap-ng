@@ -1,4 +1,4 @@
-import type * as L from "leaflet"
+import type { Map as MaplibreMap } from "maplibre-gl"
 import { collapseNavbar } from "../_navbar"
 import { routerNavigateStrict } from "./_router"
 
@@ -13,18 +13,17 @@ export const getActionSidebar = (className: string): HTMLElement => {
 }
 
 /** Switch the action sidebar with the given class name */
-export const switchActionSidebar = (map: L.Map, className: string): void => {
-    console.debug("switchActionSidebar", className)
+export const switchActionSidebar = (map: MaplibreMap, actionSidebar: HTMLElement): void => {
+    console.debug("switchActionSidebar", actionSidebar.classList)
 
     // Toggle all action sidebars
     for (const sidebar of actionSidebars) {
-        const isTarget = sidebar.classList.contains(className)
+        const isTarget = sidebar === actionSidebar
         if (isTarget) sidebarContainer.classList.toggle("sidebar-overlay", sidebar.dataset.sidebarOverlay === "1")
         sidebar.classList.toggle("d-none", !isTarget)
     }
 
-    // Invalidate the map size
-    map.invalidateSize(false)
+    map.resize()
     collapseNavbar()
 }
 

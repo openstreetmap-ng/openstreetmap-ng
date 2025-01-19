@@ -1,12 +1,13 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
+import type { Map as MaplibreMap } from "maplibre-gl"
 import { qsEncode, qsParse } from "../_qs"
-import { getPageTitle } from "../_title"
+import { setPageTitle } from "../_title"
 import type { Bounds } from "../_types"
 import { isLongitude, zoomPrecision } from "../_utils"
 import { getMapAlert } from "../leaflet/_alert"
-import { focusManyMapObjects, focusMapObject, type FocusOptions } from "../leaflet/_focus-layer"
+import { type FocusOptions, focusObjects } from "../leaflet/_focus-layer"
 import type { LayerId } from "../leaflet/_layers"
 import { convertRenderElementsData } from "../leaflet/_render-objects"
 import { getLngLatBoundsIntersection, getLngLatBoundsSize } from "../leaflet/_utils"
@@ -26,7 +27,7 @@ const focusOptions: FocusOptions = {
 }
 
 /** Create a new search controller */
-export const getSearchController = (map: L.Map): IndexController => {
+export const getSearchController = (map: MaplibreMap): IndexController => {
     const searchLayer = getOverlayLayerById(searchLayerId) as L.FeatureGroup
     const searchForm = document.querySelector("form.search-form")
     const searchAlert = getMapAlert("search-alert")
@@ -110,7 +111,7 @@ export const getSearchController = (map: L.Map): IndexController => {
                 if (!isVisible) div.scrollIntoView({ behavior: "smooth", block: "center" })
 
                 div.classList.add("hover")
-                focusManyMapObjects(map, elements, {
+                focusObjects(map, elements, {
                     ...focusOptions,
                     // Focus on hover only during global search
                     fitBounds: globalMode,
@@ -121,16 +122,16 @@ export const getSearchController = (map: L.Map): IndexController => {
             /** On mouse leave, unfocus elements */
             const onMouseout = () => {
                 div.classList.remove("hover")
-                focusMapObject(map, null)
+                focusObjects(map)
                 marker?.setOpacity(markerOpacity)
             }
 
             // Listen for events
-            div.addEventListener("mouseover", onMouseover)
-            div.addEventListener("mouseout", onMouseout)
+            div.addEventListener("mouseenter", onMouseover)
+            div.addEventListener("mouseleave", onMouseout)
             if (marker) {
-                marker.addEventListener("mouseover", onMouseover)
-                marker.addEventListener("mouseout", onMouseout)
+                marker.addEventListener("mouseenter", onMouseover)
+                marker.addEventListener("mouseleave", onMouseout)
 
                 // On marker click, navigate to the element
                 marker.addEventListener("click", (e) => {
@@ -149,8 +150,8 @@ export const getSearchController = (map: L.Map): IndexController => {
             // global mode
             if (results.length) {
                 const elements = convertRenderElementsData(params.renders[0])
-                focusManyMapObjects(map, elements, focusOptions)
-                focusMapObject(map, null)
+                focusObjects(map, elements, focusOptions)
+                focusObjects(map)
             }
             initialBounds = map.getBounds()
             map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
@@ -186,14 +187,14 @@ export const getSearchController = (map: L.Map): IndexController => {
             const lat = options?.lat ?? searchParams.lat
 
             if (!query && lon && lat) {
-                document.title = getPageTitle(whereIsThisTitle)
+                setPageTitle(whereIsThisTitle)
                 setSearchFormQuery(null)
 
                 const zoom = options?.zoom ?? searchParams.zoom ?? map.getZoom().toString()
                 const url = `/api/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`
                 base.load({ url })
             } else {
-                document.title = getPageTitle(query || searchTitle)
+                setPageTitle(query || searchTitle)
                 setSearchFormQuery(query)
 
                 // Load empty sidebar to ensure proper bbox

@@ -9,7 +9,7 @@ export class SidebarToggleControl implements IControl {
     private readonly _className: string
     private readonly _tooltipTitle: string
 
-    constructor(className: string, tooltipTitle: string) {
+    public constructor(className: string, tooltipTitle: string) {
         this._className = className
         this._tooltipTitle = tooltipTitle
     }

@@ -117,17 +117,6 @@ export const getMapBaseLayerId = (map: MaplibreMap): LayerId | null => {
     return baseLayerId
 }
 
-// /** Get the base layer instance of the map */
-// export const getMapBaseLayer = (map: L.Map): L.TileLayer => {
-//     let baseLayer: L.TileLayer | null = null
-//     map.eachLayer((layer) => {
-//         const data = getLayerData(layer)
-//         if (data && getBaseLayerById(data.layerId)) baseLayer = layer as L.TileLayer
-//     })
-//     if (!baseLayer) throw new Error("No base layer found")
-//     return baseLayer
-// }
-
 /** Get the current map state object */
 export const getMapState = (map: MaplibreMap): MapState => {
     const center = map.getCenter().wrap()
@@ -445,21 +434,3 @@ export const addControlGroup = (map: MaplibreMap, controls: IControl[]): void =>
         if (i === controls.length - 1) classList.add("last")
     }
 }
-
-// /** Disable click propagation for map controls, to avoid map events being triggered by the controls */
-// export const disableControlsClickPropagation = (map: L.Map): void => {
-//     const mapContainer = map.getContainer()
-//     const controlContainer = mapContainer.querySelector(".leaflet-control-container") as HTMLElement
-//     if (controlContainer) {
-//         console.debug("Disabled click propagation for map controls")
-//         L.DomEvent.disableClickPropagation(controlContainer)
-//     } else {
-//         console.warn("Leaflet control container not found")
-//     }
-//
-//     const mapAlertsContainer = mapContainer.querySelectorAll("div.map-alert")
-//     for (const mapAlert of mapAlertsContainer) {
-//         L.DomEvent.disableClickPropagation(mapAlert)
-//     }
-//     console.debug("Disabled click propagation for", mapAlertsContainer.length, "map alerts")
-// }

@@ -1,7 +1,7 @@
 import type { GeoJSON } from "geojson"
 import { type GeoJSONSource, type IControl, LngLatBounds, type Map as MaplibreMap, Marker } from "maplibre-gl"
 import type { Bounds } from "../_types"
-import { addMapLayer, emptyFeatureCollection, type LayerId, layersConfig, removeMapLayer } from "./_layers"
+import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "./_layers"
 
 const layerId: LayerId = "location-filter" as LayerId
 layersConfig.set(layerId as LayerId, {
@@ -23,6 +23,7 @@ export class LocationFilterControl implements IControl {
     private _bounds: Bounds
     private _grabber: Marker
     private _corners: Marker[]
+    private _onRenderHandlers: (() => void)[] = []
 
     public addTo(map: MaplibreMap, bounds: LngLatBounds): this {
         this._map = map
@@ -112,6 +113,11 @@ export class LocationFilterControl implements IControl {
         if (i !== 3) this._corners[3].setLngLat([maxLon, minLat])
         const source = this._map.getSource(layerId) as GeoJSONSource
         source.setData(getMaskData(this._bounds))
+        for (const handler of this._onRenderHandlers) handler()
+    }
+
+    public addOnRenderHandler(handler: () => void): void {
+        this._onRenderHandlers.push(handler)
     }
 
     public onAdd(_: MaplibreMap): HTMLElement {

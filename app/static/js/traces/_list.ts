@@ -14,9 +14,9 @@ for (const tracesList of document.querySelectorAll("ul.traces-list")) {
 
         let svgAnimated: SVGElement | null = null
 
-        // On action mouseover, show animated trace
+        // On action enter, show animated trace
         const resultAction = resultActions[i]
-        resultAction.addEventListener("mouseover", () => {
+        resultAction.addEventListener("mouseenter", () => {
             if (!svgAnimated) {
                 svgAnimated = svg.cloneNode(true) as SVGElement
                 svgAnimated.innerHTML = ""
@@ -26,9 +26,8 @@ for (const tracesList of document.querySelectorAll("ul.traces-list")) {
             svg.parentElement.replaceChild(svgAnimated, svg)
         })
 
-        // On action mouseout, show static trace
-        resultAction.addEventListener("mouseout", () => {
-            if (!svgAnimated) return
+        // On action leave, show static trace
+        resultAction.addEventListener("mouseleave", () => {
             svgAnimated.parentElement.replaceChild(svg, svgAnimated)
         })
     }

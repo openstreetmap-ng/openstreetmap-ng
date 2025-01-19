@@ -2,12 +2,12 @@ import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import { type Map as MaplibreMap, NavigationControl } from "maplibre-gl"
 
-export class ZoomControl extends NavigationControl {
-    constructor() {
+export class CustomZoomControl extends NavigationControl {
+    public constructor() {
         super({ showCompass: false })
     }
 
-    public onAdd(map: MaplibreMap): HTMLElement {
+    public override onAdd(map: MaplibreMap): HTMLElement {
         const container = super.onAdd(map)
 
         const zoomInButton = container.querySelector("button.maplibregl-ctrl-zoom-in")

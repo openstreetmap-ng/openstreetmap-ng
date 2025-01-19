@@ -3,14 +3,7 @@ import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"
 import { noteQueryAreaMaxSize } from "../_config"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderNotesDataSchema } from "../proto/shared_pb"
-import {
-    addLayerEventHandler,
-    emptyFeatureCollection,
-    hasMapLayer,
-    type LayerCode,
-    type LayerId,
-    layersConfig,
-} from "./_layers"
+import { type LayerCode, type LayerId, addLayerEventHandler, emptyFeatureCollection, layersConfig } from "./_layers"
 import { convertRenderNotesData, renderObjects } from "./_render-objects"
 import { getLngLatBoundsSize } from "./_utils"
 
@@ -42,25 +35,37 @@ const closedImageUrl = "/static/img/marker/closed.webp"
 /** Configure the notes layer for the given map */
 export const configureNotesLayer = (map: MaplibreMap): void => {
     const source = map.getSource(layerId) as GeoJSONSource
-    let enabled = hasMapLayer(map, layerId)
+    let enabled = false
     let abortController: AbortController | null = null
 
     // Load image resources
     map.loadImage(openImageUrl).then((resp) => map.addImage("note-open", resp.data))
     map.loadImage(closedImageUrl).then((resp) => map.addImage("note-closed", resp.data))
 
-    // On layer hover, change cursor to pointer
-    map.on("mouseenter", layerId, () => {
-        map.getCanvas().style.cursor = "pointer"
-    })
-    map.on("mouseleave", layerId, () => {
-        map.getCanvas().style.cursor = ""
-    })
-
     // On feature click, navigate to the note
     map.on("click", layerId, (e) => {
         const noteId = e.features[0].properties.id
         routerNavigateStrict(`/note/${noteId}`)
+    })
+
+    let hoveredFeatureId: string | number | null = null
+    map.on("mouseover", layerId, (e) => {
+        const featureId = e.features[0].id
+        if (hoveredFeatureId) {
+            if (hoveredFeatureId === featureId) return
+            map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
+        } else {
+            map.getCanvas().style.cursor = "pointer"
+        }
+        hoveredFeatureId = featureId
+        map.setFeatureState({ source: layerId, id: hoveredFeatureId }, { hover: true })
+    })
+    map.on("mouseleave", layerId, () => {
+        if (hoveredFeatureId) {
+            hoveredFeatureId = null
+            map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
+        }
+        map.getCanvas().style.cursor = ""
     })
 
     // TODO: leaflet leftover, tooltips
