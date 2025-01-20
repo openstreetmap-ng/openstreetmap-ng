@@ -1,13 +1,15 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
+import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"
 import { prefersReducedMotion } from "../_config"
 import { qsEncode, qsParse } from "../_qs"
 import { setPageTitle } from "../_title"
 import { isLatitude, isLongitude, requestAnimationFramePolyfill } from "../_utils"
-import { queryFeaturesMinZoom } from "../leaflet/_context-menu"
-import { focusObjects, focusStyles } from "../leaflet/_focus-layer"
+import { focusObjects } from "../leaflet/_focus-layer"
+import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
 import type { LonLatZoom } from "../leaflet/_map-utils"
+import { queryFeaturesMinZoom } from "../leaflet/_query-features.ts"
 import { convertRenderElementsData } from "../leaflet/_render-objects"
 import { PartialQueryFeaturesParamsSchema } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
@@ -15,8 +17,30 @@ import type { IndexController } from "./_router"
 
 // TODO: finish this controller
 
+const layerId = "query-features" as LayerId
+const themeColor = "#f60"
+layersConfig.set(layerId as LayerId, {
+    specification: {
+        type: "geojson",
+        data: emptyFeatureCollection,
+    },
+    layerTypes: ["circle"],
+    layerOptions: {
+        paint: {
+            "circle-radius": 0,
+            "circle-color": themeColor,
+            "circle-opacity": 0,
+            "circle-stroke-width": 4,
+            "circle-stroke-color": themeColor,
+            "circle-stroke-opacity": 0,
+        },
+    },
+    priority: 160,
+})
+
 /** Create a new query features controller */
 export const getQueryFeaturesController = (map: MaplibreMap): IndexController => {
+    const source = map.getSource(layerId) as GeoJSONSource
     const sidebar = getActionSidebar("query-features")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const nearbyContainer = sidebar.querySelector("div.nearby-container")
@@ -62,25 +86,43 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
     }
 
     /** On sidebar loading, display loading content and show map animation */
-    const onSidebarLoading = (latLng: L.LatLng, zoom: number, abortSignal: AbortSignal): void => {
+    const onSidebarLoading = (center: [number, number], zoom: number, abortSignal: AbortSignal): void => {
         nearbyContainer.innerHTML = nearbyLoadingHtml
         enclosingContainer.innerHTML = enclosingLoadingHtml
 
-        // Fade out circle smoothly
-        const radius = 10 * 1.5 ** (19 - zoom)
-        const circle = L.circle(latLng, { ...focusStyles.element, pane: "overlayPane", radius })
-        const animationDuration = 750
+        source.setData({
+            type: "FeatureCollection",
+            features: [
+                {
+                    type: "Feature",
+                    id: "center",
+                    properties: {},
+                    geometry: {
+                        type: "Point",
+                        coordinates: center,
+                    },
+                },
+            ],
+        })
 
+        // Fade out circle smoothly
+        const animationDuration = 750
         const fadeOut = (timestamp?: DOMHighResTimeStamp) => {
             const elapsedTime = (timestamp ?? performance.now()) - animationStart
             let opacity = 1 - Math.min(elapsedTime / animationDuration, 1)
             if (prefersReducedMotion) opacity = opacity > 0 ? 1 : 0
-            circle.setStyle({ opacity, fillOpacity: opacity })
+            map.setPaintProperty(layerId, "circle-opacity", opacity)
+            map.setPaintProperty(layerId, "circle-stroke-opacity", opacity)
             if (opacity > 0 && !abortSignal.aborted) requestAnimationFramePolyfill(fadeOut)
-            else map.removeLayer(circle)
+            else {
+                removeMapLayer(map, layerId)
+                source.setData(emptyFeatureCollection)
+            }
         }
 
-        map.addLayer(circle)
+        const radius = 10 * 1.5 ** (19 - zoom)
+        map.setPaintProperty(layerId, "circle-radius", radius)
+        addMapLayer(map, layerId)
         const animationStart = performance.now()
         requestAnimationFramePolyfill(fadeOut)
     }
@@ -100,7 +142,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
     // TODO: on tab close, disable query mode
     return {
         load: () => {
-            switchActionSidebar(map, "query-features")
+            switchActionSidebar(map, sidebar)
             setPageTitle(sidebarTitle)
 
             const position = getURLQueryPosition()
@@ -112,18 +154,17 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
             const { lon, lat, zoom } = position
 
             // Focus on the query area if it's offscreen
-            const latLng = L.latLng(lat, lon)
-            if (!map.getBounds().contains(latLng)) {
-                map.panTo(latLng, { animate: false })
+            const center: [number, number] = [lon, lat]
+            if (!map.getBounds().contains(center)) {
+                map.jumpTo({ center })
             }
 
             abortController?.abort()
             abortController = new AbortController()
             const abortSignal = abortController.signal
 
-            onSidebarLoading(latLng, zoom, abortSignal)
-
             // Fetch nearby features
+            onSidebarLoading(center, zoom, abortSignal)
             fetch(
                 `/api/partial/query/nearby?${qsEncode({
                     lon: lon.toString(),
@@ -147,7 +188,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
                     // TODO: nicer error html
                     onSidebarNearbyLoaded(
                         i18next.t("javascripts.query.error", {
-                            server: "OpenStreetMap",
+                            server: window.location.host,
                             error: error.message,
                         }),
                     )
@@ -175,7 +216,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
                     console.error("Failed to fetch enclosing features", error)
                     onSidebarEnclosingLoaded(
                         i18next.t("javascripts.query.error", {
-                            server: "OpenStreetMap",
+                            server: window.location.host,
                             error: error.message,
                         }),
                     )
@@ -184,7 +225,6 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
         unload: () => {
             abortController?.abort()
             abortController = null
-            focusObjects(map)
         },
     }
 }

@@ -17,7 +17,7 @@ layersConfig.set(layerId as LayerId, {
     layerTypes: ["symbol"],
     layerOptions: {
         layout: {
-            "icon-image": ["case", ["boolean", ["get", "open"], false], "note-open", "note-closed"],
+            "icon-image": ["case", ["boolean", ["get", "open"], false], "marker-open", "marker-closed"],
             "icon-allow-overlap": true,
             "icon-padding": 0,
             "icon-anchor": "bottom",
@@ -37,10 +37,6 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
     const source = map.getSource(layerId) as GeoJSONSource
     let enabled = false
     let abortController: AbortController | null = null
-
-    // Load image resources
-    map.loadImage(openImageUrl).then((resp) => map.addImage("note-open", resp.data))
-    map.loadImage(closedImageUrl).then((resp) => map.addImage("note-closed", resp.data))
 
     // On feature click, navigate to the note
     map.on("click", layerId, (e) => {
@@ -144,6 +140,11 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         if (eventLayerId !== layerId) return
         enabled = isAdded
         if (isAdded) {
+            // Load image resources
+            if (!map.hasImage("marker-open"))
+                map.loadImage(openImageUrl).then((resp) => map.addImage("marker-open", resp.data))
+            if (!map.hasImage("marker-closed"))
+                map.loadImage(closedImageUrl).then((resp) => map.addImage("marker-closed", resp.data))
             updateLayer()
         } else {
             abortController?.abort()

@@ -205,18 +205,6 @@ layersConfig.set("routing" as LayerId, {
     priority: 110,
 })
 
-layersConfig.set("search" as LayerId, {
-    specification: {
-        type: "geojson",
-        data: {
-            type: "FeatureCollection",
-            features: [],
-        },
-    },
-    layerTypes: ["symbol"],
-    priority: 140,
-})
-
 let layerLookupMap = (): Map<LayerId | LayerCode, LayerId> => {
     console.debug("Lazily initializing layerLookupMap")
     const result: Map<LayerId | LayerCode, LayerId> = new Map()

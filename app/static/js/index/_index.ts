@@ -1,8 +1,9 @@
+import type { Map as MaplibreMap } from "maplibre-gl"
 import { isBannerHidden, markBannerHidden } from "../_local-storage"
+import { setPageTitle } from "../_title"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 import { setSearchFormQuery } from "./_search-form"
-import { setPageTitle } from "../_title"
 
 /** Create a new index controller */
 export const getIndexController = (map: MaplibreMap): IndexController => {
@@ -31,7 +32,7 @@ export const getIndexController = (map: MaplibreMap): IndexController => {
 
     return {
         load: () => {
-            switchActionSidebar(map, "index")
+            switchActionSidebar(map, sidebar)
             setPageTitle()
             setSearchFormQuery("")
         },
