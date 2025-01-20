@@ -1,48 +1,64 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { decode } from "@mapbox/polyline"
+import type { Feature, LineString } from "geojson"
 import i18next from "i18next"
+import {
+    type GeoJSONSource,
+    type LngLat,
+    LngLatBounds,
+    type LngLatLike,
+    type Map as MaplibreMap,
+    Marker,
+    Point,
+    Popup,
+} from "maplibre-gl"
 import { formatDistance, formatDistanceRounded, formatHeight, formatTime } from "../_format-utils"
 import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage"
 import { qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
 import { setPageTitle } from "../_title"
 import { zoomPrecision } from "../_utils"
-import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
-import { getMarkerIcon } from "../leaflet/_utils"
+import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers"
+import { getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
 import { type RoutingResult, RoutingResultSchema } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 
-const styles: { [key: string]: L.PolylineOptions } = {
-    default: {
-        pane: "routing",
-        color: "#0033ff",
-        opacity: 0.3,
-        weight: 10,
-        interactive: false,
+const layerId = "routing" as LayerId
+layersConfig.set(layerId as LayerId, {
+    specification: {
+        type: "geojson",
+        data: emptyFeatureCollection,
     },
-    hover: {
-        pane: "routing",
-        color: "#ffff00",
-        opacity: 0,
-        weight: 10,
-        interactive: true,
+    layerTypes: ["line"],
+    layerOptions: {
+        layout: {
+            "line-join": "round",
+            "line-cap": "round",
+        },
+        paint: {
+            "line-color": ["case", ["boolean", ["get", "complete"]], "#03f", "#ff0"],
+            "line-opacity": [
+                "case",
+                ["boolean", ["get", "complete"]],
+                0.3, // Complete route is always 0.3 opacity
+                ["boolean", ["feature-state", "hover"], false],
+                0.5, // Individual steps are 0.5 when hovered
+                0, // Individual steps are invisible when not hovered
+            ],
+            "line-width": 10,
+        },
     },
-    hoverActive: {
-        opacity: 0.5,
-    },
-}
+    priority: 110,
+})
 
 const dragDataType = "text/osm-routing-direction"
-const routingLayerId = "routing" as LayerId
-let paneCreated = false
 
 /** Create a new routing controller */
 export const getRoutingController = (map: MaplibreMap): IndexController => {
+    const source = map.getSource(layerId) as GeoJSONSource
     const mapContainer = map.getContainer()
-    const routingLayer = getOverlayLayerById(routingLayerId) as L.FeatureGroup
     const sidebar = getActionSidebar("routing")
-    const parentSidebar = sidebar.closest(".sidebar")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form.routing-form")
     const startInput = form.elements.namedItem("start") as HTMLInputElement
@@ -70,23 +86,24 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     const popupTemplate = routeContainer.querySelector("template.popup")
     const stepTemplate = routeContainer.querySelector("template.step")
 
-    let startBounds: L.LatLngBounds | null = null
-    let startMarker: L.Marker | null = null
-    let endBounds: L.LatLngBounds | null = null
-    let endMarker: L.Marker | null = null
+    const results: Element[] = []
+    let startBounds: LngLatBounds | null = null
+    let startMarker: Marker | null = null
+    let endBounds: LngLatBounds | null = null
+    let endMarker: Marker | null = null
 
-    const popup = L.popup({
+    const popup = new Popup({
+        closeButton: false,
+        closeOnMove: true,
+        anchor: "bottom",
         className: "route-steps",
-        autoPanPadding: [80, 80],
-        // @ts-ignore
-        bubblingMouseEvents: false,
     })
 
-    const markerFactory = (color: string): L.Marker =>
-        L.marker(L.latLng(0, 0), {
-            icon: getMarkerIcon(color, true),
+    const markerFactory = (color: string): Marker =>
+        new Marker({
+            anchor: markerIconAnchor,
+            element: getMarkerIconElement(color, true),
             draggable: true,
-            autoPan: true,
         }).addTo(map)
 
     /** On draggable marker drag start, set data and drag image */
@@ -109,26 +126,72 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     startDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
     endDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
 
-    /** On marker drag end, update the form's coordinates */
-    const onMapMarkerDragEnd = (event: L.DragEndEvent): void => {
-        console.debug("onMapMarkerDragEnd", event)
+    const openPopup = (result: Element, lngLat: LngLatLike): void => {
+        // TODO: maybe optimize out setDOMContent
+        popupTemplate.querySelector(".number").innerHTML = result.querySelector(".number").innerHTML
+        popupTemplate.querySelector(".instruction").innerHTML = result.querySelector(".instruction").innerHTML
+        popup.setDOMContent(popupTemplate.content).setLngLat(lngLat).addTo(map)
+    }
 
-        const marker = event.propagatedFrom || event.target
-        const latLng = marker.getLatLng()
+    // On feature click, open a popup
+    map.on("click", layerId, (e) => {
+        const feature = e.features[0] as Feature<LineString>
+        const featureId = feature.id as number
+        const result = results[featureId]
+        openPopup(result, feature.geometry.coordinates[0] as LngLatLike)
+    })
+
+    let hoveredFeatureId: number | null = null
+    map.on("mouseover", layerId, (e) => {
+        const featureId = e.features[0].id
+        if (hoveredFeatureId) {
+            if (hoveredFeatureId === featureId) return
+            setHover(hoveredFeatureId, false)
+        } else {
+            map.getCanvas().style.cursor = "pointer"
+        }
+        hoveredFeatureId = featureId as number
+        setHover(hoveredFeatureId, true)
+    })
+    map.on("mouseleave", layerId, () => {
+        if (hoveredFeatureId) {
+            setHover(hoveredFeatureId, false)
+            hoveredFeatureId = null
+        }
+        map.getCanvas().style.cursor = ""
+    })
+
+    /** Set the hover state of the step features */
+    const setHover = (id: number, hover: boolean): void => {
+        if (id < 0) return // Skip complete feature events
+        const result = results[id]
+        result.classList.toggle("hover", hover)
+        if (hover) {
+            // Scroll result into view
+            const sidebarRect = sidebar.getBoundingClientRect()
+            const resultRect = result.getBoundingClientRect()
+            const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
+            if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+        map.setFeatureState({ source: layerId, id: id }, { hover })
+    }
+
+    /** On marker drag end, update the form's coordinates */
+    const onMapMarkerDragEnd = (lngLat: LngLat, isStart: boolean): void => {
+        console.debug("onMapMarkerDragEnd", lngLat, isStart)
+
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
-        const lon = latLng.lng.toFixed(precision)
-        const lat = latLng.lat.toFixed(precision)
+        const lon = lngLat.lng.toFixed(precision)
+        const lat = lngLat.lat.toFixed(precision)
         const value = `${lat}, ${lon}`
 
-        if (marker === startMarker) {
+        if (isStart) {
             startInput.value = value
             startInput.dispatchEvent(new Event("input"))
-        } else if (marker === endMarker) {
+        } else {
             endInput.value = value
             endInput.dispatchEvent(new Event("input"))
-        } else {
-            console.warn("Unknown routing marker", marker)
         }
 
         submitFormIfFilled()
@@ -142,35 +205,36 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         const dragData = event.dataTransfer.getData(dragDataType)
         console.debug("onMapDrop", dragData)
 
-        let marker: L.Marker
+        let marker: Marker
         if (dragData === "start") {
             if (!startMarker) {
                 startMarker = markerFactory("green")
-                startMarker.addEventListener("dragend", onMapMarkerDragEnd)
-                map.addLayer(startMarker)
+                startMarker.on("dragend", () => onMapMarkerDragEnd(startMarker.getLngLat(), true))
             }
             marker = startMarker
         } else if (dragData === "end") {
             if (!endMarker) {
                 endMarker = markerFactory("red")
-                endMarker.addEventListener("dragend", onMapMarkerDragEnd)
-                map.addLayer(endMarker)
+                endMarker.on("dragend", () => onMapMarkerDragEnd(endMarker.getLngLat(), false))
             }
             marker = endMarker
         } else {
             return
         }
 
-        const mousePosition = L.DomEvent.getMousePosition(event, mapContainer)
-        mousePosition.y += 20 // offset position to account for the marker's height
-        const latLng = map.containerPointToLatLng(mousePosition)
-        marker.setLatLng(latLng)
-        marker.fire("dragend", { propagatedFrom: marker })
+        const mapRect = mapContainer.getBoundingClientRect()
+        const mousePoint = new Point(
+            event.clientX - mapRect.left,
+            event.clientY - mapRect.top + 20, // offset for marker height
+        )
+        marker.setLngLat(map.unproject(mousePoint))
+        marker.fire("dragend")
     }
 
     /** On map update, update the form's bounding box */
     const onMapZoomOrMoveEnd = () => {
-        bboxInput.value = map.getBounds().toBBoxString()
+        const [[minLon, minLat], [maxLon, maxLat]] = map.getBounds().toArray()
+        bboxInput.value = `${minLon},${minLat},${maxLon},${maxLat}`
     }
 
     // On engine input change, remember the last routing engine
@@ -195,11 +259,11 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             startInput.value === startLoadedInput.value &&
             endInput.value === endLoadedInput.value
         ) {
-            const newStartLatLng = endMarker.getLatLng()
-            const newEndLatLng = startMarker.getLatLng()
-            startMarker.setLatLng(newStartLatLng)
+            const newStartLngLat = endMarker.getLngLat()
+            const newEndLngLat = startMarker.getLngLat()
+            startMarker.setLngLat(newStartLngLat)
             startLoadedInput.value = newStartValue
-            endMarker.setLatLng(newEndLatLng)
+            endMarker.setLngLat(newEndLngLat)
             endLoadedInput.value = newEndValue
         }
         submitFormIfFilled()
@@ -207,7 +271,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
 
     /** Utility method to submit the form if filled with data */
     const submitFormIfFilled = () => {
-        map.closePopup(popup)
+        popup.remove()
         if (startInput.value && endInput.value) form.requestSubmit()
     }
 
@@ -244,15 +308,14 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         if (data.start) {
             const entry = data.start
             const { minLon, minLat, maxLon, maxLat } = entry.bounds
-            startBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
+            startBounds = new LngLatBounds([minLon, minLat, maxLon, maxLat])
             startInput.value = entry.name
             startInput.dispatchEvent(new Event("input"))
             if (!startMarker) {
                 startMarker = markerFactory("green")
-                startMarker.addEventListener("dragend", onMapMarkerDragEnd)
-                map.addLayer(startMarker)
+                startMarker.on("dragend", () => onMapMarkerDragEnd(startMarker.getLngLat(), true))
             }
-            startMarker.setLatLng([entry.lat, entry.lon])
+            startMarker.setLngLat([entry.lon, entry.lat])
             startLoadedInput.value = entry.name
             startLoadedLonInput.value = entry.lon.toFixed(7)
             startLoadedLatInput.value = entry.lat.toFixed(7)
@@ -261,23 +324,23 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         if (data.end) {
             const entry = data.end
             const { minLon, minLat, maxLon, maxLat } = entry.bounds
-            endBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
+            endBounds = new LngLatBounds([minLon, minLat, maxLon, maxLat])
             endInput.value = entry.name
             endInput.dispatchEvent(new Event("input"))
             if (!endMarker) {
                 endMarker = markerFactory("red")
-                endMarker.addEventListener("dragend", onMapMarkerDragEnd)
-                map.addLayer(endMarker)
+                endMarker.on("dragend", () => onMapMarkerDragEnd(endMarker.getLngLat(), false))
             }
-            endMarker.setLatLng([entry.lat, entry.lon])
+            endMarker.setLngLat([entry.lon, entry.lat])
             endLoadedInput.value = entry.name
             endLoadedLonInput.value = entry.lon.toFixed(7)
             endLoadedLatInput.value = entry.lat.toFixed(7)
         }
 
         // Focus on the makers if they're offscreen
+        const mapBounds = map.getBounds()
         const markerBounds = startBounds.extend(endBounds)
-        if (!map.getBounds().contains(markerBounds)) {
+        if (!mapBounds.contains(markerBounds.getSouthWest()) && !mapBounds.contains(markerBounds.getNorthEast())) {
             map.fitBounds(markerBounds)
         }
     }
@@ -286,12 +349,12 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         const routingEngineName = engineInput.value
 
         const precision = zoomPrecision(19)
-        const startLatLng = startMarker.getLatLng()
-        const endLatLng = endMarker.getLatLng()
-        const startLon = startLatLng.lng.toFixed(precision)
-        const startLat = startLatLng.lat.toFixed(precision)
-        const endLon = endLatLng.lng.toFixed(precision)
-        const endLat = endLatLng.lat.toFixed(precision)
+        const startLngLat = startMarker.getLngLat()
+        const endLngLat = endMarker.getLngLat()
+        const startLon = startLngLat.lng.toFixed(precision)
+        const startLat = startLngLat.lat.toFixed(precision)
+        const endLon = endLngLat.lng.toFixed(precision)
+        const endLat = endLngLat.lat.toFixed(precision)
 
         const startRouteParam = `${startLat},${startLon}`
         const endRouteParam = `${endLat},${endLon}`
@@ -324,103 +387,65 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             routeElevationContainer.classList.add("d-none")
         }
 
-        // Render the turn-by-turn table
-        const fragment = document.createDocumentFragment()
-        const layers: L.Polyline[] = []
+        const lines: Feature<LineString>[] = []
 
         // Create a single geometry for the route
         const stepsGeoms: [number, number][][] = []
         for (const step of route.steps) stepsGeoms.push(decode(step.line, 6))
         const fullGeom: [number, number][] = [].concat(...stepsGeoms)
         if (fullGeom.length) {
-            layers.push(L.polyline(fullGeom, styles.default))
+            lines.push({
+                type: "Feature",
+                id: -1,
+                properties: { complete: true },
+                geometry: {
+                    type: "LineString",
+                    coordinates: fullGeom,
+                },
+            })
         }
 
-        let stepNumber = 0
-        for (const step of route.steps) {
+        // Render the turn-by-turn table
+        results.length = 0
+        for (let stepNumber = 0; stepNumber < route.steps.length; stepNumber++) {
+            const step = route.steps[stepNumber]
             const stepGeom = stepsGeoms[stepNumber]
-            stepNumber += 1
+            lines.push({
+                type: "Feature",
+                id: stepNumber,
+                properties: { complete: false },
+                geometry: {
+                    type: "LineString",
+                    coordinates: stepGeom,
+                },
+            })
 
             const div = (stepTemplate.content.cloneNode(true) as DocumentFragment).children[0]
             div.querySelector(".icon div").classList.add(`icon-${step.iconNum}`, "dark-filter-invert")
-            div.querySelector(".number").textContent = `${stepNumber}.`
+            div.querySelector(".number").textContent = `${stepNumber + 1}.`
             div.querySelector(".instruction").textContent = step.text
             div.querySelector(".distance").textContent = formatDistanceRounded(step.distance)
-            fragment.appendChild(div)
-
-            const layer = L.polyline(stepGeom, styles.hover)
-            layers.push(layer)
-
-            /** On mouseover, scroll result into view and focus the route segment */
-            const onMouseover = () => {
-                const sidebarRect = parentSidebar.getBoundingClientRect()
-                const resultRect = div.getBoundingClientRect()
-                const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
-                if (!isVisible) div.scrollIntoView({ behavior: "smooth", block: "center" })
-
-                div.classList.add("hover")
-                layer.setStyle(styles.hoverActive)
-            }
-
-            /** On mouseout, unfocus the route segment */
-            const onMouseout = () => {
-                div.classList.remove("hover")
-                layer.setStyle(styles.hover)
-            }
-
-            /** On click, show the popup */
-            const onClick = () => {
-                const content = popupTemplate.content.children[0]
-                content.querySelector(".number").innerHTML = div.querySelector(".number").innerHTML
-                content.querySelector(".instruction").innerHTML = div.querySelector(".instruction").innerHTML
-                popup.setContent(content.innerHTML)
-                popup.setLatLng(stepGeom[0])
-                map.openPopup(popup)
-            }
-
-            // Listen for events
-            div.addEventListener("mouseenter", onMouseover)
-            div.addEventListener("mouseleave", onMouseout)
-            div.addEventListener("click", onClick)
-            layer.addEventListener("mouseenter", onMouseover)
-            layer.addEventListener("mouseleave", onMouseout)
-            layer.addEventListener("click", onClick)
+            div.addEventListener("click", () => openPopup(div, stepGeom[0]))
+            div.addEventListener("mouseenter", () => setHover(stepNumber, true))
+            div.addEventListener("mouseleave", () => setHover(stepNumber, false))
+            results.push(div)
         }
 
         stepsTableBody.innerHTML = ""
-        stepsTableBody.appendChild(fragment)
+        stepsTableBody.append(...results)
         attribution.innerHTML = i18next.t("javascripts.directions.instructions.courtesy", {
             link: route.attribution,
             interpolation: { escapeValue: false },
         })
         routeContainer.classList.remove("d-none")
 
-        routingLayer.clearLayers()
-        routingLayer.addLayer(L.layerGroup(layers))
+        source.setData({ type: "FeatureCollection", features: lines })
         console.debug("Route showing", route.steps.length, "steps")
     }
 
     return {
         load: () => {
-            // Listen for events
-            map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
-            mapContainer.addEventListener("dragover", onMapDragOver)
-            mapContainer.addEventListener("drop", onMapDrop)
-
-            // Create the routing layer if it doesn't exist
-            if (!map.hasLayer(routingLayer)) {
-                if (!paneCreated) {
-                    console.debug("Creating routing pane")
-                    map.createPane("routing")
-                    paneCreated = true
-                }
-
-                console.debug("Adding overlay layer", routingLayerId)
-                map.addLayer(routingLayer)
-                map.fire("overlayadd", { layer: routingLayer, name: routingLayerId })
-            }
-
-            switchActionSidebar(map, "routing")
+            switchActionSidebar(map, sidebar)
             setPageTitle(sidebarTitle)
 
             // Initial update to set the inputs
@@ -454,20 +479,18 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
                     console.warn("Unsupported routing engine", routingEngine)
                 }
             }
+
             submitFormIfFilled()
+            addMapLayer(map, layerId)
+            // Listen for events
+            map.on("moveend", onMapZoomOrMoveEnd)
+            mapContainer.addEventListener("dragover", onMapDragOver)
+            mapContainer.addEventListener("drop", onMapDrop)
         },
         unload: () => {
-            // Remove the routing layer
-            if (map.hasLayer(routingLayer)) {
-                console.debug("Removing overlay layer", routingLayerId)
-                map.removeLayer(routingLayer)
-                map.fire("overlayremove", { layer: routingLayer, name: routingLayerId })
-            }
-
-            // Clear the routing layer
-            routingLayer.clearLayers()
-
-            map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+            map.off("moveend", onMapZoomOrMoveEnd)
+            removeMapLayer(map, layerId)
+            source.setData(emptyFeatureCollection)
             mapContainer.removeEventListener("dragover", onMapDragOver)
             mapContainer.removeEventListener("drop", onMapDrop)
 
@@ -475,17 +498,18 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             routeContainer.classList.add("d-none")
 
             if (startMarker) {
-                map.removeLayer(startMarker)
+                startMarker.remove()
                 startMarker = null
                 startLoadedInput.value = ""
             }
             if (endMarker) {
-                map.removeLayer(endMarker)
+                endMarker.remove()
                 endMarker = null
                 endLoadedInput.value = ""
             }
 
-            map.closePopup(popup)
+            popup.remove()
+            results.length = 0
         },
     }
 }

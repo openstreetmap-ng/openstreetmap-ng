@@ -1,4 +1,4 @@
-import { LngLatBounds, type Map as MaplibreMap, type PositionAnchor } from "maplibre-gl"
+import { LngLatBounds, type Map as MaplibreMap, Point, type PositionAnchor } from "maplibre-gl"
 
 import type { Bounds } from "../_types"
 
@@ -90,6 +90,18 @@ export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds): Bounds 
     const lngLatBottomLeft = map.unproject(mapBottomLeft)
     const lngLatTopRight = map.unproject(mapTopRight)
     return [lngLatBottomLeft.lng, lngLatBottomLeft.lat, lngLatTopRight.lng, lngLatTopRight.lat]
+}
+
+/** Get the closest point on a segment */
+export const closestPointOnSegment = (test: Point, start: Point, end: Point): Point => {
+    const dx = end.x - start.x
+    const dy = end.y - start.y
+    if (dx === 0 && dy === 0) return new Point(start.x, start.y)
+
+    // Calculate projection position (t) on line using dot product
+    // t = ((test-start) * (end-start)) / |end-start|²
+    const t = Math.max(0, Math.min(1, ((test.x - start.x) * dx + (test.y - start.y) * dy) / (dx ** 2 + dy ** 2)))
+    return new Point(start.x + t * dx, start.y + t * dy)
 }
 
 export const configureDefaultMapBehavior = (map: MaplibreMap): void => {

@@ -180,31 +180,6 @@ layersConfig.set("gps" as LayerId, {
     priority: 60,
 })
 
-// TODO: move to a separate file
-layersConfig.set("data" as LayerId, {
-    specification: {
-        type: "geojson",
-        data: {
-            type: "FeatureCollection",
-            features: [],
-        },
-    },
-    layerCode: "D" as LayerCode,
-    priority: 100,
-})
-
-layersConfig.set("routing" as LayerId, {
-    specification: {
-        type: "geojson",
-        data: {
-            type: "FeatureCollection",
-            features: [],
-        },
-    },
-    layerTypes: ["line"],
-    priority: 110,
-})
-
 let layerLookupMap = (): Map<LayerId | LayerCode, LayerId> => {
     console.debug("Lazily initializing layerLookupMap")
     const result: Map<LayerId | LayerCode, LayerId> = new Map()
@@ -263,16 +238,6 @@ const layerEventHandlers: LayerEventHandler[] = []
 export const addLayerEventHandler = (handler: LayerEventHandler): void => {
     layerEventHandlers.push(handler)
 }
-
-// /** Remove a layer event handler and stop receiving events */
-// export const removeLayerEventHandler = (handler: LayerEventHandler): void => {
-//     const handlerIndex = layerEventHandlers.indexOf(handler)
-//     if (handlerIndex === -1) {
-//         console.warn("Layer event handler not found", handler)
-//         return
-//     }
-//     layerEventHandlers.splice(handlerIndex, 1)
-// }
 
 type LayerType =
     | "fill"

@@ -35,7 +35,7 @@ layersConfig.set(layerId as LayerId, {
             "circle-stroke-opacity": 0,
         },
     },
-    priority: 160,
+    priority: 170,
 })
 
 /** Create a new query features controller */
