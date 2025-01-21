@@ -3,7 +3,7 @@ import { Dropdown } from "bootstrap"
 import { type MapMouseEvent, type Map as MaplibreMap, Popup } from "maplibre-gl"
 import { formatCoordinate } from "../_format-utils"
 import { qsEncode } from "../_qs"
-import { zoomPrecision } from "../_utils"
+import { beautifyZoom, zoomPrecision } from "../_utils"
 import { routerNavigateStrict } from "../index/_router"
 import { newNoteMinZoom } from "./_new-note"
 import { queryFeaturesMinZoom } from "./_query-features"
@@ -74,8 +74,7 @@ export const configureContextMenu = (map: MaplibreMap): void => {
         // Open the context menu
         popup.setLngLat(lngLat).addTo(map)
 
-        // Ensure the popup is visible
-        // TODO: is that still needed?
+        // Ensure the popup remains visible
         const element = popup.getElement()
         const popupSize = [element.clientWidth, element.clientHeight] as const
         const containerSize = [mapContainer.clientWidth, mapContainer.clientHeight] as const
@@ -130,8 +129,9 @@ export const configureContextMenu = (map: MaplibreMap): void => {
     newNoteButton.addEventListener("click", () => {
         console.debug("onNewNoteButtonClick")
         const { lon, lat, zoom } = getPopupPosition()
+        const zoomRounded = beautifyZoom(zoom)
         closePopup()
-        routerNavigateStrict(`/note/new?lat=${lat}&lon=${lon}&zoom=${zoom}`)
+        routerNavigateStrict(`/note/new?lat=${lat}&lon=${lon}&zoom=${zoomRounded}`)
     })
 
     // On show address button click, navigate to search page
@@ -151,8 +151,9 @@ export const configureContextMenu = (map: MaplibreMap): void => {
     queryFeaturesButton.addEventListener("click", () => {
         console.debug("onQueryFeaturesButtonClick")
         const { lon, lat, zoom } = getPopupPosition()
+        const zoomRounded = beautifyZoom(zoom)
         closePopup()
-        routerNavigateStrict(`/query?lat=${lat}&lon=${lon}&zoom=${zoom}`)
+        routerNavigateStrict(`/query?lat=${lat}&lon=${lon}&zoom=${zoomRounded}`)
     })
 
     // On center here button click, center the map

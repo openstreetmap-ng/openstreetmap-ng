@@ -5,7 +5,7 @@ import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"
 import { prefersReducedMotion } from "../_config"
 import { qsEncode, qsParse } from "../_qs"
 import { setPageTitle } from "../_title"
-import { isLatitude, isLongitude, requestAnimationFramePolyfill } from "../_utils"
+import { isLatitude, isLongitude, isZoom, requestAnimationFramePolyfill } from "../_utils"
 import { focusObjects } from "../leaflet/_focus-layer"
 import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
 import type { LonLatZoom } from "../leaflet/_map-utils"
@@ -57,8 +57,11 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
         if (searchParams.lon && searchParams.lat) {
             const lon = Number.parseFloat(searchParams.lon)
             const lat = Number.parseFloat(searchParams.lat)
-            if (isLongitude(lon) && isLatitude(lat)) {
-                const zoom = Math.max(map.getZoom(), queryFeaturesMinZoom)
+            const zoom = Math.max(
+                searchParams.zoom ? Number.parseFloat(searchParams.zoom) : map.getZoom(),
+                queryFeaturesMinZoom,
+            )
+            if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
                 return { lon, lat, zoom }
             }
         }
@@ -156,7 +159,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
             // Focus on the query area if it's offscreen
             const center: [number, number] = [lon, lat]
             if (!map.getBounds().contains(center)) {
-                map.jumpTo({ center })
+                map.jumpTo({ center, zoom })
             }
 
             abortController?.abort()
@@ -164,12 +167,13 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
             const abortSignal = abortController.signal
 
             // Fetch nearby features
-            onSidebarLoading(center, zoom, abortSignal)
+            const zoomFloor = Math.floor(zoom)
+            onSidebarLoading(center, zoomFloor, abortSignal)
             fetch(
                 `/api/partial/query/nearby?${qsEncode({
                     lon: lon.toString(),
                     lat: lat.toString(),
-                    zoom: zoom.toString(),
+                    zoom: zoomFloor.toString(),
                 })}`,
                 {
                     method: "GET",
