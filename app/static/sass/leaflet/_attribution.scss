@@ -10,6 +10,10 @@
     }
 }
 
+.maplibregl-ctrl-attrib-inner {
+    line-height: 1.55;
+}
+
 .maplibregl-ctrl-attrib-button {
     @extend .dark-filter-invert;
 }
