@@ -10,6 +10,8 @@ import { SidebarToggleControl } from "./_sidebar-toggle-button"
 import { getMarkerIconElement, markerIconAnchor, padLngLatBounds } from "./_utils"
 
 export class ShareSidebarToggleControl extends SidebarToggleControl {
+    public _container: HTMLElement
+
     public constructor() {
         super("share", "javascripts.share.title")
     }
@@ -31,7 +33,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
 
         const exportForm = this.sidebar.querySelector("form.export-form")
         const exportSubmitButton = exportForm.querySelector("button[type=submit]")
-        const attributionCheckbox = exportForm.elements.namedItem("attribution") as HTMLInputElement
+        const attributionCheckbox = exportForm.querySelector("input.attribution-check")
 
         let marker: Marker | null = null
         const markerCheckbox = this.sidebar.querySelector("input.marker-check")
@@ -70,9 +72,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
         const customRegionCheckbox = exportForm.querySelector("input.custom-region-check")
         customRegionCheckbox.addEventListener("change", () => {
             if (customRegionCheckbox.checked) {
-                if (!locationFilter) {
-                    locationFilter = new LocationFilterControl()
-                }
+                if (!locationFilter) locationFilter = new LocationFilterControl()
                 // By default, location filter is slightly smaller than the current view
                 locationFilter.addTo(map, padLngLatBounds(map.getBounds(), -0.2))
             } else {
@@ -96,7 +96,12 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                 const fileSuffix = formatSelect.selectedOptions[0].dataset.suffix
 
                 // Create image blob and download it
-                const blob = await exportMapImage(mimeType, map, locationFilter?.getBounds(), attribution)
+                const blob = await exportMapImage(
+                    mimeType,
+                    map,
+                    customRegionCheckbox.checked ? locationFilter.getBounds() : null,
+                    attribution,
+                )
                 const url = URL.createObjectURL(blob)
 
                 const now = new Date()
@@ -124,15 +129,10 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
 
         // Restore last form values
         const lastShareExportFormat = getLastShareExportFormat()
-        if (lastShareExportFormat) {
-            // for loop instead of
-            //   formatSelect.value = lastSelectedExportFormat
-            // to avoid setting invalid value from local storage
-            for (const option of formatSelect.options) {
-                if (option.value === lastShareExportFormat) {
-                    option.selected = true
-                    break
-                }
+        for (const option of formatSelect.options) {
+            if (option.value === lastShareExportFormat) {
+                option.selected = true
+                break
             }
         }
 
@@ -150,6 +150,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
         }
         map.on("moveend", updateSidebar)
 
+        this._container = container
         return container
     }
 }

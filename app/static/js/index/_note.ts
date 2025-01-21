@@ -63,7 +63,7 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
             if (currentZoom < 16) {
                 map.flyTo({ center, zoom: 18 })
             } else {
-                map.panTo(center)
+                map.flyTo({ center })
             }
         })
 

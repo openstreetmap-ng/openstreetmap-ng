@@ -180,8 +180,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     const onMapMarkerDragEnd = (lngLat: LngLat, isStart: boolean): void => {
         console.debug("onMapMarkerDragEnd", lngLat, isStart)
 
-        const zoom = map.getZoom()
-        const precision = zoomPrecision(zoom)
+        const precision = zoomPrecision(map.getZoom())
         const lon = lngLat.lng.toFixed(precision)
         const lat = lngLat.lat.toFixed(precision)
         const value = `${lat}, ${lon}`
@@ -233,7 +232,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
 
     /** On map update, update the form's bounding box */
     const onMapZoomOrMoveEnd = () => {
-        const [[minLon, minLat], [maxLon, maxLat]] = map.getBounds().toArray()
+        const [[minLon, minLat], [maxLon, maxLat]] = map.getBounds().adjustAntiMeridian().toArray()
         bboxInput.value = `${minLon},${minLat},${maxLon},${maxLat}`
     }
 

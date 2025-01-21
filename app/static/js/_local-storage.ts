@@ -102,7 +102,7 @@ export const setMapOverlayOpacity = (opacity: number): void => {
 }
 
 /** Get last selected export format from local storage */
-export const getLastShareExportFormat = (): string | null => localStorage.getItem("shareExportFormat")
+export const getLastShareExportFormat = (): string => localStorage.getItem("shareExportFormat") ?? "image/jpeg"
 
 /** Set last selected export format to local storage */
 export const setLastShareExportFormat = (format: string): void => {

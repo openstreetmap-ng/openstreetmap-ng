@@ -8,9 +8,11 @@ export const newNoteMinZoom = 12
 const newNoteContainers: HTMLDivElement[] = []
 
 export class NewNoteControl implements IControl {
+    public _container: HTMLElement
+
     public onAdd(map: MaplibreMap): HTMLElement {
         const container = document.createElement("div")
-        container.className = "leaflet-control new-note"
+        container.className = "maplibregl-ctrl maplibregl-ctrl-group new-note"
 
         // Create a button and a tooltip
         const buttonText = i18next.t("javascripts.site.createnote_tooltip")
@@ -64,6 +66,7 @@ export class NewNoteControl implements IControl {
         // Initial update to set button states
         updateState()
         newNoteContainers.push(container)
+        this._container = container
         return container
     }
 

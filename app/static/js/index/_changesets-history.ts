@@ -207,11 +207,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         abortController = new AbortController()
         const signal = abortController.signal
 
-        const bounds = map.getBounds()
-        const minLon = bounds.getWest()
-        const minLat = bounds.getSouth()
-        const maxLon = bounds.getEast()
-        const maxLat = bounds.getNorth()
+        const [[minLon, minLat], [maxLon, maxLat]] = map.getBounds().adjustAntiMeridian().toArray()
         // Request full world when initial loading for scope/user
         const bbox =
             !changesetsBBox && (loadScope || loadDisplayName) ? undefined : `${minLon},${minLat},${maxLon},${maxLat}`

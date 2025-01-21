@@ -61,7 +61,7 @@
 // Style the leaflet sidebar (right)
 .leaflet-sidebar {
     position: relative;
-    width: $leaflet-sidebar-width;
+    width: $map-sidebar-width;
     z-index: 1003; // higher than .sidebar-overlay
 
     @include media-breakpoint-down(md) {

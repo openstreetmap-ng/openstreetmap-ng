@@ -68,7 +68,7 @@ export const initializeElementContent = (map: MaplibreMap, container: HTMLElemen
         if (currentZoom < 16) {
             map.flyTo({ center, zoom: 18 })
         } else {
-            map.panTo(center)
+            map.flyTo({ center })
         }
     })
 

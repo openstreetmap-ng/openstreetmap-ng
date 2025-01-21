@@ -17,12 +17,19 @@ export const exportMapImage = async (
     filterBounds: LngLatBounds | null,
     attribution: boolean,
 ): Promise<Blob> => {
-    const mapBounds = map.getBounds()
-    console.debug("exportMapImage", mimeType, mapBounds, filterBounds)
+    const sourceCanvas = map.getCanvas()
+    console.debug("exportMapImage", [sourceCanvas.width, sourceCanvas.height], mimeType, imageQuality)
+    let exportCanvas = document.createElement("canvas")
+    exportCanvas.width = sourceCanvas.width
+    exportCanvas.height = sourceCanvas.height
+    let ctx = exportCanvas.getContext("2d", { alpha: false })
+    ctx.drawImage(sourceCanvas, 0, 0)
 
-    let exportCanvas = map.getCanvas()
     if (filterBounds) {
+        const mapBounds = map.getBounds()
+        console.debug("Filtering map bounds", mapBounds, "with", filterBounds)
         const { top, left, bottom, right } = getImageTrim(
+            map,
             exportCanvas.width,
             exportCanvas.height,
             mapBounds,
@@ -31,7 +38,7 @@ export const exportMapImage = async (
         const trimCanvas = document.createElement("canvas")
         trimCanvas.width = exportCanvas.width - (left + right)
         trimCanvas.height = exportCanvas.height - (top + bottom)
-        const ctx = trimCanvas.getContext("2d", { alpha: false })
+        ctx = trimCanvas.getContext("2d", { alpha: false })
         ctx.drawImage(
             exportCanvas,
             left,
@@ -51,12 +58,12 @@ export const exportMapImage = async (
 
         const ctx = exportCanvas.getContext("2d", { alpha: false })
         ctx.font = `500 ${fontSize}px sans-serif`
-        ctx.textAlign = "right"
-        ctx.textBaseline = "bottom"
+        ctx.textAlign = "left"
+        ctx.textBaseline = "top"
 
         const textMetrics = ctx.measureText(attributionText)
         const textWidth = textMetrics.width
-        const textHeight = fontSize
+        const textHeight = fontSize * 0.9
 
         const padding = Math.round(window.devicePixelRatio * 10)
         const xPos = exportCanvas.width - textWidth - padding * 2
@@ -83,27 +90,23 @@ export const exportMapImage = async (
 
 /** Calculate the offsets for trimming the exported image */
 const getImageTrim = (
+    map: MaplibreMap,
     width: number,
     height: number,
     mapBounds: LngLatBounds,
     filterBounds: LngLatBounds,
 ): { top: number; left: number; bottom: number; right: number } => {
-    console.debug("calculateTrimOffsets", width, height, mapBounds, filterBounds)
     filterBounds = getLngLatBoundsIntersection(mapBounds, filterBounds)
-    // No trimming on invalid filter
-    if (filterBounds.getSouthEast() === filterBounds.getNorthWest()) {
+    if (filterBounds.isEmpty()) {
         return { top: 0, left: 0, bottom: 0, right: 0 }
     }
-
-    const [[mapMinLon, mapMinLat], [mapMaxLon, mapMaxLat]] = mapBounds.adjustAntiMeridian().toArray()
-    const [[filterMinLon, filterMinLat], [filterMaxLon, filterMaxLat]] = filterBounds.adjustAntiMeridian().toArray()
-
-    const xScale = (mapMaxLon - mapMinLon) / width
-    const yScale = (mapMaxLat - mapMinLat) / height
+    const bottomLeft = map.project(filterBounds.getSouthWest())
+    const topRight = map.project(filterBounds.getNorthEast())
+    const ratio = window.devicePixelRatio
     return {
-        left: Math.round((filterMinLon - mapMinLon) / xScale),
-        right: Math.round((mapMaxLon - filterMaxLon) / xScale),
-        top: Math.round((mapMaxLat - filterMaxLat) / yScale),
-        bottom: Math.round((filterMinLat - mapMinLat) / yScale),
+        top: Math.ceil(topRight.y * ratio),
+        left: Math.ceil(bottomLeft.x * ratio),
+        bottom: Math.ceil(height - bottomLeft.y * ratio),
+        right: Math.ceil(width - topRight.x * ratio),
     }
 }

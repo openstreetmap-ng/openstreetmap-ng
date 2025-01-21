@@ -26,7 +26,7 @@ if (body) {
     const showMapContainer = body.querySelector(".show-map-container")
     const lonInput = showMapContainer.querySelector("input[name=lon]")
     const latInput = showMapContainer.querySelector("input[name=lat]")
-    const mapDiv = showMapContainer.querySelector("div.leaflet-container")
+    const mapDiv = showMapContainer.querySelector("div.map-container")
 
     let map: MaplibreMap | null = null
     let marker: Marker | null = null

@@ -13,7 +13,7 @@ if (body) {
     if (params.lon && params.lat) {
         const lon = Number.parseFloat(params.lon)
         const lat = Number.parseFloat(params.lat)
-        const zoom = params.zoom ? Number.parseInt(params.zoom, 10) : 17
+        const zoom = params.zoom ? Number.parseFloat(params.zoom) : 17
         if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
             providedState = { lon, lat, zoom, layersCode: params.layers }
         }

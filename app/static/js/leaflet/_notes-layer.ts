@@ -103,15 +103,11 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         abortController = new AbortController()
 
         // Skip updates if the area is too big
-        const bounds = map.getBounds()
+        const bounds = map.getBounds().adjustAntiMeridian()
         const area = getLngLatBoundsSize(bounds)
         if (area > noteQueryAreaMaxSize) return
 
-        const minLon = bounds.getWest()
-        const minLat = bounds.getSouth()
-        const maxLon = bounds.getEast()
-        const maxLat = bounds.getNorth()
-
+        const [[minLon, minLat], [maxLon, maxLat]] = bounds.toArray()
         fetch(`/api/web/note/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
             method: "GET",
             mode: "same-origin",

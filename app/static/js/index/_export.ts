@@ -44,10 +44,9 @@ export const getExportController = (map: MaplibreMap): IndexController => {
 
     /** On map move end, update the inputs */
     const updateState = () => {
-        const zoom = map.getZoom()
-        const precision = zoomPrecision(zoom)
+        const precision = zoomPrecision(map.getZoom())
         const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
-        const [[minLon, minLat], [maxLon, maxLat]] = bounds.toArray()
+        const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
         minLonInput.value = minLon.toFixed(precision)
         minLatInput.value = minLat.toFixed(precision)
         maxLonInput.value = maxLon.toFixed(precision)
@@ -56,7 +55,7 @@ export const getExportController = (map: MaplibreMap): IndexController => {
     }
 
     const updateElements = (minLon: number, minLat: number, maxLon: number, maxLat: number) => {
-        // Update the from availability
+        // Update the form availability
         const currentViewAreaSize = (maxLon - minLon) * (maxLat - minLat)
         const isFormAvailable = currentViewAreaSize <= mapQueryAreaMaxSize
         exportAvailableContainer.classList.toggle("d-none", !isFormAvailable)

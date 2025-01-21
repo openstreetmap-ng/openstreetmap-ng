@@ -28,7 +28,7 @@
             z-index: 850;
         }
 
-        .leaflet-container {
+        .map-container {
             height: 3.5rem;
             // Fix small "white pop" visual glitch in Dark Mode on Chrome
             border-top-left-radius: calc($border-radius + 2px);

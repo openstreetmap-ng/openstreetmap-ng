@@ -18,7 +18,7 @@ for (const itemButton of control.querySelectorAll("button.dropdown-item[data-bs-
 const updateState = (forceAppTheme?: AppTheme): void => {
     const appTheme = forceAppTheme ?? getAppTheme()
     const activeTheme = appTheme === "auto" ? getDeviceTheme() : appTheme
-    console.debug("Updating theme state, preference:", appTheme, "active:", activeTheme)
+    console.debug("Updating theme state, preference:", appTheme, ", active:", activeTheme)
 
     document.documentElement.dataset.bsTheme = activeTheme
     buttonIcon.classList.remove(...themeIconMap.values(), "opacity-0")

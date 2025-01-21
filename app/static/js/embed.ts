@@ -3,8 +3,8 @@ import i18next from "i18next"
 
 import { AttributionControl, Map as MaplibreMap, Marker, NavigationControl } from "maplibre-gl"
 import { qsParse } from "./_qs"
-import { isLatitude, isLongitude, zoomPrecision } from "./_utils"
-import { addMapLayer, addMapLayerSources, defaultLayerId, type LayerId, resolveLayerCodeOrId } from "./leaflet/_layers"
+import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "./_utils"
+import { type LayerId, addMapLayer, addMapLayerSources, defaultLayerId, resolveLayerCodeOrId } from "./leaflet/_layers"
 import type { LonLatZoom } from "./leaflet/_map-utils"
 import { configureDefaultMapBehavior, getMarkerIconElement, markerIconAnchor } from "./leaflet/_utils"
 
@@ -62,11 +62,12 @@ addMapLayer(map, layerId)
  * // => "https://www.openstreetmap.org/fixthemap?lat=6.123456&lon=5.123456&zoom=17"
  */
 const getFixTheMapLink = ({ lon, lat, zoom }: LonLatZoom): string => {
+    const zoomRounded = beautifyZoom(zoom)
     const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)
     const latFixed = lat.toFixed(precision)
     // TODO: test from within iframe
-    return `${window.location.origin}/fixthemap?lat=${latFixed}&lon=${lonFixed}&zoom=${zoom}`
+    return `${window.location.origin}/fixthemap?lat=${latFixed}&lon=${lonFixed}&zoom=${zoomRounded}`
 }
 
 const reportProblemLink = document.createElement("a")

@@ -1,6 +1,6 @@
 import { encode } from "@mapbox/polyline"
 import { Dropdown } from "bootstrap"
-import { type Map as MaplibreMap, type MapMouseEvent, Popup } from "maplibre-gl"
+import { type MapMouseEvent, type Map as MaplibreMap, Popup } from "maplibre-gl"
 import { formatCoordinate } from "../_format-utils"
 import { qsEncode } from "../_qs"
 import { zoomPrecision } from "../_utils"
@@ -69,7 +69,7 @@ export const configureContextMenu = (map: MaplibreMap): void => {
         const lat = lngLat.lat.toFixed(precision)
         geolocationField.textContent = `${lat}, ${lon}`
         geolocationGeoField.textContent = formatCoordinate({ lon: lngLat.lng, lat: lngLat.lat })
-        geolocationUriField.textContent = `geo:${lat},${lon}?z=${zoom}`
+        geolocationUriField.textContent = `geo:${lat},${lon}?z=${Math.floor(zoom)}`
 
         // Open the context menu
         popup.setLngLat(lngLat).addTo(map)

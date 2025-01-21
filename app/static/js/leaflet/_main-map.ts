@@ -37,7 +37,9 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
     const map = new MaplibreMap({
         container,
         maxZoom: 19,
+        attributionControl: { compact: true, customAttribution: "" },
         refreshExpiredTiles: false,
+        canvasContextAttributes: { alpha: false, preserveDrawingBuffer: true },
     })
     configureDefaultMapBehavior(map)
     addMapLayerSources(map, "all")

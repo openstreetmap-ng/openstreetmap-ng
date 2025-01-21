@@ -22,7 +22,7 @@ export class SidebarToggleControl implements IControl {
 
         // Create container
         const container = document.createElement("div")
-        container.className = `leaflet-control ${this._className}`
+        container.className = `maplibregl-ctrl maplibregl-ctrl-group ${this._className}`
 
         // Create button and tooltip
         const buttonText = i18next.t(this._tooltipTitle)

@@ -1,13 +1,13 @@
 import { Tooltip } from "bootstrap"
-import { type FlyToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
+import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
 import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config"
 import { getMapOverlayOpacity } from "../_local-storage"
 import {
+    type LayerId,
     addLayerEventHandler,
     addMapLayer,
     addMapLayerSources,
     hasMapLayer,
-    type LayerId,
     layersConfig,
     removeMapLayer,
 } from "./_layers"
@@ -18,6 +18,8 @@ import { configureDefaultMapBehavior, getLngLatBoundsSize } from "./_utils"
 const minimapZoomOut = 2
 
 export class LayersSidebarToggleControl extends SidebarToggleControl {
+    public _container: HTMLElement
+
     public constructor() {
         super("layers", "javascripts.map.layers.title")
     }
@@ -53,7 +55,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
                 }
 
                 console.debug("Initializing minimap layer", layerId)
-                const minimapContainer = container.querySelector("div.leaflet-container")
+                const minimapContainer = container.querySelector("div.map-container")
                 const minimap = new MaplibreMap({
                     container: minimapContainer,
                     attributionControl: false,
@@ -106,12 +108,12 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 
-            const options: FlyToOptions = {
+            const options: EaseToOptions = {
                 center: map.getCenter(),
                 zoom: Math.max(map.getZoom() - minimapZoomOut, 0),
             }
             for (const minimap of minimaps) {
-                minimap.flyTo(options)
+                minimap.easeTo(options)
             }
         })
 
@@ -233,6 +235,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
         //     }, 50),
         // )
 
+        this._container = container
         return container
     }
 }

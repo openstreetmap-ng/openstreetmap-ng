@@ -11,7 +11,7 @@
     </div>
     <div class="content-body">
         <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-            <div class="trace-preview trace-preview-sm leaflet-container mb-3" data-line="{{ trace_line | safe }}">
+            <div class="trace-preview trace-preview-sm mb-3" data-line="{{ trace_line | safe }}">
             </div>
 
             <form class="update-form" method="POST" action="/api/web/traces/{{ trace.id }}/update">

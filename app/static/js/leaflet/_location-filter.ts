@@ -1,7 +1,10 @@
 import type { GeoJSON } from "geojson"
 import { type GeoJSONSource, type IControl, LngLatBounds, type Map as MaplibreMap, Marker } from "maplibre-gl"
 import type { Bounds } from "../_types"
+import { throttle } from "../_utils.ts"
 import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "./_layers"
+
+const dragThrottleDelay = 16 // 60 FPS
 
 const layerId: LayerId = "location-filter" as LayerId
 layersConfig.set(layerId as LayerId, {
@@ -39,7 +42,10 @@ export class LocationFilterControl implements IControl {
         })
             .setLngLat([minLon, maxLat])
             .addTo(map)
-        this._grabber.on("drag", () => this._processMarkerUpdate(-1))
+        this._grabber.on(
+            "drag",
+            throttle(() => this._processMarkerUpdate(-1), dragThrottleDelay),
+        )
         this._corners = []
         for (const [i, x, y] of [
             [0, minLon, minLat],
@@ -54,7 +60,10 @@ export class LocationFilterControl implements IControl {
             })
                 .setLngLat([x, y])
                 .addTo(map)
-            corner.on("drag", () => this._processMarkerUpdate(i))
+            corner.on(
+                "drag",
+                throttle(() => this._processMarkerUpdate(i), dragThrottleDelay),
+            )
             this._corners.push(corner)
         }
 
@@ -77,14 +86,20 @@ export class LocationFilterControl implements IControl {
     // }
 
     public getBounds(): LngLatBounds {
-        return new LngLatBounds(this._bounds)
+        let [minLon, minLat, maxLon, maxLat] = this._bounds
+        if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
+        if (minLat > maxLat) [minLat, maxLat] = [maxLat, minLat]
+        return new LngLatBounds([minLon, minLat, maxLon, maxLat])
     }
 
     private _processMarkerUpdate(i: number) {
         const [minLon, minLat, maxLon, maxLat] = this._bounds
         if (i === -1) {
             const lngLat = this._grabber.getLngLat()
-            this._bounds = [lngLat.lng, minLat, maxLon, lngLat.lat]
+            const [minLon, minLat, maxLon, maxLat] = this._bounds
+            const deltaX = lngLat.lng - minLon
+            const deltaY = lngLat.lat - maxLat
+            this._bounds = [minLon + deltaX, minLat + deltaY, maxLon + deltaX, maxLat + deltaY]
         } else if (i === 0) {
             const lngLat = this._corners[0].getLngLat()
             this._bounds = [lngLat.lng, lngLat.lat, maxLon, maxLat]
@@ -106,7 +121,7 @@ export class LocationFilterControl implements IControl {
 
     private _render(i?: number): void {
         const [minLon, minLat, maxLon, maxLat] = this._bounds
-        if (i !== -1) this._grabber.setLngLat([minLon, maxLat])
+        if (i !== -1) this._grabber.setLngLat([Math.min(minLon, maxLon), Math.max(minLat, maxLat)])
         if (i !== 0) this._corners[0].setLngLat([minLon, minLat])
         if (i !== 1) this._corners[1].setLngLat([minLon, maxLat])
         if (i !== 2) this._corners[2].setLngLat([maxLon, maxLat])

@@ -6,7 +6,7 @@ import { qsEncode, qsParse } from "../_qs"
 import { shortLinkEncode } from "../_shortlink"
 import { timezoneBoundsMap } from "../_timezone-bbox"
 import type { Bounds } from "../_types"
-import { isLatitude, isLongitude, isZoom, mod, zoomPrecision } from "../_utils"
+import { beautifyZoom, isLatitude, isLongitude, isZoom, mod, zoomPrecision } from "../_utils"
 import {
     type LayerCode,
     type LayerId,
@@ -143,12 +143,13 @@ export const setMapState = (map: MaplibreMap, state: MapState, options?: EaseToO
 export const encodeMapState = (state: MapState): string => {
     let { lon, lat, zoom, layersCode } = state
     lon = mod(lon + 180, 360) - 180
+    const zoomRounded = beautifyZoom(zoom)
     const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)
     const latFixed = lat.toFixed(precision)
     return layersCode
-        ? `#map=${zoom}/${latFixed}/${lonFixed}&layers=${layersCode}`
-        : `#map=${zoom}/${latFixed}/${lonFixed}`
+        ? `#map=${zoomRounded}/${latFixed}/${lonFixed}&layers=${layersCode}`
+        : `#map=${zoomRounded}/${latFixed}/${lonFixed}`
 }
 
 /**
@@ -261,7 +262,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
     if (searchParams.mlon && searchParams.mlat) {
         const mlon = Number.parseFloat(searchParams.mlon)
         const mlat = Number.parseFloat(searchParams.mlat)
-        const zoom = searchParams.zoom ? Number.parseInt(searchParams.zoom, 10) : 12
+        const zoom = searchParams.zoom ? Number.parseFloat(searchParams.zoom) : 12
         if (isLongitude(mlon) && isLatitude(mlat) && isZoom(zoom)) {
             return { lon: mlon, lat: mlat, zoom, layersCode: lastState?.layersCode }
         }
@@ -271,7 +272,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
     if (searchParams.lon && searchParams.lat) {
         const lon = Number.parseFloat(searchParams.lon)
         const lat = Number.parseFloat(searchParams.lat)
-        const zoom = searchParams.zoom ? Number.parseInt(searchParams.zoom, 10) : 12
+        const zoom = searchParams.zoom ? Number.parseFloat(searchParams.zoom) : 12
         if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
             return { lon, lat, zoom, layersCode: lastState?.layersCode }
         }
@@ -360,7 +361,7 @@ export const getMapShortlink = (map: MaplibreMap, showMarker = false): string =>
  * getMapEmbedHtml(map, [-0.09, 51.505])
  */
 export const getMapEmbedHtml = (map: MaplibreMap, markerLngLat?: LngLat): string => {
-    const [[minLon, minLat], [maxLon, maxLat]] = map.getBounds().toArray()
+    const [[minLon, minLat], [maxLon, maxLat]] = map.getBounds().adjustAntiMeridian().toArray()
     const params: { [key: string]: string } = {
         bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
         layer: getMapBaseLayerId(map),
@@ -416,7 +417,7 @@ export const getMapGeoUri = (map: MaplibreMap): string => {
     const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)
     const latFixed = lat.toFixed(precision)
-    return `geo:${latFixed},${lonFixed}?z=${zoom}`
+    return `geo:${latFixed},${lonFixed}?z=${Math.floor(zoom)}`
 }
 
 /** Add a control group to the map */

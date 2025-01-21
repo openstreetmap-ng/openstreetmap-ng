@@ -104,7 +104,7 @@ layersConfig.set("cyclemap" as LayerId, {
     specification: {
         type: "raster",
         maxzoom: 21,
-        tiles: [`https://tile.thunderforest.com/cycle/{z}/{x}/{y}{r}.png?apikey=${thunderforestApiKey}`],
+        tiles: [`https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`],
         tileSize: 256,
         attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
     },
@@ -119,7 +119,7 @@ layersConfig.set("transportmap" as LayerId, {
         type: "raster",
         maxzoom: 21,
         tiles: [
-            `https://tile.thunderforest.com/transport${getDeviceTheme() === "dark" ? "-dark" : ""}/{z}/{x}/{y}{r}.png?apikey=${thunderforestApiKey}`,
+            `https://tile.thunderforest.com/transport${getDeviceTheme() === "dark" ? "-dark" : ""}/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`,
         ],
         tileSize: 256,
         attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,

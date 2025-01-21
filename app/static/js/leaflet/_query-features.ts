@@ -1,7 +1,7 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
-import { emptyFeatureCollection, type LayerId, layersConfig } from "./_layers"
+import { type LayerId, emptyFeatureCollection, layersConfig } from "./_layers"
 
 export const queryFeaturesMinZoom = 14
 
@@ -20,9 +20,11 @@ layersConfig.set(layerId as LayerId, {
 })
 
 export class QueryFeaturesControl implements IControl {
+    public _container: HTMLElement
+
     public onAdd(map: MaplibreMap): HTMLElement {
         const container = document.createElement("div")
-        container.className = "leaflet-control query-features"
+        container.className = "maplibregl-ctrl maplibregl-ctrl-group query-features"
 
         // Create a button and a tooltip
         const buttonText = i18next.t("javascripts.site.queryfeature_tooltip")
@@ -66,6 +68,7 @@ export class QueryFeaturesControl implements IControl {
         map.on("zoomend", updateState)
         // Initial update to set button states
         updateState()
+        this._container = container
         return container
     }
 

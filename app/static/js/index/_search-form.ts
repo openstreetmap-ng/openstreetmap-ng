@@ -1,6 +1,6 @@
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { qsEncode } from "../_qs"
-import { zoomPrecision } from "../_utils"
+import { beautifyZoom, zoomPrecision } from "../_utils"
 import { routerNavigateStrict } from "./_router"
 
 const searchForm = document.querySelector("form.search-form")
@@ -26,7 +26,7 @@ export const configureSearchForm = (map: MaplibreMap): void => {
             `/search?${qsEncode({
                 lat: lngLat.lat.toFixed(precision),
                 lon: lngLat.lng.toFixed(precision),
-                zoom: zoom.toString(),
+                zoom: beautifyZoom(zoom),
             })}`,
         )
     })

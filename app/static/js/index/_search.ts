@@ -6,7 +6,7 @@ import type { GeoJSONSource, LngLatBounds, Map as MaplibreMap } from "maplibre-g
 import { qsEncode, qsParse } from "../_qs"
 import { setPageTitle } from "../_title"
 import type { Bounds, OSMObject } from "../_types.ts"
-import { isLatitude, isLongitude, zoomPrecision } from "../_utils.ts"
+import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "../_utils.ts"
 import { getMapAlert } from "../leaflet/_alert.ts"
 import { type FocusLayerPaint, type FocusOptions, focusObjects } from "../leaflet/_focus-layer.ts"
 import { type LayerId, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
@@ -107,7 +107,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
             controller.load({
                 lon: center.lng.toFixed(precision),
                 lat: center.lat.toFixed(precision),
-                zoom: zoom.toString(),
+                zoom: beautifyZoom(zoom),
             })
         } else {
             controller.load({ localOnly: "1" })
@@ -238,7 +238,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
                 setPageTitle(whereIsThisTitle)
                 setSearchFormQuery(null)
 
-                const zoom = options?.zoom ?? searchParams.zoom ?? map.getZoom().toString()
+                const zoom = Math.floor(Number(options?.zoom ?? searchParams.zoom ?? map.getZoom())).toString()
                 const url = `/api/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`
                 base.load(url)
             } else {
@@ -248,7 +248,10 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
                 // Load empty sidebar to ensure proper bbox
                 base.load()
                 // Pad the bounds to avoid floating point errors
-                const [[minLon, minLat], [maxLon, maxLat]] = padLngLatBounds(map.getBounds(), -0.01).toArray()
+                const [[minLon, minLat], [maxLon, maxLat]] = padLngLatBounds(
+                    map.getBounds().adjustAntiMeridian(),
+                    -0.01,
+                ).toArray()
                 const url = `/api/partial/search?${qsEncode({
                     q: query,
                     bbox: `${minLon},${minLat},${maxLon},${maxLat}`,

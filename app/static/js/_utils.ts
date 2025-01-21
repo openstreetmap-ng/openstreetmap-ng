@@ -23,12 +23,20 @@ export const isLatitude = (lat: number): boolean => lat >= -90 && lat <= 90
 export const isZoom = (zoom: number): boolean => zoom >= 0 && zoom <= 25
 
 /**
+ * Get a zoom level as a string with 2 decimal places
+ * @example
+ * beautifyZoom(4.4321)
+ * // => "4.43"
+ */
+export const beautifyZoom = (zoom: number): string => zoom.toFixed(2).replace(/\.?0+$/, "")
+
+/**
  * Compute the coordinate precision for a given zoom level
  * @example
  * zoomPrecision(17)
  * // => 5
  */
-export const zoomPrecision = (zoom: number): number => Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2))
+export const zoomPrecision = (zoom: number): number => Math.max(0, Math.ceil(Math.log(Math.floor(zoom)) / Math.LN2))
 
 /**
  * Compute the modulo of a number, supporting negative numbers

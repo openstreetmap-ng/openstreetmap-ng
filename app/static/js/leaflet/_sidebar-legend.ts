@@ -1,13 +1,15 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { addLayerEventHandler, type LayerId } from "./_layers"
+import { type LayerId, addLayerEventHandler } from "./_layers"
 import { getMapBaseLayerId } from "./_map-utils"
 import { SidebarToggleControl } from "./_sidebar-toggle-button"
 
 const precomputeMaxZoom = 25
 
 export class LegendSidebarToggleControl extends SidebarToggleControl {
+    public _container: HTMLElement
+
     public constructor() {
         super("legend", "javascripts.key.tooltip")
     }
@@ -96,6 +98,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
         }
         map.on("zoomend", updateSidebar)
 
+        this._container = container
         return container
     }
 }
