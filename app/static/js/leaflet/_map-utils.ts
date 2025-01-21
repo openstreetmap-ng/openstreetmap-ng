@@ -8,10 +8,10 @@ import { timezoneBoundsMap } from "../_timezone-bbox"
 import type { Bounds } from "../_types"
 import { isLatitude, isLongitude, isZoom, mod, zoomPrecision } from "../_utils"
 import {
-    addMapLayer,
-    defaultLayerId,
     type LayerCode,
     type LayerId,
+    addMapLayer,
+    defaultLayerId,
     layersConfig,
     removeMapLayer,
     resolveExtendedLayerId,
@@ -428,7 +428,7 @@ export const addControlGroup = (map: MaplibreMap, controls: IControl[]): void =>
         const container: HTMLElement | undefined = control._container
         if (!container) continue
         const classList = container.classList
-        classList.add("leaflet-control-group")
+        classList.add("custom-control-group")
 
         if (i === 0) classList.add("first")
         if (i === controls.length - 1) classList.add("last")

@@ -37,10 +37,10 @@ layersConfig.set(layerId as LayerId, {
             "line-cap": "round",
         },
         paint: {
-            "line-color": ["case", ["boolean", ["get", "complete"]], "#03f", "#ff0"],
+            "line-color": ["case", ["boolean", ["get", "base"], false], "#03f", "#ff0"],
             "line-opacity": [
                 "case",
-                ["boolean", ["get", "complete"]],
+                ["boolean", ["get", "base"]],
                 0.3, // Complete route is always 0.3 opacity
                 ["boolean", ["feature-state", "hover"], false],
                 0.5, // Individual steps are 0.5 when hovered
@@ -397,7 +397,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             lines.push({
                 type: "Feature",
                 id: -1,
-                properties: { complete: true },
+                properties: { base: true },
                 geometry: {
                     type: "LineString",
                     coordinates: fullGeom,
@@ -413,7 +413,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             lines.push({
                 type: "Feature",
                 id: stepNumber,
-                properties: { complete: false },
+                properties: {},
                 geometry: {
                     type: "LineString",
                     coordinates: stepGeom,

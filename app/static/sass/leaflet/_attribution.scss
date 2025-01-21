@@ -1,8 +1,7 @@
-.leaflet-control-attribution {
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib.maplibregl-compact {
     @extend .text-body-secondary;
-    background: rgba($body-bg, 0.8);
-    backdrop-filter: blur(0.5rem);
-    border-top-left-radius: $border-radius-sm;
+    @extend .bg-body;
     text-wrap: pretty;
 
     // Style the donation link
@@ -11,10 +10,6 @@
     }
 }
 
-@include color-mode(dark) {
-    .leaflet-control-attribution {
-        background: rgba($body-bg-dark, 0.8);
-    }
+.maplibregl-ctrl-attrib-button {
+    @extend .dark-filter-invert;
 }
-
-// maplibregl-ctrl-attrib

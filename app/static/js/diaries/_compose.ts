@@ -1,10 +1,12 @@
 import i18next from "i18next"
-import { type LngLatLike, Map as MaplibreMap, type MapMouseEvent, Marker, NavigationControl, Popup } from "maplibre-gl"
+import { type LngLat, type LngLatLike, Map as MaplibreMap, Marker } from "maplibre-gl"
 import { configureStandardForm } from "../_standard-form"
-import { isLatitude, isLongitude, zoomPrecision } from "../_utils"
+import { isLatitude, isLongitude, throttle, zoomPrecision } from "../_utils"
+import { CustomGeolocateControl } from "../leaflet/_geolocate.ts"
 import { addMapLayer, addMapLayerSources, defaultLayerId } from "../leaflet/_layers"
-import { getInitialMapState, type LonLatZoom } from "../leaflet/_map-utils"
+import { type LonLatZoom, addControlGroup, getInitialMapState } from "../leaflet/_map-utils"
 import { configureDefaultMapBehavior, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
+import { CustomZoomControl } from "../leaflet/_zoom.ts"
 
 const body = document.querySelector("body.diary-compose-body")
 if (body) {
@@ -29,44 +31,51 @@ if (body) {
     let map: MaplibreMap | null = null
     let marker: Marker | null = null
 
-    const markerFactory = (lngLat: LngLatLike) =>
-        new Marker({
+    const setMarker = (lngLat: LngLatLike): void => {
+        if (marker) {
+            marker.setLngLat(lngLat)
+            return
+        }
+        marker = new Marker({
             anchor: markerIconAnchor,
             element: getMarkerIconElement("red", true),
+            draggable: true,
         })
             .setLngLat(lngLat)
-            .setPopup(new Popup().setText(i18next.t("diary_entries.edit.marker_text")))
             .addTo(map)
+        marker.on(
+            "drag",
+            throttle(() => setInput(marker.getLngLat()), 100),
+        )
+    }
+
+    const setInput = (lngLat: LngLat): void => {
+        const precision = zoomPrecision(map.getZoom())
+        const lngLatWrap = lngLat.wrap()
+        lonInput.value = lngLatWrap.lng.toFixed(precision)
+        latInput.value = lngLatWrap.lat.toFixed(precision)
+    }
 
     /** On map click, update the coordinates and move the marker */
-    const onMapClick = (e: MapMouseEvent) => {
-        const precision = zoomPrecision(map.getZoom())
-        const lon = e.lngLat.lng.toFixed(precision)
-        const lat = e.lngLat.lat.toFixed(precision)
-
-        lonInput.value = lon
-        latInput.value = lat
-
-        const lngLat: LngLatLike = [Number(lon), Number(lat)]
-        // If there's already a marker, move it, otherwise create a new one
-        if (marker) marker.setLngLat(lngLat)
-        else marker = markerFactory(lngLat)
+    const onMapClick = ({ lngLat }: { lngLat: LngLat }) => {
+        console.debug("onMapClick", lngLat)
+        setMarker(lngLat)
+        setInput(lngLat)
     }
 
     /** On coordinates input change, update the marker position */
     const onCoordinatesInputChange = () => {
         if (mapDiv.classList.contains("d-none")) return
         if (lonInput.value && latInput.value) {
+            console.debug("onCoordinatesInputChange", lonInput.value, latInput.value)
             const lon = Number.parseFloat(lonInput.value)
             const lat = Number.parseFloat(latInput.value)
             if (isLongitude(lon) && isLatitude(lat)) {
-                const lngLag: LngLatLike = [lon, lat]
-                // If there's already a marker, move it, otherwise create a new one
-                if (marker) marker.setLngLat(lngLag)
-                else marker = markerFactory(lngLag)
+                const lngLat: LngLatLike = [lon, lat]
+                setMarker(lngLat)
                 // Focus on the makers if it's offscreen
-                if (!map.getBounds().contains(lngLag)) {
-                    map.panTo(lngLag)
+                if (!map.getBounds().contains(lngLat)) {
+                    map.panTo(lngLat)
                 }
             }
         }
@@ -85,12 +94,12 @@ if (body) {
             map = new MaplibreMap({
                 container: mapDiv,
                 maxZoom: 19,
-                attributionControl: false,
+                attributionControl: { compact: true, customAttribution: "" },
                 refreshExpiredTiles: false,
             })
             configureDefaultMapBehavior(map)
             addMapLayerSources(map, "base")
-            map.addControl(new NavigationControl({ showCompass: false }))
+            addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
             addMapLayer(map, defaultLayerId)
         }
 
@@ -103,8 +112,7 @@ if (body) {
             const lat = Number.parseFloat(latInput.value)
             if (isLongitude(lon) && isLatitude(lat)) {
                 state = { lon, lat, zoom: 10 }
-                marker = markerFactory([lat, lon])
-                // TODO: draggable marker
+                setMarker([lon, lat])
             }
         }
 

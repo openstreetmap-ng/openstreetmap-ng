@@ -1,6 +1,7 @@
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
 import { homePoint } from "../_config"
 import { handleEditRemotePath, updateNavbarAndHash } from "../_navbar"
+import { isMetricUnit } from "../_unit.ts"
 import { getChangesetController } from "../index/_changeset"
 import { getChangesetsHistoryController } from "../index/_changesets-history"
 import { getDistanceController } from "../index/_distance"
@@ -41,7 +42,6 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
     configureDefaultMapBehavior(map)
     addMapLayerSources(map, "all")
 
-    const isMetricUnit = !(navigator.language.startsWith("en-US") || navigator.language.startsWith("my"))
     map.addControl(
         new ScaleControl({
             unit: isMetricUnit ? "metric" : "imperial",
@@ -80,9 +80,7 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
         setMapState(map, newState)
     })
 
-    // TODO: support this on more maps
-    const initialMapState = getInitialMapState(map)
-    setMapState(map, initialMapState, { animate: false })
+    setMapState(map, getInitialMapState(map), { animate: false })
     return map
 }
 

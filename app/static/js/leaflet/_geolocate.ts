@@ -9,6 +9,7 @@ export class CustomGeolocateControl extends GeolocateControl {
                 maximumAge: 300_000, // 5 minutes
                 timeout: 30_000, // 30 seconds
             },
+            trackUserLocation: true,
         })
     }
 
@@ -21,6 +22,10 @@ export class CustomGeolocateControl extends GeolocateControl {
             title: buttonText,
             placement: "left",
         })
+        const icon = document.createElement("img")
+        icon.className = "icon geolocate"
+        icon.src = "/static/img/leaflet/_generated/geolocate.webp"
+        button.replaceChildren(icon)
         return container
     }
 }

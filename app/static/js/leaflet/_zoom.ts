@@ -17,6 +17,10 @@ export class CustomZoomControl extends NavigationControl {
             title: zoomInText,
             placement: "left",
         })
+        const zoomInIcon = document.createElement("img")
+        zoomInIcon.className = "icon zoom-in"
+        zoomInIcon.src = "/static/img/leaflet/_generated/zoom-in.webp"
+        zoomInButton.replaceChildren(zoomInIcon)
 
         const zoomOutButton = container.querySelector("button.maplibregl-ctrl-zoom-out")
         const zoomOutText = i18next.t("javascripts.map.zoom.out")
@@ -25,6 +29,10 @@ export class CustomZoomControl extends NavigationControl {
             title: zoomOutText,
             placement: "left",
         })
+        const zoomOutIcon = document.createElement("img")
+        zoomOutIcon.className = "icon zoom-out"
+        zoomOutIcon.src = "/static/img/leaflet/_generated/zoom-out.webp"
+        zoomOutButton.replaceChildren(zoomOutIcon)
 
         return container
     }

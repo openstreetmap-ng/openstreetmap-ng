@@ -56,7 +56,7 @@
                         <div class="col-md">
                             <label class="form-label d-block mb-0">
                                 {{ t('activerecord.attributes.diary_entry.latitude') | capitalize }}
-                                <input type="number" class="form-control mt-2" name="lat" min="-85" max="85"
+                                <input type="number" class="form-control mt-2" name="lat" min="-85" max="85" step="any"
                                        value="{{ lat }}">
                             </label>
                         </div>
@@ -64,7 +64,7 @@
                             <label class="form-label d-block mb-0">
                                 {{ t('activerecord.attributes.diary_entry.longitude') | capitalize }}
                                 <input type="number" class="form-control mt-2" name="lon" min="-180" max="180"
-                                       value="{{ lon }}">
+                                       step="any" value="{{ lon }}">
                             </label>
                         </div>
                         <div class="col-md-auto align-content-end text-end">
