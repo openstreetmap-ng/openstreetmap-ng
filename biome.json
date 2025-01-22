@@ -1,16 +1,15 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
   "formatter": {
     "enabled": true,
-    "ignore": [
-      "app/static/js/_generated/**/*",
-      "app/static/js/bundle-*",
-      "app/static/js/proto"
-    ],
-    "indentStyle": "space",
-    "indentWidth": 4,
-    "lineEnding": "lf",
-    "lineWidth": 120
+    "useEditorconfig": true,
+    "ignore": ["config/wiki_pages.json"]
   },
   "javascript": {
     "formatter": {
@@ -28,6 +27,9 @@
         "noConstantMathMinMaxClamp": "warn",
         "noNodejsModules": "error",
         "noUndeclaredVariables": "warn",
+        "noUnusedImports": "info",
+        "noUnusedPrivateClassMembers": "info",
+        "noUnusedVariables": "info",
         "useArrayLiterals": "info"
       },
       "recommended": true,

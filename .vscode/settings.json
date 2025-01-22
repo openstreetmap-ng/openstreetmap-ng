@@ -8,10 +8,11 @@
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,venv,.venv,vendor,data}/**",
-  "editor.rulers": [
-    120
-  ],
+  "editor.rulers": [120],
   "editor.unicodeHighlight.allowedCharacters": {
     "➕": true
   },
@@ -41,9 +42,7 @@
   "nix.serverSettings": {
     "nil": {
       "formatting": {
-        "command": [
-          "nixpkgs-fmt"
-        ]
+        "command": ["nixpkgs-fmt"]
       }
     }
   },

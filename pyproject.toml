@@ -28,7 +28,7 @@ dependencies = [
   "osm-shortlink>=1.0.0",
   "phonenumbers",
   "polyline-rs>=1.0.0",
-  "protobuf==5.28.3",
+  "protobuf==5.29.2",
   "pycryptodomex",
   "pydantic",
   "pyinstrument",
@@ -81,23 +81,7 @@ python-preference = "only-system"
 packages = ["app", "scripts", "tests", "typings"]
 
 [tool.ruff]
-# exclude a variety of commonly ignored directories.
-exclude = [
-  ".direnv",
-  ".git",
-  ".github",
-  ".pytest_cache",
-  ".ruff_cache",
-  ".sass-cache",
-  ".venv",
-  ".vscode",
-  "app/alembic/versions",
-  "app/models/proto",
-  "build",
-  "dist",
-  "node_modules",
-]
-
+exclude = [".git", "app/alembic/versions"]
 indent-width = 4
 line-length = 120
 target-version = "py313"

@@ -5,14 +5,14 @@
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.3",
     "@mapbox/polyline": "^1.2.1",
-    "@noble/hashes": "^1.6.1",
-    "@rapideditor/rapid": "^2.4.3",
+    "@noble/hashes": "^1.7.1",
+    "@rapideditor/rapid": "^2.5.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "i18next": "^23.16.8",
     "iD": "git+https://github.com/openstreetmap/iD.git#release",
     "maplibre-gl": "^5.0.1",
-    "osm-community-index": "^5.9.0"
+    "osm-community-index": "^5.9.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.26.4",
@@ -24,14 +24,14 @@
     "@types/geojson": "^7946.0.15",
     "@types/mapbox__polyline": "^1.0.5",
     "autoprefixer": "^10.4.20",
-    "bun-types": "^1.1.42",
-    "core-js": "3.38.1",
-    "i18next-conv": "^15.1.0",
+    "bun-types": "^1.1.45",
+    "core-js": "3.40.0",
+    "i18next-conv": "^15.1.1",
     "postcss-cli": "^11.0.0",
     "prettier": "^3.4.2",
-    "sass": "^1.83.0",
+    "sass": "^1.83.4",
     "typed-query-selector": "^2.12.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   },
   "trustedDependencies": [],
   "scripts": {
@@ -43,7 +43,7 @@
         "@babel/preset-env",
         {
           "corejs": {
-            "version": "3.38.1"
+            "version": "3.40.0"
           },
           "modules": false,
           "useBuiltIns": "usage"
@@ -60,10 +60,5 @@
   },
   "browserslist": [
     "supports abortcontroller and supports bigint and partially supports contentsecuritypolicy2 and partially supports cors and supports es6 and supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
-  ],
-  "prettier": {
-    "printWidth": 120,
-    "semi": false,
-    "tabWidth": 4
-  }
+  ]
 }
