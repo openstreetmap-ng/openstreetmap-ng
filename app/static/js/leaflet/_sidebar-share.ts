@@ -40,15 +40,13 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
         markerCheckbox.addEventListener("change", () => {
             // On marker checkbox change, display/hide the marker
             if (markerCheckbox.checked) {
-                if (!marker) {
+                if (!marker)
                     marker = new Marker({
                         anchor: markerIconAnchor,
                         element: getMarkerIconElement("blue", true),
                         draggable: true,
                     })
-                }
-                marker.setLngLat(map.getCenter())
-                marker.addTo(map)
+                marker.setLngLat(map.getCenter()).addTo(map)
             } else {
                 marker.remove()
             }
@@ -108,6 +106,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                     mimeType,
                     map,
                     customRegionCheckbox.checked ? locationFilter.getBounds() : null,
+                    markerCheckbox.checked ? marker.getLngLat() : null,
                     attribution,
                 )
                 const url = URL.createObjectURL(blob)

@@ -1,6 +1,27 @@
 import i18next from "i18next"
-import type { LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
+import type { GeoJSONSource, LngLat, LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
+import { requestAnimationFramePolyfill } from "../_utils.ts"
+import { loadMapImage, markerBlueImageUrl } from "./_image.ts"
+import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "./_layers.ts"
 import { getLngLatBoundsIntersection } from "./_utils"
+
+const layerId = "export-image" as LayerId
+layersConfig.set(layerId as LayerId, {
+    specification: {
+        type: "geojson",
+        data: emptyFeatureCollection,
+    },
+    layerTypes: ["symbol"],
+    layerOptions: {
+        layout: {
+            "icon-image": "marker-blue",
+            "icon-size": 41 / 128,
+            "icon-padding": 0,
+            "icon-anchor": "bottom",
+        },
+    },
+    priority: 200,
+})
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#quality
 const imageQuality = 0.98
@@ -15,10 +36,43 @@ export const exportMapImage = async (
     mimeType: string,
     map: MaplibreMap,
     filterBounds: LngLatBounds | null,
+    markerLngLat: LngLat | null,
     attribution: boolean,
 ): Promise<Blob> => {
+    const mapBounds = map.getBounds()
+
+    // Render marker onto the map
+    if (markerLngLat && mapBounds.contains(markerLngLat) && (!filterBounds || filterBounds.contains(markerLngLat))) {
+        console.debug("Rendering marker onto the map")
+        const source = map.getSource(layerId) as GeoJSONSource
+        await new Promise<void>((resolve) => {
+            loadMapImage(map, "marker-blue", markerBlueImageUrl, () => {
+                source.setData({
+                    type: "Feature",
+                    properties: {},
+                    geometry: {
+                        type: "Point",
+                        coordinates: [markerLngLat.lng, markerLngLat.lat],
+                    },
+                })
+                addMapLayer(map, layerId)
+                map.once("render", () => {
+                    let framesDelay = 3
+                    const tryResolve = () => {
+                        if (!framesDelay) return resolve()
+                        framesDelay--
+                        requestAnimationFramePolyfill(tryResolve)
+                    }
+                    requestAnimationFramePolyfill(tryResolve)
+                })
+            })
+        })
+        removeMapLayer(map, layerId)
+        source.setData(emptyFeatureCollection)
+    }
+
     const sourceCanvas = map.getCanvas()
-    console.debug("exportMapImage", [sourceCanvas.width, sourceCanvas.height], mimeType, imageQuality)
+    console.debug("Exporting map image", [sourceCanvas.width, sourceCanvas.height], mimeType, imageQuality)
     let exportCanvas = document.createElement("canvas")
     exportCanvas.width = sourceCanvas.width
     exportCanvas.height = sourceCanvas.height
@@ -26,7 +80,6 @@ export const exportMapImage = async (
     ctx.drawImage(sourceCanvas, 0, 0)
 
     if (filterBounds) {
-        const mapBounds = map.getBounds()
         console.debug("Filtering map bounds", mapBounds, "with", filterBounds)
         const { top, left, bottom, right } = getImageTrim(
             map,
