@@ -42,16 +42,25 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
         canvasContextAttributes: { alpha: false, preserveDrawingBuffer: true },
         fadeDuration: 0,
     })
+    map.once("style.load", () => {
+        // Disable transitions after loading the style
+        map.style.stylesheet.transition = { duration: 0 }
+    })
     configureDefaultMapBehavior(map)
     addMapLayerSources(map, "all")
+    configureNotesLayer(map)
+    configureDataLayer(map)
+    configureContextMenu(map)
 
+    map.on("moveend", () => updateNavbarAndHash(getMapState(map)))
+    addLayerEventHandler(() => updateNavbarAndHash(getMapState(map)))
+
+    // Add controls to the map
     map.addControl(
         new ScaleControl({
             unit: isMetricUnit ? "metric" : "imperial",
         }),
     )
-
-    // Add custom controls
     addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
     addControlGroup(map, [
         new LayersSidebarToggleControl(),
@@ -60,15 +69,6 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
     ])
     addControlGroup(map, [new NewNoteControl()])
     addControlGroup(map, [new QueryFeaturesControl()])
-
-    // Configure map handlers
-    configureNotesLayer(map)
-    configureDataLayer(map)
-    configureContextMenu(map)
-
-    // On map state change, update the navbar and hash
-    map.on("moveend", () => updateNavbarAndHash(getMapState(map)))
-    addLayerEventHandler(() => updateNavbarAndHash(getMapState(map)))
 
     // On hash change, update the map view
     window.addEventListener("hashchange", () => {
@@ -83,6 +83,7 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
         setMapState(map, newState)
     })
 
+    // Finally set the initial state that will trigger map events
     setMapState(map, getInitialMapState(map), { animate: false })
     return map
 }

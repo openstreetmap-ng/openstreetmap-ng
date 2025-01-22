@@ -11,4 +11,4 @@ const isImperialRegion = (): boolean => {
 
 /** User preference for metric units */
 export const isMetricUnit = !(isImperialLanguage() && isImperialRegion())
-console.debug("isMetricUnit", isMetricUnit)
+console.debug("Is using metric units?", isMetricUnit)

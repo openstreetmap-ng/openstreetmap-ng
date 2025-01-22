@@ -124,7 +124,6 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
         else console.error("Unsupported feature type", object)
     }
 
-    console.debug("Rendered", features.length, "features")
     return { type: "FeatureCollection", features }
 }
 

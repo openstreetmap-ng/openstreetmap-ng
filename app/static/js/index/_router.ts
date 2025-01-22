@@ -62,7 +62,7 @@ export const routerNavigate = (newPath: string): boolean => {
 /** Configure the router */
 export const configureRouter = (pathControllerMap: Map<string, IndexController>) => {
     routes = Array.from(pathControllerMap).map(([path, controller]) => makeRoute(path, controller))
-    console.debug("Loaded", routes.length, "routes")
+    console.debug("Loaded", routes.length, "application routes")
 
     currentPath = removeTrailingSlash(location.pathname) + location.search
     currentRoute = findRoute(currentPath)

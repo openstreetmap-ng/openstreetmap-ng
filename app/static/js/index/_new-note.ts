@@ -13,7 +13,7 @@ import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
 const themeColor = "#f60"
-const focusPaintHalo: FocusLayerPaint = {
+const focusPaint: FocusLayerPaint = {
     "circle-radius": 20,
     "circle-color": themeColor,
     "circle-opacity": 0.5,
@@ -66,6 +66,7 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
             marker = new Marker({
                 anchor: markerIconAnchor,
                 element: getMarkerIconElement("new", false),
+                draggable: true,
             })
                 .setLngLat(center ?? map.getCenter())
                 .addTo(map)
@@ -83,7 +84,7 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
                             text: "",
                         },
                     ],
-                    focusPaintHalo,
+                    focusPaint,
                     { fitBounds: false },
                 )
             }

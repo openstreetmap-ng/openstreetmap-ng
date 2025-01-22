@@ -4,6 +4,7 @@ import type { OSMObject } from "../_types"
 import {
     type AddMapLayerOptions,
     type LayerId,
+    type LayerType,
     addMapLayer,
     emptyFeatureCollection,
     layersConfig,
@@ -27,13 +28,14 @@ export interface FocusOptions {
     proportionCheck?: boolean
 }
 
-export const focusLayerId = "focus" as LayerId
-layersConfig.set(focusLayerId as LayerId, {
+const layerId = "focus" as LayerId
+const layerTypes: LayerType[] = ["fill", "line", "circle"]
+layersConfig.set(layerId as LayerId, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
     },
-    layerTypes: ["fill", "line", "circle"],
+    layerTypes: layerTypes,
     layerOptions: {
         layout: {
             "line-cap": "round",
@@ -91,7 +93,7 @@ export const focusObjects = (
     paint?: FocusLayerPaint,
     options?: FocusOptions,
 ): void => {
-    const source = map.getSource(focusLayerId) as GeoJSONSource
+    const source = map.getSource(layerId) as GeoJSONSource
     source.setData(emptyFeatureCollection)
 
     // If there are no objects to focus, remove the focus layer
@@ -99,13 +101,13 @@ export const focusObjects = (
 
     if (!layerAdded) {
         layerAdded = true
-        addMapLayer(map, focusLayerId)
+        addMapLayer(map, layerId)
     }
 
     if (paint && lastPaint !== paint) {
         lastPaint = paint
-        for (const type of ["fill", "line", "circle", "symbol"] as const) {
-            const layer = map.getLayer(makeExtendedLayerId(focusLayerId, type))
+        for (const type of layerTypes) {
+            const layer = map.getLayer(makeExtendedLayerId(layerId, type))
             if (!layer) continue
 
             // Apply only supported paint properties
@@ -114,7 +116,7 @@ export const focusObjects = (
             for (const [k, v] of Object.entries(paint)) {
                 for (const prefix of validPrefixes) {
                     if (!k.startsWith(prefix)) continue
-                    layer.setPaintProperty(k, v)
+                    map.setPaintProperty(makeExtendedLayerId(layerId, type), k, v)
                 }
             }
         }

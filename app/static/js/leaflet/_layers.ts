@@ -245,7 +245,7 @@ export const addLayerEventHandler = (handler: LayerEventHandler): void => {
     layerEventHandlers.push(handler)
 }
 
-type LayerType =
+export type LayerType =
     | "fill"
     | "line"
     | "symbol"

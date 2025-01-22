@@ -87,7 +87,7 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
         if (layersIds.has(layerId)) {
             console.debug("Keeping layer", layerId)
             missingLayersIds.delete(layerId)
-            return
+            continue
         }
         removeMapLayer(map, layerId)
     }
