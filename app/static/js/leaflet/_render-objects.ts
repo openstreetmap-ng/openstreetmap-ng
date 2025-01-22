@@ -11,15 +11,15 @@ interface RenderOptions {
 /** Render OSMObjects to GeoJSON data */
 export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOptions>): FeatureCollection => {
     const features: Feature[] = []
+    let featureIdCounter = 0
 
     const processChangeset = (changeset: OSMChangeset): void => {
         const properties = {
             type: "changeset",
-            id: changeset.id,
+            id: changeset.id.toString(),
             numBounds: changeset.bounds.length,
         }
-        for (const [i, bounds] of changeset.bounds.entries()) {
-            const [minLon, minLat, maxLon, maxLat] = bounds
+        for (const [minLon, minLat, maxLon, maxLat] of changeset.bounds) {
             const boundsArea = (maxLon - minLon) * (maxLat - minLat)
             const boundsProperties = { ...properties, boundsArea }
             const outer = [
@@ -31,7 +31,7 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
             ]
             features.push({
                 type: "Feature",
-                id: `changeset${changeset.id}-${i}`,
+                id: featureIdCounter++,
                 properties: boundsProperties,
                 geometry: {
                     type: "LineString",
@@ -40,7 +40,7 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
             })
             features.push({
                 type: "Feature",
-                id: `changeset${changeset.id}-${i}-area`,
+                id: featureIdCounter++,
                 properties: boundsProperties,
                 geometry: {
                     type: "Polygon",
@@ -53,11 +53,10 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
     const processNode = (node: OSMNode): void => {
         features.push({
             type: "Feature",
-            id: `node${node.id}`,
+            id: featureIdCounter++,
             properties: {
                 type: "node",
-                id: node.id,
-                version: node.version,
+                id: node.id.toString(),
             },
             geometry: {
                 type: "Point",
@@ -70,12 +69,11 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
     const processWay = (way: OSMWay): void => {
         const properties = {
             type: "way",
-            id: way.id,
-            version: way.version,
+            id: way.id.toString(),
         }
         features.push({
             type: "Feature",
-            id: `way${way.id}`,
+            id: featureIdCounter++,
             properties,
             geometry: {
                 type: "LineString",
@@ -85,7 +83,7 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
         if (renderAreas && way.area) {
             features.push({
                 type: "Feature",
-                id: `way${way.id}-area`,
+                id: featureIdCounter++,
                 properties,
                 geometry: {
                     type: "Polygon",
@@ -98,10 +96,10 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
     const processNote = (note: OSMNote): void => {
         features.push({
             type: "Feature",
-            id: `note${note.id}`,
+            id: featureIdCounter++,
             properties: {
                 type: "note",
-                id: note.id,
+                id: note.id?.toString(),
                 open: note.open,
                 text: note.text,
             },

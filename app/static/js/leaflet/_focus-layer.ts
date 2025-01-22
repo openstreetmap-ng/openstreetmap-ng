@@ -104,10 +104,18 @@ export const focusObjects = (
 
     if (paint && lastPaint !== paint) {
         lastPaint = paint
-        for (const type of ["fill", "line", "circle"] as const) {
+        for (const type of ["fill", "line", "circle", "symbol"] as const) {
             const layer = map.getLayer(makeExtendedLayerId(focusLayerId, type))
+            if (!layer) continue
+
+            // Apply only supported paint properties
+            const validPrefixes = [`${type}-`]
+            if (type === "symbol") validPrefixes.push("icon-", "text-")
             for (const [k, v] of Object.entries(paint)) {
-                layer.setPaintProperty(k, v)
+                for (const prefix of validPrefixes) {
+                    if (!k.startsWith(prefix)) continue
+                    layer.setPaintProperty(k, v)
+                }
             }
         }
     }

@@ -1,7 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
-import type { LngLatLike, Map as MaplibreMap } from "maplibre-gl"
+import type { Map as MaplibreMap } from "maplibre-gl"
 import { setPageTitle } from "../_title"
 import { type FocusLayerPaint, focusObjects } from "../leaflet/_focus-layer"
 import { convertRenderElementsData } from "../leaflet/_render-objects"
@@ -63,13 +63,7 @@ export const initializeElementContent = (map: MaplibreMap, container: HTMLElemen
         console.debug("onLocationButtonClick", dataset)
         const lon = Number.parseFloat(dataset.lon)
         const lat = Number.parseFloat(dataset.lat)
-        const center: LngLatLike = [lon, lat]
-        const currentZoom = map.getZoom()
-        if (currentZoom < 16) {
-            map.flyTo({ center, zoom: 18 })
-        } else {
-            map.flyTo({ center })
-        }
+        map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 15) })
     })
 
     const params = fromBinary(PartialElementParamsSchema, base64Decode(container.dataset.params))

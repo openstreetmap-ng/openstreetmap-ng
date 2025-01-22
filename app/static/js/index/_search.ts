@@ -9,6 +9,7 @@ import type { Bounds, OSMObject } from "../_types.ts"
 import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "../_utils.ts"
 import { getMapAlert } from "../leaflet/_alert.ts"
 import { type FocusLayerPaint, type FocusOptions, focusObjects } from "../leaflet/_focus-layer.ts"
+import { loadMapImage, markerRedImageUrl } from "../leaflet/_image.ts"
 import { type LayerId, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
 import { convertRenderElementsData } from "../leaflet/_render-objects.ts"
 import { getLngLatBoundsIntersection, getLngLatBoundsSize, padLngLatBounds } from "../leaflet/_utils.ts"
@@ -53,7 +54,6 @@ const focusOptions: FocusOptions = {
     proportionCheck: false,
 }
 
-const iconImageUrl = "/static/img/marker/red.webp"
 const searchAlertChangeThreshold = 0.9
 
 /** Create a new search controller */
@@ -220,8 +220,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
     const controller: IndexController = {
         load: (options) => {
             // Load image resources
-            if (!map.hasImage("marker-red"))
-                map.loadImage(iconImageUrl).then((resp) => map.addImage("marker-red", resp.data))
+            loadMapImage(map, "marker-red", markerRedImageUrl)
 
             // Stick the search form
             searchForm.classList.add("sticky-top")

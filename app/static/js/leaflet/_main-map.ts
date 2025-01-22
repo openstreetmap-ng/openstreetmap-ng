@@ -40,6 +40,7 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
         attributionControl: { compact: true, customAttribution: "" },
         refreshExpiredTiles: false,
         canvasContextAttributes: { alpha: false, preserveDrawingBuffer: true },
+        fadeDuration: 0,
     })
     configureDefaultMapBehavior(map)
     addMapLayerSources(map, "all")

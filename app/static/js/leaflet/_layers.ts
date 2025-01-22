@@ -187,7 +187,7 @@ layersConfig.set("gps" as LayerId, {
 })
 
 let layerLookupMap = (): Map<LayerId | LayerCode, LayerId> => {
-    console.debug("Lazily initializing layerLookupMap")
+    console.debug("Lazily initializing layerLookupMap with", layersConfig.size, "configured layers")
     const result: Map<LayerId | LayerCode, LayerId> = new Map()
     for (const [layerId, config] of layersConfig) {
         result.set(layerId, layerId)
@@ -217,7 +217,7 @@ let layerLookupMap = (): Map<LayerId | LayerCode, LayerId> => {
 export const resolveLayerCodeOrId = (layerCodeOrId: LayerCode | LayerId): LayerId | undefined =>
     layerLookupMap().get(layerCodeOrId)
 
-export const defaultLayerId = resolveLayerCodeOrId("" as LayerCode)
+export const defaultLayerId = "standard" as LayerId
 
 /** Add layers sources to the map. */
 export const addMapLayerSources = (map: MaplibreMap, kind: "base" | "all"): void => {
@@ -270,16 +270,14 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = t
         return
     }
 
-    const type = config.specification.type
-    let addLayerTypes: LayerType[]
+    const specType = config.specification.type
+    let layerTypes: LayerType[]
     if (config.layerTypes) {
-        addLayerTypes = config.layerTypes
-    } else if (type === "raster") {
-        addLayerTypes = ["raster"]
-    } else if (type === "geojson") {
-        addLayerTypes = ["fill", "line", "circle"]
+        layerTypes = config.layerTypes
+    } else if (specType === "raster") {
+        layerTypes = ["raster"]
     } else {
-        console.warn("Unsupported specification type", type, "on layer", layerId)
+        console.warn("Unsupported specification type", specType, "on layer", layerId)
         return
     }
 
@@ -288,19 +286,38 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = t
         .getLayersOrder()
         .find((id) => priority < (layersConfig.get(resolveExtendedLayerId(id))?.priority ?? 0))
 
-    console.debug("Adding layer", layerId, "with types", addLayerTypes, "before", beforeId)
+    console.debug("Adding layer", layerId, "with types", layerTypes, "before", beforeId)
     const layerOptions = config.layerOptions ?? {}
-    for (const addLayerType of addLayerTypes) {
-        const extendedLayerId = addLayerTypes.length > 1 ? makeExtendedLayerId(layerId, addLayerType) : layerId
+    for (const type of layerTypes) {
         const layerObject: AddLayerObject = {
             ...layerOptions,
-            id: extendedLayerId,
             // @ts-ignore
-            type: addLayerType as string,
+            type: type as string,
             // @ts-ignore
             source: layerId,
         }
-        const filter = layerTypeFilters.get(addLayerType)
+        if (layerTypes.length > 1) {
+            layerObject.id = makeExtendedLayerId(layerId, type)
+            // Remove unsupported layer options
+            const validPrefixes = [`${type}-`]
+            if (type === "symbol") validPrefixes.push("icon-", "text-")
+            for (const key of ["layout", "paint"] as const) {
+                const value = layerOptions[key]
+                if (!value) continue
+                const newValue: Record<string, unknown> = {}
+                for (const [k, v] of Object.entries(value)) {
+                    for (const prefix of validPrefixes) {
+                        if (!k.startsWith(prefix)) continue
+                        newValue[k] = v
+                    }
+                }
+                // @ts-ignore
+                layerObject[key] = newValue
+            }
+        } else {
+            layerObject.id = layerId
+        }
+        const filter = layerTypeFilters.get(type)
         // @ts-ignore
         if (filter) layerObject.filter = filter
         map.addLayer(layerObject, beforeId)

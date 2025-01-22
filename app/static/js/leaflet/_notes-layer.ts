@@ -1,11 +1,12 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"
+import { type GeoJSONSource, type LngLat, type LngLatBounds, type Map as MaplibreMap, Popup } from "maplibre-gl"
 import { noteQueryAreaMaxSize } from "../_config"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderNotesDataSchema } from "../proto/shared_pb"
+import { loadMapImage, markerClosedImageUrl, markerOpenImageUrl } from "./_image.ts"
 import { type LayerCode, type LayerId, addLayerEventHandler, emptyFeatureCollection, layersConfig } from "./_layers"
 import { convertRenderNotesData, renderObjects } from "./_render-objects"
-import { getLngLatBoundsSize } from "./_utils"
+import { getLngLatBoundsIntersection, getLngLatBoundsSize } from "./_utils"
 
 const layerId = "notes" as LayerId
 layersConfig.set(layerId as LayerId, {
@@ -19,6 +20,7 @@ layersConfig.set(layerId as LayerId, {
         layout: {
             "icon-image": ["case", ["boolean", ["get", "open"], false], "marker-open", "marker-closed"],
             "icon-allow-overlap": true,
+            "icon-size": 41 / 128,
             "icon-padding": 0,
             "icon-anchor": "bottom",
         },
@@ -29,13 +31,13 @@ layersConfig.set(layerId as LayerId, {
     priority: 130,
 })
 
-const openImageUrl = "/static/img/marker/open.webp"
-const closedImageUrl = "/static/img/marker/closed.webp"
+const reloadProportionThreshold = 0.9
 
 /** Configure the notes layer for the given map */
 export const configureNotesLayer = (map: MaplibreMap): void => {
     const source = map.getSource(layerId) as GeoJSONSource
     let enabled = false
+    let fetchedBounds: LngLatBounds | null = null
     let abortController: AbortController | null = null
 
     // On feature click, navigate to the note
@@ -44,9 +46,15 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         routerNavigateStrict(`/note/${noteId}`)
     })
 
-    let hoveredFeatureId: string | number | null = null
-    map.on("mouseover", layerId, (e) => {
-        const featureId = e.features[0].id
+    let hoveredFeatureId: number | null = null
+    let hoverLngLat: LngLat | null = null
+    let hoverPopupTimeout: ReturnType<typeof setTimeout> | null = null
+    const hoverPopup: Popup = new Popup({ closeButton: false, closeOnMove: true })
+
+    map.on("mousemove", layerId, (e) => {
+        hoverLngLat = e.lngLat
+        const feature = e.features[0]
+        const featureId = feature.id as number
         if (hoveredFeatureId) {
             if (hoveredFeatureId === featureId) return
             map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
@@ -55,43 +63,23 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         }
         hoveredFeatureId = featureId
         map.setFeatureState({ source: layerId, id: hoveredFeatureId }, { hover: true })
+        // Show popup after a short delay
+        clearTimeout(hoverPopupTimeout)
+        hoverPopup.remove()
+        hoverPopupTimeout = setTimeout(() => {
+            console.debug("Showing popup for note", feature.properties.id, "at", hoverLngLat)
+            hoverPopup.setText(feature.properties.text).setLngLat(hoverLngLat).addTo(map)
+        }, 1000)
     })
     map.on("mouseleave", layerId, () => {
         if (hoveredFeatureId) {
-            hoveredFeatureId = null
             map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
+            hoveredFeatureId = null
+            clearTimeout(hoverPopupTimeout)
+            hoverPopup.remove()
         }
         map.getCanvas().style.cursor = ""
     })
-
-    // TODO: leaflet leftover, tooltips
-    // const tooltip = new maplibregl.Popup({
-    //   closeButton: false,
-    //   closeOnClick: false
-    // });
-    //
-    // map.on('mouseenter', 'points-layer', (e) => {
-    //   if (e.features.length > 0) {
-    //     const coordinates = e.features[0].geometry.coordinates.slice();
-    //     const description = e.features[0].properties.description;
-    //
-    //     // Set a timeout to show the tooltip after 1 second (1000 milliseconds)
-    //     hoverTimeout = setTimeout(() => {
-    //       tooltip
-    //         .setLngLat(coordinates)
-    //         .setHTML(description)
-    //         .addTo(map);
-    //     }, 1000);
-    //   }
-    // });
-    //
-    // map.on('mouseleave', 'points-layer', () => {
-    //   // Clear the timeout if the mouse leaves before the tooltip is shown
-    //   clearTimeout(hoverTimeout);
-    //   tooltip.remove();
-    // });
-
-    // TODO: reduce updates, zoom, bounds
 
     /** On map update, fetch the notes and update the notes layer */
     const updateLayer = (): void => {
@@ -103,11 +91,19 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         abortController = new AbortController()
 
         // Skip updates if the area is too big
-        const bounds = map.getBounds().adjustAntiMeridian()
-        const area = getLngLatBoundsSize(bounds)
-        if (area > noteQueryAreaMaxSize) return
+        const fetchBounds = map.getBounds()
+        const fetchArea = getLngLatBoundsSize(fetchBounds)
+        if (fetchArea > noteQueryAreaMaxSize) return
 
-        const [[minLon, minLat], [maxLon, maxLat]] = bounds.toArray()
+        // Skip updates if the view is satisfied
+        if (fetchedBounds) {
+            const visibleBounds = getLngLatBoundsIntersection(fetchedBounds, fetchBounds)
+            const visibleArea = getLngLatBoundsSize(visibleBounds)
+            const proportion = visibleArea / Math.max(getLngLatBoundsSize(fetchedBounds), fetchArea)
+            if (proportion > reloadProportionThreshold) return
+        }
+
+        const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds.adjustAntiMeridian().toArray()
         fetch(`/api/web/note/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
             method: "GET",
             mode: "same-origin",
@@ -122,6 +118,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
                 const render = fromBinary(RenderNotesDataSchema, new Uint8Array(buffer))
                 const notes = convertRenderNotesData(render)
                 source.setData(renderObjects(notes))
+                fetchedBounds = fetchBounds
                 console.debug("Notes layer showing", notes.length, "notes")
             })
             .catch((error) => {
@@ -137,15 +134,14 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         enabled = isAdded
         if (isAdded) {
             // Load image resources
-            if (!map.hasImage("marker-open"))
-                map.loadImage(openImageUrl).then((resp) => map.addImage("marker-open", resp.data))
-            if (!map.hasImage("marker-closed"))
-                map.loadImage(closedImageUrl).then((resp) => map.addImage("marker-closed", resp.data))
+            loadMapImage(map, "marker-open", markerOpenImageUrl)
+            loadMapImage(map, "marker-closed", markerClosedImageUrl)
             updateLayer()
         } else {
             abortController?.abort()
             abortController = null
             source.setData(emptyFeatureCollection)
+            fetchedBounds = null
         }
     })
 }

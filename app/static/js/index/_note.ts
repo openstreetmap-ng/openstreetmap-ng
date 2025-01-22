@@ -1,27 +1,45 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import { type Map as MaplibreMap, Marker } from "maplibre-gl"
+import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"
 import { configureStandardForm } from "../_standard-form"
 import { configureStandardPagination } from "../_standard-pagination"
 import { setPageTitle } from "../_title"
-import { type FocusLayerPaint, focusObjects } from "../leaflet/_focus-layer"
-import { getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils.ts"
+import { loadMapImage, markerClosedImageUrl, markerOpenImageUrl } from "../leaflet/_image.ts"
+import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
+import { renderObjects } from "../leaflet/_render-objects.ts"
 import { PartialNoteParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 
 const themeColor = "#f60"
-const focusPaintHalo: FocusLayerPaint = {
-    "circle-radius": 20,
-    "circle-color": themeColor,
-    "circle-opacity": 0.5,
-    "circle-stroke-width": 2.5,
-    "circle-stroke-color": themeColor,
-}
+const layerId = "note" as LayerId
+layersConfig.set(layerId as LayerId, {
+    specification: {
+        type: "geojson",
+        data: emptyFeatureCollection,
+    },
+    layerTypes: ["circle", "symbol"],
+    layerOptions: {
+        layout: {
+            "icon-image": ["case", ["boolean", ["get", "open"], false], "marker-open", "marker-closed"],
+            "icon-size": 41 / 128,
+            "icon-padding": 0,
+            "icon-anchor": "bottom",
+        },
+        paint: {
+            "circle-radius": 20,
+            "circle-color": themeColor,
+            "circle-opacity": 0.5,
+            "circle-stroke-width": 2.5,
+            "circle-stroke-color": themeColor,
+        },
+    },
+    priority: 145,
+})
 
 /** Create a new note controller */
 export const getNoteController = (map: MaplibreMap): IndexController => {
-    let marker: Marker | null = null
+    const source = map.getSource(layerId) as GeoJSONSource
 
     const base = getBaseFetchController(map, "note", (sidebarContent) => {
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
@@ -34,37 +52,25 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
         const params = fromBinary(PartialNoteParamsSchema, base64Decode(sidebarTitleElement.dataset.params))
         const center: [number, number] = [params.lon, params.lat]
 
-        marker = new Marker({
-            anchor: markerIconAnchor,
-            element: getMarkerIconElement(params.open ? "open" : "closed", false),
-        })
-            .setLngLat(center)
-            .addTo(map)
-
-        focusObjects(
-            map,
-            [
-                {
-                    type: "note",
-                    id: null,
-                    geom: center,
-                    open: true,
-                    text: "",
-                },
-            ],
-            focusPaintHalo,
-            { fitBounds: false },
-        )
+        // Display marker layer
+        if (params.open) loadMapImage(map, "marker-open", markerOpenImageUrl)
+        else loadMapImage(map, "marker-closed", markerClosedImageUrl)
+        const data = renderObjects([
+            {
+                type: "note",
+                geom: center,
+                open: params.open,
+                text: "",
+            },
+        ])
+        source.setData(data)
+        addMapLayer(map, layerId)
 
         // On location click, pan the map
         const locationButton = sidebarContent.querySelector("button.location-btn")
         locationButton.addEventListener("click", () => {
-            const currentZoom = map.getZoom()
-            if (currentZoom < 16) {
-                map.flyTo({ center, zoom: 18 })
-            } else {
-                map.flyTo({ center })
-            }
+            console.debug("onLocationButtonClick", center)
+            map.flyTo({ center, zoom: Math.max(map.getZoom(), 15) })
         })
 
         const commentsPagination = sidebarContent.querySelector("div.note-comments-pagination")
@@ -124,9 +130,8 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
             base.load(url)
         },
         unload: () => {
-            focusObjects(map)
-            marker.remove()
-            marker = null
+            removeMapLayer(map, layerId)
+            source.setData(emptyFeatureCollection)
             base.unload()
         },
     }

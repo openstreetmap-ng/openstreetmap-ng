@@ -56,7 +56,7 @@ export const throttle = <T extends any[]>(func: (...args: T) => void, delay: num
     let timeout: ReturnType<typeof setTimeout> | null = null
 
     return (...args) => {
-        if (timeout) clearTimeout(timeout)
+        clearTimeout(timeout)
         const now = performance.now()
         const timeElapsed = now - lastCalled
         const timeLeft = delay - timeElapsed

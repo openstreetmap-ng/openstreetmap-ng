@@ -206,7 +206,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
 
             // Skip updates if the layer is already in the correct state
             if (checked === hasMapLayer(map, layerId)) {
-                console.warn("Overlay layer", layerId, "is already", checked ? "added" : "removed")
+                console.debug("Overlay layer", layerId, "is already", checked ? "added" : "removed")
                 return
             }
 

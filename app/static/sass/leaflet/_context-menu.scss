@@ -4,9 +4,8 @@
     }
 
     .maplibregl-popup-content {
-        @extend .rounded-1;
         padding: 6px 0;
-        background: $light;
+        background: $light !important;
     }
 
     nav {
@@ -40,7 +39,7 @@
 @include color-mode(dark) {
     .context-menu {
         .maplibregl-popup-content {
-            background: $dark;
+            background: $dark !important;
         }
 
         .btn {
