@@ -47,7 +47,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     # runtime
     num_comments: int | None = None
-    comments: list['NoteComment'] | Any = None
+    comments: 'list[NoteComment] | Any' = None
 
     __table_args__ = (
         Index('note_point_idx', point, postgresql_using='gist'),
