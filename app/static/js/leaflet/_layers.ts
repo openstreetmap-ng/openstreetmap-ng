@@ -7,6 +7,7 @@ import type {
     Map as MaplibreMap,
     SourceSpecification,
 } from "maplibre-gl"
+import { getMapOverlayOpacity } from "../_local-storage.ts"
 import { getDeviceTheme } from "../_utils.ts"
 
 declare const brandSymbol: unique symbol
@@ -160,6 +161,11 @@ layersConfig.set("aerial" as LayerId, {
         tiles: ["https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
         tileSize: 256,
         attribution: aerialEsriCredit,
+    },
+    layerOptions: {
+        paint: {
+            "raster-opacity": getMapOverlayOpacity("aerial"),
+        },
     },
     layerCode: "A" as LayerCode,
     priority: 50,

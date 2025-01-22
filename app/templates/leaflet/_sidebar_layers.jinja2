@@ -49,14 +49,20 @@
                 {{ t('javascripts.map.layers.overlays') }}
             </p>
 
-            <div class="overlay layer" data-layer-id="aerial">
-                <div class="map-container"></div>
-                <label>{{ t('map.layers.esri_world_imagery') }}</label>
+            <div class="layer-settings mb-3">
+                <div class="overlay layer" data-layer-id="aerial">
+                    <div class="map-container"></div>
+                    <label>{{ t('map.layers.esri_world_imagery') }}</label>
+                </div>
+                <div class="layer-settings-inner">
+                    <label class="form-label d-flex align-items-center gap-2 mb-0">
+                        {{ t('map.overlays.opacity') }}:
+                        <input class="overlay-opacity form-range" type="range" min="1" max="100" step="1"
+                               autocomplete="off"
+                               data-layer-id="aerial">
+                    </label>
+                </div>
             </div>
-            <label class="form-label d-flex align-items-center gap-2 mx-1 mb-3">
-                {{ t('map.overlays.opacity') }}:
-                <input class="overlay-opacity form-range" type="range" min="1" max="100" autocomplete="off">
-            </label>
 
             <div class="ms-1">
                 <div class="form-check" data-bs-title="{{ t('javascripts.site.map_notes_zoom_in_tooltip') }}">

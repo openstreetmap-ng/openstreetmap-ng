@@ -93,12 +93,15 @@ export const setLastRoutingEngine = (engine: string): void => {
 }
 
 /** Get overlay opacity from local storage, in the range [0, 1] */
-export const getMapOverlayOpacity = (): number => Number.parseFloat(localStorage.getItem("overlayOpacity") || "0.6")
+export const getMapOverlayOpacity = (name: string): number => {
+    const opacity = localStorage.getItem(`overlayOpacity-${name}`)
+    const defaultOpacity = 0.55
+    return opacity ? Number.parseFloat(opacity) : defaultOpacity
+}
 
 /** Set overlay opacity to local storage, in the range [0, 1] */
-export const setMapOverlayOpacity = (opacity: number): void => {
-    // console.debug("setOverlayOpacity", opacity)
-    localStorage.setItem("overlayOpacity", opacity.toString())
+export const setMapOverlayOpacity = (name: string, opacity: number): void => {
+    localStorage.setItem(`overlayOpacity-${name}`, opacity.toString())
 }
 
 /** Get last selected export format from local storage */

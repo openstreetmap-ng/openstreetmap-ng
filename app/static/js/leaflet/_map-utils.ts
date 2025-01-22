@@ -222,7 +222,7 @@ const convertBoundsToLonLatZoom = (map: MaplibreMap | null, bounds: Bounds): Lon
 }
 
 /**
- * Get initial (default) map state by analyzing various parameters
+ * Get default map state by analyzing various parameters
  * @example
  * getInitialMapState()
  * // => { lon: -0.09, lat: 51.505, zoom: 15, layersCode: "BT" }
@@ -335,13 +335,16 @@ const shortDomainUpgrades = new Map<string, string>([
  * getMapShortUrl(map)
  * // => "https://osm.org/go/wF7ZdNbjU-"
  */
-export const getMapShortlink = (map: MaplibreMap, showMarker = false): string => {
+export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat): string => {
     const state = getMapState(map)
     const code = shortLinkEncode(state)
     const params: { [key: string]: string } = {}
-
     if (state.layersCode) params.layers = state.layersCode
-    if (showMarker) params.m = ""
+    if (markerLngLat) {
+        const precision = zoomPrecision(state.zoom)
+        params.mlon = markerLngLat.lng.toFixed(precision)
+        params.mlat = markerLngLat.lat.toFixed(precision)
+    }
 
     // Upgrade to short domain when supported
     const hostname = location.hostname

@@ -5,7 +5,7 @@ import { qsParse } from "../_qs.ts"
 import { isLatitude, isLongitude } from "../_utils.ts"
 import { exportMapImage } from "./_export-image"
 import { LocationFilterControl } from "./_location-filter"
-import { getMapEmbedHtml, getMapGeoUri, getMapShortlink } from "./_map-utils"
+import { getInitialMapState, getMapEmbedHtml, getMapGeoUri, getMapShortlink } from "./_map-utils"
 import { SidebarToggleControl } from "./_sidebar-toggle-button"
 import { getMarkerIconElement, markerIconAnchor, padLngLatBounds } from "./_utils"
 
@@ -52,6 +52,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
             } else {
                 marker.remove()
             }
+            updateSidebar()
         })
 
         // Initialize marker from URL search parameters
@@ -65,6 +66,13 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                 markerCheckbox.dispatchEvent(new Event("change"))
                 marker.setLngLat([mlon, mlat])
             }
+        } else if (searchParams.m !== undefined) {
+            // Marker at the center
+            const { lon, lat } = getInitialMapState(map)
+            console.debug("Initializing marker at the center", [lon, lat])
+            markerCheckbox.checked = true
+            markerCheckbox.dispatchEvent(new Event("change"))
+            marker.setLngLat([lon, lat])
         }
 
         // On custom region checkbox change, enable/disable the location filter
@@ -143,10 +151,10 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 
-            const showMarker = markerCheckbox.checked
-            linkInput.value = getMapShortlink(map, showMarker)
+            const markerLngLat = markerCheckbox.checked ? marker.getLngLat() : null
+            linkInput.value = getMapShortlink(map, markerLngLat)
             geoUriInput.value = getMapGeoUri(map)
-            embedInput.value = getMapEmbedHtml(map, showMarker ? marker.getLngLat() : null)
+            embedInput.value = getMapEmbedHtml(map, markerLngLat)
         }
         map.on("moveend", updateSidebar)
 

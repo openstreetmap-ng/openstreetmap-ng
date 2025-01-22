@@ -1,7 +1,8 @@
 import { Tooltip } from "bootstrap"
 import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
 import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config"
-import { getMapOverlayOpacity } from "../_local-storage"
+import { getMapOverlayOpacity, setMapOverlayOpacity } from "../_local-storage"
+import { throttle } from "../_utils.ts"
 import {
     type LayerId,
     addLayerEventHandler,
@@ -37,8 +38,6 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
             const layerId = container.dataset.layerId as LayerId
             layerIdContainerMap.set(layerId, container)
         }
-        const overlayOpacityRange = this.sidebar.querySelector("input.overlay-opacity")
-        overlayOpacityRange.value = (getMapOverlayOpacity() * 100).toString()
         const layerIdOverlayCheckboxMap: Map<LayerId, HTMLInputElement> = new Map()
         for (const overlayCheckbox of this.sidebar.querySelectorAll("input.overlay")) {
             layerIdOverlayCheckboxMap.set(overlayCheckbox.value as LayerId, overlayCheckbox)
@@ -221,19 +220,18 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
             overlayCheckbox.addEventListener("change", onOverlayCheckboxChange)
         }
 
-        // On overlay opacity change, update the layer and remember the new value
-        // TODO: leaflet leftover
-        // overlayOpacityRange.addEventListener(
-        //     "input",
-        //     throttle(({ target }) => {
-        //         const overlayOpacity = Number.parseFloat((target as HTMLInputElement).value) / 100
-        //         setMapOverlayOpacity(overlayOpacity)
-        //         for (const overlayContainer of overlayContainers) {
-        //             const layer = getOverlayLayerById(overlayContainer.dataset.layerId as LayerId) as L.TileLayer
-        //             layer.setOpacity(overlayOpacity)
-        //         }
-        //     }, 50),
-        // )
+        for (const range of this.sidebar.querySelectorAll("input.overlay-opacity")) {
+            const layerId = range.dataset.layerId as LayerId
+            range.value = (getMapOverlayOpacity(layerId) * 100).toString()
+            range.addEventListener(
+                "input",
+                throttle(() => {
+                    const opacity = Number.parseFloat(range.value) / 100
+                    map.setPaintProperty(layerId, "raster-opacity", opacity)
+                    setMapOverlayOpacity(layerId, opacity)
+                }, 100),
+            )
+        }
 
         this._container = container
         return container
