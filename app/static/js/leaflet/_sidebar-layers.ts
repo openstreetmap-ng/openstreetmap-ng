@@ -2,7 +2,7 @@ import { Tooltip } from "bootstrap"
 import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
 import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config"
 import { getMapOverlayOpacity, setMapOverlayOpacity } from "../_local-storage"
-import { throttle } from "../_utils.ts"
+import { staticCache, throttle } from "../_utils.ts"
 import {
     type LayerId,
     addLayerEventHandler,
@@ -44,7 +44,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
         }
 
         /** Ensure minimaps have been initialized */
-        let initializeMinimapsOnce = (): void => {
+        const initializeMinimapsOnce = staticCache((): void => {
             for (const container of layerIdContainerMap.values()) {
                 const layerId = container.dataset.layerId as LayerId
                 const layerConfig = layersConfig.get(layerId)
@@ -67,9 +67,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
                 // TODO: leaflet leftover: opacity 1
                 minimaps.push(minimap)
             }
-
-            initializeMinimapsOnce = () => {}
-        }
+        })
 
         // On sidebar shown, update the sidebar state
         button.addEventListener("click", () => {

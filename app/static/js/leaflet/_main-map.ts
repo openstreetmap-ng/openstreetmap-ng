@@ -1,7 +1,7 @@
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
 import { homePoint } from "../_config"
+import { isMetricUnit } from "../_intl.ts"
 import { handleEditRemotePath, updateNavbarAndHash } from "../_navbar"
-import { isMetricUnit } from "../_unit.ts"
 import { getChangesetController } from "../index/_changeset"
 import { getChangesetsHistoryController } from "../index/_changesets-history"
 import { getDistanceController } from "../index/_distance"
@@ -58,7 +58,7 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
     // Add controls to the map
     map.addControl(
         new ScaleControl({
-            unit: isMetricUnit ? "metric" : "imperial",
+            unit: isMetricUnit() ? "metric" : "imperial",
         }),
     )
     addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])

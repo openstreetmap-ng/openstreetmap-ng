@@ -1,5 +1,5 @@
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { resolveDatetime } from "../_datetime"
+import { resolveDatetimeLazy } from "../_datetime"
 import { requestAnimationFramePolyfill } from "../_utils"
 import { configureActionSidebar, getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 
@@ -30,7 +30,7 @@ export const getBaseFetchController = (
     const onSidebarLoaded = (html: string, newUrl: string): void => {
         // On sidebar loaded, display content and call callback
         dynamicContent.innerHTML = html
-        resolveDatetime(dynamicContent)
+        resolveDatetimeLazy(dynamicContent)
         configureActionSidebar(sidebar)
 
         if (currentUrl === newUrl) {

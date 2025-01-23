@@ -11,6 +11,7 @@
         <script src="/static-locale/{{ file }}" defer></script>
     {% endfor %}
     <script src="/static/js/bundle-main.js" type="module" defer></script>
+    {# currently unused: <link rel="preload" href="/static/js/wasm/index.wasm" as="fetch" crossorigin="anonymous"> #}
 
     {% block head %}{% endblock %}
 

@@ -1,5 +1,5 @@
 import { t } from "i18next"
-import { resolveDatetime } from "../_datetime"
+import { resolveDatetimeLazy } from "../_datetime"
 import { changeUnreadMessagesBadge } from "../_navbar"
 import { configureStandardForm } from "../_standard-form"
 
@@ -76,7 +76,7 @@ if (body) {
                 messageTime.innerHTML = time
                 messageTitle.textContent = subject
                 messageBody.innerHTML = body_rich
-                resolveDatetime(messageTime)
+                resolveDatetimeLazy(messageTime)
             })
             .catch((error) => {
                 if (error.name === "AbortError") return

@@ -8,7 +8,7 @@ import type {
     SourceSpecification,
 } from "maplibre-gl"
 import { getMapOverlayOpacity } from "../_local-storage.ts"
-import { getDeviceTheme } from "../_utils.ts"
+import { getDeviceTheme, staticCache } from "../_utils.ts"
 
 declare const brandSymbol: unique symbol
 
@@ -186,7 +186,7 @@ layersConfig.set("gps" as LayerId, {
     priority: 60,
 })
 
-let layerLookupMap = (): Map<LayerId | LayerCode, LayerId> => {
+const layerLookupMap = staticCache((): Map<LayerId | LayerCode, LayerId> => {
     console.debug("Lazily initializing layerLookupMap with", layersConfig.size, "configured layers")
     const result: Map<LayerId | LayerCode, LayerId> = new Map()
     for (const [layerId, config] of layersConfig) {
@@ -203,9 +203,8 @@ let layerLookupMap = (): Map<LayerId | LayerCode, LayerId> => {
             }
         }
     }
-    layerLookupMap = () => result
     return result
-}
+})
 
 /**
  * Resolve a layer code or id to actual layer id.

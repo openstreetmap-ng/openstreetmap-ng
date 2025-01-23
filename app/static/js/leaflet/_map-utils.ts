@@ -1,6 +1,7 @@
 import i18next from "i18next"
 import type { EaseToOptions, IControl, LngLat, Map as MaplibreMap } from "maplibre-gl"
 import { homePoint } from "../_config"
+import { timeZoneName } from "../_intl.ts"
 import { getLastMapState, setLastMapState } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
 import { shortLinkEncode } from "../_shortlink"
@@ -289,8 +290,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
     }
 
     // 8. Use the user's country bounds
-    const timezoneName = Intl.DateTimeFormat().resolvedOptions().timeZone
-    const countryBounds = timezoneBoundsMap.get(timezoneName)
+    const countryBounds = timezoneBoundsMap.get(timeZoneName())
     if (countryBounds) {
         const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, countryBounds)
         return { lon, lat, zoom, layersCode: "" }

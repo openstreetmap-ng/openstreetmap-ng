@@ -1,7 +1,7 @@
 import { decode } from "@mapbox/polyline"
 import type { LineString } from "geojson"
 import { type GeoJSONSource, LngLatBounds, Map as MaplibreMap, ScaleControl } from "maplibre-gl"
-import { isMetricUnit } from "../_unit.ts"
+import { isMetricUnit } from "../_intl.ts"
 import { requestAnimationFramePolyfill } from "../_utils"
 import { CustomGeolocateControl } from "../leaflet/_geolocate"
 import {
@@ -70,7 +70,7 @@ if (tracePreviewContainer) {
     if (!isSmall) {
         map.addControl(
             new ScaleControl({
-                unit: isMetricUnit ? "metric" : "imperial",
+                unit: isMetricUnit() ? "metric" : "imperial",
             }),
         )
         addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
@@ -86,9 +86,10 @@ if (tracePreviewContainer) {
     const coords = decode(tracePreviewContainer.dataset.line, 6)
     const coordinates: [number, number][] = []
     let bounds: LngLatBounds = new LngLatBounds()
-    for (const [lat, lon] of coords) {
-        coordinates.push([lon, lat])
-        bounds = bounds.extend([lon, lat])
+    for (const latLon of coords) {
+        const lonLat: [number, number] = [latLon[1], latLon[0]]
+        coordinates.push(lonLat)
+        bounds = bounds.extend(lonLat)
     }
     map.fitBounds(padLngLatBounds(bounds, 0.3), { animate: false })
 

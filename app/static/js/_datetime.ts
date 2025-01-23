@@ -1,51 +1,53 @@
 import { primaryLanguage } from "./_config"
+import { dateTimeFormat, relativeTimeFormat } from "./_intl.ts"
 
 const resolvedElements: WeakSet<HTMLTimeElement> = new WeakSet()
 
-export const resolveDatetime = (searchElement: Element): void => {
-    let absoluteCounter = 0
-    let relativeCounter = 0
-    for (const element of searchElement.querySelectorAll("time[datetime]")) {
-        if (resolvedElements.has(element)) continue
-        resolvedElements.add(element)
-        const datetime = element.getAttribute("datetime")
-        if (!datetime) {
-            console.warn("Missing datetime attribute on", element)
-            continue
-        }
-        const date = new Date(datetime)
-        const dataset = element.dataset
-        const dateStyle = dataset.date
-        const timeStyle = dataset.time
-        const style = dataset.style
-        if (dateStyle || timeStyle) {
-            // Absolute date
-            // @ts-ignore
-            element.textContent = Intl.DateTimeFormat(primaryLanguage, {
-                dateStyle: dateStyle,
-                timeStyle: timeStyle,
-            }).format(date)
-            element.title = Intl.DateTimeFormat(primaryLanguage, {
-                dateStyle: dateStyle ? "long" : undefined,
-                timeStyle: timeStyle ? "long" : undefined,
-            }).format(date)
-            absoluteCounter++
-        } else if (style) {
-            // Relative date
-            const [diff, unit] = getRelativeFormatValueUnit(date)
-            element.textContent = new Intl.RelativeTimeFormat(primaryLanguage, {
+export const resolveDatetimeLazy = (searchElement: Element): void =>
+    queueMicrotask(() => {
+        let absoluteCounter = 0
+        let relativeCounter = 0
+        for (const element of searchElement.querySelectorAll("time[datetime]")) {
+            if (resolvedElements.has(element)) continue
+            resolvedElements.add(element)
+            const datetime = element.getAttribute("datetime")
+            if (!datetime) {
+                console.warn("Missing datetime attribute on", element)
+                continue
+            }
+            const date = new Date(datetime)
+            const dataset = element.dataset
+            const dateStyle = dataset.date as any
+            const timeStyle = dataset.time as any
+            const style = dataset.style
+            if (dateStyle || timeStyle) {
+                // Absolute date
                 // @ts-ignore
-                style: style,
-            }).format(diff, unit)
-            element.title = Intl.DateTimeFormat(primaryLanguage, {
-                dateStyle: "long",
-                timeStyle: "long",
-            }).format(date)
-            relativeCounter++
+                element.textContent = dateTimeFormat(primaryLanguage, {
+                    dateStyle: dateStyle,
+                    timeStyle: timeStyle,
+                }).format(date)
+                element.title = dateTimeFormat(primaryLanguage, {
+                    dateStyle: dateStyle ? "long" : undefined,
+                    timeStyle: timeStyle ? "long" : undefined,
+                }).format(date)
+                absoluteCounter++
+            } else if (style) {
+                // Relative date
+                const [diff, unit] = getRelativeFormatValueUnit(date)
+                element.textContent = relativeTimeFormat(primaryLanguage, {
+                    // @ts-ignore
+                    style: style,
+                }).format(diff, unit)
+                element.title = dateTimeFormat(primaryLanguage, {
+                    dateStyle: "long",
+                    timeStyle: "long",
+                }).format(date)
+                relativeCounter++
+            }
         }
-    }
-    console.debug("Resolved", absoluteCounter, "absolute and", relativeCounter, "relative datetimes")
-}
+        console.debug("Resolved", absoluteCounter, "absolute and", relativeCounter, "relative datetimes")
+    })
 
 const getRelativeFormatValueUnit = (date: Date): [number, Intl.RelativeTimeFormatUnitSingular] => {
     let diff = (date.getTime() - Date.now()) / 1000
@@ -78,4 +80,4 @@ const getRelativeFormatValueUnit = (date: Date): [number, Intl.RelativeTimeForma
 }
 
 // Initial update
-resolveDatetime(window.document.body)
+resolveDatetimeLazy(window.document.body)

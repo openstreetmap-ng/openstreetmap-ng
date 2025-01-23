@@ -2,6 +2,7 @@ import type { Map as MaplibreMap } from "maplibre-gl"
 import { getTagsDiffMode, setTagsDiffMode } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
 import { setPageTitle } from "../_title"
+import { staticCache } from "../_utils.ts"
 import { type FocusLayerPaint, focusObjects } from "../leaflet/_focus-layer"
 import { convertRenderElementsData } from "../leaflet/_render-objects"
 import { getBaseFetchController } from "./_base-fetch"
@@ -40,11 +41,7 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
         const versionSections = sidebarContent.querySelectorAll("div.version-section")
         for (const versionSection of versionSections) {
             const params = initializeElementContent(map, versionSection)
-            let elements = () => {
-                const cache = convertRenderElementsData(params.render)
-                elements = () => cache
-                return cache
-            }
+            const elements = staticCache(() => convertRenderElementsData(params.render))
             versionSection.addEventListener("mouseenter", () => focusObjects(map, elements(), focusPaint)) // focus elements
             versionSection.addEventListener("mouseleave", () => focusObjects(map)) // remove focus
         }

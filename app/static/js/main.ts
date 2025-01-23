@@ -30,7 +30,6 @@ import "./user/_profile"
 import "./user/_reset-password"
 import "./user/_reset-password-token"
 import "./user/_signup"
-import "./user/_terms"
 
 import "./leaflet/_main-map"
 

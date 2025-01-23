@@ -1,7 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import i18next, { t } from "i18next"
 import { type GeoJSONSource, LngLatBounds, type MapGeoJSONFeature, type Map as MaplibreMap } from "maplibre-gl"
-import { resolveDatetime } from "../_datetime"
+import { resolveDatetimeLazy } from "../_datetime"
 import { qsEncode } from "../_qs"
 import { setPageTitle } from "../_title"
 import type { OSMChangeset } from "../_types"
@@ -114,7 +114,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         }
         entryContainer.innerHTML = ""
         entryContainer.appendChild(fragment)
-        resolveDatetime(entryContainer)
+        resolveDatetimeLazy(entryContainer)
     }
 
     const updateLayers = () => {

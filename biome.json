@@ -8,6 +8,7 @@
   },
   "formatter": {
     "enabled": true,
+    "formatWithErrors": true,
     "useEditorconfig": true,
     "ignore": ["config/wiki_pages.json"]
   },
@@ -18,6 +19,7 @@
   },
   "linter": {
     "enabled": true,
+    "ignore": ["app/static/wasm/**/*.ts"],
     "rules": {
       "complexity": {
         "noUselessStringConcat": "info",

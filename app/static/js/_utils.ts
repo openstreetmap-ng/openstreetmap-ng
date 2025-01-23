@@ -109,3 +109,29 @@ export const requestAnimationFramePolyfill: (callback: FrameRequestCallback) => 
 /** Get the device theme */
 export const getDeviceTheme = (): "light" | "dark" =>
     window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+
+/** Cache a function result, ignoring passed arguments */
+export const staticCache = <T extends (...args: any[]) => any>(fn: T): T => {
+    let called = false
+    let result: ReturnType<T> | undefined
+    return ((...args) => {
+        if (called) return result
+        result = fn(...args)
+        called = true
+        return result
+    }) as T
+}
+
+/** Memoize a function result, depending on the arguments */
+export const memoize = <T extends (...args: any[]) => any>(fn: T): T => {
+    const cache = new Map<string, ReturnType<T>>()
+    return ((...args: Parameters<T>): ReturnType<T> => {
+        const key = JSON.stringify(args)
+        let cached = cache.get(key)
+        if (cached === undefined) {
+            cached = fn(...args)
+            cache.set(key, cached)
+        }
+        return cached
+    }) as T
+}

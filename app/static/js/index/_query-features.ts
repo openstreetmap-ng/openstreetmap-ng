@@ -5,7 +5,7 @@ import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"
 import { prefersReducedMotion } from "../_config"
 import { qsEncode, qsParse } from "../_qs"
 import { setPageTitle } from "../_title"
-import { isLatitude, isLongitude, isZoom, requestAnimationFramePolyfill } from "../_utils"
+import { isLatitude, isLongitude, isZoom, requestAnimationFramePolyfill, staticCache } from "../_utils"
 import { focusObjects } from "../leaflet/_focus-layer"
 import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
 import type { LonLatZoom } from "../leaflet/_map-utils"
@@ -76,11 +76,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
         for (let i = 0; i < resultActions.length; i++) {
             const resultAction = resultActions[i]
             const render = params.renders[i]
-            let elements = () => {
-                const cache = convertRenderElementsData(render)
-                elements = () => cache
-                return cache
-            }
+            const elements = staticCache(() => convertRenderElementsData(render))
 
             // TODO: check event order on high activity
             resultAction.addEventListener("mouseenter", () => focusObjects(map, elements()))
