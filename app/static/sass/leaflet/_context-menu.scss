@@ -5,7 +5,7 @@
 
     .maplibregl-popup-content {
         padding: 6px 0;
-        background: $light !important;
+        background: var(--bs-body-bg) !important;
     }
 
     nav {
@@ -21,6 +21,7 @@
         white-space: nowrap;
         border: none;
         padding: 2px 12px;
+        --bs-btn-bg: var(--bs-body-bg);
 
         &:hover {
             & + .dropdown-toggle {

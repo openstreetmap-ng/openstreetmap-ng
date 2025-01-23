@@ -17,8 +17,9 @@ const focusPaint: FocusLayerPaint = Object.freeze({
     "circle-radius": 20,
     "circle-color": themeColor,
     "circle-opacity": 0.5,
-    "circle-stroke-width": 2.5,
     "circle-stroke-color": themeColor,
+    "circle-stroke-opacity": 1,
+    "circle-stroke-width": 2.5,
 })
 
 /** Create a new new note controller */

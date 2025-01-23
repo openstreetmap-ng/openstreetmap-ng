@@ -100,11 +100,16 @@ export const range = (start: number, stop: number, step = 1): number[] => {
     return result
 }
 
-/**
- * Backwards-compatible requestAnimationFrame function
- */
+/** Backwards-compatible requestAnimationFrame function */
 export const requestAnimationFramePolyfill: (callback: FrameRequestCallback) => number =
     window.requestAnimationFrame || ((callback) => window.setTimeout(() => callback(performance.now()), 30))
+
+/** Backwards-compatible requestIdleCallback function */
+export const requestIdleCallbackPolyfill: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number =
+    window.requestIdleCallback || ((callback) => window.setTimeout(() => callback(null), 0))
+
+export const cancelIdleCallbackPolyfill: (handle: number) => void =
+    window.cancelIdleCallback || ((handle) => window.clearTimeout(handle))
 
 /** Get the device theme */
 export const getDeviceTheme = (): "light" | "dark" =>

@@ -20,6 +20,12 @@ const focusPaint: FocusLayerPaint = Object.freeze({
     "line-color": themeColor,
     "line-opacity": 1,
     "line-width": 4,
+    "circle-radius": 10,
+    "circle-color": themeColor,
+    "circle-opacity": 0.4,
+    "circle-stroke-color": themeColor,
+    "circle-stroke-opacity": 1,
+    "circle-stroke-width": 3,
 })
 
 const elementsPerPage = 20

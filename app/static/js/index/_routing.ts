@@ -18,6 +18,7 @@ import { qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
 import { setPageTitle } from "../_title"
 import { zoomPrecision } from "../_utils"
+import { decMapHover, incMapHover } from "../leaflet/_hover.ts"
 import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers"
 import { getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
 import { type RoutingResult, RoutingResultSchema } from "../proto/shared_pb"
@@ -144,26 +145,23 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     let hoveredFeatureId: number | null = null
     map.on("mouseover", layerId, (e) => {
         const featureId = e.features[0].id
-        if (hoveredFeatureId) {
+        if (hoveredFeatureId !== null) {
             if (hoveredFeatureId === featureId) return
             setHover(hoveredFeatureId, false)
         } else {
-            map.getCanvas().style.cursor = "pointer"
+            incMapHover(map)
         }
         hoveredFeatureId = featureId as number
         setHover(hoveredFeatureId, true)
     })
     map.on("mouseleave", layerId, () => {
-        if (hoveredFeatureId) {
-            setHover(hoveredFeatureId, false)
-            hoveredFeatureId = null
-        }
-        map.getCanvas().style.cursor = ""
+        setHover(hoveredFeatureId, false)
+        hoveredFeatureId = null
+        decMapHover(map)
     })
 
     /** Set the hover state of the step features */
     const setHover = (id: number, hover: boolean): void => {
-        if (id < 0) return // Skip complete feature events
         const result = results[id]
         result.classList.toggle("hover", hover)
         if (hover) {

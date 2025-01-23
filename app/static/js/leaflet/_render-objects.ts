@@ -17,6 +17,7 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
         const properties = {
             type: "changeset",
             id: changeset.id.toString(),
+            firstFeatureId: featureIdCounter,
             numBounds: changeset.bounds.length,
         }
         for (const [minLon, minLat, maxLon, maxLat] of changeset.bounds) {
@@ -152,6 +153,7 @@ export const convertRenderElementsData = (render: RenderElementsData): (OSMNode 
             type: "way",
             id: way.id,
             geom: decode(way.line, 6).map((x) => x.reverse()) as [number, number][],
+            area: way.area,
         })
     }
     for (const node of render.nodes) {

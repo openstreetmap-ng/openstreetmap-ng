@@ -1,7 +1,9 @@
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
 import { homePoint } from "../_config"
 import { isMetricUnit } from "../_intl.ts"
+import { setLastMapState } from "../_local-storage.ts"
 import { handleEditRemotePath, updateNavbarAndHash } from "../_navbar"
+import { cancelIdleCallbackPolyfill, requestIdleCallbackPolyfill } from "../_utils.ts"
 import { getChangesetController } from "../index/_changeset"
 import { getChangesetsHistoryController } from "../index/_changesets-history"
 import { getDistanceController } from "../index/_distance"
@@ -52,8 +54,20 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
     configureDataLayer(map)
     configureContextMenu(map)
 
-    map.on("moveend", () => updateNavbarAndHash(getMapState(map)))
-    addLayerEventHandler(() => updateNavbarAndHash(getMapState(map)))
+    let idleCallbackId: number | null = null
+    const saveMapStateLazy = () => {
+        cancelIdleCallbackPolyfill(idleCallbackId)
+        idleCallbackId = requestIdleCallbackPolyfill(
+            () => {
+                const state = getMapState(map)
+                updateNavbarAndHash(state)
+                setLastMapState(state)
+            },
+            { timeout: 5000 },
+        )
+    }
+    map.on("moveend", saveMapStateLazy)
+    addLayerEventHandler(saveMapStateLazy)
 
     // Add controls to the map
     map.addControl(

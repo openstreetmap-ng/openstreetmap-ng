@@ -46,9 +46,9 @@ export const getLngLatBoundsIntersection = (bounds1: LngLatBounds, bounds2: LngL
     const minLon = Math.max(minLon1, minLon2)
     const maxLon = Math.min(maxLon1, maxLon2)
 
-    // Return null bounds if no intersection
+    // Return empty bounds if no intersection
     if (minLat > maxLat || minLon > maxLon) {
-        return new LngLatBounds()
+        return new LngLatBounds([minLon1, minLat1, minLon1, minLat1])
     }
 
     return new LngLatBounds([minLon, minLat, maxLon, maxLat])

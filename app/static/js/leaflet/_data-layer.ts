@@ -1,11 +1,12 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import type { GeoJSONSource, LngLatBounds, MapGeoJSONFeature, MapMouseEvent, Map as MaplibreMap } from "maplibre-gl"
+import type { GeoJSONSource, LngLatBounds, MapLayerMouseEvent, Map as MaplibreMap } from "maplibre-gl"
 import { mapQueryAreaMaxSize } from "../_config"
 import { qsEncode } from "../_qs"
 import type { OSMNode, OSMWay } from "../_types"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderElementsDataSchema } from "../proto/shared_pb"
 import { getMapAlert } from "./_alert"
+import { decMapHover, incMapHover } from "./_hover.ts"
 import {
     type LayerCode,
     type LayerId,
@@ -18,29 +19,33 @@ import { convertRenderElementsData, renderObjects } from "./_render-objects"
 import { getLngLatBoundsSize, padLngLatBounds } from "./_utils"
 
 const layerId = "data" as LayerId
-const themeColor = "#3388ff"
+const themeColor = "#38f"
+const hoverThemeColor = "#f90"
 layersConfig.set(layerId as LayerId, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
     },
     layerCode: "D" as LayerCode,
-    layerTypes: ["fill", "line", "circle"],
+    layerTypes: ["line", "circle"],
     layerOptions: {
         layout: {
             "line-cap": "round",
             "line-join": "round",
         },
         paint: {
-            "fill-opacity": 0.4,
-            "fill-color": themeColor,
-            "line-color": themeColor,
+            "line-color": ["case", ["boolean", ["feature-state", "hover"], false], hoverThemeColor, themeColor],
             "line-width": 3,
             "circle-radius": 10,
-            "circle-color": themeColor,
-            "circle-opacity": 0.4,
+            "circle-color": ["case", ["boolean", ["feature-state", "hover"], false], hoverThemeColor, themeColor],
+            "circle-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 0.4, 0.2],
+            "circle-stroke-color": [
+                "case",
+                ["boolean", ["feature-state", "hover"], false],
+                hoverThemeColor,
+                themeColor,
+            ],
             "circle-stroke-width": 3,
-            "circle-stroke-color": themeColor,
         },
     },
     priority: 100,
@@ -70,12 +75,35 @@ export const configureDataLayer = (map: MaplibreMap): void => {
     }
 
     /** On feature click, navigate to the object page */
-    const onFeatureClick = (e: MapMouseEvent & { features?: MapGeoJSONFeature[] }): void => {
+    const onFeatureClick = (e: MapLayerMouseEvent): void => {
         const props = e.features[0].properties
         routerNavigateStrict(`/${props.type}/${props.id}`)
     }
+
+    let hoveredFeatureId: number | null = null
+    const onFeatureHover = (e: MapLayerMouseEvent): void => {
+        const feature = e.features[0]
+        const featureId = feature.id as number
+        if (hoveredFeatureId) {
+            if (hoveredFeatureId === featureId) return
+            map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
+        } else {
+            incMapHover(map)
+        }
+        hoveredFeatureId = featureId
+        map.setFeatureState({ source: layerId, id: hoveredFeatureId }, { hover: true })
+    }
+    const onFeatureLeave = (): void => {
+        map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
+        hoveredFeatureId = null
+        decMapHover(map)
+    }
+
     for (const type of ["fill", "line", "circle"] as const) {
-        map.on("click", makeExtendedLayerId(layerId, type), onFeatureClick)
+        const extendedLayerId = makeExtendedLayerId(layerId, type)
+        map.on("click", extendedLayerId, onFeatureClick)
+        map.on("mousemove", extendedLayerId, onFeatureHover)
+        map.on("mouseleave", extendedLayerId, onFeatureLeave)
     }
 
     /** Load map data into the data layer */

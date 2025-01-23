@@ -174,7 +174,7 @@ export const parseMapState = (hash: string): MapState | null => {
     const components = params.map.split("/")
     if (components.length !== 3) return null
 
-    const zoom = Number.parseInt(components[0], 10)
+    const zoom = Number.parseFloat(components[0])
     const lat = Number.parseFloat(components[1])
     const lon = Number.parseFloat(components[2])
 

@@ -9,6 +9,7 @@ import type { Bounds, OSMObject } from "../_types.ts"
 import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "../_utils.ts"
 import { getMapAlert } from "../leaflet/_alert.ts"
 import { type FocusLayerPaint, type FocusOptions, focusObjects } from "../leaflet/_focus-layer.ts"
+import { decMapHover, incMapHover } from "../leaflet/_hover.ts"
 import { loadMapImage, markerRedImageUrl } from "../leaflet/_image.ts"
 import { type LayerId, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
 import { convertRenderElementsData } from "../leaflet/_render-objects.ts"
@@ -83,17 +84,15 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
             if (hoveredFeatureId === featureId) return
             setHover(hoveredFeatureId, false)
         } else {
-            map.getCanvas().style.cursor = "pointer"
+            incMapHover(map)
         }
         hoveredFeatureId = featureId as number
         setHover(hoveredFeatureId, true)
     })
     map.on("mouseleave", layerId, () => {
-        if (hoveredFeatureId) {
-            setHover(hoveredFeatureId, false)
-            hoveredFeatureId = null
-        }
-        map.getCanvas().style.cursor = ""
+        setHover(hoveredFeatureId, false)
+        hoveredFeatureId = null
+        decMapHover(map)
     })
 
     /** On search alert click, reload the search with the new area */

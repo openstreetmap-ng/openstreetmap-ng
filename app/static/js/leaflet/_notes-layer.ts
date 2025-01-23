@@ -3,6 +3,7 @@ import { type GeoJSONSource, type LngLat, type LngLatBounds, type Map as Maplibr
 import { noteQueryAreaMaxSize } from "../_config"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderNotesDataSchema } from "../proto/shared_pb"
+import { decMapHover, incMapHover } from "./_hover.ts"
 import { loadMapImage, markerClosedImageUrl, markerOpenImageUrl } from "./_image.ts"
 import { type LayerCode, type LayerId, addLayerEventHandler, emptyFeatureCollection, layersConfig } from "./_layers"
 import { convertRenderNotesData, renderObjects } from "./_render-objects"
@@ -59,7 +60,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
             if (hoveredFeatureId === featureId) return
             map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
         } else {
-            map.getCanvas().style.cursor = "pointer"
+            incMapHover(map)
         }
         hoveredFeatureId = featureId
         map.setFeatureState({ source: layerId, id: hoveredFeatureId }, { hover: true })
@@ -72,13 +73,11 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         }, 1000)
     })
     map.on("mouseleave", layerId, () => {
-        if (hoveredFeatureId) {
-            map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
-            hoveredFeatureId = null
-            clearTimeout(hoverPopupTimeout)
-            hoverPopup.remove()
-        }
-        map.getCanvas().style.cursor = ""
+        map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
+        hoveredFeatureId = null
+        clearTimeout(hoverPopupTimeout)
+        hoverPopup.remove()
+        decMapHover(map)
     })
 
     /** On map update, fetch the notes and update the notes layer */
