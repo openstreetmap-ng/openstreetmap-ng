@@ -18,11 +18,11 @@ import {
 import { getBaseFetchController } from "./_base-fetch.ts"
 import type { IndexController } from "./_router"
 
-const focusPaint: FocusLayerPaint = {
+const focusPaint: FocusLayerPaint = Object.freeze({
     "line-color": "#f90",
     "line-opacity": 1,
     "line-width": 3,
-}
+})
 
 const elementsPerPage = 20
 const paginationDistance = 2

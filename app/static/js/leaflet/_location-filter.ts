@@ -4,8 +4,6 @@ import type { Bounds } from "../_types"
 import { throttle } from "../_utils.ts"
 import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "./_layers"
 
-const dragThrottleDelay = 16 // 60 FPS
-
 const layerId: LayerId = "location-filter" as LayerId
 layersConfig.set(layerId as LayerId, {
     specification: {
@@ -20,6 +18,8 @@ layersConfig.set(layerId as LayerId, {
         },
     },
 })
+
+const dragThrottleDelay = 16 // 60 FPS
 
 export class LocationFilterControl implements IControl {
     private _map: MaplibreMap

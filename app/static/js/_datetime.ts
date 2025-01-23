@@ -17,15 +17,15 @@ export const resolveDatetimeLazy = (searchElement: Element): void =>
             }
             const date = new Date(datetime)
             const dataset = element.dataset
-            const dateStyle = dataset.date as any
-            const timeStyle = dataset.time as any
+            const dateStyle = dataset.date
+            const timeStyle = dataset.time
             const style = dataset.style
             if (dateStyle || timeStyle) {
                 // Absolute date
                 // @ts-ignore
                 element.textContent = dateTimeFormat(primaryLanguage, {
-                    dateStyle: dateStyle,
-                    timeStyle: timeStyle,
+                    dateStyle: dateStyle as any,
+                    timeStyle: timeStyle as any,
                 }).format(date)
                 element.title = dateTimeFormat(primaryLanguage, {
                     dateStyle: dateStyle ? "long" : undefined,
@@ -50,33 +50,15 @@ export const resolveDatetimeLazy = (searchElement: Element): void =>
     })
 
 const getRelativeFormatValueUnit = (date: Date): [number, Intl.RelativeTimeFormatUnitSingular] => {
-    let diff = (date.getTime() - Date.now()) / 1000
-    let unit: Intl.RelativeTimeFormatUnitSingular
-    const diffAbs = Math.abs(diff)
-    if (diffAbs < 60) {
-        unit = "second"
-    } else if (diffAbs < 3600) {
-        diff /= 60
-        unit = "minute"
-    } else if (diffAbs < 3600 * 24) {
-        diff /= 3600
-        unit = "hour"
-    } else if (diffAbs < 3600 * 24 * 7) {
-        diff /= 3600 * 24
-        unit = "day"
-    } else if (diffAbs < 3600 * 24 * 30) {
-        diff /= 3600 * 24 * 7
-        unit = "week"
-    } else if (diffAbs < 3600 * 24 * 365) {
-        diff /= 3600 * 24 * 30
-        unit = "month"
-    } else {
-        diff /= 3600 * 24 * 365
-        unit = "year"
-    }
-    // Round down
-    diff = diff < 0 ? Math.ceil(diff) : Math.floor(diff)
-    return [diff, unit]
+    const diffSeconds = (date.getTime() - Date.now()) / 1000
+    const diffAbs = Math.abs(diffSeconds)
+    if (diffAbs >= 31536000) return [(diffSeconds / 31536000) | 0, "year"]
+    if (diffAbs >= 2592000) return [(diffSeconds / 2592000) | 0, "month"]
+    if (diffAbs >= 604800) return [(diffSeconds / 604800) | 0, "week"]
+    if (diffAbs >= 86400) return [(diffSeconds / 86400) | 0, "day"]
+    if (diffAbs >= 3600) return [(diffSeconds / 3600) | 0, "hour"]
+    if (diffAbs >= 60) return [(diffSeconds / 60) | 0, "minute"]
+    return [diffSeconds | 0, "second"]
 }
 
 // Initial update

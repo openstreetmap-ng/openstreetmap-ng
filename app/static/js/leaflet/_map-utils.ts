@@ -202,7 +202,7 @@ const convertBoundsToLonLatZoom = (map: MaplibreMap | null, bounds: Bounds): Lon
 
     const latRad = (lat: number): number => Math.sin((lat * Math.PI) / 180)
     const getZoom = (mapPx: number, worldPx: number, fraction: number): number =>
-        Math.floor(Math.log(mapPx / worldPx / fraction) / Math.LN2)
+        (Math.log(mapPx / worldPx / fraction) / Math.LN2) | 0
 
     // Calculate the fraction of the world that the longitude and latitude take up
     const latFraction = (latRad(maxLat) - latRad(minLat)) / Math.PI
@@ -217,7 +217,6 @@ const convertBoundsToLonLatZoom = (map: MaplibreMap | null, bounds: Bounds): Lon
     const tileSize = 256
     const maxLatZoom = getZoom(mapHeight, tileSize, latFraction)
     const maxLonZoom = getZoom(mapWidth, tileSize, lonFraction)
-
     const zoom = Math.min(maxLatZoom, maxLonZoom)
     return { lon, lat, zoom }
 }
@@ -324,10 +323,10 @@ export const getMapUrl = (map: MaplibreMap, showMarker = false): string => {
     return `${window.location.origin}/${hash}`
 }
 
-const shortDomainUpgrades = new Map<string, string>([
-    ["openstreetmap.org", "osm.org"],
-    ["openstreetmap.ng", "osm.ng"],
-])
+const shortDomainUpgrades: Record<string, string> = Object.freeze({
+    "openstreetmap.org": "osm.org",
+    "openstreetmap.ng": "osm.ng",
+})
 
 /**
  * Get a short URL for the current map location
@@ -351,7 +350,7 @@ export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat): string
     const tldPos = hostname.lastIndexOf(".")
     const domainPos = hostname.lastIndexOf(".", tldPos - 1)
     const shortDomainKey = domainPos > 0 ? hostname.substring(domainPos + 1) : hostname
-    const host = shortDomainUpgrades.get(shortDomainKey) ?? location.host
+    const host = shortDomainUpgrades[shortDomainKey] ?? location.host
 
     return Object.keys(params).length
         ? `${location.protocol}//${host}/go/${code}?${qsEncode(params)}`
@@ -420,7 +419,7 @@ export const getMapGeoUri = (map: MaplibreMap): string => {
     const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)
     const latFixed = lat.toFixed(precision)
-    return `geo:${latFixed},${lonFixed}?z=${Math.floor(zoom)}`
+    return `geo:${latFixed},${lonFixed}?z=${zoom | 0}`
 }
 
 /** Add a control group to the map */

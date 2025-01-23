@@ -10,13 +10,13 @@ import { initializeElementContent } from "./_element"
 import type { IndexController } from "./_router"
 
 const themeColor = "#f60"
-const focusPaint: FocusLayerPaint = {
+const focusPaint: FocusLayerPaint = Object.freeze({
     "fill-color": themeColor,
     "fill-opacity": 0.5,
     "line-color": themeColor,
     "line-opacity": 1,
     "line-width": 4,
-}
+})
 
 const paginationDistance = 2
 

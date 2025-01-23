@@ -151,7 +151,7 @@ export const convertRenderElementsData = (render: RenderElementsData): (OSMNode 
         result.push({
             type: "way",
             id: way.id,
-            geom: decode(way.line, 6),
+            geom: decode(way.line, 6).map((x) => x.reverse()) as [number, number][],
         })
     }
     for (const node of render.nodes) {

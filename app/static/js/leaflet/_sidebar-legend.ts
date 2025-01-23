@@ -24,7 +24,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
         })
 
         // Discover the legend items and precompute their visibility
-        const layerElementsMap: Map<LayerId, { element: HTMLTableRowElement; visibility: boolean[] }[]> = new Map()
+        const layerElementsMap = new Map<LayerId, { element: HTMLTableRowElement; visibility: boolean[] }[]>()
         const layerContainers = this.sidebar.querySelectorAll("table.layer-container")
         for (const layerContainer of layerContainers) {
             const layerId = layerContainer.dataset.layerId as LayerId
@@ -76,7 +76,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
             if (!button.classList.contains("active")) return
 
             const activeLayerId = getMapBaseLayerId(map)
-            const currentZoom = Math.floor(map.getZoom())
+            const currentZoomFloor = map.getZoom() | 0
 
             for (const layerContainer of layerContainers) {
                 const layerId = layerContainer.dataset.layerId as LayerId
@@ -87,7 +87,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
                     // Update visibility of elements
                     // TODO: map key not available for this layer infobox
                     for (const { element, visibility } of layerElementsMap.get(layerId)) {
-                        const isVisible = visibility[currentZoom]
+                        const isVisible = visibility[currentZoomFloor]
                         element.classList.toggle("d-none", !isVisible)
                     }
                 } else {

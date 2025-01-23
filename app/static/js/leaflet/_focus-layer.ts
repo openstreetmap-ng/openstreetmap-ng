@@ -29,7 +29,7 @@ export interface FocusOptions {
 }
 
 const layerId = "focus" as LayerId
-const layerTypes: LayerType[] = ["fill", "line", "circle"]
+const layerTypes = Object.freeze(["fill", "line", "circle"]) as LayerType[]
 layersConfig.set(layerId as LayerId, {
     specification: {
         type: "geojson",
@@ -132,12 +132,12 @@ export const focusObjects = (
             const geometryBounds = getGeometryBounds(feature.geometry)
             bounds = bounds ? bounds.extend(geometryBounds) : geometryBounds
         }
-        const boundsPadded = options?.padBounds ? padLngLatBounds(bounds, options.padBounds) : bounds
+        const boundsPadded = padLngLatBounds(bounds, options?.padBounds ?? 0.2)
         const mapBounds = map.getBounds()
 
         const maxZoom = options?.maxZoom ?? 18
         const currentZoom = map.getZoom()
-        const fitMaxZoom = maxZoom >= currentZoom ? maxZoom : null
+        const fitMaxZoom = maxZoom >= currentZoom ? maxZoom : map.getMaxZoom()
 
         if (
             options?.intersects
@@ -160,30 +160,26 @@ export const focusObjects = (
 
 const getGeometryBounds = (g: Geometry): LngLatBounds => {
     if (g.type === "Point") {
-        return new LngLatBounds(g.coordinates as LngLatLike)
+        const [lon, lat] = g.coordinates
+        return new LngLatBounds([lon, lat, lon, lat])
     }
     if (g.type === "LineString") {
-        return g.coordinates
-            .slice(1)
-            .reduce(
-                (bounds, coord) => bounds.extend(coord as LngLatLike),
-                new LngLatBounds(g.coordinates[0] as LngLatLike),
-            )
+        return g.coordinates //
+            .reduce((bounds, coord) => bounds.extend(coord as LngLatLike), new LngLatBounds())
     }
     if (g.type === "Polygon") {
         const outer = g.coordinates[0]
         return outer
-            .slice(1, outer.length - 1)
-            .reduce((bounds, inner) => bounds.extend(inner as LngLatLike), new LngLatBounds(outer[0] as LngLatLike))
+            .slice(0, outer.length - 1)
+            .reduce((bounds, coord) => bounds.extend(coord as LngLatLike), new LngLatBounds())
     }
     if (g.type === "MultiPolygon") {
-        let bounds: LngLatBounds | null = null
+        let bounds = new LngLatBounds()
         for (const polygon of g.coordinates) {
             const outer = polygon[0]
-            const polygonBounds = outer
-                .slice(1, outer.length - 1)
-                .reduce((bounds, inner) => bounds.extend(inner as LngLatLike), new LngLatBounds(outer[0] as LngLatLike))
-            bounds = bounds ? bounds.extend(polygonBounds) : polygonBounds
+            bounds = outer
+                .slice(0, outer.length - 1)
+                .reduce((bounds, coord) => bounds.extend(coord as LngLatLike), bounds)
         }
         return bounds
     }

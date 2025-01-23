@@ -5,7 +5,7 @@ export const markerClosedImageUrl = "/static/img/marker/closed.webp"
 export const markerBlueImageUrl = "/static/img/marker/blue.webp"
 export const markerRedImageUrl = "/static/img/marker/red.webp"
 
-const images: Map<string, HTMLImageElement> = new Map()
+const images = new Map<string, HTMLImageElement>()
 
 /** Load an image into the map context */
 export const loadMapImage = (map: MaplibreMap, name: string, url: string, successCallback?: () => void): void => {

@@ -75,7 +75,7 @@ interface LayerConfig {
     priority?: number
 }
 
-export const layersConfig: Map<LayerId, LayerConfig> = new Map()
+export const layersConfig = new Map<LayerId, LayerConfig>()
 
 layersConfig.set("standard" as LayerId, {
     specification: {
@@ -188,7 +188,7 @@ layersConfig.set("gps" as LayerId, {
 
 const layerLookupMap = staticCache((): Map<LayerId | LayerCode, LayerId> => {
     console.debug("Lazily initializing layerLookupMap with", layersConfig.size, "configured layers")
-    const result: Map<LayerId | LayerCode, LayerId> = new Map()
+    const result = new Map<LayerId | LayerCode, LayerId>()
     for (const [layerId, config] of layersConfig) {
         result.set(layerId, layerId)
         if (layerId === "standard") {
@@ -255,12 +255,12 @@ export type LayerType =
     | "hillshade"
     | "background"
 
-const layerTypeFilters: Map<LayerType, FilterSpecification> = new Map([
-    ["fill", ["==", ["geometry-type"], "Polygon"]],
-    ["line", ["==", ["geometry-type"], "LineString"]],
-    ["circle", ["==", ["geometry-type"], "Point"]],
-    ["symbol", ["==", ["geometry-type"], "Point"]],
-])
+const layerTypeFilters = Object.freeze({
+    fill: ["==", ["geometry-type"], "Polygon"],
+    line: ["==", ["geometry-type"], "LineString"],
+    circle: ["==", ["geometry-type"], "Point"],
+    symbol: ["==", ["geometry-type"], "Point"],
+}) as Record<LayerType, FilterSpecification>
 
 export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = true): void => {
     const config = layersConfig.get(layerId)
@@ -316,7 +316,7 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = t
         } else {
             layerObject.id = layerId
         }
-        const filter = layerTypeFilters.get(type)
+        const filter = layerTypeFilters[type]
         // @ts-ignore
         if (filter) layerObject.filter = filter
         map.addLayer(layerObject, beforeId)

@@ -1,9 +1,6 @@
 import { mod } from "./_utils"
 import type { LonLatZoom } from "./leaflet/_map-utils"
 
-/** 64 chars to encode 6 bits */
-const _ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
-
 /**
  * Encode a coordinate and zoom level to a short link code
  * @example
@@ -11,25 +8,63 @@ const _ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~
  * // => "wF7ZdNbjU-"
  */
 export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom): string => {
-    zoom = Math.floor(zoom)
-    const x = BigInt(Math.floor(mod(lon + 180, 360) * 11930464.711111112)) // (2 ** 32) / 360
-    const y = BigInt(Math.floor((lat + 90) * 23860929.422222223)) // (2 ** 32) / 180
+    const z = (zoom | 0) + 8
+    const d = Math.ceil((z + 8) / 3)
+    const r = (z + 8) % 3
+
+    const x = BigInt((mod(lon + 180, 360) * 11930464.711111112) | 0) // (2 ** 32) / 360
+    const y = BigInt(((lat + 90) * 23860929.422222223) | 0) // (2 ** 32) / 180
+
     let c = 0n
-
-    for (let i = 31n; i >= 0; i--) {
-        c = (c << 2n) | (((x >> i) & 1n) << 1n) | ((y >> i) & 1n)
+    for (const mask of bitMasks) {
+        // noinspection JSBitwiseOperatorUsage
+        c = (c << 2n) | (x & mask ? 2n : 0n) | (y & mask ? 1n : 0n)
     }
 
-    const d = Math.ceil((zoom + 8) / 3)
-    const r = (zoom + 8) % 3
-
-    const strList = new Array(d + r)
-    if (r) strList.fill("-", d)
-
+    const buffer = new Array(d + r)
     for (let i = 0; i < d; i++) {
-        const digit = (c >> (58n - 6n * BigInt(i))) & 0x3fn
-        strList[i] = _ARRAY[Number(digit)]
+        buffer[i] = code[Number((c >> BigInt(58 - 6 * i)) & 0x3fn)]
+    }
+    for (let i = d; i < buffer.length; i++) {
+        buffer[i] = "-"
     }
 
-    return strList.join("")
+    return buffer.join("")
 }
+
+/** 64 chars to encode 6 bits */
+const code = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
+const bitMasks = Object.freeze([
+    2147483648n,
+    1073741824n,
+    536870912n,
+    268435456n,
+    134217728n,
+    67108864n,
+    33554432n,
+    16777216n,
+    8388608n,
+    4194304n,
+    2097152n,
+    1048576n,
+    524288n,
+    262144n,
+    131072n,
+    65536n,
+    32768n,
+    16384n,
+    8192n,
+    4096n,
+    2048n,
+    1024n,
+    512n,
+    256n,
+    128n,
+    64n,
+    32n,
+    16n,
+    8n,
+    4n,
+    2n,
+    1n,
+]) // Array.from({ length: 32 }, (_, i) => 1n << BigInt(31 - i))

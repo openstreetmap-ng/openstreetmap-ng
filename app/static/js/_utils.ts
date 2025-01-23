@@ -36,7 +36,7 @@ export const beautifyZoom = (zoom: number): string => zoom.toFixed(2).replace(/\
  * zoomPrecision(17)
  * // => 5
  */
-export const zoomPrecision = (zoom: number): number => Math.max(0, Math.ceil(Math.log(Math.floor(zoom)) / Math.LN2))
+export const zoomPrecision = (zoom: number): number => Math.max(0, Math.ceil(Math.log(zoom | 0) / Math.LN2))
 
 /**
  * Compute the modulo of a number, supporting negative numbers
@@ -86,7 +86,7 @@ export const isHrefCurrentPage = (href: string): boolean => {
  * getUnixTimestamp()
  * // => 1717761123
  */
-export const getUnixTimestamp = (): number => Math.floor(Date.now() / 1000)
+export const getUnixTimestamp = (): number => (Date.now() / 1000) | 0
 
 /**
  * Create a Python-like range of numbers

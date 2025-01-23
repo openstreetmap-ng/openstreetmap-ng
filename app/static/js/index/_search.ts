@@ -40,19 +40,19 @@ layersConfig.set(layerId, {
 })
 
 const themeColor = "#f60"
-const focusPaint: FocusLayerPaint = {
+const focusPaint: FocusLayerPaint = Object.freeze({
     "fill-color": themeColor,
     "fill-opacity": 0.5,
     "line-color": themeColor,
     "line-opacity": 1,
     "line-width": 4,
-}
-const focusOptions: FocusOptions = {
+})
+const focusOptions: FocusOptions = Object.freeze({
     padBounds: 0.5,
     maxZoom: 14,
     intersects: true,
     proportionCheck: false,
-}
+})
 
 const searchAlertChangeThreshold = 0.9
 
@@ -237,7 +237,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
                 setPageTitle(whereIsThisTitle)
                 setSearchFormQuery(null)
 
-                const zoom = Math.floor(Number(options?.zoom ?? searchParams.zoom ?? map.getZoom())).toString()
+                const zoom = (Number(options?.zoom ?? searchParams.zoom ?? map.getZoom()) | 0).toString()
                 const url = `/api/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`
                 base.load(url)
             } else {

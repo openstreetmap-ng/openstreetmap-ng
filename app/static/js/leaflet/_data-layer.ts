@@ -46,7 +46,7 @@ layersConfig.set(layerId as LayerId, {
     priority: 100,
 })
 
-const loadDataAlertThreshold = 8000
+const loadDataAlertThreshold = 10_000
 
 /** Configure the data layer for the given map */
 export const configureDataLayer = (map: MaplibreMap): void => {

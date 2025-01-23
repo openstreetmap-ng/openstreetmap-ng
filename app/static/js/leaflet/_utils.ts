@@ -55,7 +55,8 @@ export const getLngLatBoundsIntersection = (bounds1: LngLatBounds, bounds2: LngL
 }
 
 /** Pad bounds to grow/shrink them */
-export const padLngLatBounds = (bounds: LngLatBounds, padding: number): LngLatBounds => {
+export const padLngLatBounds = (bounds: LngLatBounds, padding?: number): LngLatBounds => {
+    if (!padding) return bounds
     const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
     const paddingX = padding * (maxLon - minLon)
     const paddingY = padding * (maxLat - minLat)

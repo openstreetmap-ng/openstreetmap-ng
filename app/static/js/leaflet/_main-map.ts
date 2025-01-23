@@ -12,7 +12,7 @@ import { getIndexController } from "../index/_index"
 import { getNewNoteController } from "../index/_new-note"
 import { getNoteController } from "../index/_note"
 import { getQueryFeaturesController } from "../index/_query-features"
-import { configureRouter } from "../index/_router"
+import { type IndexController, configureRouter } from "../index/_router"
 import { getRoutingController } from "../index/_routing"
 import { getSearchController } from "../index/_search"
 import { configureSearchForm } from "../index/_search-form"
@@ -102,7 +102,7 @@ const configureMainMap = (container: HTMLElement): void => {
     }
 
     configureRouter(
-        new Map([
+        new Map<string, IndexController>([
             ["/", getIndexController(map)],
             ["/export", getExportController(map)],
             ["/directions", getRoutingController(map)],

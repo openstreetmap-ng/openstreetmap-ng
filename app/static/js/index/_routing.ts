@@ -390,7 +390,8 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
 
         // Create a single geometry for the route
         const stepsGeoms: [number, number][][] = []
-        for (const step of route.steps) stepsGeoms.push(decode(step.line, 6))
+        for (const step of route.steps)
+            stepsGeoms.push(decode(step.line, 6).map((x) => x.reverse()) as [number, number][])
         const fullGeom: [number, number][] = [].concat(...stepsGeoms)
         if (fullGeom.length) {
             lines.push({

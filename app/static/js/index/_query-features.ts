@@ -163,7 +163,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
             const abortSignal = abortController.signal
 
             // Fetch nearby features
-            const zoomFloor = Math.floor(zoom)
+            const zoomFloor = zoom | 0
             onSidebarLoading(center, zoomFloor, abortSignal)
             fetch(
                 `/api/partial/query/nearby?${qsEncode({

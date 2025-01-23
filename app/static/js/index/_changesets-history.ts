@@ -60,7 +60,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     let noMoreChangesets = false
     let loadScope: string | undefined = undefined
     let loadDisplayName: string | undefined = undefined
-    const idSidebarMap: Map<bigint, HTMLElement> = new Map()
+    const idSidebarMap = new Map<bigint, HTMLElement>()
 
     const updateSidebar = (): void => {
         idSidebarMap.clear()

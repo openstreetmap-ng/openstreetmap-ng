@@ -32,7 +32,7 @@ const rememberChoice = editGroup.querySelector("input[name=remember-choice]")
 
 const mapLinks = navbar.querySelectorAll(".map-link") as NodeListOf<HTMLAnchorElement | HTMLButtonElement>
 // Map of navbar elements to their base href
-const mapLinksHrefMap: Map<HTMLAnchorElement | HTMLButtonElement, string> = new Map()
+const mapLinksHrefMap = new Map<HTMLAnchorElement | HTMLButtonElement, string>()
 for (const link of mapLinks) {
     mapLinksHrefMap.set(link, link instanceof HTMLAnchorElement ? link.href : "")
 }
@@ -189,6 +189,6 @@ window.addEventListener("message", (event: MessageEvent): void => {
     const data = event.data
     if (data.type === "mapState") {
         const { lon, lat, zoom } = data.state as LonLatZoom
-        updateNavbarAndHash({ lon, lat, zoom: Math.floor(zoom), layersCode: "" })
+        updateNavbarAndHash({ lon, lat, zoom, layersCode: "" })
     }
 })

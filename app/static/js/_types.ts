@@ -1,8 +1,6 @@
 export interface OSMNode {
     type: "node"
     id: bigint
-    // TODO: leaflet leftover [lon, lat]
-    /** [lat, lon] */
     geom: [number, number]
     version?: bigint
 }
@@ -10,8 +8,6 @@ export interface OSMNode {
 export interface OSMWay {
     type: "way"
     id: bigint
-    // TODO: leaflet leftover [lon, lat]
-    /** [[lat, lon], ...] */
     geom: [number, number][]
     version?: bigint
     area?: boolean
@@ -26,8 +22,6 @@ export interface OSMRelation {
 export interface OSMNote {
     type: "note"
     id?: bigint
-    /** [lat, lon] */
-    // TODO: leaflet leftover [lon, lat]
     geom: [number, number]
     open: boolean
     text: string

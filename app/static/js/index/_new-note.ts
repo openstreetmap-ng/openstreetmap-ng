@@ -13,13 +13,13 @@ import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
 const themeColor = "#f60"
-const focusPaint: FocusLayerPaint = {
+const focusPaint: FocusLayerPaint = Object.freeze({
     "circle-radius": 20,
     "circle-color": themeColor,
     "circle-opacity": 0.5,
     "circle-stroke-width": 2.5,
     "circle-stroke-color": themeColor,
-}
+})
 
 /** Create a new new note controller */
 export const getNewNoteController = (map: MaplibreMap): IndexController => {

@@ -90,12 +90,12 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "diaries/index";
 @import "diaries/scroll_nav";
 
+@import "leaflet/alert";
 @import "leaflet/attribution";
 @import "leaflet/context-menu";
 @import "leaflet/leaflet";
 @import "leaflet/location-filter";
 @import "leaflet/main-map";
-//@import "leaflet/map-alert";
 @import "leaflet/marker";
 @import "leaflet/popup";
 @import "leaflet/sidebar";

@@ -69,17 +69,15 @@ export const configureContextMenu = (map: MaplibreMap): void => {
         const lat = lngLat.lat.toFixed(precision)
         geolocationField.textContent = `${lat}, ${lon}`
         geolocationGeoField.textContent = formatCoordinate({ lon: lngLat.lng, lat: lngLat.lat })
-        geolocationUriField.textContent = `geo:${lat},${lon}?z=${Math.floor(zoom)}`
+        geolocationUriField.textContent = `geo:${lat},${lon}?z=${zoom | 0}`
 
         // Open the context menu
         popup.setLngLat(lngLat).addTo(map)
 
         // Ensure the popup remains visible
         const element = popup.getElement()
-        const popupSize = [element.clientWidth, element.clientHeight] as const
-        const containerSize = [mapContainer.clientWidth, mapContainer.clientHeight] as const
-        const isOverflowX = point.x + popupSize[0] + 30 >= containerSize[0]
-        const isOverflowY = point.y + popupSize[1] + 30 >= containerSize[1]
+        const isOverflowX = point.x + element.clientWidth + 30 >= mapContainer.clientWidth
+        const isOverflowY = point.y + element.clientHeight + 30 >= mapContainer.clientHeight
         const translateX = isOverflowX ? "-100%" : "0%"
         const translateY = isOverflowY ? "-100%" : "0%"
         element.style.translate = `${translateX} ${translateY}`

@@ -7,12 +7,8 @@
 export const qsParse = (qs: string): { [key: string]: string } => {
     const params = new URLSearchParams(qs)
     const result: { [key: string]: string } = {}
-    for (const [key, value] of params) {
-        if (key in result) {
-            result[key] += `;${value}`
-        } else {
-            result[key] = value
-        }
+    for (const key of params.keys()) {
+        if (result[key] === undefined) result[key] = params.getAll(key).join(";")
     }
     return result
 }

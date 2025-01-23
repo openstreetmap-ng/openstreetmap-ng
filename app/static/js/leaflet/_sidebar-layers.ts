@@ -30,7 +30,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
         const button = container.querySelector("button")
 
         const minimaps: MaplibreMap[] = []
-        const layerIdContainerMap: Map<LayerId, HTMLElement> = new Map()
+        const layerIdContainerMap = new Map<LayerId, HTMLElement>()
         for (const container of [
             ...this.sidebar.querySelectorAll("div.base.layer"),
             ...this.sidebar.querySelectorAll("div.overlay.layer"),
@@ -38,7 +38,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
             const layerId = container.dataset.layerId as LayerId
             layerIdContainerMap.set(layerId, container)
         }
-        const layerIdOverlayCheckboxMap: Map<LayerId, HTMLInputElement> = new Map()
+        const layerIdOverlayCheckboxMap = new Map<LayerId, HTMLInputElement>()
         for (const overlayCheckbox of this.sidebar.querySelectorAll("input.overlay")) {
             layerIdOverlayCheckboxMap.set(overlayCheckbox.value as LayerId, overlayCheckbox)
         }

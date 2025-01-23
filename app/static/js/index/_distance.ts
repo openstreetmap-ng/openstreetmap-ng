@@ -16,8 +16,6 @@ import { closestPointOnSegment, getMarkerIconElement, markerIconAnchor } from ".
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 
-const mapThrottleDelay = 16 // 60 FPS
-
 const layerId = "distance" as LayerId
 layersConfig.set(layerId as LayerId, {
     specification: {
@@ -37,6 +35,8 @@ layersConfig.set(layerId as LayerId, {
     },
     priority: 160,
 })
+
+const mapThrottleDelay = 16 // 60 FPS
 
 /** Like window.history.replaceState, but throttled */
 const throttledHistoryReplaceState = throttle(
