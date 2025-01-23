@@ -141,6 +141,7 @@ export const memoize = <T extends (...args: any[]) => any>(fn: T): T => {
     }) as T
 }
 
+/** Wrap a low-priority function to execute during idle time */
 export const wrapIdleCallbackStatic = <T extends (...args: any[]) => any>(fn: T, timeout = 5000): T => {
     let idleCallbackId: number | null = null
     return ((...args: any[]) => {
@@ -148,3 +149,15 @@ export const wrapIdleCallbackStatic = <T extends (...args: any[]) => any>(fn: T,
         idleCallbackId = requestIdleCallbackPolyfill(() => fn(...args), { timeout })
     }) as T
 }
+
+/**
+ * Wrap message event handler to accept only messages from trusted sources
+ * @param fn - Message event handler
+ * @param isParent - If true, only messages from child domains are accepted, otherwise only from parent domains
+ */
+export const wrapMessageEventValidator = <T extends (event: MessageEvent) => any>(fn: T, isParent = true): T =>
+    ((event: MessageEvent) => {
+        const eventHost = `.${event.origin.replace(/^https?:\/\//, "")}`
+        if (isParent ? eventHost.endsWith(currentHost) : currentHost.endsWith(eventHost)) return fn(event)
+    }) as T
+const currentHost = `.${window.location.host}`

@@ -1,4 +1,5 @@
 import { getSystemAppAccessToken, setSystemAppAccessToken } from "./_local-storage"
+import { wrapMessageEventValidator } from "./_utils"
 
 /** Load system app access token and call successCallback with it */
 const loadSystemApp = (clientId: string, successCallback: (token: string) => void): void => {
@@ -61,20 +62,16 @@ export const configureIFrameSystemApp = (clientId: string, iframe: HTMLIFrameEle
     console.debug("configureIFrameSystemApp", clientId, iframeOrigin)
 
     /** Handle load system app requests, obtain token and respond back */
-    const onWindowMessage = (event: MessageEvent): void => {
-        const data = event.data
-        if (data.type === "loadSystemApp") {
-            // Respond only once
-            window.removeEventListener("message", onWindowMessage)
-
-            console.debug("Received loadSystemApp request")
-            loadSystemApp(clientId, (accessToken) => {
-                console.debug("Responding to loadSystemApp request")
-                iframe.contentWindow.postMessage({ type: "loadedSystemApp", accessToken }, iframeOrigin)
-            })
-        }
-    }
-
+    const onWindowMessage = wrapMessageEventValidator(({ data }: MessageEvent): void => {
+        if (data.type !== "loadSystemApp") return
+        // Respond only once
+        window.removeEventListener("message", onWindowMessage)
+        console.debug("Received loadSystemApp request")
+        loadSystemApp(clientId, (accessToken) => {
+            console.debug("Responding to loadSystemApp request")
+            iframe.contentWindow.postMessage({ type: "loadedSystemApp", accessToken }, iframeOrigin)
+        })
+    })
     window.addEventListener("message", onWindowMessage)
 }
 
@@ -83,20 +80,15 @@ export const parentLoadSystemApp = (successCallback: (token: string) => void): v
     console.debug("parentLoadSystemApp")
 
     /** Handle load system app response, call successCallback with access token */
-    const onWindowMessage = (event: MessageEvent): void => {
-        const data = event.data
-        if (data.type === "loadedSystemApp") {
-            // Respond only once
-            window.removeEventListener("message", onWindowMessage)
-
-            console.debug("Received loadSystemApp response")
-            successCallback(data.accessToken)
-        }
-    }
-
-    // Listen for events
+    const onWindowMessage = wrapMessageEventValidator(({ data }: MessageEvent): void => {
+        if (data.type !== "loadedSystemApp") return
+        // Respond only once
+        window.removeEventListener("message", onWindowMessage)
+        console.debug("Received loadSystemApp response")
+        successCallback(data.accessToken)
+    }, false)
     window.addEventListener("message", onWindowMessage)
 
     // Request system app load
-    window.parent.postMessage({ type: "loadSystemApp" }, "*")
+    window.parent.postMessage({ type: "loadSystemApp" }, "*") // wildcard publish: nothing sensitive
 }
