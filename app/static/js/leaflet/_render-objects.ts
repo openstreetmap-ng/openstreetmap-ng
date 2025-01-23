@@ -11,7 +11,7 @@ interface RenderOptions {
 /** Render OSMObjects to GeoJSON data */
 export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOptions>): FeatureCollection => {
     const features: Feature[] = []
-    let featureIdCounter = 0
+    let featureIdCounter = 1
 
     const processChangeset = (changeset: OSMChangeset): void => {
         const properties = {
