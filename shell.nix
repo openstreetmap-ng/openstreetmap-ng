@@ -327,6 +327,7 @@ let
         --python_out app/models/proto \
         --pyi_out app/models/proto \
         app/models/proto/*.proto
+      rm app/static/js/proto/server*
     '')
     (makeScript "watch-proto" "exec watchexec -o queue -w app/models/proto --exts proto proto-pipeline")
 
