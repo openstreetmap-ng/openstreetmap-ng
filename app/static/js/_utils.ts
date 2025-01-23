@@ -28,7 +28,7 @@ export const isZoom = (zoom: number): boolean => zoom >= 0 && zoom <= 25
  * beautifyZoom(4.4321)
  * // => "4.43"
  */
-export const beautifyZoom = (zoom: number): string => zoom.toFixed(2).replace(/\.?0+$/, "")
+export const beautifyZoom = (zoom: number): string => (((zoom * 100) | 0) / 100).toString()
 
 /**
  * Compute the coordinate precision for a given zoom level
