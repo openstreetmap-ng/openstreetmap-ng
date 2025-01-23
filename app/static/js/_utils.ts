@@ -140,3 +140,11 @@ export const memoize = <T extends (...args: any[]) => any>(fn: T): T => {
         return cached
     }) as T
 }
+
+export const wrapIdleCallbackStatic = <T extends (...args: any[]) => any>(fn: T, timeout = 5000): T => {
+    let idleCallbackId: number | null = null
+    return ((...args: any[]) => {
+        cancelIdleCallbackPolyfill(idleCallbackId)
+        idleCallbackId = requestIdleCallbackPolyfill(() => fn(...args), { timeout })
+    }) as T
+}
