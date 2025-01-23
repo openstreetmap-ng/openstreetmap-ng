@@ -398,7 +398,7 @@ action:
   commented: commented
   deleted: deleted
   edited: edited
-  hid: hid
+  hidden: hidden
   unhide: Unhide
   unblock_user: Unblock user
   unfollow_user: Unfollow user
