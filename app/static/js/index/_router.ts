@@ -2,7 +2,7 @@ import { type Route, makeRoute } from "./_route"
 
 export interface IndexController {
     load: (matchGroups: { [key: string]: string }) => void
-    unload: (newPath: string) => void
+    unload: (newPath?: string) => void
 }
 
 let routes: Route[] | null = null

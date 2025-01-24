@@ -18,7 +18,7 @@ import { qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
 import { setPageTitle } from "../_title"
 import { zoomPrecision } from "../_utils"
-import { decMapHover, incMapHover } from "../leaflet/_hover.ts"
+import { clearMapHover, setMapHover } from "../leaflet/_hover.ts"
 import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers"
 import { getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
 import { type RoutingResult, RoutingResultSchema } from "../proto/shared_pb"
@@ -149,7 +149,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             if (hoveredFeatureId === featureId) return
             setHover(hoveredFeatureId, false)
         } else {
-            incMapHover(map)
+            setMapHover(map, layerId)
         }
         hoveredFeatureId = featureId as number
         setHover(hoveredFeatureId, true)
@@ -157,7 +157,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     map.on("mouseleave", layerId, () => {
         setHover(hoveredFeatureId, false)
         hoveredFeatureId = null
-        decMapHover(map)
+        clearMapHover(map, layerId)
     })
 
     /** Set the hover state of the step features */
@@ -489,6 +489,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             map.off("moveend", onMapZoomOrMoveEnd)
             removeMapLayer(map, layerId)
             source.setData(emptyFeatureCollection)
+            clearMapHover(map, layerId)
             mapContainer.removeEventListener("dragover", onMapDragOver)
             mapContainer.removeEventListener("drop", onMapDrop)
 

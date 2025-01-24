@@ -19,6 +19,7 @@ import { getBaseFetchController } from "./_base-fetch.ts"
 import type { IndexController } from "./_router"
 
 const focusPaint: FocusLayerPaint = Object.freeze({
+    "fill-opacity": 0,
     "line-color": "#f90",
     "line-opacity": 1,
     "line-width": 3,

@@ -1,26 +1,22 @@
 import type { Map as MaplibreMap } from "maplibre-gl"
 
-const mapHoverCounter = new WeakMap<MaplibreMap, number>()
+const mapHoverState = new WeakMap<MaplibreMap, Set<string>>()
 
-/** Increment the map hover counter, and set the cursor to pointer */
-export const incMapHover = (map: MaplibreMap): void => {
-    const counter = mapHoverCounter.get(map)
-    if (!counter) {
-        mapHoverCounter.set(map, 1)
-        map.getCanvas().style.cursor = "pointer"
-    } else {
-        mapHoverCounter.set(map, counter + 1)
+/** Indicate that the map is hovered over the given layer/id */
+export const setMapHover = (map: MaplibreMap, id: string): void => {
+    let counter = mapHoverState.get(map)
+    if (counter === undefined) {
+        counter = new Set<string>()
+        mapHoverState.set(map, counter)
     }
+    if (!counter.size) map.getCanvas().style.cursor = "pointer"
+    counter.add(id)
 }
 
-/** Decrement the map hover counter, and eventually reset the cursor */
-export const decMapHover = (map: MaplibreMap): void => {
-    const counter = mapHoverCounter.get(map)
+/** Indicate that the map is no longer hovered over the given layer/id */
+export const clearMapHover = (map: MaplibreMap, id: string): void => {
+    const counter = mapHoverState.get(map)
     if (!counter) return
-    if (counter === 1) {
-        mapHoverCounter.set(map, 0)
-        map.getCanvas().style.cursor = ""
-    } else {
-        mapHoverCounter.set(map, counter - 1)
-    }
+    counter.delete(id)
+    if (!counter.size) map.getCanvas().style.cursor = ""
 }

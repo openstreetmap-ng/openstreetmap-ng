@@ -19,8 +19,6 @@ layersConfig.set(layerId as LayerId, {
     },
 })
 
-const dragThrottleDelay = 16 // 60 FPS
-
 export class LocationFilterControl implements IControl {
     private _map: MaplibreMap
     private _bounds: Bounds
@@ -44,7 +42,7 @@ export class LocationFilterControl implements IControl {
             .addTo(map)
         this._grabber.on(
             "drag",
-            throttle(() => this._processMarkerUpdate(-1), dragThrottleDelay),
+            throttle(() => this._processMarkerUpdate(-1), 16),
         )
         this._corners = []
         for (const [i, x, y] of [
@@ -62,7 +60,7 @@ export class LocationFilterControl implements IControl {
                 .addTo(map)
             corner.on(
                 "drag",
-                throttle(() => this._processMarkerUpdate(i), dragThrottleDelay),
+                throttle(() => this._processMarkerUpdate(i), 16),
             )
             this._corners.push(corner)
         }

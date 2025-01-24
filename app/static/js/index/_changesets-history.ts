@@ -6,7 +6,7 @@ import { resolveDatetimeLazy } from "../_datetime"
 import { qsEncode } from "../_qs"
 import { setPageTitle } from "../_title"
 import type { OSMChangeset } from "../_types"
-import { decMapHover, incMapHover } from "../leaflet/_hover.ts"
+import { clearMapHover, setMapHover } from "../leaflet/_hover.ts"
 import {
     type LayerId,
     addMapLayer,
@@ -16,7 +16,12 @@ import {
     removeMapLayer,
 } from "../leaflet/_layers.ts"
 import { convertRenderChangesetsData, renderObjects } from "../leaflet/_render-objects.ts"
-import { makeBoundsMinimumSize, padLngLatBounds } from "../leaflet/_utils"
+import {
+    getLngLatBoundsIntersection,
+    getLngLatBoundsSize,
+    makeBoundsMinimumSize,
+    padLngLatBounds,
+} from "../leaflet/_utils"
 import { RenderChangesetsDataSchema, type RenderChangesetsData_Changeset } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
@@ -44,6 +49,8 @@ layersConfig.set(layerId as LayerId, {
     priority: 120,
 })
 
+const reloadProportionThreshold = 0.9
+
 /** Create a new changesets history controller */
 export const getChangesetsHistoryController = (map: MaplibreMap): IndexController => {
     const source = map.getSource(layerId) as GeoJSONSource
@@ -58,7 +65,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
     // Store changesets to allow loading more
     const changesets: RenderChangesetsData_Changeset[] = []
-    let changesetsBBox: string | undefined = undefined
+    let fetchedBounds: LngLatBounds | null = null
     let noMoreChangesets = false
     let loadScope: string | undefined = undefined
     let loadDisplayName: string | undefined = undefined
@@ -79,7 +86,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         console.debug("Changesets layer showing", changesets.length, "changesets")
 
         // When initial loading for scope/user, focus on the changesets
-        if (!changesetsBBox && changesets.length) {
+        if (!fetchedBounds && changesets.length) {
             let lngLatBounds: LngLatBounds | null = null
             for (const changeset of changesetsMinimumSize) {
                 if (!changeset.bounds.length) continue
@@ -169,7 +176,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
             if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
         }
-        for (let i = firstFeatureId; i < firstFeatureId + numBounds; i++) {
+        for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
             map.setFeatureState({ source: layerId, id: i }, { hover })
         }
     }
@@ -191,7 +198,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             if (hoveredFeature.id === feature.id) return
             setHover(hoveredFeature.properties, false)
         } else {
-            incMapHover(map)
+            setMapHover(map, layerId)
         }
         hoveredFeature = feature
         setHover(hoveredFeature.properties, true)
@@ -199,7 +206,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     map.on("mouseleave", layerIdFill, () => {
         setHover(hoveredFeature.properties, false)
         hoveredFeature = null
-        decMapHover(map)
+        clearMapHover(map, layerId)
     })
 
     /** On sidebar scroll bottom, load more changesets */
@@ -211,30 +218,41 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
     /** On map update, fetch the changesets in view and update the changesets layer */
     const updateState = (): void => {
+        // Request full world when initial loading for scope/user
+        const fetchBounds = fetchedBounds || (!loadScope && !loadDisplayName) ? map.getBounds() : null
+        const params: { [key: string]: string | undefined } = { scope: loadScope, display_name: loadDisplayName }
+
+        if (fetchedBounds === fetchBounds) {
+            // Load more changesets
+            if (noMoreChangesets) return
+            params.before = changesets[changesets.length - 1].id.toString()
+        } else {
+            // Ignore small bounds changes
+            if (fetchedBounds && fetchBounds) {
+                const visibleBounds = getLngLatBoundsIntersection(fetchedBounds, fetchBounds)
+                const visibleArea = getLngLatBoundsSize(visibleBounds)
+                const fetchArea = getLngLatBoundsSize(fetchBounds)
+                const proportion = visibleArea / Math.max(getLngLatBoundsSize(fetchedBounds), fetchArea)
+                if (proportion > reloadProportionThreshold) return
+            }
+
+            // Clear the changesets if the bbox changed
+            changesets.length = 0
+            noMoreChangesets = false
+            entryContainer.innerHTML = ""
+        }
+        if (fetchBounds) {
+            const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds.adjustAntiMeridian().toArray()
+            params.bbox = `${minLon},${minLat},${maxLon},${maxLat}`
+        }
+
+        loadingContainer.classList.remove("d-none")
+        parentSidebar.removeEventListener("scroll", onSidebarScroll)
+
         // Abort any pending request
         abortController?.abort()
         abortController = new AbortController()
         const signal = abortController.signal
-
-        const [[minLon, minLat], [maxLon, maxLat]] = map.getBounds().adjustAntiMeridian().toArray()
-        // Request full world when initial loading for scope/user
-        const bbox =
-            !changesetsBBox && (loadScope || loadDisplayName) ? undefined : `${minLon},${minLat},${maxLon},${maxLat}`
-        const params: { [key: string]: string | undefined } = { scope: loadScope, display_name: loadDisplayName, bbox }
-
-        if (changesetsBBox === bbox && changesets.length) {
-            params.before = changesets[changesets.length - 1].id.toString()
-        } else {
-            // Clear the changesets if the bbox changed
-            changesets.length = 0
-            changesetsBBox = bbox
-            noMoreChangesets = false
-            entryContainer.innerHTML = ""
-        }
-
-        if (noMoreChangesets) return
-        loadingContainer.classList.remove("d-none")
-        parentSidebar.removeEventListener("scroll", onSidebarScroll)
 
         fetch(`/api/web/changeset/map?${qsEncode(params)}`, {
             method: "GET",
@@ -248,15 +266,22 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
                 const buffer = await resp.arrayBuffer()
                 const newChangesets = fromBinary(RenderChangesetsDataSchema, new Uint8Array(buffer)).changesets
-                changesets.push(...newChangesets)
-
-                if (!newChangesets.length) {
+                if (newChangesets.length) {
+                    changesets.push(...newChangesets)
+                    console.debug(
+                        "Changesets layer showing",
+                        changesets.length,
+                        "changesets, including",
+                        newChangesets.length,
+                        "new",
+                    )
+                } else {
                     console.debug("No more changesets")
                     noMoreChangesets = true
                 }
-
                 updateLayers()
                 updateSidebar()
+                fetchedBounds = fetchBounds
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
@@ -312,8 +337,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             parentSidebar.removeEventListener("scroll", onSidebarScroll)
             removeMapLayer(map, layerId)
             source.setData(emptyFeatureCollection)
+            clearMapHover(map, layerId)
             changesets.length = 0
-            changesetsBBox = undefined
+            fetchedBounds = null
             idSidebarMap.clear()
             idFirstFeatureIdMap.clear()
         },

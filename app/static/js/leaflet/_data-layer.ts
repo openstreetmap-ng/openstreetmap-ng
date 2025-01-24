@@ -6,7 +6,7 @@ import type { OSMNode, OSMWay } from "../_types"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderElementsDataSchema } from "../proto/shared_pb"
 import { getMapAlert } from "./_alert"
-import { decMapHover, incMapHover } from "./_hover.ts"
+import { clearMapHover, setMapHover } from "./_hover.ts"
 import {
     type LayerCode,
     type LayerId,
@@ -72,6 +72,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
         fetchedBounds = null
         fetchedElements = null
         source.setData(emptyFeatureCollection)
+        clearMapHover(map, layerId)
     }
 
     /** On feature click, navigate to the object page */
@@ -88,7 +89,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
             if (hoveredFeatureId === featureId) return
             map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
         } else {
-            incMapHover(map)
+            setMapHover(map, layerId)
         }
         hoveredFeatureId = featureId
         map.setFeatureState({ source: layerId, id: hoveredFeatureId }, { hover: true })
@@ -96,7 +97,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
     const onFeatureLeave = (): void => {
         map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
         hoveredFeatureId = null
-        decMapHover(map)
+        clearMapHover(map, layerId)
     }
 
     for (const type of ["fill", "line", "circle"] as const) {

@@ -228,9 +228,9 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
                     )
                 })
         },
-        unload: (newPath: string) => {
+        unload: (newPath?: string) => {
             // On navigation, deactivate query features button
-            if (!newPath.startsWith("/query") && queryFeaturesButton.classList.contains("active")) {
+            if (!newPath?.startsWith("/query") && queryFeaturesButton.classList.contains("active")) {
                 console.debug("Deactivating query features button")
                 queryFeaturesButton.click()
             }

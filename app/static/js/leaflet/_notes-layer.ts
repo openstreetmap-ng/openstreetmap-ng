@@ -3,7 +3,7 @@ import { type GeoJSONSource, type LngLat, type LngLatBounds, type Map as Maplibr
 import { noteQueryAreaMaxSize } from "../_config"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderNotesDataSchema } from "../proto/shared_pb"
-import { decMapHover, incMapHover } from "./_hover.ts"
+import { clearMapHover, setMapHover } from "./_hover.ts"
 import { loadMapImage, markerClosedImageUrl, markerOpenImageUrl } from "./_image.ts"
 import { type LayerCode, type LayerId, addLayerEventHandler, emptyFeatureCollection, layersConfig } from "./_layers"
 import { convertRenderNotesData, renderObjects } from "./_render-objects"
@@ -60,7 +60,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
             if (hoveredFeatureId === featureId) return
             map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
         } else {
-            incMapHover(map)
+            setMapHover(map, layerId)
         }
         hoveredFeatureId = featureId
         map.setFeatureState({ source: layerId, id: hoveredFeatureId }, { hover: true })
@@ -77,7 +77,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         hoveredFeatureId = null
         clearTimeout(hoverPopupTimeout)
         hoverPopup.remove()
-        decMapHover(map)
+        clearMapHover(map, layerId)
     })
 
     /** On map update, fetch the notes and update the notes layer */
@@ -140,6 +140,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
             abortController?.abort()
             abortController = null
             source.setData(emptyFeatureCollection)
+            clearMapHover(map, layerId)
             fetchedBounds = null
         }
     })

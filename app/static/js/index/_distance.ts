@@ -5,8 +5,10 @@ import {
     type LngLat,
     LngLatBounds,
     type LngLatLike,
+    MapMouseEvent,
     type Map as MaplibreMap,
     Marker,
+    Point,
 } from "maplibre-gl"
 import { formatDistance } from "../_format-utils"
 import { qsParse } from "../_qs"
@@ -36,8 +38,6 @@ layersConfig.set(layerId as LayerId, {
     priority: 160,
 })
 
-const mapThrottleDelay = 16 // 60 FPS
-
 /** Like window.history.replaceState, but throttled */
 const throttledHistoryReplaceState = throttle(
     (url: string | URL | null): void => window.history.replaceState(null, "", url),
@@ -46,6 +46,7 @@ const throttledHistoryReplaceState = throttle(
 
 /** Create a new distance measuring controller */
 export const getDistanceController = (map: MaplibreMap): IndexController => {
+    const mapContainer = map.getContainer()
     const source = map.getSource(layerId) as GeoJSONSource
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")
@@ -62,17 +63,25 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         const marker = new Marker({
             anchor: markerIconAnchor,
             element: getMarkerIconElement(color, true),
+            className: "distance-marker",
             draggable: true,
-        }).addTo(map)
+        })
         // Listen for events on real markers
         if (index >= 0) {
             // On marker drag, update the state
             marker.on(
                 "drag",
-                throttle(() => update([index]), mapThrottleDelay),
+                throttle(() => update([index]), 16),
             )
             // On marker click, remove that marker
-            marker.once("click", () => removeMarker(index))
+            marker.getElement().addEventListener(
+                "click",
+                (e) => {
+                    e.stopPropagation()
+                    removeMarker(index)
+                },
+                { once: true },
+            )
         }
         return marker
     }
@@ -80,12 +89,18 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const ghostMarkerFactory = (): Marker => {
         const marker = markerFactory(-1, "blue")
         marker.addClassName("ghost-marker")
-        marker.on("mousemove", updateGhostMarker)
-        marker.on("mouseleave", onGhostMarkerDragEnd)
-        marker.once("dragstart", onGhostMarkerDragStart)
-        marker.on("drag", onGhostMarkerDrag)
-        marker.once("dragend", onGhostMarkerDragEnd)
-        marker.once("click", onGhostMarkerClick)
+        marker.addClassName("hidden")
+        marker.setOffset([0, 8])
+        marker.on("dragstart", startGhostMarkerDrag)
+        marker.on("drag", handleGhostMarkerDrag)
+        marker.on("dragend", () => {
+            ghostMarker.removeClassName("dragging")
+            tryHideGhostMarker()
+        })
+        const element = marker.getElement()
+        element.addEventListener("mousemove", updateGhostMarkerPosition)
+        element.addEventListener("mouseleave", tryHideGhostMarker)
+        element.addEventListener("click", onGhostMarkerClick)
         return marker
     }
 
@@ -154,13 +169,13 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             const labelIndex = markerIndex - 1
             if (labelIndex >= labels.length) {
                 // Create new label
-                const label = new Marker({
+                labels[labelIndex] = new Marker({
                     anchor: "center",
                     element: document.createElement("div"),
                     className: "distance-label",
-                }).addTo(map)
-                label.on("mouseenter", updateGhostMarker)
-                labels[labelIndex] = label
+                })
+                    .setLngLat([0, 0])
+                    .addTo(map)
             }
             for (const labelIndexOffset of [labelIndex, labelIndex + 1]) {
                 // Update existing label (before and after)
@@ -219,12 +234,12 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             for (const marker of tail) {
                 const lngLat = marker.getLngLat()
                 marker.remove()
-                onMapClick({ lngLat, skipUpdates: true })
+                createNewMarker({ lngLat, skipUpdates: true })
             }
             update(range(index, markers.length))
         } else if (index >= 2) {
             // If no tail, turn previous marker into red
-            markers[index - 1].getElement().replaceWith(getMarkerIconElement("red", true))
+            markers[index - 1].getElement().replaceChildren(...getMarkerIconElement("red", true).children)
         }
     }
 
@@ -235,35 +250,50 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         update([])
 
         // Add new marker
-        onMapClick({ lngLat, skipUpdates: true })
+        createNewMarker({ lngLat, skipUpdates: true })
 
         // Add markers back
         for (const marker of tail) {
             const markerLngLat = marker.getLngLat()
             marker.remove()
-            onMapClick({ lngLat: markerLngLat, skipUpdates: true })
+            createNewMarker({ lngLat: markerLngLat, skipUpdates: true })
         }
         update(range(index, markers.length))
     }
 
     /** On map click, create a new marker */
-    const onMapClick = (options: { lngLat: LngLatLike; skipUpdates?: boolean }): void => {
-        console.debug("onMapClick", options)
+    const createNewMarker = ({ lngLat, skipUpdates }: { lngLat: LngLatLike; skipUpdates?: boolean }): void => {
+        console.debug("createNewMarker", lngLat, skipUpdates)
         const markerIndex = markers.length
         // Turn previous marker into blue
         if (markerIndex >= 2) {
-            markers[markerIndex - 1].getElement().replaceWith(getMarkerIconElement("blue", true))
+            markers[markerIndex - 1].getElement().replaceChildren(...getMarkerIconElement("blue", true).children)
         }
         // Create new marker
         const marker = markerFactory(markerIndex, markerIndex === 0 ? "green" : "red")
-        marker.setLngLat(options.lngLat)
+            .setLngLat(lngLat)
+            .addTo(map)
         markers.push(marker)
-        if (!options.skipUpdates) update([markerIndex])
+        if (!skipUpdates) update([markerIndex])
     }
 
-    /** On lise mouseover, show the ghost marker */
-    const updateGhostMarker = ({ lngLat }: { lngLat: LngLat }): void => {
-        const point = map.project(lngLat)
+    const updateGhostMarkerPosition = throttle((event: MapMouseEvent | MouseEvent): void => {
+        if (ghostMarker.getElement().classList.contains("dragging")) return
+
+        let point: Point
+        let lngLat: LngLat
+        if (event instanceof MapMouseEvent) {
+            point = event.point
+            lngLat = event.lngLat
+        } else {
+            const mapRect = mapContainer.getBoundingClientRect()
+            point = new Point(
+                event.clientX - mapRect.left,
+                event.clientY - mapRect.top + 20, // offset for marker height
+            )
+            lngLat = map.unproject(point)
+        }
+
         let minDistance = Number.POSITIVE_INFINITY
         let minLngLat: LngLat | null = null
         ghostMarkerIndex = -1
@@ -282,43 +312,49 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
                 ghostMarkerIndex = i
             }
         }
-        if (!ghostMarker) ghostMarker = ghostMarkerFactory()
         ghostMarker.setLngLat(minLngLat)
-    }
-    map.on("mouseenter", layerId, updateGhostMarker)
+    }, 16)
+    map.on("mouseenter", layerId, (e) => {
+        tryShowGhostMarker()
+        updateGhostMarkerPosition(e)
+    })
 
     /** On ghost marker drag start, replace it with a real marker */
-    const onGhostMarkerDragStart = () => {
-        console.debug("onGhostMarkerDragStart")
-        // Hide ghost marker
-        ghostMarker.addClassName("dragging") // TODO: zindex + opacity
-        ghostMarker.off("mousemove", updateGhostMarker)
-        ghostMarker.off("mouseleave", onGhostMarkerDragEnd)
-        ghostMarker.off("click", onGhostMarkerClick)
+    const startGhostMarkerDrag = () => {
+        console.debug("materializeGhostMarker")
+        ghostMarker.removeClassName("hidden")
+        ghostMarker.addClassName("dragging")
         // Add a real marker
         insertMarker(ghostMarkerIndex, ghostMarker.getLngLat())
     }
 
     /** On ghost marker drag, update the real marker position */
-    const onGhostMarkerDrag = (e: Event) => {
+    const handleGhostMarkerDrag = throttle((e: Event) => {
+        if (!ghostMarker.getElement().classList.contains("dragging")) return
         const marker = markers[ghostMarkerIndex]
         marker.setLngLat(ghostMarker.getLngLat())
         marker.fire(e.type, e)
-    }
-
-    /** On ghost marker drag end, remove the ghost marker, leaving the real marker in its place */
-    const onGhostMarkerDragEnd = () => {
-        console.debug("onGhostMarkerDragEnd", ghostMarker !== null)
-        // Remove ghost marker
-        ghostMarker?.remove()
-        ghostMarker = null
-    }
+    }, 16)
 
     /** On ghost marker click, convert it into a real marker */
     const onGhostMarkerClick = () => {
         console.debug("onGhostMarkerClick")
-        onGhostMarkerDragStart()
-        onGhostMarkerDragEnd()
+        startGhostMarkerDrag()
+        ghostMarker.removeClassName("dragging")
+        tryHideGhostMarker()
+    }
+
+    /** Toggle ghost marker out of hidden state */
+    const tryShowGhostMarker = () => {
+        if (!ghostMarker) ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
+        else if (ghostMarker.getElement().classList.contains("dragging")) return
+        ghostMarker.removeClassName("hidden")
+    }
+
+    /** Toggle ghost marker into hidden state */
+    const tryHideGhostMarker = () => {
+        if (ghostMarker.getElement().classList.contains("dragging")) return
+        ghostMarker.addClassName("hidden")
     }
 
     return {
@@ -336,7 +372,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
                 }
             }
             for (const [lat, lon] of positions) {
-                onMapClick({ lngLat: [lon, lat], skipUpdates: true })
+                createNewMarker({ lngLat: [lon, lat], skipUpdates: true })
             }
             console.debug("Loaded", positions.length, "line points")
             update(range(0, markers.length))
@@ -355,13 +391,14 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             }
 
             addMapLayer(map, layerId)
-            map.on("click", onMapClick)
+            map.on("click", createNewMarker)
         },
         unload: () => {
-            map.off("click", onMapClick)
+            map.off("click", createNewMarker)
             removeMapLayer(map, layerId)
             source.setData(emptyFeatureCollection)
-            onGhostMarkerDragEnd()
+            ghostMarker?.remove()
+            ghostMarker = null
             for (const marker of markers) marker.remove()
             markers.length = 0
             update([])
