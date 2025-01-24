@@ -74,7 +74,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
     map.on("click", layerId, (e) => {
         const result = results[e.features[0].id as number]
         const target = result.querySelector("a.stretched-link")
-        target.dispatchEvent(new MouseEvent("click", e.originalEvent))
+        target.click()
     })
 
     let hoveredFeatureId: number | null = null

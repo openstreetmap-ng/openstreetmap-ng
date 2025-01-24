@@ -3,7 +3,7 @@ import type { IndexController } from "./_router"
 export interface Route {
     match: (path: string) => boolean
     load: (path: string) => void
-    unload: () => void
+    unload: (newPath: string) => void
 }
 
 /** Create a route object */

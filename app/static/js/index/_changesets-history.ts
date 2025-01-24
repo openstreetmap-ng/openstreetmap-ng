@@ -11,8 +11,8 @@ import {
     type LayerId,
     addMapLayer,
     emptyFeatureCollection,
+    getExtendedLayerId,
     layersConfig,
-    makeExtendedLayerId,
     removeMapLayer,
 } from "../leaflet/_layers.ts"
 import { convertRenderChangesetsData, renderObjects } from "../leaflet/_render-objects.ts"
@@ -175,7 +175,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     // On feature click, navigate to the changeset
-    const layerIdFill = makeExtendedLayerId(layerId, "fill")
+    const layerIdFill = getExtendedLayerId(layerId, "fill")
     map.on("click", layerIdFill, (e) => {
         // Find feature with the smallest bounds area
         const feature = e.features.reduce((a, b) => (a.properties.boundsArea < b.properties.boundsArea ? a : b))

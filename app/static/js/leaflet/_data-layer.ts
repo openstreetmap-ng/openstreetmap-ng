@@ -12,8 +12,8 @@ import {
     type LayerId,
     addLayerEventHandler,
     emptyFeatureCollection,
+    getExtendedLayerId,
     layersConfig,
-    makeExtendedLayerId,
 } from "./_layers"
 import { convertRenderElementsData, renderObjects } from "./_render-objects"
 import { getLngLatBoundsSize, padLngLatBounds } from "./_utils"
@@ -100,7 +100,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
     }
 
     for (const type of ["fill", "line", "circle"] as const) {
-        const extendedLayerId = makeExtendedLayerId(layerId, type)
+        const extendedLayerId = getExtendedLayerId(layerId, type)
         map.on("click", extendedLayerId, onFeatureClick)
         map.on("mousemove", extendedLayerId, onFeatureHover)
         map.on("mouseleave", extendedLayerId, onFeatureLeave)

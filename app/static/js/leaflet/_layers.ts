@@ -227,7 +227,7 @@ export const addMapLayerSources = (map: MaplibreMap, kind: "base" | "all"): void
     }
 }
 
-export const makeExtendedLayerId = (layerId: LayerId, type: LayerType): string => `${layerId}:${type}`
+export const getExtendedLayerId = (layerId: LayerId, type: LayerType): string => `${layerId}:${type}`
 
 export const resolveExtendedLayerId = (extendedLayerId: string): LayerId => {
     const i = extendedLayerId.indexOf(":")
@@ -296,7 +296,7 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = t
             source: layerId,
         }
         if (layerTypes.length > 1) {
-            layerObject.id = makeExtendedLayerId(layerId, type)
+            layerObject.id = getExtendedLayerId(layerId, type)
             // Remove unsupported layer options
             const validPrefixes = [`${type}-`]
             if (type === "symbol") validPrefixes.push("icon-", "text-")

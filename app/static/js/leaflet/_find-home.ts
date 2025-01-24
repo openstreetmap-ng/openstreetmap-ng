@@ -9,7 +9,6 @@ export const configureFindHomeButton = (map: MaplibreMap, button: HTMLButtonElem
     // On click, create a marker and zoom to it
     button.addEventListener("click", () => {
         console.debug("onFindHomeButtonClick")
-
         if (!marker) {
             marker = new Marker({
                 anchor: markerIconAnchor,
@@ -18,11 +17,6 @@ export const configureFindHomeButton = (map: MaplibreMap, button: HTMLButtonElem
                 .setLngLat([lon, lat])
                 .addTo(map)
         }
-
-        // Home zoom defaults to 15
-        map.flyTo({
-            center: [lon, lat],
-            zoom: 15,
-        })
+        map.flyTo({ center: [lon, lat] })
     })
 }

@@ -1,28 +1,16 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
-import type { IControl, Map as MaplibreMap } from "maplibre-gl"
-import { type LayerId, emptyFeatureCollection, layersConfig } from "./_layers"
+import type { IControl, MapMouseEvent, Map as MaplibreMap } from "maplibre-gl"
+import { beautifyZoom } from "../_utils.ts"
+import { routerNavigateStrict } from "../index/_router.ts"
 
 export const queryFeaturesMinZoom = 14
-
-const layerId: LayerId = "query-features" as LayerId
-layersConfig.set(layerId as LayerId, {
-    specification: {
-        type: "geojson",
-        data: emptyFeatureCollection,
-    },
-    layerTypes: ["circle"],
-    layerOptions: {
-        paint: {
-            // TODO: https://maplibre.org/maplibre-style-spec/layers/#circle
-        },
-    },
-})
 
 export class QueryFeaturesControl implements IControl {
     public _container: HTMLElement
 
     public onAdd(map: MaplibreMap): HTMLElement {
+        const mapContainer = map.getContainer()
         const container = document.createElement("div")
         container.className = "maplibregl-ctrl maplibregl-ctrl-group query-features"
 
@@ -43,13 +31,31 @@ export class QueryFeaturesControl implements IControl {
             placement: "left",
         })
 
-        // TODO: active state, handle click on map, precision!
+        const onMapClick = ({ lngLat }: MapMouseEvent): void => {
+            const zoom = map.getZoom()
+            const zoomRounded = beautifyZoom(zoom)
+            routerNavigateStrict(`/query?lat=${lngLat.lat}&lon=${lngLat.lng}&zoom=${zoomRounded}`)
+        }
+
+        // On button click, toggle active state and event handlers
+        button.addEventListener("click", () => {
+            button.blur()
+            const isActive = button.classList.toggle("active")
+            if (isActive) {
+                mapContainer.classList.add("query-features")
+                map.on("click", onMapClick)
+            } else {
+                mapContainer.classList.remove("query-features")
+                map.off("click", onMapClick)
+            }
+        })
 
         /** On map zoom, change button availability */
         const updateState = () => {
             const zoom = map.getZoom()
             if (zoom < queryFeaturesMinZoom) {
                 if (!button.disabled) {
+                    if (button.classList.contains("active")) button.click()
                     button.blur()
                     button.disabled = true
                     Tooltip.getInstance(button).setContent({

@@ -7,8 +7,8 @@ import {
     type LayerType,
     addMapLayer,
     emptyFeatureCollection,
+    getExtendedLayerId,
     layersConfig,
-    makeExtendedLayerId,
 } from "./_layers"
 import { renderObjects } from "./_render-objects"
 import { getLngLatBoundsIntersection, getLngLatBoundsSize, padLngLatBounds } from "./_utils"
@@ -107,7 +107,7 @@ export const focusObjects = (
     if (paint && lastPaint !== paint) {
         lastPaint = paint
         for (const type of layerTypes) {
-            const layer = map.getLayer(makeExtendedLayerId(layerId, type))
+            const layer = map.getLayer(getExtendedLayerId(layerId, type))
             if (!layer) continue
 
             // Apply only supported paint properties
@@ -116,7 +116,7 @@ export const focusObjects = (
             for (const [k, v] of Object.entries(paint)) {
                 for (const prefix of validPrefixes) {
                     if (!k.startsWith(prefix)) continue
-                    map.setPaintProperty(makeExtendedLayerId(layerId, type), k, v)
+                    map.setPaintProperty(getExtendedLayerId(layerId, type), k, v)
                 }
             }
         }

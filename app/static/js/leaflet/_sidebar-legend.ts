@@ -65,7 +65,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
 
                 // Uncheck the input if checked
                 if (button.classList.contains("active")) {
-                    button.dispatchEvent(new Event("click"))
+                    button.click()
                 }
             }
         })

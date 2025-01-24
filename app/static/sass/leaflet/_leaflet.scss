@@ -3,6 +3,10 @@
         @extend .link-primary;
     }
 
+    &.query-features .maplibregl-canvas-container.maplibregl-interactive {
+        cursor: help;
+    }
+
     //// // Style the map popup
     //// .leaflet-popup-content-wrapper {
     ////     @extend .rounded-2;

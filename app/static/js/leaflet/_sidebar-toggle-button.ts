@@ -49,10 +49,10 @@ export class SidebarToggleControl implements IControl {
             // Unselect other buttons
             for (const otherContainer of sidebarToggleContainers) {
                 if (otherContainer === container) continue
-                const otherButton = otherContainer.querySelector(".control-button")
+                const otherButton = otherContainer.querySelector("button.control-button")
                 if (otherButton.classList.contains("active")) {
-                    console.debug("Unselecting sidebar toggle button", otherButton)
-                    otherButton.dispatchEvent(new Event("click"))
+                    console.debug("Deactivating sidebar toggle button", otherButton)
+                    otherButton.click()
                 }
             }
 
