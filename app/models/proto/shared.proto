@@ -137,7 +137,7 @@ message RoutingResult {
     optional Endpoint end = 2;  // Route destination
     string attribution = 3;  // Data provider attribution
     repeated Step steps = 4;  // Navigation steps
-    uint32 line_quality = 5;  // Quality of the polyline
+    uint32 line_quality = 5;  // Quality of the polyline encoding
     string line = 6;  // Encoded polyline for the route
     optional Elevation elevation = 7;  // Terrain metrics
 }
