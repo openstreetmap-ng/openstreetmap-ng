@@ -38,13 +38,7 @@ layersConfig.set(layerId as LayerId, {
     priority: 160,
 })
 
-/** Like window.history.replaceState, but throttled */
-const throttledHistoryReplaceState = throttle(
-    (url: string | URL | null): void => window.history.replaceState(null, "", url),
-    250,
-)
-
-/** Create a new distance measuring controller */
+/** Controller for distance measurement functionality */
 export const getDistanceController = (map: MaplibreMap): IndexController => {
     const mapContainer = map.getContainer()
     const source = map.getSource(layerId) as GeoJSONSource
@@ -55,7 +49,6 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const lines: Feature<LineString>[] = []
     const labels: Marker[] = []
     const markers: Marker[] = []
-    let dirtyMarkerIndices: number[] = []
     let ghostMarker: Marker | null = null
     let ghostMarkerIndex = -1
 
@@ -69,9 +62,10 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         // Listen for events on real markers
         if (index >= 0) {
             // On marker drag, update the state
+            const markerDirtyIndex = [index]
             marker.on(
                 "drag",
-                throttle(() => update([index]), 16),
+                throttle(() => update(markerDirtyIndex), 16),
             )
             // On marker click, remove that marker
             marker.getElement().addEventListener(
@@ -104,29 +98,30 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         return marker
     }
 
-    /** Update the URL with the current line data */
-    const updateUrl = (): void => {
+    // Encodes current marker positions into URL polyline parameter
+    const updateUrl = throttle((dirtyIndices: number[]): void => {
         const newLength = markers.length
         if (newLength < positionsUrl.length) {
             // Truncate positions
             positionsUrl.length = newLength
         }
-        for (const markerIndex of dirtyMarkerIndices) {
+        for (const markerIndex of dirtyIndices) {
             const lngLat = markers[markerIndex].getLngLat()
             positionsUrl[markerIndex] = [lngLat.lat, lngLat.lng]
         }
         const url = new URL(window.location.href)
         url.searchParams.set("line", encode(positionsUrl, 5))
-        throttledHistoryReplaceState(url)
-    }
+        window.history.replaceState(null, "", url)
+    }, 250)
 
-    const updateLines = (): void => {
+    // Updates GeoJSON line features between consecutive markers
+    const updateLines = (dirtyIndices: number[]): void => {
         const newLength = Math.max(markers.length - 1, 0)
         if (newLength < lines.length) {
             // Truncate lines
             lines.length = newLength
         }
-        for (const markerIndex of dirtyMarkerIndices) {
+        for (const markerIndex of dirtyIndices) {
             const lineIndex = markerIndex - 1
             if (lineIndex >= lines.length) {
                 // Create new line
@@ -158,14 +153,15 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         })
     }
 
-    const updateLabels = (): void => {
+    // Updates distance labels and calculates total measurement
+    const updateLabels = (dirtyIndices: number[]): void => {
         const newLength = Math.max(markers.length - 1, 0)
         if (newLength < labels.length) {
             // Truncate labels
             for (let i = newLength; i < labels.length; i++) labels[i].remove()
             labels.length = newLength
         }
-        for (const markerIndex of dirtyMarkerIndices) {
+        for (const markerIndex of dirtyIndices) {
             const labelIndex = markerIndex - 1
             if (labelIndex >= labels.length) {
                 // Create new label
@@ -207,18 +203,16 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         totalDistanceLabel.textContent = formatDistance(totalDistance)
     }
 
-    /** Quickly update the modified state, dirtyIndices must be sorted */
+    // Schedule updates to all components after marker changes, dirtyIndices must be sorted
     const update = (dirtyIndices: number[]): void => {
-        dirtyMarkerIndices = dirtyIndices
-        updateUrl()
-        updateLines()
-        updateLabels()
-        dirtyMarkerIndices.length = 0
+        updateUrl(dirtyIndices)
+        updateLines(dirtyIndices)
+        updateLabels(dirtyIndices)
     }
 
-    /** Remove a marker from the map */
+    // Removes a marker and updates subsequent geometry
     const removeMarker = (index: number): void => {
-        console.debug("removeMarker", index)
+        console.debug("Remove distance marker", index)
         // Pop tailing markers
         const tail = markers.splice(index + 1)
         {
@@ -243,8 +237,9 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         }
     }
 
+    // Inserts new marker at specified position and updates connections
     const insertMarker = (index: number, lngLat: LngLatLike) => {
-        console.debug("insertMarker", index, lngLat)
+        console.debug("Insert distance marker", index, lngLat)
         // Pop tailing markers
         const tail = markers.splice(index)
         update([])
@@ -261,9 +256,9 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         update(range(index, markers.length))
     }
 
-    /** On map click, create a new marker */
+    // Adds new endpoint marker and updates visualization
     const createNewMarker = ({ lngLat, skipUpdates }: { lngLat: LngLatLike; skipUpdates?: boolean }): void => {
-        console.debug("createNewMarker", lngLat, skipUpdates)
+        console.debug("Create distance marker", lngLat, skipUpdates)
         const markerIndex = markers.length
         // Turn previous marker into blue
         if (markerIndex >= 2) {
@@ -277,6 +272,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         if (!skipUpdates) update([markerIndex])
     }
 
+    // Handles ghost marker positioning near existing line segments
     const updateGhostMarkerPosition = throttle((event: MapMouseEvent | MouseEvent): void => {
         if (ghostMarker.getElement().classList.contains("dragging")) return
 
@@ -312,7 +308,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
                 ghostMarkerIndex = i
             }
         }
-        ghostMarker.setLngLat(minLngLat)
+        if (minLngLat) ghostMarker.setLngLat(minLngLat)
     }, 16)
     map.on("mouseenter", layerId, (e) => {
         tryShowGhostMarker()
@@ -374,7 +370,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             for (const [lat, lon] of positions) {
                 createNewMarker({ lngLat: [lon, lat], skipUpdates: true })
             }
-            console.debug("Loaded", positions.length, "line points")
+            console.debug("Loaded", positions.length, "distance line points")
             update(range(0, markers.length))
 
             // Focus on the makers if they're offscreen

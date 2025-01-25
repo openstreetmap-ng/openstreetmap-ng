@@ -1,7 +1,7 @@
 import type { GeoJSON } from "geojson"
 import { type GeoJSONSource, type IControl, LngLatBounds, type Map as MaplibreMap, Marker } from "maplibre-gl"
 import type { Bounds } from "../_types"
-import { throttle } from "../_utils.ts"
+import { mod, throttle } from "../_utils.ts"
 import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "./_layers"
 
 const layerId: LayerId = "location-filter" as LayerId
@@ -15,6 +15,7 @@ layersConfig.set(layerId as LayerId, {
         paint: {
             "fill-color": "black",
             "fill-opacity": 0.3,
+            "fill-outline-color": "transparent",
         },
     },
 })
@@ -30,7 +31,7 @@ export class LocationFilterControl implements IControl {
         this._map = map
         addMapLayer(map, layerId)
 
-        const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
+        const [[minLon, minLat], [maxLon, maxLat]] = bounds.toArray()
         this._bounds = [minLon, minLat, maxLon, maxLat]
 
         this._grabber = new Marker({
@@ -77,12 +78,6 @@ export class LocationFilterControl implements IControl {
         this._grabber = null
     }
 
-    // public setBounds(bounds: LngLatBounds): void {
-    //     const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
-    //     this._bounds = [minLon, minLat, maxLon, maxLat]
-    //     this._render()
-    // }
-
     public getBounds(): LngLatBounds {
         let [minLon, minLat, maxLon, maxLat] = this._bounds
         if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
@@ -91,29 +86,55 @@ export class LocationFilterControl implements IControl {
     }
 
     private _processMarkerUpdate(i: number) {
-        const [minLon, minLat, maxLon, maxLat] = this._bounds
+        let [minLon, minLat, maxLon, maxLat] = this._bounds
         if (i === -1) {
             const lngLat = this._grabber.getLngLat()
-            const [minLon, minLat, maxLon, maxLat] = this._bounds
-            const deltaX = lngLat.lng - minLon
-            const deltaY = lngLat.lat - maxLat
-            this._bounds = [minLon + deltaX, minLat + deltaY, maxLon + deltaX, maxLat + deltaY]
+
+            // Update longitude bounds
+            const deltaX = lngLat.lng - Math.min(minLon, maxLon)
+            maxLon += deltaX
+            minLon += deltaX
+
+            // Update latitude bounds
+            const nextTop = this._map.project(lngLat)
+            if (minLat > maxLat) {
+                const prevTop = this._map.project([lngLat.lng, minLat])
+                const bottom = this._map.project([lngLat.lng, maxLat])
+                bottom.y += nextTop.y - prevTop.y
+                minLat = lngLat.lat
+                maxLat = this._map.unproject(bottom).lat
+            } else {
+                const prevTop = this._map.project([lngLat.lng, maxLat])
+                const bottom = this._map.project([lngLat.lng, minLat])
+                bottom.y += nextTop.y - prevTop.y
+                minLat = this._map.unproject(bottom).lat
+                maxLat = lngLat.lat
+            }
         } else if (i === 0) {
             const lngLat = this._corners[0].getLngLat()
-            this._bounds = [lngLat.lng, lngLat.lat, maxLon, maxLat]
+            minLon = lngLat.lng
+            minLat = lngLat.lat
         } else if (i === 1) {
             const lngLat = this._corners[1].getLngLat()
-            this._bounds = [lngLat.lng, minLat, maxLon, lngLat.lat]
+            minLon = lngLat.lng
+            maxLat = lngLat.lat
         } else if (i === 2) {
             const lngLat = this._corners[2].getLngLat()
-            this._bounds = [minLon, minLat, lngLat.lng, lngLat.lat]
+            maxLon = lngLat.lng
+            maxLat = lngLat.lat
         } else if (i === 3) {
             const lngLat = this._corners[3].getLngLat()
-            this._bounds = [minLon, lngLat.lat, lngLat.lng, maxLat]
+            maxLon = lngLat.lng
+            minLat = lngLat.lat
         } else {
             console.warn("Invalid marker index", i)
             return
         }
+        if (minLat < -85) minLat = -85
+        else if (minLat > 85) minLat = 85
+        if (maxLat < -85) maxLat = -85
+        else if (maxLat > 85) maxLat = 85
+        this._bounds = [minLon, minLat, maxLon, maxLat]
         this._render(i)
     }
 
@@ -159,10 +180,42 @@ const createCornerElement = (): HTMLElement => {
     return container
 }
 
-const getMaskData = (bounds: Bounds, maxBounds?: LngLatBounds): GeoJSON => {
-    maxBounds ??= new LngLatBounds([-180, -85, 180, 85])
-    const [[mapMinLon, mapMinLat], [mapMaxLon, mapMaxLat]] = maxBounds.toArray()
-    const [minLon, minLat, maxLon, maxLat] = bounds
+const getMaskData = ([minLon, minLat, maxLon, maxLat]: Bounds): GeoJSON => {
+    // Normalize bounds
+    if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
+    if (minLat > maxLat) [minLat, maxLat] = [maxLat, minLat]
+    if (minLon < -180 || minLon > 180) minLon = mod(minLon + 180, 360) - 180
+    if (maxLon < -180 || maxLon > 180) maxLon = mod(maxLon + 180, 360) - 180
+
+    const crossesAntimeridian = minLon > maxLon
+    if (!crossesAntimeridian) {
+        // Simple case: single polygon with a hole
+        return {
+            type: "Feature",
+            properties: {},
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [-180, -85],
+                        [-180, 85],
+                        [180, 85],
+                        [180, -85],
+                        [-180, -85],
+                    ],
+                    [
+                        [minLon, minLat],
+                        [maxLon, minLat],
+                        [maxLon, maxLat],
+                        [minLon, maxLat],
+                        [minLon, minLat],
+                    ],
+                ],
+            },
+        }
+    }
+
+    // Split into two holes
     return {
         type: "Feature",
         properties: {},
@@ -170,18 +223,25 @@ const getMaskData = (bounds: Bounds, maxBounds?: LngLatBounds): GeoJSON => {
             type: "Polygon",
             coordinates: [
                 [
-                    [mapMinLon, mapMinLat],
-                    [mapMinLon, mapMaxLat],
-                    [mapMaxLon, mapMaxLat],
-                    [mapMaxLon, mapMinLat],
-                    [mapMinLon, mapMinLat],
+                    [-180, -85], // Outer ring
+                    [-180, 85],
+                    [180, 85],
+                    [180, -85],
+                    [-180, -85],
                 ],
                 [
-                    [minLon, minLat],
-                    [maxLon, minLat],
-                    [maxLon, maxLat],
+                    [minLon, minLat], // Eastern hole
+                    [180, minLat],
+                    [180, maxLat],
                     [minLon, maxLat],
                     [minLon, minLat],
+                ],
+                [
+                    [-180, minLat], // Western hole
+                    [maxLon, minLat],
+                    [maxLon, maxLat],
+                    [-180, maxLat],
+                    [-180, minLat],
                 ],
             ],
         },
