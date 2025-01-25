@@ -87,7 +87,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     const popupTemplate = routeContainer.querySelector("template.popup")
     const stepTemplate = routeContainer.querySelector("template.step")
 
-    const results: Element[] = []
+    const results = document.createDocumentFragment()
     let startBounds: LngLatBounds | null = null
     let startMarker: Marker | null = null
     let endBounds: LngLatBounds | null = null
@@ -138,7 +138,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     map.on("click", layerId, (e) => {
         const feature = e.features[0] as Feature<LineString>
         const featureId = feature.id as number
-        const result = results[featureId]
+        const result = results.children[featureId]
         openPopup(result, feature.geometry.coordinates[0] as LngLatLike)
     })
 
@@ -162,7 +162,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
 
     /** Set the hover state of the step features */
     const setHover = (id: number, hover: boolean): void => {
-        const result = results[id]
+        const result = results.children[id]
         result.classList.toggle("hover", hover)
         if (hover) {
             // Scroll result into view
@@ -365,13 +365,56 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     }
 
     const updateRoute = (route: RoutingResult): void => {
-        // Display general route information
+        const lines: Feature<LineString>[] = []
+        const allCoords: [number, number][] = decode(route.line, route.lineQuality) //
+            .map((x) => x.reverse()) as [number, number][]
+
+        // Add the complete route geometry
+        if (allCoords.length) {
+            lines.push({
+                type: "Feature",
+                id: -1,
+                properties: { base: true },
+                geometry: {
+                    type: "LineString",
+                    coordinates: allCoords,
+                },
+            })
+        }
+
+        // Process individual steps
+        results.replaceChildren()
         let totalDistance = 0
         let totalTime = 0
-        for (const step of route.steps) {
+        let coordsSliceStart = 0
+        for (const [stepIndex, step] of route.steps.entries()) {
             totalDistance += step.distance
             totalTime += step.time
+
+            const stepCoords = allCoords.slice(coordsSliceStart, coordsSliceStart + step.numCoords)
+            coordsSliceStart += step.numCoords - 1 // adjusted for overlapping ends
+            lines.push({
+                type: "Feature",
+                id: stepIndex,
+                properties: {},
+                geometry: {
+                    type: "LineString",
+                    coordinates: stepCoords,
+                },
+            })
+
+            const div = (stepTemplate.content.cloneNode(true) as DocumentFragment).children[0]
+            div.querySelector(".icon div").classList.add(`icon-${step.iconNum}`, "dark-filter-invert")
+            div.querySelector(".number").textContent = `${stepIndex + 1}.`
+            div.querySelector(".instruction").textContent = step.text
+            div.querySelector(".distance").textContent = formatDistanceRounded(step.distance)
+            div.addEventListener("click", () => openPopup(div, stepCoords[0]))
+            div.addEventListener("mouseenter", () => setHover(stepIndex, true))
+            div.addEventListener("mouseleave", () => setHover(stepIndex, false))
+            results.append(div)
         }
+
+        // Display general route information
         routeDistance.textContent = formatDistance(totalDistance)
         routeTime.textContent = formatTime(totalTime)
 
@@ -384,59 +427,16 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             routeElevationContainer.classList.add("d-none")
         }
 
-        const lines: Feature<LineString>[] = []
-
-        // Create a single geometry for the route
-        const stepsGeoms: [number, number][][] = []
-        for (const step of route.steps)
-            stepsGeoms.push(decode(step.line, 6).map((x) => x.reverse()) as [number, number][])
-        const fullGeom: [number, number][] = [].concat(...stepsGeoms)
-        if (fullGeom.length) {
-            lines.push({
-                type: "Feature",
-                id: -1,
-                properties: { base: true },
-                geometry: {
-                    type: "LineString",
-                    coordinates: fullGeom,
-                },
-            })
-        }
-
-        // Render the turn-by-turn table
-        results.length = 0
-        for (let stepNumber = 0; stepNumber < route.steps.length; stepNumber++) {
-            const step = route.steps[stepNumber]
-            const stepGeom = stepsGeoms[stepNumber]
-            lines.push({
-                type: "Feature",
-                id: stepNumber,
-                properties: {},
-                geometry: {
-                    type: "LineString",
-                    coordinates: stepGeom,
-                },
-            })
-
-            const div = (stepTemplate.content.cloneNode(true) as DocumentFragment).children[0]
-            div.querySelector(".icon div").classList.add(`icon-${step.iconNum}`, "dark-filter-invert")
-            div.querySelector(".number").textContent = `${stepNumber + 1}.`
-            div.querySelector(".instruction").textContent = step.text
-            div.querySelector(".distance").textContent = formatDistanceRounded(step.distance)
-            div.addEventListener("click", () => openPopup(div, stepGeom[0]))
-            div.addEventListener("mouseenter", () => setHover(stepNumber, true))
-            div.addEventListener("mouseleave", () => setHover(stepNumber, false))
-            results.push(div)
-        }
-
+        // Display the turn-by-turn table
         stepsTableBody.innerHTML = ""
-        stepsTableBody.append(...results)
+        stepsTableBody.append(results)
         attribution.innerHTML = i18next.t("javascripts.directions.instructions.courtesy", {
             link: route.attribution,
             interpolation: { escapeValue: false },
         })
         routeContainer.classList.remove("d-none")
 
+        // Update the route layer
         source.setData({ type: "FeatureCollection", features: lines })
         console.debug("Route showing", route.steps.length, "steps")
     }
@@ -507,8 +507,8 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
                 endLoadedInput.value = ""
             }
 
+            results.replaceChildren()
             popup.remove()
-            results.length = 0
         },
     }
 }

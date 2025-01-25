@@ -1,8 +1,6 @@
 from typing import Literal, cast, get_args
 
-import cython
 from fastapi import HTTPException
-from polyline_rs import decode_latlon, encode_latlon
 from shapely import Point, get_coordinates
 from starlette import status
 
@@ -49,23 +47,22 @@ class GraphHopperQuery:
             raise HTTPException(r.status_code, r.text)
 
         path = cast(GraphHopperResponse, data)['paths'][0]
-        points = decode_latlon(path['points'], 5)
-        routing_steps: list[RoutingResult.Step] = [None] * len(path['instructions'])  # type: ignore
-
-        i: cython.int
-        for i, instr in enumerate(path['instructions']):
-            instr_points = points[instr['interval'][0] : instr['interval'][1] + 1]
-            routing_steps[i] = RoutingResult.Step(
-                line=encode_latlon(instr_points, 6),
+        routing_steps: tuple[RoutingResult.Step, ...] = tuple(
+            RoutingResult.Step(
+                num_coords=instr['interval'][1] - instr['interval'][0] + 1,
                 distance=instr['distance'],
                 time=instr['time'] / 1000,
                 icon_num=_SIGN_TO_ICON_MAP.get(instr['sign'], 0),
                 text=instr['text'],
             )
+            for instr in path['instructions']
+        )
 
         return RoutingResult(
             attribution='<a href="https://www.graphhopper.com" target="_blank">GraphHopper</a>',
             steps=routing_steps,
+            line_quality=5,
+            line=path['points'],
             elevation=RoutingResult.Elevation(
                 ascend=path['ascend'],
                 descend=path['descend'],
