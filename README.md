@@ -74,27 +74,25 @@ We are deeply grateful to the individuals and organizations who support OpenStre
 
 Public supporters on [Liberapay](https://liberapay.com/Zaczero/) and [GitHub Sponsors](https://github.com/sponsors/Zaczero). You can click the image below to open it in a new tab. From there, you can click on the avatars to see their profiles.
 
-[![Individual sponsors banner](https://monicz.dev/sponsors.svg)](https://monicz.dev/sponsors.svg)
+[![Dynamic banner displaying public sponsors' avatars and names.](https://monicz.dev/sponsors.svg)](https://monicz.dev/sponsors.svg)
 
 ### NLnet Foundation
 
 [NLnet Foundation](https://nlnet.nl) provides funding to support the overall development of OpenStreetMap-NG through their NGI0 Commons Fund with financial support from the European Commission's Next Generation Internet programme. [Read more](https://nlnet.nl/project/OpenStreetMap-NG/).
 
-[<img src="https://nlnet.nl/logo/banner.svg" alt="NLnet Foundation logo" height=50>](https://nlnet.nl)
-&nbsp;&nbsp;&nbsp;
-[<img src="https://nlnet.nl/image/logos/NGI0Core_tag.svg" alt="NGI Zero Core logo" height=50>](https://nlnet.nl/core)
+[<img src="https://raw.githubusercontent.com/openstreetmap-ng/openstreetmap-ng/refs/heads/main/resources/nlnet.webp" alt="NLnet Foundation logo on white background" height=58>](https://nlnet.nl)
 
 ### CloudFerro
 
 [CloudFerro](https://cloudferro.com) sponsors server and storage hosting for this project. They enable us to test OpenStreetMap-NG in a large-scale environment using real-world OSM data. Our demo website runs on their infrastructure!
 
-[<img src="https://raw.githubusercontent.com/openstreetmap-ng/openstreetmap-ng/refs/heads/main/resources/cloudferro.webp" alt="CloudFerro logo" height=58>](https://cloudferro.com)
+[<img src="https://raw.githubusercontent.com/openstreetmap-ng/openstreetmap-ng/refs/heads/main/resources/cloudferro.webp" alt="CloudFerro logo on white background" height=58>](https://cloudferro.com)
 
 ### JetBrains
 
 [JetBrains](https://www.jetbrains.com) joins our [Contributor Incentives](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Contributor-Incentives) program by providing paid IDE licenses for active code contributors. Their support enhances our ability to craft high-quality solutions for OpenStreetMap-NG, as well as incentivizes new contributors to participate in the project.
 
-[<img src="https://raw.githubusercontent.com/openstreetmap-ng/openstreetmap-ng/refs/heads/main/resources/jetbrains.webp" alt="JetBrains logo" height=56>](https://www.jetbrains.com)
+[<img src="https://raw.githubusercontent.com/openstreetmap-ng/openstreetmap-ng/refs/heads/main/resources/jetbrains.webp" alt="JetBrains logo on white background" height=56>](https://www.jetbrains.com)
 
 ## 🛣️ TODOs: Public Release
 
