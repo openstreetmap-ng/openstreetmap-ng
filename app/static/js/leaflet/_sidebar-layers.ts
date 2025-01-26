@@ -62,7 +62,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
                     refreshExpiredTiles: false,
                 })
                 configureDefaultMapBehavior(minimap)
-                addMapLayerSources(minimap, layerConfig.isBaseLayer ? "base" : "all")
+                addMapLayerSources(minimap, layerId)
                 addMapLayer(minimap, layerId, false)
                 if (!layerConfig.isBaseLayer) minimap.setPaintProperty(layerId, "raster-opacity", 1)
                 minimaps.push(minimap)

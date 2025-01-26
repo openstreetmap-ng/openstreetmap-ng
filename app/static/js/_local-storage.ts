@@ -1,5 +1,5 @@
 import type { AppTheme } from "./_navbar-theme"
-import { getUnixTimestamp, isLatitude, isLongitude, isZoom } from "./_utils"
+import { getDeviceThemePreference, getUnixTimestamp, isLatitude, isLongitude, isZoom } from "./_utils"
 import type { MapState } from "./leaflet/_map-utils"
 
 const mapStateVersion = 1
@@ -11,6 +11,12 @@ const mapStateVersion = 1
  * // => "auto"
  */
 export const getAppTheme = (): AppTheme => (localStorage.getItem("theme") || "auto") as AppTheme
+
+/** Get the active app theme, resolving "auto" if necessary */
+export const getActiveTheme = (): "light" | "dark" => {
+    const appTheme = getAppTheme()
+    return appTheme === "auto" ? getDeviceThemePreference() : appTheme
+}
 
 /** Set app theme to local storage */
 export const setAppTheme = (theme: AppTheme): void => {

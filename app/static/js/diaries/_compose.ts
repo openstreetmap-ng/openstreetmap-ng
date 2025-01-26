@@ -98,7 +98,7 @@ if (body) {
                 refreshExpiredTiles: false,
             })
             configureDefaultMapBehavior(map)
-            addMapLayerSources(map, "base")
+            addMapLayerSources(map, defaultLayerId)
             addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
             addMapLayer(map, defaultLayerId)
         }

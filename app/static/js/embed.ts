@@ -18,12 +18,14 @@ const map = new MaplibreMap({
     refreshExpiredTiles: false,
 })
 configureDefaultMapBehavior(map)
-addMapLayerSources(map, "base")
-map.addControl(new NavigationControl({ showCompass: false }))
-map.addControl(attributionControl)
 
 // Parse search params
 const searchParams = qsParse(location.search.substring(1))
+const layerId = resolveLayerCodeOrId(searchParams.layer as LayerId) ?? defaultLayerId
+addMapLayerSources(map, layerId)
+
+map.addControl(new NavigationControl({ showCompass: false }))
+map.addControl(attributionControl)
 
 // Set initial view
 if (searchParams.bbox) {
@@ -52,7 +54,6 @@ if (searchParams.marker) {
     }
 }
 
-const layerId = resolveLayerCodeOrId(searchParams.layer as LayerId) ?? defaultLayerId
 addMapLayer(map, layerId)
 
 /**

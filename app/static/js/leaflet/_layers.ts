@@ -8,9 +8,9 @@ import {
     RasterTileSource,
     type SourceSpecification,
 } from "maplibre-gl"
-import { getMapOverlayOpacity } from "../_local-storage.ts"
+import { getActiveTheme, getMapOverlayOpacity } from "../_local-storage.ts"
 import { addThemeEventHandler } from "../_navbar-theme.ts"
-import { getDeviceTheme, staticCache } from "../_utils.ts"
+import { staticCache } from "../_utils.ts"
 
 declare const brandSymbol: unique symbol
 
@@ -213,12 +213,16 @@ export const resolveLayerCodeOrId = (layerCodeOrId: LayerCode | LayerId): LayerI
 
 export const defaultLayerId = "standard" as LayerId
 
-/** Add layers sources to the map. */
-const watchMapsLayerSources: MaplibreMap[] = []
-export const addMapLayerSources = (map: MaplibreMap, kind: "base" | "all"): void => {
-    const isDarkTheme = getDeviceTheme() === "dark"
+/**
+ * Add layers sources to the map.
+ * @param map - Map instance to add sources to
+ * @param kind - "all" for all layers, "base" for base layers, or a specific layer id
+ */
+export const addMapLayerSources = (map: MaplibreMap, kind: "all" | "base" | LayerId): void => {
+    const exactConfig = layersConfig.get(kind as LayerId)
+    const isDarkTheme = getActiveTheme() === "dark"
     let watchMap = false
-    for (const [layerId, config] of layersConfig) {
+    for (const [layerId, config] of exactConfig ? [[kind, exactConfig] as [LayerId, LayerConfig]] : layersConfig) {
         if (kind === "base" && !config.isBaseLayer) continue
         if (!watchMap && config.darkTiles) watchMap = true
         if (isDarkTheme && config.darkTiles) {
@@ -230,6 +234,7 @@ export const addMapLayerSources = (map: MaplibreMap, kind: "base" | "all"): void
     }
     if (watchMap) watchMapsLayerSources.push(map)
 }
+const watchMapsLayerSources: MaplibreMap[] = []
 
 // Listen for system color scheme changes
 addThemeEventHandler((theme) => {

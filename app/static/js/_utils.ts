@@ -111,8 +111,8 @@ export const requestIdleCallbackPolyfill: (callback: IdleRequestCallback, option
 export const cancelIdleCallbackPolyfill: (handle: number) => void =
     window.cancelIdleCallback || ((handle) => window.clearTimeout(handle))
 
-/** Get the device theme */
-export const getDeviceTheme = (): "light" | "dark" =>
+/** Get the device theme preference, *NOT* the currently active theme */
+export const getDeviceThemePreference = (): "light" | "dark" =>
     window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 
 /** Cache a function result, ignoring passed arguments */
