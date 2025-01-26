@@ -3,6 +3,15 @@ import { getDeviceTheme } from "./_utils.ts"
 
 export type AppTheme = "light" | "dark" | "auto"
 
+type ThemeEventHandler = (theme: "light" | "dark") => void
+
+const themeEventHandlers: ThemeEventHandler[] = []
+
+/** Add a theme event handler, called when app theme is changed */
+export const addThemeEventHandler = (handler: ThemeEventHandler): void => {
+    themeEventHandlers.push(handler)
+}
+
 const control = document.querySelector(".navbar-theme")
 const buttonIcon = control.querySelector(".dropdown-toggle i.bi")
 const themeItemButtonMap = new Map<AppTheme, HTMLButtonElement>()
@@ -26,17 +35,20 @@ const updateState = (forceAppTheme?: AppTheme): void => {
     for (const [theme, itemButton] of themeItemButtonMap) {
         itemButton.classList.toggle("active", theme === appTheme)
     }
+
+    for (const handler of themeEventHandlers) handler(activeTheme)
 }
 
 // Listen for system color scheme changes
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    console.debug("onSystemColorSchemeChange")
+    console.debug("Handling system color scheme change")
     updateState()
 })
 
 for (const [theme, itemButton] of themeItemButtonMap.entries()) {
     itemButton.addEventListener("click", () => {
-        console.debug("onThemeButtonClick", theme)
+        if (getAppTheme() === theme) return
+        console.debug("Handling application theme change to", theme)
         setAppTheme(theme)
         updateState(theme)
     })

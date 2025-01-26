@@ -1,13 +1,15 @@
 import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
-import type {
-    AddLayerObject,
-    FilterSpecification,
-    LayerSpecification,
-    Map as MaplibreMap,
-    SourceSpecification,
+import {
+    type AddLayerObject,
+    type FilterSpecification,
+    type LayerSpecification,
+    type Map as MaplibreMap,
+    RasterTileSource,
+    type SourceSpecification,
 } from "maplibre-gl"
 import { getMapOverlayOpacity } from "../_local-storage.ts"
+import { addThemeEventHandler } from "../_navbar-theme.ts"
 import { getDeviceTheme, staticCache } from "../_utils.ts"
 
 declare const brandSymbol: unique symbol
@@ -66,6 +68,7 @@ export type AddMapLayerOptions = Omit<LayerSpecification, "id" | "type" | "sourc
 
 interface LayerConfig {
     specification: SourceSpecification
+    darkTiles?: RasterTileSource["tiles"]
     isBaseLayer?: boolean
     layerCode?: LayerCode
     legacyLayerIds?: LayerId[]
@@ -115,17 +118,15 @@ layersConfig.set("cyclemap" as LayerId, {
     legacyLayerIds: ["cycle map"] as LayerId[],
 })
 
-// TODO: would be nice to support changing in runtime
 layersConfig.set("transportmap" as LayerId, {
     specification: {
         type: "raster",
         maxzoom: 21,
-        tiles: [
-            `https://tile.thunderforest.com/transport${getDeviceTheme() === "dark" ? "-dark" : ""}/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`,
-        ],
+        tiles: [`https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`],
         tileSize: 256,
         attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
     },
+    darkTiles: [`https://tile.thunderforest.com/transport-dark/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`],
     isBaseLayer: true,
     layerCode: "T" as LayerCode,
 })
@@ -213,13 +214,42 @@ export const resolveLayerCodeOrId = (layerCodeOrId: LayerCode | LayerId): LayerI
 export const defaultLayerId = "standard" as LayerId
 
 /** Add layers sources to the map. */
+const watchMapsLayerSources: MaplibreMap[] = []
 export const addMapLayerSources = (map: MaplibreMap, kind: "base" | "all"): void => {
+    const isDarkTheme = getDeviceTheme() === "dark"
+    let watchMap = false
     for (const [layerId, config] of layersConfig) {
-        if (kind === "all" || config.isBaseLayer) {
+        if (kind === "base" && !config.isBaseLayer) continue
+        if (!watchMap && config.darkTiles) watchMap = true
+        if (isDarkTheme && config.darkTiles) {
+            // @ts-ignore
+            map.addSource(layerId, { ...config.specification, tiles: config.darkTiles })
+        } else {
             map.addSource(layerId, config.specification)
         }
     }
+    if (watchMap) watchMapsLayerSources.push(map)
 }
+
+// Listen for system color scheme changes
+addThemeEventHandler((theme) => {
+    console.debug("Changing", watchMapsLayerSources.length, "maps layer sources to", theme)
+    const isDarkTheme = theme === "dark"
+    for (const map of watchMapsLayerSources) {
+        for (const [layerId, config] of layersConfig) {
+            const source = map.getSource(layerId)
+            if (!source || !(source instanceof RasterTileSource)) continue
+            if (isDarkTheme) {
+                if (config.darkTiles) {
+                    source.setTiles(config.darkTiles)
+                }
+            } else if (config.darkTiles) {
+                // @ts-ignore
+                source.setTiles(config.specification.tiles)
+            }
+        }
+    }
+})
 
 export const getExtendedLayerId = (layerId: LayerId, type: LayerType): string => `${layerId}:${type}`
 
