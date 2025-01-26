@@ -68,10 +68,10 @@ REPLICATION_DIR = _path(os.getenv('REPLICATION_DIR', 'data/replication'), mkdir=
 # TODO: remove postgres password after some time
 POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
 POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv(
-    'POSTGRES_URL', f'postgres:postgres@/postgres?host={_path('data/postgres_unix')}&port=49560'
+    'POSTGRES_URL', f'postgres:postgres@/postgres?host={_path("data/postgres_unix")}&port=49560'
 )
 
-VALKEY_URL = os.getenv('VALKEY_URL', f'unix://{_path('data/valkey.sock')}?protocol=3')
+VALKEY_URL = os.getenv('VALKEY_URL', f'unix://{_path("data/valkey.sock")}?protocol=3')
 
 SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', SMTP_USER)
 SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)
@@ -200,7 +200,22 @@ SENTRY_REPLICATION_MONITOR = sentry_sdk.monitor(
         },
         'checkin_margin': 5,
         'max_runtime': 60,
-        'failure_issue_threshold': min(60 * 24, 720),
+        'failure_issue_threshold': 720,  # 12h
+        'recovery_threshold': 1,
+    },
+)
+
+SENTRY_CHANGESET_MANAGEMENT_MONITOR = sentry_sdk.monitor(
+    os.getenv('SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG', 'osm-ng-changeset-management'),
+    {
+        'schedule': {
+            'type': 'interval',
+            'value': 1,
+            'unit': 'minute',
+        },
+        'checkin_margin': 5,
+        'max_runtime': 60,
+        'failure_issue_threshold': 60,  # 1h
         'recovery_threshold': 1,
     },
 )

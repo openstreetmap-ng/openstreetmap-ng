@@ -5,11 +5,11 @@ from asyncio import Event, TaskGroup
 from contextlib import asynccontextmanager
 from time import perf_counter
 
-import cython
+from sentry_sdk.api import start_transaction
 from sqlalchemy import and_, delete, func, null, or_, select, text, update
 from sqlalchemy.orm import load_only
 
-from app.config import TEST_ENV
+from app.config import SENTRY_CHANGESET_MANAGEMENT_MONITOR, TEST_ENV
 from app.db import db, db_commit
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
@@ -113,8 +113,6 @@ class ChangesetService:
 
 @retry(None)
 async def _process_task() -> None:
-    test_env: cython.char = bool(TEST_ENV)
-
     while True:
         async with db() as session:
             # lock is just a random unique number
@@ -123,9 +121,10 @@ async def _process_task() -> None:
             ).scalar_one()
             if acquired:
                 ts = perf_counter()
-                async with TaskGroup() as tg:
-                    tg.create_task(_close_inactive())
-                    tg.create_task(_delete_empty())
+                with SENTRY_CHANGESET_MANAGEMENT_MONITOR, start_transaction(op='task', name='changeset-management'):
+                    async with TaskGroup() as tg:
+                        tg.create_task(_close_inactive())
+                        tg.create_task(_delete_empty())
                 tt = perf_counter() - ts
                 # on success, sleep ~1min
                 delay = random.uniform(50, 70) - tt  # noqa: S311
@@ -133,7 +132,8 @@ async def _process_task() -> None:
                 # on failure, sleep ~1h
                 delay = random.uniform(1800, 5400)  # noqa: S311
 
-        if test_env:
+        if TEST_ENV:
+            # during tests, allow early wakeup
             _PROCESS_DONE_EVENT.set()
             async with TaskGroup() as tg:
                 event_task = tg.create_task(_PROCESS_REQUEST_EVENT.wait())
@@ -148,9 +148,7 @@ async def _process_task() -> None:
 
 
 async def _close_inactive() -> None:
-    """
-    Close all inactive changesets.
-    """
+    """Close all inactive changesets."""
     async with db_commit() as session:
         now = utcnow()
         stmt = (
@@ -175,9 +173,7 @@ async def _close_inactive() -> None:
 
 
 async def _delete_empty() -> None:
-    """
-    Delete empty changesets after a timeout.
-    """
+    """Delete empty changesets after a timeout."""
     async with db_commit() as session:
         now = utcnow()
         stmt = delete(Changeset).where(
