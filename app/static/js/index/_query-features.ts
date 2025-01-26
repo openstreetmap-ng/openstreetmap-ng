@@ -236,6 +236,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
             }
             abortController?.abort()
             abortController = null
+            focusObjects(map)
         },
     }
 }

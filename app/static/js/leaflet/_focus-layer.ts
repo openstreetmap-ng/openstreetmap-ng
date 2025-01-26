@@ -45,7 +45,7 @@ layersConfig.set(layerId as LayerId, {
             "circle-radius": 10,
         },
     },
-    priority: 150,
+    priority: 140,
 })
 
 let lastPaint: FocusLayerPaint | null = null

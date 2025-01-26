@@ -6,7 +6,6 @@ from urllib.parse import urlencode
 
 import numpy as np
 import orjson
-from httpx import Timeout
 from shapely import MultiPolygon, Point, Polygon, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
@@ -15,19 +14,16 @@ from app.lib.feature_prefix import features_prefixes
 from app.lib.search import SearchResult
 from app.lib.translation import primary_translation_locale
 from app.limits import (
-    NOMINATIM_CACHE_LONG_EXPIRE,
-    NOMINATIM_CACHE_SHORT_EXPIRE,
-    NOMINATIM_HTTP_LONG_TIMEOUT,
-    NOMINATIM_HTTP_SHORT_TIMEOUT,
+    NOMINATIM_REVERSE_CACHE_EXPIRE,
+    NOMINATIM_REVERSE_HTTP_TIMEOUT,
+    NOMINATIM_SEARCH_CACHE_EXPIRE,
+    NOMINATIM_SEARCH_HTTP_TIMEOUT,
 )
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementRef, ElementType
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP
-
-_HTTP_SHORT_TIMEOUT = Timeout(NOMINATIM_HTTP_SHORT_TIMEOUT.total_seconds())
-_HTTP_LONG_TIMEOUT = Timeout(NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
 
 _cache_context = CacheContext('Nominatim')
 
@@ -70,7 +66,10 @@ class NominatimQuery:
 
         async def factory() -> bytes:
             logging.debug('Nominatim reverse cache miss for path %r', path)
-            r = await HTTP.get(NOMINATIM_URL + path, timeout=_HTTP_SHORT_TIMEOUT)
+            r = await HTTP.get(
+                NOMINATIM_URL + path,
+                timeout=NOMINATIM_REVERSE_HTTP_TIMEOUT.total_seconds(),
+            )
             r.raise_for_status()
             return r.content
 
@@ -78,7 +77,7 @@ class NominatimQuery:
             path,
             context=_cache_context,
             factory=factory,
-            ttl=NOMINATIM_CACHE_LONG_EXPIRE,
+            ttl=NOMINATIM_REVERSE_CACHE_EXPIRE,
         )
         response_entries = (orjson.loads(cache.value),)
         result = await _get_search_result(at_sequence_id=None, response_entries=response_entries)
@@ -144,7 +143,10 @@ async def _search(
 
     async def factory() -> bytes:
         logging.debug('Nominatim search cache miss for path %r', path)
-        r = await HTTP.get(NOMINATIM_URL + path, timeout=_HTTP_LONG_TIMEOUT)
+        r = await HTTP.get(
+            NOMINATIM_URL + path,
+            timeout=NOMINATIM_SEARCH_HTTP_TIMEOUT.total_seconds(),
+        )
         r.raise_for_status()
         return r.content
 
@@ -155,7 +157,7 @@ async def _search(
             context=_cache_context,
             factory=factory,
             hash_key=True,
-            ttl=NOMINATIM_CACHE_SHORT_EXPIRE,
+            ttl=NOMINATIM_SEARCH_CACHE_EXPIRE,
         )
         response = cache.value
     else:

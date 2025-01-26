@@ -34,7 +34,7 @@ layersConfig.set(layerId as LayerId, {
             "circle-stroke-color": themeColor,
         },
     },
-    priority: 145,
+    priority: 135,
 })
 
 /** Create a new note controller */

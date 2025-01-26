@@ -6,6 +6,7 @@ import os
 import pathlib
 import sys
 import time
+import traceback
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
@@ -170,10 +171,9 @@ user_name_blacklist_routes(main)
 
 @main.exception_handler(ExceptionGroup)
 async def exception_group_handler(request: Request, exc: ExceptionGroup):
-    """
-    Unpack supported exception groups.
-    """
+    """Unpack supported exception groups."""
     http_exception = next((e for e in exc.exceptions if isinstance(e, HTTPException)), None)
     if http_exception is not None:
         return await http_exception_handler(request, http_exception)
+    traceback.print_exception(exc.__class__, exc, exc.__traceback__)
     return Response('Internal Server Error', status.HTTP_500_INTERNAL_SERVER_ERROR)

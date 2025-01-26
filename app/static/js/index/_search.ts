@@ -2,16 +2,16 @@ import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import type { Feature } from "geojson"
 import i18next from "i18next"
-import type { GeoJSONSource, LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
+import { type GeoJSONSource, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
 import { qsEncode, qsParse } from "../_qs"
 import { setPageTitle } from "../_title"
 import type { Bounds, OSMObject } from "../_types.ts"
-import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "../_utils.ts"
+import { beautifyZoom, isLatitude, isLongitude, staticCache, zoomPrecision } from "../_utils.ts"
 import { getMapAlert } from "../leaflet/_alert.ts"
 import { type FocusLayerPaint, type FocusOptions, focusObjects } from "../leaflet/_focus-layer.ts"
 import { clearMapHover, setMapHover } from "../leaflet/_hover.ts"
 import { loadMapImage, markerRedImageUrl } from "../leaflet/_image.ts"
-import { type LayerId, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
+import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
 import { convertRenderElementsData } from "../leaflet/_render-objects.ts"
 import { getLngLatBoundsIntersection, getLngLatBoundsSize, padLngLatBounds } from "../leaflet/_utils.ts"
 import { PartialSearchParamsSchema } from "../proto/shared_pb"
@@ -30,6 +30,7 @@ layersConfig.set(layerId, {
         layout: {
             "icon-image": "marker-red",
             "icon-allow-overlap": true,
+            "icon-size": 41 / 128,
             "icon-padding": 0,
             "icon-anchor": "bottom",
         },
@@ -37,7 +38,7 @@ layersConfig.set(layerId, {
             "icon-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 1, 0.8],
         },
     },
-    priority: 140,
+    priority: 150,
 })
 
 const themeColor = "#f60"
@@ -47,6 +48,12 @@ const focusPaint: FocusLayerPaint = Object.freeze({
     "line-color": themeColor,
     "line-opacity": 1,
     "line-width": 4,
+    "circle-radius": 10,
+    "circle-color": themeColor,
+    "circle-opacity": 0.4,
+    "circle-stroke-color": themeColor,
+    "circle-stroke-opacity": 1,
+    "circle-stroke-width": 3,
 })
 const focusOptions: FocusOptions = Object.freeze({
     padBounds: 0.5,
@@ -90,7 +97,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
         setHover(hoveredFeatureId, true)
     })
     map.on("mouseleave", layerId, () => {
-        setHover(hoveredFeatureId, false)
+        setHover?.(hoveredFeatureId, false)
         hoveredFeatureId = null
         clearMapHover(map, layerId)
     })
@@ -149,14 +156,10 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
         for (let i = 0; i < results.length; i++) {
             const result = results[i]
             result.addEventListener("mouseenter", () => setHover(i, true))
-            result.addEventListener("mouseleave", () => setHover(i, false))
+            result.addEventListener("mouseleave", () => setHover?.(i, false))
 
             // Lazily convert render elements data
-            elements.push((): OSMObject[] => {
-                const cache = convertRenderElementsData(params.renders[i])
-                elements[i] = () => cache
-                return cache
-            })
+            elements.push(staticCache(() => convertRenderElementsData(params.renders[i])))
 
             const dataset = result.dataset
             const lon = Number.parseFloat(dataset.lon)
@@ -175,32 +178,34 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
             }
         }
         source.setData({ type: "FeatureCollection", features })
+        addMapLayer(map, layerId)
         console.debug("Search layer showing", results.length, "results")
 
         /** Set the hover state of the search features */
         setHover = (id: number, hover: boolean): void => {
             const result = results[id]
             result.classList.toggle("hover", hover)
+            map.setFeatureState({ source: layerId, id: id }, { hover })
             if (hover) {
                 // Scroll result into view
                 const sidebarRect = sidebar.getBoundingClientRect()
                 const resultRect = result.getBoundingClientRect()
                 const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
                 if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
+                focusObjects(map, elements[id](), focusPaint, {
+                    ...focusOptions,
+                    // Focus on hover only during global search
+                    fitBounds: globalMode,
+                })
+            } else {
+                focusObjects(map)
             }
-            map.setFeatureState({ source: layerId, id: id }, { hover })
-            focusObjects(map, elements[id](), focusPaint, {
-                ...focusOptions,
-                // Focus on hover only during global search
-                fitBounds: globalMode,
-            })
         }
 
         if (globalMode) {
             // global mode
             if (results.length) {
-                const elements = convertRenderElementsData(params.renders[0])
-                focusObjects(map, elements, focusPaint, focusOptions)
+                focusObjects(map, elements[0](), focusPaint, focusOptions)
                 focusObjects(map)
             }
             initialBounds = map.getBounds()
@@ -210,9 +215,12 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
             initialBounds = null // will be set after flyToBounds animation
             map.on("moveend", onMapZoomOrMoveEnd)
 
-            console.debug("Search focusing on", params.boundsStr)
-            const bounds = params.boundsStr.split(",").map(Number.parseFloat) as Bounds
-            map.fitBounds(bounds)
+            const boundsPadded = padLngLatBounds(
+                new LngLatBounds(params.boundsStr.split(",").map(Number.parseFloat) as Bounds),
+                0.05,
+            )
+            console.debug("Search focusing on", boundsPadded)
+            map.fitBounds(boundsPadded)
         }
     })
 
@@ -259,16 +267,17 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
             }
         },
         unload: () => {
-            base.unload()
             map.off("moveend", onMapZoomOrMoveEnd)
             removeMapLayer(map, layerId)
             source.setData(emptyFeatureCollection)
             clearMapHover(map, layerId)
+            focusObjects(map)
             // Unstick the search form and reset search alert
             searchForm.classList.remove("sticky-top")
             searchAlert.classList.add("d-none")
             results = null
             setHover = null
+            base.unload()
         },
     }
     return controller

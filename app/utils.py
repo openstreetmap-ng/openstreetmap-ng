@@ -1,13 +1,14 @@
 import unicodedata
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from httpx import AsyncClient, Timeout
+from httpx import AsyncClient
 
 from app.config import USER_AGENT
+from app.limits import HTTP_TIMEOUT
 
 HTTP = AsyncClient(
     headers={'User-Agent': USER_AGENT},
-    timeout=Timeout(15, connect=10),
+    timeout=HTTP_TIMEOUT.total_seconds(),
     follow_redirects=True,
 )
 
@@ -17,9 +18,7 @@ HTTP = AsyncClient(
 
 
 def unicode_normalize(text: str) -> str:
-    """
-    Normalize a string to NFC form.
-    """
+    """Normalize a string to NFC form."""
     return unicodedata.normalize('NFC', text)
 
 
@@ -53,7 +52,5 @@ def splitlines_trim(s: str) -> tuple[str, ...]:
 
 
 def secure_referer(referer: str | None) -> str:
-    """
-    Return a secure referer, preventing external redirects.
-    """
+    """Return a secure referer, preventing open redirects."""
     return '/' if (not referer or not referer.startswith('/')) else referer
