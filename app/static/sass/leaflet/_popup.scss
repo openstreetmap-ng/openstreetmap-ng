@@ -21,6 +21,11 @@
     padding: 8px 12px;
 }
 
+.maplibregl-popup-close-button {
+    line-height: 1.2;
+    border-radius: 0 0 0 $border-radius-sm;
+}
+
 .tooltip {
     .maplibregl-popup-content {
         font-size: 0.875rem;

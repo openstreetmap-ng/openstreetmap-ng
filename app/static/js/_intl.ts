@@ -9,7 +9,7 @@ export const relativeTimeFormat = memoize(
 )
 
 /** Get the current timezone name */
-export const timeZoneName = staticCache(() => {
+export const getTimezoneName = staticCache(() => {
     const result = dateTimeFormat().resolvedOptions().timeZone
     console.debug("Current timezone name", result)
     return result
@@ -17,7 +17,7 @@ export const timeZoneName = staticCache(() => {
 
 const isImperialLanguage = (): boolean => navigator.language.startsWith("en-US") || navigator.language.startsWith("my")
 const isImperialRegion = (): boolean => {
-    const timezoneName = timeZoneName()
+    const timezoneName = getTimezoneName()
     return (
         timezoneName.startsWith("America/") || // United States and territories
         timezoneName === "Asia/Yangon" || // Myanmar (Burma)

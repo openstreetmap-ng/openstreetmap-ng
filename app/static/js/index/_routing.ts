@@ -41,7 +41,7 @@ layersConfig.set(layerId as LayerId, {
             "line-color": ["case", ["boolean", ["get", "base"], false], "#03f", "#ff0"],
             "line-opacity": [
                 "case",
-                ["boolean", ["get", "base"]],
+                ["boolean", ["get", "base"], false],
                 0.3, // Complete route is always 0.3 opacity
                 ["boolean", ["feature-state", "hover"], false],
                 0.5, // Individual steps are 0.5 when hovered
@@ -87,7 +87,6 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     const popupTemplate = routeContainer.querySelector("template.popup")
     const stepTemplate = routeContainer.querySelector("template.step")
 
-    const results = document.createDocumentFragment()
     let startBounds: LngLatBounds | null = null
     let startMarker: Marker | null = null
     let endBounds: LngLatBounds | null = null
@@ -105,7 +104,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             anchor: markerIconAnchor,
             element: getMarkerIconElement(color, true),
             draggable: true,
-        }).addTo(map)
+        })
 
     /** On draggable marker drag start, set data and drag image */
     const onInterfaceMarkerDragStart = (event: DragEvent) => {
@@ -128,22 +127,22 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     endDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
 
     const openPopup = (result: Element, lngLat: LngLatLike): void => {
-        // TODO: maybe optimize out setDOMContent
-        popupTemplate.querySelector(".number").innerHTML = result.querySelector(".number").innerHTML
-        popupTemplate.querySelector(".instruction").innerHTML = result.querySelector(".instruction").innerHTML
-        popup.setDOMContent(popupTemplate.content).setLngLat(lngLat).addTo(map)
+        const content = popupTemplate.content.cloneNode(true) as DocumentFragment
+        content.querySelector(".number").innerHTML = result.querySelector(".number").innerHTML
+        content.querySelector(".instruction").innerHTML = result.querySelector(".instruction").innerHTML
+        popup.setDOMContent(content).setLngLat(lngLat).addTo(map)
     }
 
     // On feature click, open a popup
     map.on("click", layerId, (e) => {
         const feature = e.features[0] as Feature<LineString>
         const featureId = feature.id as number
-        const result = results.children[featureId]
+        const result = stepsTableBody.children[featureId]
         openPopup(result, feature.geometry.coordinates[0] as LngLatLike)
     })
 
     let hoveredFeatureId: number | null = null
-    map.on("mouseover", layerId, (e) => {
+    map.on("mousemove", layerId, (e) => {
         const featureId = e.features[0].id
         if (hoveredFeatureId !== null) {
             if (hoveredFeatureId === featureId) return
@@ -162,7 +161,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
 
     /** Set the hover state of the step features */
     const setHover = (id: number, hover: boolean): void => {
-        const result = results.children[id]
+        const result = stepsTableBody.children[id]
         result.classList.toggle("hover", hover)
         if (hover) {
             // Scroll result into view
@@ -220,12 +219,8 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         }
 
         const mapRect = mapContainer.getBoundingClientRect()
-        const mousePoint = new Point(
-            event.clientX - mapRect.left,
-            event.clientY - mapRect.top + 20, // offset for marker height
-        )
-        marker.setLngLat(map.unproject(mousePoint))
-        marker.fire("dragend")
+        const mousePoint = new Point(event.clientX - mapRect.left, event.clientY - mapRect.top)
+        marker.setLngLat(map.unproject(mousePoint)).addTo(map).fire("dragend")
     }
 
     /** On map update, update the form's bounding box */
@@ -312,7 +307,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
                 startMarker = markerFactory("green")
                 startMarker.on("dragend", () => onMapMarkerDragEnd(startMarker.getLngLat(), true))
             }
-            startMarker.setLngLat([entry.lon, entry.lat])
+            startMarker.setLngLat([entry.lon, entry.lat]).addTo(map)
             startLoadedInput.value = entry.name
             startLoadedLonInput.value = entry.lon.toFixed(7)
             startLoadedLatInput.value = entry.lat.toFixed(7)
@@ -328,7 +323,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
                 endMarker = markerFactory("red")
                 endMarker.on("dragend", () => onMapMarkerDragEnd(endMarker.getLngLat(), false))
             }
-            endMarker.setLngLat([entry.lon, entry.lat])
+            endMarker.setLngLat([entry.lon, entry.lat]).addTo(map)
             endLoadedInput.value = entry.name
             endLoadedLonInput.value = entry.lon.toFixed(7)
             endLoadedLatInput.value = entry.lat.toFixed(7)
@@ -383,25 +378,27 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         }
 
         // Process individual steps
-        results.replaceChildren()
         let totalDistance = 0
         let totalTime = 0
         let coordsSliceStart = 0
+        const stepsRows = document.createDocumentFragment()
         for (const [stepIndex, step] of route.steps.entries()) {
             totalDistance += step.distance
             totalTime += step.time
 
             const stepCoords = allCoords.slice(coordsSliceStart, coordsSliceStart + step.numCoords)
             coordsSliceStart += step.numCoords - 1 // adjusted for overlapping ends
-            lines.push({
-                type: "Feature",
-                id: stepIndex,
-                properties: {},
-                geometry: {
-                    type: "LineString",
-                    coordinates: stepCoords,
-                },
-            })
+            if (step.numCoords > 1) {
+                lines.push({
+                    type: "Feature",
+                    id: stepIndex,
+                    properties: {},
+                    geometry: {
+                        type: "LineString",
+                        coordinates: stepCoords,
+                    },
+                })
+            }
 
             const div = (stepTemplate.content.cloneNode(true) as DocumentFragment).children[0]
             div.querySelector(".icon div").classList.add(`icon-${step.iconNum}`, "dark-filter-invert")
@@ -411,7 +408,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             div.addEventListener("click", () => openPopup(div, stepCoords[0]))
             div.addEventListener("mouseenter", () => setHover(stepIndex, true))
             div.addEventListener("mouseleave", () => setHover(stepIndex, false))
-            results.append(div)
+            stepsRows.append(div)
         }
 
         // Display general route information
@@ -429,7 +426,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
 
         // Display the turn-by-turn table
         stepsTableBody.innerHTML = ""
-        stepsTableBody.append(results)
+        stepsTableBody.append(stepsRows)
         attribution.innerHTML = i18next.t("javascripts.directions.instructions.courtesy", {
             link: route.attribution,
             interpolation: { escapeValue: false },
@@ -496,18 +493,14 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             loadingContainer.classList.add("d-none")
             routeContainer.classList.add("d-none")
 
-            if (startMarker) {
-                startMarker.remove()
-                startMarker = null
-                startLoadedInput.value = ""
-            }
-            if (endMarker) {
-                endMarker.remove()
-                endMarker = null
-                endLoadedInput.value = ""
-            }
+            startMarker?.remove()
+            startMarker = null
+            startLoadedInput.value = ""
 
-            results.replaceChildren()
+            endMarker?.remove()
+            endMarker = null
+            endLoadedInput.value = ""
+
             popup.remove()
         },
     }

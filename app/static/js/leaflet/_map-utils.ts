@@ -1,7 +1,7 @@
 import i18next from "i18next"
-import type { EaseToOptions, IControl, LngLat, Map as MaplibreMap } from "maplibre-gl"
+import { type EaseToOptions, type IControl, type LngLat, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
 import { homePoint } from "../_config"
-import { timeZoneName } from "../_intl.ts"
+import { getTimezoneName } from "../_intl.ts"
 import { getLastMapState, setLastMapState } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
 import { shortLinkEncode } from "../_shortlink"
@@ -12,12 +12,12 @@ import {
     type LayerCode,
     type LayerId,
     addMapLayer,
-    defaultLayerId,
     layersConfig,
     removeMapLayer,
     resolveExtendedLayerId,
     resolveLayerCodeOrId,
 } from "./_layers"
+import { padLngLatBounds } from "./_utils.ts"
 
 export interface LonLat {
     lon: number
@@ -55,47 +55,42 @@ export const getMapLayersCode = (map: MaplibreMap): string => {
  */
 const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
     console.debug("setMapLayersCode", layersCode)
-    const layersIds: Set<LayerId> = new Set()
-
-    // Extract base layers for validation and to check
-    // whether we need to auto-add the default base layer
-    const baseLayersIds: LayerId[] = []
+    const addLayerCodes: Set<LayerCode> = new Set()
+    let hasBaseLayer = false
 
     for (const layerCode of (layersCode || "") as Iterable<LayerCode>) {
         const layerId = resolveLayerCodeOrId(layerCode)
         if (!layerId) continue
-        layersIds.add(layerId)
-        const layerConfig = layersConfig.get(layerId)
-        if (layerConfig.isBaseLayer) baseLayersIds.push(layerId)
-    }
-
-    if (baseLayersIds.length > 1) {
-        console.error("Invalid layers code", layersCode, "(too many base layers)")
-        return
+        addLayerCodes.add(layerCode)
+        if (layersConfig.get(layerId).isBaseLayer) {
+            if (hasBaseLayer) {
+                console.error("Invalid layers code", layersCode, "(too many base layers)")
+                return
+            }
+            hasBaseLayer = true
+        }
     }
 
     // Add default base layer if no base layer is present
-    if (!baseLayersIds.length) {
-        layersIds.add(defaultLayerId)
-        baseLayersIds.push(defaultLayerId)
-    }
+    if (!hasBaseLayer) addLayerCodes.add("" as LayerCode)
 
     // Remove layers not found in the code
-    const missingLayersIds: Set<LayerId> = new Set(layersIds)
+    const missingLayerCodes: Set<LayerCode> = new Set(addLayerCodes)
     for (const extendedLayerId of map.getLayersOrder()) {
         const layerId = resolveExtendedLayerId(extendedLayerId)
         if (!layerId) continue
-        if (layersIds.has(layerId)) {
+        const layerCode = layersConfig.get(layerId).layerCode
+        if (layerCode === undefined || addLayerCodes.has(layerCode)) {
             console.debug("Keeping layer", layerId)
-            missingLayersIds.delete(layerId)
+            missingLayerCodes.delete(layerCode)
             continue
         }
         removeMapLayer(map, layerId)
     }
 
     // Add missing layers
-    for (const layerId of missingLayersIds) {
-        addMapLayer(map, layerId)
+    for (const layerCode of missingLayerCodes) {
+        addMapLayer(map, resolveLayerCodeOrId(layerCode))
     }
 }
 
@@ -231,7 +226,10 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
     const hashState = parseMapState(window.location.hash)
 
     // 1. Use the position from the hash state
-    if (hashState) return hashState
+    if (hashState) {
+        console.debug("Initial map state from hash", hashState)
+        return hashState
+    }
 
     // Delay search parsing, most URLs have a valid hash state
     const searchParams = qsParse(window.location.search.substring(1))
@@ -242,7 +240,9 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
         const bbox = searchParams.bbox.split(",").map(Number.parseFloat)
         if (bbox.length === 4) {
             const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, bbox as Bounds)
-            return { lon, lat, zoom, layersCode: lastState?.layersCode }
+            const state = { lon, lat, zoom, layersCode: lastState?.layersCode }
+            console.debug("Initial map state from bbox query", state)
+            return state
         }
     }
 
@@ -254,7 +254,9 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
         const maxLat = Number.parseFloat(searchParams.maxlat)
         if (isLongitude(minLon) && isLatitude(minLat) && isLongitude(maxLon) && isLatitude(maxLat)) {
             const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, [minLon, minLat, maxLon, maxLat])
-            return { lon, lat, zoom, layersCode: lastState?.layersCode }
+            const state = { lon, lat, zoom, layersCode: lastState?.layersCode }
+            console.debug("Initial map state from bounds query", state)
+            return state
         }
     }
 
@@ -264,7 +266,9 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
         const mlat = Number.parseFloat(searchParams.mlat)
         const zoom = searchParams.zoom ? Number.parseFloat(searchParams.zoom) : 12
         if (isLongitude(mlon) && isLatitude(mlat) && isZoom(zoom)) {
-            return { lon: mlon, lat: mlat, zoom, layersCode: lastState?.layersCode }
+            const state = { lon: mlon, lat: mlat, zoom, layersCode: lastState?.layersCode }
+            console.debug("Initial map state from marker query", state)
+            return state
         }
     }
 
@@ -274,34 +278,41 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
         const lat = Number.parseFloat(searchParams.lat)
         const zoom = searchParams.zoom ? Number.parseFloat(searchParams.zoom) : 12
         if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
-            return { lon, lat, zoom, layersCode: lastState?.layersCode }
+            const state = { lon, lat, zoom, layersCode: lastState?.layersCode }
+            console.debug("Initial map state from lon/lat query", state)
+            return state
         }
     }
 
     // 6. Use the last location from local storage
-    if (lastState) return lastState
+    if (lastState) {
+        console.debug("Initial map state from last state", lastState)
+        return lastState
+    }
 
     // 7. Use the user home location
     if (homePoint) {
         const { lon, lat } = homePoint
-        const zoom = 15 // Home zoom defaults to 15
-        return { lon, lat, zoom, layersCode: "" }
+        const state = { lon, lat, zoom: 15, layersCode: "" }
+        console.debug("Initial map state from home location", state)
+        return state
     }
 
     // 8. Use the user's country bounds
-    const countryBounds = timezoneBoundsMap.get(timeZoneName())
+    const countryBounds = timezoneBoundsMap.get(getTimezoneName())
     if (countryBounds) {
-        const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, countryBounds)
-        return { lon, lat, zoom, layersCode: "" }
+        const countryBoundsPadded = padLngLatBounds(new LngLatBounds(countryBounds), 0.1)
+        const [[minLon, minLat], [maxLon, maxLat]] = countryBoundsPadded.toArray()
+        const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, [minLon, minLat, maxLon, maxLat])
+        const state = { lon, lat, zoom, layersCode: "" }
+        console.debug("Initial map state from country bounds", state)
+        return state
     }
 
     // 9. Use the default location
-    return {
-        lon: 0,
-        lat: 30,
-        zoom: 3,
-        layersCode: "",
-    }
+    const defaultState = { lon: 0, lat: 30, zoom: 3, layersCode: "" }
+    console.debug("Initial map state from default location", defaultState)
+    return defaultState
 }
 
 /**

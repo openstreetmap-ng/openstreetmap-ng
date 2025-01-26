@@ -86,6 +86,7 @@ layersConfig.set("standard" as LayerId, {
         attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank" title="${donateTitle}">${donateText}</a>. ${terms}`,
     },
     isBaseLayer: true,
+    layerCode: "" as LayerCode,
     legacyLayerIds: ["mapnik"] as LayerId[],
 })
 
@@ -170,10 +171,6 @@ layersConfig.set("aerial" as LayerId, {
     layerCode: "A" as LayerCode,
     priority: 50,
 })
-// TODO: leaflet leftover
-// opacity: getMapOverlayOpacity(),
-// pane: "overlayPane",
-// zIndex: 0,
 
 layersConfig.set("gps" as LayerId, {
     specification: {
@@ -191,10 +188,7 @@ const layerLookupMap = staticCache((): Map<LayerId | LayerCode, LayerId> => {
     const result = new Map<LayerId | LayerCode, LayerId>()
     for (const [layerId, config] of layersConfig) {
         result.set(layerId, layerId)
-        if (layerId === "standard") {
-            result.set("" as LayerCode, layerId)
-        }
-        if (config.layerCode) {
+        if (config.layerCode !== undefined) {
             result.set(config.layerCode, layerId)
         }
         if (config.legacyLayerIds) {
