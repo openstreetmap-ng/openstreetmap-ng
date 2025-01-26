@@ -7,7 +7,7 @@ import { type TransmitUserPassword, TransmitUserPasswordSchema } from "./proto/s
 type PasswordSchema = "v1" | "legacy"
 
 const defaultPasswordSchema: PasswordSchema = "v1"
-const formUsePasswordSchemasMap: Map<HTMLFormElement, (PasswordSchema | string)[]> = new Map()
+const formUsePasswordSchemasMap = new WeakMap<HTMLFormElement, (PasswordSchema | string)[]>()
 
 export const initPasswordsForm = (form: HTMLFormElement, passwordInputs: NodeListOf<HTMLInputElement>): void => {
     console.debug("Initializing passwords form with", passwordInputs.length, "inputs", form.action)

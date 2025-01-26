@@ -1,11 +1,12 @@
-import i18next, { t } from "i18next"
-import * as L from "leaflet"
+import i18next from "i18next"
+import { type LngLat, type LngLatLike, Map as MaplibreMap, Marker } from "maplibre-gl"
 import { configureStandardForm } from "../_standard-form"
-import { isLatitude, isLongitude, zoomPrecision } from "../_utils"
-import { getDefaultBaseLayer } from "../leaflet/_layers"
-import { disableControlsClickPropagation, getInitialMapState, type LonLatZoom } from "../leaflet/_map-utils"
-import { getMarkerIcon } from "../leaflet/_utils"
-import { getZoomControl } from "../leaflet/_zoom-control"
+import { isLatitude, isLongitude, throttle, zoomPrecision } from "../_utils"
+import { CustomGeolocateControl } from "../leaflet/_geolocate.ts"
+import { addMapLayer, addMapLayerSources, defaultLayerId } from "../leaflet/_layers"
+import { type LonLatZoom, addControlGroup, getInitialMapState } from "../leaflet/_map-utils"
+import { configureDefaultMapBehavior, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
+import { CustomZoomControl } from "../leaflet/_zoom.ts"
 
 const body = document.querySelector("body.diary-compose-body")
 if (body) {
@@ -25,45 +26,56 @@ if (body) {
     const showMapContainer = body.querySelector(".show-map-container")
     const lonInput = showMapContainer.querySelector("input[name=lon]")
     const latInput = showMapContainer.querySelector("input[name=lat]")
-    const mapDiv = showMapContainer.querySelector("div.leaflet-container")
+    const mapDiv = showMapContainer.querySelector("div.map-container")
 
-    let map: L.Map | null = null
-    let marker: L.Marker | null = null
+    let map: MaplibreMap | null = null
+    let marker: Marker | null = null
 
-    const markerFactory = (latLng: L.LatLngExpression) =>
-        L.marker(latLng, { icon: getMarkerIcon("red", true) })
-            .bindPopup(i18next.t("diary_entries.edit.marker_text"))
+    const setMarker = (lngLat: LngLatLike): void => {
+        if (marker) {
+            marker.setLngLat(lngLat)
+            return
+        }
+        marker = new Marker({
+            anchor: markerIconAnchor,
+            element: getMarkerIconElement("red", true),
+            draggable: true,
+        })
+            .setLngLat(lngLat)
             .addTo(map)
+        marker.on(
+            "drag",
+            throttle(() => setInput(marker.getLngLat()), 100),
+        )
+    }
+
+    const setInput = (lngLat: LngLat): void => {
+        const precision = zoomPrecision(map.getZoom())
+        const lngLatWrap = lngLat.wrap()
+        lonInput.value = lngLatWrap.lng.toFixed(precision)
+        latInput.value = lngLatWrap.lat.toFixed(precision)
+    }
 
     /** On map click, update the coordinates and move the marker */
-    const onMapClick = (e: L.LeafletMouseEvent) => {
-        const precision = zoomPrecision(map.getZoom())
-        const lon = e.latlng.lng.toFixed(precision)
-        const lat = e.latlng.lat.toFixed(precision)
-        const latLng = L.latLng(Number(lat), Number(lon))
-
-        lonInput.value = lon
-        latInput.value = lat
-
-        // If there's already a marker, move it, otherwise create a new one
-        if (marker) marker.setLatLng(latLng)
-        else marker = markerFactory(latLng)
+    const onMapClick = ({ lngLat }: { lngLat: LngLat }) => {
+        console.debug("onMapClick", lngLat)
+        setMarker(lngLat)
+        setInput(lngLat)
     }
 
     /** On coordinates input change, update the marker position */
     const onCoordinatesInputChange = () => {
         if (mapDiv.classList.contains("d-none")) return
         if (lonInput.value && latInput.value) {
+            console.debug("onCoordinatesInputChange", lonInput.value, latInput.value)
             const lon = Number.parseFloat(lonInput.value)
             const lat = Number.parseFloat(latInput.value)
             if (isLongitude(lon) && isLatitude(lat)) {
-                const latLng = L.latLng(lat, lon)
-                // If there's already a marker, move it, otherwise create a new one
-                if (marker) marker.setLatLng(latLng)
-                else marker = markerFactory(latLng)
+                const lngLat: LngLatLike = [lon, lat]
+                setMarker(lngLat)
                 // Focus on the makers if it's offscreen
-                if (!map.getBounds().contains(latLng)) {
-                    map.setView(latLng)
+                if (!map.getBounds().contains(lngLat)) {
+                    map.panTo(lngLat)
                 }
             }
         }
@@ -79,19 +91,16 @@ if (body) {
         mapDiv.classList.remove("d-none")
 
         if (!map) {
-            map = L.map(mapDiv, { zoomControl: false })
-
-            // Disable Leaflet's attribution prefix
-            map.attributionControl.setPrefix(false)
-
-            // Add native controls
-            map.addControl(getZoomControl())
-
-            // Disable click propagation on controls
-            disableControlsClickPropagation(map)
-
-            // Add default layer
-            map.addLayer(getDefaultBaseLayer())
+            map = new MaplibreMap({
+                container: mapDiv,
+                maxZoom: 19,
+                attributionControl: { compact: true, customAttribution: "" },
+                refreshExpiredTiles: false,
+            })
+            configureDefaultMapBehavior(map)
+            addMapLayerSources(map, "base")
+            addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
+            addMapLayer(map, defaultLayerId)
         }
 
         let state: LonLatZoom | null = null
@@ -103,8 +112,7 @@ if (body) {
             const lat = Number.parseFloat(latInput.value)
             if (isLongitude(lon) && isLatitude(lat)) {
                 state = { lon, lat, zoom: 10 }
-                marker = markerFactory([lat, lon])
-                // TODO: draggable marker
+                setMarker([lon, lat])
             }
         }
 
@@ -112,8 +120,11 @@ if (body) {
         // This will only focus the map, not display a marker
         if (!state) state = getInitialMapState(map)
 
-        map.setView([state.lat, state.lon], state.zoom)
-        map.addEventListener("click", onMapClick)
+        map.jumpTo({
+            center: [state.lon, state.lat],
+            zoom: state.zoom,
+        })
+        map.on("click", onMapClick)
     })
 
     const removeMapButton = showMapContainer.querySelector("button.remove-location-btn")
@@ -143,7 +154,7 @@ if (body) {
         // On delete button click, request confirmation
         const deleteButton = deleteForm.querySelector("button[type=submit]")
         deleteButton.addEventListener("click", (event: Event) => {
-            if (!confirm(t("diary.delete_confirmation"))) {
+            if (!confirm(i18next.t("diary.delete_confirmation"))) {
                 event.preventDefault()
             }
         })

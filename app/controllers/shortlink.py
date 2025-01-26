@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import Annotated
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import quote, urlencode
 
 from fastapi import APIRouter, Path, Request, Response, status
 from osm_shortlink import shortlink_decode
@@ -22,7 +22,7 @@ async def shortlink(request: Request, code: Annotated[str, Path(min_length=3, ma
     except Exception:
         return Response(None, status.HTTP_404_NOT_FOUND)
 
-    query = parse_qs(request.url.query, strict_parsing=True)
-    query['map'] = [f'{z}/{lat:.5f}/{lon:.5f}']
-    fragment = '#' + urlencode(query, doseq=True)
-    return RedirectResponse(f'/{fragment}', status.HTTP_301_MOVED_PERMANENTLY)
+    fragment = '#' + urlencode({'map': [f'{z}/{lat:.5f}/{lon:.5f}']}, doseq=True, quote_via=quote)
+    if query := request.url.query:
+        query = '?' + query
+    return RedirectResponse(f'/{query}{fragment}', status.HTTP_301_MOVED_PERMANENTLY)

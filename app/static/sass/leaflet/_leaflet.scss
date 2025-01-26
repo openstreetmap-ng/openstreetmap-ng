@@ -1,83 +1,105 @@
-.leaflet-container {
+.maplibregl-map {
     a {
         @extend .link-primary;
     }
 
-    // Style buttons displayed on the side of the map
-    // (e.g. zoom in/out, layers, etc.)
-    .control-button {
-        display: block;
-        background: rgba($black, 0.6);
-        padding: unset;
-        border: unset;
-        line-height: 0;
+    &.query-features .maplibregl-canvas-container.maplibregl-interactive {
+        cursor: help;
+    }
 
-        &:hover,
-        &:focus {
-            background: $black;
+    //// // Style the map popup
+    //// .leaflet-popup-content-wrapper {
+    ////     @extend .rounded-2;
+    //// }
+    //
+    //// // Style the cursor depending on the action
+    //// &.query-features {
+    ////     cursor: help;
+    //
+    ////     // TODO: ESC to cancel
+    ////     &.query-features-disabled {
+    ////         cursor: not-allowed;
+    ////     }
+    //// }
+    //
+    //// TODO: is this necessary?
+    //// .leaflet-marker-draggable {
+    ////     cursor: move;
+    //
+    ////     &.leaflet-drag-target {
+    ////         cursor: grabbing;
+    ////     }
+    //// }
+}
+
+.maplibregl-ctrl-group {
+    background: unset;
+    border-radius: unset;
+}
+
+// Style buttons displayed on the side of the map
+// (e.g. zoom in/out, layers, etc.)
+.maplibregl-ctrl-group button {
+    background: rgba($black, 0.6);
+    border-radius: unset !important;
+    height: auto;
+    width: auto;
+    line-height: 0;
+
+    & + button {
+        border-top: unset;
+    }
+
+    &:hover,
+    &:focus {
+        background: $black !important;
+    }
+
+    &:disabled {
+        background: rgba($black, 0.5) !important;
+        cursor: default;
+
+        &.maplibregl-ctrl-geolocate {
+            cursor: not-allowed;
         }
 
-        &:disabled {
-            background: rgba($black, 0.5);
-            cursor: default;
-        }
-
-        &.active {
-            background: $vibrant-green;
+        .icon {
+            opacity: 0.5;
         }
     }
 
-    // // Style the map popup
-    // .leaflet-popup-content-wrapper {
-    //     @extend .rounded-2;
-    // }
+    &.active {
+        background: $vibrant-green !important;
+    }
 
-    // // Style the cursor depending on the action
-    // &.query-features {
-    //     cursor: help;
-
-    //     // TODO: ESC to cancel
-    //     &.query-features-disabled {
-    //         cursor: not-allowed;
-    //     }
-    // }
-
-    // TODO: is this necessary?
-    // .leaflet-marker-draggable {
-    //     cursor: move;
-
-    //     &.leaflet-drag-target {
-    //         cursor: grabbing;
-    //     }
-    // }
-
-    // Fix white grid lines on browser zoom-in
-    img.leaflet-tile {
-        mix-blend-mode: initial;
+    .maplibregl-ctrl-icon {
+        margin: 10px;
+        width: 20px;
+        height: 20px;
     }
 }
 
-// Hint the browser that the map will be animated
-.leaflet-map-pane,
-.leaflet-zoom-animated {
-    will-change: transform;
+.maplibregl-ctrl-group:not(:empty) {
+    box-shadow: unset;
 }
 
 // Stick controls to the edges of the map
-.leaflet-top.leaflet-left .leaflet-control {
+.maplibregl-ctrl-top-left .maplibregl-ctrl {
     margin-left: 0;
 }
 
-.leaflet-top.leaflet-right .leaflet-control {
+.maplibregl-ctrl-top-right .maplibregl-ctrl {
     margin-right: 0;
 }
 
 // Style the control group
-.leaflet-control.leaflet-control-group {
-    margin-top: 0;
+.maplibregl-ctrl-group.custom-control-group {
+    &:not(.first) {
+        margin-top: 0;
+    }
 
     &.first {
-        margin-top: 0.625rem;
+        margin-top: 10px;
         border-start-start-radius: $border-radius-sm;
         overflow: hidden;
     }
@@ -88,33 +110,23 @@
     }
 }
 
-// Style the distance label from "Measure Distance"
-.leaflet-marker-icon.distance-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    div {
-        @extend .rounded-1;
-        padding: 0 0.25rem;
-        color: $white;
-        background: $blue-500;
-    }
-}
-
-// Style the ghost marker icon from "Measure Distance"
-.leaflet-marker-icon.ghost-marker {
-    opacity: 0.5;
-    padding-bottom: 10px !important;
-    box-sizing: content-box;
-}
-
-// Increase the priority of the routing pane
-.leaflet-focus-routing {
-    z-index: 420;
-}
-
-// Increase the priority of the focus pane
-.leaflet-focus-pane {
-    z-index: 450;
-}
+//// Style the distance label from "Measure Distance"
+//.leaflet-marker-icon.distance-label {
+//    display: flex;
+//    align-items: center;
+//    justify-content: center;
+//
+//    div {
+//        @extend .rounded-1;
+//        padding: 0 0.25rem;
+//        color: $white;
+//        background: $blue-500;
+//    }
+//}
+//
+//// Style the ghost marker icon from "Measure Distance"
+//.leaflet-marker-icon.ghost-marker {
+//    opacity: 0.5;
+//    padding-bottom: 10px !important;
+//    box-sizing: content-box;
+//}

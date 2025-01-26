@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4989a246d7a390a859852baddb1013f825435cee.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/300081d0cc72df578b02d914df941b8ec62240e6.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
@@ -176,6 +176,20 @@ let
         mode_hash=1
       fi
 
+      #src_dir="app/static/wasm"
+      #dst="app/static/js/wasm/index.wasm"
+      #if [ ! -f "$dst" ] || [ -n "$(find "$src_dir" -type f -newer "$dst" -print -quit)" ]; then
+      #  echo "[js-pipeline] Compiling WebAssembly"
+      #  bun run asc \
+      #    -Ospeed \
+      #    --converge \
+      #    --outFile "$dst" \
+      #    --bindings "esm" \
+      #    "$src_dir/index.ts"
+      #  # fix path in the generated bindings
+      #  sed -i -E "s|\"index.wasm\"|\"wasm/index.wasm\"|" app/static/js/wasm/index.js
+      #fi
+
       dir=app/static/js
       generated="$dir/_generated"
       find "$dir" \
@@ -184,7 +198,7 @@ let
         -name "bundle-*" \
         -delete
       bun run babel \
-        --extensions ".ts" \
+        --extensions ".js,.ts" \
         --delete-dir-on-start \
         --out-dir "$generated" \
         "$dir"
@@ -232,7 +246,7 @@ let
         done
       fi
     '')
-    (makeScript "watch-js" "exec watchexec -o queue -w app/static/js -i 'bundle-*' -i '**/_generated/**' js-pipeline")
+    (makeScript "watch-js" "exec watchexec -o queue -w app/static/js -w app/static/wasm -i 'bundle-*' -i '**/_generated/**' js-pipeline")
 
     # -- Static
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
@@ -246,6 +260,10 @@ let
       )
       files=$(find "''${dirs[@]}" \
         -type f \
+        -not -name "*.xcf" \
+        -not -name "*.webp" \
+        -not -name "*.ts" \
+        -not -name "*.scss" \
         -not -name "*.br" \
         -not -name "*.zst" \
         -size +1023c)
@@ -309,6 +327,7 @@ let
         --python_out app/models/proto \
         --pyi_out app/models/proto \
         app/models/proto/*.proto
+      rm app/static/js/proto/server*
     '')
     (makeScript "watch-proto" "exec watchexec -o queue -w app/models/proto --exts proto proto-pipeline")
 

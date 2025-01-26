@@ -8,15 +8,9 @@ import type { LonLat } from "./leaflet/_map-utils"
  * // => "1.1km"
  */
 export const formatDistance = (meters: number): string => {
-    // < 1 km
-    if (meters < 1000) {
-        return i18next.t("javascripts.directions.distance_m", { distance: Math.round(meters) })
-    }
-    // < 10 km
-    if (meters < 10000) {
-        return i18next.t("javascripts.directions.distance_km", { distance: (meters / 1000.0).toFixed(1) })
-    }
-    return i18next.t("javascripts.directions.distance_km", { distance: (meters / 1000.0).toFixed(0) })
+    const km = meters / 1000
+    if (km < 1) return i18next.t("javascripts.directions.distance_m", { distance: Math.round(meters) })
+    return i18next.t("javascripts.directions.distance_km", { distance: km.toFixed(km < 10 ? 1 : 0) })
 }
 
 /**
@@ -26,23 +20,13 @@ export const formatDistance = (meters: number): string => {
  * // => "230m"
  */
 export const formatDistanceRounded = (meters: number): string => {
-    // < 5 m
-    if (meters < 5) {
-        return ""
-    }
-    // < 200 m
-    if (meters < 200) {
-        return i18next.t("javascripts.directions.distance_m", { distance: Math.round(meters / 10) * 10 })
-    }
-    // < 1500 m
+    if (meters < 5) return ""
     if (meters < 1500) {
-        return i18next.t("javascripts.directions.distance_m", { distance: Math.round(meters / 100) * 100 })
+        const precision = meters < 200 ? 10 : 100
+        return i18next.t("javascripts.directions.distance_m", { distance: Math.round(meters / precision) * precision })
     }
-    // < 5 km
-    if (meters < 5000) {
-        return i18next.t("javascripts.directions.distance_km", { distance: (meters / 1000.0).toFixed(1) })
-    }
-    return i18next.t("javascripts.directions.distance_km", { distance: (meters / 1000.0).toFixed(0) })
+    const digits = meters < 5000 ? 1 : 0
+    return i18next.t("javascripts.directions.distance_km", { distance: (meters / 1000).toFixed(digits) })
 }
 
 /**
@@ -63,8 +47,8 @@ export const formatHeight = (meters: number): string => {
  */
 export const formatTime = (seconds: number): string => {
     // TODO: nice hours and minutes text
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor((seconds % 3600) / 60)
+    const h = (seconds / 3600) | 0
+    const m = ((seconds % 3600) / 60) | 0
     return `${h}:${m.toString().padStart(2, "0")}`
 }
 
@@ -74,25 +58,24 @@ export const formatTime = (seconds: number): string => {
  * // => "21°19′16″"
  */
 export const formatDegrees = (decimalDegree: number): string => {
-    const degrees = Math.floor(decimalDegree)
-    const minutes = Math.floor((decimalDegree - degrees) * 60)
-    const seconds = Math.round(((decimalDegree - degrees) * 60 - minutes) * 60)
+    const deg = decimalDegree | 0
+    const minSec = (decimalDegree - deg) * 60
+    const min = minSec | 0
+    const sec = ((minSec - min) * 60) | 0
 
     // Pad single digits with a leading zero
-    const formattedDegrees = degrees < 10 ? `0${degrees}` : `${degrees}`
-    const formattedSeconds = seconds < 10 ? `0${seconds}` : `${seconds}`
-    const formattedMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`
-
-    return `${formattedDegrees}°${formattedMinutes}′${formattedSeconds}″`
+    const degStr = deg < 10 ? `0${deg}` : `${deg}`
+    const minStr = min < 10 ? `0${min}` : `${min}`
+    const secStr = sec < 10 ? `0${sec}` : `${sec}`
+    return `${degStr}°${minStr}′${secStr}″`
 }
 
 /**
  * Format [lat, lon] in the geographic coordinate system.
  * @see https://en.wikipedia.org/wiki/Geographic_coordinate_system
  * @example formatCoordinate(21.32123, 35.2134)
- * // => "21°19′16″N, 35°12′48″E"
+ * // => "21°19′16″N 35°12′48″E"
  */
-
 export const formatCoordinate = ({ lon, lat }: LonLat): string => {
     const latDegrees = formatDegrees(lat)
     const lonDegrees = formatDegrees(lon)

@@ -27,11 +27,10 @@ for (const copyGroup of copyGroups) {
             return
         }
 
-        if (timeout) clearTimeout(timeout)
-
         copyIcon.classList.remove("bi-copy")
         copyIcon.classList.add("bi-check2")
 
+        clearTimeout(timeout)
         timeout = setTimeout(() => {
             copyIcon.classList.remove("bi-check2")
             copyIcon.classList.add("bi-copy")

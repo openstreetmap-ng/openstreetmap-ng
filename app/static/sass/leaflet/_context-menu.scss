@@ -1,24 +1,11 @@
 .context-menu {
-    // Position at bottom-right of cursor
-    top: 5px !important;
-    left: 5px !important;
-    bottom: unset !important;
-    transition: none !important;
-
-    .leaflet-popup-content-wrapper {
-        @extend .bg-body;
-        @extend .rounded-1;
-        padding-left: 0;
-        padding-right: 0;
-    }
-
-    .leaflet-popup-content {
-        margin: 6px 0;
-    }
-
-    // Hide anchor
-    .leaflet-popup-tip-container {
+    .maplibregl-popup-tip {
         display: none;
+    }
+
+    .maplibregl-popup-content {
+        padding: 6px 0;
+        background: var(--bs-body-bg) !important;
     }
 
     nav {
@@ -34,6 +21,7 @@
         white-space: nowrap;
         border: none;
         padding: 2px 12px;
+        --bs-btn-bg: var(--bs-body-bg);
 
         &:hover {
             & + .dropdown-toggle {
@@ -51,6 +39,10 @@
 
 @include color-mode(dark) {
     .context-menu {
+        .maplibregl-popup-content {
+            background: $dark !important;
+        }
+
         .btn {
             &:hover {
                 & + .dropdown-toggle {

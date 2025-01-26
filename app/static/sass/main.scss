@@ -52,8 +52,8 @@
 $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "bootstrap-icons/font/bootstrap-icons";
 
-// (Leaflet)
-@import "leaflet/dist/leaflet";
+// (MapLibre GL)
+@import "maplibre-gl/dist/maplibre-gl";
 
 @import "about";
 @import "avatar";
@@ -77,7 +77,6 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 
 @import "index/changeset";
 @import "index/changesets-history";
-@import "index/context-menu";
 @import "index/distance";
 @import "index/element";
 @import "index/export";
@@ -91,17 +90,20 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "diaries/index";
 @import "diaries/scroll_nav";
 
+@import "leaflet/alert";
+@import "leaflet/attribution";
+@import "leaflet/context-menu";
 @import "leaflet/leaflet";
 @import "leaflet/location-filter";
 @import "leaflet/main-map";
-@import "leaflet/map-alert";
-@import "leaflet/map-attribution";
+@import "leaflet/marker";
+@import "leaflet/popup";
+@import "leaflet/sidebar";
 @import "leaflet/sidebar-layers";
 @import "leaflet/sidebar-legend";
 @import "leaflet/sidebar-share";
 @import "leaflet/sidebar-toggle-button";
-@import "leaflet/sidebar";
-@import "leaflet/user-popup";
+//@import "leaflet/user-popup";
 
 @import "messages/index";
 
@@ -133,6 +135,10 @@ html[dir="rtl"] {
     .illustration {
         transform: scaleX(-1);
     }
+}
+
+body {
+    overflow-wrap: break-word;
 }
 
 time[title] {

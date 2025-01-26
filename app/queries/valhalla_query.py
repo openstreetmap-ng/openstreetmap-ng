@@ -1,9 +1,7 @@
 from typing import Literal, cast, get_args
 
-import cython
 import numpy as np
 from fastapi import HTTPException
-from polyline_rs import decode_latlon, encode_latlon
 from shapely import Point, get_coordinates
 
 from app.config import VALHALLA_URL
@@ -43,23 +41,20 @@ class ValhallaQuery:
         data = r.json()
         if not r.is_success:
             if 'error' in data and 'error_code' in data:
-                raise HTTPException(r.status_code, f"{data['error']} ({data['error_code']})")
+                raise HTTPException(r.status_code, f'{data["error"]} ({data["error_code"]})')
             raise HTTPException(r.status_code, r.text)
 
         leg = cast(ValhallaResponse, data)['trip']['legs'][0]
-        points = decode_latlon(leg['shape'], 6)
-        routing_steps: list[RoutingResult.Step] = [None] * len(leg['maneuvers'])  # type: ignore
-
-        i: cython.int
-        for i, maneuver in enumerate(leg['maneuvers']):
-            maneuver_points = points[maneuver['begin_shape_index'] : maneuver['end_shape_index'] + 1]
-            routing_steps[i] = RoutingResult.Step(
-                line=encode_latlon(maneuver_points, 6),
+        routing_steps: tuple[RoutingResult.Step, ...] = tuple(
+            RoutingResult.Step(
+                num_coords=maneuver['end_shape_index'] - maneuver['begin_shape_index'] + 1,
                 distance=maneuver['length'] * 1000,
                 time=maneuver['time'],
                 icon_num=_MANEUVER_TYPE_TO_ICON_MAP.get(maneuver['type'], 0),
                 text=maneuver['instruction'],
             )
+            for maneuver in leg['maneuvers']
+        )
 
         elevations = np.diff(np.asarray(leg['elevation'], dtype=np.float32), 1)
         ascend = elevations[elevations > 0].sum()
@@ -67,6 +62,8 @@ class ValhallaQuery:
         return RoutingResult(
             attribution='<a href="https://gis-ops.com/global-open-valhalla-server-online/" target="_blank">Valhalla (FOSSGIS)</a>',
             steps=routing_steps,
+            line_quality=6,
+            line=leg['shape'],
             elevation=RoutingResult.Elevation(
                 ascend=ascend,
                 descend=descend,

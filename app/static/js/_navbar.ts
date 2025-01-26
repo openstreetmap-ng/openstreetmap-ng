@@ -2,7 +2,7 @@ import { Collapse, Dropdown, Tooltip } from "bootstrap"
 import { qsParse } from "./_qs"
 import { remoteEdit } from "./_remote-edit"
 import type { OSMObject } from "./_types"
-import { isHrefCurrentPage } from "./_utils"
+import { isHrefCurrentPage, wrapMessageEventValidator } from "./_utils"
 import { routerNavigateStrict } from "./index/_router"
 import { type LonLatZoom, type MapState, encodeMapState } from "./leaflet/_map-utils"
 
@@ -12,7 +12,26 @@ const navbarCollapseInstance = Collapse.getOrCreateInstance(navbar.querySelector
     toggle: false,
 })
 
-// Add active class to current nav-lik
+/**
+ * Collapse mobile navbar if currently expanded.
+ * Improves user experience when navigating to a new page in SPA mode.
+ */
+export const collapseNavbar = (): void => navbarCollapseInstance.hide()
+
+// Messages badge
+const newUnreadMessagesBadge = navbar.querySelector(".new-unread-messages-badge")
+const unreadMessagesBadge = navbar.querySelector(".unread-messages-badge")
+
+/** Update the unread messages badge in the navbar */
+export const changeUnreadMessagesBadge = (change: number): void => {
+    const current = Number.parseInt(newUnreadMessagesBadge.textContent.replace(/\D/g, "")) || 0
+    const newCount = current + change
+    console.debug("Change unread message badge count", current, "->", newCount)
+    newUnreadMessagesBadge.textContent = newCount > 0 ? newCount.toString() : ""
+    unreadMessagesBadge.textContent = newCount.toString()
+}
+
+// Initialize active nav link
 const navLinks = navbar.querySelectorAll("a.nav-link")
 for (const link of navLinks) {
     if (isHrefCurrentPage(link.href)) {
@@ -23,28 +42,20 @@ for (const link of navLinks) {
 }
 
 const editGroup = navbar.querySelector("div.edit-group")
-const dropdown = Dropdown.getOrCreateInstance(editGroup.querySelector(".dropdown-toggle"))
-const editLinks = editGroup.querySelectorAll(".dropdown-item.edit-link") as NodeListOf<
-    HTMLAnchorElement | HTMLButtonElement
->
+const editDropdown = Dropdown.getOrCreateInstance(editGroup.querySelector(".dropdown-toggle"))
 const remoteEditButton = editGroup.querySelector("button.dropdown-item.edit-link[data-editor=remote]")
 const rememberChoice = editGroup.querySelector("input[name=remember-choice]")
 
-const mapLinks = navbar.querySelectorAll(".map-link") as NodeListOf<HTMLAnchorElement | HTMLButtonElement>
-// Map of navbar elements to their base href
-const mapLinksHrefMap: Map<HTMLAnchorElement | HTMLButtonElement, string> = new Map()
-for (const link of mapLinks) {
-    mapLinksHrefMap.set(link, link instanceof HTMLAnchorElement ? link.href : "")
-}
-
-/** On edit link click, check and handle the remember choice checkbox */
-const onEditLinkClick = (event: Event): void => {
-    const editLink = event.currentTarget as HTMLAnchorElement | HTMLButtonElement
+// On edit link click, check and handle the remember choice checkbox
+editGroup.addEventListener("click", (event: Event): void => {
+    const target = event.target as HTMLElement
+    const editLink = target.closest<HTMLAnchorElement | HTMLButtonElement>(".edit-link")
+    if (!editLink) return
     const editor = editLink.dataset.editor
 
     // Without remember choice, continue as usual
     if (!rememberChoice.checked) {
-        dropdown.hide()
+        editDropdown.hide()
         if (editor === "remote" && editLink instanceof HTMLButtonElement) remoteEdit(editLink)
         return
     }
@@ -52,7 +63,7 @@ const onEditLinkClick = (event: Event): void => {
     // With remember choice, change default editor first
     event.preventDefault()
     console.debug("Changing default editor to", editor)
-    dropdown.hide()
+    editDropdown.hide()
 
     const formData = new FormData()
     formData.append("editor", editor)
@@ -72,11 +83,7 @@ const onEditLinkClick = (event: Event): void => {
             console.error("Failed to change default editor", error)
             alert(error.message)
         })
-}
-for (const editLink of editLinks) {
-    editLink.addEventListener("click", onEditLinkClick)
-}
-
+})
 // On dropdown hidden, uncheck remember choice checkbox
 editGroup.addEventListener("hidden.bs.dropdown", () => {
     if (!rememberChoice.checked) return
@@ -84,46 +91,51 @@ editGroup.addEventListener("hidden.bs.dropdown", () => {
     rememberChoice.dispatchEvent(new Event("change"))
 })
 
+// Map of navbar elements to their base href
+const mapLinkHrefMap = new Map<HTMLAnchorElement | HTMLButtonElement, string>()
+const mapLinks = navbar.querySelectorAll(".map-link") as NodeListOf<HTMLAnchorElement | HTMLButtonElement>
+for (const link of mapLinks) {
+    mapLinkHrefMap.set(link, link instanceof HTMLAnchorElement ? link.href : "")
+}
+
 // TODO: wth object support?
 /** Update the navbar links and current URL hash */
 export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void => {
-    const isEditDisabled = state.zoom < minEditZoom
     const hash = encodeMapState(state)
+    const isEditDisabled = state.zoom < minEditZoom
 
-    for (const [link, baseHref] of mapLinksHrefMap) {
+    for (const [link, baseHref] of mapLinkHrefMap) {
         const isEditLink = link.classList.contains("edit-link")
-        if (isEditLink) {
-            if (link === remoteEditButton) {
-                // Remote edit button stores information in dataset
-                link.dataset.remoteEdit = JSON.stringify({ state, object })
-            } else if (!(link instanceof HTMLAnchorElement)) {
-                console.error("Expected .map-link that is .edit-link to be <a> (excluding data-editor=remote)")
-                continue
-            } else if (object) {
-                link.href = `${baseHref}?${object.type}=${object.id}${hash}`
-            } else {
-                link.href = baseHref + hash
-            }
-
-            // Enable/disable edit links based on current zoom level
-            if (isEditDisabled) {
-                if (!link.classList.contains("disabled")) {
-                    link.classList.add("disabled")
-                    link.ariaDisabled = "true"
-                }
-            } else {
-                // biome-ignore lint/style/useCollapsedElseIf: Readability
-                if (link.classList.contains("disabled")) {
-                    link.classList.remove("disabled")
-                    link.ariaDisabled = "false"
-                }
-            }
-        } else {
+        if (!isEditLink) {
             if (!(link instanceof HTMLAnchorElement)) {
-                console.error("Expected .map-link that is not .edit-link to be <a>")
+                console.error("Expected .map-link that is not .edit-link to be HTMLAnchorElement", link)
                 continue
             }
             link.href = baseHref + hash
+            continue
+        }
+
+        if (link === remoteEditButton) {
+            // Remote edit button stores information in dataset
+            link.dataset.remoteEdit = JSON.stringify({ state, object })
+        } else if (!(link instanceof HTMLAnchorElement)) {
+            console.error("Expected .map-link that is .edit-link to be HTMLAnchorElement", link)
+            continue
+        } else if (object) {
+            link.href = `${baseHref}?${object.type}=${object.id}${hash}`
+        } else {
+            link.href = baseHref + hash
+        }
+
+        // Enable/disable edit links based on current zoom level
+        if (isEditDisabled) {
+            if (!link.classList.contains("disabled")) {
+                link.classList.add("disabled")
+                link.ariaDisabled = "true"
+            }
+        } else if (link.classList.contains("disabled")) {
+            link.classList.remove("disabled")
+            link.ariaDisabled = "false"
         }
     }
 
@@ -137,15 +149,12 @@ export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void =
                 placement: "bottom",
             }).enable()
         }
-    } else {
-        // biome-ignore lint/style/useCollapsedElseIf: Readability
-        if (editGroup.classList.contains("disabled")) {
-            editGroup.classList.remove("disabled")
-            editGroup.ariaDisabled = "false"
-            const tooltip = Tooltip.getInstance(editGroup)
-            tooltip.disable()
-            tooltip.hide()
-        }
+    } else if (editGroup.classList.contains("disabled")) {
+        editGroup.classList.remove("disabled")
+        editGroup.ariaDisabled = "false"
+        const tooltip = Tooltip.getInstance(editGroup)
+        tooltip.disable()
+        tooltip.hide()
     }
 
     window.history.replaceState(null, "", hash)
@@ -166,29 +175,12 @@ export const handleEditRemotePath = (): void => {
     remoteEditButton.click()
 }
 
-/**
- * Collapse mobile navbar if expanded.
- * Improves user experience when navigating to a new page in SPA mode.
- */
-export const collapseNavbar = (): void => {
-    navbarCollapseInstance.hide()
-}
-
-const newUnreadMessagesBadge = navbar.querySelector(".new-unread-messages-badge")
-const unreadMessagesBadge = navbar.querySelector(".unread-messages-badge")
-/** Update the unread messages badge in the navbar */
-export const changeUnreadMessagesBadge = (change: number): void => {
-    const newCount = (Number.parseInt(newUnreadMessagesBadge.textContent.replace(/\D/g, "")) || 0) + change
-    console.debug("changeUnreadMessagesBadge", newCount)
-    newUnreadMessagesBadge.textContent = newCount > 0 ? newCount.toString() : ""
-    unreadMessagesBadge.textContent = newCount.toString()
-}
-
 // Handle mapState window messages (from iD/Rapid)
-window.addEventListener("message", (event: MessageEvent): void => {
-    const data = event.data
-    if (data.type === "mapState") {
+window.addEventListener(
+    "message",
+    wrapMessageEventValidator(({ data }: MessageEvent): void => {
+        if (data.type !== "mapState") return
         const { lon, lat, zoom } = data.state as LonLatZoom
-        updateNavbarAndHash({ lon, lat, zoom: Math.floor(zoom), layersCode: "" })
-    }
-})
+        updateNavbarAndHash({ lon, lat, zoom, layersCode: "" })
+    }),
+)

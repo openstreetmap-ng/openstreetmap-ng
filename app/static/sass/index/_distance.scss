@@ -1,3 +1,29 @@
 .action-sidebar.distance .section {
     border-bottom-right-radius: $border-radius;
 }
+
+.maplibregl-marker.distance-label {
+    @extend .bg-body;
+    @extend .rounded-1;
+    padding: 0 0.25rem;
+    pointer-events: none;
+}
+
+.maplibregl-marker.distance-marker:not(.ghost-marker) {
+    z-index: 5;
+}
+
+.maplibregl-marker.distance-marker.ghost-marker {
+    padding-bottom: 8px;
+    opacity: 0.5 !important;
+    transition: unset;
+
+    &.hidden {
+        opacity: 0 !important;
+    }
+
+    &.dragging {
+        opacity: 0 !important;
+        z-index: 10;
+    }
+}

@@ -1,52 +1,44 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
-import type * as L from "leaflet"
+
+import type { MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
 import { renderColorPreviews } from "../_color-preview"
 import { configureStandardForm } from "../_standard-form"
 import { configureStandardPagination } from "../_standard-pagination"
-import { getPageTitle } from "../_title"
+import { setPageTitle } from "../_title"
 import type { Bounds, OSMChangeset } from "../_types"
-import { focusMapObject } from "../leaflet/_focus-layer"
+import { type FocusLayerPaint, focusObjects } from "../leaflet/_focus-layer"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
 import {
     type PartialChangesetParams,
-    type PartialChangesetParams_Element,
     PartialChangesetParamsSchema,
+    type PartialChangesetParams_Element,
 } from "../proto/shared_pb"
-import { getBaseFetchController } from "./_base-fetch"
+import { getBaseFetchController } from "./_base-fetch.ts"
 import type { IndexController } from "./_router"
+
+const focusPaint: FocusLayerPaint = Object.freeze({
+    "fill-opacity": 0,
+    "line-color": "#f90",
+    "line-opacity": 1,
+    "line-width": 3,
+})
 
 const elementsPerPage = 20
 const paginationDistance = 2
 
 /** Create a new changeset controller */
-export const getChangesetController = (map: L.Map): IndexController => {
+export const getChangesetController = (map: MaplibreMap): IndexController => {
     let params: PartialChangesetParams | null = null
-    let paramsBoundsNormalized: Bounds[] | null = null
-
-    /** On map zoom change, refocus the changeset (due to size change) */
-    const onMapZoomEnd = (e?: L.LeafletEvent): void => {
-        const object: OSMChangeset = {
-            type: "changeset",
-            id: params.id,
-            bounds: paramsBoundsNormalized.map((b) => makeBoundsMinimumSize(map, b)),
-        }
-        focusMapObject(map, object, {
-            // Fit the bounds only on the initial update
-            fitBounds: !e,
-        })
-    }
+    let paramsBounds: Bounds[] | null = null
 
     const base = getBaseFetchController(map, "changeset", (sidebarContent) => {
-        renderColorPreviews()
+        renderColorPreviews(sidebarContent)
 
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
-        const sidebarTitle = sidebarTitleElement.textContent
         const elementsSection = sidebarContent.querySelector("div.elements")
-
-        // Set page title
-        document.title = getPageTitle(sidebarTitle)
+        setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found
         if (!sidebarTitleElement.dataset.params) return
@@ -56,14 +48,14 @@ export const getChangesetController = (map: L.Map): IndexController => {
 
         // Optionally update on map zoom (not all changesets have bounds)
         if (params.bounds.length) {
-            paramsBoundsNormalized = []
+            paramsBounds = []
             for (const bounds of params.bounds) {
                 const { minLon, minLat, maxLon, maxLat } = bounds
-                paramsBoundsNormalized.push([minLon, minLat, maxLon, maxLat])
+                paramsBounds.push([minLon, minLat, maxLon, maxLat])
             }
             // Listen for events and run initial update
-            map.addEventListener("zoomend", onMapZoomEnd)
-            onMapZoomEnd()
+            map.on("zoomend", refocus)
+            refocus()
         }
 
         renderElements(elementsSection, {
@@ -75,27 +67,39 @@ export const getChangesetController = (map: L.Map): IndexController => {
         const commentsPagination = sidebarContent.querySelector("div.changeset-comments-pagination")
         if (commentsPagination) configureStandardPagination(commentsPagination)
 
-        /** On success callback, reload the changeset */
-        const onFormSuccess = () => {
-            controller.unload()
-            controller.load({ id: params.id.toString() })
-        }
+        // On success callback, reload the changeset
         const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
-        if (subscriptionForm) configureStandardForm(subscriptionForm, onFormSuccess)
+        if (subscriptionForm) configureStandardForm(subscriptionForm, reload)
         const commentForm = sidebarContent.querySelector("form.comment-form")
-        if (commentForm) configureStandardForm(commentForm, onFormSuccess)
+        if (commentForm) configureStandardForm(commentForm, reload)
     })
+
+    const refocus = (e?: MapLibreEvent): void => {
+        // On map zoom change, refocus the changeset (due to size change)
+        const object: OSMChangeset = {
+            type: "changeset",
+            id: params.id,
+            bounds: paramsBounds.map((b) => makeBoundsMinimumSize(map, b)),
+        }
+        focusObjects(map, [object], focusPaint, {
+            // Fit the bounds only on the initial update
+            fitBounds: !e,
+        })
+    }
 
     const controller: IndexController = {
         load: ({ id }) => {
-            const url = `/api/partial/changeset/${id}`
-            base.load({ url })
+            base.load(`/api/partial/changeset/${id}`)
         },
         unload: () => {
-            map.removeEventListener("zoomend", onMapZoomEnd)
-            focusMapObject(map, null)
+            map.off("zoomend", refocus)
+            focusObjects(map)
             base.unload()
         },
+    }
+    const reload = () => {
+        controller.unload()
+        controller.load({ id: params.id.toString() })
     }
     return controller
 }
@@ -269,6 +273,5 @@ const renderElementType = (
     // Initial update
     updateTitle()
     updateTable()
-
     return groupFragment
 }

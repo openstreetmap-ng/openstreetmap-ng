@@ -1,39 +1,42 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
-import * as L from "leaflet"
-
-export interface SidebarToggleControl extends L.Control {
-    sidebar?: HTMLElement
-}
+import type { IControl, Map as MaplibreMap } from "maplibre-gl"
 
 const sidebarToggleContainers: HTMLElement[] = []
 
-/** Create a sidebar toggle button */
-export const getSidebarToggleButton = (className: string, tooltipTitle: string): SidebarToggleControl => {
-    const control = new L.Control() as SidebarToggleControl
+export class SidebarToggleControl implements IControl {
+    protected sidebar?: HTMLElement
+    private readonly _className: string
+    private readonly _tooltipTitle: string
 
-    control.onAdd = (map: L.Map): HTMLElement => {
+    public constructor(className: string, tooltipTitle: string) {
+        this._className = className
+        this._tooltipTitle = tooltipTitle
+    }
+
+    public onAdd(map: MaplibreMap): HTMLElement {
         // Find corresponding sidebar
-        const sidebar = document.querySelector(`div.leaflet-sidebar.${className}`)
-        if (!sidebar) console.error("Sidebar", className, "not found")
-        control.sidebar = sidebar
+        const sidebar = document.querySelector(`div.leaflet-sidebar.${this._className}`)
+        if (!sidebar) console.error("Sidebar", this._className, "not found")
+        this.sidebar = sidebar
 
         // Create container
         const container = document.createElement("div")
-        container.className = `leaflet-control ${className}`
+        container.className = `maplibregl-ctrl maplibregl-ctrl-group ${this._className}`
 
         // Create button and tooltip
-        const buttonText = i18next.t(tooltipTitle)
+        const buttonText = i18next.t(this._tooltipTitle)
         const button = document.createElement("button")
         button.type = "button"
         button.className = "control-button"
         button.ariaLabel = buttonText
         const icon = document.createElement("img")
-        icon.className = `icon ${className}`
-        icon.src = `/static/img/leaflet/_generated/${className}.webp`
+        icon.className = `icon ${this._className}`
+        icon.src = `/static/img/leaflet/_generated/${this._className}.webp`
         button.appendChild(icon)
         container.appendChild(button)
 
+        // noinspection ObjectAllocationIgnored
         new Tooltip(button, {
             title: buttonText,
             placement: "left",
@@ -41,15 +44,15 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
 
         // On click, toggle sidebar visibility and invalidate map size
         button.addEventListener("click", () => {
-            console.debug("onSidebarToggleButtonClick", className)
+            console.debug("onSidebarToggleButtonClick", this._className)
 
             // Unselect other buttons
             for (const otherContainer of sidebarToggleContainers) {
                 if (otherContainer === container) continue
-                const otherButton = otherContainer.querySelector(".control-button")
+                const otherButton = otherContainer.querySelector("button.control-button")
                 if (otherButton.classList.contains("active")) {
-                    console.debug("Unselecting sidebar toggle button", otherButton)
-                    otherButton.dispatchEvent(new Event("click"))
+                    console.debug("Deactivating sidebar toggle button", otherButton)
+                    otherButton.click()
                 }
             }
 
@@ -58,7 +61,7 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
 
             const isActive = button.classList.toggle("active")
             sidebar.classList.toggle("d-none", !isActive)
-            map.invalidateSize(false)
+            map.resize()
         })
 
         // On sidebar close button, trigger the sidebar toggle button
@@ -73,5 +76,7 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
         return container
     }
 
-    return control
+    public onRemove(_: MaplibreMap): void {
+        // Do nothing
+    }
 }

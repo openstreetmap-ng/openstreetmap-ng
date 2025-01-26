@@ -1,47 +1,76 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import * as L from "leaflet"
+import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"
 import { configureStandardForm } from "../_standard-form"
 import { configureStandardPagination } from "../_standard-pagination"
-import { getPageTitle } from "../_title"
-import { focusMapObject } from "../leaflet/_focus-layer"
+import { setPageTitle } from "../_title"
+import { loadMapImage, markerClosedImageUrl, markerOpenImageUrl } from "../leaflet/_image.ts"
+import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
+import { renderObjects } from "../leaflet/_render-objects.ts"
 import { PartialNoteParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 
-/** Create a new note controller */
-export const getNoteController = (map: L.Map): IndexController => {
-    const base = getBaseFetchController(map, "note", (sidebarContent) => {
-        // Get elements
-        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
-        const sidebarTitle = sidebarTitleElement.textContent
+const themeColor = "#f60"
+const layerId = "note" as LayerId
+layersConfig.set(layerId as LayerId, {
+    specification: {
+        type: "geojson",
+        data: emptyFeatureCollection,
+    },
+    layerTypes: ["circle", "symbol"],
+    layerOptions: {
+        layout: {
+            "icon-image": ["case", ["boolean", ["get", "open"], false], "marker-open", "marker-closed"],
+            "icon-size": 41 / 128,
+            "icon-padding": 0,
+            "icon-anchor": "bottom",
+        },
+        paint: {
+            "circle-radius": 20,
+            "circle-color": themeColor,
+            "circle-opacity": 0.5,
+            "circle-stroke-width": 2.5,
+            "circle-stroke-color": themeColor,
+        },
+    },
+    priority: 145,
+})
 
-        // Set page title
-        document.title = getPageTitle(sidebarTitle)
+/** Create a new note controller */
+export const getNoteController = (map: MaplibreMap): IndexController => {
+    const source = map.getSource(layerId) as GeoJSONSource
+
+    const base = getBaseFetchController(map, "note", (sidebarContent) => {
+        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
+        setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found
         if (!sidebarTitleElement.dataset.params) return
 
         // Get params
         const params = fromBinary(PartialNoteParamsSchema, base64Decode(sidebarTitleElement.dataset.params))
+        const center: [number, number] = [params.lon, params.lat]
 
-        focusMapObject(map, {
-            type: "note",
-            id: params.id,
-            geom: [params.lat, params.lon],
-            icon: params.open ? "open" : "closed",
-        })
+        // Display marker layer
+        if (params.open) loadMapImage(map, "marker-open", markerOpenImageUrl)
+        else loadMapImage(map, "marker-closed", markerClosedImageUrl)
+        const data = renderObjects([
+            {
+                type: "note",
+                geom: center,
+                open: params.open,
+                text: "",
+            },
+        ])
+        source.setData(data)
+        addMapLayer(map, layerId)
 
         // On location click, pan the map
         const locationButton = sidebarContent.querySelector("button.location-btn")
         locationButton.addEventListener("click", () => {
-            const latLng = L.latLng(params.lat, params.lon)
-            const currentZoom = map.getZoom()
-            if (currentZoom < 16) {
-                map.setView(latLng, 18)
-            } else {
-                map.panTo(latLng)
-            }
+            console.debug("onLocationButtonClick", center)
+            map.flyTo({ center, zoom: Math.max(map.getZoom(), 15) })
         })
 
         const commentsPagination = sidebarContent.querySelector("div.note-comments-pagination")
@@ -58,7 +87,7 @@ export const getNoteController = (map: L.Map): IndexController => {
 
             /** On success callback, reload the note and simulate map move (reload notes layer) */
             const onFormSuccess = () => {
-                map.panTo(map.getCenter(), { animate: false })
+                map.panBy([0, 0], { animate: false })
                 controller.unload()
                 controller.load({ id: params.id.toString() })
             }
@@ -98,10 +127,11 @@ export const getNoteController = (map: L.Map): IndexController => {
     const controller: IndexController = {
         load: ({ id }) => {
             const url = `/api/partial/note/${id}`
-            base.load({ url })
+            base.load(url)
         },
         unload: () => {
-            focusMapObject(map, null)
+            removeMapLayer(map, layerId)
+            source.setData(emptyFeatureCollection)
             base.unload()
         },
     }

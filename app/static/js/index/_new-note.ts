@@ -1,18 +1,29 @@
-import * as L from "leaflet"
+import { LngLat, type Map as MaplibreMap, Marker } from "maplibre-gl"
 import { qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
-import { getPageTitle } from "../_title"
+import { setPageTitle } from "../_title"
 import { isLatitude, isLongitude } from "../_utils"
-import { focusMapObject, focusStyles } from "../leaflet/_focus-layer"
-import { type LayerId, getLayerData, getOverlayLayerById } from "../leaflet/_layers"
+import { type FocusLayerPaint, focusObjects } from "../leaflet/_focus-layer"
+import { type LayerId, layersConfig } from "../leaflet/_layers"
 import { getMapState, setMapState } from "../leaflet/_map-utils"
-import { setNewNoteButtonState } from "../leaflet/_new-note-control"
+import { setNewNoteButtonState } from "../leaflet/_new-note"
+import { getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils.ts"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
+const themeColor = "#f60"
+const focusPaint: FocusLayerPaint = Object.freeze({
+    "circle-radius": 20,
+    "circle-color": themeColor,
+    "circle-opacity": 0.5,
+    "circle-stroke-color": themeColor,
+    "circle-stroke-opacity": 1,
+    "circle-stroke-width": 2.5,
+})
+
 /** Create a new new note controller */
-export const getNewNoteController = (map: L.Map): IndexController => {
+export const getNewNoteController = (map: MaplibreMap): IndexController => {
     const sidebar = getActionSidebar("new-note")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
@@ -21,96 +32,88 @@ export const getNewNoteController = (map: L.Map): IndexController => {
     const commentInput = form.elements.namedItem("text") as HTMLInputElement
     const submitButton = form.querySelector("button[type=submit]")
 
-    let halo: L.CircleMarker | null = null
-    let marker: L.Marker | null = null
+    let marker: Marker | null = null
 
     /** On comment input, update the button state */
-    const onCommentInput = () => {
+    const updateButtonState = () => {
         const hasValue = commentInput.value.trim().length > 0
         submitButton.disabled = !hasValue
     }
-    commentInput.addEventListener("input", onCommentInput)
+    commentInput.addEventListener("input", updateButtonState)
 
-    configureStandardForm(
-        form,
-        ({ note_id }) => {
-            // On success callback, navigate to the new note and simulate map move (reload notes layer)
-            map.panTo(map.getCenter(), { animate: false })
-            routerNavigateStrict(`/note/${note_id}`)
-        },
-        () => {
-            // On client validation, update the form's coordinates
-            const latLng = marker.getLatLng()
-            lonInput.value = latLng.lng.toString()
-            latInput.value = latLng.lat.toString()
-            return null
-        },
-    )
+    configureStandardForm(form, ({ note_id }) => {
+        // On success callback, navigate to the new note and simulate map move (reload notes layer)
+        map.panBy([0, 0], { animate: false })
+        routerNavigateStrict(`/note/${note_id}`)
+    })
 
     return {
         load: () => {
             form.reset()
-            switchActionSidebar(map, "new-note")
-            document.title = getPageTitle(sidebarTitle)
-
-            let center = map.getCenter()
+            switchActionSidebar(map, sidebar)
+            setPageTitle(sidebarTitle)
 
             // Allow default location setting via URL search parameters
+            let center: LngLat | null = null
             const searchParams = qsParse(location.search.substring(1))
             if (searchParams.lon && searchParams.lat) {
                 const lon = Number.parseFloat(searchParams.lon)
                 const lat = Number.parseFloat(searchParams.lat)
                 if (isLongitude(lon) && isLatitude(lat)) {
-                    center = L.latLng(lat, lon)
+                    center = new LngLat(lon, lat)
                 }
             }
 
-            if (halo) console.error("Halo already exists")
-
-            halo = focusMapObject(map, {
-                type: "note",
-                id: null,
-                geom: [center.lat, center.lng],
-                icon: "new",
+            marker = new Marker({
+                anchor: markerIconAnchor,
+                element: getMarkerIconElement("new", false),
                 draggable: true,
-            })[0] as L.CircleMarker
-
-            marker = (halo as any).marker
-
-            // On marker drag start, hide the halo
-            marker.addEventListener("dragstart", () => {
-                halo.setStyle({
-                    opacity: 0,
-                    fillOpacity: 0,
-                })
             })
+                .setLngLat(center ?? map.getCenter())
+                .addTo(map)
 
-            // On marker drag end, update the form's coordinates and show the halo
-            marker.addEventListener("dragend", () => {
-                const latLng = marker.getLatLng()
-                halo.setLatLng(latLng)
-                halo.setStyle({
-                    opacity: focusStyles.noteHalo.opacity,
-                    fillOpacity: focusStyles.noteHalo.fillOpacity,
-                })
-            })
+            const focusHalo = () => {
+                const lngLat = marker.getLngLat()
+                focusObjects(
+                    map,
+                    [
+                        {
+                            type: "note",
+                            id: null,
+                            geom: [lngLat.lng, lngLat.lat],
+                            open: true,
+                            text: "",
+                        },
+                    ],
+                    focusPaint,
+                    { fitBounds: false },
+                )
+            }
+            marker.on("dragstart", () => focusObjects(map)) // hide halo
+            marker.on("dragend", () => {
+                focusHalo()
+                const lngLat = marker.getLngLat()
+                lonInput.value = lngLat.lng.toString()
+                latInput.value = lngLat.lat.toString()
+            }) // show halo
+
+            // Initial update
+            focusHalo()
+            updateButtonState()
+            setNewNoteButtonState(true)
 
             // Enable notes layer to prevent duplicates
             const state = getMapState(map)
-            const notesLayerCode = getLayerData(getOverlayLayerById("notes" as LayerId)).layerCode
+            const notesLayerCode = layersConfig.get("notes" as LayerId).layerCode
             if (!state.layersCode.includes(notesLayerCode)) {
                 state.layersCode += notesLayerCode
                 setMapState(map, state)
             }
-
-            // Initial update
-            onCommentInput()
-            setNewNoteButtonState(true)
         },
         unload: () => {
             setNewNoteButtonState(false)
-            focusMapObject(map, null)
-            halo = null
+            focusObjects(map)
+            marker.remove()
             marker = null
         },
     }

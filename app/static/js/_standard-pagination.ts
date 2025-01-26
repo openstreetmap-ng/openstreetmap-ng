@@ -1,4 +1,4 @@
-import { resolveDatetime } from "./_datetime"
+import { resolveDatetimeLazy } from "./_datetime"
 
 const paginationDistance = 2
 
@@ -35,7 +35,7 @@ export const configureStandardPagination = (container: HTMLElement): void => {
             .then(async (resp) => {
                 if (resp.ok) console.debug("Form submitted successfully")
                 renderContainer.innerHTML = await resp.text()
-                resolveDatetime(renderContainer)
+                resolveDatetimeLazy(renderContainer)
             })
             .catch((error: Error) => {
                 if (error.name === "AbortError") return

@@ -1,4 +1,5 @@
 import { getAppTheme, setAppTheme } from "./_local-storage"
+import { getDeviceTheme } from "./_utils.ts"
 
 export type AppTheme = "light" | "dark" | "auto"
 
@@ -14,13 +15,10 @@ for (const itemButton of control.querySelectorAll("button.dropdown-item[data-bs-
     themeIconMap.set(key, iconClass)
 }
 
-const getDeviceTheme = (): "light" | "dark" =>
-    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-
 const updateState = (forceAppTheme?: AppTheme): void => {
     const appTheme = forceAppTheme ?? getAppTheme()
     const activeTheme = appTheme === "auto" ? getDeviceTheme() : appTheme
-    console.debug("Updating theme state, preference:", appTheme, "active:", activeTheme)
+    console.debug("Updating theme state, preference:", appTheme, ", active:", activeTheme)
 
     document.documentElement.dataset.bsTheme = activeTheme
     buttonIcon.classList.remove(...themeIconMap.values(), "opacity-0")

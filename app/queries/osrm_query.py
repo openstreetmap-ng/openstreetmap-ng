@@ -4,6 +4,7 @@ from typing import Literal, cast, get_args
 
 import cython
 from fastapi import HTTPException
+from polyline_rs import decode_latlon, encode_latlon
 from shapely import Point, get_coordinates
 
 from app.config import OSRM_URL
@@ -42,14 +43,17 @@ class OSRMQuery:
             raise HTTPException(r.status_code, r.text)
 
         leg = cast(OSRMResponse, data)['routes'][0]['legs'][0]
+        points: list[tuple[float, float]] = []
         routing_steps: list[RoutingResult.Step] = [None] * len(leg['steps'])  # type: ignore
 
         i: cython.int
         for i, step in enumerate(leg['steps']):
+            step_points = decode_latlon(step['geometry'], 6)
+            points.extend(step_points[1:] if i > 0 else step_points)  # extend without overlaps
             maneuver = step['maneuver']
             maneuver_id = _get_maneuver_id(maneuver['type'], maneuver.get('modifier', ''))
             routing_steps[i] = RoutingResult.Step(
-                line=step['geometry'],
+                num_coords=len(step_points),
                 distance=step['distance'],
                 time=step['duration'],
                 icon_num=_MANEUVER_ID_TO_ICON_MAP.get(maneuver_id, 0),
@@ -59,6 +63,8 @@ class OSRMQuery:
         return RoutingResult(
             attribution='<a href="https://routing.openstreetmap.de/about.html" target="_blank">OSRM (FOSSGIS)</a>',
             steps=routing_steps,
+            line_quality=6,
+            line=encode_latlon(points, 6),
         )
 
 

@@ -1,24 +1,22 @@
+import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
-import * as L from "leaflet"
-import { getMapOverlayOpacity } from "../_local-storage"
+import type {
+    AddLayerObject,
+    FilterSpecification,
+    LayerSpecification,
+    Map as MaplibreMap,
+    SourceSpecification,
+} from "maplibre-gl"
+import { getMapOverlayOpacity } from "../_local-storage.ts"
+import { getDeviceTheme, staticCache } from "../_utils.ts"
 
 declare const brandSymbol: unique symbol
 
 export type LayerId = string & { readonly [brandSymbol]: unique symbol }
 export type LayerCode = string & { readonly [brandSymbol]: unique symbol }
 
-interface LayerInstanceData {
-    layerId: LayerId
-    layerCode: LayerCode
-    legacyLayerIds: LayerId[]
-}
-
 const thunderforestApiKey: string = "9b990c27013343a99536213faee0983e"
 const tracestrackApiKey: string = "684615014d1a572361803e062ccf609a"
-
-const layerData: Map<L.Layer, LayerInstanceData> = new Map()
-
-export const getLayerData = (layer: L.Layer): LayerInstanceData | undefined => layerData.get(layer)
 
 const copyrightText = i18next.t("javascripts.map.openstreetmap_contributors")
 const copyright = `© <a href="/copyright" rel="license" target="_blank">${copyrightText}</a>`
@@ -59,183 +57,301 @@ const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
 // https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/0
 const aerialEsriCredit = "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
 
-// Base layers
-const standardLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank" title="${donateTitle}">${donateText}</a>. ${terms}`,
-})
-layerData.set(standardLayer, {
-    layerId: "standard" as LayerId,
-    layerCode: "" as LayerCode, // Standard has no layer code - it's the default layer
+export const emptyFeatureCollection: FeatureCollection = {
+    type: "FeatureCollection",
+    features: [],
+}
+
+export type AddMapLayerOptions = Omit<LayerSpecification, "id" | "type" | "source" | "filter">
+
+interface LayerConfig {
+    specification: SourceSpecification
+    isBaseLayer?: boolean
+    layerCode?: LayerCode
+    legacyLayerIds?: LayerId[]
+    layerTypes?: LayerType[]
+    layerOptions?: AddMapLayerOptions
+    /** Layers with higher priority are drawn on top of others, defaults to 0. */
+    priority?: number
+}
+
+export const layersConfig = new Map<LayerId, LayerConfig>()
+
+layersConfig.set("standard" as LayerId, {
+    specification: {
+        type: "raster",
+        maxzoom: 19,
+        tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+        tileSize: 256,
+        attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank" title="${donateTitle}">${donateText}</a>. ${terms}`,
+    },
+    isBaseLayer: true,
     legacyLayerIds: ["mapnik"] as LayerId[],
 })
 
-const cyclosm = L.tileLayer("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png", {
-    maxZoom: 20,
-    subdomains: "abc",
-    attribution: `${copyright}. ${cyclosmCredit}. ${terms}`,
-})
-layerData.set(cyclosm, {
-    layerId: "cyclosm" as LayerId,
+layersConfig.set("cyclosm" as LayerId, {
+    specification: {
+        type: "raster",
+        maxzoom: 20,
+        tiles: "abc".split("").map((c) => `https://${c}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png`),
+        tileSize: 256,
+        attribution: `${copyright}. ${cyclosmCredit}. ${terms}`,
+    },
+    isBaseLayer: true,
     layerCode: "Y" as LayerCode,
-    legacyLayerIds: [],
 })
 
-const cycleMap = L.tileLayer(`https://tile.thunderforest.com/cycle/{z}/{x}/{y}{r}.png?apikey=${thunderforestApiKey}`, {
-    maxZoom: 21, // This layer supports up to 22
-    attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
-})
-layerData.set(cycleMap, {
-    layerId: "cyclemap" as LayerId,
+layersConfig.set("cyclemap" as LayerId, {
+    specification: {
+        type: "raster",
+        maxzoom: 21,
+        tiles: [`https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`],
+        tileSize: 256,
+        attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
+    },
+    isBaseLayer: true,
     layerCode: "C" as LayerCode,
     legacyLayerIds: ["cycle map"] as LayerId[],
 })
 
-const transportMap = L.tileLayer(
-    `https://tile.thunderforest.com/transport/{z}/{x}/{y}{r}.png?apikey=${thunderforestApiKey}`,
-    {
-        maxZoom: 21, // This layer supports up to 22
+// TODO: would be nice to support changing in runtime
+layersConfig.set("transportmap" as LayerId, {
+    specification: {
+        type: "raster",
+        maxzoom: 21,
+        tiles: [
+            `https://tile.thunderforest.com/transport${getDeviceTheme() === "dark" ? "-dark" : ""}/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`,
+        ],
+        tileSize: 256,
         attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
     },
-)
-layerData.set(transportMap, {
-    layerId: "transportmap" as LayerId,
+    isBaseLayer: true,
     layerCode: "T" as LayerCode,
-    legacyLayerIds: [],
 })
 
-const tracestrackTopo = L.tileLayer(`https://tile.tracestrack.com/topo__/{z}/{x}/{y}.png?key=${tracestrackApiKey}`, {
-    maxZoom: 19,
-    attribution: `${copyright}. ${tracestrackCredit}. ${terms}`,
-})
-layerData.set(tracestrackTopo, {
-    layerId: "tracestracktopo" as LayerId,
+layersConfig.set("tracestracktopo" as LayerId, {
+    specification: {
+        type: "raster",
+        maxzoom: 19,
+        tiles: [`https://tile.tracestrack.com/topo__/{z}/{x}/{y}.png?key=${tracestrackApiKey}`],
+        tileSize: 256,
+        attribution: `${copyright}. ${tracestrackCredit}. ${terms}`,
+    },
+    isBaseLayer: true,
     layerCode: "P" as LayerCode,
-    legacyLayerIds: [],
 })
 
-const hotosm = L.tileLayer("https://tile-{s}.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
-    maxZoom: 20,
-    subdomains: "abc",
-    attribution: `${copyright}. ${hotosmCredit}. ${terms}`,
-})
-layerData.set(hotosm, {
-    layerId: "hot" as LayerId,
+layersConfig.set("hot" as LayerId, {
+    specification: {
+        type: "raster",
+        maxzoom: 20,
+        tiles: "abc".split("").map((c) => `https://tile-${c}.openstreetmap.fr/hot/{z}/{x}/{y}.png`),
+        tileSize: 256,
+        attribution: `${copyright}. ${hotosmCredit}. ${terms}`,
+    },
+    isBaseLayer: true,
     layerCode: "H" as LayerCode,
-    legacyLayerIds: [],
 })
 
 // Overlay layers
-const aerial = L.tileLayer(
-    "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    {
-        maxZoom: 21, // This layer supports up to 23
+layersConfig.set("aerial" as LayerId, {
+    specification: {
+        type: "raster",
+        maxzoom: 23,
+        tiles: ["https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+        tileSize: 256,
         attribution: aerialEsriCredit,
-        opacity: getMapOverlayOpacity(),
-        pane: "overlayPane",
-        zIndex: 0,
     },
-)
-layerData.set(aerial, {
-    layerId: "aerial" as LayerId,
+    layerOptions: {
+        paint: {
+            "raster-opacity": getMapOverlayOpacity("aerial"),
+        },
+    },
     layerCode: "A" as LayerCode,
-    legacyLayerIds: [],
+    priority: 50,
 })
+// TODO: leaflet leftover
+// opacity: getMapOverlayOpacity(),
+// pane: "overlayPane",
+// zIndex: 0,
 
-const gps = L.tileLayer("https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png", {
-    maxZoom: 21, // This layer has no zoom limits
-    maxNativeZoom: 20,
-    pane: "overlayPane",
-})
-layerData.set(gps, {
-    layerId: "gps" as LayerId,
+layersConfig.set("gps" as LayerId, {
+    specification: {
+        type: "raster",
+        // This layer has no zoom limits
+        tiles: ["https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png"],
+        tileSize: 256,
+    },
     layerCode: "G" as LayerCode,
-    legacyLayerIds: [],
+    priority: 60,
 })
 
-const dataLayer = L.featureGroup()
-layerData.set(dataLayer, {
-    layerId: "data" as LayerId,
-    layerCode: "D" as LayerCode,
-    legacyLayerIds: [],
-})
-
-const changesetLayer = L.featureGroup()
-layerData.set(changesetLayer, {
-    layerId: "changesets" as LayerId,
-    layerCode: "" as LayerCode, // This layer is not possible to toggle manually
-    legacyLayerIds: [],
-})
-
-const routingLayer = L.featureGroup()
-layerData.set(routingLayer, {
-    layerId: "routing" as LayerId,
-    layerCode: "" as LayerCode, // This layer is not possible to toggle manually
-    legacyLayerIds: [],
-})
-
-const searchLayer = L.featureGroup()
-layerData.set(searchLayer, {
-    layerId: "search" as LayerId,
-    layerCode: "" as LayerCode, // This layer is not possible to toggle manually
-    legacyLayerIds: [],
-})
-
-const noteLayer = L.featureGroup()
-layerData.set(noteLayer, {
-    layerId: "notes" as LayerId,
-    layerCode: "N" as LayerCode,
-    legacyLayerIds: [],
-})
-
-const focusLayer = L.featureGroup()
-layerData.set(focusLayer, {
-    layerId: "focus" as LayerId,
-    layerCode: "" as LayerCode, // This layer is not possible to toggle manually
-    legacyLayerIds: [],
-})
-
-const baseLayerIdMap: Map<LayerId, L.TileLayer> = new Map()
-for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrackTopo, hotosm]) {
-    const data = getLayerData(layer)
-    baseLayerIdMap.set(data.layerId, layer)
-}
-
-const overlayLayerIdMap: Map<LayerId, L.Layer> = new Map()
-for (const layer of [gps, dataLayer, changesetLayer, routingLayer, searchLayer, noteLayer, focusLayer, aerial]) {
-    const data = getLayerData(layer)
-    overlayLayerIdMap.set(data.layerId, layer)
-    for (const legacyLayerId of data.legacyLayerIds) {
-        overlayLayerIdMap.set(legacyLayerId, layer)
+const layerLookupMap = staticCache((): Map<LayerId | LayerCode, LayerId> => {
+    console.debug("Lazily initializing layerLookupMap with", layersConfig.size, "configured layers")
+    const result = new Map<LayerId | LayerCode, LayerId>()
+    for (const [layerId, config] of layersConfig) {
+        result.set(layerId, layerId)
+        if (layerId === "standard") {
+            result.set("" as LayerCode, layerId)
+        }
+        if (config.layerCode) {
+            result.set(config.layerCode, layerId)
+        }
+        if (config.legacyLayerIds) {
+            for (const legacyLayerId of config.legacyLayerIds) {
+                result.set(legacyLayerId, layerId)
+            }
+        }
     }
-}
-
-const layerCodeIdMap: Map<LayerCode, LayerId> = new Map()
-for (const layer of [...baseLayerIdMap.values(), ...overlayLayerIdMap.values()]) {
-    const data = getLayerData(layer)
-    if (data.layerCode || data.layerId === "standard") layerCodeIdMap.set(data.layerCode, data.layerId)
-}
-
-/** Get base layer instance by id */
-export const getBaseLayerById = (layerId: LayerId): L.TileLayer | undefined => baseLayerIdMap.get(layerId)
-
-/** Get the default base layer instance */
-export const getDefaultBaseLayer = (): L.TileLayer => getBaseLayerById(getLayerIdByCode("" as LayerCode))
-
-/** Get overlay layer instance by id */
-export const getOverlayLayerById = (layerId: LayerId): L.Layer | L.FeatureGroup | undefined =>
-    overlayLayerIdMap.get(layerId)
+    return result
+})
 
 /**
- * Get layer id by code
+ * Resolve a layer code or id to actual layer id.
+ * Returns undefined if no matching layer is found.
  * @example
- * getLayerIdByCode("")
+ * resolveLayerCodeOrId("mapnik")
  * // => "standard"
  */
-export const getLayerIdByCode = (layerCode: LayerCode): LayerId | undefined => {
-    if (layerCode.length > 1) {
-        console.error("Invalid layer code", layerCode)
-        layerCode = layerCode[0] as LayerCode
+export const resolveLayerCodeOrId = (layerCodeOrId: LayerCode | LayerId): LayerId | undefined =>
+    layerLookupMap().get(layerCodeOrId)
+
+export const defaultLayerId = "standard" as LayerId
+
+/** Add layers sources to the map. */
+export const addMapLayerSources = (map: MaplibreMap, kind: "base" | "all"): void => {
+    for (const [layerId, config] of layersConfig) {
+        if (kind === "all" || config.isBaseLayer) {
+            map.addSource(layerId, config.specification)
+        }
     }
-    return layerCodeIdMap.get(layerCode)
+}
+
+export const getExtendedLayerId = (layerId: LayerId, type: LayerType): string => `${layerId}:${type}`
+
+export const resolveExtendedLayerId = (extendedLayerId: string): LayerId => {
+    const i = extendedLayerId.indexOf(":")
+    const layerId = i === -1 ? extendedLayerId : extendedLayerId.slice(0, i)
+    return layerId as LayerId
+}
+
+type LayerEventHandler = (isAdded: boolean, layerId: LayerId, config: LayerConfig) => void
+
+const layerEventHandlers: LayerEventHandler[] = []
+
+/** Add a layer event handler, called when a layer is added or removed */
+export const addLayerEventHandler = (handler: LayerEventHandler): void => {
+    layerEventHandlers.push(handler)
+}
+
+export type LayerType =
+    | "fill"
+    | "line"
+    | "symbol"
+    | "circle"
+    | "heatmap"
+    | "fill-extrusion"
+    | "raster"
+    | "hillshade"
+    | "background"
+
+const layerTypeFilters = Object.freeze({
+    fill: ["==", ["geometry-type"], "Polygon"],
+    line: ["==", ["geometry-type"], "LineString"],
+    circle: ["==", ["geometry-type"], "Point"],
+    symbol: ["==", ["geometry-type"], "Point"],
+}) as Record<LayerType, FilterSpecification>
+
+export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = true): void => {
+    const config = layersConfig.get(layerId)
+    if (!config) {
+        console.warn("Layer", layerId, "not found in", layersConfig.keys())
+        return
+    }
+
+    const specType = config.specification.type
+    let layerTypes: LayerType[]
+    if (config.layerTypes) {
+        layerTypes = config.layerTypes
+    } else if (specType === "raster") {
+        layerTypes = ["raster"]
+    } else {
+        console.warn("Unsupported specification type", specType, "on layer", layerId)
+        return
+    }
+
+    const priority = config.priority ?? 0
+    const beforeId: string | undefined = map
+        .getLayersOrder()
+        .find((id) => priority < (layersConfig.get(resolveExtendedLayerId(id))?.priority ?? 0))
+
+    console.debug("Adding layer", layerId, "with types", layerTypes, "before", beforeId)
+    const layerOptions = config.layerOptions ?? {}
+    for (const type of layerTypes) {
+        const layerObject: AddLayerObject = {
+            ...layerOptions,
+            // @ts-ignore
+            type: type as string,
+            // @ts-ignore
+            source: layerId,
+        }
+        if (layerTypes.length > 1) {
+            layerObject.id = getExtendedLayerId(layerId, type)
+            // Remove unsupported layer options
+            const validPrefixes = [`${type}-`]
+            if (type === "symbol") validPrefixes.push("icon-", "text-")
+            for (const key of ["layout", "paint"] as const) {
+                const value = layerOptions[key]
+                if (!value) continue
+                const newValue: Record<string, unknown> = {}
+                for (const [k, v] of Object.entries(value)) {
+                    for (const prefix of validPrefixes) {
+                        if (!k.startsWith(prefix)) continue
+                        newValue[k] = v
+                    }
+                }
+                // @ts-ignore
+                layerObject[key] = newValue
+            }
+        } else {
+            layerObject.id = layerId
+        }
+        const filter = layerTypeFilters[type]
+        // @ts-ignore
+        if (filter) layerObject.filter = filter
+        map.addLayer(layerObject, beforeId)
+    }
+    if (triggerEvent) {
+        for (const handler of layerEventHandlers) {
+            handler(true, layerId, config)
+        }
+    }
+}
+
+export const removeMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = true): void => {
+    let removed = false
+    for (const extendedLayerId of map.getLayersOrder()) {
+        if (resolveExtendedLayerId(extendedLayerId) !== layerId) continue
+        console.debug("Removing layer", extendedLayerId, "because of", layerId)
+        map.removeLayer(extendedLayerId)
+        removed = true
+    }
+    if (removed) {
+        if (triggerEvent) {
+            const config = layersConfig.get(layerId)
+            for (const handler of layerEventHandlers) {
+                handler(false, layerId, config)
+            }
+        }
+    } else {
+        console.debug("Removed no layers with id", layerId)
+    }
+}
+
+/** Test if a layer is present in the map */
+export const hasMapLayer = (map: MaplibreMap, layerId: LayerId): boolean => {
+    for (const extendedLayerId of map.getLayersOrder()) {
+        if (resolveExtendedLayerId(extendedLayerId) === layerId) return true
+    }
+    return false
 }

@@ -86,7 +86,7 @@ async def _get_response(
     elements = tuple(r.element for r in results)
     await ElementMemberQuery.resolve_members(elements)
 
-    members_refs = {ElementRef(member.type, member.id) for element in elements for member in element.members}  # pyright: ignore[reportOptionalIterable]
+    members_refs = {ElementRef(member.type, member.id) for element in elements for member in element.members}  # type: ignore
     members_elements = await ElementQuery.get_by_refs(
         members_refs,
         at_sequence_id=at_sequence_id,
@@ -105,7 +105,7 @@ async def _get_response(
     renders: list[RenderElementsData] = [None] * len(results)  # type: ignore
     for i, result in enumerate(results):
         element = result.element
-        element_members = tuple(members_map[member.type, member.id] for member in element.members)  # pyright: ignore[reportOptionalIterable]
+        element_members = tuple(members_map[member.type, member.id] for member in element.members)  # type: ignore
         full_data = chain(
             (element,),
             element_members,

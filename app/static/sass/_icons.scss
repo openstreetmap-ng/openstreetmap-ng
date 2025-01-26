@@ -11,25 +11,35 @@
     margin: 10px;
 }
 
-.icon.geolocate.loading {
+// https://maplibre.org/maplibre-gl-js/docs/API/classes/GeolocateControl/#state-diagram
+.maplibregl-ctrl-geolocate-active.maplibregl-ctrl-geolocate-waiting .icon.geolocate {
     animation: spin 2s infinite;
     transform-origin: 50% 50%;
 
     @keyframes spin {
         0% {
             transform: rotate(0deg);
+            opacity: 0.6;
         }
         75% {
             transform: rotate(360deg);
+            opacity: 1;
         }
         100% {
             transform: rotate(360deg);
+            opacity: 0.6;
         }
     }
 }
 
-.active .icon.geolocate {
-    filter: sepia(1) brightness(0.85) saturate(10) hue-rotate(55deg);
+.maplibregl-ctrl-geolocate-active:not(.maplibregl-ctrl-geolocate-waiting) .icon.geolocate,
+.maplibregl-ctrl-geolocate-background .icon.geolocate {
+    filter: sepia(1) brightness(0.85) saturate(8) hue-rotate(19deg);
+}
+
+.maplibregl-ctrl-geolocate-active-error .icon.geolocate,
+.maplibregl-ctrl-geolocate-background-error .icon.geolocate {
+    filter: sepia(1) brightness(0.75) saturate(10) hue-rotate(290deg);
 }
 
 .yellow-glow {

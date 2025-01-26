@@ -1,13 +1,9 @@
 /** Render a static trace to the given SVG element */
-export const renderTrace = (svg: SVGElement, coords: [number, number][]): void => {
-    const ds: string[] = []
-    for (const [y, x] of coords) {
-        const prefix = !ds.length ? "M" : "L"
-        ds.push(`${prefix}${x},${y}`)
-    }
-
+export const renderTrace = (svg: SVGElement, latLons: [number, number][]): void => {
+    if (!latLons.length) return
+    const pathData = generatePathData(latLons)
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
-    path.setAttribute("d", ds.join(" "))
+    path.setAttribute("d", pathData)
     path.setAttribute("fill", "none")
     path.setAttribute("stroke", "var(--bs-body-color)")
     path.setAttribute("stroke-width", "1.8")
@@ -16,15 +12,14 @@ export const renderTrace = (svg: SVGElement, coords: [number, number][]): void =
 }
 
 /** Render an animated trace to the given SVG element */
-export const renderAnimatedTrace = (svg: SVGElement, coords: [number, number][]) => {
-    const ds: string[] = []
-    for (const [y, x] of coords) {
-        const prefix = !ds.length ? "M" : "L"
-        ds.push(`${prefix}${x},${y}`)
-    }
+export const renderAnimatedTrace = (svg: SVGElement, latLons: [number, number][]) => {
+    if (!latLons.length) return
+    const ds: string[] = [`M${latLons[0][1]},${latLons[0][0]}`]
+    for (const pair of latLons.slice(1)) ds.push(`L${pair[1]},${pair[0]}`)
 
+    const pathData = generatePathData(latLons)
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
-    path.setAttribute("d", ds.join(" "))
+    path.setAttribute("d", pathData)
     path.setAttribute("fill", "none")
     path.setAttribute("stroke", "#aaa")
     path.setAttribute("stroke-width", "0.45")
@@ -34,15 +29,15 @@ export const renderAnimatedTrace = (svg: SVGElement, coords: [number, number][])
 
     {
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
-        path.setAttribute("d", ds.join(" "))
+        path.setAttribute("d", pathData)
         path.setAttribute("fill", "none")
         path.setAttribute("stroke", "var(--bs-body-color)")
         path.setAttribute("stroke-width", "2.2")
         path.setAttribute("stroke-linecap", "round")
 
         const totalLength = path.getTotalLength()
-        const segmentLength = 50
         const duration = totalLength / 120
+        const segmentLength = 50
 
         path.setAttribute("stroke-dasharray", `${segmentLength} ${totalLength}`)
 
@@ -56,4 +51,10 @@ export const renderAnimatedTrace = (svg: SVGElement, coords: [number, number][])
         path.appendChild(animate)
         svg.appendChild(path)
     }
+}
+
+const generatePathData = (latLons: [number, number][]): string => {
+    const ds = [`M${latLons[0][1]},${latLons[0][0]}`]
+    for (const pair of latLons.slice(1)) ds.push(`L${pair[1]},${pair[0]}`)
+    return ds.join(" ")
 }

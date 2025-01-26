@@ -20,10 +20,13 @@ class LeafletNoteMixin:
 @cython.cfunc
 def _encode_note(note: Note):
     x, y = lib.get_coordinates(np.asarray(note.point, dtype=np.object_), False, False)[0].tolist()
+    body = note.comments[0].body
+    if len(body) > 100:
+        body = body[:100] + '...'
     return RenderNotesData.Note(
         id=note.id,
         lon=x,
         lat=y,
-        text=note.comments[0].body[:100],
+        text=body,
         open=note.closed_at is None,
     )

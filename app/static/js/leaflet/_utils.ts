@@ -1,63 +1,78 @@
-import * as L from "leaflet"
+import { LngLatBounds, type Map as MaplibreMap, Point, type PositionAnchor } from "maplibre-gl"
+
 import type { Bounds } from "../_types"
 
 const minBoundsSizePx = 20
 
-/** Get a marker icon */
-export const getMarkerIcon = (color: string, showShadow: boolean): L.Icon => {
-    let shadowUrl: string | null = null
-    let shadowSize: [number, number] | null = null
+export const markerIconAnchor: PositionAnchor = "bottom"
+
+export const getMarkerIconElement = (color: string, showShadow: boolean): HTMLElement => {
+    const container = document.createElement("div")
+    container.classList.add("marker-icon")
     if (showShadow) {
-        shadowUrl = "/static/img/marker/shadow.webp"
-        shadowSize = [41, 41]
+        const shadow = document.createElement("img")
+        shadow.classList.add("marker-shadow")
+        shadow.src = "/static/img/marker/shadow.webp"
+        shadow.width = 41
+        shadow.height = 41
+        shadow.draggable = false
+        container.appendChild(shadow)
     }
-    return L.icon({
-        iconUrl: `/static/img/marker/${color}.webp`,
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowUrl: shadowUrl,
-        shadowSize: shadowSize,
-    })
+    const icon = document.createElement("img")
+    icon.classList.add("marker-icon-inner")
+    icon.src = `/static/img/marker/${color}.webp`
+    icon.width = 25
+    icon.height = 41
+    icon.draggable = false
+    container.appendChild(icon)
+    // TODO: leaflet leftover
+    // iconAnchor: [12, 41]
+    return container
 }
 
 /** Get the bounds area in square degrees */
-export const getLatLngBoundsSize = (bounds: L.LatLngBounds): number => {
-    const sw = bounds.getSouthWest()
-    const ne = bounds.getNorthEast()
-    return (ne.lng - sw.lng) * (ne.lat - sw.lat)
+export const getLngLatBoundsSize = (bounds: LngLatBounds): number => {
+    const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
+    return (maxLon - minLon) * (maxLat - minLat)
 }
 
 /** Get the intersection of two bounds */
-export const getLatLngBoundsIntersection = (bounds1: L.LatLngBounds, bounds2: L.LatLngBounds): L.LatLngBounds => {
-    const minLat1 = bounds1.getSouth()
-    const maxLat1 = bounds1.getNorth()
-    const minLon1 = bounds1.getWest()
-    const maxLon1 = bounds1.getEast()
-
-    const minLat2 = bounds2.getSouth()
-    const maxLat2 = bounds2.getNorth()
-    const minLon2 = bounds2.getWest()
-    const maxLon2 = bounds2.getEast()
+export const getLngLatBoundsIntersection = (bounds1: LngLatBounds, bounds2: LngLatBounds): LngLatBounds => {
+    const [[minLon1, minLat1], [maxLon1, maxLat1]] = bounds1.adjustAntiMeridian().toArray()
+    const [[minLon2, minLat2], [maxLon2, maxLat2]] = bounds2.adjustAntiMeridian().toArray()
 
     const minLat = Math.max(minLat1, minLat2)
     const maxLat = Math.min(maxLat1, maxLat2)
     const minLon = Math.max(minLon1, minLon2)
     const maxLon = Math.min(maxLon1, maxLon2)
 
-    // Return null bounds if no intersection
+    // Return empty bounds if no intersection
     if (minLat > maxLat || minLon > maxLon) {
-        return L.latLngBounds(L.latLng(0, 0), L.latLng(0, 0))
+        return new LngLatBounds([minLon1, minLat1, minLon1, minLat1])
     }
 
-    return L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
+    return new LngLatBounds([minLon, minLat, maxLon, maxLat])
+}
+
+/** Pad bounds to grow/shrink them */
+export const padLngLatBounds = (bounds: LngLatBounds, padding?: number): LngLatBounds => {
+    if (!padding) return bounds
+    const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
+    const paddingX = padding * (maxLon - minLon)
+    const paddingY = padding * (maxLat - minLat)
+    return new LngLatBounds([
+        minLon - paddingX,
+        Math.max(minLat - paddingY, -85),
+        maxLon + paddingX,
+        Math.min(maxLat + paddingY, 85),
+    ])
 }
 
 /** Make bounds minimum size to make them easier to click */
-export const makeBoundsMinimumSize = (map: L.Map, bounds: Bounds): Bounds => {
+export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds): Bounds => {
     const [minLon, minLat, maxLon, maxLat] = bounds
-    const mapBottomLeft = map.project(L.latLng(minLat, minLon))
-    const mapTopRight = map.project(L.latLng(maxLat, maxLon))
+    const mapBottomLeft = map.project([minLon, minLat])
+    const mapTopRight = map.project([maxLon, maxLat])
     const width = mapTopRight.x - mapBottomLeft.x
     const height = mapBottomLeft.y - mapTopRight.y
 
@@ -73,7 +88,31 @@ export const makeBoundsMinimumSize = (map: L.Map, bounds: Bounds): Bounds => {
         mapTopRight.y -= diff / 2
     }
 
-    const latLngBottomLeft = map.unproject(mapBottomLeft)
-    const latLngTopRight = map.unproject(mapTopRight)
-    return [latLngBottomLeft.lng, latLngBottomLeft.lat, latLngTopRight.lng, latLngTopRight.lat]
+    const lngLatBottomLeft = map.unproject(mapBottomLeft)
+    const lngLatTopRight = map.unproject(mapTopRight)
+    return [lngLatBottomLeft.lng, lngLatBottomLeft.lat, lngLatTopRight.lng, lngLatTopRight.lat]
+}
+
+/** Get the closest point on a segment */
+export const closestPointOnSegment = (test: Point, start: Point, end: Point): Point => {
+    const dx = end.x - start.x
+    const dy = end.y - start.y
+    if (dx === 0 && dy === 0) return new Point(start.x, start.y)
+
+    // Calculate projection position (t) on line using dot product
+    // t = ((test-start) * (end-start)) / |end-start|²
+    const t = Math.max(0, Math.min(1, ((test.x - start.x) * dx + (test.y - start.y) * dy) / (dx ** 2 + dy ** 2)))
+    return new Point(start.x + t * dx, start.y + t * dy)
+}
+
+export const configureDefaultMapBehavior = (map: MaplibreMap): void => {
+    map.dragRotate.disable()
+    map.keyboard.disableRotation()
+    map.touchZoomRotate.disableRotation()
+
+    // Use constant zoom rate for consistent behavior
+    // https://github.com/maplibre/maplibre-gl-js/issues/5367
+    const zoomRate = 1 / 300
+    map.scrollZoom.setWheelZoomRate(zoomRate)
+    map.scrollZoom.setZoomRate(zoomRate)
 }

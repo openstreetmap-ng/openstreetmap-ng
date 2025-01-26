@@ -1,26 +1,31 @@
-import type * as L from "leaflet"
+import type { Map as MaplibreMap } from "maplibre-gl"
 import { getTagsDiffMode, setTagsDiffMode } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
-import { getPageTitle } from "../_title"
-import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
+import { setPageTitle } from "../_title"
+import { staticCache } from "../_utils.ts"
+import { type FocusLayerPaint, focusObjects } from "../leaflet/_focus-layer"
 import { convertRenderElementsData } from "../leaflet/_render-objects"
 import { getBaseFetchController } from "./_base-fetch"
 import { initializeElementContent } from "./_element"
 import type { IndexController } from "./_router"
 
+const themeColor = "#f60"
+const focusPaint: FocusLayerPaint = Object.freeze({
+    "fill-color": themeColor,
+    "fill-opacity": 0.5,
+    "line-color": themeColor,
+    "line-opacity": 1,
+    "line-width": 4,
+})
+
 const paginationDistance = 2
 
 /** Create a new element history controller */
-export const getElementHistoryController = (map: L.Map): IndexController => {
-    let loadMatchGroups: { [key: string]: string } | null = null
-
+export const getElementHistoryController = (map: MaplibreMap): IndexController => {
     const base = getBaseFetchController(map, "element-history", (sidebarContent) => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
-        const sidebarTitle = sidebarTitleElement.textContent
-
-        // Set page title
-        document.title = getPageTitle(sidebarTitle)
+        setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found
         const tagsDiffCheckbox = sidebarContent.querySelector("input.tags-diff-mode")
@@ -36,9 +41,9 @@ export const getElementHistoryController = (map: L.Map): IndexController => {
         const versionSections = sidebarContent.querySelectorAll("div.version-section")
         for (const versionSection of versionSections) {
             const params = initializeElementContent(map, versionSection)
-            const elements = convertRenderElementsData(params.render)
-            versionSection.addEventListener("mouseenter", () => focusManyMapObjects(map, elements)) // focus elements
-            versionSection.addEventListener("mouseleave", () => focusMapObject(map, null)) // remove focus
+            const elements = staticCache(() => convertRenderElementsData(params.render))
+            versionSection.addEventListener("mouseenter", () => focusObjects(map, elements(), focusPaint)) // focus elements
+            versionSection.addEventListener("mouseleave", () => focusObjects(map)) // remove focus
         }
 
         const paginationContainer = sidebarContent.querySelector("ul.history-pagination")
@@ -86,17 +91,18 @@ export const getElementHistoryController = (map: L.Map): IndexController => {
         }
     })
 
+    let loadMatchGroups: { [key: string]: string } | null = null
     const controller: IndexController = {
         load: (matchGroups) => {
             const { type, id } = matchGroups
+            loadMatchGroups = matchGroups
             const params = qsParse(location.search.substring(1))
             params.tags_diff_mode = getTagsDiffMode().toString()
             const url = `/api/partial/${type}/${id}/history?${qsEncode(params)}`
-            loadMatchGroups = matchGroups
-            base.load({ url })
+            base.load(url)
         },
         unload: () => {
-            focusMapObject(map, null)
+            focusObjects(map)
             base.unload()
         },
     }

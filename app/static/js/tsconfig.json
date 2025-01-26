@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "module": "ES2020",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "target": "ES2023",
+    "types": ["@types/bootstrap", "@types/geojson", "@types/mapbox__polyline", "bun-types", "typed-query-selector"],
+    "verbatimModuleSyntax": true
+  },
+  "exclude": ["./_generated/**/*", "./proto/**/*", "./wasm/**/*"],
+  "include": ["./**/**.ts"]
+}

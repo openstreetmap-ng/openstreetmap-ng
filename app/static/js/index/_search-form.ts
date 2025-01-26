@@ -1,13 +1,13 @@
-import type * as L from "leaflet"
+import type { Map as MaplibreMap } from "maplibre-gl"
 import { qsEncode } from "../_qs"
-import { zoomPrecision } from "../_utils"
+import { beautifyZoom, zoomPrecision } from "../_utils"
 import { routerNavigateStrict } from "./_router"
 
 const searchForm = document.querySelector("form.search-form")
 const searchQueryInput = searchForm ? (searchForm.elements.namedItem("q") as HTMLInputElement) : null
 
 /** Configure the search form */
-export const configureSearchForm = (map: L.Map): void => {
+export const configureSearchForm = (map: MaplibreMap): void => {
     // On search form submit, capture and perform router navigation
     searchForm.addEventListener("submit", (e) => {
         console.debug("onSearchFormSubmit")
@@ -21,12 +21,12 @@ export const configureSearchForm = (map: L.Map): void => {
         console.debug("onWhereIsThisButtonClick")
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
-        const latLng = map.getCenter()
+        const lngLat = map.getCenter()
         routerNavigateStrict(
             `/search?${qsEncode({
-                lat: latLng.lat.toFixed(precision),
-                lon: latLng.lng.toFixed(precision),
-                zoom: zoom.toString(),
+                lat: lngLat.lat.toFixed(precision),
+                lon: lngLat.lng.toFixed(precision),
+                zoom: beautifyZoom(zoom),
             })}`,
         )
     })

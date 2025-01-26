@@ -1,82 +1,83 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
-import * as L from "leaflet"
-import { getPageTitle } from "../_title"
-import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
+import type { Map as MaplibreMap } from "maplibre-gl"
+import { setPageTitle } from "../_title"
+import { type FocusLayerPaint, focusObjects } from "../leaflet/_focus-layer"
 import { convertRenderElementsData } from "../leaflet/_render-objects"
 import {
     type PartialElementParams,
-    type PartialElementParams_Entry,
     PartialElementParamsSchema,
+    type PartialElementParams_Entry,
 } from "../proto/shared_pb"
-import { getBaseFetchController } from "./_base-fetch"
+import { getBaseFetchController } from "./_base-fetch.ts"
 import type { IndexController } from "./_router"
+
+const themeColor = "#f60"
+const focusPaint: FocusLayerPaint = Object.freeze({
+    "fill-color": themeColor,
+    "fill-opacity": 0.5,
+    "line-color": themeColor,
+    "line-opacity": 1,
+    "line-width": 4,
+    "circle-radius": 10,
+    "circle-color": themeColor,
+    "circle-opacity": 0.4,
+    "circle-stroke-color": themeColor,
+    "circle-stroke-opacity": 1,
+    "circle-stroke-width": 3,
+})
 
 const elementsPerPage = 20
 const paginationDistance = 2
 
 /** Create a new element controller */
-export const getElementController = (map: L.Map): IndexController => {
+export const getElementController = (map: MaplibreMap): IndexController => {
     const base = getBaseFetchController(map, "element", (sidebarSection) => {
-        // Get elements
         const sidebarContent = sidebarSection.querySelector("div.sidebar-content")
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
-        const sidebarTitle = sidebarTitleElement.textContent
-
-        // Set page title
-        document.title = getPageTitle(sidebarTitle)
+        setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found
         if (!sidebarContent.dataset.params) return
 
         const params = initializeElementContent(map, sidebarContent)
         const elements = convertRenderElementsData(params.render)
-        focusManyMapObjects(map, elements)
+        focusObjects(map, elements, focusPaint)
     })
 
     return {
         load: ({ type, id, version }) => {
             const url = version ? `/api/partial/${type}/${id}/history/${version}` : `/api/partial/${type}/${id}`
-            base.load({ url })
+            base.load(url)
         },
         unload: () => {
-            focusMapObject(map, null)
+            focusObjects(map)
             base.unload()
         },
     }
 }
 
 /** Initialize element content */
-export const initializeElementContent = (map: L.Map, container: HTMLElement): PartialElementParams => {
+export const initializeElementContent = (map: MaplibreMap, container: HTMLElement): PartialElementParams => {
     console.debug("initializeElementContent")
-    const parentsContainer = container.querySelector("div.parents")
-    const membersContainer = container.querySelector("div.elements")
-
-    const params = fromBinary(PartialElementParamsSchema, base64Decode(container.dataset.params))
 
     const locationButton = container.querySelector("button.location-btn")
-    if (locationButton) {
+    locationButton?.addEventListener("click", () => {
         // On location click, pan the map
-        locationButton.addEventListener("click", () => {
-            const dataset = locationButton.dataset
-            console.debug("onLocationButtonClick", dataset)
-            const lon = Number.parseFloat(dataset.lon)
-            const lat = Number.parseFloat(dataset.lat)
-            const latLng = L.latLng(lat, lon)
-            const currentZoom = map.getZoom()
-            if (currentZoom < 16) {
-                map.setView(latLng, 18)
-            } else {
-                map.panTo(latLng)
-            }
-        })
-    }
+        const dataset = locationButton.dataset
+        console.debug("onLocationButtonClick", dataset)
+        const lon = Number.parseFloat(dataset.lon)
+        const lat = Number.parseFloat(dataset.lat)
+        map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 15) })
+    })
 
+    const params = fromBinary(PartialElementParamsSchema, base64Decode(container.dataset.params))
+    const parentsContainer = container.querySelector("div.parents")
     if (parentsContainer) {
         renderElementsComponent(parentsContainer, params.parents, false)
     }
-
+    const membersContainer = container.querySelector("div.elements")
     if (membersContainer) {
         const isWay = params.type === "way"
         renderElementsComponent(membersContainer, params.members, isWay)
@@ -91,7 +92,7 @@ const renderElementsComponent = (
     elements: PartialElementParams_Entry[],
     isWay: boolean,
 ): void => {
-    console.debug("renderElements", elements.length)
+    console.debug("renderElementsComponent", elements.length)
 
     const entryTemplate = elementsSection.querySelector("template.entry")
     const titleElement = elementsSection.querySelector(".title")

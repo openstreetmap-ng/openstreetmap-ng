@@ -1,10 +1,9 @@
-import * as L from "leaflet"
 import { zoomPrecision } from "./_utils"
-import { getGeolocateControl } from "./leaflet/_geolocate-control"
+import { getGeolocateControl } from "./leaflet/_geolocate"
 import { getDefaultBaseLayer } from "./leaflet/_layers"
 import { addControlGroup, disableControlsClickPropagation, type LonLat } from "./leaflet/_map-utils"
 import { getMarkerIcon } from "./leaflet/_utils"
-import { getZoomControl } from "./leaflet/_zoom-control"
+import { getZoomControl } from "./leaflet/_zoom"
 
 const defaultHomeZoom = 12
 

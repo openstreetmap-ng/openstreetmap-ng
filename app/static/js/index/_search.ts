@@ -1,54 +1,112 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
+import type { Feature } from "geojson"
 import i18next from "i18next"
-import * as L from "leaflet"
+import type { GeoJSONSource, LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
 import { qsEncode, qsParse } from "../_qs"
-import { getPageTitle } from "../_title"
-import type { Bounds } from "../_types"
-import { isLongitude, zoomPrecision } from "../_utils"
-import { type FocusOptions, focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
-import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
-import { getMapAlert } from "../leaflet/_map-utils"
-import { convertRenderElementsData } from "../leaflet/_render-objects"
-import { getLatLngBoundsIntersection, getLatLngBoundsSize, getMarkerIcon } from "../leaflet/_utils"
+import { setPageTitle } from "../_title"
+import type { Bounds, OSMObject } from "../_types.ts"
+import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "../_utils.ts"
+import { getMapAlert } from "../leaflet/_alert.ts"
+import { type FocusLayerPaint, type FocusOptions, focusObjects } from "../leaflet/_focus-layer.ts"
+import { clearMapHover, setMapHover } from "../leaflet/_hover.ts"
+import { loadMapImage, markerRedImageUrl } from "../leaflet/_image.ts"
+import { type LayerId, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers.ts"
+import { convertRenderElementsData } from "../leaflet/_render-objects.ts"
+import { getLngLatBoundsIntersection, getLngLatBoundsSize, padLngLatBounds } from "../leaflet/_utils.ts"
 import { PartialSearchParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 import { setSearchFormQuery } from "./_search-form"
 
-const markerOpacity = 0.8
-const searchAlertChangeThreshold = 0.9
-const searchLayerId = "search" as LayerId
-const focusOptions: FocusOptions = {
+const layerId = "search" as LayerId
+layersConfig.set(layerId, {
+    specification: {
+        type: "geojson",
+        data: emptyFeatureCollection,
+    },
+    layerTypes: ["symbol"],
+    layerOptions: {
+        layout: {
+            "icon-image": "marker-red",
+            "icon-allow-overlap": true,
+            "icon-padding": 0,
+            "icon-anchor": "bottom",
+        },
+        paint: {
+            "icon-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 1, 0.8],
+        },
+    },
+    priority: 140,
+})
+
+const themeColor = "#f60"
+const focusPaint: FocusLayerPaint = Object.freeze({
+    "fill-color": themeColor,
+    "fill-opacity": 0.5,
+    "line-color": themeColor,
+    "line-opacity": 1,
+    "line-width": 4,
+})
+const focusOptions: FocusOptions = Object.freeze({
     padBounds: 0.5,
     maxZoom: 14,
     intersects: true,
     proportionCheck: false,
-}
+})
+
+const searchAlertChangeThreshold = 0.9
 
 /** Create a new search controller */
-export const getSearchController = (map: L.Map): IndexController => {
-    const searchLayer = getOverlayLayerById(searchLayerId) as L.FeatureGroup
+export const getSearchController = (map: MaplibreMap): IndexController => {
+    const source = map.getSource(layerId) as GeoJSONSource
     const searchForm = document.querySelector("form.search-form")
     const searchAlert = getMapAlert("search-alert")
     const searchTitle = i18next.t("site.search.search")
     const whereIsThisTitle = i18next.t("site.search.where_am_i")
 
-    let initialBounds: L.LatLngBounds | null = null
+    let results: NodeListOf<HTMLLIElement> | null = null
+    let setHover: ((id: number, hover: boolean) => void) | null = null
+    let initialBounds: LngLatBounds | null = null
     let whereIsThisMode = false
+
+    // On feature click, navigate to the note
+    map.on("click", layerId, (e) => {
+        const result = results[e.features[0].id as number]
+        const target = result.querySelector("a.stretched-link")
+        target.click()
+    })
+
+    let hoveredFeatureId: number | null = null
+    map.on("mouseover", layerId, (e) => {
+        const featureId = e.features[0].id
+        if (hoveredFeatureId) {
+            if (hoveredFeatureId === featureId) return
+            setHover(hoveredFeatureId, false)
+        } else {
+            setMapHover(map, layerId)
+        }
+        hoveredFeatureId = featureId as number
+        setHover(hoveredFeatureId, true)
+    })
+    map.on("mouseleave", layerId, () => {
+        setHover(hoveredFeatureId, false)
+        hoveredFeatureId = null
+        clearMapHover(map, layerId)
+    })
 
     /** On search alert click, reload the search with the new area */
     const onSearchAlertClick = () => {
         console.debug("Searching within new area")
         controller.unload()
         if (whereIsThisMode) {
+            const center = map.getCenter()
             const zoom = map.getZoom()
             const precision = zoomPrecision(zoom)
-            const latLng = map.getCenter()
             controller.load({
-                lon: latLng.lng.toFixed(precision),
-                lat: latLng.lat.toFixed(precision),
-                zoom: zoom.toString(),
+                lon: center.lng.toFixed(precision),
+                lat: center.lat.toFixed(precision),
+                zoom: beautifyZoom(zoom),
             })
         } else {
             controller.load({ localOnly: "1" })
@@ -65,121 +123,109 @@ export const getSearchController = (map: L.Map): IndexController => {
 
         if (!searchAlert.classList.contains("d-none")) return
 
+        const initialBoundsSize = getLngLatBoundsSize(initialBounds)
         const mapBounds = map.getBounds()
-        const intersectionBounds = getLatLngBoundsIntersection(initialBounds, mapBounds)
-        const intersectionBoundsSize = getLatLngBoundsSize(intersectionBounds)
-
-        const mapBoundsSize = getLatLngBoundsSize(mapBounds)
-        const initialBoundsSize = getLatLngBoundsSize(initialBounds)
+        const mapBoundsSize = getLngLatBoundsSize(mapBounds)
+        const intersectionBounds = getLngLatBoundsIntersection(initialBounds, mapBounds)
+        const intersectionBoundsSize = getLngLatBoundsSize(intersectionBounds)
         const proportion = Math.min(intersectionBoundsSize / mapBoundsSize, intersectionBoundsSize / initialBoundsSize)
         if (proportion > searchAlertChangeThreshold) return
 
         searchAlert.classList.remove("d-none")
-        map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+        map.off("moveend", onMapZoomOrMoveEnd)
     }
 
     const base = getBaseFetchController(map, "search", (sidebarContent) => {
         const sidebar = sidebarContent.closest(".sidebar")
         const searchList = sidebarContent.querySelector("ul.search-list")
-        const results = searchList.querySelectorAll("li.social-action")
+        results = searchList.querySelectorAll("li.social-action")
 
         const params = fromBinary(PartialSearchParamsSchema, base64Decode(searchList.dataset.params))
         const globalMode = !params.boundsStr
         whereIsThisMode = params.whereIsThis
 
-        const layers: L.Marker[] = []
+        const elements: (() => OSMObject[])[] = []
+        const features: Feature[] = []
         for (let i = 0; i < results.length; i++) {
-            const elements = convertRenderElementsData(params.renders[i])
-            const div = results[i]
+            const result = results[i]
+            result.addEventListener("mouseenter", () => setHover(i, true))
+            result.addEventListener("mouseleave", () => setHover(i, false))
 
-            const dataset = div.dataset
+            // Lazily convert render elements data
+            elements.push((): OSMObject[] => {
+                const cache = convertRenderElementsData(params.renders[i])
+                elements[i] = () => cache
+                return cache
+            })
+
+            const dataset = result.dataset
             const lon = Number.parseFloat(dataset.lon)
             const lat = Number.parseFloat(dataset.lat)
-
-            const marker = isLongitude(lon)
-                ? L.marker(L.latLng(lat, lon), {
-                      icon: getMarkerIcon("red", true),
-                      opacity: markerOpacity,
-                  })
-                : null
-
-            /** On mouse enter, scroll result into view and focus elements */
-            const onMouseover = (): void => {
-                const sidebarRect = sidebar.getBoundingClientRect()
-                const resultRect = div.getBoundingClientRect()
-                const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
-                if (!isVisible) div.scrollIntoView({ behavior: "smooth", block: "center" })
-
-                div.classList.add("hover")
-                focusManyMapObjects(map, elements, {
-                    ...focusOptions,
-                    // Focus on hover only during global search
-                    fitBounds: globalMode,
+            if (isLongitude(lon) && isLatitude(lat)) {
+                // Not all results have a central point
+                features.push({
+                    type: "Feature",
+                    id: i,
+                    properties: {},
+                    geometry: {
+                        type: "Point",
+                        coordinates: [lon, lat],
+                    },
                 })
-                marker?.setOpacity(1)
-            }
-
-            /** On mouse leave, unfocus elements */
-            const onMouseout = () => {
-                div.classList.remove("hover")
-                focusMapObject(map, null)
-                marker?.setOpacity(markerOpacity)
-            }
-
-            // Listen for events
-            div.addEventListener("mouseover", onMouseover)
-            div.addEventListener("mouseout", onMouseout)
-            if (marker) {
-                marker.addEventListener("mouseover", onMouseover)
-                marker.addEventListener("mouseout", onMouseout)
-
-                // On marker click, navigate to the element
-                marker.addEventListener("click", (e) => {
-                    const target = div.querySelector("a.stretched-link")
-                    target.dispatchEvent(new MouseEvent("click", e.originalEvent))
-                })
-                layers.push(marker)
             }
         }
+        source.setData({ type: "FeatureCollection", features })
+        console.debug("Search layer showing", results.length, "results")
 
-        searchLayer.clearLayers()
-        searchLayer.addLayer(L.layerGroup(layers))
-        console.debug("Search showing", results.length, "results")
+        /** Set the hover state of the search features */
+        setHover = (id: number, hover: boolean): void => {
+            const result = results[id]
+            result.classList.toggle("hover", hover)
+            if (hover) {
+                // Scroll result into view
+                const sidebarRect = sidebar.getBoundingClientRect()
+                const resultRect = result.getBoundingClientRect()
+                const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
+                if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
+            map.setFeatureState({ source: layerId, id: id }, { hover })
+            focusObjects(map, elements[id](), focusPaint, {
+                ...focusOptions,
+                // Focus on hover only during global search
+                fitBounds: globalMode,
+            })
+        }
 
         if (globalMode) {
             // global mode
             if (results.length) {
                 const elements = convertRenderElementsData(params.renders[0])
-                focusManyMapObjects(map, elements, focusOptions)
-                focusMapObject(map, null)
+                focusObjects(map, elements, focusPaint, focusOptions)
+                focusObjects(map)
             }
             initialBounds = map.getBounds()
-            map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+            map.on("moveend", onMapZoomOrMoveEnd)
         } else {
             // local mode
             initialBounds = null // will be set after flyToBounds animation
-            map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+            map.on("moveend", onMapZoomOrMoveEnd)
 
             console.debug("Search focusing on", params.boundsStr)
             const bounds = params.boundsStr.split(",").map(Number.parseFloat) as Bounds
-            map.flyToBounds(L.latLngBounds(L.latLng(bounds[1], bounds[0]), L.latLng(bounds[3], bounds[2])))
+            map.fitBounds(bounds)
         }
     })
 
     const controller: IndexController = {
         load: (options) => {
-            // Stick the search form and reset search alert
+            // Load image resources
+            loadMapImage(map, "marker-red", markerRedImageUrl)
+
+            // Stick the search form
             searchForm.classList.add("sticky-top")
             searchAlert.classList.add("d-none")
             searchAlert.addEventListener("click", onSearchAlertClick, { once: true })
-            map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
-
-            // Create the search layer if it doesn't exist
-            if (!map.hasLayer(searchLayer)) {
-                console.debug("Adding overlay layer", searchLayerId)
-                map.addLayer(searchLayer)
-                map.fire("overlayadd", { layer: searchLayer, name: searchLayerId })
-            }
+            map.off("moveend", onMapZoomOrMoveEnd)
 
             const searchParams = qsParse(window.location.search.substring(1))
             const query = searchParams.q || searchParams.query || ""
@@ -187,45 +233,42 @@ export const getSearchController = (map: L.Map): IndexController => {
             const lat = options?.lat ?? searchParams.lat
 
             if (!query && lon && lat) {
-                document.title = getPageTitle(whereIsThisTitle)
+                setPageTitle(whereIsThisTitle)
                 setSearchFormQuery(null)
 
-                const zoom = options?.zoom ?? searchParams.zoom ?? map.getZoom().toString()
+                const zoom = (Number(options?.zoom ?? searchParams.zoom ?? map.getZoom()) | 0).toString()
                 const url = `/api/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`
-                base.load({ url })
+                base.load(url)
             } else {
-                document.title = getPageTitle(query || searchTitle)
+                setPageTitle(query || searchTitle)
                 setSearchFormQuery(query)
 
                 // Load empty sidebar to ensure proper bbox
-                base.load({ url: null })
+                base.load()
                 // Pad the bounds to avoid floating point errors
-                const bbox = map.getBounds().pad(-0.01).toBBoxString()
+                const [[minLon, minLat], [maxLon, maxLat]] = padLngLatBounds(
+                    map.getBounds().adjustAntiMeridian(),
+                    -0.01,
+                ).toArray()
                 const url = `/api/partial/search?${qsEncode({
                     q: query,
-                    bbox,
+                    bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
                     local_only: Boolean(options?.localOnly).toString(),
                 })}`
-                base.load({ url })
+                base.load(url)
             }
         },
         unload: () => {
             base.unload()
-
-            // Remove the search layer
-            if (map.hasLayer(searchLayer)) {
-                console.debug("Removing overlay layer", searchLayerId)
-                map.removeLayer(searchLayer)
-                map.fire("overlayremove", { layer: searchLayer, name: searchLayerId })
-            }
-
-            // Clear the search layer
-            searchLayer.clearLayers()
-
+            map.off("moveend", onMapZoomOrMoveEnd)
+            removeMapLayer(map, layerId)
+            source.setData(emptyFeatureCollection)
+            clearMapHover(map, layerId)
             // Unstick the search form and reset search alert
             searchForm.classList.remove("sticky-top")
             searchAlert.classList.add("d-none")
-            map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+            results = null
+            setHover = null
         },
     }
     return controller

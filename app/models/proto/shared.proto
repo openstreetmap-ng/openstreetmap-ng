@@ -1,162 +1,212 @@
 syntax = "proto3";
 
-// Shared website configuration
+// =============================================
+// Client Configuration
+// =============================================
+
+// Centralized client configuration parameters
 message WebConfig {
+    // User-specific preferences
     message UserConfig {
+        // Geographical home point
         message HomePoint {
             float lon = 1;
             float lat = 2;
         }
-        bool activity_tracking = 1;
-        bool crash_reporting = 2;
-        optional HomePoint home_point = 3;
+
+        bool activity_tracking = 1;  // Enable usage analytics
+        bool crash_reporting = 2;  // Enable automatic error reports
+        optional HomePoint home_point = 3;  // User's home point
     }
-    string api_url = 1;
-    float map_query_area_max_size = 2;
-    float note_query_area_max_size = 3;
-    optional UserConfig user_config = 4;
+
+    string api_url = 1;  // Base URL for API endpoints
+    float map_query_area_max_size = 2;  // Max sq km for map queries
+    float note_query_area_max_size = 3;  // Max sq km for note queries
+    optional UserConfig user_config = 4;  // User preferences override
 }
 
-// Structure for transmitting user passwords
+// Password transmission container for different schema versions
 message TransmitUserPassword {
-    optional string legacy = 1;
-    optional bytes v1 = 2;
+    optional string legacy = 1;  // Unencrypted password (deprecated)
+    optional bytes v1 = 2;  // Client-side PBKDF2 hash digest
 }
 
-// Generic bounding box structure
+// =============================================
+// Geographical Data Structures
+// =============================================
+
+// Axis-aligned geographical bounding box
 message SharedBounds {
-    float min_lon = 1;
-    float min_lat = 2;
-    float max_lon = 3;
-    float max_lat = 4;
+    float min_lon = 1;  // Minimum longitude
+    float min_lat = 2;  // Minimum latitude
+    float max_lon = 3;  // Maximum longitude
+    float max_lat = 4;  // Maximum latitude
 }
 
-// Elements rendering structure
+// =============================================
+// Rendering Data Structures
+// =============================================
+
+// OSM elements to render on map (nodes/ways)
 message RenderElementsData {
+    // Node representation
     message Node {
-        uint64 id = 1;
-        float lon = 2;
-        float lat = 3;
+        uint64 id = 1;  // Node ID
+        float lon = 2;  // Longitude
+        float lat = 3;  // Latitude
     }
+
+    // Way representation
     message Way {
-        uint64 id = 1;
-        string line = 2;
-        bool area = 3;
+        uint64 id = 1;  // Way ID
+        string line = 2;  // Encoded polyline coordinates
+        bool area = 3;  // Whether to render as closed area
     }
-    repeated Node nodes = 1;
-    repeated Way ways = 2;
-    optional bool too_much_data = 3;
+
+    repeated Node nodes = 1;  // Nodes in current query
+    repeated Way ways = 2;  // Ways in current query
+    optional bool too_much_data = 3;  // Error flag for too large responses
 }
 
-// Changesets rendering structure
+// Changeset metadata for rendering in UI timeline
 message RenderChangesetsData {
+    // Single changeset in the rendering set
     message Changeset {
+        // User attribution information
         message User {
-            string name = 1;
-            string avatar_url = 2;
+            string name = 1;  // Display name
+            string avatar_url = 2;  // Profile image URL
         }
-        uint64 id = 1;
-        optional User user = 2;
-        repeated SharedBounds bounds = 3;
-        bool closed = 4;
-        string timeago = 5;
-        optional string comment = 6;
-        uint64 num_comments = 7;
+
+        uint64 id = 1;  // Changeset ID
+        optional User user = 2;  // Author information
+        repeated SharedBounds bounds = 3;  // Affected map areas
+        bool closed = 4;  // Whether changeset is closed
+        string timeago = 5;  // Human-readable timestamp HTML
+        optional string comment = 6;  // Commit message
+        uint64 num_comments = 7;  // Associated discussion count
     }
-    repeated Changeset changesets = 1;
+
+    repeated Changeset changesets = 1;  // Changesets in current query
 }
 
-// Notes rendering structure
+// OpenStreetMap notes for rendering on map
 message RenderNotesData {
+    // Single map note representation
     message Note {
-        uint64 id = 1;
-        float lon = 2;
-        float lat = 3;
-        string text = 4;
-        bool open = 5;
+        uint64 id = 1;  // Note ID
+        float lon = 2;  // Longitude
+        float lat = 3;  // Latitude
+        string text = 4;  // Note plain-text content
+        bool open = 5;  // Whether note is unresolved
     }
-    repeated Note notes = 1;
+
+    repeated Note notes = 1;  // Notes in current query
 }
 
-// Map routing result
+// =============================================
+// Routing & Navigation
+// =============================================
+
+// Turn-by-turn navigation instructions
 message RoutingResult {
+    // Start/end location metadata
     message Endpoint {
-        string name = 1;
-        SharedBounds bounds = 2;
-        float lon = 3;
-        float lat = 4;
+        string name = 1;  // Location display name
+        SharedBounds bounds = 2;  // Approximate endpoint area
+        float lon = 3;  // Precise longitude
+        float lat = 4;  // Precise latitude
     }
+
+    // Single navigation instruction step
     message Step {
-        string line = 1;
-        float distance = 2;  // in meters
-        float time = 3;  // in seconds
-        uint32 icon_num = 4;
-        string text = 5;
+        uint32 num_coords = 1;  // Number of coordinates in the polyline (incl. overlapping ends)
+        float distance = 2;  // Meters
+        float time = 3;  // Seconds
+        uint32 icon_num = 4;  // Icon code for this instruction
+        string text = 5;  // Human-readable instruction
     }
+
+    // Elevation profile summary
     message Elevation {
-        float ascend = 1;  // in meters
-        float descend = 2;  // in meters
+        float ascend = 1;  // Total meters climbed
+        float descend = 2;  // Total meters descended
     }
-    optional Endpoint start = 1;
-    optional Endpoint end = 2;
-    string attribution = 3;
-    repeated Step steps = 4;
-    optional Elevation elevation = 5;
+
+    optional Endpoint start = 1;  // Route origin
+    optional Endpoint end = 2;  // Route destination
+    string attribution = 3;  // Data provider attribution
+    repeated Step steps = 4;  // Navigation steps
+    uint32 line_quality = 5;  // Quality of the polyline encoding
+    string line = 6;  // Encoded polyline for the route
+    optional Elevation elevation = 7;  // Terrain metrics
 }
 
-// Generic icon structure
+// =============================================
+// UI Element Metadata
+// =============================================
+
+// Icon with tooltip for map elements
 message ElementIcon {
-    string icon = 1;
-    string title = 2;
+    string icon = 1;  // Icon URL
+    string title = 2;  // Accessible tooltip text
 }
+
+// =============================================
+// Partial Response Structures
+// =============================================
 
 // Partial changeset response params
 message PartialChangesetParams {
+    // Versioned OSM element reference
     message Element {
-        uint64 id = 1;
-        uint64 version = 2;
-        bool visible = 3;
-        optional string name = 4;
-        optional ElementIcon icon = 5;
+        uint64 id = 1;  // Object ID
+        uint64 version = 2;  // Object version
+        bool visible = 3;  // Whether element is visible
+        optional string name = 4;  // Localized display name
+        optional ElementIcon icon = 5;  // Associated icon visualization
     }
-    uint64 id = 1;
-    repeated SharedBounds bounds = 2;
-    repeated Element nodes = 3;
-    repeated Element ways = 4;
-    repeated Element relations = 5;
+
+    uint64 id = 1;  // Changeset ID
+    repeated SharedBounds bounds = 2;  // Geographical scope
+    repeated Element nodes = 3;  // Modified nodes
+    repeated Element ways = 4;  // Modified ways
+    repeated Element relations = 5;  // Modified relations
 }
 
 // Partial element response params
 message PartialElementParams {
+    // Hierarchical element relationship entry
     message Entry {
-        string type = 1;
-        uint64 id = 2;
-        optional string role = 3;
-        optional string name = 4;
-        optional ElementIcon icon = 5;
+        string type = 1;  // "node", "way", or "relation"
+        uint64 id = 2;  // OSM ID
+        optional string role = 3;  // Relation member role
+        optional string name = 4;  // Localized display name
+        optional ElementIcon icon = 5;  // Associated visualization
     }
-    string type = 1;
-    repeated Entry members = 2;
-    repeated Entry parents = 3;
-    RenderElementsData render = 4;
+
+    string type = 1;  // Primary element type
+    repeated Entry members = 2;  // Child elements (for ways and relations)
+    repeated Entry parents = 3;  // Parent elements
+    RenderElementsData render = 4;  // Visual representation data
 }
 
 // Partial note response params
 message PartialNoteParams {
-    uint64 id = 1;
-    float lon = 2;
-    float lat = 3;
-    bool open = 4;
+    uint64 id = 1;  // Note ID
+    float lon = 2;  // Longitude
+    float lat = 3;  // Latitude
+    bool open = 4;  // Whether note is unresolved
 }
 
 // Partial query features response params
 message PartialQueryFeaturesParams {
-    repeated RenderElementsData renders = 1;
+    repeated RenderElementsData renders = 1;  // Visual representation data
 }
 
 // Partial search response params
 message PartialSearchParams {
-    optional string bounds_str = 1;
-    repeated RenderElementsData renders = 2;
-    bool where_is_this = 3;
+    optional string bounds_str = 1;  // Bounding box in "minlon,minlat,maxlon,maxlat" format
+    repeated RenderElementsData renders = 2;  // Search results visual representation
+    bool where_is_this = 3;  // Whether the search was performed in "Where is this?" mode
 }

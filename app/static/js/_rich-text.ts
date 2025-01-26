@@ -1,6 +1,6 @@
 import i18next from "i18next"
 
-const abortControllers: Map<Element, AbortController> = new Map()
+const abortControllers: WeakMap<Element, AbortController> = new WeakMap()
 
 /** Abort any pending request for the given source element, optionally returning a new AbortController */
 const abortRequest = (source: Element, newController: boolean): AbortController | null => {

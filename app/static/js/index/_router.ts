@@ -2,7 +2,7 @@ import { type Route, makeRoute } from "./_route"
 
 export interface IndexController {
     load: (matchGroups: { [key: string]: string }) => void
-    unload: () => void
+    unload: (newPath?: string) => void
 }
 
 let routes: Route[] | null = null
@@ -28,10 +28,7 @@ const removeTrailingSlash = (str: string): string =>
  */
 export const routerNavigateStrict = (newPath: string): void => {
     console.debug("routerNavigateStrict", newPath)
-
-    if (!routerNavigate(newPath)) {
-        throw new Error(`No route found for path: ${newPath}`)
-    }
+    if (!routerNavigate(newPath)) throw new Error(`No route found for path: ${newPath}`)
 }
 
 /**
@@ -42,12 +39,11 @@ export const routerNavigateStrict = (newPath: string): void => {
  */
 export const routerNavigate = (newPath: string): boolean => {
     console.debug("routerNavigate", newPath)
-
     const newRoute = findRoute(newPath)
     if (!newRoute) return false
 
     // Unload the current route
-    currentRoute?.unload()
+    currentRoute?.unload(newPath)
 
     // Push the new history state
     history.pushState(null, "", newPath + location.hash)
@@ -62,7 +58,7 @@ export const routerNavigate = (newPath: string): boolean => {
 /** Configure the router */
 export const configureRouter = (pathControllerMap: Map<string, IndexController>) => {
     routes = Array.from(pathControllerMap).map(([path, controller]) => makeRoute(path, controller))
-    console.debug("Loaded", routes.length, "routes")
+    console.debug("Loaded", routes.length, "application routes")
 
     currentPath = removeTrailingSlash(location.pathname) + location.search
     currentRoute = findRoute(currentPath)
@@ -77,7 +73,7 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
         const newRoute = findRoute(newPath)
 
         // Unload the current route
-        currentRoute?.unload()
+        currentRoute?.unload(newPath)
 
         // Load the new route
         currentPath = newPath

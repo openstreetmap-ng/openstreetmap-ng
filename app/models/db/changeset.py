@@ -55,7 +55,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     # runtime
     num_comments: int | None = None
-    comments: list['ChangesetComment'] | None = None
+    comments: 'list[ChangesetComment] | None' = None
 
     __table_args__ = (
         Index('changeset_user_idx', user_id, 'id', postgresql_where=user_id != null()),

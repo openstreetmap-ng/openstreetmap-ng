@@ -1,19 +1,22 @@
 import i18next from "i18next"
-import * as L from "leaflet"
+import type { EaseToOptions, IControl, LngLat, Map as MaplibreMap } from "maplibre-gl"
 import { homePoint } from "../_config"
+import { timeZoneName } from "../_intl.ts"
 import { getLastMapState, setLastMapState } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
 import { shortLinkEncode } from "../_shortlink"
 import { timezoneBoundsMap } from "../_timezone-bbox"
 import type { Bounds } from "../_types"
-import { isLatitude, isLongitude, isZoom, mod, zoomPrecision } from "../_utils"
+import { beautifyZoom, isLatitude, isLongitude, isZoom, mod, zoomPrecision } from "../_utils"
 import {
     type LayerCode,
     type LayerId,
-    getBaseLayerById,
-    getLayerData,
-    getLayerIdByCode,
-    getOverlayLayerById,
+    addMapLayer,
+    defaultLayerId,
+    layersConfig,
+    removeMapLayer,
+    resolveExtendedLayerId,
+    resolveLayerCodeOrId,
 } from "./_layers"
 
 export interface LonLat {
@@ -35,13 +38,65 @@ export interface MapState extends LonLatZoom {
  * getMapLayersCode(map)
  * // => "BT"
  */
-export const getMapLayersCode = (map: L.Map): string => {
-    const layerCodes: LayerCode[] = []
-    map.eachLayer((layer) => {
-        const data = getLayerData(layer)
-        if (data?.layerCode) layerCodes.push(data.layerCode)
-    })
-    return layerCodes.join("")
+export const getMapLayersCode = (map: MaplibreMap): string => {
+    const layerCodes: Set<LayerCode> = new Set()
+    for (const extendedLayerId of map.getLayersOrder()) {
+        const layerId = resolveExtendedLayerId(extendedLayerId)
+        const layerConfig = layersConfig.get(layerId)
+        if (layerConfig?.layerCode) layerCodes.add(layerConfig.layerCode)
+    }
+    return Array.from(layerCodes).sort().join("")
+}
+
+/**
+ * Set the map layers from a layers code
+ * @example
+ * setMapLayersCode(map, "BT")
+ */
+const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
+    console.debug("setMapLayersCode", layersCode)
+    const layersIds: Set<LayerId> = new Set()
+
+    // Extract base layers for validation and to check
+    // whether we need to auto-add the default base layer
+    const baseLayersIds: LayerId[] = []
+
+    for (const layerCode of (layersCode || "") as Iterable<LayerCode>) {
+        const layerId = resolveLayerCodeOrId(layerCode)
+        if (!layerId) continue
+        layersIds.add(layerId)
+        const layerConfig = layersConfig.get(layerId)
+        if (layerConfig.isBaseLayer) baseLayersIds.push(layerId)
+    }
+
+    if (baseLayersIds.length > 1) {
+        console.error("Invalid layers code", layersCode, "(too many base layers)")
+        return
+    }
+
+    // Add default base layer if no base layer is present
+    if (!baseLayersIds.length) {
+        layersIds.add(defaultLayerId)
+        baseLayersIds.push(defaultLayerId)
+    }
+
+    // Remove layers not found in the code
+    const missingLayersIds: Set<LayerId> = new Set(layersIds)
+    for (const extendedLayerId of map.getLayersOrder()) {
+        const layerId = resolveExtendedLayerId(extendedLayerId)
+        if (!layerId) continue
+        if (layersIds.has(layerId)) {
+            console.debug("Keeping layer", layerId)
+            missingLayersIds.delete(layerId)
+            continue
+        }
+        removeMapLayer(map, layerId)
+    }
+
+    // Add missing layers
+    for (const layerId of missingLayersIds) {
+        addMapLayer(map, layerId)
+    }
 }
 
 /**
@@ -50,116 +105,32 @@ export const getMapLayersCode = (map: L.Map): string => {
  * getMapBaseLayerId(map)
  * // => "standard"
  */
-export const getMapBaseLayerId = (map: L.Map): LayerId => {
+export const getMapBaseLayerId = (map: MaplibreMap): LayerId | null => {
     let baseLayerId: LayerId | null = null
-    map.eachLayer((layer) => {
-        const data = getLayerData(layer)
-        if (data && getBaseLayerById(data.layerId)) baseLayerId = data.layerId
-    })
-    if (!baseLayerId) throw new Error("No base layer found")
+    for (const extendedLayerId of map.getLayersOrder()) {
+        const layerId = extendedLayerId as LayerId // base layers have no extensions
+        const layerConfig = layersConfig.get(layerId)
+        if (layerConfig?.isBaseLayer) {
+            if (baseLayerId) console.warn("Multiple base layers found")
+            baseLayerId = layerId
+        }
+    }
     return baseLayerId
 }
 
-/** Get the base layer instance of the map */
-export const getMapBaseLayer = (map: L.Map): L.TileLayer => {
-    let baseLayer: L.TileLayer | null = null
-    map.eachLayer((layer) => {
-        const data = getLayerData(layer)
-        if (data && getBaseLayerById(data.layerId)) baseLayer = layer as L.TileLayer
-    })
-    if (!baseLayer) throw new Error("No base layer found")
-    return baseLayer
-}
-
-/**
- * Set the map layers from a layers code
- * @example
- * setMapLayersCode(map, "BT")
- */
-const setMapLayersCode = (map: L.Map, layersCode?: string): void => {
-    console.debug("setMapLayersCode", layersCode)
-    const layersIds: Set<LayerId> = new Set()
-
-    // Extract base layers for validation and to check
-    // whether we need to auto-add the default base layer
-    const baseLayers: L.TileLayer[] = []
-
-    for (const layerCode of layersCode ?? "") {
-        const layerId = getLayerIdByCode(layerCode as LayerCode)
-        layersIds.add(layerId)
-        const baseLayer = getBaseLayerById(layerId)
-        if (baseLayer) baseLayers.push(baseLayer)
-    }
-
-    if (baseLayers.length > 1) {
-        console.error("Invalid layers code (too many base layers)", layersCode)
-        return
-    }
-
-    // Add default base layer if no base layer is present
-    if (!baseLayers.length) {
-        const layerId = getLayerIdByCode("" as LayerCode)
-        layersIds.add(layerId)
-        const layer = getBaseLayerById(layerId)
-        baseLayers.push(layer)
-    }
-
-    // Remove layers not found in the code
-    map.eachLayer((layer) => {
-        const data = getLayerData(layer)
-        if (!data) return
-        const layerId = data.layerId
-        if (layerId === "focus") return
-        if (layersIds.has(layerId)) {
-            console.debug("Keeping layer", layerId)
-            layersIds.delete(layerId)
-            return
-        }
-
-        if (getOverlayLayerById(layerId)) {
-            console.debug("Removing overlay layer", layerId)
-            map.removeLayer(layer)
-            map.fire("overlayremove", { layer, name: layerId })
-        } else {
-            console.debug("Removing base layer", layerId)
-            map.removeLayer(layer)
-        }
-    })
-
-    // Add missing layers
-    for (const layerId of layersIds) {
-        const baseLayer = getBaseLayerById(layerId)
-        if (baseLayer) {
-            console.debug("Adding base layer", layerId)
-            map.addLayer(baseLayer)
-            // Trigger the baselayerchange event
-            // https://leafletjs.com/reference.html#map-baselayerchange
-            // https://leafletjs.com/reference.html#layerscontrolevent
-            map.fire("baselayerchange", { layer: baseLayer, name: layerId })
-        } else {
-            const overlayLayer = getOverlayLayerById(layerId)
-            console.debug("Adding overlay layer", layerId)
-            map.addLayer(overlayLayer)
-            map.fire("overlayadd", { layer: overlayLayer, name: layerId })
-        }
-    }
-}
-
 /** Get the current map state object */
-export const getMapState = (map: L.Map): MapState => {
-    const center = map.getCenter()
-    const lon = mod(center.lng + 180, 360) - 180
-    const lat = center.lat
+export const getMapState = (map: MaplibreMap): MapState => {
+    const center = map.getCenter().wrap()
     const zoom = map.getZoom()
     const layersCode = getMapLayersCode(map)
-    return { lon, lat, zoom, layersCode }
+    return { lon: center.lng, lat: center.lat, zoom, layersCode }
 }
 
 /** Set the map state from a state object */
-export const setMapState = (map: L.Map, state: MapState, options?: L.ZoomPanOptions): void => {
+export const setMapState = (map: MaplibreMap, state: MapState, options?: EaseToOptions): void => {
     console.debug("setMapState", state)
     const { lon, lat, zoom, layersCode } = state
-    map.setView(L.latLng(lat, lon), zoom, options)
+    map.panTo([lon, lat], { ...(options ?? {}), zoom })
     setMapLayersCode(map, layersCode)
     setLastMapState(state)
 }
@@ -172,13 +143,14 @@ export const setMapState = (map: L.Map, state: MapState, options?: L.ZoomPanOpti
  */
 export const encodeMapState = (state: MapState): string => {
     let { lon, lat, zoom, layersCode } = state
-    const precision = zoomPrecision(zoom)
     lon = mod(lon + 180, 360) - 180
+    const zoomRounded = beautifyZoom(zoom)
+    const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)
     const latFixed = lat.toFixed(precision)
     return layersCode
-        ? `#map=${zoom}/${latFixed}/${lonFixed}&layers=${layersCode}`
-        : `#map=${zoom}/${latFixed}/${lonFixed}`
+        ? `#map=${zoomRounded}/${latFixed}/${lonFixed}&layers=${layersCode}`
+        : `#map=${zoomRounded}/${latFixed}/${lonFixed}`
 }
 
 /**
@@ -202,7 +174,7 @@ export const parseMapState = (hash: string): MapState | null => {
     const components = params.map.split("/")
     if (components.length !== 3) return null
 
-    const zoom = Number.parseInt(components[0], 10)
+    const zoom = Number.parseFloat(components[0])
     const lat = Number.parseFloat(components[1])
     const lon = Number.parseFloat(components[2])
 
@@ -218,19 +190,19 @@ export const parseMapState = (hash: string): MapState | null => {
 }
 
 /** Convert bounds to a lon, lat, zoom object */
-const convertBoundsToLonLatZoom = (map: L.Map | null, bounds: Bounds): LonLatZoom => {
+const convertBoundsToLonLatZoom = (map: MaplibreMap | null, bounds: Bounds): LonLatZoom => {
     const [minLon, minLat, maxLon, maxLat] = bounds
     const lon = (minLon + maxLon) / 2
     const lat = (minLat + maxLat) / 2
 
     if (map) {
-        const zoom = map.getBoundsZoom(L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon)))
-        return { lon, lat, zoom }
+        const camera = map.cameraForBounds([minLon, minLat, maxLon, maxLat])
+        if (camera) return { lon, lat, zoom: camera.zoom }
     }
 
     const latRad = (lat: number): number => Math.sin((lat * Math.PI) / 180)
     const getZoom = (mapPx: number, worldPx: number, fraction: number): number =>
-        Math.floor(Math.log(mapPx / worldPx / fraction) / Math.LN2)
+        (Math.log(mapPx / worldPx / fraction) / Math.LN2) | 0
 
     // Calculate the fraction of the world that the longitude and latitude take up
     const latFraction = (latRad(maxLat) - latRad(minLat)) / Math.PI
@@ -245,18 +217,17 @@ const convertBoundsToLonLatZoom = (map: L.Map | null, bounds: Bounds): LonLatZoo
     const tileSize = 256
     const maxLatZoom = getZoom(mapHeight, tileSize, latFraction)
     const maxLonZoom = getZoom(mapWidth, tileSize, lonFraction)
-
     const zoom = Math.min(maxLatZoom, maxLonZoom)
     return { lon, lat, zoom }
 }
 
 /**
- * Get initial (default) map state by analyzing various parameters
+ * Get default map state by analyzing various parameters
  * @example
  * getInitialMapState()
  * // => { lon: -0.09, lat: 51.505, zoom: 15, layersCode: "BT" }
  */
-export const getInitialMapState = (map?: L.Map): MapState => {
+export const getInitialMapState = (map?: MaplibreMap): MapState => {
     const hashState = parseMapState(window.location.hash)
 
     // 1. Use the position from the hash state
@@ -291,7 +262,7 @@ export const getInitialMapState = (map?: L.Map): MapState => {
     if (searchParams.mlon && searchParams.mlat) {
         const mlon = Number.parseFloat(searchParams.mlon)
         const mlat = Number.parseFloat(searchParams.mlat)
-        const zoom = searchParams.zoom ? Number.parseInt(searchParams.zoom, 10) : 12
+        const zoom = searchParams.zoom ? Number.parseFloat(searchParams.zoom) : 12
         if (isLongitude(mlon) && isLatitude(mlat) && isZoom(zoom)) {
             return { lon: mlon, lat: mlat, zoom, layersCode: lastState?.layersCode }
         }
@@ -301,7 +272,7 @@ export const getInitialMapState = (map?: L.Map): MapState => {
     if (searchParams.lon && searchParams.lat) {
         const lon = Number.parseFloat(searchParams.lon)
         const lat = Number.parseFloat(searchParams.lat)
-        const zoom = searchParams.zoom ? Number.parseInt(searchParams.zoom, 10) : 12
+        const zoom = searchParams.zoom ? Number.parseFloat(searchParams.zoom) : 12
         if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
             return { lon, lat, zoom, layersCode: lastState?.layersCode }
         }
@@ -318,8 +289,7 @@ export const getInitialMapState = (map?: L.Map): MapState => {
     }
 
     // 8. Use the user's country bounds
-    const timezoneName = Intl.DateTimeFormat().resolvedOptions().timeZone
-    const countryBounds = timezoneBoundsMap.get(timezoneName)
+    const countryBounds = timezoneBoundsMap.get(timeZoneName())
     if (countryBounds) {
         const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, countryBounds)
         return { lon, lat, zoom, layersCode: "" }
@@ -340,7 +310,7 @@ export const getInitialMapState = (map?: L.Map): MapState => {
  * getMapUrl(map)
  * // => "https://www.openstreetmap.org/#map=15/51.505/-0.09&layers=BT"
  */
-export const getMapUrl = (map: L.Map, showMarker = false): string => {
+export const getMapUrl = (map: MaplibreMap, showMarker = false): string => {
     const state = getMapState(map)
     const hash = encodeMapState(state)
     const { lon, lat, zoom } = state
@@ -353,10 +323,10 @@ export const getMapUrl = (map: L.Map, showMarker = false): string => {
     return `${window.location.origin}/${hash}`
 }
 
-const shortDomainUpgrades = new Map<string, string>([
-    ["openstreetmap.org", "osm.org"],
-    ["openstreetmap.ng", "osm.ng"],
-])
+const shortDomainUpgrades: Record<string, string> = Object.freeze({
+    "openstreetmap.org": "osm.org",
+    "openstreetmap.ng": "osm.ng",
+})
 
 /**
  * Get a short URL for the current map location
@@ -364,20 +334,23 @@ const shortDomainUpgrades = new Map<string, string>([
  * getMapShortUrl(map)
  * // => "https://osm.org/go/wF7ZdNbjU-"
  */
-export const getMapShortlink = (map: L.Map, showMarker = false): string => {
+export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat): string => {
     const state = getMapState(map)
     const code = shortLinkEncode(state)
     const params: { [key: string]: string } = {}
-
     if (state.layersCode) params.layers = state.layersCode
-    if (showMarker) params.m = ""
+    if (markerLngLat) {
+        const precision = zoomPrecision(state.zoom)
+        params.mlon = markerLngLat.lng.toFixed(precision)
+        params.mlat = markerLngLat.lat.toFixed(precision)
+    }
 
     // Upgrade to short domain when supported
     const hostname = location.hostname
     const tldPos = hostname.lastIndexOf(".")
     const domainPos = hostname.lastIndexOf(".", tldPos - 1)
     const shortDomainKey = domainPos > 0 ? hostname.substring(domainPos + 1) : hostname
-    const host = shortDomainUpgrades.get(shortDomainKey) ?? location.host
+    const host = shortDomainUpgrades[shortDomainKey] ?? location.host
 
     return Object.keys(params).length
         ? `${location.protocol}//${host}/go/${code}?${qsEncode(params)}`
@@ -387,20 +360,20 @@ export const getMapShortlink = (map: L.Map, showMarker = false): string => {
 /**
  * Get HTML for embedding the current map location
  * @example
- * getMapEmbedHtml(map, L.latLng(51.505, -0.09))
+ * getMapEmbedHtml(map, [-0.09, 51.505])
  */
-export const getMapEmbedHtml = (map: L.Map, markerLatLng?: L.LatLng): string => {
-    const layerData = getLayerData(getMapBaseLayer(map))
+export const getMapEmbedHtml = (map: MaplibreMap, markerLngLat?: LngLat): string => {
+    const [[minLon, minLat], [maxLon, maxLat]] = map.getBounds().adjustAntiMeridian().toArray()
     const params: { [key: string]: string } = {
-        bbox: map.getBounds().toBBoxString(),
-        layer: layerData.layerId,
+        bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
+        layer: getMapBaseLayerId(map),
     }
 
     // Add optional map marker
-    if (markerLatLng) {
+    if (markerLngLat) {
         // Intentionally not applying precision on embed markers
-        const lon = markerLatLng.lng
-        const lat = markerLatLng.lat
+        const lon = markerLngLat.lng
+        const lat = markerLngLat.lat
         params.marker = `${lat},${lon}`
     }
 
@@ -427,7 +400,7 @@ export const getMapEmbedHtml = (map: L.Map, markerLatLng?: L.LatLng): string => 
     // Create the link to view the larger map
     const small = document.createElement("small")
     const link = document.createElement("a")
-    link.href = getMapUrl(map, Boolean(markerLatLng))
+    link.href = getMapUrl(map, Boolean(markerLngLat))
     link.textContent = i18next.t("javascripts.share.view_larger_map")
     small.appendChild(link)
     container.appendChild(small)
@@ -441,55 +414,26 @@ export const getMapEmbedHtml = (map: L.Map, markerLatLng?: L.LatLng): string => 
  * getMapGeoUri(map)
  * // => "geo:51.505,-0.09?z=15"
  */
-export const getMapGeoUri = (map: L.Map): string => {
+export const getMapGeoUri = (map: MaplibreMap): string => {
     const { lon, lat, zoom } = getMapState(map)
     const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)
     const latFixed = lat.toFixed(precision)
-    return `geo:${latFixed},${lonFixed}?z=${zoom}`
-}
-
-/** Clone a tile layer */
-export const cloneTileLayer = (layer: L.TileLayer): L.TileLayer => {
-    // @ts-ignore
-    return new L.TileLayer(layer._url, layer.options)
+    return `geo:${latFixed},${lonFixed}?z=${zoom | 0}`
 }
 
 /** Add a control group to the map */
-export const addControlGroup = (map: L.Map, controls: L.Control[]): void => {
-    for (const control of controls) {
+export const addControlGroup = (map: MaplibreMap, controls: IControl[]): void => {
+    for (const [i, control] of controls.entries()) {
         map.addControl(control)
 
-        const container = control.getContainer()
+        // @ts-ignore
+        const container: HTMLElement | undefined = control._container
+        if (!container) continue
         const classList = container.classList
-        classList.add("leaflet-control-group")
+        classList.add("custom-control-group")
 
-        if (control === controls[0]) classList.add("first")
-        if (control === controls[controls.length - 1]) classList.add("last")
+        if (i === 0) classList.add("first")
+        if (i === controls.length - 1) classList.add("last")
     }
-}
-
-/** Disable click propagation for map controls, to avoid map events being triggered by the controls */
-export const disableControlsClickPropagation = (map: L.Map): void => {
-    const mapContainer = map.getContainer()
-    const controlContainer = mapContainer.querySelector(".leaflet-control-container") as HTMLElement
-    if (controlContainer) {
-        console.debug("Disabled click propagation for map controls")
-        L.DomEvent.disableClickPropagation(controlContainer)
-    } else {
-        console.warn("Leaflet control container not found")
-    }
-
-    const mapAlertsContainer = mapContainer.querySelectorAll("div.map-alert")
-    for (const mapAlert of mapAlertsContainer) {
-        L.DomEvent.disableClickPropagation(mapAlert)
-    }
-    console.debug("Disabled click propagation for", mapAlertsContainer.length, "map alerts")
-}
-
-/** Get the map alert element */
-export const getMapAlert = (name: string): HTMLElement => {
-    const alert = document.querySelector(`.map-alert.${name}`) as HTMLElement
-    if (!alert) console.error("Map alert", name, "not found")
-    return alert
 }

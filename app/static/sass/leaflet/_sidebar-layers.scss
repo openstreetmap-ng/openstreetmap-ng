@@ -28,7 +28,7 @@
             z-index: 850;
         }
 
-        .leaflet-container {
+        .map-container {
             height: 3.5rem;
             // Fix small "white pop" visual glitch in Dark Mode on Chrome
             border-top-left-radius: calc($border-radius + 2px);
@@ -45,6 +45,20 @@
             &.active {
                 box-shadow: 0 0 0 0.25rem shade-color($primary, 20%);
             }
+        }
+    }
+
+    .layer-settings {
+        @extend .bg-body-tertiary;
+        @extend .rounded-2;
+
+        .layer {
+            margin-bottom: 0;
+        }
+
+        .layer-settings-inner {
+            font-size: 0.875em;
+            padding: 0.125rem 0.375rem;
         }
     }
 }

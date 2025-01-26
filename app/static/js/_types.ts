@@ -1,7 +1,6 @@
 export interface OSMNode {
     type: "node"
     id: bigint
-    /** [lat, lon] */
     geom: [number, number]
     version?: bigint
 }
@@ -9,7 +8,6 @@ export interface OSMNode {
 export interface OSMWay {
     type: "way"
     id: bigint
-    /** [[lat, lon], ...] */
     geom: [number, number][]
     version?: bigint
     area?: boolean
@@ -24,11 +22,9 @@ export interface OSMRelation {
 export interface OSMNote {
     type: "note"
     id?: bigint
-    /** [lat, lon] */
     geom: [number, number]
-    icon: string
-    draggable?: boolean
-    interactive?: boolean
+    open: boolean
+    text: string
 }
 
 /** [minLon, minLat, maxLon, maxLat] */

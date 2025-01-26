@@ -23,12 +23,20 @@ export const isLatitude = (lat: number): boolean => lat >= -90 && lat <= 90
 export const isZoom = (zoom: number): boolean => zoom >= 0 && zoom <= 25
 
 /**
+ * Get a zoom level as a string with 2 decimal places
+ * @example
+ * beautifyZoom(4.4321)
+ * // => "4.43"
+ */
+export const beautifyZoom = (zoom: number): string => (((zoom * 100) | 0) / 100).toString()
+
+/**
  * Compute the coordinate precision for a given zoom level
  * @example
  * zoomPrecision(17)
  * // => 5
  */
-export const zoomPrecision = (zoom: number): number => Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2))
+export const zoomPrecision = (zoom: number): number => Math.max(0, Math.ceil(Math.log(zoom | 0) / Math.LN2))
 
 /**
  * Compute the modulo of a number, supporting negative numbers
@@ -48,7 +56,7 @@ export const throttle = <T extends any[]>(func: (...args: T) => void, delay: num
     let timeout: ReturnType<typeof setTimeout> | null = null
 
     return (...args) => {
-        if (timeout) clearTimeout(timeout)
+        clearTimeout(timeout)
         const now = performance.now()
         const timeElapsed = now - lastCalled
         const timeLeft = delay - timeElapsed
@@ -65,14 +73,6 @@ export const throttle = <T extends any[]>(func: (...args: T) => void, delay: num
     }
 }
 
-// This is currently not possible with out i18n translations
-// as we don't distinguish between en, en-GB, en-US, etc.
-// Perhaps, it could be configured in the settings?
-// For now, don't support imperial units.
-// Also, such simple startsWith check is bug-prone:
-// export const isMetricUnit = !(navigator.language.startsWith("en-US") || navigator.language.startsWith("my"))
-export const isMetricUnit = true
-
 /** Check if the given href is the current page */
 export const isHrefCurrentPage = (href: string): boolean => {
     const hrefPathname = new URL(href).pathname
@@ -86,7 +86,7 @@ export const isHrefCurrentPage = (href: string): boolean => {
  * getUnixTimestamp()
  * // => 1717761123
  */
-export const getUnixTimestamp = (): number => Math.floor(Date.now() / 1000)
+export const getUnixTimestamp = (): number => (Date.now() / 1000) | 0
 
 /**
  * Create a Python-like range of numbers
@@ -100,8 +100,64 @@ export const range = (start: number, stop: number, step = 1): number[] => {
     return result
 }
 
-/**
- * Backwards-compatible requestAnimationFrame function
- */
+/** Backwards-compatible requestAnimationFrame function */
 export const requestAnimationFramePolyfill: (callback: FrameRequestCallback) => number =
     window.requestAnimationFrame || ((callback) => window.setTimeout(() => callback(performance.now()), 30))
+
+/** Backwards-compatible requestIdleCallback function */
+export const requestIdleCallbackPolyfill: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number =
+    window.requestIdleCallback || ((callback) => window.setTimeout(() => callback(null), 0))
+
+export const cancelIdleCallbackPolyfill: (handle: number) => void =
+    window.cancelIdleCallback || ((handle) => window.clearTimeout(handle))
+
+/** Get the device theme */
+export const getDeviceTheme = (): "light" | "dark" =>
+    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+
+/** Cache a function result, ignoring passed arguments */
+export const staticCache = <T extends (...args: any[]) => any>(fn: T): T => {
+    let called = false
+    let result: ReturnType<T> | undefined
+    return ((...args) => {
+        if (called) return result
+        result = fn(...args)
+        called = true
+        return result
+    }) as T
+}
+
+/** Memoize a function result, depending on the arguments */
+export const memoize = <T extends (...args: any[]) => any>(fn: T): T => {
+    const cache = new Map<string, ReturnType<T>>()
+    return ((...args: Parameters<T>): ReturnType<T> => {
+        const key = JSON.stringify(args)
+        let cached = cache.get(key)
+        if (cached === undefined) {
+            cached = fn(...args)
+            cache.set(key, cached)
+        }
+        return cached
+    }) as T
+}
+
+/** Wrap a low-priority function to execute during idle time */
+export const wrapIdleCallbackStatic = <T extends (...args: any[]) => any>(fn: T, timeout = 5000): T => {
+    let idleCallbackId: number | null = null
+    return ((...args: any[]) => {
+        cancelIdleCallbackPolyfill(idleCallbackId)
+        idleCallbackId = requestIdleCallbackPolyfill(() => fn(...args), { timeout })
+    }) as T
+}
+
+/**
+ * Wrap message event handler to accept only messages from trusted sources
+ * @param fn - Message event handler
+ * @param isParent - If true, only messages from child domains are accepted, otherwise only from parent domains
+ */
+export const wrapMessageEventValidator = <T extends (event: MessageEvent) => any>(fn: T, isParent = true): T =>
+    ((event: MessageEvent) => {
+        const eventHost = `.${event.origin.replace(/^https?:\/\//, "")}`
+        if (isParent ? eventHost.endsWith(currentHost) : currentHost.endsWith(eventHost)) return fn(event)
+    }) as T
+const currentHost = `.${window.location.host}`

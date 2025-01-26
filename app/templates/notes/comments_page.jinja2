@@ -15,7 +15,7 @@
             {% elif _event == 'reopened' %}
                 {{ t('action.reactivated') }}
             {% elif _event == 'hidden' %}
-                {{ t('action.hid') }}
+                {{ t('action.hidden') }}
             {% endif %}
             <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
         </p>

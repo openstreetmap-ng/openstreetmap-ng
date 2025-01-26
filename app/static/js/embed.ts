@@ -1,18 +1,26 @@
 import "./_i18n"
-
 import i18next from "i18next"
-import * as L from "leaflet"
+
+import { AttributionControl, Map as MaplibreMap, Marker, NavigationControl } from "maplibre-gl"
 import { qsParse } from "./_qs"
-import { isLatitude, isLongitude, zoomPrecision } from "./_utils"
-import { type LayerId, getBaseLayerById, getDefaultBaseLayer } from "./leaflet/_layers"
+import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "./_utils"
+import { type LayerId, addMapLayer, addMapLayerSources, defaultLayerId, resolveLayerCodeOrId } from "./leaflet/_layers"
 import type { LonLatZoom } from "./leaflet/_map-utils"
-import { getMarkerIcon } from "./leaflet/_utils"
+import { configureDefaultMapBehavior, getMarkerIconElement, markerIconAnchor } from "./leaflet/_utils"
 
 const mapContainer = document.getElementById("map")
-const map = L.map(mapContainer, {
-    center: L.latLng(0, 0),
+const attributionControl = new AttributionControl()
+const map = new MaplibreMap({
+    container: mapContainer,
+    maxZoom: 19,
     zoom: 1,
+    attributionControl: false,
+    refreshExpiredTiles: false,
 })
+configureDefaultMapBehavior(map)
+addMapLayerSources(map, "base")
+map.addControl(new NavigationControl({ showCompass: false }))
+map.addControl(attributionControl)
 
 // Parse search params
 const searchParams = qsParse(location.search.substring(1))
@@ -23,8 +31,7 @@ if (searchParams.bbox) {
     if (bbox.length === 4) {
         const [minLon, minLat, maxLon, maxLat] = bbox
         if (isLongitude(minLon) && isLatitude(minLat) && isLongitude(maxLon) && isLatitude(maxLat)) {
-            const bounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
-            map.fitBounds(bounds, { animate: false })
+            map.fitBounds([minLon, minLat, maxLon, maxLat], { animate: false })
         }
     }
 }
@@ -35,19 +42,18 @@ if (searchParams.marker) {
     if (coords.length === 2) {
         const [lat, lon] = coords
         if (isLongitude(lon) && isLatitude(lat)) {
-            const marker = L.marker(L.latLng(lat, lon), {
-                icon: getMarkerIcon("blue", true),
-                keyboard: false,
-                interactive: false,
+            new Marker({
+                anchor: markerIconAnchor,
+                element: getMarkerIconElement("blue", true),
             })
-            map.addLayer(marker)
+                .setLngLat([lon, lat])
+                .addTo(map)
         }
     }
 }
 
-// Use default layer when not specified or unknown
-const layer = getBaseLayerById(searchParams.layer as LayerId) ?? getDefaultBaseLayer()
-map.addLayer(layer)
+const layerId = resolveLayerCodeOrId(searchParams.layer as LayerId) ?? defaultLayerId
+addMapLayer(map, layerId)
 
 /**
  * Get the fix the map link
@@ -56,25 +62,29 @@ map.addLayer(layer)
  * // => "https://www.openstreetmap.org/fixthemap?lat=6.123456&lon=5.123456&zoom=17"
  */
 const getFixTheMapLink = ({ lon, lat, zoom }: LonLatZoom): string => {
+    const zoomRounded = beautifyZoom(zoom)
     const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)
     const latFixed = lat.toFixed(precision)
     // TODO: test from within iframe
-    return `${window.location.origin}/fixthemap?lat=${latFixed}&lon=${lonFixed}&zoom=${zoom}`
+    return `${window.location.origin}/fixthemap?lat=${latFixed}&lon=${lonFixed}&zoom=${zoomRounded}`
 }
 
-const reportProblemText = i18next.t("javascripts.embed.report_problem")
+const reportProblemLink = document.createElement("a")
+reportProblemLink.target = "_blank"
+reportProblemLink.textContent = i18next.t("javascripts.embed.report_problem")
 
 /** On move end, update the link with the current coordinates */
 const onMoveEnd = () => {
     const center = map.getCenter()
     const zoom = map.getZoom()
-    const link = getFixTheMapLink({ lon: center.lng, lat: center.lat, zoom })
-    map.attributionControl.setPrefix(`<a href="${link}" target="_blank">${reportProblemText}/a>`)
+    reportProblemLink.href = getFixTheMapLink({ lon: center.lng, lat: center.lat, zoom })
+    attributionControl.options.customAttribution = reportProblemLink.outerHTML
+    attributionControl._updateAttributions()
 }
 
 // Listen for events
-map.addEventListener("moveend", onMoveEnd)
+map.on("moveend", onMoveEnd)
 
 // Initial update to set the link
 onMoveEnd()

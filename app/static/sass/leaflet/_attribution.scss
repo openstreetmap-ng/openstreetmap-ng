@@ -1,0 +1,19 @@
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib.maplibregl-compact {
+    @extend .text-body-secondary;
+    @extend .bg-body;
+    text-wrap: pretty;
+
+    // Style the donation link
+    .donate {
+        @extend .link-green;
+    }
+}
+
+.maplibregl-ctrl-attrib-inner {
+    line-height: 1.55;
+}
+
+.maplibregl-ctrl-attrib-button {
+    @extend .dark-filter-invert;
+}

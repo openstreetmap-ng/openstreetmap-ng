@@ -1,24 +1,31 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
-import type * as L from "leaflet"
-import type { LayerId } from "./_layers"
+import type { Map as MaplibreMap } from "maplibre-gl"
+import { type LayerId, addLayerEventHandler } from "./_layers"
 import { getMapBaseLayerId } from "./_map-utils"
-import { type SidebarToggleControl, getSidebarToggleButton } from "./_sidebar-toggle-button"
+import { SidebarToggleControl } from "./_sidebar-toggle-button"
 
 const precomputeMaxZoom = 25
 
-export const getLegendSidebarToggleButton = (): SidebarToggleControl => {
-    const control = getSidebarToggleButton("legend", "javascripts.key.tooltip")
-    const controlOnAdd = control.onAdd
+export class LegendSidebarToggleControl extends SidebarToggleControl {
+    public _container: HTMLElement
 
-    control.onAdd = (map: L.Map): HTMLElement => {
-        const container = controlOnAdd(map)
+    public constructor() {
+        super("legend", "javascripts.key.tooltip")
+    }
+
+    public override onAdd(map: MaplibreMap): HTMLElement {
+        const container = super.onAdd(map)
         const button = container.querySelector("button")
 
+        // On sidebar shown, update the sidebar
+        button.addEventListener("click", () => {
+            if (button.classList.contains("active")) updateSidebar()
+        })
+
         // Discover the legend items and precompute their visibility
-        const sidebar = control.sidebar
-        const layerElementsMap: Map<LayerId, { element: HTMLTableRowElement; visibility: boolean[] }[]> = new Map()
-        const layerContainers = sidebar.querySelectorAll("table.layer-container")
+        const layerElementsMap = new Map<LayerId, { element: HTMLTableRowElement; visibility: boolean[] }[]>()
+        const layerContainers = this.sidebar.querySelectorAll("table.layer-container")
         for (const layerContainer of layerContainers) {
             const layerId = layerContainer.dataset.layerId as LayerId
             const elements = Array.from(layerContainer.querySelectorAll("tr")).map((element) => {
@@ -36,16 +43,10 @@ export const getLegendSidebarToggleButton = (): SidebarToggleControl => {
             layerElementsMap.set(layerId, elements)
         }
 
-        // On sidebar shown, update the legend (simulate zoomend)
-        button.addEventListener("click", () => {
-            if (button.classList.contains("active")) onZoomEnd()
-        })
-
         // On base layer change, update availability of the button and its tooltip
-        map.addEventListener("baselayerchange", () => {
-            const activeLayerId = getMapBaseLayerId(map)
-            const isLegendAvailable = layerElementsMap.has(activeLayerId)
-
+        addLayerEventHandler((isAdded, layerId, config) => {
+            if (!isAdded || !config.isBaseLayer) return
+            const isLegendAvailable = layerElementsMap.has(layerId)
             if (isLegendAvailable) {
                 if (button.disabled) {
                     button.disabled = false
@@ -64,18 +65,18 @@ export const getLegendSidebarToggleButton = (): SidebarToggleControl => {
 
                 // Uncheck the input if checked
                 if (button.classList.contains("active")) {
-                    button.dispatchEvent(new Event("click"))
+                    button.click()
                 }
             }
         })
 
-        /** On zoomend, display only related elements */
-        const onZoomEnd = (): void => {
+        /** Update the sidebar content to show only relevant elements */
+        const updateSidebar = (): void => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 
             const activeLayerId = getMapBaseLayerId(map)
-            const currentZoom = Math.floor(map.getZoom())
+            const currentZoomFloor = map.getZoom() | 0
 
             for (const layerContainer of layerContainers) {
                 const layerId = layerContainer.dataset.layerId as LayerId
@@ -84,9 +85,9 @@ export const getLegendSidebarToggleButton = (): SidebarToggleControl => {
                     layerContainer.classList.remove("d-none")
 
                     // Update visibility of elements
-                    // TODO: map key not available for this layer
+                    // TODO: map key not available for this layer infobox
                     for (const { element, visibility } of layerElementsMap.get(layerId)) {
-                        const isVisible = visibility[currentZoom]
+                        const isVisible = visibility[currentZoomFloor]
                         element.classList.toggle("d-none", !isVisible)
                     }
                 } else {
@@ -95,10 +96,9 @@ export const getLegendSidebarToggleButton = (): SidebarToggleControl => {
                 }
             }
         }
-        map.addEventListener("zoomend", onZoomEnd)
+        map.on("zoomend", updateSidebar)
 
+        this._container = container
         return container
     }
-
-    return control
 }

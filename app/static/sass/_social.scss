@@ -158,14 +158,10 @@
         font-size: 3em;
     }
 
-    > article {
-        text-wrap: pretty;
-
-        &:not(:last-child) {
-            @extend .border-bottom;
-            padding-bottom: 1rem;
-            margin-bottom: 1rem;
-        }
+    > article:not(:last-child) {
+        @extend .border-bottom;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
     }
 
     .diary-location {
