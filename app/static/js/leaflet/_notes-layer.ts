@@ -70,7 +70,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         hoverPopupTimeout = setTimeout(() => {
             console.debug("Showing popup for note", feature.properties.id, "at", hoverLngLat)
             hoverPopup.setText(feature.properties.text).setLngLat(hoverLngLat).addTo(map)
-        }, 1000)
+        }, 500)
     })
     map.on("mouseleave", layerId, () => {
         map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
