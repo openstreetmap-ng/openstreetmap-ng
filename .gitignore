@@ -359,7 +359,6 @@ app/**/*.html
 app/static/css
 app/static/js/bundle-*
 app/static/js/proto
-app/static/js/wasm
 app/models/proto/**/*_pb2.py*
 typings/app
 

@@ -19,7 +19,6 @@
   },
   "linter": {
     "enabled": true,
-    "ignore": ["app/static/wasm/**/*.ts"],
     "rules": {
       "complexity": {
         "noUselessStringConcat": "info",
