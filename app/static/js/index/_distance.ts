@@ -258,6 +258,8 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
 
     // Adds new endpoint marker and updates visualization
     const createNewMarker = ({ lngLat, skipUpdates }: { lngLat: LngLatLike; skipUpdates?: boolean }): void => {
+        // Avoid event handlers after the controller is unloaded
+        if (!hasMapLayer(map, layerId)) return
         console.debug("Create distance marker", lngLat, skipUpdates)
         const markerIndex = markers.length
         // Turn previous marker into blue
