@@ -17,6 +17,7 @@ declare const brandSymbol: unique symbol
 export type LayerId = string & { readonly [brandSymbol]: unique symbol }
 export type LayerCode = string & { readonly [brandSymbol]: unique symbol }
 
+const highResTiles: boolean = window.devicePixelRatio > 1
 const thunderforestApiKey: string = "9b990c27013343a99536213faee0983e"
 const tracestrackApiKey: string = "684615014d1a572361803e062ccf609a"
 
@@ -109,7 +110,9 @@ layersConfig.set("cyclemap" as LayerId, {
     specification: {
         type: "raster",
         maxzoom: 21,
-        tiles: [`https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`],
+        tiles: [
+            `https://tile.thunderforest.com/cycle/{z}/{x}/{y}${highResTiles ? "@2x" : ""}.png?apikey=${thunderforestApiKey}`,
+        ],
         tileSize: 256,
         attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
     },
@@ -122,11 +125,15 @@ layersConfig.set("transportmap" as LayerId, {
     specification: {
         type: "raster",
         maxzoom: 21,
-        tiles: [`https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`],
+        tiles: [
+            `https://tile.thunderforest.com/transport/{z}/{x}/{y}${highResTiles ? "@2x" : ""}.png?apikey=${thunderforestApiKey}`,
+        ],
         tileSize: 256,
         attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
     },
-    darkTiles: [`https://tile.thunderforest.com/transport-dark/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`],
+    darkTiles: [
+        `https://tile.thunderforest.com/transport-dark/{z}/{x}/{y}${highResTiles ? "@2x" : ""}.png?apikey=${thunderforestApiKey}`,
+    ],
     isBaseLayer: true,
     layerCode: "T" as LayerCode,
 })
