@@ -1,7 +1,7 @@
-import { decode } from "@mapbox/polyline"
 import type { LineString } from "geojson"
 import { type GeoJSONSource, LngLatBounds, Map as MaplibreMap, ScaleControl } from "maplibre-gl"
 import { isMetricUnit } from "../_intl.ts"
+import { decodeLonLat } from "../_polyline.ts"
 import { requestAnimationFramePolyfill } from "../_utils"
 import { CustomGeolocateControl } from "../leaflet/_geolocate"
 import {
@@ -83,14 +83,8 @@ if (tracePreviewContainer) {
     addMapLayer(map, antLayerId)
 
     // Add trace path
-    const coords = decode(tracePreviewContainer.dataset.line, 6)
-    const coordinates: [number, number][] = []
-    let bounds: LngLatBounds = new LngLatBounds()
-    for (const latLon of coords) {
-        const lonLat: [number, number] = [latLon[1], latLon[0]]
-        coordinates.push(lonLat)
-        bounds = bounds.extend(lonLat)
-    }
+    const coordinates = decodeLonLat(tracePreviewContainer.dataset.line, 6)
+    const bounds = coordinates.reduce((bounds, coord) => bounds.extend(coord), new LngLatBounds())
     map.fitBounds(padLngLatBounds(bounds, 0.3), { animate: false })
 
     const geometry: LineString = {

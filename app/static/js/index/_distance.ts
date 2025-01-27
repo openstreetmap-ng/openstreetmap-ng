@@ -1,4 +1,3 @@
-import { decode, encode } from "@mapbox/polyline"
 import type { Feature, LineString } from "geojson"
 import {
     type GeoJSONSource,
@@ -11,9 +10,17 @@ import {
     Point,
 } from "maplibre-gl"
 import { formatDistance } from "../_format-utils"
+import { decodeLonLat, encodeLonLat } from "../_polyline.ts"
 import { qsParse } from "../_qs"
 import { range, throttle } from "../_utils"
-import { type LayerId, addMapLayer, emptyFeatureCollection, layersConfig, removeMapLayer } from "../leaflet/_layers"
+import {
+    type LayerId,
+    addMapLayer,
+    emptyFeatureCollection,
+    hasMapLayer,
+    layersConfig,
+    removeMapLayer,
+} from "../leaflet/_layers"
 import { closestPointOnSegment, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
@@ -107,10 +114,10 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         }
         for (const markerIndex of dirtyIndices) {
             const lngLat = markers[markerIndex].getLngLat()
-            positionsUrl[markerIndex] = [lngLat.lat, lngLat.lng]
+            positionsUrl[markerIndex] = [lngLat.lng, lngLat.lat]
         }
         const url = new URL(window.location.href)
-        url.searchParams.set("line", encode(positionsUrl, 5))
+        url.searchParams.set("line", encodeLonLat(positionsUrl, 5))
         window.history.replaceState(null, "", url)
     }, 250)
 
@@ -364,12 +371,12 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             let positions: [number, number][] = []
             if (searchParams.line) {
                 try {
-                    positions = decode(searchParams.line, 5)
+                    positions = decodeLonLat(searchParams.line, 5)
                 } catch (error) {
                     console.error("Failed to decode line points from", searchParams.line, error)
                 }
             }
-            for (const [lat, lon] of positions) {
+            for (const [lon, lat] of positions) {
                 createNewMarker({ lngLat: [lon, lat], skipUpdates: true })
             }
             console.debug("Loaded", positions.length, "distance line points")

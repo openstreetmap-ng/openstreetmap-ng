@@ -1,7 +1,7 @@
 /** Render a static trace to the given SVG element */
-export const renderTrace = (svg: SVGElement, latLons: [number, number][]): void => {
-    if (!latLons.length) return
-    const pathData = generatePathData(latLons)
+export const renderTrace = (svg: SVGElement, coords: [number, number][]): void => {
+    if (!coords.length) return
+    const pathData = generatePathData(coords)
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
     path.setAttribute("d", pathData)
     path.setAttribute("fill", "none")
@@ -12,12 +12,9 @@ export const renderTrace = (svg: SVGElement, latLons: [number, number][]): void 
 }
 
 /** Render an animated trace to the given SVG element */
-export const renderAnimatedTrace = (svg: SVGElement, latLons: [number, number][]) => {
-    if (!latLons.length) return
-    const ds: string[] = [`M${latLons[0][1]},${latLons[0][0]}`]
-    for (const pair of latLons.slice(1)) ds.push(`L${pair[1]},${pair[0]}`)
-
-    const pathData = generatePathData(latLons)
+export const renderAnimatedTrace = (svg: SVGElement, coords: [number, number][]) => {
+    if (!coords.length) return
+    const pathData = generatePathData(coords)
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
     path.setAttribute("d", pathData)
     path.setAttribute("fill", "none")
@@ -53,8 +50,9 @@ export const renderAnimatedTrace = (svg: SVGElement, latLons: [number, number][]
     }
 }
 
-const generatePathData = (latLons: [number, number][]): string => {
-    const ds = [`M${latLons[0][1]},${latLons[0][0]}`]
-    for (const pair of latLons.slice(1)) ds.push(`L${pair[1]},${pair[0]}`)
+/** Generate a path data string from coordinates in [x, y] pairs */
+const generatePathData = (coords: [number, number][]): string => {
+    const ds = [`M${coords[0][0]},${coords[0][1]}`]
+    for (const pair of coords.slice(1)) ds.push(`L${pair[0]},${pair[1]}`)
     return ds.join(" ")
 }

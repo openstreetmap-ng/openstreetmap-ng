@@ -1,7 +1,7 @@
-import { encode } from "@mapbox/polyline"
 import { Dropdown } from "bootstrap"
 import { type MapMouseEvent, type Map as MaplibreMap, Popup } from "maplibre-gl"
 import { formatCoordinate } from "../_format-utils"
+import { encodeLonLat } from "../_polyline.ts"
 import { qsEncode } from "../_qs"
 import { beautifyZoom, zoomPrecision } from "../_utils"
 import { routerNavigateStrict } from "../index/_router"
@@ -166,7 +166,7 @@ export const configureContextMenu = (map: MaplibreMap): void => {
         console.debug("onMeasureDistanceButtonClick")
         const { lon, lat } = getPopupPosition()
         closePopup()
-        const line = encode([[Number(lat), Number(lon)]], 5)
+        const line = encodeLonLat([[Number(lon), Number(lat)]], 5)
         routerNavigateStrict(`/distance?${qsEncode({ line })}`)
     })
 }

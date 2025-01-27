@@ -1,5 +1,5 @@
-import { decode } from "@mapbox/polyline"
 import type { Feature, FeatureCollection } from "geojson"
+import { decodeLonLat } from "../_polyline.ts"
 import type { Bounds, OSMChangeset, OSMNode, OSMNote, OSMObject, OSMWay } from "../_types"
 import type { RenderChangesetsData_Changeset, RenderElementsData, RenderNotesData } from "../proto/shared_pb"
 
@@ -152,7 +152,7 @@ export const convertRenderElementsData = (render: RenderElementsData): (OSMNode 
         result.push({
             type: "way",
             id: way.id,
-            geom: decode(way.line, 6).map((x) => x.reverse()) as [number, number][],
+            geom: decodeLonLat(way.line, 6),
             area: way.area,
         })
     }

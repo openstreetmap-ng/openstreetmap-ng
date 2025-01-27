@@ -1,4 +1,4 @@
-import { decode } from "@mapbox/polyline"
+import { decodeLonLat } from "../_polyline.ts"
 import { renderAnimatedTrace, renderTrace } from "../_trace-svg"
 
 for (const tracesList of document.querySelectorAll("ul.traces-list")) {
@@ -9,7 +9,7 @@ for (const tracesList of document.querySelectorAll("ul.traces-list")) {
     console.debug("Rendering", svgs.length, "trace SVGs")
     for (let i = 0; i < svgs.length; i++) {
         const svg = svgs[i]
-        const coords = decode(tracesLines[i], 0)
+        const coords = decodeLonLat(tracesLines[i], 0)
         renderTrace(svg, coords)
 
         let svgAnimated: SVGElement | null = null

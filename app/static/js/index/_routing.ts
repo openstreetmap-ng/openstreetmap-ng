@@ -1,5 +1,4 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import { decode } from "@mapbox/polyline"
 import type { Feature, LineString } from "geojson"
 import i18next from "i18next"
 import {
@@ -14,6 +13,7 @@ import {
 } from "maplibre-gl"
 import { formatDistance, formatDistanceRounded, formatHeight, formatTime } from "../_format-utils"
 import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage"
+import { decodeLonLat } from "../_polyline.ts"
 import { qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
 import { setPageTitle } from "../_title"
@@ -361,8 +361,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
 
     const updateRoute = (route: RoutingResult): void => {
         const lines: Feature<LineString>[] = []
-        const allCoords: [number, number][] = decode(route.line, route.lineQuality) //
-            .map((x) => x.reverse()) as [number, number][]
+        const allCoords = decodeLonLat(route.line, route.lineQuality)
 
         // Add the complete route geometry
         if (allCoords.length) {
