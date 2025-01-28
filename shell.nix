@@ -176,20 +176,6 @@ let
         mode_hash=1
       fi
 
-      #src_dir="app/static/wasm"
-      #dst="app/static/js/wasm/index.wasm"
-      #if [ ! -f "$dst" ] || [ -n "$(find "$src_dir" -type f -newer "$dst" -print -quit)" ]; then
-      #  echo "[js-pipeline] Compiling WebAssembly"
-      #  bun run asc \
-      #    -Ospeed \
-      #    --converge \
-      #    --outFile "$dst" \
-      #    --bindings "esm" \
-      #    "$src_dir/index.ts"
-      #  # fix path in the generated bindings
-      #  sed -i -E "s|\"index.wasm\"|\"wasm/index.wasm\"|" app/static/js/wasm/index.js
-      #fi
-
       dir=app/static/js
       generated="$dir/_generated"
       find "$dir" \
@@ -246,7 +232,7 @@ let
         done
       fi
     '')
-    (makeScript "watch-js" "exec watchexec -o queue -w app/static/js -w app/static/wasm -i 'bundle-*' -i '**/_generated/**' js-pipeline")
+    (makeScript "watch-js" "exec watchexec -o queue -w app/static/js -i 'bundle-*' -i '**/_generated/**' js-pipeline")
 
     # -- Static
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
