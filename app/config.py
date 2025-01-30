@@ -177,7 +177,7 @@ dictConfig(
 )
 
 # Sentry configuration
-if ('pytest' not in sys.modules) and (SENTRY_DSN := os.getenv('SENTRY_DSN')):
+if SENTRY_DSN := (os.getenv('SENTRY_DSN') if ('pytest' not in sys.modules) else None):
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         release=VERSION,
