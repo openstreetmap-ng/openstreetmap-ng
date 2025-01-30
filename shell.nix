@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/300081d0cc72df578b02d914df941b8ec62240e6.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/9a5db3142ce450045840cc8d832b13b8a2018e0c.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
