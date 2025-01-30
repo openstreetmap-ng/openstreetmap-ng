@@ -4,7 +4,7 @@ from typing import Any
 import cython
 from jinja2 import Environment, FileSystemLoader
 
-from app.config import APP_URL, TEST_ENV
+from app.config import APP_URL, TEST_ENV, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
 from app.lib.translation import nt, primary_translation_locale, t
@@ -33,6 +33,7 @@ def render(template_name: str, template_data: dict[str, Any] | None = None) -> s
     user = auth_user()
     lang = primary_translation_locale()
     data = {
+        'VERSION': VERSION,
         'TEST_ENV': TEST_ENV,
         'APP_URL': APP_URL,
         'user': user,

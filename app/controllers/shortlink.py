@@ -16,6 +16,7 @@ router = APIRouter()
 async def shortlink(request: Request, code: Annotated[str, Path(min_length=3, max_length=15)]):
     """
     Redirect to a map from a shortlink code.
+    https://wiki.openstreetmap.org/wiki/Shortlink
     """
     try:
         lon, lat, z = shortlink_decode(code)

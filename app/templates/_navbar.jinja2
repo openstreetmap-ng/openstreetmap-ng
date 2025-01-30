@@ -186,3 +186,15 @@
         </div>
     </div>
 </nav>
+
+{% if TEST_ENV %}
+    <span class="build-info">
+    openstreetmap-ng testing
+        {% if VERSION[:4] == 'git#' %}
+            v.<a href="https://github.com/openstreetmap-ng/openstreetmap-ng/commit/{{ VERSION[4:] }}"
+                 target="_blank">{{ VERSION[4:] }}</a>
+        {% else %}
+            v.{{ VERSION }}
+        {% endif %}
+    </span>
+{% endif %}

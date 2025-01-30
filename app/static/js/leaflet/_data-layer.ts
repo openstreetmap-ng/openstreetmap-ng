@@ -1,6 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import type { GeoJSONSource, LngLatBounds, MapLayerMouseEvent, Map as MaplibreMap } from "maplibre-gl"
-import { mapQueryAreaMaxSize } from "../_config"
+import { config } from "../_config"
 import { qsEncode } from "../_qs"
 import type { OSMNode, OSMWay } from "../_types"
 import { routerNavigateStrict } from "../index/_router"
@@ -167,7 +167,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
 
         // Skip updates if the area is too big
         const area = getLngLatBoundsSize(fetchBounds)
-        if (area > mapQueryAreaMaxSize) {
+        if (area > config.mapQueryAreaMaxSize) {
             errorDataAlert.classList.remove("d-none")
             loadDataAlert.classList.add("d-none")
             clearData()

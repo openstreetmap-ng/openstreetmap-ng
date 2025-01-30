@@ -14,16 +14,25 @@ message WebConfig {
             float lat = 2;
         }
 
-        bool activity_tracking = 1;  // Enable usage analytics
-        bool crash_reporting = 2;  // Enable automatic error reports
-        optional HomePoint home_point = 3;  // User's home point
+        uint64 id = 1;  // User ID
+        bool activity_tracking = 2;  // Enable usage analytics
+        bool crash_reporting = 3;  // Enable automatic error reports
+        optional HomePoint home_point = 4;  // User's home point
+    }
+
+    // Sentry configuration
+    message SentryConfig {
+        string dsn = 1;  // Sentry DSN
+        float traces_sample_rate = 2;  // Traces sampling rate
     }
 
     optional UserConfig user_config = 1;  // User preferences override
-    string api_url = 2;  // Base URL for API endpoints
-    float map_query_area_max_size = 3;  // Max sq km for map queries
-    float note_query_area_max_size = 4;  // Max sq km for note queries
-    bool force_crash_reporting = 5;  // Force automatic error reporting preference
+    optional SentryConfig sentry_config = 2;  // Sentry configuration
+    string version = 3;  // Application version
+    bool force_crash_reporting = 4;  // Force automatic error reporting preference
+    string api_url = 5;  // Base URL for making API requests
+    float map_query_area_max_size = 6;  // Max sq km for map data queries
+    float note_query_area_max_size = 7;  // Max sq km for note queries
 }
 
 // Password transmission container for different schema versions

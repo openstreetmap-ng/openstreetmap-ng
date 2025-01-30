@@ -112,3 +112,18 @@
         }
     }
 }
+
+.build-info {
+    @extend .font-monospace;
+    position: fixed;
+    top: 0;
+    left: 0;
+    font-size: 0.75em;
+    line-height: 1;
+    opacity: 0.65;
+    z-index: 1025; // navbar is 1005, sticky-top is 1020
+
+    &:hover {
+        opacity: 1;
+    }
+}

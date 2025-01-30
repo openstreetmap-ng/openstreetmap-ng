@@ -1,5 +1,5 @@
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
-import { homePoint } from "../_config"
+import { config } from "../_config"
 import { isMetricUnit } from "../_intl.ts"
 import { setLastMapState } from "../_local-storage.ts"
 import { handleEditRemotePath, updateNavbarAndHash } from "../_navbar"
@@ -101,6 +101,7 @@ const configureMainMap = (container: HTMLElement): void => {
 
     // Configure here instead of navbar to avoid global script dependency (navbar is global)
     // Find home button is only available for the users with configured home location
+    const homePoint = config.userConfig?.homePoint
     if (homePoint) {
         const findHomeContainer = document.querySelector(".find-home-container")
         const findHomeButton = findHomeContainer.querySelector("button")

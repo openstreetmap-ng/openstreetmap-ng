@@ -183,8 +183,6 @@ if ('pytest' not in sys.modules) and (SENTRY_DSN := os.getenv('SENTRY_DSN')):
         release=VERSION,
         environment=urlsplit(APP_URL).hostname,
         keep_alive=True,
-        enable_tracing=SENTRY_TRACES_SAMPLE_RATE > 0,
-        # TODO: adjust rates
         traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
         trace_propagation_targets=None,
         profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,

@@ -1,10 +1,67 @@
-import { activityTracking, crashReporting } from "./_config"
+import {
+    init as SentryInit,
+    addIntegration,
+    browserTracingIntegration,
+    feedbackIntegration,
+    setUser,
+    showReportDialog,
+} from "@sentry/browser"
+import { activityTracking, config, crashReporting } from "./_config"
+import { getAppTheme } from "./_local-storage"
 
-const enableSentryTracking = () => {
-    // TODO: sentry
+if (crashReporting) {
+    console.debug("Enabling crash reporting")
+    const sentryConfig = config.sentryConfig
+
+    const tracePropagationTargets: (string | RegExp)[] = [/^(?!\/static)/]
+    if (config.apiUrl !== window.location.origin) {
+        tracePropagationTargets.push(config.apiUrl)
+    }
+    console.debug("Sentry trace propagation targets", tracePropagationTargets)
+
+    SentryInit({
+        dsn: sentryConfig.dsn,
+        release: config.version,
+        environment: window.location.host,
+        tracesSampleRate: sentryConfig.tracesSampleRate,
+        tracePropagationTargets: tracePropagationTargets,
+        skipBrowserExtensionCheck: true,
+        integrations: [browserTracingIntegration()],
+        beforeSend: (event) => {
+            // Check if it is an exception, and if so, show the report dialog
+            // https://docs.sentry.io/platforms/javascript/user-feedback/#crash-report-modal
+            if (event.exception && event.event_id) {
+                console.debug("Showing report dialog for event", event.event_id)
+                showReportDialog({ eventId: event.event_id })
+            }
+            return event
+        },
+    })
+
+    if (config.userConfig) {
+        const userId = config.userConfig.id
+        console.debug("Providing user ID information", userId)
+        setUser({ id: userId.toString() })
+    }
+
+    if (config.forceCrashReporting) {
+        console.debug("Enabling feedback integration")
+        const appTheme = getAppTheme()
+        addIntegration(
+            feedbackIntegration({
+                triggerLabel: "Report Issue",
+                formTitle: "Report an Issue",
+                submitButtonLabel: "Send Report",
+                messagePlaceholder: "What's the problem? How to reproduce it? What's the expected behavior?",
+                colorScheme: appTheme === "auto" ? "system" : appTheme,
+                themeDark: { background: "#212529" },
+            }),
+        )
+    }
 }
 
-const enableMatomoTracking = () => {
+if (activityTracking) {
+    console.debug("Enabling activity tracking")
     // @ts-ignore
     window._paq = window._paq || []
     const _paq: any[] = (window as any)._paq
@@ -25,6 +82,3 @@ const enableMatomoTracking = () => {
 
     // TODO: matomogoal meta[name=matomo-goal] trackGoal layeradd, layerid
 }
-
-if (crashReporting) enableSentryTracking()
-if (activityTracking) enableMatomoTracking()

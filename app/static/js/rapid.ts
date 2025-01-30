@@ -1,4 +1,4 @@
-import { apiUrl, primaryLanguage } from "./_config"
+import { config, primaryLanguage } from "./_config"
 import { parentLoadSystemApp } from "./_system-app"
 
 const container = document.querySelector("div.rapid-container")
@@ -9,7 +9,7 @@ parentLoadSystemApp((accessToken) => {
     const ctx = new window.Rapid.Context()
     ctx.preauth = {
         url: parent.location.origin,
-        apiUrl: apiUrl,
+        apiUrl: config.apiUrl,
         access_token: accessToken,
     }
 

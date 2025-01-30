@@ -1,0 +1,16 @@
+#sentry-feedback {
+    --actor-border-radius: var(--bs-border-radius);
+    --dialog-border-radius: var(--bs-border-radius);
+}
+
+.map-body #sentry-feedback {
+    --page-margin: 10px 10px 44px 10px;
+}
+
+.sentry-error-embed-wrapper {
+    z-index: 100005 !important; // 5 higher than sentry-feedback
+}
+
+.sentry-error-embed {
+    border-radius: $border-radius !important;
+}

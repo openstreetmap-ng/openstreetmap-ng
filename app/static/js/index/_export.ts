@@ -1,5 +1,5 @@
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { mapQueryAreaMaxSize } from "../_config"
+import { config } from "../_config"
 import { setPageTitle } from "../_title"
 import { throttle, zoomPrecision } from "../_utils"
 import { LocationFilterControl } from "../leaflet/_location-filter.ts"
@@ -57,7 +57,7 @@ export const getExportController = (map: MaplibreMap): IndexController => {
     const updateElements = (minLon: number, minLat: number, maxLon: number, maxLat: number) => {
         // Update the form availability
         const currentViewAreaSize = (maxLon - minLon) * (maxLat - minLat)
-        const isFormAvailable = currentViewAreaSize <= mapQueryAreaMaxSize
+        const isFormAvailable = currentViewAreaSize <= config.mapQueryAreaMaxSize
         exportAvailableContainer.classList.toggle("d-none", !isFormAvailable)
         exportUnavailableContainer.classList.toggle("d-none", isFormAvailable)
 

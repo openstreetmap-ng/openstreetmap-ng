@@ -1,36 +1,25 @@
 import logging
-import os
-import subprocess
+import re
 from pathlib import Path
 
 import cython
 import orjson
 
-from app.config import FILE_CACHE_DIR
-
 
 @cython.cfunc
-def _bun_packages() -> dict[str, str]:
-    """
-    Get the mapping of installed packages to their versions.
-    """
-    lock_path = Path('bun.lockb')
-    lock_mtime = lock_path.stat().st_mtime
-    cache_path = FILE_CACHE_DIR / 'bun_packages.json'
-    if not cache_path.is_file() or lock_mtime > cache_path.stat().st_mtime:
-        stdout = subprocess.check_output(('bun', 'pm', 'ls'), env={**os.environ, 'NO_COLOR': '1'}).decode()  # noqa: S603
-        result: dict[str, str] = {}
-        for line in stdout.splitlines()[1:]:
-            _, _, line = line.partition(' ')
-            package, _, version = line.rpartition('@')
-            result[package] = version
-        cache_path.write_bytes(orjson.dumps(result))
-        os.utime(cache_path, (lock_mtime, lock_mtime))
-    return orjson.loads(cache_path.read_bytes())
+def _bun_versions(*names: str) -> tuple[str, ...]:
+    """Get the installed versions of the given JS packages."""
+    names_set = set(names)
+    lock_data = Path('bun.lock').read_bytes()
+    lock_data = re.sub(rb',(?=\s*[]}])', b'', lock_data)  # remove trailing commas
+    result: dict[str, str] = {}
+    for pkg_data in orjson.loads(lock_data)['packages'].values():
+        fq_name: str = pkg_data[0]
+        name, _, version = fq_name.rpartition('@')
+        if name in names_set:
+            result[name] = version.rsplit('#', 1)[-1]  # use only commit hash if present
+    return tuple(result[name] for name in names)
 
 
-_data = _bun_packages()
-ID_VERSION = _data['iD'].rsplit('#', 1)[-1]
-RAPID_VERSION = _data['@rapideditor/rapid']
+ID_VERSION, RAPID_VERSION = _bun_versions('iD', '@rapideditor/rapid')
 logging.info('Packages versions: iD=%s, Rapid=%s', ID_VERSION, RAPID_VERSION)
-del _data

@@ -1,4 +1,4 @@
-import { apiUrl, primaryLanguage } from "./_config"
+import { config, primaryLanguage } from "./_config"
 import { parentLoadSystemApp } from "./_system-app"
 import { throttle } from "./_utils"
 
@@ -11,7 +11,7 @@ parentLoadSystemApp((accessToken) => {
     ctx.connection().apiConnections([])
     ctx.preauth({
         url: parent.location.origin,
-        apiUrl: apiUrl,
+        apiUrl: config.apiUrl,
         access_token: accessToken,
     })
 

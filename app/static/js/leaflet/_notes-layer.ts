@@ -1,6 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { type GeoJSONSource, type LngLat, type LngLatBounds, type Map as MaplibreMap, Popup } from "maplibre-gl"
-import { noteQueryAreaMaxSize } from "../_config"
+import { config } from "../_config"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderNotesDataSchema } from "../proto/shared_pb"
 import { clearMapHover, setMapHover } from "./_hover.ts"
@@ -92,7 +92,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         // Skip updates if the area is too big
         const fetchBounds = map.getBounds()
         const fetchArea = getLngLatBoundsSize(fetchBounds)
-        if (fetchArea > noteQueryAreaMaxSize) return
+        if (fetchArea > config.noteQueryAreaMaxSize) return
 
         // Skip updates if the view is satisfied
         if (fetchedBounds) {

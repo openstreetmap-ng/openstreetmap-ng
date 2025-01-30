@@ -1,5 +1,5 @@
 import i18next from "i18next"
-import { apiUrl } from "./_config"
+import { config } from "./_config"
 import { qsEncode } from "./_qs"
 import type { Bounds, OSMObject } from "./_types"
 import type { LonLatZoom } from "./leaflet/_map-utils"
@@ -18,12 +18,14 @@ const getObjectRequestUrl = (object: OSMObject): string => {
     // When requested for complex object, request for full version (incl. object's members)
     // Ignore version specification as there is a very high chance it will be rendered incorrectly
     if (type === "way" || type === "relation") {
-        return `${apiUrl}/api/0.6/${type}/${object.id}/full`
+        return `${config.apiUrl}/api/0.6/${type}/${object.id}/full`
     }
 
     // @ts-ignore
     const version = object.version
-    return version ? `${apiUrl}/api/0.6/${type}/${object.id}/${version}` : `${apiUrl}/api/0.6/${type}/${object.id}`
+    return version
+        ? `${config.apiUrl}/api/0.6/${type}/${object.id}/${version}`
+        : `${config.apiUrl}/api/0.6/${type}/${object.id}`
 }
 
 /** Get bounds from coordinates and zoom level */

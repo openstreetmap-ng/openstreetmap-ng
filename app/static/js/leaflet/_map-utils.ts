@@ -1,6 +1,6 @@
 import i18next from "i18next"
 import { type EaseToOptions, type IControl, type LngLat, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
-import { homePoint } from "../_config"
+import { config } from "../_config"
 import { getTimezoneName } from "../_intl.ts"
 import { getLastMapState, setLastMapState } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
@@ -291,6 +291,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
     }
 
     // 7. Use the user home location
+    const homePoint = config.userConfig?.homePoint
     if (homePoint) {
         const { lon, lat } = homePoint
         const state = { lon, lat, zoom: 15, layersCode: "" }

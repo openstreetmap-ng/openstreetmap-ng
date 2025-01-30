@@ -1,6 +1,6 @@
 import { Tooltip } from "bootstrap"
 import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
-import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config"
+import { config } from "../_config"
 import { getMapOverlayOpacity, setMapOverlayOpacity } from "../_local-storage"
 import { staticCache, throttle } from "../_utils.ts"
 import {
@@ -122,8 +122,8 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
             const currentViewAreaSize = getLngLatBoundsSize(map.getBounds())
 
             for (const [layerId, areaMaxSize] of [
-                ["notes", noteQueryAreaMaxSize],
-                ["data", mapQueryAreaMaxSize],
+                ["notes", config.noteQueryAreaMaxSize],
+                ["data", config.mapQueryAreaMaxSize],
             ] as [LayerId, number][]) {
                 const checkbox = layerIdOverlayCheckboxMap.get(layerId)
                 const isAvailable = currentViewAreaSize <= areaMaxSize

@@ -4,7 +4,13 @@ from typing import Any
 from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
-from app.config import API_URL, FORCE_CRASH_REPORTING
+from app.config import (
+    API_URL,
+    FORCE_CRASH_REPORTING,
+    SENTRY_DSN,
+    SENTRY_TRACES_SAMPLE_RATE,
+    VERSION,
+)
 from app.lib.auth_context import auth_user
 from app.lib.jinja_env import render
 from app.lib.locale import map_i18next_files
@@ -17,10 +23,19 @@ from app.models.proto.shared_pb2 import WebConfig
 
 _DEFAULT_EDITOR = Editor.get_default().value
 _CONFIG_BASE = WebConfig(
+    sentry_config=(
+        WebConfig.SentryConfig(
+            dsn=SENTRY_DSN,
+            traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
+        )
+        if SENTRY_DSN
+        else None
+    ),
+    version=VERSION,
+    force_crash_reporting=FORCE_CRASH_REPORTING,
     api_url=API_URL,
     map_query_area_max_size=MAP_QUERY_AREA_MAX_SIZE,
     note_query_area_max_size=NOTE_QUERY_AREA_MAX_SIZE,
-    force_crash_reporting=FORCE_CRASH_REPORTING,
 )
 _CONFIG_DEFAULT = urlsafe_b64encode(_CONFIG_BASE.SerializeToString()).decode()
 
@@ -44,6 +59,7 @@ async def render_response(
     user = auth_user()
     if user is not None:
         user_config = WebConfig.UserConfig(
+            id=user.id,
             activity_tracking=user.activity_tracking,
             crash_reporting=user.crash_reporting,
         )
