@@ -120,6 +120,10 @@ TRUSTED_HOSTS: frozenset[str] = frozenset(
 
 TEST_USER_DOMAIN = 'test.test'
 
+FORCE_CRASH_REPORTING = os.getenv('FORCE_CRASH_REPORTING', '0').strip().lower() in {'1', 'true', 'yes'}
+SENTRY_TRACES_SAMPLE_RATE = float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '1'))
+SENTRY_PROFILES_SAMPLE_RATE = float(os.getenv('SENTRY_PROFILES_SAMPLE_RATE', '1'))
+
 # Derived configuration
 SECRET_32 = sha256(SECRET.encode()).digest()
 
@@ -179,11 +183,11 @@ if ('pytest' not in sys.modules) and (SENTRY_DSN := os.getenv('SENTRY_DSN')):
         release=VERSION,
         environment=urlsplit(APP_URL).hostname,
         keep_alive=True,
-        enable_tracing=True,
+        enable_tracing=SENTRY_TRACES_SAMPLE_RATE > 0,
         # TODO: adjust rates
-        traces_sample_rate=1.0,
+        traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
         trace_propagation_targets=None,
-        profiles_sample_rate=1.0,
+        profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
         integrations=(PureEvalIntegration(),),
         _experiments={
             'continuous_profiling_auto_start': True,

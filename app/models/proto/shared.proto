@@ -19,10 +19,11 @@ message WebConfig {
         optional HomePoint home_point = 3;  // User's home point
     }
 
-    string api_url = 1;  // Base URL for API endpoints
-    float map_query_area_max_size = 2;  // Max sq km for map queries
-    float note_query_area_max_size = 3;  // Max sq km for note queries
-    optional UserConfig user_config = 4;  // User preferences override
+    optional UserConfig user_config = 1;  // User preferences override
+    string api_url = 2;  // Base URL for API endpoints
+    float map_query_area_max_size = 3;  // Max sq km for map queries
+    float note_query_area_max_size = 4;  // Max sq km for note queries
+    bool force_crash_reporting = 5;  // Force automatic error reporting preference
 }
 
 // Password transmission container for different schema versions

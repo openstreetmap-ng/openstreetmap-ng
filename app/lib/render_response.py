@@ -4,7 +4,7 @@ from typing import Any
 from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
-from app.config import API_URL
+from app.config import API_URL, FORCE_CRASH_REPORTING
 from app.lib.auth_context import auth_user
 from app.lib.jinja_env import render
 from app.lib.locale import map_i18next_files
@@ -20,6 +20,7 @@ _CONFIG_BASE = WebConfig(
     api_url=API_URL,
     map_query_area_max_size=MAP_QUERY_AREA_MAX_SIZE,
     note_query_area_max_size=NOTE_QUERY_AREA_MAX_SIZE,
+    force_crash_reporting=FORCE_CRASH_REPORTING,
 )
 _CONFIG_DEFAULT = urlsafe_b64encode(_CONFIG_BASE.SerializeToString()).decode()
 
