@@ -1,6 +1,7 @@
 .icon.zoom-in,
 .icon.zoom-out,
 .icon.geolocate,
+.icon.globe,
 .icon.layers,
 .icon.legend,
 .icon.share,
@@ -33,7 +34,8 @@
 }
 
 .maplibregl-ctrl-geolocate-active:not(.maplibregl-ctrl-geolocate-waiting) .icon.geolocate,
-.maplibregl-ctrl-geolocate-background .icon.geolocate {
+.maplibregl-ctrl-geolocate-background .icon.geolocate,
+.maplibregl-ctrl-globe-enabled .icon.globe {
     filter: sepia(1) brightness(0.85) saturate(8) hue-rotate(19deg);
 }
 
