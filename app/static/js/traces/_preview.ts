@@ -15,6 +15,7 @@ import {
 import { addControlGroup } from "../leaflet/_map-utils"
 import { configureDefaultMapBehavior, padLngLatBounds } from "../leaflet/_utils"
 import { CustomZoomControl } from "../leaflet/_zoom"
+import { CustomGlobeControl } from "../leaflet/_globe.ts"
 
 const tracePreviewContainer = document.querySelector("div.trace-preview")
 if (tracePreviewContainer) {
@@ -59,6 +60,7 @@ if (tracePreviewContainer) {
 
     const map = new MaplibreMap({
         container: tracePreviewContainer,
+        minZoom: 0,
         maxZoom: 19,
         attributionControl: { compact: true, customAttribution: "" },
         refreshExpiredTiles: false,
@@ -73,7 +75,7 @@ if (tracePreviewContainer) {
                 unit: isMetricUnit() ? "metric" : "imperial",
             }),
         )
-        addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
+        addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl(), new CustomGlobeControl()])
     } else {
         addControlGroup(map, [new CustomZoomControl()])
     }
