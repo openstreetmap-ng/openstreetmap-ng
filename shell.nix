@@ -601,7 +601,7 @@ let
     export SMTP_USER=mail@openstreetmap.org
     export SMTP_PASS=anything
     export NOMINATIM_URL=https://nominatim.monicz.dev
-    export OVERPASS_INTERPRETER_URL=https://overpass.monicz.dev/api/interpreter
+    export OVERPASS_INTERPRETER_URL=https://overpass-api.de/api/interpreter
     export FACEBOOK_OAUTH_PUBLIC=1538918736889845
     export FACEBOOK_OAUTH_SECRET=4090c8e1f08a93af65c6d6cc56350f4b
     export GITHUB_OAUTH_PUBLIC=Ov23lidLgxluuWuo0PNn
