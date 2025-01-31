@@ -5,7 +5,9 @@ import { GlobeControl, type Map as MaplibreMap } from "maplibre-gl"
 export class CustomGlobeControl extends GlobeControl {
     public override onAdd(map: MaplibreMap): HTMLElement {
         const container = super.onAdd(map)
-        const button = container.querySelector("button.maplibregl-ctrl-globe")
+        const button =
+            container.querySelector("button.maplibregl-ctrl-globe") ||
+            container.querySelector("button.maplibregl-ctrl-globe-enabled")
         const buttonText = i18next.t("javascripts.map.globe.title")
         button.ariaLabel = buttonText
         new Tooltip(button, {
