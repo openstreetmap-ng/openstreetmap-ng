@@ -117,7 +117,7 @@ class UserQuery:
 
     @staticmethod
     async def resolve_elements_users(elements: Collection[Element], *, display_name: bool) -> None:
-        """str
+        """
         Resolve the elements users ids.
 
         If display_name is True, the users display name is also resolved.

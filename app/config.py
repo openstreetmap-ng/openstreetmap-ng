@@ -92,6 +92,8 @@ VALHALLA_URL = os.getenv('VALHALLA_URL', 'https://valhalla1.openstreetmap.de')
 
 # https://developers.facebook.com/docs/development/create-an-app/facebook-login-use-case
 # https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow/
+FACEBOOK_OAUTH_PUBLIC = os.getenv('FACEBOOK_OAUTH_PUBLIC')
+FACEBOOK_OAUTH_SECRET = os.getenv('FACEBOOK_OAUTH_SECRET')
 # https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app
 GITHUB_OAUTH_PUBLIC = os.getenv('GITHUB_OAUTH_PUBLIC')
 GITHUB_OAUTH_SECRET = os.getenv('GITHUB_OAUTH_SECRET')

@@ -602,6 +602,8 @@ let
     export SMTP_PASS=anything
     export NOMINATIM_URL=https://nominatim.monicz.dev
     export OVERPASS_INTERPRETER_URL=https://overpass.monicz.dev/api/interpreter
+    export FACEBOOK_OAUTH_PUBLIC=1538918736889845
+    export FACEBOOK_OAUTH_SECRET=4090c8e1f08a93af65c6d6cc56350f4b
     export GITHUB_OAUTH_PUBLIC=Ov23lidLgxluuWuo0PNn
     export GITHUB_OAUTH_SECRET=4ed29823ee9d975e9f42a14e5c3d4b8293041cda
     export GOOGLE_OAUTH_PUBLIC=329628600169-6du7d20fo0poong0aqttuikstq97bten.apps.googleusercontent.com

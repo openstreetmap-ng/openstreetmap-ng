@@ -76,8 +76,9 @@ class OAuth2ApplicationService:
                 logging.debug('Invalid redirect URI %r', uri)
                 StandardFeedback.raise_error('redirect_uris', t('validation.invalid_redirect_uri'))
             normalized = f'{uri.casefold()}/'
-            if normalized.startswith('http://') and not normalized.startswith(
-                ('http://127.0.0.1/', 'http://localhost/')
+            if (
+                normalized.startswith('http://')  #
+                and not normalized.startswith(('http://127.0.0.1/', 'http://localhost/'))
             ):
                 StandardFeedback.raise_error('redirect_uris', t('validation.insecure_redirect_uri'))
         # deduplicate (order-preserving) and cast type
