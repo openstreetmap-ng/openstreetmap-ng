@@ -85,9 +85,7 @@ class Search:
 
     @staticmethod
     def best_results_index(task_results: Sequence[Sequence[SearchResult]]) -> int:
-        """
-        Determine the best results index.
-        """
+        """Determine the best results index."""
         # local_only mode
         if len(task_results) == 1:
             return 0
@@ -112,9 +110,7 @@ class Search:
         results: Iterable[SearchResult],
         members_map: dict[tuple[ElementType, ElementId], Element],
     ) -> None:
-        """
-        Improve accuracy of points by analyzing relations members.
-        """
+        """Improve accuracy of points by analyzing relations members."""
         for result in results:
             element = result.element
             if element.type != 'relation':
@@ -135,9 +131,7 @@ class Search:
 
     @staticmethod
     def remove_overlapping_points(results: Iterable[SearchResult]) -> None:
-        """
-        Remove overlapping points, preserving most important results.
-        """
+        """Remove overlapping points, preserving most important results."""
         relations = tuple(result for result in results if result.element.type == 'relation')
         if len(relations) <= 1:
             return
@@ -155,9 +149,7 @@ class Search:
 
     @staticmethod
     def deduplicate_similar_results(results: Iterable[SearchResult]) -> tuple[SearchResult, ...]:
-        """
-        Deduplicate similar results.
-        """
+        """Deduplicate similar results."""
         # Deduplicate by type and id
         seen_type_id: set[tuple[ElementType, ElementId]] = set()
         dedup1: list[SearchResult] = []

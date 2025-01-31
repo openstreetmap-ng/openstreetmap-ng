@@ -168,29 +168,21 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
 
     @property
     def is_test_user(self) -> bool:
-        """
-        Check if the user is a test user.
-        """
+        """Check if the user is a test user."""
         return self.email.endswith('@' + TEST_USER_DOMAIN)
 
     @property
     def is_administrator(self) -> bool:
-        """
-        Check if the user is an administrator.
-        """
+        """Check if the user is an administrator."""
         return UserRole.administrator in self.roles
 
     @property
     def is_moderator(self) -> bool:
-        """
-        Check if the user is a moderator.
-        """
+        """Check if the user is a moderator."""
         return UserRole.moderator in self.roles or self.is_administrator
 
     def extend_scopes(self, scopes: tuple[Scope, ...]) -> tuple[Scope, ...]:
-        """
-        Extend the scopes with user-specific scopes.
-        """
+        """Extend the scopes with user-specific scopes."""
         if not self.roles:
             return scopes
         extra: list[Scope] = []
@@ -202,9 +194,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
 
     @property
     def avatar_url(self) -> str:
-        """
-        Get the url for the user's avatar image.
-        """
+        """Get the url for the user's avatar image."""
         if self.avatar_type == AvatarType.default:
             return _DEFAULT_AVATAR_URL
         if self.avatar_type == AvatarType.gravatar:
@@ -218,9 +208,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
 
     @property
     def background_url(self) -> str | None:
-        """
-        Get the url for the user's background image.
-        """
+        """Get the url for the user's background image."""
         return Image.get_background_url(self.background_id)
 
     async def home_distance_to(self, point: Point | None) -> float | None:

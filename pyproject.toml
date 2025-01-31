@@ -128,6 +128,15 @@ select = [
   "ASYNC", # flake8-async
   "B", # flake8-bugbear
   "C4", # flake8-comprehensions
+  "D200", # unnecessary-multiline-docstring
+  "D201", # blank-line-before-function
+  "D202", # blank-line-after-function
+  "D207", # under-indentation
+  "D208", # over-indentation
+  "D209", # new-line-after-last-paragraph
+  "D210", # surrounding-whitespace
+  "D211", # blank-line-before-class
+  "D403", # first-word-uncapitalized
   "D418", # overload-with-docstring
   "D419", # empty-docstring
   "DTZ", # flake8-datetimez
@@ -170,7 +179,6 @@ select = [
   "W6",
   "YTT", # flake8-2020
 ]
-
 fixable = ["ALL"]
 unfixable = []
 

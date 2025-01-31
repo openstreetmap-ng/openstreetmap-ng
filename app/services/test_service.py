@@ -24,9 +24,7 @@ class TestService:
     @staticmethod
     @testmethod
     async def on_startup():
-        """
-        Prepare the test environment.
-        """
+        """Prepare the test environment."""
         with auth_context(None, ()):
             async with TaskGroup() as tg:
                 tg.create_task(TestService.create_user(DisplayNameType('admin'), roles=(UserRole.administrator,)))
@@ -73,9 +71,7 @@ class TestService:
         created_at: datetime | None = None,
         roles: tuple[UserRole, ...] = (),
     ) -> None:
-        """
-        Create a test user.
-        """
+        """Create a test user."""
         email = EmailType(f'{name}@{TEST_USER_DOMAIN}')
         name_available = await UserQuery.check_display_name_available(name)
 
@@ -123,9 +119,7 @@ class TestService:
         scopes: tuple[Scope, ...],
         is_confidential: bool,
     ) -> None:
-        """
-        Create a test OAuth2 application.
-        """
+        """Create a test OAuth2 application."""
         async with db_commit() as session:
             stmt = select(OAuth2Application).where(OAuth2Application.client_id == client_id).with_for_update()
             app = (await session.execute(stmt)).scalar_one_or_none()

@@ -34,9 +34,7 @@ def _get_config() -> dict[str, dict[str, str]]:
 
 @cython.cfunc
 def _get_popular_stats() -> dict[str, dict[str, int]]:
-    """
-    Load the feature icon popularity data.
-    """
+    """Load the feature icon popularity data."""
     return orjson.loads(Path('config/feature_icons_popular.json').read_bytes())
 
 

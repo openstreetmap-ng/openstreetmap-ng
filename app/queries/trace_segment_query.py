@@ -18,9 +18,7 @@ from app.models.db.trace_segment import TraceSegment
 class TraceSegmentQuery:
     @staticmethod
     async def get_many_by_trace_id(trace_id: int) -> Sequence[TraceSegment]:
-        """
-        Get trace segments by trace id.
-        """
+        """Get trace segments by trace id."""
         async with db() as session:
             stmt = (
                 select(TraceSegment)
@@ -146,9 +144,7 @@ class TraceSegmentQuery:
         limit_per_trace: int,
         resolution: int | None,
     ) -> None:
-        """
-        Resolve coords for traces.
-        """
+        """Resolve coords for traces."""
         trace_id_map: dict[int, Trace] = {trace.id: trace for trace in traces}
         if not trace_id_map:
             return

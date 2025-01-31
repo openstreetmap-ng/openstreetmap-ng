@@ -223,9 +223,7 @@ class OAuth2TokenService:
 
     @staticmethod
     async def reset_pat_access_token(pat_id: int) -> SecretStr:
-        """
-        Reset the personal access token and return the new secret.
-        """
+        """Reset the personal access token and return the new secret."""
         app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']
         access_token = buffered_rand_urlsafe(32)
         access_token_hashed = hash_bytes(access_token)
@@ -251,9 +249,7 @@ class OAuth2TokenService:
 
     @staticmethod
     async def revoke_by_id(token_id: int) -> None:
-        """
-        Revoke the given token by id.
-        """
+        """Revoke the given token by id."""
         async with db_commit() as session:
             stmt = delete(OAuth2Token).where(
                 OAuth2Token.user_id == auth_user(required=True).id,
@@ -264,9 +260,7 @@ class OAuth2TokenService:
 
     @staticmethod
     async def revoke_by_access_token(access_token: SecretStr) -> None:
-        """
-        Revoke the given access token.
-        """
+        """Revoke the given access token."""
         access_token_hashed = hash_bytes(access_token.get_secret_value())
         async with db_commit() as session:
             stmt = delete(OAuth2Token).where(OAuth2Token.token_hashed == access_token_hashed)
@@ -280,9 +274,7 @@ class OAuth2TokenService:
         user_id: int | None = None,
         skip_ids: Iterable[int] | None = None,
     ) -> None:
-        """
-        Revoke all current user tokens for the given OAuth2 application.
-        """
+        """Revoke all current user tokens for the given OAuth2 application."""
         if user_id is None:
             user_id = auth_user(required=True).id
         if skip_ids is None:
@@ -303,9 +295,7 @@ class OAuth2TokenService:
         user_id: int | None = None,
         skip_ids: Iterable[int] | None = None,
     ) -> None:
-        """
-        Revoke all current user tokens for the given OAuth2 client.
-        """
+        """Revoke all current user tokens for the given OAuth2 client."""
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is not None:
             await OAuth2TokenService.revoke_by_app_id(app.id, user_id=user_id, skip_ids=skip_ids)

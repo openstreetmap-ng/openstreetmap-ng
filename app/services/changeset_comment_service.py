@@ -25,9 +25,7 @@ from app.services.user_subscription_service import UserSubscriptionService
 class ChangesetCommentService:
     @staticmethod
     async def comment(changeset_id: int, text: str) -> None:
-        """
-        Comment on a changeset.
-        """
+        """Comment on a changeset."""
         user = auth_user(required=True)
         async with db_commit() as session:
             stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()

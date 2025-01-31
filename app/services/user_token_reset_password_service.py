@@ -22,9 +22,7 @@ _SEND_EMAIL_LATENCY: deque[float] = deque((0.1,), maxlen=10)
 class UserTokenResetPasswordService:
     @staticmethod
     async def send_email(email: EmailType) -> None:
-        """
-        Send a password reset request to the given email address (if registered).
-        """
+        """Send a password reset request to the given email address (if registered)."""
         ts = time.perf_counter()
         to_user = await UserQuery.find_one_by_email(email)
         if to_user is None:
@@ -48,9 +46,7 @@ class UserTokenResetPasswordService:
 
 
 async def _create_token(user: User) -> UserTokenStruct:
-    """
-    Create a new user reset password token.
-    """
+    """Create a new user reset password token."""
     user_email_hashed = hash_bytes(user.email)
     token_bytes = buffered_randbytes(32)
     token_hashed = hash_bytes(token_bytes)

@@ -31,9 +31,7 @@ def _messages_count_unread(tg: TaskGroup):
 
 
 class ParallelTasksMiddleware:
-    """
-    Perform tasks during request processing.
-    """
+    """Perform tasks during request processing."""
 
     __slots__ = ('app',)
 
@@ -51,8 +49,6 @@ class ParallelTasksMiddleware:
 
     @staticmethod
     async def messages_count_unread() -> int | None:
-        """
-        Get the number of unread messages.
-        """
+        """Get the number of unread messages."""
         task = _messages_count_unread_context.get(None)
         return (await task) if (task is not None) else None

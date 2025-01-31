@@ -35,9 +35,7 @@ class UserTokenEmailReplyService:
 
     @staticmethod
     async def reply(reply_address: EmailType, subject: str, body: str) -> None:
-        """
-        Reply to a user with a message.
-        """
+        """Reply to a user with a message."""
         with options_context(joinedload(UserTokenEmailReply.user)):
             token = await UserTokenEmailReplyQuery.find_one_by_reply_address(reply_address)
             if token is None:

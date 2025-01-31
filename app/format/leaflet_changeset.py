@@ -9,9 +9,7 @@ from app.models.proto.shared_pb2 import RenderChangesetsData, SharedBounds
 class LeafletChangesetMixin:
     @staticmethod
     def encode_changesets(changesets: Iterable[Changeset]) -> RenderChangesetsData:
-        """
-        Format changesets into a minimal structure, suitable for map rendering.
-        """
+        """Format changesets into a minimal structure, suitable for map rendering."""
         return RenderChangesetsData(changesets=tuple(_encode_changeset(changeset) for changeset in changesets))
 
 

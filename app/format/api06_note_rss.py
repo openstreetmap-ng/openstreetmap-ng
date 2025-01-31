@@ -17,9 +17,7 @@ from app.queries.nominatim_query import NominatimQuery
 class NoteRSS06Mixin:
     @staticmethod
     async def encode_notes(fg: FeedGenerator, notes: Iterable[Note]) -> None:
-        """
-        Encode notes into a feed.
-        """
+        """Encode notes into a feed."""
         fg.load_extension('dc')
         fg.load_extension('geo')
         async with TaskGroup() as tg:
@@ -29,9 +27,7 @@ class NoteRSS06Mixin:
 
     @staticmethod
     async def encode_note_comments(fg: FeedGenerator, comments: Iterable[NoteComment]) -> None:
-        """
-        Encode note comments into a feed.
-        """
+        """Encode note comments into a feed."""
         fg.load_extension('dc')
         fg.load_extension('geo')
         async with TaskGroup() as tg:

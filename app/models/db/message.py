@@ -47,9 +47,7 @@ class Message(Base.ZID, CreatedAtMixin, RichTextMixin):
 
     @classmethod
     def from_email(cls, mail: EmailMessage, from_user_id: int, to_user_id: int) -> Self:
-        """
-        Create a message instance from an email message.
-        """
+        """Create a message instance from an email message."""
         subject = mail.get('Subject')
         if subject is None:
             raise ValueError('Email message has no subject')

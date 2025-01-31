@@ -74,9 +74,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     @cached_property
     def max_size(self) -> int:
-        """
-        Get the maximum size for this changeset.
-        """
+        """Get the maximum size for this changeset."""
         user = self.user
         if user is None:
             raise AssertionError('Changeset user must be set')

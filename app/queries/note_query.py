@@ -70,9 +70,7 @@ class NoteQuery:
         commented_other: bool,
         open: bool | None,
     ) -> Sequence[Note]:
-        """
-        Get comments for the given user notes page.
-        """
+        """Get comments for the given user notes page."""
         stmt_limit, stmt_offset = standard_pagination_range(
             page,
             page_size=NOTE_USER_PAGE_SIZE,
@@ -129,9 +127,7 @@ class NoteQuery:
         sort_dir: Literal['asc', 'desc'] = 'desc',
         limit: int | None,
     ) -> Sequence[Note]:
-        """
-        Find notes by query.
-        """
+        """Find notes by query."""
         async with db() as session:
             cte_where_and: list = []
 

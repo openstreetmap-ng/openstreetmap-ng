@@ -35,9 +35,7 @@ class EmailService:
     @staticmethod
     @asynccontextmanager
     async def context():
-        """
-        Context manager for email service.
-        """
+        """Context manager for email service."""
         async with TaskGroup() as tg:
             task = tg.create_task(_process_task())
             yield
@@ -80,9 +78,7 @@ class EmailService:
         ref: str | None = None,
         priority: int = 0,
     ) -> None:
-        """
-        Schedule mail and start async processing.
-        """
+        """Schedule mail and start async processing."""
         # render in the to_user's language
         with auth_context(to_user, ()), translation_context(to_user.language):
             body = render(template_name, template_data)
@@ -105,9 +101,7 @@ class EmailService:
 
 
 async def _process_task() -> None:
-    """
-    Process scheduled mail in the database.
-    """
+    """Process scheduled mail in the database."""
     if _process_lock.locked():
         return
     async with _process_lock:

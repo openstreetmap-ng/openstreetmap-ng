@@ -31,10 +31,8 @@ def needs_processing(locale: str, source_mtime: float) -> bool:
 
 
 def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) -> str:
-    """
-    Resolve the localized name for a community.
-    """
-    # if theres an explicitly translated name then use that
+    """Resolve the localized name for a community."""
+    # if there's an explicitly translated name then use that
     if (translated := locale.get(community['id'], {}).get('name')) is not None:
         return translated
 
@@ -67,7 +65,7 @@ class LocalChaptersExtractor:
         self.communities = tuple(c for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF')
 
     def extract(self, locale: str) -> dict:
-        source_path = _oci_dir.joinpath(f'i18n/{locale.replace('-', '_')}.yaml')
+        source_path = _oci_dir.joinpath(f'i18n/{locale.replace("-", "_")}.yaml')
         if not source_path.is_file():
             return {}
 
@@ -135,9 +133,7 @@ def main(verbose: bool):
 
 
 def trim_values(data: dict):
-    """
-    Trim all string values.
-    """
+    """Trim all string values."""
     for key, value in data.items():
         if isinstance(value, dict):
             trim_values(value)
@@ -151,9 +147,7 @@ def trim_values(data: dict):
 
 
 def convert_placeholder_format(data: dict):
-    """
-    Convert %{placeholder} to {placeholder} in all strings.
-    """
+    """Convert %{placeholder} to {placeholder} in all strings."""
     for key, value in data.items():
         if isinstance(value, dict):
             convert_placeholder_format(value)
@@ -162,9 +156,7 @@ def convert_placeholder_format(data: dict):
 
 
 def convert_number_format(data: dict):
-    """
-    Convert %e to %-d in all strings.
-    """
+    """Convert %e to %-d in all strings."""
     # backwards compatibility: remove leading zero from day
     for key, value in data.items():
         if isinstance(value, dict):

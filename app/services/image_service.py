@@ -17,9 +17,7 @@ class ImageService:
 
     @staticmethod
     async def delete_avatar_by_id(avatar_id: StorageKey) -> None:
-        """
-        Delete a custom avatar image by id.
-        """
+        """Delete a custom avatar image by id."""
         await AVATAR_STORAGE.delete(avatar_id)
 
     @staticmethod
@@ -35,7 +33,5 @@ class ImageService:
 
     @staticmethod
     async def delete_background_by_id(background_id: StorageKey) -> None:
-        """
-        Delete a custom background image by id.
-        """
+        """Delete a custom background image by id."""
         await BACKGROUND_STORAGE.delete(background_id)

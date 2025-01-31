@@ -17,9 +17,7 @@ _ZSTD_DECOMPRESS = ZstdDecompressor().decompress
 
 
 class RequestBodyMiddleware:
-    """
-    Request body decompressing and limiting middleware.
-    """
+    """Request body decompressing and limiting middleware."""
 
     __slots__ = ('app',)
 

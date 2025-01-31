@@ -10,9 +10,7 @@ from app.models.db.oauth2_application import OAuth2Application
 class OAuth2ApplicationQuery:
     @staticmethod
     async def find_one_by_id(app_id: int, *, user_id: int | None = None) -> OAuth2Application | None:
-        """
-        Find an OAuth2 application by id.
-        """
+        """Find an OAuth2 application by id."""
         async with db() as session:
             stmt = select(OAuth2Application)
             stmt = apply_options_context(stmt)
@@ -26,9 +24,7 @@ class OAuth2ApplicationQuery:
 
     @staticmethod
     async def find_one_by_client_id(client_id: str) -> OAuth2Application | None:
-        """
-        Find an OAuth2 application by client id.
-        """
+        """Find an OAuth2 application by client id."""
         async with db() as session:
             stmt = select(OAuth2Application).where(OAuth2Application.client_id == client_id)
             stmt = apply_options_context(stmt)
@@ -36,9 +32,7 @@ class OAuth2ApplicationQuery:
 
     @staticmethod
     async def get_many_by_user_id(user_id: int) -> Sequence[OAuth2Application]:
-        """
-        Get all OAuth2 applications by user id.
-        """
+        """Get all OAuth2 applications by user id."""
         async with db() as session:
             stmt = (
                 select(OAuth2Application)

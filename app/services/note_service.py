@@ -32,9 +32,7 @@ from app.validators.geometry import validate_geometry
 class NoteService:
     @staticmethod
     async def create(lon: float, lat: float, text: str) -> int:
-        """
-        Create a note and return its id.
-        """
+        """Create a note and return its id."""
         coordinate_precision = GEO_COORDINATE_PRECISION
         point: Point = lib.points(np.array((lon, lat), np.float64).round(coordinate_precision))
         point = validate_geometry(point)
@@ -73,9 +71,7 @@ class NoteService:
 
     @staticmethod
     async def comment(note_id: int, text: str, event: NoteEvent) -> None:
-        """
-        Comment on a note.
-        """
+        """Comment on a note."""
         user = auth_user(required=True)
         send_activity_email: cython.char = False
         async with db_commit() as session:
@@ -135,9 +131,7 @@ class NoteService:
 
     @staticmethod
     async def delete_notes_without_comments() -> None:
-        """
-        Find all notes without comments and delete them.
-        """
+        """Find all notes without comments and delete them."""
         logging.info('Deleting notes without comments')
         async with db_commit() as session:
             stmt = delete(Note).where(~exists().where(Note.id == NoteComment.note_id))

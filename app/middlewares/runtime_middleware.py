@@ -5,9 +5,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 class RuntimeMiddleware:
-    """
-    Add X-Runtime header to responses.
-    """
+    """Add X-Runtime header to responses."""
 
     __slots__ = ('app',)
 

@@ -23,9 +23,7 @@ _context: ContextVar[tuple[User | None, tuple[Scope, ...]]] = ContextVar('AuthCo
 
 @contextmanager
 def auth_context(user: User | None, scopes: tuple[Scope, ...]):
-    """
-    Context manager for authenticating the user.
-    """
+    """Context manager for authenticating the user."""
     # safety check, prevent test user auth in non-test env
     if (user is not None) and not TEST_ENV and user.is_test_user:
         raise RuntimeError('Test user authentication is forbidden in non-test environment')
@@ -38,9 +36,7 @@ def auth_context(user: User | None, scopes: tuple[Scope, ...]):
 
 
 def auth_user_scopes() -> tuple[User | None, tuple[Scope, ...]]:
-    """
-    Get the authenticated user and scopes.
-    """
+    """Get the authenticated user and scopes."""
     return _context.get()
 
 
@@ -57,9 +53,7 @@ def auth_user(*, required: Literal[False]) -> User | None: ...
 
 
 def auth_user(*, required: bool = False) -> User | None:
-    """
-    Get the authenticated user.
-    """
+    """Get the authenticated user."""
     user = _context.get()[0]
     if user is None and required:
         raise ValueError('User must be authenticated')
@@ -67,23 +61,17 @@ def auth_user(*, required: bool = False) -> User | None:
 
 
 def auth_scopes() -> tuple[Scope, ...]:
-    """
-    Get the authenticated user's scopes.
-    """
+    """Get the authenticated user's scopes."""
     return _context.get()[1]
 
 
 def api_user(*require_scopes: Scope) -> User:
-    """
-    Dependency for authenticating the api user.
-    """
+    """Dependency for authenticating the api user."""
     return Security(_get_user, scopes=require_scopes)
 
 
 def web_user() -> User:
-    """
-    Dependency for authenticating the web user.
-    """
+    """Dependency for authenticating the web user."""
     return Security(_get_user, scopes=(Scope.web_user,))
 
 
@@ -102,7 +90,7 @@ def _get_user(require_scopes: SecurityScopes):
         ):
             raise HTTPException(
                 status_code=status.HTTP_303_SEE_OTHER,
-                headers={'Location': f"/login?{urlencode({'referer': _get_referer()})}"},
+                headers={'Location': f'/login?{urlencode({"referer": _get_referer()})}'},
             )
         raise_for.unauthorized(request_basic_auth=True)
     # and have the required scopes

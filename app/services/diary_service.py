@@ -49,9 +49,7 @@ class DiaryService:
         language: LocaleCode,
         point: Point | None,
     ) -> None:
-        """
-        Update a diary entry.
-        """
+        """Update a diary entry."""
         async with db_commit() as session:
             stmt = (
                 select(Diary)
@@ -76,9 +74,7 @@ class DiaryService:
 
     @staticmethod
     async def delete(diary_id: int) -> None:
-        """
-        Delete a diary entry.
-        """
+        """Delete a diary entry."""
         async with db_commit() as session:
             stmt = delete(Diary).where(
                 Diary.id == diary_id,

@@ -14,9 +14,7 @@ class ElementsFilter:
         *,
         detailed: cython.char,
     ) -> tuple[Element, ...]:
-        """
-        Return only interesting nodes.
-        """
+        """Return only interesting nodes."""
         return tuple(
             node
             for node in nodes  #
@@ -25,9 +23,7 @@ class ElementsFilter:
 
     @staticmethod
     def filter_tags_interesting(elements: Iterable[Element]) -> tuple[Element, ...]:
-        """
-        Return only elements with interesting tags.
-        """
+        """Return only elements with interesting tags."""
         return tuple(
             element
             for element in elements  #

@@ -12,9 +12,7 @@ from app.queries.user_token_query import UserTokenQuery
 class UserTokenEmailReplyQuery:
     @staticmethod
     async def find_one_by_reply_address(reply_address: EmailType) -> UserTokenEmailReply | None:
-        """
-        Find a user email reply token by reply email address.
-        """
+        """Find a user email reply token by reply email address."""
         # strip the name part: "abc" <foo@bar.com> -> foo@bar.com
         reply_address = EmailType(parseaddr(reply_address)[1])
         try:

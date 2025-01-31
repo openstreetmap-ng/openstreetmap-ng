@@ -46,9 +46,7 @@ def is_browser_supported(user_agent: str) -> bool:
 
 @cython.cfunc
 def _browserslist_versions() -> dict[str, float]:
-    """
-    Get the mapping of supported browsers to their minimum versions.
-    """
+    """Get the mapping of supported browsers to their minimum versions."""
     lock_path = Path('package.json')
     lock_mtime = lock_path.stat().st_mtime
     cache_path = FILE_CACHE_DIR / 'browserslist_versions.json'

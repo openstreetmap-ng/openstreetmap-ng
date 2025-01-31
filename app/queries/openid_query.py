@@ -36,9 +36,7 @@ class OpenIDDiscovery(TypedDict):
 class OpenIDQuery:
     @staticmethod
     async def discovery(base_url: str) -> OpenIDDiscovery:
-        """
-        Perform OpenID Connect discovery.
-        """
+        """Perform OpenID Connect discovery."""
 
         async def factory() -> bytes:
             logging.debug('OpenID discovery cache miss for %r', base_url)

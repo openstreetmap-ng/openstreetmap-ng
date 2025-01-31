@@ -4,9 +4,7 @@ from app.lib.format_style_context import format_style_context
 
 
 class FormatStyleMiddleware:
-    """
-    Wrap requests in format style context.
-    """
+    """Wrap requests in format style context."""
 
     __slots__ = ('app',)
 

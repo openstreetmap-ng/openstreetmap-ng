@@ -7,9 +7,7 @@ from app.middlewares.request_context_middleware import get_request
 
 
 class ExceptionsMiddleware:
-    """
-    Wrap requests in exceptions context.
-    """
+    """Wrap requests in exceptions context."""
 
     __slots__ = ('app',)
 

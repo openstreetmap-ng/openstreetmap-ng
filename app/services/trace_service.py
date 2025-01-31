@@ -93,9 +93,7 @@ class TraceService:
         tag_string: str,
         visibility: TraceVisibility,
     ) -> None:
-        """
-        Update a trace.
-        """
+        """Update a trace."""
         async with db_commit() as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
@@ -111,9 +109,7 @@ class TraceService:
 
     @staticmethod
     async def delete(trace_id: int) -> None:
-        """
-        Delete a trace.
-        """
+        """Delete a trace."""
         async with db_commit() as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 

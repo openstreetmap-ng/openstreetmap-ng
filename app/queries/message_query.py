@@ -12,9 +12,7 @@ from app.models.db.message import Message
 class MessageQuery:
     @staticmethod
     async def get_message_by_id(message_id: int) -> Message:
-        """
-        Get a message by id.
-        """
+        """Get a message by id."""
         user_id = auth_user(required=True).id
         async with db() as session:
             stmt = select(Message).where(
@@ -44,9 +42,7 @@ class MessageQuery:
         before: int | None = None,
         limit: int,
     ) -> Sequence[Message]:
-        """
-        Get user messages.
-        """
+        """Get user messages."""
         async with db() as session:
             stmt = select(Message)
             where_and = []
@@ -73,9 +69,7 @@ class MessageQuery:
 
     @staticmethod
     async def count_unread_received_messages() -> int:
-        """
-        Count all unread received messages for the current user.
-        """
+        """Count all unread received messages for the current user."""
         async with db() as session:
             stmt = select(func.count()).select_from(
                 select(text('1'))
@@ -90,9 +84,7 @@ class MessageQuery:
 
     @staticmethod
     async def count_unread() -> int:
-        """
-        Count currently unread messages.
-        """
+        """Count currently unread messages."""
         async with db() as session:
             stmt = select(func.count()).select_from(
                 select(text('1'))

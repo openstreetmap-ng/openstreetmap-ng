@@ -18,9 +18,7 @@ _accept_language_re = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|
 
 
 class TranslationMiddleware:
-    """
-    Wrap requests in translation context.
-    """
+    """Wrap requests in translation context."""
 
     __slots__ = ('app',)
 

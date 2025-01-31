@@ -22,9 +22,7 @@ class LeafletElementMixin:
         detailed: cython.char,
         areas: cython.char = True,
     ) -> RenderElementsData:
-        """
-        Format elements into a minimal structure, suitable for map rendering.
-        """
+        """Format elements into a minimal structure, suitable for map rendering."""
         node_id_map: dict[ElementId, Element] = {}
         ways: list[Element] = []
         member_nodes_ids: set[ElementId] = set()
@@ -93,9 +91,7 @@ class LeafletElementMixin:
 
     @staticmethod
     def encode_query_features(results: Iterable[QueryFeatureResult]) -> list[RenderElementsData]:
-        """
-        Format query features results into a minimal structure, suitable for map rendering.
-        """
+        """Format query features results into a minimal structure, suitable for map rendering."""
         encoded: list[RenderElementsData] = []
         for result in results:
             element = result.element
@@ -124,9 +120,7 @@ class LeafletElementMixin:
 
 @cython.cfunc
 def _check_way_area(tags: dict[str, str], members: Sequence[ElementMember]):
-    """
-    Check if the way should be displayed as an area.
-    """
+    """Check if the way should be displayed as an area."""
     if len(members) <= 2:
         return False
     is_closed = members[0].id == members[-1].id

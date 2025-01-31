@@ -5,9 +5,7 @@ from app.config import VERSION
 
 
 class VersionMiddleware:
-    """
-    Add X-Version header to responses.
-    """
+    """Add X-Version header to responses."""
 
     __slots__ = ('app',)
 

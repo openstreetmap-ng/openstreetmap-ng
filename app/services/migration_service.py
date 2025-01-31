@@ -12,9 +12,7 @@ from app.models.db.user import User
 class MigrationService:
     @staticmethod
     async def fix_sequence_counters() -> None:
-        """
-        Fix the sequence counters
-        """
+        """Fix the sequence counters"""
         async with db_commit() as session:
             stmt = select(func.setval('user_id_seq', func.max(User.id)))
             await session.execute(stmt)

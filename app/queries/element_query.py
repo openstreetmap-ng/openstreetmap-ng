@@ -59,9 +59,7 @@ class ElementQuery:
 
     @staticmethod
     async def check_is_latest(versioned_refs: Collection[VersionedElementRef]) -> bool:
-        """
-        Check if the given elements are currently up-to-date.
-        """
+        """Check if the given elements are currently up-to-date."""
         if not versioned_refs:
             return True
 
@@ -120,9 +118,7 @@ class ElementQuery:
         *,
         at_sequence_id: int | None = None,
     ) -> tuple[ElementRef, ...]:
-        """
-        Filter the given element refs to only include the visible elements.
-        """
+        """Filter the given element refs to only include the visible elements."""
         if not element_refs:
             return ()
         type_id_map: dict[ElementType, set[ElementId]] = {'node': set(), 'way': set(), 'relation': set()}
@@ -190,9 +186,7 @@ class ElementQuery:
         sort: Literal['asc', 'desc'] = 'asc',
         limit: int | None,
     ) -> Sequence[Element]:
-        """
-        Get versions by the given element ref.
-        """
+        """Get versions by the given element ref."""
         async with db() as session:
             stmt = _select()
             where_and = [
@@ -219,9 +213,7 @@ class ElementQuery:
         at_sequence_id: int | None = None,
         limit: int | None,
     ) -> Sequence[Element]:
-        """
-        Get elements by the versioned refs.
-        """
+        """Get elements by the versioned refs."""
         if not versioned_refs:
             return ()
 
@@ -382,9 +374,7 @@ class ElementQuery:
         parent_type: ElementType | None = None,
         limit: int | None,
     ) -> Sequence[Element]:
-        """
-        Get elements that reference the given elements.
-        """
+        """Get elements that reference the given elements."""
         if not member_refs:
             return ()
         type_id_map: dict[ElementType, list[ElementId]] = {'node': [], 'way': [], 'relation': []}
@@ -467,9 +457,7 @@ class ElementQuery:
         at_sequence_id: int | None = None,
         limit: int | None,
     ) -> dict[ElementRef, list[ElementRef]]:
-        """
-        Get elements refs that reference the given elements.
-        """
+        """Get elements refs that reference the given elements."""
         if not member_refs:
             return {}
         type_id_map: dict[ElementType, list[ElementId]] = {'node': [], 'way': [], 'relation': []}
@@ -546,9 +534,7 @@ class ElementQuery:
 
     @staticmethod
     async def get_by_changeset(changeset_id: int, *, sort_by: Literal['id', 'sequence_id']) -> Sequence[Element]:
-        """
-        Get elements by the changeset id.
-        """
+        """Get elements by the changeset id."""
         async with db() as session:
             stmt = (
                 _select()

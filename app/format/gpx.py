@@ -204,9 +204,7 @@ def _should_finish_segment(
     maxy: cython.double,
     points: Sized,
 ) -> cython.char:
-    """
-    Check if the segment should be finished before adding the point.
-    """
+    """Check if the segment should be finished before adding the point."""
     width: cython.double = maxx - minx
     height: cython.double = maxy - miny
     return (
@@ -227,9 +225,7 @@ def _finish_segment(
     capture_times: list[datetime | None],
     elevations: list[float | None],
 ):
-    """
-    Finish the segment and add it to the result.
-    """
+    """Finish the segment and add it to the result."""
     if not points:
         return
 

@@ -22,9 +22,7 @@ from app.services.email_service import EmailService
 class UserTokenEmailChangeService:
     @staticmethod
     async def send_email(new_email: EmailType) -> None:
-        """
-        Send a confirmation email for the email change.
-        """
+        """Send a confirmation email for the email change."""
         app_domain = urlsplit(APP_URL).netloc
         token = await _create_token(new_email)
         await EmailService.schedule(
@@ -42,9 +40,7 @@ class UserTokenEmailChangeService:
 
     @staticmethod
     async def confirm(token_struct: UserTokenStruct) -> None:
-        """
-        Confirm a user email change.
-        """
+        """Confirm a user email change."""
         token = await UserTokenQuery.find_one_by_token_struct(UserTokenEmailChange, token_struct)
         if token is None:
             raise_for.bad_user_token_struct()
@@ -66,9 +62,7 @@ class UserTokenEmailChangeService:
 
 
 async def _create_token(new_email: EmailType) -> UserTokenStruct:
-    """
-    Create a new user email change token.
-    """
+    """Create a new user email change token."""
     user = auth_user(required=True)
     user_email_hashed = hash_bytes(user.email)
     token_bytes = buffered_randbytes(32)

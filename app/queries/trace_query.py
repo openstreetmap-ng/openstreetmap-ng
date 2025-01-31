@@ -47,9 +47,7 @@ class TraceQuery:
 
     @staticmethod
     async def count_by_user_id(user_id: int) -> int:
-        """
-        Count traces by user id.
-        """
+        """Count traces by user id."""
         async with db() as session:
             stmt = select(func.count()).select_from(
                 select(text('1'))
@@ -70,9 +68,7 @@ class TraceQuery:
         before: int | None = None,
         limit: int | None,
     ) -> Sequence[Trace]:
-        """
-        Find recent traces.
-        """
+        """Find recent traces."""
         async with db() as session:
             stmt = select(Trace)
             where_and = []

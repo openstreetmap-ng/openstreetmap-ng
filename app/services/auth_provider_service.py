@@ -55,9 +55,7 @@ class AuthProviderService:
         query_state: str,
         cookie_state: str,
     ) -> AuthProviderState:
-        """
-        Parse and validate an auth provider state.
-        """
+        """Parse and validate an auth provider state."""
         buffer_b64 = cookie_state.encode()
         if not hash_compare(buffer_b64, urlsafe_b64decode(query_state), hash_func=hmac_bytes):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state hmac')

@@ -49,9 +49,7 @@ def validate_email(email: str) -> EmailType:
 
 
 async def validate_email_deliverability(email: str) -> bool:
-    """
-    Validate deliverability of an email address.
-    """
+    """Validate deliverability of an email address."""
     try:
         info = validate_email_(
             email,

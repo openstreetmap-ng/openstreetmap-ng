@@ -30,9 +30,7 @@ class UserSubscriptionQuery:
 
     @staticmethod
     async def get_subscribed_users(target: UserSubscriptionTarget, target_id: int) -> Sequence[User]:
-        """
-        Get users subscribed to the target.
-        """
+        """Get users subscribed to the target."""
         async with db() as session:
             subq = (
                 select(UserSubscription.user_id)

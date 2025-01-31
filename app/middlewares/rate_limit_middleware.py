@@ -124,9 +124,7 @@ async def _increase_counter(key: str, change: int, quota: cython.int, *, raise_o
 
 
 def set_rate_limit_weight(weight: int) -> None:
-    """
-    Override the request weight for rate limiting.
-    """
+    """Override the request weight for rate limiting."""
     logging.debug('Overriding rate limit weight to %d', weight)
     state: dict = get_request().state._state  # noqa: SLF001
     state['rate_limit_weight'] = weight

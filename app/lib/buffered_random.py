@@ -24,15 +24,11 @@ def _randbytes(n: cython.int) -> bytes:
 
 
 def buffered_randbytes(n: int) -> bytes:
-    """
-    Generate a secure random byte string of length n.
-    """
+    """Generate a secure random byte string of length n."""
     return _randbytes(n)
 
 
 def buffered_rand_urlsafe(n: int) -> str:
-    """
-    Generate a secure random URL-safe string of length n.
-    """
+    """Generate a secure random URL-safe string of length n."""
     tok = _randbytes(n)
     return urlsafe_b64encode(tok).rstrip(b'=').decode()

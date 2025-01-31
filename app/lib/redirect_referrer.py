@@ -9,9 +9,7 @@ from app.middlewares.request_context_middleware import get_request
 
 
 def redirect_referrer() -> RedirectResponse:
-    """
-    Get a redirect response, respecting the referrer header.
-    """
+    """Get a redirect response, respecting the referrer header."""
     return RedirectResponse(_redirect_url(), status.HTTP_303_SEE_OTHER)
 
 

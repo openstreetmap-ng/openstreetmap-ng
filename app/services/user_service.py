@@ -76,9 +76,7 @@ class UserService:
         *,
         description: str,
     ) -> None:
-        """
-        Update user's profile description.
-        """
+        """Update user's profile description."""
         current_user = auth_user(required=True)
         if current_user.description == description:
             return
@@ -149,9 +147,7 @@ class UserService:
         activity_tracking: bool,
         crash_reporting: bool,
     ) -> None:
-        """
-        Update user settings.
-        """
+        """Update user settings."""
         if not await UserQuery.check_display_name_available(display_name):
             StandardFeedback.raise_error('display_name', t('validation.display_name_is_taken'))
         if not is_installed_locale(language):
@@ -180,9 +176,7 @@ class UserService:
     async def update_editor(
         editor: Editor | None,
     ) -> None:
-        """
-        Update default editor
-        """
+        """Update default editor"""
         async with db_commit() as session:
             stmt = (
                 update(User)
@@ -238,9 +232,7 @@ class UserService:
         old_password: PasswordType,
         new_password: PasswordType,
     ) -> None:
-        """
-        Update user password.
-        """
+        """Update user password."""
         user = auth_user(required=True)
         verification = PasswordHash.verify(
             password_pb=user.password_pb,
@@ -278,9 +270,7 @@ class UserService:
         new_password: PasswordType,
         revoke_other_sessions: bool,
     ) -> None:
-        """
-        Reset the user password.
-        """
+        """Reset the user password."""
         token_struct = UserTokenStructUtils.from_str(token)
         if token_struct is None:
             raise_for.bad_user_token_struct()
@@ -320,9 +310,7 @@ class UserService:
     # TODO: UI
     @staticmethod
     async def request_scheduled_delete() -> None:
-        """
-        Request a scheduled deletion of the user.
-        """
+        """Request a scheduled deletion of the user."""
         async with db_commit() as session:
             stmt = (
                 update(User)
@@ -338,9 +326,7 @@ class UserService:
 
     @staticmethod
     async def abort_scheduled_delete() -> None:
-        """
-        Abort a scheduled deletion of the user.
-        """
+        """Abort a scheduled deletion of the user."""
         async with db_commit() as session:
             stmt = (
                 update(User)
@@ -355,9 +341,7 @@ class UserService:
 
     @staticmethod
     async def delete_old_pending_users():
-        """
-        Find old pending users and delete them.
-        """
+        """Find old pending users and delete them."""
         logging.debug('Deleting old pending users')
         async with db_commit() as session:
             stmt = delete(User).where(

@@ -19,40 +19,30 @@ class StandardFeedback:
         self._messages: defaultdict[str | None, list[tuple[MessageSeverity, str]]] = defaultdict(list)
 
     def success(self, field: str | None, message: str) -> None:
-        """
-        Collect a success message for a field.
-        """
+        """Collect a success message for a field."""
         self._messages[field].append(('success', message))
 
     @classmethod
     def success_result(cls, field: str | None, message: str) -> dict[Literal['detail'], tuple[dict[str, Any], ...]]:
-        """
-        Collect a success message for a field. Instantly returns the result.
-        """
+        """Collect a success message for a field. Instantly returns the result."""
         tmp = StandardFeedback()
         tmp.success(field, message)
         return tmp.result
 
     def info(self, field: str | None, message: str) -> None:
-        """
-        Collect an info message for a field.
-        """
+        """Collect an info message for a field."""
         self._messages[field].append(('info', message))
 
     @classmethod
     def info_result(cls, field: str | None, message: str) -> dict[Literal['detail'], tuple[dict[str, Any], ...]]:
-        """
-        Collect an info message for a field. Instantly returns the result.
-        """
+        """Collect an info message for a field. Instantly returns the result."""
         tmp = StandardFeedback()
         tmp.info(field, message)
         return tmp.result
 
     @property
     def result(self) -> dict[Literal['detail'], tuple[dict[str, Any], ...]]:
-        """
-        Return the collected messages as a dict.
-        """
+        """Return the collected messages as a dict."""
         return {
             'detail': tuple(
                 {
@@ -67,9 +57,7 @@ class StandardFeedback:
 
     @staticmethod
     def raise_error(field: str | None, message: str) -> NoReturn:
-        """
-        Collect an error message for a field and raise a HTTPException.
-        """
+        """Collect an error message for a field and raise a HTTPException."""
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
             detail=(

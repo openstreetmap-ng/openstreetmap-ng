@@ -12,9 +12,7 @@ from app.models.db.element_member import ElementMember
 class ElementMemberQuery:
     @staticmethod
     async def resolve_members(elements: Iterable[Element]) -> None:
-        """
-        Resolve members for elements.
-        """
+        """Resolve members for elements."""
         id_members_map: dict[int, list[ElementMember]] = {}
         for element in elements:
             if element.type == 'node':

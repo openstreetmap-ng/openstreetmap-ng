@@ -22,9 +22,7 @@ class NoteCommentQuery:
         geometry: BaseGeometry | None = None,
         limit: int | None,
     ) -> Sequence[NoteComment]:
-        """
-        Find note comments by query.
-        """
+        """Find note comments by query."""
         async with db() as session:
             stmt = select(NoteComment)
             stmt = apply_options_context(stmt)
@@ -68,9 +66,7 @@ class NoteCommentQuery:
 
     @staticmethod
     async def resolve_num_comments(notes: Iterable[Note]) -> None:
-        """
-        Resolve the number of comments for each note.
-        """
+        """Resolve the number of comments for each note."""
         note_id_map = {note.id: note for note in notes}
         if not note_id_map:
             return
@@ -100,9 +96,7 @@ class NoteCommentQuery:
         per_note_limit: int | None,
         resolve_rich_text: bool = True,
     ) -> Sequence[NoteComment]:
-        """
-        Resolve comments for notes.
-        """
+        """Resolve comments for notes."""
         if not notes:
             return ()
         id_comments_map: dict[int, list[NoteComment]] = {}

@@ -46,9 +46,7 @@ async def render_response(
     *,
     status: int = 200,
 ) -> HTMLResponse:
-    """
-    Render the given Jinja2 template with translation, returning an HTMLResponse.
-    """
+    """Render the given Jinja2 template with translation, returning an HTMLResponse."""
     data = {
         'request': get_request(),
         'I18NEXT_FILES': map_i18next_files(translation_locales()),

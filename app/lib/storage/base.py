@@ -25,19 +25,13 @@ class StorageBase(ABC):
 
     @abstractmethod
     async def load(self, key: StorageKey) -> bytes:
-        """
-        Load a file from storage by key.
-        """
+        """Load a file from storage by key."""
         ...
 
     async def save(self, data: bytes, suffix: str) -> StorageKey:
-        """
-        Save a file to storage and return its key.
-        """
+        """Save a file to storage and return its key."""
         raise NotImplementedError
 
     async def delete(self, key: StorageKey) -> None:
-        """
-        Delete a key from storage.
-        """
+        """Delete a key from storage."""
         raise NotImplementedError

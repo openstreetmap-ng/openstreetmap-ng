@@ -65,9 +65,7 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
 
     @property
     def avatar_url(self) -> str:
-        """
-        Get the url for the application's avatar image.
-        """
+        """Get the url for the application's avatar image."""
         return (
             _CLIENT_ID_AVATAR_MAP.get(self.client_id, _DEFAULT_AVATAR_URL)
             if self.avatar_id is None
@@ -76,14 +74,10 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
 
     @property
     def is_system_app(self) -> bool:
-        """
-        Check if the application is a system app.
-        """
+        """Check if the application is a system app."""
         return self.user_id is None
 
     @property
     def redirect_uris_str(self) -> str:
-        """
-        Get the application's redirect URIs as a single string.
-        """
+        """Get the application's redirect URIs as a single string."""
         return '\n'.join(self.redirect_uris)

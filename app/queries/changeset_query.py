@@ -32,9 +32,7 @@ class ChangesetQuery:
 
     @staticmethod
     async def count_by_user_id(user_id: int) -> int:
-        """
-        Count changesets by user id.
-        """
+        """Count changesets by user id."""
         async with db() as session:
             stmt = select(func.count()).select_from(
                 select(text('1'))  #
@@ -45,9 +43,7 @@ class ChangesetQuery:
 
     @staticmethod
     async def get_user_adjacent_ids(changeset_id: int, *, user_id: int) -> tuple[int | None, int | None]:
-        """
-        Get the user's previous and next changeset ids.
-        """
+        """Get the user's previous and next changeset ids."""
         async with db() as session:
             stmt_prev = select(func.max(Changeset.id)).where(Changeset.id < changeset_id, Changeset.user_id == user_id)
             stmt_next = select(func.min(Changeset.id)).where(Changeset.id > changeset_id, Changeset.user_id == user_id)
@@ -68,9 +64,7 @@ class ChangesetQuery:
 
     @staticmethod
     async def find_by_id(changeset_id: int) -> Changeset | None:
-        """
-        Find a changeset by id.
-        """
+        """Find a changeset by id."""
         async with db() as session:
             stmt = select(Changeset).where(Changeset.id == changeset_id)
             stmt = apply_options_context(stmt)
@@ -90,9 +84,7 @@ class ChangesetQuery:
         sort: Literal['asc', 'desc'] = 'asc',
         limit: int | None,
     ) -> Sequence[Changeset]:
-        """
-        Find changesets by query.
-        """
+        """Find changesets by query."""
         async with db() as session:
             stmt = select(Changeset)
             stmt = apply_options_context(stmt)
@@ -154,9 +146,7 @@ class ChangesetQuery:
 
     @staticmethod
     async def count_per_day_by_user_id(user_id: int, created_since: datetime) -> dict[datetime, int]:
-        """
-        Count changesets per day by user id since given date.
-        """
+        """Count changesets per day by user id since given date."""
         async with db() as session:
             created_date = func.date_trunc('day', Changeset.created_at)
             stmt = (

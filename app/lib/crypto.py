@@ -49,23 +49,17 @@ def hmac_bytes(s: str | bytes) -> bytes:
 
 
 def hash_compare(s: _T, expected: bytes, *, hash_func: Callable[[_T], bytes] = hash_bytes) -> bool:
-    """
-    Compute and compare the hash of the input in a time-constant manner.
-    """
+    """Compute and compare the hash of the input in a time-constant manner."""
     return compare_digest(hash_func(s), expected)
 
 
 def hash_s256_code_challenge(verifier: str) -> str:
-    """
-    Compute the S256 code challenge from the verifier.
-    """
+    """Compute the S256 code challenge from the verifier."""
     return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')
 
 
 def encrypt(s: str) -> bytes:
-    """
-    Encrypt a string using AES-CTR.
-    """
+    """Encrypt a string using AES-CTR."""
     if not s:
         raise AssertionError('Empty string must not be encrypted')
     nonce = buffered_randbytes(15)  # +1 byte for the counter
@@ -75,9 +69,7 @@ def encrypt(s: str) -> bytes:
 
 
 def decrypt(buffer: bytes) -> str:
-    """
-    Decrypt an encrypted buffer.
-    """
+    """Decrypt an encrypted buffer."""
     if not buffer:
         return ''
     marker = buffer[0]

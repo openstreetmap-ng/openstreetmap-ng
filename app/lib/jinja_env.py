@@ -27,9 +27,7 @@ _j2 = Environment(
 
 
 def render(template_name: str, template_data: dict[str, Any] | None = None) -> str:
-    """
-    Render the given Jinja2 template with translation.
-    """
+    """Render the given Jinja2 template with translation."""
     user = auth_user()
     lang = primary_translation_locale()
     data = {
@@ -102,9 +100,7 @@ def timeago(date: datetime | None, *, html: bool = False) -> str:
 
 # TODO: ideally we should fix translation
 def stripspecial(value: str) -> str:
-    """
-    Strip special characters from the given string.
-    """
+    """Strip special characters from the given string."""
     return value.strip('!?:;., ')
 
 

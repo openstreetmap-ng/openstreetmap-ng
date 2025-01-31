@@ -31,9 +31,7 @@ _wiki_pages = _get_wiki_pages()
 
 
 def tags_format_osm_wiki(tags: Iterable[TagFormat]) -> None:
-    """
-    Format tags with supported wiki links.
-    """
+    """Format tags with supported wiki links."""
     locales = translation_locales()
     for tag in tags:
         key = tag.key.text

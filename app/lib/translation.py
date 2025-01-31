@@ -18,9 +18,7 @@ _context: ContextVar[tuple[tuple[LocaleCode, ...], GNUTranslations]] = ContextVa
 # gettext always caches .mo files internally
 @lru_cache(maxsize=256)
 def _get_translation(locales: Iterable[LocaleCode]) -> GNUTranslations:
-    """
-    Get the translation object for the given languages.
-    """
+    """Get the translation object for the given languages."""
     return translation(
         domain='messages',
         localedir=_locale_dir,
@@ -72,18 +70,14 @@ def primary_translation_locale() -> LocaleCode:
 
 
 def t(message: str, /, **kwargs) -> str:
-    """
-    Get the translation for the given message.
-    """
+    """Get the translation for the given message."""
     trans: GNUTranslations = _context.get()[1]
     translated = trans.gettext(message)
     return translated.format(**kwargs) if len(kwargs) > 0 else translated
 
 
 def nt(message: str, /, count: int | np.integer, **kwargs) -> str:
-    """
-    Get the translation for the given message, with pluralization.
-    """
+    """Get the translation for the given message, with pluralization."""
     trans: GNUTranslations = _context.get()[1]
     translated = trans.ngettext(message, message, count)  # pyright: ignore[reportArgumentType]
     return translated.format(count=count, **kwargs) if len(kwargs) > 0 else translated.format(count=count)

@@ -28,9 +28,7 @@ _PROCESS_DONE_EVENT = Event()
 class ChangesetService:
     @staticmethod
     async def create(tags: dict[str, str]) -> int:
-        """
-        Create a new changeset and return its id.
-        """
+        """Create a new changeset and return its id."""
         user_id = auth_user(required=True).id
         async with db_commit() as session:
             changeset = Changeset(user_id=user_id, tags=tags)
@@ -42,9 +40,7 @@ class ChangesetService:
 
     @staticmethod
     async def update_tags(changeset_id: int, tags: dict[str, str]) -> None:
-        """
-        Update changeset tags.
-        """
+        """Update changeset tags."""
         user_id = auth_user(required=True).id
         async with db_commit() as session:
             stmt = (
@@ -65,9 +61,7 @@ class ChangesetService:
 
     @staticmethod
     async def close(changeset_id: int) -> None:
-        """
-        Close a changeset.
-        """
+        """Close a changeset."""
         user_id = auth_user(required=True).id
         async with db_commit() as session:
             stmt = (
@@ -89,9 +83,7 @@ class ChangesetService:
     @staticmethod
     @asynccontextmanager
     async def context():
-        """
-        Context manager for closing idle changesets.
-        """
+        """Context manager for closing idle changesets."""
         async with TaskGroup() as tg:
             task = tg.create_task(_process_task())
             yield

@@ -17,9 +17,7 @@ from app.services.email_service import EmailService
 class MessageService:
     @staticmethod
     async def send(recipient: DisplayNameType | int, subject: str, body: str) -> int:
-        """
-        Send a message to a user.
-        """
+        """Send a message to a user."""
         if isinstance(recipient, str):
             recipient_user = await UserQuery.find_one_by_display_name(recipient)
             if recipient_user is None:
@@ -52,9 +50,7 @@ class MessageService:
 
     @staticmethod
     async def set_state(message_id: int, *, is_read: bool) -> None:
-        """
-        Mark a message as read or unread.
-        """
+        """Mark a message as read or unread."""
         async with db_commit() as session:
             stmt = (
                 update(Message)
@@ -70,9 +66,7 @@ class MessageService:
 
     @staticmethod
     async def delete_message(message_id: int) -> None:
-        """
-        Delete a message.
-        """
+        """Delete a message."""
         user_id = auth_user(required=True).id
         async with db_commit() as session:
             stmt = (

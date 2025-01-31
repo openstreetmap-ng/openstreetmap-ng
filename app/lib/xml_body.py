@@ -8,9 +8,7 @@ from app.middlewares.request_context_middleware import get_request
 
 
 def xml_body(path: str) -> params.Depends:
-    """
-    Returns a dependency for extracting XML data from the request body.
-    """
+    """Returns a dependency for extracting XML data from the request body."""
     parts: list[str] = path.split('/')
     bad_xml_name = parts[-1]
     bad_xml_message = f"XML doesn't contain an {path} element."

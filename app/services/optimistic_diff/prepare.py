@@ -169,18 +169,14 @@ class OptimisticDiffPrepare:
             tg.create_task(self._check_members_remote())
 
     async def _set_sequence_id(self) -> None:
-        """
-        Set the current sequence_id.
-        """
+        """Set the current sequence_id."""
         if self.at_sequence_id > 0:
             raise AssertionError('Sequence id must not be set')
         self.at_sequence_id = await ElementQuery.get_current_sequence_id()
         logging.debug('Optimistic preparing at sequence_id %d', self.at_sequence_id)
 
     async def _preload_elements_state(self) -> None:
-        """
-        Preload elements state from the database.
-        """
+        """Preload elements state from the database."""
         # only preload elements that exist in the database (positive id)
         refs: set[ElementRef] = {ref for _, ref in self._elements if ref.id > 0}
         if not refs:
@@ -210,9 +206,7 @@ class OptimisticDiffPrepare:
         await ElementMemberQuery.resolve_members(elements)
 
     async def _preload_elements_parents(self) -> None:
-        """
-        Preload elements parents from the database.
-        """
+        """Preload elements parents from the database."""
         # only preload elements that exist in the database (positive id) and will be deleted
         refs: set[ElementRef] = {
             element_ref
@@ -235,9 +229,7 @@ class OptimisticDiffPrepare:
         }
 
     def _check_element_can_delete(self, element: Element, element_ref: ElementRef) -> bool:
-        """
-        Check if the element can be deleted.
-        """
+        """Check if the element can be deleted."""
         # check if not referenced by element state
         positive_refs = self._reference_override[(element_ref, True)]
         if positive_refs:
@@ -326,9 +318,7 @@ class OptimisticDiffPrepare:
             self._elements_check_members_remote.append((parent_ref, notfound))
 
     async def _check_members_remote(self) -> None:
-        """
-        Check if the members exist and are visible using the database.
-        """
+        """Check if the members exist and are visible using the database."""
         remote_refs: set[ElementRef] = set()
         for _, member_refs in self._elements_check_members_remote:
             remote_refs.update(member_refs)
@@ -347,9 +337,7 @@ class OptimisticDiffPrepare:
                 raise_for.element_member_not_found(parent_ref, hidden_ref)
 
     def _push_bbox_info(self, prev: Element | None, element: Element, element_type: ElementType) -> None:
-        """
-        Push bbox info for later processing.
-        """
+        """Push bbox info for later processing."""
         if element_type == 'node':
             self._push_bbox_node_info(prev, element)
         elif element_type == 'way':
@@ -360,9 +348,7 @@ class OptimisticDiffPrepare:
             raise NotImplementedError(f'Unsupported element type {element_type!r}')
 
     def _push_bbox_node_info(self, prev: Element | None, element: Element) -> None:
-        """
-        Push bbox info for a node.
-        """
+        """Push bbox info for a node."""
         bbox_points = self._bbox_points
         element_point = element.point
         if element_point is not None:
@@ -458,9 +444,7 @@ class OptimisticDiffPrepare:
                         bbox_refs.add(node_ref)
 
     async def _preload_changeset(self) -> None:
-        """
-        Preload changeset state from the database.
-        """
+        """Preload changeset state from the database."""
         # currently, enforce single changeset updates
         changeset_ids: set[int] = {element.changeset_id for element, _ in self._elements}
         if len(changeset_ids) > 1:
@@ -478,9 +462,7 @@ class OptimisticDiffPrepare:
             raise_for.changeset_already_closed(changeset_id, changeset.closed_at)
 
     def _update_changeset_size(self) -> None:
-        """
-        Update and validate changeset size.
-        """
+        """Update and validate changeset size."""
         changeset = self.changeset
         if changeset is None:
             raise AssertionError('Changeset must be set')
@@ -490,9 +472,7 @@ class OptimisticDiffPrepare:
             raise_for.changeset_too_big(new_size)
 
     async def _update_changeset_bounds(self) -> None:
-        """
-        Update changeset bounds using the collected bbox info.
-        """
+        """Update changeset bounds using the collected bbox info."""
         bbox_points = self._bbox_points
         bbox_refs = self._bbox_refs
 

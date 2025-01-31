@@ -12,9 +12,7 @@ from app.middlewares.request_context_middleware import get_request
 
 
 class UnsupportedBrowserMiddleware:
-    """
-    Unsupported browser handling middleware.
-    """
+    """Unsupported browser handling middleware."""
 
     __slots__ = ('app',)
 

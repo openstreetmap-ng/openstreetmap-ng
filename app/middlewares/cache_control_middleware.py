@@ -9,9 +9,7 @@ from app.middlewares.request_context_middleware import get_request
 
 
 class CacheControlMiddleware:
-    """
-    Add Cache-Control header from @cache_control decorator.
-    """
+    """Add Cache-Control header from @cache_control decorator."""
 
     __slots__ = ('app',)
 
@@ -46,9 +44,7 @@ class CacheControlMiddleware:
 
 
 def cache_control(max_age: timedelta, stale: timedelta):
-    """
-    Decorator to set the Cache-Control header for an endpoint.
-    """
+    """Decorator to set the Cache-Control header for an endpoint."""
     header = f'public, max-age={int(max_age.total_seconds())}, stale-while-revalidate={int(stale.total_seconds())}'
 
     def decorator(func):

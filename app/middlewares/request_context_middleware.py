@@ -8,23 +8,17 @@ _context: ContextVar[Request] = ContextVar('RequestContext')
 
 
 def get_request() -> Request:
-    """
-    Get the request from the context.
-    """
+    """Get the request from the context."""
     return _context.get()
 
 
 def get_request_ip() -> IPv4Address | IPv6Address:
-    """
-    Get the request IP address.
-    """
+    """Get the request IP address."""
     return ip_address(_context.get().client.host)  # pyright: ignore[reportOptionalMemberAccess]
 
 
 class RequestContextMiddleware:
-    """
-    Wrap requests in request context.
-    """
+    """Wrap requests in request context."""
 
     __slots__ = ('app',)
 

@@ -38,9 +38,7 @@ class PasswordHash:
         password: PasswordType,
         is_test_user: bool,
     ) -> VerifyResult:
-        """
-        Verify a password against a hash and optional extra data.
-        """
+        """Verify a password against a hash and optional extra data."""
         # test user accepts any password in test environment
         if is_test_user:
             return VerifyResult(success=TEST_ENV, rehash_needed=False)

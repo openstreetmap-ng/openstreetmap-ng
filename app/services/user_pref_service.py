@@ -19,9 +19,7 @@ from app.models.db.user_pref import UserPref
 class UserPrefService:
     @staticmethod
     async def upsert_one(pref: UserPref) -> None:
-        """
-        Set a user preference.
-        """
+        """Set a user preference."""
         async with db_commit() as session:
             logging.debug('Setting user pref %r for app %r', pref.key, pref.app_id)
             stmt = (
@@ -44,9 +42,7 @@ class UserPrefService:
 
     @staticmethod
     async def upsert_many(prefs: Collection[UserPref]) -> None:
-        """
-        Set multiple user preferences.
-        """
+        """Set multiple user preferences."""
         if len(prefs) > USER_PREF_BULK_SET_LIMIT:
             raise_for.pref_bulk_set_limit_exceeded()
 
@@ -77,9 +73,7 @@ class UserPrefService:
 
     @staticmethod
     async def delete_by_app_key(app_id: int | None, key: str) -> None:
-        """
-        Delete a user preference by app id and key.
-        """
+        """Delete a user preference by app id and key."""
         async with db_commit() as session:
             logging.debug('Deleting user pref %r for app %r', key, app_id)
             stmt = delete(UserPref).where(
@@ -91,9 +85,7 @@ class UserPrefService:
 
     @staticmethod
     async def delete_by_app(app_id: int | None) -> None:
-        """
-        Delete all user preferences by app id.
-        """
+        """Delete all user preferences by app id."""
         async with db_commit() as session:
             logging.debug('Deleting user prefs for app %r', app_id)
             stmt = delete(UserPref).where(

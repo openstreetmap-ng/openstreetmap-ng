@@ -5,9 +5,7 @@ from app.services.auth_service import AuthService
 
 
 class AuthMiddleware:
-    """
-    Wrap requests in auth context.
-    """
+    """Wrap requests in auth context."""
 
     __slots__ = ('app',)
 

@@ -19,9 +19,7 @@ class UserTokenQuery:
     async def find_one_by_token_struct(
         model: type[_T], token_struct: UserTokenStruct, *, check_email_hash: bool = True
     ) -> _T | None:
-        """
-        Find a user token by token struct.
-        """
+        """Find a user token by token struct."""
         async with db() as session:
             stmt = select(model).where(
                 model.id == token_struct.id,

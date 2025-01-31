@@ -5,9 +5,7 @@ from app.middlewares.request_context_middleware import get_request
 
 
 class LocalhostRedirectMiddleware:
-    """
-    Simply redirect localhost requests to 127.0.0.1 for consistency.
-    """
+    """Simply redirect localhost requests to 127.0.0.1 for consistency."""
 
     __slots__ = ('app',)
 

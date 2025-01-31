@@ -6,9 +6,7 @@ from app.middlewares.request_context_middleware import get_request
 
 
 class LimitUrlSizeMiddleware:
-    """
-    URL size limiting middleware.
-    """
+    """URL size limiting middleware."""
 
     __slots__ = ('app',)
 

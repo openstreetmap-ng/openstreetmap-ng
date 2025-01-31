@@ -70,9 +70,7 @@ class Image:
 
     @staticmethod
     async def normalize_avatar(data: bytes) -> bytes:
-        """
-        Normalize the avatar image.
-        """
+        """Normalize the avatar image."""
         return await _normalize_image(
             data,
             min_ratio=1 / AVATAR_MAX_RATIO,
@@ -96,9 +94,7 @@ class Image:
 
     @staticmethod
     async def normalize_background(data: bytes) -> bytes:
-        """
-        Normalize the background image.
-        """
+        """Normalize the background image."""
         return await _normalize_image(
             data,
             min_ratio=1 / BACKGROUND_MAX_RATIO,

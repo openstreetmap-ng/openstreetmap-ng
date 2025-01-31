@@ -29,9 +29,7 @@ class ConnectedAccountService:
 
     @staticmethod
     async def remove_connection(provider: AuthProvider) -> None:
-        """
-        Remove an external account connection from the current user.
-        """
+        """Remove an external account connection from the current user."""
         user_id = auth_user(required=True).id
         async with db_commit() as session:
             stmt = delete(ConnectedAccount).where(

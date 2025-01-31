@@ -53,9 +53,7 @@ class FileCache:
         return entry.data
 
     async def set(self, key: str, data: bytes, *, ttl: timedelta | None) -> None:
-        """
-        Set a value in the file cache by key string.
-        """
+        """Set a value in the file cache by key string."""
         path = _get_path(self._base_dir, key)
         path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -73,17 +71,13 @@ class FileCache:
         temp_path.rename(path)
 
     def delete(self, key: str) -> None:
-        """
-        Delete a key from the file cache.
-        """
+        """Delete a key from the file cache."""
         path = _get_path(self._base_dir, key)
         path.unlink(missing_ok=True)
 
     # TODO: runner, with lock
     async def cleanup(self):
-        """
-        Cleanup the file cache, removing stale entries.
-        """
+        """Cleanup the file cache, removing stale entries."""
         infos: list[_CleanupInfo] = []
         total_size: int = 0
         limit_size: int = FILE_CACHE_SIZE_GB * 1024 * 1024 * 1024

@@ -25,9 +25,7 @@ class GravatarStorage(StorageBase):
 
     @override
     async def load(self, key: str) -> bytes:
-        """
-        Load an avatar from Gravatar by email.
-        """
+        """Load an avatar from Gravatar by email."""
         key_hashed = md5(key.lower().encode()).hexdigest()  # noqa: S324
         data = await self._fc.get(key)
         if data is not None:

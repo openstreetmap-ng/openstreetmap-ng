@@ -10,9 +10,7 @@ from app.models.db.user_pref import UserPref
 class UserPrefQuery:
     @staticmethod
     async def find_one_by_app_key(app_id: int | None, key: str) -> UserPref | None:
-        """
-        Find a user preference by app id and key.
-        """
+        """Find a user preference by app id and key."""
         async with db() as session:
             stmt = (
                 select(UserPref)
@@ -27,9 +25,7 @@ class UserPrefQuery:
 
     @staticmethod
     async def find_many_by_app(app_id: int | None) -> Sequence[UserPref]:
-        """
-        Find all user preferences by app id.
-        """
+        """Find all user preferences by app id."""
         async with db() as session:
             stmt = select(UserPref).where(
                 UserPref.user_id == auth_user(required=True).id,

@@ -50,9 +50,7 @@ class NominatimPlace(TypedDict):
 class NominatimQuery:
     @staticmethod
     async def reverse(point: Point, zoom: int = 14) -> SearchResult | None:
-        """
-        Reverse geocode a point into a human-readable name.
-        """
+        """Reverse geocode a point into a human-readable name."""
         x, y = get_coordinates(point)[0].tolist()
         path = '/reverse?' + urlencode(
             {
@@ -91,9 +89,7 @@ class NominatimQuery:
         at_sequence_id: int | None,
         limit: int,
     ) -> list[SearchResult]:
-        """
-        Search for a location by name and optional bounds.
-        """
+        """Search for a location by name and optional bounds."""
         polygons = bounds.geoms if isinstance(bounds, MultiPolygon) else (bounds,)
 
         async with TaskGroup() as tg:
@@ -172,9 +168,7 @@ async def _get_search_result(
     at_sequence_id: int | None,
     response_entries: Iterable[NominatimPlace],
 ) -> list[SearchResult]:
-    """
-    Convert nominatim places into search results.
-    """
+    """Convert nominatim places into search results."""
     refs: list[ElementRef] = []
     entries: list[NominatimPlace] = []
     for entry in response_entries:

@@ -65,9 +65,7 @@ class TraceFile:
 
     @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
-        """
-        Decompress the trace file buffer if needed.
-        """
+        """Decompress the trace file buffer if needed."""
         return _ZstdProcessor.decompress(buffer) if file_id.endswith(_ZstdProcessor.suffix) else buffer
 
 
@@ -77,9 +75,7 @@ class _TraceProcessor(ABC):
     @classmethod
     @abstractmethod
     def decompress(cls, buffer: bytes) -> Collection[bytes] | bytes:
-        """
-        Decompress the buffer and return files data or a subsequent buffer.
-        """
+        """Decompress the buffer and return files data or a subsequent buffer."""
         ...
 
 

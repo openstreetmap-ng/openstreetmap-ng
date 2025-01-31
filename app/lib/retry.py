@@ -9,9 +9,7 @@ import cython
 
 
 def retry(timeout: timedelta | None, *, sleep_init: cython.double = 0.15, sleep_limit: cython.double = 300):
-    """
-    Decorator to retry a function until it succeeds or the timeout is reached.
-    """
+    """Decorator to retry a function until it succeeds or the timeout is reached."""
     timeout_seconds: cython.double = 0 if timeout is None else timeout.total_seconds()
 
     def decorator(func):

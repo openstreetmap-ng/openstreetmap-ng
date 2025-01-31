@@ -116,9 +116,7 @@ async def _update_elements(
     now: datetime,
     session: AsyncSession,
 ) -> None:
-    """
-    Update the element table by creating new revisions.
-    """
+    """Update the element table by creating new revisions."""
     async with TaskGroup() as tg:
         current_sequence_task = tg.create_task(ElementQuery.get_current_sequence_id())
         current_id_task = tg.create_task(ElementQuery.get_current_ids())
@@ -181,9 +179,7 @@ async def _update_elements_db(
     insert_members: Collection[ElementMember],
     session: AsyncSession,
 ) -> None:
-    """
-    Update the element table by creating new revisions - push prepared data to the database.
-    """
+    """Update the element table by creating new revisions - push prepared data to the database."""
     logging.info('Inserting %d elements and %d members', len(insert_elements), len(insert_members))
     async with _flush_lock:
         session.add_all(insert_elements)

@@ -21,9 +21,7 @@ from app.services.email_service import EmailService
 class UserTokenAccountConfirmService:
     @staticmethod
     async def send_email() -> None:
-        """
-        Send a confirmation email for the current user.
-        """
+        """Send a confirmation email for the current user."""
         app_domain = urlsplit(APP_URL).netloc
         token = await _create_token()
         await EmailService.schedule(
@@ -37,9 +35,7 @@ class UserTokenAccountConfirmService:
 
     @staticmethod
     async def confirm(token_struct: UserTokenStruct) -> None:
-        """
-        Confirm a user account.
-        """
+        """Confirm a user account."""
         token = await UserTokenQuery.find_one_by_token_struct(UserTokenAccountConfirm, token_struct)
         if token is None:
             raise_for.bad_user_token_struct()
@@ -63,9 +59,7 @@ class UserTokenAccountConfirmService:
 
 
 async def _create_token() -> UserTokenStruct:
-    """
-    Create a new user account confirmation token.
-    """
+    """Create a new user account confirmation token."""
     user = auth_user(required=True)
     user_email_hashed = hash_bytes(user.email)
     token_bytes = buffered_randbytes(32)

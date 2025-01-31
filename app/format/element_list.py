@@ -16,9 +16,7 @@ class FormatElementList:
     async def changeset_elements(
         elements: Collection[Element],
     ) -> dict[ElementType, list[PartialChangesetParams.Element]]:
-        """
-        Format elements for displaying on the website (icons, strikethrough, sort).
-        """
+        """Format elements for displaying on the website (icons, strikethrough, sort)."""
         # element.version > 1 is mostly redundant
         # but ensures backward-compatible compliance for PositiveInt
         prev_refs: tuple[VersionedElementRef, ...] = tuple(

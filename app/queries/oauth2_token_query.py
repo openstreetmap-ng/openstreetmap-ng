@@ -13,9 +13,7 @@ from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 class OAuth2TokenQuery:
     @staticmethod
     async def find_one_authorized_by_token(access_token: str) -> OAuth2Token | None:
-        """
-        Find an authorized OAuth2 token by token string.
-        """
+        """Find an authorized OAuth2 token by token string."""
         access_token_hashed = hash_bytes(access_token)
         async with db() as session:
             stmt = select(OAuth2Token).where(
@@ -32,9 +30,7 @@ class OAuth2TokenQuery:
         *,
         limit: int | None,
     ) -> Sequence[OAuth2Token]:
-        """
-        Find all authorized OAuth2 tokens for the given user and app id.
-        """
+        """Find all authorized OAuth2 tokens for the given user and app id."""
         async with db() as session:
             stmt = (
                 select(OAuth2Token)
@@ -59,9 +55,7 @@ class OAuth2TokenQuery:
         *,
         limit: int | None,
     ) -> Sequence[OAuth2Token]:
-        """
-        Find all authorized tokens for the given user and client id.
-        """
+        """Find all authorized tokens for the given user and client id."""
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None:
             return ()
@@ -73,9 +67,7 @@ class OAuth2TokenQuery:
         *,
         limit: int | None,
     ) -> Sequence[OAuth2Token]:
-        """
-        Find all PAT tokens (authorized or not) for the given user.
-        """
+        """Find all PAT tokens (authorized or not) for the given user."""
         app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']
         async with db() as session:
             stmt = (
@@ -99,9 +91,7 @@ class OAuth2TokenQuery:
 
     @staticmethod
     async def find_unique_per_app_by_user_id(user_id: int) -> Sequence[OAuth2Token]:
-        """
-        Find unique OAuth2 tokens per app for the given user.
-        """
+        """Find unique OAuth2 tokens per app for the given user."""
         async with db() as session:
             subq = (
                 select(func.max(OAuth2Token.id))

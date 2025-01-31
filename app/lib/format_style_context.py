@@ -55,35 +55,25 @@ def format_style_context():
 
 
 def format_style() -> FormatStyle:
-    """
-    Get the configured format style.
-    """
+    """Get the configured format style."""
     return _context.get()
 
 
 def format_is_json() -> bool:
-    """
-    Check if the format style is JSON.
-    """
+    """Check if the format style is JSON."""
     return _context.get() == 'json'
 
 
 def format_is_xml() -> bool:
-    """
-    Check if the format style is XML.
-    """
+    """Check if the format style is XML."""
     return _context.get() == 'xml'
 
 
 def format_is_rss() -> bool:
-    """
-    Check if the format style is RSS.
-    """
+    """Check if the format style is RSS."""
     return _context.get() == 'rss'
 
 
 def format_is_gpx() -> bool:
-    """
-    Check if the format style is GPX.
-    """
+    """Check if the format style is GPX."""
     return _context.get() == 'gpx'

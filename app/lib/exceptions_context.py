@@ -9,9 +9,7 @@ _context: ContextVar[Exceptions] = ContextVar('ExceptionsContext')
 
 @contextmanager
 def exceptions_context(implementation: Exceptions):
-    """
-    Context manager for setting the exceptions type in ContextVar.
-    """
+    """Context manager for setting the exceptions type in ContextVar."""
     token = _context.set(implementation)
     try:
         yield

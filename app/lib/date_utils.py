@@ -43,9 +43,7 @@ def format_sql_date(date: datetime | None) -> str:
 
 
 def format_rfc2822_date(date: datetime) -> str:
-    """
-    Format a datetime object as an RFC2822 date string.
-    """
+    """Format a datetime object as an RFC2822 date string."""
     fmt = 'ddd, DD MMM YYYY HH:mm:ss Z'
     date_ = arrow.get(date)
     try:
@@ -55,9 +53,7 @@ def format_rfc2822_date(date: datetime) -> str:
 
 
 def format_short_date(date: datetime) -> str:
-    """
-    Format a datetime object as a short date string (MMMM D, YYYY).
-    """
+    """Format a datetime object as a short date string (MMMM D, YYYY)."""
     fmt = 'MMMM D, YYYY'
     date_ = arrow.get(date)
     try:
@@ -67,9 +63,7 @@ def format_short_date(date: datetime) -> str:
 
 
 def get_month_name(date: datetime, *, short: bool) -> str:
-    """
-    Get the name of the month of a datetime object.
-    """
+    """Get the name of the month of a datetime object."""
     fmt = 'MMM' if short else 'MMMM'
     date_ = arrow.get(date)
     try:
@@ -79,9 +73,7 @@ def get_month_name(date: datetime, *, short: bool) -> str:
 
 
 def get_weekday_name(date: datetime, *, short: bool) -> str:
-    """
-    Get the name of the weekday of a datetime object.
-    """
+    """Get the name of the weekday of a datetime object."""
     fmt = 'ddd' if short else 'dddd'
     date_ = arrow.get(date)
     try:
@@ -91,9 +83,7 @@ def get_weekday_name(date: datetime, *, short: bool) -> str:
 
 
 def utcnow() -> datetime:
-    """
-    Return a datetime object representing the current time in UTC.
-    """
+    """Return a datetime object representing the current time in UTC."""
     return datetime.now(UTC)
 
 

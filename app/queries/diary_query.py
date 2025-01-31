@@ -14,9 +14,7 @@ from app.queries.nominatim_query import NominatimQuery
 class DiaryQuery:
     @staticmethod
     async def find_one_by_id(diary_id: int) -> Diary | None:
-        """
-        Find a diary by id.
-        """
+        """Find a diary by id."""
         async with db() as session:
             stmt = select(Diary).where(Diary.id == diary_id)
             stmt = apply_options_context(stmt)
@@ -24,9 +22,7 @@ class DiaryQuery:
 
     @staticmethod
     async def count_by_user_id(user_id: int) -> int:
-        """
-        Count diaries by user id.
-        """
+        """Count diaries by user id."""
         async with db() as session:
             stmt = select(func.count()).select_from(
                 select(text('1'))
@@ -46,9 +42,7 @@ class DiaryQuery:
         before: int | None = None,
         limit: int,
     ) -> Sequence[Diary]:
-        """
-        Find recent diaries.
-        """
+        """Find recent diaries."""
         if user_id is not None and language is not None:
             # prevent accidental index miss
             raise AssertionError('user_id and language cannot be both set')
@@ -76,9 +70,7 @@ class DiaryQuery:
 
     @staticmethod
     async def resolve_location_name(diaries: Iterable[Diary]) -> None:
-        """
-        Resolve location name fields for diaries.
-        """
+        """Resolve location name fields for diaries."""
 
         async def task(diary: Diary) -> None:
             try:

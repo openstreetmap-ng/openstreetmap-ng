@@ -38,9 +38,7 @@ SMTP_PASS = os.environ['SMTP_PASS']
 
 
 def _path(s: str, *, mkdir: bool = False) -> Path:
-    """
-    Convert a string to a Path object and resolve it.
-    """
+    """Convert a string to a Path object and resolve it."""
     p = Path(s)
     with contextlib.suppress(FileNotFoundError):
         p = p.resolve(strict=True)

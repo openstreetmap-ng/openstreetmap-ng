@@ -10,9 +10,7 @@ from app.models.types import StorageKey
 
 
 class LocalStorage(StorageBase):
-    """
-    Local file storage.
-    """
+    """Local file storage."""
 
     __slots__ = ('_base_dir',)
 

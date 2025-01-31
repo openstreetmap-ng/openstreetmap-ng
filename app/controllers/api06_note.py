@@ -333,9 +333,7 @@ async def query_notes2(
 
 
 async def _resolve_comments_full(notes_or_comments: Sequence[Note] | Sequence[NoteComment]) -> None:
-    """
-    Resolve note comments, their rich text and users.
-    """
+    """Resolve note comments, their rich text and users."""
     if not notes_or_comments:
         return
 

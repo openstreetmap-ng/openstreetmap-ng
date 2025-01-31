@@ -25,9 +25,7 @@ _PARSER = tree.XMLParser(
 class XMLToDict:
     @staticmethod
     def parse(xml_bytes: bytes, *, size_limit: int | None = XML_PARSE_MAX_SIZE) -> dict[str, Any]:
-        """
-        Parse XML string to dict.
-        """
+        """Parse XML string to dict."""
         if (size_limit is not None) and len(xml_bytes) > size_limit:
             raise_for.input_too_big(len(xml_bytes))
         logging.debug('Parsing %s XML string', sizestr(len(xml_bytes)))
@@ -48,9 +46,7 @@ class XMLToDict:
 
     @staticmethod
     def unparse(d: dict[str, Any], *, raw: bool = False) -> str | bytes:
-        """
-        Unparse dict to XML string.
-        """
+        """Unparse dict to XML string."""
         # TODO: ensure valid XML charset (encode if necessary) /user/小智智/traces/10908782
         if len(d) != 1:
             raise ValueError(f'Invalid root element count {len(d)}')

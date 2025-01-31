@@ -6,9 +6,7 @@ from app.models.tags_format import TagFormat
 
 
 def tags_diff_mode(previous_element: Element | None, elements_data: tuple[dict, ...]) -> None:
-    """
-    Update tags data to include necessary tags diff mode information.
-    """
+    """Update tags data to include necessary tags diff mode information."""
     added_tags: list[tuple[str, TagFormat]] = []
     modified_tags: list[tuple[str, TagFormat]] = []
     unchanged_tags: list[tuple[str, TagFormat]] = []

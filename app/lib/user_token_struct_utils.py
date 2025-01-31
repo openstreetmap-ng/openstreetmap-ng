@@ -16,9 +16,7 @@ else:
 class UserTokenStructUtils:
     @staticmethod
     def from_str(s: SecretStr) -> UserTokenStruct:
-        """
-        Parse the given string into a user token struct.
-        """
+        """Parse the given string into a user token struct."""
         try:
             return UserTokenStruct.FromString(b32decode(_add_b32_padding(s.get_secret_value()), casefold=True))
         except DecodeError:
@@ -26,9 +24,7 @@ class UserTokenStructUtils:
 
     @staticmethod
     def to_str(u: UserTokenStruct) -> str:
-        """
-        Convert the given user token struct into a string.
-        """
+        """Convert the given user token struct into a string."""
         return b32encode(u.SerializeToString()).rstrip(b'=').lower().decode('ascii')
 
 

@@ -15,9 +15,7 @@ from app.models.db.changeset_comment import ChangesetComment
 class ChangesetCommentQuery:
     @staticmethod
     async def get_comments_page(changeset_id: int, page: int, num_items: int) -> Sequence[ChangesetComment]:
-        """
-        Get comments for the given changeset comments page.
-        """
+        """Get comments for the given changeset comments page."""
         stmt_limit, stmt_offset = standard_pagination_range(
             page,
             page_size=CHANGESET_COMMENTS_PAGE_SIZE,
@@ -36,9 +34,7 @@ class ChangesetCommentQuery:
 
     @staticmethod
     async def resolve_num_comments(changesets: Iterable[Changeset]) -> None:
-        """
-        Resolve the number of comments for each changeset.
-        """
+        """Resolve the number of comments for each changeset."""
         changeset_id_map = {changeset.id: changeset for changeset in changesets}
         if not changeset_id_map:
             return
@@ -67,9 +63,7 @@ class ChangesetCommentQuery:
         limit_per_changeset: int | None,
         resolve_rich_text: bool = True,
     ) -> None:
-        """
-        Resolve comments for changesets.
-        """
+        """Resolve comments for changesets."""
         if not changesets:
             return
         id_comments_map: dict[int, list[ChangesetComment]] = {}

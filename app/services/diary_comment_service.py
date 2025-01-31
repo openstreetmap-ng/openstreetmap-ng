@@ -19,9 +19,7 @@ from app.services.user_subscription_service import UserSubscriptionService
 class DiaryCommentService:
     @staticmethod
     async def comment(diary_id: int, body: str) -> None:
-        """
-        Create a new diary comment.
-        """
+        """Create a new diary comment."""
         user = auth_user(required=True)
         async with db_commit() as session:
             comment = DiaryComment(
@@ -38,9 +36,7 @@ class DiaryCommentService:
 
     @staticmethod
     async def delete(comment_id: int, *, current_user_id: int | None) -> None:
-        """
-        Delete a diary comment.
-        """
+        """Delete a diary comment."""
         async with db_commit() as session:
             stmt = delete(DiaryComment)
             where_and = [DiaryComment.id == comment_id]

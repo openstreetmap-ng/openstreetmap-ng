@@ -30,9 +30,7 @@ from app.validators.url import UriValidator
 class OAuth2ApplicationService:
     @staticmethod
     async def create(*, name: str) -> int:
-        """
-        Create an OAuth2 application.
-        """
+        """Create an OAuth2 application."""
         user_id = auth_user(required=True).id
         client_id = buffered_rand_urlsafe(32)
 
@@ -94,9 +92,7 @@ class OAuth2ApplicationService:
         scopes: tuple[Scope, ...],
         revoke_all_authorizations: bool,
     ) -> None:
-        """
-        Update an OAuth2 application.
-        """
+        """Update an OAuth2 application."""
         async with db_commit() as session:
             stmt = (
                 update(OAuth2Application)
@@ -157,9 +153,7 @@ class OAuth2ApplicationService:
 
     @staticmethod
     async def reset_client_secret(app_id: int) -> SecretStr:
-        """
-        Reset the client secret and return the new one.
-        """
+        """Reset the client secret and return the new one."""
         client_secret = buffered_rand_urlsafe(32)
         client_secret_hashed = hash_bytes(client_secret)
         async with db_commit() as session:
@@ -182,9 +176,7 @@ class OAuth2ApplicationService:
 
     @staticmethod
     async def delete(app_id: int) -> None:
-        """
-        Delete an OAuth2 application.
-        """
+        """Delete an OAuth2 application."""
         async with db_commit() as session:
             stmt = delete(OAuth2Application).where(
                 OAuth2Application.id == app_id,

@@ -18,9 +18,7 @@ from app.models.types import DisplayNameType, EmailType
 class UserQuery:
     @staticmethod
     async def find_one_by_id(user_id: int) -> User | None:
-        """
-        Find a user by id.
-        """
+        """Find a user by id."""
         async with db() as session:
             stmt = select(User).where(User.id == user_id)
             stmt = apply_options_context(stmt)
@@ -28,9 +26,7 @@ class UserQuery:
 
     @staticmethod
     async def find_one_by_display_name(display_name: DisplayNameType) -> User | None:
-        """
-        Find a user by display name.
-        """
+        """Find a user by display name."""
         async with db() as session:
             stmt = select(User).where(User.display_name == display_name)
             stmt = apply_options_context(stmt)
@@ -38,9 +34,7 @@ class UserQuery:
 
     @staticmethod
     async def find_one_by_email(email: EmailType) -> User | None:
-        """
-        Find a user by email.
-        """
+        """Find a user by email."""
         async with db() as session:
             stmt = select(User).where(User.email == email)
             stmt = apply_options_context(stmt)
@@ -48,9 +42,7 @@ class UserQuery:
 
     @staticmethod
     async def find_many_by_ids(user_ids: Collection[int]) -> Sequence[User]:
-        """
-        Find users by ids.
-        """
+        """Find users by ids."""
         if not user_ids:
             return ()
         async with db() as session:
@@ -88,9 +80,7 @@ class UserQuery:
 
     @staticmethod
     async def check_display_name_available(display_name: DisplayNameType) -> bool:
-        """
-        Check if a display name is available.
-        """
+        """Check if a display name is available."""
         user = auth_user()
         # check if the name is unchanged
         if user is not None and user.display_name == display_name:
@@ -104,9 +94,7 @@ class UserQuery:
 
     @staticmethod
     async def check_email_available(email: EmailType) -> bool:
-        """
-        Check if an email is available.
-        """
+        """Check if an email is available."""
         user = auth_user()
         # check if the email is unchanged
         if user is not None and user.email == email:

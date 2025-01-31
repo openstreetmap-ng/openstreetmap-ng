@@ -20,9 +20,7 @@ def validate_geometry(value: T) -> T: ...
 
 
 def validate_geometry(value: dict[str, Any] | T) -> BaseGeometry | T:
-    """
-    Validate a geometry.
-    """
+    """Validate a geometry."""
     geom: BaseGeometry = shape(value) if isinstance(value, dict) else value
     coords = lib.get_coordinates(np.asarray(geom, dtype=np.object_), False, False)
     if not np.all(

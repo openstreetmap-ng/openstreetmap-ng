@@ -32,9 +32,7 @@ class SystemApp(NamedTuple):
 class SystemAppService:
     @staticmethod
     async def on_startup():
-        """
-        Register and update system apps in the database.
-        """
+        """Register and update system apps in the database."""
         async with TaskGroup() as tg:
             for app in (
                 SystemApp(
@@ -74,9 +72,7 @@ class SystemAppService:
 
     @staticmethod
     async def create_access_token(client_id: str, *, user_id: int | None = None) -> SecretStr:
-        """
-        Create an OAuth2-based access token for the given system app.
-        """
+        """Create an OAuth2-based access token for the given system app."""
         if user_id is None:
             user_id = auth_user(required=True).id
 
@@ -108,9 +104,7 @@ class SystemAppService:
 
 
 async def _register_app(app: SystemApp) -> None:
-    """
-    Register a system app.
-    """
+    """Register a system app."""
     logging.info('Registering system app %r', app.name)
     async with db_commit() as session:
         stmt = (

@@ -11,9 +11,7 @@ from app.models.db.user_subscription import UserSubscription, UserSubscriptionTa
 class UserSubscriptionService:
     @staticmethod
     async def subscribe(target: UserSubscriptionTarget, target_id: int) -> None:
-        """
-        Subscribe the user to the target.
-        """
+        """Subscribe the user to the target."""
         user_id = auth_user(required=True).id
         async with db_commit() as session:
             stmt = (
@@ -35,9 +33,7 @@ class UserSubscriptionService:
 
     @staticmethod
     async def unsubscribe(target: UserSubscriptionTarget, target_id: int) -> None:
-        """
-        Unsubscribe the user from the target.
-        """
+        """Unsubscribe the user from the target."""
         user_id = auth_user(required=True).id
         async with db_commit() as session:
             stmt = delete(UserSubscription).where(

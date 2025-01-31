@@ -144,9 +144,7 @@ main.mount(
 
 
 def _make_router(path: pathlib.Path, prefix: str) -> APIRouter:
-    """
-    Create a router from all modules in the given path.
-    """
+    """Create a router from all modules in the given path."""
     router = APIRouter(prefix=prefix)
     router_counter: int = 0
     routes_counter: int = 0

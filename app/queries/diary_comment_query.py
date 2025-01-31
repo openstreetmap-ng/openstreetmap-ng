@@ -13,9 +13,7 @@ from app.models.db.diary_comment import DiaryComment
 class DiaryCommentQuery:
     @staticmethod
     async def count_by_user_id(user_id: int) -> int:
-        """
-        Count diary comments by user id.
-        """
+        """Count diary comments by user id."""
         async with db() as session:
             stmt = select(func.count()).select_from(
                 select(text('1'))
@@ -28,9 +26,7 @@ class DiaryCommentQuery:
 
     @staticmethod
     async def find_one_by_id(comment_id: int) -> DiaryComment | None:
-        """
-        Find a diary comment by id.
-        """
+        """Find a diary comment by id."""
         async with db() as session:
             stmt = select(DiaryComment).where(DiaryComment.id == comment_id)
             stmt = apply_options_context(stmt)
@@ -44,9 +40,7 @@ class DiaryCommentQuery:
         after: int | None = None,
         limit: int,
     ) -> Sequence[DiaryComment]:
-        """
-        Find comments by user id.
-        """
+        """Find comments by user id."""
         async with db() as session:
             stmt = select(DiaryComment)
             where_and = [DiaryComment.user_id == user_id]
@@ -71,9 +65,7 @@ class DiaryCommentQuery:
         page: int,
         num_items: int,
     ) -> Sequence[DiaryComment]:
-        """
-        Get comments for the given diary page.
-        """
+        """Get comments for the given diary page."""
         stmt_limit, stmt_offset = standard_pagination_range(
             page,
             page_size=DIARY_COMMENTS_PAGE_SIZE,
@@ -92,9 +84,7 @@ class DiaryCommentQuery:
 
     @staticmethod
     async def resolve_num_comments(diaries: Iterable[Diary]) -> None:
-        """
-        Resolve the number of comments for each changeset.
-        """
+        """Resolve the number of comments for each changeset."""
         diary_id_map = {diary.id: diary for diary in diaries}
         if not diary_id_map:
             return

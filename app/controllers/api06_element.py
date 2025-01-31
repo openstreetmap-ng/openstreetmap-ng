@@ -102,8 +102,7 @@ async def get_many(
 ):
     if not query:
         return Response(
-            f'The parameter {type}s is required, and must be of the form '
-            f'{type}s=ID[vVER][,ID[vVER][,ID[vVER]...]].',
+            f'The parameter {type}s is required, and must be of the form {type}s=ID[vVER][,ID[vVER][,ID[vVER]...]].',
             status.HTTP_400_BAD_REQUEST,
         )
 
@@ -232,16 +231,12 @@ async def get_parent_ways(id: Annotated[ElementId, PositiveInt]):
 def _get_element_data(
     elements: Iterable[tuple[ElementType, dict]], type: ElementType
 ) -> tuple[ElementType, dict] | None:
-    """
-    Get the first element of the given type from the sequence of elements.
-    """
+    """Get the first element of the given type from the sequence of elements."""
     return next((s for s in elements if s[0] == type), None)
 
 
 async def _encode_element(element: Element):
-    """
-    Resolve required data fields for element and encode it.
-    """
+    """Resolve required data fields for element and encode it."""
     elements = (element,)
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_elements_users(elements, display_name=True))
@@ -250,9 +245,7 @@ async def _encode_element(element: Element):
 
 
 async def _encode_elements(elements: Collection[Element]):
-    """
-    Resolve required data fields for elements and encode them.
-    """
+    """Resolve required data fields for elements and encode them."""
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_elements_users(elements, display_name=True))
         tg.create_task(ElementMemberQuery.resolve_members(elements))
