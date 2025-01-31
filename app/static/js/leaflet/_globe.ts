@@ -14,7 +14,7 @@ export class CustomGlobeControl extends GlobeControl {
         })
         const icon = document.createElement("img")
         icon.className = "icon globe"
-        icon.src = "/static/img/leaflet/_generated/geolocate.webp" // TODO: Replace with proper icon
+        icon.src = "/static/img/leaflet/_generated/globe.webp"
         button.replaceChildren(icon)
         return container
     }
