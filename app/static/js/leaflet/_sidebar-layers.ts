@@ -109,8 +109,10 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
                 center: map.getCenter(),
                 zoom: Math.max(map.getZoom() - minimapZoomOut, 0),
             }
+            console.log(map.getProjection())
             for (const minimap of minimaps) {
                 minimap.easeTo(options)
+                minimap.setProjection(map.getProjection())
             }
         })
 
