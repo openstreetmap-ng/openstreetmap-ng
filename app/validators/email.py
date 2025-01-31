@@ -65,8 +65,11 @@ async def validate_email_deliverability(email: str) -> bool:
 
     async def factory() -> bytes:
         logging.debug('Email domain deliverability cache miss for %r', domain)
-        success = await _check_domain_deliverability(domain)
-        return b'\xff' if success else b'\x00'
+        return (
+            b'\xff'  #
+            if await _check_domain_deliverability(domain)
+            else b'\x00'
+        )
 
     cache_entry = await CacheService.get(
         domain,
@@ -128,5 +131,3 @@ async def _check_domain_deliverability(domain: str) -> bool:
 
 EmailValidator = AfterValidator(validate_email)
 ValidatingEmailType = Annotated[EmailType, EmailValidator, MinLen(EMAIL_MIN_LENGTH), MaxLen(EMAIL_MAX_LENGTH)]
-
-__all__ = ('ValidatingEmailType',)

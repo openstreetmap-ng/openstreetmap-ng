@@ -16,8 +16,6 @@ from app.utils import HTTP
 OSRMProfile = Literal['car', 'bike', 'foot']
 OSRMProfiles: frozenset[OSRMProfile] = frozenset(get_args(OSRMProfile))
 
-__all__ = ('OSRMProfiles',)
-
 
 class OSRMQuery:
     @staticmethod

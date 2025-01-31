@@ -13,8 +13,6 @@ from app.utils import HTTP
 GraphHopperProfile = Literal['car', 'bike', 'foot']
 GraphHopperProfiles: frozenset[GraphHopperProfile] = frozenset(get_args(GraphHopperProfile))
 
-__all__ = ('GraphHopperProfiles',)
-
 
 class GraphHopperQuery:
     @staticmethod

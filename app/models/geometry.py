@@ -21,17 +21,6 @@ MultiPolygonGeometry = Annotated[Polygon | MultiPolygon, GeometryValidator]
 Longitude = Annotated[float, Interval(ge=-180, le=180)]
 Latitude = Annotated[float, Interval(ge=-90, le=90)]
 Zoom = Annotated[int, Interval(ge=0, le=25)]
-# TODO: test if type matches after validation
-
-__all__ = (
-    'Geometry',
-    'Latitude',
-    'Longitude',
-    'MultiPolygonGeometry',
-    'PointGeometry',
-    'PolygonGeometry',
-    'Zoom',
-)
 
 
 class _GeometryType(UserDefinedType, ABC):

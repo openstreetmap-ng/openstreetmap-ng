@@ -13,8 +13,6 @@ from app.utils import HTTP
 ValhallaProfile = Literal['auto', 'bicycle', 'pedestrian']
 ValhallaProfiles: frozenset[ValhallaProfile] = frozenset(get_args(ValhallaProfile))
 
-__all__ = ('ValhallaProfiles',)
-
 
 class ValhallaQuery:
     @staticmethod

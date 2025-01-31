@@ -12,5 +12,3 @@ class AuthProvider(str, Enum):
 
 
 AuthProviderAction = Literal['login', 'signup', 'settings']
-
-__all__ = ('AuthProviderAction',)

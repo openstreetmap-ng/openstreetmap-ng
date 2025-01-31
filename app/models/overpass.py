@@ -64,8 +64,3 @@ class OverpassRelation(_OverpassElement):
 
 OverpassElement = OverpassNode | OverpassWay | OverpassRelation
 OverpassElementMember = OverpassNodeMember | OverpassWayMember | OverpassRelationMember
-
-__all__ = (
-    'OverpassElement',
-    'OverpassElementMember',
-)

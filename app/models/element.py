@@ -4,17 +4,15 @@ from typing import Literal, NamedTuple, NewType, Self, override
 ElementId = NewType('ElementId', int)
 ElementType = Literal['node', 'way', 'relation']
 
-__all__ = ('ElementId', 'ElementType')
-
 
 @lru_cache(maxsize=512)
 def element_type(s: str) -> ElementType:
     """
     Get the element type from the given string.
 
-    >>> _element_type('node')
+    >>> element_type('node')
     'node'
-    >>> _element_type('w123')
+    >>> element_type('w123')
     'way'
     """
     if len(s) == 0:
@@ -23,12 +21,11 @@ def element_type(s: str) -> ElementType:
     c = s[0]
     if c == 'n':
         return 'node'
-    elif c == 'w':
+    if c == 'w':
         return 'way'
-    elif c == 'r':
+    if c == 'r':
         return 'relation'
-    else:
-        raise ValueError(f'Unknown element type {s!r}')
+    raise ValueError(f'Unknown element type {s!r}')
 
 
 class ElementRef(NamedTuple):
@@ -44,17 +41,17 @@ class ElementRef(NamedTuple):
         ElementRef(type='node', id=123)
         """
         type = element_type(s)
-        id: ElementId = int(s[1:])  # pyright: ignore[reportAssignmentType]
+        id = int(s[1:])
         if id == 0:
-            raise ValueError('Element id cannot be 0')
-        return cls(type, id)
+            raise ValueError('Element id must be non-zero')
+        return cls(type, id)  # type: ignore
 
     @override
     def __str__(self) -> str:
         """
         Produce a string representation of the element reference.
 
-        >>> ElementRef(ElementType.node, 123)
+        >>> ElementRef('node', 123)
         'n123'
         """
         return f'{self.type[0]}{self.id}'
@@ -75,37 +72,37 @@ class VersionedElementRef(NamedTuple):
         """
         type = element_type(s)
         idx = s.rindex('v')
-        id: ElementId = int(s[1:idx])  # pyright: ignore[reportAssignmentType]
+        id = int(s[1:idx])
         version = int(s[idx + 1 :])
         if id == 0:
-            raise ValueError('Element id cannot be 0')
+            raise ValueError('Element id must be non-zero')
         if version <= 0:
             raise ValueError('Element version must be positive')
-        return cls(type, id, version)
+        return cls(type, id, version)  # type: ignore
 
     @classmethod
     def from_type_str(cls, type: ElementType, s: str) -> Self:
         """
         Parse a versioned element reference from a string.
 
-        >>> VersionedElementRef.from_type_str(ElementType.node, '123v1')
+        >>> VersionedElementRef.from_type_str('node', '123v1')
         VersionedElementRef(type='node', id=123, version=1)
         """
         idx = s.rindex('v')
-        id: ElementId = int(s[:idx])  # pyright: ignore[reportAssignmentType]
+        id = int(s[:idx])
         version = int(s[idx + 1 :])
         if id == 0:
-            raise ValueError('Element id cannot be 0')
+            raise ValueError('Element id must be non-zero')
         if version <= 0:
             raise ValueError('Element version must be positive')
-        return cls(type, id, version)
+        return cls(type, id, version)  # type: ignore
 
     @override
     def __str__(self) -> str:
         """
         Produce a string representation of the versioned element reference.
 
-        >>> VersionedElementRef(ElementType.node, 123, 1)
+        >>> VersionedElementRef('node', 123, 1)
         'n123v1'
         """
         return f'{self.type[0]}{self.id}v{self.version}'

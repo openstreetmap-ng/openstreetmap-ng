@@ -13,8 +13,6 @@ from app.models.types import PasswordType
 
 PasswordSchema = Literal['legacy', 'v1']
 
-__all__ = ('PasswordSchema',)
-
 
 class VerifyResult(NamedTuple):
     success: bool

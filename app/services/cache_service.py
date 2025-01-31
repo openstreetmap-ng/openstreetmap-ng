@@ -17,10 +17,10 @@ from app.limits import (
 
 CacheContext = NewType('CacheContext', str)
 
-__all__ = ('CacheContext',)
-
 _COMPRESS = ZstdCompressor(
-    level=CACHE_COMPRESS_ZSTD_LEVEL, threads=CACHE_COMPRESS_ZSTD_THREADS, write_checksum=False
+    level=CACHE_COMPRESS_ZSTD_LEVEL,
+    threads=CACHE_COMPRESS_ZSTD_THREADS,
+    write_checksum=False,
 ).compress
 _DECOMPRESS = ZstdDecompressor().decompress
 
