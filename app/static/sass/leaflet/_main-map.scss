@@ -29,9 +29,19 @@
     // outline: none;
     flex-grow: 1;
 
+    background: $green;
+    background: radial-gradient(circle, #fff 0%, $green 100%);
+
     .maplibregl-ctrl-top-right {
         @include media-breakpoint-down(sm) {
             margin-top: min((breakpoint-max(sm) - 100vw) * 0.5, 3.125rem);
         }
+    }
+}
+
+@include color-mode(dark) {
+    .main-map {
+        background: $dark;
+        background: radial-gradient(circle, #444 0%, $dark 40%);
     }
 }

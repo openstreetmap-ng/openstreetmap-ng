@@ -32,12 +32,14 @@ import { LegendSidebarToggleControl } from "./_sidebar-legend.ts"
 import { ShareSidebarToggleControl } from "./_sidebar-share.ts"
 import { configureDefaultMapBehavior } from "./_utils.ts"
 import { CustomZoomControl } from "./_zoom.ts"
+import { CustomGlobeControl } from "./_globe.ts"
 
 /** Get the main map instance */
 const createMainMap = (container: HTMLElement): MaplibreMap => {
     console.debug("Initializing main map")
     const map = new MaplibreMap({
         container,
+        minZoom: 0,
         maxZoom: 19,
         attributionControl: { compact: true, customAttribution: "" },
         refreshExpiredTiles: false,
@@ -68,7 +70,7 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
             unit: isMetricUnit() ? "metric" : "imperial",
         }),
     )
-    addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
+    addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl(), new CustomGlobeControl()])
     addControlGroup(map, [
         new LayersSidebarToggleControl(),
         new LegendSidebarToggleControl(),
