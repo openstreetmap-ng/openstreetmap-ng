@@ -6,7 +6,6 @@ else:
     from math import ceil
 
 
-# TODO: support &before= for consistency
 def standard_pagination_range(
     page: cython.int,
     *,
