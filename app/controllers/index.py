@@ -5,9 +5,9 @@ from starlette import status
 from starlette.responses import FileResponse, RedirectResponse, Response
 
 from app.lib.auth_context import auth_user, web_user
-from app.lib.jinja_env import render
 from app.lib.local_chapters import LOCAL_CHAPTERS
 from app.lib.locale import DEFAULT_LOCALE, is_installed_locale
+from app.lib.render_jinja import render_jinja
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale, t, translation_context
 from app.models.db.user import User
@@ -60,7 +60,7 @@ async def copyright_i18n(locale: LocaleCode):
     with translation_context(locale):
         title = t('layouts.copyright')
         copyright_translated_title = t('site.copyright.legal_babble.title_html')
-        copyright_content = render('copyright_content.jinja2')
+        copyright_content = render_jinja('copyright_content.jinja2')
     primary_locale = primary_translation_locale()
     show_notice = locale != primary_locale or primary_locale != DEFAULT_LOCALE
     return await render_response(
@@ -85,7 +85,7 @@ async def about_i18n(locale: LocaleCode):
         return Response(None, status.HTTP_404_NOT_FOUND)
     with translation_context(locale):
         title = t('layouts.about')
-        about_content = render('about_content.jinja2')
+        about_content = render_jinja('about_content.jinja2')
     return await render_response(
         'about.jinja2',
         {

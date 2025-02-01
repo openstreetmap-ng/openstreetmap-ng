@@ -62,7 +62,6 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         Index('changeset_created_at_idx', 'created_at'),
         Index('changeset_closed_at_idx', closed_at, postgresql_where=closed_at != null()),
         Index('changeset_open_idx', 'updated_at', postgresql_where=closed_at == null()),
-        # TODO: optimize out empty changesets
         Index('changeset_empty_idx', closed_at, postgresql_where=and_(closed_at != null(), size == 0)),
         Index(
             'changeset_union_bounds_idx',
@@ -99,9 +98,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
         Returns True if the changeset was closed.
         """
-        if self.closed_at is not None:
-            return False
-        if self.size < self.max_size:
+        if (self.closed_at is not None) or (self.size < self.max_size):
             return False
         self.closed_at = func.statement_timestamp() if (now is None) else now
         return True

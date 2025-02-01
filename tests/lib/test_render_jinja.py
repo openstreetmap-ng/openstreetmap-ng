@@ -3,7 +3,7 @@ from datetime import timedelta
 import pytest
 
 from app.lib.date_utils import utcnow
-from app.lib.jinja_env import stripspecial, timeago
+from app.lib.render_jinja import stripspecial, timeago
 from app.lib.translation import translation_context
 from app.models.types import LocaleCode
 

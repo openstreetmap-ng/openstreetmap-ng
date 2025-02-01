@@ -12,8 +12,8 @@ from app.config import (
     VERSION,
 )
 from app.lib.auth_context import auth_user
-from app.lib.jinja_env import render
 from app.lib.locale import map_i18next_files
+from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_locales
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
@@ -76,4 +76,4 @@ async def render_response(
 
     if template_data is not None:
         data.update(template_data)
-    return HTMLResponse(render(template_name, data), status_code=status)
+    return HTMLResponse(render_jinja(template_name, data), status_code=status)

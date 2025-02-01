@@ -22,7 +22,7 @@ from app.config import (
 from app.db import db, db_commit
 from app.lib.auth_context import auth_context
 from app.lib.date_utils import utcnow
-from app.lib.jinja_env import render
+from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail, MailSource
@@ -81,7 +81,7 @@ class EmailService:
         """Schedule mail and start async processing."""
         # render in the to_user's language
         with auth_context(to_user, ()), translation_context(to_user.language):
-            body = render(template_name, template_data)
+            body = render_jinja(template_name, template_data)
 
         async with db_commit() as session:
             mail = Mail(
