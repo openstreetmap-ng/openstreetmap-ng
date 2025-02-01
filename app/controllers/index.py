@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 from starlette import status
-from starlette.responses import FileResponse, RedirectResponse, Response
+from starlette.responses import RedirectResponse, Response
 
 from app.lib.auth_context import auth_user, web_user
 from app.lib.local_chapters import LOCAL_CHAPTERS
@@ -15,11 +15,6 @@ from app.models.types import LocaleCode
 from app.utils import secure_referer
 
 router = APIRouter()
-
-
-@router.get('/robots.txt')
-async def robots():
-    return FileResponse('app/static/robots.txt', media_type='text/plain')
 
 
 @router.get('/')
