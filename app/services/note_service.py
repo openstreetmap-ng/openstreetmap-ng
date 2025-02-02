@@ -9,7 +9,7 @@ from shapely.coordinates import get_coordinates
 from sqlalchemy import delete, exists, func, select
 
 from app.db import db_commit
-from app.lib.auth_context import auth_user
+from app.lib.auth_context import auth_user, auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
 from app.limits import GEO_COORDINATE_PRECISION
@@ -36,8 +36,11 @@ class NoteService:
         coordinate_precision = GEO_COORDINATE_PRECISION
         point: Point = lib.points(np.array((lon, lat), np.float64).round(coordinate_precision))
         point = validate_geometry(point)
-        user = auth_user()
+        user, scopes = auth_user_scopes()
         if user is not None:
+            # prevent oauth to create user-authorized note
+            if Scope.web_user not in scopes and Scope.write_notes not in scopes:
+                raise_for.insufficient_scopes((Scope.write_notes,))
             user_id = user.id
             user_ip = None
         else:

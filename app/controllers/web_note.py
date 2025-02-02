@@ -28,7 +28,6 @@ type _Status = Literal['', 'open', 'closed']
 router = APIRouter(prefix='/api/web/note')
 
 
-# TODO: it is possible to use oauth to create user-authorized note
 @router.post('/')
 async def create_note(
     lon: Annotated[Longitude, Form()],
