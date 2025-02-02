@@ -171,7 +171,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
         map.on("zoomend", updateAvailableOverlays)
 
         /** On layer click, update the active (base) layer */
-        const onContainerClick = (e: MouseEvent) => {
+        const onContainerClick = async (e: MouseEvent) => {
             const container = e.currentTarget as HTMLElement
             const layerId = container.dataset.layerId as LayerId
             const config = layersConfig.get(layerId)
@@ -181,12 +181,12 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
                 if (container.classList.contains("active")) return
                 const activeLayerId = getMapBaseLayerId(map)
                 if (activeLayerId) removeMapLayer(map, activeLayerId)
-                addMapLayer(map, layerId)
+                await addMapLayer(map, layerId)
             } else {
                 const checked = !container.classList.contains("active")
                 container.classList.toggle("active", checked)
                 if (checked) {
-                    addMapLayer(map, layerId)
+                    await addMapLayer(map, layerId)
                 } else {
                     removeMapLayer(map, layerId)
                 }

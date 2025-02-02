@@ -94,6 +94,15 @@ layersConfig.set("standard" as LayerId, {
     legacyLayerIds: ["mapnik"] as LayerId[],
 })
 
+layersConfig.set("liberty" as LayerId, {
+    specification: {
+        type: "vector",
+        url: "https://tiles.openfreemap.org/styles/liberty",
+    },
+    isBaseLayer: true,
+    layerCode: "L" as LayerCode,
+})
+
 layersConfig.set("cyclosm" as LayerId, {
     specification: {
         type: "raster",
@@ -236,7 +245,18 @@ export const addMapLayerSources = (map: MaplibreMap, kind: "all" | "base" | Laye
             // @ts-ignore
             map.addSource(layerId, { ...config.specification, tiles: config.darkTiles })
         } else {
-            map.addSource(layerId, config.specification)
+            // @ts-ignore
+            if (config.specification.url) {
+                // @ts-ignore
+                fetch(config.specification.url).then(async (data) => {
+                    const sources = (await data.json()).sources
+                    for (let id in sources) {
+                        map.addSource(id, sources[id])
+                    }
+                })
+            } else {
+                map.addSource(layerId, config.specification)
+            }
         }
     }
     if (watchMap) watchMapsLayerSources.push(map)
@@ -298,7 +318,7 @@ const layerTypeFilters = Object.freeze({
     symbol: ["==", ["geometry-type"], "Point"],
 }) as Record<LayerType, FilterSpecification>
 
-export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = true): void => {
+export const addMapLayer = async (map: MaplibreMap, layerId: LayerId, triggerEvent = true) => {
     const config = layersConfig.get(layerId)
     if (!config) {
         console.warn("Layer", layerId, "not found in", layersConfig.keys())
@@ -311,6 +331,16 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = t
         layerTypes = config.layerTypes
     } else if (specType === "raster") {
         layerTypes = ["raster"]
+    } else if (specType === "vector") {
+        const data = await (await fetch(config.specification.url)).json()
+        layerTypes = []
+        map.setSprite(data.sprite)
+        map.setGlyphs(data.glyphs)
+        for (const layer of data.layers) {
+            layer.id = layerId + ":" + layer.id
+            // @ts-ignore
+            map.addLayer(layer)
+        }
     } else {
         console.warn("Unsupported specification type", specType, "on layer", layerId)
         return

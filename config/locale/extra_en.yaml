@@ -445,6 +445,9 @@ javascripts:
   context:
     suggest_edit: Suggest an edit
     measure_distance: Measure distance
+  map:
+    base:
+      liberty: Liberty
 theme:
   toggle_theme: Toggle theme
   light: Light
