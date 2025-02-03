@@ -16,7 +16,6 @@ from app.models.db.user import User
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 
-# TODO: legacy traces url: user profiles
 router = APIRouter(prefix='/trace')
 
 

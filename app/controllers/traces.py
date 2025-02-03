@@ -149,6 +149,11 @@ async def personal_tagged(
     return await render_response('traces/index.jinja2', data)
 
 
+@router.get('/user/{_:str}/traces/{trace_id:int}')
+async def legacy_personal_details(trace_id: PositiveInt):
+    return RedirectResponse(f'/trace/{trace_id}', status.HTTP_301_MOVED_PERMANENTLY)
+
+
 @router.get('/traces/mine{suffix:path}')
 async def legacy_mine(
     user: Annotated[User, web_user()],
