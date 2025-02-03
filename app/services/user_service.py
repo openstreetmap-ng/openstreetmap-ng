@@ -307,6 +307,24 @@ class UserService:
             )
         logging.debug('Reset password for user %r', user_token.user_id)
 
+    @staticmethod
+    async def update_timezone(timezone: str) -> None:
+        """Update the user timezone."""
+        user_id = auth_user(required=True).id
+        async with db_commit() as session:
+            stmt = (
+                update(User)
+                .where(User.id == user_id)
+                .values(
+                    {
+                        User.timezone: timezone,
+                    }
+                )
+                .inline()
+            )
+            await session.execute(stmt)
+        logging.debug('Updated user %r timezone to %r', user_id, timezone)
+
     # TODO: UI
     @staticmethod
     async def request_scheduled_delete() -> None:

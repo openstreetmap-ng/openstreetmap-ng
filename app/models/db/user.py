@@ -27,6 +27,7 @@ from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
     LOCALE_CODE_MAX_LENGTH,
     STORAGE_KEY_MAX_LENGTH,
+    TIMEZONE_MAX_LENGTH,
     USER_DESCRIPTION_MAX_LENGTH,
 )
 from app.models.db.base import Base
@@ -74,6 +75,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), nullable=False)
 
     language: Mapped[LocaleCode] = mapped_column(Unicode(LOCALE_CODE_MAX_LENGTH), nullable=False)
+    timezone: Mapped[str | None] = mapped_column(Unicode(TIMEZONE_MAX_LENGTH), nullable=True)
     activity_tracking: Mapped[bool] = mapped_column(Boolean, nullable=False)
     crash_reporting: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
