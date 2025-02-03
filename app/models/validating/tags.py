@@ -12,10 +12,8 @@ _min_tags_len_to_exceed_size = ELEMENT_TAGS_MAX_SIZE / (ELEMENT_TAGS_KEY_MAX_LEN
 
 
 class TagsValidating(Base.Validating):
-    # TODO: test
     tags: dict[Annotated[str, MaxLen(ELEMENT_TAGS_KEY_MAX_LENGTH)], Annotated[str, MaxLen(255)]]
 
-    # TODO: test
     @field_validator('tags')
     @classmethod
     def validate_tags(cls, tags: dict[str, str]) -> dict[str, str]:
