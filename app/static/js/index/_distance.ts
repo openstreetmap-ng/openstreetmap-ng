@@ -106,7 +106,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }
 
     // Encodes current marker positions into URL polyline parameter
-    const updateUrl = throttle((dirtyIndices: number[]): void => {
+    const updateUrl = (dirtyIndices: number[]): void => {
         const newLength = markers.length
         if (newLength < positionsUrl.length) {
             // Truncate positions
@@ -116,6 +116,12 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             const lngLat = markers[markerIndex].getLngLat()
             positionsUrl[markerIndex] = [lngLat.lng, lngLat.lat]
         }
+
+        // update Url if anything had changed
+        if (dirtyIndices.length > 0) throttledUpdateUrl()
+    }
+
+    const throttledUpdateUrl = throttle(() => {
         const url = new URL(window.location.href)
         url.searchParams.set("line", encodeLonLat(positionsUrl, 5))
         window.history.replaceState(null, "", url)

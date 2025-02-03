@@ -97,6 +97,8 @@ export const getUnixTimestamp = (): number => (Date.now() / 1000) | 0
 export const range = (start: number, stop: number, step = 1): number[] => {
     const result: number[] = []
     for (let i = start; i < stop; i += step) result.push(i)
+
+        window.range = range
     return result
 }
 
