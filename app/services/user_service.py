@@ -261,7 +261,7 @@ class UserService:
                 )
                 .inline()
             )
-        logging.debug('Changed password for user %r', user.id)
+        logging.debug('Changed password for user %d', user.id)
 
     @staticmethod
     async def reset_password(
@@ -305,7 +305,7 @@ class UserService:
                 )
                 .inline()
             )
-        logging.debug('Reset password for user %r', user_token.user_id)
+        logging.debug('Reset password for user %d', user_token.user_id)
 
     @staticmethod
     async def update_timezone(timezone: str) -> None:
@@ -324,7 +324,7 @@ class UserService:
             )
             result = await session.execute(stmt)
             if result.rowcount:
-                logging.debug('Updated user %r timezone to %r', user_id, timezone)
+                logging.debug('Updated user %d timezone to %r', user_id, timezone)
 
     # TODO: UI
     @staticmethod

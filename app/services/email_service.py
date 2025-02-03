@@ -18,6 +18,7 @@ from app.config import (
     SMTP_PASS,
     SMTP_PORT,
     SMTP_USER,
+    TEST_ENV,
 )
 from app.db import db, db_commit
 from app.lib.auth_context import auth_context
@@ -170,10 +171,13 @@ async def _process_task_inner() -> None:
 
 
 async def _send_mail(smtp: SMTP, mail: Mail) -> None:
-    # TODO: deleted users
-    # if not mail.to_user:
-    #     logging.info('Discarding mail %r to user %d (not found)', mail.id, mail.to_user_id)
-    #     return
+    to_user = mail.to_user
+    if to_user.is_deleted_user:
+        logging.info('Discarding mail %r to deleted user %d', mail.id, mail.to_user_id)
+        return
+    if to_user.is_test_user and not TEST_ENV:
+        logging.info('Discarding mail %r to test user %d', mail.id, mail.to_user_id)
+        return
 
     message = EmailMessage()
 
@@ -187,12 +191,12 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
         from app.services.user_token_email_reply_service import UserTokenEmailReplyService
 
         reply_address = await UserTokenEmailReplyService.create_address(
-            replying_user=mail.to_user,
+            replying_user=to_user,
             mail_source=mail.source,
         )
         message['From'] = formataddr((from_user.display_name, reply_address))
 
-    message['To'] = formataddr((mail.to_user.display_name, mail.to_user.email))
+    message['To'] = formataddr((to_user.display_name, to_user.email))
     message['Date'] = formatdate()
     message['Subject'] = mail.subject
     message.set_content(mail.body, subtype='html')
