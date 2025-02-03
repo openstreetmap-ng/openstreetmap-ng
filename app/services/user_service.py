@@ -314,7 +314,7 @@ class UserService:
         async with db_commit() as session:
             stmt = (
                 update(User)
-                .where(User.id == user_id)
+                .where(User.id == user_id, User.timezone != timezone)
                 .values(
                     {
                         User.timezone: timezone,
@@ -322,8 +322,9 @@ class UserService:
                 )
                 .inline()
             )
-            await session.execute(stmt)
-        logging.debug('Updated user %r timezone to %r', user_id, timezone)
+            result = await session.execute(stmt)
+            if result.rowcount:
+                logging.debug('Updated user %r timezone to %r', user_id, timezone)
 
     # TODO: UI
     @staticmethod
