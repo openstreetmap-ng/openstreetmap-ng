@@ -24,6 +24,7 @@ import {
 import { closestPointOnSegment, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
+import { compress } from "@noble/hashes/blake2s"
 
 const layerId = "distance" as LayerId
 layersConfig.set(layerId as LayerId, {
@@ -379,6 +380,8 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         load: () => {
             switchActionSidebar(map, sidebar)
 
+            addMapLayer(map, layerId)
+
             // Load markers from URL
             const searchParams = qsParse(location.search.substring(1))
             let positions: [number, number][] = []
@@ -398,17 +401,16 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             // Focus on the makers if they're offscreen
             if (markers.length > 1) {
                 const mapBounds = map.getBounds()
-                let markerBounds = new LngLatBounds(markers[0].getLngLat())
+                let markerBounds = new LngLatBounds(markers[0].getLngLat(), markers[1].getLngLat())
                 let contains = true
-                for (const marker of markers.slice(1)) {
+                for (const marker of markers.slice(2)) {
                     const markerLngLat = marker.getLngLat()
                     markerBounds = markerBounds.extend(markerLngLat)
                     if (contains && !mapBounds.contains(markerLngLat)) contains = false
                 }
-                if (!contains) map.fitBounds(markerBounds, { animate: false })
+                if (!contains) map.fitBounds(markerBounds, { animate: false, padding: 30 })
             }
 
-            addMapLayer(map, layerId)
             map.on("click", createNewMarker)
         },
         unload: () => {
