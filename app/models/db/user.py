@@ -18,7 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.config import TEST_USER_DOMAIN
+from app.config import DELETED_USER_EMAIL_SUFFIX, TEST_USER_EMAIL_SUFFIX
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
 from app.lib.image import AvatarType, Image
@@ -158,6 +158,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
             'created_at',
             postgresql_where=status == UserStatus.pending_activation,
         ),
+        Index('user_deleted_idx', 'id', postgresql_where=email.endswith(DELETED_USER_EMAIL_SUFFIX)),
     )
 
     @validates('description')
@@ -169,7 +170,12 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     @property
     def is_test_user(self) -> bool:
         """Check if the user is a test user."""
-        return self.email.endswith('@' + TEST_USER_DOMAIN)
+        return self.email.endswith(TEST_USER_EMAIL_SUFFIX)
+
+    @property
+    def is_deleted_user(self) -> bool:
+        """Check if the user is a deleted user."""
+        return self.email.endswith(DELETED_USER_EMAIL_SUFFIX)
 
     @property
     def is_administrator(self) -> bool:

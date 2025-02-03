@@ -118,7 +118,8 @@ TRUSTED_HOSTS: frozenset[str] = frozenset(
     if host
 )
 
-TEST_USER_DOMAIN = 'test.test'
+TEST_USER_EMAIL_SUFFIX = '@test.test'
+DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'
 
 FORCE_CRASH_REPORTING = os.getenv('FORCE_CRASH_REPORTING', '0').strip().lower() in {'1', 'true', 'yes'}
 SENTRY_TRACES_SAMPLE_RATE = float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '1'))
