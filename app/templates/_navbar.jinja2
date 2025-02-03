@@ -189,12 +189,14 @@
 
 {% if TEST_ENV %}
     <span class="build-info">
-    openstreetmap-ng testing
+        [
+        osm-ng testing
         {% if VERSION[:4] == 'git#' %}
-            v.<a href="https://github.com/openstreetmap-ng/openstreetmap-ng/commit/{{ VERSION[4:] }}"
-                 target="_blank">{{ VERSION[4:] }}</a>
+            <a href="https://github.com/openstreetmap-ng/openstreetmap-ng/commit/{{ VERSION[4:] }}"
+               target="_blank">{{ VERSION }}</a>
         {% else %}
-            v.{{ VERSION }}
+            {{ VERSION }}
         {% endif %}
+        ]
     </span>
 {% endif %}
