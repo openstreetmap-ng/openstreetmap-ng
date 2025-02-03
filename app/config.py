@@ -59,6 +59,7 @@ LEGACY_SEQUENCE_ID_MARGIN = os.getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().
 FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', '128'))
 FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
+PLANET_DIR = _path(os.getenv('PLANET_DIR', 'data/planet'), mkdir=True)
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
 REPLICATION_DIR = _path(os.getenv('REPLICATION_DIR', 'data/replication'), mkdir=True)
 
@@ -219,6 +220,21 @@ SENTRY_CHANGESET_MANAGEMENT_MONITOR = sentry_sdk.monitor(
         'checkin_margin': 5,
         'max_runtime': 60,
         'failure_issue_threshold': 60,  # 1h
+        'recovery_threshold': 1,
+    },
+)
+
+SENTRY_USERS_DELETED_TXT_MONITOR = sentry_sdk.monitor(
+    os.getenv('SENTRY_USERS_DELETED_TXT_MONITOR_SLUG', 'osm-ng-users-deleted-txt'),
+    {
+        'schedule': {
+            'type': 'interval',
+            'value': 12,
+            'unit': 'hour',
+        },
+        'checkin_margin': 5,
+        'max_runtime': 60,
+        'failure_issue_threshold': 2,  # 1d
         'recovery_threshold': 1,
     },
 )
