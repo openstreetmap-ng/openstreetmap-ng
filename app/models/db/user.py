@@ -75,7 +75,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), nullable=False)
 
     language: Mapped[LocaleCode] = mapped_column(Unicode(LOCALE_CODE_MAX_LENGTH), nullable=False)
-    timezone: Mapped[str | None] = mapped_column(Unicode(TIMEZONE_MAX_LENGTH), nullable=True)
     activity_tracking: Mapped[bool] = mapped_column(Boolean, nullable=False)
     crash_reporting: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
@@ -137,6 +136,12 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     )
     home_point: Mapped[Point | None] = mapped_column(
         PointType,
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
+    timezone: Mapped[str | None] = mapped_column(
+        Unicode(TIMEZONE_MAX_LENGTH),
         init=False,
         nullable=True,
         server_default=None,
