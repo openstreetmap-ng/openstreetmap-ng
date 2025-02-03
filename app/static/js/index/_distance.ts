@@ -58,6 +58,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const markers: Marker[] = []
     let ghostMarker: Marker | null = null
     let ghostMarkerIndex = -1
+    let supressUpdates = false
 
     const markerFactory = (index: number, color: string): Marker => {
         const marker = new Marker({
@@ -273,6 +274,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const createNewMarker = ({ lngLat, skipUpdates }: { lngLat: LngLatLike; skipUpdates?: boolean }): void => {
         // Avoid event handlers after the controller is unloaded
         if (!hasMapLayer(map, layerId)) return
+        if (supressUpdates) return
         console.debug("Create distance marker", lngLat, skipUpdates)
         const markerIndex = markers.length
         // Turn previous marker into blue
@@ -353,6 +355,11 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         startGhostMarkerDrag()
         ghostMarker.removeClassName("dragging")
         tryHideGhostMarker()
+        supressUpdates = true
+        setTimeout(() => {
+            supressUpdates = false
+            console.debug("no lognger suppressing updates")
+        }, 0)
     }
 
     /** Toggle ghost marker out of hidden state */
