@@ -24,7 +24,6 @@ import {
 import { closestPointOnSegment, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
-import { compress } from "@noble/hashes/blake2s"
 
 const layerId = "distance" as LayerId
 layersConfig.set(layerId as LayerId, {
@@ -302,17 +301,14 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
 
         let point: Point
         let lngLat: LngLat
-        if (event instanceof MapMouseEvent) {
-            point = event.point
-            lngLat = event.lngLat
-        } else {
-            const mapRect = mapContainer.getBoundingClientRect()
-            point = new Point(
-                event.clientX - mapRect.left,
-                event.clientY - mapRect.top + 20, // offset for marker height
-            )
-            lngLat = map.unproject(point)
-        }
+        const mouseEvent = event instanceof MapMouseEvent ? event.originalEvent : event
+        const mapRect = mapContainer.getBoundingClientRect()
+        point = new Point(
+            mouseEvent.clientX - mapRect.left,
+            mouseEvent.clientY - mapRect.top + 20, // offset for marker height
+        )
+
+        lngLat = map.unproject(point)
 
         let minDistance = Number.POSITIVE_INFINITY
         let minLngLat: LngLat | null = null
@@ -334,6 +330,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         }
         if (minLngLat) ghostMarker.setLngLat(minLngLat)
     }, 16)
+
     map.on("mouseenter", layerId, (e) => {
         tryShowGhostMarker()
         updateGhostMarkerPosition(e)
@@ -365,7 +362,6 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         supressUpdates = true
         setTimeout(() => {
             supressUpdates = false
-            console.debug("no lognger suppressing updates")
         }, 0)
     }
 
