@@ -194,19 +194,25 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
 
                 const startPoint = markers[labelIndexOffset].getLngLat()
                 const endPoint = markers[labelIndexOffset + 1].getLngLat()
-                const middlePoint: LngLatLike = [
-                    (startPoint.lng + endPoint.lng) / 2,
-                    (startPoint.lat + endPoint.lat) / 2,
-                ]
+
                 const startScreenPoint = map.project(startPoint)
                 const endScreenPoint = map.project(endPoint)
+
+                // Calculate middle point
+                // TODO: make sure this works correctly with 3d globe (#155)
+                const middlePoint = new Point(
+                    (startScreenPoint.x + endScreenPoint.x) / 2,
+                    (startScreenPoint.y + endScreenPoint.y) / 2,
+                )
+
+                const middleLatLng = map.unproject(middlePoint)
 
                 let angle = Math.atan2(endScreenPoint.y - startScreenPoint.y, endScreenPoint.x - startScreenPoint.x)
                 if (angle > Math.PI / 2) angle -= Math.PI
                 if (angle < -Math.PI / 2) angle += Math.PI
 
                 const label = labels[labelIndexOffset]
-                label.setLngLat(middlePoint)
+                label.setLngLat(middleLatLng)
                 const distance = startPoint.distanceTo(endPoint)
                 ;(label as any).distance = distance
                 label.setRotation((angle * 180) / Math.PI)
