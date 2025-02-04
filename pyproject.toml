@@ -82,7 +82,7 @@ python-preference = "only-system"
 packages = ["app", "scripts", "tests", "typings"]
 
 [tool.ruff]
-exclude = [".git", "app/alembic/versions"]
+extend-exclude = ["app/alembic/versions"]
 indent-width = 4
 line-length = 120
 target-version = "py313"
