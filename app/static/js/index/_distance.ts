@@ -297,7 +297,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
 
     // Handles ghost marker positioning near existing line segments
     const updateGhostMarkerPosition = throttle((event: MapMouseEvent | MouseEvent): void => {
-        if (ghostMarker.getElement().classList.contains("dragging")) return
+        if (!ghostMarker || ghostMarker.getElement().classList.contains("dragging")) return
 
         let point: Point
         let lngLat: LngLat
@@ -312,28 +312,38 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
 
         let minDistance = Number.POSITIVE_INFINITY
         let minLngLat: LngLat | null = null
+        let minPoint: Point | null = null
         ghostMarkerIndex = -1
         for (let i = 1; i < markers.length; i++) {
-            const closestLngLat = map.unproject(
-                closestPointOnSegment(
-                    point,
-                    map.project(markers[i - 1].getLngLat()),
-                    map.project(markers[i].getLngLat()),
-                ),
+            const closestPoint = closestPointOnSegment(
+                point,
+                map.project(markers[i - 1].getLngLat()),
+                map.project(markers[i].getLngLat()),
             )
+            const closestLngLat = map.unproject(closestPoint)
             const distance = closestLngLat.distanceTo(lngLat)
             if (distance < minDistance) {
                 minDistance = distance
                 minLngLat = closestLngLat
+                minPoint = closestPoint
                 ghostMarkerIndex = i
             }
         }
+
+        // hide marker in some edge cases
+        if (
+            Math.abs(point.x - minPoint.x) > ghostMarker.getElement().clientWidth ||
+            Math.abs(point.y - minPoint.y) > ghostMarker.getElement().clientHeight
+        ) {
+            tryHideGhostMarker()
+            return
+        }
+
         if (minLngLat) ghostMarker.setLngLat(minLngLat)
     }, 16)
 
-    map.on("mouseenter", layerId, (e) => {
+    map.on("mouseenter", layerId, () => {
         tryShowGhostMarker()
-        updateGhostMarkerPosition(e)
     })
 
     /** On ghost marker drag start, replace it with a real marker */
@@ -414,9 +424,11 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             }
 
             map.on("click", createNewMarker)
+            map.on("mousemove", updateGhostMarkerPosition)
         },
         unload: () => {
             map.off("click", createNewMarker)
+            map.off("mousemove", updateGhostMarkerPosition)
             removeMapLayer(map, layerId)
             source.setData(emptyFeatureCollection)
             ghostMarker?.remove()
