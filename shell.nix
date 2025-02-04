@@ -575,7 +575,6 @@ let
     [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
     echo "Installing Python dependencies"
-    export UV_COMPILE_BYTECODE=1
     export UV_PYTHON="${python'}/bin/python"
     uv sync --frozen
 
