@@ -51,6 +51,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const source = map.getSource(layerId) as GeoJSONSource
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")
+    const clearBtn = sidebar.querySelector(".clear-btn") as HTMLElement
 
     const positionsUrl: [number, number][] = []
     const lines: Feature<LineString>[] = []
@@ -118,8 +119,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             positionsUrl[markerIndex] = [lngLat.lng, lngLat.lat]
         }
 
-        // update Url if anything had changed
-        if (dirtyIndices.length > 0) throttledUpdateUrl()
+        throttledUpdateUrl()
     }
 
     const throttledUpdateUrl = throttle(() => {
@@ -228,6 +228,8 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         updateUrl(dirtyIndices)
         updateLines(dirtyIndices)
         updateLabels(dirtyIndices)
+
+        clearBtn.classList.toggle("hidden", !markers.length)
     }
 
     // Removes a marker and updates subsequent geometry
@@ -298,6 +300,10 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     // Handles ghost marker positioning near existing line segments
     const updateGhostMarkerPosition = throttle((event: MapMouseEvent | MouseEvent): void => {
         if (!ghostMarker || ghostMarker.getElement().classList.contains("dragging")) return
+        if (markers.length < 2) {
+            tryHideGhostMarker()
+            return
+        }
 
         let point: Point
         let lngLat: LngLat
@@ -345,6 +351,15 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     map.on("mouseenter", layerId, () => {
         tryShowGhostMarker()
     })
+
+    clearBtn.onclick = () => {
+        for (const marker of markers) {
+            marker.remove()
+        }
+        markers.length = 0
+        console.log(markers)
+        update([])
+    }
 
     /** On ghost marker drag start, replace it with a real marker */
     const startGhostMarkerDrag = () => {

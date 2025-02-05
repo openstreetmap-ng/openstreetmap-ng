@@ -31,3 +31,7 @@
         }
     }
 }
+
+.maplibregl-control-container > div {
+    z-index: 300;
+}
