@@ -21,7 +21,7 @@ import {
     layersConfig,
     removeMapLayer,
 } from "../leaflet/_layers"
-import { closestPointOnSegment, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
+import { closestPointOnSegment, getMarkerIconElement, markerIconAnchor, padLngLatBounds } from "../leaflet/_utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 
@@ -397,6 +397,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     return {
         load: () => {
             switchActionSidebar(map, sidebar)
+            addMapLayer(map, layerId)
 
             // Load markers from URL
             const searchParams = qsParse(location.search.substring(1))
@@ -415,19 +416,18 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             update(range(0, markers.length))
 
             // Focus on the makers if they're offscreen
-            if (markers.length > 1) {
+            if (markers.length) {
                 const mapBounds = map.getBounds()
-                let markerBounds = new LngLatBounds(markers[0].getLngLat(), markers[1].getLngLat())
+                let markerBounds = new LngLatBounds()
                 let contains = true
-                for (const marker of markers.slice(2)) {
+                for (const marker of markers) {
                     const markerLngLat = marker.getLngLat()
                     markerBounds = markerBounds.extend(markerLngLat)
                     if (contains && !mapBounds.contains(markerLngLat)) contains = false
                 }
-                if (!contains) map.fitBounds(markerBounds, { animate: false, padding: 30 })
+                if (!contains) map.fitBounds(padLngLatBounds(markerBounds, 0.2), { maxZoom: 16, animate: false })
             }
 
-            addMapLayer(map, layerId)
             map.on("click", createNewMarker)
             map.on("mousemove", updateGhostMarkerPosition)
         },
