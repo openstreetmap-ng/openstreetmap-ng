@@ -119,10 +119,10 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             positionsUrl[markerIndex] = [lngLat.lng, lngLat.lat]
         }
 
-        throttledUpdateUrl()
+        throttledUpdateHistory()
     }
 
-    const throttledUpdateUrl = throttle(() => {
+    const throttledUpdateHistory = throttle(() => {
         const url = new URL(window.location.href)
         url.searchParams.set("line", encodeLonLat(positionsUrl, 5))
         window.history.replaceState(null, "", url)
@@ -354,7 +354,6 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
 
         if (minLngLat) ghostMarker.setLngLat(minLngLat)
     }, 16)
-
     map.on("mouseenter", layerId, () => {
         tryShowGhostMarker()
     })
