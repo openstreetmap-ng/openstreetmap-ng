@@ -97,11 +97,9 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         marker.on("drag", handleGhostMarkerDrag)
         marker.on("dragend", () => {
             ghostMarker.removeClassName("dragging")
-            tryHideGhostMarker()
+            ghostMarker.addClassName("d-none")
         })
         const element = marker.getElement()
-        element.addEventListener("mousemove", updateGhostMarkerPosition)
-        element.addEventListener("mouseleave", tryHideGhostMarker)
         element.addEventListener("click", onGhostMarkerClick)
         return marker
     }
@@ -302,57 +300,62 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }
 
     // Handles ghost marker positioning near existing line segments
-    const updateGhostMarkerPosition = throttle((event: MapMouseEvent | MouseEvent): void => {
-        if (!ghostMarker || ghostMarker.getElement().classList.contains("dragging")) return
-        if (markers.length < 2) {
-            tryHideGhostMarker()
-            return
+    const updateGhostMarkerPosition = throttle((e: MapMouseEvent | MouseEvent): void => {
+        if (showMarker) {
+            if (!ghostMarker) ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
+            else if (ghostMarker.getElement().classList.contains("dragging")) return
+            ghostMarker.removeClassName("d-none")
+            showMarker = false
+        } else {
+            if (!ghostMarker) return
+            const classList = ghostMarker.getElement().classList
+            if (classList.contains("d-none") || classList.contains("dragging")) return
         }
 
-        let point: Point
-        let lngLat: LngLat
-        const mouseEvent = event instanceof MapMouseEvent ? event.originalEvent : event
+        const { clientX, clientY } = e instanceof MapMouseEvent ? e.originalEvent : e
         const mapRect = mapContainer.getBoundingClientRect()
-        point = new Point(
-            mouseEvent.clientX - mapRect.left,
-            mouseEvent.clientY - mapRect.top + 20, // offset for marker height
+        const point = new Point(
+            clientX - mapRect.left,
+            clientY - mapRect.top + 20, // offset for marker height
         )
-
-        lngLat = map.unproject(point)
+        const lngLat = map.unproject(point)
 
         let minDistance = Number.POSITIVE_INFINITY
         let minLngLat: LngLat | null = null
-        let minPoint: Point | null = null
         ghostMarkerIndex = -1
         for (let i = 1; i < markers.length; i++) {
-            const closestPoint = closestPointOnSegment(
-                point,
-                map.project(markers[i - 1].getLngLat()),
-                map.project(markers[i].getLngLat()),
+            const closestLngLat = map.unproject(
+                closestPointOnSegment(
+                    point,
+                    map.project(markers[i - 1].getLngLat()),
+                    map.project(markers[i].getLngLat()),
+                ),
             )
-            const closestLngLat = map.unproject(closestPoint)
             const distance = closestLngLat.distanceTo(lngLat)
             if (distance < minDistance) {
                 minDistance = distance
                 minLngLat = closestLngLat
-                minPoint = closestPoint
                 ghostMarkerIndex = i
             }
         }
+        if (ghostMarkerIndex > -1) ghostMarker.setLngLat(minLngLat)
 
-        // hide marker in some edge cases
+        // Hide the marker if it's not hovered
+        const markerRect = ghostMarker.getElement().getBoundingClientRect()
         if (
-            Math.abs(point.x - minPoint.x) > ghostMarker.getElement().clientWidth ||
-            Math.abs(point.y - minPoint.y) > ghostMarker.getElement().clientHeight
+            clientX < markerRect.left ||
+            clientX > markerRect.right ||
+            clientY < markerRect.top ||
+            clientY > markerRect.bottom
         ) {
-            tryHideGhostMarker()
-            return
+            ghostMarker.addClassName("d-none")
         }
-
-        if (minLngLat) ghostMarker.setLngLat(minLngLat)
     }, 16)
+
+    // Toggle ghost marker out of hidden state
+    let showMarker = false
     map.on("mouseenter", layerId, () => {
-        tryShowGhostMarker()
+        showMarker = true
     })
 
     /** On ghost marker drag start, replace it with a real marker */
@@ -378,19 +381,6 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         console.debug("onGhostMarkerClick")
         startGhostMarkerDrag()
         ghostMarker.removeClassName("dragging")
-        tryHideGhostMarker()
-    }
-
-    /** Toggle ghost marker out of hidden state */
-    const tryShowGhostMarker = () => {
-        if (!ghostMarker) ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
-        else if (ghostMarker.getElement().classList.contains("dragging")) return
-        ghostMarker.removeClassName("d-none")
-    }
-
-    /** Toggle ghost marker into hidden state */
-    const tryHideGhostMarker = () => {
-        if (ghostMarker.getElement().classList.contains("dragging")) return
         ghostMarker.addClassName("d-none")
     }
 
