@@ -51,7 +51,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const source = map.getSource(layerId) as GeoJSONSource
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")
-    const clearBtn = sidebar.querySelector(".clear-btn") as HTMLElement
+    const clearBtn = sidebar.querySelector("button.clear-btn")
 
     const positionsUrl: [number, number][] = []
     const lines: Feature<LineString>[] = []
@@ -229,8 +229,15 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         updateLines(dirtyIndices)
         updateLabels(dirtyIndices)
 
-        clearBtn.classList.toggle("hidden", !markers.length)
+        clearBtn.classList.toggle("d-none", !markers.length)
     }
+
+    const clearMarkers = () => {
+        for (const marker of markers) marker.remove()
+        markers.length = 0
+        update([])
+    }
+    clearBtn.addEventListener("click", clearMarkers)
 
     // Removes a marker and updates subsequent geometry
     const removeMarker = (index: number): void => {
@@ -352,15 +359,6 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         tryShowGhostMarker()
     })
 
-    clearBtn.onclick = () => {
-        for (const marker of markers) {
-            marker.remove()
-        }
-        markers.length = 0
-        console.log(markers)
-        update([])
-    }
-
     /** On ghost marker drag start, replace it with a real marker */
     const startGhostMarkerDrag = () => {
         console.debug("materializeGhostMarker")
@@ -451,9 +449,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             source.setData(emptyFeatureCollection)
             ghostMarker?.remove()
             ghostMarker = null
-            for (const marker of markers) marker.remove()
-            markers.length = 0
-            update([])
+            clearMarkers()
         },
     }
 }
