@@ -25,11 +25,7 @@
 .maplibregl-marker.distance-marker.ghost-marker {
     padding-bottom: 8px;
     opacity: 0.5 !important;
-    transition: opacity 100ms !important;
-
-    &.hidden {
-        opacity: 0 !important;
-    }
+    transition: unset;
 
     &.dragging {
         opacity: 0 !important;

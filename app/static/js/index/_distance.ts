@@ -59,7 +59,6 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const markers: Marker[] = []
     let ghostMarker: Marker | null = null
     let ghostMarkerIndex = -1
-    let suppressUpdates = false
 
     const markerFactory = (index: number, color: string): Marker => {
         const marker = new Marker({
@@ -92,7 +91,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const ghostMarkerFactory = (): Marker => {
         const marker = markerFactory(-1, "blue")
         marker.addClassName("ghost-marker")
-        marker.addClassName("hidden")
+        marker.addClassName("d-none")
         marker.setOffset([0, 8])
         marker.on("dragstart", startGhostMarkerDrag)
         marker.on("drag", handleGhostMarkerDrag)
@@ -288,7 +287,6 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const createNewMarker = ({ lngLat, skipUpdates }: { lngLat: LngLatLike; skipUpdates?: boolean }): void => {
         // Avoid event handlers after the controller is unloaded
         if (!hasMapLayer(map, layerId)) return
-        if (suppressUpdates) return
         console.debug("Create distance marker", lngLat, skipUpdates)
         const markerIndex = markers.length
         // Turn previous marker into blue
@@ -360,7 +358,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     /** On ghost marker drag start, replace it with a real marker */
     const startGhostMarkerDrag = () => {
         console.debug("materializeGhostMarker")
-        ghostMarker.removeClassName("hidden")
+        ghostMarker.removeClassName("d-none")
         ghostMarker.addClassName("dragging")
         // Add a real marker
         insertMarker(ghostMarkerIndex, ghostMarker.getLngLat())
@@ -375,38 +373,30 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }, 16)
 
     /** On ghost marker click, convert it into a real marker */
-    const onGhostMarkerClick = () => {
-        if (ghostMarker.getElement().classList.contains("hidden")) return
+    const onGhostMarkerClick = (e: MouseEvent) => {
+        e.stopPropagation()
         console.debug("onGhostMarkerClick")
         startGhostMarkerDrag()
         ghostMarker.removeClassName("dragging")
         tryHideGhostMarker()
-
-        // skip creating new marker
-        suppressUpdates = true
-        setTimeout(() => {
-            suppressUpdates = false
-        }, 0)
     }
 
     /** Toggle ghost marker out of hidden state */
     const tryShowGhostMarker = () => {
         if (!ghostMarker) ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
         else if (ghostMarker.getElement().classList.contains("dragging")) return
-        ghostMarker.removeClassName("hidden")
+        ghostMarker.removeClassName("d-none")
     }
 
     /** Toggle ghost marker into hidden state */
     const tryHideGhostMarker = () => {
         if (ghostMarker.getElement().classList.contains("dragging")) return
-        ghostMarker.addClassName("hidden")
+        ghostMarker.addClassName("d-none")
     }
 
     return {
         load: () => {
             switchActionSidebar(map, sidebar)
-
-            addMapLayer(map, layerId)
 
             // Load markers from URL
             const searchParams = qsParse(location.search.substring(1))
@@ -437,6 +427,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
                 if (!contains) map.fitBounds(markerBounds, { animate: false, padding: 30 })
             }
 
+            addMapLayer(map, layerId)
             map.on("click", createNewMarker)
             map.on("mousemove", updateGhostMarkerPosition)
         },
