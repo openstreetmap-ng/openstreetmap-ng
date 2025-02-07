@@ -429,6 +429,7 @@ action:
   connect: Connect
   disconnect: Disconnect
   updated: updated
+  clear_markers: Clear markers
 state:
   any: Any
   open: Open
@@ -447,10 +448,9 @@ unsupported_browser:
   description: For the best experience, please update your browser or pick one from the list below.
   proceed_anyway: Proceed anyway
 showcase: Showcase
-javascripts:
-  context:
-    suggest_edit: Suggest an edit
-    measure_distance: Measure distance
+context_menu:
+  suggest_edit: Suggest an edit
+  measure_distance: Measure distance
 theme:
   toggle_theme: Toggle theme
   light: Light
