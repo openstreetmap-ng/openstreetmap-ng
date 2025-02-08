@@ -21,7 +21,7 @@ import {
     layersConfig,
     removeMapLayer,
 } from "../leaflet/_layers"
-import { closestPointOnSegment, getMarkerIconElement, markerIconAnchor } from "../leaflet/_utils"
+import { closestPointOnSegment, getMarkerIconElement, markerIconAnchor, padLngLatBounds } from "../leaflet/_utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 
@@ -51,6 +51,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const source = map.getSource(layerId) as GeoJSONSource
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")
+    const clearBtn = sidebar.querySelector("button.clear-btn")
 
     const positionsUrl: [number, number][] = []
     const lines: Feature<LineString>[] = []
@@ -90,23 +91,21 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const ghostMarkerFactory = (): Marker => {
         const marker = markerFactory(-1, "blue")
         marker.addClassName("ghost-marker")
-        marker.addClassName("hidden")
+        marker.addClassName("d-none")
         marker.setOffset([0, 8])
         marker.on("dragstart", startGhostMarkerDrag)
         marker.on("drag", handleGhostMarkerDrag)
         marker.on("dragend", () => {
             ghostMarker.removeClassName("dragging")
-            tryHideGhostMarker()
+            ghostMarker.addClassName("d-none")
         })
         const element = marker.getElement()
-        element.addEventListener("mousemove", updateGhostMarkerPosition)
-        element.addEventListener("mouseleave", tryHideGhostMarker)
         element.addEventListener("click", onGhostMarkerClick)
         return marker
     }
 
     // Encodes current marker positions into URL polyline parameter
-    const updateUrl = throttle((dirtyIndices: number[]): void => {
+    const updateUrl = (dirtyIndices: number[]): void => {
         const newLength = markers.length
         if (newLength < positionsUrl.length) {
             // Truncate positions
@@ -116,6 +115,11 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             const lngLat = markers[markerIndex].getLngLat()
             positionsUrl[markerIndex] = [lngLat.lng, lngLat.lat]
         }
+
+        throttledUpdateHistory()
+    }
+
+    const throttledUpdateHistory = throttle(() => {
         const url = new URL(window.location.href)
         url.searchParams.set("line", encodeLonLat(positionsUrl, 5))
         window.history.replaceState(null, "", url)
@@ -185,13 +189,18 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
                 if (labelIndexOffset < 0 || labelIndexOffset >= labels.length) continue
 
                 const startPoint = markers[labelIndexOffset].getLngLat()
-                const endPoint = markers[labelIndexOffset + 1].getLngLat()
-                const middlePoint: LngLatLike = [
-                    (startPoint.lng + endPoint.lng) / 2,
-                    (startPoint.lat + endPoint.lat) / 2,
-                ]
                 const startScreenPoint = map.project(startPoint)
+                const endPoint = markers[labelIndexOffset + 1].getLngLat()
                 const endScreenPoint = map.project(endPoint)
+
+                // Calculate middle point
+                // TODO: make sure this works correctly with 3d globe (#155)
+                const middlePoint = map.unproject(
+                    new Point(
+                        (startScreenPoint.x + endScreenPoint.x) / 2, //
+                        (startScreenPoint.y + endScreenPoint.y) / 2,
+                    ),
+                )
 
                 let angle = Math.atan2(endScreenPoint.y - startScreenPoint.y, endScreenPoint.x - startScreenPoint.x)
                 if (angle > Math.PI / 2) angle -= Math.PI
@@ -215,7 +224,16 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         updateUrl(dirtyIndices)
         updateLines(dirtyIndices)
         updateLabels(dirtyIndices)
+
+        clearBtn.classList.toggle("d-none", !markers.length)
     }
+
+    const clearMarkers = () => {
+        for (const marker of markers) marker.remove()
+        markers.length = 0
+        update([])
+    }
+    clearBtn.addEventListener("click", clearMarkers)
 
     // Removes a marker and updates subsequent geometry
     const removeMarker = (index: number): void => {
@@ -282,22 +300,25 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }
 
     // Handles ghost marker positioning near existing line segments
-    const updateGhostMarkerPosition = throttle((event: MapMouseEvent | MouseEvent): void => {
-        if (ghostMarker.getElement().classList.contains("dragging")) return
-
-        let point: Point
-        let lngLat: LngLat
-        if (event instanceof MapMouseEvent) {
-            point = event.point
-            lngLat = event.lngLat
+    const updateGhostMarkerPosition = throttle((e: MapMouseEvent | MouseEvent): void => {
+        if (showMarker) {
+            if (!ghostMarker) ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
+            else if (ghostMarker.getElement().classList.contains("dragging")) return
+            ghostMarker.removeClassName("d-none")
+            showMarker = false
         } else {
-            const mapRect = mapContainer.getBoundingClientRect()
-            point = new Point(
-                event.clientX - mapRect.left,
-                event.clientY - mapRect.top + 20, // offset for marker height
-            )
-            lngLat = map.unproject(point)
+            if (!ghostMarker) return
+            const classList = ghostMarker.getElement().classList
+            if (classList.contains("d-none") || classList.contains("dragging")) return
         }
+
+        const { clientX, clientY } = e instanceof MapMouseEvent ? e.originalEvent : e
+        const mapRect = mapContainer.getBoundingClientRect()
+        const point = new Point(
+            clientX - mapRect.left,
+            clientY - mapRect.top + 20, // offset for marker height
+        )
+        const lngLat = map.unproject(point)
 
         let minDistance = Number.POSITIVE_INFINITY
         let minLngLat: LngLat | null = null
@@ -317,17 +338,30 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
                 ghostMarkerIndex = i
             }
         }
-        if (minLngLat) ghostMarker.setLngLat(minLngLat)
+        if (ghostMarkerIndex > -1) ghostMarker.setLngLat(minLngLat)
+
+        // Hide the marker if it's not hovered
+        const markerRect = ghostMarker.getElement().getBoundingClientRect()
+        if (
+            clientX < markerRect.left ||
+            clientX > markerRect.right ||
+            clientY < markerRect.top ||
+            clientY > markerRect.bottom
+        ) {
+            ghostMarker.addClassName("d-none")
+        }
     }, 16)
-    map.on("mouseenter", layerId, (e) => {
-        tryShowGhostMarker()
-        updateGhostMarkerPosition(e)
+
+    // Toggle ghost marker out of hidden state
+    let showMarker = false
+    map.on("mouseenter", layerId, () => {
+        showMarker = true
     })
 
     /** On ghost marker drag start, replace it with a real marker */
     const startGhostMarkerDrag = () => {
         console.debug("materializeGhostMarker")
-        ghostMarker.removeClassName("hidden")
+        ghostMarker.removeClassName("d-none")
         ghostMarker.addClassName("dragging")
         // Add a real marker
         insertMarker(ghostMarkerIndex, ghostMarker.getLngLat())
@@ -342,29 +376,18 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }, 16)
 
     /** On ghost marker click, convert it into a real marker */
-    const onGhostMarkerClick = () => {
+    const onGhostMarkerClick = (e: MouseEvent) => {
+        e.stopPropagation()
         console.debug("onGhostMarkerClick")
         startGhostMarkerDrag()
         ghostMarker.removeClassName("dragging")
-        tryHideGhostMarker()
-    }
-
-    /** Toggle ghost marker out of hidden state */
-    const tryShowGhostMarker = () => {
-        if (!ghostMarker) ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
-        else if (ghostMarker.getElement().classList.contains("dragging")) return
-        ghostMarker.removeClassName("hidden")
-    }
-
-    /** Toggle ghost marker into hidden state */
-    const tryHideGhostMarker = () => {
-        if (ghostMarker.getElement().classList.contains("dragging")) return
-        ghostMarker.addClassName("hidden")
+        ghostMarker.addClassName("d-none")
     }
 
     return {
         load: () => {
             switchActionSidebar(map, sidebar)
+            addMapLayer(map, layerId)
 
             // Load markers from URL
             const searchParams = qsParse(location.search.substring(1))
@@ -383,30 +406,29 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             update(range(0, markers.length))
 
             // Focus on the makers if they're offscreen
-            if (markers.length > 1) {
+            if (markers.length) {
                 const mapBounds = map.getBounds()
-                let markerBounds = new LngLatBounds(markers[0].getLngLat())
+                let markerBounds = new LngLatBounds()
                 let contains = true
-                for (const marker of markers.slice(1)) {
+                for (const marker of markers) {
                     const markerLngLat = marker.getLngLat()
                     markerBounds = markerBounds.extend(markerLngLat)
                     if (contains && !mapBounds.contains(markerLngLat)) contains = false
                 }
-                if (!contains) map.fitBounds(markerBounds, { animate: false })
+                if (!contains) map.fitBounds(padLngLatBounds(markerBounds, 0.2), { maxZoom: 16, animate: false })
             }
 
-            addMapLayer(map, layerId)
             map.on("click", createNewMarker)
+            map.on("mousemove", updateGhostMarkerPosition)
         },
         unload: () => {
             map.off("click", createNewMarker)
+            map.off("mousemove", updateGhostMarkerPosition)
             removeMapLayer(map, layerId)
             source.setData(emptyFeatureCollection)
             ghostMarker?.remove()
             ghostMarker = null
-            for (const marker of markers) marker.remove()
-            markers.length = 0
-            update([])
+            clearMarkers()
         },
     }
 }
