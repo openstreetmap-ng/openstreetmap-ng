@@ -7,10 +7,12 @@ import {
     type Map as MaplibreMap,
     RasterTileSource,
     type SourceSpecification,
+    type StyleSpecification,
 } from "maplibre-gl"
 import { getActiveTheme, getMapOverlayOpacity } from "../_local-storage.ts"
 import { addThemeEventHandler } from "../_navbar-theme.ts"
 import { staticCache } from "../_utils.ts"
+import libertyStyle from "../vector-styles/liberty.json"
 
 declare const brandSymbol: unique symbol
 
@@ -69,6 +71,7 @@ export type AddMapLayerOptions = Omit<LayerSpecification, "id" | "type" | "sourc
 
 interface LayerConfig {
     specification: SourceSpecification
+    vectorStyle?: StyleSpecification
     darkTiles?: RasterTileSource["tiles"]
     isBaseLayer?: boolean
     layerCode?: LayerCode
@@ -92,6 +95,14 @@ layersConfig.set("standard" as LayerId, {
     isBaseLayer: true,
     layerCode: "" as LayerCode,
     legacyLayerIds: ["mapnik"] as LayerId[],
+})
+
+layersConfig.set("liberty" as LayerId, {
+    specification: { type: "vector" },
+    // @ts-ignore
+    vectorStyle: libertyStyle,
+    isBaseLayer: true,
+    layerCode: "L" as LayerCode,
 })
 
 layersConfig.set("cyclosm" as LayerId, {
@@ -231,12 +242,21 @@ export const addMapLayerSources = (map: MaplibreMap, kind: "all" | "base" | Laye
     let watchMap = false
     for (const [layerId, config] of exactConfig ? [[kind, exactConfig] as [LayerId, LayerConfig]] : layersConfig) {
         if (kind === "base" && !config.isBaseLayer) continue
-        if (!watchMap && config.darkTiles) watchMap = true
-        if (isDarkTheme && config.darkTiles) {
-            // @ts-ignore
-            map.addSource(layerId, { ...config.specification, tiles: config.darkTiles })
-        } else {
-            map.addSource(layerId, config.specification)
+        const specType = config.specification.type
+        if (specType === "raster") {
+            if (!watchMap && config.darkTiles) watchMap = true
+            if (isDarkTheme && config.darkTiles) {
+                // @ts-ignore
+                map.addSource(layerId, { ...config.specification, tiles: config.darkTiles })
+            } else {
+                map.addSource(layerId, config.specification)
+            }
+        } else if (specType === "vector") {
+            for (const [sourceId, source] of Object.entries(config.vectorStyle.sources)) {
+                if ((source.type !== "raster" && source.type !== "vector") || (!source.tiles && !source.url)) continue
+                if (source.attribution) source.attribution = config.specification.attribution
+                map.addSource(getExtendedLayerId(layerId, sourceId as LayerType), source)
+            }
         }
     }
     if (watchMap) watchMapsLayerSources.push(map)
@@ -311,7 +331,7 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = t
         layerTypes = config.layerTypes
     } else if (specType === "raster") {
         layerTypes = ["raster"]
-    } else {
+    } else if (specType !== "vector") {
         console.warn("Unsupported specification type", specType, "on layer", layerId)
         return
     }
@@ -321,42 +341,69 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = t
         .getLayersOrder()
         .find((id) => priority < (layersConfig.get(resolveExtendedLayerId(id))?.priority ?? 0))
 
-    console.debug("Adding layer", layerId, "with types", layerTypes, "before", beforeId)
-    const layerOptions = config.layerOptions ?? {}
-    for (const type of layerTypes) {
-        const layerObject: AddLayerObject = {
-            ...layerOptions,
-            // @ts-ignore
-            type: type as string,
-            // @ts-ignore
-            source: layerId,
-        }
-        if (layerTypes.length > 1) {
-            layerObject.id = getExtendedLayerId(layerId, type)
-            // Remove unsupported layer options
-            const validPrefixes = [`${type}-`]
-            if (type === "symbol") validPrefixes.push("icon-", "text-")
-            for (const key of ["layout", "paint"] as const) {
-                const value = layerOptions[key]
-                if (!value) continue
-                const newValue: Record<string, unknown> = {}
-                for (const [k, v] of Object.entries(value)) {
-                    for (const prefix of validPrefixes) {
-                        if (!k.startsWith(prefix)) continue
-                        newValue[k] = v
-                    }
-                }
-                // @ts-ignore
-                layerObject[key] = newValue
+    if (specType === "vector") {
+        console.debug("Adding vectory layer", layerId, "before", beforeId)
+        const vectorStyle = config.vectorStyle
+        // Add glyphs
+        if (vectorStyle.glyphs) map.setGlyphs(vectorStyle.glyphs)
+        // Add sprites
+        if (vectorStyle.sprite instanceof Array) {
+            const addedIds = new Set(map.getSprite().map(({ id }) => id))
+            for (const { id, url } of vectorStyle.sprite) {
+                if (addedIds.has(id)) map.removeSprite(id) // override existing sprites
+                map.addSprite(id, url)
             }
-        } else {
-            layerObject.id = layerId
+        } else if (vectorStyle.sprite) {
+            map.setSprite(vectorStyle.sprite)
         }
-        const filter = layerTypeFilters[type]
-        // @ts-ignore
-        if (filter) layerObject.filter = filter
-        map.addLayer(layerObject, beforeId)
+        // Add layers
+        for (const layer of vectorStyle.layers) {
+            const layerObject: AddLayerObject = {
+                ...layer,
+                id: getExtendedLayerId(layerId, layer.id as LayerType),
+            }
+            // @ts-ignore
+            if (layer.source) layerObject.source = getExtendedLayerId(layerId, layer.source as LayerType)
+            map.addLayer(layerObject, beforeId)
+        }
+    } else {
+        console.debug("Adding layer", layerId, "with types", layerTypes, "before", beforeId)
+        const layerOptions = config.layerOptions ?? {}
+        for (const type of layerTypes) {
+            const layerObject: AddLayerObject = {
+                ...layerOptions,
+                id: layerId,
+                // @ts-ignore
+                type: type as string,
+                // @ts-ignore
+                source: layerId,
+            }
+            if (layerTypes.length > 1) {
+                layerObject.id = getExtendedLayerId(layerId, type)
+                // Remove unsupported layer options
+                const validPrefixes = [`${type}-`]
+                if (type === "symbol") validPrefixes.push("icon-", "text-")
+                for (const key of ["layout", "paint"] as const) {
+                    const value = layerOptions[key]
+                    if (!value) continue
+                    const newValue: Record<string, unknown> = {}
+                    for (const [k, v] of Object.entries(value)) {
+                        for (const prefix of validPrefixes) {
+                            if (!k.startsWith(prefix)) continue
+                            newValue[k] = v
+                        }
+                    }
+                    // @ts-ignore
+                    layerObject[key] = newValue
+                }
+            }
+            const filter = layerTypeFilters[type]
+            // @ts-ignore
+            if (filter) layerObject.filter = filter
+            map.addLayer(layerObject, beforeId)
+        }
     }
+
     if (triggerEvent) {
         for (const handler of layerEventHandlers) {
             handler(true, layerId, config)
@@ -366,6 +413,7 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = t
 
 export const removeMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = true): void => {
     let removed = false
+    // Remove layers
     for (const extendedLayerId of map.getLayersOrder()) {
         if (resolveExtendedLayerId(extendedLayerId) !== layerId) continue
         console.debug("Removing layer", extendedLayerId, "because of", layerId)
@@ -373,8 +421,23 @@ export const removeMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent 
         removed = true
     }
     if (removed) {
+        const config = layersConfig.get(layerId)
+
+        if (config.specification.type === "vector") {
+            const vectorStyle = config.vectorStyle
+            // Remove glyphs
+            if (vectorStyle.glyphs) map.setGlyphs(null)
+            // Remove sprites
+            if (vectorStyle.sprite instanceof Array) {
+                for (const { id } of vectorStyle.sprite) {
+                    map.removeSprite(id)
+                }
+            } else if (vectorStyle.sprite) {
+                map.setSprite(null)
+            }
+        }
+
         if (triggerEvent) {
-            const config = layersConfig.get(layerId)
             for (const handler of layerEventHandlers) {
                 handler(false, layerId, config)
             }

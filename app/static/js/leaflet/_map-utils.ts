@@ -103,7 +103,7 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
 export const getMapBaseLayerId = (map: MaplibreMap): LayerId | null => {
     let baseLayerId: LayerId | null = null
     for (const extendedLayerId of map.getLayersOrder()) {
-        const layerId = extendedLayerId as LayerId // base layers have no extensions
+        const layerId = resolveExtendedLayerId(extendedLayerId)
         const layerConfig = layersConfig.get(layerId)
         if (layerConfig?.isBaseLayer) {
             if (baseLayerId) console.warn("Multiple base layers found")
