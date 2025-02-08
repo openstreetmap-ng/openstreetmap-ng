@@ -58,6 +58,7 @@ let
     coreutils
     findutils
     curl
+    jq
     watchexec'
     brotli
     zstd
@@ -185,6 +186,7 @@ let
         -delete
       bun run babel \
         --extensions ".js,.ts" \
+        --copy-files \
         --delete-dir-on-start \
         --out-dir "$generated" \
         "$dir"
@@ -537,6 +539,20 @@ let
     (makeScript "replication" "python scripts/replication.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
+    (makeScript "vector-styles-update" ''
+      dir=app/static/js/vector-styles
+      mkdir -p "$dir"
+      styles=(
+        "liberty+https://tiles.openfreemap.org/styles/liberty"
+      )
+      for style in "''${styles[@]}"; do
+        name="''${style%%+*}"
+        url="''${style#*+}"
+        file="$dir/$name.json"
+        echo "Updating $name vector style"
+        curl --silent --location "$url" | jq --sort-keys . > "$file"
+      done
+    '')
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
     (makeScript "nixpkgs-update" ''
