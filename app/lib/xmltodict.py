@@ -47,7 +47,6 @@ class XMLToDict:
     @staticmethod
     def unparse(d: dict[str, Any], *, raw: bool = False) -> str | bytes:
         """Unparse dict to XML string."""
-        # TODO: ensure valid XML charset (encode if necessary) /user/小智智/traces/10908782
         if len(d) != 1:
             raise ValueError(f'Invalid root element count {len(d)}')
 

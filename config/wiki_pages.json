@@ -1248,7 +1248,13 @@
       "Uk",
       "Zh-hans"
     ],
+    "6": [
+      "DE"
+    ],
     "8": [
+      "DE"
+    ],
+    "9": [
       "DE"
     ]
   },
@@ -1476,6 +1482,7 @@
       "Ca",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "JA",
       "Pt",
@@ -1589,6 +1596,7 @@
       "Ca",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "JA",
       "Pt",
@@ -1727,6 +1735,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "IT",
       "JA",
@@ -1736,6 +1745,7 @@
     ],
     "aircraft_crossing": [
       "",
+      "Da",
       "ES",
       "RU"
     ],
@@ -1759,6 +1769,7 @@
       "Ca",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "IT",
@@ -1792,6 +1803,7 @@
       "Ca",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "IT",
@@ -1805,6 +1817,7 @@
       "Ca",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "IT",
@@ -1818,6 +1831,7 @@
       "Ca",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "IT",
@@ -2381,6 +2395,7 @@
     ],
     "bicycle_library": [
       "",
+      "DE",
       "ES",
       "FR",
       "RU",
@@ -2437,6 +2452,7 @@
     ],
     "bicycle_trailer_sharing": [
       "",
+      "DE",
       "RU",
       "Uk"
     ],
@@ -2741,7 +2757,8 @@
       "Pl",
       "Pt",
       "RU",
-      "Uk"
+      "Uk",
+      "Zh-hans"
     ],
     "citymap_post": [
       "",
@@ -3682,6 +3699,7 @@
     ],
     "locker": [
       "",
+      "DE",
       "FR",
       "RU",
       "Uk"
@@ -4454,6 +4472,10 @@
       "JA",
       "Uk"
     ],
+    "security_control": [
+      "",
+      "RU"
+    ],
     "shelf": [
       ""
     ],
@@ -4785,6 +4807,7 @@
     ],
     "trade_school": [
       "",
+      "DE",
       "JA",
       "RU"
     ],
@@ -4906,6 +4929,7 @@
     ],
     "veterinary_pharmacy": [
       "",
+      "DE",
       "Pt",
       "RU",
       "Uk"
@@ -5627,6 +5651,12 @@
   "association": {
     "*": [
       "",
+      "DE",
+      "RU"
+    ],
+    "sport": [
+      "",
+      "DE",
       "RU"
     ],
     "student": [
@@ -5929,6 +5959,7 @@
   "baby_feeding": {
     "*": [
       "",
+      "DE",
       "RU"
     ]
   },
@@ -6988,6 +7019,7 @@
   "bicycle:lanes": {
     "*": [
       "",
+      "DE",
       "RU"
     ]
   },
@@ -7027,12 +7059,14 @@
   "bicycle:type": {
     "*": [
       "",
+      "DE",
       "RU"
     ]
   },
   "bicycle_bypass": {
     "*": [
       "",
+      "DE",
       "FR",
       "RU"
     ]
@@ -7054,18 +7088,22 @@
     ],
     "safe_loops": [
       "",
+      "DE",
       "RU"
     ],
     "stands": [
       "",
+      "DE",
       "RU"
     ],
     "wall_loops": [
       "",
+      "DE",
       "RU"
     ],
     "wide_stands": [
       "",
+      "DE",
       "RU"
     ]
   },
@@ -7336,7 +7374,8 @@
   },
   "bottle": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "boules": {
@@ -7437,6 +7476,7 @@
     ],
     "forest_compartment": [
       "",
+      "DE",
       "ES",
       "FR",
       "RU",
@@ -8136,6 +8176,7 @@
     ],
     "annexe": [
       "",
+      "FR",
       "RU"
     ],
     "apartments": [
@@ -9120,6 +9161,7 @@
     ],
     "storage_tank": [
       "",
+      "DE",
       "ES",
       "RU",
       "Uk"
@@ -9390,6 +9432,7 @@
     "*": [
       "",
       "Cs",
+      "DE",
       "ES",
       "JA",
       "Pl",
@@ -10374,7 +10417,8 @@
     "*": [
       "",
       "Cs",
-      "DE"
+      "DE",
+      "Da"
     ]
   },
   "cargo": {
@@ -10396,6 +10440,7 @@
   "cargo_bike": {
     "*": [
       "",
+      "DE",
       "FR"
     ]
   },
@@ -10446,6 +10491,11 @@
     ]
   },
   "cash_out": {
+    "*": [
+      ""
+    ]
+  },
+  "cash_out:notes:denominations": {
     "*": [
       ""
     ]
@@ -10755,6 +10805,34 @@
       "RU"
     ]
   },
+  "cinema:3D": {
+    "*": [
+      ""
+    ]
+  },
+  "cinema:IMAX": {
+    "*": [
+      "",
+      "RU",
+      "Zh-hans"
+    ]
+  },
+  "cinema:LUXE": {
+    "*": [
+      ""
+    ]
+  },
+  "cinema:dolby_atmos": {
+    "*": [
+      ""
+    ]
+  },
+  "cinema:dolby_cinema": {
+    "*": [
+      "",
+      "Zh-hans"
+    ]
+  },
   "circuits": {
     "*": [
       "",
@@ -10971,6 +11049,7 @@
     ],
     "bicycle": [
       "",
+      "DE",
       "ES",
       "RU"
     ],
@@ -11093,7 +11172,8 @@
   },
   "coach": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "coastline": {
@@ -11834,6 +11914,11 @@
       "RU"
     ]
   },
+  "contact:bluesky": {
+    "*": [
+      ""
+    ]
+  },
   "contact:booking": {
     "*": [
       ""
@@ -11914,6 +11999,11 @@
       "Cs",
       "ES",
       "JA"
+    ]
+  },
+  "contact:mastodon": {
+    "*": [
+      ""
     ]
   },
   "contact:mobile": {
@@ -12092,7 +12182,8 @@
       ""
     ],
     "salt": [
-      ""
+      "",
+      "ES"
     ],
     "sewage": [
       "",
@@ -12222,12 +12313,14 @@
   },
   "couplings:diameters": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "couplings:type": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "courthouse": {
@@ -13745,7 +13838,8 @@
     ],
     "dumplings": [
       "",
-      "ES"
+      "ES",
+      "JA"
     ],
     "empanada": [
       "",
@@ -13885,6 +13979,9 @@
     "pie": [
       "",
       "ES"
+    ],
+    "pie_and_mash": [
+      ""
     ],
     "pizza": [
       "",
@@ -14242,11 +14339,13 @@
     "bike_box": [
       "",
       "Cs",
+      "DE",
       "FR",
       "RU"
     ],
     "crossing": [
       "",
+      "DE",
       "ES"
     ],
     "lane": [
@@ -14261,10 +14360,12 @@
       "RU"
     ],
     "link": [
-      ""
+      "",
+      "DE"
     ],
     "no": [
       "",
+      "DE",
       "ES",
       "JA",
       "RU"
@@ -14337,6 +14438,7 @@
     ],
     "sidewalk": [
       "",
+      "DE",
       "RU"
     ],
     "track": [
@@ -14356,6 +14458,7 @@
   "cycleway:both": {
     "*": [
       "",
+      "DE",
       "ES",
       "JA",
       "RU",
@@ -14363,11 +14466,13 @@
     ],
     "lane": [
       "",
+      "DE",
       "ES",
       "RU"
     ],
     "no": [
       "",
+      "DE",
       "ES",
       "RU"
     ]
@@ -14375,6 +14480,7 @@
   "cycleway:buffer": {
     "*": [
       "",
+      "DE",
       "ES",
       "RU"
     ]
@@ -14419,7 +14525,9 @@
   },
   "cycleway:lanes": {
     "*": [
-      ""
+      "",
+      "DE",
+      "RU"
     ]
   },
   "cycleway:left": {
@@ -14442,6 +14550,7 @@
     ],
     "track": [
       "",
+      "DE",
       "ES",
       "RU"
     ]
@@ -14501,7 +14610,8 @@
   },
   "cycleway:separation": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "cycleway:surface": {
@@ -14515,7 +14625,8 @@
   },
   "cycleway:surface:colour": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "cycling": {
@@ -16064,6 +16175,7 @@
   "electric_bicycle": {
     "*": [
       "",
+      "DE",
       "ES",
       "RU"
     ]
@@ -16071,6 +16183,7 @@
   "electricity": {
     "*": [
       "",
+      "DE",
       "RU"
     ]
   },
@@ -16970,7 +17083,8 @@
   },
   "except": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "exhibit": {
@@ -17492,6 +17606,7 @@
   "fire_station:type": {
     "*": [
       "",
+      "DE",
       "RU"
     ]
   },
@@ -17742,6 +17857,7 @@
   "flow_rate": {
     "*": [
       "",
+      "DE",
       "RU"
     ]
   },
@@ -17921,7 +18037,8 @@
   },
   "footway:surface": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "for": {
@@ -18049,7 +18166,8 @@
       "RU"
     ],
     "bottle_refill": [
-      ""
+      "",
+      "DE"
     ],
     "bubbler": [
       "",
@@ -19255,6 +19373,10 @@
       "",
       "DE"
     ],
+    "out_of_bounds": [
+      "",
+      "RU"
+    ],
     "path": [
       ""
     ],
@@ -19714,12 +19836,14 @@
   "guide_type": {
     "*": [
       "",
+      "DE",
       "RU"
     ]
   },
   "guidepost": {
     "*": [
       "",
+      "DE",
       "JA",
       "RU"
     ],
@@ -21067,6 +21191,7 @@
     ],
     "cyclist_waiting_aid": [
       "",
+      "DE",
       "FR"
     ],
     "disused": [
@@ -21681,6 +21806,7 @@
     ],
     "trailhead": [
       "",
+      "DE",
       "ES",
       "FR",
       "Ko",
@@ -22477,6 +22603,7 @@
   "hot_water": {
     "*": [
       "",
+      "DE",
       "FR"
     ]
   },
@@ -22711,6 +22838,7 @@
   "incline:across": {
     "*": [
       "",
+      "DE",
       "JA"
     ]
   },
@@ -22736,6 +22864,7 @@
     ],
     "corridor": [
       "",
+      "DE",
       "FR"
     ],
     "door": [
@@ -22852,7 +22981,8 @@
     ],
     "concrete_plant": [
       "",
-      "DE"
+      "DE",
+      "ES"
     ],
     "construction_company": [
       "",
@@ -23289,7 +23419,8 @@
       "RU"
     ],
     "trail_blaze": [
-      ""
+      "",
+      "DE"
     ],
     "visitor_centre": [
       "",
@@ -23770,9 +23901,6 @@
       "JA",
       "Pl",
       "RU"
-    ],
-    "raised": [
-      ""
     ]
   },
   "kerb:approach_aid": {
@@ -25914,6 +26042,7 @@
   "light:colour": {
     "*": [
       "",
+      "DE",
       "FR"
     ]
   },
@@ -26877,7 +27006,8 @@
     ],
     "frost_fan": [
       "",
-      "DE"
+      "DE",
+      "FR"
     ],
     "fuel_column": [
       "",
@@ -27746,6 +27876,9 @@
     ]
   },
   "maritime": {
+    "*": [
+      ""
+    ],
     "yes": [
       ""
     ]
@@ -29982,6 +30115,11 @@
       ""
     ]
   },
+  "name:bdy": {
+    "*": [
+      ""
+    ]
+  },
   "name:be": {
     "*": [
       "",
@@ -31860,6 +31998,11 @@
       ""
     ]
   },
+  "name:xdk": {
+    "*": [
+      ""
+    ]
+  },
   "name:xh": {
     "*": [
       ""
@@ -33086,6 +33229,15 @@
     "JP:prefectural:nagano": [
       ""
     ],
+    "MA:RN": [
+      ""
+    ],
+    "MA:RP": [
+      ""
+    ],
+    "MA:RR": [
+      ""
+    ],
     "MBTA": [
       ""
     ],
@@ -33974,6 +34126,7 @@
   "network:type": {
     "*": [
       "",
+      "DE",
       "ES",
       "NL"
     ],
@@ -34073,7 +34226,8 @@
   },
   "noexit": {
     "*": [
-      ""
+      "",
+      "IT"
     ],
     "no": [
       "",
@@ -35212,6 +35366,7 @@
     ],
     "yes": [
       "",
+      "DE",
       "ES",
       "RU"
     ]
@@ -35239,6 +35394,7 @@
   "oneway:moped": {
     "no": [
       "",
+      "DE",
       "RU"
     ]
   },
@@ -35253,13 +35409,20 @@
   "oneway:psv": {
     "*": [
       "",
+      "DE",
       "ES"
     ],
     "no": [
-      ""
+      "",
+      "DE"
     ]
   },
   "oneway:taxi": {
+    "*": [
+      ""
+    ]
+  },
+  "oneway:type": {
     "*": [
       ""
     ]
@@ -35565,7 +35728,14 @@
       "Pt",
       "RU",
       "Sv",
-      "Uk"
+      "Uk",
+      "Zh-hans"
+    ],
+    "Agentschap_Wegen_en_Verkeer": [
+      ""
+    ],
+    "Agentschap_voor_Natuur_en_Bos": [
+      ""
     ],
     "Bundesrepublik_Deutschland": [
       ""
@@ -35602,7 +35772,6 @@
       "FR"
     ],
     "GRTgaz": [
-      "",
       "FR"
     ],
     "Havenbedrijf_Rotterdam_N.V.": [
@@ -35624,6 +35793,9 @@
       ""
     ],
     "Land_Sint_Maarten": [
+      ""
+    ],
+    "NaTran": [
       ""
     ],
     "Orange": [
@@ -35653,6 +35825,9 @@
     "Stadtmobil": [
       "",
       "DE"
+    ],
+    "TEC": [
+      ""
     ],
     "TenneT": [
       ""
@@ -36549,6 +36724,7 @@
     ],
     "sidewalk": [
       "",
+      "DE",
       "RU"
     ],
     "trail": [
@@ -36738,7 +36914,8 @@
   },
   "photography": {
     "*": [
-      ""
+      "",
+      "RU"
     ]
   },
   "physically_present": {
@@ -36845,12 +37022,14 @@
   },
   "piste:lit": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "piste:ref": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "piste:takeoff": {
@@ -37695,6 +37874,11 @@
       "Pl",
       "RU"
     ],
+    "marble_run": [
+      "",
+      "DE",
+      "RU"
+    ],
     "playhouse": [
       "",
       "Pl",
@@ -38125,6 +38309,7 @@
     ],
     "connection": [
       "",
+      "DE",
       "ES",
       "FR"
     ],
@@ -38377,6 +38562,7 @@
   "pressure": {
     "*": [
       "",
+      "DE",
       "Pl"
     ]
   },
@@ -38735,7 +38921,8 @@
   },
   "psv:lanes": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "psv:lanes:backward": {
@@ -41280,6 +41467,11 @@
       ""
     ]
   },
+  "ref:goingelectric": {
+    "*": [
+      ""
+    ]
+  },
   "ref:gsi": {
     "*": [
       ""
@@ -41797,6 +41989,11 @@
     ]
   },
   "ref:wigos": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:wmata": {
     "*": [
       ""
     ]
@@ -42597,6 +42794,7 @@
     "*": [
       "",
       "Cs",
+      "DE",
       "ES",
       "JA",
       "Pl"
@@ -43107,7 +43305,8 @@
   },
   "route_marker": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "route_master": {
@@ -45478,12 +45677,14 @@
   "service:bicycle:cleaning": {
     "*": [
       "",
+      "DE",
       "RU"
     ]
   },
   "service:bicycle:diy": {
     "*": [
       "",
+      "DE",
       "ES",
       "FR",
       "IT",
@@ -45492,12 +45693,14 @@
   },
   "service:bicycle:ebike": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "service:bicycle:miscellaneous": {
     "*": [
       "",
+      "DE",
       "FR"
     ]
   },
@@ -45515,6 +45718,7 @@
   "service:bicycle:pump": {
     "*": [
       "",
+      "DE",
       "RU",
       "Uk"
     ]
@@ -45541,6 +45745,7 @@
   "service:bicycle:retail": {
     "*": [
       "",
+      "DE",
       "FR",
       "IT",
       "RU"
@@ -47742,6 +47947,7 @@
     "rental": [
       "",
       "Cs",
+      "DE",
       "ES",
       "JA",
       "Pl",
@@ -47957,6 +48163,9 @@
     "street_vendor": [
       "",
       "FR"
+    ],
+    "sunglasses": [
+      ""
     ],
     "supermarket": [
       "",
@@ -48370,6 +48579,7 @@
     "*": [
       "",
       "DE",
+      "Da",
       "JA",
       "Pl"
     ]
@@ -48398,7 +48608,8 @@
   },
   "side": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "side_road": {
@@ -48435,11 +48646,15 @@
     "separate": [
       "",
       "DE"
+    ],
+    "yes": [
+      ""
     ]
   },
   "sidewalk:both": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "sidewalk:both:bicycle": {
@@ -48451,12 +48666,14 @@
   },
   "sidewalk:both:surface": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "sidewalk:left": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "sidewalk:left:surface": {
@@ -48466,7 +48683,8 @@
   },
   "sidewalk:right": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "sidewalk:right:surface": {
@@ -49035,7 +49253,8 @@
       ""
     ],
     "Google": [
-      ""
+      "",
+      "RU"
     ],
     "Google,_2010-01-21": [
       ""
@@ -49237,7 +49456,19 @@
     "estimated": [
       ""
     ],
+    "estimation_levels": [
+      ""
+    ],
+    "lidar": [
+      ""
+    ],
+    "satellite_imagery": [
+      ""
+    ],
     "shadow": [
+      ""
+    ],
+    "survey": [
       ""
     ]
   },
@@ -49369,6 +49600,7 @@
   "spacing": {
     "*": [
       "",
+      "DE",
       "FR"
     ]
   },
@@ -49454,6 +49686,7 @@
   "speed_pedelec": {
     "*": [
       "",
+      "DE",
       "ES",
       "RU"
     ]
@@ -50485,6 +50718,8 @@
     "equestrian": [
       "",
       "DE",
+      "IT",
+      "Pl",
       "RU"
     ],
     "virgin": [
@@ -50907,6 +51142,11 @@
     "*": [
       "",
       "DE"
+    ]
+  },
+  "sunglasses": {
+    "*": [
+      ""
     ]
   },
   "supervised": {
@@ -51904,7 +52144,8 @@
   },
   "tickets:public_transport": {
     "*": [
-      ""
+      "",
+      "DE"
     ],
     "yes": [
       "FR",
@@ -51914,6 +52155,7 @@
   "tickets:public_transport_subscription": {
     "*": [
       "",
+      "DE",
       "FR",
       "JA"
     ],
@@ -52030,6 +52272,7 @@
     "*": [
       "",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -52566,6 +52809,7 @@
     "*": [
       "",
       "Cs",
+      "DE",
       "ES",
       "JA",
       "RU"
@@ -53680,6 +53924,7 @@
     ],
     "bicycle": [
       "",
+      "DE",
       "RU"
     ],
     "computer": [
@@ -54017,9 +54262,6 @@
       "",
       "ES",
       "FR"
-    ],
-    "yes": [
-      "ES"
     ]
   },
   "turkey_class": {
@@ -54278,6 +54520,11 @@
     ]
   },
   "url:bathing_water": {
+    "*": [
+      ""
+    ]
+  },
+  "url:goingelectric": {
     "*": [
       ""
     ]
@@ -54890,7 +55137,8 @@
     ],
     "gas_bottles": [
       "",
-      "DE"
+      "DE",
+      "RU"
     ],
     "ice_cream": [
       "",
@@ -55020,7 +55268,8 @@
       "RU"
     ],
     "rice_polishing": [
-      ""
+      "",
+      "RU"
     ],
     "sex_toys": [
       "",
@@ -55136,7 +55385,8 @@
   },
   "via_ferrata_scale": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "video": {

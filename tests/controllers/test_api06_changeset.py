@@ -1,8 +1,10 @@
 from httpx import AsyncClient
+from starlette import status
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.format import Format06
 from app.lib.xmltodict import XMLToDict
+from app.limits import ELEMENT_TAGS_KEY_MAX_LENGTH, ELEMENT_TAGS_LIMIT, ELEMENT_TAGS_MAX_SIZE
 
 
 async def test_changeset_crud(client: AsyncClient):
@@ -99,15 +101,7 @@ async def test_changeset_upload(client: AsyncClient):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'changeset': {
-                        'tag': [
-                            {'@k': 'created_by', '@v': test_changeset_upload.__name__},
-                        ]
-                    }
-                }
-            }
+            {'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_changeset_upload.__name__}]}}}
         ),
     )
     assert r.is_success, r.text
@@ -155,3 +149,101 @@ async def test_changesets_unauthorized_get_request(client: AsyncClient):
 
     changesets: dict = XMLToDict.parse(r.content)['osm']
     assert changesets['changeset'] is not None
+
+
+async def test_changesets_not_found(client: AsyncClient):
+    r = await client.get('/api/0.6/changeset/9999999999')
+    assert r.status_code == status.HTTP_404_NOT_FOUND, r.text
+
+
+async def test_changesets_tags_max_len(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    # create changeset (at the limit)
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse(
+            {'osm': {'changeset': {'tag': [{'@k': '0' * ELEMENT_TAGS_KEY_MAX_LENGTH, '@v': '0' * 255}]}}}
+        ),
+    )
+    assert r.is_success, r.text
+
+    # create changeset (above the limit)
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse(
+            {'osm': {'changeset': {'tag': [{'@k': '0' * (ELEMENT_TAGS_KEY_MAX_LENGTH + 1), '@v': '0' * 255}]}}}
+        ),
+    )
+    assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse(
+            {'osm': {'changeset': {'tag': [{'@k': '0' * ELEMENT_TAGS_KEY_MAX_LENGTH, '@v': '0' * 256}]}}}
+        ),
+    )
+    assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
+
+
+async def test_changesets_tags_limit(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    # create changeset (at the limit)
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse(
+            {'osm': {'changeset': {'tag': [{'@k': i, '@v': i} for i in range(ELEMENT_TAGS_LIMIT)]}}}
+        ),
+    )
+    assert r.is_success, r.text
+
+    # create changeset (above the limit)
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse(
+            {'osm': {'changeset': {'tag': [{'@k': i, '@v': i} for i in range(ELEMENT_TAGS_LIMIT + 1)]}}}
+        ),
+    )
+    assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
+
+
+async def test_changesets_tags_size(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    num_tags = ELEMENT_TAGS_MAX_SIZE // (ELEMENT_TAGS_KEY_MAX_LENGTH * 2)
+
+    # create changeset (at the limit)
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse(
+            {
+                'osm': {
+                    'changeset': {
+                        'tag': [
+                            {'@k': f'{i:0{ELEMENT_TAGS_KEY_MAX_LENGTH}d}', '@v': f'{i:0{ELEMENT_TAGS_KEY_MAX_LENGTH}d}'}
+                            for i in range(num_tags)
+                        ]
+                    }
+                }
+            }
+        ),
+    )
+    assert r.is_success, r.text
+
+    # create changeset (above the limit)
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse(
+            {
+                'osm': {
+                    'changeset': {
+                        'tag': [
+                            {'@k': f'{i:0{ELEMENT_TAGS_KEY_MAX_LENGTH}d}', '@v': f'{i:0{ELEMENT_TAGS_KEY_MAX_LENGTH}d}'}
+                            for i in range(num_tags + 1)
+                        ]
+                    }
+                }
+            }
+        ),
+    )
+    assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text

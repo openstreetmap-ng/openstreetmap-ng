@@ -239,13 +239,14 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
     assert r.status_code == status.HTTP_401_UNAUTHORIZED, r.text
 
 
-async def test_access_token_in_form(client: AsyncClient):
+@pytest.mark.parametrize('valid_scope', [True, False])
+async def test_access_token_in_form(client: AsyncClient, valid_scope: bool):
     client.headers['Authorization'] = 'User user1'
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
         client_id='testapp',
-        scope='',
+        scope='write_notes' if valid_scope else '',
         redirect_uri='urn:ietf:wg:oauth:2.0:oob',
     )
     authorization_url, state = auth_client.create_authorization_url('/oauth2/authorize')
@@ -270,7 +271,11 @@ async def test_access_token_in_form(client: AsyncClient):
         params={'lon': 0, 'lat': 0, 'text': test_access_token_in_form.__qualname__},
         data={'access_token': data['access_token']},
     )
-    assert r.is_success, r.text
-    props: dict = XMLToDict.parse(r.content)['osm']['note'][0]
-    comments: list[dict] = props['comments']['comment']
-    assert comments[-1]['user'] == 'user1'
+    if valid_scope:
+        assert r.is_success, r.text
+        props: dict = XMLToDict.parse(r.content)['osm']['note'][0]
+        comments: list[dict] = props['comments']['comment']
+        assert comments[-1]['user'] == 'user1'
+    else:
+        assert r.status_code == status.HTTP_403_FORBIDDEN, r.text
+        assert 'The request requires higher privileges than authorized (write_notes)' in r.text

@@ -5,6 +5,8 @@ editor:
 map:
   layers:
     esri_world_imagery: Esri World Imagery
+    liberty: Liberty
+    vector: Vector
   overlays:
     title: Map overlays
     opacity: Opacity
@@ -296,6 +298,12 @@ permissions:
   manage_notes: Manage notes
   access_the_website: Access the website
 oauth:
+  account_not_found: Account not found
+  we_couldnt_find_account: "We couldn't find an account linked to your {{provider}} login."
+  new_to_openstreetmap: New to OpenStreetMap?
+  create_an_account: Create an account to start mapping and contributing to the world's free map.
+  already_have_an_openstreetmap_account: Already have an OpenStreetMap account?
+  connect_it_in_settings: "Connect it with your {{provider}} login in your account settings."
   authorization_request_app: "Authorization request: {{name}}"
   authorize_app_to_access_your_account: "Authorize {{name}} to access your account?"
   you_are_currently_signed_in_as: "You are currently signed in as {{name}}"
@@ -423,6 +431,7 @@ action:
   connect: Connect
   disconnect: Disconnect
   updated: updated
+  clear_markers: Clear markers
 state:
   any: Any
   open: Open
@@ -441,10 +450,9 @@ unsupported_browser:
   description: For the best experience, please update your browser or pick one from the list below.
   proceed_anyway: Proceed anyway
 showcase: Showcase
-javascripts:
-  context:
-    suggest_edit: Suggest an edit
-    measure_distance: Measure distance
+context_menu:
+  suggest_edit: Suggest an edit
+  measure_distance: Measure distance
 theme:
   toggle_theme: Toggle theme
   light: Light

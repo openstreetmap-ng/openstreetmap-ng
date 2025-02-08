@@ -6,7 +6,7 @@ from feedgen.feed import FeedGenerator
 
 from app.config import APP_URL
 from app.lib.date_utils import format_rfc2822_date
-from app.lib.jinja_env import render
+from app.lib.render_jinja import render_jinja
 from app.lib.translation import t
 from app.models.db.changeset import Changeset
 
@@ -55,7 +55,7 @@ def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
         fe.geo.box(f'{miny} {minx} {maxy} {maxx}')
 
     fe.content(
-        render(
+        render_jinja(
             'api06/history_feed_entry.jinja2',
             {
                 'created': format_rfc2822_date(changeset.created_at),

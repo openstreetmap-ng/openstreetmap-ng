@@ -4,7 +4,7 @@ from time import time
 from typing import cast
 
 import cython
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -12,6 +12,7 @@ from app.config import TEST_ENV
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_compare, hmac_bytes
+from app.lib.render_response import render_response
 from app.limits import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_MAX_AGE, COOKIE_AUTH_MAX_AGE
 from app.models.auth_provider import AuthProvider, AuthProviderAction
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
@@ -73,7 +74,7 @@ class AuthProviderService:
         uid: str | int,
         name: str | None,
         email: str | None,
-    ) -> RedirectResponse:
+    ) -> Response:
         provider = AuthProvider(state.provider)
         action = cast(AuthProviderAction, state.action)
         uid = str(uid)
@@ -81,7 +82,7 @@ class AuthProviderService:
         if action == 'login':
             user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
             if user_id is None:
-                raise NotImplementedError  # TODO: handle not found
+                return await render_response('user/auth_provider/not_found.jinja2', {'provider': provider})
             logging.debug('Authenticated user %d using auth provider %r', user_id, provider)
             access_token = await SystemAppService.create_access_token('SystemApp.web', user_id=user_id)
             max_age = COOKIE_AUTH_MAX_AGE  # TODO: remember option for auth providers

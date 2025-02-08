@@ -8,7 +8,7 @@ from shapely import Point, lib
 from app.config import API_URL, APP_URL
 from app.lib.date_utils import format_sql_date, legacy_date
 from app.lib.format_style_context import format_style
-from app.lib.jinja_env import render
+from app.lib.render_jinja import render_jinja
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 
@@ -112,7 +112,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
             'time': created_at,
             'name': f'Note: {note.id}',
             'link': {'href': f'{APP_URL}/note/{note.id}'},
-            'desc': CDATA(render('api06/note_feed_comments.jinja2', {'comments': note.comments})),
+            'desc': CDATA(render_jinja('api06/note_feed_comments.jinja2', {'comments': note.comments})),
             'extensions': {
                 'id': note.id,
                 'url': f'{API_URL}/api/0.6/notes/{note.id}.gpx',

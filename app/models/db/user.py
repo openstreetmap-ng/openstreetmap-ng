@@ -18,7 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.config import TEST_USER_DOMAIN
+from app.config import DELETED_USER_EMAIL_SUFFIX, TEST_USER_EMAIL_SUFFIX
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
 from app.lib.image import AvatarType, Image
@@ -27,6 +27,7 @@ from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
     LOCALE_CODE_MAX_LENGTH,
     STORAGE_KEY_MAX_LENGTH,
+    TIMEZONE_MAX_LENGTH,
     USER_DESCRIPTION_MAX_LENGTH,
 )
 from app.models.db.base import Base
@@ -139,6 +140,12 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         nullable=True,
         server_default=None,
     )
+    timezone: Mapped[str | None] = mapped_column(
+        Unicode(TIMEZONE_MAX_LENGTH),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
 
     # relationships (avoid circular imports)
     active_user_blocks_received: Mapped[list['UserBlock']] = relationship(
@@ -158,6 +165,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
             'created_at',
             postgresql_where=status == UserStatus.pending_activation,
         ),
+        Index('user_deleted_idx', 'id', postgresql_where=email.endswith(DELETED_USER_EMAIL_SUFFIX)),
     )
 
     @validates('description')
@@ -169,7 +177,12 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     @property
     def is_test_user(self) -> bool:
         """Check if the user is a test user."""
-        return self.email.endswith('@' + TEST_USER_DOMAIN)
+        return self.email.endswith(TEST_USER_EMAIL_SUFFIX)
+
+    @property
+    def is_deleted_user(self) -> bool:
+        """Check if the user is a deleted user."""
+        return self.email.endswith(DELETED_USER_EMAIL_SUFFIX)
 
     @property
     def is_administrator(self) -> bool:

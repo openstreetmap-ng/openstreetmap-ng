@@ -28,6 +28,15 @@
             z-index: 850;
         }
 
+        .vector {
+            font-size: 0.7em;
+            font-weight: 800;
+            text-transform: uppercase;
+            position: relative;
+            top: -0.3em;
+            color: tint-color($primary, 20%);
+        }
+
         .map-container {
             height: 3.5rem;
             // Fix small "white pop" visual glitch in Dark Mode on Chrome
@@ -68,6 +77,10 @@
         .layer {
             label {
                 background: rgba($body-bg-dark, 0.8);
+            }
+
+            .vector {
+                color: tint-color($primary, 50%);
             }
         }
     }

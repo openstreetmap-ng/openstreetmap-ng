@@ -116,11 +116,13 @@
 .build-info {
     @extend .font-monospace;
     position: fixed;
-    top: 0;
-    left: 0;
-    font-size: 0.75em;
+    top: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 600;
     line-height: 1;
-    opacity: 0.65;
+    opacity: 0.3;
     z-index: 1025; // navbar is 1005, sticky-top is 1020
 
     &:hover {

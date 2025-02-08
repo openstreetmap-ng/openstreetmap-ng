@@ -10,7 +10,7 @@
 }
 
 .maplibregl-marker.distance-marker:not(.ghost-marker) {
-    z-index: 5;
+    z-index: 1;
 }
 
 .maplibregl-marker.distance-marker.ghost-marker {
@@ -18,12 +18,8 @@
     opacity: 0.5 !important;
     transition: unset;
 
-    &.hidden {
-        opacity: 0 !important;
-    }
-
     &.dragging {
         opacity: 0 !important;
-        z-index: 10;
+        z-index: 2;
     }
 }

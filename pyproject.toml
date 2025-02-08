@@ -28,7 +28,7 @@ dependencies = [
   "osm-shortlink>=1.0.0",
   "phonenumbers",
   "polyline-rs>=1.0.0",
-  "protobuf==5.29.2",
+  "protobuf==5.29.3",
   "pycryptodomex",
   "pydantic",
   "pyinstrument",
@@ -73,6 +73,7 @@ dev = [
 ]
 
 [tool.uv]
+compile-bytecode = true
 package = true
 python-downloads = "never"
 python-preference = "only-system"
@@ -81,7 +82,7 @@ python-preference = "only-system"
 packages = ["app", "scripts", "tests", "typings"]
 
 [tool.ruff]
-exclude = [".git", "app/alembic/versions"]
+extend-exclude = ["app/alembic/versions"]
 indent-width = 4
 line-length = 120
 target-version = "py313"

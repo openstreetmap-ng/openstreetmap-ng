@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/9a5db3142ce450045840cc8d832b13b8a2018e0c.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/d98abf5cf5914e5e4e9d57205e3af55ca90ffc1d.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
@@ -58,6 +58,7 @@ let
     coreutils
     findutils
     curl
+    jq
     watchexec'
     brotli
     zstd
@@ -85,15 +86,15 @@ let
       python -m alembic -c config/alembic.ini revision --autogenerate --message "$name"
     '')
     (makeScript "alembic-upgrade" ''
-      lataest_version=5
+      latest_version=5
       current_version=$(cat data/alembic/version.txt 2> /dev/null || echo "")
-      if [ -n "$current_version" ] && [ "$current_version" -ne "$lataest_version" ]; then
+      if [ -n "$current_version" ] && [ "$current_version" -ne "$latest_version" ]; then
         echo "NOTICE: Database migrations are not compatible"
         echo "NOTICE: Run 'dev-clean' to reset the database before proceeding"
         exit 1
       fi
       python -m alembic -c config/alembic.ini upgrade head
-      echo $lataest_version > data/alembic/version.txt
+      echo $latest_version > data/alembic/version.txt
     '')
 
     # -- Cython
@@ -185,6 +186,7 @@ let
         -delete
       bun run babel \
         --extensions ".js,.ts" \
+        --copy-files \
         --delete-dir-on-start \
         --out-dir "$generated" \
         "$dir"
@@ -537,6 +539,20 @@ let
     (makeScript "replication" "python scripts/replication.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
+    (makeScript "vector-styles-update" ''
+      dir=app/static/js/vector-styles
+      mkdir -p "$dir"
+      styles=(
+        "liberty+https://tiles.openfreemap.org/styles/liberty"
+      )
+      for style in "''${styles[@]}"; do
+        name="''${style%%+*}"
+        url="''${style#*+}"
+        file="$dir/$name.json"
+        echo "Updating $name vector style"
+        curl --silent --location "$url" | jq --sort-keys . > "$file"
+      done
+    '')
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
     (makeScript "nixpkgs-update" ''
@@ -575,7 +591,6 @@ let
     [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
     echo "Installing Python dependencies"
-    export UV_COMPILE_BYTECODE=1
     export UV_PYTHON="${python'}/bin/python"
     uv sync --frozen
 

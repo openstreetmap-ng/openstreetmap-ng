@@ -26,7 +26,7 @@ _j2 = Environment(
 )
 
 
-def render(template_name: str, template_data: dict[str, Any] | None = None) -> str:
+def render_jinja(template_name: str, template_data: dict[str, Any] | None = None) -> str:
     """Render the given Jinja2 template with translation."""
     user = auth_user()
     lang = primary_translation_locale()

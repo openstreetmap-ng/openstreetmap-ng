@@ -103,7 +103,7 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
 export const getMapBaseLayerId = (map: MaplibreMap): LayerId | null => {
     let baseLayerId: LayerId | null = null
     for (const extendedLayerId of map.getLayersOrder()) {
-        const layerId = extendedLayerId as LayerId // base layers have no extensions
+        const layerId = resolveExtendedLayerId(extendedLayerId)
         const layerConfig = layersConfig.get(layerId)
         if (layerConfig?.isBaseLayer) {
             if (baseLayerId) console.warn("Multiple base layers found")
@@ -300,14 +300,21 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
     }
 
     // 8. Use the user's country bounds
-    const countryBounds = timezoneBoundsMap.get(getTimezoneName())
-    if (countryBounds) {
-        const countryBoundsPadded = padLngLatBounds(new LngLatBounds(countryBounds), 0.1)
-        const [[minLon, minLat], [maxLon, maxLat]] = countryBoundsPadded.toArray()
-        const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, [minLon, minLat, maxLon, maxLat])
-        const state = { lon, lat, zoom, layersCode: "" }
-        console.debug("Initial map state from country bounds", state)
-        return state
+    let timezoneName = getTimezoneName()
+    while (timezoneName) {
+        const countryBounds = timezoneBoundsMap.get(timezoneName)
+        if (countryBounds) {
+            const countryBoundsPadded = padLngLatBounds(new LngLatBounds(countryBounds), 0.1)
+            const [[minLon, minLat], [maxLon, maxLat]] = countryBoundsPadded.toArray()
+            const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, [minLon, minLat, maxLon, maxLat])
+            const state = { lon, lat, zoom, layersCode: "" }
+            console.debug("Initial map state from country bounds", state)
+            return state
+        }
+        // Iteratively remove the last timezone component
+        // e.g. Europe/Warsaw/Example -> Europe/Warsaw -> Europe
+        const lastSlash = timezoneName.lastIndexOf("/")
+        timezoneName = lastSlash > 0 ? timezoneName.substring(0, lastSlash) : ""
     }
 
     // 9. Use the default location

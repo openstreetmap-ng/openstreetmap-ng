@@ -31,6 +31,10 @@ from app.lib.xmltodict import XMLToDict, get_xattr
                 ]
             },
         ),
+        (
+            "<?xml version='1.0' encoding='UTF-8'?>\n<root>&lt;span&gt;/user/小智智/traces/10908782&lt;/span&gt;</root>".encode(),
+            {'root': '<span>/user/小智智/traces/10908782</span>'},
+        ),
     ],
 )
 def test_xml_parse(input, expected):
@@ -99,8 +103,12 @@ def test_xml_parse_sequence(input, expected):
             '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<osmChange><modify id="1"/><modify id="2"><tag k="test" v="zebra"/><tag k="test2" v="zebra2"/></modify><modify/><delete id="3"/></osmChange>',
         ),
         (
-            {'root': {'#text': 'text'}},
-            "<?xml version='1.0' encoding='UTF-8'?>\n<root>text</root>",
+            {'root': {'#text': '<span>/user/小智智/traces/10908782</span>'}},
+            "<?xml version='1.0' encoding='UTF-8'?>\n<root>&lt;span&gt;/user/小智智/traces/10908782&lt;/span&gt;</root>",
+        ),
+        (
+            {'root': []},
+            "<?xml version='1.0' encoding='UTF-8'?>\n<root/>",
         ),
     ],
 )
@@ -118,9 +126,3 @@ def test_xml_unparse_xattr():
 def test_xml_unparse_invalid_multi_root():
     with pytest.raises(ValueError):
         XMLToDict.unparse({'root1': {}, 'root2': {}})
-
-
-def test_xml_unparse_empty():
-    unparsed = XMLToDict.unparse({'root': []})
-    expected = "<?xml version='1.0' encoding='UTF-8'?>\n<root/>"
-    assert unparsed == expected

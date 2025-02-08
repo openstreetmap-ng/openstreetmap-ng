@@ -13,7 +13,7 @@ from app.lib.redirect_referrer import redirect_referrer
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.limits import COOKIE_AUTH_MAX_AGE, DISPLAY_NAME_MAX_LENGTH
+from app.limits import COOKIE_AUTH_MAX_AGE, DISPLAY_NAME_MAX_LENGTH, TIMEZONE_MAX_LENGTH
 from app.models.db.user import User, UserStatus
 from app.models.types import DisplayNameType, EmailType, PasswordType, ValidatingDisplayNameType
 from app.services.auth_provider_service import AuthProviderService
@@ -155,3 +155,11 @@ async def reset_password_token(
         t('settings.password_reset_success')
         + ((' ' + t('settings.password_reset_security_logout')) if revoke_other_sessions else ''),
     )
+
+
+@router.post('/timezone')
+async def update_timezone(
+    timezone: Annotated[str, Form(max_length=TIMEZONE_MAX_LENGTH)],
+):
+    await UserService.update_timezone(timezone)
+    return Response()

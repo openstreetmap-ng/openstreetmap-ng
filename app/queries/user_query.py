@@ -1,9 +1,11 @@
 from collections import defaultdict
 from collections.abc import Collection, Sequence
+from typing import Literal
 
 from shapely import Point
 from sqlalchemy import func, null, select, text
 
+from app.config import DELETED_USER_EMAIL_SUFFIX
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.options_context import apply_options_context
@@ -102,6 +104,28 @@ class UserQuery:
         # check if the email is available
         other_user = await UserQuery.find_one_by_email(email)
         return other_user is None or (user is not None and other_user.id == user.id)
+
+    @staticmethod
+    async def get_deleted_ids(
+        *,
+        after: int | None = None,
+        before: int | None = None,
+        sort: Literal['asc', 'desc'] = 'asc',
+        limit: int | None,
+    ) -> Sequence[int]:
+        """Get the ids of deleted users."""
+        async with db() as session:
+            stmt = select(User.id)
+            where_and = [User.email.endswith(DELETED_USER_EMAIL_SUFFIX)]
+            if after is not None:
+                where_and.append(User.id > after)
+            if before is not None:
+                where_and.append(User.id < before)
+            stmt = stmt.where(*where_and)
+            stmt = stmt.order_by(User.id.asc() if sort == 'asc' else User.id.desc())
+            if limit is not None:
+                stmt = stmt.limit(limit)
+            return (await session.scalars(stmt)).all()
 
     @staticmethod
     async def resolve_elements_users(elements: Collection[Element], *, display_name: bool) -> None:

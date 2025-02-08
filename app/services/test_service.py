@@ -6,7 +6,7 @@ from ipaddress import IPv4Address
 from sqlalchemy import select
 from sqlalchemy.orm import load_only
 
-from app.config import TEST_USER_DOMAIN
+from app.config import TEST_USER_EMAIL_SUFFIX
 from app.db import db_commit
 from app.lib.auth_context import auth_context
 from app.lib.crypto import hash_bytes
@@ -72,7 +72,7 @@ class TestService:
         roles: tuple[UserRole, ...] = (),
     ) -> None:
         """Create a test user."""
-        email = EmailType(f'{name}@{TEST_USER_DOMAIN}')
+        email = EmailType(f'{name}{TEST_USER_EMAIL_SUFFIX}')
         name_available = await UserQuery.check_display_name_available(name)
 
         async with db_commit() as session:

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Form
 from starlette.responses import HTMLResponse
 
 from app.lib.auth_context import web_user
-from app.lib.jinja_env import render
+from app.lib.render_jinja import render_jinja
 from app.lib.rich_text import TextFormat, rich_text
 from app.models.db.user import User
 
@@ -19,5 +19,5 @@ async def preview(
     cache_entry = await rich_text(text, None, TextFormat.markdown)
     html = cache_entry.value
     if not html:
-        html = render('rich_text/_empty_preview.jinja2')
+        html = render_jinja('rich_text/_empty_preview.jinja2')
     return HTMLResponse(html)

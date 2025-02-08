@@ -127,3 +127,15 @@ export const setTagsDiffMode = (state: boolean): void => {
     console.debug("setTagsDiffMode", state)
     localStorage.setItem("tagsDiffMode", state.toString())
 }
+
+/** Get last timezone update timestamp */
+export const getLastTimezoneUpdateTime = (): number | null => {
+    const time = localStorage.getItem("timezoneUpdateTime")
+    return time ? Number.parseInt(time) : null
+}
+
+/** Set last timezone update timestamp to current time */
+export const setLastTimezoneUpdateTime = (time: number): void => {
+    console.debug("setLastTimezoneUpdateTime", time)
+    localStorage.setItem("timezoneUpdateTime", time.toString())
+}

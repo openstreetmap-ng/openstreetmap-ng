@@ -7,7 +7,7 @@ from httpx import HTTPError
 from shapely import get_coordinates
 
 from app.config import API_URL, APP_URL
-from app.lib.jinja_env import render
+from app.lib.render_jinja import render_jinja
 from app.lib.translation import t
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, NoteEvent
@@ -43,7 +43,7 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
     fe.guid(api_permalink, permalink=True)
     fe.link(href=web_permalink)
     fe.content(
-        render('api06/note_feed_comments.jinja2', {'comments': note.comments}),
+        render_jinja('api06/note_feed_comments.jinja2', {'comments': note.comments}),
         type='CDATA',
     )
     fe.published(note.created_at)
@@ -90,7 +90,7 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
     fe.guid(permalink, permalink=True)
     fe.link(href=permalink)
     fe.content(
-        render('api06/note_feed_entry.jinja2', {'comment': comment, 'comments': legacy_note.comments}),
+        render_jinja('api06/note_feed_entry.jinja2', {'comment': comment, 'comments': legacy_note.comments}),
         type='CDATA',
     )
     fe.published(comment.created_at)
