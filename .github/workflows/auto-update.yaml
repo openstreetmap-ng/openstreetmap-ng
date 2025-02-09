@@ -10,35 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@v30
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
+      - uses: actions/checkout@v4
+      - uses: nixbuild/nix-quick-install-action@v29
 
       - name: Generate cache key
         run: |
           nixpkgs_hash=$(grep -Eo 'archive/[0-9a-f]{40}\.tar\.gz' shell.nix | cut -d'/' -f2 | cut -d'.' -f1)
           echo "CACHE_KEY=${{ runner.os }}-$nixpkgs_hash" >> $GITHUB_ENV
 
-      - name: Cache Nix store
-        uses: actions/cache@v4
-        id: nix-cache
+      - uses: nix-community/cache-nix-action@v5
         with:
-          key: nix-${{ env.CACHE_KEY }}
-          path: /tmp/nix-cache
-
-      - name: Import Nix store cache
-        if: steps.nix-cache.outputs.cache-hit == 'true'
-        run: |
-          nix-store --import < /tmp/nix-cache
+          primary-key: nix-${{ env.CACHE_KEY }}
 
       - name: Cache files and packages
         uses: actions/cache@v4
         with:
-          key: generic-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock', 'bun.lock') }}
+          key: pkg-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock', 'bun.lock') }}
           path: |
             ~/.cache/uv
             ~/.bun/install/cache
@@ -57,11 +44,6 @@ jobs:
             && vector-styles-update
             && wiki-pages-update
           "
-
-      - name: Export Nix store cache
-        if: steps.nix-cache.outputs.cache-hit != 'true'
-        run: |
-          nix-store --export $(find /nix/store -maxdepth 1 -name '*-*') > /tmp/nix-cache
 
       - name: Commit changes
         run: |
