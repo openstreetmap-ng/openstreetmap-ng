@@ -16,11 +16,17 @@ jobs:
       - name: Generate cache key
         run: |
           nixpkgs_hash=$(grep -Eo 'archive/[0-9a-f]{40}\.tar\.gz' shell.nix | cut -d'/' -f2 | cut -d'.' -f1)
+          echo "NIXPKGS_HASH=$nixpkgs_hash" >> $GITHUB_ENV
           echo "CACHE_KEY=${{ runner.os }}-$nixpkgs_hash" >> $GITHUB_ENV
 
       - uses: nix-community/cache-nix-action@v5
         with:
           primary-key: nix-${{ env.CACHE_KEY }}
+
+      - name: Setup NIX_PATH
+        run: |
+          path=$(nix eval --impure --expr "(import (fetchTarball \"https://github.com/NixOS/nixpkgs/archive/${{ env.NIXPKGS_HASH }}.tar.gz\") {}).path")
+          echo "NIX_PATH=nixpkgs=$path" >> $GITHUB_ENV
 
       - name: Cache files and packages
         uses: actions/cache@v4
