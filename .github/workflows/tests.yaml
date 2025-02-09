@@ -1,4 +1,4 @@
-name: Python tests
+name: Run tests
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-24.04, macos-14]
+        os: [ ubuntu-latest, macos-latest ]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -22,11 +22,11 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v30
         with:
-          nix_path: nixpkgs=channel:nixpkgs-24.05-darwin
+          nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Generate cache key
         run: |
-          nixpkgs_hash=$(egrep -o 'archive/[0-9a-f]{40}\.tar\.gz' shell.nix | cut -d'/' -f2 | cut -d'.' -f1)
+          nixpkgs_hash=$(grep -Eo 'archive/[0-9a-f]{40}\.tar\.gz' shell.nix | cut -d'/' -f2 | cut -d'.' -f1)
           echo "CACHE_KEY=${{ runner.os }}-$nixpkgs_hash" >> $GITHUB_ENV
 
       - name: Cache Nix store
@@ -41,27 +41,15 @@ jobs:
         run: |
           nix-store --import < /tmp/nix-cache
 
-      - name: Cache Python venv
+      - name: Cache files and packages
         uses: actions/cache@v4
         with:
-          key: python-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock') }}
+          key: generic-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock', 'bun.lock') }}
           path: |
             ~/.cache/uv
-            .venv
-
-      - name: Cache Bun packages
-        uses: actions/cache@v4
-        with:
-          key: bun-${{ env.CACHE_KEY }}-${{ hashFiles('bun.lockb') }}
-          path: |
             ~/.bun/install/cache
+            .venv
             node_modules
-
-      - name: Cache generated files
-        uses: actions/cache@v4
-        with:
-          key: generated-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock', 'bun.lockb') }}
-          path: |
             app/static/img/element/_generated
             config/locale/gnu
             config/locale/i18next
