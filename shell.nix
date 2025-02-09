@@ -42,7 +42,7 @@ let
       destination = "/bin/${name}";
       text = ''
         #!${runtimeShell} -e
-        shopt -s globstar
+        shopt -s extglob nullglob globstar
         cd "${projectDir}"
         ${text}
       '';
@@ -177,24 +177,24 @@ let
         mode_hash=1
       fi
 
-      dir=app/static/js
-      generated="$dir/_generated"
-      find "$dir" \
-        -maxdepth 1 \
-        -type f \
-        -name "bundle-*" \
-        -delete
+      src=app/static/ts
+      dst=app/static/js
+      tmp="$dst/_generated"
+      mkdir -p "$tmp"
+
+      # delete existing bundles
+      rm "$dst"/*.js
+
+      # preprocess source files
       bun run babel \
         --extensions ".js,.ts" \
         --copy-files \
-        --delete-dir-on-start \
-        --out-dir "$generated" \
-        "$dir"
-      files=$(find "$generated" \
-        -maxdepth 1 \
-        -type f \
-        -name "*.js" \
-        -not -name "_*")
+        --no-copy-ignored \
+        --out-dir "$tmp" \
+        "$src"
+
+      # find bundle targets
+      files=("$tmp"/!(_*).js)
 
       if [ -n "$mode_hash" ]; then
         bun_args=(
@@ -207,22 +207,23 @@ let
           --sourcemap=inline
         )
       fi
+
+      # build with output and capture
       exec 5>&1
-      # shellcheck disable=SC2086
       output=$(
         bun build \
           "''${bun_args[@]}" \
-          --entry-naming "[dir]/bundle-[name].[ext]" \
-          --outdir "$dir" \
-          $files | tee >(cat - >&5))
+          --entry-naming "[dir]/[name].[ext]" \
+          --outdir "$dst" \
+          "''${files[@]}" | tee >(cat - >&5))
 
       if [ -n "$mode_hash" ]; then
-        for file in $files; do
+        for file in "''${files[@]}"; do
           file_name="''${file##*/}"
           file_stem="''${file_name%.js}"
           bundle_name=$(
-            grep --only-matching --extended-regexp --max-count 1 \
-            "bundle-$file_stem-\w{8}\.js" <<< "$output") || true
+            grep -Po --max-count 1 \
+            '(?<![\w-])'"$file_stem"'-\w{8}\.js' <<< "$output") || true
 
           if [ -z "$bundle_name" ]; then
             echo "ERROR: Failed to match bundle name for $file"
@@ -234,7 +235,7 @@ let
         done
       fi
     '')
-    (makeScript "watch-js" "exec watchexec -o queue -w app/static/js -i 'bundle-*' -i '**/_generated/**' js-pipeline")
+    (makeScript "watch-js" "exec watchexec -o queue -w app/static/ts js-pipeline")
 
     # -- Static
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
@@ -306,16 +307,16 @@ let
 
     # -- Protobuf
     (makeScript "proto-pipeline" ''
-      mkdir -p app/static/js/proto
+      mkdir -p app/static/ts/proto
       protoc \
         -I app/models/proto \
         --plugin=node_modules/.bin/protoc-gen-es \
-        --es_out app/static/js/proto \
+        --es_out app/static/ts/proto \
         --es_opt target=ts \
         --python_out app/models/proto \
         --pyi_out app/models/proto \
         app/models/proto/*.proto
-      rm app/static/js/proto/server*
+      rm app/static/ts/proto/server*
     '')
     (makeScript "watch-proto" "exec watchexec -o queue -w app/models/proto --exts proto proto-pipeline")
 
@@ -430,7 +431,7 @@ let
       echo "Checking for preload data updates"
       remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.sha256"
       remote_checksums=$(curl --silent --location "$remote_check_url")
-      names=$(grep --only-matching --perl-regexp '[^/]+(?=\.csv\.zst)' <<< "$remote_checksums")
+      names=$(grep -Po '[^/]+(?=\.csv\.zst)' <<< "$remote_checksums")
 
       mkdir -p "data/preload/$dataset"
       for name in $names; do
@@ -540,7 +541,7 @@ let
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
     (makeScript "vector-styles-update" ''
-      dir=app/static/js/vector-styles
+      dir=app/static/ts/vector-styles
       mkdir -p "$dir"
       styles=(
         "liberty+https://tiles.openfreemap.org/styles/liberty"
@@ -560,7 +561,7 @@ let
         curl --silent --location \
         https://prometheus.nixos.org/api/v1/query \
         -d "query=channel_revision{channel=\"nixpkgs-unstable\"}" | \
-        grep --only-matching --extended-regexp "[0-9a-f]{40}")
+        grep -Eo "[0-9a-f]{40}")
       sed -i -E "s|/nixpkgs/archive/[0-9a-f]{40}\.tar\.gz|/nixpkgs/archive/$hash.tar.gz|" shell.nix
       echo "Nixpkgs updated to $hash"
     '')

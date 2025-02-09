@@ -29,7 +29,7 @@
     ".sass-cache/": true,
     ".venv/": true,
     "app/static/**/*.html": false,
-    "app/static/js/bundle-*": true,
+    "app/static/js": true,
     "build/": true,
     "dist/": true,
     "node_modules/": true

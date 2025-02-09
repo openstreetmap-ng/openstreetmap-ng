@@ -90,7 +90,7 @@ async def main() -> None:
         result[timezone] = bbox
 
     output = generate_typescript_file(result)
-    output_path = Path('app/static/js/_timezone-bbox.ts')
+    output_path = Path('app/static/ts/_timezone-bbox.ts')
     output_path.write_text(output)
 
 

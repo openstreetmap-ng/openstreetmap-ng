@@ -357,8 +357,8 @@ app/**/*.c
 app/**/*.html
 !app/static/**/*.html
 app/static/css
-app/static/js/bundle-*
-app/static/js/proto
+app/static/js
+app/static/ts/proto
 app/models/proto/**/*_pb2.py*
 typings/app
 
