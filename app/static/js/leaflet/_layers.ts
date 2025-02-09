@@ -347,7 +347,7 @@ export const addMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent = t
         // Add glyphs
         if (vectorStyle.glyphs) map.setGlyphs(vectorStyle.glyphs)
         // Add sprites
-        if (vectorStyle.sprite instanceof Array) {
+        if (Array.isArray(vectorStyle.sprite)) {
             const addedIds = new Set(map.getSprite().map(({ id }) => id))
             for (const { id, url } of vectorStyle.sprite) {
                 if (addedIds.has(id)) map.removeSprite(id) // override existing sprites
@@ -428,7 +428,7 @@ export const removeMapLayer = (map: MaplibreMap, layerId: LayerId, triggerEvent 
             // Remove glyphs
             if (vectorStyle.glyphs) map.setGlyphs(null)
             // Remove sprites
-            if (vectorStyle.sprite instanceof Array) {
+            if (Array.isArray(vectorStyle.sprite)) {
                 for (const { id } of vectorStyle.sprite) {
                     map.removeSprite(id)
                 }
