@@ -254,7 +254,8 @@ export const addMapLayerSources = (map: MaplibreMap, kind: "all" | "base" | Laye
         } else if (specType === "vector") {
             for (const [sourceId, source] of Object.entries(config.vectorStyle.sources)) {
                 if ((source.type !== "raster" && source.type !== "vector") || (!source.tiles && !source.url)) continue
-                if (source.attribution) source.attribution = config.specification.attribution
+                if (source.attribution || config.specification.attribution)
+                    source.attribution = config.specification.attribution
                 map.addSource(getExtendedLayerId(layerId, sourceId as LayerType), source)
             }
         }
