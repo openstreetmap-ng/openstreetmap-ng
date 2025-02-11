@@ -25,6 +25,7 @@ router = APIRouter(prefix='/api/0.6')
 # TODO: HttpUrl, ConstrainedUrl
 
 
+@router.post('/{type:element_type}s')
 @router.put('/{type:element_type}/create')
 async def create_element(
     type: ElementType,

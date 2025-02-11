@@ -214,3 +214,91 @@ async def test_element_crud(client: AsyncClient):
     assert '@lon' not in node
     assert '@lat' not in node
     assert 'tag' not in node
+
+
+async def test_element_create_many_post(client: AsyncClient):
+    assert LEGACY_HIGH_PRECISION_TIME
+    client.headers['Authorization'] = 'User user1'
+
+    # create changeset
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse(
+            {
+                'osm': {
+                    'changeset': {
+                        'tag': [
+                            {'@k': 'created_by', '@v': test_element_create_many_post.__name__},
+                        ]
+                    }
+                }
+            }
+        ),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    # read changeset
+    r = await client.get(f'/api/0.6/changeset/{changeset_id}')
+    assert r.is_success, r.text
+    changeset: Any = XMLToDict.parse(r.content)['osm']['changeset']
+
+    last_updated_at = changeset['@updated_at']
+
+    # create node
+    r = await client.post(
+        '/api/0.6/nodes',
+        content=XMLToDict.unparse(
+            {
+                'osm': {
+                    'node': (
+                        {
+                            '@changeset': changeset_id,
+                            '@lon': 1,
+                            '@lat': 2,
+                            'tag': [
+                                {'@k': 'created_by', '@v': test_element_create_many_post.__name__},
+                                {'@k': 'id', '@v': '1'},
+                            ],
+                        },
+                        {
+                            '@changeset': changeset_id,
+                            '@lon': 2,
+                            '@lat': 3,
+                            'tag': [
+                                {'@k': 'created_by', '@v': test_element_create_many_post.__name__},
+                                {'@k': 'id', '@v': '2'},
+                            ],
+                        },
+                    )
+                }
+            }
+        ),
+    )
+    assert r.is_success, r.text
+    node_id = int(r.text)
+
+    # read changeset
+    r = await client.get(f'/api/0.6/changeset/{changeset_id}')
+    assert r.is_success, r.text
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
+
+    assert changeset['@updated_at'] > last_updated_at
+    assert changeset['@min_lon'] == 1
+    assert changeset['@max_lon'] == 1
+    assert changeset['@min_lat'] == 2
+    assert changeset['@max_lat'] == 2
+    assert changeset['@changes_count'] == 1
+
+    # read osmChange
+    r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
+    assert r.is_success, r.text
+    action: tuple[OSMChangeAction, list[tuple[ElementType, Any]]] = XMLToDict.parse(r.content)['osmChange'][-1]
+    assert action[0] == 'create'
+    assert len(action[1]) == 1
+    element = action[1][0]
+    assert element[0] == 'node'
+    node = element[1]
+    assert node['@id'] == node_id
+    tags = Format06.decode_tags_and_validate(element[1]['tag'])
+    assert tags['id'] == '1'

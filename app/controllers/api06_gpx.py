@@ -27,6 +27,7 @@ from app.services.trace_service import TraceService
 router = APIRouter(prefix='/api/0.6')
 
 
+@router.post('/gpx')
 @router.post('/gpx/create')
 async def upload_trace(
     _: Annotated[User, api_user(Scope.write_gpx)],
