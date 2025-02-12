@@ -119,6 +119,7 @@ ignore = [
   "Q003", # avoidable-escaped-quote
   "S101", # assert
   "S105", # hardcoded-password-string
+  "SIM105", # suppressible-exception
   "SIM108", # if-else-block-instead-of-if-exp
   "TRY003", # raise-vanilla-args
   "W191", # tab-indentation
