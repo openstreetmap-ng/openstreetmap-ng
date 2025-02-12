@@ -1,11 +1,9 @@
-{ pkgs, projectDir }:
-
-# ( Developer Configuration )
-# ===========================
-# Targeted Specification:
-# - 8 CPU Threads
-# - 8GB RAM
-# - 300GB SSD
+{ hostMemoryMb
+, hostDiskCoW
+, postgresCpuThreads
+, pkgs
+, projectDir
+}:
 
 pkgs.writeText "postgres.conf" (''
   # change default port
@@ -17,10 +15,10 @@ pkgs.writeText "postgres.conf" (''
   unix_socket_directories = '${projectDir}/data/postgres_unix'
 
   # increase buffers and memory usage
-  shared_buffers = 2GB
-  effective_cache_size = 4GB
+  shared_buffers = ${toString (builtins.floor (hostMemoryMb / 4))}MB
+  effective_cache_size = ${toString (builtins.floor (hostMemoryMb / 2))}MB
   work_mem = 64MB
-  maintenance_work_mem = 1GB
+  maintenance_work_mem = 1024MB
   vacuum_buffer_usage_limit = 256MB
 
   # disable parallel gather:
@@ -29,7 +27,7 @@ pkgs.writeText "postgres.conf" (''
   max_parallel_workers_per_gather = 0
 
   # allow maintenance to use all workers
-  max_parallel_maintenance_workers = 8
+  max_parallel_maintenance_workers = ${toString postgresCpuThreads}
 
   # increase statistics target
   # reason: more accurate query plans
@@ -65,7 +63,7 @@ pkgs.writeText "postgres.conf" (''
   commit_siblings = 5
 
   # reduce checkpoint frequency
-  # reason: higher chance of vaccuming in-memory, reduced WAL usage
+  # reason: higher chance of vacuuming in-memory, reduced WAL usage
   checkpoint_timeout = 1h
 
   # print early checkpoint warnings
@@ -88,28 +86,34 @@ pkgs.writeText "postgres.conf" (''
   maintenance_io_concurrency = 200
 '' + ''
 
-# increase logging verbosity
-# reason: useful for troubleshooting
-log_connections = on
-log_disconnections = on
-log_lock_waits = on
-log_temp_files = 0 # == log all temp files
+'' + pkgs.lib.optionalString hostDiskCoW ''
+  # optimize for Copy-On-Write storage
+  wal_init_zero = off
+  wal_recycle = off
+'' + ''
 
-# configure autovacuum to use absolute thresholds
-# reason: more frequent vacuuming, predictable behavior
-autovacuum_max_workers = 3
-autovacuum_naptime = 3min
-autovacuum_vacuum_scale_factor = 0.0
-autovacuum_vacuum_threshold = 500
-autovacuum_vacuum_insert_scale_factor = 0.0
-autovacuum_vacuum_insert_threshold = 1000
-autovacuum_analyze_scale_factor = 0.0
-autovacuum_analyze_threshold = 1000
+  # increase logging verbosity
+  # reason: useful for troubleshooting
+  log_connections = on
+  log_disconnections = on
+  log_lock_waits = on
+  log_temp_files = 0 # == log all temp files
 
-# configure additional libraries
-shared_preload_libraries = 'auto_explain'
+  # configure autovacuum to use absolute thresholds
+  # reason: more frequent vacuuming, predictable behavior
+  autovacuum_max_workers = 3
+  autovacuum_naptime = 3min
+  autovacuum_vacuum_scale_factor = 0.0
+  autovacuum_vacuum_threshold = 500
+  autovacuum_vacuum_insert_scale_factor = 0.0
+  autovacuum_vacuum_insert_threshold = 1000
+  autovacuum_analyze_scale_factor = 0.0
+  autovacuum_analyze_threshold = 1000
 
-# automatically explain slow queries
-# reason: useful for troubleshooting
-auto_explain.log_min_duration = 100ms
+  # configure additional libraries
+  shared_preload_libraries = 'auto_explain'
+
+  # automatically explain slow queries
+  # reason: useful for troubleshooting
+  auto_explain.log_min_duration = 100ms
 '')

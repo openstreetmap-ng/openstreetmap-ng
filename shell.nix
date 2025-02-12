@@ -1,13 +1,23 @@
-{ isDevelopment ? true }:
+{ isDevelopment ? true
+, hostMemoryMb ? 8192
+, hostDiskCoW ? false
+, enablePostgres ? true
+, postgresCpuThreads ? 8
+, enableValkey ? true
+, enableMailpit ? true
+, gunicornWorkers ? 1
+, gunicornPort ? 8000
+}:
 
 let
   # Update packages with `nixpkgs-update` command
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/d98abf5cf5914e5e4e9d57205e3af55ca90ffc1d.tar.gz") { };
 
   projectDir = builtins.toString ./.;
+  postgresConf = import ./config/postgres.nix { inherit hostMemoryMb hostDiskCoW postgresCpuThreads pkgs projectDir; };
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
-  supervisordConf = import ./config/supervisord.nix { inherit pkgs projectDir; };
+  supervisordConf = import ./config/supervisord.nix { inherit isDevelopment enablePostgres enableValkey enableMailpit pkgs postgresConf; };
 
   stdenv' = pkgs.gcc14Stdenv;
   wrapPrefix = if (!stdenv'.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
@@ -62,6 +72,7 @@ let
     watchexec'
     brotli
     zstd
+    b3sum
     nil
     nixpkgs-fmt
     # Python:
@@ -87,7 +98,7 @@ let
     '')
     (makeScript "alembic-upgrade" ''
       latest_version=5
-      current_version=$(cat data/alembic/version.txt 2> /dev/null || echo "")
+      current_version=$(cat data/alembic/version.txt 2>/dev/null || echo "")
       if [ -n "$current_version" ] && [ "$current_version" -ne "$latest_version" ]; then
         echo "NOTICE: Database migrations are not compatible"
         echo "NOTICE: Run 'dev-clean' to reset the database before proceeding"
@@ -154,38 +165,45 @@ let
 
     # -- SASS
     (makeScript "sass-pipeline" ''
+      src=app/static/sass
+      dst=app/static/css
+      rm "$dst"/*.{css,map}
+
       bun run sass \
         --quiet-deps \
         --silence-deprecation=import \
         --style compressed \
         --load-path node_modules \
         --no-source-map \
-        app/static/sass:app/static/css
+        "$src":"$dst"
       bun run postcss \
-        app/static/css/**/*.css \
+        "$dst"/*.css \
         --use autoprefixer \
         --replace \
         --no-map
+      mode_hash=${if isDevelopment then "0" else "1"}
+      if [ "$1" = "hash" ]; then mode_hash=1; fi
+      if [ "$mode_hash" -eq 1 ]; then
+        echo "[sass-pipeline] Working in hash mode"
+        for file in "$dst"/*.css; do
+          hash=$(b3sum --no-names --length=6 "$file")
+          new_file="''${file%.css}.$hash.css"
+          mv "$file" "$new_file"
+          echo "  $new_file"
+        done
+      fi
     '')
     (makeScript "watch-sass" "exec watchexec -o queue -w app/static/sass sass-pipeline")
 
     # -- JavaScript
     (makeScript "node" "exec bun \"$@\"")
     (makeScript "js-pipeline" ''
-      if [ "$1" = "hash" ]; then
-        echo "[js-pipeline] Working in hash mode"
-        mode_hash=1
-      fi
-
       src=app/static/ts
       dst=app/static/js
       tmp="$dst/_generated"
       mkdir -p "$tmp"
+      rm "$dst"/*.{js,map}
 
-      # delete existing bundles
-      rm "$dst"/*.js
-
-      # preprocess source files
       bun run babel \
         --extensions ".js,.ts" \
         --copy-files \
@@ -193,47 +211,27 @@ let
         --out-dir "$tmp" \
         "$src"
 
-      # find bundle targets
       files=("$tmp"/!(_*).js)
-
-      if [ -n "$mode_hash" ]; then
+      mode_hash=${if isDevelopment then "0" else "1"}
+      if [ "$1" = "hash" ]; then mode_hash=1; fi
+      if [ "$mode_hash" -eq 1 ]; then
+        echo "[js-pipeline] Working in hash mode"
         bun_args=(
+          --entry-naming="[dir]/[name].[hash].[ext]"
           --minify
           --sourcemap=linked
         )
       else
         bun_args=(
+          --entry-naming="[dir]/[name].[ext]"
           --minify-syntax --minify-whitespace
           --sourcemap=inline
         )
       fi
-
-      # build with output and capture
-      exec 5>&1
-      output=$(
-        bun build \
-          "''${bun_args[@]}" \
-          --entry-naming "[dir]/[name].[ext]" \
-          --outdir "$dst" \
-          "''${files[@]}" | tee >(cat - >&5))
-
-      if [ -n "$mode_hash" ]; then
-        for file in "''${files[@]}"; do
-          file_name="''${file##*/}"
-          file_stem="''${file_name%.js}"
-          bundle_name=$(
-            grep -Po --max-count 1 \
-            '(?<![\w-])'"$file_stem"'-\w{8}\.js' <<< "$output") || true
-
-          if [ -z "$bundle_name" ]; then
-            echo "ERROR: Failed to match bundle name for $file"
-            exit 1
-          fi
-
-          # TODO: sed replace
-          # echo "Replacing $file_name with $bundle_name"
-        done
-      fi
+      bun build \
+        "''${bun_args[@]}" \
+        --outdir "$dst" \
+        "''${files[@]}"
     '')
     (makeScript "watch-js" "exec watchexec -o queue -w app/static/ts js-pipeline")
 
@@ -247,41 +245,33 @@ let
         node_modules/iD/dist
         node_modules/@rapideditor/rapid/dist
       )
-      files=$(find "''${dirs[@]}" \
+      find "''${dirs[@]}" \
         -type f \
         -not -name "*.xcf" \
+        -not -name "*.gif" \
+        -not -name "*.jpg" \
+        -not -name "*.jpeg" \
+        -not -name "*.png" \
         -not -name "*.webp" \
         -not -name "*.ts" \
         -not -name "*.scss" \
         -not -name "*.br" \
         -not -name "*.zst" \
-        -size +1023c)
-      for file in $files; do
-        echo "Compressing $file"
-        file_size=$(stat --printf="%s" "$file")
-        min_size=$(( file_size * 9 / 10 ))
+        -size +1023c \
+        -print0 | while IFS= read -r -d ''\'''\' file; do
 
-        zstd \
-          --force \
-          --ultra -22 \
-          --quiet \
-          "$file"
         file_compressed="$file.zst"
-        file_compressed_size=$(stat --printf="%s" "$file_compressed")
-        if [ "$file_compressed_size" -gt $min_size ]; then
-          echo "Removing $file_compressed (not compressible)"
-          rm "$file_compressed"
+        if [ ! -f "$file_compressed" ] || [ "$file_compressed" -ot "$file" ]; then
+          echo "[static-precompress] Compressing $file with zstd"
+          zstd --force --ultra -22 --quiet "$file" -o "$file_compressed"
+          touch --reference "$file" "$file_compressed"
         fi
 
-        brotli \
-          --force \
-          --best \
-          "$file"
         file_compressed="$file.br"
-        file_compressed_size=$(stat --printf="%s" "$file_compressed")
-        if [ "$file_compressed_size" -gt $min_size ]; then
-          echo "Removing $file_compressed (not compressible)"
-          rm "$file_compressed"
+        if [ ! -f "$file_compressed" ] || [ "$file_compressed" -ot "$file" ]; then
+          echo "[static-precompress] Compressing $file with brotli"
+          brotli --force --best "$file" -o "$file_compressed"
+          touch --reference "$file" "$file_compressed"
         fi
       done
     '')
@@ -364,7 +354,7 @@ let
       if [ -n "$pid" ] && ps -wwp "$pid" -o command= | grep -q "supervisord"; then
         kill -TERM "$pid"
         echo "Supervisor stopping..."
-        while kill -0 "$pid" 2> /dev/null; do sleep 0.1; done
+        while kill -0 "$pid" 2>/dev/null; do sleep 0.1; done
         echo "Supervisor stopped"
       else
         echo "Supervisor is not running"
@@ -404,8 +394,8 @@ let
       fi
       mkdir -p "data/preload/$dataset"
       cp --archive --link --force data/preload/*.csv.zst "data/preload/$dataset/"
-      echo "Computing checksums.sha256 file"
-      sha256sum "data/preload/$dataset/"*.csv.zst > "data/preload/$dataset/checksums.sha256"
+      echo "Computing checksums file"
+      b3sum "data/preload/$dataset/"*.csv.zst > "data/preload/$dataset/checksums.b3"
       rsync \
         --verbose \
         --archive \
@@ -414,7 +404,7 @@ let
         --human-readable \
         --progress \
         "data/preload/$dataset/"*.csv.zst \
-        "data/preload/$dataset/checksums.sha256" \
+        "data/preload/$dataset/checksums.b3" \
         edge:"/var/www/files.monicz.dev/openstreetmap-ng/preload/$dataset/"
     '')
     (makeScript "preload-download" ''
@@ -429,7 +419,7 @@ let
       fi
 
       echo "Checking for preload data updates"
-      remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.sha256"
+      remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.b3"
       remote_checksums=$(curl --silent --location "$remote_check_url")
       names=$(grep -Po '[^/]+(?=\.csv\.zst)' <<< "$remote_checksums")
 
@@ -437,16 +427,16 @@ let
       for name in $names; do
         remote_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/$name.csv.zst"
         local_file="data/preload/$dataset/$name.csv.zst"
-        local_check_file="data/preload/$dataset/$name.csv.zst.sha256"
+        local_check_file="data/preload/$dataset/$name.csv.zst.b3"
 
         # recompute checksum if missing but file exists
         if [ -f "$local_file" ] && [ ! -f "$local_check_file" ]; then
-          sha256sum "$local_file" | cut -d' ' -f1 > "$local_check_file"
+          b3sum --no-names "$local_file" > "$local_check_file"
         fi
 
         # compare with remote checksum
-        remote_checksum=$(grep "$local_file" <<< "$remote_checksums" | cut -d' ' -f1)
-        local_checksum=$(cat "$local_check_file" 2> /dev/null || echo "x")
+        remote_checksum=$(grep -F "$local_file" <<< "$remote_checksums" | cut -d' ' -f1)
+        local_checksum=$(cat "$local_check_file" 2>/dev/null || echo "x")
         if [ "$remote_checksum" = "$local_checksum" ]; then
           echo "File $local_file is up to date"
           continue
@@ -456,7 +446,7 @@ let
         curl --location "$remote_url" -o "$local_file"
 
         # recompute checksum
-        local_checksum=$(sha256sum "$local_file" | cut -d' ' -f1)
+        local_checksum=$(b3sum --no-names "$local_file")
         echo "$local_checksum" > "$local_check_file"
         if [ "$remote_checksum" != "$local_checksum" ]; then
           echo "[!] Checksum mismatch for $local_file"
@@ -522,14 +512,24 @@ let
     (makeScript "watch-tests" "exec watchexec -w app -w tests --exts py run-tests")
 
     # -- Misc
-    (makeScript "run" ''
+    (makeScript "run" (if isDevelopment then ''
       python -m uvicorn app.main:main \
         --reload \
         --reload-include "*.mo" \
         --reload-exclude scripts \
         --reload-exclude tests \
         --reload-exclude typings
-    '')
+    '' else ''
+      python -m gunicorn app.main:main \
+        --bind 127.0.0.1:${toString gunicornPort} \
+        --workers ${toString gunicornWorkers} \
+        --worker-class uvicorn.workers.UvicornWorker \
+        --max-requests 10000 \
+        --max-requests-jitter 1000 \
+        --graceful-timeout 5 \
+        --keep-alive 300 \
+        --access-logfile -
+    ''))
     (makeScript "format" ''
       set +e
       ruff check . --fix
@@ -572,7 +572,7 @@ let
     '')
   ];
 
-  shell' = with pkgs; ''
+  shell' = ''
     export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
     export PYTHONNOUSERSITE=1
     export PYTHONPATH=""
@@ -602,34 +602,36 @@ let
     echo "Activating Python virtual environment"
     source .venv/bin/activate
 
-    if [ -d .git ]; then
+    if [ -d .git ] && command -v git &>/dev/null; then
       echo "Installing pre-commit hooks"
       python -m pre_commit install -c ${preCommitConf} --overwrite
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
     fi
 
+    export LEGACY_SEQUENCE_ID_MARGIN=1
+  '' + pkgs.lib.optionalString isDevelopment ''
     export TEST_ENV=1
     export FREEZE_TEST_USER=0
     export SECRET=development-secret
     export APP_URL=http://127.0.0.1:8000
-    export SMTP_HOST=127.0.0.1
-    export SMTP_PORT=49565
-    export SMTP_USER=mail@openstreetmap.org
-    export SMTP_PASS=anything
     export NOMINATIM_URL=https://nominatim.monicz.dev
-    export OVERPASS_INTERPRETER_URL=https://overpass-api.de/api/interpreter
+    export GRAPHHOPPER_API_KEY=e6d61235-3e37-4290-91a7-d7be9e5a8909
     export FACEBOOK_OAUTH_PUBLIC=1538918736889845
     export FACEBOOK_OAUTH_SECRET=4090c8e1f08a93af65c6d6cc56350f4b
     export GITHUB_OAUTH_PUBLIC=Ov23lidLgxluuWuo0PNn
     export GITHUB_OAUTH_SECRET=4ed29823ee9d975e9f42a14e5c3d4b8293041cda
     export GOOGLE_OAUTH_PUBLIC=329628600169-6du7d20fo0poong0aqttuikstq97bten.apps.googleusercontent.com
     export GOOGLE_OAUTH_SECRET=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
-    export GRAPHHOPPER_API_KEY=e6d61235-3e37-4290-91a7-d7be9e5a8909
     export MICROSOFT_OAUTH_PUBLIC=db54bdb3-08af-481b-9641-39f49065b640
     export WIKIMEDIA_OAUTH_PUBLIC=2f7fe9e2825acc816d1e1103d203e8ec
     export WIKIMEDIA_OAUTH_SECRET=d07aaeabb5f7a5de76e3d667db3dfe0b2a5abf11
     export LEGACY_HIGH_PRECISION_TIME=1
-    export LEGACY_SEQUENCE_ID_MARGIN=1
+  '' + pkgs.lib.optionalString enableMailpit ''
+    export SMTP_HOST=127.0.0.1
+    export SMTP_PORT=49565
+    export SMTP_USER=mail@openstreetmap.org
+    export SMTP_PASS=anything
+  '' + ''
 
     if [ -f .env ]; then
       echo "Loading .env file"
@@ -647,7 +649,6 @@ let
     echo "Running [static-img-pipeline]"
     static-img-pipeline &
     wait
-  '' + lib.optionalString (!isDevelopment) ''
   '';
 in
 pkgs.mkShell.override { stdenv = stdenv'; } {

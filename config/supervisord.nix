@@ -1,29 +1,36 @@
-{ pkgs, projectDir }:
+{ isDevelopment
+, enablePostgres
+, enableValkey
+, enableMailpit
+, pkgs
+, postgresConf
+}:
 
-let
-  postgresConf = import ./postgres.nix { inherit pkgs projectDir; };
-in
-pkgs.writeText "supervisord.conf" ''
+pkgs.writeText "supervisord.conf" (''
   [supervisord]
   logfile=data/supervisor/supervisord.log
   pidfile=data/supervisor/supervisord.pid
   strip_ansi=true
 
+'' + pkgs.lib.optionalString enablePostgres ''
   [program:postgres]
   command=postgres -c config_file=${postgresConf} -D data/postgres
   stdout_logfile=data/supervisor/postgres.log
   stderr_logfile=data/supervisor/postgres.log
 
+'' + pkgs.lib.optionalString enableValkey ''
   [program:valkey]
   command=valkey-server config/valkey.conf
   stdout_logfile=data/supervisor/valkey.log
   stderr_logfile=data/supervisor/valkey.log
 
+'' + pkgs.lib.optionalString enableMailpit ''
   [program:mailpit]
   command=mailpit -d data/mailpit/mailpit.db -l "127.0.0.1:49566" -s "127.0.0.1:49565" --smtp-auth-accept-any --smtp-auth-allow-insecure --enable-spamassassin spamassassin.monicz.dev:783
   stdout_logfile=data/supervisor/mailpit.log
   stderr_logfile=data/supervisor/mailpit.log
 
+'' + pkgs.lib.optionalString isDevelopment ''
   [program:watch-js]
   command=watch-js
   stdout_logfile=data/supervisor/watch-js.log
@@ -43,4 +50,4 @@ pkgs.writeText "supervisord.conf" ''
   command=watch-sass
   stdout_logfile=data/supervisor/watch-sass.log
   stderr_logfile=data/supervisor/watch-sass.log
-''
+'')
