@@ -1,9 +1,8 @@
-import contextlib
-import os
 import sys
 from hashlib import sha256
 from itertools import chain
 from logging.config import dictConfig
+from os import chdir, environ, getenv
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -28,82 +27,83 @@ ATTRIBUTION_URL = 'https://www.openstreetmap.org/copyright'
 LICENSE_URL = 'https://opendatacommons.org/licenses/odbl/1-0/'
 
 # Configuration (required)
-os.chdir(Path(__file__).parent.parent)
-SECRET = os.environ['SECRET']
-APP_URL = os.environ['APP_URL'].rstrip('/')
-SMTP_HOST = os.environ['SMTP_HOST']
-SMTP_PORT = int(os.environ['SMTP_PORT'])
-SMTP_USER = os.environ['SMTP_USER']
-SMTP_PASS = os.environ['SMTP_PASS']
+chdir(Path(__file__).parent.parent)
+SECRET = environ['SECRET']
+APP_URL = environ['APP_URL'].rstrip('/')
+SMTP_HOST = environ['SMTP_HOST']
+SMTP_PORT = int(environ['SMTP_PORT'])
+SMTP_USER = environ['SMTP_USER']
+SMTP_PASS = environ['SMTP_PASS']
 
 
 def _path(s: str, *, mkdir: bool = False) -> Path:
     """Convert a string to a Path object and resolve it."""
     p = Path(s)
-    with contextlib.suppress(FileNotFoundError):
+    try:
         p = p.resolve(strict=True)
+    except FileNotFoundError:
+        pass
     if mkdir:
         p.mkdir(parents=True, exist_ok=True)
     return p
 
 
 # Configuration (optional)
-TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in {'1', 'true', 'yes'}
-LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
-GC_LOG = os.getenv('GC_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
+TEST_ENV = getenv('TEST_ENV', '0').strip().lower() in {'1', 'true', 'yes'}
+LOG_LEVEL = getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
+GC_LOG = getenv('GC_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
 
-FREEZE_TEST_USER = os.getenv('FREEZE_TEST_USER', '1').strip().lower() in {'1', 'true', 'yes'}
-LEGACY_HIGH_PRECISION_TIME = os.getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in {'1', 'true', 'yes'}
-LEGACY_SEQUENCE_ID_MARGIN = os.getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().lower() in {'1', 'true', 'yes'}
+FREEZE_TEST_USER = getenv('FREEZE_TEST_USER', '1').strip().lower() in {'1', 'true', 'yes'}
+LEGACY_HIGH_PRECISION_TIME = getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in {'1', 'true', 'yes'}
+LEGACY_SEQUENCE_ID_MARGIN = getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().lower() in {'1', 'true', 'yes'}
 
-FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
-FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', '128'))
-FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
-PLANET_DIR = _path(os.getenv('PLANET_DIR', 'data/planet'), mkdir=True)
-PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
-REPLICATION_DIR = _path(os.getenv('REPLICATION_DIR', 'data/replication'), mkdir=True)
+FILE_CACHE_DIR = _path(getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
+FILE_CACHE_SIZE_GB = int(getenv('FILE_CACHE_SIZE_GB', '128'))
+FILE_STORE_DIR = _path(getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
+PLANET_DIR = _path(getenv('PLANET_DIR', 'data/planet'), mkdir=True)
+PRELOAD_DIR = _path(getenv('PRELOAD_DIR', 'data/preload'))
+REPLICATION_DIR = _path(getenv('REPLICATION_DIR', 'data/replication'), mkdir=True)
 
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
-# TODO: remove postgres password after some time
-POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
-POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv(
-    'POSTGRES_URL', f'postgres:postgres@/postgres?host={_path("data/postgres_unix")}&port=49560'
+POSTGRES_LOG = getenv('POSTGRES_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
+POSTGRES_URL = 'postgresql+asyncpg://' + getenv(
+    'POSTGRES_URL', f'postgres@/postgres?host={_path("data/postgres_unix")}&port=49560'
 )
 
-VALKEY_URL = os.getenv('VALKEY_URL', f'unix://{_path("data/valkey.sock")}?protocol=3')
+VALKEY_URL = getenv('VALKEY_URL', f'unix://{_path("data/valkey.sock")}?protocol=3')
 
-SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', SMTP_USER)
-SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)
+SMTP_NOREPLY_FROM = getenv('SMTP_NOREPLY_FROM', SMTP_USER)
+SMTP_MESSAGES_FROM = getenv('SMTP_MESSAGES_FROM', SMTP_USER)
 
-API_URL = os.getenv('API_URL', APP_URL).rstrip('/')
-ID_URL = os.getenv('ID_URL', APP_URL).rstrip('/')
-RAPID_URL = os.getenv('RAPID_URL', APP_URL).rstrip('/')
+API_URL = getenv('API_URL', APP_URL).rstrip('/')
+ID_URL = getenv('ID_URL', APP_URL).rstrip('/')
+RAPID_URL = getenv('RAPID_URL', APP_URL).rstrip('/')
 
-GRAPHHOPPER_API_KEY = os.getenv('GRAPHHOPPER_API_KEY')
-GRAPHHOPPER_URL = os.getenv('GRAPHHOPPER_URL', 'https://graphhopper.com')
-NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
-OSM_REPLICATION_URL = os.getenv(
+GRAPHHOPPER_API_KEY = getenv('GRAPHHOPPER_API_KEY')
+GRAPHHOPPER_URL = getenv('GRAPHHOPPER_URL', 'https://graphhopper.com')
+NOMINATIM_URL = getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
+OSM_REPLICATION_URL = getenv(
     'OSM_REPLICATION_URL', 'https://osm-planet-eu-central-1.s3.dualstack.eu-central-1.amazonaws.com/planet/replication'
 )
-OSRM_URL = os.getenv('OSRM_URL', 'https://router.project-osrm.org')
-OVERPASS_INTERPRETER_URL = os.getenv('OVERPASS_INTERPRETER_URL', 'https://overpass-api.de/api/interpreter')
-VALHALLA_URL = os.getenv('VALHALLA_URL', 'https://valhalla1.openstreetmap.de')
+OSRM_URL = getenv('OSRM_URL', 'https://router.project-osrm.org')
+OVERPASS_INTERPRETER_URL = getenv('OVERPASS_INTERPRETER_URL', 'https://overpass-api.de/api/interpreter')
+VALHALLA_URL = getenv('VALHALLA_URL', 'https://valhalla1.openstreetmap.de')
 
 # https://developers.facebook.com/docs/development/create-an-app/facebook-login-use-case
 # https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow/
-FACEBOOK_OAUTH_PUBLIC = os.getenv('FACEBOOK_OAUTH_PUBLIC')
-FACEBOOK_OAUTH_SECRET = os.getenv('FACEBOOK_OAUTH_SECRET')
+FACEBOOK_OAUTH_PUBLIC = getenv('FACEBOOK_OAUTH_PUBLIC')
+FACEBOOK_OAUTH_SECRET = getenv('FACEBOOK_OAUTH_SECRET')
 # https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app
-GITHUB_OAUTH_PUBLIC = os.getenv('GITHUB_OAUTH_PUBLIC')
-GITHUB_OAUTH_SECRET = os.getenv('GITHUB_OAUTH_SECRET')
+GITHUB_OAUTH_PUBLIC = getenv('GITHUB_OAUTH_PUBLIC')
+GITHUB_OAUTH_SECRET = getenv('GITHUB_OAUTH_SECRET')
 # https://developers.google.com/identity/openid-connect/openid-connect
-GOOGLE_OAUTH_PUBLIC = os.getenv('GOOGLE_OAUTH_PUBLIC')
-GOOGLE_OAUTH_SECRET = os.getenv('GOOGLE_OAUTH_SECRET')
+GOOGLE_OAUTH_PUBLIC = getenv('GOOGLE_OAUTH_PUBLIC')
+GOOGLE_OAUTH_SECRET = getenv('GOOGLE_OAUTH_SECRET')
 # https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc
-MICROSOFT_OAUTH_PUBLIC = os.getenv('MICROSOFT_OAUTH_PUBLIC')
+MICROSOFT_OAUTH_PUBLIC = getenv('MICROSOFT_OAUTH_PUBLIC')
 # https://api.wikimedia.org/wiki/Special:AppManagement
-WIKIMEDIA_OAUTH_PUBLIC = os.getenv('WIKIMEDIA_OAUTH_PUBLIC')
-WIKIMEDIA_OAUTH_SECRET = os.getenv('WIKIMEDIA_OAUTH_SECRET')
+WIKIMEDIA_OAUTH_PUBLIC = getenv('WIKIMEDIA_OAUTH_PUBLIC')
+WIKIMEDIA_OAUTH_SECRET = getenv('WIKIMEDIA_OAUTH_SECRET')
 
 TRUSTED_HOSTS: frozenset[str] = frozenset(
     host.casefold()
@@ -114,7 +114,7 @@ TRUSTED_HOSTS: frozenset[str] = frozenset(
             if line and not line.startswith('#')
         ),
         (urlsplit(url).hostname for _, url in LOCAL_CHAPTERS),
-        os.getenv('TRUSTED_HOSTS_EXTRA', '').split(),
+        getenv('TRUSTED_HOSTS_EXTRA', '').split(),
     )
     if host
 )
@@ -122,9 +122,9 @@ TRUSTED_HOSTS: frozenset[str] = frozenset(
 TEST_USER_EMAIL_SUFFIX = '@test.test'
 DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'
 
-FORCE_CRASH_REPORTING = os.getenv('FORCE_CRASH_REPORTING', '0').strip().lower() in {'1', 'true', 'yes'}
-SENTRY_TRACES_SAMPLE_RATE = float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '1'))
-SENTRY_PROFILES_SAMPLE_RATE = float(os.getenv('SENTRY_PROFILES_SAMPLE_RATE', '1'))
+FORCE_CRASH_REPORTING = getenv('FORCE_CRASH_REPORTING', '0').strip().lower() in {'1', 'true', 'yes'}
+SENTRY_TRACES_SAMPLE_RATE = float(getenv('SENTRY_TRACES_SAMPLE_RATE', '1'))
+SENTRY_PROFILES_SAMPLE_RATE = float(getenv('SENTRY_PROFILES_SAMPLE_RATE', '1'))
 
 # Derived configuration
 SECRET_32 = sha256(SECRET.encode()).digest()
@@ -179,7 +179,7 @@ dictConfig(
 )
 
 # Sentry configuration
-if SENTRY_DSN := (os.getenv('SENTRY_DSN') if ('pytest' not in sys.modules) else None):
+if SENTRY_DSN := (getenv('SENTRY_DSN') if ('pytest' not in sys.modules) else None):
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         release=VERSION,
@@ -195,7 +195,7 @@ if SENTRY_DSN := (os.getenv('SENTRY_DSN') if ('pytest' not in sys.modules) else 
     )
 
 SENTRY_REPLICATION_MONITOR = sentry_sdk.monitor(
-    os.getenv('SENTRY_REPLICATION_MONITOR_SLUG', 'osm-ng-replication'),
+    getenv('SENTRY_REPLICATION_MONITOR_SLUG', 'osm-ng-replication'),
     {
         'schedule': {
             'type': 'interval',
@@ -210,7 +210,7 @@ SENTRY_REPLICATION_MONITOR = sentry_sdk.monitor(
 )
 
 SENTRY_CHANGESET_MANAGEMENT_MONITOR = sentry_sdk.monitor(
-    os.getenv('SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG', 'osm-ng-changeset-management'),
+    getenv('SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG', 'osm-ng-changeset-management'),
     {
         'schedule': {
             'type': 'interval',
@@ -225,7 +225,7 @@ SENTRY_CHANGESET_MANAGEMENT_MONITOR = sentry_sdk.monitor(
 )
 
 SENTRY_USERS_DELETED_TXT_MONITOR = sentry_sdk.monitor(
-    os.getenv('SENTRY_USERS_DELETED_TXT_MONITOR_SLUG', 'osm-ng-users-deleted-txt'),
+    getenv('SENTRY_USERS_DELETED_TXT_MONITOR_SLUG', 'osm-ng-users-deleted-txt'),
     {
         'schedule': {
             'type': 'interval',
