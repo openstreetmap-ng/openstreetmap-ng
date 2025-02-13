@@ -54,6 +54,7 @@ LOG_LEVEL = getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
 GC_LOG = getenv('GC_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
 
 FREEZE_TEST_USER = getenv('FREEZE_TEST_USER', '1').strip().lower() in {'1', 'true', 'yes'}
+FORCE_RELOAD_LOCALE_FILES = getenv('FORCE_RELOAD_LOCALE_FILES', '0').strip().lower() in {'1', 'true', 'yes'}
 LEGACY_HIGH_PRECISION_TIME = getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in {'1', 'true', 'yes'}
 LEGACY_SEQUENCE_ID_MARGIN = getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().lower() in {'1', 'true', 'yes'}
 

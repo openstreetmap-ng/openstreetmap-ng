@@ -8,7 +8,7 @@ from typing import NamedTuple
 import cython
 import orjson
 
-from app.config import TEST_ENV
+from app.config import FORCE_RELOAD_LOCALE_FILES
 from app.limits import LOCALE_CODE_MAX_LENGTH
 from app.models.types import LocaleCode
 
@@ -98,13 +98,8 @@ def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str, ...]:
     Returns at most two files: primary and fallback locale.
 
     >>> map_i18next_files([LocaleCode('pl'), LocaleCode('en'), LocaleCode('de')])
-    ['pl-e4c39a792074d67c.js', 'en-c39c7633ceb0ce46.js']
+    ('pl-e4c39a792074d67c.js', 'en-c39c7633ceb0ce46.js')
     """
-    # force map reload in test environment
-    global _i18next_map
-    if TEST_ENV:
-        _i18next_map = _load_locale()[0]
-
     # i18next supports only primary+fallback locale
     primary_locale = locales[0]
     primary_file = _i18next_map[primary_locale]
@@ -113,6 +108,16 @@ def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str, ...]:
     fallback_locale = locales[-1]
     fallback_file = _i18next_map[fallback_locale]
     return primary_file, fallback_file
+
+
+# optionally wrap map_i18next_files to always regenerate _i18next_map
+if FORCE_RELOAD_LOCALE_FILES:
+    _map_i18next_files_inner = map_i18next_files
+
+    def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str, ...]:
+        global _i18next_map
+        _i18next_map = _load_locale()[0]
+        return _map_i18next_files_inner(locales)
 
 
 def is_installed_locale(code: LocaleCode) -> bool:
