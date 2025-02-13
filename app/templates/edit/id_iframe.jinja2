@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="/static-id/{{ ID_VERSION }}/iD.css" fetchpriority="high">
-    <link rel="stylesheet" href="/static/css/id.css" fetchpriority="high">
+    <link rel="stylesheet" href="{{ HASH_AWARE_PATHS['/static/css/id.css'] }}" fetchpriority="high">
     <script src="/static-id/{{ ID_VERSION }}/iD.min.js" fetchpriority="high" defer></script>
-    <script src="/static/js/id.js" type="module" fetchpriority="high" defer></script>
+    <script src="{{ HASH_AWARE_PATHS['/static/js/id.js'] }}" type="module" fetchpriority="high" defer></script>
 </head>
 
 <body>

@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="/static-rapid/{{ RAPID_VERSION }}/rapid.css" fetchpriority="high">
-    <link rel="stylesheet" href="/static/css/rapid.css" fetchpriority="high">
+    <link rel="stylesheet" href="{{ HASH_AWARE_PATHS['/static/css/rapid.css'] }}" fetchpriority="high">
     <script src="/static-rapid/{{ RAPID_VERSION }}/rapid.min.js" fetchpriority="high" defer></script>
-    <script src="/static/js/rapid.js" type="module" fetchpriority="high" defer></script>
+    <script src="{{ HASH_AWARE_PATHS['/static/js/rapid.js'] }}" type="module" fetchpriority="high" defer></script>
 </head>
 
 <body>

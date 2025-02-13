@@ -1,7 +1,8 @@
 import stat
 from functools import lru_cache
 from mimetypes import guess_type
-from os import PathLike, stat_result
+from os import PathLike
+from os import stat_result as StatResultType  # noqa: N812
 from typing import override
 
 import cython
@@ -17,7 +18,7 @@ from starlette_compress import _parse_accept_encoding
 from app.config import TEST_ENV
 
 _CacheKey = tuple[str, str | None]
-_CacheValue = tuple[str, stat_result, str | None]
+_CacheValue = tuple[str, StatResultType, str | None]
 
 
 class PrecompressedStaticFiles(StaticFiles):
@@ -81,7 +82,7 @@ def _try_paths(path: str, accept_encoding: str) -> list[tuple[str, str | None]]:
     """
     Returns a list of (path, encoding) tuples to try.
 
-    >>> _iter_paths('example.txt', 'br, gzip')
+    >>> _try_paths('example.txt', 'br, gzip')
     [('example.txt.br', 'br'), ('example.txt', None)]
     """
     accept_encodings = _parse_accept_encoding(accept_encoding)

@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 from app.config import APP_URL, TEST_ENV, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
+from app.lib.static_asset_hash import HASH_AWARE_PATHS
 from app.lib.translation import nt, primary_translation_locale, t
 
 if cython.compiled:
@@ -106,6 +107,7 @@ def stripspecial(value: str) -> str:
 
 # configure template globals
 _j2.globals.update(
+    HASH_AWARE_PATHS=HASH_AWARE_PATHS,
     t=t,
     nt=nt,
     str=str,

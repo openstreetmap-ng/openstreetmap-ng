@@ -5,12 +5,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="/static/css/main.css">
-    <script src="/static/js/main-sync.js"></script>
+    <link rel="stylesheet" href="{{ HASH_AWARE_PATHS['/static/css/main.css'] }}">
+    <script src="{{ HASH_AWARE_PATHS['/static/js/main-sync.js'] }}"></script>
     {% for file in I18NEXT_FILES %}
         <script src="/static-locale/{{ file }}" defer></script>
     {% endfor %}
-    <script src="/static/js/main.js" type="module" defer></script>
+    <script src="{{ HASH_AWARE_PATHS['/static/js/main.js'] }}" type="module" defer></script>
 
     {% block head %}{% endblock %}
 
