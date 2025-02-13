@@ -67,6 +67,7 @@ let
     ps
     coreutils
     findutils
+    parallel
     curl
     jq
     watchexec'
@@ -238,15 +239,46 @@ let
     # -- Static
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
     (makeScript "static-img-pipeline" "python scripts/rasterize.py static-img-pipeline")
+    (makeScript "static-precompress-clean" "static-precompress clean")
     (makeScript "static-precompress" ''
-      dirs=(
-        app/static
-        config/locale/i18next
-        node_modules/iD/dist
-        node_modules/@rapideditor/rapid/dist
-      )
-      find "''${dirs[@]}" \
+      process_file() {
+        file="$1"
+        mode="$2"
+
+        process_file_inner() {
+          dest="$file.$extension"
+          if [ "$mode" = "clean" ]; then
+            rm -f "$dest"
+            return
+          fi
+          if [ ! -f "$dest" ] || [ "$dest" -ot "$file" ]; then
+              tmpfile=$(mktemp -t "$(basename "$dest").XXXXXXXXXX")
+              $compressor "''${args[@]}" "$file" -o "$tmpfile"
+              touch --reference "$file" "$tmpfile"
+              mv -f "$tmpfile" "$dest"
+          fi
+        }
+
+        extension="zst"
+        compressor="zstd"
+        args=(--force --ultra -22 --single-thread --quiet)
+        process_file_inner
+
+        extension="br"
+        compressor="brotli"
+        args=(--force --best)
+        process_file_inner
+      }
+      export -f process_file
+
+      find  \
+        "app/static" \
+        "config/locale/i18next" \
+        "node_modules/iD/dist" \
+        "node_modules/@rapideditor/rapid/dist" \
         -type f \
+        -not -path "app/static/js/_generated/*" \
+        -not -path "node_modules/@rapideditor/rapid/dist/examples/*" \
         -not -name "*.xcf" \
         -not -name "*.gif" \
         -not -name "*.jpg" \
@@ -257,23 +289,14 @@ let
         -not -name "*.scss" \
         -not -name "*.br" \
         -not -name "*.zst" \
-        -size +1023c \
-        -print0 | while IFS= read -r -d ''\'''\' file; do
-
-        file_compressed="$file.zst"
-        if [ ! -f "$file_compressed" ] || [ "$file_compressed" -ot "$file" ]; then
-          echo "[static-precompress] Compressing $file with zstd"
-          zstd --force --ultra -22 --quiet "$file" -o "$file_compressed"
-          touch --reference "$file" "$file_compressed"
-        fi
-
-        file_compressed="$file.br"
-        if [ ! -f "$file_compressed" ] || [ "$file_compressed" -ot "$file" ]; then
-          echo "[static-precompress] Compressing $file with brotli"
-          brotli --force --best "$file" -o "$file_compressed"
-          touch --reference "$file" "$file_compressed"
-        fi
-      done
+        -size +499c \
+        -printf "%s\t%p\0"  \
+      | sort -z --numeric-sort --reverse \
+      | cut -z -f2- \
+      | parallel --will-cite --null \
+        --bar --eta \
+        --halt now,fail=1 \
+        process_file {} "$@"
     '')
 
     # -- Locale
