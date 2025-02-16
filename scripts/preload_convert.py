@@ -84,7 +84,7 @@ _NOTES_SCHEMA = pa.schema(
     ]
 )
 
-_MEMORY_LIMIT = 2 * (1024 * 1024 * 1024)  # 2 GB => ~50 GB total memory usage
+_MEMORY_LIMIT = 2 * (1024 * 1024 * 1024)  # real: ~2 GB memory usage per worker
 _NUM_WORKERS = os.process_cpu_count() or 1
 _WORKER_MEMORY_LIMIT = _MEMORY_LIMIT // _NUM_WORKERS
 
@@ -96,7 +96,7 @@ gc.disable()
 
 @cython.cfunc
 def _get_csv_path(name: str):
-    return PRELOAD_DIR.joinpath(f'{name}.csv')
+    return PRELOAD_DIR.joinpath(f'{name}.csv.zst')
 
 
 @cython.cfunc
@@ -190,6 +190,7 @@ def planet_worker(
         compression='lz4',
         write_statistics=False,
     )
+    del data
     gc.collect()
 
 
@@ -203,12 +204,11 @@ def run_planet_workers() -> None:
     with PLANET_INPUT_PATH.open('rb') as f_in:
         for i in range(num_tasks):
             from_seek = (input_size // num_tasks) * i
-            if i > 0:
-                f_in.seek(from_seek)
-                lookahead = f_in.read(1024 * 1024)  # 1 MB
-                lookahead_finds = (lookahead.find(search) for search in from_seek_search)
-                min_find = min(find for find in lookahead_finds if find > -1)
-                from_seek += min_find
+            f_in.seek(from_seek)
+            lookahead = f_in.read(1024 * 1024)  # 1 MB
+            lookahead_finds = (lookahead.find(search) for search in from_seek_search)
+            min_find = min(find for find in lookahead_finds if find > -1)
+            from_seek += min_find
             from_seeks.append(from_seek)
 
     args: tuple[tuple[int, int, int], ...] = tuple(
@@ -343,6 +343,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
         compression='lz4',
         write_statistics=False,
     )
+    del data
     gc.collect()
 
 
@@ -389,7 +390,7 @@ def merge_notes_worker_results() -> None:
         COPY (
             SELECT *
             FROM parquets
-        ) TO {NOTES_PARQUET_PATH!r}
+        ) TO {NOTES_PARQUET_PATH.as_posix()!r}
         (COMPRESSION ZSTD, COMPRESSION_LEVEL 3, ROW_GROUP_SIZE_BYTES '128MB')
         """)
 
@@ -410,8 +411,7 @@ def _write_changeset() -> None:
                 '{{}}' AS tags
             FROM planet
             GROUP BY changeset_id
-        ) TO {_get_csv_path('changeset')!r}
-        (COMPRESSION ZSTD)
+        ) TO {_get_csv_path('changeset').as_posix()!r}
         """)
 
 
@@ -432,8 +432,7 @@ def _write_element() -> None:
                 created_at,
                 next_sequence_id
             FROM planet
-        ) TO {_get_csv_path('element')!r}
-        (COMPRESSION ZSTD)
+        ) TO {_get_csv_path('element').as_posix()!r}
         """)
 
 
@@ -446,8 +445,7 @@ def _write_element_member() -> None:
                 sequence_id,
                 UNNEST(members, max_depth := 2)
             FROM planet
-        ) TO {_get_csv_path('element_member')!r}
-        (COMPRESSION ZSTD)
+        ) TO {_get_csv_path('element_member').as_posix()!r}
         """)
 
 
@@ -464,8 +462,7 @@ def _write_note() -> None:
                 closed_at,
                 hidden_at
             FROM notes
-        ) TO {_get_csv_path('note')!r}
-        (COMPRESSION ZSTD)
+        ) TO {_get_csv_path('note').as_posix()!r}
         """)
 
 
@@ -481,8 +478,7 @@ def _write_note_comment() -> None:
                     UNNEST(comments, max_depth := 2)
                 FROM notes
             )
-        ) TO {_get_csv_path('note_comment')!r}
-        (COMPRESSION ZSTD)
+        ) TO {_get_csv_path('note_comment').as_posix()!r}
         """)
 
 
@@ -517,8 +513,7 @@ def _write_user() -> None:
                 )
             )
             WHERE user_id IS NOT NULL
-        ) TO {_get_csv_path('user')!r}
-        (COMPRESSION ZSTD)
+        ) TO {_get_csv_path('user').as_posix()!r}
         """)
 
 
