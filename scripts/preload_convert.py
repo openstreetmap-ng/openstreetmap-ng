@@ -411,6 +411,7 @@ def _write_changeset() -> None:
                 '{{}}' AS tags
             FROM planet
             GROUP BY changeset_id
+            ORDER BY changeset_id
         ) TO {_get_csv_path('changeset').as_posix()!r}
         """)
 
@@ -432,6 +433,7 @@ def _write_element() -> None:
                 created_at,
                 next_sequence_id
             FROM planet
+            ORDER BY type, id, version
         ) TO {_get_csv_path('element').as_posix()!r}
         """)
 
@@ -441,10 +443,13 @@ def _write_element_member() -> None:
         planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
         conn.sql(f"""
         COPY (
-            SELECT
-                sequence_id,
-                UNNEST(members, max_depth := 2)
-            FROM planet
+            SELECT * FROM (
+                SELECT
+                    sequence_id,
+                    UNNEST(members, max_depth := 2)
+                FROM planet
+            )
+            ORDER BY type, id, sequence_id
         ) TO {_get_csv_path('element_member').as_posix()!r}
         """)
 
@@ -462,6 +467,7 @@ def _write_note() -> None:
                 closed_at,
                 hidden_at
             FROM notes
+            ORDER BY id
         ) TO {_get_csv_path('note').as_posix()!r}
         """)
 
@@ -477,6 +483,7 @@ def _write_note_comment() -> None:
                     NULL AS user_ip,
                     UNNEST(comments, max_depth := 2)
                 FROM notes
+                ORDER BY id
             )
         ) TO {_get_csv_path('note_comment').as_posix()!r}
         """)
@@ -513,6 +520,7 @@ def _write_user() -> None:
                 )
             )
             WHERE user_id IS NOT NULL
+            ORDER BY user_id
         ) TO {_get_csv_path('user').as_posix()!r}
         """)
 
