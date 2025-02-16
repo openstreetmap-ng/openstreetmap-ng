@@ -1,4 +1,5 @@
 import asyncio
+import gc
 import gzip
 from asyncio import sleep
 from collections.abc import Callable
@@ -27,6 +28,39 @@ from app.services.optimistic_diff.prepare import OSMChangeAction
 from app.utils import HTTP
 
 _Frequency = Literal['minute', 'hour', 'day']
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class ReplicaState:
+    sequence_number: int
+    created_at: datetime
+
+    @property
+    def path(self) -> Path:
+        return REPLICATION_DIR.joinpath(f'replica_{int(self.created_at.timestamp()):020}.parquet')
+
+    @property
+    def bundle_path(self) -> Path:
+        return REPLICATION_DIR.joinpath(f'bundle_{int(self.created_at.timestamp()):020}.parquet')
+
+    @staticmethod
+    def default() -> 'ReplicaState':
+        return ReplicaState(sequence_number=0, created_at=datetime.fromtimestamp(0, UTC))
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class AppState:
+    frequency: _Frequency
+    last_replica: ReplicaState
+    last_sequence_id: int
+
+    @property
+    def next_replica(self) -> 'ReplicaState':
+        return ReplicaState(
+            sequence_number=self.last_replica.sequence_number + 1,
+            created_at=self.last_replica.created_at + _FREQUENCY_TIMEDELTA[self.frequency],
+        )
+
 
 _FREQUENCY_TIMEDELTA: dict[_Frequency, timedelta] = {
     'minute': timedelta(minutes=1),
@@ -71,37 +105,10 @@ _PARQUET_SCHEMA = pa.schema(
 
 _APP_STATE_PATH = REPLICATION_DIR / 'state.json'
 
-
-@dataclass(frozen=True, kw_only=True, slots=True)
-class ReplicaState:
-    sequence_number: int
-    created_at: datetime
-
-    @property
-    def path(self) -> Path:
-        return REPLICATION_DIR.joinpath(f'replica_{int(self.created_at.timestamp()):020}.parquet')
-
-    @property
-    def bundle_path(self) -> Path:
-        return REPLICATION_DIR.joinpath(f'bundle_{int(self.created_at.timestamp()):020}.parquet')
-
-    @staticmethod
-    def default() -> 'ReplicaState':
-        return ReplicaState(sequence_number=0, created_at=datetime.fromtimestamp(0, UTC))
-
-
-@dataclass(frozen=True, kw_only=True, slots=True)
-class AppState:
-    frequency: _Frequency
-    last_replica: ReplicaState
-    last_sequence_id: int
-
-    @property
-    def next_replica(self) -> 'ReplicaState':
-        return ReplicaState(
-            sequence_number=self.last_replica.sequence_number + 1,
-            created_at=self.last_replica.created_at + _FREQUENCY_TIMEDELTA[self.frequency],
-        )
+# freeze all gc objects before starting for improved performance
+gc.collect()
+gc.freeze()
+gc.disable()
 
 
 async def main() -> None:
@@ -123,6 +130,7 @@ async def main() -> None:
             _bundle_data_if_needed(state)
             _save_app_state(state)
             click.echo(f'Finished replication sequence {state.frequency}/{state.last_replica.sequence_number}')
+            gc.collect()
 
 
 @retry(timedelta(minutes=30))

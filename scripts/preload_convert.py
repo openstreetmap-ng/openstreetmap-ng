@@ -5,17 +5,17 @@ from collections.abc import Callable
 from datetime import datetime
 from multiprocessing import Pool
 from pathlib import Path
-from subprocess import run
 from typing import Any
 
 import cython
-import numpy as np
 import orjson
-import polars as pl
+import pyarrow as pa
+import pyarrow.parquet as pq
 from shapely import Point
 from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
+from app.db import duckdb_connect
 from app.lib.compressible_geometry import compressible_geometry
 from app.lib.xmltodict import XMLToDict
 from app.models.db import *  # noqa: F403
@@ -26,14 +26,67 @@ PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')
 if not PLANET_INPUT_PATH.is_file():
     raise FileNotFoundError(f'Planet data file not found: {PLANET_INPUT_PATH}')
 
+_PLANET_SCHEMA = pa.schema(
+    [
+        pa.field('changeset_id', pa.uint64()),
+        pa.field('type', pa.string()),
+        pa.field('id', pa.uint64()),
+        pa.field('version', pa.uint64()),
+        pa.field('visible', pa.bool_()),
+        pa.field('tags', pa.string()),
+        pa.field('point', pa.string()),
+        pa.field(
+            'members',
+            pa.list_(
+                pa.struct(
+                    [
+                        pa.field('order', pa.uint16()),
+                        pa.field('type', pa.string()),
+                        pa.field('id', pa.uint64()),
+                        pa.field('role', pa.string()),
+                    ]
+                )
+            ),
+        ),
+        pa.field('created_at', pa.date64()),
+        pa.field('user_id', pa.uint64()),
+        pa.field('display_name', pa.string()),
+    ]
+)
+
 NOTES_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osn')
 NOTES_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osn.parquet')
 if not NOTES_INPUT_PATH.is_file():
     raise FileNotFoundError(f'Notes data file not found: {PLANET_INPUT_PATH}')
 
-MEMORY_LIMIT = 2 * (1024 * 1024 * 1024)  # 2 GB => ~50 GB total memory usage
-NUM_WORKERS = os.process_cpu_count() or 1
-WORKER_MEMORY_LIMIT = MEMORY_LIMIT // NUM_WORKERS
+_NOTES_SCHEMA = pa.schema(
+    [
+        pa.field('id', pa.uint64()),
+        pa.field('point', pa.string()),
+        pa.field(
+            'comments',
+            pa.list_(
+                pa.struct(
+                    [
+                        pa.field('user_id', pa.uint64()),
+                        pa.field('display_name', pa.string()),
+                        pa.field('event', pa.string()),
+                        pa.field('body', pa.string()),
+                        pa.field('created_at', pa.date64()),
+                    ]
+                )
+            ),
+        ),
+        pa.field('created_at', pa.date64()),
+        pa.field('updated_at', pa.date64()),
+        pa.field('closed_at', pa.date64()),
+        pa.field('hidden_at', pa.date64()),
+    ]
+)
+
+_MEMORY_LIMIT = 2 * (1024 * 1024 * 1024)  # 2 GB => ~50 GB total memory usage
+_NUM_WORKERS = os.process_cpu_count() or 1
+_WORKER_MEMORY_LIMIT = _MEMORY_LIMIT // _NUM_WORKERS
 
 # freeze all gc objects before starting for improved performance
 gc.collect()
@@ -51,14 +104,6 @@ def _get_worker_path(base: Path, i: int):
     return base.with_suffix(f'{base.suffix}.{i}')
 
 
-@cython.cfunc
-def _compress_csv(path: Path):
-    run(
-        ('zstd', '--rm', '--force', '-19', '-T0', path),
-        check=True,
-    )
-
-
 def planet_worker(
     args: tuple[int, int, int],
     *,
@@ -66,29 +111,7 @@ def planet_worker(
     orjson_dumps: Callable[[Any], bytes] = orjson.dumps,
 ) -> None:
     i, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
-    data: list[tuple] = []
-    schema = {
-        'changeset_id': pl.UInt64,
-        'type': pl.Enum(('node', 'way', 'relation')),
-        'id': pl.UInt64,
-        'version': pl.UInt64,
-        'visible': pl.Boolean,
-        'tags': pl.String,
-        'point': pl.String,
-        'members': pl.List(
-            pl.Struct(
-                {
-                    'order': pl.UInt16,
-                    'type': pl.Enum(('node', 'way', 'relation')),
-                    'id': pl.UInt64,
-                    'role': pl.String,
-                }
-            )
-        ),
-        'created_at': pl.Datetime,
-        'user_id': pl.UInt64,
-        'display_name': pl.String,
-    }
+    data: list[dict] = []
 
     with PLANET_INPUT_PATH.open('rb') as f_in:
         if from_seek > 0:
@@ -104,17 +127,19 @@ def planet_worker(
 
     element_type: str
     element: dict
+
     for element_type, element in elements:
         tags = {tag['@k']: tag['@v'] for tag in tags_} if (tags_ := element.get('tag')) is not None else None
         point: str | None = None
-        members: tuple[dict, ...]
+        members: list[dict]
+
         if element_type == 'node':
-            members = ()
+            members = []
             if (lon := element.get('@lon')) is not None and (lat := element.get('@lat')) is not None:
                 point = compressible_geometry(Point(lon, lat)).wkb_hex
         elif element_type == 'way':
             members = (
-                tuple(
+                [
                     {
                         'order': order,
                         'type': 'node',
@@ -122,13 +147,13 @@ def planet_worker(
                         'role': '',
                     }
                     for order, member in enumerate(members_)
-                )
+                ]
                 if (members_ := element.get('nd')) is not None
-                else ()
+                else []
             )
         elif element_type == 'relation':
             members = (
-                tuple(
+                [
                     {
                         'order': order,
                         'type': member['@type'],
@@ -136,40 +161,44 @@ def planet_worker(
                         'role': member['@role'],
                     }
                     for order, member in enumerate(members_)
-                )
+                ]
                 if (members_ := element.get('member')) is not None
-                else ()
+                else []
             )
         else:
             raise NotImplementedError(f'Unsupported element type {element_type!r}')
+
         data.append(
-            (
-                element['@changeset'],  # changeset_id
-                element_type,  # type
-                element['@id'],  # id
-                element['@version'],  # version
-                (tags is not None) or (point is not None) or bool(members),  # visible
-                orjson_dumps(tags).decode() if (tags is not None) else '{}',  # tags
-                point,  # point
-                members,  # members
-                element['@timestamp'],  # created_at
-                element.get('@uid'),  # user_id
-                element.get('@user'),  # display_name
-            )
+            {
+                'changeset_id': element['@changeset'],
+                'type': element_type,
+                'id': element['@id'],
+                'version': element['@version'],
+                'visible': (tags is not None) or (point is not None) or bool(members),
+                'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
+                'point': point,
+                'members': members,
+                'created_at': element['@timestamp'],
+                'user_id': element.get('@uid'),
+                'display_name': element.get('@user'),
+            }
         )
 
-    pl.DataFrame(data, schema, orient='row').write_parquet(
-        _get_worker_path(PLANET_PARQUET_PATH, i), compression='lz4', statistics=False
+    pq.write_table(
+        pa.Table.from_pylist(data, schema=_PLANET_SCHEMA),
+        _get_worker_path(PLANET_PARQUET_PATH, i),
+        compression='lz4',
+        write_statistics=False,
     )
     gc.collect()
 
 
 def run_planet_workers() -> None:
     input_size = PLANET_INPUT_PATH.stat().st_size
-    num_tasks = input_size // WORKER_MEMORY_LIMIT
+    num_tasks = input_size // _WORKER_MEMORY_LIMIT
     from_seek_search = (b'  <node', b'  <way', b'  <relation')
     from_seeks: list[int] = []
-    print(f'Configuring {num_tasks} tasks (using {NUM_WORKERS} workers)')
+    print(f'Configuring {num_tasks} tasks (using {_NUM_WORKERS} workers)')
 
     with PLANET_INPUT_PATH.open('rb') as f_in:
         for i in range(num_tasks):
@@ -186,97 +215,68 @@ def run_planet_workers() -> None:
         (i, from_seek, (from_seeks[i + 1] if i + 1 < num_tasks else input_size))
         for i, from_seek in enumerate(from_seeks)
     )
-    with Pool(NUM_WORKERS) as pool:
+    with Pool(_NUM_WORKERS) as pool:
         for _ in tqdm(
             pool.imap_unordered(planet_worker, args),
             desc='Preparing planet data',
             total=num_tasks,
         ):
-            ...
+            pass
 
 
 def merge_planet_worker_results() -> None:
     input_size = PLANET_INPUT_PATH.stat().st_size
-    num_tasks = input_size // WORKER_MEMORY_LIMIT
+    num_tasks = input_size // _WORKER_MEMORY_LIMIT
     paths = [_get_worker_path(PLANET_PARQUET_PATH, i) for i in range(num_tasks)]
-    created_at_all: list[int] = []
 
-    for path in tqdm(paths, desc='Assigning sequence IDs (step 1/2)'):
-        df = pl.read_parquet(path, columns=['created_at'])
-        created_at = df.to_series().dt.epoch('s').to_numpy(allow_copy=False)
-        created_at_all.extend(created_at)
+    with duckdb_connect() as conn:
+        print('Creating table')
+        parquets = conn.read_parquet([path.as_posix() for path in paths])  # type: ignore
+        conn.sql("""
+        CREATE TEMP TABLE sequence AS
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY created_at) AS sequence_id,
+            type,
+            id,
+            version
+        FROM parquets
+        """)
+        print('Creating index')
+        conn.sql('CREATE INDEX type_id_version_idx ON sequence (type, id, version)')
+        print(f'Merging {len(paths)} worker files')
+        conn.sql(f"""
+        COPY (
+            SELECT
+                current.sequence_id,
+                p.changeset_id,
+                p.type,
+                p.id,
+                p.version,
+                p.visible,
+                p.tags,
+                p.point,
+                p.members,
+                p.created_at,
+                p.user_id,
+                p.display_name,
+                next.sequence_id AS next_sequence_id
+            FROM parquets AS p
+            JOIN sequence AS current USING (type, id, version)
+            ASOF LEFT JOIN sequence AS next
+             ON p.type = next.type
+            AND p.id = next.id
+            AND p.version < next.version
+        ) TO {PLANET_PARQUET_PATH.as_posix()!r}
+        (COMPRESSION ZSTD, COMPRESSION_LEVEL 3, ROW_GROUP_SIZE_BYTES '128MB')
+        """)
 
-    print('Assigning sequence IDs (step 2/2)')
-    created_at_argsort = np.argsort(created_at_all).astype(np.uint64)
-
-    # free memory
-    del created_at_all
-
-    sequence_ids_all = np.empty_like(created_at_argsort, dtype=np.uint64)
-    sequence_ids_all[created_at_argsort] = np.arange(1, len(created_at_argsort) + 1, dtype=np.uint64)
-    last_sequence_id_index = len(sequence_ids_all)
-    type_id_sequence_map: dict[tuple[str, int], int] = {}
-
-    # free memory
-    del created_at_argsort
-
-    for path in tqdm(reversed(paths), desc='Assigning next sequence IDs', total=len(paths)):
-        df = pl.read_parquet(path)
-
-        sequence_ids = sequence_ids_all[last_sequence_id_index - df.height : last_sequence_id_index]
-        last_sequence_id_index -= df.height
-        df = df.with_columns_seq(pl.Series('sequence_id', sequence_ids))
-
-        next_sequence_ids = np.empty(df.height, dtype=np.float64)
-
-        i: cython.int
-        for i, (type, id, sequence_id) in enumerate(df.select_seq('type', 'id', 'sequence_id').reverse().iter_rows()):
-            type_id = (type, id)
-            next_sequence_ids[i] = type_id_sequence_map.get(type_id)
-            type_id_sequence_map[type_id] = sequence_id
-
-        next_sequence_ids = np.flip(next_sequence_ids)
-        df = df.with_columns_seq(pl.Series('next_sequence_id', next_sequence_ids, pl.UInt64, nan_to_null=True))
-        df.write_parquet(path, compression='lz4', statistics=False)
-
-    # free memory
-    del sequence_ids_all
-    del type_id_sequence_map
-
-    print(f'Merging {len(paths)} worker files')
-    pl.scan_parquet(paths).sink_parquet(
-        PLANET_PARQUET_PATH,
-        compression_level=3,
-        statistics=False,
-        data_page_size=128 * 1024 * 1024,
-        maintain_order=False,
-    )
     for path in paths:
         path.unlink()
 
 
 def notes_worker(args: tuple[int, int, int]) -> None:
     i, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
-    data: list[tuple] = []
-    schema = {
-        'id': pl.UInt64,
-        'point': pl.String,
-        'comments': pl.List(
-            pl.Struct(
-                {
-                    'user_id': pl.UInt64,
-                    'display_name': pl.String,
-                    'event': pl.Enum(('opened', 'closed', 'reopened', 'commented', 'hidden')),
-                    'body': pl.String,
-                    'created_at': pl.Datetime,
-                }
-            )
-        ),
-        'created_at': pl.Datetime,
-        'updated_at': pl.Datetime,
-        'closed_at': pl.Datetime,
-        'hidden_at': pl.Datetime,
-    }
+    data: list[dict] = []
 
     with NOTES_INPUT_PATH.open('rb') as f_in:
         if from_seek > 0:
@@ -298,11 +298,13 @@ def notes_worker(args: tuple[int, int, int]) -> None:
         note_hidden_at: datetime | None = None
         comments: list[dict] = []
         comment: dict
+
         for comment in note.get('comment', ()):
             comment_created_at = comment['@timestamp']
             if note_created_at is None:
                 note_created_at = comment_created_at
             note_updated_at = comment_created_at
+
             event: str = comment['@action']
             if event == 'closed':
                 note_closed_at = comment_created_at
@@ -311,6 +313,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
             elif event == 'reopened':
                 note_closed_at = None
                 note_hidden_at = None
+
             comments.append(
                 {
                     'user_id': comment.get('@uid'),
@@ -320,32 +323,36 @@ def notes_worker(args: tuple[int, int, int]) -> None:
                     'created_at': comment_created_at,
                 }
             )
+
         point = compressible_geometry(Point(note['@lon'], note['@lat'])).wkb_hex
         data.append(
-            (
-                note['@id'],  # note_id
-                point,  # point
-                comments,  # comments
-                note_created_at,  # created_at
-                note_updated_at,  # updated_at
-                note_closed_at,  # closed_at
-                note_hidden_at,  # hidden_at
-            )
+            {
+                'id': note['@id'],
+                'point': point,
+                'comments': comments,
+                'created_at': note_created_at,
+                'updated_at': note_updated_at,
+                'closed_at': note_closed_at,
+                'hidden_at': note_hidden_at,
+            }
         )
 
-    pl.DataFrame(data, schema, orient='row').write_parquet(
-        _get_worker_path(NOTES_PARQUET_PATH, i), compression='lz4', statistics=False
+    pq.write_table(
+        pa.Table.from_pylist(data, schema=_PLANET_SCHEMA),
+        _get_worker_path(NOTES_PARQUET_PATH, i),
+        compression='lz4',
+        write_statistics=False,
     )
     gc.collect()
 
 
 def run_notes_workers() -> None:
     input_size = NOTES_INPUT_PATH.stat().st_size
-    num_tasks = input_size // WORKER_MEMORY_LIMIT
+    num_tasks = input_size // _WORKER_MEMORY_LIMIT
     from_seek_search = (b'<note',)
     from_seeks = []
 
-    print(f'Configuring {num_tasks} tasks (using {NUM_WORKERS} workers)')
+    print(f'Configuring {num_tasks} tasks (using {_NUM_WORKERS} workers)')
     with NOTES_INPUT_PATH.open('rb') as f_in:
         for i in range(num_tasks):
             from_seek = (input_size // num_tasks) * i
@@ -361,143 +368,158 @@ def run_notes_workers() -> None:
         (i, from_seek, (from_seeks[i + 1] if i + 1 < num_tasks else input_size))
         for i, from_seek in enumerate(from_seeks)
     )
-    with Pool(NUM_WORKERS) as pool:
+    with Pool(_NUM_WORKERS) as pool:
         for _ in tqdm(
             pool.imap_unordered(notes_worker, args),
             desc='Preparing notes data',
             total=num_tasks,
         ):
-            ...
+            pass
 
 
 def merge_notes_worker_results() -> None:
     input_size = NOTES_INPUT_PATH.stat().st_size
-    num_tasks = input_size // WORKER_MEMORY_LIMIT
+    num_tasks = input_size // _WORKER_MEMORY_LIMIT
     paths = [_get_worker_path(NOTES_PARQUET_PATH, i) for i in range(num_tasks)]
 
-    print(f'Merging {len(paths)} worker files')
-    pl.scan_parquet(paths).sink_parquet(
-        NOTES_PARQUET_PATH,
-        compression_level=3,
-        statistics=False,
-        data_page_size=128 * 1024 * 1024,
-        maintain_order=False,
-    )
+    with duckdb_connect() as conn:
+        print(f'Merging {len(paths)} worker files')
+        parquets = conn.read_parquet([path.as_posix() for path in paths])  # type: ignore  # noqa: F841
+        conn.sql(f"""
+        COPY (
+            SELECT *
+            FROM parquets
+        ) TO {NOTES_PARQUET_PATH!r}
+        (COMPRESSION ZSTD, COMPRESSION_LEVEL 3, ROW_GROUP_SIZE_BYTES '128MB')
+        """)
+
     for path in paths:
         path.unlink()
 
 
 def write_changeset_csv() -> None:
-    path = _get_csv_path('changeset')
-    (
-        pl.scan_parquet(PLANET_PARQUET_PATH)
-        .select_seq('changeset_id', 'created_at', 'user_id')
-        .rename({'changeset_id': 'id'})
-        .group_by('id')
-        .agg(
-            pl.first('user_id'),
-            closed_at=pl.max('created_at'),
-            size=pl.len(),
-        )
-        .with_columns_seq(tags=pl.lit('{}'))
-        .sink_csv(path)
-    )
-    _compress_csv(path)
+    with duckdb_connect() as conn:
+        planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
+        conn.sql(f"""
+        COPY (
+            SELECT
+                changeset_id AS id,
+                ANY_VALUE(user_id) AS user_id,
+                MAX(created_at) AS closed_at,
+                COUNT(*) AS size,
+                '{{}}' AS tags
+            FROM planet
+            GROUP BY changeset_id
+        ) TO {_get_csv_path('changeset')!r}
+        (COMPRESSION ZSTD)
+        """)
 
 
 def write_element_csv() -> None:
-    path = _get_csv_path('element')
-    (
-        pl.scan_parquet(PLANET_PARQUET_PATH)
-        .select_seq(
-            'sequence_id',
-            'changeset_id',
-            'type',
-            'id',
-            'version',
-            'visible',
-            'tags',
-            'point',
-            'created_at',
-            'next_sequence_id',
-        )
-        .sink_csv(path)
-    )
-    _compress_csv(path)
+    with duckdb_connect() as conn:
+        planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
+        conn.sql(f"""
+        COPY (
+            SELECT
+                sequence_id,
+                changeset_id,
+                type,
+                id,
+                version,
+                visible,
+                tags,
+                point,
+                created_at,
+                next_sequence_id
+            FROM planet
+        ) TO {_get_csv_path('element')!r}
+        (COMPRESSION ZSTD)
+        """)
 
 
 def write_element_member_csv() -> None:
-    path = _get_csv_path('element_member')
-    (
-        pl.scan_parquet(PLANET_PARQUET_PATH)
-        .select_seq('sequence_id', 'members')
-        .filter(pl.col('members').list.len() > 0)
-        .explode('members')
-        .unnest('members')
-        .sink_csv(path)
-    )
-    _compress_csv(path)
+    with duckdb_connect() as conn:
+        planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
+        conn.sql(f"""
+        COPY (
+            SELECT
+                sequence_id,
+                UNNEST(members, max_depth := 2)
+            FROM planet
+        ) TO {_get_csv_path('element_member')!r}
+        (COMPRESSION ZSTD)
+        """)
 
 
 def write_note_csv() -> None:
-    path = _get_csv_path('note')
-    (
-        pl.scan_parquet(NOTES_PARQUET_PATH)
-        .select_seq(
-            'id',
-            'point',
-            'created_at',
-            'updated_at',
-            'closed_at',
-            'hidden_at',
-        )
-        .sink_csv(path)
-    )
-    _compress_csv(path)
+    with duckdb_connect() as conn:
+        notes = conn.read_parquet(NOTES_PARQUET_PATH.as_posix())  # noqa: F841
+        conn.sql(f"""
+        COPY (
+            SELECT
+                id,
+                point,
+                created_at,
+                updated_at,
+                closed_at,
+                hidden_at
+            FROM notes
+        ) TO {_get_csv_path('note')!r}
+        (COMPRESSION ZSTD)
+        """)
 
 
 def write_note_comment_csv() -> None:
-    path = _get_csv_path('note_comment')
-    (
-        pl.scan_parquet(NOTES_PARQUET_PATH)
-        .select_seq('id', 'comments')
-        .rename({'id': 'note_id'})
-        .with_columns_seq(user_ip=pl.lit(None))
-        .explode('comments')
-        .unnest('comments')
-        .drop('display_name')
-        .sink_csv(path)
-    )
-    _compress_csv(path)
+    with duckdb_connect() as conn:
+        notes = conn.read_parquet(NOTES_PARQUET_PATH.as_posix())  # noqa: F841
+        conn.sql(f"""
+        COPY (
+            SELECT * EXCLUDE (display_name) FROM (
+                SELECT
+                    id AS note_id,
+                    NULL AS user_ip,
+                    UNNEST(comments, max_depth := 2)
+                FROM notes
+            )
+        ) TO {_get_csv_path('note_comment')!r}
+        (COMPRESSION ZSTD)
+        """)
 
 
 def write_user_csv() -> None:
-    path = _get_csv_path('user')
-    planet_lf = pl.scan_parquet(PLANET_PARQUET_PATH).select_seq('user_id', 'display_name')  #
-    notes_lf = (
-        pl.scan_parquet(NOTES_PARQUET_PATH)
-        .select_seq('comments')
-        .explode('comments')
-        .unnest('comments')
-        .select_seq('user_id', 'display_name')
-    )
-    (
-        pl.concat((planet_lf, notes_lf))
-        .rename({'user_id': 'id'})
-        .unique('id')
-        .drop_nulls('id')
-        .with_columns_seq(
-            email=pl.concat_str('id', pl.lit('@localhost.invalid')),
-            password_pb=pl.lit(''),
-            created_ip=pl.lit('127.0.0.1'),
-            status=pl.lit('active'),
-            language=pl.lit('en'),
-            activity_tracking=pl.lit(True),
-            crash_reporting=pl.lit(True),
-        )
-        .sink_csv(path)
-    )
-    _compress_csv(path)
+    with duckdb_connect() as conn:
+        planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
+        notes = conn.read_parquet(NOTES_PARQUET_PATH.as_posix())  # noqa: F841
+        conn.sql(f"""
+        COPY (
+            SELECT DISTINCT ON (user_id)
+                user_id AS id,
+                display_name,
+                (user_id || '@localhost.invalid') AS email,
+                '' AS password_pb,
+                '127.0.0.1' AS created_ip,
+                'active' AS status,
+                'en' AS language,
+                TRUE AS activity_tracking,
+                TRUE AS crash_reporting
+            FROM (
+                SELECT
+                    user_id,
+                    display_name
+                FROM planet
+                UNION ALL
+                SELECT
+                    user_id,
+                    display_name,
+                FROM (
+                    SELECT UNNEST(comments, max_depth := 2)
+                    FROM notes
+                )
+            )
+            WHERE user_id IS NOT NULL
+        ) TO {_get_csv_path('user')!r}
+        (COMPRESSION ZSTD)
+        """)
 
 
 async def main() -> None:
