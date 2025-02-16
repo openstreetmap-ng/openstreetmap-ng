@@ -5,7 +5,7 @@ import cython
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
@@ -27,7 +27,7 @@ class ChangesetCommentService:
     async def comment(changeset_id: int, text: str) -> None:
         """Comment on a changeset."""
         user = auth_user(required=True)
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()
             changeset = await session.scalar(stmt)
             if changeset is None:
@@ -54,7 +54,7 @@ class ChangesetCommentService:
 
         Returns the parent changeset id.
         """
-        async with db_commit() as session:
+        async with db(True) as session:
             comment_stmt = select(ChangesetComment).where(ChangesetComment.id == comment_id)
             comment = await session.scalar(comment_stmt)
             if comment is None:

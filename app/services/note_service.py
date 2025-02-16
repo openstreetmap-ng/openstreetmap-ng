@@ -8,7 +8,7 @@ from shapely import Point, lib
 from shapely.coordinates import get_coordinates
 from sqlalchemy import delete, exists, func, select
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user, auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
@@ -47,7 +47,7 @@ class NoteService:
             user_id = None
             user_ip = get_request_ip()
 
-        async with db_commit() as session:
+        async with db(True) as session:
             note = Note(point=point)
             session.add(note)
             await session.flush()
@@ -77,7 +77,7 @@ class NoteService:
         """Comment on a note."""
         user = auth_user(required=True)
         send_activity_email: cython.char = False
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = select(Note).where(Note.id == note_id, Note.visible_to(user)).with_for_update()
             note = await session.scalar(stmt)
             if note is None:
@@ -136,7 +136,7 @@ class NoteService:
     async def delete_notes_without_comments() -> None:
         """Find all notes without comments and delete them."""
         logging.info('Deleting notes without comments')
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = delete(Note).where(~exists().where(Note.id == NoteComment.note_id))
             result = await session.execute(stmt)
             if result.rowcount:

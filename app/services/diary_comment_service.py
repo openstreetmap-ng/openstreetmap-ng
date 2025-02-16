@@ -4,7 +4,7 @@ from asyncio import TaskGroup
 import cython
 from sqlalchemy import delete
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.translation import t, translation_context
 from app.models.db.diary_comment import DiaryComment
@@ -21,7 +21,7 @@ class DiaryCommentService:
     async def comment(diary_id: int, body: str) -> None:
         """Create a new diary comment."""
         user = auth_user(required=True)
-        async with db_commit() as session:
+        async with db(True) as session:
             comment = DiaryComment(
                 user_id=user.id,
                 diary_id=diary_id,
@@ -37,7 +37,7 @@ class DiaryCommentService:
     @staticmethod
     async def delete(comment_id: int, *, current_user_id: int | None) -> None:
         """Delete a diary comment."""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = delete(DiaryComment)
             where_and = [DiaryComment.id == comment_id]
             if current_user_id is not None:

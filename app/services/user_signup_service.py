@@ -1,6 +1,6 @@
 from pydantic import SecretStr
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_context
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
@@ -42,7 +42,7 @@ class UserSignupService:
             raise AssertionError('Provided password schemas cannot be used during signup')
 
         # TODO: purge stale pending terms accounts
-        async with db_commit() as session:
+        async with db(True) as session:
             user = User(
                 email=email,
                 display_name=display_name,

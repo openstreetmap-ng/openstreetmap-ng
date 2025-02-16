@@ -11,6 +11,7 @@ dependencies = [
   "brotli",
   "cython",
   "dnspython",
+  "duckdb>=1.2.0",
   "email-validator",
   "fastapi>=0",
   "feedgen",

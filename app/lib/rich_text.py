@@ -19,7 +19,7 @@ from markdown_it.utils import EnvType, OptionsDict
 from sqlalchemy import update
 
 from app.config import TRUSTED_HOSTS
-from app.db import db_commit
+from app.db import db
 from app.limits import RICH_TEXT_CACHE_EXPIRE
 from app.services.cache_service import CacheContext, CacheEntry, CacheService
 
@@ -120,7 +120,7 @@ async def _resolve_rich_text_task(self, field_name: str, text_format: TextFormat
     # assign new hash if changed
     if text_rich_hash != cache_entry_id:
         updated_at = getattr(self, 'updated_at', None)
-        async with db_commit() as session:
+        async with db(True) as session:
             cls = type(self)
             stmt = (
                 update(cls)

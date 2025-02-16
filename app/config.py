@@ -67,9 +67,10 @@ REPLICATION_DIR = _path(getenv('REPLICATION_DIR', 'data/replication'), mkdir=Tru
 
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
 POSTGRES_LOG = getenv('POSTGRES_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
-POSTGRES_URL = 'postgresql+asyncpg://' + getenv(
-    'POSTGRES_URL', f'postgres@/postgres?host={_path("data/postgres_unix")}&port=49560'
-)
+# https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS
+POSTGRES_URL = getenv('POSTGRES_URL', f'postgresql://postgres@/postgres?host={_path("data/postgres_unix")}&port=49560')
+
+DUCKDB_MEMORY_LIMIT = getenv('DUCKDB_MEMORY_LIMIT', '8GB')
 
 VALKEY_URL = getenv('VALKEY_URL', f'unix://{_path("data/valkey.sock")}?protocol=3')
 
@@ -132,6 +133,8 @@ SECRET_32 = sha256(SECRET.encode()).digest()
 
 SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None
 SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
+
+POSTGRES_SQLALCHEMY_URL = POSTGRES_URL.replace('postgresql://', 'postgresql+asyncpg://', 1)
 
 # Logging configuration
 dictConfig(

@@ -3,7 +3,7 @@ import logging
 from shapely import Point
 from sqlalchemy import delete, select
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.models.db.diary import Diary
 from app.models.db.user_subscription import UserSubscriptionTarget
@@ -26,7 +26,7 @@ class DiaryService:
         Returns the diary id.
         """
         user_id = auth_user(required=True).id
-        async with db_commit() as session:
+        async with db(True) as session:
             diary = Diary(
                 user_id=user_id,
                 title=title,
@@ -50,7 +50,7 @@ class DiaryService:
         point: Point | None,
     ) -> None:
         """Update a diary entry."""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 select(Diary)
                 .where(
@@ -75,7 +75,7 @@ class DiaryService:
     @staticmethod
     async def delete(diary_id: int) -> None:
         """Delete a diary entry."""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = delete(Diary).where(
                 Diary.id == diary_id,
                 Diary.user_id == auth_user(required=True).id,

@@ -41,7 +41,7 @@ _FREQUENCY_MERGE_EVERY: dict[_Frequency, int] = {
     'day': 7,
 }
 
-_PARQUET_SCHEMA: SchemaDict = {
+PARQUET_SCHEMA: SchemaDict = {
     'sequence_id': pl.UInt64,
     'changeset_id': pl.UInt64,
     'type': pl.Enum(('node', 'way', 'relation')),
@@ -228,7 +228,7 @@ def _parse_actions(
     start_sequence_id = last_sequence_id + 1
     last_sequence_id += len(data)
     sequence_ids = np.arange(start_sequence_id, last_sequence_id + 1, dtype=np.uint64)
-    schema = dict(_PARQUET_SCHEMA)
+    schema = dict(PARQUET_SCHEMA)
     del schema['sequence_id']
     df = (
         pl.LazyFrame(data, schema, orient='row')
@@ -254,7 +254,7 @@ def _bundle_data_if_needed(state: AppState):
     paths = sorted(REPLICATION_DIR.glob('replica_*.parquet'))
     num_paths_str = click.style(f'{len(paths)} replica files', fg='green')
     click.echo(f'Bundling {num_paths_str}')
-    pl.read_parquet(paths, schema=_PARQUET_SCHEMA).write_parquet(
+    pl.read_parquet(paths, schema=PARQUET_SCHEMA).write_parquet(
         state.last_replica.bundle_path,
         compression_level=9,
         statistics=False,

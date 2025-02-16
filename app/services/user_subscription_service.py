@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.models.db.user_subscription import UserSubscription, UserSubscriptionTarget
 
@@ -13,7 +13,7 @@ class UserSubscriptionService:
     async def subscribe(target: UserSubscriptionTarget, target_id: int) -> None:
         """Subscribe the user to the target."""
         user_id = auth_user(required=True).id
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 insert(UserSubscription)
                 .values(
@@ -35,7 +35,7 @@ class UserSubscriptionService:
     async def unsubscribe(target: UserSubscriptionTarget, target_id: int) -> None:
         """Unsubscribe the user from the target."""
         user_id = auth_user(required=True).id
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = delete(UserSubscription).where(
                 UserSubscription.user_id == user_id,
                 UserSubscription.target == target,

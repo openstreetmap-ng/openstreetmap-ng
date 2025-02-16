@@ -3,7 +3,7 @@ from urllib.parse import urlsplit
 from sqlalchemy import delete, update
 
 from app.config import APP_URL
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
@@ -40,7 +40,7 @@ class UserTokenAccountConfirmService:
         if token is None:
             raise_for.bad_user_token_struct()
 
-        async with db_commit() as session:
+        async with db(True) as session:
             # prevent race conditions
             await session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
             if (
@@ -64,7 +64,7 @@ async def _create_token() -> UserTokenStruct:
     user_email_hashed = hash_bytes(user.email)
     token_bytes = buffered_randbytes(32)
     token_hashed = hash_bytes(token_bytes)
-    async with db_commit() as session:
+    async with db(True) as session:
         token = UserTokenAccountConfirm(
             user_id=user.id,
             user_email_hashed=user_email_hashed,

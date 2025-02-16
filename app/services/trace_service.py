@@ -5,7 +5,7 @@ import numpy as np
 from fastapi import UploadFile
 from shapely import lib
 
-from app.db import db_commit
+from app.db import db
 from app.format.gpx import FormatGPX
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
@@ -68,7 +68,7 @@ class TraceService:
         trace.file_id = await TRACES_STORAGE.save(compressed_file, compressed_suffix)
 
         try:
-            async with db_commit() as session:
+            async with db(True) as session:
                 session.add(trace)
                 await session.flush()
 
@@ -94,7 +94,7 @@ class TraceService:
         visibility: TraceVisibility,
     ) -> None:
         """Update a trace."""
-        async with db_commit() as session:
+        async with db(True) as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
             if trace is None:
@@ -110,7 +110,7 @@ class TraceService:
     @staticmethod
     async def delete(trace_id: int) -> None:
         """Delete a trace."""
-        async with db_commit() as session:
+        async with db(True) as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
             if trace is None:

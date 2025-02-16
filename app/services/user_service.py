@@ -5,7 +5,7 @@ from pydantic import SecretStr
 from sqlalchemy import delete, func, update
 
 from app.config import FREEZE_TEST_USER
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.image import AvatarType
@@ -80,7 +80,7 @@ class UserService:
         current_user = auth_user(required=True)
         if current_user.description == description:
             return
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(User)
                 .where(User.id == current_user.id)
@@ -105,7 +105,7 @@ class UserService:
         avatar_id = await ImageService.upload_avatar(data) if data and avatar_type == AvatarType.custom else None
 
         # update user data
-        async with db_commit() as session:
+        async with db(True) as session:
             user = await session.get_one(User, auth_user(required=True).id, with_for_update=True)
             old_avatar_id = user.avatar_id
             user.avatar_type = avatar_type
@@ -128,7 +128,7 @@ class UserService:
         background_id = await ImageService.upload_background(data) if data else None
 
         # update user data
-        async with db_commit() as session:
+        async with db(True) as session:
             user = await session.get_one(User, auth_user(required=True).id, with_for_update=True)
             old_background_id = user.background_id
             user.background_id = background_id
@@ -156,7 +156,7 @@ class UserService:
         if user.is_test_user and FREEZE_TEST_USER and display_name != user.display_name:
             StandardFeedback.raise_error('display_name', 'Changing test user display_name is disabled')
 
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(User)
                 .where(User.id == user.id)
@@ -177,7 +177,7 @@ class UserService:
         editor: Editor | None,
     ) -> None:
         """Update default editor"""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(User)
                 .where(User.id == auth_user(required=True).id)
@@ -249,7 +249,7 @@ class UserService:
         if new_password_pb is None:
             raise AssertionError('Provided password schemas cannot be used during update_password')
 
-        async with db_commit() as session:
+        async with db(True) as session:
             await session.execute(
                 update(User)
                 .where(User.id == user.id)
@@ -284,7 +284,7 @@ class UserService:
         if revoke_other_sessions:
             await OAuth2TokenService.revoke_by_client_id('SystemApp.web', user_id=user_token.user_id)
 
-        async with db_commit() as session:
+        async with db(True) as session:
             # prevent race conditions
             await session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
             if (
@@ -311,7 +311,7 @@ class UserService:
     async def update_timezone(timezone: str) -> None:
         """Update the user timezone."""
         user_id = auth_user(required=True).id
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(User)
                 .where(User.id == user_id, User.timezone != timezone)
@@ -330,7 +330,7 @@ class UserService:
     @staticmethod
     async def request_scheduled_delete() -> None:
         """Request a scheduled deletion of the user."""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(User)
                 .where(User.id == auth_user(required=True).id)
@@ -346,7 +346,7 @@ class UserService:
     @staticmethod
     async def abort_scheduled_delete() -> None:
         """Abort a scheduled deletion of the user."""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(User)
                 .where(User.id == auth_user(required=True).id)
@@ -362,7 +362,7 @@ class UserService:
     async def delete_old_pending_users():
         """Find old pending users and delete them."""
         logging.debug('Deleting old pending users')
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = delete(User).where(
                 User.status == UserStatus.pending_activation,
                 User.created_at < func.statement_timestamp() - USER_PENDING_EXPIRE,
@@ -375,7 +375,7 @@ async def _rehash_user_password(user: User, password: PasswordType) -> None:
     if new_password_pb is None:
         return
 
-    async with db_commit() as session:
+    async with db(True) as session:
         stmt = (
             update(User)
             .where(User.id == user.id, User.password_pb == user.password_pb)

@@ -8,7 +8,7 @@ from sqlalchemy import and_, null, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, aliased
 
-from app.db import db_commit
+from app.db import db
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.date_utils import utcnow
 from app.models.db.changeset import Changeset
@@ -40,7 +40,7 @@ class OptimisticDiffApply:
         if not prepare.apply_elements:
             return {}
 
-        async with db_commit() as session, TaskGroup() as tg:
+        async with db(True) as session, TaskGroup() as tg:
             # obtain exclusive lock on the tables
             await session.execute(_lock_tables_sql)
 

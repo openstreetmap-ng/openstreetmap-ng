@@ -2,7 +2,7 @@ import logging
 
 from sqlalchemy import delete
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.models.auth_provider import AuthProvider
 from app.models.db.connected_account import ConnectedAccount
@@ -17,7 +17,7 @@ class ConnectedAccountService:
         Returns the new connection id.
         """
         user_id = auth_user(required=True).id
-        async with db_commit() as session:
+        async with db(True) as session:
             connection = ConnectedAccount(
                 provider=provider,
                 uid=uid,
@@ -31,7 +31,7 @@ class ConnectedAccountService:
     async def remove_connection(provider: AuthProvider) -> None:
         """Remove an external account connection from the current user."""
         user_id = auth_user(required=True).id
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = delete(ConnectedAccount).where(
                 ConnectedAccount.provider == provider,
                 ConnectedAccount.user_id == user_id,

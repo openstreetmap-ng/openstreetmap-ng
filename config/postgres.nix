@@ -26,7 +26,9 @@ pkgs.writeText "postgres.conf" (''
   # we only perform relatively small queries and rely heavily on indexes
   max_parallel_workers_per_gather = 0
 
-  # allow maintenance to use all workers
+  # use one worker per CPU thread
+  max_worker_processes = ${toString postgresCpuThreads}
+  max_parallel_workers = ${toString postgresCpuThreads}
   max_parallel_maintenance_workers = ${toString postgresCpuThreads}
 
   # increase statistics target

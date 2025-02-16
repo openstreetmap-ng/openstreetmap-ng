@@ -1,9 +1,5 @@
 import asyncio
-import subprocess
 from asyncio import TaskGroup
-from functools import cache
-from pathlib import Path
-from subprocess import Popen
 
 from sqlalchemy import Index, quoted_name, select, text
 from sqlalchemy.orm import DeclarativeBase
@@ -14,35 +10,21 @@ from app.models.db import *  # noqa: F403
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
-from app.models.db.note import Note
-from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
 from app.services.migration_service import MigrationService
 
 
-@cache
-def get_csv_path(name: str) -> Path:
-    p = PRELOAD_DIR.joinpath(f'{name}.csv.zst')
-    if not p.is_file():
-        raise FileNotFoundError(f'File not found: {p}')
-    return p
-
-
-@cache
-def get_csv_header(path: Path) -> str:
-    with Popen(  # noqa: S603
-        (
-            'zstd',
-            '-d',
-            '--stdout',
-            str(path),
-        ),
-        stdout=subprocess.PIPE,
-    ) as proc:
-        assert proc.stdout is not None
-        line = proc.stdout.readline().decode().strip()
-        proc.kill()
-    return line
+def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
+    output = PRELOAD_DIR.joinpath(table)
+    copy_paths = [
+        p.as_posix()
+        for p in sorted(
+            output.glob('*.csv.zst'),
+            key=lambda p: int(p.with_suffix('').stem.split('_', 1)[1]),
+        )
+    ]
+    header = output.joinpath('header.csv').read_text()
+    return copy_paths, header
 
 
 async def _load_table(table: type[DeclarativeBase]) -> None:
@@ -64,16 +46,15 @@ async def _load_table(table: type[DeclarativeBase]) -> None:
             await session.execute(text(f'DROP INDEX {index_name}'))
 
         table_name = table.__tablename__
-        path = get_csv_path(table_name)
-        header = get_csv_header(path)
+        copy_paths, header = _get_copy_paths_and_header(table_name)
         columns = tuple(f'"{c}"' for c in header.split(','))
 
         print(f'Populating {table_name} table ({len(columns)} columns)...')
         await session.execute(
             text(
                 f'COPY "{table_name}" ({",".join(columns)}) '
-                f'FROM PROGRAM \'zstd -d --stdout "{path.absolute()}"\' '
-                f'(FORMAT CSV, FREEZE, HEADER TRUE)'
+                f"FROM PROGRAM 'zstd -d --stdout {' '.join(f'"{p}"' for p in copy_paths)}' "
+                f'(FORMAT CSV, FREEZE, HEADER FALSE)'
             ),
         )
 
@@ -90,7 +71,7 @@ async def _load_table(table: type[DeclarativeBase]) -> None:
 
 async def load_tables() -> None:
     async with TaskGroup() as tg:
-        for table in (User, Changeset, Element, ElementMember, Note, NoteComment):
+        for table in (User, Changeset, Element, ElementMember):
             tg.create_task(_load_table(table))
 
 

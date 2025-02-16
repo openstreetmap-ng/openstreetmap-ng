@@ -399,16 +399,7 @@ let
 
     # -- Preload
     (makeScript "preload-clean" "rm -rf data/preload/")
-    (makeScript "preload-convert" ''
-      python scripts/preload_convert.py
-      for file in data/preload/*.csv; do
-        zstd \
-          --rm \
-          --force -19 \
-          --threads "$(( $(nproc) * 2 ))" \
-          "$file"
-      done
-    '')
+    (makeScript "preload-convert" "python scripts/preload_convert.py")
     (makeScript "preload-upload" ''
       read -rp "Preload dataset name: " dataset
       if [ "$dataset" != "poland" ] && [ "$dataset" != "mazowieckie" ]; then

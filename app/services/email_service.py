@@ -20,7 +20,7 @@ from app.config import (
     SMTP_USER,
     TEST_ENV,
 )
-from app.db import db, db_commit
+from app.db import db
 from app.lib.auth_context import auth_context
 from app.lib.date_utils import utcnow
 from app.lib.render_jinja import render_jinja
@@ -84,7 +84,7 @@ class EmailService:
         with auth_context(to_user, ()), translation_context(to_user.language):
             body = render_jinja(template_name, template_data)
 
-        async with db_commit() as session:
+        async with db(True) as session:
             mail = Mail(
                 source=source,
                 from_user_id=from_user.id if (from_user is not None) else None,

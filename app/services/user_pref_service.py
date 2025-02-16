@@ -4,7 +4,7 @@ from collections.abc import Collection
 from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.limits import USER_PREF_BULK_SET_LIMIT
@@ -20,7 +20,7 @@ class UserPrefService:
     @staticmethod
     async def upsert_one(pref: UserPref) -> None:
         """Set a user preference."""
-        async with db_commit() as session:
+        async with db(True) as session:
             logging.debug('Setting user pref %r for app %r', pref.key, pref.app_id)
             stmt = (
                 insert(UserPref)
@@ -46,7 +46,7 @@ class UserPrefService:
         if len(prefs) > USER_PREF_BULK_SET_LIMIT:
             raise_for.pref_bulk_set_limit_exceeded()
 
-        async with db_commit() as session:
+        async with db(True) as session:
             for pref in prefs:
                 logging.debug('Setting user pref %r for app %r', pref.key, pref.app_id)
 
@@ -74,7 +74,7 @@ class UserPrefService:
     @staticmethod
     async def delete_by_app_key(app_id: int | None, key: str) -> None:
         """Delete a user preference by app id and key."""
-        async with db_commit() as session:
+        async with db(True) as session:
             logging.debug('Deleting user pref %r for app %r', key, app_id)
             stmt = delete(UserPref).where(
                 UserPref.user_id == auth_user(required=True).id,
@@ -86,7 +86,7 @@ class UserPrefService:
     @staticmethod
     async def delete_by_app(app_id: int | None) -> None:
         """Delete all user preferences by app id."""
-        async with db_commit() as session:
+        async with db(True) as session:
             logging.debug('Deleting user prefs for app %r', app_id)
             stmt = delete(UserPref).where(
                 UserPref.user_id == auth_user(required=True).id,

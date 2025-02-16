@@ -2,14 +2,14 @@ import pytest
 from shapely import Point
 from sqlalchemy import select
 
-from app.db import db, db_commit
+from app.db import db
 from app.models.db.note import Note
 from app.services.note_service import NoteService
 
 
 @pytest.mark.extended
 async def test_delete_note_without_comments():
-    async with db_commit() as session:
+    async with db(True) as session:
         note = Note(point=Point(0, 0))
         session.add(note)
 

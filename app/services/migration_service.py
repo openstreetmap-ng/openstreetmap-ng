@@ -1,6 +1,6 @@
 from sqlalchemy import func, select
 
-from app.db import db_commit
+from app.db import db
 from app.models.db import *  # noqa: F403
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
@@ -13,7 +13,7 @@ class MigrationService:
     @staticmethod
     async def fix_sequence_counters() -> None:
         """Fix the sequence counters"""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = select(func.setval('user_id_seq', func.max(User.id)))
             await session.execute(stmt)
             stmt = select(func.setval('changeset_id_seq', func.max(Changeset.id)))

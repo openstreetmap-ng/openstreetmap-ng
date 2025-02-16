@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from sqlalchemy import select
 
-from app.db import db, db_commit
+from app.db import db
 from app.lib.date_utils import utcnow
 from app.limits import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT
 from app.models.db.changeset import Changeset
@@ -10,7 +10,7 @@ from app.services.changeset_service import ChangesetService
 
 
 async def test_changeset_inactive_close():
-    async with db_commit() as session:
+    async with db(True) as session:
         changeset = Changeset(
             user_id=None,
             tags={},
@@ -34,7 +34,7 @@ async def test_changeset_inactive_close():
 
 
 async def test_changeset_inactive_open():
-    async with db_commit() as session:
+    async with db(True) as session:
         changeset = Changeset(
             user_id=None,
             tags={},
@@ -58,7 +58,7 @@ async def test_changeset_inactive_open():
 
 
 async def test_changeset_open_timeout_close():
-    async with db_commit() as session:
+    async with db(True) as session:
         changeset = Changeset(
             user_id=None,
             tags={},
@@ -83,7 +83,7 @@ async def test_changeset_open_timeout_close():
 
 
 async def test_changeset_open_timeout_open():
-    async with db_commit() as session:
+    async with db(True) as session:
         changeset = Changeset(
             user_id=None,
             tags={},
@@ -108,7 +108,7 @@ async def test_changeset_open_timeout_open():
 
 
 async def test_changeset_delete_empty():
-    async with db_commit() as session:
+    async with db(True) as session:
         changeset = Changeset(
             user_id=None,
             tags={},
@@ -135,7 +135,7 @@ async def test_changeset_delete_empty():
 
 
 async def test_changeset_dont_delete_empty_recent():
-    async with db_commit() as session:
+    async with db(True) as session:
         changeset = Changeset(
             user_id=None,
             tags={},

@@ -5,6 +5,7 @@ from collections.abc import Callable
 from datetime import datetime
 from multiprocessing import Pool
 from pathlib import Path
+from subprocess import run
 from typing import Any
 
 import cython
@@ -41,13 +42,21 @@ gc.disable()
 
 
 @cython.cfunc
-def get_csv_path(name: str):
+def _get_csv_path(name: str):
     return PRELOAD_DIR.joinpath(f'{name}.csv')
 
 
 @cython.cfunc
-def get_worker_path(base: Path, i: int):
+def _get_worker_path(base: Path, i: int):
     return base.with_suffix(f'{base.suffix}.{i}')
+
+
+@cython.cfunc
+def _compress_csv(path: Path) -> None:
+    run(  # noqa: S603
+        ('zstd', '--rm', '--force', '-19', '-T0', path),
+        check=True,
+    )
 
 
 def planet_worker(
@@ -150,7 +159,7 @@ def planet_worker(
         )
 
     pl.DataFrame(data, schema, orient='row').write_parquet(
-        get_worker_path(PLANET_PARQUET_PATH, i), compression='lz4', statistics=False
+        _get_worker_path(PLANET_PARQUET_PATH, i), compression='lz4', statistics=False
     )
     gc.collect()
 
@@ -189,7 +198,7 @@ def run_planet_workers() -> None:
 def merge_planet_worker_results() -> None:
     input_size = PLANET_INPUT_PATH.stat().st_size
     num_tasks = input_size // WORKER_MEMORY_LIMIT
-    paths = [get_worker_path(PLANET_PARQUET_PATH, i) for i in range(num_tasks)]
+    paths = [_get_worker_path(PLANET_PARQUET_PATH, i) for i in range(num_tasks)]
     created_at_all: list[int] = []
 
     for path in tqdm(paths, desc='Assigning sequence IDs (step 1/2)'):
@@ -325,7 +334,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
         )
 
     pl.DataFrame(data, schema, orient='row').write_parquet(
-        get_worker_path(NOTES_PARQUET_PATH, i), compression='lz4', statistics=False
+        _get_worker_path(NOTES_PARQUET_PATH, i), compression='lz4', statistics=False
     )
     gc.collect()
 
@@ -364,7 +373,7 @@ def run_notes_workers() -> None:
 def merge_notes_worker_results() -> None:
     input_size = NOTES_INPUT_PATH.stat().st_size
     num_tasks = input_size // WORKER_MEMORY_LIMIT
-    paths = [get_worker_path(NOTES_PARQUET_PATH, i) for i in range(num_tasks)]
+    paths = [_get_worker_path(NOTES_PARQUET_PATH, i) for i in range(num_tasks)]
 
     print(f'Merging {len(paths)} worker files')
     pl.scan_parquet(paths).sink_parquet(
@@ -379,6 +388,7 @@ def merge_notes_worker_results() -> None:
 
 
 def write_changeset_csv() -> None:
+    path = _get_csv_path('changeset')
     (
         pl.scan_parquet(PLANET_PARQUET_PATH)
         .select_seq('changeset_id', 'created_at', 'user_id')
@@ -390,11 +400,13 @@ def write_changeset_csv() -> None:
             size=pl.len(),
         )
         .with_columns_seq(tags=pl.lit('{}'))
-        .sink_csv(get_csv_path('changeset'))
+        .sink_csv(path)
     )
+    _compress_csv(path)
 
 
 def write_element_csv() -> None:
+    path = _get_csv_path('element')
     (
         pl.scan_parquet(PLANET_PARQUET_PATH)
         .select_seq(
@@ -409,22 +421,26 @@ def write_element_csv() -> None:
             'created_at',
             'next_sequence_id',
         )
-        .sink_csv(get_csv_path('element'))
+        .sink_csv(path)
     )
+    _compress_csv(path)
 
 
 def write_element_member_csv() -> None:
+    path = _get_csv_path('element_member')
     (
         pl.scan_parquet(PLANET_PARQUET_PATH)
         .select_seq('sequence_id', 'members')
         .filter(pl.col('members').list.len() > 0)
         .explode('members')
         .unnest('members')
-        .sink_csv(get_csv_path('element_member'))
+        .sink_csv(path)
     )
+    _compress_csv(path)
 
 
 def write_note_csv() -> None:
+    path = _get_csv_path('note')
     (
         pl.scan_parquet(NOTES_PARQUET_PATH)
         .select_seq(
@@ -435,11 +451,13 @@ def write_note_csv() -> None:
             'closed_at',
             'hidden_at',
         )
-        .sink_csv(get_csv_path('note'))
+        .sink_csv(path)
     )
+    _compress_csv(path)
 
 
 def write_note_comment_csv() -> None:
+    path = _get_csv_path('note_comment')
     (
         pl.scan_parquet(NOTES_PARQUET_PATH)
         .select_seq('id', 'comments')
@@ -448,11 +466,13 @@ def write_note_comment_csv() -> None:
         .explode('comments')
         .unnest('comments')
         .drop('display_name')
-        .sink_csv(get_csv_path('note_comment'))
+        .sink_csv(path)
     )
+    _compress_csv(path)
 
 
 def write_user_csv() -> None:
+    path = _get_csv_path('user')
     planet_lf = pl.scan_parquet(PLANET_PARQUET_PATH).select_seq('user_id', 'display_name')  #
     notes_lf = (
         pl.scan_parquet(NOTES_PARQUET_PATH)
@@ -475,8 +495,9 @@ def write_user_csv() -> None:
             activity_tracking=pl.lit(True),
             crash_reporting=pl.lit(True),
         )
-        .sink_csv(get_csv_path('user'))
+        .sink_csv(path)
     )
+    _compress_csv(path)
 
 
 async def main() -> None:
@@ -485,9 +506,9 @@ async def main() -> None:
     run_notes_workers()
     merge_notes_worker_results()
 
-    print('Writing changeset CSV..')
+    print('Writing changeset CSV')
     write_changeset_csv()
-    print('Writing element CSV..')
+    print('Writing element CSV')
     write_element_csv()
     print('Writing element member CSV')
     write_element_member_csv()

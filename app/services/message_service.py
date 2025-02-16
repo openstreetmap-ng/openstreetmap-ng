@@ -3,7 +3,7 @@ from asyncio import TaskGroup
 
 from sqlalchemy import and_, false, or_, select, update
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t, translation_context
@@ -28,7 +28,7 @@ class MessageService:
         if recipient == from_user.id:
             StandardFeedback.raise_error('recipient', t('validation.cant_send_message_to_self'))
 
-        async with db_commit() as session:
+        async with db(True) as session:
             message = Message(
                 from_user_id=from_user.id,
                 to_user_id=recipient,
@@ -51,7 +51,7 @@ class MessageService:
     @staticmethod
     async def set_state(message_id: int, *, is_read: bool) -> None:
         """Mark a message as read or unread."""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(Message)
                 .where(
@@ -68,7 +68,7 @@ class MessageService:
     async def delete_message(message_id: int) -> None:
         """Delete a message."""
         user_id = auth_user(required=True).id
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 select(Message)
                 .where(

@@ -7,7 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
 
 from app.config import NAME
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
@@ -86,7 +86,7 @@ class SystemAppService:
         access_token = buffered_rand_urlsafe(32)
         access_token_hashed = hash_bytes(access_token)
         access_token = SecretStr(access_token)
-        async with db_commit() as session:
+        async with db(True) as session:
             token = OAuth2Token(
                 user_id=user_id,
                 application_id=app_id,
@@ -106,7 +106,7 @@ class SystemAppService:
 async def _register_app(app: SystemApp) -> None:
     """Register a system app."""
     logging.info('Registering system app %r', app.name)
-    async with db_commit() as session:
+    async with db(True) as session:
         stmt = (
             insert(OAuth2Application)
             .values(

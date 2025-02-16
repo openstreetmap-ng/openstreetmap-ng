@@ -5,7 +5,7 @@ from pydantic import SecretStr
 from sqlalchemy import delete, func, null, select, update
 from sqlalchemy.orm import joinedload
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes, hash_compare, hash_s256_code_challenge
@@ -98,7 +98,7 @@ class OAuth2TokenService:
         authorization_code = buffered_rand_urlsafe(32)
         authorization_code_hashed = hash_bytes(authorization_code)
 
-        async with db_commit() as session:
+        async with db(True) as session:
             token = OAuth2Token(
                 user_id=user_id,
                 application_id=app.id,
@@ -143,7 +143,7 @@ class OAuth2TokenService:
             raise_for.oauth_bad_client_secret()
 
         authorization_code_hashed = hash_bytes(authorization_code)
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 select(OAuth2Token)
                 .where(
@@ -207,7 +207,7 @@ class OAuth2TokenService:
         Returns the token id.
         """
         app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']
-        async with db_commit() as session:
+        async with db(True) as session:
             token = OAuth2Token(
                 user_id=auth_user(required=True).id,
                 application_id=app_id,
@@ -227,7 +227,7 @@ class OAuth2TokenService:
         app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']
         access_token = buffered_rand_urlsafe(32)
         access_token_hashed = hash_bytes(access_token)
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(OAuth2Token)
                 .where(
@@ -250,7 +250,7 @@ class OAuth2TokenService:
     @staticmethod
     async def revoke_by_id(token_id: int) -> None:
         """Revoke the given token by id."""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = delete(OAuth2Token).where(
                 OAuth2Token.user_id == auth_user(required=True).id,
                 OAuth2Token.id == token_id,
@@ -262,7 +262,7 @@ class OAuth2TokenService:
     async def revoke_by_access_token(access_token: SecretStr) -> None:
         """Revoke the given access token."""
         access_token_hashed = hash_bytes(access_token.get_secret_value())
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = delete(OAuth2Token).where(OAuth2Token.token_hashed == access_token_hashed)
             await session.execute(stmt)
         logging.debug('Revoked OAuth2 access token')
@@ -279,7 +279,7 @@ class OAuth2TokenService:
             user_id = auth_user(required=True).id
         if skip_ids is None:
             skip_ids = ()
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = delete(OAuth2Token).where(
                 OAuth2Token.user_id == user_id,
                 OAuth2Token.application_id == app_id,

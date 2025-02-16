@@ -10,7 +10,7 @@ from sqlalchemy import and_, delete, func, null, or_, select, text, update
 from sqlalchemy.orm import load_only
 
 from app.config import SENTRY_CHANGESET_MANAGEMENT_MONITOR, TEST_ENV
-from app.db import db, db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
@@ -30,7 +30,7 @@ class ChangesetService:
     async def create(tags: dict[str, str]) -> int:
         """Create a new changeset and return its id."""
         user_id = auth_user(required=True).id
-        async with db_commit() as session:
+        async with db(True) as session:
             changeset = Changeset(user_id=user_id, tags=tags)
             session.add(changeset)
         changeset_id = changeset.id
@@ -42,7 +42,7 @@ class ChangesetService:
     async def update_tags(changeset_id: int, tags: dict[str, str]) -> None:
         """Update changeset tags."""
         user_id = auth_user(required=True).id
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 select(Changeset)
                 .options(load_only(Changeset.id, Changeset.user_id, Changeset.closed_at))
@@ -63,7 +63,7 @@ class ChangesetService:
     async def close(changeset_id: int) -> None:
         """Close a changeset."""
         user_id = auth_user(required=True).id
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 select(Changeset)
                 .options(load_only(Changeset.id, Changeset.user_id, Changeset.closed_at))
@@ -141,7 +141,7 @@ async def _process_task() -> None:
 
 async def _close_inactive() -> None:
     """Close all inactive changesets."""
-    async with db_commit() as session:
+    async with db(True) as session:
         now = utcnow()
         stmt = (
             update(Changeset)
@@ -166,7 +166,7 @@ async def _close_inactive() -> None:
 
 async def _delete_empty() -> None:
     """Delete empty changesets after a timeout."""
-    async with db_commit() as session:
+    async with db(True) as session:
         now = utcnow()
         stmt = delete(Changeset).where(
             Changeset.closed_at != null(),

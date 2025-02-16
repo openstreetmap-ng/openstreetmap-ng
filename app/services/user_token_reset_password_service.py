@@ -3,7 +3,7 @@ import time
 from collections import deque
 from statistics import median
 
-from app.db import db_commit
+from app.db import db
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.translation import t, translation_context
@@ -50,7 +50,7 @@ async def _create_token(user: User) -> UserTokenStruct:
     user_email_hashed = hash_bytes(user.email)
     token_bytes = buffered_randbytes(32)
     token_hashed = hash_bytes(token_bytes)
-    async with db_commit() as session:
+    async with db(True) as session:
         token = UserTokenResetPassword(
             user_id=user.id,
             user_email_hashed=user_email_hashed,

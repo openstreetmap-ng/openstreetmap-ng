@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import update
 
 from app.config import SMTP_MESSAGES_FROM_HOST
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_context, auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
@@ -41,7 +41,7 @@ class UserTokenEmailReplyService:
             if token is None:
                 raise_for.bad_user_token_struct()
 
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(UserTokenEmailReply)
                 .where(
@@ -69,7 +69,7 @@ async def _create_token(replying_user: User, mail_source: MailSource) -> UserTok
     user_email_hashed = hash_bytes(replying_user.email)
     token_bytes = buffered_randbytes(16)  # 128 bits
     token_hashed = hash_bytes(token_bytes)
-    async with db_commit() as session:
+    async with db(True) as session:
         token = UserTokenEmailReply(
             user_id=user_id,
             user_email_hashed=user_email_hashed,

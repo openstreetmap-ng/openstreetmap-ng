@@ -1,14 +1,18 @@
-from contextlib import asynccontextmanager
+import logging
+from contextlib import asynccontextmanager, contextmanager
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
+import duckdb
 import orjson
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from valkey.asyncio import ConnectionPool, Valkey
 
-from app.config import POSTGRES_URL, VALKEY_URL
+from app.config import DUCKDB_MEMORY_LIMIT, POSTGRES_SQLALCHEMY_URL, VALKEY_URL
 
 _DB_ENGINE = create_async_engine(
-    POSTGRES_URL,
+    POSTGRES_SQLALCHEMY_URL,
     query_cache_size=1024,
     pool_size=100,  # concurrent connections target
     max_overflow=-1,  # unlimited concurrent connections overflow
@@ -23,7 +27,7 @@ _VALKEY_POOL = ConnectionPool.from_url(VALKEY_URL)
 
 
 @asynccontextmanager
-async def db():
+async def db(write: bool = False):
     """Get a database session."""
     async with AsyncSession(
         _DB_ENGINE,
@@ -31,14 +35,8 @@ async def db():
         close_resets_only=False,  # prevent closed sessions from being reused
     ) as session:
         yield session
-
-
-@asynccontextmanager
-async def db_commit():
-    """Get a database session that commits on exit."""
-    async with db() as session:
-        yield session
-        await session.commit()
+        if write:
+            await session.commit()
 
 
 async def db_update_stats(*, vacuum: bool = False) -> None:
@@ -52,3 +50,21 @@ async def db_update_stats(*, vacuum: bool = False) -> None:
 async def valkey():
     async with Valkey(connection_pool=_VALKEY_POOL) as r:
         yield r
+
+
+@contextmanager
+def duckdb_connect(database: str | Path = ':memory:'):
+    with (
+        TemporaryDirectory(prefix='osm-ng-duckdb-') as tmpdir,
+        duckdb.connect(
+            database,
+            config={
+                'checkpoint_threshold': '2GB',
+                'memory_limit': DUCKDB_MEMORY_LIMIT,
+                'preserve_insertion_order': False,
+                'temp_directory': tmpdir,
+            },
+        ) as conn,
+    ):
+        logging.debug('DuckDB temp_directory: %s', tmpdir)
+        yield conn

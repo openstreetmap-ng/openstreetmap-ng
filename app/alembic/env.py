@@ -4,7 +4,7 @@ from alembic import context
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from app.config import POSTGRES_URL
+from app.config import POSTGRES_SQLALCHEMY_URL
 from app.models.db import *  # noqa: F403
 from app.models.db.base import Base
 
@@ -25,7 +25,7 @@ async def run_async_migrations() -> None:
     In this scenario we need to create an Engine
     and associate a connection with the context.
     """
-    connectable = create_async_engine(POSTGRES_URL)
+    connectable = create_async_engine(POSTGRES_SQLALCHEMY_URL)
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

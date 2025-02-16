@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import load_only
 
 from app.config import TEST_USER_EMAIL_SUFFIX
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_context
 from app.lib.crypto import hash_bytes
 from app.lib.locale import DEFAULT_LOCALE
@@ -75,7 +75,7 @@ class TestService:
         email = EmailType(f'{name}{TEST_USER_EMAIL_SUFFIX}')
         name_available = await UserQuery.check_display_name_available(name)
 
-        async with db_commit() as session:
+        async with db(True) as session:
             if name_available:
                 # create new user
                 user = User(
@@ -120,7 +120,7 @@ class TestService:
         is_confidential: bool,
     ) -> None:
         """Create a test OAuth2 application."""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = select(OAuth2Application).where(OAuth2Application.client_id == client_id).with_for_update()
             app = (await session.execute(stmt)).scalar_one_or_none()
             if app is None:

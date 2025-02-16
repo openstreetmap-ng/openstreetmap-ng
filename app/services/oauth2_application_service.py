@@ -5,7 +5,7 @@ from pydantic import SecretStr
 from rfc3986 import uri_reference
 from sqlalchemy import delete, func, select, text, update
 
-from app.db import db_commit
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
@@ -34,7 +34,7 @@ class OAuth2ApplicationService:
         user_id = auth_user(required=True).id
         client_id = buffered_rand_urlsafe(32)
 
-        async with db_commit() as session:
+        async with db(True) as session:
             app = OAuth2Application(
                 user_id=user_id,
                 name=name,
@@ -93,7 +93,7 @@ class OAuth2ApplicationService:
         revoke_all_authorizations: bool,
     ) -> None:
         """Update an OAuth2 application."""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(OAuth2Application)
                 .where(
@@ -129,7 +129,7 @@ class OAuth2ApplicationService:
         avatar_id = await ImageService.upload_avatar(data) if data else None
 
         # update app data
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 select(OAuth2Application)
                 .where(
@@ -156,7 +156,7 @@ class OAuth2ApplicationService:
         """Reset the client secret and return the new one."""
         client_secret = buffered_rand_urlsafe(32)
         client_secret_hashed = hash_bytes(client_secret)
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = (
                 update(OAuth2Application)
                 .where(
@@ -177,7 +177,7 @@ class OAuth2ApplicationService:
     @staticmethod
     async def delete(app_id: int) -> None:
         """Delete an OAuth2 application."""
-        async with db_commit() as session:
+        async with db(True) as session:
             stmt = delete(OAuth2Application).where(
                 OAuth2Application.id == app_id,
                 OAuth2Application.user_id == auth_user(required=True).id,
