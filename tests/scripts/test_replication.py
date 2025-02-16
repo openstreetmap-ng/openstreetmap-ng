@@ -1,7 +1,7 @@
 from inspect import unwrap
 from pathlib import Path
 
-import polars as pl
+import pyarrow.parquet as pq
 import pytest
 
 from scripts.replication import AppState, ReplicaState, _iterate
@@ -18,7 +18,8 @@ async def test_iterate():
     path: Path = state.last_replica.path
     assert path.is_file()
     try:
-        df = pl.read_parquet(path)
-        assert df.shape == (156829, 12)
+        metadata = pq.read_metadata(path)
+        assert metadata.num_columns == 12
+        assert metadata.num_rows == 156829
     finally:
         path.unlink(missing_ok=True)

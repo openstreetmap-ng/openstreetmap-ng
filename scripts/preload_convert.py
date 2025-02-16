@@ -52,8 +52,8 @@ def _get_worker_path(base: Path, i: int):
 
 
 @cython.cfunc
-def _compress_csv(path: Path) -> None:
-    run(  # noqa: S603
+def _compress_csv(path: Path):
+    run(
         ('zstd', '--rm', '--force', '-19', '-T0', path),
         check=True,
     )

@@ -16,8 +16,8 @@ def transform(source_path: Path, source_mtime: float, *, target_path_po: Path, t
     target_path_po.parent.mkdir(parents=True, exist_ok=True)
 
     # transform json to po
-    subprocess.run(  # noqa: S603
-        [  # noqa: S607
+    subprocess.run(
+        [
             'bunx',
             'i18next-conv',
             '--quiet',
@@ -45,8 +45,8 @@ def transform(source_path: Path, source_mtime: float, *, target_path_po: Path, t
         f.truncate()
 
     # compile po to mo
-    subprocess.run(  # noqa: S603
-        [  # noqa: S607
+    subprocess.run(
+        [
             'msgfmt',
             str(target_path_po),
             '--output-file',

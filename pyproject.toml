@@ -30,6 +30,7 @@ dependencies = [
   "phonenumbers",
   "polyline-rs>=1.0.0",
   "protobuf==5.29.3",
+  "pyarrow>=19.0.0",
   "pycryptodomex",
   "pydantic",
   "pyinstrument",
@@ -120,6 +121,7 @@ ignore = [
   "Q003", # avoidable-escaped-quote
   "S101", # assert
   "S105", # hardcoded-password-string
+  "S6",
   "SIM105", # suppressible-exception
   "SIM108", # if-else-block-instead-of-if-exp
   "TRY003", # raise-vanilla-args

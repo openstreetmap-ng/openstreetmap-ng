@@ -51,7 +51,7 @@ def _browserslist_versions() -> dict[str, float]:
     lock_mtime = lock_path.stat().st_mtime
     cache_path = FILE_CACHE_DIR / 'browserslist_versions.json'
     if not cache_path.is_file() or lock_mtime > cache_path.stat().st_mtime:
-        stdout = subprocess.check_output(('bunx', 'browserslist'), env={**os.environ, 'NO_COLOR': '1'}).decode()  # noqa: S603
+        stdout = subprocess.check_output(('bunx', 'browserslist'), env={**os.environ, 'NO_COLOR': '1'}).decode()
         result: defaultdict[str, float] = defaultdict(lambda: float('inf'))
         for line in stdout.splitlines():
             browser, _, version = line.partition(' ')

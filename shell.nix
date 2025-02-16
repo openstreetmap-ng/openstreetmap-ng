@@ -86,7 +86,8 @@ let
     bun
     biome
     # Services:
-    (postgresql_17_jit.withPackages (ps: [ ps.postgis ]))
+    (postgresql_17_jit.withPackages (ps: [ ps.postgis ps.timescaledb-apache ]))
+    timescaledb-parallel-copy
     valkey
     mailpit
 
@@ -98,7 +99,7 @@ let
       python -m alembic -c config/alembic.ini revision --autogenerate --message "$name"
     '')
     (makeScript "alembic-upgrade" ''
-      latest_version=5
+      latest_version=6
       current_version=$(cat data/alembic/version.txt 2>/dev/null || echo "")
       if [ -n "$current_version" ] && [ "$current_version" -ne "$latest_version" ]; then
         echo "NOTICE: Database migrations are not compatible"

@@ -10,7 +10,6 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.config import PRELOAD_DIR
 from app.db import db, db_update_stats
-from app.models.db import *  # noqa: F403
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
@@ -21,7 +20,7 @@ from app.services.migration_service import MigrationService
 
 
 @cache
-def get_csv_path(name: str) -> Path:
+def _get_csv_path(name: str) -> Path:
     p = PRELOAD_DIR.joinpath(f'{name}.csv.zst')
     if not p.is_file():
         raise FileNotFoundError(f'File not found: {p}')
@@ -29,23 +28,24 @@ def get_csv_path(name: str) -> Path:
 
 
 @cache
-def get_csv_header(path: Path) -> str:
-    with Popen(  # noqa: S603
-        (
-            'zstd',
-            '-d',
-            '--stdout',
-            str(path),
-        ),
+def _get_csv_header(path: Path) -> str:
+    with Popen(
+        ('zstd', '-d', '--stdout', str(path)),
         stdout=subprocess.PIPE,
     ) as proc:
         assert proc.stdout is not None
         line = proc.stdout.readline().decode().strip()
-        proc.kill()
+        proc.terminate()
     return line
 
 
-async def _load_table(table: type[DeclarativeBase]) -> None:
+async def _index_task(sql: str) -> None:
+    async with db(True) as session:
+        await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
+        await session.execute(text(sql))
+
+
+async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
     async with db(True) as session:
         # disable triggers
         await session.execute(text('SET session_replication_role TO replica'))
@@ -64,8 +64,8 @@ async def _load_table(table: type[DeclarativeBase]) -> None:
             await session.execute(text(f'DROP INDEX {index_name}'))
 
         table_name = table.__tablename__
-        path = get_csv_path(table_name)
-        header = get_csv_header(path)
+        path = _get_csv_path(table_name)
+        header = _get_csv_header(path)
         columns = tuple(f'"{c}"' for c in header.split(','))
 
         print(f'Populating {table_name} table ({len(columns)} columns)...')
@@ -77,21 +77,17 @@ async def _load_table(table: type[DeclarativeBase]) -> None:
             ),
         )
 
-    async def index_task(sql: str) -> None:
-        async with db() as session:
-            await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
-            await session.execute(text(sql))
+    for key, sql in index_sqls.items():
+        print(f'Recreating index {key!r}')
+        tg.create_task(_index_task(sql))
+
+
+async def _load_tables() -> None:
+    tables = (User, Changeset, Element, ElementMember, Note, NoteComment)
 
     async with TaskGroup() as tg:
-        for key, sql in index_sqls.items():
-            print(f'Recreating index {key!r}')
-            tg.create_task(index_task(sql))
-
-
-async def load_tables() -> None:
-    async with TaskGroup() as tg:
-        for table in (User, Changeset, Element, ElementMember, Note, NoteComment):
-            tg.create_task(_load_table(table))
+        for table in tables:
+            await _load_table(table, tg)
 
 
 async def main() -> None:
@@ -103,7 +99,7 @@ async def main() -> None:
             print('Aborted')
             return
 
-    await load_tables()
+    await _load_tables()
 
     print('Updating statistics')
     await db_update_stats()

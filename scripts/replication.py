@@ -2,24 +2,23 @@ import asyncio
 import gzip
 from asyncio import sleep
 from collections.abc import Callable
-from copy import replace
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
 import click
 import cython
-import numpy as np
 import orjson
-import polars as pl
-from polars._typing import SchemaDict
+import pyarrow as pa
+import pyarrow.parquet as pq
 from pydantic.dataclasses import dataclass
 from sentry_sdk import set_context, set_tag, start_transaction
 from shapely import Point
 from starlette import status
 
 from app.config import OSM_REPLICATION_URL, REPLICATION_DIR, SENTRY_REPLICATION_MONITOR
+from app.db import duckdb_connect
 from app.lib.compressible_geometry import compressible_geometry
 from app.lib.retry import retry
 from app.lib.xmltodict import XMLToDict
@@ -41,29 +40,34 @@ _FREQUENCY_MERGE_EVERY: dict[_Frequency, int] = {
     'day': 7,
 }
 
-PARQUET_SCHEMA: SchemaDict = {
-    'sequence_id': pl.UInt64,
-    'changeset_id': pl.UInt64,
-    'type': pl.Enum(('node', 'way', 'relation')),
-    'id': pl.UInt64,
-    'version': pl.UInt64,
-    'visible': pl.Boolean,
-    'tags': pl.String,
-    'point': pl.String,
-    'members': pl.List(
-        pl.Struct(
-            {
-                'order': pl.UInt16,
-                'type': pl.Enum(('node', 'way', 'relation')),
-                'id': pl.UInt64,
-                'role': pl.String,
-            }
-        )
-    ),
-    'created_at': pl.Datetime,
-    'user_id': pl.UInt64,
-    'display_name': pl.String,
-}
+_PARQUET_SCHEMA = pa.schema(
+    [
+        pa.field('sequence_id', pa.uint64()),
+        pa.field('changeset_id', pa.uint64()),
+        pa.field('type', pa.string()),
+        pa.field('id', pa.uint64()),
+        pa.field('version', pa.uint64()),
+        pa.field('visible', pa.bool_()),
+        pa.field('tags', pa.string()),
+        pa.field('point', pa.string()),
+        pa.field(
+            'members',
+            pa.list_(
+                pa.struct(
+                    [
+                        pa.field('order', pa.uint16()),
+                        pa.field('type', pa.string()),
+                        pa.field('id', pa.uint64()),
+                        pa.field('role', pa.string()),
+                    ]
+                )
+            ),
+        ),
+        pa.field('created_at', pa.date64()),
+        pa.field('user_id', pa.uint64()),
+        pa.field('display_name', pa.string()),
+    ]
+)
 
 _APP_STATE_PATH = REPLICATION_DIR / 'state.json'
 
@@ -131,7 +135,9 @@ async def _iterate(state: AppState) -> AppState:
         state = await _increase_frequency(state)
         new_frequency_str = click.style(f'{state.frequency}', fg='bright_cyan')
         click.echo(f'Increased replication frequency {old_frequency_str} -> {new_frequency_str}')
+
     url = _get_replication_url(state.frequency, next_replica.sequence_number)
+
     while True:
         r = await HTTP.get(url + '.state.txt')
         if state.frequency == 'minute' and r.status_code == status.HTTP_404_NOT_FOUND:
@@ -145,44 +151,63 @@ async def _iterate(state: AppState) -> AppState:
             continue
         r.raise_for_status()
         break
+
     actions = XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange']
+
     if isinstance(actions, dict):
         click.echo('Skipped empty osmChange')
         last_sequence_id = state.last_sequence_id
     else:
-        df, last_sequence_id = _parse_actions(actions, last_sequence_id=state.last_sequence_id)
-        df.write_parquet(remote_replica.path, compression='lz4', statistics=False)
+        with pq.ParquetWriter(
+            remote_replica.path,
+            schema=_PARQUET_SCHEMA,
+            compression='lz4',
+            write_statistics=False,
+        ) as writer:
+            last_sequence_id = _parse_actions(writer, actions, last_sequence_id=state.last_sequence_id)
+
     return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
 
 
 @cython.cfunc
 def _parse_actions(
+    writer: pq.ParquetWriter,
     actions: list[tuple[OSMChangeAction, list[tuple[ElementType, dict]]]],
     *,
     last_sequence_id: int,
     # HACK: faster lookup
     orjson_dumps: Callable[[Any], bytes] = orjson.dumps,
-) -> tuple[pl.DataFrame, int]:
-    data: list[tuple] = []
+) -> int:
+    data: list[dict] = []
+
+    def flush():
+        if data:
+            record_batch = pa.RecordBatch.from_pylist(data, schema=_PARQUET_SCHEMA)
+            data.clear()
+            writer.write_batch(record_batch, row_group_size=len(data))
+
     action: str
     for action, elements_ in actions:
         # skip osmChange attributes
         if action[0] == '@':
             continue
+
         elements: list[tuple[ElementType, dict]] = elements_
         element_type: str
         element: dict
+
         for element_type, element in elements:
             tags = {tag['@k']: tag['@v'] for tag in tags_} if (tags_ := element.get('tag')) is not None else None
             point: str | None = None
-            members: tuple[dict, ...]
+            members: list[dict]
+
             if element_type == 'node':
-                members = ()
+                members = []
                 if (lon := element.get('@lon')) is not None and (lat := element.get('@lat')) is not None:
                     point = compressible_geometry(Point(lon, lat)).wkb_hex
             elif element_type == 'way':
                 members = (
-                    tuple(
+                    [
                         {
                             'order': order,
                             'type': 'node',
@@ -190,13 +215,13 @@ def _parse_actions(
                             'role': '',
                         }
                         for order, member in enumerate(members_)
-                    )
+                    ]
                     if (members_ := element.get('nd')) is not None
-                    else ()
+                    else []
                 )
             elif element_type == 'relation':
                 members = (
-                    tuple(
+                    [
                         {
                             'order': order,
                             'type': member['@type'],
@@ -204,39 +229,36 @@ def _parse_actions(
                             'role': member['@role'],
                         }
                         for order, member in enumerate(members_)
-                    )
+                    ]
                     if (members_ := element.get('member')) is not None
-                    else ()
+                    else []
                 )
             else:
                 raise NotImplementedError(f'Unsupported element type {element_type!r}')
+
+            last_sequence_id += 1
             data.append(
-                (
-                    element['@changeset'],  # changeset_id
-                    element_type,  # type
-                    element['@id'],  # id
-                    element['@version'],  # version
-                    (tags is not None) or (point is not None) or bool(members),  # visible
-                    orjson_dumps(tags).decode() if (tags is not None) else '{}',  # tags
-                    point,  # point
-                    members,  # members
-                    element['@timestamp'],  # created_at
-                    element.get('@uid'),  # user_id
-                    element.get('@user'),  # display_name
-                )
+                {
+                    'sequence_id': last_sequence_id,
+                    'changeset_id': element['@changeset'],
+                    'type': element_type,
+                    'id': element['@id'],
+                    'version': element['@version'],
+                    'visible': (tags is not None) or (point is not None) or bool(members),
+                    'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
+                    'point': point,
+                    'members': members,
+                    'created_at': element['@timestamp'],
+                    'user_id': element.get('@uid'),
+                    'display_name': element.get('@user'),
+                }
             )
-    start_sequence_id = last_sequence_id + 1
-    last_sequence_id += len(data)
-    sequence_ids = np.arange(start_sequence_id, last_sequence_id + 1, dtype=np.uint64)
-    schema = dict(PARQUET_SCHEMA)
-    del schema['sequence_id']
-    df = (
-        pl.LazyFrame(data, schema, orient='row')
-        .sort('created_at', maintain_order=True)
-        .with_columns_seq(pl.Series('sequence_id', sequence_ids))
-        .collect()
-    )
-    return df, last_sequence_id
+
+        if len(data) >= 1024 * 1024:  # batch size
+            flush()
+
+    flush()
+    return last_sequence_id
 
 
 @cython.cfunc
@@ -251,15 +273,27 @@ def _clean_leftover_data(state: AppState):
 def _bundle_data_if_needed(state: AppState):
     if state.last_replica.sequence_number % _FREQUENCY_MERGE_EVERY[state.frequency]:
         return
-    paths = sorted(REPLICATION_DIR.glob('replica_*.parquet'))
-    num_paths_str = click.style(f'{len(paths)} replica files', fg='green')
+
+    input_paths = [
+        p.as_posix()
+        for p in sorted(
+            REPLICATION_DIR.glob('replica_*.parquet'),
+            key=lambda p: int(p.stem.split('_', 1)[1]),
+        )
+    ]
+    output_path = state.last_replica.bundle_path.as_posix()
+    num_paths_str = click.style(f'{len(input_paths)} replica files', fg='green')
     click.echo(f'Bundling {num_paths_str}')
-    pl.read_parquet(paths, schema=PARQUET_SCHEMA).write_parquet(
-        state.last_replica.bundle_path,
-        compression_level=9,
-        statistics=False,
-        data_page_size=128 * 1024 * 1024,
-    )
+
+    with duckdb_connect() as conn:
+        parquets = conn.read_parquet(input_paths)  # type: ignore  # noqa: F841
+        conn.sql(f"""
+        COPY (
+            SELECT *
+            FROM parquets
+        ) TO {output_path!r}
+        (COMPRESSION ZSTD, COMPRESSION_LEVEL 9, ROW_GROUP_SIZE_BYTES '128MB')
+        """)
 
 
 async def _increase_frequency(state: AppState) -> AppState:
@@ -276,6 +310,7 @@ async def _increase_frequency(state: AppState) -> AppState:
     while True:
         if not step:
             raise ValueError(f"Couldn't find {new_frequency!r} replica at {current_created_at!r}")
+
         url = _get_replication_url(new_frequency, new_sequence_number)
         r = await HTTP.get(url + '.state.txt')
         if r.status_code == status.HTTP_404_NOT_FOUND:
@@ -287,15 +322,19 @@ async def _increase_frequency(state: AppState) -> AppState:
             continue
         r.raise_for_status()
         new_replica = _parse_replica_state(r.text)
-        if abs(new_replica.created_at - current_created_at) < found_threshold:  # found
+
+        if abs(new_replica.created_at - current_created_at) < found_threshold:
+            # found
             return replace(state, frequency=new_frequency, last_replica=new_replica)
-        if new_replica.created_at > current_created_at:  # too late
+        if new_replica.created_at > current_created_at:
+            # too late
             if direction_forward is None:
                 direction_forward = False
             elif direction_forward:
                 step >>= 1
             new_sequence_number -= step
-        else:  # too early
+        else:
+            # too early
             if direction_forward is None:
                 direction_forward = True
             elif not direction_forward:

@@ -30,6 +30,11 @@ pkgs.writeText "postgres.conf" (''
   max_worker_processes = ${toString postgresCpuThreads}
   max_parallel_workers = ${toString postgresCpuThreads}
   max_parallel_maintenance_workers = ${toString postgresCpuThreads}
+  timescaledb.max_background_workers = ${toString postgresCpuThreads}
+
+  # timescaledb require open-source license and disable telemetry
+  timescaledb.license = apache
+  timescaledb.telemetry_level = off
 
   # increase statistics target
   # reason: more accurate query plans
@@ -113,7 +118,7 @@ pkgs.writeText "postgres.conf" (''
   autovacuum_analyze_threshold = 1000
 
   # configure additional libraries
-  shared_preload_libraries = 'auto_explain'
+  shared_preload_libraries = 'auto_explain,timescaledb'
 
   # automatically explain slow queries
   # reason: useful for troubleshooting

@@ -7,16 +7,17 @@ from app.config import PRELOAD_DIR, REPLICATION_DIR
 from app.db import duckdb_connect
 
 
-def _write_output(conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRelation, table: str, header: str) -> None:
+def _write_output(
+    conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRelation, table: str, select_sql: str, header: str
+) -> None:
     output = PRELOAD_DIR.joinpath(table)
     shutil.rmtree(output, ignore_errors=True)
-    conn.sql(f'COPY {table} TO {output.as_posix()!r} (PER_THREAD_OUTPUT TRUE, COMPRESSION ZSTD, HEADER FALSE)')
+    conn.sql(f'COPY ({select_sql}) TO {output.as_posix()!r} (PER_THREAD_OUTPUT TRUE, COMPRESSION ZSTD, HEADER FALSE)')
     output.joinpath('header.csv').write_text(header)
 
 
 def _write_changeset(conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRelation) -> None:
-    conn.sql("""
-    CREATE TEMP VIEW changeset AS
+    changeset_sql = """
     SELECT
         changeset_id AS id,
         ANY_VALUE(user_id) AS user_id,
@@ -25,9 +26,8 @@ def _write_changeset(conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyR
         '{}' AS tags
     FROM parquets
     GROUP BY changeset_id
-    """)
-    _write_output(conn, parquets, 'changeset', 'id,user_id,closed_at,size,tags')
-    conn.sql('DROP VIEW changeset')
+    """
+    _write_output(conn, parquets, 'changeset', changeset_sql, 'id,user_id,closed_at,size,tags')
 
 
 def _write_element(conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRelation) -> None:
@@ -40,8 +40,7 @@ def _write_element(conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRel
     FROM parquets
     """)
     conn.sql('CREATE INDEX type_id_sequence_id_idx ON element_next (type, id, sequence_id)')
-    conn.sql("""
-    CREATE TEMP VIEW element AS
+    element_sql = """
     SELECT
         p.sequence_id,
         p.changeset_id,
@@ -58,32 +57,29 @@ def _write_element(conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRel
      ON next.type = p.type
     AND next.id = p.id
     AND next.sequence_id > p.sequence_id
-    """)
+    """
     _write_output(
         conn,
         parquets,
         'element',
+        element_sql,
         'sequence_id,changeset_id,type,id,version,visible,tags,point,created_at,next_sequence_id',
     )
-    conn.sql('DROP VIEW element')
     conn.sql('DROP TABLE element_next')
 
 
 def _write_element_member(conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRelation) -> None:
-    conn.sql("""
-    CREATE TEMP VIEW element_member AS
+    element_member_sql = """
     SELECT
         sequence_id,
         UNNEST(members, max_depth := 2)
     FROM parquets
-    """)
-    _write_output(conn, parquets, 'element_member', 'sequence_id,order,type,id,role')
-    conn.sql('DROP VIEW element_member')
+    """
+    _write_output(conn, parquets, 'element_member', element_member_sql, 'sequence_id,order,type,id,role')
 
 
 def _write_user(conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRelation) -> None:
-    conn.sql("""
-    CREATE TEMP VIEW user AS
+    user_sql = """
     SELECT DISTINCT ON (user_id)
         user_id AS id,
         display_name,
@@ -96,31 +92,30 @@ def _write_user(conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRelati
         TRUE AS crash_reporting
     FROM parquets
     WHERE user_id IS NOT NULL
-    """)
+    """
     _write_output(
         conn,
         parquets,
         'user',
+        user_sql,
         'id,display_name,email,password_pb,created_ip,status,language,activity_tracking,crash_reporting',
     )
-    conn.sql('DROP VIEW user')
 
 
 async def main() -> None:
     with duckdb_connect() as conn:
         print('Reading parquet files')
-        parquets = conn.read_parquet(
-            [  # type: ignore
-                p.as_posix()
-                for p in sorted(
-                    (
-                        # *REPLICATION_DIR.glob('bundle_*.parquet'),
-                        *REPLICATION_DIR.glob('replica_*.parquet'),
-                    ),
-                    key=lambda p: int(p.stem.split('_', 1)[1]),
-                )
-            ]
-        )
+        parquet_paths = [
+            p.as_posix()
+            for p in sorted(
+                (
+                    *REPLICATION_DIR.glob('bundle_*.parquet'),
+                    *REPLICATION_DIR.glob('replica_*.parquet'),
+                ),
+                key=lambda p: int(p.stem.split('_', 1)[1]),
+            )
+        ]
+        parquets = conn.read_parquet(parquet_paths)  # type: ignore
 
         print('Writing changeset')
         _write_changeset(conn, parquets)
