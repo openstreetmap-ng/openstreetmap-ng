@@ -403,8 +403,8 @@ let
     (makeScript "preload-convert" "python scripts/preload_convert.py")
     (makeScript "preload-upload" ''
       read -rp "Preload dataset name: " dataset
-      if [ "$dataset" != "poland" ] && [ "$dataset" != "mazowieckie" ]; then
-        echo "Invalid dataset name, must be one of: poland, mazowieckie"
+      if [ "$dataset" != "mazowieckie" ]; then
+        echo "Invalid dataset name, must be one of: mazowieckie"
         exit 1
       fi
       mkdir -p "data/preload/$dataset"
@@ -424,12 +424,11 @@ let
     '')
     (makeScript "preload-download" ''
       echo "Available preload datasets:"
-      echo "  * poland: Country of Poland; 6 GB download; 320 GB disk space; 1-2 hours"
       echo "  * mazowieckie: Masovian Voivodeship; 1 GB download; 60 GB disk space; 15-30 minutes"
       read -rp "Preload dataset name [default: mazowieckie]: " dataset
       dataset="''${dataset:-mazowieckie}"
-      if [ "$dataset" != "poland" ] && [ "$dataset" != "mazowieckie" ]; then
-        echo "Invalid dataset name, must be one of: poland, mazowieckie"
+      if [ "$dataset" != "mazowieckie" ]; then
+        echo "Invalid dataset name, must be one of: mazowieckie"
         exit 1
       fi
 
