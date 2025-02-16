@@ -338,7 +338,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
         )
 
     pq.write_table(
-        pa.Table.from_pylist(data, schema=_PLANET_SCHEMA),
+        pa.Table.from_pylist(data, schema=_NOTES_SCHEMA),
         _get_worker_path(NOTES_PARQUET_PATH, i),
         compression='lz4',
         write_statistics=False,
@@ -397,7 +397,7 @@ def merge_notes_worker_results() -> None:
         path.unlink()
 
 
-def write_changeset_csv() -> None:
+def _write_changeset() -> None:
     with duckdb_connect() as conn:
         planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
         conn.sql(f"""
@@ -415,7 +415,7 @@ def write_changeset_csv() -> None:
         """)
 
 
-def write_element_csv() -> None:
+def _write_element() -> None:
     with duckdb_connect() as conn:
         planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
         conn.sql(f"""
@@ -437,7 +437,7 @@ def write_element_csv() -> None:
         """)
 
 
-def write_element_member_csv() -> None:
+def _write_element_member() -> None:
     with duckdb_connect() as conn:
         planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
         conn.sql(f"""
@@ -451,7 +451,7 @@ def write_element_member_csv() -> None:
         """)
 
 
-def write_note_csv() -> None:
+def _write_note() -> None:
     with duckdb_connect() as conn:
         notes = conn.read_parquet(NOTES_PARQUET_PATH.as_posix())  # noqa: F841
         conn.sql(f"""
@@ -469,7 +469,7 @@ def write_note_csv() -> None:
         """)
 
 
-def write_note_comment_csv() -> None:
+def _write_note_comment() -> None:
     with duckdb_connect() as conn:
         notes = conn.read_parquet(NOTES_PARQUET_PATH.as_posix())  # noqa: F841
         conn.sql(f"""
@@ -486,7 +486,7 @@ def write_note_comment_csv() -> None:
         """)
 
 
-def write_user_csv() -> None:
+def _write_user() -> None:
     with duckdb_connect() as conn:
         planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
         notes = conn.read_parquet(NOTES_PARQUET_PATH.as_posix())  # noqa: F841
@@ -528,18 +528,18 @@ async def main() -> None:
     run_notes_workers()
     merge_notes_worker_results()
 
-    print('Writing changeset CSV')
-    write_changeset_csv()
-    print('Writing element CSV')
-    write_element_csv()
-    print('Writing element member CSV')
-    write_element_member_csv()
-    print('Writing note CSV')
-    write_note_csv()
-    print('Writing note comment CSV')
-    write_note_comment_csv()
-    print('Writing user CSV')
-    write_user_csv()
+    print('Writing changeset')
+    _write_changeset()
+    print('Writing element')
+    _write_element()
+    print('Writing element member')
+    _write_element_member()
+    print('Writing note')
+    _write_note()
+    print('Writing note comment')
+    _write_note_comment()
+    print('Writing user')
+    _write_user()
 
 
 if __name__ == '__main__':
