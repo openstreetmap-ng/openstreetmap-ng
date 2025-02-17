@@ -45,6 +45,7 @@ def _write_changeset() -> None:
 
 def _write_element() -> None:
     with duckdb_connect() as conn:
+        print('Creating table')
         parquets = conn.read_parquet(_PARQET_PATHS)  # type: ignore
         conn.sql("""
         CREATE TEMP TABLE sequence AS
@@ -54,7 +55,9 @@ def _write_element() -> None:
             id
         FROM parquets
         """)
+        print('Creating index')
         conn.sql('CREATE INDEX type_id_sequence_id_idx ON sequence (type, id, sequence_id)')
+        print('Writing')
         element_sql = """
         SELECT
             p.sequence_id,
