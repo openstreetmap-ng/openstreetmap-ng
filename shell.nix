@@ -672,7 +672,7 @@ let
       echo "Running [sass-pipeline]"
       sass-pipeline &
     fi
-    if [ ! -d app/static/js ];
+    if [ ! -d app/static/js ]; then
       echo "Running [js-pipeline]"
       js-pipeline &
     fi
