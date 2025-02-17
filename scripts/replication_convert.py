@@ -103,6 +103,8 @@ def _write_user(conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRelati
 
 
 async def main() -> None:
+    PRELOAD_DIR.mkdir(exist_ok=True, parents=True)
+
     with duckdb_connect() as conn:
         print('Reading parquet files')
         parquet_paths = [
