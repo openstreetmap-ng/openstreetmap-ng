@@ -60,7 +60,14 @@ let
       --arg hostDiskCoW true \
       --arg postgresCpuThreads 4 \
       --arg gunicornWorkers 8 \
-      --run "export TEST_ENV=1 && ${script}"
+      --run "
+        export TEST_ENV=1 \
+        && export APP_URL=https://openstreetmap.ng \
+        && export API_URL=https://api.openstreetmap.ng \
+        && export ID_URL=https://id.openstreetmap.ng \
+        && export RAPID_URL=https://rapid.openstreetmap.ng \
+        && export FORCE_CRASH_REPORTING=1 \
+        && ${script}"
   '';
 in
 {
@@ -109,14 +116,7 @@ in
         RestartSec = "30s";
       }
     ];
-    script = nixShellRun ''
-      APP_URL=https://openstreetmap.ng \
-      API_URL=https://api.openstreetmap.ng \
-      ID_URL=https://id.openstreetmap.ng \
-      RAPID_URL=https://rapid.openstreetmap.ng \
-      FORCE_CRASH_REPORTING=1 \
-      run
-    '';
+    script = nixShellRun "run";
   };
 
   systemd.services.osm-ng-replication = {
