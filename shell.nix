@@ -169,7 +169,7 @@ let
     (makeScript "sass-pipeline" ''
       src=app/static/sass
       dst=app/static/css
-      rm "$dst"/*.{css,map}
+      rm -f "$dst"/*.{css,map}
 
       bun run sass \
         --quiet-deps \
@@ -204,7 +204,7 @@ let
       dst=app/static/js
       tmp="$dst/_generated"
       mkdir -p "$tmp"
-      rm "$dst"/*.{js,map}
+      rm -f "$dst"/*.{js,map}
 
       bun run babel \
         --extensions ".js,.ts" \
