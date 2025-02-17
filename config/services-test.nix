@@ -5,7 +5,54 @@
 # https://cloudferro.com/pricing/virtual-machines-vm-2/
 
 let
+  commonServiceConfig = {
+    User = "osm-ng";
+    WorkingDirectory = "/data/osm-ng";
+
+    ProtectSystem = "strict";
+    ReadWritePaths = [
+      "/home/osm-ng"
+      "/data/osm-ng"
+      "/nix/var/nix/daemon-socket/socket"
+    ];
+    NoExecPaths = "/";
+    ExecPaths = "/nix/store";
+
+    CapabilityBoundingSet = "";
+    LockPersonality = true;
+    NoNewPrivileges = true;
+    PrivateDevices = true;
+    PrivateTmp = true;
+    ProtectClock = true;
+    ProtectControlGroups = true;
+    ProtectHostname = true;
+    ProtectKernelLogs = true;
+    ProtectKernelModules = true;
+    ProtectKernelTunables = true;
+    ProtectProc = "noaccess";
+    ProcSubset = "pid";
+    PrivateUsers = true;
+    RestrictAddressFamilies = [ "AF_UNIX" "AF_INET" "AF_INET6" ];
+    RestrictNamespaces = true;
+    RestrictRealtime = true;
+    RestrictSUIDSGID = true;
+    SystemCallArchitectures = "native";
+    UMask = "0077";
+
+    SystemCallFilter = [
+      "~@clock"
+      "~@cpu-emulation"
+      "~@debug"
+      "~@module"
+      "~@mount"
+      "~@obsolete"
+      "~@raw-io"
+      "~@reboot"
+      "~@swap"
+    ];
+  };
   nixShellRun = script: ''
+    NIX_PATH="nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos:/nix/var/nix/profiles/per-user/root/channels" \
     ${pkgs.nix}/bin/nix-shell \
       --pure \
       --arg isDevelopment false \
@@ -24,76 +71,72 @@ in
     createHome = true;
     isSystemUser = true;
   };
-  systemd.services.osm-ng = {
-    enable = false;
+
+  systemd.services.osm-ng-dev = {
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
+    unitConfig = {
+      StartLimitIntervalSec = "infinity";
+      StartLimitBurst = 30;
+    };
+    serviceConfig = pkgs.lib.mkMerge [
+      commonServiceConfig
+      {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        Restart = "on-failure";
+        RestartSec = "30s";
+      }
+    ];
+    script = nixShellRun "static-precompress && dev-start";
+    preStop = nixShellRun "dev-stop";
+  };
+
+  systemd.services.osm-ng = {
+    enable = false;
+    after = [ "osm-ng-dev.service" ];
+    bindsTo = [ "osm-ng-dev.service" ];
     wantedBy = [ "default.target" ];
     unitConfig = {
       StartLimitIntervalSec = "infinity";
       StartLimitBurst = 30;
     };
-    serviceConfig = {
-      Type = "exec";
-      User = "osm-ng";
-      WorkingDirectory = "/data/osm-ng";
-      Restart = "on-failure";
-      RestartSec = "10s";
-
-      ProtectSystem = "strict";
-      ReadWritePaths = [
-        "/home/osm-ng"
-        "/data/osm-ng"
-        "/nix/var/nix/daemon-socket/socket"
-      ];
-      NoExecPaths = "/";
-      ExecPaths = "/nix/store";
-
-      CapabilityBoundingSet = "";
-      LockPersonality = true;
-      NoNewPrivileges = true;
-      PrivateDevices = true;
-      PrivateTmp = true;
-      ProtectClock = true;
-      ProtectControlGroups = true;
-      ProtectHostname = true;
-      ProtectKernelLogs = true;
-      ProtectKernelModules = true;
-      ProtectKernelTunables = true;
-      ProtectProc = "noaccess";
-      ProcSubset = "pid";
-      PrivateUsers = true;
-      RestrictAddressFamilies = [ "AF_UNIX" "AF_INET" "AF_INET6" ];
-      RestrictNamespaces = true;
-      RestrictRealtime = true;
-      RestrictSUIDSGID = true;
-      SystemCallArchitectures = "native";
-      UMask = "0077";
-
-      SystemCallFilter = [
-        "~@clock"
-        "~@cpu-emulation"
-        "~@debug"
-        "~@module"
-        "~@mount"
-        "~@obsolete"
-        "~@raw-io"
-        "~@reboot"
-        "~@swap"
-      ];
-    };
-    environment = {
-      NIX_PATH = "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos:/nix/var/nix/profiles/per-user/root/channels";
-    };
-    preStart = nixShellRun "static-precompress && dev-start";
+    serviceConfig = pkgs.lib.mkMerge [
+      commonServiceConfig
+      {
+        Type = "exec";
+        Restart = "on-failure";
+        RestartSec = "30s";
+      }
+    ];
     script = nixShellRun ''
-      export APP_URL=https://openstreetmap.ng
-      && export API_URL=https://api.openstreetmap.ng
-      && export ID_URL=https://id.openstreetmap.ng
-      && export RAPID_URL=https://rapid.openstreetmap.ng
-      && export FORCE_CRASH_REPORTING=1
-      && run
+      APP_URL=https://openstreetmap.ng \
+      API_URL=https://api.openstreetmap.ng \
+      ID_URL=https://id.openstreetmap.ng \
+      RAPID_URL=https://rapid.openstreetmap.ng \
+      FORCE_CRASH_REPORTING=1 \
+      run
     '';
-    postStop = nixShellRun "dev-stop";
+  };
+
+  systemd.services.osm-ng-replication = {
+    enable = false;
+    after = [ "osm-ng-dev.service" ];
+    bindsTo = [ "osm-ng-dev.service" ];
+    wantedBy = [ "default.target" ];
+    unitConfig = {
+      StartLimitIntervalSec = "infinity";
+      StartLimitBurst = 30;
+    };
+    serviceConfig = pkgs.lib.mkMerge [
+      commonServiceConfig
+      {
+        Type = "exec";
+        Nice = 10;
+        Restart = "on-failure";
+        RestartSec = "30s";
+      }
+    ];
+    script = nixShellRun "replication";
   };
 }
