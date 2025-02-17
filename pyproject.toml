@@ -74,7 +74,6 @@ dev = [
 ]
 
 [tool.uv]
-compile-bytecode = true
 package = true
 python-downloads = "never"
 python-preference = "only-system"
