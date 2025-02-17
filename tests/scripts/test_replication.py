@@ -19,7 +19,7 @@ async def test_iterate():
     assert path.is_file()
     try:
         metadata = pq.read_metadata(path)
-        assert metadata.num_columns == 12
+        assert metadata.num_columns == 15
         assert metadata.num_rows == 156829
     finally:
         path.unlink(missing_ok=True)
