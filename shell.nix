@@ -400,7 +400,16 @@ let
 
     # -- Preload
     (makeScript "preload-clean" "rm -rf data/preload/")
-    (makeScript "preload-convert" "python scripts/preload_convert.py")
+    (makeScript "preload-convert" ''
+      python scripts/preload_convert.py
+      for file in data/preload/*.csv; do
+        zstd \
+          --rm \
+          --force -19 \
+          --threads "$(( $(nproc) * 2 ))" \
+          "$file"
+      done
+    '')
     (makeScript "preload-upload" ''
       read -rp "Preload dataset name: " dataset
       if [ "$dataset" != "mazowieckie" ]; then
@@ -424,7 +433,7 @@ let
     '')
     (makeScript "preload-download" ''
       echo "Available preload datasets:"
-      echo "  * mazowieckie: Masovian Voivodeship; 1 GB download; 60 GB disk space; 15-30 minutes"
+      echo "  * mazowieckie: Masovian Voivodeship; 1.6 GB download; 60 GB disk space; 15-30 minutes"
       read -rp "Preload dataset name [default: mazowieckie]: " dataset
       dataset="''${dataset:-mazowieckie}"
       if [ "$dataset" != "mazowieckie" ]; then

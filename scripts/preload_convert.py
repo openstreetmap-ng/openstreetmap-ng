@@ -96,7 +96,7 @@ gc.disable()
 
 @cython.cfunc
 def _get_csv_path(name: str):
-    return PRELOAD_DIR.joinpath(f'{name}.csv.zst')
+    return PRELOAD_DIR.joinpath(f'{name}.csv')
 
 
 @cython.cfunc
