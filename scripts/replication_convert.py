@@ -85,9 +85,9 @@ def _write_user() -> None:
     with duckdb_connect() as conn:
         parquets = conn.read_parquet(_PARQUET_PATHS)  # type: ignore
         user_sql = """
-        SELECT DISTINCT ON (user_id)
+        SELECT
             user_id AS id,
-            display_name,
+            (SUBSTRING(display_name, 1, 15) || '_' || user_id) AS display_name,
             (user_id || '@localhost.invalid') AS email,
             '' AS password_pb,
             '127.0.0.1' AS created_ip,
@@ -95,8 +95,13 @@ def _write_user() -> None:
             'en' AS language,
             TRUE AS activity_tracking,
             TRUE AS crash_reporting
-        FROM parquets
-        WHERE user_id IS NOT NULL
+        FROM (
+            SELECT DISTINCT ON (user_id)
+                user_id,
+                display_name
+            FROM parquets
+            WHERE user_id IS NOT NULL
+        )
         """
         _write_output(
             conn,
