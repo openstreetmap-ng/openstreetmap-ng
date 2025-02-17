@@ -2,7 +2,6 @@ import asyncio
 import shutil
 
 import duckdb
-from tqdm import tqdm
 
 from app.config import PRELOAD_DIR, REPLICATION_DIR
 from app.db import duckdb_connect
@@ -46,40 +45,20 @@ def _write_changeset() -> None:
 
 def _write_element() -> None:
     with duckdb_connect() as conn:
-        conn.sql("CREATE TYPE element_type AS ENUM ('node', 'way', 'relation')")
-        conn.sql("""
-        CREATE TEMP TABLE sequence
-        (sequence_id BIGINT, type element_type, id BIGINT)
-        """)
-        for parquet_path in tqdm(_PARQUET_PATHS, desc='Creating table'):
-            conn.sql(f"""
-            INSERT INTO sequence
-            SELECT
-                sequence_id,
-                type,
-                id
-            FROM {parquet_path!r}
-            ORDER BY id
-            """)
-        print('Writing')
         parquets = conn.read_parquet(_PARQUET_PATHS)  # type: ignore
         element_sql = """
         SELECT
-            p.sequence_id,
-            p.changeset_id,
-            p.type,
-            p.id,
-            p.version,
-            p.visible,
-            p.tags,
-            p.point,
-            p.created_at,
-            next.sequence_id AS next_sequence_id
-        FROM parquets AS p
-        ASOF LEFT JOIN sequence AS next
-         ON p.type = next.type
-        AND p.id = next.id
-        AND p.sequence_id < next.sequence_id
+            sequence_id,
+            changeset_id,
+            type,
+            id,
+            version,
+            visible,
+            tags,
+            point,
+            created_at,
+            NULL AS next_sequence_id
+        FROM parquets
         """
         _write_output(
             conn,
