@@ -486,6 +486,9 @@ let
       dev-start
       preload-load
     '')
+    (makeScript "replication" "python scripts/replication.py")
+    (makeScript "replication-convert" "python scripts/replication_convert.py")
+    (makeScript "replication-load" "python scripts/replication_load.py")
 
     # -- Testing
     (makeScript "run-tests" ''
@@ -560,7 +563,6 @@ let
     '')
     (makeScript "pyright" "bunx basedpyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
-    (makeScript "replication" "python scripts/replication.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
     (makeScript "vector-styles-update" ''
