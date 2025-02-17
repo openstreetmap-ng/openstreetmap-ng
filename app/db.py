@@ -59,7 +59,6 @@ def duckdb_connect(database: str | Path = ':memory:'):
         duckdb.connect(
             database,
             config={
-                'enable_progress_bar': True,
                 'checkpoint_threshold': '2GB',
                 'memory_limit': DUCKDB_MEMORY_LIMIT,
                 'preserve_insertion_order': False,
@@ -68,4 +67,5 @@ def duckdb_connect(database: str | Path = ':memory:'):
         ) as conn,
     ):
         logging.debug('DuckDB temp_directory: %s', tmpdir)
+        conn.sql('PRAGMA enable_progress_bar')
         yield conn
