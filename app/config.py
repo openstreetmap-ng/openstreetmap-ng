@@ -71,6 +71,7 @@ POSTGRES_LOG = getenv('POSTGRES_LOG', '0').strip().lower() in {'1', 'true', 'yes
 POSTGRES_URL = getenv('POSTGRES_URL', f'postgresql://postgres@/postgres?host={_path("data/postgres_unix")}&port=49560')
 
 DUCKDB_MEMORY_LIMIT = getenv('DUCKDB_MEMORY_LIMIT', '8GB')
+DUCKDB_TMPDIR = getenv('DUCKDB_TMPDIR')
 
 VALKEY_URL = getenv('VALKEY_URL', f'unix://{_path("data/valkey.sock")}?protocol=3')
 

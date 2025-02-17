@@ -9,7 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from valkey.asyncio import ConnectionPool, Valkey
 
-from app.config import DUCKDB_MEMORY_LIMIT, POSTGRES_SQLALCHEMY_URL, VALKEY_URL
+from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_SQLALCHEMY_URL, VALKEY_URL
 
 _DB_ENGINE = create_async_engine(
     POSTGRES_SQLALCHEMY_URL,
@@ -55,7 +55,7 @@ async def valkey():
 @contextmanager
 def duckdb_connect(database: str | Path = ':memory:'):
     with (
-        TemporaryDirectory(prefix='osm-ng-duckdb-') as tmpdir,
+        TemporaryDirectory(prefix='osm-ng-duckdb-', dir=DUCKDB_TMPDIR) as tmpdir,
         duckdb.connect(
             database,
             config={
