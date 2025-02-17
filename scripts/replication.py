@@ -191,8 +191,8 @@ def _parse_actions(
     def flush():
         if data:
             record_batch = pa.RecordBatch.from_pylist(data, schema=_PARQUET_SCHEMA)
-            data.clear()
             writer.write_batch(record_batch, row_group_size=len(data))
+            data.clear()
 
     action: str
     for action, elements_ in actions:
