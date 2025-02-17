@@ -50,7 +50,7 @@ jobs:
 
       - name: Start services
         run: |
-          nix-shell --pure --run "dev-start"
+          nix-shell --pure --run "js-pipeline && sass-pipeline && dev-start"
 
       - name: Run tests
         env:
