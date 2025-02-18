@@ -4,7 +4,7 @@ from asyncio import TaskGroup, create_subprocess_shell
 from asyncio.subprocess import Process
 from shlex import quote
 
-from sqlalchemy import Index, quoted_name, select, text
+from sqlalchemy import Index, select, text
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
@@ -37,7 +37,7 @@ async def _index_task(sql: str) -> None:
 
 
 async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
-    index_sqls: dict[quoted_name, str] = {}
+    index_sqls: dict[str, str] = {}
 
     async with db(True) as session:
         for index in (arg for arg in table.__table_args__ if isinstance(arg, Index)):
@@ -45,7 +45,7 @@ async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
             assert index_name is not None
             print(f'Dropping index {index_name!r}')
             sql = await session.scalar(text(f'SELECT pg_get_indexdef({index_name!r}::regclass)'))
-            index_sqls[index_name] = sql
+            index_sqls[str(index_name)] = sql
             await session.execute(text(f'DROP INDEX {index_name}'))
 
     table_name = table.__tablename__
@@ -74,9 +74,21 @@ async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
         if proc is not None:
             proc.terminate()
 
-    for key, sql in index_sqls.items():
-        print(f'Recreating index {key!r}')
-        tg.create_task(_index_task(sql))
+    async def postprocess() -> None:
+        if table is User:
+            key = 'element_version_idx'
+            sql = index_sqls.pop(key)
+            print(f'Recreating index {key!r}')
+            await _index_task(sql)
+
+            print('Fixing element next_sequence_id field')
+            await MigrationService.fix_next_sequence_id()
+
+        for key, sql in index_sqls.items():
+            print(f'Recreating index {key!r}')
+            tg.create_task(_index_task(sql))
+
+    tg.create_task(postprocess())
 
 
 async def _load_tables() -> None:
@@ -109,9 +121,6 @@ async def main() -> None:
 
     print('Fixing sequence counters consistency')
     await MigrationService.fix_sequence_counters()
-
-    print('Fixing element next_sequence_id field')
-    await MigrationService.fix_next_sequence_id()
 
 
 if __name__ == '__main__':
