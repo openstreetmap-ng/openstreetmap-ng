@@ -40,8 +40,7 @@ def _get_csv_header(path: Path) -> str:
 
 
 async def _index_task(sql: str) -> None:
-    async with db(True) as session:
-        await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
+    async with db(True, no_transaction=True) as session:
         await session.execute(text(sql))
 
 

@@ -32,8 +32,7 @@ def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
 
 
 async def _index_task(sql: str) -> None:
-    async with db(True) as session:
-        await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
+    async with db(True, no_transaction=True) as session:
         await session.execute(text(sql))
 
 
@@ -110,6 +109,9 @@ async def main() -> None:
 
     print('Fixing sequence counters consistency')
     await MigrationService.fix_sequence_counters()
+
+    print('Fixing element next_sequence_id field')
+    await MigrationService.fix_next_sequence_id()
 
 
 if __name__ == '__main__':

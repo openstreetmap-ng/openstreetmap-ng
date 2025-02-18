@@ -27,13 +27,15 @@ _VALKEY_POOL = ConnectionPool.from_url(VALKEY_URL)
 
 
 @asynccontextmanager
-async def db(write: bool = False):
+async def db(write: bool = False, *, no_transaction: bool = False):
     """Get a database session."""
     async with AsyncSession(
         _DB_ENGINE,
         expire_on_commit=False,
         close_resets_only=False,  # prevent closed sessions from being reused
     ) as session:
+        if no_transaction:
+            await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
         yield session
         if write:
             await session.commit()
@@ -41,8 +43,7 @@ async def db(write: bool = False):
 
 async def db_update_stats(*, vacuum: bool = False) -> None:
     """Update the database statistics."""
-    async with db() as session:
-        await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
+    async with db(True, no_transaction=True) as session:
         await session.execute(text('VACUUM ANALYZE') if vacuum else text('ANALYZE'))
 
 

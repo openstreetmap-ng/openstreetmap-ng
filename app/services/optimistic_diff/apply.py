@@ -197,7 +197,7 @@ async def _update_elements_db(
     if not where_ors:
         return
 
-    E = aliased(Element)  # noqa: N806
+    other = aliased(Element)
     stmt = (
         update(Element)
         .where(
@@ -207,13 +207,13 @@ async def _update_elements_db(
         )
         .values(
             {
-                Element.next_sequence_id: select(E.sequence_id)
+                Element.next_sequence_id: select(other.sequence_id)
                 .where(
-                    E.type == Element.type,
-                    E.id == Element.id,
-                    E.version > Element.version,
+                    other.type == Element.type,
+                    other.id == Element.id,
+                    other.version > Element.version,
                 )
-                .order_by(E.version.asc())
+                .order_by(other.version.asc())
                 .limit(1)
                 .scalar_subquery()
             }
