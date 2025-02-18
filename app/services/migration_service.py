@@ -1,4 +1,4 @@
-from sqlalchemy import func, select, update
+from sqlalchemy import func, null, select, update
 from sqlalchemy.orm import aliased
 
 from app.db import db
@@ -26,21 +26,24 @@ class MigrationService:
         """Fix the element's next_sequence_id field"""
         async with db(True, no_transaction=True) as session:
             other = aliased(Element)
+            next_seq_subquery = (
+                select(other.sequence_id)
+                .where(
+                    other.type == Element.type,
+                    other.id == Element.id,
+                    other.version > Element.version,
+                )
+                .order_by(other.version.asc())
+                .limit(1)
+                .scalar_subquery()
+            )
             stmt = (
                 update(Element)
-                .values(
-                    {
-                        Element.next_sequence_id: select(other.sequence_id)
-                        .where(
-                            other.type == Element.type,
-                            other.id == Element.id,
-                            other.version > Element.version,
-                        )
-                        .order_by(other.version.asc())
-                        .limit(1)
-                        .scalar_subquery()
-                    }
+                .where(
+                    Element.next_sequence_id == null(),
+                    next_seq_subquery != null(),
                 )
+                .values({Element.next_sequence_id: next_seq_subquery})
                 .inline()
             )
             await session.execute(stmt)
