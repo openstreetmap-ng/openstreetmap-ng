@@ -3,6 +3,8 @@
 , hostDiskCoW ? false
 , enablePostgres ? true
 , postgresCpuThreads ? 8
+, postgresMinWalSizeGb ? 1
+, postgresMaxWalSizeGb ? 10
 , enableValkey ? true
 , enableMailpit ? true
 , gunicornWorkers ? 1
@@ -14,7 +16,7 @@ let
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/d98abf5cf5914e5e4e9d57205e3af55ca90ffc1d.tar.gz") { };
 
   projectDir = builtins.toString ./.;
-  postgresConf = import ./config/postgres.nix { inherit hostMemoryMb hostDiskCoW postgresCpuThreads pkgs projectDir; };
+  postgresConf = import ./config/postgres.nix { inherit hostMemoryMb hostDiskCoW postgresCpuThreads postgresMinWalSizeGb postgresMaxWalSizeGb pkgs projectDir; };
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
   supervisordConf = import ./config/supervisord.nix { inherit isDevelopment enablePostgres enableValkey enableMailpit pkgs postgresConf; };
@@ -43,6 +45,21 @@ let
   watchexec' = makeScript "watchexec" ''
     exec ${pkgs.watchexec}/bin/watchexec --wrap-process=none "$@"
   '';
+
+  # local update until fixed upstream:
+  # https://github.com/NixOS/nixpkgs/issues/383368
+  timescaledb-parallel-copy' = pkgs.buildGoModule rec {
+    pname = "timescaledb-parallel-copy";
+    version = "0.9.0";
+    doCheck = false;
+    src = pkgs.fetchFromGitHub {
+      owner = "timescale";
+      repo = pname;
+      rev = "v${version}";
+      sha256 = "sha256-vd+2KpURyVhcVf2ESHcyZLJCw+z+WbnTJX9Uy4ZAPoE=";
+    };
+    vendorHash = "sha256-MRso2uihMUc+rLwljwZZR1+1cXADCNg+JUpRcRU918g=";
+  };
 
   # https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/build-support/trivial-builders/default.nix
   makeScript = with pkgs; name: text:
@@ -87,7 +104,7 @@ let
     biome
     # Services:
     (postgresql_17_jit.withPackages (ps: [ ps.postgis ])) # SOON: ps.timescaledb-apache
-    timescaledb-parallel-copy
+    timescaledb-parallel-copy'
     valkey
     mailpit
 

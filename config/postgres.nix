@@ -1,6 +1,8 @@
 { hostMemoryMb
 , hostDiskCoW
 , postgresCpuThreads
+, postgresMinWalSizeGb
+, postgresMaxWalSizeGb
 , pkgs
 , projectDir
 }:
@@ -77,13 +79,13 @@ pkgs.writeText "postgres.conf" (''
   # reason: detect too-frequent checkpoints
   checkpoint_warning = 30min
 
-  # increase max WAL size
-  # reason: reduce checkpoint frequency
-  max_wal_size = 20GB
-
   # limit min WAL size
   # reason: prefer file recycling
-  min_wal_size = 1GB
+  min_wal_size = ${toString postgresMinWalSizeGb}GB
+
+  # increase max WAL size
+  # reason: reduce checkpoint frequency
+  max_wal_size = ${toString postgresMaxWalSizeGb}GB
 
   # adjust configuration for SSDs
   # reason: improved performance on expected hardware

@@ -59,6 +59,7 @@ let
       --arg hostMemoryMb 32768 \
       --arg hostDiskCoW true \
       --arg postgresCpuThreads 4 \
+      --arg postgresMaxWalSizeGb 50 \
       --arg gunicornWorkers 8 \
       --run "
         export TEST_ENV=1 \
