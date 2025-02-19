@@ -3,6 +3,7 @@
 , postgresCpuThreads
 , postgresMinWalSizeGb
 , postgresMaxWalSizeGb
+, postgresVerbose
 , pkgs
 , projectDir
 }:
@@ -103,10 +104,16 @@ pkgs.writeText "postgres.conf" (''
 
   # increase logging verbosity
   # reason: useful for troubleshooting
+'' + pkgs.lib.optionalString (postgresVerbose >= 2) ''
   log_connections = on
   log_disconnections = on
+  log_statement = 'all'
   log_lock_waits = on
   log_temp_files = 0 # == log all temp files
+'' + pkgs.lib.optionalString (postgresVerbose == 1) ''
+  log_statement = 'ddl'
+  log_lock_waits = on
+'' + ''
 
   # configure autovacuum to use absolute thresholds
   # reason: more frequent vacuuming, predictable behavior

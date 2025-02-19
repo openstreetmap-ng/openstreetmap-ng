@@ -5,6 +5,7 @@
 , postgresCpuThreads ? 8
 , postgresMinWalSizeGb ? 1
 , postgresMaxWalSizeGb ? 10
+, postgresVerbose ? 2  # 0 = no, 1 = some, 2 = most
 , enableValkey ? true
 , enableMailpit ? true
 , gunicornWorkers ? 1
@@ -16,7 +17,7 @@ let
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/d98abf5cf5914e5e4e9d57205e3af55ca90ffc1d.tar.gz") { };
 
   projectDir = builtins.toString ./.;
-  postgresConf = import ./config/postgres.nix { inherit hostMemoryMb hostDiskCoW postgresCpuThreads postgresMinWalSizeGb postgresMaxWalSizeGb pkgs projectDir; };
+  postgresConf = import ./config/postgres.nix { inherit hostMemoryMb hostDiskCoW postgresCpuThreads postgresMinWalSizeGb postgresMaxWalSizeGb postgresVerbose pkgs projectDir; };
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
   supervisordConf = import ./config/supervisord.nix { inherit isDevelopment enablePostgres enableValkey enableMailpit pkgs postgresConf; };
