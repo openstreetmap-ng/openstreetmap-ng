@@ -79,11 +79,13 @@ async def db(write: bool = False, *, no_transaction: bool = False):
 async def db2(write: bool = False, *, autocommit: bool = False):
     """Get a database connection."""
     async with _PSYCOPG_POOL.connection() as conn:
-        if autocommit:
+        if autocommit and not write:
+            raise ValueError('autocommit=True must be used with write=True')
+        if conn.autocommit != autocommit:
             await conn.set_autocommit(autocommit)
         yield conn
-        if write:
-            await conn.commit()
+        if not write:
+            await conn.rollback()
 
 
 async def db_update_stats(*, vacuum: bool = False) -> None:
