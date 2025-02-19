@@ -30,6 +30,7 @@ dependencies = [
   "phonenumbers",
   "polyline-rs>=1.0.0",
   "protobuf==5.29.3",
+  "psycopg[binary,pool]>=3.2.4",
   "pyarrow>=19.0.0",
   "pycryptodomex",
   "pydantic",

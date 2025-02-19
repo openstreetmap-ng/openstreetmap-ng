@@ -4,18 +4,18 @@ from asyncio import TaskGroup, create_subprocess_shell
 from asyncio.subprocess import Process
 from shlex import quote
 
-from sqlalchemy import Index, select, text
+from psycopg.sql import SQL, Identifier
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
-from app.db import db, db_update_stats
+from app.db import db2, db_update_stats, psycopg_pool_open_decorator
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.db.user import User
 from app.services.migration_service import MigrationService
 
-_TIMESCALE_WORKERS = min(os.process_cpu_count() or 1, 8)
+_COPY_WORKERS = min(os.process_cpu_count() or 1, 8)
 
 
 def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
@@ -32,25 +32,35 @@ def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
 
 
 async def _index_task(sql: str) -> None:
-    async with db(True, no_transaction=True) as session:
-        await session.execute(text(sql))
+    async with db2(True, autocommit=True) as conn:
+        await conn.execute(sql)  # type: ignore
 
 
 async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
-    index_sqls: dict[str, str] = {}
-
-    async with db(True) as session:
-        for index in (arg for arg in table.__table_args__ if isinstance(arg, Index)):
-            index_name = index.name
-            assert index_name is not None
-            print(f'Dropping index {index_name!r}')
-            sql = await session.scalar(text(f'SELECT pg_get_indexdef({index_name!r}::regclass)'))
-            index_sqls[str(index_name)] = sql
-            await session.execute(text(f'DROP INDEX {index_name}'))
-
     table_name = table.__tablename__
+
+    async with db2(True, autocommit=True) as conn:
+        # drop indexes that are not used by any constraint
+        cursor = await conn.execute(
+            """
+            SELECT pgi.indexname, pgi.indexdef
+            FROM pg_indexes pgi
+            WHERE pgi.schemaname = 'public'
+            AND pgi.tablename = %s
+            AND pgi.indexname NOT IN (
+                SELECT pgc.conindid::regclass::text
+                FROM pg_constraint pgc
+                WHERE pgc.conrelid = %s::regclass
+            );
+            """,
+            (table_name, table_name),
+        )
+        index_sqls: dict[str, str] = dict(await cursor.fetchall())
+        print(f'Dropping indexes {index_sqls!r}')
+        await conn.execute(SQL('DROP INDEX {0}').format(SQL(',').join(map(Identifier, index_sqls))))
+
     copy_paths, header = _get_copy_paths_and_header(table_name)
-    columns = tuple(f'"{c}"' for c in header.split(','))
+    columns = [f'"{c}"' for c in header.split(',')]
     proc: Process | None = None
 
     try:
@@ -64,7 +74,7 @@ async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
             ' --skip-header=false'
             ' --reporting-period=30s'
             f' --table={quote(table_name)}'
-            f' --workers={_TIMESCALE_WORKERS}',
+            f' --workers={_COPY_WORKERS}',
         )
         exit_code = await proc.wait()
         if exit_code:
@@ -77,15 +87,13 @@ async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
     async def postprocess() -> None:
         if table is User:
             key = 'element_version_idx'
-            sql = index_sqls.pop(key)
             print(f'Recreating index {key!r}')
-            await _index_task(sql)
-
+            await _index_task(index_sqls.pop(key))
             print('Fixing element next_sequence_id field')
             await MigrationService.fix_next_sequence_id()
 
-        for key, sql in index_sqls.items():
-            print(f'Recreating index {key!r}')
+        print('Recreating indexes')
+        for sql in index_sqls.values():
             tg.create_task(_index_task(sql))
 
     tg.create_task(postprocess())
@@ -94,10 +102,12 @@ async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
 async def _load_tables() -> None:
     tables = (User, Changeset, Element, ElementMember)
 
-    async with db(True) as session:
+    async with db2(True, autocommit=True) as conn:
         print('Truncating tables')
-        await session.execute(
-            text(f'TRUNCATE {",".join(f'"{table.__tablename__}"' for table in tables)} RESTART IDENTITY CASCADE')
+        await conn.execute(
+            SQL('TRUNCATE {tables} RESTART IDENTITY CASCADE').format(
+                tables=SQL(',').join(Identifier(table.__tablename__) for table in tables)
+            )
         )
 
     async with TaskGroup() as tg:
@@ -105,14 +115,15 @@ async def _load_tables() -> None:
             await _load_table(table, tg)
 
 
+@psycopg_pool_open_decorator
 async def main() -> None:
-    async with db(True) as session:
-        if (
-            await session.scalar(select(Element).limit(1))  #
-            and not input('Database is not empty. Continue? (y/N): ').lower().startswith('y')
-        ):
-            print('Aborted')
-            return
+    async with db2() as conn:
+        cursor = await conn.execute('SELECT 1 FROM element ORDER BY sequence_id LIMIT 1')
+        exists = await cursor.fetchone() is not None
+
+    if exists and not input('Database is not empty. Continue? (y/N): ').lower().startswith('y'):
+        print('Aborted')
+        return
 
     await _load_tables()
 

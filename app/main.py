@@ -21,6 +21,7 @@ from app.config import (
     NAME,
     TEST_ENV,
 )
+from app.db import psycopg_pool_open
 from app.lib.bun_packages import ID_VERSION, RAPID_VERSION
 from app.lib.starlette_convertor import ElementTypeConvertor
 from app.lib.user_name_blacklist import user_name_blacklist_routes
@@ -78,16 +79,17 @@ if TEST_ENV:
 
 @asynccontextmanager
 async def lifespan(_):
-    # freeze uncollected gc objects for improved performance
-    gc.collect()
-    gc.freeze()
+    async with psycopg_pool_open():
+        if TEST_ENV:
+            await TestService.on_startup()
 
-    if TEST_ENV:
-        await TestService.on_startup()
+        await SystemAppService.on_startup()
 
-    await SystemAppService.on_startup()
-    async with EmailService.context(), ChangesetService.context():
-        yield
+        async with EmailService.context(), ChangesetService.context():
+            # freeze uncollected gc objects for improved performance
+            gc.collect()
+            gc.freeze()
+            yield
 
 
 register_url_convertor('element_type', ElementTypeConvertor())

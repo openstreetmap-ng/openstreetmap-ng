@@ -1,15 +1,17 @@
 import logging
 from contextlib import asynccontextmanager, contextmanager
+from functools import wraps
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import duckdb
 import orjson
-from sqlalchemy import text
+from psycopg.types.json import set_json_dumps, set_json_loads
+from psycopg_pool import AsyncConnectionPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from valkey.asyncio import ConnectionPool, Valkey
 
-from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_SQLALCHEMY_URL, VALKEY_URL
+from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_SQLALCHEMY_URL, POSTGRES_URL, VALKEY_URL
 
 _DB_ENGINE = create_async_engine(
     POSTGRES_SQLALCHEMY_URL,
@@ -20,10 +22,42 @@ _DB_ENGINE = create_async_engine(
     json_serializer=lambda v: orjson.dumps(v).decode(),
 )
 
+_PSYCOPG_POOL = AsyncConnectionPool(
+    POSTGRES_URL,
+    min_size=2,
+    max_size=100,
+    open=False,
+    num_workers=3,  # workers for opening new connections
+)
+
+set_json_dumps(orjson.dumps)
+set_json_loads(orjson.loads)
+
 
 _VALKEY_POOL = ConnectionPool.from_url(VALKEY_URL)
 
 # TODO: test unicode normalization comparison
+
+
+@asynccontextmanager
+async def psycopg_pool_open():
+    """Open and close the psycopg pool."""
+    await _PSYCOPG_POOL.open()
+    try:
+        yield _PSYCOPG_POOL
+    finally:
+        await _PSYCOPG_POOL.close()
+
+
+def psycopg_pool_open_decorator(func):
+    """Convenience decorator to open and close the psycopg pool. For use in scripts."""
+
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        async with psycopg_pool_open():
+            return await func(*args, **kwargs)
+
+    return wrapper
 
 
 @asynccontextmanager
@@ -41,10 +75,21 @@ async def db(write: bool = False, *, no_transaction: bool = False):
             await session.commit()
 
 
+@asynccontextmanager
+async def db2(write: bool = False, *, autocommit: bool = False):
+    """Get a database connection."""
+    async with _PSYCOPG_POOL.connection() as conn:
+        if autocommit:
+            await conn.set_autocommit(autocommit)
+        yield conn
+        if write:
+            await conn.commit()
+
+
 async def db_update_stats(*, vacuum: bool = False) -> None:
     """Update the database statistics."""
-    async with db(True, no_transaction=True) as session:
-        await session.execute(text('VACUUM ANALYZE') if vacuum else text('ANALYZE'))
+    async with db2(True, autocommit=True) as conn:
+        await conn.execute('VACUUM ANALYZE' if vacuum else 'ANALYZE')
 
 
 @asynccontextmanager
