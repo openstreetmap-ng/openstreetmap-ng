@@ -97,7 +97,7 @@ _PARQUET_SCHEMA = pa.schema(
                 )
             ),
         ),
-        pa.field('created_at', pa.date64()),
+        pa.field('created_at', pa.timestamp('ms', 'UTC')),
         pa.field('user_id', pa.uint64()),
         pa.field('display_name', pa.string()),
     ]

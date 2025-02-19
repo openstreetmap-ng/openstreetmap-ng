@@ -48,7 +48,7 @@ _PLANET_SCHEMA = pa.schema(
                 )
             ),
         ),
-        pa.field('created_at', pa.date64()),
+        pa.field('created_at', pa.timestamp('ms', 'UTC')),
         pa.field('user_id', pa.uint64()),
         pa.field('display_name', pa.string()),
     ]
@@ -72,15 +72,15 @@ _NOTES_SCHEMA = pa.schema(
                         pa.field('display_name', pa.string()),
                         pa.field('event', pa.string()),
                         pa.field('body', pa.string()),
-                        pa.field('created_at', pa.date64()),
+                        pa.field('created_at', pa.timestamp('ms', 'UTC')),
                     ]
                 )
             ),
         ),
-        pa.field('created_at', pa.date64()),
-        pa.field('updated_at', pa.date64()),
-        pa.field('closed_at', pa.date64()),
-        pa.field('hidden_at', pa.date64()),
+        pa.field('created_at', pa.timestamp('ms', 'UTC')),
+        pa.field('updated_at', pa.timestamp('ms', 'UTC')),
+        pa.field('closed_at', pa.timestamp('ms', 'UTC')),
+        pa.field('hidden_at', pa.timestamp('ms', 'UTC')),
     ]
 )
 
