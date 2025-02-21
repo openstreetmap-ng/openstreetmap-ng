@@ -20,7 +20,7 @@ from app.models.db.note_comment import NoteComment, NoteEvent
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.scope import Scope
-from app.models.types import DisplayNameType
+from app.models.types import DisplayName
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
@@ -201,7 +201,7 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
 
 @cython.cfunc
 def _get_activity_email_subject(
-    comment_user_name: DisplayNameType,
+    comment_user_name: DisplayName,
     event: NoteEvent,
     is_note_owner: cython.char,
 ) -> str:

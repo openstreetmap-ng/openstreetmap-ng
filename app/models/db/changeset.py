@@ -1,104 +1,98 @@
+from collections.abc import Iterable
 from datetime import datetime
-from functools import cached_property
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NewType, NotRequired, TypedDict
 
+from psycopg import AsyncConnection
 from shapely import Polygon
-from sqlalchemy import ForeignKey, Index, Integer, and_, func, null
-from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.lib.user_role_limits import UserRoleLimits
-from app.models.db.base import Base
-from app.models.db.created_at_mixin import CreatedAtMixin
-from app.models.db.updated_at_mixin import UpdatedAtMixin
-from app.models.db.user import User
-from app.models.geometry import PolygonType
+from app.models.db.user import User, UserId
 
 if TYPE_CHECKING:
     from app.models.db.changeset_bounds import ChangesetBounds
     from app.models.db.changeset_comment import ChangesetComment
 
+ChangesetId = NewType('ChangesetId', int)
 
-class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
-    __tablename__ = 'changeset'
 
-    user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
-    user: Mapped[User | None] = relationship(init=False, lazy='raise')
-    tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
+class ChangesetInit(TypedDict):
+    user_id: UserId | None
+    tags: dict[str, str]
+
+
+class Changeset(ChangesetInit):
+    id: ChangesetId
     # TODO: normalize unicode, check unicode, check length
-
-    # defaults
     # TODO: test updated at optimistic
-    closed_at: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP(True),
-        init=False,
-        nullable=True,
-        server_default=None,
-    )
-    size: Mapped[int] = mapped_column(
-        Integer,
-        init=False,
-        nullable=False,
-        server_default='0',
-    )
-    bounds: Mapped[list['ChangesetBounds']] = relationship(
-        init=False,
-        lazy='selectin',
-        cascade='save-update, delete, delete-orphan',
-    )
-    union_bounds: Mapped[Polygon | None] = mapped_column(
-        PolygonType,
-        init=False,
-        nullable=True,
-        server_default=None,
-    )
+    created_at: datetime
+    updated_at: datetime
+    closed_at: datetime
+    size: int
+    union_bounds: Polygon | None
 
     # runtime
-    num_comments: int | None = None
-    comments: 'list[ChangesetComment] | None' = None
+    user: NotRequired[User]
+    bounds: NotRequired[list['ChangesetBounds']]
+    num_comments: NotRequired[int]
+    comments: NotRequired[list['ChangesetComment'] | None]
 
-    __table_args__ = (
-        Index('changeset_user_idx', user_id, 'id', postgresql_where=user_id != null()),
-        Index('changeset_created_at_idx', 'created_at'),
-        Index('changeset_closed_at_idx', closed_at, postgresql_where=closed_at != null()),
-        Index('changeset_open_idx', 'updated_at', postgresql_where=closed_at == null()),
-        Index('changeset_empty_idx', closed_at, postgresql_where=and_(closed_at != null(), size == 0)),
-        Index(
-            'changeset_union_bounds_idx',
-            union_bounds,
-            postgresql_where=union_bounds != null(),
-            postgresql_using='gist',
-        ),
-    )
 
-    @cached_property
-    def max_size(self) -> int:
-        """Get the maximum size for this changeset."""
-        user = self.user
-        if user is None:
-            raise AssertionError('Changeset user must be set')
-        return UserRoleLimits.get_changeset_max_size(user.roles)
+def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
+    """Try to change the changeset size. Returns True if successful."""
+    if changeset['size'] >= new_size:
+        raise ValueError('New size must be greater than the current size')
 
-    def set_size(self, new_size: int) -> bool:
+    if changeset['user_id']:
+        user = changeset.get('user')
+        assert user is not None, 'Changeset user must be set'
+        max_size = UserRoleLimits.get_changeset_max_size(user.roles)
+    else:
+        max_size = UserRoleLimits.get_changeset_max_size(())
+
+    if new_size > max_size:
+        return False
+    changeset['size'] = new_size
+    return True
+
+
+async def changesets_auto_close_on_size(conn: AsyncConnection, changesets: Iterable[Changeset]) -> int:
+    """Close changesets that have reached the maximum size. Returns the number of updated changesets."""
+    mapping: dict[int, Changeset] = {}
+
+    for changeset in changesets:
+        if changeset['closed_at'] is not None:
+            continue
+
+        if changeset['user_id']:
+            user = changeset.get('user')
+            assert user is not None, 'Changeset user must be set'
+            max_size = UserRoleLimits.get_changeset_max_size(user.roles)
+        else:
+            max_size = UserRoleLimits.get_changeset_max_size(())
+
+        if changeset['size'] >= max_size:
+            mapping[changeset['id']] = changeset
+
+    if not mapping:
+        return 0
+
+    async with await conn.execute(
         """
-        Change the changeset size.
+        SELECT closed_at
+        FROM (
+            UPDATE changeset
+            SET closed_at = STATEMENT_TIMESTAMP()
+            WHERE id = ANY(%s)
+            RETURNING closed_at
+        ) LIMIT 1
+        """,
+        (list(mapping),),
+    ) as r:
+        row = await r.fetchone()
+        assert row is not None
+        closed_at: datetime = row[0]
 
-        Returns True if the size was changed successfully.
-        """
-        if self.size >= new_size:
-            raise ValueError('New size must be greater than the current size')
-        if new_size > self.max_size:
-            return False
-        self.size = new_size
-        return True
+    for changeset in mapping.values():
+        changeset['closed_at'] = closed_at
 
-    def auto_close_on_size(self, now: datetime | None = None) -> bool:
-        """
-        Close the changeset if it is open and reaches the size limit.
-
-        Returns True if the changeset was closed.
-        """
-        if (self.closed_at is not None) or (self.size < self.max_size):
-            return False
-        self.closed_at = func.statement_timestamp() if (now is None) else now
-        return True
+    return len(mapping)

@@ -3,7 +3,7 @@ from starlette import status
 
 from app.lib.auth_context import auth_context
 from app.lib.translation import t, translation_context
-from app.models.types import DisplayNameType, LocaleCode
+from app.models.types import DisplayName, LocaleCode
 from app.services.test_service import TestService
 
 
@@ -35,7 +35,7 @@ async def test_about_user_with_default_locale(client: AsyncClient):
 
 async def test_about_user_with_polish_locale(client: AsyncClient):
     with auth_context(None, ()):
-        await TestService.create_user(DisplayNameType('polish'), language=LocaleCode('pl'))
+        await TestService.create_user(DisplayName('polish'), language=LocaleCode('pl'))
     client.headers['Authorization'] = 'User polish'
 
     r = await client.get('/about')

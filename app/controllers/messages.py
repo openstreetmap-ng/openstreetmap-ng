@@ -25,7 +25,7 @@ from app.models.db.diary import Diary
 from app.models.db.diary_comment import DiaryComment
 from app.models.db.message import Message
 from app.models.db.user import User
-from app.models.types import DisplayNameType
+from app.models.types import DisplayName
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.message_query import MessageQuery
@@ -123,13 +123,13 @@ async def outbox(
 @router.get('/message/new')
 async def new_message(
     user: Annotated[User, web_user()],
-    to: Annotated[DisplayNameType | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
+    to: Annotated[DisplayName | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
     to_id: Annotated[PositiveInt | None, Query()] = None,
     reply: Annotated[PositiveInt | None, Query()] = None,
     reply_diary: Annotated[PositiveInt | None, Query()] = None,
     reply_diary_comment: Annotated[PositiveInt | None, Query()] = None,
 ):
-    recipient: DisplayNameType | None = None
+    recipient: DisplayName | None = None
     recipient_id: int | None = None
     subject: str = ''
     body: str = ''
@@ -198,7 +198,7 @@ async def new_message(
 
 
 @router.get('/message/new/{display_name:str}')
-async def legacy_message_to(display_name: DisplayNameType):
+async def legacy_message_to(display_name: DisplayName):
     return RedirectResponse(f'/message/new?to={display_name}', status.HTTP_302_FOUND)
 
 

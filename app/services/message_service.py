@@ -9,14 +9,14 @@ from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t, translation_context
 from app.models.db.mail import MailSource
 from app.models.db.message import Message
-from app.models.types import DisplayNameType
+from app.models.types import DisplayName
 from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
 
 
 class MessageService:
     @staticmethod
-    async def send(recipient: DisplayNameType | int, subject: str, body: str) -> int:
+    async def send(recipient: DisplayName | int, subject: str, body: str) -> int:
         """Send a message to a user."""
         if isinstance(recipient, str):
             recipient_user = await UserQuery.find_one_by_display_name(recipient)

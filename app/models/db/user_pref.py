@@ -1,16 +1,11 @@
-from sqlalchemy import BigInteger, ForeignKey, PrimaryKeyConstraint, Unicode
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import TypedDict
 
-from app.models.db.base import Base
-from app.models.db.user import User
+from app.models.db.oauth2_application import ApplicationId
+from app.models.db.user import UserId
 
 
-class UserPref(Base.NoID):
-    __tablename__ = 'user_pref'
-
-    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    app_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    key: Mapped[str] = mapped_column(Unicode(255), nullable=False)
-    value: Mapped[str] = mapped_column(Unicode(255), nullable=False)
-
-    __table_args__ = (PrimaryKeyConstraint(user_id, app_id, key),)
+class UserPref(TypedDict):
+    user_id: UserId
+    app_id: ApplicationId | None
+    key: str
+    value: str  # TODO: validate size

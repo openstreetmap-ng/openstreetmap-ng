@@ -5,7 +5,7 @@ from pydantic import SecretStr
 from starlette import status
 
 from app.config import GITHUB_OAUTH_PUBLIC, GITHUB_OAUTH_SECRET
-from app.models.auth_provider import AuthProvider, AuthProviderAction
+from app.models.auth_provider import AuthProviderAction
 from app.services.auth_provider_service import AuthProviderService
 from app.utils import HTTP
 
@@ -20,7 +20,7 @@ async def github_authorize(
     if not GITHUB_OAUTH_PUBLIC or not GITHUB_OAUTH_SECRET:
         return Response('GitHub OAuth credentials are not configured', status.HTTP_503_SERVICE_UNAVAILABLE)
     return AuthProviderService.continue_authorize(
-        provider=AuthProvider.github,
+        provider='github',
         action=action,
         referer=referer,
         redirect_uri='https://github.com/login/oauth/authorize',
@@ -38,7 +38,7 @@ async def github_callback(
     auth_provider_state: Annotated[str, Cookie()],
 ):
     state_ = AuthProviderService.validate_state(
-        provider=AuthProvider.github,
+        provider='github',
         query_state=state,
         cookie_state=auth_provider_state,
     )

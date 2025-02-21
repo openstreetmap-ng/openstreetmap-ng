@@ -10,7 +10,7 @@ from app.lib.options_context import options_context
 from app.limits import DISPLAY_NAME_MAX_LENGTH, MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH
 from app.models.db.message import Message
 from app.models.db.user import User
-from app.models.types import DisplayNameType
+from app.models.types import DisplayName
 from app.queries.message_query import MessageQuery
 from app.services.message_service import MessageService
 
@@ -22,7 +22,7 @@ async def send_message(
     _: Annotated[User, web_user()],
     subject: Annotated[str, Form(min_length=1, max_length=MESSAGE_SUBJECT_MAX_LENGTH)],
     body: Annotated[str, Form(min_length=1, max_length=MESSAGE_BODY_MAX_LENGTH)],
-    recipient: Annotated[DisplayNameType, Form(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
+    recipient: Annotated[DisplayName, Form(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
     recipient_id: Annotated[PositiveInt | None, Form()] = None,
 ):
     message_id = await MessageService.send(

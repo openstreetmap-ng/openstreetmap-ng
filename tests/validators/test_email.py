@@ -1,7 +1,7 @@
 import pytest
 from pydantic import BaseModel
 
-from app.models.types import EmailType
+from app.models.types import Email
 from app.validators.email import ValidatingEmailType, validate_email_deliverability
 
 
@@ -9,7 +9,7 @@ def test_validating_email_type():
     class TestModel(BaseModel):
         email: ValidatingEmailType
 
-    assert TestModel(email=EmailType('example@ツ.ⓁⒾⒻⒺ')).email == EmailType('example@ツ.life')
+    assert TestModel(email=Email('example@ツ.ⓁⒾⒻⒺ')).email == Email('example@ツ.life')
 
 
 @pytest.mark.extended

@@ -16,7 +16,7 @@ from pydantic import AfterValidator
 
 from app.config import TEST_ENV
 from app.limits import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT, EMAIL_MIN_LENGTH
-from app.models.types import EmailType
+from app.models.types import Email
 from app.services.cache_service import CacheContext, CacheService
 
 _cache_context = CacheContext('EmailValidator')
@@ -27,7 +27,7 @@ _resolver.cache = None  # using valkey cache
 _resolver.retry_servfail = True
 
 
-def validate_email(email: str) -> EmailType:
+def validate_email(email: str) -> Email:
     """
     Validate and normalize email address.
 
@@ -37,7 +37,7 @@ def validate_email(email: str) -> EmailType:
     'example@ツ.life'
     """
     try:
-        return EmailType(
+        return Email(
             validate_email_(
                 email,
                 check_deliverability=False,
@@ -128,4 +128,4 @@ async def _check_domain_deliverability(domain: str) -> bool:
 
 
 EmailValidator = AfterValidator(validate_email)
-ValidatingEmailType = Annotated[EmailType, EmailValidator, MinLen(EMAIL_MIN_LENGTH), MaxLen(EMAIL_MAX_LENGTH)]
+ValidatingEmailType = Annotated[Email, EmailValidator, MinLen(EMAIL_MIN_LENGTH), MaxLen(EMAIL_MAX_LENGTH)]

@@ -12,7 +12,7 @@ from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.db.user_token_reset_password import UserTokenResetPassword
 from app.models.proto.server_pb2 import UserTokenStruct
-from app.models.types import EmailType
+from app.models.types import Email
 from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
 
@@ -21,7 +21,7 @@ _SEND_EMAIL_LATENCY: deque[float] = deque((0.1,), maxlen=10)
 
 class UserTokenResetPasswordService:
     @staticmethod
-    async def send_email(email: EmailType) -> None:
+    async def send_email(email: Email) -> None:
         """Send a password reset request to the given email address (if registered)."""
         ts = time.perf_counter()
         to_user = await UserQuery.find_one_by_email(email)

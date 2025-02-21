@@ -15,7 +15,7 @@ from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import COOKIE_AUTH_MAX_AGE, DISPLAY_NAME_MAX_LENGTH, TIMEZONE_MAX_LENGTH
 from app.models.db.user import User, UserStatus
-from app.models.types import DisplayNameType, EmailType, PasswordType, ValidatingDisplayNameType
+from app.models.types import DisplayName, DisplayNameValidating, Email, Password
 from app.services.auth_provider_service import AuthProviderService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
@@ -31,9 +31,9 @@ router = APIRouter(prefix='/api/web/user')
 @router.post('/login')
 async def login(
     display_name_or_email: Annotated[
-        DisplayNameType | EmailType, Form(min_length=1, max_length=max(DISPLAY_NAME_MAX_LENGTH, EMAIL_MAX_LENGTH))
+        DisplayName | Email, Form(min_length=1, max_length=max(DISPLAY_NAME_MAX_LENGTH, EMAIL_MAX_LENGTH))
     ],
-    password: Annotated[PasswordType, Form()],
+    password: Annotated[Password, Form()],
     remember: Annotated[bool, Form()] = False,
 ):
     access_token = await UserService.login(
@@ -66,9 +66,9 @@ async def logout(
 
 @router.post('/signup')
 async def signup(
-    display_name: Annotated[ValidatingDisplayNameType, Form()],
+    display_name: Annotated[DisplayNameValidating, Form()],
     email: Annotated[ValidatingEmailType, Form()],
-    password: Annotated[PasswordType, Form()],
+    password: Annotated[Password, Form()],
     tracking: Annotated[bool, Form()] = False,
     auth_provider_verification: Annotated[str | None, Cookie()] = None,
 ):
@@ -133,7 +133,7 @@ async def email_change_confirm(
 
 @router.post('/reset-password')
 async def reset_password(
-    email: Annotated[EmailType, Form()],
+    email: Annotated[Email, Form()],
 ):
     await UserTokenResetPasswordService.send_email(email)
     return StandardFeedback.success_result(None, t('settings.password_reset_link_sent'))
@@ -142,7 +142,7 @@ async def reset_password(
 @router.post('/reset-password/token')
 async def reset_password_token(
     token: Annotated[SecretStr, Form()],
-    new_password: Annotated[PasswordType, Form()],
+    new_password: Annotated[Password, Form()],
 ):
     revoke_other_sessions = auth_user() is None
     await UserService.reset_password(

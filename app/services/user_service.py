@@ -17,7 +17,7 @@ from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
 from app.models.db.user import Editor, User, UserStatus
 from app.models.db.user_token_reset_password import UserTokenResetPassword
-from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
+from app.models.types import DisplayName, Email, LocaleCode, Password
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
 from app.services.image_service import ImageService
@@ -31,8 +31,8 @@ class UserService:
     @staticmethod
     async def login(
         *,
-        display_name_or_email: DisplayNameType | EmailType,
-        password: PasswordType,
+        display_name_or_email: DisplayName | Email,
+        password: Password,
     ) -> SecretStr:
         """
         Attempt to login as a user.
@@ -48,7 +48,7 @@ class UserService:
             else:
                 user = await UserQuery.find_one_by_email(email)
         else:
-            display_name = DisplayNameType(display_name_or_email)
+            display_name = DisplayName(display_name_or_email)
             user = await UserQuery.find_one_by_display_name(display_name)
 
         if user is None:
@@ -142,7 +142,7 @@ class UserService:
     @staticmethod
     async def update_settings(
         *,
-        display_name: DisplayNameType,
+        display_name: DisplayName,
         language: LocaleCode,
         activity_tracking: bool,
         crash_reporting: bool,
@@ -193,8 +193,8 @@ class UserService:
     @staticmethod
     async def update_email(
         *,
-        new_email: EmailType,
-        password: PasswordType,
+        new_email: Email,
+        password: Password,
     ) -> None:
         """
         Update user email.
@@ -229,8 +229,8 @@ class UserService:
     @staticmethod
     async def update_password(
         *,
-        old_password: PasswordType,
-        new_password: PasswordType,
+        old_password: Password,
+        new_password: Password,
     ) -> None:
         """Update user password."""
         user = auth_user(required=True)
@@ -267,7 +267,7 @@ class UserService:
     async def reset_password(
         token: SecretStr,
         *,
-        new_password: PasswordType,
+        new_password: Password,
         revoke_other_sessions: bool,
     ) -> None:
         """Reset the user password."""
@@ -370,7 +370,7 @@ class UserService:
             await session.execute(stmt)
 
 
-async def _rehash_user_password(user: User, password: PasswordType) -> None:
+async def _rehash_user_password(user: User, password: Password) -> None:
     new_password_pb = PasswordHash.hash(password)
     if new_password_pb is None:
         return

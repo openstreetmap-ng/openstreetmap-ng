@@ -7,7 +7,7 @@
             <h1>
                 {{ t('oauth.account_not_found') }}
             </h1>
-            <p class="mb-2">{{ t('oauth.we_couldnt_find_account', provider=provider.value.capitalize()) }}</p>
+            <p class="mb-2">{{ t('oauth.we_couldnt_find_account', provider=provider.capitalize()) }}</p>
         </div>
     </div>
     <div class="content-body">
@@ -21,7 +21,7 @@
             {% endif %}
 
             <h3>{{ t('oauth.already_have_an_openstreetmap_account') }}</h3>
-            <p class="mb-2">{{ t('oauth.connect_it_in_settings', provider=provider.value.capitalize()) }}</p>
+            <p class="mb-2">{{ t('oauth.connect_it_in_settings', provider=provider.capitalize()) }}</p>
             {% if user is none %}
                 <button class="btn btn-outline-primary px-4 fw-medium" type="button" data-bs-toggle="modal"
                         data-bs-target="#loginModal">

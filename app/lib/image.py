@@ -1,6 +1,5 @@
 import logging
 from asyncio import get_running_loop
-from enum import Enum
 from pathlib import Path
 from typing import Literal, overload
 
@@ -29,11 +28,7 @@ else:
 
 # TODO: test 200MP file
 
-
-class AvatarType(str, Enum):
-    default = 'default'
-    gravatar = 'gravatar'
-    custom = 'custom'
+AvatarType = Literal[None, 'gravatar', 'custom']
 
 
 class Image:
@@ -41,29 +36,29 @@ class Image:
 
     @staticmethod
     @overload
-    def get_avatar_url(image_type: Literal[AvatarType.default], *, app: bool = False) -> str: ...
+    def get_avatar_url(image_type: Literal[None], *, app: bool = False) -> str: ...
 
     @staticmethod
     @overload
-    def get_avatar_url(image_type: Literal[AvatarType.gravatar], image_id: int) -> str: ...
+    def get_avatar_url(image_type: Literal['gravatar'], image_id: int) -> str: ...
 
     @staticmethod
     @overload
-    def get_avatar_url(image_type: Literal[AvatarType.custom], image_id: StorageKey) -> str: ...
+    def get_avatar_url(image_type: Literal['custom'], image_id: StorageKey) -> str: ...
 
     @staticmethod
     def get_avatar_url(image_type: AvatarType, image_id: int | StorageKey = 0, *, app: bool = False) -> str:
         """
         Get the url of the avatar image.
 
-        >>> Image.get_avatar_url(AvatarType.custom, StorageKey('123456'))
+        >>> Image.get_avatar_url('custom', StorageKey('123456'))
         '/api/web/avatar/123456'
         """
-        if image_type == AvatarType.default:
+        if image_type is None:
             return '/static/img/avatar.webp' if not app else '/static/img/app.webp'
-        elif image_type == AvatarType.gravatar:
+        elif image_type == 'gravatar':
             return f'/api/web/gravatar/{image_id}'
-        elif image_type == AvatarType.custom:
+        elif image_type == 'custom':
             return f'/api/web/avatar/{image_id}'
         else:
             raise NotImplementedError(f'Unsupported avatar type {image_type!r}')

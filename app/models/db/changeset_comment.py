@@ -1,30 +1,29 @@
-from sqlalchemy import ForeignKey, Index, LargeBinary, UnicodeText
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from collections.abc import Iterable
+from datetime import datetime
+from typing import NewType, NotRequired, TypedDict
 
-from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text import RichTextMixin, TextFormat
-from app.models.db.base import Base
-from app.models.db.changeset import Changeset
-from app.models.db.created_at_mixin import CreatedAtMixin
-from app.models.db.user import User
+from app.lib.rich_text import resolve_rich_text
+from app.models.db.changeset import ChangesetId
+from app.models.db.user import User, UserId
+
+ChangesetCommentId = NewType('ChangesetCommentId', int)
 
 
-class ChangesetComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
-    __tablename__ = 'changeset_comment'
-    __rich_text_fields__ = (('body', TextFormat.plain),)
+class ChangesetCommentInit(TypedDict):
+    user_id: UserId
+    changeset_id: ChangesetId
+    body: str  # TODO: validate size
 
-    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(init=False, lazy='raise', innerjoin=True)
-    changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id, ondelete='CASCADE'), nullable=False)
-    body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(
-        LargeBinary(HASH_SIZE),
-        init=False,
-        nullable=True,
-        server_default=None,
-    )
+
+class ChangesetComment(ChangesetCommentInit):
+    id: ChangesetCommentId
+    body_rich_hash: bytes | None
+    created_at: datetime
 
     # runtime
-    body_rich: str | None = None
+    user: NotRequired[User]
+    body_rich: NotRequired[str]
 
-    __table_args__ = (Index('changeset_comment_idx', changeset_id, 'created_at'),)
+
+async def changeset_comments_resolve_rich_text(objs: Iterable[ChangesetComment]) -> None:
+    await resolve_rich_text(objs, 'changeset_comment', 'body', 'plain')

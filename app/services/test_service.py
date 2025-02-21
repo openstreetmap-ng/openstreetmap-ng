@@ -16,7 +16,7 @@ from app.limits import OAUTH_SECRET_PREVIEW_LENGTH
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import User, UserRole, UserStatus
 from app.models.scope import PUBLIC_SCOPES, Scope
-from app.models.types import DisplayNameType, EmailType, LocaleCode, Uri
+from app.models.types import DisplayName, Email, LocaleCode, Uri
 from app.queries.user_query import UserQuery
 
 
@@ -27,10 +27,10 @@ class TestService:
         """Prepare the test environment."""
         with auth_context(None, ()):
             async with TaskGroup() as tg:
-                tg.create_task(TestService.create_user(DisplayNameType('admin'), roles=(UserRole.administrator,)))
-                tg.create_task(TestService.create_user(DisplayNameType('moderator'), roles=(UserRole.moderator,)))
-                tg.create_task(TestService.create_user(DisplayNameType('user1')))
-                tg.create_task(TestService.create_user(DisplayNameType('user2')))
+                tg.create_task(TestService.create_user(DisplayName('admin'), roles=(UserRole.administrator,)))
+                tg.create_task(TestService.create_user(DisplayName('moderator'), roles=(UserRole.moderator,)))
+                tg.create_task(TestService.create_user(DisplayName('user1')))
+                tg.create_task(TestService.create_user(DisplayName('user2')))
 
             async with TaskGroup() as tg:
                 tg.create_task(
@@ -64,7 +64,7 @@ class TestService:
     @staticmethod
     @testmethod
     async def create_user(
-        name: DisplayNameType,
+        name: DisplayName,
         *,
         status: UserStatus = UserStatus.active,
         language: LocaleCode = DEFAULT_LOCALE,
@@ -72,7 +72,7 @@ class TestService:
         roles: tuple[UserRole, ...] = (),
     ) -> None:
         """Create a test user."""
-        email = EmailType(f'{name}{TEST_USER_EMAIL_SUFFIX}')
+        email = Email(f'{name}{TEST_USER_EMAIL_SUFFIX}')
         name_available = await UserQuery.check_display_name_available(name)
 
         async with db(True) as session:

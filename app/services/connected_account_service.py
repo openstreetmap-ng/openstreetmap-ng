@@ -4,6 +4,7 @@ from sqlalchemy import delete
 
 from app.db import db
 from app.lib.auth_context import auth_user
+from app.limits import AUTH_PROVIDER_UID_MAX_LENGTH
 from app.models.auth_provider import AuthProvider
 from app.models.db.connected_account import ConnectedAccount
 
@@ -16,6 +17,9 @@ class ConnectedAccountService:
 
         Returns the new connection id.
         """
+        if len(uid) > AUTH_PROVIDER_UID_MAX_LENGTH:
+            raise ValueError(f'Connected account uid too long: {len(uid)} > {AUTH_PROVIDER_UID_MAX_LENGTH}')
+
         user_id = auth_user(required=True).id
         async with db(True) as session:
             connection = ConnectedAccount(

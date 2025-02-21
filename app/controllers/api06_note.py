@@ -29,7 +29,7 @@ from app.models.db.note_comment import NoteComment, NoteEvent
 from app.models.db.user import User
 from app.models.geometry import Latitude, Longitude
 from app.models.scope import Scope
-from app.models.types import DisplayNameType
+from app.models.types import DisplayName
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
@@ -263,7 +263,7 @@ async def query_notes2(
     request: Request,
     q: Annotated[str | None, Query()] = None,
     closed: Annotated[float, Query()] = NOTE_QUERY_DEFAULT_CLOSED,
-    display_name: Annotated[DisplayNameType | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
+    display_name: Annotated[DisplayName | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
     user_id: Annotated[PositiveInt | None, Query(alias='user')] = None,
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     from_: Annotated[datetime | None, DateValidator, Query(alias='from')] = None,

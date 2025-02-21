@@ -17,7 +17,7 @@ from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT,
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.changeset import Changeset
 from app.models.db.user import User
-from app.models.types import DisplayNameType
+from app.models.types import DisplayName
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 
@@ -35,7 +35,7 @@ async def history_feed(
 
 @router.get('/user/{display_name:str}/history/feed')
 async def user_history_feed(
-    display_name: Annotated[DisplayNameType, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
+    display_name: Annotated[DisplayName, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):

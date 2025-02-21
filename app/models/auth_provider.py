@@ -1,14 +1,9 @@
-from enum import Enum
-from typing import Literal
+from typing import Literal, get_args
 
+AuthProvider = Literal['google', 'facebook', 'microsoft', 'github', 'wikimedia']
+# TODO: openid
+# TODO: migration wikimedia, old value: wikipedia
 
-class AuthProvider(str, Enum):
-    # openid = 'openid'
-    google = 'google'
-    facebook = 'facebook'
-    microsoft = 'microsoft'
-    github = 'github'
-    wikimedia = 'wikimedia'  # TODO: migration, old value: wikipedia
-
+AUTH_PROVIDERS: frozenset[AuthProvider] = frozenset(get_args(AuthProvider))
 
 AuthProviderAction = Literal['login', 'signup', 'settings']

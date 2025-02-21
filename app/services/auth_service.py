@@ -9,12 +9,12 @@ from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User
 from app.models.scope import PUBLIC_SCOPES, Scope
-from app.models.types import DisplayNameType
+from app.models.types import DisplayName
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
 
 # default scopes when using session auth
-_session_auth_scopes: tuple[Scope, ...] = (*PUBLIC_SCOPES, Scope.web_user)
+_session_auth_scopes: tuple[Scope, ...] = (*PUBLIC_SCOPES, 'web_user')
 
 
 class AuthService:
@@ -83,7 +83,7 @@ class AuthService:
                 scheme, _, param = authorization.partition(' ')
                 if scheme.casefold() == 'user':
                     logging.debug('Attempting to authenticate with User')
-                    user = await UserQuery.find_one_by_display_name(DisplayNameType(param))
+                    user = await UserQuery.find_one_by_display_name(DisplayName(param))
                     scopes = _session_auth_scopes
                     if user is None:
                         raise_for.user_not_found(param)

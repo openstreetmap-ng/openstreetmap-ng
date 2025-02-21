@@ -15,7 +15,7 @@ from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscriptionTarget
-from app.models.types import DisplayNameType
+from app.models.types import DisplayName
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
@@ -122,7 +122,7 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
 
 @cython.cfunc
 def _get_activity_email_subject(
-    comment_user_name: DisplayNameType,
+    comment_user_name: DisplayName,
     is_changeset_owner: cython.char,
 ) -> str:
     if is_changeset_owner:

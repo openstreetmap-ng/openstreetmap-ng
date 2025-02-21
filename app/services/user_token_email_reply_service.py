@@ -16,14 +16,14 @@ from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.db.user_token_email_reply import UserTokenEmailReply
 from app.models.proto.server_pb2 import UserTokenStruct
-from app.models.types import EmailType
+from app.models.types import Email
 from app.queries.user_token_email_reply_query import UserTokenEmailReplyQuery
 from app.services.message_service import MessageService
 
 
 class UserTokenEmailReplyService:
     @staticmethod
-    async def create_address(replying_user: User, mail_source: MailSource) -> EmailType:
+    async def create_address(replying_user: User, mail_source: MailSource) -> Email:
         """
         Create a new user email reply address.
 
@@ -31,10 +31,10 @@ class UserTokenEmailReplyService:
         """
         token = await _create_token(replying_user, mail_source)
         token_str = UserTokenStructUtils.to_str(token)
-        return EmailType(f'{token_str}@{SMTP_MESSAGES_FROM_HOST}')
+        return Email(f'{token_str}@{SMTP_MESSAGES_FROM_HOST}')
 
     @staticmethod
-    async def reply(reply_address: EmailType, subject: str, body: str) -> None:
+    async def reply(reply_address: Email, subject: str, body: str) -> None:
         """Reply to a user with a message."""
         with options_context(joinedload(UserTokenEmailReply.user)):
             token = await UserTokenEmailReplyQuery.find_one_by_reply_address(reply_address)

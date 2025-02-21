@@ -14,14 +14,14 @@ from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.db.user_token_email_change import UserTokenEmailChange
 from app.models.proto.server_pb2 import UserTokenStruct
-from app.models.types import EmailType
+from app.models.types import Email
 from app.queries.user_token_query import UserTokenQuery
 from app.services.email_service import EmailService
 
 
 class UserTokenEmailChangeService:
     @staticmethod
-    async def send_email(new_email: EmailType) -> None:
+    async def send_email(new_email: Email) -> None:
         """Send a confirmation email for the email change."""
         app_domain = urlsplit(APP_URL).netloc
         token = await _create_token(new_email)
@@ -61,7 +61,7 @@ class UserTokenEmailChangeService:
             )
 
 
-async def _create_token(new_email: EmailType) -> UserTokenStruct:
+async def _create_token(new_email: Email) -> UserTokenStruct:
     """Create a new user email change token."""
     user = auth_user(required=True)
     user_email_hashed = hash_bytes(user.email)

@@ -14,7 +14,7 @@ from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_compare, hmac_bytes
 from app.lib.render_response import render_response
 from app.limits import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_MAX_AGE, COOKIE_AUTH_MAX_AGE
-from app.models.auth_provider import AuthProvider, AuthProviderAction
+from app.models.auth_provider import AUTH_PROVIDERS, AuthProvider, AuthProviderAction
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.services.connected_account_service import ConnectedAccountService
@@ -63,7 +63,7 @@ class AuthProviderService:
         state = AuthProviderState.FromString(urlsafe_b64decode(buffer_b64))
         if state.timestamp + AUTH_PROVIDER_STATE_MAX_AGE < time():
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Authorization timed out, please try again')
-        if state.provider != provider.value:
+        if state.provider != provider:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state provider')
         return state
 
@@ -75,7 +75,9 @@ class AuthProviderService:
         name: str | None,
         email: str | None,
     ) -> Response:
-        provider = AuthProvider(state.provider)
+        if state.provider not in AUTH_PROVIDERS:
+            raise NotImplementedError(f'Unsupported auth provider {state.provider!r}')
+        provider = cast(AuthProvider, state.provider)  # pyright: ignore [reportUnnecessaryCast]
         action = cast(AuthProviderAction, state.action)
         uid = str(uid)
 
@@ -170,7 +172,7 @@ def _create_signed_state(
     buffer_b64 = urlsafe_b64encode(
         AuthProviderState(
             timestamp=int(time()),
-            provider=provider.value,
+            provider=provider,
             action=action,
             referer=referer,
             nonce=buffered_randbytes(16),
@@ -196,7 +198,7 @@ def _create_signed_verification(
     buffer_b64 = urlsafe_b64encode(
         AuthProviderVerification(
             timestamp=int(time()),
-            provider=provider.value,
+            provider=provider,
             uid=uid,
             name=name,
             email=email,

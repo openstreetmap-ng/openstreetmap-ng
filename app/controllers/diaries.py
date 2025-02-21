@@ -19,7 +19,7 @@ from app.limits import (
 )
 from app.models.db.diary import Diary
 from app.models.db.user import User
-from app.models.types import DisplayNameType, LocaleCode
+from app.models.types import DisplayName, LocaleCode
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery
@@ -167,7 +167,7 @@ async def language_index(
 
 @router.get('/user/{display_name:str}/diary')
 async def personal_index(
-    display_name: Annotated[DisplayNameType, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
+    display_name: Annotated[DisplayName, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
 ):

@@ -5,7 +5,7 @@ import cython
 from starlette.applications import Starlette
 from starlette.routing import Route
 
-from app.models.types import DisplayNameType
+from app.models.types import DisplayName
 
 _BLACKLIST: set[str] = set()
 
@@ -28,7 +28,7 @@ def user_name_blacklist_routes(app: Starlette) -> None:
     logging.info('Blacklisted %d user names from routes: %s', len(result), result)
 
 
-def is_user_name_blacklisted(display_name: DisplayNameType) -> bool:
+def is_user_name_blacklisted(display_name: DisplayName) -> bool:
     """Check if the given display name is blacklisted."""
     return _normalize(display_name) in _BLACKLIST
 

@@ -526,10 +526,10 @@ def _write_user() -> None:
 
 
 async def main() -> None:
-    run_planet_workers()
-    merge_planet_worker_results()
-    run_notes_workers()
-    merge_notes_worker_results()
+    # run_planet_workers()
+    # merge_planet_worker_results()
+    # run_notes_workers()
+    # merge_notes_worker_results()
 
     print('Writing changeset')
     _write_changeset()

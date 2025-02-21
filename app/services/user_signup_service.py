@@ -7,7 +7,7 @@ from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import primary_translation_locale, t
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.user import User, UserStatus
-from app.models.types import DisplayNameType, EmailType, PasswordType
+from app.models.types import DisplayName, Email, Password
 from app.queries.user_query import UserQuery
 from app.services.system_app_service import SystemAppService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
@@ -18,9 +18,9 @@ class UserSignupService:
     @staticmethod
     async def signup(
         *,
-        display_name: DisplayNameType,
-        email: EmailType,
-        password: PasswordType,
+        display_name: DisplayName,
+        email: Email,
+        password: Password,
         tracking: bool,
         email_confirmed: bool,
     ) -> SecretStr:

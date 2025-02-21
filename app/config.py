@@ -123,7 +123,7 @@ TRUSTED_HOSTS: frozenset[str] = frozenset(
 )
 
 TEST_USER_EMAIL_SUFFIX = '@test.test'
-DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'
+DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'  # SQL index depends on this value
 
 FORCE_CRASH_REPORTING = getenv('FORCE_CRASH_REPORTING', '0').strip().lower() in {'1', 'true', 'yes'}
 SENTRY_TRACES_SAMPLE_RATE = float(getenv('SENTRY_TRACES_SAMPLE_RATE', '1'))
@@ -136,6 +136,7 @@ SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FR
 SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
 
 POSTGRES_SQLALCHEMY_URL = POSTGRES_URL.replace('postgresql://', 'postgresql+asyncpg://', 1)
+
 
 # Logging configuration
 dictConfig(

@@ -15,7 +15,7 @@ from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_QUERY_WEB_LI
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
-from app.models.types import DisplayNameType
+from app.models.types import DisplayName
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
@@ -38,7 +38,7 @@ async def create_comment(
 async def get_map(
     bbox: Annotated[str | None, Query()] = None,
     scope: Annotated[Literal['nearby', 'friends'] | None, Query()] = None,  # TODO: support scope
-    display_name: Annotated[DisplayNameType | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
+    display_name: Annotated[DisplayName | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
     user_ids: Collection[int] | None = None

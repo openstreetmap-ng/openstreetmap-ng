@@ -5,16 +5,16 @@ from pydantic import SecretStr
 
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.user_token_email_reply import UserTokenEmailReply
-from app.models.types import EmailType
+from app.models.types import Email
 from app.queries.user_token_query import UserTokenQuery
 
 
 class UserTokenEmailReplyQuery:
     @staticmethod
-    async def find_one_by_reply_address(reply_address: EmailType) -> UserTokenEmailReply | None:
+    async def find_one_by_reply_address(reply_address: Email) -> UserTokenEmailReply | None:
         """Find a user email reply token by reply email address."""
         # strip the name part: "abc" <foo@bar.com> -> foo@bar.com
-        reply_address = EmailType(parseaddr(reply_address)[1])
+        reply_address = Email(parseaddr(reply_address)[1])
         try:
             token_str = SecretStr(reply_address.split('@', 1)[0])
             token_struct = UserTokenStructUtils.from_str(token_str)

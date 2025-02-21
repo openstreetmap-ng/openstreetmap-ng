@@ -9,7 +9,7 @@ from argon2.exceptions import VerifyMismatchError
 from app.config import TEST_ENV
 from app.models.proto.server_pb2 import UserPassword
 from app.models.proto.shared_pb2 import TransmitUserPassword
-from app.models.types import PasswordType
+from app.models.types import Password
 
 PasswordSchema = Literal['legacy', 'v1']
 
@@ -35,7 +35,7 @@ class PasswordHash:
     def verify(
         *,
         password_pb: bytes,
-        password: PasswordType,
+        password: Password,
         is_test_user: bool,
     ) -> VerifyResult:
         """Verify a password against a hash and optional extra data."""
@@ -103,7 +103,7 @@ class PasswordHash:
         raise NotImplementedError(f'Unsupported password_pb schema: {password_pb_schema!r}')
 
     @staticmethod
-    def hash(password: PasswordType) -> bytes | None:
+    def hash(password: Password) -> bytes | None:
         """
         Hash a password using the latest recommended algorithm.
 

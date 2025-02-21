@@ -14,7 +14,7 @@ from app.limits import NEARBY_USERS_RADIUS_METERS
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.types import DisplayNameType, EmailType
+from app.models.types import DisplayName, Email
 
 
 class UserQuery:
@@ -27,7 +27,7 @@ class UserQuery:
             return await session.scalar(stmt)
 
     @staticmethod
-    async def find_one_by_display_name(display_name: DisplayNameType) -> User | None:
+    async def find_one_by_display_name(display_name: DisplayName) -> User | None:
         """Find a user by display name."""
         async with db() as session:
             stmt = select(User).where(User.display_name == display_name)
@@ -35,7 +35,7 @@ class UserQuery:
             return await session.scalar(stmt)
 
     @staticmethod
-    async def find_one_by_email(email: EmailType) -> User | None:
+    async def find_one_by_email(email: Email) -> User | None:
         """Find a user by email."""
         async with db() as session:
             stmt = select(User).where(User.email == email)
@@ -81,7 +81,7 @@ class UserQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def check_display_name_available(display_name: DisplayNameType) -> bool:
+    async def check_display_name_available(display_name: DisplayName) -> bool:
         """Check if a display name is available."""
         user = auth_user()
         # check if the name is unchanged
@@ -95,7 +95,7 @@ class UserQuery:
         return other_user is None or (user is not None and other_user.id == user.id)
 
     @staticmethod
-    async def check_email_available(email: EmailType) -> bool:
+    async def check_email_available(email: Email) -> bool:
         """Check if an email is available."""
         user = auth_user()
         # check if the email is unchanged
