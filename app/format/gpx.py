@@ -12,7 +12,7 @@ from app.limits import (
     TRACE_SEGMENT_MAX_AREA_LENGTH,
     TRACE_SEGMENT_MAX_SIZE,
 )
-from app.models.db.trace_ import Trace
+from app.models.db.trace import Trace
 from app.models.db.trace_segment import TraceSegment
 from app.validators.geometry import validate_geometry
 

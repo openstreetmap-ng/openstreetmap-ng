@@ -12,7 +12,7 @@ from app.lib.auth_context import auth_user, web_user
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.limits import DISPLAY_NAME_MAX_LENGTH, TRACE_TAG_MAX_LENGTH, TRACES_LIST_PAGE_SIZE
-from app.models.db.trace_ import Trace
+from app.models.db.trace import Trace
 from app.models.db.user import User
 from app.models.types import DisplayName
 from app.queries.trace_query import TraceQuery

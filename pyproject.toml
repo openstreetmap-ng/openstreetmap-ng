@@ -16,6 +16,7 @@ dependencies = [
   "fastapi>=0",
   "feedgen",
   "githead>=1.2.0",
+  "h3>=4.2.1",
   "httpx[brotli,zstd]",
   "jinja2",
   "libvalkey>=4.0.1b1",

@@ -14,7 +14,7 @@ from app.lib.geo_utils import parse_bbox
 from app.lib.options_context import options_context
 from app.lib.xml_body import xml_body
 from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
-from app.models.db.trace_ import Trace, TraceVisibility
+from app.models.db.trace import Trace, TraceVisibility
 from app.models.db.trace_segment import TraceSegment
 from app.models.db.user import User
 from app.models.scope import Scope

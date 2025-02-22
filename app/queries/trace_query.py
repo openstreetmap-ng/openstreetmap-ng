@@ -7,7 +7,7 @@ from app.lib.auth_context import auth_scopes, auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import apply_options_context
 from app.lib.trace_file import TraceFile
-from app.models.db.trace_ import Trace
+from app.models.db.trace import Trace
 from app.storage import TRACES_STORAGE
 
 

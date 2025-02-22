@@ -10,7 +10,7 @@ from sqlalchemy.sql.selectable import Select
 from app.db import db
 from app.lib.mercator import mercator
 from app.lib.options_context import apply_options_context
-from app.models.db.trace_ import Trace
+from app.models.db.trace import Trace
 from app.models.db.trace_segment import TraceSegment
 
 

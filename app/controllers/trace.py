@@ -11,7 +11,7 @@ from app.config import API_URL
 from app.lib.auth_context import web_user
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.models.db.trace_ import Trace
+from app.models.db.trace import Trace
 from app.models.db.user import User
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery

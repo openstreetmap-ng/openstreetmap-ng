@@ -6,7 +6,7 @@ from pydantic import PositiveInt
 from app.exceptions.api_error import APIError
 from app.lib.auth_context import web_user
 from app.lib.standard_feedback import StandardFeedback
-from app.models.db.trace_ import TraceVisibility
+from app.models.db.trace import TraceVisibility
 from app.models.db.user import User
 from app.models.types import Str255
 from app.services.trace_service import TraceService

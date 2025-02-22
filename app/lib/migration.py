@@ -3,6 +3,22 @@ from app.config import DELETED_USER_EMAIL_SUFFIX
 _VERSIONS: tuple[str, ...] = (
     f"""
     CREATE EXTENSION hstore;
+    CREATE EXTENSION h3;
+    CREATE EXTENSION h3_postgis CASCADE;
+
+    CREATE FUNCTION h3_points_to_cells(
+        geom geometry,
+        resolution integer
+    ) RETURNS h3index[]
+    LANGUAGE plpgsql IMMUTABLE STRICT PARALLEL SAFE
+    AS $$
+    BEGIN
+        RETURN ARRAY(
+            SELECT DISTINCT h3_lat_lng_to_cell((dp).geom, resolution)
+            FROM ST_DumpPoints(geom) AS dp
+        );
+    END;
+    $$;
 
     CREATE TABLE "user" (
         id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -208,10 +224,15 @@ _VERSIONS: tuple[str, ...] = (
         visibility text NOT NULL,
         file_id text NOT NULL,
         size integer NOT NULL,
+        track_sizes integer[] NOT NULL,
+        points geometry(MultiPoint, 4326) NOT NULL,
+        capture_times timestamptz[],
+        elevations double precision[],
         created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
         updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
     );
     CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id, id);
     CREATE INDEX trace_tags_idx ON trace USING gin (tags);
+    CREATE INDEX trace_points_h3_11_idx ON trace USING gin (h3_points_to_cells(points, 11));
     """,
 )

@@ -104,7 +104,7 @@ let
     bun
     biome
     # Services:
-    (postgresql_17_jit.withPackages (ps: [ ps.postgis ])) # SOON: ps.timescaledb-apache
+    (postgresql_17_jit.withPackages (ps: [ ps.postgis ps.h3-pg ])) # SOON: ps.timescaledb-apache
     timescaledb-parallel-copy'
     valkey
     mailpit

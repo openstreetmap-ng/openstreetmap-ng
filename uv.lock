@@ -764,6 +764,20 @@ wheels = [
 ]
 
 [[package]]
+name = "h3"
+version = "4.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f5/d0/b59eb261d3a597624788eeb0a0d17c1bba75eeb6a6d544d244f721206b5a/h3-4.2.1.tar.gz", hash = "sha256:e64afe4166a6e31b06df71f0da6039683b04d88c2fec8c73d7bf4d5f36d7cb23", size = 165603 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8b/e3/a37767a0990bca9e45b6267424ee8f228f78152343e70d75acbba9a3ccd6/h3-4.2.1-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:a4c4da955ad72a5162fadda01d81a944d3a02a0737e9d59c9f574cf71f30555e", size = 890641 },
+    { url = "https://files.pythonhosted.org/packages/95/cf/d63a5482e45b1ca6cf07c87e943a96ea81d3bf2cdcb21e80bc5576768fca/h3-4.2.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:7e636e759aa73a3c5adb50a62735dc66f7a8517ee26091563e1030bc99fdf7d4", size = 828660 },
+    { url = "https://files.pythonhosted.org/packages/44/35/af4f89be855fbbcc4f916f8709cf6287fa86915baff2799e54e420376f18/h3-4.2.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9af2122b4c137d4867f6092478a0d7f37c9fd1c9f920f3fb4dff9dd9197bcd3e", size = 955771 },
+    { url = "https://files.pythonhosted.org/packages/1a/c4/3054693dffc6cc5dc60ecabcdb0c0158e27dc4d7c233bb0b7c573b04deec/h3-4.2.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:232e2d157a5512cc0c7a44fea775766a66b00aba18ea38b7093ba75eb50f8f27", size = 1010302 },
+    { url = "https://files.pythonhosted.org/packages/89/54/da952bdd4c228e73cd33c4263025cc702442dbb21aa854669ed8c08aa42d/h3-4.2.1-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:9f627af7327c47006609d08f53fd993fbf811a2580d70b057f054434f50400aa", size = 1059852 },
+    { url = "https://files.pythonhosted.org/packages/3f/70/dc7d00189e92e61dfe9f5f47db1adc6383f490f800008808a462a9684242/h3-4.2.1-cp313-cp313-win_amd64.whl", hash = "sha256:69bf4b9365acb093544b28b5b2bfa59bf1d98281a121492c887cd3137739ae33", size = 808842 },
+]
+
+[[package]]
 name = "httpcore"
 version = "1.0.7"
 source = { registry = "https://pypi.org/simple" }
@@ -1167,6 +1181,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "feedgen" },
     { name = "githead" },
+    { name = "h3" },
     { name = "httpx", extra = ["brotli", "zstd"] },
     { name = "jinja2" },
     { name = "libvalkey" },
@@ -1240,6 +1255,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0" },
     { name = "feedgen" },
     { name = "githead", specifier = ">=1.2.0" },
+    { name = "h3", specifier = ">=4.2.1" },
     { name = "httpx", extras = ["brotli", "zstd"] },
     { name = "jinja2" },
     { name = "libvalkey", specifier = ">=4.0.1b1" },

@@ -13,7 +13,7 @@ from app.lib.exceptions_context import raise_for
 from app.lib.trace_file import TraceFile
 from app.lib.xmltodict import XMLToDict
 from app.limits import TRACE_FILE_UPLOAD_MAX_SIZE
-from app.models.db.trace_ import Trace, TraceVisibility
+from app.models.db.trace import Trace, TraceVisibility
 from app.models.db.trace_segment import TraceSegment
 from app.models.validating.trace_ import TraceValidating
 from app.storage import TRACES_STORAGE
