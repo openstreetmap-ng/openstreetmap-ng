@@ -1,36 +1,29 @@
-from sqlalchemy import ForeignKey, LargeBinary, UnicodeText
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from collections.abc import Iterable
+from datetime import datetime
+from typing import NewType, NotRequired, TypedDict
 
-from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text import RichTextMixin, TextFormat
-from app.limits import DIARY_COMMENT_BODY_MAX_LENGTH
-from app.models.db.base import Base
-from app.models.db.created_at_mixin import CreatedAtMixin
-from app.models.db.diary import Diary
-from app.models.db.user import User
+from app.lib.rich_text import resolve_rich_text
+from app.models.db.diary import DiaryId
+from app.models.db.user import User, UserId
+
+DiaryCommentId = NewType('DiaryCommentId', int)
 
 
-class DiaryComment(Base.ZID, CreatedAtMixin, RichTextMixin):
-    __tablename__ = 'diary_comment'
-    __rich_text_fields__ = (('body', TextFormat.markdown),)
+class DiaryCommentInit(TypedDict):
+    user_id: UserId
+    diary_id: DiaryId
+    body: str  # TODO: validate size
 
-    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(init=False, lazy='raise', innerjoin=True)
-    diary_id: Mapped[int] = mapped_column(ForeignKey(Diary.id), nullable=False)
-    diary: Mapped[Diary] = relationship(init=False, lazy='raise', innerjoin=True)
-    body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(
-        LargeBinary(HASH_SIZE),
-        init=False,
-        nullable=True,
-        server_default=None,
-    )
+
+class DiaryComment(DiaryCommentInit):
+    id: DiaryCommentId
+    body_rich_hash: bytes | None
+    created_at: datetime
 
     # runtime
-    body_rich: str | None = None
+    user: NotRequired[User]
+    body_rich: NotRequired[str]
 
-    @validates('body')
-    def validate_body(self, _: str, value: str) -> str:
-        if len(value) > DIARY_COMMENT_BODY_MAX_LENGTH:
-            raise ValueError(f'Comment body is too long ({len(value)} > {DIARY_COMMENT_BODY_MAX_LENGTH})')
-        return value
+
+async def changeset_comments_resolve_rich_text(objs: Iterable[DiaryComment]) -> None:
+    await resolve_rich_text(objs, 'diary_comment', 'body', 'markdown')

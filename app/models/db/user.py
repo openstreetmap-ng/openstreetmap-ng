@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
-from typing import TYPE_CHECKING, Literal, NewType, NotRequired, TypedDict
+from typing import Literal, NewType, NotRequired, TypedDict
 
 from shapely import Point
 
@@ -10,10 +10,6 @@ from app.lib.image import AvatarType, Image
 from app.lib.rich_text import resolve_rich_text
 from app.models.scope import Scope
 from app.models.types import DisplayName, Email, LocaleCode, StorageKey
-
-if TYPE_CHECKING:
-    pass
-
 
 UserId = NewType('UserId', int)
 UserRole = Literal['moderator', 'administrator']

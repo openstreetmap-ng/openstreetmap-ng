@@ -1,47 +1,36 @@
-from shapely import Point
-from sqlalchemy import ForeignKey, Index, LargeBinary, Unicode
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from collections.abc import Iterable
+from datetime import datetime
+from typing import NewType, NotRequired, TypedDict
 
-from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text import RichTextMixin, TextFormat
-from app.limits import DIARY_BODY_MAX_LENGTH, DIARY_TITLE_MAX_LENGTH, LOCALE_CODE_MAX_LENGTH
-from app.models.db.base import Base
-from app.models.db.created_at_mixin import CreatedAtMixin
-from app.models.db.updated_at_mixin import UpdatedAtMixin
-from app.models.db.user import User
-from app.models.geometry import PointType
+from shapely import Point
+
+from app.lib.rich_text import resolve_rich_text
+from app.models.db.user import User, UserId
 from app.models.types import LocaleCode
 
+DiaryId = NewType('DiaryId', int)
 
-class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
-    __tablename__ = 'diary'
-    __rich_text_fields__ = (('body', TextFormat.markdown),)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(init=False, lazy='raise', innerjoin=True)
-    title: Mapped[str] = mapped_column(Unicode(DIARY_TITLE_MAX_LENGTH), nullable=False)
-    body: Mapped[str] = mapped_column(Unicode(DIARY_BODY_MAX_LENGTH), nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(
-        LargeBinary(HASH_SIZE),
-        init=False,
-        nullable=True,
-        server_default=None,
-    )
-    language: Mapped[LocaleCode] = mapped_column(Unicode(LOCALE_CODE_MAX_LENGTH), nullable=False)
-    point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
+class DiaryInit(TypedDict):
+    user_id: UserId
+    title: str
+    body: str  # TODO: validate size
+    language: LocaleCode
+    point: Point | None
+
+
+class Diary(DiaryInit):
+    id: DiaryId
+    body_rich_hash: bytes | None
+    created_at: datetime
+    updated_at: datetime
 
     # runtime
-    body_rich: str | None = None
-    num_comments: int | None = None
-    location_name: str | None = None
+    user: NotRequired[User]
+    body_rich: NotRequired[str]
+    num_comments: NotRequired[int]
+    location_name: NotRequired[str]
 
-    __table_args__ = (
-        Index('diary_user_id_idx', user_id, 'id'),
-        Index('diary_language_idx', language, 'id'),
-    )
 
-    @validates('body')
-    def validate_body(self, _: str, value: str) -> str:
-        if len(value) > DIARY_BODY_MAX_LENGTH:
-            raise ValueError(f'Diary body is too long ({len(value)} > {DIARY_BODY_MAX_LENGTH})')
-        return value
+async def diaries_resolve_rich_text(objs: Iterable[Diary]) -> None:
+    await resolve_rich_text(objs, 'diary', 'body', 'markdown')

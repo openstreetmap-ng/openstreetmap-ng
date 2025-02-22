@@ -1,87 +1,55 @@
-import enum
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Literal, NewType, NotRequired, TypedDict
 
 from shapely import Point
-from sqlalchemy import ColumnElement, Index, null, true
-from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy.ext.hybrid import hybrid_method
-from sqlalchemy.orm import Mapped, mapped_column
-
-from app.models.db.base import Base
-from app.models.db.created_at_mixin import CreatedAtMixin
-from app.models.db.updated_at_mixin import UpdatedAtMixin
-from app.models.db.user import User
-from app.models.geometry import PointType
 
 if TYPE_CHECKING:
     from app.models.db.note_comment import NoteComment
 
 
-class NoteStatus(str, enum.Enum):
-    open = 'open'
-    closed = 'closed'
-    hidden = 'hidden'
-
-
 # TODO: ensure updated at on members
 # TODO: pruner
-class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
-    __tablename__ = 'note'
 
-    point: Mapped[Point] = mapped_column(PointType, nullable=False)
+NoteId = NewType('NoteId', int)
+NoteStatus = Literal['open', 'closed', 'hidden']
 
-    # defaults
-    closed_at: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP(True),
-        init=False,
-        nullable=True,
-        server_default=None,
-    )
-    hidden_at: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP(True),
-        init=False,
-        nullable=True,
-        server_default=None,
-    )
+
+class NoteInit(TypedDict):
+    point: Point
+
+
+class Note(NoteInit):
+    id: NoteId
+    created_at: datetime
+    updated_at: datetime
+    closed_at: datetime | None
+    hidden_at: datetime | None
 
     # runtime
-    num_comments: int | None = None
-    comments: 'list[NoteComment] | Any' = None
+    num_comments: NotRequired[int]
+    comments: NotRequired[list['NoteComment']]
 
-    __table_args__ = (
-        Index('note_point_idx', point, postgresql_using='gist'),
-        Index('note_created_at_idx', 'created_at'),
-        Index('note_updated_at_idx', 'updated_at'),
-        Index('note_closed_at_idx', closed_at),
-        # TODO: delete forever hidden notes
-        Index('note_hidden_at_idx', hidden_at),
-    )
 
-    @hybrid_method
-    def visible_to(self, user: User | None) -> bool:  # pyright: ignore[reportRedeclaration]
-        if (user is not None) and user.is_moderator:
-            return True
-        return self.hidden_at is None
+def note_status(note: Note) -> NoteStatus:
+    """Get the note's status."""
+    if note['hidden_at'] is not None:
+        return 'hidden'
+    if note['closed_at'] is not None:
+        return 'closed'
+    return 'open'
 
-    @visible_to.expression
-    @classmethod
-    def visible_to(cls, user: User | None) -> ColumnElement[bool]:
-        if (user is not None) and user.is_moderator:
-            return true()
-        return cls.hidden_at == null()
 
-    @property
-    def status(self) -> NoteStatus:
-        """
-        Get the note's status.
+# TODO: delete forever hidden notes
 
-        >>> Note(...).status
-        NoteStatus.open
-        """
-        if self.hidden_at:
-            return NoteStatus.hidden
-        elif self.closed_at:
-            return NoteStatus.closed
-        else:
-            return NoteStatus.open
+#     @hybrid_method
+#     def visible_to(self, user: User | None) -> bool:  # pyright: ignore[reportRedeclaration]
+#         if (user is not None) and user.is_moderator:
+#             return True
+#         return self.hidden_at is None
+#
+#     @visible_to.expression
+#     @classmethod
+#     def visible_to(cls, user: User | None) -> ColumnElement[bool]:
+#         if (user is not None) and user.is_moderator:
+#             return true()
+#         return cls.hidden_at == null()

@@ -29,7 +29,7 @@ class OAuth2Application(OAuth2ApplicationInit):
     avatar_id: StorageKey | None
     client_secret_hashed: bytes | None
     client_secret_preview: str | None
-    is_confidential: bool
+    confidential: bool
     redirect_uris: list[Uri]
     scopes: list[Scope]
     created_at: datetime
