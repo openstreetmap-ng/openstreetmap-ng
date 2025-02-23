@@ -9,7 +9,7 @@ from app.lib.image import AvatarType
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.limits import USER_DESCRIPTION_MAX_LENGTH
-from app.models.auth_provider import AuthProvider
+from app.models.db.connected_account import AuthProvider
 from app.models.db.user import Editor, User
 from app.models.types import DisplayNameValidating, LocaleCode, Password
 from app.services.auth_service import AuthService

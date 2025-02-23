@@ -3,8 +3,7 @@ from collections.abc import Sequence
 from sqlalchemy import select
 
 from app.db import db
-from app.models.auth_provider import AuthProvider
-from app.models.db.connected_account import ConnectedAccount
+from app.models.db.connected_account import AuthProvider, ConnectedAccount
 
 
 class ConnectedAccountQuery:

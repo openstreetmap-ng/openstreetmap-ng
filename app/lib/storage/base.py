@@ -11,7 +11,8 @@ class StorageBase(ABC):
     def __init__(self, context: str):
         self._context = context
 
-    def _make_key(self, suffix: str) -> StorageKey:
+    @staticmethod
+    def _make_key(suffix: str) -> StorageKey:
         """
         Generate a key for a file.
 

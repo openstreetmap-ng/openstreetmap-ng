@@ -14,7 +14,7 @@ from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_compare, hmac_bytes
 from app.lib.render_response import render_response
 from app.limits import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_MAX_AGE, COOKIE_AUTH_MAX_AGE
-from app.models.auth_provider import AUTH_PROVIDERS, AuthProvider, AuthProviderAction
+from app.models.db.connected_account import AUTH_PROVIDERS, AuthProvider, AuthProviderAction
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.services.connected_account_service import ConnectedAccountService

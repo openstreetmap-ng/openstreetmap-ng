@@ -1,5 +1,4 @@
-from collections.abc import Sequence
-from typing import TYPE_CHECKING, Literal, get_args
+from typing import TYPE_CHECKING, Literal, NewType, TypedDict, get_args
 
 from shapely import Point
 from sqlalchemy import (
@@ -19,11 +18,22 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.db.base import Base
 from app.models.db.changeset import Changeset
 from app.models.db.created_at_mixin import CreatedAtMixin
-from app.models.element import ElementId, ElementType
 from app.models.geometry import PointType
 
 if TYPE_CHECKING:
-    from app.models.db.element_member import ElementMember
+    pass
+
+
+SequenceId = NewType('SequenceId', int)
+ElementType = Literal['node', 'way', 'relation']
+ElementId = NewType('ElementId', int)
+ElementTypedId = NewType('ElementTypedId', int)
+
+
+class ElementInit(TypedDict): ...
+
+
+class Element(ElementInit): ...
 
 
 class Element(Base.NoID, CreatedAtMixin):

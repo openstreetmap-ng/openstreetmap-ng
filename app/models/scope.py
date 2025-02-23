@@ -1,20 +1,28 @@
-from typing import Literal
+from typing import Literal, get_args
 
-Scope = Literal[
+PublicScope = Literal[
     'read_prefs',
     'write_prefs',
     'write_api',
     'read_gpx',
     'write_gpx',
     'write_notes',
-    # additional scopes
-    'read_email',
-    'skip_authorization',
-    'web_user',
-    # role-specific scopes
-    'role_moderator',
-    'role_administrator',
 ]
+
+PUBLIC_SCOPES: frozenset[PublicScope] = frozenset(get_args(PublicScope))
+
+Scope = (
+    PublicScope
+    | Literal[
+        # additional scopes
+        'read_email',
+        'skip_authorization',
+        'web_user',
+        # role-specific scopes
+        'role_moderator',
+        'role_administrator',
+    ]
+)
 
 
 def scope_from_kwargs(
@@ -26,14 +34,14 @@ def scope_from_kwargs(
     write_gpx: bool = False,
     write_notes: bool = False,
     **_: bool,
-) -> tuple[Scope, ...]:
+) -> tuple[PublicScope, ...]:
     """
     Return the scopes from the given kwargs. Unsupported keys are ignored.
 
     >>> scope_from_kwargs(read_prefs=True, write_api=True, unknown=True)
     ('read_prefs', 'write_api')
     """
-    result: list[Scope] = []
+    result: list[PublicScope] = []
     if read_prefs:
         result.append('read_prefs')
     if write_prefs:
@@ -49,7 +57,7 @@ def scope_from_kwargs(
     return tuple(result)
 
 
-def scope_from_str(s: str) -> tuple[Scope, ...]:
+def scope_from_str(s: str) -> tuple[PublicScope, ...]:
     """
     Get scopes from a string, where each scope is separated by a space. Only public scopes are resolved.
 
@@ -57,16 +65,3 @@ def scope_from_str(s: str) -> tuple[Scope, ...]:
     ('read_prefs', 'write_api')
     """
     return scope_from_kwargs(**{s: True for s in s.split() if s})
-
-
-# noinspection PyTypeChecker
-PUBLIC_SCOPES: frozenset[Scope] = frozenset(
-    (
-        'read_prefs',
-        'write_prefs',
-        'write_api',
-        'read_gpx',
-        'write_gpx',
-        'write_notes',
-    )
-)
