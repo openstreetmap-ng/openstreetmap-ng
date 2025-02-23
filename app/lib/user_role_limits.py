@@ -1,12 +1,10 @@
 from collections.abc import Collection
-from functools import cache
 
 from app.models.db.user import UserRole
 
 
 class UserRoleLimits:
     @staticmethod
-    @cache
     def get_changeset_max_size(roles: Collection[UserRole]) -> int:
         """
         Get the maximum size of a changeset for the given roles.
@@ -22,7 +20,6 @@ class UserRoleLimits:
         return result
 
     @staticmethod
-    @cache
     def get_rate_limit_quota(roles: Collection[UserRole]) -> int:
         """
         Get the rate limit quota for the given roles.

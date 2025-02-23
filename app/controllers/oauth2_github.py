@@ -5,7 +5,7 @@ from pydantic import SecretStr
 from starlette import status
 
 from app.config import GITHUB_OAUTH_PUBLIC, GITHUB_OAUTH_SECRET
-from app.models.auth_provider import AuthProviderAction
+from app.models.db.connected_account import AuthProviderAction
 from app.services.auth_provider_service import AuthProviderService
 from app.utils import HTTP
 

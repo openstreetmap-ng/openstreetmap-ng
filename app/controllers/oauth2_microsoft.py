@@ -8,7 +8,7 @@ from app.config import MICROSOFT_OAUTH_PUBLIC
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.openid import parse_openid_token_no_verify
 from app.lib.render_response import render_response
-from app.models.auth_provider import AuthProviderAction
+from app.models.db.connected_account import AuthProviderAction
 from app.queries.openid_query import OpenIDQuery
 from app.services.auth_provider_service import AuthProviderService
 

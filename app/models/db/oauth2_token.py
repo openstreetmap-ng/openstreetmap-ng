@@ -3,7 +3,7 @@ from typing import Literal, NewType, NotRequired, TypedDict, override
 
 from app.models.db.oauth2_application import ApplicationId, OAuth2Application
 from app.models.db.user import User, UserId
-from app.models.scope import Scope
+from app.models.scope import PublicScope
 from app.models.types import Uri
 
 OAuth2TokenId = NewType('OAuth2TokenId', int)
@@ -22,7 +22,7 @@ class OAuth2TokenInit(TypedDict):
     token_hashed: bytes | None
     token_preview: str | None  # PATs only
     redirect_uri: Uri | None
-    scopes: list[Scope]
+    scopes: list[PublicScope]
     code_challenge_method: OAuth2CodeChallengeMethod | None
     code_challenge: str | None  # TODO: validate size
 

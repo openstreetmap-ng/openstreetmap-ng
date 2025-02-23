@@ -4,7 +4,7 @@ from typing import Literal, NewType, NotRequired, TypedDict
 
 import numpy as np
 from numpy.typing import NDArray
-from shapely.geometry.multipoint import MultiPoint
+from shapely import MultiLineString
 
 from app.limits import TRACE_TAG_MAX_LENGTH
 from app.models.db.user import User, UserId
@@ -22,10 +22,8 @@ class TraceInit(TypedDict):
     tags: list[str]  # TODO: validate size
     visibility: TraceVisibility
     file_id: StorageKey
-    track_sizes: list[int]
-    points: MultiPoint
+    tracks: MultiLineString  # TODO: z-dimension
     capture_times: list[datetime | None] | None
-    elevations: list[float | None] | None
 
 
 class Trace(TraceInit):

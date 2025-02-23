@@ -3,7 +3,7 @@ from typing import NewType, NotRequired, TypedDict
 
 from app.lib.image import Image
 from app.models.db.user import User, UserId
-from app.models.scope import Scope
+from app.models.scope import PublicScope
 from app.models.types import StorageKey, Uri
 
 ApplicationId = NewType('ApplicationId', int)
@@ -31,7 +31,7 @@ class OAuth2Application(OAuth2ApplicationInit):
     client_secret_preview: str | None
     confidential: bool
     redirect_uris: list[Uri]
-    scopes: list[Scope]
+    scopes: list[PublicScope]
     created_at: datetime
     updated_at: datetime
 

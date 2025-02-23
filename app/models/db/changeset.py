@@ -45,7 +45,7 @@ def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
     if changeset['user_id']:
         user = changeset.get('user')
         assert user is not None, 'Changeset user must be set'
-        max_size = UserRoleLimits.get_changeset_max_size(user.roles)
+        max_size = UserRoleLimits.get_changeset_max_size(user['roles'])
     else:
         max_size = UserRoleLimits.get_changeset_max_size(())
 
@@ -66,7 +66,7 @@ async def changesets_auto_close_on_size(conn: AsyncConnection, changesets: Itera
         if changeset['user_id']:
             user = changeset.get('user')
             assert user is not None, 'Changeset user must be set'
-            max_size = UserRoleLimits.get_changeset_max_size(user.roles)
+            max_size = UserRoleLimits.get_changeset_max_size(user['roles'])
         else:
             max_size = UserRoleLimits.get_changeset_max_size(())
 
