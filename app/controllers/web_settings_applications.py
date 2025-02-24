@@ -13,7 +13,6 @@ from app.limits import (
     OAUTH_PAT_NAME_MAX_LENGTH,
 )
 from app.models.db.user import User
-from app.models.scope import Scope
 from app.services.oauth2_application_service import OAuth2ApplicationService
 from app.services.oauth2_token_service import OAuth2TokenService
 
@@ -71,7 +70,7 @@ async def settings_application_update(
     write_notes: Annotated[bool, Form()] = False,
     revoke_all_authorizations: Annotated[bool, Form()] = False,
 ):
-    scopes = Scope.from_kwargs(
+    scopes = 'from_kwargs'(
         read_prefs=read_prefs,
         write_prefs=write_prefs,
         write_api=write_api,
@@ -120,7 +119,7 @@ async def settings_application_tokens_create(
     write_gpx: Annotated[bool, Form()] = False,
     write_notes: Annotated[bool, Form()] = False,
 ):
-    scopes = Scope.from_kwargs(
+    scopes = 'from_kwargs'(
         read_prefs=read_prefs,
         write_prefs=write_prefs,
         write_api=write_api,

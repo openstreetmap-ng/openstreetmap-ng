@@ -1,6 +1,7 @@
 import pytest
 
-from app.utils import extend_query_params, secure_referer, unicode_normalize
+from app.utils import extend_query_params, secure_referer
+from app.validators.unicode import unicode_normalize
 
 
 @pytest.mark.parametrize(

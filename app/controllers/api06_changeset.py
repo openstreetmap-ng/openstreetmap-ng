@@ -16,7 +16,6 @@ from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT,
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
-from app.models.scope import Scope
 from app.models.types import DisplayName
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -34,7 +33,7 @@ router = APIRouter(prefix='/api/0.6')
 @router.put('/changeset/create')
 async def create_changeset(
     data: Annotated[dict, xml_body('osm/changeset')],
-    _: Annotated[User, api_user(Scope.write_api)],
+    _: Annotated[User, api_user('write_api')],
 ):
     try:
         tags = Format06.decode_tags_and_validate(data.get('tag', ()))
@@ -86,7 +85,7 @@ async def download_changeset(
 async def update_changeset(
     changeset_id: PositiveInt,
     data: Annotated[dict, xml_body('osm/changeset')],
-    _: Annotated[User, api_user(Scope.write_api)],
+    _: Annotated[User, api_user('write_api')],
 ):
     try:
         tags = Format06.decode_tags_and_validate(data.get('tag', ()))
@@ -108,7 +107,7 @@ async def update_changeset(
 async def upload_diff(
     changeset_id: PositiveInt,
     data: Annotated[Sequence, xml_body('osmChange')],
-    _: Annotated[User, api_user(Scope.write_api)],
+    _: Annotated[User, api_user('write_api')],
 ):
     try:
         # implicitly assume stings are proper types
@@ -123,7 +122,7 @@ async def upload_diff(
 @router.put('/changeset/{changeset_id:int}/close')
 async def close_changeset(
     changeset_id: PositiveInt,
-    _: Annotated[User, api_user(Scope.write_api)],
+    _: Annotated[User, api_user('write_api')],
 ):
     await ChangesetService.close(changeset_id)
     return Response()

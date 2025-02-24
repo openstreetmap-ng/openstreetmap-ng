@@ -22,6 +22,7 @@ _COMPRESS = ZstdCompressor(
     threads=CACHE_COMPRESS_ZSTD_THREADS,
     write_checksum=False,
 ).compress
+
 _DECOMPRESS = ZstdDecompressor().decompress
 
 

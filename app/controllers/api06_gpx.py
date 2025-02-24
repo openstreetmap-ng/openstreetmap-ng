@@ -17,7 +17,6 @@ from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAUL
 from app.models.db.trace import Trace, TraceVisibility
 from app.models.db.trace_segment import TraceSegment
 from app.models.db.user import User
-from app.models.scope import Scope
 from app.models.types import Str255
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
@@ -30,7 +29,7 @@ router = APIRouter(prefix='/api/0.6')
 @router.post('/gpx')
 @router.post('/gpx/create')
 async def upload_trace(
-    _: Annotated[User, api_user(Scope.write_gpx)],
+    _: Annotated[User, api_user('write_gpx')],
     file: Annotated[UploadFile, File()],
     description: Annotated[Str255, Form()],
     tags: Annotated[str, Form()] = '',
@@ -62,7 +61,7 @@ async def get_trace(
 @router.get('/user/gpx_files')
 @router.get('/user/gpx_files.xml')
 async def get_current_user_traces(
-    user: Annotated[User, api_user(Scope.read_gpx)],
+    user: Annotated[User, api_user('read_gpx')],
 ):
     with options_context(joinedload(Trace.user).load_only(User.display_name)):
         traces = await TraceQuery.find_many_recent(user_id=user.id, limit=None)
@@ -104,7 +103,7 @@ async def download_trace(
 async def update_trace(
     trace_id: PositiveInt,
     data: Annotated[Sequence[dict], xml_body('osm/gpx_file')],
-    _: Annotated[User, api_user(Scope.write_gpx)],
+    _: Annotated[User, api_user('write_gpx')],
 ):
     try:
         trace = Format06.decode_gpx_file(data[0])
@@ -124,7 +123,7 @@ async def update_trace(
 @router.delete('/gpx/{trace_id:int}')
 async def delete_trace(
     trace_id: PositiveInt,
-    _: Annotated[User, api_user(Scope.write_gpx)],
+    _: Annotated[User, api_user('write_gpx')],
 ):
     await TraceService.delete(trace_id)
     return Response()

@@ -98,14 +98,6 @@ CREATE TABLE oauth2_token (
 CREATE UNIQUE INDEX oauth2_token_hashed_idx ON oauth2_token (token_hashed) WHERE token_hashed IS NOT NULL;
 CREATE INDEX oauth2_token_user_app_idx ON oauth2_token (user_id, application_id, authorized_at);
 
-CREATE TABLE user_pref (
-    user_id bigint NOT NULL REFERENCES "user",
-    app_id bigint REFERENCES oauth2_application,
-    key text NOT NULL,
-    value text NOT NULL,
-    PRIMARY KEY (user_id, app_id, key)
-);
-
 CREATE TABLE changeset (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id bigint REFERENCES "user",
@@ -244,6 +236,22 @@ CREATE TABLE trace (
 CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id, id);
 CREATE INDEX trace_tags_idx ON trace USING gin (tags);
 CREATE INDEX trace_tracks_idx ON trace USING gin (h3_r11);
+
+CREATE TABLE user_pref (
+    user_id bigint NOT NULL REFERENCES "user",
+    app_id bigint REFERENCES oauth2_application,
+    key text NOT NULL,
+    value text NOT NULL,
+    PRIMARY KEY (user_id, app_id, key)
+);
+
+CREATE TYPE user_subscription_target AS ENUM ('changeset', 'diary', 'note', 'user');
+CREATE TABLE user_subscription (
+    user_id bigint NOT NULL REFERENCES "user",
+    target user_subscription_target NOT NULL,
+    target_id bigint NOT NULL,
+    PRIMARY KEY (target, target_id, user_id)
+);
 
 CREATE TYPE user_token_type AS ENUM ('account_confirm', 'email_change', 'email_reply', 'reset_password');
 CREATE TABLE user_token (

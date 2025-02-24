@@ -23,7 +23,7 @@ from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 from app.services.user_token_email_change_service import UserTokenEmailChangeService
 from app.services.user_token_reset_password_service import UserTokenResetPasswordService
-from app.validators.email import ValidatingEmailType
+from app.validators.email import EmailValidating
 
 router = APIRouter(prefix='/api/web/user')
 
@@ -67,7 +67,7 @@ async def logout(
 @router.post('/signup')
 async def signup(
     display_name: Annotated[DisplayNameValidating, Form()],
-    email: Annotated[ValidatingEmailType, Form()],
+    email: Annotated[EmailValidating, Form()],
     password: Annotated[Password, Form()],
     tracking: Annotated[bool, Form()] = False,
     auth_provider_verification: Annotated[str | None, Cookie()] = None,

@@ -1,4 +1,3 @@
-import unicodedata
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from httpx import AsyncClient
@@ -15,11 +14,6 @@ HTTP = AsyncClient(
 
 # TODO: reporting of deleted accounts (prometheus)
 # NOTE: breaking change
-
-
-def unicode_normalize(text: str) -> str:
-    """Normalize a string to NFC form."""
-    return unicodedata.normalize('NFC', text)
 
 
 def extend_query_params(uri: str, params: dict[str, str], *, fragment: bool = False) -> str:

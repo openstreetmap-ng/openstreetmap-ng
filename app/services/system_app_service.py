@@ -38,7 +38,7 @@ class SystemAppService:
                 SystemApp(
                     name=NAME,
                     client_id='SystemApp.web',
-                    scopes=(Scope.web_user,),
+                    scopes=('web_user',),
                 ),
                 SystemApp(
                     name='Personal Access Token',
@@ -49,22 +49,22 @@ class SystemAppService:
                     name='iD',
                     client_id='SystemApp.id',
                     scopes=(
-                        Scope.read_prefs,
-                        Scope.write_prefs,
-                        Scope.write_api,
-                        Scope.read_gpx,
-                        Scope.write_notes,
+                        'read_prefs',
+                        'write_prefs',
+                        'write_api',
+                        'read_gpx',
+                        'write_notes',
                     ),
                 ),
                 SystemApp(
                     name='Rapid',
                     client_id='SystemApp.rapid',
                     scopes=(
-                        Scope.read_prefs,
-                        Scope.write_prefs,
-                        Scope.write_api,
-                        Scope.read_gpx,
-                        Scope.write_notes,
+                        'read_prefs',
+                        'write_prefs',
+                        'write_api',
+                        'read_gpx',
+                        'write_notes',
                     ),
                 ),
             ):

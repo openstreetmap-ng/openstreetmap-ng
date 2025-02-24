@@ -12,8 +12,7 @@ from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import get_xattr
 from app.models.db.user import User
-from app.models.db.user_pref import UserPref
-from app.models.validating.user_pref import UserPrefValidating
+from app.models.db.user_pref import UserPref, UserPrefListValidator
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.message_query import MessageQuery
 from app.queries.trace_query import TraceQuery
@@ -59,7 +58,7 @@ class User06Mixin:
             return {'preferences': {'preference': tuple({'@k': pref.key, '@v': pref.value} for pref in prefs)}}
 
     @staticmethod
-    def decode_user_preferences(prefs: Collection[dict[str, str]]) -> tuple[UserPref, ...]:
+    def decode_user_preferences(prefs: Collection[dict[str, str]]) -> list[UserPref]:
         """
         >>> decode_user_preferences([{'@k': 'key', '@v': 'value'}])
         [UserPref(key='key', value='value')]
@@ -72,18 +71,17 @@ class User06Mixin:
                 raise_for.pref_duplicate_key(key)
             seen_keys.add(key)
 
-        user_id = auth_user(required=True).id
-        return tuple(
-            UserPref(
-                **UserPrefValidating(
-                    user_id=user_id,
-                    app_id=None,  # 0.6 api does not support prefs partitioning
-                    key=pref['@k'],
-                    value=pref['@v'],
-                ).__dict__
-            )
+        user_id = auth_user(required=True)['id']
+        user_prefs: list[UserPref] = [
+            {
+                'user_id': user_id,
+                'app_id': None,  # 0.6 api does not support prefs partitioning
+                'key': pref['@k'],
+                'value': pref['@v'],
+            }
             for pref in prefs
-        )
+        ]
+        return UserPrefListValidator.validate_python(user_prefs)
 
 
 async def _encode_user(user: User, *, is_json: cython.char) -> dict:

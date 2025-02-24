@@ -19,7 +19,7 @@
                     {% if user is none %}
                         {% set _editor = DEFAULT_EDITOR %}
                     {% else %}
-                        {% set _editor = user.editor.value or DEFAULT_EDITOR %}
+                        {% set _editor = user.editor or DEFAULT_EDITOR %}
                     {% endif %}
                     <a class="btn btn-outline-green map-link edit-link default" href="/edit?editor={{ _editor }}">
                         {{ t('layouts.edit') }}

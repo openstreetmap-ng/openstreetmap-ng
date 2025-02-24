@@ -2,12 +2,12 @@ import pytest
 from pydantic import BaseModel
 
 from app.models.types import Email
-from app.validators.email import ValidatingEmailType, validate_email_deliverability
+from app.validators.email import EmailValidating, validate_email_deliverability
 
 
 def test_validating_email_type():
     class TestModel(BaseModel):
-        email: ValidatingEmailType
+        email: EmailValidating
 
     assert TestModel(email=Email('example@ツ.ⓁⒾⒻⒺ')).email == Email('example@ツ.life')
 

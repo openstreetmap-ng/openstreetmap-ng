@@ -7,6 +7,7 @@ from shapely import Polygon
 
 from app.lib.user_role_limits import UserRoleLimits
 from app.models.db.user import User, UserId
+from app.validators.tags import TagsValidating
 
 if TYPE_CHECKING:
     from app.models.db.changeset_bounds import ChangesetBounds
@@ -17,7 +18,7 @@ ChangesetId = NewType('ChangesetId', int)
 
 class ChangesetInit(TypedDict):
     user_id: UserId | None
-    tags: dict[str, str]
+    tags: TagsValidating
 
 
 class Changeset(ChangesetInit):

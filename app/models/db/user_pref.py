@@ -1,11 +1,32 @@
-from typing import TypedDict
+from typing import Annotated, NewType, TypedDict
 
+from annotated_types import MaxLen, MinLen
+from pydantic import TypeAdapter
+
+from app.config import PYDANTIC_CONFIG
 from app.models.db.oauth2_application import ApplicationId
 from app.models.db.user import UserId
+from app.validators.xml import XMLSafeValidator
+
+UserPrefKey = NewType('UserPrefKey', str)
+UserPrefVal = NewType('UserPrefVal', str)
 
 
 class UserPref(TypedDict):
     user_id: UserId
     app_id: ApplicationId | None
-    key: str
-    value: str  # TODO: validate size
+    key: Annotated[
+        UserPrefKey,
+        MinLen(1),
+        MaxLen(255),
+        XMLSafeValidator,
+    ]
+    value: Annotated[
+        UserPrefVal,
+        MinLen(1),
+        MaxLen(255),
+        XMLSafeValidator,
+    ]  # TODO: test validate size
+
+
+UserPrefListValidator = TypeAdapter(list[UserPref], config=PYDANTIC_CONFIG)

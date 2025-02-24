@@ -28,7 +28,6 @@ from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, NoteEvent
 from app.models.db.user import User
 from app.models.geometry import Latitude, Longitude
-from app.models.scope import Scope
 from app.models.types import DisplayName
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
@@ -77,7 +76,7 @@ async def create_note2(body: _CreateNote):
 async def create_note_comment(
     note_id: PositiveInt,
     text: Annotated[str, Query(min_length=1)],
-    _: Annotated[User, api_user(Scope.write_notes)],
+    _: Annotated[User, api_user('write_notes')],
 ):
     await NoteService.comment(note_id, text, NoteEvent.commented)
     notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
@@ -116,7 +115,7 @@ async def get_note(
 @router.post('/notes/{note_id:int}/close.json')
 @router.post('/notes/{note_id:int}/close.gpx', response_class=GPXResponse)
 async def close_note(
-    _: Annotated[User, api_user(Scope.write_notes)],
+    _: Annotated[User, api_user('write_notes')],
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
 ):
@@ -131,7 +130,7 @@ async def close_note(
 @router.post('/notes/{note_id:int}/reopen.json')
 @router.post('/notes/{note_id:int}/reopen.gpx', response_class=GPXResponse)
 async def reopen_note(
-    _: Annotated[User, api_user(Scope.write_notes)],
+    _: Annotated[User, api_user('write_notes')],
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
 ):
@@ -146,7 +145,7 @@ async def reopen_note(
 @router.delete('/notes/{note_id:int}.json')
 @router.delete('/notes/{note_id:int}.gpx', response_class=GPXResponse)
 async def hide_note(
-    _: Annotated[User, api_user(Scope.write_notes, Scope.role_moderator)],
+    _: Annotated[User, api_user('write_notes', 'role_moderator')],
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
 ):

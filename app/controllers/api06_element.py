@@ -13,7 +13,6 @@ from app.lib.xml_body import xml_body
 from app.models.db.element import Element
 from app.models.db.user import User
 from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
-from app.models.scope import Scope
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
@@ -30,7 +29,7 @@ router = APIRouter(prefix='/api/0.6')
 async def create_element(
     type: ElementType,
     elements: Annotated[Sequence, xml_body('osm')],
-    _: Annotated[User, api_user(Scope.write_api)],
+    _: Annotated[User, api_user('write_api')],
 ):
     data = _get_element_data(elements, type)
     if data is None:
@@ -54,7 +53,7 @@ async def update_element(
     type: ElementType,
     id: PositiveInt,
     elements: Annotated[Sequence, xml_body('osm')],
-    _: Annotated[User, api_user(Scope.write_api)],
+    _: Annotated[User, api_user('write_api')],
 ):
     data = _get_element_data(elements, type)
     if data is None:
@@ -76,7 +75,7 @@ async def delete_element(
     type: ElementType,
     id: PositiveInt,
     elements: Annotated[Sequence, xml_body('osm')],
-    _: Annotated[User, api_user(Scope.write_api)],
+    _: Annotated[User, api_user('write_api')],
 ):
     data = _get_element_data(elements, type)
     if data is None:

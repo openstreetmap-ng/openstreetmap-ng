@@ -16,7 +16,7 @@ from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
-from app.validators.email import ValidatingEmailType
+from app.validators.email import EmailValidating
 
 router = APIRouter(prefix='/api/web')
 
@@ -69,7 +69,7 @@ async def settings_background(
 @router.post('/settings/email')
 async def settings_email(
     _: Annotated[User, web_user()],
-    email: Annotated[ValidatingEmailType, Form()],
+    email: Annotated[EmailValidating, Form()],
     password: Annotated[Password, Form()],
 ):
     await UserService.update_email(

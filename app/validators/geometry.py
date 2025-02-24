@@ -1,14 +1,14 @@
 from typing import Any, TypeVar, overload
 
 import numpy as np
-from pydantic import PlainValidator
+from pydantic import BeforeValidator
 from shapely import Point, lib
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
 from app.lib.exceptions_context import raise_for
 
-T = TypeVar('T', bound=BaseGeometry)
+_T = TypeVar('_T', bound=BaseGeometry)
 
 
 @overload
@@ -16,10 +16,10 @@ def validate_geometry(value: dict[str, Any]) -> BaseGeometry: ...
 
 
 @overload
-def validate_geometry(value: T) -> T: ...
+def validate_geometry(value: _T) -> _T: ...
 
 
-def validate_geometry(value: dict[str, Any] | T) -> BaseGeometry | T:
+def validate_geometry(value: dict[str, Any] | _T) -> BaseGeometry | _T:
     """Validate a geometry."""
     geom: BaseGeometry = shape(value) if isinstance(value, dict) else value
     coords = lib.get_coordinates(np.asarray(geom, dtype=np.object_), False, False)
@@ -41,4 +41,4 @@ def validate_geometry(value: dict[str, Any] | T) -> BaseGeometry | T:
     return geom
 
 
-GeometryValidator = PlainValidator(validate_geometry)
+GeometryValidator = BeforeValidator(validate_geometry)

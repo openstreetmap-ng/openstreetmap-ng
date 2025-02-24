@@ -72,7 +72,7 @@ class AuthService:
         if user is None and (token_str := request.cookies.get('auth')) is not None:
             logging.debug('Attempting to authenticate with cookies')
             oauth_result = await AuthService.authenticate_oauth2(token_str)
-            if (oauth_result is not None) and oauth_result.scopes == (Scope.web_user,):
+            if (oauth_result is not None) and oauth_result.scopes == ('web_user',):
                 user = oauth_result.user
                 scopes = _session_auth_scopes
 

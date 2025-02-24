@@ -24,7 +24,7 @@ from app.models.db.oauth2_token import (
     OAuth2TokenOOB,
 )
 from app.models.db.user import User
-from app.models.scope import PUBLIC_SCOPES, Scope
+from app.models.scope import PUBLIC_SCOPES
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.openid_query import OpenIDDiscovery
 from app.services.oauth2_token_service import OAuth2TokenService
@@ -74,7 +74,7 @@ async def authorize(
         raise NotImplementedError(f'Unsupported response type {response_type!r}')
 
     init = request.method == 'GET'
-    scopes = Scope.from_str(scope)
+    scopes = 'from_str'(scope)
     auth_result = await OAuth2TokenService.authorize(
         init=init,
         client_id=client_id,

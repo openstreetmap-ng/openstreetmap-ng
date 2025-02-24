@@ -7,7 +7,6 @@ from starlette.types import Scope as StarletteScope
 
 from app.lib.auth_context import auth_scopes
 from app.middlewares.request_context_middleware import get_request
-from app.models.scope import Scope
 from app.queries.message_query import MessageQuery
 
 _messages_count_unread_context: ContextVar[Task[int]] = ContextVar('_messages_count_unread_context')
@@ -16,10 +15,7 @@ _messages_count_unread_context: ContextVar[Task[int]] = ContextVar('_messages_co
 @contextmanager
 def _messages_count_unread(tg: TaskGroup):
     # skip count_unread for API and static requests
-    if not (
-        Scope.web_user in auth_scopes()  #
-        and not get_request().url.path.startswith(('/api/', '/static'))
-    ):
+    if 'web_user' not in auth_scopes() or get_request().url.path.startswith(('/api/', '/static')):
         yield
         return
 

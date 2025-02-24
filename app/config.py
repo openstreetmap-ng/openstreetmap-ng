@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 
 import sentry_sdk
 from githead import githead
+from pydantic import ConfigDict
 from sentry_sdk.integrations.pure_eval import PureEvalIntegration
 
 from app.lib.local_chapters import LOCAL_CHAPTERS
@@ -136,6 +137,13 @@ SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FR
 SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
 
 POSTGRES_SQLALCHEMY_URL = POSTGRES_URL.replace('postgresql://', 'postgresql+asyncpg://', 1)
+
+PYDANTIC_CONFIG = ConfigDict(
+    extra='forbid',
+    allow_inf_nan=False,
+    strict=True,
+    cache_strings='keys',
+)
 
 
 # Logging configuration

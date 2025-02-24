@@ -6,8 +6,7 @@
     <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}"
        style="text-decoration: none; color: #222"><b>{{ comment.user.display_name }}</b></a>
     {%- endset %}
-    {% set _event = comment.event.value %}
-    {% if _event == 'commented' %}
+    {% if comment.event == 'commented' %}
         {% if is_note_owner %}
             {{ t('user_mailer.note_comment_notification.commented.your_note_html',
                 commenter=_commenter,
@@ -19,7 +18,7 @@
                 place=place
             ) | safe }}
         {% endif %}
-    {% elif _event == 'closed' %}
+    {% elif comment.event == 'closed' %}
         {% if is_note_owner %}
             {{ t('user_mailer.note_comment_notification.closed.your_note_html',
                 commenter=_commenter,
@@ -31,7 +30,7 @@
                 place=place
             ) | safe }}
         {% endif %}
-    {% elif _event == 'reopened' %}
+    {% elif comment.event == 'reopened' %}
         {% if is_note_owner %}
             {{ t('user_mailer.note_comment_notification.reopened.your_note_html',
                 commenter=_commenter,

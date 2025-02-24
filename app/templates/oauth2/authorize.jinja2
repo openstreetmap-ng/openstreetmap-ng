@@ -36,7 +36,6 @@
                         <h5>{{ t('oauth.app_is_requesting_permissions_to', name=_app_name) | safe }}</h5>
                         <ul class="list-unstyled mb-0">
                             {% for scope in scopes %}
-                                {% set scope = scope.value %}
                                 <li class="d-flex">
                                     <i class="bi bi-check text-success me-1"></i>
                                     <span>

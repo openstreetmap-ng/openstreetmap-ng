@@ -19,7 +19,6 @@ from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, NoteEvent
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscriptionTarget
-from app.models.scope import Scope
 from app.models.types import DisplayName
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
@@ -39,8 +38,8 @@ class NoteService:
         user, scopes = auth_user_scopes()
         if user is not None:
             # prevent oauth to create user-authorized note
-            if Scope.web_user not in scopes and Scope.write_notes not in scopes:
-                raise_for.insufficient_scopes((Scope.write_notes,))
+            if 'web_user' not in scopes and 'write_notes' not in scopes:
+                raise_for.insufficient_scopes(('write_notes',))
             user_id = user.id
             user_ip = None
         else:
@@ -107,7 +106,7 @@ class NoteService:
 
             elif event == NoteEvent.hidden:
                 if not user.is_moderator:
-                    raise_for.insufficient_scopes((Scope.role_moderator,))
+                    raise_for.insufficient_scopes(('role_moderator',))
                 note.hidden_at = func.statement_timestamp()
 
             else:

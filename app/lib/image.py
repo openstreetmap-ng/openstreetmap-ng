@@ -30,6 +30,9 @@ else:
 
 AvatarType = Literal[None, 'gravatar', 'custom']
 
+DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
+DEFAULT_APP_AVATAR_URL = '/static/img/app.webp'
+
 
 class Image:
     default_avatar: bytes = Path('app/static/img/avatar.webp').read_bytes()
@@ -55,7 +58,7 @@ class Image:
         '/api/web/avatar/123456'
         """
         if image_type is None:
-            return '/static/img/avatar.webp' if not app else '/static/img/app.webp'
+            return DEFAULT_APP_AVATAR_URL if app else DEFAULT_USER_AVATAR_URL
         elif image_type == 'gravatar':
             return f'/api/web/gravatar/{image_id}'
         elif image_type == 'custom':

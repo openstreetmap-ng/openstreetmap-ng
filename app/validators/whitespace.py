@@ -1,12 +1,18 @@
 import string
 
-from annotated_types import Predicate
+from pydantic import AfterValidator
+
+from app.lib.translation import t
 
 _WHITESPACE_CHARS = tuple(string.whitespace)
 
 
-def _validate_boundary_whitespace(s: str) -> bool:
-    return not s.startswith(_WHITESPACE_CHARS) and not s.endswith(_WHITESPACE_CHARS)
+def _validate_boundary_whitespace(v: str) -> str:
+    if v.startswith(_WHITESPACE_CHARS):
+        raise ValueError(t('validations.leading_whitespace'))
+    if v.endswith(_WHITESPACE_CHARS):
+        raise ValueError(t('validations.trailing_whitespace'))
+    return v
 
 
-BoundaryWhitespaceValidator = Predicate(_validate_boundary_whitespace)
+BoundaryWhitespaceValidator = AfterValidator(_validate_boundary_whitespace)
