@@ -12,6 +12,7 @@ from app.limits import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT
 from app.models.db.changeset import ChangesetId
 from app.models.db.user import User, UserId
 from app.models.element import ELEMENT_TYPED_ID_NODE_MAX, ElementTypedId, decode_element_typed_id
+from app.validators.geometry import GeometryValidator
 from app.validators.tags import TagsValidating
 from app.validators.unicode import UnicodeValidator
 from app.validators.xml import XMLSafeValidator
@@ -25,7 +26,7 @@ class ElementInit(TypedDict):
     version: PositiveInt
     visible: bool
     tags: TagsValidating | None
-    point: Point | None
+    point: Annotated[Point, GeometryValidator] | None
     members: list[ElementTypedId] | None
     members_roles: (
         list[

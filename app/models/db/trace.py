@@ -14,6 +14,7 @@ from app.models.db.user import User, UserId
 from app.models.scope import Scope
 from app.models.types import StorageKey
 from app.validators.filename import FileNameValidator
+from app.validators.geometry import GeometryValidator
 from app.validators.url import UrlSafeValidator
 from app.validators.xml import XMLSafeValidator
 
@@ -47,7 +48,7 @@ class TraceInit(TypedDict):
     ]  # TODO: validate size
     visibility: TraceVisibility
     file_id: StorageKey
-    tracks: MultiLineString  # TODO: z-dimension
+    tracks: Annotated[MultiLineString, GeometryValidator]  # TODO: z-dimension
     capture_times: list[datetime | None] | None
 
 

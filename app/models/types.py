@@ -1,6 +1,6 @@
 from typing import Annotated, NewType
 
-from annotated_types import MaxLen, MinLen
+from annotated_types import Interval, MaxLen, MinLen
 from pydantic import SecretStr
 
 from app.limits import DISPLAY_NAME_MAX_LENGTH
@@ -24,3 +24,7 @@ LocaleCode = NewType('LocaleCode', str)
 Password = NewType('Password', SecretStr)
 StorageKey = NewType('StorageKey', str)
 Uri = NewType('Uri', str)
+
+Longitude = Annotated[float, Interval(ge=-180, le=180)]
+Latitude = Annotated[float, Interval(ge=-90, le=90)]
+Zoom = Annotated[int, Interval(ge=0, le=25)]
