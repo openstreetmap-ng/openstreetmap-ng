@@ -2,9 +2,10 @@ from typing import Annotated
 
 import cython
 from annotated_types import MaxLen, MinLen
-from pydantic import AfterValidator
+from pydantic import AfterValidator, TypeAdapter
 from sizestr import sizestr
 
+from app.config import PYDANTIC_CONFIG
 from app.limits import TAGS_KEY_MAX_LENGTH, TAGS_LIMIT, TAGS_MAX_SIZE
 from app.validators.unicode import UnicodeValidator
 from app.validators.xml import XMLSafeValidator
@@ -28,7 +29,6 @@ def _validate_tags(v: dict[str, str]) -> dict[str, str]:
     return v
 
 
-TagsValidator = AfterValidator(_validate_tags)
 TagsValidating = Annotated[
     dict[
         Annotated[
@@ -46,5 +46,7 @@ TagsValidating = Annotated[
             XMLSafeValidator,
         ],
     ],
-    TagsValidator,
+    AfterValidator(_validate_tags),
 ]
+
+TagsValidator = TypeAdapter(TagsValidating, config=PYDANTIC_CONFIG)

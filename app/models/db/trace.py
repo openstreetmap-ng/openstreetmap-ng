@@ -1,15 +1,21 @@
 from collections.abc import Container
 from datetime import datetime
-from typing import Literal, NewType, NotRequired, TypedDict
+from typing import Annotated, Literal, NewType, NotRequired, TypedDict
 
 import numpy as np
+from annotated_types import MaxLen, MinLen
 from numpy.typing import NDArray
+from pydantic import TypeAdapter
 from shapely import MultiLineString
 
+from app.config import PYDANTIC_CONFIG
 from app.limits import TRACE_TAG_MAX_LENGTH
 from app.models.db.user import User, UserId
 from app.models.scope import Scope
 from app.models.types import StorageKey
+from app.validators.filename import FileNameValidator
+from app.validators.url import UrlSafeValidator
+from app.validators.xml import XMLSafeValidator
 
 TraceId = NewType('TraceId', int)
 TraceVisibility = Literal['identifiable', 'public', 'trackable', 'private']
@@ -17,13 +23,35 @@ TraceVisibility = Literal['identifiable', 'public', 'trackable', 'private']
 
 class TraceInit(TypedDict):
     user_id: UserId
-    name: str
-    description: str
-    tags: list[str]  # TODO: validate size
+    name: Annotated[
+        str,
+        FileNameValidator,
+        MinLen(1),
+        MaxLen(255),
+        XMLSafeValidator,
+    ]
+    description: Annotated[
+        str,
+        MinLen(1),
+        MaxLen(255),
+        XMLSafeValidator,
+    ]
+    tags: list[
+        Annotated[
+            str,
+            MinLen(1),
+            MaxLen(255),
+            XMLSafeValidator,
+            UrlSafeValidator,
+        ]
+    ]  # TODO: validate size
     visibility: TraceVisibility
     file_id: StorageKey
     tracks: MultiLineString  # TODO: z-dimension
     capture_times: list[datetime | None] | None
+
+
+TraceInitValidator = TypeAdapter(TraceInit, config=PYDANTIC_CONFIG)
 
 
 class Trace(TraceInit):

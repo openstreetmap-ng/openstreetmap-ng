@@ -9,8 +9,7 @@ from app.config import DELETED_USER_EMAIL_SUFFIX, TEST_USER_EMAIL_SUFFIX
 from app.lib.image import DEFAULT_USER_AVATAR_URL, AvatarType, Image
 from app.lib.rich_text import resolve_rich_text
 from app.models.scope import Scope
-from app.models.types import DisplayName, LocaleCode, StorageKey
-from app.validators.email import EmailValidating
+from app.models.types import DisplayName, Email, LocaleCode, StorageKey
 
 UserId = NewType('UserId', int)
 UserRole = Literal['moderator', 'administrator']
@@ -20,7 +19,7 @@ DEFAULT_EDITOR: Editor = 'id'
 
 
 class UserInit(TypedDict):
-    email: EmailValidating
+    email: Email
     email_verified: bool
     display_name: DisplayName
     password_pb: bytes

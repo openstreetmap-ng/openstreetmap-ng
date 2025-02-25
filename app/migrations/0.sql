@@ -132,6 +132,24 @@ CREATE TABLE changeset_comment (
 );
 CREATE INDEX changeset_comment_idx ON changeset_comment (changeset_id, id);
 
+CREATE TABLE element (
+    sequence_id bigint PRIMARY KEY,
+    next_sequence_id bigint REFERENCES element,
+    changeset_id bigint NOT NULL REFERENCES changeset,
+    typed_id bigint NOT NULL,
+    version bigint NOT NULL,
+    visible boolean NOT NULL,
+    tags hstore,
+    point geometry(Point, 4326),
+    members bigint[],
+    members_roles text[],
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp()
+);
+CREATE INDEX element_changeset_idx ON element (changeset_id);
+CREATE UNIQUE INDEX element_version_idx ON element (typed_id, version);
+CREATE INDEX element_current_idx ON element (typed_id, next_sequence_id, sequence_id);
+CREATE INDEX element_node_point_idx ON element (point) WHERE point IS NOT NULL AND next_sequence_id IS NULL;
+
 CREATE TABLE diary (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id bigint NOT NULL REFERENCES "user",
@@ -189,14 +207,13 @@ CREATE INDEX message_to_inbox ON message (read, to_user_id, id) WHERE to_user_hi
 
 CREATE TABLE note (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    point geometry(Point, 4326),
-    h3_r10 h3index[] NOT NULL GENERATED ALWAYS AS (h3_points_to_cells_range(point, 10)),
+    point geometry(Point, 4326) NOT NULL,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     updated_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     closed_at timestamptz,
     hidden_at timestamptz
 );
-CREATE INDEX note_point_idx ON note USING gin (h3_r10);
+CREATE INDEX note_point_idx ON note USING gist (point);
 CREATE INDEX note_created_at_idx ON note (created_at);
 CREATE INDEX note_updated_at_idx ON note (updated_at);
 CREATE INDEX note_closed_at_idx ON note (closed_at);

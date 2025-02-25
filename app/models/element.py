@@ -1,11 +1,13 @@
-from functools import lru_cache
 from typing import Literal, NamedTuple, NewType, Self, override
 
-ElementId = NewType('ElementId', int)
+import cython
+
 ElementType = Literal['node', 'way', 'relation']
+ElementId = NewType('ElementId', int)
+ElementTypedId = NewType('ElementTypedId', int)
+"""ElementTypedId allocates top 4 bits for ElementType, and bottom 60 bits for ElementId."""
 
 
-@lru_cache(maxsize=512)
 def element_type(s: str) -> ElementType:
     """
     Get the element type from the given string.
@@ -51,7 +53,7 @@ class ElementRef(NamedTuple):
         """
         Produce a string representation of the element reference.
 
-        >>> ElementRef('node', 123)
+        >>> ElementRef('node', ElementId(123))
         'n123'
         """
         return f'{self.type[0]}{self.id}'
@@ -102,7 +104,44 @@ class VersionedElementRef(NamedTuple):
         """
         Produce a string representation of the versioned element reference.
 
-        >>> VersionedElementRef('node', 123, 1)
+        >>> VersionedElementRef('node', ElementId(123), 1)
         'n123v1'
         """
         return f'{self.type[0]}{self.id}v{self.version}'
+
+
+def element_typed_id(type: ElementType, id: ElementId) -> ElementTypedId:
+    if id < 0:
+        raise ValueError(f"ElementTypedId doesn't support negative ids: {id}")
+    if id >= 1 << 60:
+        raise OverflowError(f'ElementId {id} is too large for ElementTypedId')
+
+    if type == 'node':
+        return id  # type: ignore
+    elif type == 'way':
+        return (1 << 60) | id  # type: ignore
+    elif type == 'relation':
+        return (2 << 60) | id  # type: ignore
+    else:
+        raise NotImplementedError(f'Unsupported element type {type!r}')
+
+
+def decode_element_typed_id(id: ElementTypedId) -> tuple[ElementType, ElementId]:
+    element_id: ElementId = id & ((1 << 60) - 1)  # type: ignore
+    type_num: cython.ulonglong = id >> 60
+    if type_num == 0:
+        return 'node', element_id
+    elif type_num == 1:
+        return 'way', element_id
+    elif type_num == 2:
+        return 'relation', element_id
+    else:
+        raise NotImplementedError(f'Unsupported element type number {type_num!r} in {id!r}')
+
+
+ELEMENT_TYPED_ID_RELATION_MAX = ElementTypedId((3 << 60) - 1)
+ELEMENT_TYPED_ID_RELATION_MIN = element_typed_id('relation', ElementId(0))
+ELEMENT_TYPED_ID_WAY_MAX = ElementTypedId(ELEMENT_TYPED_ID_RELATION_MIN - 1)
+ELEMENT_TYPED_ID_WAY_MIN = element_typed_id('way', ElementId(0))
+ELEMENT_TYPED_ID_NODE_MAX = ElementTypedId(ELEMENT_TYPED_ID_WAY_MIN - 1)
+ELEMENT_TYPED_ID_NODE_MIN = element_typed_id('node', ElementId(0))
