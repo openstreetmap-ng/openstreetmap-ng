@@ -8,7 +8,7 @@ import cython
 from bs4 import BeautifulSoup
 
 from app.lib.rich_text import resolve_rich_text
-from app.models.db.user import User, UserId
+from app.models.db.user import UserDisplay, UserId
 
 MessageId = NewType('MessageId', int)
 
@@ -29,8 +29,8 @@ class Message(MessageInit):
     created_at: datetime
 
     # runtime
-    from_user: NotRequired[User]
-    to_user: NotRequired[User]
+    from_user: NotRequired[UserDisplay]
+    to_user: NotRequired[UserDisplay]
     body_rich: NotRequired[str]
 
 

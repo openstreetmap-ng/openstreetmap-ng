@@ -5,7 +5,7 @@ from typing import Literal, NewType, NotRequired, TypedDict
 
 from app.lib.rich_text import resolve_rich_text
 from app.models.db.note import Note, NoteId
-from app.models.db.user import User, UserId
+from app.models.db.user import UserDisplay, UserId
 
 NoteCommentId = NewType('NoteCommentId', int)
 NoteEvent = Literal['opened', 'closed', 'reopened', 'commented', 'hidden']
@@ -25,7 +25,7 @@ class NoteComment(NoteCommentInit):
     created_at: datetime
 
     # runtime
-    user: NotRequired[User]
+    user: NotRequired[UserDisplay]
     body_rich: NotRequired[str]
     legacy_note: NotRequired[Note]
 

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Literal, NewType, NotRequired, TypedDict
+from typing import Literal, NewType, TypedDict
 
 from app.limits import (
     USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE,
@@ -8,7 +8,7 @@ from app.limits import (
     USER_TOKEN_RESET_PASSWORD_EXPIRE,
 )
 from app.models.db.mail import MailSource
-from app.models.db.user import User, UserId
+from app.models.db.user import UserId
 from app.models.types import Email
 
 UserTokenId = NewType('UserTokenId', int)
@@ -34,9 +34,6 @@ class UserToken(UserTokenInit):
     id: UserTokenId
     created_at: datetime
 
-    # runtime
-    user: NotRequired[User]
-
 
 class UserTokenEmailChangeInit(UserTokenInit):
     email_change_new: Email
@@ -53,5 +50,4 @@ class UserTokenEmailReplyInit(UserTokenInit):
 
 
 class UserTokenEmailReply(UserTokenEmailReplyInit, UserToken):
-    # runtime
-    email_reply_to_user: NotRequired[User]
+    pass

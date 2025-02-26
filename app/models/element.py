@@ -4,8 +4,8 @@ import cython
 
 ElementType = Literal['node', 'way', 'relation']
 ElementId = NewType('ElementId', int)
-ElementTypedId = NewType('ElementTypedId', int)
-"""ElementTypedId allocates top 4 bits for ElementType, and bottom 60 bits for ElementId."""
+TypedElementId = NewType('TypedElementId', int)
+"""TypedElementId allocates top 4 bits for ElementType, and bottom 60 bits for ElementId."""
 
 
 def element_type(s: str) -> ElementType:
@@ -110,11 +110,11 @@ class VersionedElementRef(NamedTuple):
         return f'{self.type[0]}{self.id}v{self.version}'
 
 
-def element_typed_id(type: ElementType, id: ElementId) -> ElementTypedId:
+def typed_element_id(type: ElementType, id: ElementId) -> TypedElementId:
     if id < 0:
-        raise ValueError(f"ElementTypedId doesn't support negative ids: {id}")
+        raise ValueError(f"TypedElementId doesn't support negative ids: {id}")
     if id >= 1 << 60:
-        raise OverflowError(f'ElementId {id} is too large for ElementTypedId')
+        raise OverflowError(f'ElementId {id} is too large for TypedElementId')
 
     if type == 'node':
         return id  # type: ignore
@@ -126,7 +126,7 @@ def element_typed_id(type: ElementType, id: ElementId) -> ElementTypedId:
         raise NotImplementedError(f'Unsupported element type {type!r}')
 
 
-def decode_element_typed_id(id: ElementTypedId) -> tuple[ElementType, ElementId]:
+def split_typed_element_id(id: TypedElementId) -> tuple[ElementType, ElementId]:
     element_id: ElementId = id & ((1 << 60) - 1)  # type: ignore
     type_num: cython.ulonglong = id >> 60
     if type_num == 0:
@@ -139,9 +139,9 @@ def decode_element_typed_id(id: ElementTypedId) -> tuple[ElementType, ElementId]
         raise NotImplementedError(f'Unsupported element type number {type_num!r} in {id!r}')
 
 
-ELEMENT_TYPED_ID_RELATION_MAX = ElementTypedId((3 << 60) - 1)
-ELEMENT_TYPED_ID_RELATION_MIN = element_typed_id('relation', ElementId(0))
-ELEMENT_TYPED_ID_WAY_MAX = ElementTypedId(ELEMENT_TYPED_ID_RELATION_MIN - 1)
-ELEMENT_TYPED_ID_WAY_MIN = element_typed_id('way', ElementId(0))
-ELEMENT_TYPED_ID_NODE_MAX = ElementTypedId(ELEMENT_TYPED_ID_WAY_MIN - 1)
-ELEMENT_TYPED_ID_NODE_MIN = element_typed_id('node', ElementId(0))
+TYPED_ELEMENT_ID_RELATION_MAX = TypedElementId((3 << 60) - 1)
+TYPED_ELEMENT_ID_RELATION_MIN = typed_element_id('relation', ElementId(0))
+TYPED_ELEMENT_ID_WAY_MAX = TypedElementId(TYPED_ELEMENT_ID_RELATION_MIN - 1)
+TYPED_ELEMENT_ID_WAY_MIN = typed_element_id('way', ElementId(0))
+TYPED_ELEMENT_ID_NODE_MAX = TypedElementId(TYPED_ELEMENT_ID_WAY_MIN - 1)
+TYPED_ELEMENT_ID_NODE_MIN = typed_element_id('node', ElementId(0))

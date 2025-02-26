@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Literal, NewType, NotRequired, TypedDict, override
+from typing import Literal, NewType, TypedDict, override
 
-from app.models.db.oauth2_application import ApplicationId, OAuth2Application
-from app.models.db.user import User, UserId
+from app.models.db.oauth2_application import ApplicationId
+from app.models.db.user import UserId
 from app.models.scope import PublicScope
 from app.models.types import Uri
 
@@ -31,10 +31,6 @@ class OAuth2Token(OAuth2TokenInit):
     id: OAuth2TokenId
     created_at: datetime
     authorized_at: datetime | None
-
-    # runtime
-    user: NotRequired[User]
-    application: NotRequired[OAuth2Application]
 
 
 def oauth2_token_is_oob(token: OAuth2Token) -> bool:

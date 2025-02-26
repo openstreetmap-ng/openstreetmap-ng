@@ -4,9 +4,10 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.diff_mixin import DiffExceptionsMixin
+from app.models.element import split_typed_element_id
 
 if TYPE_CHECKING:
-    from app.models.db.element import Element
+    from app.models.db.element import ElementInit
 
 
 class DiffExceptions06Mixin(DiffExceptionsMixin):
@@ -22,28 +23,29 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
         )
 
     @override
-    def diff_create_bad_id(self, element: 'Element') -> NoReturn:
-        if element.type == 'node':
+    def diff_create_bad_id(self, element: 'ElementInit') -> NoReturn:
+        type = split_typed_element_id(element['typed_id'])[0]
+        if type == 'node':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail='Cannot create node: data is invalid.',
             )
-        elif element.type == 'way':
+        elif type == 'way':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail='Cannot create way: data is invalid.',
             )
-        elif element.type == 'relation':
+        elif type == 'relation':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail='Cannot create relation: data or member data is invalid.',
             )
         else:
-            raise NotImplementedError(f'Unsupported element type {element.type!r}')
+            raise NotImplementedError(f'Unsupported element type {type!r}')
 
     @override
-    def diff_update_bad_version(self, element: 'Element') -> NoReturn:
+    def diff_update_bad_version(self, element: 'ElementInit') -> NoReturn:
         raise APIError(
             status.HTTP_412_PRECONDITION_FAILED,
-            detail=f'Update action requires version >= 1, got {element.version - 1}',
+            detail=f'Update action requires version >= 1, got {element["version"] - 1}',
         )

@@ -10,7 +10,7 @@ from shapely import MultiLineString
 
 from app.config import PYDANTIC_CONFIG
 from app.limits import TRACE_TAG_MAX_LENGTH
-from app.models.db.user import User, UserId
+from app.models.db.user import User, UserDisplay, UserId
 from app.models.scope import Scope
 from app.models.types import StorageKey
 from app.validators.filename import FileNameValidator
@@ -62,7 +62,7 @@ class Trace(TraceInit):
     updated_at: datetime
 
     # runtime
-    user: NotRequired[User]
+    user: NotRequired[UserDisplay]
     coords: NotRequired[NDArray[np.number]]
 
 

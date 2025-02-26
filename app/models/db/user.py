@@ -48,6 +48,15 @@ class User(UserInit):
     description_rich: NotRequired[str]
 
 
+class UserDisplay(TypedDict):
+    """Minimal user information for public display."""
+
+    id: UserId
+    display_name: DisplayName
+    avatar_type: AvatarType
+    avatar_id: StorageKey
+
+
 async def users_resolve_rich_text(objs: Iterable[User]) -> None:
     await resolve_rich_text(objs, 'user', 'description', 'markdown')
 
@@ -85,7 +94,7 @@ def user_extend_scopes(user: User, scopes: tuple[Scope, ...]) -> tuple[Scope, ..
     return *scopes, *extra
 
 
-def user_avatar_url(user: User) -> str:
+def user_avatar_url(user: UserDisplay) -> str:
     """Get the url for the user's avatar image."""
     avatar_type = user['avatar_type']
     if avatar_type is None:

@@ -58,8 +58,8 @@ def rate_limit(*, weight: int = 1):
             request = get_request()
             user = auth_user()
             if user is not None:
-                key = f'RateLimit:user:{user.id}'
-                quota = UserRoleLimits.get_rate_limit_quota(user.roles)
+                key = f'RateLimit:user:{user["id"]}'
+                quota = UserRoleLimits.get_rate_limit_quota(user['roles'])
             else:
                 key = f'RateLimit:host:{request.client.host}'  # pyright: ignore[reportOptionalMemberAccess]
                 quota = UserRoleLimits.get_rate_limit_quota(())

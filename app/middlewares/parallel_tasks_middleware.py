@@ -9,7 +9,7 @@ from app.lib.auth_context import auth_scopes
 from app.middlewares.request_context_middleware import get_request
 from app.queries.message_query import MessageQuery
 
-_messages_count_unread_context: ContextVar[Task[int]] = ContextVar('_messages_count_unread_context')
+_MESSAGES_COUNT_UNREAD_CTX: ContextVar[Task[int]] = ContextVar('_MESSAGES_COUNT_UNREAD_CONTEXT')
 
 
 @contextmanager
@@ -19,11 +19,11 @@ def _messages_count_unread(tg: TaskGroup):
         yield
         return
 
-    token = _messages_count_unread_context.set(tg.create_task(MessageQuery.count_unread()))
+    token = _MESSAGES_COUNT_UNREAD_CTX.set(tg.create_task(MessageQuery.count_unread()))
     try:
         yield
     finally:
-        _messages_count_unread_context.reset(token)
+        _MESSAGES_COUNT_UNREAD_CTX.reset(token)
 
 
 class ParallelTasksMiddleware:
@@ -46,5 +46,5 @@ class ParallelTasksMiddleware:
     @staticmethod
     async def messages_count_unread() -> int | None:
         """Get the number of unread messages."""
-        task = _messages_count_unread_context.get(None)
+        task = _MESSAGES_COUNT_UNREAD_CTX.get(None)
         return (await task) if (task is not None) else None

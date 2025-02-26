@@ -3,15 +3,15 @@ from typing import Annotated, Literal, NewType, NotRequired, TypedDict
 
 import cython
 import numpy as np
-from annotated_types import Ge, MaxLen, MinLen
+from annotated_types import MaxLen, MinLen
 from pydantic import PositiveInt, TypeAdapter
 from shapely import Point
 
 from app.config import PYDANTIC_CONFIG
 from app.limits import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT, TAGS_KEY_MAX_LENGTH
 from app.models.db.changeset import ChangesetId
-from app.models.db.user import User, UserId
-from app.models.element import ELEMENT_TYPED_ID_NODE_MAX, ElementTypedId, decode_element_typed_id
+from app.models.db.user import UserDisplay, UserId
+from app.models.element import TYPED_ELEMENT_ID_NODE_MAX, TypedElementId, split_typed_element_id
 from app.validators.geometry import GeometryValidator
 from app.validators.tags import TagsValidating
 from app.validators.unicode import UnicodeValidator
@@ -21,13 +21,13 @@ SequenceId = NewType('SequenceId', int)
 
 
 class ElementInit(TypedDict):
-    changeset_id: Annotated[ChangesetId, Ge(1)] | None
-    typed_id: ElementTypedId
+    changeset_id: ChangesetId | None
+    typed_id: TypedElementId
     version: PositiveInt
     visible: bool
     tags: TagsValidating | None
     point: Annotated[Point, GeometryValidator] | None
-    members: list[ElementTypedId] | None
+    members: list[TypedElementId] | None
     members_roles: (
         list[
             Annotated[
@@ -52,7 +52,7 @@ class Element(ElementInit):
 
     # runtime
     user_id: NotRequired[UserId]
-    user: NotRequired[User]
+    user: NotRequired[UserDisplay]
 
 
 _ElementInitListValidator = TypeAdapter(list[ElementInit], config=PYDANTIC_CONFIG)
@@ -62,7 +62,7 @@ def validate_elements(elements: list[ElementInit]) -> list[ElementInit]:
     elements = _ElementInitListValidator.validate_python(elements)
 
     for element in elements:
-        type = decode_element_typed_id(element['typed_id'])[0]
+        type = split_typed_element_id(element['typed_id'])[0]
         if type == 'node':
             _validate_node(element)
         elif type == 'way':
@@ -100,7 +100,7 @@ def _validate_way(element: ElementInit):
         raise ValueError('Ways must have at least one member')
     if len(members) > ELEMENT_WAY_MEMBERS_LIMIT:
         raise ValueError(f'Ways cannot have more than {ELEMENT_WAY_MEMBERS_LIMIT} members')
-    if np.any(np.array(members, np.uint64) > ELEMENT_TYPED_ID_NODE_MAX):
+    if np.any(np.array(members, np.uint64) > TYPED_ELEMENT_ID_NODE_MAX):
         raise ValueError('Ways cannot have non-node members')
 
 

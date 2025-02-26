@@ -5,7 +5,7 @@ from typing import NewType, NotRequired, TypedDict
 from shapely import Point
 
 from app.lib.rich_text import resolve_rich_text
-from app.models.db.user import User, UserId
+from app.models.db.user import UserDisplay, UserId
 from app.models.types import LocaleCode
 
 DiaryId = NewType('DiaryId', int)
@@ -26,7 +26,7 @@ class Diary(DiaryInit):
     updated_at: datetime
 
     # runtime
-    user: NotRequired[User]
+    user: NotRequired[UserDisplay]
     body_rich: NotRequired[str]
     num_comments: NotRequired[int]
     location_name: NotRequired[str]

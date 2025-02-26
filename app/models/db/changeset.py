@@ -5,8 +5,9 @@ from typing import TYPE_CHECKING, NewType, NotRequired, TypedDict
 from psycopg import AsyncConnection
 from shapely import Polygon
 
+from app.lib.auth_context import auth_user
 from app.lib.user_role_limits import UserRoleLimits
-from app.models.db.user import User, UserId
+from app.models.db.user import UserDisplay, UserId
 
 if TYPE_CHECKING:
     from app.models.db.changeset_bounds import ChangesetBounds
@@ -31,10 +32,10 @@ class Changeset(ChangesetInit):
     union_bounds: Polygon | None
 
     # runtime
-    user: NotRequired[User]
+    user: NotRequired[UserDisplay]
     bounds: NotRequired[list['ChangesetBounds']]
     num_comments: NotRequired[int]
-    comments: NotRequired[list['ChangesetComment'] | None]
+    comments: NotRequired[list['ChangesetComment']]
 
 
 def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
@@ -42,15 +43,19 @@ def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
     if changeset['size'] >= new_size:
         raise ValueError('New size must be greater than the current size')
 
-    if changeset['user_id']:
-        user = changeset.get('user')
-        assert user is not None, 'Changeset user must be set'
-        max_size = UserRoleLimits.get_changeset_max_size(user['roles'])
-    else:
-        max_size = UserRoleLimits.get_changeset_max_size(())
+    user = auth_user(required=True)
+    user_id = user['id']
+    max_size = UserRoleLimits.get_changeset_max_size(user['roles'])
+
+    changeset_user_id = changeset['user_id']
+    if changeset_user_id is None:
+        raise AssertionError('Anonymous changesets are no longer supported')
+    if changeset_user_id != user_id:
+        raise AssertionError(f'Changeset {changeset["id"]} can only be edited by the owner != {user_id}')
 
     if new_size > max_size:
         return False
+
     changeset['size'] = new_size
     return True
 
@@ -58,18 +63,22 @@ def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
 async def changesets_auto_close_on_size(conn: AsyncConnection, changesets: Iterable[Changeset]) -> int:
     """Close changesets that have reached the maximum size. Returns the number of updated changesets."""
     mapping: dict[int, Changeset] = {}
+    user = auth_user(required=True)
+    user_id = user['id']
+    max_size = UserRoleLimits.get_changeset_max_size(user['roles'])
 
     for changeset in changesets:
+        # skip already closed changesets
         if changeset['closed_at'] is not None:
             continue
 
-        if changeset['user_id']:
-            user = changeset.get('user')
-            assert user is not None, 'Changeset user must be set'
-            max_size = UserRoleLimits.get_changeset_max_size(user['roles'])
-        else:
-            max_size = UserRoleLimits.get_changeset_max_size(())
+        changeset_user_id = changeset['user_id']
+        if changeset_user_id is None:
+            raise AssertionError('Anonymous changesets are no longer supported')
+        if changeset_user_id != user_id:
+            raise AssertionError(f'Changeset {changeset["id"]} can only be edited by the owner != {user_id}')
 
+        # close if limit is reached
         if changeset['size'] >= max_size:
             mapping[changeset['id']] = changeset
 

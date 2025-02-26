@@ -14,7 +14,7 @@ from app.models.types import LocaleCode
 
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#language
 # limit to matches only supported by our translation files: config/locale
-_accept_language_re = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
+_ACCEPT_LANGUAGE_RE = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
 
 
 class TranslationMiddleware:
@@ -38,7 +38,7 @@ class TranslationMiddleware:
 def _get_request_language():
     user = auth_user()
     if user is not None:
-        return user.language
+        return user['language']
     accept_language = get_request().headers.get('Accept-Language')
     if accept_language:
         return _parse_accept_language(accept_language)
@@ -58,7 +58,7 @@ def _parse_accept_language(accept_language: str) -> LocaleCode:
     current_q: cython.double = 0
     current_lang = DEFAULT_LOCALE
 
-    for match in _accept_language_re.finditer(accept_language):
+    for match in _ACCEPT_LANGUAGE_RE.finditer(accept_language):
         q_str: str | None = match['q']
         q_num: cython.double
         if q_str is None:

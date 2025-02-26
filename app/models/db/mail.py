@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal, NewType, NotRequired, TypedDict
 
-from app.models.db.user import User, UserId
+from app.models.db.user import UserDisplay, UserId
 
 MailId = NewType('MailId', int)
 MailSource = Literal[None, 'message', 'diary_comment']  # None: for system/no source
@@ -24,5 +24,5 @@ class Mail(MailInit):
     scheduled_at: datetime
 
     # runtime
-    from_user: NotRequired[User]
-    to_user: NotRequired[User]
+    from_user: NotRequired[UserDisplay]
+    to_user: NotRequired[UserDisplay]

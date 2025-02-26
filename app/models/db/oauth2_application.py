@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import NewType, NotRequired, TypedDict
 
 from app.lib.image import DEFAULT_APP_AVATAR_URL, Image
-from app.models.db.user import User, UserId
+from app.models.db.user import UserDisplay, UserId
 from app.models.scope import PublicScope
 from app.models.types import StorageKey, Uri
 
@@ -34,7 +34,7 @@ class OAuth2Application(OAuth2ApplicationInit):
     updated_at: datetime
 
     # runtime
-    user: NotRequired[User]
+    user: NotRequired[UserDisplay]
 
 
 def oauth2_app_avatar_url(app: OAuth2Application) -> str:

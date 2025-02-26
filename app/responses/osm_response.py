@@ -53,47 +53,14 @@ class OSMResponse(Response):
     @classmethod
     def serialize(cls, content: Any) -> Response:
         style = format_style()
-
         if style == 'json':
-            # include json attributes if api 0.6 and not notes
-            request_path: str = get_request().url.path
-            if request_path.startswith('/api/0.6/') and not request_path.startswith('/api/0.6/notes'):
-                if isinstance(content, Mapping):
-                    content = {**_json_attributes, **content}
-                else:
-                    raise TypeError(f'Invalid json content type {type(content)}')
-
-            encoded = orjson.dumps(content, option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_UTC_Z)
-            return Response(encoded, media_type='application/json; charset=utf-8')
-
+            return _serialize_json(content)
         elif style == 'xml':
-            if isinstance(content, Mapping):
-                content = {cls.xml_root: {**_xml_attributes, **content}}
-            elif isinstance(content, Sequence) and not isinstance(content, str):
-                content = {cls.xml_root: (*_xml_attributes.items(), *content)}
-            else:
-                raise TypeError(f'Invalid xml content type {type(content)}')
-
-            encoded = XMLToDict.unparse(content, raw=True)
-            return Response(encoded, media_type='application/xml; charset=utf-8')
-
+            return _serialize_xml(cls.xml_root, content)
         elif style == 'rss':
-            if not isinstance(content, bytes):
-                raise TypeError(f'Invalid rss content type {type(content)}')
-
-            return Response(content, media_type='application/rss+xml; charset=utf-8')
-
+            return _serialize_rss(content)
         elif style == 'gpx':
-            if isinstance(content, Mapping):
-                content = {cls.xml_root: {**_gpx_attributes, **content}}
-            elif isinstance(content, Sequence) and not isinstance(content, str):
-                content = {cls.xml_root: (*_gpx_attributes.items(), *content)}
-            else:
-                raise TypeError(f'Invalid xml content type {type(content)}')
-
-            encoded = XMLToDict.unparse(content, raw=True)
-            return Response(encoded, media_type='application/gpx+xml; charset=utf-8')
-
+            return _serialize_gpx(cls.xml_root, content)
         else:
             raise NotImplementedError(f'Unsupported osm format style {style!r}')
 
@@ -108,6 +75,54 @@ class DiffResultResponse(OSMResponse):
 
 class GPXResponse(OSMResponse):
     xml_root = 'gpx'
+
+
+@cython.cfunc
+def _serialize_json(content: Any):
+    # include json attributes if api 0.6 and not notes
+    request_path: str = get_request().url.path
+    if request_path.startswith('/api/0.6/') and not request_path.startswith('/api/0.6/notes'):
+        if isinstance(content, Mapping):
+            content = {**_json_attributes, **content}
+        else:
+            raise TypeError(f'Invalid json content type {type(content)}')
+
+    encoded = orjson.dumps(content, option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_UTC_Z)
+    return Response(encoded, media_type='application/json; charset=utf-8')
+
+
+@cython.cfunc
+def _serialize_xml(xml_root: str, content: Any):
+    if isinstance(content, Mapping):
+        content = {xml_root: {**_xml_attributes, **content}}
+    elif isinstance(content, Sequence) and not isinstance(content, str):
+        content = {xml_root: (*_xml_attributes.items(), *content)}
+    else:
+        raise TypeError(f'Invalid xml content type {type(content)}')
+
+    encoded = XMLToDict.unparse(content, raw=True)
+    return Response(encoded, media_type='application/xml; charset=utf-8')
+
+
+@cython.cfunc
+def _serialize_rss(content: Any):
+    if not isinstance(content, bytes):
+        raise TypeError(f'Invalid rss content type {type(content)}')
+
+    return Response(content, media_type='application/rss+xml; charset=utf-8')
+
+
+@cython.cfunc
+def _serialize_gpx(xml_root: str, content: Any):
+    if isinstance(content, Mapping):
+        content = {xml_root: {**_gpx_attributes, **content}}
+    elif isinstance(content, Sequence) and not isinstance(content, str):
+        content = {xml_root: (*_gpx_attributes.items(), *content)}
+    else:
+        raise TypeError(f'Invalid xml content type {type(content)}')
+
+    encoded = XMLToDict.unparse(content, raw=True)
+    return Response(encoded, media_type='application/gpx+xml; charset=utf-8')
 
 
 def setup_api_router_response(router: APIRouter) -> None:
