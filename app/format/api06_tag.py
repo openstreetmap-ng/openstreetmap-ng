@@ -2,7 +2,7 @@ from collections.abc import Iterable
 
 import cython
 
-from app.models.validating.tags import TagsValidating
+from app.validators.tags import TagsValidator
 
 
 class Tag06Mixin:
@@ -15,7 +15,7 @@ class Tag06Mixin:
         ... ])
         {'a': '1', 'b': '2'}
         """
-        return TagsValidating(tags=_decode_tags_unsafe(tags)).tags
+        return TagsValidator.validate_python(_decode_tags_unsafe(tags))
 
 
 @cython.cfunc
@@ -29,7 +29,7 @@ def _decode_tags_unsafe(tags: Iterable[dict]) -> dict:
     ... ])
     {'a': '1', 'b': '2'}
     """
-    items = tuple((tag['@k'], tag['@v']) for tag in tags)
+    items = [(tag['@k'], tag['@v']) for tag in tags]
     result = dict(items)
     if len(items) != len(result):
         raise ValueError('Duplicate tag keys')

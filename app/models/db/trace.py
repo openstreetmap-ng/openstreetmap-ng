@@ -22,8 +22,7 @@ TraceId = NewType('TraceId', int)
 TraceVisibility = Literal['identifiable', 'public', 'trackable', 'private']
 
 
-class TraceInit(TypedDict):
-    user_id: UserId
+class TraceMetaInit(TypedDict):
     name: Annotated[
         str,
         FileNameValidator,
@@ -47,11 +46,16 @@ class TraceInit(TypedDict):
         ]
     ]  # TODO: validate size
     visibility: TraceVisibility
+
+
+class TraceInit(TraceMetaInit):
+    user_id: UserId
     file_id: StorageKey
     tracks: Annotated[MultiLineString, GeometryValidator]  # TODO: z-dimension
     capture_times: list[datetime | None] | None
 
 
+TraceMetaInitValidator = TypeAdapter(TraceMetaInit, config=PYDANTIC_CONFIG)
 TraceInitValidator = TypeAdapter(TraceInit, config=PYDANTIC_CONFIG)
 
 
@@ -66,8 +70,11 @@ class Trace(TraceInit):
     coords: NotRequired[NDArray[np.number]]
 
 
-def trace_tags_from_str(s: str) -> list[str]:
+def trace_tags_from_str(s: str | None) -> list[str]:
     """Convert a string of tags to a list of tags."""
+    if s is None:
+        return []
+
     if ',' in s:
         sep = ','
     else:

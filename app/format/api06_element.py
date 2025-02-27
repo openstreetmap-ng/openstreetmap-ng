@@ -182,9 +182,7 @@ def _decode_nodes(nodes: Iterable[dict]) -> list[TypedElementId]:
     >>> _decode_nodes([{'@ref': '1'}])
     [ElementMember(type='node', id=1, role='')]
     """
-    # NOTE: skipped split_typed_element_id for performance
-    # nodes ids are preserved as-is
-    return [int(node['@ref']) for node in nodes]  # type: ignore
+    return [typed_element_id('node', node['@ref']) for node in nodes]
 
 
 @cython.cfunc
@@ -251,7 +249,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
     >>> _encode_element(Element(type='node', id=1, version=1, ...))
     {'@id': 1, '@version': 1, ...}
     """
-    type, element_id = split_typed_element_id(element['typed_id'])
+    type, id = split_typed_element_id(element['typed_id'])
     is_node: cython.char = type == 'node'
     is_way: cython.char = not is_node and type == 'way'
     is_relation: cython.char = not is_node and not is_way
@@ -263,7 +261,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
     if is_json:
         return {
             'type': type,
-            'id': element_id,
+            'id': id,
             'version': element['version'],
             **(
                 {
@@ -283,7 +281,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
         }
     else:
         return {
-            '@id': element_id,
+            '@id': id,
             '@version': element['version'],
             **(
                 {

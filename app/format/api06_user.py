@@ -7,11 +7,10 @@ from shapely import Point, lib
 
 from app.config import APP_URL
 from app.lib.auth_context import auth_user
-from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import get_xattr
-from app.models.db.user import User
+from app.models.db.user import User, user_avatar_url
 from app.models.db.user_pref import UserPref, UserPrefListValidator
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.message_query import MessageQuery
@@ -39,9 +38,8 @@ class User06Mixin:
         """
         is_json = format_is_json()
         async with TaskGroup() as tg:
-            tasks = tuple(tg.create_task(_encode_user(user, is_json=is_json)) for user in users)
-        encoded_users = tuple(task.result() for task in tasks)
-        return {'users': encoded_users} if is_json else {'user': encoded_users}
+            tasks = [tg.create_task(_encode_user(user, is_json=is_json)) for user in users]
+        return {('users' if is_json else 'user'): [task.result() for task in tasks]}
 
     @staticmethod
     def encode_user_preferences(prefs: Iterable[UserPref]) -> dict:
@@ -53,9 +51,9 @@ class User06Mixin:
         {'preferences': {'preference': [{'@k': 'key1', '@v': 'value1'}, {'@k': 'key2', '@v': 'value2'}]}}
         """
         if format_is_json():
-            return {'preferences': {pref.key: pref.value for pref in prefs}}
+            return {'preferences': {pref['key']: pref['value'] for pref in prefs}}
         else:
-            return {'preferences': {'preference': tuple({'@k': pref.key, '@v': pref.value} for pref in prefs)}}
+            return {'preferences': {'preference': [{'@k': pref['key'], '@v': pref['value']} for pref in prefs]}}
 
     @staticmethod
     def decode_user_preferences(prefs: Collection[dict[str, str]]) -> list[UserPref]:
@@ -72,7 +70,7 @@ class User06Mixin:
             seen_keys.add(key)
 
         user_id = auth_user(required=True)['id']
-        user_prefs: list[UserPref] = [
+        user_prefs: list[UserPref] = [  # type: ignore
             {
                 'user_id': user_id,
                 'app_id': None,  # 0.6 api does not support prefs partitioning
@@ -89,40 +87,41 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
     >>> _encode_user(User(...))
     {'@id': 1234, '@display_name': 'userName', ...}
     """
+    user_id = user['id']
     current_user = auth_user()
-    access_private: cython.char = (current_user is not None) and (current_user.id == user.id)
+    access_private: cython.char = (current_user is not None) and (current_user['id'] == user_id)
     xattr = get_xattr(is_json=is_json)
 
     async with TaskGroup() as tg:
-        changesets_task = tg.create_task(ChangesetQuery.count_by_user_id(user.id))
-        traces_task = tg.create_task(TraceQuery.count_by_user_id(user.id))
-        block_received_task = tg.create_task(UserBlockQuery.count_received_by_user_id(user.id))
-        block_issued_task = tg.create_task(UserBlockQuery.count_given_by_user_id(user.id))
-        if access_private:
-            messages_count_task = tg.create_task(MessageQuery.count_by_user_id(user.id))
-        else:
-            messages_count_task = None
+        changesets_task = tg.create_task(ChangesetQuery.count_by_user_id(user_id))
+        traces_task = tg.create_task(TraceQuery.count_by_user_id(user_id))
+        block_received_task = tg.create_task(UserBlockQuery.count_received_by_user_id(user_id))
+        block_issued_task = tg.create_task(UserBlockQuery.count_given_by_user_id(user_id))
+        messages_count_task = tg.create_task(MessageQuery.count_by_user_id(user_id)) if access_private else None
 
     changesets_num = changesets_task.result()
     traces_num = traces_task.result()
     block_received_num, block_received_active_num = block_received_task.result()
     block_issued_num, block_issued_active_num = block_issued_task.result()
+
     if messages_count_task is not None:
         messages_received_num, messages_unread_num, messages_sent_num = messages_count_task.result()
     else:
         messages_received_num = messages_unread_num = messages_sent_num = 0
 
-    return {
-        xattr('id'): user.id,
-        xattr('display_name'): user.display_name,
-        xattr('account_created'): legacy_date(user.created_at),
-        'description': user.description,
-        ('contributor_terms' if is_json else 'contributor-terms'): {
+    contributor_terms_key = 'contributor_terms' if is_json else 'contributor-terms'
+
+    # Build public user info
+    result = {
+        xattr('id'): user_id,
+        xattr('display_name'): user['display_name'],
+        xattr('account_created'): user['created_at'],
+        'description': user['description'],
+        contributor_terms_key: {
             xattr('agreed'): True,
-            **({xattr('pd'): False} if access_private else {}),
         },
-        'img': {xattr('href'): f'{APP_URL}{user.avatar_url}'},
-        'roles': tuple(role.value for role in user.roles),
+        'img': {xattr('href'): f'{APP_URL}{user_avatar_url(user)}'},
+        'roles': user['roles'],
         'changesets': {xattr('count'): changesets_num},
         'traces': {xattr('count'): traces_num},
         'blocks': {
@@ -135,32 +134,33 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
                 xattr('active'): block_issued_active_num,
             },
         },
-        # private section
-        **(
-            {
-                **(
-                    {
-                        'home': {
-                            **_encode_point(user.home_point, is_json=is_json),
-                            xattr('zoom'): 15,  # default home zoom level
-                        }
-                    }
-                    if (user.home_point is not None)
-                    else {}
-                ),
-                'languages': _encode_language(user.language, is_json=is_json),
-                'messages': {
-                    'received': {
-                        xattr('count'): messages_received_num,
-                        xattr('unread'): messages_unread_num,
-                    },
-                    'sent': {xattr('count'): messages_sent_num},
-                },
-            }
-            if access_private
-            else {}
-        ),
     }
+    if not access_private:
+        return result
+
+    # Set pd (public domain) indicator for backward compatibility
+    result[contributor_terms_key][xattr('pd')] = False
+
+    result['languages'] = _encode_language(user['language'], is_json=is_json)
+    result['messages'] = {
+        'received': {
+            xattr('count'): messages_received_num,
+            xattr('unread'): messages_unread_num,
+        },
+        'sent': {
+            xattr('count'): messages_sent_num,
+        },
+    }
+
+    # Set home location if available
+    home_point = user['home_point']
+    if home_point is not None:
+        result['home'] = {
+            **_encode_point(home_point, is_json=is_json),
+            xattr('zoom'): 15,
+        }
+
+    return result
 
 
 @cython.cfunc
