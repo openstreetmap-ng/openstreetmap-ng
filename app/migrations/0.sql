@@ -243,16 +243,16 @@ CREATE TABLE trace (
     tags text[] NOT NULL,
     visibility trace_visibility NOT NULL,
     file_id text NOT NULL,
-    size integer NOT NULL GENERATED ALWAYS AS (ST_NPoints(tracks)) STORED,
-    tracks geometry(MultiLineString, 4326) NOT NULL,
-    h3_r11 h3index[] NOT NULL GENERATED ALWAYS AS (h3_points_to_cells_range(tracks, 11)),
+    size integer NOT NULL,
+    segments geometry(MultiLineString, 4326) NOT NULL,
+    h3_r11 h3index[] NOT NULL GENERATED ALWAYS AS (h3_points_to_cells_range(segments, 11)),
     capture_times timestamptz[],
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id, id);
 CREATE INDEX trace_tags_idx ON trace USING gin (tags);
-CREATE INDEX trace_tracks_idx ON trace USING gin (h3_r11);
+CREATE INDEX trace_segments_idx ON trace USING gin (h3_r11);
 
 CREATE TABLE user_pref (
     user_id bigint NOT NULL REFERENCES "user",
