@@ -5506,6 +5506,7 @@
       "RU"
     ],
     "dwarf": [
+      "",
       "Pl"
     ],
     "graffiti": [
@@ -7216,6 +7217,11 @@
     ]
   },
   "blind": {
+    "*": [
+      ""
+    ]
+  },
+  "bmo:type": {
     "*": [
       ""
     ]
@@ -9093,6 +9099,9 @@
       "RU",
       "Uk"
     ],
+    "sheepfold": [
+      ""
+    ],
     "shepherd_shelter": [
       ""
     ],
@@ -9766,6 +9775,11 @@
     ]
   },
   "building:wikidata": {
+    "*": [
+      ""
+    ]
+  },
+  "building_type": {
     "*": [
       ""
     ]
@@ -10961,6 +10975,11 @@
     "*": [
       "",
       "RU"
+    ]
+  },
+  "closed": {
+    "*": [
+      ""
     ]
   },
   "closed:note": {
@@ -14700,6 +14719,11 @@
       ""
     ]
   },
+  "damaged": {
+    "*": [
+      ""
+    ]
+  },
   "dance:style": {
     "*": [
       "",
@@ -14898,6 +14922,7 @@
   },
   "demolished": {
     "*": [
+      "",
       "NL"
     ],
     "yes": [
@@ -15238,6 +15263,9 @@
     ]
   },
   "destroyed": {
+    "*": [
+      ""
+    ],
     "yes": [
       ""
     ]
@@ -15248,6 +15276,11 @@
       "DE",
       "JA",
       "Uk"
+    ]
+  },
+  "destroyed:building": {
+    "*": [
+      ""
     ]
   },
   "detour": {
@@ -16141,6 +16174,9 @@
       "",
       "RU"
     ],
+    "cooking_school": [
+      ""
+    ],
     "exercise_area": [
       "",
       "RU"
@@ -16582,6 +16618,7 @@
     ],
     "fire_lookout": [
       "",
+      "DE",
       "ES",
       "FR",
       "JA",
@@ -17767,6 +17804,11 @@
   "fixme:osmchina": {
     "*": [
       "Zh-hans"
+    ]
+  },
+  "fixme:tigerking": {
+    "*": [
+      ""
     ]
   },
   "flag": {
@@ -20773,6 +20815,7 @@
     ],
     "implantology": [
       "",
+      "DE",
       "RU"
     ],
     "infectious_diseases": [
@@ -20931,6 +20974,11 @@
     ]
   },
   "healthcare:speciality/Translation": {
+    "*": [
+      ""
+    ]
+  },
+  "heated": {
     "*": [
       ""
     ]
@@ -22868,6 +22916,11 @@
     "*": [
       "",
       "Cs"
+    ]
+  },
+  "in_service": {
+    "*": [
+      ""
     ]
   },
   "incline": {
@@ -27143,6 +27196,9 @@
       "DE",
       "Pl"
     ],
+    "grave": [
+      ""
+    ],
     "groyne": [
       "",
       "Cs",
@@ -27500,6 +27556,9 @@
     "sewer_vent": [
       ""
     ],
+    "sheepfold": [
+      ""
+    ],
     "sign": [
       "",
       "Ko"
@@ -27824,6 +27883,8 @@
       "Uk"
     ],
     "yes": [
+      "",
+      "DE",
       "ES"
     ]
   },
@@ -28016,6 +28077,11 @@
       ""
     ]
   },
+  "mascot:iconography": {
+    "*": [
+      ""
+    ]
+  },
   "mass_times": {
     "*": [
       ""
@@ -28098,6 +28164,11 @@
     ]
   },
   "max_level": {
+    "*": [
+      ""
+    ]
+  },
+  "maxage": {
     "*": [
       ""
     ]
@@ -28280,6 +28351,11 @@
     ]
   },
   "maxspeed:forward": {
+    "*": [
+      ""
+    ]
+  },
+  "maxspeed:freight": {
     "*": [
       ""
     ]
@@ -28835,6 +28911,11 @@
     ]
   },
   "memorial:subject:wikidata": {
+    "*": [
+      ""
+    ]
+  },
+  "memorial:text": {
     "*": [
       ""
     ]
@@ -29707,7 +29788,8 @@
       "Pl",
       "Pt",
       "RU",
-      "Uk"
+      "Uk",
+      "Zh-hans"
     ],
     "no": [
       ""
@@ -33155,6 +33237,11 @@
       ""
     ]
   },
+  "naturism": {
+    "*": [
+      ""
+    ]
+  },
   "navibot:categorize": {
     "*": [
       ""
@@ -35950,6 +36037,9 @@
     "TenneT": [
       ""
     ],
+    "Transport_for_NSW": [
+      ""
+    ],
     "WOSM": [
       ""
     ],
@@ -36014,6 +36104,12 @@
     "*": [
       "",
       "RU"
+    ]
+  },
+  "operator_type": {
+    "*": [
+      "",
+      "ES"
     ]
   },
   "orchard": {
@@ -36129,6 +36225,11 @@
     ]
   },
   "oslostandarden": {
+    "*": [
+      ""
+    ]
+  },
+  "osm_type": {
     "*": [
       ""
     ]
@@ -40275,6 +40376,11 @@
       ""
     ]
   },
+  "railway:signal:shunting": {
+    "*": [
+      ""
+    ]
+  },
   "railway:signal:shunting:shape": {
     "FR:A": [
       ""
@@ -40624,6 +40730,11 @@
   "recycling:tetrapak": {
     "*": [
       "RU"
+    ]
+  },
+  "recycling:tyres": {
+    "*": [
+      ""
     ]
   },
   "recycling_type": {
@@ -41769,6 +41880,16 @@
       ""
     ]
   },
+  "ref:lau1": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:lau2": {
+    "*": [
+      ""
+    ]
+  },
   "ref:linz:address_id": {
     "*": [
       ""
@@ -42559,6 +42680,7 @@
   "repeat_on": {
     "*": [
       "",
+      "DE",
       "FR",
       "Pl"
     ]
@@ -42912,6 +43034,11 @@
       "DE"
     ]
   },
+  "rocket:launch": {
+    "*": [
+      ""
+    ]
+  },
   "role": {
     "*": [
       ""
@@ -42939,7 +43066,8 @@
       "DE",
       "ES",
       "JA",
-      "RU"
+      "RU",
+      "Zh-hans"
     ]
   },
   "roller_coaster:track": {
@@ -46036,7 +46164,8 @@
   },
   "service_times:ref:CO": {
     "*": [
-      ""
+      "",
+      "ES"
     ]
   },
   "service_times:wheelchair": {
@@ -47727,6 +47856,9 @@
       "",
       "ES"
     ],
+    "mobile_industrial_equipment": [
+      ""
+    ],
     "mobile_phone": [
       "",
       "Cs",
@@ -48066,6 +48198,7 @@
     "printer_ink": [
       "",
       "ES",
+      "FR",
       "Pl"
     ],
     "printing": [
@@ -48886,6 +49019,12 @@
   "sign": {
     "*": [
       ""
+    ],
+    "hazard": [
+      ""
+    ],
+    "notice": [
+      ""
     ]
   },
   "signal_station": {
@@ -48915,6 +49054,11 @@
     ]
   },
   "signalisation": {
+    "*": [
+      ""
+    ]
+  },
+  "signed": {
     "*": [
       ""
     ]
@@ -51170,6 +51314,11 @@
       "ES"
     ]
   },
+  "subject:name": {
+    "*": [
+      ""
+    ]
+  },
   "subject:wikidata": {
     "*": [
       "",
@@ -51848,6 +51997,9 @@
       "JA",
       "RU"
     ],
+    "swimming": [
+      ""
+    ],
     "yes": [
       "",
       "DE",
@@ -52445,6 +52597,11 @@
       "ES",
       "JA",
       "RU"
+    ]
+  },
+  "toilet": {
+    "*": [
+      ""
     ]
   },
   "toilets": {
@@ -54194,6 +54351,11 @@
     "*": [
       "",
       "FR"
+    ]
+  },
+  "trapping": {
+    "*": [
+      ""
     ]
   },
   "treat:inpatient": {
