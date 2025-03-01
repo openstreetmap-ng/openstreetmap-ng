@@ -36,6 +36,7 @@ dependencies = [
   "pycryptodomex",
   "pydantic",
   "pyinstrument",
+  "pyproj>=3.7.1",
   "python-dateutil",
   "python-magic",
   "python-multipart",
