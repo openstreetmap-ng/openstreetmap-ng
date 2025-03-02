@@ -38,8 +38,7 @@ class UserSignupService:
             StandardFeedback.raise_error('email', t('validation.invalid_email_address'))
 
         password_pb = PasswordHash.hash(password)
-        if password_pb is None:
-            raise AssertionError('Provided password schemas cannot be used during signup')
+        assert password_pb is not None, 'Provided password schemas cannot be used during signup'
 
         # TODO: purge stale pending terms accounts
         async with db(True) as session:

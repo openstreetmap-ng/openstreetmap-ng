@@ -11,8 +11,7 @@ def testmethod(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if not test_env:
-            raise AssertionError('Test method cannot be called outside test environment')
+        assert test_env, 'Test method cannot be called outside test environment'
         return func(*args, **kwargs)
 
     return wrapper

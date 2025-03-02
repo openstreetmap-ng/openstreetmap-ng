@@ -19,7 +19,7 @@ class ConnectedAccountService:
         if len(uid) > AUTH_PROVIDER_UID_MAX_LENGTH:
             raise ValueError(f'Connected account uid too long: {len(uid)} > {AUTH_PROVIDER_UID_MAX_LENGTH}')
 
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db(True) as session:
             connection = ConnectedAccount(
                 provider=provider,
@@ -33,7 +33,7 @@ class ConnectedAccountService:
     @staticmethod
     async def remove_connection(provider: AuthProvider) -> None:
         """Remove an external account connection from the current user."""
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db(True) as session:
             stmt = delete(ConnectedAccount).where(
                 ConnectedAccount.provider == provider,

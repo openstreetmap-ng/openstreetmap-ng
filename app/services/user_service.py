@@ -15,7 +15,7 @@ from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
-from app.models.db.user import Editor, User, UserStatus
+from app.models.db.user import Editor, User, UserStatus, user_is_test
 from app.models.db.user_token_reset_password import UserTokenResetPassword
 from app.models.types import DisplayName, Email, LocaleCode, Password
 from app.queries.user_query import UserQuery
@@ -55,21 +55,23 @@ class UserService:
             logging.debug('User not found %r', display_name_or_email)
             StandardFeedback.raise_error(None, t('users.auth_failure.invalid_credentials'))
 
+        user_id = user['id']
         verification = PasswordHash.verify(
-            password_pb=user.password_pb,
+            password_pb=user['password_pb'],
             password=password,
-            is_test_user=user.is_test_user,
+            is_test_user=user_is_test(user),
         )
+
         if not verification.success:
-            logging.debug('Password mismatch for user %d', user.id)
+            logging.debug('Password mismatch for user %d', user_id)
             StandardFeedback.raise_error(None, t('users.auth_failure.invalid_credentials'))
         if verification.rehash_needed:
             await _rehash_user_password(user, password)
         if verification.schema_needed is not None:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
 
-        logging.debug('Authenticated user %d using credentials', user.id)
-        return await SystemAppService.create_access_token('SystemApp.web', user_id=user.id)
+        logging.debug('Authenticated user %d using credentials', user_id)
+        return await SystemAppService.create_access_token('SystemApp.web', user_id=user_id)
 
     @staticmethod
     async def update_description(
@@ -106,7 +108,7 @@ class UserService:
 
         # update user data
         async with db(True) as session:
-            user = await session.get_one(User, auth_user(required=True).id, with_for_update=True)
+            user = await session.get_one(User, auth_user(required=True)['id'], with_for_update=True)
             old_avatar_id = user.avatar_id
             user.avatar_type = avatar_type
             user.avatar_id = avatar_id
@@ -129,7 +131,7 @@ class UserService:
 
         # update user data
         async with db(True) as session:
-            user = await session.get_one(User, auth_user(required=True).id, with_for_update=True)
+            user = await session.get_one(User, auth_user(required=True)['id'], with_for_update=True)
             old_background_id = user.background_id
             user.background_id = background_id
 
@@ -153,7 +155,7 @@ class UserService:
         if not is_installed_locale(language):
             StandardFeedback.raise_error('language', t('validation.invalid_value'))
         user = auth_user(required=True)
-        if user.is_test_user and FREEZE_TEST_USER and display_name != user.display_name:
+        if user_is_test(user) and FREEZE_TEST_USER and display_name != user['display_name']:
             StandardFeedback.raise_error('display_name', 'Changing test user display_name is disabled')
 
         async with db(True) as session:
@@ -180,7 +182,7 @@ class UserService:
         async with db(True) as session:
             stmt = (
                 update(User)
-                .where(User.id == auth_user(required=True).id)
+                .where(User.id == auth_user(required=True)['id'])
                 .values(
                     {
                         User.editor: editor,
@@ -202,16 +204,17 @@ class UserService:
         Sends a confirmation email for the email change.
         """
         user = auth_user(required=True)
-        if user.email == new_email:
+        if user['email'] == new_email:
             StandardFeedback.raise_error('email', t('validation.new_email_is_current'))
-        if user.is_test_user and FREEZE_TEST_USER:
+        if user_is_test(user) and FREEZE_TEST_USER:
             StandardFeedback.raise_error('email', 'Changing test user email is disabled')
 
         verification = PasswordHash.verify(
-            password_pb=user.password_pb,
+            password_pb=user['password_pb'],
             password=password,
-            is_test_user=user.is_test_user,
+            is_test_user=user_is_test(user),
         )
+
         if not verification.success:
             StandardFeedback.raise_error('password', t('validation.password_is_incorrect'))
         if verification.rehash_needed:
@@ -235,10 +238,11 @@ class UserService:
         """Update user password."""
         user = auth_user(required=True)
         verification = PasswordHash.verify(
-            password_pb=user.password_pb,
+            password_pb=user['password_pb'],
             password=old_password,
-            is_test_user=user.is_test_user,
+            is_test_user=user_is_test(user),
         )
+
         if not verification.success:
             StandardFeedback.raise_error('old_password', t('validation.password_is_incorrect'))
         if verification.schema_needed is not None:
@@ -246,8 +250,7 @@ class UserService:
         # ignore verification.rehash_needed, we are changing the password anyway
 
         new_password_pb = PasswordHash.hash(new_password)
-        if new_password_pb is None:
-            raise AssertionError('Provided password schemas cannot be used during update_password')
+        assert new_password_pb is not None, 'Provided password schemas cannot be used during update_password'
 
         async with db(True) as session:
             await session.execute(
@@ -274,12 +277,13 @@ class UserService:
         token_struct = UserTokenStructUtils.from_str(token)
         if token_struct is None:
             raise_for.bad_user_token_struct()
+
         user_token = await UserTokenQuery.find_one_by_token_struct(UserTokenResetPassword, token_struct)
         if user_token is None:
             raise_for.bad_user_token_struct()
+
         new_password_pb = PasswordHash.hash(new_password)
-        if new_password_pb is None:
-            raise AssertionError('Provided password schemas cannot be used during reset_password')
+        assert new_password_pb is not None, 'Provided password schemas cannot be used during reset_password'
 
         if revoke_other_sessions:
             await OAuth2TokenService.revoke_by_client_id('SystemApp.web', user_id=user_token.user_id)
@@ -310,7 +314,7 @@ class UserService:
     @staticmethod
     async def update_timezone(timezone: str) -> None:
         """Update the user timezone."""
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db(True) as session:
             stmt = (
                 update(User)
@@ -333,7 +337,7 @@ class UserService:
         async with db(True) as session:
             stmt = (
                 update(User)
-                .where(User.id == auth_user(required=True).id)
+                .where(User.id == auth_user(required=True)['id'])
                 .values(
                     {
                         User.scheduled_delete_at: func.statement_timestamp() + USER_SCHEDULED_DELETE_DELAY,
@@ -349,7 +353,7 @@ class UserService:
         async with db(True) as session:
             stmt = (
                 update(User)
-                .where(User.id == auth_user(required=True).id)
+                .where(User.id == auth_user(required=True)['id'])
                 .values(
                     {
                         User.scheduled_delete_at: None,

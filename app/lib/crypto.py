@@ -46,9 +46,7 @@ def hash_s256_code_challenge(verifier: str) -> str:
 
 def encrypt(s: str) -> bytes:
     """Encrypt a string using AES-CTR."""
-    if not s:
-        raise AssertionError('Empty string must not be encrypted')
-
+    assert s, 'Empty string must not be encrypted'
     nonce = buffered_randbytes(15)  # +1 byte for the counter
     cipher = AES.new(key=SECRET_32, mode=AES.MODE_CTR, nonce=nonce)
     cipher_text_bytes = cipher.encrypt(s.encode())

@@ -25,7 +25,7 @@ class DiaryService:
 
         Returns the diary id.
         """
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db(True) as session:
             diary = Diary(
                 user_id=user_id,
@@ -55,7 +55,7 @@ class DiaryService:
                 select(Diary)
                 .where(
                     Diary.id == diary_id,
-                    Diary.user_id == auth_user(required=True).id,
+                    Diary.user_id == auth_user(required=True)['id'],
                 )
                 .with_for_update()
             )
@@ -78,6 +78,6 @@ class DiaryService:
         async with db(True) as session:
             stmt = delete(Diary).where(
                 Diary.id == diary_id,
-                Diary.user_id == auth_user(required=True).id,
+                Diary.user_id == auth_user(required=True)['id'],
             )
             await session.execute(stmt)

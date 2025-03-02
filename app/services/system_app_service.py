@@ -74,18 +74,19 @@ class SystemAppService:
     async def create_access_token(client_id: str, *, user_id: int | None = None) -> SecretStr:
         """Create an OAuth2-based access token for the given system app."""
         if user_id is None:
-            user_id = auth_user(required=True).id
+            user_id = auth_user(required=True)['id']
 
         app_id = SYSTEM_APP_CLIENT_ID_MAP.get(client_id)
         if app_id is None:
             raise_for.oauth_bad_client_id()
+
         app = await OAuth2ApplicationQuery.find_one_by_id(app_id)
-        if app is None:
-            raise AssertionError(f'{client_id} must be initialized')
+        assert app is not None, f'OAuth2 application {client_id!r} must be initialized'
 
         access_token = buffered_rand_urlsafe(32)
         access_token_hashed = hash_bytes(access_token)
         access_token = SecretStr(access_token)
+
         async with db(True) as session:
             token = OAuth2Token(
                 user_id=user_id,

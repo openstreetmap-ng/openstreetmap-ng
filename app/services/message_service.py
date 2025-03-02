@@ -56,7 +56,7 @@ class MessageService:
                 update(Message)
                 .where(
                     Message.id == message_id,
-                    Message.to_user_id == auth_user(required=True).id,
+                    Message.to_user_id == auth_user(required=True)['id'],
                     Message.to_hidden == false(),
                 )
                 .values({Message.is_read: is_read})
@@ -67,7 +67,7 @@ class MessageService:
     @staticmethod
     async def delete_message(message_id: int) -> None:
         """Delete a message."""
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db(True) as session:
             stmt = (
                 select(Message)
@@ -101,8 +101,7 @@ async def _send_activity_email(message: Message) -> None:
     async with TaskGroup() as tg:
         tg.create_task(message.resolve_rich_text())
         to_user = await UserQuery.find_one_by_id(message.to_user_id)
-        if to_user is None:
-            raise AssertionError('Recipient user must exist')
+        assert to_user is not None, 'Recipient user must exist'
 
     with translation_context(to_user.language):
         subject = t('user_mailer.message_notification.subject', message_title=message.subject)

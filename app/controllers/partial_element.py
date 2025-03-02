@@ -176,10 +176,6 @@ async def get_history(
 
 
 async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:
-    members = element.members
-    if members is None:
-        raise AssertionError('Element members must be set')
-
     async def changeset_task():
         with options_context(
             joinedload(Changeset.user).load_only(
@@ -190,8 +186,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             )
         ):
             changeset = await ChangesetQuery.find_by_id(element.changeset_id)
-            if changeset is None:
-                raise AssertionError('Parent changeset must exist')
+            assert changeset is not None, 'Parent changeset must exist'
             return changeset
 
     async def data_task():

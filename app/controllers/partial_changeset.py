@@ -61,18 +61,18 @@ async def get_changeset(id: PositiveInt):
         adjacent_ids_t = tg.create_task(adjacent_ids_task())
         is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed(UserSubscriptionTarget.changeset, id))
 
+    elements = elements_t.result()
+    prev_changeset_id, next_changeset_id = adjacent_ids_t.result()
+    is_subscribed = is_subscribed_t.result()
+
     changeset_tags = changeset.tags
     if not changeset_tags.get('comment'):
         changeset_tags['comment'] = t('browse.no_comment')
     tags = tags_format(changeset.tags)
     comment_tag = tags.pop('comment')
 
-    if changeset.num_comments is None:
-        raise AssertionError('Changeset num comments must be set')
-    changeset_comments_num_items = changeset.num_comments
+    changeset_comments_num_items = changeset['num_comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     changeset_comments_num_pages = ceil(changeset_comments_num_items / CHANGESET_COMMENTS_PAGE_SIZE)
-    elements = elements_t.result()
-    prev_changeset_id, next_changeset_id = adjacent_ids_t.result()
 
     params = PartialChangesetParams(
         id=id,
@@ -93,7 +93,7 @@ async def get_changeset(id: PositiveInt):
             'changeset_comments_num_pages': changeset_comments_num_pages,
             'prev_changeset_id': prev_changeset_id,
             'next_changeset_id': next_changeset_id,
-            'is_subscribed': is_subscribed_t.result(),
+            'is_subscribed': is_subscribed,
             'tags': tags.values(),
             'comment_tag': comment_tag,
             'params': urlsafe_b64encode(params.SerializeToString()).decode(),

@@ -13,7 +13,7 @@ class MessageQuery:
     @staticmethod
     async def get_message_by_id(message_id: int) -> Message:
         """Get a message by id."""
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db() as session:
             stmt = select(Message).where(
                 Message.id == message_id,
@@ -48,10 +48,10 @@ class MessageQuery:
             where_and = []
 
             if inbox:
-                where_and.append(Message.to_user_id == auth_user(required=True).id)
+                where_and.append(Message.to_user_id == auth_user(required=True)['id'])
                 where_and.append(Message.to_hidden == false())
             else:
-                where_and.append(Message.from_user_id == auth_user(required=True).id)
+                where_and.append(Message.from_user_id == auth_user(required=True)['id'])
                 where_and.append(Message.from_hidden == false())
 
             if after is not None:
@@ -74,7 +74,7 @@ class MessageQuery:
             stmt = select(func.count()).select_from(
                 select(text('1'))
                 .where(
-                    Message.to_user_id == auth_user(required=True).id,
+                    Message.to_user_id == auth_user(required=True)['id'],
                     Message.to_hidden == false(),
                     Message.is_read == false(),
                 )
@@ -89,7 +89,7 @@ class MessageQuery:
             stmt = select(func.count()).select_from(
                 select(text('1'))
                 .where(
-                    Message.to_user_id == auth_user(required=True).id,
+                    Message.to_user_id == auth_user(required=True)['id'],
                     Message.to_hidden == false(),
                     Message.is_read == false(),
                 )

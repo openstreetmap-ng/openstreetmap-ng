@@ -47,10 +47,10 @@ async def details(diary_id: PositiveInt):
                 {'diary_id': diary_id},
                 status=status.HTTP_404_NOT_FOUND,
             )
-    if diary.num_comments is None:
-        raise AssertionError('Diary num comments must be set')
-    diary_comments_num_items = diary.num_comments
+
+    diary_comments_num_items = diary['num_comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     diary_comments_num_pages = ceil(diary_comments_num_items / DIARY_COMMENTS_PAGE_SIZE)
+
     return await render_response(
         'diaries/details.jinja2',
         {

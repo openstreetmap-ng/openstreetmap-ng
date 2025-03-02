@@ -75,7 +75,7 @@ async def _create_token(replying_user: User, mail_source: MailSource) -> UserTok
             user_email_hashed=user_email_hashed,
             token_hashed=token_hashed,
             mail_source=mail_source,
-            to_user_id=auth_user(required=True).id,
+            to_user_id=auth_user(required=True)['id'],
         )
         session.add(token)
     return UserTokenStruct(id=token.id, token=token_bytes)

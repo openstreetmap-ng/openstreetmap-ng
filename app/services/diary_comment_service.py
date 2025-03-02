@@ -54,11 +54,12 @@ async def _send_activity_email(comment: DiaryComment) -> None:
             return
 
     diary = diary_t.result()
-    if diary is None:
-        raise AssertionError('Parent diary must exist')
+    assert diary is not None, 'Parent diary must exist'
+
     comment_user = comment.user
     comment_user_id: cython.longlong = comment_user.id
     comment_user_name = comment_user.display_name
+
     async with TaskGroup() as tg:
         for subscribed_user in users:
             subscribed_user_id: cython.longlong = subscribed_user.id

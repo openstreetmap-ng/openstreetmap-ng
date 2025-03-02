@@ -70,7 +70,7 @@ class OAuth2TokenService:
             raise_for.oauth_bad_redirect_uri()
         redirect_uri = Uri(redirect_uri)  # mark as valid
 
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         scopes_set = set(scopes)
         if not scopes_set.issubset(app.scopes):
             raise_for.oauth_bad_scopes()
@@ -209,7 +209,7 @@ class OAuth2TokenService:
         app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']
         async with db(True) as session:
             token = OAuth2Token(
-                user_id=auth_user(required=True).id,
+                user_id=auth_user(required=True)['id'],
                 application_id=app_id,
                 token_hashed=None,
                 scopes=scopes,
@@ -232,7 +232,7 @@ class OAuth2TokenService:
                 update(OAuth2Token)
                 .where(
                     OAuth2Token.id == pat_id,
-                    OAuth2Token.user_id == auth_user(required=True).id,
+                    OAuth2Token.user_id == auth_user(required=True)['id'],
                     OAuth2Token.application_id == app_id,
                 )
                 .values(
@@ -252,7 +252,7 @@ class OAuth2TokenService:
         """Revoke the given token by id."""
         async with db(True) as session:
             stmt = delete(OAuth2Token).where(
-                OAuth2Token.user_id == auth_user(required=True).id,
+                OAuth2Token.user_id == auth_user(required=True)['id'],
                 OAuth2Token.id == token_id,
             )
             await session.execute(stmt)
@@ -276,7 +276,7 @@ class OAuth2TokenService:
     ) -> None:
         """Revoke all current user tokens for the given OAuth2 application."""
         if user_id is None:
-            user_id = auth_user(required=True).id
+            user_id = auth_user(required=True)['id']
         if skip_ids is None:
             skip_ids = ()
         async with db(True) as session:

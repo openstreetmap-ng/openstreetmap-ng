@@ -43,9 +43,7 @@ class DiaryQuery:
         limit: int,
     ) -> Sequence[Diary]:
         """Find recent diaries."""
-        if user_id is not None and language is not None:
-            # prevent accidental index miss
-            raise AssertionError('user_id and language cannot be both set')
+        assert user_id is None or language is None, 'Only one of user_id and language can be set'
         async with db() as session:
             stmt = select(Diary)
             where_and = []

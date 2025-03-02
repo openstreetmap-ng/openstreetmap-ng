@@ -27,7 +27,7 @@ from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail, MailSource
-from app.models.db.user import User
+from app.models.db.user import User, user_is_deleted, user_is_test
 
 _process_lock = Lock()
 
@@ -171,12 +171,14 @@ async def _process_task_inner() -> None:
 
 
 async def _send_mail(smtp: SMTP, mail: Mail) -> None:
-    to_user = mail.to_user
-    if to_user.is_deleted_user:
-        logging.info('Discarding mail %r to deleted user %d', mail.id, mail.to_user_id)
+    to_user = mail['to_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+
+    if user_is_deleted(to_user):
+        logging.info('Discarding mail %r to deleted user %d', mail['id'], mail['to_user_id'])
         return
-    if to_user.is_test_user and not TEST_ENV:
-        logging.info('Discarding mail %r to test user %d', mail.id, mail.to_user_id)
+
+    if user_is_test(to_user) and not TEST_ENV:
+        logging.info('Discarding mail %r to test user %d', mail['id'], mail['to_user_id'])
         return
 
     message = EmailMessage()
@@ -185,8 +187,7 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
         message['From'] = SMTP_NOREPLY_FROM
     else:
         from_user = mail.from_user
-        if from_user is None:
-            raise AssertionError('Mail from user must be set')
+        assert from_user is not None, 'Mail from user must be set'
 
         from app.services.user_token_email_reply_service import UserTokenEmailReplyService
 

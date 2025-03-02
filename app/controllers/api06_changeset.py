@@ -95,8 +95,7 @@ async def update_changeset(
     await ChangesetService.update_tags(changeset_id, tags)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.find_by_id(changeset_id)
-    if changeset is None:
-        raise AssertionError(f'Changeset {changeset_id} must exist in database')
+    assert changeset is not None
     changesets = (changeset,)
 
     await ChangesetCommentQuery.resolve_num_comments(changesets)

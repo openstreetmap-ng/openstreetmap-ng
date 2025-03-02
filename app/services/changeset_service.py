@@ -29,7 +29,7 @@ class ChangesetService:
     @staticmethod
     async def create(tags: dict[str, str]) -> int:
         """Create a new changeset and return its id."""
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db(True) as session:
             changeset = Changeset(user_id=user_id, tags=tags)
             session.add(changeset)
@@ -41,7 +41,7 @@ class ChangesetService:
     @staticmethod
     async def update_tags(changeset_id: int, tags: dict[str, str]) -> None:
         """Update changeset tags."""
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db(True) as session:
             stmt = (
                 select(Changeset)
@@ -62,7 +62,7 @@ class ChangesetService:
     @staticmethod
     async def close(changeset_id: int) -> None:
         """Close a changeset."""
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db(True) as session:
             stmt = (
                 select(Changeset)

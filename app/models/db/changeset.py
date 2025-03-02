@@ -48,10 +48,8 @@ def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
     max_size = UserRoleLimits.get_changeset_max_size(user['roles'])
 
     changeset_user_id = changeset['user_id']
-    if changeset_user_id is None:
-        raise AssertionError('Anonymous changesets are no longer supported')
-    if changeset_user_id != user_id:
-        raise AssertionError(f'Changeset {changeset["id"]} can only be edited by the owner != {user_id}')
+    assert changeset_user_id is not None, 'Anonymous changesets are no longer supported'
+    assert changeset_user_id == user_id, f'Changeset {changeset["id"]} can only be edited by the owner != {user_id}'
 
     if new_size > max_size:
         return False
@@ -73,10 +71,8 @@ async def changesets_auto_close_on_size(conn: AsyncConnection, changesets: Itera
             continue
 
         changeset_user_id = changeset['user_id']
-        if changeset_user_id is None:
-            raise AssertionError('Anonymous changesets are no longer supported')
-        if changeset_user_id != user_id:
-            raise AssertionError(f'Changeset {changeset["id"]} can only be edited by the owner != {user_id}')
+        assert changeset_user_id is not None, 'Anonymous changesets are no longer supported'
+        assert changeset_user_id == user_id, f'Changeset {changeset["id"]} can only be edited by the owner != {user_id}'
 
         # close if limit is reached
         if changeset['size'] >= max_size:

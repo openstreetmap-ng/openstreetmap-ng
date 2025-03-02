@@ -77,8 +77,7 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
     async def changeset_task() -> Changeset:
         with options_context(joinedload(Changeset.user).load_only(User.display_name)):
             changeset = await ChangesetQuery.find_by_id(comment.changeset_id)
-            if changeset is None:
-                raise AssertionError('Parent changeset must exist')
+            assert changeset is not None, 'Parent changeset must exist'
             return changeset
 
     async with TaskGroup() as tg:

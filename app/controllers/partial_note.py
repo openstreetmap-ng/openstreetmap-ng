@@ -62,13 +62,13 @@ async def get_note(id: PositiveInt):
     else:
         disappear_days = None
 
-    if note.num_comments is None:
-        raise AssertionError('Note num comments must be set')
-    note_comments_num_items = note.num_comments - 1
+    note_comments_num_items = note['num_comments'] - 1  # pyright: ignore [reportTypedDictNotRequiredAccess]
     note_comments_num_pages = ceil(note_comments_num_items / NOTE_COMMENTS_PAGE_SIZE)
+
     x, y = get_coordinates(note.point)[0].tolist()
     place = f'{y:.5f}, {x:.5f}'
     params = PartialNoteParams(id=id, lon=x, lat=y, open=note.closed_at is None)
+
     return await render_response(
         'partial/note.jinja2',
         {

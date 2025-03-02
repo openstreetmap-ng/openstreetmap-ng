@@ -14,7 +14,7 @@ from app.lib.locale import DEFAULT_LOCALE
 from app.lib.testmethod import testmethod
 from app.limits import OAUTH_SECRET_PREVIEW_LENGTH
 from app.models.db.oauth2_application import OAuth2Application
-from app.models.db.user import User, UserRole, UserStatus
+from app.models.db.user import User, UserRole, UserStatus, user_is_test
 from app.models.scope import PUBLIC_SCOPES, Scope
 from app.models.types import DisplayName, Email, LocaleCode, Uri
 from app.queries.user_query import UserQuery
@@ -104,8 +104,7 @@ class TestService:
                     user.created_at = created_at
                 user.roles = roles
 
-            if not user.is_test_user:
-                raise AssertionError('Test service must only create test users')
+            assert user_is_test(user), 'Test service must only create test users'
 
         logging.info('Upserted test user %r', name)
 

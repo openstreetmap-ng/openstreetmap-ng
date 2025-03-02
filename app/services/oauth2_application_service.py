@@ -31,7 +31,7 @@ class OAuth2ApplicationService:
     @staticmethod
     async def create(*, name: str) -> int:
         """Create an OAuth2 application."""
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         client_id = buffered_rand_urlsafe(32)
 
         async with db(True) as session:
@@ -98,7 +98,7 @@ class OAuth2ApplicationService:
                 update(OAuth2Application)
                 .where(
                     OAuth2Application.id == app_id,
-                    OAuth2Application.user_id == auth_user(required=True).id,
+                    OAuth2Application.user_id == auth_user(required=True)['id'],
                 )
                 .values(
                     {
@@ -134,7 +134,7 @@ class OAuth2ApplicationService:
                 select(OAuth2Application)
                 .where(
                     OAuth2Application.id == app_id,
-                    OAuth2Application.user_id == auth_user(required=True).id,
+                    OAuth2Application.user_id == auth_user(required=True)['id'],
                 )
                 .with_for_update()
             )
@@ -161,7 +161,7 @@ class OAuth2ApplicationService:
                 update(OAuth2Application)
                 .where(
                     OAuth2Application.id == app_id,
-                    OAuth2Application.user_id == auth_user(required=True).id,
+                    OAuth2Application.user_id == auth_user(required=True)['id'],
                 )
                 .values(
                     {
@@ -180,6 +180,6 @@ class OAuth2ApplicationService:
         async with db(True) as session:
             stmt = delete(OAuth2Application).where(
                 OAuth2Application.id == app_id,
-                OAuth2Application.user_id == auth_user(required=True).id,
+                OAuth2Application.user_id == auth_user(required=True)['id'],
             )
             await session.execute(stmt)

@@ -12,7 +12,7 @@ class UserSubscriptionService:
     @staticmethod
     async def subscribe(target: UserSubscriptionTarget, target_id: int) -> None:
         """Subscribe the user to the target."""
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db(True) as session:
             stmt = (
                 insert(UserSubscription)
@@ -34,7 +34,7 @@ class UserSubscriptionService:
     @staticmethod
     async def unsubscribe(target: UserSubscriptionTarget, target_id: int) -> None:
         """Unsubscribe the user from the target."""
-        user_id = auth_user(required=True).id
+        user_id = auth_user(required=True)['id']
         async with db(True) as session:
             stmt = delete(UserSubscription).where(
                 UserSubscription.user_id == user_id,

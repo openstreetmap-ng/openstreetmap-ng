@@ -456,7 +456,7 @@ class OptimisticDiffPrepare:
 
         if changeset is None:
             raise_for.changeset_not_found(changeset_id)
-        if changeset.user_id != auth_user(required=True).id:
+        if changeset.user_id != auth_user(required=True)['id']:
             raise_for.changeset_access_denied()
         if changeset.closed_at is not None:
             raise_for.changeset_already_closed(changeset_id, changeset.closed_at)

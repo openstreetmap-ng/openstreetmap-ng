@@ -56,7 +56,7 @@ class TraceService:
 
         trace = Trace(
             **TraceValidating(
-                user_id=auth_user(required=True).id,
+                user_id=auth_user(required=True)['id'],
                 name=_get_file_name(file),
                 description=description,
                 visibility=visibility,
@@ -99,7 +99,7 @@ class TraceService:
 
             if trace is None:
                 raise_for.trace_not_found(trace_id)
-            if trace.user_id != auth_user(required=True).id:
+            if trace.user_id != auth_user(required=True)['id']:
                 raise_for.trace_access_denied(trace_id)
 
             trace.name = name
@@ -115,7 +115,7 @@ class TraceService:
 
             if trace is None:
                 raise_for.trace_not_found(trace_id)
-            if trace.user_id != auth_user(required=True).id:
+            if trace.user_id != auth_user(required=True)['id']:
                 raise_for.trace_access_denied(trace_id)
 
             await session.delete(trace)

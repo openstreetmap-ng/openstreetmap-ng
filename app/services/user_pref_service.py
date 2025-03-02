@@ -77,7 +77,7 @@ class UserPrefService:
         async with db(True) as session:
             logging.debug('Deleting user pref %r for app %r', key, app_id)
             stmt = delete(UserPref).where(
-                UserPref.user_id == auth_user(required=True).id,
+                UserPref.user_id == auth_user(required=True)['id'],
                 UserPref.app_id == app_id,
                 UserPref.key == key,
             )
@@ -89,7 +89,7 @@ class UserPrefService:
         async with db(True) as session:
             logging.debug('Deleting user prefs for app %r', app_id)
             stmt = delete(UserPref).where(
-                UserPref.user_id == auth_user(required=True).id,
+                UserPref.user_id == auth_user(required=True)['id'],
                 UserPref.app_id == app_id,
             )
             await session.execute(stmt)
