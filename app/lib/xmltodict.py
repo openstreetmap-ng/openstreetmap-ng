@@ -116,7 +116,7 @@ def _parse_element(element: tree._Element):
 
 
 @cython.cfunc
-def _unparse_element(key: str, value: Any):
+def _unparse_element(key: str, value: Any) -> list[tree._Element]:
     k: str
     v: Any
 
@@ -132,12 +132,12 @@ def _unparse_element(key: str, value: Any):
                 element.text = _to_string(v)
             else:
                 element_extend(_unparse_element(k, v))
-        return (element,)
+        return [element]
 
     # encode sequence of ...
     elif isinstance(value, Sequence) and not isinstance(value, str):
         if not value:
-            return ()
+            return []
         first = value[0]
 
         # encode sequence of dicts
@@ -156,7 +156,7 @@ def _unparse_element(key: str, value: Any):
                     element.text = _to_string(v)
                 else:
                     element_extend(_unparse_element(k, v))
-            return (element,)
+            return [element]
 
         # encode sequence of scalars
         else:
@@ -172,7 +172,7 @@ def _unparse_element(key: str, value: Any):
     else:
         element = Element(key)
         element.text = _to_string(value)
-        return (element,)
+        return [element]
 
 
 # tags that will become tuples (order-preserving): [('tag', ...), ('tag', ...), ...]

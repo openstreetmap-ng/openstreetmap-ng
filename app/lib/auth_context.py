@@ -18,7 +18,7 @@ from app.models.scope import Scope
 # TODO: more 0.7 scopes
 
 
-_context: ContextVar[tuple[User | None, tuple[Scope, ...]]] = ContextVar('Auth')
+_CTX: ContextVar[tuple[User | None, tuple[Scope, ...]]] = ContextVar('Auth')
 
 
 @contextmanager
@@ -28,16 +28,16 @@ def auth_context(user: User | None, scopes: tuple[Scope, ...]):
     if (user is not None) and not TEST_ENV and user_is_test(user):
         raise RuntimeError('Test user authentication is forbidden in non-test environment')
 
-    token = _context.set((user, scopes))
+    token = _CTX.set((user, scopes))
     try:
         yield
     finally:
-        _context.reset(token)
+        _CTX.reset(token)
 
 
 def auth_user_scopes() -> tuple[User | None, tuple[Scope, ...]]:
     """Get the authenticated user and scopes."""
-    return _context.get()
+    return _CTX.get()
 
 
 @overload
@@ -54,7 +54,7 @@ def auth_user(*, required: Literal[False]) -> User | None: ...
 
 def auth_user(*, required: bool = False) -> User | None:
     """Get the authenticated user."""
-    user = _context.get()[0]
+    user = _CTX.get()[0]
     if user is None and required:
         raise ValueError('User must be authenticated')
     return user
@@ -62,7 +62,7 @@ def auth_user(*, required: bool = False) -> User | None:
 
 def auth_scopes() -> tuple[Scope, ...]:
     """Get the authenticated user's scopes."""
-    return _context.get()[1]
+    return _CTX.get()[1]
 
 
 def api_user(*require_scopes: Scope) -> User:

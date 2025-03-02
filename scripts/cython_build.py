@@ -38,9 +38,6 @@ extra_paths: Iterable[Path] = map(
 )
 
 blacklist: dict[str, set[str]] = {
-    'app/services': {
-        'email_service.py',
-    },
     'app/services/optimistic_diff': {
         '__init__.py',
     },

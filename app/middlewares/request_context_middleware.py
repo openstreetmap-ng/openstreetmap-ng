@@ -4,17 +4,17 @@ from ipaddress import IPv4Address, IPv6Address, ip_address
 from starlette.requests import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-_context: ContextVar[Request] = ContextVar('Request')
+_CTX: ContextVar[Request] = ContextVar('Request')
 
 
 def get_request() -> Request:
     """Get the request from the context."""
-    return _context.get()
+    return _CTX.get()
 
 
 def get_request_ip() -> IPv4Address | IPv6Address:
     """Get the request IP address."""
-    return ip_address(_context.get().client.host)  # pyright: ignore[reportOptionalMemberAccess]
+    return ip_address(_CTX.get().client.host)  # pyright: ignore[reportOptionalMemberAccess]
 
 
 class RequestContextMiddleware:
@@ -30,9 +30,8 @@ class RequestContextMiddleware:
             await self.app(scope, receive, send)
             return
 
-        request = Request(scope, receive)
-        token = _context.set(request)
+        token = _CTX.set(Request(scope, receive))
         try:
             await self.app(scope, receive, send)
         finally:
-            _context.reset(token)
+            _CTX.reset(token)
