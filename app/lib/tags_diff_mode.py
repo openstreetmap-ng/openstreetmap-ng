@@ -1,21 +1,27 @@
+from collections.abc import Sequence
 from copy import copy
 
 from app.lib.tags_format import tags_format
-from app.models.db.element import Element
+from app.models.db.element import Element, ElementInit
 from app.models.tags_format import TagFormat
 
 
-def tags_diff_mode(previous_element: Element | None, elements_data: tuple[dict, ...]) -> None:
+def tags_diff_mode(previous_element: ElementInit | None, elements_data: Sequence[dict]) -> None:
     """Update tags data to include necessary tags diff mode information."""
+    previous_tags: dict[str, TagFormat] = (
+        tags_format(tags)
+        if previous_element is not None and (tags := previous_element['tags']) is not None  #
+        else {}
+    )
+
     added_tags: list[tuple[str, TagFormat]] = []
     modified_tags: list[tuple[str, TagFormat]] = []
     unchanged_tags: list[tuple[str, TagFormat]] = []
-    previous_tags: dict[str, TagFormat] = tags_format(previous_element.tags) if (previous_element is not None) else {}
 
     for current in reversed(elements_data):
         current_element: Element = current['element']
         current_tags: dict[str, TagFormat] = current['tags_map']
-        if current_element.version == 1:
+        if current_element['version'] == 1:
             previous_tags = current_tags
             continue
 

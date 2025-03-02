@@ -7,7 +7,7 @@ import orjson
 
 
 @cython.cfunc
-def _bun_versions(names: tuple[str, ...]) -> tuple[str, ...]:
+def _bun_versions(names: tuple[str, ...]) -> list[str]:
     """Get the installed versions of the given JS packages."""
     names_set = set(names)
     lock_data = Path('bun.lock').read_bytes()
@@ -18,7 +18,7 @@ def _bun_versions(names: tuple[str, ...]) -> tuple[str, ...]:
         name, _, version = fq_name.rpartition('@')
         if name in names_set:
             result[name] = version.rsplit('#', 1)[-1]  # use only commit hash if present
-    return tuple(result[name] for name in names)
+    return [result[name] for name in names]
 
 
 ID_VERSION, RAPID_VERSION = _bun_versions(('iD', '@rapideditor/rapid'))

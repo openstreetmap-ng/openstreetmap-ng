@@ -18,8 +18,8 @@ class LeafletElementMixin:
     def encode_elements(
         elements: Iterable[Element],
         *,
-        detailed: cython.char,
-        areas: cython.char = True,
+        detailed: cython.bint,
+        areas: cython.bint = True,
     ) -> RenderElementsData:
         """Format elements into a minimal structure, suitable for map rendering."""
         node_id_map: dict[TypedElementId, Element] = {}
@@ -80,7 +80,7 @@ def _render_ways(
     *,
     ways: list[Element],
     node_id_map: dict[TypedElementId, Element],
-    areas: cython.char,
+    areas: cython.bint,
     member_nodes: set[TypedElementId],
 ) -> list[RenderElementsData.Way]:
     result: list[RenderElementsData.Way] = []
@@ -139,7 +139,7 @@ def _render_ways(
 def _render_nodes(
     node_id_map: dict[TypedElementId, Element],
     member_nodes: set[TypedElementId],
-    detailed: cython.char,
+    detailed: cython.bint,
 ) -> list[RenderElementsData.Node]:
     nodes = ElementsFilter.filter_nodes_interesting(node_id_map.values(), member_nodes, detailed=detailed)
     if not nodes:

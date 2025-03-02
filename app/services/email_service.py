@@ -45,7 +45,7 @@ class EmailService:
     @staticmethod
     @overload
     async def schedule(
-        source: Literal[MailSource.system],
+        source: None,
         from_user: None,
         to_user: User,
         subject: str,
@@ -58,7 +58,7 @@ class EmailService:
     @staticmethod
     @overload
     async def schedule(
-        source: Literal[MailSource.message, MailSource.diary_comment],
+        source: Literal['message', 'diary_comment'],
         from_user: User,
         to_user: User,
         subject: str,

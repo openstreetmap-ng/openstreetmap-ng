@@ -30,21 +30,23 @@ class RequestBodyMiddleware:
             return
 
         request = get_request()
-        input_size: cython.int = 0
+        input_size: cython.Py_ssize_t = 0
         buffer = BytesIO()
 
         async for chunk in request.stream():
-            chunk_size: cython.int = len(chunk)
-            if chunk_size == 0:
+            chunk_size: cython.Py_ssize_t = len(chunk)
+            if not chunk_size:
                 break
+
             input_size += chunk_size
             if input_size > REQUEST_BODY_MAX_SIZE:
                 raise_for.input_too_big(input_size)
+
             buffer.write(chunk)
 
-        if input_size > 0:
+        if input_size:
             body = buffer.getvalue()
-            content_encoding: str | None = request.headers.get('Content-Encoding')
+            content_encoding = request.headers.get('Content-Encoding')
             decompressor = _get_decompressor(content_encoding)
 
             if decompressor is not None:
@@ -71,7 +73,7 @@ class RequestBodyMiddleware:
             body = b''
 
         request._body = body  # update shared instance # noqa: SLF001
-        wrapper_finished: cython.char = False
+        wrapper_finished: cython.bint = False
 
         async def wrapper() -> Message:
             nonlocal wrapper_finished

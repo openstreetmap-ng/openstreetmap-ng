@@ -99,7 +99,7 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
             subscribed_user_id: cython.longlong = subscribed_user.id
             if subscribed_user_id == comment_user_id:
                 continue
-            is_changeset_owner: cython.char = subscribed_user_id == changeset_user_id
+            is_changeset_owner: cython.bint = subscribed_user_id == changeset_user_id
             with translation_context(subscribed_user.language):
                 subject = _get_activity_email_subject(comment_user_name, is_changeset_owner)
             tg.create_task(
@@ -123,9 +123,10 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
 @cython.cfunc
 def _get_activity_email_subject(
     comment_user_name: DisplayName,
-    is_changeset_owner: cython.char,
+    is_changeset_owner: cython.bint,
 ) -> str:
-    if is_changeset_owner:
-        return t('user_mailer.changeset_comment_notification.commented.subject_own', commenter=comment_user_name)
-    else:
-        return t('user_mailer.changeset_comment_notification.commented.subject other', commenter=comment_user_name)
+    return (
+        t('user_mailer.changeset_comment_notification.commented.subject_own', commenter=comment_user_name)
+        if is_changeset_owner
+        else t('user_mailer.changeset_comment_notification.commented.subject other', commenter=comment_user_name)
+    )

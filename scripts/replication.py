@@ -315,12 +315,14 @@ async def _increase_frequency(state: AppState) -> AppState:
     step: cython.int = 2 << 4
     new_sequence_number: cython.longlong = int(state.last_replica.sequence_number * frequency_downscale)
     direction_forward: bool | None = None
+
     while True:
         if not step:
             raise ValueError(f"Couldn't find {new_frequency!r} replica at {current_created_at!r}")
 
         url = _get_replication_url(new_frequency, new_sequence_number)
         r = await HTTP.get(url + '.state.txt')
+
         if r.status_code == status.HTTP_404_NOT_FOUND:
             if direction_forward is None:
                 direction_forward = False
@@ -328,12 +330,14 @@ async def _increase_frequency(state: AppState) -> AppState:
                 step >>= 1
             new_sequence_number -= step
             continue
+
         r.raise_for_status()
         new_replica = _parse_replica_state(r.text)
 
         if abs(new_replica.created_at - current_created_at) < found_threshold:
             # found
             return replace(state, frequency=new_frequency, last_replica=new_replica)
+
         if new_replica.created_at > current_created_at:
             # too late
             if direction_forward is None:
@@ -341,6 +345,7 @@ async def _increase_frequency(state: AppState) -> AppState:
             elif direction_forward:
                 step >>= 1
             new_sequence_number -= step
+
         else:
             # too early
             if direction_forward is None:

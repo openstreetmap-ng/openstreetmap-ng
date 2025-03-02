@@ -98,9 +98,8 @@ async def _increase_counter(key: str, change: int, quota: cython.int, *, raise_o
         result = await pipe.execute()
 
     current_usage: cython.int = result[0]
-    expires_in_str: str = str(result[2])
-    remaining_quota: cython.int = quota - current_usage
-    remaining_quota = max(remaining_quota, 0)
+    remaining_quota = max(quota - current_usage, 0)
+    expires_in_str = str(result[2])
 
     rate_limit_header = f'limit={quota}, remaining={remaining_quota}, reset={expires_in_str}'
     rate_limit_policy_header = f'{quota};w=3600;burst=0'

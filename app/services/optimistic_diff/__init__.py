@@ -8,14 +8,14 @@ from sqlalchemy.exc import IntegrityError
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.limits import OPTIMISTIC_DIFF_RETRY_TIMEOUT
 from app.models.db.element import Element
-from app.models.element import ElementRef
+from app.models.element import TypedElementId
 from app.services.optimistic_diff.apply import OptimisticDiffApply
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
 
 class OptimisticDiff:
     @staticmethod
-    async def run(elements: Collection[Element]) -> dict[ElementRef, list[Element]]:
+    async def run(elements: Collection[Element]) -> dict[TypedElementId, list[Element]]:
         """
         Perform an optimistic diff update of the elements.
 
@@ -26,13 +26,15 @@ class OptimisticDiff:
 
         ts = time.monotonic()
         attempt: cython.int = 0
+
         while True:
             try:
-                attempt += 1
                 prep = OptimisticDiffPrepare(elements)
                 await prep.prepare()
                 return await OptimisticDiffApply.apply(prep)
             except* (OptimisticDiffError, IntegrityError) as e:
+                attempt += 1
+
                 # retry is not possible, re-raise the exception
                 timeout_seconds = time.monotonic() - ts
                 if timeout_seconds >= OPTIMISTIC_DIFF_RETRY_TIMEOUT.total_seconds():

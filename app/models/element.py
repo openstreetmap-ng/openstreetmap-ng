@@ -1,6 +1,9 @@
+from collections.abc import Iterable
 from typing import Literal, NamedTuple, NewType
 
 import cython
+
+from app.models.db.element import ElementInit
 
 ElementType = Literal['node', 'way', 'relation']
 ElementId = NewType('ElementId', int)
@@ -114,14 +117,15 @@ def typed_element_id(type: ElementType, id: ElementId) -> TypedElementId:
     Encode element type and id into a 64-bit integer:
     [ 1 sign bit ][ 3 type bits ][ 60 id bits ]
     """
-    is_negative: cython.char = id < 0
     result: cython.ulonglong
 
+    is_negative: cython.bint = id < 0
     if is_negative:
         if id <= -1 << 60:
             raise OverflowError(f'ElementId {id} is too small for TypedElementId')
         result = -id
-        result |= 1 << 63  # sign bit
+        sign_bit: cython.ulonglong = 1 << 63
+        result |= sign_bit
 
     else:
         if id >= 1 << 60:
@@ -131,32 +135,47 @@ def typed_element_id(type: ElementType, id: ElementId) -> TypedElementId:
     if type == 'node':
         return result  # type: ignore
     elif type == 'way':
-        return result | (1 << 60)  # type: ignore
+        type_num: cython.ulonglong = 1 << 60
+        return result | type_num  # type: ignore
     elif type == 'relation':
-        return result | (2 << 60)  # type: ignore
-    else:
-        raise NotImplementedError(f'Unsupported element type {type!r}')
+        type_num: cython.ulonglong = 2 << 60
+        return result | type_num  # type: ignore
+
+    raise NotImplementedError(f'Unsupported element type {type!r}')
 
 
-def split_typed_element_id(id: TypedElementId) -> tuple[ElementType, ElementId]:
-    """Decode a TypedElementId into its constituent element type and id."""
-    id_c: cython.ulonglong = id
+@cython.cfunc
+def _split_typed_element_id(id: cython.ulonglong) -> tuple[ElementType, ElementId]:
+    sign_bit: cython.ulonglong = 1 << 63
+    element_id_mask: cython.ulonglong = (1 << 60) - 1
 
-    is_negative: cython.char = id_c & (1 << 63) != 0
-    type_num: cython.ulonglong = (id_c >> 60) & 0b111
-    element_id: cython.longlong = id_c & ((1 << 60) - 1)
+    is_negative: cython.bint = id & sign_bit != 0
+    type_num: cython.ulonglong = (id >> 60) & 0b111
+    element_id: cython.longlong = id & element_id_mask
 
     if is_negative:
         element_id = -element_id
 
-    if type_num == 0:
+    if type_num == 0:  # noqa: SIM116
         return 'node', element_id  # type: ignore
     elif type_num == 1:
         return 'way', element_id  # type: ignore
     elif type_num == 2:
         return 'relation', element_id  # type: ignore
-    else:
-        raise NotImplementedError(f'Unsupported element type number {type_num!r} in {id!r}')
+
+    raise NotImplementedError(f'Unsupported element type number {type_num!r} in {id!r}')
+
+
+def split_typed_element_id(id: TypedElementId) -> tuple[ElementType, ElementId]:
+    return _split_typed_element_id(id)
+
+
+def split_typed_element_ids(ids: Iterable[TypedElementId]) -> list[tuple[ElementType, ElementId]]:
+    return [_split_typed_element_id(id) for id in ids]
+
+
+def split_typed_element_ids2(elements: Iterable[ElementInit]) -> list[tuple[ElementType, ElementId]]:
+    return [_split_typed_element_id(e['typed_id']) for e in elements]
 
 
 # Only considering positive ids.

@@ -33,7 +33,7 @@ class CacheControlMiddleware:
 
                 if 200 <= status_code < 300 or status_code == 301:
                     state: dict = request.state._state  # noqa: SLF001
-                    header: str | None = state.get('cache_control_header')
+                    header = state.get('cache_control_header')
                     if header is not None:
                         headers = MutableHeaders(raw=message['headers'])
                         headers.setdefault('Cache-Control', header)

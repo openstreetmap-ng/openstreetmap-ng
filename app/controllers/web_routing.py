@@ -113,16 +113,10 @@ async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: int) 
         StandardFeedback.raise_error(field, t('javascripts.directions.errors.no_place', place=query))
 
     result = results[0]
-    bounds = result.bounds
     x, y = get_coordinates(result.point)[0].tolist()
     return RoutingResult.Endpoint(
         name=result.display_name,
-        bounds=SharedBounds(
-            min_lon=bounds[0],
-            min_lat=bounds[1],
-            max_lon=bounds[2],
-            max_lat=bounds[3],
-        ),
+        bounds=SharedBounds(*result.bounds),
         lon=x,
         lat=y,
     )

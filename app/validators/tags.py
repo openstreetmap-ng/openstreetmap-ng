@@ -14,13 +14,14 @@ _MIN_TAGS_LEN_TO_EXCEED_SIZE = TAGS_MAX_SIZE / (TAGS_KEY_MAX_LENGTH + 255)
 
 
 def _validate_tags(v: dict[str, str]) -> dict[str, str]:
-    tags_len = len(v)
+    num_tags: int = len(v)
 
-    if tags_len > TAGS_LIMIT:
+    if num_tags > TAGS_LIMIT:
         raise ValueError(f'Cannot have more than {TAGS_LIMIT} tags')
-    if tags_len > _MIN_TAGS_LEN_TO_EXCEED_SIZE:
-        size: cython.int = 0
-        limit: cython.int = TAGS_MAX_SIZE
+
+    if num_tags > _MIN_TAGS_LEN_TO_EXCEED_SIZE:
+        size: cython.Py_ssize_t = 0
+        limit: cython.Py_ssize_t = TAGS_MAX_SIZE
         for key, value in v.items():
             size += len(key) + len(value)
             if size > limit:

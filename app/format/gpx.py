@@ -78,12 +78,12 @@ class FormatGPX:
         for trace in traces:
             capture_times = trace['capture_times']
             capture_times_arr = np.array(capture_times) if (capture_times is not None) else None
-            point_index: cython.int = 0
+            point_index: cython.Py_ssize_t = 0
             trkseg: list[dict] = []
 
             for segment in force_3d(trace['segments']).geoms:
                 segment_coords_arr = get_coordinates(segment, True)
-                segment_size: cython.int = len(segment_coords_arr)
+                segment_size: cython.Py_ssize_t = len(segment_coords_arr)
                 mask = contains_xy(boundary, segment_coords_arr[:, :2])
 
                 # Skip if no points are in boundary
@@ -137,11 +137,11 @@ class FormatGPX:
 
     @staticmethod
     def decode_tracks(tracks: Iterable[dict]) -> DecodeTracksResult:
-        size: cython.int = 0
+        size: cython.Py_ssize_t = 0
         segments: list[list[tuple[float, float, float]]] = []
         capture_times: list[datetime | None] = []
-        has_elevation: cython.char = False
-        has_capture_times: cython.char = False
+        has_elevation: cython.bint = False
+        has_capture_times: cython.bint = False
 
         for track in tracks:
             for segment in track.get('trkseg', ()):
@@ -168,7 +168,7 @@ class FormatGPX:
                     capture_times.append(time)
 
                 # Finish the segment if non-empty
-                segment_size: cython.int = len(points)
+                segment_size: cython.Py_ssize_t = len(points)
                 if segment_size:
                     if segment_size < 2:
                         raise_for.bad_trace_file('Trace segment is too short or incomplete')

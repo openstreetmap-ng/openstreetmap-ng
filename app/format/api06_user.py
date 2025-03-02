@@ -82,14 +82,14 @@ class User06Mixin:
         return UserPrefListValidator.validate_python(user_prefs)
 
 
-async def _encode_user(user: User, *, is_json: cython.char) -> dict:
+async def _encode_user(user: User, *, is_json: cython.bint) -> dict:
     """
     >>> _encode_user(User(...))
     {'@id': 1234, '@display_name': 'userName', ...}
     """
     user_id = user['id']
     current_user = auth_user()
-    access_private: cython.char = (current_user is not None) and (current_user['id'] == user_id)
+    access_private: cython.bint = (current_user is not None) and (current_user['id'] == user_id)
     xattr = get_xattr(is_json=is_json)
 
     async with TaskGroup() as tg:
@@ -164,7 +164,7 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
 
 
 @cython.cfunc
-def _encode_language(language: str, *, is_json: cython.char):
+def _encode_language(language: str, *, is_json: cython.bint):
     """
     >>> _encode_language('en')
     {'lang': ('en',)}
@@ -173,7 +173,7 @@ def _encode_language(language: str, *, is_json: cython.char):
 
 
 @cython.cfunc
-def _encode_point(point: Point, *, is_json: cython.char) -> dict:
+def _encode_point(point: Point, *, is_json: cython.bint) -> dict:
     """
     >>> _encode_point(Point(1, 2), is_json=False)
     {'@lon': 1, '@lat': 2}

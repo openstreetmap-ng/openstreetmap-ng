@@ -114,6 +114,7 @@ ignore = [
   "PT001", # pytest-fixture-incorrect-parentheses-style
   "PT006", # pytest-parametrize-names-wrong-type
   "PT011", # pytest-raises-too-broad
+  "PT018", # pytest-composite-assertion
   "PT023", # pytest-incorrect-mark-parentheses-style
   "PYI025", # unaliased-collections-abc-set-import
   "Q000", # bad-quotes-inline-string

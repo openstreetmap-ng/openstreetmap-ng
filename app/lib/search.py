@@ -1,5 +1,5 @@
 import logging
-from collections.abc import Iterable, Sequence
+from collections.abc import Collection, Iterable, Sequence
 from dataclasses import dataclass
 
 import cython
@@ -10,7 +10,7 @@ from app.lib.feature_icon import FeatureIcon
 from app.lib.geo_utils import parse_bbox
 from app.limits import SEARCH_LOCAL_AREA_LIMIT, SEARCH_LOCAL_MAX_ITERATIONS, SEARCH_LOCAL_RATIO
 from app.models.db.element import Element
-from app.models.element import ElementId, ElementType
+from app.models.element import TypedElementId, split_typed_element_ids
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil, log2
@@ -45,7 +45,9 @@ class Search:
         """
         search_local_area_limit: cython.double = SEARCH_LOCAL_AREA_LIMIT
         search_local_max_iterations: cython.int = (
-            local_max_iterations if (local_max_iterations is not None) else SEARCH_LOCAL_MAX_ITERATIONS
+            local_max_iterations
+            if local_max_iterations is not None  #
+            else SEARCH_LOCAL_MAX_ITERATIONS
         )
 
         parts = bbox.strip().split(',', 3)
@@ -53,23 +55,26 @@ class Search:
         miny: cython.double = float(parts[1])
         maxx: cython.double = float(parts[2])
         maxy: cython.double = float(parts[3])
-        bbox_center_x: cython.double = (minx + maxx) / 2
-        bbox_center_y: cython.double = (miny + maxy) / 2
-        bbox_width_2: cython.double = (maxx - minx) / 2
-        bbox_height_2: cython.double = (maxy - miny) / 2
-        bbox_area: cython.double = (maxx - minx) * (maxy - miny)
 
-        local_iterations: cython.int = int(ceil(log2(search_local_area_limit / bbox_area)))
+        bbox_width = maxx - minx
+        bbox_width_2 = bbox_width / 2
+        bbox_height = maxy - miny
+        bbox_height_2 = bbox_height / 2
+        bbox_area = bbox_width * bbox_height
+
+        bbox_center_x = minx + bbox_width_2
+        bbox_center_y = miny + bbox_height_2
+
+        local_iterations: cython.int = 1 if local_only else int(ceil(log2(search_local_area_limit / bbox_area)))
         local_iterations = min(local_iterations, search_local_max_iterations)
-        if local_only:
-            local_iterations = 1
-        logging.debug('Searching area of %d with %d local iterations', bbox_area, local_iterations)
 
+        logging.debug('Searching area of %d with %d local iterations', bbox_area, local_iterations)
         result: list[tuple[str, Polygon | MultiPolygon] | tuple[None, None]] = [None] * local_iterations  # type: ignore
-        i: cython.int
+
+        i: cython.Py_ssize_t
         for i in range(local_iterations):
-            bounds_width_2: cython.double = bbox_width_2 * (2**i)
-            bounds_height_2: cython.double = bbox_height_2 * (2**i)
+            bounds_width_2 = bbox_width_2 * (2**i)
+            bounds_height_2 = bbox_height_2 * (2**i)
             bounds_minx = bbox_center_x - bounds_width_2
             bounds_miny = bbox_center_y - bounds_height_2
             bounds_maxx = bbox_center_x + bounds_width_2
@@ -81,6 +86,7 @@ class Search:
         if not local_only:
             # append global search bounds
             result.append((None, None))
+
         return result
 
     @staticmethod
@@ -96,97 +102,119 @@ class Search:
             return -1
 
         logging.debug('Search performed using local mode')
-        max_local_results = len(task_results[-2])
-        threshold = max_local_results * SEARCH_LOCAL_RATIO
+        max_local_results: cython.Py_ssize_t = len(task_results[-2])
+        search_local_ratio: cython.double = SEARCH_LOCAL_RATIO
+        threshold = max_local_results * search_local_ratio
 
         # zoom out until there are enough local results
         for i, results in enumerate(task_results[:-2]):
             if len(results) >= threshold:
                 return i
+
         return -2
 
     @staticmethod
     def improve_point_accuracy(
-        results: Iterable[SearchResult],
-        members_map: dict[tuple[ElementType, ElementId], Element],
+        results: Collection[SearchResult],
+        members_map: dict[TypedElementId, Element],
     ) -> None:
         """Improve accuracy of points by analyzing relations members."""
-        for result in results:
-            element = result.element
-            if element.type != 'relation':
+        for result, type_id in zip(
+            results,
+            split_typed_element_ids([result.element['typed_id'] for result in results]),
+            strict=True,
+        ):
+            if type_id[0] != 'relation':
                 continue
 
-            members = element.members
-            if members is None:
-                raise AssertionError('Relation members must be set')
+            element = result.element
+            members = element['members']
+            assert members is not None, 'Relation members must be set'
+            members_roles = element['members_roles']
+            assert members_roles is not None, 'Relation members roles must be set'
 
-            success: cython.char = False
-            for member in members:
-                if member.type != 'node' or (success and member.role != 'admin_centre'):
+            success: cython.bint = False
+            for member, member_type_id, role in zip(
+                members,
+                split_typed_element_ids(members),
+                members_roles,
+                strict=True,
+            ):
+                if member_type_id[0] != 'node' or (success and role != 'admin_centre'):
                     continue
-                node = members_map[('node', member.id)]
-                if node.point is not None:
-                    result.point = node.point
+
+                point = members_map[member]['point']
+                if point is not None:
+                    result.point = point
                     success = True
 
     @staticmethod
-    def remove_overlapping_points(results: Iterable[SearchResult]) -> None:
+    def remove_overlapping_points(results: Collection[SearchResult]) -> None:
         """Remove overlapping points, preserving most important results."""
-        relations = tuple(result for result in results if result.element.type == 'relation')
+        relations = [
+            result
+            for result, type_id in zip(
+                results,
+                split_typed_element_ids([result.element['typed_id'] for result in results]),
+                strict=True,
+            )
+            if type_id[0] == 'relation'
+        ]
         if len(relations) <= 1:
             return
 
-        geoms = tuple(result.point for result in relations)
+        geoms = [result.point for result in relations]
         tree = STRtree(geoms)
+
         nearby_all = tree.query(geoms, 'dwithin', 0.001).T
         nearby_all = np.unique(nearby_all, axis=0)
         nearby_all = nearby_all[nearby_all[:, 0] < nearby_all[:, 1]]
         nearby_all = np.sort(nearby_all, axis=1)
-        for i1, i2 in nearby_all:
-            if relations[i1].point is None:
-                continue
-            relations[i2].point = None
+
+        for i1, i2 in nearby_all.tolist():  # type: ignore
+            if relations[i1].point is not None:
+                relations[i2].point = None
 
     @staticmethod
-    def deduplicate_similar_results(results: Iterable[SearchResult]) -> tuple[SearchResult, ...]:
+    def deduplicate_similar_results(results: Iterable[SearchResult]) -> list[SearchResult]:
         """Deduplicate similar results."""
         # Deduplicate by type and id
-        seen_type_id: set[tuple[ElementType, ElementId]] = set()
+        seen: set[TypedElementId] = set()
         dedup1: list[SearchResult] = []
         geoms: list[Point] = []
         for result in results:
-            element = result.element
-            type_id = (element.type, element.id)
-            if type_id in seen_type_id:
-                continue
-            seen_type_id.add(type_id)
-            dedup1.append(result)
-            geoms.append(result.point)
+            typed_id = result.element['typed_id']
+            if typed_id not in seen:
+                seen.add(typed_id)
+                dedup1.append(result)
+                geoms.append(result.point)
 
-        if len(dedup1) <= 1:
-            return tuple(dedup1)
+        num_geoms: cython.Py_ssize_t = len(geoms)
+        if num_geoms <= 1:
+            return dedup1
 
         # Deduplicate by location and name
         tree = STRtree(geoms)
+
         nearby_all = tree.query(geoms, 'dwithin', 0.001).T
         nearby_all = np.unique(nearby_all, axis=0)
         nearby_all = nearby_all[nearby_all[:, 0] < nearby_all[:, 1]]
         nearby_all = np.sort(nearby_all, axis=1)
-        mask = np.ones(len(geoms), dtype=bool)
-        for i1, i2 in nearby_all:
+
+        mask = [True] * num_geoms
+        for i1, i2 in nearby_all.tolist():  # type: ignore
             if not mask[i1]:
                 continue
             name1 = dedup1[i1].display_name
             name2 = dedup1[i2].display_name
-            if name1 != name2:
-                continue
-            mask[i2] = False
+            if name1 == name2:
+                mask[i2] = False
 
-        return tuple(dedup1[i] for i in np.nonzero(mask)[0])
+        return [result for result, is_mask in zip(dedup1, mask, strict=True) if is_mask]
 
 
 @cython.cfunc
-def _should_use_global_search(task_results: Sequence[Sequence[SearchResult]]) -> cython.char:
+def _should_use_global_search(task_results: Sequence[Sequence[SearchResult]]) -> cython.bint:
     """
     Determine whether to use global search or local search.
 
@@ -195,8 +223,10 @@ def _should_use_global_search(task_results: Sequence[Sequence[SearchResult]]) ->
     local_results = task_results[:-1]
     if not any(local_results):
         return True
+
     global_results = task_results[-1]
     if not global_results:
         return False
+
     # https://nominatim.org/release-docs/latest/customize/Ranking/
     return global_results[0].rank <= 16

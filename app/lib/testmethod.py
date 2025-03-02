@@ -7,7 +7,7 @@ from app.config import TEST_ENV
 
 def testmethod(func):
     """Decorator to mark a method as runnable only in test environment."""
-    test_env: cython.char = bool(TEST_ENV)
+    test_env: cython.bint = TEST_ENV
 
     @wraps(func)
     def wrapper(*args, **kwargs):

@@ -7,8 +7,8 @@ from typing import NamedTuple
 import cython
 import orjson
 
-from app.models.db.element import Element
-from app.models.element import ElementType
+from app.models.db.element import ElementInit
+from app.models.element import split_typed_element_id
 
 
 class FeatureIcon(NamedTuple):
@@ -41,7 +41,7 @@ def _get_popular_stats() -> dict[str, dict[str, int]]:
 @cython.cfunc
 def _check_config():
     # ensure all icons are present
-    total_icons: cython.int = 0
+    total_icons: cython.Py_ssize_t = 0
     for key_config in _config.values():
         for icon in key_config.values():
             with Path('app/static/img/element', icon).open('rb'):
@@ -56,7 +56,7 @@ _popular_stats = _get_popular_stats()
 _check_config()
 
 
-def features_icons(elements: Iterable[Element | None]) -> tuple[FeatureIcon | None, ...]:
+def features_icons(elements: Iterable[ElementInit | None]) -> list[FeatureIcon | None]:
     """
     Get the icons filenames and titles for the given elements.
 
@@ -65,21 +65,23 @@ def features_icons(elements: Iterable[Element | None]) -> tuple[FeatureIcon | No
     >>> features_icons(...)
     (('aeroway_terminal.webp', 'aeroway=terminal'), ...)
     """
-    return tuple(_feature_icon(e.type, e.tags) if (e is not None) else None for e in elements)
+    return [_feature_icon(e) if (e is not None) else None for e in elements]
 
 
 @cython.cfunc
-def _feature_icon(type: ElementType, tags: dict[str, str]):
+def _feature_icon(element: ElementInit):
+    tags = element['tags']
     if not tags:
         return None
     matched_keys = _config_keys.intersection(tags)
     if not matched_keys:
         return None
 
+    type = split_typed_element_id(element['typed_id'])[0]
     result: list[FeatureIcon] | None = None
+    specific: cython.bint
 
     # prefer value-specific icons first
-    specific: cython.char
     for specific in (True, False):
         for key in matched_keys:
             value = tags[key] if specific else '*'

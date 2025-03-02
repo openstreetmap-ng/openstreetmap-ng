@@ -71,7 +71,8 @@ class Element06Mixin:
         """
         result: list[tuple[OSMChangeAction, dict[ElementType, dict]]] = [None] * len(elements)  # type: ignore
         action: OSMChangeAction
-        i: cython.int
+
+        i: cython.Py_ssize_t
         for i, element in enumerate(elements):
             # determine the action automatically
             if element['version'] == 1:
@@ -80,10 +81,12 @@ class Element06Mixin:
                 action = 'modify'
             else:
                 action = 'delete'
+
             type = split_typed_element_id(element['typed_id'])[0]
             result_: tuple[OSMChangeAction, dict[ElementType, dict]]
             result_ = (action, {type: _encode_element(element, is_json=False)})
             result[i] = result_
+
         return result
 
     @staticmethod
@@ -136,7 +139,7 @@ class Element06Mixin:
                     result.append(element)
 
             elif action == 'delete':
-                delete_if_unused: cython.char = False
+                delete_if_unused: cython.bint = False
 
                 for key, data in elements_data:
                     if key == '@if-unused':  # pyright: ignore[reportUnnecessaryComparison]
@@ -244,15 +247,15 @@ def _decode_members_unsafe(members: Iterable[dict]) -> tuple[list[TypedElementId
 
 
 @cython.cfunc
-def _encode_element(element: Element, *, is_json: cython.char) -> dict:
+def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
     """
     >>> _encode_element(Element(type='node', id=1, version=1, ...))
     {'@id': 1, '@version': 1, ...}
     """
     type, id = split_typed_element_id(element['typed_id'])
-    is_node: cython.char = type == 'node'
-    is_way: cython.char = not is_node and type == 'way'
-    is_relation: cython.char = not is_node and not is_way
+    is_node: cython.bint = type == 'node'
+    is_way: cython.bint = not is_node and type == 'way'
+    is_relation: cython.bint = not is_node and not is_way
     tags = element['tags'] or {}
     point = element['point']
     members = element['members'] or ()

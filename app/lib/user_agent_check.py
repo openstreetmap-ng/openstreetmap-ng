@@ -12,7 +12,7 @@ import orjson
 from app.config import FILE_CACHE_DIR
 
 # Safari detection would be nice, but requires more complex checks
-_user_agent_re = re.compile(r'(?P<name>Chrome|Firefox)/(?P<major_version>\d{1,4})')
+_USER_AGENT_RE = re.compile(r'(?P<name>Chrome|Firefox)/(?P<major_version>\d{1,4})')
 
 
 @lru_cache(maxsize=512)
@@ -27,21 +27,21 @@ def is_browser_supported(user_agent: str) -> bool:
     if not user_agent:
         return True
 
-    match = _user_agent_re.search(user_agent)
+    match = _USER_AGENT_RE.search(user_agent)
 
     # support unknown user agents
     if match is None:
         return True
 
-    name: str = match['name']
+    name = match['name']
     major_version = int(match['major_version'])
 
     if name == 'Chrome':
         return major_version >= _CHROME_MAJOR_VERSION
     elif name == 'Firefox':
         return major_version >= _FIREFOX_MAJOR_VERSION
-    else:
-        raise NotImplementedError(f'Unsupported browser name {name!r}')
+
+    raise NotImplementedError(f'Unsupported browser name {name!r}')
 
 
 @cython.cfunc
@@ -50,15 +50,19 @@ def _browserslist_versions() -> dict[str, float]:
     lock_path = Path('package.json')
     lock_mtime = lock_path.stat().st_mtime
     cache_path = FILE_CACHE_DIR / 'browserslist_versions.json'
+
     if not cache_path.is_file() or lock_mtime > cache_path.stat().st_mtime:
         stdout = subprocess.check_output(('bunx', 'browserslist'), env={**os.environ, 'NO_COLOR': '1'}).decode()
         result: defaultdict[str, float] = defaultdict(lambda: float('inf'))
+
         for line in stdout.splitlines():
             browser, _, version = line.partition(' ')
             version = min(float(v) for v in version.split('-'))
             result[browser] = min(result[browser], version)
+
         cache_path.write_bytes(orjson.dumps(result))
         os.utime(cache_path, (lock_mtime, lock_mtime))
+
     return orjson.loads(cache_path.read_bytes())
 
 

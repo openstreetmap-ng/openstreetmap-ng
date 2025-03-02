@@ -73,7 +73,7 @@ def _encode_note_comment(comment: NoteComment) -> dict:
 
 
 @cython.cfunc
-def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> dict:
+def _encode_note(note: Note, *, is_json: cython.bint, is_gpx: cython.bint) -> dict:
     """
     >>> _encode_note(Note(...))
     {'@lon': 0.1, '@lat': 51, 'id': 16659, ...}

@@ -14,6 +14,7 @@ def user_name_blacklist_routes(app: Starlette) -> None:
     """Blacklist usernames that could conflict with application routes."""
     path_re = re.compile(r'^/user/(?P<display_name>[^/]+)')
     result: list[str] = []
+
     for route in app.routes:
         if not isinstance(route, Route):
             continue
@@ -24,6 +25,7 @@ def user_name_blacklist_routes(app: Starlette) -> None:
         if name[0] == '{':
             continue
         result.append(_normalize(name))
+
     _BLACKLIST.update(result)
     logging.info('Blacklisted %d user names from routes: %s', len(result), result)
 

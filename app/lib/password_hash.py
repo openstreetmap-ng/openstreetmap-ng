@@ -51,7 +51,7 @@ class PasswordHash:
         password_pb: bytes,
         password: Password,
         is_test_user: bool,
-    ) -> VerifyResult:
+    ):
         """Verify a password against a hash and optional extra data."""
         # test user accepts any password in test environment
         if is_test_user:
@@ -81,15 +81,15 @@ def _hash_v1(password_bytes: bytes) -> bytes:
     prefix, salt, hash = hash_string.rsplit('$', 2)
     hash = b64decode(hash + '==')
     salt = b64decode(salt + '==')
-
-    if prefix != '$argon2id$v=19$m=8192,t=3,p=4' or len(hash) != 32 or len(salt) != 16:
-        raise AssertionError(f'Invalid hasher configuration: {prefix=!r}, {len(hash)=}, {len(salt)=}')
+    assert prefix == '$argon2id$v=19$m=8192,t=3,p=4' and len(hash) == 32 and len(salt) == 16, (
+        f'Invalid hasher configuration: {prefix=!r}, {len(hash)=}, {len(salt)=}'
+    )
 
     return UserPassword(v1=UserPassword.V1(hash=hash, salt=salt)).SerializeToString()
 
 
 @cython.cfunc
-def _verify_v1(password_bytes: bytes, password_pb_v1: UserPassword.V1) -> VerifyResult:
+def _verify_v1(password_bytes: bytes, password_pb_v1: UserPassword.V1):
     if not password_bytes:
         return VerifyResult(False, rehash_needed=False, schema_needed='v1')
     if len(password_bytes) != 64:
@@ -107,7 +107,7 @@ def _verify_v1(password_bytes: bytes, password_pb_v1: UserPassword.V1) -> Verify
 
 
 @cython.cfunc
-def _verify_legacy(password_text: str, password_pb_legacy: UserPassword.Legacy) -> VerifyResult:
+def _verify_legacy(password_text: str, password_pb_legacy: UserPassword.Legacy):
     if not password_text:
         return VerifyResult(False, rehash_needed=False, schema_needed='legacy')
 
@@ -125,7 +125,7 @@ def _verify_legacy(password_text: str, password_pb_legacy: UserPassword.Legacy) 
 
 
 @cython.cfunc
-def _verify_legacy_argon2(password_text: str, digest: str) -> VerifyResult:
+def _verify_legacy_argon2(password_text: str, digest: str):
     try:
         _HASHER_V1.verify(digest, password_text)
         return VerifyResult(True, rehash_needed=True)
@@ -134,7 +134,7 @@ def _verify_legacy_argon2(password_text: str, digest: str) -> VerifyResult:
 
 
 @cython.cfunc
-def _verify_legacy_md5(password_text: str, digest: str, extra: str) -> VerifyResult:
+def _verify_legacy_md5(password_text: str, digest: str, extra: str):
     salt = extra or ''
     valid_hash = md5((salt + password_text).encode()).hexdigest()  # noqa: S324
     success = compare_digest(digest, valid_hash)
@@ -142,7 +142,7 @@ def _verify_legacy_md5(password_text: str, digest: str, extra: str) -> VerifyRes
 
 
 @cython.cfunc
-def _verify_legacy_pbkdf2(password_text: str, digest: str, extra: str) -> VerifyResult:
+def _verify_legacy_pbkdf2(password_text: str, digest: str, extra: str):
     password_hashed_b = b64decode(digest)
     algorithm, iterations_, salt = extra.split('!')
     iterations = int(iterations_)

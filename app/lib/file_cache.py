@@ -112,7 +112,7 @@ class FileCache:
             return
 
         # prioritize cleanup of entries closer to expiration (iterating in reverse)
-        infos.sort(key=lambda info: info.expires_at, reverse=True)
+        infos.sort(key=lambda ci: ci.expires_at, reverse=True)
 
         while total_size > limit_size:
             info = infos.pop()

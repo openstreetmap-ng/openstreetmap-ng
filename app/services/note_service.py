@@ -75,7 +75,7 @@ class NoteService:
     async def comment(note_id: int, text: str, event: NoteEvent) -> None:
         """Comment on a note."""
         user = auth_user(required=True)
-        send_activity_email: cython.char = False
+        send_activity_email: cython.bint = False
         async with db(True) as session:
             stmt = select(Note).where(Note.id == note_id, Note.visible_to(user)).with_for_update()
             note = await session.scalar(stmt)
@@ -182,7 +182,7 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
             subscribed_user_id: cython.longlong = subscribed_user.id
             if subscribed_user_id == comment_user_id:
                 continue
-            is_note_owner: cython.char = subscribed_user_id == first_comment_user_id
+            is_note_owner: cython.bint = subscribed_user_id == first_comment_user_id
             with translation_context(subscribed_user.language):
                 subject = _get_activity_email_subject(comment_user_name, comment_event, is_note_owner)
             tg.create_task(
@@ -202,7 +202,7 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
 def _get_activity_email_subject(
     comment_user_name: DisplayName,
     event: NoteEvent,
-    is_note_owner: cython.char,
+    is_note_owner: cython.bint,
 ) -> str:
     if event == NoteEvent.commented:
         if is_note_owner:

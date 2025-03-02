@@ -35,7 +35,7 @@ class UnsupportedBrowserMiddleware:
             await self.app(scope, receive, send)
             return
 
-        capture: cython.char = False
+        capture: cython.bint = False
 
         async def wrapper(message: Message) -> None:
             nonlocal capture
@@ -55,10 +55,10 @@ class UnsupportedBrowserMiddleware:
 
 
 @cython.cfunc
-def _should_capture(message: Message) -> cython.char:
+def _should_capture(message: Message) -> cython.bint:
     status_code: cython.int = message['status']
     if status_code != 200:
         return False
     headers = Headers(raw=message['headers'])
-    content_type: str | None = headers.get('Content-Type')
+    content_type = headers.get('Content-Type')
     return content_type is not None and content_type.startswith('text/html')

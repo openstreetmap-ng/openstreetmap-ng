@@ -1,13 +1,13 @@
 from shapely import Point, box
 
-from app.lib.change_bounds import change_bounds
+from app.lib.changeset_bounds import extend_changeset_bounds
 from app.limits import CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
 from app.models.db.changeset_bounds import ChangesetBounds
 
 
 def test_change_bounds_points_merge():
     x = CHANGESET_NEW_BBOX_MIN_DISTANCE
-    new_bounds = change_bounds(
+    new_bounds = extend_changeset_bounds(
         (),
         (
             Point(0, 0),
@@ -20,7 +20,7 @@ def test_change_bounds_points_merge():
 
 def test_change_bounds_points_separate():
     x = CHANGESET_NEW_BBOX_MIN_DISTANCE * 1.01
-    new_bounds = change_bounds(
+    new_bounds = extend_changeset_bounds(
         (),
         (
             Point(0, 0),
@@ -36,7 +36,7 @@ def test_change_bounds_early_merge():
     x = -CHANGESET_NEW_BBOX_MIN_DISTANCE
     y = CHANGESET_NEW_BBOX_MIN_RATIO * CHANGESET_NEW_BBOX_MIN_DISTANCE
     z = (CHANGESET_NEW_BBOX_MIN_RATIO + 1) * CHANGESET_NEW_BBOX_MIN_DISTANCE
-    new_bounds = change_bounds(
+    new_bounds = extend_changeset_bounds(
         (ChangesetBounds(bounds=box(x, x, 0, 0)),),
         (
             Point(y, y),
@@ -51,7 +51,7 @@ def test_change_bounds_early_separate():
     x = -CHANGESET_NEW_BBOX_MIN_DISTANCE
     y = CHANGESET_NEW_BBOX_MIN_RATIO * 1.01 * CHANGESET_NEW_BBOX_MIN_DISTANCE
     z = (CHANGESET_NEW_BBOX_MIN_RATIO * 1.01 + 1) * CHANGESET_NEW_BBOX_MIN_DISTANCE
-    new_bounds = change_bounds(
+    new_bounds = extend_changeset_bounds(
         (ChangesetBounds(bounds=box(x, x, 0, 0)),),
         (
             Point(y, y),
@@ -65,7 +65,7 @@ def test_change_bounds_early_separate():
 
 def test_change_bounds_late_merge():
     x = CHANGESET_NEW_BBOX_MIN_RATIO
-    new_bounds = change_bounds(
+    new_bounds = extend_changeset_bounds(
         (ChangesetBounds(bounds=box(-1, -1, 0, 0)),),
         (Point(x, x),),
     )
@@ -75,7 +75,7 @@ def test_change_bounds_late_merge():
 
 def test_change_bounds_late_separate():
     x = CHANGESET_NEW_BBOX_MIN_RATIO * 1.01
-    new_bounds = change_bounds(
+    new_bounds = extend_changeset_bounds(
         (ChangesetBounds(bounds=box(-1, -1, 0, 0)),),
         (Point(x, x),),
     )

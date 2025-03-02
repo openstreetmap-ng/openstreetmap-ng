@@ -9,8 +9,8 @@ else:
 def standard_pagination_range(
     page: cython.int,
     *,
-    page_size: cython.int,
-    num_items: cython.longlong,
+    page_size: cython.ulonglong,
+    num_items: cython.ulonglong,
 ) -> tuple[int, int]:
     """
     Get the range of items for the given page.
@@ -20,8 +20,6 @@ def standard_pagination_range(
     Returns a tuple of (limit, offset).
     """
     num_pages: cython.int = int(ceil(num_items / page_size))
-    if page < 1 or page > num_pages:
-        return 0, 0
-    stmt_offset: cython.longlong = (num_pages - page) * page_size
-    stmt_limit = page_size
-    return stmt_limit, stmt_offset
+    if 1 <= page <= num_pages:
+        return page_size, (num_pages - page) * page_size
+    return 0, 0

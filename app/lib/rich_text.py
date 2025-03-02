@@ -32,6 +32,7 @@ def process_rich_text(text: str, text_format: TextFormat) -> str:
     This function runs synchronously and does not use cache.
     """
     text = text.strip()
+
     if text_format == 'markdown':
         text = _MD.render(text)
         return nh3.clean(
@@ -40,6 +41,7 @@ def process_rich_text(text: str, text_format: TextFormat) -> str:
             attributes=_ALLOWED_ATTRS,
             link_rel=None,
         )
+
     elif text_format == 'plain':
         text = escape(text)
         text = _process_plain(text)
@@ -49,8 +51,8 @@ def process_rich_text(text: str, text_format: TextFormat) -> str:
             attributes=_PLAIN_ALLOWED_ATTRS,
             link_rel=None,
         )
-    else:
-        raise NotImplementedError(f'Unsupported rich text format {text_format!r}')
+
+    raise NotImplementedError(f'Unsupported rich text format {text_format!r}')
 
 
 async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) -> CacheEntry:
@@ -60,26 +62,18 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
     If cache_id is provided, it will be used to accelerate cache lookup.
     """
     cache_context = CacheContext(f'RichText:{text_format}')
+    hash_key: cython.bint = cache_id is None
 
     async def factory() -> bytes:
         return process_rich_text(text, text_format).encode()
 
-    # accelerate cache lookup by id if available
-    if cache_id is not None:
-        return await CacheService.get(
-            cache_id,
-            cache_context,
-            factory,
-            ttl=RICH_TEXT_CACHE_EXPIRE,
-        )
-    else:
-        return await CacheService.get(
-            text,
-            cache_context,
-            factory,
-            hash_key=True,
-            ttl=RICH_TEXT_CACHE_EXPIRE,
-        )
+    return await CacheService.get(
+        text if hash_key else cache_id,
+        cache_context,
+        factory,
+        hash_key=hash_key,
+        ttl=RICH_TEXT_CACHE_EXPIRE,
+    )
 
 
 class _HasId(TypedDict):
@@ -141,19 +135,21 @@ async def resolve_rich_text(
 
 def _render_image(self: RendererHTML, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
     token = tokens[idx]
-    token.attrs['decoding'] = 'async'
-    token.attrs['loading'] = 'lazy'
+    attrs: dict[str, str | int | float] = token.attrs
+    attrs['decoding'] = 'async'
+    attrs['loading'] = 'lazy'
     return self.image(tokens, idx, options, env)
 
 
 def _render_link(self: RendererHTML, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
     token = tokens[idx]
-    trusted_href = _process_trusted_link(token.attrs.get('href'))
+    attrs: dict[str, str | int | float] = token.attrs
+    trusted_href = _process_trusted_link(attrs.get('href'))
     if trusted_href is not None:
-        token.attrs['href'] = trusted_href
-        token.attrs['rel'] = _TRUSTED_LINK_REL
+        attrs['href'] = trusted_href
+        attrs['rel'] = _TRUSTED_LINK_REL
     else:
-        token.attrs['rel'] = _UNTRUSTED_LINK_REL
+        attrs['rel'] = _UNTRUSTED_LINK_REL
     return self.renderToken(tokens, idx, options, env)
 
 
@@ -161,17 +157,21 @@ def _render_link(self: RendererHTML, tokens: Sequence[Token], idx: int, options:
 def _process_trusted_link(href: str | float | None):
     if href is None:
         return None
+
     parts = urlsplit(str(href))
     hostname = parts.hostname
     if hostname is None:
         # relative, absolute, or empty href
         return href
+
     hostname = hostname.casefold()
     if hostname not in TRUSTED_HOSTS and not hostname.endswith(_TRUSTED_HOSTS_DOT):
         return None
+
     # href is trusted, upgrade to https
     if parts.scheme == 'http':
         return urlunsplit(parts._replace(scheme='https'))
+
     return href
 
 
@@ -191,6 +191,7 @@ def _process_plain(text: str) -> str:
         text = f'<p>{text}</p>'
     else:
         result: list[str] = ['<p>']
+
         last_pos: int = 0
         for match in matches:
             prefix = text[last_pos : match.index]
@@ -201,10 +202,12 @@ def _process_plain(text: str) -> str:
             else:
                 result.append(f'{prefix}<a href="{href}" rel="{_UNTRUSTED_LINK_REL}">{match.text}</a>')
             last_pos = match.last_index
+
         # add remaining text after last link
         if last_pos < len(text):
             suffix = text[last_pos:]
             result.append(suffix)
+
         result.append('</p>')
         text = ''.join(result)
 

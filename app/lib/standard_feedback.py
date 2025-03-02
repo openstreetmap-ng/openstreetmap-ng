@@ -23,7 +23,7 @@ class StandardFeedback:
         self._messages[field].append(('success', message))
 
     @classmethod
-    def success_result(cls, field: str | None, message: str) -> dict[Literal['detail'], tuple[dict[str, Any], ...]]:
+    def success_result(cls, field: str | None, message: str) -> dict[Literal['detail'], list[dict[str, Any]]]:
         """Collect a success message for a field. Instantly returns the result."""
         tmp = StandardFeedback()
         tmp.success(field, message)
@@ -34,17 +34,17 @@ class StandardFeedback:
         self._messages[field].append(('info', message))
 
     @classmethod
-    def info_result(cls, field: str | None, message: str) -> dict[Literal['detail'], tuple[dict[str, Any], ...]]:
+    def info_result(cls, field: str | None, message: str) -> dict[Literal['detail'], list[dict[str, Any]]]:
         """Collect an info message for a field. Instantly returns the result."""
         tmp = StandardFeedback()
         tmp.info(field, message)
         return tmp.result
 
     @property
-    def result(self) -> dict[Literal['detail'], tuple[dict[str, Any], ...]]:
+    def result(self) -> dict[Literal['detail'], list[dict[str, Any]]]:
         """Return the collected messages as a dict."""
         return {
-            'detail': tuple(
+            'detail': [
                 {
                     'type': severity,
                     'loc': (None, field),
@@ -52,7 +52,7 @@ class StandardFeedback:
                 }
                 for field, messages in self._messages.items()
                 for severity, message in messages
-            )
+            ]
         }
 
     @staticmethod
@@ -70,7 +70,7 @@ class StandardFeedback:
         )
 
 
-# _context = ContextVar('MessageCollector_context')
+# _context = ContextVar('MessageCollector')
 
 
 # @contextmanager

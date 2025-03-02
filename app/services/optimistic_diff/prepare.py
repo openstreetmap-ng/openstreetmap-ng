@@ -11,7 +11,7 @@ from shapely import Point, box, multipolygons
 from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import auth_user
-from app.lib.change_bounds import change_bounds
+from app.lib.changeset_bounds import extend_changeset_bounds
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
 from app.models.db.changeset import Changeset
@@ -399,13 +399,13 @@ class OptimisticDiffPrepare:
         changed_refs = prev_refs ^ next_refs
 
         # check for changed tags or any relation members
-        full_diff: cython.char = (
-            (prev is None)
-            or (prev.tags != element.tags)  #
+        full_diff: cython.bint = (
+            prev is None
+            or (prev['tags'] != element['tags'])  #
             or any(ref.type == 'relation' for ref in changed_refs)
         )
 
-        diff_refs = (prev_refs | next_refs) if full_diff else (changed_refs)
+        diff_refs = (prev_refs | next_refs) if full_diff else changed_refs
         element_state = self.element_state
         bbox_points = self._bbox_points
         bbox_refs = self._bbox_refs
@@ -499,7 +499,7 @@ class OptimisticDiffPrepare:
         if changeset is None:
             raise AssertionError('Changeset must be set')
 
-        changeset.bounds = new_bounds = change_bounds(changeset.bounds, bbox_points)
+        changeset.bounds = new_bounds = extend_changeset_bounds(changeset.bounds, bbox_points)
 
         changeset_union_bounds = changeset.union_bounds
         new_polygons = [cb.bounds for cb in new_bounds]

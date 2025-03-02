@@ -36,10 +36,9 @@ def format_sql_date(date: datetime | None) -> str:
     if date is None:
         return 'None'
     tzinfo = date.tzinfo
-    if tzinfo is not None and tzinfo is not UTC:
+    if (tzinfo is not None) and (tzinfo is not UTC):
         raise AssertionError(f'Timezone must be UTC, got {tzinfo!r}')
-    fmt = '%Y-%m-%d %H:%M:%S UTC' if date.microsecond == 0 else '%Y-%m-%d %H:%M:%S.%f UTC'
-    return date.strftime(fmt)
+    return date.strftime('%Y-%m-%d %H:%M:%S UTC' if not date.microsecond else '%Y-%m-%d %H:%M:%S.%f UTC')
 
 
 def format_rfc2822_date(date: datetime) -> str:
@@ -98,9 +97,5 @@ def parse_date(s: str) -> datetime:
     """
     date = dateutil.parser.parse(s, ignoretz=False)
 
-    if date.tzinfo is None:
-        # attach UTC timezone if missing
-        return date.replace(tzinfo=UTC)
-    else:
-        # convert to UTC timezone
-        return date.astimezone(UTC)
+    # attach or convert to UTC timezone
+    return date.replace(tzinfo=UTC) if (date.tzinfo is None) else date.astimezone(UTC)

@@ -252,14 +252,14 @@ async def _get_activity_data(user: User) -> dict:
     activity_level_perc = np.clip(activity / max_activity_clip, 0, 1)
     activity_levels = np.ceil(activity_level_perc * 19).astype(np.uint8)
 
-    weekdays = tuple(
+    weekdays = [
         get_weekday_name(date, short=True)
         if i % 2 == 1  #
         else ''
         for i, date in enumerate(dates_range[:7])
-    )
+    ]
     months: list[str | None] = []
-    rows: tuple[list[dict], ...] = tuple([] for _ in range(7))
+    rows: list[list[dict]] = [[] for _ in range(7)]
 
     for week_data, level, value, date in zip(cycle(rows), activity_levels, activity, dates_range):
         week_data.append({'level': level, 'value': value, 'date': format_short_date(date)})

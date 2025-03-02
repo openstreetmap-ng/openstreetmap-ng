@@ -109,7 +109,8 @@ class TraceSegmentQuery:
             data_lens = np.unique_counts(segments_parts_[1]).counts
             data_i_stop = data_lens.cumsum()
             data_i_start = data_i_stop - data_lens
-            dirty: cython.char = False
+            dirty: cython.bint = False
+
             for attr_name in ('capture_times', 'elevations'):
                 if dirty:
                     data_flat.fill(None)

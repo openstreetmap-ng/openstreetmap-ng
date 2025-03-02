@@ -52,12 +52,13 @@ class XMLToDict:
 
         root_k, root_v = next(iter(d.items()))
         elements = _unparse_element(root_k, root_v)
+        root_element = next(iter(elements), None)
 
         # always return the root element, even if it's empty
-        if not elements:
-            elements = (Element(root_k),)
+        if root_element is None:
+            root_element = Element(root_k)
 
-        result = tree.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
+        result = tree.tostring(root_element, encoding='UTF-8', xml_declaration=True)
         logging.debug('Unparsed %s XML string', sizestr(len(result)))
         return result if raw else result.decode()
 
@@ -73,7 +74,7 @@ def _parse_element(element: tree._Element):
     ]
 
     # parse children
-    sequence_mark: cython.char = False
+    sequence_mark: cython.bint = False
     if children := tuple(element):
         # read property once for performance
         force_sequence_root: set[str] = _FORCE_SEQUENCE_ROOT
@@ -141,7 +142,7 @@ def _unparse_element(key: str, value: Any):
 
         # encode sequence of dicts
         if isinstance(first, dict):
-            return tuple(e for v in value for e in _unparse_element(key, v))
+            return [e for v in value for e in _unparse_element(key, v)]
 
         # encode sequence of (key, value) tuples
         elif isinstance(first, Sequence) and not isinstance(first, str):
@@ -160,7 +161,7 @@ def _unparse_element(key: str, value: Any):
         # encode sequence of scalars
         else:
             result: list[tree._Element] = [None] * len(value)  # type: ignore
-            i: cython.int
+            i: cython.Py_ssize_t
             for i, v in enumerate(value):
                 element = Element(key)
                 element.text = _to_string(v)
@@ -243,18 +244,19 @@ _VALUE_POSTPROCESSOR: dict[str, Callable[[str], Any]] = {
 def _to_string(v: Any) -> str:
     if isinstance(v, str | CDATA):
         return v
-    elif isinstance(v, datetime):
+
+    if isinstance(v, datetime):
         # strip timezone for backwards-compatible format
         tzinfo = v.tzinfo
         if tzinfo is not None:
-            if tzinfo is not UTC:
-                raise AssertionError(f'Timezone must be UTC, got {tzinfo!r}')
+            assert tzinfo is UTC, f'Timezone must be UTC, got {tzinfo!r}'
             v = v.replace(tzinfo=None)
         return v.isoformat() + 'Z'
-    elif isinstance(v, bool):
+
+    if isinstance(v, bool):
         return 'true' if (v is True) else 'false'
-    else:
-        return str(v)
+
+    return str(v)
 
 
 @cython.cfunc

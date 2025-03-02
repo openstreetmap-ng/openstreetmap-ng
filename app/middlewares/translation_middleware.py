@@ -56,7 +56,7 @@ def _parse_accept_language(accept_language: str) -> LocaleCode:
     'pl'
     """
     current_q: cython.double = 0
-    current_lang = DEFAULT_LOCALE
+    current_lang: LocaleCode = DEFAULT_LOCALE
 
     for match in _ACCEPT_LANGUAGE_RE.finditer(accept_language):
         q_str: str | None = match['q']

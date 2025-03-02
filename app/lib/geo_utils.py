@@ -123,19 +123,18 @@ def try_parse_point(lat_lon: str) -> Point | None:
     >>> try_parse_point('1,2')
     POINT (2 1)
     """
-    lat_str, _, lon_str = lat_lon.partition(',')
-    if not lon_str:
-        lat_str, _, lon_str = lat_lon.partition(' ')
-    if not lon_str:
+    lat, _, lon = lat_lon.partition(',')
+    if not lon:
+        lat, _, lon = lat_lon.partition(' ')
+    if not lon:
         return None
     try:
-        precision = GEO_COORDINATE_PRECISION
-        lon = round(float(lon_str.strip()), precision)
-        lat = round(float(lat_str.strip()), precision)
-    except ValueError:
-        return None
-    try:
-        return validate_geometry(Point(lon, lat))
+        return validate_geometry(
+            Point(
+                round(float(lon.strip()), GEO_COORDINATE_PRECISION),
+                round(float(lat.strip()), GEO_COORDINATE_PRECISION),
+            )
+        )
     except Exception:
         return None
 

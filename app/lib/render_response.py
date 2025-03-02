@@ -56,11 +56,12 @@ async def render_response(
     user = auth_user()
     if user is not None:
         user_config = WebConfig.UserConfig(
-            id=user.id,
-            activity_tracking=user.activity_tracking,
-            crash_reporting=user.crash_reporting,
+            id=user['id'],
+            activity_tracking=user['activity_tracking'],
+            crash_reporting=user['crash_reporting'],
         )
-        user_home_point = user.home_point
+
+        user_home_point = user['home_point']
         if user_home_point is not None:
             x, y = get_coordinates(user_home_point)[0].tolist()
             user_config.home_point = WebConfig.UserConfig.HomePoint(lon=x, lat=y)
@@ -75,4 +76,5 @@ async def render_response(
 
     if template_data is not None:
         data.update(template_data)
+
     return HTMLResponse(render_jinja(template_name, data), status_code=status)

@@ -3,7 +3,6 @@ from asyncio import Lock, TaskGroup
 from collections.abc import Collection, Mapping
 from datetime import datetime
 
-import cython
 from sqlalchemy import and_, null, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, aliased
@@ -15,7 +14,7 @@ from app.models.db.changeset import Changeset
 from app.models.db.changeset_bounds import ChangesetBounds
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
-from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
+from app.models.element import ElementId, ElementRef, ElementType, TypedElementId, VersionedElementRef
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff.prepare import ElementStateEntry, OptimisticDiffPrepare
@@ -112,7 +111,7 @@ async def _update_changeset(changeset: Changeset, now: datetime, session: AsyncS
 
 
 async def _update_elements(
-    elements: Collection[tuple[Element, ElementRef]],
+    elements: list[Element],
     now: datetime,
     session: AsyncSession,
 ) -> None:
@@ -123,10 +122,10 @@ async def _update_elements(
 
     current_sequence_id = current_sequence_task.result()
     current_id_map = current_id_task.result()
-    update_type_ids: dict[ElementType, list[ElementId]] = {'node': [], 'way': [], 'relation': []}
-    insert_members: list[ElementMember] = []
-    prev_map: dict[ElementRef, Element] = {}
-    assigned_id_map: dict[ElementRef, ElementId] = {}
+
+    update_typed_ids: list[TypedElementId] = []
+    prev_map: dict[TypedElementId, Element] = {}
+    assigned_id_map: dict[TypedElementId, TypedElementId] = {}
 
     # process elements
     for sequence_id, (element, element_ref) in enumerate(elements, current_sequence_id + 1):
@@ -151,25 +150,12 @@ async def _update_elements(
             element.id = assigned_id
 
     # process members
-    insert_elements: list[Element] = [None] * len(elements)  # type: ignore
-    i: cython.int
-    for i, element_t in enumerate(elements):
-        element = insert_elements[i] = element_t[0]
-        element_members = element.members
-        if not element_members:
-            continue
+    for element in elements:
+        members = element['members']
+        if members:
+            element['members'] = [assigned_id_map.get(member, member) for member in members]
 
-        insert_members.extend(element_members)
-        sequence_id = element.sequence_id
-        for member in element_members:
-            # assign sequence_id
-            member.sequence_id = sequence_id
-            # assign id
-            if member.id < 0:
-                member_ref = ElementRef(member.type, member.id)
-                member.id = assigned_id_map[member_ref]
-
-    await _update_elements_db(current_sequence_id, update_type_ids, insert_elements, insert_members, session)
+    await _update_elements_db(current_sequence_id, update_type_ids, elements, session)
 
 
 async def _update_elements_db(

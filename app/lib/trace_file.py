@@ -4,7 +4,6 @@ import logging
 import tarfile
 import zipfile
 from abc import ABC, abstractmethod
-from collections.abc import Collection
 from io import BytesIO
 from typing import ClassVar, override
 
@@ -25,7 +24,7 @@ from app.limits import (
 
 class TraceFile:
     @staticmethod
-    def extract(buffer: bytes) -> Collection[bytes]:
+    def extract(buffer: bytes) -> list[bytes]:
         """
         Extract the trace files from the buffer.
 
@@ -38,7 +37,7 @@ class TraceFile:
             logging.debug('Trace file layer %d is %r', layer, content_type)
 
             # get the appropriate processor
-            processor = _trace_processors.get(content_type)
+            processor = _TRACE_PROCESSORS.get(content_type)
             if processor is None:
                 raise_for.trace_file_unsupported_format(content_type)
 
@@ -74,7 +73,7 @@ class _TraceProcessor(ABC):
 
     @classmethod
     @abstractmethod
-    def decompress(cls, buffer: bytes) -> Collection[bytes] | bytes:
+    def decompress(cls, buffer: bytes) -> list[bytes] | bytes:
         """Decompress the buffer and return files data or a subsequent buffer."""
         ...
 
@@ -120,12 +119,12 @@ class _TarProcessor(_TraceProcessor):
 
     @classmethod
     @override
-    def decompress(cls, buffer: bytes) -> tuple[bytes, ...]:
+    def decompress(cls, buffer: bytes) -> list[bytes]:
         try:
             # pure tar uses no compression, so it's efficient to read files from the memory buffer
             # 'r:' opens for reading exclusively without compression (safety check)
             with tarfile.open(fileobj=BytesIO(buffer), mode='r:') as archive:
-                infos = tuple(info for info in archive.getmembers() if info.isfile())
+                infos = [info for info in archive.getmembers() if info.isfile()]
                 logging.debug('Trace %r archive contains %d files', cls.media_type, len(infos))
 
                 if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
@@ -133,7 +132,7 @@ class _TarProcessor(_TraceProcessor):
 
                 # not checking for the total size of the files - there is no compression
                 # the output size will not exceed the input size
-                return tuple(archive.extractfile(info).read() for info in infos)  # pyright: ignore[reportOptionalMemberAccess]
+                return [archive.extractfile(info).read() for info in infos]  # pyright: ignore[reportOptionalMemberAccess]
 
         except tarfile.TarError:
             raise_for.trace_file_archive_corrupted(cls.media_type)
@@ -144,9 +143,9 @@ class _XmlProcessor(_TraceProcessor):
 
     @classmethod
     @override
-    def decompress(cls, buffer: bytes) -> tuple[bytes]:
+    def decompress(cls, buffer: bytes) -> list[bytes]:
         logging.debug('Trace %r uncompressed size is %s', cls.media_type, sizestr(len(buffer)))
-        return (buffer,)
+        return [buffer]
 
 
 class _ZipProcessor(_TraceProcessor):
@@ -157,15 +156,16 @@ class _ZipProcessor(_TraceProcessor):
     def decompress(cls, buffer: bytes) -> list[bytes]:
         try:
             with zipfile.ZipFile(BytesIO(buffer)) as archive:
-                infos = tuple(info for info in archive.infolist() if not info.is_dir())
+                infos = [info for info in archive.infolist() if not info.is_dir()]
                 logging.debug('Trace %r archive contains %d files', cls.media_type, len(infos))
 
                 if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
                     raise_for.trace_file_archive_too_many_files()
 
                 result: list[bytes] = [None] * len(infos)  # type: ignore
-                result_size: cython.int = 0
-                i: cython.int
+                result_size: cython.Py_ssize_t = 0
+
+                i: cython.Py_ssize_t
                 for i, info in enumerate(infos):
                     file = archive.read(info)
                     result[i] = file
@@ -209,7 +209,7 @@ class _ZstdProcessor(_TraceProcessor):
         return result
 
 
-_trace_processors: dict[str, type[_TraceProcessor]] = {
+_TRACE_PROCESSORS: dict[str, type[_TraceProcessor]] = {
     processor.media_type: processor
     for processor in (
         _Bzip2Processor,

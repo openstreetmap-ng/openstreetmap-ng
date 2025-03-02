@@ -85,10 +85,7 @@ class Image:
         >>> Image.get_background_url(StorageKey('123456'))
         '/api/web/background/123456'
         """
-        if image_id is not None:
-            return f'/api/web/background/{image_id}'
-        else:
-            return None
+        return f'/api/web/background/{image_id}' if (image_id is not None) else None
 
     @staticmethod
     async def normalize_background(data: bytes) -> bytes:
@@ -108,7 +105,7 @@ async def _normalize_image(
     min_ratio: cython.double,
     max_ratio: cython.double,
     max_megapixels: cython.int,
-    max_file_size: cython.int,
+    max_file_size: int | None,
 ) -> bytes:
     """
     Normalize the avatar image.

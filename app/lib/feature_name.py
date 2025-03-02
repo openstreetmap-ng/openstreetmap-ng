@@ -3,23 +3,20 @@ from collections.abc import Iterable
 import cython
 
 from app.lib.translation import translation_locales
-from app.models.db.element import Element
+from app.models.db.element import ElementInit
 
 
-def features_names(elements: Iterable[Element]) -> tuple[str | None, ...]:
-    """
-    Returns human-readable names for features.
-
-    >>> features_names(...)
-    ('Foo', ...)
-    """
-    return tuple(_feature_name(e.tags) for e in elements)
+def features_names(elements: Iterable[ElementInit]) -> list[str | None]:
+    """Returns human-readable names for features."""
+    return [_feature_name(e) for e in elements]
 
 
 @cython.cfunc
-def _feature_name(tags: dict[str, str]):
+def _feature_name(element: ElementInit):
+    tags = element['tags']
     if not tags:
         return None
+
     for locale in translation_locales():
         if name := tags.get(f'name:{locale}'):
             return name

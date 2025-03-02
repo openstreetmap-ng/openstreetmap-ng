@@ -7,6 +7,7 @@ import orjson
 from app.lib.locale import DEFAULT_LOCALE, normalize_locale
 from app.lib.translation import translation_locales
 from app.models.tags_format import TagFormat, ValueFormat
+from app.models.types import LocaleCode
 
 # TODO: perhaps support glob matches: Key:*:lanes
 
@@ -27,7 +28,7 @@ def _get_wiki_pages() -> dict[tuple[str, str], frozenset[str | None]]:
 
 
 # mapping of tags to a set of locales that have a wiki page
-_wiki_pages = _get_wiki_pages()
+_WIKI_PAGES = _get_wiki_pages()
 
 
 def tags_format_osm_wiki(tags: Iterable[TagFormat]) -> None:
@@ -55,16 +56,16 @@ def tags_format_osm_wiki(tags: Iterable[TagFormat]) -> None:
 @cython.cfunc
 def _transform(
     *,
-    locales: Iterable[str],
+    locales: tuple[LocaleCode, ...],
     key: str,
-    processing_values: cython.char,
+    processing_values: cython.bint,
     value: ValueFormat,
 ):
     # skip already styled
     if value.format is not None:
         return value
 
-    wiki_locales = _wiki_pages.get((key, value.text) if processing_values else (key, '*'))
+    wiki_locales = _WIKI_PAGES.get((key, value.text) if processing_values else (key, '*'))
     if wiki_locales is None:
         return value
 
@@ -74,10 +75,11 @@ def _transform(
     for locale in locales:
         if locale not in wiki_locales:
             continue
-        if locale == DEFAULT_LOCALE:
-            url = f'https://wiki.openstreetmap.org/wiki/{page}'
-        else:
-            url = f'https://wiki.openstreetmap.org/wiki/{locale.title()}:{page}'
+        url = (
+            f'https://wiki.openstreetmap.org/wiki/{page}'
+            if locale == DEFAULT_LOCALE
+            else f'https://wiki.openstreetmap.org/wiki/{locale.title()}:{page}'
+        )
         return ValueFormat(value.text, 'url-safe', url)
 
     return value

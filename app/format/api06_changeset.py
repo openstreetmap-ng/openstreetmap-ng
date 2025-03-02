@@ -26,7 +26,7 @@ class Changeset06Mixin:
 
 
 @cython.cfunc
-def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
+def _encode_changeset(changeset: Changeset, *, is_json: cython.bint) -> dict:
     """
     >>> _encode_changeset(Changeset(...))
     {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}
@@ -114,7 +114,7 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
 
 
 @cython.cfunc
-def _encode_changeset_comment(comment: ChangesetComment, *, is_json: cython.char) -> dict:
+def _encode_changeset_comment(comment: ChangesetComment, *, is_json: cython.bint) -> dict:
     """
     >>> _encode_changeset_comment(ChangesetComment(...))
     {'@uid': 1, '@user': ..., '@date': ..., 'text': 'lorem ipsum'}

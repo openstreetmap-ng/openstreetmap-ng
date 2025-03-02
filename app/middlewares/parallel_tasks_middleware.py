@@ -9,7 +9,7 @@ from app.lib.auth_context import auth_scopes
 from app.middlewares.request_context_middleware import get_request
 from app.queries.message_query import MessageQuery
 
-_MESSAGES_COUNT_UNREAD_CTX: ContextVar[Task[int]] = ContextVar('_MESSAGES_COUNT_UNREAD_CONTEXT')
+_MESSAGES_COUNT_UNREAD_CTX: ContextVar[Task[int]] = ContextVar('MessageCountUnread')
 
 
 @contextmanager
@@ -19,7 +19,8 @@ def _messages_count_unread(tg: TaskGroup):
         yield
         return
 
-    token = _MESSAGES_COUNT_UNREAD_CTX.set(tg.create_task(MessageQuery.count_unread()))
+    task = tg.create_task(MessageQuery.count_unread())
+    token = _MESSAGES_COUNT_UNREAD_CTX.set(task)
     try:
         yield
     finally:

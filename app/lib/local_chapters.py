@@ -6,7 +6,7 @@ import orjson
 
 
 @cython.cfunc
-def _get_local_chapters() -> tuple[tuple[str, str], ...]:
+def _get_local_chapters() -> list[tuple[str, str]]:
     resources = Path('node_modules/osm-community-index/dist/resources.min.json').read_bytes()
     communities_dict: dict[str, dict] = orjson.loads(resources)['resources']
     # filter local chapters
@@ -16,7 +16,7 @@ def _get_local_chapters() -> tuple[tuple[str, str], ...]:
         if c['type'] == 'osm-lc' and c['id'] != 'OSMF'
     ]
     chapters.sort(key=lambda c: c['id'].casefold())
-    return tuple((c['id'], c['strings']['url']) for c in chapters)
+    return [(c['id'], c['strings']['url']) for c in chapters]
 
 
 LOCAL_CHAPTERS = _get_local_chapters()

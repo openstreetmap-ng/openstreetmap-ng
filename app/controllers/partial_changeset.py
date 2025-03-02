@@ -73,22 +73,18 @@ async def get_changeset(id: PositiveInt):
     changeset_comments_num_pages = ceil(changeset_comments_num_items / CHANGESET_COMMENTS_PAGE_SIZE)
     elements = elements_t.result()
     prev_changeset_id, next_changeset_id = adjacent_ids_t.result()
-    params_bounds: list[SharedBounds] = [None] * len(changeset.bounds)  # type: ignore
-    for i, cb in enumerate(changeset.bounds):
-        bounds = cb.bounds.bounds
-        params_bounds[i] = SharedBounds(
-            min_lon=bounds[0],
-            min_lat=bounds[1],
-            max_lon=bounds[2],
-            max_lat=bounds[3],
-        )
+
     params = PartialChangesetParams(
         id=id,
-        bounds=params_bounds,
+        bounds=[
+            SharedBounds(*cb['bounds'].bounds)
+            for cb in changeset['bounds']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+        ],
         nodes=elements['node'],
         ways=elements['way'],
         relations=elements['relation'],
     )
+
     return await render_response(
         'partial/changeset.jinja2',
         {

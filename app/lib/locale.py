@@ -26,7 +26,7 @@ class LocaleName(NamedTuple):
 
 DEFAULT_LOCALE = LocaleCode('en')
 
-_non_alpha_re = re.compile(r'[^a-z]+')
+_NON_ALPHA_RE = re.compile(r'[^a-z]+')
 
 
 @cython.cfunc
@@ -55,15 +55,15 @@ def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]
         if len(code) > LOCALE_CODE_MAX_LENGTH:
             raise ValueError(f'Locale code {code!r} is too long ({len(code)} > {LOCALE_CODE_MAX_LENGTH})')
 
-    not_found_codes = tuple(
+    not_found = [
         locale_name.code
         for locale_name in locale_names_map.values()  #
         if not locale_name.installed
-    )
-    if not_found_codes:
-        logging.info('Found locale names which are not installed: %s', not_found_codes)
+    ]
+    if not_found:
+        logging.info('Found locale names which are not installed: %s', not_found)
 
-    for code in tuple(i18next_map.keys()):
+    for code in i18next_map:
         if code not in locale_names_map:
             raise ValueError(f'Installed locale {code!r} has no locale name')
 
@@ -73,25 +73,25 @@ def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]
 @cython.cfunc
 def _normalize(code: LocaleCode):
     # lowercase -> remove non-alpha characters -> remove leading and trailing dashes
-    return LocaleCode(_non_alpha_re.sub('-', code.casefold()).strip('-'))
+    return LocaleCode(_NON_ALPHA_RE.sub('-', code.casefold()).strip('-'))
 
 
-_i18next_map, LOCALES_NAMES_MAP = _load_locale()
+_I18NEXT_MAP, LOCALES_NAMES_MAP = _load_locale()
 INSTALLED_LOCALES_NAMES_MAP = {
     code: locale_name
     for code, locale_name in LOCALES_NAMES_MAP.items()  #
     if locale_name.installed
 }
-_installed_locales_codes_normalized_map = {_normalize(k): k for k in INSTALLED_LOCALES_NAMES_MAP}
+_INSTALLED_LOCALES_CODES_NORMALIZED_MAP = {_normalize(k): k for k in INSTALLED_LOCALES_NAMES_MAP}
 logging.info(
     'Loaded %d locales and %d locales names (%d installed)',
-    len(_i18next_map),
+    len(_I18NEXT_MAP),
     len(LOCALES_NAMES_MAP),
     len(INSTALLED_LOCALES_NAMES_MAP),
 )
 
 
-def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str, ...]:
+def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str] | tuple[str, str]:
     """
     Map the locales to i18next files.
 
@@ -101,22 +101,21 @@ def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str, ...]:
     ('pl-e4c39a792074d67c.js', 'en-c39c7633ceb0ce46.js')
     """
     # i18next supports only primary+fallback locale
-    primary_locale = locales[0]
-    primary_file = _i18next_map[primary_locale]
-    if len(locales) == 1:
-        return (primary_file,)
-    fallback_locale = locales[-1]
-    fallback_file = _i18next_map[fallback_locale]
-    return primary_file, fallback_file
+    primary_file = _I18NEXT_MAP[locales[0]]
+    return (
+        (primary_file, _I18NEXT_MAP[locales[-1]])
+        if len(locales) > 1  #
+        else (primary_file,)
+    )
 
 
 # optionally wrap map_i18next_files to always regenerate _i18next_map
 if FORCE_RELOAD_LOCALE_FILES:
     _map_i18next_files_inner = map_i18next_files
 
-    def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str, ...]:
-        global _i18next_map
-        _i18next_map = _load_locale()[0]
+    def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str] | tuple[str, str]:
+        global _I18NEXT_MAP
+        _I18NEXT_MAP = _load_locale()[0]  # pyright: ignore [reportConstantRedefinition]
         return _map_i18next_files_inner(locales)
 
 
@@ -143,7 +142,8 @@ def normalize_locale(code: LocaleCode) -> LocaleCode | None:
     >>> normalize_locale(LocaleCode('NonExistent'))
     None
     """
-    # skip if already normalized
-    if code in INSTALLED_LOCALES_NAMES_MAP:
-        return code
-    return _installed_locales_codes_normalized_map.get(_normalize(code))
+    return (
+        code
+        if code in INSTALLED_LOCALES_NAMES_MAP  #
+        else _INSTALLED_LOCALES_CODES_NORMALIZED_MAP.get(_normalize(code))
+    )
