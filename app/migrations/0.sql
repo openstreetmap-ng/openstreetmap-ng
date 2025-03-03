@@ -109,6 +109,7 @@ CREATE TABLE changeset (
     union_bounds geometry(Polygon, 4326)
 );
 CREATE INDEX changeset_user_idx ON changeset (user_id, id) WHERE user_id IS NOT NULL;
+CREATE INDEX changeset_user_created_at_idx ON changeset (user_id, created_at) WHERE user_id IS NOT NULL;
 CREATE INDEX changeset_created_at_idx ON changeset (created_at);
 CREATE INDEX changeset_closed_at_idx ON changeset (closed_at) WHERE closed_at IS NOT NULL;
 CREATE INDEX changeset_open_idx ON changeset (updated_at) WHERE closed_at IS NULL;

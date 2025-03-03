@@ -1,60 +1,82 @@
-from collections.abc import Collection, Iterable, Sequence
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Literal
 
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy import and_, func, null, select, text
 
-from app.db import db
-from app.lib.options_context import apply_options_context
-from app.models.db.changeset import Changeset
-from app.models.db.changeset_bounds import ChangesetBounds
+from app.db import db2
+from app.models.db.changeset import Changeset, ChangesetId
+from app.models.db.user import UserId
 
 
 class ChangesetQuery:
     @staticmethod
-    async def get_updated_at_by_ids(changeset_ids: Collection[int]) -> dict[int, datetime]:
-        """
-        Get the updated at timestamp by changeset ids.
-
-        >>> await ChangesetRepository.get_updated_at_by_ids([1, 2])
-        {1: datetime(...), 2: datetime(...)}
-        """
+    async def get_updated_at_by_ids(changeset_ids: list[ChangesetId]) -> dict[ChangesetId, datetime]:
+        """Get the updated at timestamp by changeset ids."""
         if not changeset_ids:
             return {}
 
-        async with db() as session:
-            stmt = select(Changeset.id, Changeset.updated_at).where(
-                Changeset.id.in_(text(','.join(map(str, changeset_ids))))
-            )
-            rows: Iterable[tuple[int, datetime]] = (await session.execute(stmt)).all()  # pyright: ignore[reportAssignmentType]
-            return dict(rows)
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                SELECT id, updated_at
+                FROM changeset
+                WHERE id = ANY(%s)
+                """,
+                (changeset_ids,),
+            ) as r,
+        ):
+            return dict(await r.fetchall())
 
     @staticmethod
-    async def count_by_user_id(user_id: int) -> int:
+    async def count_by_user_id(user_id: UserId) -> int:
         """Count changesets by user id."""
-        async with db() as session:
-            stmt = select(func.count()).select_from(
-                select(text('1'))  #
-                .where(Changeset.user_id == user_id)
-                .subquery()
-            )
-            return (await session.execute(stmt)).scalar_one()
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*)
+                FROM changeset
+                WHERE user_id = %s
+                """,
+                (user_id,),
+            ) as r,
+        ):
+            row = await r.fetchone()
+            return row[0] if row is not None else 0
 
     @staticmethod
-    async def get_user_adjacent_ids(changeset_id: int, *, user_id: int) -> tuple[int | None, int | None]:
+    async def get_user_adjacent_ids(
+        changeset_id: ChangesetId, *, user_id: UserId
+    ) -> tuple[ChangesetId | None, ChangesetId | None]:
         """Get the user's previous and next changeset ids."""
-        async with db() as session:
-            stmt_prev = select(func.max(Changeset.id)).where(Changeset.id < changeset_id, Changeset.user_id == user_id)
-            stmt_next = select(func.min(Changeset.id)).where(Changeset.id > changeset_id, Changeset.user_id == user_id)
-            stmt = stmt_prev.union_all(stmt_next)
-            ids: Sequence[int | None] = (await session.scalars(stmt)).all()
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                (
+                    SELECT MAX(id) AS id
+                    FROM changeset
+                    WHERE id < %(changeset_id)s AND user_id = %(user_id)s
+                )
+                UNION ALL
+                (
+                    SELECT MIN(id) AS id
+                    FROM changeset
+                    WHERE id > %(changeset_id)s AND user_id = %(user_id)s
+                )
+                """,
+                {'changeset_id': changeset_id, 'user_id': user_id},
+            ) as r,
+        ):
+            ids: list[ChangesetId] = await r.fetchall()
 
-        prev_id: int | None = None
-        next_id: int | None = None
+        prev_id: ChangesetId | None = None
+        next_id: ChangesetId | None = None
         for id in ids:
-            if id is None:
-                continue
             if id < changeset_id:
                 prev_id = id
             else:
@@ -63,19 +85,27 @@ class ChangesetQuery:
         return prev_id, next_id
 
     @staticmethod
-    async def find_by_id(changeset_id: int) -> Changeset | None:
+    async def find_by_id(changeset_id: ChangesetId) -> Changeset | None:
         """Find a changeset by id."""
-        async with db() as session:
-            stmt = select(Changeset).where(Changeset.id == changeset_id)
-            stmt = apply_options_context(stmt)
-            return await session.scalar(stmt)
+        async with (
+            db2() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT *
+                FROM changeset
+                WHERE id = %s
+                """,
+                (changeset_id,),
+            ) as r,
+        ):
+            return await r.fetchone()  # type: ignore
 
     @staticmethod
     async def find_many_by_query(
         *,
-        changeset_ids: Collection[int] | None = None,
-        changeset_id_before: int | None = None,
-        user_ids: Collection[int] | None = None,
+        changeset_ids: list[ChangesetId] | None = None,
+        changeset_id_before: ChangesetId | None = None,
+        user_ids: list[UserId] | None = None,
         created_before: datetime | None = None,
         closed_after: datetime | None = None,
         is_open: bool | None = None,
@@ -85,78 +115,87 @@ class ChangesetQuery:
         limit: int | None,
     ) -> Sequence[Changeset]:
         """Find changesets by query."""
-        async with db() as session:
-            stmt = select(Changeset)
-            stmt = apply_options_context(stmt)
-            where_and: list = []
+        conditions: list[Composable] = []
+        params = []
 
-            if changeset_ids is not None:
-                if not changeset_ids:
-                    return ()
-                where_and.append(Changeset.id.in_(text(','.join(map(str, changeset_ids)))))
-            if changeset_id_before is not None:
-                where_and.append(Changeset.id < changeset_id_before)
-            if user_ids is not None:
-                if not user_ids:
-                    return ()
-                where_and.append(Changeset.user_id.in_(text(','.join(map(str, user_ids)))))
-            if created_before is not None:
-                where_and.append(Changeset.created_at < created_before)
-            if closed_after is not None:
-                where_and.append(
-                    and_(
-                        Changeset.closed_at != null(),
-                        Changeset.closed_at >= closed_after,
-                    )
-                )
-            if is_open is not None:
-                where_and.append(Changeset.closed_at == null() if is_open else Changeset.closed_at != null())
-            if geometry is not None:
-                geometry_wkt = geometry.wkt
-                where_and.append(
-                    and_(
-                        Changeset.union_bounds != null(),
-                        func.ST_Intersects(Changeset.union_bounds, func.ST_GeomFromText(geometry_wkt, 4326)),
-                    )
-                )
-                if not legacy_geometry:
-                    where_and.append(
-                        Changeset.id.in_(
-                            select(ChangesetBounds.changeset_id)
-                            .where(func.ST_Intersects(ChangesetBounds.bounds, func.ST_GeomFromText(geometry_wkt, 4326)))
-                            .order_by(
-                                ChangesetBounds.changeset_id.asc()
-                                if sort == 'asc'
-                                else ChangesetBounds.changeset_id.desc()
-                            )
-                            .subquery()
-                            .select()
+        if changeset_ids is not None:
+            conditions.append(SQL('id = ANY(%s)'))
+            params.append(changeset_ids)
+
+        if changeset_id_before is not None:
+            conditions.append(SQL('id < %s'))
+            params.append(changeset_id_before)
+
+        if user_ids is not None:
+            conditions.append(SQL('user_id = ANY(%s)'))
+            params.append(user_ids)
+
+        if created_before is not None:
+            conditions.append(SQL('created_at < %s'))
+            params.append(created_before)
+
+        if closed_after is not None:
+            conditions.append(SQL('closed_at IS NOT NULL AND closed_at >= %s'))
+            params.append(closed_after)
+
+        if is_open is not None:
+            conditions.append(SQL('closed_at IS NULL') if is_open else SQL('closed_at IS NOT NULL'))
+
+        if geometry is not None:
+            # Add union_bounds condition for both legacy and modern queries
+            conditions.append(SQL('union_bounds IS NOT NULL AND ST_Intersects(union_bounds, %s)'))
+            params.append(geometry)
+
+            # In modern query, add additional filtering on changeset_bounds
+            if not legacy_geometry:
+                conditions.append(
+                    SQL("""
+                        id IN (
+                            SELECT DISTINCT changeset_id
+                            FROM changeset_bounds
+                            WHERE ST_Intersects(bounds, %s)
                         )
-                    )
+                    """)
+                )
+                params.append(geometry)
 
-            if where_and:
-                stmt = stmt.where(*where_and)
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
 
-            stmt = stmt.order_by(Changeset.id.asc() if sort == 'asc' else Changeset.id.desc())
+        query = SQL("""
+            SELECT *
+            FROM changeset
+            WHERE {where}
+            ORDER BY id {order}
+            {limit}
+        """).format(
+            where=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
+            order=SQL(sort),
+            limit=limit_clause,
+        )
 
-            if limit is not None:
-                stmt = stmt.limit(limit)
-
-            return (await session.scalars(stmt)).all()
+        async with (
+            db2() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def count_per_day_by_user_id(user_id: int, created_since: datetime) -> dict[datetime, int]:
+    async def count_per_day_by_user_id(user_id: UserId, created_since: datetime) -> dict[datetime, int]:
         """Count changesets per day by user id since given date."""
-        async with db() as session:
-            created_date = func.date_trunc('day', Changeset.created_at)
-            stmt = (
-                select(
-                    created_date,
-                    func.count(Changeset.id),
-                )
-                .where(Changeset.user_id == user_id)
-                .where(created_date >= created_since)
-                .group_by(created_date)
-            )
-            rows: Iterable[tuple[datetime, int]] = (await session.execute(stmt)).all()  # pyright: ignore[reportAssignmentType]
-            return dict(rows)
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                SELECT DATE_TRUNC('day', created_at) AS day, COUNT(id)
+                FROM changeset
+                WHERE user_id = %s AND created_at >= %s
+                GROUP BY day
+                """,
+                (user_id, created_since),
+            ) as r,
+        ):
+            return dict(await r.fetchall())

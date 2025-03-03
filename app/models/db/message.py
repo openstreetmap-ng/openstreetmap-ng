@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Iterable
 from datetime import datetime
 from email.message import EmailMessage, MIMEPart
 from typing import NewType, NotRequired, TypedDict
@@ -34,7 +33,7 @@ class Message(MessageInit):
     body_rich: NotRequired[str]
 
 
-async def messages_resolve_rich_text(objs: Iterable[Message]) -> None:
+async def messages_resolve_rich_text(objs: list[Message]) -> None:
     await resolve_rich_text(objs, 'message', 'body', 'markdown')
 
 

@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from datetime import datetime
 from typing import NewType, NotRequired, TypedDict
 
@@ -32,5 +31,5 @@ class Diary(DiaryInit):
     location_name: NotRequired[str]
 
 
-async def diaries_resolve_rich_text(objs: Iterable[Diary]) -> None:
+async def diaries_resolve_rich_text(objs: list[Diary]) -> None:
     await resolve_rich_text(objs, 'diary', 'body', 'markdown')

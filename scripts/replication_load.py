@@ -58,7 +58,7 @@ async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
         index_sqls: dict[str, str] = dict(await cursor.fetchall())
         assert index_sqls, f'No indexes found for {table_name} table'
         print(f'Dropping indexes {index_sqls!r}')
-        await conn.execute(SQL('DROP INDEX {0}').format(SQL(',').join(map(Identifier, index_sqls))))
+        await conn.execute(SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, index_sqls))))
 
     copy_paths, header = _get_copy_paths_and_header(table_name)
     columns = [f'"{c}"' for c in header.split(',')]

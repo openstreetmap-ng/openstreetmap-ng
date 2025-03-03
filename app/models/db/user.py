@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 from typing import Literal, NewType, NotRequired, TypedDict
@@ -57,7 +56,7 @@ class UserDisplay(TypedDict):
     avatar_id: StorageKey
 
 
-async def users_resolve_rich_text(objs: Iterable[User]) -> None:
+async def users_resolve_rich_text(objs: list[User]) -> None:
     await resolve_rich_text(objs, 'user', 'description', 'markdown')
 
 

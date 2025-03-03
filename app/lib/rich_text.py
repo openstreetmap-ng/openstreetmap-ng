@@ -185,7 +185,7 @@ def _process_plain(text: str) -> str:
     if not text:
         return '<p></p>'
 
-    matches: Iterable[LinkifyMatch] | None = _LINKIFY.match(text)
+    matches: list[LinkifyMatch] | None = _LINKIFY.match(text)
     if matches is None:
         # small optimization for text without links (most common)
         text = f'<p>{text}</p>'

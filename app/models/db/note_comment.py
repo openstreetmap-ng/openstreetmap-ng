@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 from typing import Literal, NewType, NotRequired, TypedDict
@@ -30,5 +29,5 @@ class NoteComment(NoteCommentInit):
     legacy_note: NotRequired[Note]
 
 
-async def note_comments_resolve_rich_text(objs: Iterable[NoteComment]) -> None:
+async def note_comments_resolve_rich_text(objs: list[NoteComment]) -> None:
     await resolve_rich_text(objs, 'note_comment', 'body', 'plain')

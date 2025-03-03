@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from datetime import datetime
 from typing import NewType, NotRequired, TypedDict
 
@@ -25,5 +24,5 @@ class ChangesetComment(ChangesetCommentInit):
     body_rich: NotRequired[str]
 
 
-async def changeset_comments_resolve_rich_text(objs: Iterable[ChangesetComment]) -> None:
+async def changeset_comments_resolve_rich_text(objs: list[ChangesetComment]) -> None:
     await resolve_rich_text(objs, 'changeset_comment', 'body', 'plain')
