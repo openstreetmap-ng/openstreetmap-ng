@@ -38,15 +38,13 @@ class ChangesetQuery:
             db2() as conn,
             await conn.execute(
                 """
-                SELECT COUNT(*)
-                FROM changeset
+                SELECT COUNT(*) FROM changeset
                 WHERE user_id = %s
                 """,
                 (user_id,),
             ) as r,
         ):
-            row = await r.fetchone()
-            return row[0] if row is not None else 0
+            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
     async def get_user_adjacent_ids(

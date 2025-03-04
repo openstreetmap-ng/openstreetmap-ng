@@ -70,14 +70,18 @@ def user_is_deleted(user: User) -> bool:
     return user['email'].endswith(DELETED_USER_EMAIL_SUFFIX)
 
 
-def user_is_moderator(user: User) -> bool:
+def user_is_moderator(user: User | None) -> bool:
     """Check if the user is a moderator."""
+    if user is None:
+        return False
     roles = user['roles']
     return 'moderator' in roles or 'administrator' in roles
 
 
-def user_is_admin(user: User) -> bool:
+def user_is_admin(user: User | None) -> bool:
     """Check if the user is an administrator."""
+    if user is None:
+        return False
     return 'administrator' in user['roles']
 
 

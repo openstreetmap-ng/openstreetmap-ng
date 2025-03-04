@@ -115,20 +115,20 @@ class VersionedTypedElementId(NamedTuple):
 def typed_element_id(type: ElementType, id: ElementId) -> TypedElementId:
     """
     Encode element type and id into a 64-bit integer:
-    [ 1 sign bit ][ 3 type bits ][ 60 id bits ]
+    [ 1 sign bit ][ 3 type bits ][ 4 reserved bits ][ 56 id bits ]
     """
     result: cython.ulonglong
 
     is_negative: cython.bint = id < 0
     if is_negative:
-        if id <= -1 << 60:
+        if id <= -1 << 56:
             raise OverflowError(f'ElementId {id} is too small for TypedElementId')
         result = -id
         sign_bit: cython.ulonglong = 1 << 63
         result |= sign_bit
 
     else:
-        if id >= 1 << 60:
+        if id >= 1 << 56:
             raise OverflowError(f'ElementId {id} is too large for TypedElementId')
         result = id
 
@@ -147,7 +147,7 @@ def typed_element_id(type: ElementType, id: ElementId) -> TypedElementId:
 @cython.cfunc
 def _split_typed_element_id(id: cython.ulonglong) -> tuple[ElementType, ElementId]:
     sign_bit: cython.ulonglong = 1 << 63
-    element_id_mask: cython.ulonglong = (1 << 60) - 1
+    element_id_mask: cython.ulonglong = (1 << 56) - 1
 
     is_negative: cython.bint = id & sign_bit != 0
     type_num: cython.ulonglong = (id >> 60) & 0b111

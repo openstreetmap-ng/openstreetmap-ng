@@ -20,15 +20,13 @@ class DiaryCommentQuery:
             db2() as conn,
             await conn.execute(
                 """
-                SELECT COUNT(*)
-                FROM diary_comment
+                SELECT COUNT(*) FROM diary_comment
                 WHERE user_id = %s
                 """,
                 (user_id,),
             ) as r,
         ):
-            row = await r.fetchone()
-            return row[0] if row is not None else 0
+            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
     async def find_one_by_id(comment_id: DiaryCommentId) -> DiaryComment | None:
@@ -137,20 +135,13 @@ class DiaryCommentQuery:
             db2() as conn,
             await conn.execute(
                 """
-                SELECT diary_id, COUNT(*)
-                FROM diary_comment
-                WHERE diary_id = ANY(%s)
-                GROUP BY diary_id
+                SELECT c.value, (
+                    SELECT COUNT(*) FROM diary_comment
+                    WHERE diary_id = c.value
+                ) FROM unnest(%s) AS c(value)
                 """,
                 (list(id_map),),
             ) as r,
         ):
-            rows = await r.fetchall()
-
-            for diary_id, count in rows:
+            for diary_id, count in await r.fetchall():
                 id_map[diary_id]['num_comments'] = count
-
-            # Set zero for diaries without comments
-            if len(rows) < len(id_map):
-                for diary in id_map.values():
-                    diary.setdefault('num_comments', 0)

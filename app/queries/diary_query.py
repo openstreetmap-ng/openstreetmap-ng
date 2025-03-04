@@ -1,83 +1,119 @@
 from asyncio import TaskGroup
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
+from typing import Any
 
+import cython
 from httpx import HTTPError
-from sqlalchemy import func, select, text
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable
 
-from app.db import db
-from app.lib.options_context import apply_options_context
-from app.models.db.diary import Diary
+from app.db import db2
+from app.models.db.diary import Diary, DiaryId
+from app.models.db.user import UserId
 from app.models.types import LocaleCode
 from app.queries.nominatim_query import NominatimQuery
 
 
 class DiaryQuery:
     @staticmethod
-    async def find_one_by_id(diary_id: int) -> Diary | None:
+    async def find_one_by_id(diary_id: DiaryId) -> Diary | None:
         """Find a diary by id."""
-        async with db() as session:
-            stmt = select(Diary).where(Diary.id == diary_id)
-            stmt = apply_options_context(stmt)
-            return await session.scalar(stmt)
+        async with (
+            db2() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT *
+                FROM diary
+                WHERE id = %s
+                """,
+                (diary_id,),
+            ) as r,
+        ):
+            return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def count_by_user_id(user_id: int) -> int:
+    async def count_by_user_id(user_id: UserId) -> int:
         """Count diaries by user id."""
-        async with db() as session:
-            stmt = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    Diary.user_id == user_id,
-                )
-                .subquery()
-            )
-            return (await session.execute(stmt)).scalar_one()
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*) FROM diary
+                WHERE user_id = %s
+                """,
+                (user_id,),
+            ) as r,
+        ):
+            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
     async def find_many_recent(
         *,
-        user_id: int | None = None,
+        user_id: UserId | None = None,
         language: LocaleCode | None = None,
-        after: int | None = None,
-        before: int | None = None,
+        after: DiaryId | None = None,
+        before: DiaryId | None = None,
         limit: int,
     ) -> Sequence[Diary]:
         """Find recent diaries."""
         assert user_id is None or language is None, 'Only one of user_id and language can be set'
-        async with db() as session:
-            stmt = select(Diary)
-            where_and = []
 
-            if user_id is not None:
-                where_and.append(Diary.user_id == user_id)
-            if language is not None:
-                where_and.append(Diary.language == language)
+        order_desc: cython.bint = (after is None) or (before is not None)
+        conditions: list[Composable] = []
+        params: list[Any] = []
 
-            if after is not None:
-                where_and.append(Diary.id > after)
-            if before is not None:
-                where_and.append(Diary.id < before)
+        if user_id is not None:
+            conditions.append(SQL('user_id = %s'))
+            params.append(user_id)
 
-            stmt = stmt.where(*where_and)
-            order_desc = (after is None) or (before is not None)
-            stmt = stmt.order_by(Diary.id.desc() if order_desc else Diary.id.asc()).limit(limit)
+        if language is not None:
+            conditions.append(SQL('language = %s'))
+            params.append(language)
 
-            stmt = apply_options_context(stmt)
-            rows = (await session.scalars(stmt)).all()
-            return rows if order_desc else rows[::-1]
+        if before is not None:
+            conditions.append(SQL('id < %s'))
+            params.append(before)
+
+        if after is not None:
+            conditions.append(SQL('id > %s'))
+            params.append(after)
+
+        query = SQL("""
+            SELECT *
+            FROM diary
+            WHERE {where}
+            ORDER BY id {order}
+            LIMIT %s
+        """).format(
+            where=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
+            order=SQL('DESC' if order_desc else 'ASC'),
+        )
+        params.append(limit)
+
+        # Always return in consistent order regardless of the query
+        if not order_desc:
+            query = SQL("""
+                SELECT * FROM ({})
+                ORDER BY id DESC
+            """).format(query)
+
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def resolve_location_name(diaries: Iterable[Diary]) -> None:
+    async def resolve_location_name(diaries: list[Diary]) -> None:
         """Resolve location name fields for diaries."""
 
         async def task(diary: Diary) -> None:
             try:
-                result = await NominatimQuery.reverse(diary.point)  # pyright: ignore[reportArgumentType]
-                diary.location_name = result.display_name if (result is not None) else None
+                result = await NominatimQuery.reverse(diary['point'])  # pyright: ignore [reportArgumentType]
             except HTTPError:
                 pass
+            else:
+                if result is not None:
+                    diary['location_name'] = result.display_name
 
         async with TaskGroup() as tg:
-            for diary in diaries:
-                if diary.point is not None:
-                    tg.create_task(task(diary))
+            for d in diaries:
+                if d['point'] is not None:
+                    tg.create_task(task(d))

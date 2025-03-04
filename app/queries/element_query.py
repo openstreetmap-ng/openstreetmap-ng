@@ -1,315 +1,355 @@
-import logging
 from asyncio import TaskGroup
-from collections.abc import Awaitable, Collection, Iterable, Sequence
-from itertools import chain
-from typing import Literal
+from typing import Any, Literal
 
-import cython
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy import Select, and_, func, null, or_, select, text, true, union_all
 
 from app.config import LEGACY_SEQUENCE_ID_MARGIN
-from app.db import db
-from app.lib.bundle import NamespaceBundle
+from app.db import db2
 from app.lib.exceptions_context import raise_for
 from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
-from app.models.db.element import Element
-from app.models.db.element_member import ElementMember
-from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
-from app.queries.element_member_query import ElementMemberQuery
+from app.models.db.changeset import ChangesetId
+from app.models.db.element import Element, SequenceId
+from app.models.element import (
+    TYPED_ELEMENT_ID_NODE_MAX,
+    TYPED_ELEMENT_ID_NODE_MIN,
+    TYPED_ELEMENT_ID_RELATION_MAX,
+    TYPED_ELEMENT_ID_RELATION_MIN,
+    TYPED_ELEMENT_ID_WAY_MAX,
+    TYPED_ELEMENT_ID_WAY_MIN,
+    ElementId,
+    ElementType,
+    TypedElementId,
+    split_typed_element_id,
+)
 
 
 class ElementQuery:
     @staticmethod
-    async def get_current_sequence_id() -> int:
+    async def get_current_sequence_id() -> SequenceId:
         """
         Get the current sequence id.
-
         Returns 0 if no elements exist.
         """
-        async with db() as session:
-            stmt = select(func.max(Element.sequence_id))
-            sequence_id = await session.scalar(stmt)
-            return sequence_id if (sequence_id is not None) else 0
+        async with db2() as conn, await conn.execute('SELECT MAX(sequence_id) FROM element') as r:
+            row = await r.fetchone()
+            return row[0] if row is not None else 0  # type: ignore
 
     @staticmethod
     async def get_current_ids() -> dict[ElementType, ElementId]:
         """
         Get the last id for each element type.
-
         Returns 0 if no elements exist with the given type.
         """
-        async with db() as session:
-            stmts = tuple(
-                select(Element.type, Element.id)  #
-                .where(Element.type == type)
-                .order_by(Element.id.desc())
-                .limit(1)
-                for type in ('node', 'way', 'relation')
-            )
-            rows: Iterable[tuple[ElementType, ElementId]] = (await session.execute(union_all(*stmts))).all()  # pyright: ignore[reportAssignmentType]
-            return dict(
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                SELECT MAX(typed_id) FROM element
+                WHERE typed_id BETWEEN %s AND %s
+                UNION ALL
+                SELECT MAX(typed_id) FROM element
+                WHERE typed_id BETWEEN %s AND %s
+                UNION ALL
+                SELECT MAX(typed_id) FROM element
+                WHERE typed_id BETWEEN %s AND %s
+                """,
                 (
-                    ('node', ElementId(0)),
-                    ('way', ElementId(0)),
-                    ('relation', ElementId(0)),
-                    *rows,
-                )
-            )
+                    TYPED_ELEMENT_ID_NODE_MIN,
+                    TYPED_ELEMENT_ID_NODE_MAX,
+                    TYPED_ELEMENT_ID_WAY_MIN,
+                    TYPED_ELEMENT_ID_WAY_MAX,
+                    TYPED_ELEMENT_ID_RELATION_MIN,
+                    TYPED_ELEMENT_ID_RELATION_MAX,
+                ),
+            ) as r,
+        ):
+            result: dict[ElementType, int] = {'node': 0, 'way': 0, 'relation': 0}
+            for row in await r.fetchall():
+                type, id = split_typed_element_id(row[0])
+                result[type] = id
+            return result  # type: ignore
 
     @staticmethod
-    async def check_is_latest(versioned_refs: Collection[VersionedElementRef]) -> bool:
+    async def check_is_latest(versioned_refs: list[tuple[TypedElementId, int]]) -> bool:
         """Check if the given elements are currently up-to-date."""
         if not versioned_refs:
             return True
 
-        async with db() as session:
-            stmt = (
-                select(text('1'))
-                .where(
-                    Element.next_sequence_id != null(),
-                    or_(
-                        *(
-                            and_(
-                                Element.type == versioned_ref.type,
-                                Element.id == versioned_ref.id,
-                                Element.version == versioned_ref.version,
-                            )
-                            for versioned_ref in versioned_refs
-                        ),
-                    ),
-                )
-                .limit(1)
-            )
-            return await session.scalar(stmt) is None
+        conditions: list[Composable] = []
+        params: list[Any] = []
+
+        for typed_id, version in versioned_refs:
+            conditions.append(SQL('(typed_id = %s AND version = %s)'))
+            params.extend((typed_id, version))
+
+        query = SQL("""
+            SELECT 1
+            FROM element
+            WHERE next_sequence_id IS NOT NULL AND ({conditions})
+            LIMIT 1
+        """).format(conditions=SQL(' OR ').join(conditions))
+
+        async with db2() as conn, await conn.execute(query, params) as r:
+            return await r.fetchone() is None
 
     @staticmethod
-    async def check_is_unreferenced(member_refs: Collection[ElementRef], after_sequence_id: int) -> bool:
+    async def check_is_unreferenced(
+        members: list[TypedElementId],
+        after_sequence_id: SequenceId,
+    ) -> bool:
         """
         Check if the given elements are currently unreferenced.
 
         after_sequence_id is used as an optimization.
         """
-        if not member_refs:
+        if not members:
             return True
 
-        async with db() as session:
-            stmt = (
-                select(text('1'))
-                .where(
-                    ElementMember.sequence_id > after_sequence_id,
-                    or_(
-                        *(
-                            and_(
-                                ElementMember.type == member_ref.type,
-                                ElementMember.id == member_ref.id,
-                            )
-                            for member_ref in member_refs
-                        ),
-                    ),
-                )
-                .limit(1)
-            )
-            return await session.scalar(stmt) is None
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                SELECT 1
+                FROM element_member
+                WHERE sequence_id > %s AND typed_id = ANY(%s)
+                LIMIT 1
+                """,
+                (after_sequence_id, members),
+            ) as r,
+        ):
+            return await r.fetchone() is None
 
     @staticmethod
     async def filter_visible_refs(
-        element_refs: Collection[ElementRef],
+        typed_ids: list[TypedElementId],
         *,
-        at_sequence_id: int | None = None,
-    ) -> tuple[ElementRef, ...]:
+        at_sequence_id: SequenceId | None = None,
+    ) -> list[TypedElementId]:
         """Filter the given element refs to only include the visible elements."""
-        if not element_refs:
-            return ()
-        type_id_map: dict[ElementType, set[ElementId]] = {'node': set(), 'way': set(), 'relation': set()}
-        for element_ref in element_refs:
-            type_id_map[element_ref.type].add(element_ref.id)
+        if not typed_ids:
+            return []
 
-        async with db() as session:
-            stmt = select(Element.type, Element.id).where(
-                *(
-                    (Element.next_sequence_id == null(),)
-                    if at_sequence_id is None
-                    else (
-                        Element.sequence_id <= at_sequence_id,
-                        or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
-                    )
-                ),
-                or_(
-                    *(
-                        and_(
-                            Element.type == type,
-                            Element.id.in_(text(','.join(map(str, ids)))),
-                        )
-                        for type, ids in type_id_map.items()
-                        if ids
-                    )
-                ),
-                Element.visible == true(),
-            )
-            rows = (await session.execute(stmt)).all()
-            return tuple(ElementRef(type, id) for type, id in rows)
+        params: list[Any] = [typed_ids]
+
+        if at_sequence_id is None:
+            sequence_clause = SQL('next_sequence_id IS NULL')
+        else:
+            sequence_clause = SQL('sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)')
+            params.extend((at_sequence_id, at_sequence_id))
+
+        query = SQL("""
+            SELECT typed_id FROM element
+            WHERE typed_id = ANY(%s)
+            AND visible
+            AND {sequence}
+        """).format(sequence=sequence_clause)
+
+        async with db2() as conn, await conn.execute(query, params) as r:
+            return await r.fetchall()
 
     @staticmethod
-    async def get_current_version_by_ref(
-        element_ref: ElementRef,
+    async def get_current_versions_by_refs(
+        typed_ids: list[TypedElementId],
         *,
-        at_sequence_id: int | None = None,
-    ) -> int:
-        """
-        Get the current version of the element by the given element ref.
+        at_sequence_id: SequenceId | None = None,
+    ) -> dict[TypedElementId, int]:
+        """Get the current version of the element by the given element ref."""
+        if not typed_ids:
+            return {}
 
-        Returns 0 if the element does not exist.
-        """
-        async with db() as session:
-            stmt = select(func.max(Element.version)).where(
-                *(
-                    (
-                        Element.sequence_id <= at_sequence_id,
-                        or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
-                    )
-                    if at_sequence_id is not None
-                    else ()
-                ),
-                Element.type == element_ref.type,
-                Element.id == element_ref.id,
-            )
-            version = await session.scalar(stmt)
-            return version if (version is not None) else 0
+        params: list[Any] = [typed_ids]
+
+        if at_sequence_id is None:
+            sequence_clause = SQL('')
+        else:
+            sequence_clause = SQL('AND sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)')
+            params.extend((at_sequence_id, at_sequence_id))
+
+        query = SQL("""
+            SELECT typed_id, MAX(version)
+            FROM element
+            WHERE typed_id = ANY(%s)
+            {sequence}
+            GROUP BY typed_id
+        """).format(sequence=sequence_clause)
+
+        async with db2() as conn, await conn.execute(query, params) as r:
+            return dict(await r.fetchall())
 
     @staticmethod
     async def get_versions_by_ref(
-        element_ref: ElementRef,
+        typed_id: TypedElementId,
         *,
-        at_sequence_id: int | None = None,
+        at_sequence_id: SequenceId | None = None,
         version_range: tuple[int, int] | None = None,
         sort: Literal['asc', 'desc'] = 'asc',
-        limit: int | None,
-    ) -> Sequence[Element]:
+        limit: int | None = None,
+    ) -> list[Element]:
         """Get versions by the given element ref."""
-        async with db() as session:
-            stmt = _select()
-            where_and = [
-                *((Element.sequence_id <= at_sequence_id,) if (at_sequence_id is not None) else ()),
-                Element.type == element_ref.type,
-                Element.id == element_ref.id,
-            ]
+        conditions: list[Composable] = [SQL('typed_id = %s')]
+        params: list[Any] = [typed_id]
 
-            if version_range is not None:
-                where_and.append(Element.version.between(*version_range))
+        if at_sequence_id is not None:
+            conditions.append(SQL('sequence_id <= %s'))
+            params.append(at_sequence_id)
 
-            stmt = stmt.where(*where_and)
-            stmt = stmt.order_by(Element.version.asc() if sort == 'asc' else Element.version.desc())
+        if version_range is not None:
+            conditions.append(SQL('version BETWEEN %s AND %s'))
+            params.extend(version_range)
 
-            if limit is not None:
-                stmt = stmt.limit(limit)
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
 
-            return (await session.scalars(stmt)).all()
+        query = SQL("""
+            SELECT * FROM element
+            WHERE {conditions}
+            ORDER BY version {order}
+            {limit}
+        """).format(
+            conditions=SQL(' AND ').join(conditions),
+            order=SQL(sort),
+            limit=limit_clause,
+        )
+
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def get_by_versioned_refs(
-        versioned_refs: Collection[VersionedElementRef],
+        versioned_refs: list[tuple[TypedElementId, int]],
         *,
-        at_sequence_id: int | None = None,
-        limit: int | None,
-    ) -> Sequence[Element]:
+        at_sequence_id: SequenceId | None = None,
+        limit: int | None = None,
+    ) -> list[Element]:
         """Get elements by the versioned refs."""
         if not versioned_refs:
-            return ()
+            return []
 
-        async with db() as session:
-            stmt = _select().where(
-                *((Element.sequence_id <= at_sequence_id,) if (at_sequence_id is not None) else ()),
-                or_(
-                    *(
-                        and_(
-                            Element.type == versioned_ref.type,
-                            Element.id == versioned_ref.id,
-                            Element.version == versioned_ref.version,
-                        )
-                        for versioned_ref in versioned_refs
-                    )
-                ),
-            )
+        conditions: list[Composable] = []
+        params: list[Any] = []
 
-            if limit is not None:
-                stmt = stmt.limit(limit)
+        for typed_id, version in versioned_refs:
+            conditions.append(SQL('(typed_id = %s AND version = %s)'))
+            params.extend((typed_id, version))
 
-            return (await session.scalars(stmt)).all()
+        conditions = [SQL('({})').format(SQL(' OR ').join(conditions))]
+
+        if at_sequence_id is not None:
+            conditions.append(SQL('sequence_id <= %s'))
+            params.append(at_sequence_id)
+
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
+
+        query = SQL("""
+            SELECT * FROM element
+            WHERE {conditions}
+            {limit}
+        """).format(
+            conditions=SQL(' AND ').join(conditions),
+            limit=limit_clause,
+        )
+
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def get_by_refs(
-        element_refs: Collection[ElementRef],
+        typed_ids: list[TypedElementId],
         *,
-        at_sequence_id: int | None = None,
+        at_sequence_id: SequenceId | None = None,
         recurse_ways: bool = False,
-        limit: int | None,
+        limit: int | None = None,
     ) -> list[Element]:
-        """
-        Get current elements by their element refs.
-
-        Optionally recurse ways to get their nodes.
-        """
-        if not element_refs:
+        """Get current elements by their element refs. Optionally recurse ways to get their nodes."""
+        if not typed_ids:
             return []
-        type_id_map: dict[ElementType, set[ElementId]] = {'node': set(), 'way': set(), 'relation': set()}
-        for element_ref in element_refs:
-            type_id_map[element_ref.type].add(element_ref.id)
 
-        async def task(type: ElementType, ids: set[ElementId]) -> Iterable[Element]:
-            async with db() as session:
-                stmt = _select().where(
-                    *(
-                        (Element.next_sequence_id == null(),)
-                        if at_sequence_id is None
-                        else (
-                            Element.sequence_id <= at_sequence_id,
-                            or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
-                        )
-                    ),
-                    Element.type == type,
-                    Element.id.in_(text(','.join(map(str, ids)))),
-                )
+        params: list[Any] = [typed_ids]
 
-                if limit is not None:
-                    stmt = stmt.limit(limit)
+        if at_sequence_id is None:
+            sequence_clause = SQL('next_sequence_id IS NULL')
+        else:
+            sequence_clause = SQL('sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)')
+            params.extend((at_sequence_id, at_sequence_id))
 
-                elements = (await session.scalars(stmt)).all()
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
 
-                if type == 'way' and recurse_ways:
-                    await ElementMemberQuery.resolve_members(elements)
-                    node_ids = {member.id for element in elements for member in element.members}
-                    node_ids.difference_update(type_id_map['node'])
-                    if node_ids:
-                        logging.debug('Found %d nodes for %d recurse ways', len(node_ids), len(ids))
-                        elements = chain(elements, await task('node', node_ids))
+        query = SQL("""
+            SELECT * FROM element
+            WHERE typed_id = ANY(%s)
+            AND {sequence}
+            {limit}
+        """).format(
+            sequence=sequence_clause,
+            limit=limit_clause,
+        )
 
-                return elements
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            result: list[Element] = await r.fetchall()  # type: ignore
 
-        async with TaskGroup() as tg:
-            tasks = tuple(
-                tg.create_task(task(type, ids))  #
-                for type, ids in type_id_map.items()
-                if ids
-            )
+        # Return if not recursing or reached the limit
+        if not recurse_ways or (limit is not None and len(result) >= limit):
+            return result
 
-        # remove duplicates
-        result_set: set[int] = set()
-        result: list[Element] = []
-        for t in tasks:
-            for element in t.result():
-                element_sequence_id = element.sequence_id
-                if element_sequence_id not in result_set:
-                    result_set.add(element_sequence_id)
-                    result.append(element)
-        return result if (limit is None) else result[:limit]
+        node_typed_ids: set[TypedElementId] = set()
+        for e in result:
+            members = e.get('members')
+            if members is not None and TYPED_ELEMENT_ID_WAY_MIN <= e['typed_id'] <= TYPED_ELEMENT_ID_WAY_MAX:
+                node_typed_ids.update(members)
+
+        # Remove node typed_ids we already have
+        node_typed_ids.difference_update(typed_ids)
+
+        if not node_typed_ids:
+            return result
+
+        params: list[Any] = [list(node_typed_ids)]
+
+        if at_sequence_id is None:
+            sequence_clause = SQL('next_sequence_id IS NULL')
+        else:
+            sequence_clause = SQL('sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)')
+            params.extend((at_sequence_id, at_sequence_id))
+
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit - len(result))
+        else:
+            limit_clause = SQL('')
+
+        query = SQL("""
+            SELECT * FROM element
+            WHERE typed_id = ANY(%s)
+            AND {sequence}
+            {limit}
+        """).format(
+            sequence=sequence_clause,
+            limit=limit_clause,
+        )
+
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            result.extend(await r.fetchall())  # type: ignore
+            return result
 
     @staticmethod
     async def find_many_by_any_refs(
-        refs: Collection[VersionedElementRef | ElementRef],
+        refs: list[TypedElementId | tuple[TypedElementId, int]],
         *,
-        at_sequence_id: int | None = None,
-        limit: int | None,
+        at_sequence_id: SequenceId | None = None,
+        limit: int | None = None,
     ) -> list[Element | None]:
         """
         Get elements by the versioned or element refs.
@@ -318,18 +358,32 @@ class ElementQuery:
         """
         if not refs:
             return []
-        # organize refs by kind
-        versioned_refs: list[VersionedElementRef] = []
-        element_refs: list[ElementRef] = []
-        for ref in refs:
-            if isinstance(ref, VersionedElementRef):
-                versioned_refs.append(ref)
-            else:
-                element_refs.append(ref)
+
+        # Get current sequence id if not provided
         if at_sequence_id is None:
             at_sequence_id = await ElementQuery.get_current_sequence_id()
 
+        # Separate versioned refs from element refs
+        typed_ids: list[TypedElementId] = []
+        versioned_refs: list[tuple[TypedElementId, int]] = []
+
+        for ref in refs:
+            if isinstance(ref, int):
+                typed_ids.append(ref)
+            else:
+                versioned_refs.append(ref)
+
+        # Fetch elements in parallel
+        elements_by_ref: dict[TypedElementId | tuple[TypedElementId, int], Element] = {}
+
         async with TaskGroup() as tg:
+            typed_task = tg.create_task(
+                ElementQuery.get_by_refs(
+                    typed_ids,
+                    at_sequence_id=at_sequence_id,
+                    limit=limit,
+                )
+            )
             versioned_task = tg.create_task(
                 ElementQuery.get_by_versioned_refs(
                     versioned_refs,
@@ -337,211 +391,139 @@ class ElementQuery:
                     limit=limit,
                 )
             )
-            element_task = tg.create_task(
-                ElementQuery.get_by_refs(
-                    element_refs,
-                    at_sequence_id=at_sequence_id,
-                    limit=limit,
-                )
-            )
 
-        ref_map = dict(
-            chain(
-                ((VersionedElementRef(e.type, e.id, e.version), e) for e in versioned_task.result()),
-                ((ElementRef(e.type, e.id), e) for e in element_task.result()),
-            )
-        )
+        for element in typed_task.result():
+            elements_by_ref[element['typed_id']] = element
+        for element in versioned_task.result():
+            elements_by_ref[(element['typed_id'], element['version'])] = element
 
-        # remove duplicates and preserve order
-        result_set: set[int] = set()
+        # Prepare results in the same order as input refs, avoiding duplicates
+        result_set: set[SequenceId] = set()
         result: list[Element | None] = []
+
         for ref in refs:
-            element = ref_map.get(ref)
+            element = elements_by_ref.get(ref)
             if element is None:
                 result.append(None)
                 continue
-            element_sequence_id = element.sequence_id
-            if element_sequence_id not in result_set:
-                result_set.add(element_sequence_id)
+
+            sequence_id = element['sequence_id']
+            if sequence_id not in result_set:
+                result_set.add(sequence_id)
                 result.append(element)
-        return result if (limit is None) else result[:limit]
+
+        return result[:limit] if (limit is not None and len(result) > limit) else result
 
     @staticmethod
     async def get_parents_by_refs(
-        member_refs: Collection[ElementRef],
+        members: list[TypedElementId],
         *,
-        at_sequence_id: int | None = None,
+        at_sequence_id: SequenceId | None = None,
         parent_type: ElementType | None = None,
-        limit: int | None,
-    ) -> Sequence[Element]:
+        limit: int | None = None,
+    ) -> list[Element]:
         """Get elements that reference the given elements."""
-        if not member_refs:
-            return ()
-        type_id_map: dict[ElementType, list[ElementId]] = {'node': [], 'way': [], 'relation': []}
-        for member_ref in member_refs:
-            type_id_map[member_ref.type].append(member_ref.id)
-        # optimization: ways and relations can only be members of relations
-        if parent_type is None and (not type_id_map.get('node')):
-            parent_type = 'relation'
+        if not members or parent_type == 'node':
+            return []
 
-        async with db() as session:
-            # 1: find lifetime of each ref
-            cte_sub = (
-                select(Element.type, Element.id, Element.sequence_id, Element.next_sequence_id)
-                .where(
-                    *(
-                        (Element.next_sequence_id == null(),)
-                        if at_sequence_id is None
-                        else (
-                            Element.sequence_id <= at_sequence_id,
-                            or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
-                        )
-                    ),
-                    or_(
-                        *(
-                            and_(
-                                Element.type == type,
-                                Element.id.in_(text(','.join(map(str, ids)))),
-                            )
-                            for type, ids in type_id_map.items()
-                            if ids
-                        )
-                    ),
-                )
-                .subquery()
-            )
-            # 2: find parents that referenced the refs during their lifetime
-            cte = (
-                select(ElementMember.sequence_id)
-                .where(
-                    ElementMember.type == cte_sub.c.type,
-                    ElementMember.id == cte_sub.c.id,
-                    ElementMember.sequence_id > cte_sub.c.sequence_id,
-                    *(
-                        (ElementMember.sequence_id < func.coalesce(cte_sub.c.next_sequence_id, at_sequence_id + 1),)
-                        if at_sequence_id is not None
-                        else ()
-                    ),
-                )
-                .distinct()
-                .cte()
-                .prefix_with('MATERIALIZED')
-            )
-            # 3: filter parents that currently exist
-            stmt = _select().where(
-                *(
-                    (Element.next_sequence_id == null(),)
-                    if at_sequence_id is None
-                    else (
-                        # redundant: Element.sequence_id <= at_sequence_id,
-                        or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
-                    )
-                ),
-                *(
-                    (Element.type == parent_type,)
-                    if parent_type is not None
-                    else (or_(Element.type == 'way', Element.type == 'relation'),)
-                ),
-                Element.sequence_id.in_(cte.select()),
-            )
+        conditions: list[Composable] = [SQL('members && %s')]
+        params: list[Any] = [members]
 
-            if limit is not None:
-                stmt = stmt.limit(limit)
+        if at_sequence_id is None:
+            conditions.append(SQL('next_sequence_id IS NULL'))
+        else:
+            conditions.append(SQL('sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)'))
+            params.extend((at_sequence_id, at_sequence_id))
 
-            return (await session.scalars(stmt)).all()
+        if parent_type == 'way':
+            conditions.append(SQL('typed_id BETWEEN %s AND %s'))
+            params.extend((TYPED_ELEMENT_ID_WAY_MIN, TYPED_ELEMENT_ID_WAY_MAX))
+        elif parent_type == 'relation':
+            conditions.append(SQL('typed_id BETWEEN %s AND %s'))
+            params.extend((TYPED_ELEMENT_ID_RELATION_MIN, TYPED_ELEMENT_ID_RELATION_MAX))
+        elif parent_type is not None:
+            raise NotImplementedError(f'Unsupported parent type {parent_type!r}')
+
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
+
+        # Find elements that reference the member typed_ids
+        query = SQL("""
+            SELECT * FROM element
+            WHERE {conditions}
+            {limit}
+        """).format(
+            conditions=SQL(' AND ').join(conditions),
+            limit=limit_clause,
+        )
+
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def get_parents_refs_by_refs(
-        member_refs: Collection[ElementRef],
+        members: list[TypedElementId],
         *,
-        at_sequence_id: int | None = None,
-        limit: int | None,
-    ) -> dict[ElementRef, list[ElementRef]]:
+        at_sequence_id: SequenceId | None = None,
+        limit: int | None = None,
+    ) -> dict[TypedElementId, set[TypedElementId]]:
         """Get elements refs that reference the given elements."""
-        if not member_refs:
+        if not members:
             return {}
-        type_id_map: dict[ElementType, list[ElementId]] = {'node': [], 'way': [], 'relation': []}
-        for member_ref in member_refs:
-            type_id_map[member_ref.type].append(member_ref.id)
 
-        async with db() as session:
-            # 1: find lifetime of each ref
-            cte_sub = (
-                select(Element.type, Element.id, Element.sequence_id, Element.next_sequence_id)
-                .where(
-                    *(
-                        (Element.next_sequence_id == null(),)
-                        if at_sequence_id is None
-                        else (
-                            Element.sequence_id <= at_sequence_id,
-                            or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
-                        )
-                    ),
-                    or_(
-                        *(
-                            and_(
-                                Element.type == type,
-                                Element.id.in_(text(','.join(map(str, ids)))),
-                            )
-                            for type, ids in type_id_map.items()
-                            if ids
-                        )
-                    ),
-                )
-                .subquery()
-            )
-            # 2: find parents that referenced the refs during their lifetime
-            cte = (
-                select(ElementMember.sequence_id, ElementMember.type, ElementMember.id)
-                .where(
-                    ElementMember.type == cte_sub.c.type,
-                    ElementMember.id == cte_sub.c.id,
-                    ElementMember.sequence_id > cte_sub.c.sequence_id,
-                    *(
-                        (ElementMember.sequence_id < func.coalesce(cte_sub.c.next_sequence_id, at_sequence_id + 1),)
-                        if at_sequence_id is not None
-                        else ()
-                    ),
-                )
-                .distinct()
-                .cte()
-                .prefix_with('MATERIALIZED')
-            )
-            # 3: filter parents that currently exist
-            stmt = (
-                select(cte.c.type, cte.c.id, Element.type, Element.id)
-                .join_from(cte, Element, cte.c.sequence_id == Element.sequence_id)
-                .where(
-                    *(
-                        (Element.next_sequence_id == null(),)
-                        if at_sequence_id is None
-                        else (
-                            # redundant: Element.sequence_id <= at_sequence_id,
-                            or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
-                        )
-                    )
-                )
-            )
+        conditions: list[Composable] = [SQL('parent.members && %s AND member = ANY(%s)')]
+        params: list[Any] = [members, members]
 
-            if limit is not None:
-                stmt = stmt.limit(limit)
+        if at_sequence_id is None:
+            conditions.append(SQL('parent.next_sequence_id IS NULL'))
+        else:
+            conditions.append(
+                SQL('parent.sequence_id <= %s AND (parent.next_sequence_id IS NULL OR parent.next_sequence_id > %s)')
+            )
+            params.extend((at_sequence_id, at_sequence_id))
 
-            rows = (await session.execute(stmt)).all()
-            result: dict[ElementRef, list[ElementRef]] = {member_ref: [] for member_ref in member_refs}
-            for member_type, member_id, type, id in rows:
-                result[ElementRef(member_type, member_id)].append(ElementRef(type, id))
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
+
+        query = SQL("""
+            SELECT member, parent.typed_id
+            FROM element parent
+            CROSS JOIN LATERAL UNNEST(parent.members) AS member
+            WHERE {conditions}
+            {limit}
+        """).format(
+            conditions=SQL(' AND ').join(conditions),
+            limit=limit_clause,
+        )
+        params.append(members)
+
+        async with db2() as conn, await conn.execute(query, params) as r:
+            result: dict[TypedElementId, set[TypedElementId]] = {member: set() for member in members}
+            for row in await r.fetchall():
+                result[row[0]].add(row[1])
             return result
 
     @staticmethod
-    async def get_by_changeset(changeset_id: int, *, sort_by: Literal['id', 'sequence_id']) -> Sequence[Element]:
+    async def get_by_changeset(
+        changeset_id: ChangesetId,
+        *,
+        sort_by: Literal['typed_id', 'sequence_id'] = 'typed_id',
+    ) -> list[Element]:
         """Get elements by the changeset id."""
-        async with db() as session:
-            stmt = (
-                _select()
-                .where(Element.changeset_id == changeset_id)
-                .order_by((Element.id if sort_by == 'id' else Element.sequence_id).asc())
-            )
-            return (await session.scalars(stmt)).all()
+        query = SQL("""
+            SELECT * FROM element
+            WHERE changeset_id = %s
+            ORDER BY {sort_by}
+        """).format(sort_by=Identifier(sort_by))
+
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, (changeset_id,)) as r:
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def find_many_by_geom(
@@ -549,9 +531,8 @@ class ElementQuery:
         *,
         partial_ways: bool = False,
         include_relations: bool = True,
-        nodes_limit: int | None,
+        nodes_limit: int | None = None,
         legacy_nodes_limit: bool = False,
-        resolve_all_members: bool = False,
     ) -> list[Element]:
         """
         Find elements within the given geometry.
@@ -567,137 +548,124 @@ class ElementQuery:
         """
         if legacy_nodes_limit:
             if nodes_limit != MAP_QUERY_LEGACY_NODES_LIMIT:
-                raise ValueError('nodes_limit must be ==MAP_QUERY_NODES_LEGACY_LIMIT when legacy_nodes_limit is True')
+                raise ValueError('nodes_limit must be MAP_QUERY_NODES_LEGACY_LIMIT when legacy_nodes_limit is True')
             nodes_limit += 1  # to detect limit exceeded
 
-        # find all the matching nodes
-        async with db() as session:
-            await session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
+        # Get current max sequence_id to use for all queries
+        at_sequence_id = await ElementQuery.get_current_sequence_id()
+        if not at_sequence_id:
+            return []
 
-            stmt = select(func.max(Element.sequence_id))
-            at_sequence_id = await session.scalar(stmt)
-            if at_sequence_id is None:
+        params: list[Any] = [geometry]
+
+        if nodes_limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(nodes_limit)
+        else:
+            limit_clause = SQL('')
+
+        query = SQL("""
+            SELECT * FROM element
+            WHERE next_sequence_id IS NULL
+            AND ST_Intersects(point, %s)
+            {limit}
+        """).format(limit=limit_clause)
+
+        # Find all matching nodes within the geometry
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            nodes: list[Element] = await r.fetchall()  # type: ignore
+            if not nodes:
                 return []
 
-            # index stores only the current nodes
-            stmt = _select().where(
-                Element.next_sequence_id == null(),
-                Element.visible == true(),
-                Element.type == 'node',
-                func.ST_Intersects(Element.point, func.ST_GeomFromText(geometry.wkt, 4326)),
-            )
-
-            if nodes_limit is not None:
-                stmt = stmt.limit(nodes_limit)
-
-            nodes = (await session.scalars(stmt)).all()
-
-        if not nodes:
-            return []
         if legacy_nodes_limit and len(nodes) > MAP_QUERY_LEGACY_NODES_LIMIT:
             raise_for.map_query_nodes_limit_exceeded()
 
-        nodes_refs = tuple(ElementRef('node', node.id) for node in nodes)
-        result_sequences: list[Iterable[Element]] = [nodes]
+        nodes_typed_ids = [node['typed_id'] for node in nodes]
+        result_sequences: list[list[Element]] = [nodes]
 
         async with TaskGroup() as tg:
 
             async def fetch_parents(
-                element_refs: Collection[ElementRef],
+                typed_ids: list[TypedElementId],
                 parent_type: ElementType,
-            ) -> tuple[Sequence[Element], Awaitable[None] | None]:
+            ) -> list[Element]:
                 parents = await ElementQuery.get_parents_by_refs(
-                    element_refs,
+                    typed_ids,
                     at_sequence_id=at_sequence_id,
                     parent_type=parent_type,
                     limit=None,
                 )
                 result_sequences.append(parents)
-                if resolve_all_members:
-                    return parents, tg.create_task(ElementMemberQuery.resolve_members(parents))
-                else:
-                    return parents, None
+                return parents
 
             async def way_task() -> None:
                 # fetch parent ways
-                ways, resolve_t = await fetch_parents(nodes_refs, 'way')
+                ways = await fetch_parents(nodes_typed_ids, 'way')
+                if not ways:
+                    return
 
                 # fetch ways' parent relations
                 if include_relations:
-                    ways_refs = tuple(ElementRef('way', way.id) for way in ways)
-                    tg.create_task(fetch_parents(ways_refs, 'relation'))
+                    ways_typed_ids = [way['typed_id'] for way in ways]
+                    tg.create_task(fetch_parents(ways_typed_ids, 'relation'))
 
                 # fetch ways' nodes
                 if not partial_ways:
-                    if resolve_t is None:
-                        resolve_t = ElementMemberQuery.resolve_members(ways)
-                    await resolve_t
-                    members_refs = {ElementRef('node', node.id) for way in ways for node in way.members}  # pyright: ignore[reportOptionalIterable]
-                    members_refs.difference_update(nodes_refs)
+                    ways_nodes_typed_ids: set[TypedElementId] = set()
+                    for way in ways:
+                        ways_nodes_typed_ids.update(way['members'])  # pyright: ignore [reportArgumentType]
+                    ways_nodes_typed_ids.difference_update(nodes_typed_ids)
                     ways_nodes = await ElementQuery.get_by_refs(
-                        members_refs,
+                        list(ways_nodes_typed_ids),
                         at_sequence_id=at_sequence_id,
-                        limit=len(members_refs),
+                        limit=len(ways_nodes_typed_ids),
                     )
                     result_sequences.append(ways_nodes)
 
             tg.create_task(way_task())
-            if include_relations:
-                tg.create_task(fetch_parents(nodes_refs, 'relation'))
 
-        # remove duplicates and preserve order
-        result_set: set[int] = set()
+            if include_relations:
+                tg.create_task(fetch_parents(nodes_typed_ids, 'relation'))
+
+        # Remove duplicates and preserve order
+        result_set: set[SequenceId] = set()
         result: list[Element] = []
+
         for elements in result_sequences:
             for element in elements:
-                element_sequence_id = element.sequence_id
-                if element_sequence_id not in result_set:
-                    result_set.add(element_sequence_id)
+                sequence_id = element['sequence_id']
+                if sequence_id not in result_set:
+                    result_set.add(sequence_id)
                     result.append(element)
+
         return result
 
     @staticmethod
-    async def get_last_visible_sequence_id(element: Element) -> int | None:
+    async def get_last_visible_sequence_id(element: Element) -> SequenceId | None:
         """
         Get the last sequence_id of the element, during which it was visible.
 
         When LEGACY_SEQUENCE_ID_MARGIN is True, this method will assume that sequence_id is not accurate.
         """
-        next_sequence_id = element.next_sequence_id
+        next_sequence_id = element['next_sequence_id']
         if next_sequence_id is None:
             return None
+
         if not LEGACY_SEQUENCE_ID_MARGIN:
-            return next_sequence_id - 1
+            return next_sequence_id - 1  # type: ignore
 
-        async with db() as session:
-            stmt = select(func.max(Element.sequence_id)).where(
-                Element.sequence_id < next_sequence_id,
-                Element.created_at
-                < select(Element.created_at).where(Element.sequence_id == next_sequence_id).scalar_subquery(),
-            )
-            return await session.scalar(stmt)
-
-
-@cython.cfunc
-def _select():
-    bundle = NamespaceBundle(
-        'element',
-        Element.sequence_id,
-        Element.changeset_id,
-        Element.type,
-        Element.id,
-        Element.version,
-        Element.visible,
-        Element.tags,
-        Element.point,
-        Element.created_at,
-        Element.next_sequence_id,
-        extra_fields={
-            'members': None,
-            'user_id': None,
-            'user_display_name': None,
-        },
-        single_entity=True,
-    )
-    result: Select[Element] = select(bundle)  # pyright: ignore
-    return result
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                SELECT MAX(sequence_id) FROM element
+                WHERE sequence_id < %s AND created_at < (
+                    SELECT created_at FROM element
+                    WHERE sequence_id = %s
+                )
+                """,
+                (next_sequence_id, next_sequence_id),
+            ) as r,
+        ):
+            row = await r.fetchone()
+            return row[0] if row is not None else None

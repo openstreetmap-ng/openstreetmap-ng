@@ -34,7 +34,7 @@ class ChangesetCommentQuery:
                 (changeset_id, stmt_offset, stmt_limit),
             ) as r,
         ):
-            return await r.fetchall()  # pyright: ignore [reportReturnType]
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def resolve_num_comments(changesets: list[Changeset]) -> None:
@@ -48,23 +48,16 @@ class ChangesetCommentQuery:
             db2() as conn,
             await conn.execute(
                 """
-                SELECT changeset_id, COUNT(*)
-                FROM changeset_comment
-                WHERE changeset_id = ANY(%s)
-                GROUP BY changeset_id
+                SELECT c.value, (
+                    SELECT COUNT(*) FROM changeset_comment
+                    WHERE changeset_id = c.value
+                ) FROM unnest(%s) AS c(value)
                 """,
                 (list(id_map),),
             ) as r,
         ):
-            rows = await r.fetchall()
-
-            for changeset_id, count in rows:
+            for changeset_id, count in await r.fetchall():
                 id_map[changeset_id]['num_comments'] = count
-
-            # Set zero for changesets without comments
-            if len(rows) < len(id_map):
-                for changeset in id_map.values():
-                    changeset.setdefault('num_comments', 0)
 
     @staticmethod
     async def resolve_comments(
@@ -89,12 +82,7 @@ class ChangesetCommentQuery:
             WITH ranked_comments AS (
                 SELECT *, ROW_NUMBER() OVER (PARTITION BY changeset_id ORDER BY id DESC) AS _row_number
                 FROM changeset_comment
-                WHERE
-                    changeset_id = ANY(%s)
-                    AND created_at <= (
-                        SELECT c.updated_at FROM changeset c
-                        WHERE c.id = changeset_id
-                    )
+                WHERE changeset_id = ANY(%s)
             )
             SELECT * FROM ranked_comments
             WHERE _row_number <= %s
@@ -102,16 +90,10 @@ class ChangesetCommentQuery:
             """
             params = (list(id_map), limit_per_changeset)
         else:
-            # If no limit is needed, just fetch all comments
+            # Without limit, just fetch all comments
             query = """
-            SELECT *
-            FROM changeset_comment
-            WHERE
-                changeset_id = ANY(%s)
-                AND created_at <= (
-                    SELECT c.updated_at FROM changeset c
-                    WHERE c.id = changeset_id
-                )
+            SELECT * FROM changeset_comment
+            WHERE changeset_id = ANY(%s)
             ORDER BY changeset_id, id
             """
             params = (list(id_map),)

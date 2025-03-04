@@ -45,7 +45,7 @@ class GraphHopperQuery:
             raise HTTPException(r.status_code, r.text)
 
         path = cast(GraphHopperResponse, data)['paths'][0]
-        routing_steps: tuple[RoutingResult.Step, ...] = tuple(
+        routing_steps: list[RoutingResult.Step] = [
             RoutingResult.Step(
                 num_coords=instr['interval'][1] - instr['interval'][0] + 1,
                 distance=instr['distance'],
@@ -54,7 +54,7 @@ class GraphHopperQuery:
                 text=instr['text'],
             )
             for instr in path['instructions']
-        )
+        ]
 
         return RoutingResult(
             attribution='<a href="https://www.graphhopper.com" target="_blank">GraphHopper</a>',

@@ -1,18 +1,17 @@
-from asyncio import TaskGroup
-from collections.abc import Collection, Iterable, Sequence
-from typing import Literal
+from typing import Any, Literal
 
-import cython
+from psycopg.abc import Params, Query
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy import Select, func, select, text, union_all
 
-from app.db import db
+from app.db import db2
 from app.lib.auth_context import auth_user
-from app.lib.options_context import apply_options_context
 from app.lib.standard_pagination import standard_pagination_range
 from app.limits import NOTE_COMMENTS_PAGE_SIZE
-from app.models.db.note import Note
-from app.models.db.note_comment import NoteComment, NoteEvent
+from app.models.db.note import Note, NoteId
+from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
+from app.models.db.user import user_is_moderator
 
 
 class NoteCommentQuery:
@@ -20,130 +19,154 @@ class NoteCommentQuery:
     async def legacy_find_many_by_query(
         *,
         geometry: BaseGeometry | None = None,
-        limit: int | None,
-    ) -> Sequence[NoteComment]:
+        limit: int | None = None,
+    ) -> list[NoteComment]:
         """Find note comments by query."""
-        async with db() as session:
-            stmt = select(NoteComment)
-            stmt = apply_options_context(stmt)
-            where_and = [Note.visible_to(auth_user())]
+        conditions: list[Composable] = []
+        params: list[Any] = []
 
-            if geometry is not None:
-                where_and.append(func.ST_Intersects(Note.point, func.ST_GeomFromText(geometry.wkt, 4326)))
+        # Only show hidden notes to moderators
+        if not user_is_moderator(auth_user()):
+            conditions.append(SQL('note.hidden_at IS NULL'))
 
-            stmt = stmt.where(*where_and).order_by(NoteComment.id.desc())
+        if geometry is not None:
+            conditions.append(SQL('ST_Intersects(note.point, %s)'))
+            params.append(geometry)
 
-            if limit is not None:
-                stmt = stmt.limit(limit)
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
 
-            return (await session.scalars(stmt)).all()
+        query = SQL("""
+            SELECT * FROM note_comment
+            JOIN note ON note_id = note.id
+            WHERE {conditions}
+            ORDER BY id DESC
+            {limit}
+        """).format(
+            conditions=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
+            limit=limit_clause,
+        )
+
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def get_comments_page(note_id: int, page: int, num_items: int) -> Sequence[NoteComment]:
+    async def get_comments_page(note_id: NoteId, page: int, num_items: int) -> list[NoteComment]:
         """
         Get comments for the given note comments page.
-
-        The header comment is omitted.
+        The header comment is omitted if it's the first page.
         """
         stmt_limit, stmt_offset = standard_pagination_range(
             page,
             page_size=NOTE_COMMENTS_PAGE_SIZE,
             num_items=num_items,
         )
-        async with db() as session:
-            stmt = (
-                select(NoteComment)
-                .where(NoteComment.note_id == note_id)
-                .order_by(NoteComment.id.desc())
-                .offset(stmt_offset)
-                .limit(stmt_limit)
-            )
-            stmt = apply_options_context(stmt)
-            comments = (await session.scalars(stmt)).all()
-        if page == 1 and comments and comments[-1].event == NoteEvent.opened:
-            comments = comments[:-1]
-        return comments[::-1]
+
+        async with (
+            db2() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM (
+                    SELECT * FROM note_comment
+                    WHERE note_id = %s
+                    ORDER BY id DESC
+                    OFFSET %s
+                    LIMIT %s
+                ) AS subquery
+                ORDER BY id ASC
+                """,
+                (note_id, stmt_offset, stmt_limit),
+            ) as r,
+        ):
+            comments: list[NoteComment] = await r.fetchall()  # type: ignore
+
+            # Skip the header comment
+            if page == 1 and comments and comments[0]['event'] == 'opened':
+                return comments[1:]
+
+            return comments
 
     @staticmethod
-    async def resolve_num_comments(notes: Iterable[Note]) -> None:
+    async def resolve_num_comments(notes: list[Note]) -> None:
         """Resolve the number of comments for each note."""
-        note_id_map = {note.id: note for note in notes}
-        if not note_id_map:
+        if not notes:
             return
 
-        async with db() as session:
-            subq = (
-                select(NoteComment.note_id)
-                .where(NoteComment.note_id.in_(text(','.join(map(str, note_id_map)))))
-                .subquery()
-            )
-            stmt = (
-                select(subq.c.note_id, func.count())  #
-                .select_from(subq)
-                .group_by(subq.c.note_id)
-            )
-            rows: Sequence[tuple[int, int]] = (await session.execute(stmt)).all()  # pyright: ignore[reportAssignmentType]
-            id_num_map: dict[int, int] = dict(rows)
+        id_map = {note['id']: note for note in notes}
 
-        for note_id, note in note_id_map.items():
-            note.num_comments = id_num_map.get(note_id, 0)
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                SELECT c.value, (
+                    SELECT COUNT(*) FROM note_comment
+                    WHERE note_id = c.value
+                ) FROM unnest(%s) AS c(value)
+                """,
+                (list(id_map),),
+            ) as r,
+        ):
+            for note_id, count in await r.fetchall():
+                id_map[note_id]['num_comments'] = count
 
     @staticmethod
     async def resolve_comments(
-        notes: Collection[Note],
+        notes: list[Note],
         *,
         per_note_sort: Literal['asc', 'desc'] = 'desc',
-        per_note_limit: int | None,
+        per_note_limit: int | None = None,
         resolve_rich_text: bool = True,
-    ) -> Sequence[NoteComment]:
+    ) -> None:
         """Resolve comments for notes."""
         if not notes:
-            return ()
-        id_comments_map: dict[int, list[NoteComment]] = {}
+            return
+
+        id_map: dict[NoteId, list[NoteComment]] = {}
         for note in notes:
-            id_comments_map[note.id] = note.comments = []
+            id_map[note['id']] = note['comments'] = []
 
-        async with db() as session:
-            stmts: list[Select] = [None] * len(notes)  # type: ignore
-            i: cython.int
-            for i, note in enumerate(notes):
-                stmt_ = select(NoteComment.id).where(
-                    NoteComment.note_id == note.id,
-                    NoteComment.created_at <= note.updated_at,
-                )
-                if per_note_limit is not None:
-                    subq = (
-                        stmt_.order_by(NoteComment.id.asc() if per_note_sort == 'asc' else NoteComment.id.desc())
-                        .limit(per_note_limit)
-                        .subquery()
-                    )
-                    stmt_ = select(subq.c.id).select_from(subq)
-                stmts[i] = stmt_
-
-            stmt = (
-                select(NoteComment)
-                .where(NoteComment.id.in_(union_all(*stmts).subquery().select()))
-                .order_by(NoteComment.id.asc())
+        query: Query
+        params: Params
+        if per_note_limit is not None:
+            # Using window functions to limit comments per note
+            query = SQL("""
+            WITH ranked_comments AS (
+                SELECT *, ROW_NUMBER() OVER (PARTITION BY note_id ORDER BY id {}) AS _row_number
+                FROM note_comment
+                WHERE note_id = ANY(%s)
             )
-            stmt = apply_options_context(stmt)
-            comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()
+            SELECT * FROM ranked_comments
+            WHERE _row_number <= %s
+            ORDER BY note_id, id
+            """).format(SQL(per_note_sort))
+            params = (list(id_map), per_note_limit)
+        else:
+            # Without limit, just fetch all comments
+            query = """
+            SELECT * FROM note_comment
+            WHERE note_id = ANY(%s)
+            ORDER BY note_id, id
+            """
+            params = (list(id_map),)
 
-        current_note_id: int = 0
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            comments: list[NoteComment] = await r.fetchall()  # type: ignore
+
+        current_note_id: NoteId | None = None
         current_comments: list[NoteComment] = []
+
         for comment in comments:
-            note_id = comment.note_id
+            note_id = comment['note_id']
             if current_note_id != note_id:
                 current_note_id = note_id
-                current_comments = id_comments_map[note_id]
+                current_comments = id_map[note_id]
             current_comments.append(comment)
 
-        if per_note_limit is None:
-            for note in notes:
-                note.num_comments = len(note.comments)
+        for note in notes:
+            note['num_comments'] = len(note['comments'])  # pyright: ignore [reportTypedDictNotRequiredAccess]
 
         if resolve_rich_text:
-            async with TaskGroup() as tg:
-                for comment in comments:
-                    tg.create_task(comment.resolve_rich_text())
-
-        return comments
+            await note_comments_resolve_rich_text(comments)

@@ -1,135 +1,139 @@
 from collections.abc import Sequence
+from typing import NamedTuple
 
-from sqlalchemy import and_, false, func, or_, select, text
+import cython
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable
 
-from app.db import db
+from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.lib.options_context import apply_options_context
-from app.models.db.message import Message
+from app.models.db.message import Message, MessageId
+from app.models.db.user import UserId
+
+
+class _MessageCountByUserResult(NamedTuple):
+    total: int
+    unread: int
+    sent: int
 
 
 class MessageQuery:
     @staticmethod
-    async def get_message_by_id(message_id: int) -> Message:
+    async def get_message_by_id(message_id: MessageId) -> Message:
         """Get a message by id."""
         user_id = auth_user(required=True)['id']
-        async with db() as session:
-            stmt = select(Message).where(
-                Message.id == message_id,
-                or_(
-                    and_(
-                        Message.from_user_id == user_id,
-                        Message.from_hidden == false(),
-                    ),
-                    and_(
-                        Message.to_user_id == user_id,
-                        Message.to_hidden == false(),
-                    ),
-                ),
-            )
-            stmt = apply_options_context(stmt)
-            message = await session.scalar(stmt)
+
+        async with (
+            db2() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM message
+                WHERE id = %s AND (
+                    (from_user_id = %s AND NOT from_user_hidden)
+                    OR (to_user_id = %s AND NOT to_user_hidden)
+                )
+                """,
+                (message_id, user_id, user_id),
+            ) as r,
+        ):
+            message = await r.fetchone()
             if message is None:
                 raise_for.message_not_found(message_id)
-            return message
+            return message  # type: ignore
 
     @staticmethod
     async def get_messages(
         *,
         inbox: bool,
-        after: int | None = None,
-        before: int | None = None,
+        after: MessageId | None = None,
+        before: MessageId | None = None,
         limit: int,
     ) -> Sequence[Message]:
         """Get user messages."""
-        async with db() as session:
-            stmt = select(Message)
-            where_and = []
+        user_id = auth_user(required=True)['id']
 
-            if inbox:
-                where_and.append(Message.to_user_id == auth_user(required=True)['id'])
-                where_and.append(Message.to_hidden == false())
-            else:
-                where_and.append(Message.from_user_id == auth_user(required=True)['id'])
-                where_and.append(Message.from_hidden == false())
+        order_desc: cython.bint = (after is None) or (before is not None)
+        conditions: list[Composable] = []
+        params: list[object] = []
 
-            if after is not None:
-                where_and.append(Message.id > after)
-            if before is not None:
-                where_and.append(Message.id < before)
+        if inbox:
+            conditions.append(SQL('to_user_id = %s AND NOT to_user_hidden'))
+            params.append(user_id)
+        else:
+            conditions.append(SQL('from_user_id = %s AND NOT from_user_hidden'))
+            params.append(user_id)
 
-            stmt = stmt.where(*where_and)
-            order_desc = (after is None) or (before is not None)
-            stmt = stmt.order_by(Message.id.desc() if order_desc else Message.id.asc()).limit(limit)
+        if after is not None:
+            conditions.append(SQL('id > %s'))
+            params.append(after)
 
-            stmt = apply_options_context(stmt)
-            messages = (await session.scalars(stmt)).all()
-            return messages if order_desc else messages[::-1]
+        if before is not None:
+            conditions.append(SQL('id < %s'))
+            params.append(before)
 
-    @staticmethod
-    async def count_unread_received_messages() -> int:
-        """Count all unread received messages for the current user."""
-        async with db() as session:
-            stmt = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    Message.to_user_id == auth_user(required=True)['id'],
-                    Message.to_hidden == false(),
-                    Message.is_read == false(),
-                )
-                .subquery()
-            )
-            return (await session.execute(stmt)).scalar_one()
+        query = SQL("""
+            SELECT * FROM message
+            WHERE {conditions}
+            ORDER BY id {order}
+            LIMIT %s
+        """).format(
+            conditions=SQL(' AND ').join(conditions),
+            order=SQL('DESC' if order_desc else 'ASC'),
+        )
+        params.append(limit)
+
+        # Always return in consistent order regardless of the query
+        if not order_desc:
+            query = SQL("""
+                SELECT * FROM ({})
+                ORDER BY id DESC
+            """).format(query)
+
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def count_unread() -> int:
-        """Count currently unread messages."""
-        async with db() as session:
-            stmt = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    Message.to_user_id == auth_user(required=True)['id'],
-                    Message.to_hidden == false(),
-                    Message.is_read == false(),
-                )
-                .subquery()
-            )
-            return (await session.execute(stmt)).scalar_one()
+        """Count all unread received messages for the current user."""
+        user_id = auth_user(required=True)['id']
+
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*) FROM message
+                WHERE to_user_id = %s
+                AND NOT to_user_hidden
+                AND NOT read
+                """,
+                (user_id,),
+            ) as r,
+        ):
+            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def count_by_user_id(user_id: int) -> tuple[int, int, int]:
-        """
-        Count received messages by user id.
-
-        Returns a tuple of (total, unread, sent).
-        """
-        async with db() as session:
-            stmt_total = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    Message.to_user_id == user_id,
-                    Message.to_hidden == false(),
-                )
-                .subquery()
+    async def count_by_user_id(user_id: UserId) -> _MessageCountByUserResult:
+        """Count received messages by user id."""
+        async with (
+            db2() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*) FROM message
+                WHERE to_user_id = %s AND NOT to_user_hidden
+                UNION ALL
+                SELECT COUNT(*) FROM message
+                WHERE to_user_id = %s AND NOT to_user_hidden AND NOT read
+                UNION ALL
+                SELECT COUNT(*) FROM message
+                WHERE from_user_id = %s AND NOT from_user_hidden
+                """,
+                (user_id, user_id, user_id),
+            ) as r,
+        ):
+            rows_iter = iter(await r.fetchall())
+            return _MessageCountByUserResult(
+                total=next(rows_iter)[0],
+                unread=next(rows_iter)[0],
+                sent=next(rows_iter)[0],
             )
-            stmt_unread = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    Message.to_user_id == user_id,
-                    Message.to_hidden == false(),
-                    Message.is_read == false(),
-                )
-                .subquery()
-            )
-            stmt_sent = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    Message.from_user_id == user_id,
-                    Message.from_hidden == false(),
-                )
-                .subquery()
-            )
-            stmt = stmt_total.union_all(stmt_unread, stmt_sent)
-            total, unread, sent = (await session.scalars(stmt)).all()
-            return total, unread, sent

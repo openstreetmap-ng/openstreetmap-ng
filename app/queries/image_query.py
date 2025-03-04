@@ -1,5 +1,4 @@
 from app.lib.exceptions_context import raise_for
-from app.lib.image import AvatarType
 from app.models.types import StorageKey
 from app.queries.user_query import UserQuery
 from app.storage import AVATAR_STORAGE, BACKGROUND_STORAGE, GRAVATAR_STORAGE
@@ -12,9 +11,9 @@ class ImageQuery:
         user = await UserQuery.find_one_by_id(user_id)
         if user is None:
             raise_for.user_not_found(user_id)
-        if user.avatar_type != AvatarType.gravatar:
+        if user['avatar_type'] != 'gravatar':
             raise_for.image_not_found()
-        return await GRAVATAR_STORAGE.load(user.email)
+        return await GRAVATAR_STORAGE.load(user['email'])
 
     @staticmethod
     async def get_avatar(avatar_id: StorageKey) -> bytes:

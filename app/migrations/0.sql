@@ -49,7 +49,7 @@ CREATE TABLE "user" (
 );
 CREATE UNIQUE INDEX user_email_idx ON "user" (email);
 CREATE UNIQUE INDEX user_display_name_idx ON "user" (display_name);
-CREATE INDEX user_pending_idx ON "user" (created_at) WHERE email_verified = false;
+CREATE INDEX user_pending_idx ON "user" (created_at) WHERE NOT email_verified;
 CREATE INDEX user_deleted_idx ON "user" (id) WHERE email LIKE '%@deleted.invalid'; -- DELETED_USER_EMAIL_SUFFIX
 
 CREATE TYPE auth_provider AS ENUM ('google', 'facebook', 'microsoft', 'github', 'wikimedia');
@@ -75,7 +75,7 @@ CREATE TABLE oauth2_application (
     redirect_uris text[] NOT NULL DEFAULT '{}',
     scopes public_scope[] NOT NULL DEFAULT '{}',
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
-    updated_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 CREATE UNIQUE INDEX oauth2_application_client_id_idx ON oauth2_application (client_id);
 CREATE INDEX oauth2_application_user_idx ON oauth2_application (user_id);
@@ -131,7 +131,7 @@ CREATE TABLE changeset_comment (
     body_rich_hash bytea,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
-CREATE INDEX changeset_comment_idx ON changeset_comment (changeset_id, id);
+CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_id, id);
 
 CREATE TABLE element (
     sequence_id bigint PRIMARY KEY,
@@ -150,6 +150,7 @@ CREATE INDEX element_changeset_idx ON element (changeset_id);
 CREATE UNIQUE INDEX element_version_idx ON element (typed_id, version);
 CREATE INDEX element_current_idx ON element (typed_id, next_sequence_id, sequence_id);
 CREATE INDEX element_node_point_idx ON element (point) WHERE point IS NOT NULL AND next_sequence_id IS NULL;
+CREATE INDEX element_members_idx ON element USING gin (members) WHERE cardinality(members) > 0;
 
 CREATE TABLE diary (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -203,8 +204,8 @@ CREATE TABLE message (
     body_rich_hash bytea,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
-CREATE INDEX message_from_inbox ON message (from_user_id, id) WHERE from_user_hidden = false;
-CREATE INDEX message_to_inbox ON message (read, to_user_id, id) WHERE to_user_hidden = false;
+CREATE INDEX message_from_inbox ON message (from_user_id, id) WHERE NOT from_user_hidden;
+CREATE INDEX message_to_inbox ON message (read, to_user_id, id) WHERE NOT to_user_hidden;
 
 CREATE TABLE note (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -231,7 +232,7 @@ CREATE TABLE note_comment (
     body_rich_hash bytea,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
-CREATE INDEX note_comment_note_created_idx ON note_comment (note_id, created_at);
+CREATE INDEX note_comment_note_id_idx ON note_comment (note_id, id);
 CREATE INDEX note_comment_event_user_id_idx ON note_comment (event, user_id, id);
 CREATE INDEX note_comment_body_idx ON note_comment USING gin (to_tsvector('simple', body));
 
