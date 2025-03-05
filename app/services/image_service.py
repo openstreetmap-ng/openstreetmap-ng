@@ -1,6 +1,6 @@
 from app.lib.image import Image
+from app.lib.storage import AVATAR_STORAGE, BACKGROUND_STORAGE
 from app.models.types import StorageKey
-from app.storage import AVATAR_STORAGE, BACKGROUND_STORAGE
 
 
 class ImageService:

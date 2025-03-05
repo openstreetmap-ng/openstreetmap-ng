@@ -12,12 +12,12 @@ from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
-from app.models.db.oauth2_application import OAuth2Application
+from app.models.db.oauth2_application import ApplicationId, ClientId, OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.scope import PUBLIC_SCOPES, Scope
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 
-SYSTEM_APP_CLIENT_ID_MAP: dict[str, int] = {}
+SYSTEM_APP_CLIENT_ID_MAP: dict[ClientId, ApplicationId] = {}
 """
 Mapping of SystemApp client IDs to database IDs.
 """

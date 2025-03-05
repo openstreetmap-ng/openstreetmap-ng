@@ -6,7 +6,6 @@
 , postgresMinWalSizeGb ? 1
 , postgresMaxWalSizeGb ? 10
 , postgresVerbose ? 2  # 0 = no, 1 = some, 2 = most
-, enableValkey ? true
 , enableMailpit ? true
 , gunicornWorkers ? 1
 , gunicornPort ? 8000
@@ -20,7 +19,7 @@ let
   postgresConf = import ./config/postgres.nix { inherit hostMemoryMb hostDiskCoW postgresCpuThreads postgresMinWalSizeGb postgresMaxWalSizeGb postgresVerbose pkgs projectDir; };
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
-  supervisordConf = import ./config/supervisord.nix { inherit isDevelopment enablePostgres enableValkey enableMailpit pkgs postgresConf; };
+  supervisordConf = import ./config/supervisord.nix { inherit isDevelopment enablePostgres enableMailpit pkgs postgresConf; };
 
   stdenv' = pkgs.gcc14Stdenv;
   wrapPrefix = if (!stdenv'.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
@@ -106,7 +105,6 @@ let
     # Services:
     (postgresql_17_jit.withPackages (ps: [ ps.postgis ps.h3-pg ])) # SOON: ps.timescaledb-apache
     timescaledb-parallel-copy'
-    valkey
     mailpit
 
     # Scripts:

@@ -96,7 +96,7 @@ CREATE TABLE oauth2_token (
     authorized_at timestamptz
 );
 CREATE UNIQUE INDEX oauth2_token_hashed_idx ON oauth2_token (token_hashed) WHERE token_hashed IS NOT NULL;
-CREATE INDEX oauth2_token_user_app_idx ON oauth2_token (user_id, application_id, authorized_at);
+CREATE INDEX oauth2_token_user_app_authorized_idx ON oauth2_token (user_id, application_id, id, (authorized_at IS NOT NULL));
 
 CREATE TABLE changeset (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -111,9 +111,8 @@ CREATE TABLE changeset (
 CREATE INDEX changeset_user_idx ON changeset (user_id, id) WHERE user_id IS NOT NULL;
 CREATE INDEX changeset_user_created_at_idx ON changeset (user_id, created_at) WHERE user_id IS NOT NULL;
 CREATE INDEX changeset_created_at_idx ON changeset (created_at);
-CREATE INDEX changeset_closed_at_idx ON changeset (closed_at) WHERE closed_at IS NOT NULL;
+CREATE INDEX changeset_closed_at_idx ON changeset (closed_at, (size = 0)) WHERE closed_at IS NOT NULL;
 CREATE INDEX changeset_open_idx ON changeset (updated_at) WHERE closed_at IS NULL;
-CREATE INDEX changeset_empty_idx ON changeset (closed_at) WHERE closed_at IS NOT NULL AND size = 0;
 CREATE INDEX changeset_union_bounds_idx ON changeset USING gist (union_bounds) WHERE union_bounds IS NOT NULL;
 
 CREATE TABLE changeset_bounds (

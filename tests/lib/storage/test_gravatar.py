@@ -1,7 +1,7 @@
 import pytest
 
 from app.lib.image import Image
-from app.storage import GRAVATAR_STORAGE
+from app.lib.storage import GRAVATAR_STORAGE
 
 
 @pytest.mark.extended

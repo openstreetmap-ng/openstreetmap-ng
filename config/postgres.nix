@@ -41,7 +41,7 @@ pkgs.writeText "postgres.conf" (''
 
   # increase statistics target
   # reason: more accurate query plans
-  default_statistics_target = 500
+  default_statistics_target = 1000
 
   # increase max connections
   max_connections = 10000

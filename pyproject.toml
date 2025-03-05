@@ -19,7 +19,6 @@ dependencies = [
   "h3>=4.2.1",
   "httpx[brotli,zstd]",
   "jinja2",
-  "libvalkey>=4.0.1b1",
   "lrucache-rs>=1.0.0",
   "lxml",
   "markdown-it-py[linkify,plugins]",
@@ -54,7 +53,6 @@ dependencies = [
   "supervisor",
   "tqdm",
   "uvicorn[standard]",
-  "valkey[libvalkey]>=6.0.0",
   "zid>=1.0.0",
   "zstandard",
 ]

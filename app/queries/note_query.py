@@ -1,124 +1,151 @@
-from collections.abc import Collection, Sequence
 from datetime import datetime, timedelta
-from typing import Literal
+from typing import Any, Literal
 
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy import func, null, or_, select, text
 
-from app.db import db
+from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
-from app.lib.options_context import apply_options_context
 from app.lib.standard_pagination import standard_pagination_range
 from app.limits import NOTE_USER_PAGE_SIZE
-from app.models.db.note import Note
-from app.models.db.note_comment import NoteComment, NoteEvent
+from app.models.db.note import Note, NoteId
+from app.models.db.note_comment import NoteEvent
+from app.models.db.user import UserId, user_is_moderator
 
 
 class NoteQuery:
     @staticmethod
     async def count_by_user_id(
-        user_id: int,
+        user_id: UserId,
         *,
         commented_other: bool = False,
         open: bool | None = None,
     ) -> int:
         """
         Count notes interacted with by user id.
-
         If commented_other is True, it will count activity on non-own notes.
         """
-        async with db() as session:
-            cte = (
-                select(NoteComment.note_id)
-                .where(
-                    NoteComment.event == NoteEvent.opened,
-                    NoteComment.user_id == user_id,
+        conditions: list[Composable] = []
+        params: list[Any] = []
+
+        if commented_other:
+            # Find notes where user commented but didn't open them
+            query = SQL("""
+                SELECT COUNT(DISTINCT note_id) FROM note_comment
+                JOIN note ON note_id = note.id
+                WHERE user_id = %s
+                AND event = 'commented'
+                AND NOT EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = %s
+                    AND event = 'opened'
                 )
-                .distinct()
-                .cte('cte_opened')
-                .prefix_with('MATERIALIZED')
-            )
-            if commented_other:
-                cte = (
-                    select(NoteComment.note_id)
-                    .where(
-                        NoteComment.event == NoteEvent.commented,
-                        NoteComment.user_id == user_id,
-                        NoteComment.note_id.notin_(cte.select()),
-                    )
-                    .distinct()
-                    .cte('cte_commented_other')
-                    .prefix_with('MATERIALIZED')
-                )
-            where_and = [Note.visible_to(auth_user()), Note.id.in_(cte.select())]
-            if open is not None:
-                where_and.append(Note.closed_at == null() if open else Note.closed_at != null())
-            stmt = select(func.count()).select_from(
-                select(text('1'))  #
-                .where(*where_and)
-                .subquery()
-            )
-            return (await session.execute(stmt)).scalar_one()
+            """)
+            params.extend((user_id, user_id))
+        else:
+            # Find notes opened by the user
+            query = SQL("""
+                SELECT COUNT(*) FROM note_comment
+                JOIN note ON note_id = note.id
+                WHERE user_id = %s
+                AND event = 'opened'
+            """)
+            params.append(user_id)
+
+        # Only show hidden notes to moderators
+        if not user_is_moderator(auth_user()):
+            conditions.append(SQL('note.hidden_at IS NULL'))
+
+        if open is not None:
+            conditions.append(SQL('note.closed_at IS NULL') if open else SQL('note.closed_at IS NOT NULL'))
+
+        # Add conditions to the query
+        if conditions:
+            query = SQL('{} AND {}').format(query, SQL(' AND ').join(conditions))
+
+        async with db2() as conn, await conn.execute(query, params) as r:
+            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
     async def get_user_notes_page(
-        user_id: int,
+        user_id: UserId,
         *,
         page: int,
         num_items: int,
         commented_other: bool,
         open: bool | None,
-    ) -> Sequence[Note]:
-        """Get comments for the given user notes page."""
+    ) -> list[Note]:
+        """Get notes for the given user notes page."""
         stmt_limit, stmt_offset = standard_pagination_range(
             page,
             page_size=NOTE_USER_PAGE_SIZE,
             num_items=num_items,
         )
-        async with db() as session:
-            cte = (
-                select(NoteComment.note_id)
-                .where(
-                    NoteComment.event == NoteEvent.opened,
-                    NoteComment.user_id == user_id,
+
+        conditions: list[Composable] = []
+        params: list[Any] = []
+
+        if commented_other:
+            # Find notes where user commented but didn't open them
+            query = SQL("""
+                SELECT DISTINCT note.* FROM note_comment
+                JOIN note ON note_id = note.id
+                WHERE user_id = %s
+                AND event = 'commented'
+                AND NOT EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = %s
+                    AND event = 'opened'
                 )
-                .distinct()
-                .cte()
-                .prefix_with('MATERIALIZED')
-            )
-            if commented_other:
-                cte = (
-                    select(NoteComment.note_id)
-                    .where(
-                        NoteComment.event == NoteEvent.commented,
-                        NoteComment.user_id == user_id,
-                        NoteComment.note_id.notin_(cte.select()),
-                    )
-                    .distinct()
-                    .cte()
-                    .prefix_with('MATERIALIZED')
-                )
-            where_and = [Note.visible_to(auth_user()), Note.id.in_(cte.select())]
-            if open is not None:
-                where_and.append(Note.closed_at == null() if open else Note.closed_at != null())
-            stmt = (
-                select(Note)  #
-                .where(*where_and)
-                .order_by(Note.updated_at.desc())
-                .offset(stmt_offset)
-                .limit(stmt_limit)
-            )
-            stmt = apply_options_context(stmt)
-            return (await session.scalars(stmt)).all()[::-1]
+            """)
+            params.extend((user_id, user_id))
+        else:
+            # Find notes opened by the user
+            query = SQL("""
+                SELECT note.* FROM note_comment
+                JOIN note ON note_id = note.id
+                WHERE user_id = %s
+                AND event = 'opened'
+            """)
+            params.append(user_id)
+
+        # Only show hidden notes to moderators
+        if not user_is_moderator(auth_user()):
+            conditions.append(SQL('note.hidden_at IS NULL'))
+
+        if open is not None:
+            conditions.append(SQL('note.closed_at IS NULL') if open else SQL('note.closed_at IS NOT NULL'))
+
+        # Add conditions to the query
+        if conditions:
+            query = SQL('{} AND {}').format(query, SQL(' AND ').join(conditions))
+
+        # Add pagination and ordering
+        # Get results in DESC order, then reverse for final result
+        query = SQL("""
+            SELECT * FROM (
+                {}
+                ORDER BY note.updated_at DESC
+                OFFSET %s
+                LIMIT %s
+            ) ORDER BY updated_at ASC
+        """).format(query)
+        params.extend((stmt_offset, stmt_limit))
+
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def find_many_by_query(
         *,
-        note_ids: Collection[int] | None = None,
         phrase: str | None = None,
-        user_id: int | None = None,
+        user_id: UserId | None = None,
         event: NoteEvent | None = None,
+        note_ids: list[NoteId] | None = None,
         max_closed_days: float | None = None,
         geometry: BaseGeometry | None = None,
         date_from: datetime | None = None,
@@ -126,59 +153,93 @@ class NoteQuery:
         sort_by: Literal['created_at', 'updated_at'] = 'created_at',
         sort_dir: Literal['asc', 'desc'] = 'desc',
         limit: int | None,
-    ) -> Sequence[Note]:
+    ) -> list[Note]:
         """Find notes by query."""
-        async with db() as session:
-            cte_where_and: list = []
+        sort_by_identifier = Identifier(sort_by)
+        conditions: list[Composable] = []
+        params: list[Any] = []
 
-            if phrase is not None:
-                cte_where_and.append(func.to_tsvector(NoteComment.body).bool_op('@@')(func.phraseto_tsquery(phrase)))
-            if user_id is not None:
-                cte_where_and.append(NoteComment.event.in_(tuple(NoteEvent)))
-                cte_where_and.append(NoteComment.user_id == user_id)
-            if event is not None:
-                cte_where_and.append(NoteComment.event == event)
+        # Only show hidden notes to moderators
+        if not user_is_moderator(auth_user()):
+            conditions.append(SQL('note.hidden_at IS NULL'))
 
-            stmt = select(Note)
-            stmt = apply_options_context(stmt)
-            where_and = [Note.visible_to(auth_user())]
-            sort_key = Note.created_at if sort_by == 'created_at' else Note.updated_at
-
-            if cte_where_and:
-                if note_ids:
-                    cte_where_and.append(NoteComment.note_id.in_(text(','.join(map(str, note_ids)))))
-                cte = (
-                    select(NoteComment.note_id)
-                    .where(*cte_where_and)
-                    .distinct()
-                    .cte()  #
-                    .prefix_with('MATERIALIZED')
+        if phrase is not None:
+            conditions.append(
+                SQL("""
+                note.id IN (
+                    SELECT DISTINCT note_id
+                    FROM note_comment
+                    WHERE to_tsvector('simple', body) @@ phraseto_tsquery(%s)
                 )
-                where_and.append(Note.id.in_(cte.select()))
-            elif note_ids:
-                where_and.append(Note.id.in_(text(','.join(map(str, note_ids)))))
+                """)
+            )
+            params.append(phrase)
 
-            if max_closed_days is not None:
-                if max_closed_days > 0:
-                    where_and.append(
-                        or_(
-                            Note.closed_at == null(),
-                            Note.closed_at >= utcnow() - timedelta(days=max_closed_days),
-                        )
-                    )
-                else:
-                    where_and.append(Note.closed_at == null())
-            if geometry is not None:
-                where_and.append(func.ST_Intersects(Note.point, func.ST_GeomFromText(geometry.wkt, 4326)))
-            if date_from is not None:
-                where_and.append(sort_key >= date_from)
-            if date_to is not None:
-                where_and.append(sort_key < date_to)
+        if user_id is not None:
+            conditions.append(
+                SQL("""
+                note.id IN (
+                    SELECT DISTINCT note_id
+                    FROM note_comment
+                    WHERE user_id = %s
+                )
+                """)
+            )
+            params.append(user_id)
 
-            stmt = stmt.where(*where_and)
-            stmt = stmt.order_by(sort_key.asc() if sort_dir == 'asc' else sort_key.desc())
+        if event is not None:
+            conditions.append(
+                SQL("""
+                note.id IN (
+                    SELECT DISTINCT note_id
+                    FROM note_comment
+                    WHERE event = %s
+                )
+                """)
+            )
+            params.append(event)
 
-            if limit is not None:
-                stmt = stmt.limit(limit)
+        if note_ids is not None:
+            conditions.append(SQL('note.id = ANY(%s)'))
+            params.append(note_ids)
 
-            return (await session.scalars(stmt)).all()
+        if max_closed_days is not None:
+            if max_closed_days > 0:
+                conditions.append(SQL('(note.closed_at IS NULL OR note.closed_at >= %s)'))
+                params.append(utcnow() - timedelta(days=max_closed_days))
+            else:
+                conditions.append(SQL('note.closed_at IS NULL'))
+
+        if geometry is not None:
+            conditions.append(SQL('ST_Intersects(note.point, %s)'))
+            params.append(geometry)
+
+        if date_from is not None:
+            conditions.append(SQL('note.{} >= %s').format(sort_by_identifier))
+            params.append(date_from)
+
+        if date_to is not None:
+            conditions.append(SQL('note.{} < %s').format(sort_by_identifier))
+            params.append(date_to)
+
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
+
+        # Build the query with all conditions
+        query = SQL("""
+            SELECT note.* FROM note
+            WHERE {condition}
+            ORDER BY note.{sort_by} {sort_dir}
+            {limit}
+        """).format(
+            condition=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
+            sort_by=sort_by_identifier,
+            sort_dir=SQL(sort_dir),
+            limit=limit_clause,
+        )
+
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            return await r.fetchall()  # type: ignore

@@ -1,28 +1,10 @@
 from abc import ABC, abstractmethod
 
-from app.lib.buffered_random import buffered_rand_urlsafe
-from app.limits import STORAGE_KEY_MAX_LENGTH
 from app.models.types import StorageKey
 
 
 class StorageBase(ABC):
-    __slots__ = ('_context',)
-
-    def __init__(self, context: str):
-        self._context = context
-
-    @staticmethod
-    def _make_key(suffix: str) -> StorageKey:
-        """
-        Generate a key for a file.
-
-        >>> StorageBase('context')._make_key(b'...', '.png')
-        'Drmhze6EPcv0fN_81Bj-nA.png'
-        """
-        key = buffered_rand_urlsafe(32) + suffix
-        if len(key) > STORAGE_KEY_MAX_LENGTH:
-            raise ValueError(f'Storage key is too long ({len(key)} > {STORAGE_KEY_MAX_LENGTH})')
-        return StorageKey(key)
+    __slots__ = ()
 
     @abstractmethod
     async def load(self, key: StorageKey) -> bytes:

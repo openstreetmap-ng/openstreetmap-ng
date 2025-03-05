@@ -20,11 +20,11 @@ from app.models.types import Email
 from app.services.cache_service import CacheContext, CacheService
 from app.validators.whitespace import BoundaryWhitespaceValidator
 
-_CACHE_CONTEXT = CacheContext('EmailValidator')
+_CTX = CacheContext('EmailValidator')
 _RESOLVER = Resolver()
 _RESOLVER.timeout = EMAIL_DELIVERABILITY_DNS_TIMEOUT.total_seconds()
 _RESOLVER.lifetime = _RESOLVER.timeout + 2
-_RESOLVER.cache = None  # using valkey cache
+_RESOLVER.cache = None  # using custom cache
 _RESOLVER.retry_servfail = True
 
 
@@ -68,7 +68,7 @@ async def validate_email_deliverability(email: Email) -> bool:
 
     cache_entry = await CacheService.get(
         domain,
-        context=_CACHE_CONTEXT,
+        context=_CTX,
         factory=factory,
         ttl=EMAIL_DELIVERABILITY_CACHE_EXPIRE,
     )

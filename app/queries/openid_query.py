@@ -4,13 +4,14 @@ from typing import NotRequired, TypedDict
 
 import orjson
 
+from app.lib.crypto import hash_storage_key
 from app.limits import (
     OPENID_DISCOVERY_HTTP_TIMEOUT,
 )
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP
 
-_cache_context = CacheContext('OpenID')
+_CTX = CacheContext('OpenID')
 
 
 class OpenIDDiscovery(TypedDict):
@@ -47,10 +48,6 @@ class OpenIDQuery:
             r.raise_for_status()
             return r.content
 
-        cache = await CacheService.get(
-            base_url,
-            context=_cache_context,
-            factory=factory,
-            ttl=OPENID_DISCOVERY_HTTP_TIMEOUT,
-        )
-        return orjson.loads(cache.value)
+        key = hash_storage_key(base_url, '.json')
+        content = await CacheService.get(key, _CTX, factory, ttl=OPENID_DISCOVERY_HTTP_TIMEOUT)
+        return orjson.loads(content)

@@ -1,43 +1,57 @@
-from collections.abc import Sequence
+from typing import Any
 
-from sqlalchemy import select
+from psycopg.rows import dict_row
+from psycopg.sql import SQL
 
-from app.db import db
-from app.lib.options_context import apply_options_context
-from app.models.db.oauth2_application import OAuth2Application
+from app.db import db2
+from app.models.db.oauth2_application import ApplicationId, ClientId, OAuth2Application
+from app.models.db.user import UserId
 
 
 class OAuth2ApplicationQuery:
     @staticmethod
-    async def find_one_by_id(app_id: int, *, user_id: int | None = None) -> OAuth2Application | None:
+    async def find_one_by_id(app_id: ApplicationId, *, user_id: UserId | None = None) -> OAuth2Application | None:
         """Find an OAuth2 application by id."""
-        async with db() as session:
-            stmt = select(OAuth2Application)
-            stmt = apply_options_context(stmt)
-            where_and = [OAuth2Application.id == app_id]
+        query = SQL("""
+            SELECT * FROM oauth2_application
+            WHERE id = %s
+        """)
+        params: list[Any] = [app_id]
 
-            if user_id is not None:
-                where_and.append(OAuth2Application.user_id == user_id)
+        if user_id is not None:
+            query = SQL('{} AND user_id = %s').format(query)
+            params.append(user_id)
 
-            stmt = stmt.where(*where_and)
-            return await session.scalar(stmt)
+        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_one_by_client_id(client_id: str) -> OAuth2Application | None:
+    async def find_one_by_client_id(client_id: ClientId) -> OAuth2Application | None:
         """Find an OAuth2 application by client id."""
-        async with db() as session:
-            stmt = select(OAuth2Application).where(OAuth2Application.client_id == client_id)
-            stmt = apply_options_context(stmt)
-            return await session.scalar(stmt)
+        async with (
+            db2() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM oauth2_application
+                WHERE client_id = %s
+                """,
+                (client_id,),
+            ) as r,
+        ):
+            return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def get_many_by_user_id(user_id: int) -> Sequence[OAuth2Application]:
+    async def get_many_by_user_id(user_id: UserId) -> list[OAuth2Application]:
         """Get all OAuth2 applications by user id."""
-        async with db() as session:
-            stmt = (
-                select(OAuth2Application)
-                .where(OAuth2Application.user_id == user_id)
-                .order_by(OAuth2Application.id.desc())
-            )
-            stmt = apply_options_context(stmt)
-            return (await session.scalars(stmt)).all()
+        async with (
+            db2() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM oauth2_application
+                WHERE user_id = %s
+                ORDER BY id DESC
+                """,
+                (user_id,),
+            ) as r,
+        ):
+            return await r.fetchall()  # type: ignore

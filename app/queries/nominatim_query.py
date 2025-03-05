@@ -8,6 +8,7 @@ import orjson
 from shapely import MultiPolygon, Point, Polygon, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
+from app.lib.crypto import hash_storage_key
 from app.lib.feature_icon import features_icons
 from app.lib.feature_prefix import features_prefixes
 from app.lib.search import SearchResult
@@ -70,13 +71,9 @@ class NominatimQuery:
             r.raise_for_status()
             return r.content
 
-        cache = await CacheService.get(
-            path,
-            context=_CTX,
-            factory=factory,
-            ttl=NOMINATIM_REVERSE_CACHE_EXPIRE,
-        )
-        response_entries = [orjson.loads(cache.value)]
+        key = hash_storage_key(path, '.json')
+        content = await CacheService.get(key, _CTX, factory, ttl=NOMINATIM_REVERSE_CACHE_EXPIRE)
+        response_entries = [orjson.loads(content)]
         result = await _get_search_result(at_sequence_id=None, response_entries=response_entries)
         return next(iter(result), None)
 
@@ -145,14 +142,8 @@ async def _search(
 
     # cache only stable queries
     if bounds is None:
-        cache = await CacheService.get(
-            path,
-            context=_CTX,
-            factory=factory,
-            hash_key=True,
-            ttl=NOMINATIM_SEARCH_CACHE_EXPIRE,
-        )
-        response = cache.value
+        key = hash_storage_key(path, '.json')
+        response = await CacheService.get(key, _CTX, factory, ttl=NOMINATIM_SEARCH_CACHE_EXPIRE)
     else:
         response = await factory()
 

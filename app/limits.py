@@ -15,12 +15,7 @@ BACKGROUND_MAX_RATIO = 2 * 5.5  # 2 * ratio on website
 BACKGROUND_MAX_MEGAPIXELS = 4096 * 512  # (resolution)
 BACKGROUND_MAX_FILE_SIZE = 320 * _kb  # 320 KB
 
-# this is in-memory cache configuration
 CACHE_DEFAULT_EXPIRE = timedelta(days=3)
-CACHE_COMPRESS_MIN_SIZE = 512
-CACHE_COMPRESS_ZSTD_LEVEL = 1
-CACHE_COMPRESS_ZSTD_THREADS = 0  # disabled
-CACHE_WRITE_LOCK_TIMEOUT = timedelta(minutes=1)
 
 CHANGESET_IDLE_TIMEOUT = timedelta(hours=1)
 CHANGESET_OPEN_TIMEOUT = timedelta(days=1)

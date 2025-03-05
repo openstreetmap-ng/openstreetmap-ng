@@ -1,18 +1,19 @@
+import fcntl
 import logging
 import time
 from asyncio import get_running_loop
 from datetime import timedelta
-from functools import lru_cache
+from io import BufferedWriter
 from pathlib import Path
 from typing import NamedTuple
 
+import cython
 from google.protobuf.message import DecodeError
 from sizestr import sizestr
 
 from app.config import FILE_CACHE_DIR, FILE_CACHE_SIZE_GB
-from app.lib.buffered_random import buffered_randbytes
-from app.lib.crypto import hash_hex
 from app.models.proto.server_pb2 import FileCacheMeta
+from app.models.types import StorageKey
 
 
 class _CleanupInfo(NamedTuple):
@@ -21,16 +22,39 @@ class _CleanupInfo(NamedTuple):
     path: Path
 
 
+class _FileCacheLock:
+    """A process-safe lock for file cache operations"""
+
+    __slots__ = ('_file', 'path')
+
+    def __init__(self, path: Path):
+        self.path = path
+        self._file: BufferedWriter | None = None
+
+    async def __aenter__(self) -> '_FileCacheLock':
+        dir = self.path.parent
+        dir.mkdir(parents=True, exist_ok=True)
+        lock_path = dir.joinpath(f'.{self.path.name}.lock')
+        lock_file = self._file = lock_path.open('wb')
+        loop = get_running_loop()
+        await loop.run_in_executor(None, lambda: fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX))
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self._file is not None:
+            self._file.close()
+            self._file = None
+
+
 class FileCache:
     __slots__ = ('_base_dir',)
 
-    def __init__(self, context: str, *, cache_dir: Path = FILE_CACHE_DIR):
-        self._base_dir: Path = cache_dir.joinpath(context)
+    def __init__(self, dirname: str, *, cache_dir: Path = FILE_CACHE_DIR):
+        self._base_dir = cache_dir.joinpath(dirname)
 
-    async def get(self, key: str) -> bytes | None:
+    async def get(self, key: StorageKey) -> bytes | None:
         """
         Get a value from the file cache by key string.
-
         Returns None if the cache is not found.
         """
         path = _get_path(self._base_dir, key)
@@ -43,7 +67,7 @@ class FileCache:
             logging.debug('Cache read error for %r', key)
             return None
 
-        # if provided, check time-to-live
+        # If set, check TTL expiration
         if entry.HasField('expires_at') and entry.expires_at < time.time():
             logging.debug('Cache miss for %r', key)
             path.unlink(missing_ok=True)
@@ -52,30 +76,31 @@ class FileCache:
         logging.debug('Cache hit for %r', key)
         return entry.data
 
-    async def set(self, key: str, data: bytes, *, ttl: timedelta | None) -> None:
-        """Set a value in the file cache by key string."""
-        path = _get_path(self._base_dir, key)
-        path.parent.mkdir(parents=True, exist_ok=True)
+    def lock(self, key: StorageKey) -> _FileCacheLock:
+        """Get a write lock for the given key."""
+        return _FileCacheLock(_get_path(self._base_dir, key))
 
+    @staticmethod
+    async def set(lock: _FileCacheLock, data: bytes, *, ttl: timedelta | None) -> None:
+        """Set a value in the file cache."""
         expires_at = int(time.time() + ttl.total_seconds()) if (ttl is not None) else None
         entry = FileCacheMeta(data=data, expires_at=expires_at)
         entry_bytes = entry.SerializeToString()
 
-        temp_name = f'.{buffered_randbytes(16).hex()}.tmp'
-        temp_path = path.with_name(temp_name)
-
-        with temp_path.open('xb') as f:
+        path = lock.path
+        temp_path = path.parent.joinpath(f'.{path.name}.tmp')
+        with temp_path.open('wb') as f:
             loop = get_running_loop()
             await loop.run_in_executor(None, f.write, entry_bytes)
-
         temp_path.rename(path)
 
-    def delete(self, key: str) -> None:
+    def delete(self, key: StorageKey) -> None:
         """Delete a key from the file cache."""
         path = _get_path(self._base_dir, key)
         path.unlink(missing_ok=True)
 
     # TODO: runner, with lock
+    # TODO: cleanup orphaned locks and temps
     async def cleanup(self):
         """Cleanup the file cache, removing stale entries."""
         infos: list[_CleanupInfo] = []
@@ -122,13 +147,7 @@ class FileCache:
             total_size -= info.size
 
 
-@lru_cache(maxsize=1024)
-def _get_path(base_dir: Path, key_str: str) -> Path:
-    """
-    Get the path to a file in the file cache by key string.
-
-    >>> _get_path(Path('context'), 'file_key')
-    Path('.../context/46/8e/468e5f...')
-    """
-    key: str = hash_hex(key_str)
-    return base_dir.joinpath(key[:2], key[2:4], key)
+@cython.cfunc
+def _get_path(base_dir: Path, key: StorageKey, /) -> Path:
+    """Get the path to a file in the cache."""
+    return base_dir.joinpath(key[:2], key[2:4], key) if len(key) > 4 else base_dir.joinpath(key)

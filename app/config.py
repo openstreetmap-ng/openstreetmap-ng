@@ -74,8 +74,6 @@ POSTGRES_URL = getenv('POSTGRES_URL', f'postgresql://postgres@/postgres?host={_p
 DUCKDB_MEMORY_LIMIT = getenv('DUCKDB_MEMORY_LIMIT', '8GB')
 DUCKDB_TMPDIR = getenv('DUCKDB_TMPDIR')
 
-VALKEY_URL = getenv('VALKEY_URL', f'unix://{_path("data/valkey.sock")}?protocol=3')
-
 SMTP_NOREPLY_FROM = getenv('SMTP_NOREPLY_FROM', SMTP_USER)
 SMTP_MESSAGES_FROM = getenv('SMTP_MESSAGES_FROM', SMTP_USER)
 

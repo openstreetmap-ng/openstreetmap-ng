@@ -7,7 +7,6 @@ from starlette import status
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.db import valkey
 from app.lib.auth_context import auth_user
 from app.lib.user_role_limits import UserRoleLimits
 from app.middlewares.request_context_middleware import get_request

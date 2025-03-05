@@ -1,5 +1,6 @@
 from base64 import urlsafe_b64encode
 from collections.abc import Callable
+from functools import lru_cache
 from hashlib import sha256
 from hmac import compare_digest
 from typing import TypeVar
@@ -10,6 +11,7 @@ from Cryptodome.Cipher import AES
 
 from app.config import SECRET_32
 from app.lib.buffered_random import buffered_randbytes
+from app.models.types import StorageKey
 
 _T = TypeVar('_T')
 
@@ -27,6 +29,17 @@ def hash_bytes(s: str | bytes) -> bytes:
 def hash_hex(s: str | bytes) -> str:
     """Hash the input and return the hex digest."""
     return _hash(s, None).hexdigest()
+
+
+def hash_urlsafe(s: str | bytes) -> str:
+    """Hash the input and return the URL-safe digest."""
+    return urlsafe_b64encode(_hash(s, None).digest()).rstrip(b'=').decode()
+
+
+@lru_cache(maxsize=1024)
+def hash_storage_key(s: str | bytes, suffix: str = '') -> StorageKey:
+    """Hash the input and return the storage key."""
+    return StorageKey(hash_urlsafe(s) + suffix)
 
 
 def hmac_bytes(s: str | bytes) -> bytes:

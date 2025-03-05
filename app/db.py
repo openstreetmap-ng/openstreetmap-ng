@@ -9,9 +9,8 @@ import orjson
 from psycopg.types.json import set_json_dumps, set_json_loads
 from psycopg_pool import AsyncConnectionPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from valkey.asyncio import ConnectionPool, Valkey
 
-from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_SQLALCHEMY_URL, POSTGRES_URL, VALKEY_URL
+from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_SQLALCHEMY_URL, POSTGRES_URL
 
 _DB_ENGINE = create_async_engine(
     POSTGRES_SQLALCHEMY_URL,
@@ -33,8 +32,6 @@ _PSYCOPG_POOL = AsyncConnectionPool(
 set_json_dumps(orjson.dumps)
 set_json_loads(orjson.loads)
 
-
-_VALKEY_POOL = ConnectionPool.from_url(VALKEY_URL)
 
 # TODO: test unicode normalization comparison
 
@@ -92,12 +89,6 @@ async def db_update_stats(*, vacuum: bool = False) -> None:
     """Update the database statistics."""
     async with db2(True, autocommit=True) as conn:
         await conn.execute('VACUUM ANALYZE' if vacuum else 'ANALYZE')
-
-
-@asynccontextmanager
-async def valkey():
-    async with Valkey(connection_pool=_VALKEY_POOL) as r:
-        yield r
 
 
 @contextmanager

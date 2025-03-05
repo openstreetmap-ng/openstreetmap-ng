@@ -6,12 +6,13 @@ from httpx import Timeout
 from shapely import Point, get_coordinates
 
 from app.config import OVERPASS_INTERPRETER_URL
+from app.lib.crypto import hash_storage_key
 from app.limits import OVERPASS_CACHE_EXPIRE
 from app.models.overpass import OverpassElement
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP
 
-_cache_context = CacheContext('Overpass')
+_CTX = CacheContext('Overpass')
 
 
 class OverpassQuery:
@@ -40,8 +41,9 @@ class OverpassQuery:
             r.raise_for_status()
             return r.content
 
-        cache = await CacheService.get(query, _cache_context, factory, ttl=OVERPASS_CACHE_EXPIRE)
-        elements_data: list[OverpassElement] = orjson.loads(cache.value)['elements']
+        key = hash_storage_key(query, '.json')
+        content = await CacheService.get(key, _CTX, factory, ttl=OVERPASS_CACHE_EXPIRE)
+        elements_data: list[OverpassElement] = orjson.loads(content)['elements']
         elements_data.sort(key=_sort_by_bounds)
         return elements_data
 
@@ -75,8 +77,9 @@ class OverpassQuery:
             r.raise_for_status()
             return r.content
 
-        cache = await CacheService.get(query, _cache_context, factory, ttl=OVERPASS_CACHE_EXPIRE)
-        elements_data: list[OverpassElement] = orjson.loads(cache.value)['elements']
+        key = hash_storage_key(query, '.json')
+        content = await CacheService.get(key, _CTX, factory, ttl=OVERPASS_CACHE_EXPIRE)
+        elements_data: list[OverpassElement] = orjson.loads(content)['elements']
         elements_data.sort(key=_sort_by_bounds)
         return elements_data
 
@@ -84,11 +87,11 @@ class OverpassQuery:
 @cython.cfunc
 def _sort_by_bounds(element: 'OverpassElement'):
     if element['type'] == 'node':
-        return (0, -element['id'])
+        return 0, -element['id']
     bounds = element['bounds']
     minlon: cython.double = bounds['minlon']
     minlat: cython.double = bounds['minlat']
     maxlon: cython.double = bounds['maxlon']
     maxlat: cython.double = bounds['maxlat']
     size = (maxlon - minlon) * (maxlat - minlat)
-    return (1, size)
+    return 1, size
