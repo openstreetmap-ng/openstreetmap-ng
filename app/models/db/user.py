@@ -60,12 +60,12 @@ async def users_resolve_rich_text(objs: list[User]) -> None:
     await resolve_rich_text(objs, 'user', 'description', 'markdown')
 
 
-def user_is_test(user: User) -> bool:
+def user_is_test(user: User | UserInit) -> bool:
     """Check if the user is a test user."""
     return user['email'].endswith(TEST_USER_EMAIL_SUFFIX)
 
 
-def user_is_deleted(user: User) -> bool:
+def user_is_deleted(user: User | UserInit) -> bool:
     """Check if the user is a deleted user."""
     return user['email'].endswith(DELETED_USER_EMAIL_SUFFIX)
 

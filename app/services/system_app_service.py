@@ -3,17 +3,16 @@ from asyncio import TaskGroup
 from typing import NamedTuple
 
 from pydantic import SecretStr
-from sqlalchemy import func
-from sqlalchemy.dialects.postgresql import insert
 
 from app.config import NAME
-from app.db import db
+from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
-from app.models.db.oauth2_application import ApplicationId, ClientId, OAuth2Application
-from app.models.db.oauth2_token import OAuth2Token
+from app.models.db.oauth2_application import ApplicationId, ClientId, OAuth2ApplicationInit
+from app.models.db.oauth2_token import OAuth2TokenInit
+from app.models.db.user import UserId
 from app.models.scope import PUBLIC_SCOPES, Scope
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 
@@ -25,7 +24,7 @@ Mapping of SystemApp client IDs to database IDs.
 
 class SystemApp(NamedTuple):
     name: str
-    client_id: str
+    client_id: ClientId
     scopes: tuple[Scope, ...]
 
 
@@ -37,17 +36,17 @@ class SystemAppService:
             for app in (
                 SystemApp(
                     name=NAME,
-                    client_id='SystemApp.web',
+                    client_id=ClientId('SystemApp.web'),
                     scopes=('web_user',),
                 ),
                 SystemApp(
                     name='Personal Access Token',
-                    client_id='SystemApp.pat',
-                    scopes=PUBLIC_SCOPES,
+                    client_id=ClientId('SystemApp.pat'),
+                    scopes=tuple(PUBLIC_SCOPES),
                 ),
                 SystemApp(
                     name='iD',
-                    client_id='SystemApp.id',
+                    client_id=ClientId('SystemApp.id'),
                     scopes=(
                         'read_prefs',
                         'write_prefs',
@@ -58,7 +57,7 @@ class SystemAppService:
                 ),
                 SystemApp(
                     name='Rapid',
-                    client_id='SystemApp.rapid',
+                    client_id=ClientId('SystemApp.rapid'),
                     scopes=(
                         'read_prefs',
                         'write_prefs',
@@ -71,7 +70,7 @@ class SystemAppService:
                 tg.create_task(_register_app(app))
 
     @staticmethod
-    async def create_access_token(client_id: str, *, user_id: int | None = None) -> SecretStr:
+    async def create_access_token(client_id: ClientId, *, user_id: UserId | None = None) -> SecretStr:
         """Create an OAuth2-based access token for the given system app."""
         if user_id is None:
             user_id = auth_user(required=True)['id']
@@ -83,22 +82,41 @@ class SystemAppService:
         app = await OAuth2ApplicationQuery.find_one_by_id(app_id)
         assert app is not None, f'OAuth2 application {client_id!r} must be initialized'
 
-        access_token = buffered_rand_urlsafe(32)
-        access_token_hashed = hash_bytes(access_token)
-        access_token = SecretStr(access_token)
+        access_token_ = buffered_rand_urlsafe(32)
+        access_token_hashed = hash_bytes(access_token_)
+        access_token = SecretStr(access_token_)
+        del access_token_
 
-        async with db(True) as session:
-            token = OAuth2Token(
-                user_id=user_id,
-                application_id=app_id,
-                token_hashed=access_token_hashed,
-                scopes=app.scopes,
-                redirect_uri=None,
-                code_challenge_method=None,
-                code_challenge=None,
+        token_init: OAuth2TokenInit = {
+            'user_id': user_id,
+            'application_id': app_id,
+            'name': None,
+            'token_hashed': access_token_hashed,
+            'token_preview': None,
+            'redirect_uri': None,
+            'scopes': app['scopes'],
+            'code_challenge_method': None,
+            'code_challenge': None,
+        }
+
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                INSERT INTO oauth2_token (
+                    user_id, application_id, name,
+                    token_hashed, token_preview, redirect_uri,
+                    scopes, code_challenge_method, code_challenge,
+                    authorized_at
+                )
+                VALUES (
+                    %(user_id)s, %(application_id)s, %(name)s,
+                    %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
+                    %(scopes)s, %(code_challenge_method)s, %(code_challenge)s,
+                    statement_timestamp()
+                )
+                """,
+                token_init,
             )
-            token.authorized_at = func.statement_timestamp()
-            session.add(token)
 
         logging.debug('Created %r access token for user %d', client_id, user_id)
         return access_token
@@ -107,28 +125,38 @@ class SystemAppService:
 async def _register_app(app: SystemApp) -> None:
     """Register a system app."""
     logging.info('Registering system app %r', app.name)
-    async with db(True) as session:
-        stmt = (
-            insert(OAuth2Application)
-            .values(
-                {
-                    OAuth2Application.user_id: None,
-                    OAuth2Application.name: app.name,
-                    OAuth2Application.client_id: app.client_id,
-                    OAuth2Application.scopes: app.scopes,
-                    OAuth2Application.is_confidential: True,
-                    OAuth2Application.redirect_uris: (),
-                }
+
+    app_init: OAuth2ApplicationInit = {
+        'user_id': None,
+        'name': app.name,
+        'client_id': app.client_id,
+    }
+
+    async with (
+        db2(True) as conn,
+        await conn.execute(
+            """
+            INSERT INTO oauth2_application (
+                user_id, name, client_id,
+                scopes, confidential, redirect_uris
             )
-            .on_conflict_do_update(
-                index_elements=(OAuth2Application.client_id,),
-                set_={
-                    OAuth2Application.name: app.name,
-                    OAuth2Application.scopes: app.scopes,
-                },
+            VALUES (
+                %(user_id)s, %(name)s, %(client_id)s,
+                %(scopes)s, %(confidential)s, %(redirect_uris)s
             )
-            .returning(OAuth2Application.id)
-            .inline()
-        )
-        app_id = (await session.execute(stmt)).scalar_one()
-    SYSTEM_APP_CLIENT_ID_MAP[app.client_id] = app_id
+            ON CONFLICT (client_id) DO UPDATE
+            SET
+                name = EXCLUDED.name,
+                scopes = EXCLUDED.scopes
+            RETURNING id
+            """,
+            {
+                **app_init,
+                'scopes': app.scopes,
+                'confidential': True,
+                'redirect_uris': [],
+            },
+        ) as r,
+    ):
+        app_id: ApplicationId = (await r.fetchone())[0]  # type: ignore
+        SYSTEM_APP_CLIENT_ID_MAP[app.client_id] = app_id
