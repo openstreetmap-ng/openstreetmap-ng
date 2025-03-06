@@ -43,7 +43,7 @@ class ValhallaQuery:
             raise HTTPException(r.status_code, r.text)
 
         leg = cast(ValhallaResponse, data)['trip']['legs'][0]
-        routing_steps: tuple[RoutingResult.Step, ...] = tuple(
+        routing_steps: list[RoutingResult.Step] = [
             RoutingResult.Step(
                 num_coords=maneuver['end_shape_index'] - maneuver['begin_shape_index'] + 1,
                 distance=maneuver['length'] * 1000,
@@ -52,7 +52,7 @@ class ValhallaQuery:
                 text=maneuver['instruction'],
             )
             for maneuver in leg['maneuvers']
-        )
+        ]
 
         elevations = np.diff(np.asarray(leg['elevation'], dtype=np.float32), 1)
         ascend = elevations[elevations > 0].sum()
@@ -82,8 +82,8 @@ _MANEUVER_TYPE_TO_ICON_MAP = {
     9: 1,  # slight right
     10: 2,  # right
     11: 3,  # sharp right
-    12: 4,  # u-turn right
-    13: 4,  # u-turn left
+    12: 4,  # U-turn right
+    13: 4,  # U-turn left
     14: 7,  # sharp left
     15: 6,  # left
     16: 5,  # slight left

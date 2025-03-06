@@ -69,8 +69,8 @@ class GraphHopperQuery:
 
 
 _SIGN_TO_ICON_MAP = {
-    -98: 4,  # u-turn
-    -8: 4,  # left u-turn
+    -98: 4,  # U-turn
+    -8: 4,  # left U-turn
     -7: 19,  # keep left
     -6: 11,  # leave roundabout
     -3: 7,  # sharp left
@@ -84,5 +84,5 @@ _SIGN_TO_ICON_MAP = {
     5: 14,  # via reached
     6: 10,  # roundabout
     7: 18,  # keep right
-    8: 4,  # right u-turn
+    8: 4,  # right U-turn
 }
