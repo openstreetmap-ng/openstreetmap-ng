@@ -54,7 +54,13 @@ class NoteCommentQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def get_comments_page(note_id: NoteId, page: int, num_items: int) -> list[NoteComment]:
+    async def get_comments_page(
+        note_id: NoteId,
+        *,
+        page: int,
+        num_items: int,
+        skip_header: bool = True,
+    ) -> list[NoteComment]:
         """
         Get comments for the given note comments page.
         The header comment is omitted if it's the first page.
@@ -84,7 +90,7 @@ class NoteCommentQuery:
             comments: list[NoteComment] = await r.fetchall()  # type: ignore
 
             # Skip the header comment
-            if page == 1 and comments and comments[0]['event'] == 'opened':
+            if skip_header and page == 1 and comments and comments[0]['event'] == 'opened':
                 return comments[1:]
 
             return comments

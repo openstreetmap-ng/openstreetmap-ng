@@ -3,22 +3,20 @@ import logging
 import random
 from asyncio import Event, TaskGroup
 from contextlib import asynccontextmanager
+from datetime import datetime
 from time import perf_counter
 
 from sentry_sdk.api import start_transaction
-from sqlalchemy import and_, delete, func, null, or_, select, text, update
-from sqlalchemy.orm import load_only
 
 from app.config import SENTRY_CHANGESET_MANAGEMENT_MONITOR, TEST_ENV
-from app.db import db
+from app.db import db2
 from app.lib.auth_context import auth_user
-from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
 from app.lib.testmethod import testmethod
 from app.limits import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT
-from app.models.db.changeset import Changeset
-from app.models.db.user_subscription import UserSubscriptionTarget
+from app.models.db.changeset import ChangesetId, ChangesetInit
+from app.models.db.user import UserId
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -27,57 +25,112 @@ _PROCESS_DONE_EVENT = Event()
 
 class ChangesetService:
     @staticmethod
-    async def create(tags: dict[str, str]) -> int:
+    async def create(tags: dict[str, str]) -> ChangesetId:
         """Create a new changeset and return its id."""
         user_id = auth_user(required=True)['id']
-        async with db(True) as session:
-            changeset = Changeset(user_id=user_id, tags=tags)
-            session.add(changeset)
-        changeset_id = changeset.id
+
+        changeset_init: ChangesetInit = {
+            'user_id': user_id,
+            'tags': tags,
+        }
+
+        async with (
+            db2(True) as conn,
+            await conn.execute(
+                """
+                INSERT INTO changeset (
+                    user_id, tags
+                )
+                VALUES (
+                    %(user_id)s, %(tags)s
+                )
+                RETURNING id
+                """,
+                changeset_init,
+            ) as r,
+        ):
+            changeset_id: ChangesetId = (await r.fetchone())[0]  # type: ignore
+
         logging.debug('Created changeset %d by user %d', changeset_id, user_id)
-        await UserSubscriptionService.subscribe(UserSubscriptionTarget.changeset, changeset_id)
+        await UserSubscriptionService.subscribe('changeset', changeset_id)
         return changeset_id
 
     @staticmethod
-    async def update_tags(changeset_id: int, tags: dict[str, str]) -> None:
+    async def update_tags(changeset_id: ChangesetId, tags: dict[str, str]) -> None:
         """Update changeset tags."""
         user_id = auth_user(required=True)['id']
-        async with db(True) as session:
-            stmt = (
-                select(Changeset)
-                .options(load_only(Changeset.id, Changeset.user_id, Changeset.closed_at))
-                .where(Changeset.id == changeset_id)
-                .with_for_update()
+
+        async with db2(True) as conn:
+            async with await conn.execute(
+                """
+                SELECT user_id, closed_at
+                FROM changeset
+                WHERE id = %s
+                FOR UPDATE
+                """,
+                (changeset_id,),
+            ) as r:
+                row = await r.fetchone()
+                if row is None:
+                    raise_for.changeset_not_found(changeset_id)
+
+                changeset_user_id: UserId
+                closed_at: datetime | None
+                changeset_user_id, closed_at = row
+
+                if changeset_user_id != user_id:
+                    raise_for.changeset_access_denied()
+                if closed_at is not None:
+                    raise_for.changeset_already_closed(changeset_id, closed_at)
+
+            await conn.execute(
+                """
+                UPDATE changeset
+                SET tags = %s, updated_at = DEFAULT
+                WHERE id = %s
+                """,
+                (tags, changeset_id),
             )
-            changeset = await session.scalar(stmt)
-            if changeset is None:
-                raise_for.changeset_not_found(changeset_id)
-            if changeset.user_id != user_id:
-                raise_for.changeset_access_denied()
-            if changeset.closed_at is not None:
-                raise_for.changeset_already_closed(changeset_id, changeset.closed_at)
-            changeset.tags = tags
+
         logging.debug('Updated changeset tags for %d by user %d', changeset_id, user_id)
 
     @staticmethod
-    async def close(changeset_id: int) -> None:
+    async def close(changeset_id: ChangesetId) -> None:
         """Close a changeset."""
         user_id = auth_user(required=True)['id']
-        async with db(True) as session:
-            stmt = (
-                select(Changeset)
-                .options(load_only(Changeset.id, Changeset.user_id, Changeset.closed_at))
-                .where(Changeset.id == changeset_id)
-                .with_for_update()
+
+        async with db2(True) as conn:
+            async with await conn.execute(
+                """
+                SELECT user_id, closed_at
+                FROM changeset
+                WHERE id = %s
+                FOR UPDATE
+                """,
+                (changeset_id,),
+            ) as r:
+                row = await r.fetchone()
+                if row is None:
+                    raise_for.changeset_not_found(changeset_id)
+
+                changeset_user_id: UserId
+                closed_at: datetime | None
+                changeset_user_id, closed_at = row
+
+                if changeset_user_id != user_id:
+                    raise_for.changeset_access_denied()
+                if closed_at is not None:
+                    raise_for.changeset_already_closed(changeset_id, closed_at)
+
+            await conn.execute(
+                """
+                UPDATE changeset
+                SET closed_at = statement_timestamp(), updated_at = DEFAULT
+                WHERE id = %s
+                """,
+                (changeset_id,),
             )
-            changeset = await session.scalar(stmt)
-            if changeset is None:
-                raise_for.changeset_not_found(changeset_id)
-            if changeset.user_id != user_id:
-                raise_for.changeset_access_denied()
-            if changeset.closed_at is not None:
-                raise_for.changeset_already_closed(changeset_id, changeset.closed_at)
-            changeset.closed_at = func.statement_timestamp()
+
         logging.debug('Closed changeset %d by user %d', changeset_id, user_id)
 
     @staticmethod
@@ -106,11 +159,11 @@ class ChangesetService:
 @retry(None)
 async def _process_task() -> None:
     while True:
-        async with db() as session:
-            # lock is just a random unique number
-            acquired: bool = (
-                await session.execute(text('SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)'))
-            ).scalar_one()
+        async with db2() as conn:
+            # Lock is just a random unique number
+            async with await conn.execute('SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)') as r:
+                acquired: bool = (await r.fetchone())[0]  # type: ignore
+
             if acquired:
                 ts = perf_counter()
                 with SENTRY_CHANGESET_MANAGEMENT_MONITOR, start_transaction(op='task', name='changeset-management'):
@@ -124,55 +177,54 @@ async def _process_task() -> None:
                 # on failure, sleep ~1h
                 delay = random.uniform(1800, 5400)  # noqa: S311
 
-        if TEST_ENV:
-            # during tests, allow early wakeup
-            _PROCESS_DONE_EVENT.set()
-            async with TaskGroup() as tg:
-                event_task = tg.create_task(_PROCESS_REQUEST_EVENT.wait())
-                await asyncio.wait((event_task,), timeout=delay)
-                if event_task.done():
-                    logging.debug('Changeset processing loop early wakeup')
-                    _PROCESS_REQUEST_EVENT.clear()
-                else:
-                    event_task.cancel()
-        else:
+        if not TEST_ENV:
             await asyncio.sleep(delay)
+            continue
+
+        # Test environment supports early wakeup
+        _PROCESS_DONE_EVENT.set()
+        async with TaskGroup() as tg:
+            event_task = tg.create_task(_PROCESS_REQUEST_EVENT.wait())
+            await asyncio.wait((event_task,), timeout=delay)
+            if event_task.done():
+                logging.debug('Changeset processing loop early wakeup')
+                _PROCESS_REQUEST_EVENT.clear()
+            else:
+                event_task.cancel()
 
 
 async def _close_inactive() -> None:
     """Close all inactive changesets."""
-    async with db(True) as session:
-        now = utcnow()
-        stmt = (
-            update(Changeset)
-            .where(
-                Changeset.closed_at == null(),
-                or_(
-                    Changeset.updated_at < now - CHANGESET_IDLE_TIMEOUT,
-                    and_(
-                        # reference updated_at to use the index
-                        Changeset.updated_at >= now - CHANGESET_IDLE_TIMEOUT,
-                        Changeset.created_at < now - CHANGESET_OPEN_TIMEOUT,
-                    ),
-                ),
+    async with db2(True) as conn:
+        result = await conn.execute(
+            """
+            UPDATE changeset
+            SET closed_at = statement_timestamp(), updated_at = DEFAULT
+            WHERE closed_at IS NULL AND (
+                updated_at < statement_timestamp() - %s OR
+                (updated_at >= statement_timestamp() - %s AND
+                 created_at < statement_timestamp() - %s)
             )
-            .values({Changeset.closed_at: now})
-            .inline()
+            """,
+            (CHANGESET_IDLE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT),
         )
-        result = await session.execute(stmt)
+
         if result.rowcount:
             logging.debug('Closed %d inactive changesets', result.rowcount)
 
 
 async def _delete_empty() -> None:
     """Delete empty changesets after a timeout."""
-    async with db(True) as session:
-        now = utcnow()
-        stmt = delete(Changeset).where(
-            Changeset.closed_at != null(),
-            Changeset.closed_at < now - CHANGESET_EMPTY_DELETE_TIMEOUT,
-            Changeset.size == 0,
+    async with db2(True) as conn:
+        result = await conn.execute(
+            """
+            DELETE FROM changeset
+            WHERE closed_at IS NOT NULL
+            AND closed_at < statement_timestamp() - %s
+            AND size = 0
+            """,
+            (CHANGESET_EMPTY_DELETE_TIMEOUT,),
         )
-        result = await session.execute(stmt)
+
         if result.rowcount:
             logging.debug('Deleted %d empty changesets', result.rowcount)

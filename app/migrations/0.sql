@@ -146,7 +146,7 @@ CREATE TABLE element (
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 CREATE INDEX element_changeset_idx ON element (changeset_id);
-CREATE UNIQUE INDEX element_version_idx ON element (typed_id, version);
+CREATE UNIQUE INDEX element_version_idx ON element (typed_id, version) INCLUDE (sequence_id);
 CREATE INDEX element_current_idx ON element (typed_id, next_sequence_id, sequence_id);
 CREATE INDEX element_node_point_idx ON element (point) WHERE point IS NOT NULL AND next_sequence_id IS NULL;
 CREATE INDEX element_members_idx ON element USING gin (members) WHERE cardinality(members) > 0;

@@ -1,43 +1,56 @@
 import logging
 
-from sqlalchemy import delete
-
-from app.db import db
+from app.db import db2
 from app.lib.auth_context import auth_user
 from app.limits import AUTH_PROVIDER_UID_MAX_LENGTH
-from app.models.db.connected_account import AuthProvider, ConnectedAccount
+from app.models.db.connected_account import AuthProvider, ConnectedAccountInit
 
 
 class ConnectedAccountService:
     @staticmethod
-    async def add_connection(provider: AuthProvider, uid: str) -> int:
+    async def add_connection(provider: AuthProvider, uid: str) -> None:
         """
         Add an external account connection to the current user.
-
-        Returns the new connection id.
+        Returns the user_id.
         """
         if len(uid) > AUTH_PROVIDER_UID_MAX_LENGTH:
             raise ValueError(f'Connected account uid too long: {len(uid)} > {AUTH_PROVIDER_UID_MAX_LENGTH}')
 
         user_id = auth_user(required=True)['id']
-        async with db(True) as session:
-            connection = ConnectedAccount(
-                provider=provider,
-                uid=uid,
-                user_id=user_id,
+
+        connected_account_init: ConnectedAccountInit = {
+            'provider': provider,
+            'uid': uid,
+            'user_id': user_id,
+        }
+
+        async with db2(write=True) as conn:
+            await conn.execute(
+                """
+                INSERT INTO connected_account (
+                    user_id, provider, uid
+                )
+                VALUES (
+                    %(user_id)s, %(provider)s, %(uid)s
+                )
+                """,
+                connected_account_init,
             )
-            session.add(connection)
+
         logging.debug('Added account connection %r to user %d', provider, user_id)
-        return connection.id
 
     @staticmethod
     async def remove_connection(provider: AuthProvider) -> None:
         """Remove an external account connection from the current user."""
         user_id = auth_user(required=True)['id']
-        async with db(True) as session:
-            stmt = delete(ConnectedAccount).where(
-                ConnectedAccount.provider == provider,
-                ConnectedAccount.user_id == user_id,
+
+        async with db2(write=True) as conn:
+            await conn.execute(
+                """
+                DELETE FROM connected_account
+                WHERE user_id = %s AND provider = %s
+                """,
+                (user_id, provider),
             )
-            await session.execute(stmt)
+
         logging.debug('Removed account connection %r from user %d', provider, user_id)

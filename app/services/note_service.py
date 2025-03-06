@@ -1,24 +1,31 @@
 import logging
 from asyncio import TaskGroup
+from datetime import datetime
+from typing import Any, cast
 
 import cython
 import numpy as np
 from httpx import HTTPError
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable
 from shapely import Point, lib
 from shapely.coordinates import get_coordinates
-from sqlalchemy import delete, exists, func, select
 
-from app.db import db
+from app.db import db2
 from app.lib.auth_context import auth_user, auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
 from app.limits import GEO_COORDINATE_PRECISION
 from app.middlewares.request_context_middleware import get_request_ip
-from app.models.db.mail import MailSource
-from app.models.db.note import Note
-from app.models.db.note_comment import NoteComment, NoteEvent
-from app.models.db.user import User
-from app.models.db.user_subscription import UserSubscriptionTarget
+from app.models.db.note import Note, NoteId, NoteInit
+from app.models.db.note_comment import (
+    NoteComment,
+    NoteCommentId,
+    NoteCommentInit,
+    NoteEvent,
+    note_comments_resolve_rich_text,
+)
+from app.models.db.user import UserDisplay, user_is_moderator
 from app.models.types import DisplayName
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
@@ -30,170 +37,275 @@ from app.validators.geometry import validate_geometry
 
 class NoteService:
     @staticmethod
-    async def create(lon: float, lat: float, text: str) -> int:
+    async def create(lon: float, lat: float, text: str) -> NoteId:
         """Create a note and return its id."""
-        coordinate_precision = GEO_COORDINATE_PRECISION
-        point: Point = lib.points(np.array((lon, lat), np.float64).round(coordinate_precision))
+        point: Point = lib.points(np.array((lon, lat), np.float64).round(GEO_COORDINATE_PRECISION))
         point = validate_geometry(point)
+
         user, scopes = auth_user_scopes()
         if user is not None:
-            # prevent oauth to create user-authorized note
+            # Prevent OAuth to create user-authorized note
             if 'web_user' not in scopes and 'write_notes' not in scopes:
                 raise_for.insufficient_scopes(('write_notes',))
-            user_id = user.id
+            user_id = user['id']
             user_ip = None
         else:
             user_id = None
             user_ip = get_request_ip()
 
-        async with db(True) as session:
-            note = Note(point=point)
-            session.add(note)
-            await session.flush()
+        async with db2(True) as conn:
+            note_init: NoteInit = {
+                'point': point,
+            }
 
-            note_comment = NoteComment(
-                user_id=user_id,
-                user_ip=user_ip,
-                note_id=note.id,
-                event=NoteEvent.opened,
-                body=text,
+            async with await conn.execute(
+                """
+                INSERT INTO note (
+                    point
+                )
+                VALUES (
+                    %(point)s
+                )
+                RETURNING id, created_at
+                """,
+                note_init,
+            ) as r:
+                note_id: NoteId
+                note_created_at: datetime
+                note_id, note_created_at = await r.fetchone()  # type: ignore
+
+            comment_init: NoteCommentInit = {
+                'user_id': user_id,
+                'user_ip': user_ip,
+                'note_id': note_id,
+                'event': 'opened',
+                'body': text,
+            }
+
+            await conn.execute(
+                """
+                INSERT INTO note_comment (
+                    user_id, user_ip, note_id, event, body, created_at
+                )
+                VALUES (
+                    %(user_id)s, %(user_ip)s, %(note_id)s, %(event)s, %(body)s, %(created_at)s
+                )
+                RETURNING created_at
+                """,
+                {
+                    **comment_init,
+                    'created_at': note_created_at,
+                },
             )
-            session.add(note_comment)
-            await session.flush()
 
-            note.updated_at = note_comment.created_at
-
-        note_id = note.id
         if user_id is not None:
             logging.debug('Created note %d by user %d', note_id, user_id)
-            await UserSubscriptionService.subscribe(UserSubscriptionTarget.note, note_id)
+            await UserSubscriptionService.subscribe('note', note_id)
         else:
             logging.debug('Created note %d by anonymous user', note_id)
+
         return note_id
 
     @staticmethod
-    async def comment(note_id: int, text: str, event: NoteEvent) -> None:
+    async def comment(note_id: NoteId, text: str, event: NoteEvent) -> None:
         """Comment on a note."""
         user = auth_user(required=True)
+        user_id = user['id']
         send_activity_email: cython.bint = False
-        async with db(True) as session:
-            stmt = select(Note).where(Note.id == note_id, Note.visible_to(user)).with_for_update()
-            note = await session.scalar(stmt)
-            if note is None:
-                raise_for.note_not_found(note_id)
 
-            if event == NoteEvent.closed:
-                if note.closed_at is not None:
-                    raise_for.note_closed(note_id, note.closed_at)
-                note.closed_at = func.statement_timestamp()
+        conditions: list[Composable] = [SQL('id = %s')]
+        params: list[Any] = [note_id]
+
+        # Only show hidden notes to moderators
+        if not user_is_moderator(user):
+            conditions.append(SQL('hidden_at IS NULL'))
+
+        query = SQL("""
+            SELECT * FROM note
+            WHERE {conditions}
+            FOR UPDATE
+        """).format(conditions=SQL(' AND ').join(conditions))
+
+        async with db2(True) as conn:
+            async with await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+                note: Note | None = await r.fetchone()  # type: ignore
+                if note is None:
+                    raise_for.note_not_found(note_id)
+
+            del conditions
+            update: list[Composable] = []
+            params.clear()
+
+            if event == 'closed':
+                if note['closed_at'] is not None:
+                    raise_for.note_closed(note_id, note['closed_at'])
+                update.append(SQL('closed_at = statement_timestamp()'))
                 send_activity_email = True
 
-            elif event == NoteEvent.reopened:
-                # unhide
-                if note.hidden_at is not None:
-                    note.hidden_at = None
-                # reopen
+            elif event == 'reopened':
+                # Unhide
+                if note['hidden_at'] is not None:
+                    update.append(SQL('hidden_at = NULL'))
+                # Reopen
                 else:
-                    if note.closed_at is None:
+                    if note['closed_at'] is None:
                         raise_for.note_open(note_id)
-                    note.closed_at = None
+                    update.append(SQL('closed_at = NULL'))
                     send_activity_email = True
 
-            elif event == NoteEvent.commented:
-                if note.closed_at is not None:
-                    raise_for.note_closed(note_id, note.closed_at)
+            elif event == 'commented':
+                if note['closed_at'] is not None:
+                    raise_for.note_closed(note_id, note['closed_at'])
                 send_activity_email = True
 
-            elif event == NoteEvent.hidden:
-                if not user.is_moderator:
+            elif event == 'hidden':
+                if not user_is_moderator(user):
                     raise_for.insufficient_scopes(('role_moderator',))
-                note.hidden_at = func.statement_timestamp()
+                update.append(SQL('hidden_at = statement_timestamp()'))
 
             else:
                 raise NotImplementedError(f'Unsupported note event {event!r}')
 
-            note_comment = NoteComment(
-                user_id=user.id,
-                user_ip=None,
-                note_id=note_id,
-                event=event,
-                body=text,
-            )
-            session.add(note_comment)
-            await session.flush((note_comment,))
+            comment_init: NoteCommentInit = {
+                'user_id': user_id,
+                'user_ip': None,
+                'note_id': note_id,
+                'event': event,
+                'body': text,
+            }
 
-            note.updated_at = note_comment.created_at
+            async with await conn.execute(
+                """
+                INSERT INTO note_comment (
+                    user_id, user_ip, note_id, event, body
+                )
+                VALUES (
+                    %(user_id)s, %(user_ip)s, %(note_id)s, %(event)s, %(body)s
+                )
+                RETURNING id, created_at
+                """,
+                comment_init,
+            ) as r:
+                comment_id: NoteCommentId
+                created_at: datetime
+                comment_id, created_at = await r.fetchone()  # type: ignore
 
-        logging.debug('Created note comment on note %d by user %d', note_id, user.id)
-        note_comment.user = user
+            # Update the note's updated_at to match the comment's created_at
+            update.append(SQL('updated_at = %s'))
+            params.append(created_at)
+
+            query = SQL("""
+                UPDATE note
+                SET {}
+                WHERE id = %s
+            """).format(SQL(',').join(update))
+            params.append(note_id)
+            await conn.execute(query, params)
+
+        logging.debug('Created note comment on note %d by user %d', note_id, user_id)
+
+        comment: NoteComment = {
+            'id': comment_id,
+            'user_id': user_id,
+            'user_ip': None,
+            'note_id': note_id,
+            'event': event,
+            'body': text,
+            'body_rich_hash': None,
+            'created_at': created_at,
+            'user': cast(UserDisplay, user),
+        }
+
         async with TaskGroup() as tg:
             if send_activity_email:
-                tg.create_task(_send_activity_email(note, note_comment))
-            tg.create_task(UserSubscriptionService.subscribe(UserSubscriptionTarget.note, note_id))
+                tg.create_task(_send_activity_email(note, comment))
+            tg.create_task(UserSubscriptionService.subscribe('note', note_id))
 
     @staticmethod
     async def delete_notes_without_comments() -> None:
         """Find all notes without comments and delete them."""
         logging.info('Deleting notes without comments')
-        async with db(True) as session:
-            stmt = delete(Note).where(~exists().where(Note.id == NoteComment.note_id))
-            result = await session.execute(stmt)
-            if result.rowcount:
-                logging.info('Deleted %d notes without comments', result.rowcount)
-            else:
+
+        async with db2(True) as conn:
+            r = await conn.execute(
+                """
+                DELETE FROM note
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                )
+                """,
+            )
+            if not r.rowcount:
+                # Warn due to unnecessary expensive query
                 logging.warning('Not found any notes without comments')
+                return
+
+        logging.info('Deleted %d notes without comments', r.rowcount)
 
 
 async def _send_activity_email(note: Note, comment: NoteComment) -> None:
-    async def place_task() -> str:
+    async def place_task():
         try:
-            # reverse geocode the note point
-            result = await NominatimQuery.reverse(note.point)
+            # Reverse geocode the note point
+            result = await NominatimQuery.reverse(note['point'])
             if result is not None:
                 return result.display_name
         except HTTPError:
             pass
-        x, y = get_coordinates(note.point)[0].tolist()
+
+        x, y = get_coordinates(note['point'])[0].tolist()
         return f'{y:.5f}, {x:.5f}'
 
     async with TaskGroup() as tg:
-        tg.create_task(comment.resolve_rich_text())
+        tg.create_task(note_comments_resolve_rich_text([comment]))
         place_t = tg.create_task(place_task())
-        first_comment_t = tg.create_task(
-            NoteCommentQuery.resolve_comments(
-                (note,),
-                per_note_sort='asc',
-                per_note_limit=1,
-                resolve_rich_text=False,
+
+        # Fetch the first comment (which is the opening comment)
+        first_comments_t = tg.create_task(
+            NoteCommentQuery.get_comments_page(
+                note['id'],
+                page=1,
+                num_items=1,
+                skip_header=False,
             )
         )
-        users = await UserSubscriptionQuery.get_subscribed_users(UserSubscriptionTarget.note, comment.note_id)
+
+        users = await UserSubscriptionQuery.get_subscribed_users('note', comment['note_id'])
         if not users:
             return
 
     place = place_t.result()
-    first_comment_user_id: cython.longlong = first_comment_t.result()[0].id
-    comment_user: User = comment.user  # type: ignore
-    comment_user_id: cython.longlong = comment_user.id
-    comment_user_name = comment_user.display_name
-    comment_event = comment.event
+    first_comments = first_comments_t.result()
+    assert first_comments, 'Note must have at least one comment'
+    first_comment_user_id: cython.longlong = first_comments[0]['user_id'] or 0
+
+    assert comment['user_id'] is not None, 'Anonymous note comments are no longer supported'
+    comment_user = comment['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+    comment_user_id: cython.longlong = comment_user['id']
+    comment_user_name = comment_user['display_name']
+    comment_event = comment['event']
+    ref = f'note-{note["id"]}'
+
     async with TaskGroup() as tg:
         for subscribed_user in users:
-            subscribed_user_id: cython.longlong = subscribed_user.id
+            subscribed_user_id: cython.longlong = subscribed_user['id']
             if subscribed_user_id == comment_user_id:
                 continue
-            is_note_owner: cython.bint = subscribed_user_id == first_comment_user_id
-            with translation_context(subscribed_user.language):
+
+            with translation_context(subscribed_user['language']):
+                is_note_owner: cython.bint = subscribed_user_id == first_comment_user_id
                 subject = _get_activity_email_subject(comment_user_name, comment_event, is_note_owner)
+
             tg.create_task(
                 EmailService.schedule(
-                    source=MailSource.system,
-                    from_user=None,
+                    source=None,
+                    from_user_id=None,
                     to_user=subscribed_user,
                     subject=subject,
                     template_name='email/note_activity.jinja2',
                     template_data={'comment': comment, 'is_note_owner': is_note_owner, 'place': place},
-                    ref=f'note-{note.id}',
+                    ref=ref,
                 )
             )
 
@@ -204,19 +316,20 @@ def _get_activity_email_subject(
     event: NoteEvent,
     is_note_owner: cython.bint,
 ) -> str:
-    if event == NoteEvent.commented:
+    if event == 'commented':
         if is_note_owner:
             return t('user_mailer.note_comment_notification.commented.subject_own', commenter=comment_user_name)
         else:
             return t('user_mailer.note_comment_notification.commented.subject other', commenter=comment_user_name)
-    elif event == NoteEvent.closed:
+    elif event == 'closed':
         if is_note_owner:
             return t('user_mailer.note_comment_notification.closed.subject_own', commenter=comment_user_name)
         else:
             return t('user_mailer.note_comment_notification.closed.subject other', commenter=comment_user_name)
-    elif event == NoteEvent.reopened:
+    elif event == 'reopened':
         if is_note_owner:
             return t('user_mailer.note_comment_notification.reopened.subject_own', commenter=comment_user_name)
         else:
             return t('user_mailer.note_comment_notification.reopened.subject other', commenter=comment_user_name)
-    raise NotImplementedError(f'Unsupported note event {event!r}')
+
+    raise NotImplementedError(f'Unsupported activity email note event {event!r}')

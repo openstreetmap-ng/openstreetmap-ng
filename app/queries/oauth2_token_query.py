@@ -2,6 +2,7 @@ from typing import Any
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL
+from pydantic import SecretStr
 
 from app.db import db2
 from app.lib.crypto import hash_bytes
@@ -14,9 +15,9 @@ from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 
 class OAuth2TokenQuery:
     @staticmethod
-    async def find_one_authorized_by_token(access_token: str) -> OAuth2Token | None:
+    async def find_one_authorized_by_token(access_token: SecretStr) -> OAuth2Token | None:
         """Find an authorized OAuth2 token by token string."""
-        access_token_hashed = hash_bytes(access_token)
+        access_token_hashed = hash_bytes(access_token.get_secret_value())
 
         async with (
             db2() as conn,

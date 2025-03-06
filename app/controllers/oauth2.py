@@ -27,6 +27,7 @@ from app.models.db.user import User
 from app.models.scope import PUBLIC_SCOPES
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.openid_query import OpenIDDiscovery
+from app.queries.user_query import UserQuery
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.utils import extend_query_params
 
@@ -86,6 +87,7 @@ async def authorize(
     )
 
     if isinstance(auth_result, OAuth2Application):
+        await UserQuery.resolve_users([auth_result])
         return await render_response(
             'oauth2/authorize.jinja2',
             {'app': auth_result, 'scopes': scopes, 'redirect_uri': redirect_uri},
@@ -112,7 +114,7 @@ async def authorize(
 
 
 @router.post('/oauth2/token')
-async def token(
+async def token_(
     grant_type: Annotated[OAuth2GrantType, Form()],
     redirect_uri: Annotated[str, Form(min_length=1, max_length=OAUTH_APP_URI_MAX_LENGTH)],
     code: Annotated[str, Form(min_length=1)],
@@ -149,7 +151,7 @@ async def revoke(token: Annotated[SecretStr, Form(min_length=1)]):
 # generally this endpoint should not be publicly accessible
 # in this case it's fine, since we don't expose any sensitive information
 @router.post('/oauth2/introspect')
-async def introspect(token: Annotated[str, Form(min_length=1)]):
+async def introspect(token: Annotated[SecretStr, Form(min_length=1)]):
     with options_context(
         joinedload(OAuth2Token.user).load_only(User.display_name),
         joinedload(OAuth2Token.application).load_only(OAuth2Application.client_id),

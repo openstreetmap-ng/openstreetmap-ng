@@ -35,14 +35,14 @@ def extend_query_params(uri: str, params: dict[str, str], *, fragment: bool = Fa
     return urlunsplit(uri_)
 
 
-def splitlines_trim(s: str) -> tuple[str, ...]:
+def splitlines_trim(s: str) -> list[str]:
     """
     Split a string by lines, trim whitespace from each line, and ignore empty lines.
 
     >>> splitlines_trim('foo\\n\\nbar\\n')
     ['foo', 'bar']
     """
-    return tuple(line_ for line in s.splitlines() if (line_ := line.strip()))
+    return [line_ for line in s.splitlines() if (line_ := line.strip())]
 
 
 def secure_referer(referer: str | None) -> str:

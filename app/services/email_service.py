@@ -25,8 +25,8 @@ from app.lib.auth_context import auth_context
 from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
-from app.models.db.mail import Mail, MailSource
-from app.models.db.user import User, user_is_deleted, user_is_test
+from app.models.db.mail import Mail, MailInit, MailSource
+from app.models.db.user import User, UserId, user_is_deleted, user_is_test
 
 _PROCESS_LOCK = Lock()
 
@@ -45,7 +45,7 @@ class EmailService:
     @overload
     async def schedule(
         source: None,
-        from_user: None,
+        from_user_id: None,
         to_user: User,
         subject: str,
         template_name: str,
@@ -58,7 +58,7 @@ class EmailService:
     @overload
     async def schedule(
         source: Literal['message', 'diary_comment'],
-        from_user: User,
+        from_user_id: UserId,
         to_user: User,
         subject: str,
         template_name: str,
@@ -70,7 +70,7 @@ class EmailService:
     @staticmethod
     async def schedule(
         source: MailSource,
-        from_user: User | None,
+        from_user_id: UserId | None,
         to_user: User,
         subject: str,
         template_name: str,
@@ -82,6 +82,16 @@ class EmailService:
         # render in the to_user's language
         with auth_context(to_user, ()), translation_context(to_user['language']):
             body = render_jinja(template_name, template_data)
+
+        mail_init: MailInit = {
+            'source': source,
+            'from_user_id': from_user_id,
+            'to_user_id': to_user['id'],
+            'subject': subject,
+            'body': body,
+            'ref': ref,
+            'priority': priority,
+        }
 
         async with (
             db2(True, autocommit=True) as conn,
@@ -95,15 +105,7 @@ class EmailService:
                 )
                 RETURNING id
                 """,
-                {
-                    'source': source,
-                    'from_user_id': from_user['id'] if from_user is not None else None,
-                    'to_user_id': to_user['id'],
-                    'subject': subject,
-                    'body': body,
-                    'ref': ref,
-                    'priority': priority,
-                },
+                mail_init,
             ) as r,
         ):
             row = await r.fetchone()

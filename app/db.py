@@ -78,6 +78,8 @@ async def db2(write: bool = False, *, autocommit: bool = False):
     async with _PSYCOPG_POOL.connection() as conn:
         if autocommit and not write:
             raise ValueError('autocommit=True must be used with write=True')
+        if conn.read_only != write:
+            await conn.set_read_only(write)
         if conn.autocommit != autocommit:
             await conn.set_autocommit(autocommit)
         yield conn

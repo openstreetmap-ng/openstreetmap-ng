@@ -1,26 +1,32 @@
 import logging
-from collections.abc import Iterable
+from datetime import datetime
+from typing import Any, Literal, overload
 
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
-from sqlalchemy import delete, func, null, select, update
-from sqlalchemy.orm import joinedload
 
-from app.db import db
+from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes, hash_compare, hash_s256_code_challenge
-from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.lib.options_context import options_context
 from app.limits import (
     OAUTH_AUTHORIZATION_CODE_TIMEOUT,
     OAUTH_SECRET_PREVIEW_LENGTH,
     OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
 )
-from app.models.db.oauth2_application import OAuth2Application
-from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2Token, OAuth2TokenOOB
-from app.models.db.user import User
-from app.models.scope import Scope
+from app.models.db.oauth2_application import ApplicationId, ClientId, OAuth2Application, oauth2_app_is_system
+from app.models.db.oauth2_token import (
+    OAuth2CodeChallengeMethod,
+    OAuth2Token,
+    OAuth2TokenId,
+    OAuth2TokenInit,
+    OAuth2TokenOOB,
+    oauth2_token_is_oob,
+)
+from app.models.db.user import UserId
+from app.models.scope import PublicScope
 from app.models.types import Uri
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
@@ -31,12 +37,38 @@ from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 
 class OAuth2TokenService:
     @staticmethod
+    @overload
+    async def authorize(
+        *,
+        init: Literal[True],
+        client_id: ClientId,
+        redirect_uri: Uri,
+        scopes: tuple[PublicScope, ...],
+        code_challenge_method: OAuth2CodeChallengeMethod | None,
+        code_challenge: str | None,
+        state: str | None,
+    ) -> dict[str, str] | OAuth2TokenOOB | OAuth2Application: ...
+
+    @staticmethod
+    @overload
+    async def authorize(
+        *,
+        init: Literal[False],
+        client_id: ClientId,
+        redirect_uri: Uri,
+        scopes: tuple[PublicScope, ...],
+        code_challenge_method: OAuth2CodeChallengeMethod | None,
+        code_challenge: str | None,
+        state: str | None,
+    ) -> dict[str, str] | OAuth2TokenOOB: ...
+
+    @staticmethod
     async def authorize(
         *,
         init: bool,
-        client_id: str,
-        redirect_uri: str,
-        scopes: tuple[Scope, ...],
+        client_id: ClientId,
+        redirect_uri: Uri,
+        scopes: tuple[PublicScope, ...],
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
         state: str | None,
@@ -55,62 +87,73 @@ class OAuth2TokenService:
         if (code_challenge_method is None) != (code_challenge is None):
             raise_for.oauth2_bad_code_challenge_params()
 
-        with options_context(
-            joinedload(OAuth2Application.user).load_only(
-                User.id,
-                User.display_name,
-                User.avatar_type,
-                User.avatar_id,
-            )
-        ):
-            app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
-        if app is None or app.is_system_app:
-            raise_for.oauth_bad_client_id()
-        if redirect_uri not in app.redirect_uris:
-            raise_for.oauth_bad_redirect_uri()
-        redirect_uri = Uri(redirect_uri)  # mark as valid
-
         user_id = auth_user(required=True)['id']
+
+        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
+        if app is None or oauth2_app_is_system(app):
+            raise_for.oauth_bad_client_id()
+
+        if redirect_uri not in app['redirect_uris']:
+            raise_for.oauth_bad_redirect_uri()
+
         scopes_set = set(scopes)
-        if not scopes_set.issubset(app.scopes):
+        if not scopes_set.issubset(app['scopes']):
             raise_for.oauth_bad_scopes()
 
-        # handle silent authentication
         if init:
             tokens = await OAuth2TokenQuery.find_many_authorized_by_user_app_id(
                 user_id=user_id,
-                app_id=app.id,
+                app_id=app['id'],
                 limit=OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
             )
+
             for token in tokens:
-                # ignore different redirect uri
-                if token.redirect_uri != redirect_uri:
+                # Ignore different redirect URI
+                if token['redirect_uri'] != redirect_uri:
                     continue
-                # ignore different scopes
-                if scopes_set.symmetric_difference(token.scopes):
+                # Ignore different scopes
+                if scopes_set.symmetric_difference(token['scopes']):
                     continue
-                # session found, auto-approve
+                # Session found, auto-approve
                 break
             else:
-                # no session found, require manual approval
+                # No session found, require manual approval
                 return app
 
         authorization_code = buffered_rand_urlsafe(32)
         authorization_code_hashed = hash_bytes(authorization_code)
 
-        async with db(True) as session:
-            token = OAuth2Token(
-                user_id=user_id,
-                application_id=app.id,
-                token_hashed=authorization_code_hashed,
-                scopes=scopes,
-                redirect_uri=redirect_uri,
-                code_challenge_method=code_challenge_method,
-                code_challenge=code_challenge,
-            )
-            session.add(token)
+        token_init: OAuth2TokenInit = {
+            'user_id': user_id,
+            'application_id': app['id'],
+            'name': None,
+            'token_hashed': authorization_code_hashed,
+            'token_preview': None,
+            'redirect_uri': redirect_uri,
+            'scopes': list(scopes),
+            'code_challenge_method': code_challenge_method,
+            'code_challenge': code_challenge,
+        }
 
-        if token.is_oob:
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                INSERT INTO oauth2_token (
+                    user_id, application_id, name,
+                    token_hashed, token_preview, redirect_uri,
+                    scopes, code_challenge_method, code_challenge
+                )
+                VALUES (
+                    %(user_id)s, %(application_id)s, %(name)s,
+                    %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
+                    %(scopes)s, %(code_challenge_method)s, %(code_challenge)s
+                )
+                """,
+                token_init,
+            )
+
+        # Check if this is an OOB (out-of-band) token
+        if oauth2_token_is_oob(redirect_uri):
             return OAuth2TokenOOB(authorization_code, state)
 
         params = {'code': authorization_code}
@@ -121,181 +164,254 @@ class OAuth2TokenService:
     @staticmethod
     async def token(
         *,
-        client_id: str,
+        client_id: ClientId,
         client_secret: SecretStr | None,
         authorization_code: str,
         verifier: str | None,
-        redirect_uri: str,
+        redirect_uri: Uri,
     ) -> dict[str, str | int]:
         """
         Exchange an authorization code for an access token.
-
         The access token can be used to make requests on behalf of the user.
         """
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
-        if app is None or app.is_system_app:
+        if app is None or oauth2_app_is_system(app):
             raise_for.oauth_bad_client_id()
-        if app.is_confidential and (
+
+        # Check client credentials for confidential apps
+        if app['confidential'] and (
             client_secret is None
-            or app.client_secret_hashed is None
-            or not hash_compare(client_secret.get_secret_value(), app.client_secret_hashed)
+            or app['client_secret_hashed'] is None
+            or not hash_compare(client_secret.get_secret_value(), app['client_secret_hashed'])
         ):
             raise_for.oauth_bad_client_secret()
 
         authorization_code_hashed = hash_bytes(authorization_code)
-        async with db(True) as session:
-            stmt = (
-                select(OAuth2Token)
-                .where(
-                    OAuth2Token.token_hashed == authorization_code_hashed,
-                    OAuth2Token.created_at > utcnow() - OAUTH_AUTHORIZATION_CODE_TIMEOUT,
-                    OAuth2Token.authorized_at == null(),
-                )
-                .with_for_update()
-            )
-            token = await session.scalar(stmt)
-            if token is None:
-                raise_for.oauth_bad_user_token()
+
+        async with db2(True) as conn:
+            async with await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM oauth2_token
+                WHERE token_hashed = %s
+                AND created_at > statement_timestamp() - %s
+                AND authorized_at IS NULL
+                FOR UPDATE
+                """,
+                (authorization_code_hashed, OAUTH_AUTHORIZATION_CODE_TIMEOUT),
+            ) as r:
+                token: OAuth2Token | None = await r.fetchone()  # type: ignore
+                if token is None:
+                    raise_for.oauth_bad_user_token()
 
             try:
-                # verify redirect_uri
-                if token.redirect_uri != redirect_uri:
+                # Verify redirect URI
+                if token['redirect_uri'] != redirect_uri:
                     raise_for.oauth_bad_redirect_uri()
 
-                # verify code_challenge
-                if token.code_challenge_method is None:
+                # Verify code challenge
+                code_challenge_method = token['code_challenge_method']
+                if code_challenge_method is None:
                     if verifier is not None:
                         raise_for.oauth2_challenge_method_not_set()
-                elif token.code_challenge_method == OAuth2CodeChallengeMethod.plain:
-                    if token.code_challenge != verifier:
-                        raise_for.oauth2_bad_verifier(token.code_challenge_method)
-                elif token.code_challenge_method == OAuth2CodeChallengeMethod.S256:
-                    if verifier is None or token.code_challenge != hash_s256_code_challenge(verifier):
-                        raise_for.oauth2_bad_verifier(token.code_challenge_method)
+                elif code_challenge_method == 'plain':
+                    if token['code_challenge'] != verifier:
+                        raise_for.oauth2_bad_verifier(code_challenge_method)
+                elif code_challenge_method == 'S256':
+                    if verifier is None or token['code_challenge'] != hash_s256_code_challenge(verifier):
+                        raise_for.oauth2_bad_verifier(code_challenge_method)
                 else:
                     raise NotImplementedError(  # noqa: TRY301
-                        f'Unsupported OAuth2 code challenge method {token.code_challenge_method!r}'
+                        f'Unsupported OAuth2 code challenge method {token["code_challenge_method"]!r}'
                     )
+
             except Exception:
-                # delete the token if the verification fails
-                await session.delete(token)
+                # Delete the token if verification fails
+                await conn.execute(
+                    """
+                    DELETE FROM oauth2_token
+                    WHERE id = %s
+                    """,
+                    (token['id'],),
+                )
                 raise
 
             access_token = buffered_rand_urlsafe(32)
             access_token_hashed = hash_bytes(access_token)
-            authorized_at = utcnow()
 
-            token.token_hashed = access_token_hashed
-            token.authorized_at = authorized_at
-            token.redirect_uri = None
-            token.code_challenge_method = None
-            token.code_challenge = None
+            async with await conn.execute(
+                """
+                UPDATE oauth2_token
+                SET token_hashed = %s,
+                    authorized_at = statement_timestamp(),
+                    redirect_uri = NULL,
+                    code_challenge_method = NULL,
+                    code_challenge = NULL
+                WHERE id = %s
+                RETURNING authorized_at
+                """,
+                (access_token_hashed, token['id']),
+            ) as r:
+                authorized_at: datetime = (await r.fetchone())[0]  # type: ignore
 
         return {
             'access_token': access_token,
             'token_type': 'Bearer',
-            'scope': token.scopes_str,
+            'scope': ' '.join(token['scopes']),
             'created_at': int(authorized_at.timestamp()),
             # TODO: id_token
         }
 
     @staticmethod
-    async def create_pat(*, name: str, scopes: tuple[Scope, ...]) -> int:
-        """
-        Create a new Personal Access Token with the given name and scopes.
+    async def create_pat(*, name: str, scopes: tuple[PublicScope, ...]) -> OAuth2TokenId:
+        """Create a new Personal Access Token with the given name and scopes. Returns the token id."""
+        app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']  # type: ignore
+        user_id = auth_user(required=True)['id']
 
-        Returns the token id.
-        """
-        app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']
-        async with db(True) as session:
-            token = OAuth2Token(
-                user_id=auth_user(required=True)['id'],
-                application_id=app_id,
-                token_hashed=None,
-                scopes=scopes,
-                redirect_uri=None,
-                code_challenge_method=None,
-                code_challenge=None,
-            )
-            token.name = name
-            session.add(token)
-        return token.id
+        token_init: OAuth2TokenInit = {
+            'user_id': user_id,
+            'application_id': app_id,
+            'name': name,
+            'token_hashed': None,
+            'token_preview': None,
+            'redirect_uri': None,
+            'scopes': list(scopes),
+            'code_challenge_method': None,
+            'code_challenge': None,
+        }
+
+        async with (
+            db2(True) as conn,
+            await conn.execute(
+                """
+                INSERT INTO oauth2_token (
+                    user_id, application_id, name,
+                    token_hashed, token_preview, redirect_uri,
+                    scopes, code_challenge_method, code_challenge
+                )
+                VALUES (
+                    %(user_id)s, %(application_id)s, %(name)s,
+                    %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
+                    %(scopes)s, %(code_challenge_method)s, %(code_challenge)s
+                )
+                RETURNING id
+                """,
+                token_init,
+            ) as r,
+        ):
+            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def reset_pat_access_token(pat_id: int) -> SecretStr:
+    async def reset_pat_access_token(pat_id: OAuth2TokenId) -> SecretStr:
         """Reset the personal access token and return the new secret."""
-        app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']
-        access_token = buffered_rand_urlsafe(32)
-        access_token_hashed = hash_bytes(access_token)
-        async with db(True) as session:
-            stmt = (
-                update(OAuth2Token)
-                .where(
-                    OAuth2Token.id == pat_id,
-                    OAuth2Token.user_id == auth_user(required=True)['id'],
-                    OAuth2Token.application_id == app_id,
-                )
-                .values(
-                    {
-                        OAuth2Token.token_hashed: access_token_hashed,
-                        OAuth2Token.token_preview: access_token[:OAUTH_SECRET_PREVIEW_LENGTH],
-                        OAuth2Token.authorized_at: func.statement_timestamp(),
-                    }
-                )
-                .inline()
+        app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']  # type: ignore
+        access_token_ = buffered_rand_urlsafe(32)
+        access_token_hashed = hash_bytes(access_token_)
+        access_token_preview = access_token_[:OAUTH_SECRET_PREVIEW_LENGTH]
+        access_token = SecretStr(access_token_)
+        del access_token_
+        user_id = auth_user(required=True)['id']
+
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                UPDATE oauth2_token
+                SET token_hashed = %s,
+                    token_preview = %s,
+                    authorized_at = statement_timestamp()
+                WHERE id = %s
+                AND user_id = %s
+                AND application_id = %s
+                """,
+                (
+                    access_token_hashed,
+                    access_token_preview,
+                    pat_id,
+                    user_id,
+                    app_id,
+                ),
             )
-            await session.execute(stmt)
-        return SecretStr(access_token)
+
+        return access_token
 
     @staticmethod
-    async def revoke_by_id(token_id: int) -> None:
+    async def revoke_by_id(token_id: OAuth2TokenId) -> None:
         """Revoke the given token by id."""
-        async with db(True) as session:
-            stmt = delete(OAuth2Token).where(
-                OAuth2Token.user_id == auth_user(required=True)['id'],
-                OAuth2Token.id == token_id,
+        user_id = auth_user(required=True)['id']
+
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                DELETE FROM oauth2_token
+                WHERE id = %s AND user_id = %s
+                """,
+                (token_id, user_id),
             )
-            await session.execute(stmt)
+
         logging.debug('Revoked OAuth2 token %d', token_id)
 
     @staticmethod
     async def revoke_by_access_token(access_token: SecretStr) -> None:
         """Revoke the given access token."""
         access_token_hashed = hash_bytes(access_token.get_secret_value())
-        async with db(True) as session:
-            stmt = delete(OAuth2Token).where(OAuth2Token.token_hashed == access_token_hashed)
-            await session.execute(stmt)
+
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                DELETE FROM oauth2_token
+                WHERE token_hashed = %s
+                """,
+                (access_token_hashed,),
+            )
+
         logging.debug('Revoked OAuth2 access token')
 
     @staticmethod
     async def revoke_by_app_id(
-        app_id: int,
+        app_id: ApplicationId,
         *,
-        user_id: int | None = None,
-        skip_ids: Iterable[int] | None = None,
+        user_id: UserId | None = None,
+        skip_ids: list[OAuth2TokenId] | None = None,
     ) -> None:
         """Revoke all current user tokens for the given OAuth2 application."""
         if user_id is None:
             user_id = auth_user(required=True)['id']
-        if skip_ids is None:
-            skip_ids = ()
-        async with db(True) as session:
-            stmt = delete(OAuth2Token).where(
-                OAuth2Token.user_id == user_id,
-                OAuth2Token.application_id == app_id,
-                OAuth2Token.id.notin_(skip_ids),
-            )
-            await session.execute(stmt)
+
+        conditions: list[Composable] = [SQL('user_id = %s AND application_id = %s')]
+        params: list[Any] = [user_id, app_id]
+
+        if skip_ids is not None:
+            conditions.append(SQL('NOT (id = ANY(%s))'))
+            params.append(skip_ids)
+
+        query = SQL("""
+            DELETE FROM oauth2_token
+            WHERE {conditions}
+        """).format(conditions=SQL(' AND ').join(conditions))
+
+        async with db2(True) as conn:
+            await conn.execute(query, params)
+
         logging.debug('Revoked OAuth2 app tokens %d for user %d', app_id, user_id)
 
     @staticmethod
     async def revoke_by_client_id(
-        client_id: str,
+        client_id: ClientId,
         *,
-        user_id: int | None = None,
-        skip_ids: Iterable[int] | None = None,
+        user_id: UserId | None = None,
+        skip_ids: list[OAuth2TokenId] | None = None,
     ) -> None:
         """Revoke all current user tokens for the given OAuth2 client."""
-        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
+        async with (
+            db2() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT id FROM oauth2_application
+                WHERE client_id = %s
+                """,
+                (client_id,),
+            ) as r,
+        ):
+            app: OAuth2Application | None = await r.fetchone()  # type: ignore
+
         if app is not None:
-            await OAuth2TokenService.revoke_by_app_id(app.id, user_id=user_id, skip_ids=skip_ids)
+            await OAuth2TokenService.revoke_by_app_id(app['id'], user_id=user_id, skip_ids=skip_ids)

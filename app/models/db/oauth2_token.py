@@ -33,9 +33,12 @@ class OAuth2Token(OAuth2TokenInit):
     authorized_at: datetime | None
 
 
-def oauth2_token_is_oob(token: OAuth2Token) -> bool:
+def oauth2_token_is_oob(token_or_uri: OAuth2Token | OAuth2TokenInit | Uri | None, /) -> bool:
     """Check if the token is an out-of-band token."""
-    return token['redirect_uri'] in {'urn:ietf:wg:oauth:2.0:oob', 'urn:ietf:wg:oauth:2.0:oob:auto'}
+    return (token_or_uri['redirect_uri'] if isinstance(token_or_uri, dict) else token_or_uri) in {
+        'urn:ietf:wg:oauth:2.0:oob',
+        'urn:ietf:wg:oauth:2.0:oob:auto',
+    }
 
 
 class OAuth2TokenOOB:

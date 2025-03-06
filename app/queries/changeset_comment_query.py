@@ -10,7 +10,12 @@ from app.models.db.changeset_comment import ChangesetComment, changeset_comments
 
 class ChangesetCommentQuery:
     @staticmethod
-    async def get_comments_page(changeset_id: ChangesetId, page: int, num_items: int) -> list[ChangesetComment]:
+    async def get_comments_page(
+        changeset_id: ChangesetId,
+        *,
+        page: int,
+        num_items: int,
+    ) -> list[ChangesetComment]:
         """Get comments for the given changeset comments page."""
         stmt_limit, stmt_offset = standard_pagination_range(
             page,

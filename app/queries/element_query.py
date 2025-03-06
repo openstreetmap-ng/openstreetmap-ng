@@ -237,7 +237,7 @@ class ElementQuery:
             conditions.append(SQL('(typed_id = %s AND version = %s)'))
             params.extend((typed_id, version))
 
-        conditions = [SQL('({})').format(SQL(' OR ').join(conditions))]
+        conditions: list[Composable] = [SQL('({})').format(SQL(' OR ').join(conditions))]
 
         if at_sequence_id is not None:
             conditions.append(SQL('sequence_id <= %s'))
