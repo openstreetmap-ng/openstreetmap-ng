@@ -13,6 +13,7 @@ from app.models.db.user_token import (
     UserTokenType,
 )
 from app.models.proto.server_pb2 import UserTokenStruct
+from app.models.types import Email
 
 
 class UserTokenQuery:
@@ -78,8 +79,9 @@ class UserTokenQuery:
                     row = await r.fetchone()
                     if row is None:
                         return None
+                    email: Email = row[0]
 
-                if not hash_compare(row[0], token['user_email_hashed']):
+                if not hash_compare(email, token['user_email_hashed']):
                     logging.debug('Invalid user token email for id %r', token_struct.id)
                     return None
 

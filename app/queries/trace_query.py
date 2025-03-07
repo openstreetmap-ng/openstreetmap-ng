@@ -13,7 +13,7 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import polygon_to_h3
 from app.lib.mercator import mercator
-from app.lib.storage import TRACES_STORAGE
+from app.lib.storage import TRACE_STORAGE
 from app.lib.trace_file import TraceFile
 from app.models.db.trace import Trace, TraceId, TraceVisibility, trace_is_visible_to
 from app.models.db.user import UserId
@@ -54,7 +54,7 @@ class TraceQuery:
         Returns the file bytes.
         """
         trace = await TraceQuery.get_one_by_id(trace_id)
-        file_buffer = await TRACES_STORAGE.load(trace['file_id'])
+        file_buffer = await TRACE_STORAGE.load(trace['file_id'])
         file_bytes = TraceFile.decompress_if_needed(file_buffer, trace['file_id'])
         return file_bytes
 

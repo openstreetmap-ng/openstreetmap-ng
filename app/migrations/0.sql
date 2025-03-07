@@ -273,7 +273,7 @@ CREATE TABLE user_subscription (
 
 CREATE TYPE user_token_type AS ENUM ('account_confirm', 'email_change', 'email_reply', 'reset_password');
 CREATE TABLE user_token (
-    id bigint NOT NULL PRIMARY KEY,
+    id bigint PRIMARY KEY,
     type user_token_type NOT NULL,
     user_id bigint NOT NULL REFERENCES "user",
     user_email_hashed bytea NOT NULL,
@@ -283,4 +283,13 @@ CREATE TABLE user_token (
     email_reply_source mail_source,
     email_reply_to_user_id bigint REFERENCES "user",
     email_reply_usage_count smallint
+);
+
+CREATE TABLE files (
+    context text NOT NULL,
+    key text NOT NULL,
+    data bytea NOT NULL,
+    metadata hstore,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    PRIMARY KEY (context, key)
 );

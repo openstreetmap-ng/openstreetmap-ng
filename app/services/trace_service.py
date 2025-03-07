@@ -9,7 +9,7 @@ from app.format.gpx import FormatGPX
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.lib.storage import TRACES_STORAGE
+from app.lib.storage import TRACE_STORAGE
 from app.lib.trace_file import TraceFile
 from app.lib.xmltodict import XMLToDict
 from app.limits import TRACE_FILE_UPLOAD_MAX_SIZE
@@ -65,7 +65,8 @@ class TraceService:
         trace_init = TraceInitValidator.validate_python(trace_init)
 
         # Save the compressed file after validation to avoid unnecessary work
-        trace_init['file_id'] = await TRACES_STORAGE.save(*TraceFile.compress(file_bytes))
+        result = await TraceFile.compress(file_bytes)
+        trace_init['file_id'] = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
         logging.debug('Saved compressed trace file %r', trace_init['file_id'])
 
         try:
@@ -90,7 +91,7 @@ class TraceService:
 
         except Exception:
             # Clean up trace file on error
-            await TRACES_STORAGE.delete(trace_init['file_id'])
+            await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
 
     @staticmethod
@@ -173,7 +174,7 @@ class TraceService:
                 raise_for.trace_access_denied(trace_id)
 
         # After successful delete, also remove the file
-        await TRACES_STORAGE.delete(file_id)
+        await TRACE_STORAGE.delete(file_id)
 
 
 @cython.cfunc
