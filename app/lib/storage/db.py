@@ -33,16 +33,16 @@ class DBStorage(StorageBase):
             return row[0]
 
     @override
-    async def save(self, data: bytes, suffix: str) -> StorageKey:
+    async def save(self, data: bytes, suffix: str, metadata: dict[str, str] | None = None) -> StorageKey:
         key = buffered_rand_storage_key(suffix)
 
         async with db2(True) as conn:
             await conn.execute(
                 """
-                INSERT INTO files (context, key, data)
-                VALUES (%s, %s, %s)
+                INSERT INTO files (context, key, data, metadata)
+                VALUES (%s, %s, %s, %s)
                 """,
-                (self._context, key, data),
+                (self._context, key, data, metadata),
             )
 
         return key

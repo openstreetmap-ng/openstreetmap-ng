@@ -1,6 +1,7 @@
 from typing import override
 
 import aioboto3
+from types_aiobotocore_s3.type_defs import PutObjectRequestRequestTypeDef
 
 from app.lib.buffered_random import buffered_rand_storage_key
 from app.lib.storage.base import StorageBase
@@ -35,11 +36,20 @@ class S3Storage(StorageBase):
         )
 
     @override
-    async def save(self, data: bytes, suffix: str) -> StorageKey:
+    async def save(self, data: bytes, suffix: str, metadata: dict[str, str] | None = None) -> StorageKey:
         key = buffered_rand_storage_key(suffix)
 
+        put_kwargs: PutObjectRequestRequestTypeDef = {
+            'Bucket': self._bucket,
+            'Key': key,
+            'Body': data,
+        }
+
+        if metadata is not None:
+            put_kwargs['Metadata'] = metadata
+
         async with _S3.client('s3') as s3:
-            await s3.put_object(Bucket=self._bucket, Key=key, Body=data)
+            await s3.put_object(**put_kwargs)
 
         return key
 

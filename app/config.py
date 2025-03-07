@@ -65,7 +65,6 @@ LEGACY_SEQUENCE_ID_MARGIN = getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().low
 
 FILE_CACHE_DIR = _path(getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
 FILE_CACHE_SIZE_GB = int(getenv('FILE_CACHE_SIZE_GB', '128'))
-FILE_STORE_DIR = _path(getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
 PLANET_DIR = _path(getenv('PLANET_DIR', 'data/planet'), mkdir=True)
 PRELOAD_DIR = _path(getenv('PRELOAD_DIR', 'data/preload'))
 REPLICATION_DIR = _path(getenv('REPLICATION_DIR', 'data/replication'), mkdir=True)
