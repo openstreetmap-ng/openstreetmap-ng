@@ -6,11 +6,12 @@ from pydantic import SecretStr
 
 from app.db import db2
 from app.lib.crypto import hash_bytes
-from app.models.db.oauth2_application import ApplicationId, ClientId
+from app.models.db.oauth2_application import ApplicationId
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import UserId
+from app.models.types import ClientId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
-from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
+from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP, SYSTEM_APP_PAT_CLIENT_ID
 
 
 class OAuth2TokenQuery:
@@ -80,7 +81,7 @@ class OAuth2TokenQuery:
         limit: int | None = None,
     ) -> list[OAuth2Token]:
         """Find all PAT tokens (authorized or not) for the given user."""
-        app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']  # type: ignore
+        app_id = SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID]
         params: list[Any] = [user_id, app_id]
 
         if limit is not None:

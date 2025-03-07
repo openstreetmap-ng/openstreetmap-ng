@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from datetime import datetime
 from typing import Any, NamedTuple
 
@@ -65,7 +64,7 @@ class FormatGPX:
         }
 
     @staticmethod
-    def encode_tracks_filter(traces: Iterable[Trace], boundary: Polygon | MultiPolygon) -> dict:
+    def encode_tracks_filter(traces: list[Trace], boundary: Polygon | MultiPolygon) -> dict:
         """
         Encode multiple traces as GPX tracks, filtering to only include
         points within the specified boundary geometry.
@@ -136,7 +135,7 @@ class FormatGPX:
         return {'trk': trk}
 
     @staticmethod
-    def decode_tracks(tracks: Iterable[dict]) -> DecodeTracksResult:
+    def decode_tracks(tracks: list[dict]) -> DecodeTracksResult:
         size: cython.Py_ssize_t = 0
         segments: list[list[tuple[float, float, float]]] = []
         capture_times: list[datetime | None] = []

@@ -12,6 +12,7 @@ from app.lib.date_utils import utcnow
 from app.lib.locale import DEFAULT_LOCALE
 from app.lib.xmltodict import XMLToDict
 from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2ResponseMode, OAuth2TokenEndpointAuthMethod
+from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID
 
 
 async def test_openid_configuration(client: AsyncClient):
@@ -29,7 +30,7 @@ async def test_authorize_invalid_system_app(client: AsyncClient):
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
-        client_id='SystemApp.web',
+        client_id=SYSTEM_APP_WEB_CLIENT_ID,
         scope='',
         redirect_uri='urn:ietf:wg:oauth:2.0:oob',
     )

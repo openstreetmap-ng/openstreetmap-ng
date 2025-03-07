@@ -4,8 +4,9 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL
 
 from app.db import db2
-from app.models.db.oauth2_application import ApplicationId, ClientId, OAuth2Application
+from app.models.db.oauth2_application import ApplicationId, OAuth2Application
 from app.models.db.user import UserId
+from app.models.types import ClientId
 
 
 class OAuth2ApplicationQuery:

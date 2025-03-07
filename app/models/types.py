@@ -20,6 +20,8 @@ DisplayNameValidating = Annotated[
     UrlSafeValidator,
     XMLSafeValidator,
 ]
+
+ClientId = NewType('ClientId', str)
 LocaleCode = NewType('LocaleCode', str)
 Password = NewType('Password', SecretStr)
 StorageKey = NewType('StorageKey', str)

@@ -17,7 +17,7 @@ from app.models.db.connected_account import AUTH_PROVIDERS, AuthProvider, AuthPr
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.services.connected_account_service import ConnectedAccountService
-from app.services.system_app_service import SystemAppService
+from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID, SystemAppService
 from app.utils import extend_query_params, secure_referer
 
 
@@ -87,7 +87,7 @@ class AuthProviderService:
                 return await render_response('user/auth_provider/not_found.jinja2', {'provider': provider})
 
             logging.debug('Authenticated user %d using auth provider %r', user_id, provider)
-            access_token = await SystemAppService.create_access_token('SystemApp.web', user_id=user_id)
+            access_token = await SystemAppService.create_access_token(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
             max_age = COOKIE_AUTH_MAX_AGE  # TODO: remember option for auth providers
             response = RedirectResponse(secure_referer(state.referer), status.HTTP_303_SEE_OTHER)
             response.delete_cookie('auth_provider_state')

@@ -185,6 +185,7 @@ select = [
   "W6",
   "YTT", # flake8-2020
 ]
+extend-safe-fixes = ["D2"]
 fixable = ["ALL"]
 unfixable = []
 

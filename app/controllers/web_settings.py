@@ -15,6 +15,7 @@ from app.models.types import DisplayNameValidating, LocaleCode, Password
 from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.oauth2_token_service import OAuth2TokenService
+from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID
 from app.services.user_service import UserService
 from app.validators.email import EmailValidating
 
@@ -92,7 +93,7 @@ async def settings_password(
     )
     if revoke_other_sessions:
         current_session = await AuthService.authenticate_oauth2(None)
-        await OAuth2TokenService.revoke_by_client_id('SystemApp.web', skip_ids=(current_session.id,))  # pyright: ignore[reportOptionalMemberAccess]
+        await OAuth2TokenService.revoke_by_client_id(SYSTEM_APP_WEB_CLIENT_ID, skip_ids=[current_session.id])  # pyright: ignore[reportOptionalMemberAccess]
     return StandardFeedback.success_result(None, t('settings.password_has_been_changed'))
 
 

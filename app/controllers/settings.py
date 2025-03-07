@@ -18,6 +18,7 @@ from app.models.db.user import User
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.services.auth_service import AuthService
+from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID
 
 router = APIRouter()
 
@@ -49,7 +50,7 @@ async def settings_security(user: Annotated[User, web_user()]):
     current_session = await AuthService.authenticate_oauth2(None)
     active_sessions = await OAuth2TokenQuery.find_many_authorized_by_user_client_id(
         user_id=user.id,
-        client_id='SystemApp.web',
+        client_id=SYSTEM_APP_WEB_CLIENT_ID,
         limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
     )
     return await render_response(

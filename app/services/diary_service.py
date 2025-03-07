@@ -78,7 +78,7 @@ class DiaryService:
                     title = %(title)s,
                     body = %(body)s,
                     body_rich_hash = CASE
-                        WHEN %(body)s <> diary.body THEN NULL
+                        WHEN %(body)s != diary.body THEN NULL
                         ELSE body_rich_hash
                     END,
                     language = %(language)s,

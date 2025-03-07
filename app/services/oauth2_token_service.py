@@ -16,7 +16,7 @@ from app.limits import (
     OAUTH_SECRET_PREVIEW_LENGTH,
     OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
 )
-from app.models.db.oauth2_application import ApplicationId, ClientId, OAuth2Application, oauth2_app_is_system
+from app.models.db.oauth2_application import ApplicationId, OAuth2Application, oauth2_app_is_system
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,
     OAuth2Token,
@@ -27,10 +27,10 @@ from app.models.db.oauth2_token import (
 )
 from app.models.db.user import UserId
 from app.models.scope import PublicScope
-from app.models.types import Uri
+from app.models.types import ClientId, Uri
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
-from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
+from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP, SYSTEM_APP_PAT_CLIENT_ID
 
 # TODO: limit number of access tokens per user+app
 
@@ -264,7 +264,7 @@ class OAuth2TokenService:
     @staticmethod
     async def create_pat(*, name: str, scopes: tuple[PublicScope, ...]) -> OAuth2TokenId:
         """Create a new Personal Access Token with the given name and scopes. Returns the token id."""
-        app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']  # type: ignore
+        app_id = SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID]
         user_id = auth_user(required=True)['id']
 
         token_init: OAuth2TokenInit = {
@@ -303,7 +303,7 @@ class OAuth2TokenService:
     @staticmethod
     async def reset_pat_access_token(pat_id: OAuth2TokenId) -> SecretStr:
         """Reset the personal access token and return the new secret."""
-        app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']  # type: ignore
+        app_id = SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID]
         access_token_ = buffered_rand_urlsafe(32)
         access_token_hashed = hash_bytes(access_token_)
         access_token_preview = access_token_[:OAUTH_SECRET_PREVIEW_LENGTH]

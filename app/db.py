@@ -6,11 +6,26 @@ from tempfile import TemporaryDirectory
 
 import duckdb
 import orjson
+from psycopg import AsyncConnection, IsolationLevel
 from psycopg.types.json import set_json_dumps, set_json_loads
 from psycopg_pool import AsyncConnectionPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_SQLALCHEMY_URL, POSTGRES_URL
+
+
+async def _configure_connection(conn: AsyncConnection) -> None:
+    cursor = conn.cursor
+
+    @wraps(cursor)
+    def wrapped(*args, **kwargs):
+        # Default to binary mode for all cursors
+        # Explicitly set binary=False to revert to text mode
+        kwargs.setdefault('binary', True)
+        return cursor(*args, **kwargs)
+
+    conn.cursor = wrapped  # pyright: ignore [reportAttributeAccessIssue]
+
 
 _DB_ENGINE = create_async_engine(
     POSTGRES_SQLALCHEMY_URL,
@@ -26,6 +41,7 @@ _PSYCOPG_POOL = AsyncConnectionPool(
     min_size=2,
     max_size=100,
     open=False,
+    configure=_configure_connection,
     num_workers=3,  # workers for opening new connections
 )
 
@@ -73,16 +89,21 @@ async def db(write: bool = False, *, no_transaction: bool = False):
 
 
 @asynccontextmanager
-async def db2(write: bool = False, *, autocommit: bool = False):
+async def db2(write: bool = False, *, autocommit: bool = False, isolation_level: IsolationLevel | None = None):
     """Get a database connection."""
+    if autocommit and not write:
+        raise ValueError('autocommit=True must be used with write=True')
+
     async with _PSYCOPG_POOL.connection() as conn:
-        if autocommit and not write:
-            raise ValueError('autocommit=True must be used with write=True')
         if conn.read_only != write:
             await conn.set_read_only(write)
         if conn.autocommit != autocommit:
             await conn.set_autocommit(autocommit)
+        if conn.isolation_level != isolation_level:
+            await conn.set_isolation_level(isolation_level)
+
         yield conn
+
         if not write:
             await conn.rollback()
 

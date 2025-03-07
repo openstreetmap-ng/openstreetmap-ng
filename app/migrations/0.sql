@@ -30,6 +30,7 @@ CREATE TABLE "user" (
     email_verified boolean NOT NULL,
     display_name text NOT NULL,
     password_pb bytea NOT NULL,
+    password_updated_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     roles user_role[] NOT NULL DEFAULT '{}',
     language text NOT NULL,
     timezone text,
@@ -44,7 +45,6 @@ CREATE TABLE "user" (
     description_rich_hash bytea,
     created_ip inet NOT NULL,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
-    password_updated_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     scheduled_delete_at timestamptz
 );
 CREATE UNIQUE INDEX user_email_idx ON "user" (email);
@@ -146,7 +146,7 @@ CREATE TABLE element (
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 CREATE INDEX element_changeset_idx ON element (changeset_id);
-CREATE UNIQUE INDEX element_version_idx ON element (typed_id, version) INCLUDE (sequence_id);
+CREATE UNIQUE INDEX element_version_idx ON element (typed_id, version);
 CREATE INDEX element_current_idx ON element (typed_id, next_sequence_id, sequence_id);
 CREATE INDEX element_node_point_idx ON element (point) WHERE point IS NOT NULL AND next_sequence_id IS NULL;
 CREATE INDEX element_members_idx ON element USING gin (members) WHERE cardinality(members) > 0;

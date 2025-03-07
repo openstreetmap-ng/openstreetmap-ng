@@ -50,4 +50,5 @@ TagsValidating = Annotated[
     AfterValidator(_validate_tags),
 ]
 
+# TODO: check use
 TagsValidator = TypeAdapter(TagsValidating, config=PYDANTIC_CONFIG)

@@ -4,15 +4,19 @@ from typing import NewType, NotRequired, TypedDict
 from app.lib.image import DEFAULT_APP_AVATAR_URL, Image
 from app.models.db.user import UserDisplay, UserId
 from app.models.scope import PublicScope
-from app.models.types import StorageKey, Uri
+from app.models.types import ClientId, StorageKey, Uri
+from app.services.system_app_service import (
+    SYSTEM_APP_ID_CLIENT_ID,
+    SYSTEM_APP_RAPID_CLIENT_ID,
+    SYSTEM_APP_WEB_CLIENT_ID,
+)
 
 ApplicationId = NewType('ApplicationId', int)
-ClientId = NewType('ClientId', str)
 
 _CLIENT_ID_AVATAR_URL_MAP: dict[ClientId, str] = {
-    ClientId('SystemApp.web'): '/static/img/favicon/256-app.webp',
-    ClientId('SystemApp.id'): '/static/img/brand/id-app.webp',
-    ClientId('SystemApp.rapid'): '/static/img/brand/rapid.webp',
+    SYSTEM_APP_WEB_CLIENT_ID: '/static/img/favicon/256-app.webp',
+    SYSTEM_APP_ID_CLIENT_ID: '/static/img/brand/id-app.webp',
+    SYSTEM_APP_RAPID_CLIENT_ID: '/static/img/brand/rapid.webp',
 }
 
 

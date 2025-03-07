@@ -21,13 +21,12 @@ from app.limits import (
 )
 from app.models.db.oauth2_application import (
     ApplicationId,
-    ClientId,
     OAuth2Application,
     OAuth2ApplicationInit,
     oauth2_app_avatar_url,
 )
 from app.models.scope import PublicScope
-from app.models.types import StorageKey, Uri
+from app.models.types import ClientId, StorageKey, Uri
 from app.services.image_service import ImageService
 from app.utils import splitlines_trim
 from app.validators.url import UriValidator

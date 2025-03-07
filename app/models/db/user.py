@@ -111,11 +111,6 @@ def user_avatar_url(user: User | UserDisplay) -> str:
     raise NotImplementedError(f'Unsupported avatar type {avatar_type!r}')
 
 
-def user_background_url(user: User) -> str | None:
-    """Get the url for the user's background image."""
-    return Image.get_background_url(user['background_id'])
-
-
 # TODO: remove
 # # @validates('description')
 # # def validate_description(self, _: str, value: str):

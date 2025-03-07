@@ -10,10 +10,11 @@ from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
-from app.models.db.oauth2_application import ApplicationId, ClientId, OAuth2ApplicationInit
+from app.models.db.oauth2_application import ApplicationId, OAuth2ApplicationInit
 from app.models.db.oauth2_token import OAuth2TokenInit
 from app.models.db.user import UserId
 from app.models.scope import PUBLIC_SCOPES, Scope
+from app.models.types import ClientId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 
 SYSTEM_APP_CLIENT_ID_MAP: dict[ClientId, ApplicationId] = {}
@@ -28,6 +29,12 @@ class SystemApp(NamedTuple):
     scopes: tuple[Scope, ...]
 
 
+SYSTEM_APP_WEB_CLIENT_ID = ClientId('SystemApp.web')
+SYSTEM_APP_PAT_CLIENT_ID = ClientId('SystemApp.pat')
+SYSTEM_APP_ID_CLIENT_ID = ClientId('SystemApp.id')
+SYSTEM_APP_RAPID_CLIENT_ID = ClientId('SystemApp.rapid')
+
+
 class SystemAppService:
     @staticmethod
     async def on_startup():
@@ -36,17 +43,17 @@ class SystemAppService:
             for app in (
                 SystemApp(
                     name=NAME,
-                    client_id=ClientId('SystemApp.web'),
+                    client_id=SYSTEM_APP_WEB_CLIENT_ID,
                     scopes=('web_user',),
                 ),
                 SystemApp(
                     name='Personal Access Token',
-                    client_id=ClientId('SystemApp.pat'),
+                    client_id=SYSTEM_APP_PAT_CLIENT_ID,
                     scopes=tuple(PUBLIC_SCOPES),
                 ),
                 SystemApp(
                     name='iD',
-                    client_id=ClientId('SystemApp.id'),
+                    client_id=SYSTEM_APP_ID_CLIENT_ID,
                     scopes=(
                         'read_prefs',
                         'write_prefs',
@@ -57,7 +64,7 @@ class SystemAppService:
                 ),
                 SystemApp(
                     name='Rapid',
-                    client_id=ClientId('SystemApp.rapid'),
+                    client_id=SYSTEM_APP_RAPID_CLIENT_ID,
                     scopes=(
                         'read_prefs',
                         'write_prefs',

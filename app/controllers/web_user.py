@@ -14,10 +14,11 @@ from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import COOKIE_AUTH_MAX_AGE, DISPLAY_NAME_MAX_LENGTH, TIMEZONE_MAX_LENGTH
-from app.models.db.user import User, UserStatus
+from app.models.db.user import User
 from app.models.types import DisplayName, DisplayNameValidating, Email, Password
 from app.services.auth_provider_service import AuthProviderService
 from app.services.oauth2_token_service import OAuth2TokenService
+from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID, SystemAppService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
@@ -73,21 +74,25 @@ async def signup(
     auth_provider_verification: Annotated[str | None, Cookie()] = None,
 ):
     verification = AuthProviderService.validate_verification(auth_provider_verification)
-    email_confirmed = (verification is not None) and verification.email == email
-    access_token = await UserSignupService.signup(
+    email_confirmed = verification is not None and verification.email == email
+
+    user_id = await UserSignupService.signup(
         display_name=display_name,
         email=email,
         password=password,
         tracking=tracking,
         email_confirmed=email_confirmed,
     )
-    redirect_url = '/welcome' if email_confirmed else '/user/account-confirm/pending'
+
     response = Response(
-        orjson.dumps({'redirect_url': redirect_url}),
+        orjson.dumps({'redirect_url': '/welcome' if email_confirmed else '/user/account-confirm/pending'}),
         media_type='application/json; charset=utf-8',
     )
+
     if email_confirmed:
         response.delete_cookie('auth_provider_verification')
+
+    access_token = await SystemAppService.create_access_token(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
     response.set_cookie(
         key='auth',
         value=access_token.get_secret_value(),
@@ -96,6 +101,7 @@ async def signup(
         httponly=True,
         samesite='lax',
     )
+
     return response
 
 
@@ -113,11 +119,12 @@ async def account_confirm(
 async def account_confirm_resend(
     user: Annotated[User, web_user()],
 ):
-    if user.status != UserStatus.pending_activation:
+    if user['email_verified']:
         return {'is_active': True}
+
     await UserTokenAccountConfirmService.send_email()
     return StandardFeedback.success_result(
-        None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email)
+        None, t('confirmations.resend_success_flash.confirmation_sent', email=user['email'])
     )
 
 

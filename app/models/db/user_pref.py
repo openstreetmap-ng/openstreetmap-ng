@@ -29,4 +29,5 @@ class UserPref(TypedDict):
     ]  # TODO: test validate size
 
 
+# TODO: check use
 UserPrefListValidator = TypeAdapter(list[UserPref], config=PYDANTIC_CONFIG)

@@ -227,7 +227,7 @@ class NoteService:
         logging.info('Deleting notes without comments')
 
         async with db2(True) as conn:
-            r = await conn.execute(
+            result = await conn.execute(
                 """
                 DELETE FROM note
                 WHERE NOT EXISTS (
@@ -236,12 +236,13 @@ class NoteService:
                 )
                 """,
             )
-            if not r.rowcount:
+
+            if not result.rowcount:
                 # Warn due to unnecessary expensive query
                 logging.warning('Not found any notes without comments')
                 return
 
-        logging.info('Deleted %d notes without comments', r.rowcount)
+        logging.info('Deleted %d notes without comments', result.rowcount)
 
 
 async def _send_activity_email(note: Note, comment: NoteComment) -> None:

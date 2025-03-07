@@ -2,27 +2,25 @@ import logging
 
 from fastapi import UploadFile
 from pydantic import SecretStr
-from sqlalchemy import delete, func, update
 
 from app.config import FREEZE_TEST_USER
-from app.db import db
+from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.lib.image import AvatarType
+from app.lib.image import AvatarType, Image
 from app.lib.locale import is_installed_locale
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
-from app.models.db.user import Editor, User, UserStatus, user_is_test
-from app.models.db.user_token_reset_password import UserTokenResetPassword
+from app.models.db.user import Editor, User, user_avatar_url, user_is_test
 from app.models.types import DisplayName, Email, LocaleCode, Password
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
 from app.services.image_service import ImageService
 from app.services.oauth2_token_service import OAuth2TokenService
-from app.services.system_app_service import SystemAppService
+from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID, SystemAppService
 from app.services.user_token_email_change_service import UserTokenEmailChangeService
 from app.validators.email import validate_email, validate_email_deliverability
 
@@ -34,11 +32,7 @@ class UserService:
         display_name_or_email: DisplayName | Email,
         password: Password,
     ) -> SecretStr:
-        """
-        Attempt to login as a user.
-
-        Returns a new user session token.
-        """
+        """Attempt to login as a user. Returns a new user session token."""
         # TODO: normalize unicode & strip
         if '.' in display_name_or_email:  # (dot) indicates email format, display_name blacklists it
             try:
@@ -71,7 +65,7 @@ class UserService:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
 
         logging.debug('Authenticated user %d using credentials', user_id)
-        return await SystemAppService.create_access_token('SystemApp.web', user_id=user_id)
+        return await SystemAppService.create_access_token(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
 
     @staticmethod
     async def update_description(
@@ -79,67 +73,79 @@ class UserService:
         description: str,
     ) -> None:
         """Update user's profile description."""
-        current_user = auth_user(required=True)
-        if current_user.description == description:
-            return
-        async with db(True) as session:
-            stmt = (
-                update(User)
-                .where(User.id == current_user.id)
-                .values(
-                    {
-                        User.description: description,
-                        User.description_rich_hash: None,
-                    }
-                )
-                .inline()
+        user = auth_user(required=True)
+        user_id = user['id']
+
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                UPDATE "user"
+                SET description = %s,
+                    description_rich_hash = NULL
+                WHERE id = %s AND description != %s
+                """,
+                (description, user_id, description),
             )
-            await session.execute(stmt)
 
     @staticmethod
     async def update_avatar(avatar_type: AvatarType, avatar_file: UploadFile) -> str:
-        """
-        Update user's avatar.
+        """Update user's avatar. Returns the new avatar URL."""
+        user = auth_user(required=True)
+        user_id = user['id']
+        old_avatar_id = user['avatar_id']
 
-        Returns the new avatar URL.
-        """
         data = await avatar_file.read()
-        avatar_id = await ImageService.upload_avatar(data) if data and avatar_type == AvatarType.custom else None
+        avatar_id = await ImageService.upload_avatar(data) if data and avatar_type == 'custom' else None
 
-        # update user data
-        async with db(True) as session:
-            user = await session.get_one(User, auth_user(required=True)['id'], with_for_update=True)
-            old_avatar_id = user.avatar_id
-            user.avatar_type = avatar_type
-            user.avatar_id = avatar_id
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                UPDATE "user"
+                SET avatar_type = %s,
+                    avatar_id = %s
+                WHERE id = %s
+                """,
+                (avatar_type, avatar_id, user_id),
+            )
 
-        # cleanup old avatar
+        # Cleanup old avatar
         if old_avatar_id is not None:
             await ImageService.delete_avatar_by_id(old_avatar_id)
 
-        return user.avatar_url
+        # noinspection PyTypeChecker
+        user: User = {
+            **user,
+            'avatar_type': avatar_type,
+            'avatar_id': avatar_id,
+        }
+
+        return user_avatar_url(user)
 
     @staticmethod
     async def update_background(background_file: UploadFile) -> str | None:
-        """
-        Update user's background.
+        """Update user's background. Returns the new background URL."""
+        user = auth_user(required=True)
+        user_id = user['id']
+        old_background_id = user['background_id']
 
-        Returns the new background URL.
-        """
         data = await background_file.read()
         background_id = await ImageService.upload_background(data) if data else None
 
-        # update user data
-        async with db(True) as session:
-            user = await session.get_one(User, auth_user(required=True)['id'], with_for_update=True)
-            old_background_id = user.background_id
-            user.background_id = background_id
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                UPDATE "user"
+                SET background_id = %s
+                WHERE id = %s
+                """,
+                (background_id, user_id),
+            )
 
-        # cleanup old background
+        # Cleanup old background
         if old_background_id is not None:
             await ImageService.delete_background_by_id(old_background_id)
 
-        return user.background_url
+        return Image.get_background_url(background_id)
 
     @staticmethod
     async def update_settings(
@@ -154,43 +160,41 @@ class UserService:
             StandardFeedback.raise_error('display_name', t('validation.display_name_is_taken'))
         if not is_installed_locale(language):
             StandardFeedback.raise_error('language', t('validation.invalid_value'))
+
         user = auth_user(required=True)
+        user_id = user['id']
         if user_is_test(user) and FREEZE_TEST_USER and display_name != user['display_name']:
             StandardFeedback.raise_error('display_name', 'Changing test user display_name is disabled')
 
-        async with db(True) as session:
-            stmt = (
-                update(User)
-                .where(User.id == user.id)
-                .values(
-                    {
-                        User.display_name: display_name,
-                        User.activity_tracking: activity_tracking,
-                        User.crash_reporting: crash_reporting,
-                        User.language: language,
-                    }
-                )
-                .inline()
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                UPDATE "user"
+                SET display_name = %s,
+                    language = %s,
+                    activity_tracking = %s,
+                    crash_reporting = %s
+                WHERE id = %s
+                """,
+                (display_name, language, activity_tracking, crash_reporting, user_id),
             )
-            await session.execute(stmt)
 
     @staticmethod
     async def update_editor(
         editor: Editor | None,
     ) -> None:
         """Update default editor"""
-        async with db(True) as session:
-            stmt = (
-                update(User)
-                .where(User.id == auth_user(required=True)['id'])
-                .values(
-                    {
-                        User.editor: editor,
-                    }
-                )
-                .inline()
+        user_id = auth_user(required=True)['id']
+
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                UPDATE "user"
+                SET editor = %s
+                WHERE id = %s
+                """,
+                (editor, user_id),
             )
-            await session.execute(stmt)
 
     @staticmethod
     async def update_email(
@@ -198,11 +202,7 @@ class UserService:
         new_email: Email,
         password: Password,
     ) -> None:
-        """
-        Update user email.
-
-        Sends a confirmation email for the email change.
-        """
+        """Update user email. Sends a confirmation email for the email change."""
         user = auth_user(required=True)
         if user['email'] == new_email:
             StandardFeedback.raise_error('email', t('validation.new_email_is_current'))
@@ -237,6 +237,7 @@ class UserService:
     ) -> None:
         """Update user password."""
         user = auth_user(required=True)
+        user_id = user['id']
         verification = PasswordHash.verify(
             password_pb=user['password_pb'],
             password=old_password,
@@ -247,24 +248,22 @@ class UserService:
             StandardFeedback.raise_error('old_password', t('validation.password_is_incorrect'))
         if verification.schema_needed is not None:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
-        # ignore verification.rehash_needed, we are changing the password anyway
 
         new_password_pb = PasswordHash.hash(new_password)
         assert new_password_pb is not None, 'Provided password schemas cannot be used during update_password'
 
-        async with db(True) as session:
-            await session.execute(
-                update(User)
-                .where(User.id == user.id)
-                .values(
-                    {
-                        User.password_pb: new_password_pb,
-                        User.password_changed_at: func.statement_timestamp(),
-                    }
-                )
-                .inline()
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                UPDATE "user"
+                SET password_pb = %s,
+                    password_updated_at = statement_timestamp()
+                WHERE id = %s
+                """,
+                (new_password_pb, user_id),
             )
-        logging.debug('Changed password for user %d', user.id)
+
+        logging.debug('Changed password for user %d', user_id)
 
     @staticmethod
     async def reset_password(
@@ -278,55 +277,64 @@ class UserService:
         if token_struct is None:
             raise_for.bad_user_token_struct()
 
-        user_token = await UserTokenQuery.find_one_by_token_struct(UserTokenResetPassword, token_struct)
+        user_token = await UserTokenQuery.find_one_by_token_struct('reset_password', token_struct)
         if user_token is None:
             raise_for.bad_user_token_struct()
+        user_id = user_token['user_id']
 
         new_password_pb = PasswordHash.hash(new_password)
         assert new_password_pb is not None, 'Provided password schemas cannot be used during reset_password'
 
         if revoke_other_sessions:
-            await OAuth2TokenService.revoke_by_client_id('SystemApp.web', user_id=user_token.user_id)
+            await OAuth2TokenService.revoke_by_client_id(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
 
-        async with db(True) as session:
-            # prevent race conditions
-            await session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
-            if (
-                await session.execute(
-                    delete(UserTokenResetPassword).where(UserTokenResetPassword.id == token_struct.id)
+        async with db2(True) as conn:
+            async with await conn.execute(
+                """
+                SELECT 1 FROM user_token
+                WHERE id = %s AND type = 'reset_password'
+                FOR UPDATE
+                """,
+                (token_struct.id,),
+            ) as r:
+                if await r.fetchone() is None:
+                    raise_for.bad_user_token_struct()
+
+            async with conn.pipeline():
+                await conn.execute(
+                    """
+                    UPDATE "user"
+                    SET password_pb = %s,
+                        password_updated_at = DEFAULT
+                    WHERE id = %s
+                    """,
+                    (new_password_pb, user_id),
                 )
-            ).rowcount != 1:
-                raise_for.bad_user_token_struct()
-            await session.commit()
-            await session.execute(
-                update(User)
-                .where(User.id == user_token.user_id)
-                .values(
-                    {
-                        User.password_pb: new_password_pb,
-                        User.password_changed_at: func.statement_timestamp(),
-                    }
+                await conn.execute(
+                    """
+                    DELETE FROM user_token
+                    WHERE id = %s
+                    """,
+                    (token_struct.id,),
                 )
-                .inline()
-            )
-        logging.debug('Reset password for user %d', user_token.user_id)
+
+        logging.debug('Reset password for user %d', user_id)
 
     @staticmethod
     async def update_timezone(timezone: str) -> None:
         """Update the user timezone."""
         user_id = auth_user(required=True)['id']
-        async with db(True) as session:
-            stmt = (
-                update(User)
-                .where(User.id == user_id, User.timezone != timezone)
-                .values(
-                    {
-                        User.timezone: timezone,
-                    }
-                )
-                .inline()
+
+        async with db2(True) as conn:
+            result = await conn.execute(
+                """
+                UPDATE "user"
+                SET timezone = %s
+                WHERE id = %s AND timezone != %s
+                """,
+                (timezone, user_id, timezone),
             )
-            result = await session.execute(stmt)
+
             if result.rowcount:
                 logging.debug('Updated user %d timezone to %r', user_id, timezone)
 
@@ -334,57 +342,66 @@ class UserService:
     @staticmethod
     async def request_scheduled_delete() -> None:
         """Request a scheduled deletion of the user."""
-        async with db(True) as session:
-            stmt = (
-                update(User)
-                .where(User.id == auth_user(required=True)['id'])
-                .values(
-                    {
-                        User.scheduled_delete_at: func.statement_timestamp() + USER_SCHEDULED_DELETE_DELAY,
-                    }
-                )
-                .inline()
+        user_id = auth_user(required=True)['id']
+
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                UPDATE "user"
+                SET scheduled_delete_at = statement_timestamp() + %s
+                WHERE id = %s AND scheduled_delete_at IS NULL
+                """,
+                (USER_SCHEDULED_DELETE_DELAY, user_id),
             )
-            await session.execute(stmt)
 
     @staticmethod
     async def abort_scheduled_delete() -> None:
         """Abort a scheduled deletion of the user."""
-        async with db(True) as session:
-            stmt = (
-                update(User)
-                .where(User.id == auth_user(required=True)['id'])
-                .values(
-                    {
-                        User.scheduled_delete_at: None,
-                    }
-                )
+        user_id = auth_user(required=True)['id']
+
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                UPDATE "user"
+                SET scheduled_delete_at = NULL
+                WHERE id = %s
+                """,
+                (user_id,),
             )
-            await session.execute(stmt)
 
     @staticmethod
-    async def delete_old_pending_users():
+    async def delete_old_pending_users() -> None:
         """Find old pending users and delete them."""
         logging.debug('Deleting old pending users')
-        async with db(True) as session:
-            stmt = delete(User).where(
-                User.status == UserStatus.pending_activation,
-                User.created_at < func.statement_timestamp() - USER_PENDING_EXPIRE,
+
+        async with db2(True) as conn:
+            await conn.execute(
+                """
+                DELETE FROM "user"
+                WHERE NOT email_verified
+                AND created_at < statement_timestamp() - %s
+                """,
+                (USER_PENDING_EXPIRE,),
             )
-            await session.execute(stmt)
 
 
 async def _rehash_user_password(user: User, password: Password) -> None:
+    """Rehash user password if the hashing algorithm or parameters have changed."""
+    user_id = user['id']
+
     new_password_pb = PasswordHash.hash(password)
     if new_password_pb is None:
         return
 
-    async with db(True) as session:
-        stmt = (
-            update(User)
-            .where(User.id == user.id, User.password_pb == user.password_pb)
-            .values({User.password_pb: new_password_pb})
-            .inline()
+    async with db2(True) as conn:
+        result = await conn.execute(
+            """
+            UPDATE "user"
+            SET password_pb = %s
+            WHERE id = %s AND password_pb = %s
+            """,
+            (new_password_pb, user_id, user['password_pb']),
         )
-        await session.execute(stmt)
-    logging.debug('Rehashed password for user %d', user.id)
+
+        if result.rowcount:
+            logging.debug('Rehashed password for user %d', user_id)
