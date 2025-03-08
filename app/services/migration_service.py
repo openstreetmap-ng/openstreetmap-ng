@@ -93,7 +93,7 @@ class MigrationService:
                 logging.debug('No migrations to apply. Database is up to date.')
                 return
 
-            logging.info('Found %d migrations to apply', len(migrations))
+            logging.info('Applying %d migrations', len(migrations))
             await _apply_migrations(conn, migrations)
 
             new_version = migrations[-1][0]
