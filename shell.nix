@@ -336,7 +336,7 @@ let
           --username=postgres
       fi
 
-      mkdir -p data/alembic data/mailpit data/postgres_unix data/supervisor
+      mkdir -p data/mailpit data/postgres_unix data/supervisor
       python -m supervisor.supervisord -c ${supervisordConf}
       echo "Supervisor started"
 
@@ -353,8 +353,7 @@ let
         sleep 0.1
       done
 
-      echo "Postgres started, running migrations"
-      alembic-upgrade
+      echo "Postgres started"
     '')
     (makeScript "dev-stop" ''
       pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
@@ -374,7 +373,7 @@ let
     '')
     (makeScript "dev-clean" ''
       dev-stop
-      rm -rf data/alembic/ data/postgres/ data/postgres_unix/
+      rm -rf data/postgres/ data/postgres_unix/
     '')
     (makeScript "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
     (makeScript "dev-logs-watch-js" "tail -f data/supervisor/watch-js.log")
