@@ -3,7 +3,7 @@ from shapely import Point
 
 from app.lib.user_role_limits import UserRoleLimits
 from app.models.db.element import Element
-from app.models.element import ElementId, ElementRef
+from app.models.element import ElementId, typed_element_id
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.services.changeset_service import ChangesetService
@@ -22,10 +22,10 @@ async def test_create_simple(changeset_id: int):
         members=[],
     )
 
-    assigned_ref_map = await OptimisticDiff.run((element,))
-    node_id = assigned_ref_map[ElementRef('node', ElementId(-1))][0].id
+    assigned_ref_map = await OptimisticDiff.run([element])
+    typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
-    elements = await ElementQuery.get_by_refs((ElementRef('node', node_id),), limit=1)
+    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
     element = elements[0]
     await ElementMemberQuery.resolve_members(elements)
 

@@ -12,7 +12,7 @@ from app.lib.exceptions_context import raise_for
 from app.lib.xml_body import xml_body
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
+from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef, split_typed_element_id
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
@@ -43,8 +43,8 @@ async def create_element(
     except Exception as e:
         raise_for.bad_xml(type, str(e))
 
-    assigned_ref_map = await OptimisticDiff.run((element,))
-    assigned_id = next(iter(assigned_ref_map.values()))[0].id
+    assigned_ref_map = await OptimisticDiff.run([element])
+    assigned_id = split_typed_element_id(next(iter(assigned_ref_map.values()))[0])[1]
     return Response(str(assigned_id), media_type='text/plain')
 
 
@@ -66,8 +66,8 @@ async def update_element(
     except Exception as e:
         raise_for.bad_xml(type, str(e))
 
-    await OptimisticDiff.run((element,))
-    return Response(str(element.version), media_type='text/plain')
+    await OptimisticDiff.run([element])
+    return Response(str(element['version']), media_type='text/plain')
 
 
 @router.delete('/{type:element_type}/{id:int}')
@@ -89,8 +89,8 @@ async def delete_element(
     except Exception as e:
         raise_for.bad_xml(type, str(e))
 
-    await OptimisticDiff.run((element,))
-    return Response(str(element.version), media_type='text/plain')
+    await OptimisticDiff.run([element])
+    return Response(str(element['version']), media_type='text/plain')
 
 
 @router.get('/{type:element_type}s')

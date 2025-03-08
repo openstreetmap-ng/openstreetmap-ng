@@ -1,6 +1,5 @@
 from typing import TypedDict
 
-from app.models.db.element import ElementInit
 from app.models.element import ElementId, ElementType, TypedElementId, split_typed_element_id
 
 Diff06ResultDict = TypedDict(
@@ -16,7 +15,7 @@ Diff06ResultDict = TypedDict(
 class Diff06Mixin:
     @staticmethod
     def encode_diff_result(
-        assigned_ref_map: dict[TypedElementId, list[ElementInit]],
+        assigned_ref_map: dict[TypedElementId, tuple[TypedElementId, list[int]]],
     ) -> list[tuple[ElementType, Diff06ResultDict]]:
         """
         >>> encode_diff_result({
@@ -32,19 +31,19 @@ class Diff06Mixin:
         """
         result: list[tuple[ElementType, Diff06ResultDict]] = []
 
-        for typed_id, elements in assigned_ref_map.items():
+        for typed_id, (new_typed_id, versions) in assigned_ref_map.items():
             type, old_id = split_typed_element_id(typed_id)
-            new_id = split_typed_element_id(elements[0]['typed_id'])[1]
+            new_id = split_typed_element_id(new_typed_id)[1]
             result.extend(
                 (
                     type,
                     {
                         '@old_id': old_id,
                         '@new_id': new_id,
-                        '@new_version': element['version'],
+                        '@new_version': version,
                     },
                 )
-                for element in elements
+                for version in versions
             )
 
         return result

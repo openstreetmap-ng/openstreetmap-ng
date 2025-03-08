@@ -136,9 +136,9 @@ class OptimisticDiffPrepare:
             strict=True,
         ):
             typed_id = element['typed_id']
+            version = element['version']
 
-            if element['version'] == 1:
-                # Handle element creation
+            if version == 1:  # Handle element creation
                 action = 'create'
 
                 if element_id >= 0:
@@ -148,15 +148,15 @@ class OptimisticDiffPrepare:
                 entry = None
                 prev = None
 
-            else:
-                # Handle element modification and deletion
+            else:  # Handle element modification and deletion
                 action = 'modify' if element['visible'] else 'delete'
+
                 entry = element_state.get(typed_id)
                 if entry is None:
                     raise_for.element_not_found(typed_id)
 
                 prev = entry.current
-                if prev['version'] + 1 != element['version']:
+                if prev['version'] + 1 != version:
                     raise_for.element_version_conflict(element, prev['version'])
                 if action == 'delete' and not prev['visible']:
                     raise_for.element_already_deleted(typed_id)
@@ -165,7 +165,7 @@ class OptimisticDiffPrepare:
             if element_type != 'node':
                 added_members_refs = self._update_reference_override(prev, element, typed_id)
                 if added_members_refs:
-                    self._check_members_local(element, typed_id, added_members_refs)
+                    self._check_members_local(element, added_members_refs)
 
             # On delete, check if not referenced by other elements
             if action == 'delete' and not self._check_element_can_delete(element):
@@ -263,7 +263,7 @@ class OptimisticDiffPrepare:
                     return False
                 raise_for.element_in_use(typed_id, list(used_by))
 
-        # mark for reference check during apply
+        # Mark for reference check during apply
         self.reference_check_element_refs.add(typed_id)
         return True
 
@@ -272,62 +272,70 @@ class OptimisticDiffPrepare:
         prev: ElementInit | None,
         element: ElementInit,
         typed_id: TypedElementId,
-    ) -> set[TypedElementId] | None:
+    ) -> list[TypedElementId] | None:
         """Update the local reference overrides. Returns the newly added references if any."""
         next_members = element['members']
         prev_members = prev['members'] if prev is not None else None
-        if next_members is None and prev_members is None:
+        next_members_arr = np.unique(np.array(next_members, np.uint64)) if next_members is not None else None
+        prev_members_arr = np.unique(np.array(prev_members, np.uint64)) if prev_members is not None else None
+        if next_members_arr is None and prev_members_arr is None:
             return None
 
-        next_refs = set(next_members) if next_members is not None else set()
-        prev_refs = set(prev_members) if prev_members is not None else set()
+        if next_members_arr is not None and prev_members_arr is not None:
+            typed_ids_removed = np.setdiff1d(prev_members_arr, next_members_arr, assume_unique=True)
+            typed_ids_added = np.setdiff1d(next_members_arr, prev_members_arr, assume_unique=True)
+        elif next_members_arr is not None:
+            typed_ids_removed = None
+            typed_ids_added = next_members_arr
+        else:
+            assert prev_members_arr is not None
+            typed_ids_removed = prev_members_arr
+            typed_ids_added = None
+
         reference_override = self._reference_override
 
-        # remove old references
-        if prev_members:
-            removed_refs: set[TypedElementId] = prev_refs.difference(next_refs)
-            for ref in removed_refs:
+        # Remove old references
+        if typed_ids_removed is not None:
+            typed_ids_removed_: list[TypedElementId] = typed_ids_removed.tolist()  # type: ignore
+            for ref in typed_ids_removed_:
                 reference_override[(ref, True)].discard(typed_id)
                 reference_override[(ref, False)].add(typed_id)
 
-        # add new references
-        if next_members:
-            added_refs: set[TypedElementId] = next_refs.difference(prev_refs)
-            for ref in added_refs:
+        # Add new references
+        if typed_ids_added is not None:
+            typed_ids_added_: list[TypedElementId] = typed_ids_added.tolist()  # type: ignore
+            for ref in typed_ids_added_:
                 reference_override[(ref, True)].add(typed_id)
                 reference_override[(ref, False)].discard(typed_id)
-            return added_refs
+            return typed_ids_added_
 
         return None
 
-    def _check_members_local(
-        self,
-        parent: ElementInit,
-        parent_typed_id: TypedElementId,
-        member_typed_ids: set[TypedElementId],
-    ) -> None:
+    def _check_members_local(self, parent: ElementInit, members: list[TypedElementId]) -> None:
         """
         Check if the members exist and are visible using element state.
         Stores not found member refs for remote check.
         """
-        element_state = self.element_state
+        parent_typed_id = parent['typed_id']
         not_found: list[TypedElementId] = []
 
-        for member_typed_id in member_typed_ids:
-            entry = element_state.get(member_typed_id)
+        element_state = self.element_state
+
+        for member in members:
+            entry = element_state.get(member)
 
             if entry is None:
-                # Check if self-reference during creation
-                if member_typed_id == parent_typed_id:
+                # Prevent self-reference during creation
+                if member == parent_typed_id:
                     if not parent['visible']:
-                        raise_for.element_member_not_found(parent_typed_id, member_typed_id)
+                        raise_for.element_member_not_found(parent_typed_id, member)
                     continue
 
-                not_found.append(member_typed_id)
+                not_found.append(member)
                 continue
 
             if not entry.current['visible']:
-                raise_for.element_member_not_found(parent_typed_id, member_typed_id)
+                raise_for.element_member_not_found(parent_typed_id, member)
 
         if not_found:
             self._elements_check_members_remote.append((parent_typed_id, set(not_found)))
@@ -381,71 +389,89 @@ class OptimisticDiffPrepare:
 
     def _push_bbox_way_info(self, prev: ElementInit | None, element: ElementInit) -> None:
         """Push bbox info for a way. Way info contains all nodes."""
-        node_typed_ids: set[TypedElementId] = set()
-
         next_members = element['members']
-        if next_members is not None:
-            node_typed_ids.update(next_members)
-
         prev_members = prev['members'] if prev is not None else None
-        if prev_members is not None:
-            node_typed_ids.update(prev_members)
-
-        if not node_typed_ids:
+        next_members_arr = np.array(next_members, np.uint64) if next_members else None
+        prev_members_arr = np.array(prev_members, np.uint64) if prev_members else None
+        if next_members_arr is None and prev_members_arr is None:
             return
+
+        if next_members_arr is not None and prev_members_arr is not None:
+            typed_ids_arr = np.union1d(next_members_arr, prev_members_arr)
+        elif next_members_arr is not None:
+            typed_ids_arr = np.unique(next_members_arr)
+        else:
+            assert prev_members_arr is not None
+            typed_ids_arr = np.unique(prev_members_arr)
+
+        typed_ids: list[TypedElementId] = typed_ids_arr.tolist()  # type: ignore
 
         element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
         bbox_points: list[Point] = self._bbox_points
         bbox_refs: set[TypedElementId] = self._bbox_refs
 
-        for node_typed_id in node_typed_ids:
-            entry = element_state.get(node_typed_id)
-            if entry is not None:
-                point = entry.current['point']
-                assert point is not None, f'Node {node_typed_id} point must be set'
-                bbox_points.append(point)
-            else:
-                bbox_refs.add(node_typed_id)
+        for typed_id in typed_ids:
+            entry = element_state.get(typed_id)
+            if entry is None:
+                bbox_refs.add(typed_id)
+                continue
+
+            point = entry.current['point']
+            assert point is not None, f'Node {typed_id} point must be set'
+            bbox_points.append(point)
 
     def _push_bbox_relation_info(self, prev: ElementInit | None, element: ElementInit) -> None:
         """Push bbox info for a relation. Relation info contains either all members or only changed members."""
         next_members = element['members']
         prev_members = prev['members'] if prev is not None else None
+        next_members_arr = np.array(next_members, np.uint64) if next_members else None
+        prev_members_arr = np.array(prev_members, np.uint64) if prev_members else None
+        if next_members_arr is None and prev_members_arr is None:
+            return
 
-        next_refs = np.array(next_members, np.uint64) if next_members is not None else np.empty(0, np.uint64)
-        prev_refs = np.array(prev_members, np.uint64) if prev_members is not None else np.empty(0, np.uint64)
-        changed_refs = np.setxor1d(prev_refs, next_refs)
+        if next_members_arr is not None and prev_members_arr is not None:
+            typed_ids_changed = np.setxor1d(prev_members_arr, next_members_arr)
+            typed_ids_all = np.union1d(next_members_arr, prev_members_arr)
+        elif next_members_arr is not None:
+            typed_ids_changed = np.unique(next_members_arr)
+            typed_ids_all = typed_ids_changed
+        else:
+            assert prev_members_arr is not None
+            typed_ids_changed = np.unique(prev_members_arr)
+            typed_ids_all = typed_ids_changed
 
         # Perform full diff if tags changed or contains nested relations
-        full_diff: cython.bint = prev is None or prev['tags'] != element['tags']
-        if not full_diff:
-            full_diff = np.any(
-                (changed_refs >= TYPED_ELEMENT_ID_RELATION_MIN) & (changed_refs <= TYPED_ELEMENT_ID_RELATION_MAX)
+        full_diff: cython.bint = (
+            prev is None
+            or prev['tags'] != element['tags']
+            or np.any(
+                (typed_ids_changed >= TYPED_ELEMENT_ID_RELATION_MIN)  #
+                & (typed_ids_changed <= TYPED_ELEMENT_ID_RELATION_MAX)
             ).tolist()
+        )
 
-        diff_refs: list[TypedElementId] = (np.union1d(prev_refs, next_refs) if full_diff else changed_refs).tolist()  # type: ignore
-        if not diff_refs:
-            return
+        typed_ids_diff: list[TypedElementId] = (typed_ids_all if full_diff else typed_ids_changed).tolist()  # type: ignore
 
         element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
         bbox_points: list[Point] = self._bbox_points
         bbox_refs: set[TypedElementId] = self._bbox_refs
 
         for typed_id, type_id in zip(
-            diff_refs,
-            split_typed_element_ids(diff_refs),
+            typed_ids_diff,
+            split_typed_element_ids(typed_ids_diff),
             strict=True,
         ):
             type = type_id[0]
 
             if type == 'node':
                 entry = element_state.get(typed_id)
-                if entry is not None:
-                    point = entry.current.get('point')
-                    assert point is not None, f'Node {typed_id} point must be set'
-                    bbox_points.append(point)
-                else:
+                if entry is None:
                     bbox_refs.add(typed_id)
+                    continue
+
+                point = entry.current.get('point')
+                assert point is not None, f'Node {typed_id} point must be set'
+                bbox_points.append(point)
 
             elif type == 'way':
                 entry = element_state.get(typed_id)
@@ -458,12 +484,13 @@ class OptimisticDiffPrepare:
 
                 for node_typed_id in members:
                     entry = element_state.get(node_typed_id)
-                    if entry is not None:
-                        point = entry.current.get('point')
-                        assert point is not None, f'Node {node_typed_id} point must be set'
-                        bbox_points.append(point)
-                    else:
+                    if entry is None:
                         bbox_refs.add(node_typed_id)
+                        continue
+
+                    point = entry.current.get('point')
+                    assert point is not None, f'Node {node_typed_id} point must be set'
+                    bbox_points.append(point)
 
     async def _preload_changeset(self) -> None:
         """Preload changeset state from the database."""

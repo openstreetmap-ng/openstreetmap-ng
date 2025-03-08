@@ -14,7 +14,7 @@ from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
 class OptimisticDiff:
     @staticmethod
-    async def run(elements: list[ElementInit]) -> dict[TypedElementId, list[Element]]:
+    async def run(elements: list[ElementInit]) -> dict[TypedElementId, tuple[TypedElementId, list[int]]]:
         """
         Perform an optimistic diff update of the elements.
         Returns a dict, mapping original element refs to the new elements.
