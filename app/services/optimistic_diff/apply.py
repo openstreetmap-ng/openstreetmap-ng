@@ -1,209 +1,280 @@
-import logging
-from asyncio import Lock, TaskGroup
-from collections.abc import Collection, Mapping
+from asyncio import TaskGroup
 from datetime import datetime
+from io import BytesIO
 
-from sqlalchemy import and_, null, or_, select, text, update
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import DeclarativeBase, aliased
+import cython
+from psycopg import AsyncConnection
 
-from app.db import db
+from app.db import db2
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.date_utils import utcnow
 from app.models.db.changeset import Changeset
-from app.models.db.changeset_bounds import ChangesetBounds
-from app.models.db.element import Element
-from app.models.db.element_member import ElementMember
-from app.models.element import ElementId, ElementRef, ElementType, TypedElementId, VersionedElementRef
+from app.models.db.element import Element, ElementInit, SequenceId
+from app.models.element import (
+    ElementId,
+    ElementType,
+    TypedElementId,
+    split_typed_element_id,
+    typed_element_id,
+)
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff.prepare import ElementStateEntry, OptimisticDiffPrepare
 
-# allow reads but prevent writes
-_lock_tables: tuple[type[DeclarativeBase], ...] = (Changeset, ChangesetBounds, Element, ElementMember)
-_lock_tables_names = (f'"{t.__tablename__}"' for t in _lock_tables)
-_lock_tables_sql = text(f'LOCK TABLE {",".join(_lock_tables_names)} IN EXCLUSIVE MODE')
-
-# session.add() during .flush() is not supported
-_flush_lock = Lock()
-
 
 class OptimisticDiffApply:
     @staticmethod
-    async def apply(prepare: OptimisticDiffPrepare) -> dict[ElementRef, list[Element]]:
+    async def apply(prepare: OptimisticDiffPrepare) -> dict[TypedElementId, tuple[TypedElementId, list[int]]]:
         """
         Apply the optimistic diff update.
-
-        Returns a dict, mapping original element refs to the new elements.
+        Returns a dict, mapping original element refs to the new versions.
         """
         if not prepare.apply_elements:
             return {}
 
-        async with db(True) as session, TaskGroup() as tg:
-            # obtain exclusive lock on the tables
-            await session.execute(_lock_tables_sql)
+        async with db2(True) as conn:
+            # Lock the tables to avoid concurrent updates.
+            # Then perform all the updates at once.
+            await conn.execute('LOCK TABLE changeset, changeset_bounds, element IN EXCLUSIVE MODE')
 
-            # check if the element_state is valid
-            tg.create_task(_check_elements_latest(prepare.element_state))
+            async with conn.pipeline(), TaskGroup() as tg:
+                # Check if the element_state is valid
+                tg.create_task(_check_elements_latest(prepare.element_state))
 
-            # check if the elements have no new references
-            if prepare.reference_check_element_refs:
-                tg.create_task(
-                    _check_elements_unreferenced(
-                        prepare.reference_check_element_refs,
-                        prepare.at_sequence_id,
+                # Check if the elements have no new references
+                if prepare.reference_check_element_refs:
+                    tg.create_task(
+                        _check_elements_unreferenced(
+                            list(prepare.reference_check_element_refs),
+                            prepare.at_sequence_id,
+                        )
                     )
-                )
 
-            now = utcnow()
-            tg.create_task(_update_changeset(prepare.changeset, now, session))  # pyright: ignore[reportArgumentType]
-            tg.create_task(_update_elements(prepare.apply_elements, now, session))
+                # Process elements and changeset updates in parallel
+                now = utcnow()
+                tg.create_task(_update_changeset(conn, now, prepare.changeset))
+                update_elements_t = tg.create_task(_update_elements(conn, now, prepare.apply_elements))
 
-        assigned_ref_map: dict[ElementRef, list[Element]] = {}
-        for element, element_ref in prepare.apply_elements:
-            if (v := assigned_ref_map.get(element_ref)) is None:
-                v = assigned_ref_map[element_ref] = []
-            v.append(element)
-        return assigned_ref_map
+        # Build result mapping
+        assigned_id_map: dict[TypedElementId, TypedElementId] = update_elements_t.result()
+        result: dict[TypedElementId, tuple[TypedElementId, list[int]]] = {}
+
+        for element in prepare.apply_elements:
+            typed_id = element['typed_id']
+            version = element['version']
+
+            if typed_id not in result:
+                result[typed_id] = (assigned_id_map[typed_id] if typed_id & 1 << 59 else typed_id, [version])
+            else:
+                result[typed_id][1].append(version)
+
+        return result
 
 
-async def _check_elements_latest(element_state: dict[ElementRef, ElementStateEntry]) -> None:
+async def _check_elements_latest(element_state: dict[TypedElementId, ElementStateEntry]) -> None:
     """
     Check if the elements are the current version.
-
     Raises OptimisticDiffError if they are not.
     """
-    versioned_refs = tuple(
-        VersionedElementRef(ref.type, ref.id, entry.remote.version)
-        for ref, entry in element_state.items()
+    versioned_refs = [
+        (typed_id, entry.remote['version'])
+        for typed_id, entry in element_state.items()  #
         if entry.remote is not None
-    )
+    ]
     if not await ElementQuery.check_is_latest(versioned_refs):
         raise OptimisticDiffError('Element is outdated')
 
 
-async def _check_elements_unreferenced(element_refs: Collection[ElementRef], after_sequence_id: int) -> None:
+async def _check_elements_unreferenced(typed_ids: list[TypedElementId], after_sequence_id: SequenceId) -> None:
     """
     Check if the elements are currently unreferenced.
-
     Raises OptimisticDiffError if they are.
     """
-    if not await ElementQuery.check_is_unreferenced(element_refs, after_sequence_id):
+    if not await ElementQuery.check_is_unreferenced(list(typed_ids), after_sequence_id):
         raise OptimisticDiffError(f'Element is referenced after {after_sequence_id}')
 
 
-async def _update_changeset(changeset: Changeset, now: datetime, session: AsyncSession) -> None:
+async def _update_changeset(conn: AsyncConnection, now: datetime, changeset: Changeset) -> None:
     """
     Update the changeset table.
-
     Raises OptimisticDiffError if the changeset was modified in the meantime.
     """
-    changeset_id = changeset.id
-    changeset_id_updated_map = await ChangesetQuery.get_updated_at_by_ids((changeset_id,))
-    updated_at = changeset_id_updated_map[changeset_id]
-    if changeset.updated_at != updated_at:
-        raise OptimisticDiffError(f'Changeset {changeset_id} is outdated ({changeset.updated_at} != {updated_at})')
+    changeset_id = changeset['id']
+    db_updated_at = (await ChangesetQuery.get_updated_at_by_ids([changeset_id]))[changeset_id]
+    if changeset['updated_at'] != db_updated_at:
+        raise OptimisticDiffError(
+            f'Changeset {changeset_id} is outdated ({changeset["updated_at"]} != {db_updated_at})'
+        )
 
-    changeset.updated_at = now
-    changeset.auto_close_on_size(now)
-    async with _flush_lock:
-        session.add(changeset)
+    # Update the changeset
+    closed_at = now if 'size_limit_reached' in changeset else None
+    updated_at = now
+    await conn.execute(
+        """
+        UPDATE changeset
+        SET
+            size = %s,
+            union_bounds = %s,
+            closed_at = %s,
+            updated_at = %s
+        WHERE id = %s
+        """,
+        (changeset['size'], changeset['union_bounds'], closed_at, updated_at, changeset_id),
+    )
+
+    # Update the changeset bounds
+    await conn.execute(
+        """
+        DELETE FROM changeset_bounds
+        WHERE changeset_id = %s
+        """,
+        (changeset_id,),
+    )
+    await conn.execute(
+        """
+        INSERT INTO changeset_bounds (changeset_id, bounds)
+        SELECT %s, (ST_Dump(%s)).geom
+        """,
+        (changeset_id, changeset['bounds']),  # type: ignore
+    )
 
 
 async def _update_elements(
-    elements: list[Element],
-    now: datetime,
-    session: AsyncSession,
-) -> None:
+    conn: AsyncConnection, now: datetime, elements_init: list[ElementInit]
+) -> dict[TypedElementId, TypedElementId]:
     """Update the element table by creating new revisions."""
     async with TaskGroup() as tg:
         current_sequence_task = tg.create_task(ElementQuery.get_current_sequence_id())
         current_id_task = tg.create_task(ElementQuery.get_current_ids())
 
     current_sequence_id = current_sequence_task.result()
-    current_id_map = current_id_task.result()
+    current_id_map: dict[ElementType, ElementId] = current_id_task.result()
 
+    elements: list[Element] = []
     update_typed_ids: list[TypedElementId] = []
     prev_map: dict[TypedElementId, Element] = {}
     assigned_id_map: dict[TypedElementId, TypedElementId] = {}
 
-    # process elements
-    for sequence_id, (element, element_ref) in enumerate(elements, current_sequence_id + 1):
-        # assign sequence_id
-        element.sequence_id = sequence_id
-        element.created_at = now
+    # This compiled check is slightly misleading.
+    # Cython will always use the first declaration.
+    if cython.compiled:
+        element_init: dict  # type: ignore
+    else:
+        element_init: ElementInit
 
-        # assign next_sequence_id
-        prev = prev_map.get(element_ref)
+    # Process elements and prepare data for insert
+    for sequence_id, element_init in enumerate(elements_init, current_sequence_id + 1):
+        # noinspection PyTypeChecker
+        element: Element = element_init | {
+            'sequence_id': sequence_id,  # type: ignore
+            'next_sequence_id': None,
+            'created_at': now,
+        }
+        elements.append(element)
+        typed_id = element['typed_id']
+
+        # Assign ids for new elements
+        if typed_id & 1 << 59:
+            original_typed_id = typed_id
+            if original_typed_id in assigned_id_map:
+                # Reuse already assigned id
+                typed_id = assigned_id_map[original_typed_id]
+            else:
+                # Assign a new id
+                type = split_typed_element_id(typed_id)[0]
+                new_id: ElementId = current_id_map[type] + 1  # type: ignore
+                current_id_map[type] = new_id
+                typed_id = typed_element_id(type, new_id)
+                assigned_id_map[original_typed_id] = typed_id
+            element['typed_id'] = typed_id
+
+        # Update next_sequence_id for previous versions.
+        # Either locally or scheduled for remote batch update.
+        prev = prev_map.get(typed_id)
         if prev is not None:
-            prev.next_sequence_id = sequence_id  # update locally
-        elif element.version > 1:
-            update_type_ids[element.type].append(element.id)  # update remotely
-        prev_map[element_ref] = element
+            prev['next_sequence_id'] = sequence_id  # type: ignore
+        elif element['version'] > 1:
+            update_typed_ids.append(typed_id)
+        prev_map[typed_id] = element
 
-        # assign id
-        if element.id < 0:
-            assigned_id = assigned_id_map.get(element_ref)
-            if assigned_id is None:
-                assigned_id = ElementId(current_id_map[element.type] + 1)
-                assigned_id_map[element_ref] = current_id_map[element.type] = assigned_id
-            element.id = assigned_id
-
-    # process members
+    # Update members with assigned ids
     for element in elements:
-        members = element['members']
-        if members:
-            element['members'] = [assigned_id_map.get(member, member) for member in members]
+        # TODO: tainted members check in the prepare phase
+        if members := element['members']:
+            element['members'] = [
+                assigned_id_map[member]  #
+                if member & 1 << 59
+                else member
+                for member in members
+            ]
 
-    await _update_elements_db(current_sequence_id, update_type_ids, elements, session)
+    await _copy_elements(conn, elements)
+
+    # Remote batch update of next_sequence_id.
+    # This must run after the copy/insert finishes.
+    if update_typed_ids:
+        await _update_next_sequence_id(conn, current_sequence_id, update_typed_ids)
+
+    return assigned_id_map
 
 
-async def _update_elements_db(
-    current_sequence_id: int,
-    update_type_ids: Mapping[ElementType, Collection[ElementId]],
-    insert_elements: Collection[Element],
-    insert_members: Collection[ElementMember],
-    session: AsyncSession,
-) -> None:
-    """Update the element table by creating new revisions - push prepared data to the database."""
-    logging.info('Inserting %d elements and %d members', len(insert_elements), len(insert_members))
-    async with _flush_lock:
-        session.add_all(insert_elements)
-        session.add_all(insert_members)
-        await session.flush()
+async def _copy_elements(conn: AsyncConnection, elements: list[Element]) -> None:
+    async with conn.cursor().copy("""
+        COPY element (
+            sequence_id, next_sequence_id, created_at,
+            changeset_id, typed_id, version,
+            visible, tags, point, members, members_roles
+        ) FROM STDIN
+    """) as copy:
+        with BytesIO() as buffer:
+            write_row = copy.formatter.write_row
 
-    where_ors = tuple(
-        and_(
-            Element.type == type,
-            Element.id.in_(text(','.join(map(str, ids)))),
-        )
-        for type, ids in update_type_ids.items()
-        if ids
-    )
-    if not where_ors:
-        return
+            # This compiled check is slightly misleading.
+            # Cython will always use the first declaration.
+            if cython.compiled:
+                element: dict  # type: ignore
+            else:
+                element: Element
 
-    other = aliased(Element)
-    stmt = (
-        update(Element)
-        .where(
-            Element.sequence_id <= current_sequence_id,
-            Element.next_sequence_id == null(),
-            or_(*where_ors),
-        )
-        .values(
-            {
-                Element.next_sequence_id: select(other.sequence_id)
-                .where(
-                    other.type == Element.type,
-                    other.id == Element.id,
-                    other.version > Element.version,
+            for element in elements:
+                data = write_row(
+                    (
+                        element['sequence_id'],
+                        element['next_sequence_id'],
+                        element['created_at'],
+                        element['changeset_id'],
+                        element['typed_id'],
+                        element['version'],
+                        element['visible'],
+                        element['tags'],
+                        element['point'],
+                        element['members'],
+                        element['members_roles'],
+                    )
                 )
-                .order_by(other.version.asc())
-                .limit(1)
-                .scalar_subquery()
-            }
+                if data:
+                    buffer.write(data)
+
+            data = buffer.getvalue()
+            await copy.write(data)
+
+
+async def _update_next_sequence_id(
+    conn: AsyncConnection, current_sequence_id: SequenceId, update_typed_ids: list[TypedElementId]
+) -> None:
+    await conn.execute(
+        """
+        UPDATE element e
+        SET next_sequence_id = (
+            SELECT sequence_id FROM element
+            WHERE typed_id = e.typed_id
+            AND version > e.version
+            ORDER BY version
+            LIMIT 1
         )
-        .inline()
+        WHERE sequence_id <= %s
+        AND next_sequence_id IS NULL
+        AND typed_id = ANY(%s)
+        """,
+        (current_sequence_id, update_typed_ids),
     )
-    await session.execute(stmt)

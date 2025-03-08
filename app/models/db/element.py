@@ -48,7 +48,6 @@ class ElementInit(TypedDict):
 class Element(ElementInit):
     sequence_id: SequenceId
     next_sequence_id: SequenceId | None
-    changeset_id: ChangesetId  # type: ignore
     created_at: datetime
 
     # runtime

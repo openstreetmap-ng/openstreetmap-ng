@@ -1,8 +1,6 @@
-from collections.abc import Iterable
 from datetime import datetime
-from typing import TYPE_CHECKING, NewType, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Literal, NewType, NotRequired, TypedDict
 
-from psycopg import AsyncConnection
 from shapely import MultiPolygon, Polygon
 
 from app.lib.auth_context import auth_user
@@ -35,6 +33,7 @@ class Changeset(ChangesetInit):
     bounds: NotRequired[MultiPolygon]
     num_comments: NotRequired[int]
     comments: NotRequired[list['ChangesetComment']]
+    size_limit_reached: NotRequired[Literal[True]]
 
 
 def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
@@ -53,50 +52,8 @@ def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
     if new_size > max_size:
         return False
 
+    if new_size == max_size:
+        changeset['size_limit_reached'] = True  # type: ignore
+
     changeset['size'] = new_size
     return True
-
-
-async def changesets_auto_close_on_size(conn: AsyncConnection, changesets: Iterable[Changeset]) -> int:
-    """Close changesets that have reached the maximum size. Returns the number of updated changesets."""
-    mapping: dict[int, Changeset] = {}
-    user = auth_user(required=True)
-    user_id = user['id']
-    max_size = UserRoleLimits.get_changeset_max_size(user['roles'])
-
-    for changeset in changesets:
-        # skip already closed changesets
-        if changeset['closed_at'] is not None:
-            continue
-
-        changeset_user_id = changeset['user_id']
-        assert changeset_user_id is not None, 'Anonymous changesets are no longer supported'
-        assert changeset_user_id == user_id, f'Changeset {changeset["id"]} can only be edited by the owner != {user_id}'
-
-        # close if limit is reached
-        if changeset['size'] >= max_size:
-            mapping[changeset['id']] = changeset
-
-    if not mapping:
-        return 0
-
-    async with await conn.execute(
-        """
-        SELECT closed_at
-        FROM (
-            UPDATE changeset
-            SET closed_at = STATEMENT_TIMESTAMP()
-            WHERE id = ANY(%s)
-            RETURNING closed_at
-        ) LIMIT 1
-        """,
-        (list(mapping),),
-    ) as r:
-        row = await r.fetchone()
-        assert row is not None
-        closed_at: datetime = row[0]
-
-    for changeset in mapping.values():
-        changeset['closed_at'] = closed_at
-
-    return len(mapping)

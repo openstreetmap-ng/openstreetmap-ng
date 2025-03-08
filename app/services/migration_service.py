@@ -56,23 +56,23 @@ class MigrationService:
             await conn.execute("""
                 WITH next_version AS (
                     SELECT
-                        e1.sequence_id,
-                        e2.sequence_id AS next_sequence_id
-                    FROM element e1
+                        e.sequence_id,
+                        n.sequence_id AS next_sequence_id
+                    FROM element e
                     LEFT JOIN LATERAL (
-                        SELECT sequence_id
-                        FROM element e2
-                        WHERE e2.typed_id = e1.typed_id
-                        AND e2.version > e1.version
-                        ORDER BY e2.version
+                        SELECT sequence_id FROM element
+                        WHERE typed_id = e.typed_id
+                        AND version > e.version
+                        ORDER BY version
                         LIMIT 1
-                    ) e2 ON true
-                    WHERE e1.next_sequence_id IS NULL
+                    ) n ON true
+                    WHERE next_sequence_id IS NULL
+                    AND n.sequence_id IS NOT NULL
                 )
                 UPDATE element
                 SET next_sequence_id = nv.next_sequence_id
                 FROM next_version nv
-                WHERE sequence_id = nv.sequence_id;
+                WHERE sequence_id = nv.sequence_id
             """)
 
     @staticmethod
