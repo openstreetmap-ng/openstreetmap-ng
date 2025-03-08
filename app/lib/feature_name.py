@@ -3,16 +3,16 @@ from collections.abc import Iterable
 import cython
 
 from app.lib.translation import translation_locales
-from app.models.db.element import ElementInit
+from app.models.db.element import Element, ElementInit
 
 
-def features_names(elements: Iterable[ElementInit]) -> list[str | None]:
+def features_names(elements: Iterable[Element | ElementInit]) -> list[str | None]:
     """Returns human-readable names for features."""
     return [_feature_name(e) for e in elements]
 
 
 @cython.cfunc
-def _feature_name(element: ElementInit):
+def _feature_name(element: Element | ElementInit):
     tags = element['tags']
     if not tags:
         return None

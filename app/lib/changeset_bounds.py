@@ -1,25 +1,17 @@
-from collections.abc import Collection, Sequence
-
 import cython
 import numpy as np
 from numpy.typing import NDArray
 from rtree.index import Index
-from shapely import Point, box, get_coordinates, measurement
+from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, measurement, multipolygons
 from sklearn.cluster import AgglomerativeClustering
 
 from app.limits import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
-from app.models.db.changeset import ChangesetId
-from app.models.db.changeset_bounds import ChangesetBounds
 
 
-def extend_changeset_bounds(
-    changeset_id: ChangesetId,
-    bounds: Collection[ChangesetBounds],
-    points: Sequence[Point],
-) -> list[ChangesetBounds]:
+def extend_changeset_bounds(bounds: MultiPolygon, points: list[Point]) -> MultiPolygon:
     bbox_limit: cython.Py_ssize_t = CHANGESET_BBOX_LIMIT
     bboxes: list[list[float]]
-    bboxes = measurement.bounds([cb['bounds'] for cb in bounds]).tolist()  # type: ignore
+    bboxes = measurement.bounds(bounds.geoms).tolist()  # type: ignore
     num_bboxes: cython.Py_ssize_t = len(bboxes)
     num_bounds: cython.Py_ssize_t = num_bboxes
     dirty_mask: list[bool] = [False] * bbox_limit
@@ -77,29 +69,21 @@ def extend_changeset_bounds(
         check_queue.append(i)
 
     # combine results
-    result: list[ChangesetBounds] = []
-
-    for i, cb in enumerate(bounds):
-        if deleted_mask[i]:
-            continue
-        if dirty_mask[i]:
-            cb['bounds'] = box(*bboxes[i])  # type: ignore
-        result.append(cb)
-
+    result: list[Polygon] = [
+        box(*bboxes[i]) if dirty_mask[i] else poly  # type: ignore
+        for i, poly in enumerate(bounds.geoms)
+        if not deleted_mask[i]
+    ]
     result.extend(
-        {
-            'changeset_id': changeset_id,
-            'bounds': box(*bbox),  # type: ignore
-        }
+        box(*bbox)  # type: ignore
         for i, bbox in enumerate(bboxes[num_bounds:], num_bounds)
         if not deleted_mask[i]
     )
-
-    return result
+    return multipolygons(result)
 
 
 @cython.cfunc
-def _cluster_points(points: Sequence[Point]) -> list[list[NDArray[np.float64]]]:
+def _cluster_points(points: list[Point]) -> list[list[NDArray[np.float64]]]:
     num_points: cython.Py_ssize_t = len(points)
     coords = get_coordinates(points)
 

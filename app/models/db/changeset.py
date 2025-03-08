@@ -3,14 +3,13 @@ from datetime import datetime
 from typing import TYPE_CHECKING, NewType, NotRequired, TypedDict
 
 from psycopg import AsyncConnection
-from shapely import Polygon
+from shapely import MultiPolygon, Polygon
 
 from app.lib.auth_context import auth_user
 from app.lib.user_role_limits import UserRoleLimits
 from app.models.db.user import UserDisplay, UserId
 
 if TYPE_CHECKING:
-    from app.models.db.changeset_bounds import ChangesetBounds
     from app.models.db.changeset_comment import ChangesetComment
 
 ChangesetId = NewType('ChangesetId', int)
@@ -33,7 +32,7 @@ class Changeset(ChangesetInit):
 
     # runtime
     user: NotRequired[UserDisplay]
-    bounds: NotRequired[list['ChangesetBounds']]
+    bounds: NotRequired[MultiPolygon]
     num_comments: NotRequired[int]
     comments: NotRequired[list['ChangesetComment']]
 

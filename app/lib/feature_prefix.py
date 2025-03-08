@@ -5,19 +5,19 @@ import cython
 
 from app.lib.translation import t
 from app.limits import FEATURE_PREFIX_TAGS_LIMIT
-from app.models.db.element import ElementInit
+from app.models.db.element import Element, ElementInit
 from app.models.element import ElementType, split_typed_element_id
 
 
 @overload
-def features_prefixes(elements: Iterable[ElementInit]) -> list[str]: ...  # pyright: ignore [reportOverlappingOverload]
+def features_prefixes(elements: Iterable[Element | ElementInit]) -> list[str]: ...  # pyright: ignore [reportOverlappingOverload]
 
 
 @overload
-def features_prefixes(elements: Iterable[ElementInit | None]) -> list[str | None]: ...
+def features_prefixes(elements: Iterable[Element | ElementInit | None]) -> list[str | None]: ...
 
 
-def features_prefixes(elements: Iterable[ElementInit | None]) -> list[str | None]:  # pyright: ignore [reportInconsistentOverload]
+def features_prefixes(elements: Iterable[Element | ElementInit | None]) -> list[str | None]:  # pyright: ignore [reportInconsistentOverload]
     """
     Returns a human-readable prefix for a feature based on its type and tags.
 
@@ -28,7 +28,7 @@ def features_prefixes(elements: Iterable[ElementInit | None]) -> list[str | None
 
 
 @cython.cfunc
-def _feature_prefix(element: ElementInit) -> str:
+def _feature_prefix(element: Element | ElementInit) -> str:
     # tag-specific translations
     tags = element['tags']
     if tags and (r := _feature_prefix_tags(tags)) is not None:

@@ -54,7 +54,7 @@ class ValhallaQuery:
             for maneuver in leg['maneuvers']
         ]
 
-        elevations = np.diff(np.asarray(leg['elevation'], dtype=np.float32), 1)
+        elevations = np.diff(np.asarray(leg['elevation'], np.float32), 1)
         ascend = elevations[elevations > 0].sum()
         descend = -elevations[elevations < 0].sum()
         return RoutingResult(

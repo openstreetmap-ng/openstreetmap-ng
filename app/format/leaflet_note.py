@@ -17,7 +17,7 @@ class LeafletNoteMixin:
 
 @cython.cfunc
 def _encode_note(note: Note):
-    x, y = lib.get_coordinates(np.asarray(note['point'], dtype=np.object_), False, False)[0].tolist()
+    x, y = lib.get_coordinates(np.asarray(note['point'], np.object_), False, False)[0].tolist()
     body = note['comments'][0]['body']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     if len(body) > 100:
         body = body[:100] + '...'

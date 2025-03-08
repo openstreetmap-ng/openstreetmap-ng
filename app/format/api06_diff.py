@@ -1,7 +1,6 @@
-from collections.abc import Mapping, Sequence
 from typing import TypedDict
 
-from app.models.db.element import Element
+from app.models.db.element import ElementInit
 from app.models.element import ElementId, ElementType, TypedElementId, split_typed_element_id
 
 Diff06ResultDict = TypedDict(
@@ -17,7 +16,7 @@ Diff06ResultDict = TypedDict(
 class Diff06Mixin:
     @staticmethod
     def encode_diff_result(
-        assigned_ref_map: Mapping[TypedElementId, Sequence[Element]],
+        assigned_ref_map: dict[TypedElementId, list[ElementInit]],
     ) -> list[tuple[ElementType, Diff06ResultDict]]:
         """
         >>> encode_diff_result({
@@ -32,6 +31,7 @@ class Diff06Mixin:
         ]
         """
         result: list[tuple[ElementType, Diff06ResultDict]] = []
+
         for typed_id, elements in assigned_ref_map.items():
             type, old_id = split_typed_element_id(typed_id)
             new_id = split_typed_element_id(elements[0]['typed_id'])[1]
@@ -46,4 +46,5 @@ class Diff06Mixin:
                 )
                 for element in elements
             )
+
         return result

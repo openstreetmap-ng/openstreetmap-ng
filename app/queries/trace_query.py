@@ -250,7 +250,7 @@ class TraceQuery:
             trace_id: TraceId
             geom: MultiPoint
             for trace_id, geom in await r.fetchall():
-                coords = lib.get_coordinates(np.asarray(geom, dtype=np.object_), False, False)
+                coords = lib.get_coordinates(np.asarray(geom, np.object_), False, False)
 
                 # Apply resolution transformation if needed
                 if resolution is not None and len(coords) >= 2:

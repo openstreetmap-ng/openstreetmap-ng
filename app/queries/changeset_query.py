@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from datetime import datetime
 from typing import Literal
 
@@ -111,7 +110,7 @@ class ChangesetQuery:
         legacy_geometry: bool = False,
         sort: Literal['asc', 'desc'] = 'asc',
         limit: int | None,
-    ) -> Sequence[Changeset]:
+    ) -> list[Changeset]:
         """Find changesets by query."""
         conditions: list[Composable] = []
         params = []

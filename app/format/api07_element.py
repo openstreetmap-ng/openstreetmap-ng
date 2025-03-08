@@ -70,5 +70,5 @@ def _encode_point(point: Point) -> dict:
     >>> _encode_point(Point(1, 2))
     {'lon': 1, 'lat': 2}
     """
-    x, y = lib.get_coordinates(np.asarray(point, dtype=np.object_), False, False)[0].tolist()
+    x, y = lib.get_coordinates(np.asarray(point, np.object_), False, False)[0].tolist()
     return {'lon': x, 'lat': y}

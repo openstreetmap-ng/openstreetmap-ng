@@ -21,7 +21,7 @@ SequenceId = NewType('SequenceId', int)
 
 
 class ElementInit(TypedDict):
-    changeset_id: ChangesetId | None
+    changeset_id: ChangesetId
     typed_id: TypedElementId
     version: PositiveInt
     visible: bool

@@ -115,7 +115,7 @@ async def upload_diff(
         raise_for.bad_xml('osmChange', str(e))
 
     assigned_ref_map = await OptimisticDiff.run(elements)
-    return Format06.encode_diff_result(assigned_ref_map)
+    return Format06.encode_diff_nnresult(assigned_ref_map)
 
 
 @router.put('/changeset/{changeset_id:int}/close')

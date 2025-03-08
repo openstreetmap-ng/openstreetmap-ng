@@ -22,7 +22,7 @@ class UserPrefService:
     async def upsert(prefs: list[UserPref]) -> None:
         """Set user preferences."""
         num_prefs: cython.Py_ssize_t = len(prefs)
-        if num_prefs <= 0:
+        if not num_prefs:
             return
         if num_prefs > USER_PREF_BULK_SET_LIMIT:
             raise_for.pref_bulk_set_limit_exceeded()

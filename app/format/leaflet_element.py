@@ -128,7 +128,7 @@ def _render_ways(
         )
         for segment in segments:
             segment_geom: list[list[float]]
-            segment_geom = lib.get_coordinates(np.asarray(segment, dtype=np.object_), False, False).tolist()  # type: ignore
+            segment_geom = lib.get_coordinates(np.asarray(segment, np.object_), False, False).tolist()  # type: ignore
             line = encode_lonlat(segment_geom, 6)
             result.append(RenderElementsData.Way(id=way_id, line=line, area=is_area))
 
@@ -147,7 +147,7 @@ def _render_nodes(
 
     points = [node['point'] for node in nodes]
     geoms: list[list[float]]
-    geoms = lib.get_coordinates(np.asarray(points, dtype=np.object_), False, False).tolist()  # type: ignore
+    geoms = lib.get_coordinates(np.asarray(points, np.object_), False, False).tolist()  # type: ignore
     return [
         RenderElementsData.Node(
             id=split_typed_element_id(node['typed_id'])[1],

@@ -1,11 +1,9 @@
-from collections.abc import Collection, Iterable
-
 import cython
 
 from app.lib.feature_icon import FeatureIcon, features_icons
 from app.lib.feature_name import features_names
 from app.models.db.element import Element
-from app.models.element import ElementType, TypedElementId, VersionedTypedElementId, split_typed_element_id
+from app.models.element import ElementType, TypedElementId, split_typed_element_id
 from app.models.proto.shared_pb2 import ElementIcon, PartialChangesetParams, PartialElementParams
 from app.queries.element_query import ElementQuery
 
@@ -13,13 +11,13 @@ from app.queries.element_query import ElementQuery
 class FormatElementList:
     @staticmethod
     async def changeset_elements(
-        elements: Collection[Element],
+        elements: list[Element],
     ) -> dict[ElementType, list[PartialChangesetParams.Element]]:
         """Format elements for displaying on the website (icons, strikethrough, sort)."""
         # element.version > 1 is mostly redundant
         # but ensures backward-compatible compliance for PositiveInt
-        prev_refs: list[VersionedTypedElementId] = [
-            VersionedTypedElementId(element['typed_id'], element['version'] - 1)
+        prev_refs: list[tuple[TypedElementId, int]] = [
+            (element['typed_id'], element['version'] - 1)
             for element in elements
             if not element['visible'] and element['version'] > 1
         ]
@@ -47,7 +45,10 @@ class FormatElementList:
         return result
 
     @staticmethod
-    def element_parents(ref: TypedElementId, parents: Collection[Element]) -> list[PartialElementParams.Entry]:
+    def element_parents(
+        ref: TypedElementId,
+        parents: list[Element],
+    ) -> list[PartialElementParams.Entry]:
         return _encode_parents(
             ref,
             parents,
@@ -57,9 +58,9 @@ class FormatElementList:
 
     @staticmethod
     def element_members(
-        members: Iterable[TypedElementId],
-        members_roles: Iterable[str],
-        members_elements: Collection[Element],
+        members: list[TypedElementId],
+        members_roles: list[str],
+        members_elements: list[Element],
     ) -> list[PartialElementParams.Entry]:
         type_id_map: dict[TypedElementId, tuple[str | None, FeatureIcon | None]]
         type_id_map = {
@@ -76,9 +77,9 @@ class FormatElementList:
 
 @cython.cfunc
 def _encode_elements(
-    elements: Iterable[Element],
-    names: Iterable[str | None],
-    feature_icons: Iterable[FeatureIcon | None],
+    elements: list[Element],
+    names: list[str | None],
+    feature_icons: list[FeatureIcon | None],
 ):
     result: dict[ElementType, list[PartialChangesetParams.Element]] = {'node': [], 'way': [], 'relation': []}
     for element, name, feature_icon in zip(elements, names, feature_icons, strict=True):
@@ -103,9 +104,9 @@ def _encode_elements(
 @cython.cfunc
 def _encode_parents(
     ref: TypedElementId,
-    parents: Iterable[Element],
-    names: Iterable[str | None],
-    feature_icons: Iterable[FeatureIcon | None],
+    parents: list[Element],
+    names: list[str | None],
+    feature_icons: list[FeatureIcon | None],
 ):
     result: list[PartialElementParams.Entry] = []
     for parent, name, feature_icon in zip(parents, names, feature_icons, strict=True):
@@ -143,8 +144,8 @@ def _encode_parents(
 @cython.cfunc
 def _encode_members(
     type_id_map: dict[TypedElementId, tuple[str | None, FeatureIcon | None]],
-    members: Iterable[TypedElementId],
-    members_roles: Iterable[str],
+    members: list[TypedElementId],
+    members_roles: list[str],
 ):
     result: list[PartialElementParams.Entry] = []
     for member, role in zip(members, members_roles, strict=True):

@@ -7,7 +7,7 @@ from typing import NamedTuple
 import cython
 import orjson
 
-from app.models.db.element import ElementInit
+from app.models.db.element import Element, ElementInit
 from app.models.element import split_typed_element_id
 
 
@@ -56,7 +56,7 @@ _popular_stats = _get_popular_stats()
 _check_config()
 
 
-def features_icons(elements: Iterable[ElementInit | None]) -> list[FeatureIcon | None]:
+def features_icons(elements: Iterable[Element | ElementInit | None]) -> list[FeatureIcon | None]:
     """
     Get the icons filenames and titles for the given elements.
 
@@ -69,7 +69,7 @@ def features_icons(elements: Iterable[ElementInit | None]) -> list[FeatureIcon |
 
 
 @cython.cfunc
-def _feature_icon(element: ElementInit):
+def _feature_icon(element: Element | ElementInit):
     tags = element['tags']
     if not tags:
         return None

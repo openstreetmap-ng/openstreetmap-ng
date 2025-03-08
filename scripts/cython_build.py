@@ -38,6 +38,8 @@ extra_paths: Iterable[Path] = map(
 )
 
 blacklist: dict[str, set[str]] = {
+    # Reason: Unsupported PEP-654 Exception Groups
+    # https://github.com/cython/cython/issues/4993
     'app/services/optimistic_diff': {
         '__init__.py',
     },
