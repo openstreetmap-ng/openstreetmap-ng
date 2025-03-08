@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 import sentry_sdk
 from githead import githead
 from pydantic import ConfigDict
+from sentry_sdk.integrations.gnu_backtrace import GnuBacktraceIntegration
 from sentry_sdk.integrations.pure_eval import PureEvalIntegration
 
 from app.lib.local_chapters import LOCAL_CHAPTERS
@@ -199,11 +200,14 @@ if SENTRY_DSN := (getenv('SENTRY_DSN') if ('pytest' not in sys.modules) else Non
         dsn=SENTRY_DSN,
         release=VERSION,
         environment=urlsplit(APP_URL).hostname,
+        integrations=[
+            GnuBacktraceIntegration(),
+            PureEvalIntegration(),
+        ],
         keep_alive=True,
         traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
         trace_propagation_targets=None,
         profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
-        integrations=(PureEvalIntegration(),),
         _experiments={
             'continuous_profiling_auto_start': True,
         },

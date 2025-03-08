@@ -3,7 +3,6 @@ dependencies = [
   "aioboto3",
   "aiohttp[speedups]",
   "aiosmtplib",
-  "alembic",
   "argon2-cffi",
   "arrow",
   "beautifulsoup4[charset-normalizer,lxml]",
@@ -44,11 +43,10 @@ dependencies = [
   "rfc3986",
   "rtree",
   "scikit-learn",
-  "sentry-sdk[aiohttp,fastapi,httpx,pure-eval,sqlalchemy]>=2.19.0",
+  "sentry-sdk[aiohttp,fastapi,httpx,pure-eval]>=2.19.0",
   "setuptools",
   "shapely",
   "sizestr>=1.0.0",
-  "sqlalchemy[postgresql-asyncpg]",
   "starlette-compress",
   "supervisor",
   "tqdm",
@@ -83,7 +81,6 @@ python-preference = "only-system"
 packages = ["app", "scripts", "tests", "typings"]
 
 [tool.ruff]
-extend-exclude = ["app/alembic/versions"]
 indent-width = 4
 line-length = 120
 target-version = "py313"
@@ -214,7 +211,6 @@ disableBytesTypePromotions = true
 exclude = [
   "**/.*",
   "**/__pycache__",
-  "app/alembic/versions",
   "app/models/proto/**/*_pb2.py",
   "node_modules",
 ]
