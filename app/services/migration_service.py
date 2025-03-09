@@ -16,6 +16,7 @@ class _MigrationInfo(NamedTuple):
     hash: bytes
 
 
+_MIGRATION_HASH_SIZE = 7
 _MIGRATIONS_DIR = Path('app/migrations')
 
 
@@ -72,7 +73,7 @@ class MigrationService:
                 UPDATE element
                 SET next_sequence_id = nv.next_sequence_id
                 FROM next_version nv
-                WHERE sequence_id = nv.sequence_id
+                WHERE element.sequence_id = nv.sequence_id
             """)
 
     @staticmethod
@@ -153,7 +154,7 @@ async def _find_migrations(current_migration: _MigrationInfo | None) -> list[tup
                 if filtered:
                     break
                 content = migration[1].read_text()
-                new_hash = hash_bytes(content)
+                new_hash = hash_bytes(content)[:_MIGRATION_HASH_SIZE]
                 if new_hash == current_hash:
                     break
                 logging.warning(
@@ -173,22 +174,22 @@ async def _apply_migrations(conn: AsyncConnection, migrations: list[tuple[Versio
     for version, path in migrations:
         try:
             content = path.read_text()
-            hash = hash_bytes(content)
+            hash = hash_bytes(content)[:_MIGRATION_HASH_SIZE]
             logging.debug('Applying migration %s from %s (hash=%s)', version, path, hash.hex())
 
-            async with conn.pipeline():
-                await conn.execute(content)  # type: ignore
-                await conn.execute(
-                    """
-                    INSERT INTO migration (version, hash)
-                    VALUES (%s, %s)
-                    ON CONFLICT (version) DO UPDATE
-                    SET
-                        hash = EXCLUDED.hash,
-                        applied_at = DEFAULT
-                    """,
-                    (str(version), hash),
-                )
+            await conn.cursor(binary=False).execute(content)  # type: ignore
+            await conn.execute(
+                """
+                INSERT INTO migration (version, hash)
+                VALUES (%s, %s)
+                ON CONFLICT (version) DO UPDATE
+                SET
+                    hash = EXCLUDED.hash,
+                    applied_at = DEFAULT
+                """,
+                (str(version), hash),
+            )
+            await conn.commit()
 
             logging.debug('Successfully applied migration %s', version)
 

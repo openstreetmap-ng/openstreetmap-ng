@@ -69,21 +69,19 @@ def psycopg_pool_open_decorator(func):
 @asynccontextmanager
 async def db2(write: bool = False, *, autocommit: bool = False, isolation_level: IsolationLevel | None = None):
     """Get a database connection."""
-    if autocommit and not write:
+    read_only = not write
+    if read_only and autocommit:
         raise ValueError('autocommit=True must be used with write=True')
 
     async with _PSYCOPG_POOL.connection() as conn:
-        if conn.read_only != write:
-            await conn.set_read_only(write)
+        if conn.read_only != read_only:
+            await conn.set_read_only(read_only)
         if conn.autocommit != autocommit:
             await conn.set_autocommit(autocommit)
         if conn.isolation_level != isolation_level:
             await conn.set_isolation_level(isolation_level)
 
         yield conn
-
-        if not write:
-            await conn.rollback()
 
 
 async def db_update_stats(*, vacuum: bool = False) -> None:
