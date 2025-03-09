@@ -19,7 +19,6 @@ from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import (
-    DISPLAY_NAME_MAX_LENGTH,
     EMAIL_MIN_LENGTH,
     PASSWORD_MIN_LENGTH,
     URLSAFE_BLACKLIST,
@@ -140,7 +139,7 @@ async def permalink(
 # TODO: optimize
 @router.get('/user/{display_name:str}')
 async def index(
-    display_name: Annotated[DisplayName, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
+    display_name: Annotated[DisplayName, Path(min_length=1)],
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
     if user is None:
@@ -180,7 +179,6 @@ async def index(
         notes,
         per_note_sort='asc',
         per_note_limit=1,
-        resolve_rich_text=False,
     )
     await NoteCommentQuery.resolve_num_comments(notes)
 

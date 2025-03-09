@@ -15,6 +15,7 @@ from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from pydantic import BeforeValidator
 
 from app.config import TEST_ENV
+from app.lib.crypto import hash_bytes
 from app.limits import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT, EMAIL_MIN_LENGTH
 from app.models.types import Email
 from app.services.cache_service import CacheContext, CacheService
@@ -66,14 +67,15 @@ async def validate_email_deliverability(email: Email) -> bool:
         logging.debug('Email domain deliverability cache miss for %r', domain)
         return b'\xff' if await _check_domain_deliverability(domain) else b'\x00'
 
-    cache_entry = await CacheService.get(
-        domain,
-        context=_CTX,
-        factory=factory,
-        ttl=EMAIL_DELIVERABILITY_CACHE_EXPIRE,
+    success = (
+        await CacheService.get(
+            hash_bytes(domain).hex(),  # type: ignore
+            _CTX,
+            factory,
+            ttl=EMAIL_DELIVERABILITY_CACHE_EXPIRE,
+        )
+        == b'\xff'
     )
-
-    success = cache_entry.value == b'\xff'
     logging.info('Email domain deliverability for %r: %s', domain, success)
     return success
 

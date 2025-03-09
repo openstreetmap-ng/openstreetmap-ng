@@ -22,7 +22,7 @@
                         <span class="required">{{ t('messages.compose.recipient') }}</span>
                         <input type="text" name="recipient" class="form-control mt-2"
                                placeholder="{{ t('messages.compose.recipient_placeholder') }}"
-                               maxlength="{{ DISPLAY_NAME_MAX_LENGTH }}" required>
+                               required>
                     {% endif %}
                     {% if recipient_id is not none %}
                         <input type="hidden" name="recipient_id" value="{{ recipient_id }}">

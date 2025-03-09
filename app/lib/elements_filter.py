@@ -1,4 +1,3 @@
-from collections.abc import Iterable, Set
 from typing import TypeVar
 
 import cython
@@ -12,32 +11,24 @@ _T = TypeVar('_T', bound=ElementInit)
 class ElementsFilter:
     @staticmethod
     def filter_nodes_interesting(
-        nodes: Iterable[_T],
-        member_nodes: Set[TypedElementId],
+        nodes: list[_T],
+        member_nodes: set[TypedElementId],
         *,
         detailed: cython.bint,
     ) -> list[_T]:
         """Return only interesting nodes."""
-        return [
-            node
-            for node in nodes  #
-            if _check_node_interesting(node, member_nodes, detailed=detailed)
-        ]
+        return [node for node in nodes if _check_node_interesting(node, member_nodes, detailed=detailed)]
 
     @staticmethod
-    def filter_tags_interesting(elements: Iterable[_T]) -> list[_T]:
+    def filter_tags_interesting(elements: list[_T]) -> list[_T]:
         """Return only elements with interesting tags."""
-        return [
-            element
-            for element in elements  #
-            if _check_tags_interesting(element['tags'])  # type: ignore
-        ]
+        return [element for element in elements if (tags := element['tags']) and _check_tags_interesting(tags)]
 
 
 @cython.cfunc
 def _check_node_interesting(
     node: ElementInit,
-    member_nodes: Set[TypedElementId],
+    member_nodes: set[TypedElementId],
     *,
     detailed: cython.bint,
 ) -> cython.bint:

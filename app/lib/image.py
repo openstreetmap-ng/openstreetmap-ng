@@ -40,15 +40,12 @@ class Image:
     @staticmethod
     @overload
     def get_avatar_url(image_type: Literal[None], *, app: bool = False) -> str: ...
-
     @staticmethod
     @overload
     def get_avatar_url(image_type: Literal['gravatar'], image_id: int) -> str: ...
-
     @staticmethod
     @overload
     def get_avatar_url(image_type: Literal['custom'], image_id: StorageKey) -> str: ...
-
     @staticmethod
     def get_avatar_url(image_type: AvatarType, image_id: int | StorageKey = 0, *, app: bool = False) -> str:
         """

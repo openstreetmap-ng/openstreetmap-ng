@@ -26,11 +26,8 @@ class UserBlockQuery:
                 (user_id, user_id),
             ) as r,
         ):
-            rows_iter = iter(await r.fetchall())
-            return _UserBlockCountByUserResult(
-                total=next(rows_iter)[0],
-                active=next(rows_iter)[0],
-            )
+            (total,), (active,) = await r.fetchall()
+            return _UserBlockCountByUserResult(total, active)
 
     @staticmethod
     async def count_given_by_user_id(user_id: UserId) -> _UserBlockCountByUserResult:
@@ -48,8 +45,5 @@ class UserBlockQuery:
                 (user_id, user_id),
             ) as r,
         ):
-            rows_iter = iter(await r.fetchall())
-            return _UserBlockCountByUserResult(
-                total=next(rows_iter)[0],
-                active=next(rows_iter)[0],
-            )
+            (total,), (active,) = await r.fetchall()
+            return _UserBlockCountByUserResult(total, active)

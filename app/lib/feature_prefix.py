@@ -11,12 +11,8 @@ from app.models.element import ElementType, split_typed_element_id
 
 @overload
 def features_prefixes(elements: Iterable[Element | ElementInit]) -> list[str]: ...  # pyright: ignore [reportOverlappingOverload]
-
-
 @overload
 def features_prefixes(elements: Iterable[Element | ElementInit | None]) -> list[str | None]: ...
-
-
 def features_prefixes(elements: Iterable[Element | ElementInit | None]) -> list[str | None]:  # pyright: ignore [reportInconsistentOverload]
     """
     Returns a human-readable prefix for a feature based on its type and tags.

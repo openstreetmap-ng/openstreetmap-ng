@@ -18,7 +18,6 @@ from app.config import PRELOAD_DIR
 from app.db import duckdb_connect
 from app.lib.compressible_geometry import compressible_geometry
 from app.lib.xmltodict import XMLToDict
-from app.models.db import *  # noqa: F403
 from app.models.element import ElementType
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
@@ -121,7 +120,7 @@ def planet_worker(
             input_buffer = f_in.read(to_seek)
 
     elements: list[tuple[ElementType, dict]]
-    elements = XMLToDict.parse(input_buffer, size_limit=None)['osm']
+    elements = XMLToDict.parse(input_buffer, size_limit=None)['osm']  # type: ignore
     # free memory
     del input_buffer
 
@@ -211,10 +210,10 @@ def run_planet_workers() -> None:
             from_seek += min_find
             from_seeks.append(from_seek)
 
-    args: tuple[tuple[int, int, int], ...] = tuple(
+    args: list[tuple[int, int, int]] = [
         (i, from_seek, (from_seeks[i + 1] if i + 1 < num_tasks else input_size))
         for i, from_seek in enumerate(from_seeks)
-    )
+    ]
     with Pool(_NUM_WORKERS) as pool:
         for _ in tqdm(
             pool.imap_unordered(planet_worker, args),
@@ -286,7 +285,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
             input_buffer = f_in.read(to_seek)
 
     notes: list[dict]
-    notes = XMLToDict.parse(input_buffer, size_limit=None)['osm-notes']['note']
+    notes = XMLToDict.parse(input_buffer, size_limit=None)['osm-notes']['note']  # type: ignore
     # free memory
     del input_buffer
 
@@ -365,10 +364,10 @@ def run_notes_workers() -> None:
                 from_seek += min_find
             from_seeks.append(from_seek)
 
-    args: tuple[tuple[int, int, int], ...] = tuple(
+    args: list[tuple[int, int, int]] = [
         (i, from_seek, (from_seeks[i + 1] if i + 1 < num_tasks else input_size))
         for i, from_seek in enumerate(from_seeks)
-    )
+    ]
     with Pool(_NUM_WORKERS) as pool:
         for _ in tqdm(
             pool.imap_unordered(notes_worker, args),

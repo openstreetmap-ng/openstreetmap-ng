@@ -30,14 +30,11 @@ _WIKI_LANG_VALUE_RE = re.compile(r'^(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?
 
 
 def tags_format(tags: dict[str, str]) -> dict[str, TagFormat]:
-    """
-    Format tags for displaying on the website (colors, urls, etc.).
-
-    Returns a mapping of tag keys to TagFormats.
-    """
+    """Format tags for displaying on the website (colors, urls, etc.)."""
     result = dict(sorted((key, TagFormat(key, value)) for key, value in tags.items()))
+    result_values = list(result.values())
 
-    for tag in result.values():
+    for tag in result_values:
         key_parts = tag.key.text.split(':', maxsplit=5)  # split a:b:c keys into ['a', 'b', 'c']
         values = tag.values
         for key_part in _SUPPORTED_KEYS.intersection(key_parts):
@@ -45,7 +42,7 @@ def tags_format(tags: dict[str, str]) -> dict[str, TagFormat]:
                 values = call(key_parts, values)
         tag.values = values
 
-    tags_format_osm_wiki(result.values())
+    tags_format_osm_wiki(result_values)
     return result
 
 

@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Collection, Iterable, Sequence
 from dataclasses import dataclass
 
 import cython
@@ -90,7 +89,7 @@ class Search:
         return result
 
     @staticmethod
-    def best_results_index(task_results: Sequence[Sequence[SearchResult]]) -> int:
+    def best_results_index(task_results: list[list[SearchResult]]) -> int:
         """Determine the best results index."""
         # local_only mode
         if len(task_results) == 1:
@@ -114,10 +113,7 @@ class Search:
         return -2
 
     @staticmethod
-    def improve_point_accuracy(
-        results: Collection[SearchResult],
-        members_map: dict[TypedElementId, Element],
-    ) -> None:
+    def improve_point_accuracy(results: list[SearchResult], members_map: dict[TypedElementId, Element]) -> None:
         """Improve accuracy of points by analyzing relations members."""
         for result, type_id in zip(
             results,
@@ -149,7 +145,7 @@ class Search:
                     success = True
 
     @staticmethod
-    def remove_overlapping_points(results: Collection[SearchResult]) -> None:
+    def remove_overlapping_points(results: list[SearchResult]) -> None:
         """Remove overlapping points, preserving most important results."""
         relations = [
             result
@@ -176,7 +172,7 @@ class Search:
                 relations[i2].point = None
 
     @staticmethod
-    def deduplicate_similar_results(results: Iterable[SearchResult]) -> list[SearchResult]:
+    def deduplicate_similar_results(results: list[SearchResult]) -> list[SearchResult]:
         """Deduplicate similar results."""
         # Deduplicate by type and id
         seen: set[TypedElementId] = set()
@@ -214,10 +210,9 @@ class Search:
 
 
 @cython.cfunc
-def _should_use_global_search(task_results: Sequence[Sequence[SearchResult]]) -> cython.bint:
+def _should_use_global_search(task_results: list[list[SearchResult]]) -> cython.bint:
     """
     Determine whether to use global search or local search.
-
     Global search is used when there are no relevant local results.
     """
     local_results = task_results[:-1]

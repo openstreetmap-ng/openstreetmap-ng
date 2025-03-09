@@ -5,6 +5,7 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.auth_mixin import AuthExceptionsMixin
+from app.models.scope import Scope
 
 if TYPE_CHECKING:
     from app.models.db.oauth2_token import OAuth2CodeChallengeMethod
@@ -20,7 +21,7 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
         )
 
     @override
-    def insufficient_scopes(self, scopes: Iterable[str]) -> NoReturn:
+    def insufficient_scopes(self, scopes: Iterable[Scope]) -> NoReturn:
         raise APIError(
             status.HTTP_403_FORBIDDEN,
             detail=f'The request requires higher privileges than authorized ({", ".join(scopes)})',
@@ -44,7 +45,7 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
     def oauth2_bad_verifier(self, code_challenge_method: 'OAuth2CodeChallengeMethod') -> NoReturn:
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,
-            detail=f'OAuth2 verifier invalid for {code_challenge_method.value} code challenge method',
+            detail=f'OAuth2 verifier invalid for {code_challenge_method} code challenge method',
         )
 
     @override

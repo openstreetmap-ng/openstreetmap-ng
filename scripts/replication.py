@@ -172,7 +172,11 @@ async def _iterate(state: AppState) -> AppState:
             compression='lz4',
             write_statistics=False,
         ) as writer:
-            last_sequence_id = _parse_actions(writer, actions, last_sequence_id=state.last_sequence_id)
+            last_sequence_id = _parse_actions(
+                writer,
+                actions,  # type: ignore
+                last_sequence_id=state.last_sequence_id,
+            )
 
     return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
 
@@ -368,8 +372,6 @@ def _get_replication_url(frequency: _Frequency, sequence_number: int | None) -> 
 def _parse_replica_state(state: str):
     data: dict[str, str] = {}
     line: str
-    key: str
-    val: str
     for line in state.splitlines():
         if not line or line[0] == '#':
             continue

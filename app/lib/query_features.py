@@ -1,4 +1,3 @@
-from collections.abc import Collection
 from typing import NamedTuple
 
 import cython
@@ -30,11 +29,17 @@ class QueryFeatureResult(NamedTuple):
 
 class QueryFeatures:
     @staticmethod
-    def wrap_overpass_elements(overpass_elements: Collection[OverpassElement]) -> list[QueryFeatureResult]:
+    def wrap_overpass_elements(overpass_elements: list[OverpassElement]) -> list[QueryFeatureResult]:
+        id_map: dict[TypedElementId, OverpassElement] = {
+            typed_element_id(element['type'], element['id']): element  #
+            for element in overpass_elements
+        }
+
+        # noinspection PyTypeChecker
         elements_unfiltered: list[ElementInit] = [
             {
-                'changeset_id': None,
-                'typed_id': typed_element_id(element['type'], element['id']),
+                'changeset_id': 0,  # type: ignore
+                'typed_id': typed_id,
                 'version': 0,
                 'visible': True,
                 'tags': element.get('tags', {}),
@@ -42,16 +47,13 @@ class QueryFeatures:
                 'members': None,
                 'members_roles': None,
             }
-            for element in overpass_elements
+            for typed_id, element in id_map.items()
         ]
+
         elements = ElementsFilter.filter_tags_interesting(elements_unfiltered)[:QUERY_FEATURES_RESULTS_LIMIT]
         if not elements:
             return []
 
-        type_id_map: dict[TypedElementId, OverpassElement] = {
-            typed_element_id(element['type'], element['id']): element  #
-            for element in overpass_elements
-        }
         result: list[QueryFeatureResult] = [None] * len(elements)  # type: ignore
         geoms: list[list[tuple[float, float]]]
 
@@ -64,7 +66,7 @@ class QueryFeatures:
             features_prefixes(elements),
             strict=True,
         ):
-            element_data = type_id_map[element['typed_id']]
+            element_data = id_map[element['typed_id']]
             element_type = element_data['type']
 
             if element_type == 'node':
@@ -82,7 +84,7 @@ class QueryFeatures:
                 for member in relation_data['members']:
                     member_type = member['type']
                     member_typed_id = typed_element_id(member_type, member['ref'])
-                    member_data = type_id_map.get(member_typed_id)
+                    member_data = id_map.get(member_typed_id)
                     if member_data is None:
                         continue
 

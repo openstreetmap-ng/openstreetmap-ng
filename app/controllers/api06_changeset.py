@@ -1,21 +1,20 @@
-from collections.abc import Sequence
+from asyncio import TaskGroup
 from typing import Annotated, Literal
 
+import numpy as np
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload, raiseload
 
 from app.format import Format06
 from app.lib.auth_context import api_user
 from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.lib.options_context import options_context
 from app.lib.xml_body import xml_body
-from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT, DISPLAY_NAME_MAX_LENGTH
-from app.models.db.changeset import Changeset
-from app.models.db.changeset_comment import ChangesetComment
-from app.models.db.user import User
+from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
+from app.models.db.changeset import ChangesetId
+from app.models.db.changeset_comment import changeset_comments_resolve_rich_text
+from app.models.db.user import User, UserId
 from app.models.types import DisplayName
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -36,7 +35,7 @@ async def create_changeset(
     _: Annotated[User, api_user('write_api')],
 ):
     try:
-        tags = Format06.decode_tags_and_validate(data.get('tag', ()))
+        tags = Format06.decode_tags_and_validate(data.get('tag'))
     except Exception as e:
         raise_for.bad_xml('changeset', str(e))
 
@@ -48,20 +47,23 @@ async def create_changeset(
 @router.get('/changeset/{changeset_id:int}.xml')
 @router.get('/changeset/{changeset_id:int}.json')
 async def get_changeset(
-    changeset_id: PositiveInt,
-    include_discussion: Annotated[str | None, Query(alias='include_discussion')] = None,
+    changeset_id: ChangesetId,
+    include_discussion: Annotated[str | None, Query()] = None,
 ):
-    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changeset = await ChangesetQuery.find_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
         raise_for.changeset_not_found(changeset_id)
-    changesets = (changeset,)
+    changesets = [changeset]
 
-    if include_discussion:
-        with options_context(joinedload(ChangesetComment.user).load_only(User.display_name)):
-            await ChangesetCommentQuery.resolve_comments(changesets, limit_per_changeset=None, resolve_rich_text=True)
-    else:
-        await ChangesetCommentQuery.resolve_num_comments(changesets)
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_users(changesets))
+
+        if include_discussion:
+            comments = await ChangesetCommentQuery.resolve_comments(changesets, limit_per_changeset=None)
+            tg.create_task(UserQuery.resolve_users(comments))
+            tg.create_task(changeset_comments_resolve_rich_text(comments))
+        else:
+            tg.create_task(ChangesetCommentQuery.resolve_num_comments(changesets))
 
     return Format06.encode_changesets(changesets)
 
@@ -69,48 +71,52 @@ async def get_changeset(
 @router.get('/changeset/{changeset_id:int}/download', response_class=OSMChangeResponse)
 @router.get('/changeset/{changeset_id:int}/download.xml', response_class=OSMChangeResponse)
 async def download_changeset(
-    changeset_id: PositiveInt,
+    changeset_id: ChangesetId,
 ):
-    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changeset = await ChangesetQuery.find_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
         raise_for.changeset_not_found(changeset_id)
 
-    elements = await ElementQuery.get_by_changeset(changeset_id, sort_by='sequence_id')
-    await UserQuery.resolve_elements_users(elements, display_name=True)
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_users([changeset]))
+
+        elements = await ElementQuery.get_by_changeset(changeset_id, sort_by='sequence_id')
+        tg.create_task(UserQuery.resolve_elements_users(elements))
+
     return Format06.encode_osmchange(elements)
 
 
 @router.put('/changeset/{changeset_id:int}')
 async def update_changeset(
-    changeset_id: PositiveInt,
+    changeset_id: ChangesetId,
     data: Annotated[dict, xml_body('osm/changeset')],
     _: Annotated[User, api_user('write_api')],
 ):
     try:
-        tags = Format06.decode_tags_and_validate(data.get('tag', ()))
+        tags = Format06.decode_tags_and_validate(data.get('tag'))
     except Exception as e:
         raise_for.bad_xml('changeset', str(e))
 
     await ChangesetService.update_tags(changeset_id, tags)
-    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changeset = await ChangesetQuery.find_by_id(changeset_id)
-    assert changeset is not None
-    changesets = (changeset,)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
+    assert changeset is not None, f'Changeset {changeset_id} must exist after update'
 
-    await ChangesetCommentQuery.resolve_num_comments(changesets)
-    return Format06.encode_changesets(changesets)
+    async with TaskGroup() as tg:
+        items = [changeset]
+        tg.create_task(UserQuery.resolve_users(items))
+        tg.create_task(ChangesetCommentQuery.resolve_num_comments(items))
+
+    return Format06.encode_changesets(items)
 
 
 @router.post('/changeset/{changeset_id:int}/upload', response_class=DiffResultResponse)
 async def upload_diff(
-    changeset_id: PositiveInt,
-    data: Annotated[Sequence, xml_body('osmChange')],
+    changeset_id: ChangesetId,
+    data: Annotated[list, xml_body('osmChange')],
     _: Annotated[User, api_user('write_api')],
 ):
     try:
-        # implicitly assume stings are proper types
-        elements = Format06.decode_osmchange(data, changeset_id=changeset_id)
+        elements = Format06.decode_osmchange(changeset_id, data)
     except Exception as e:
         raise_for.bad_xml('osmChange', str(e))
 
@@ -120,7 +126,7 @@ async def upload_diff(
 
 @router.put('/changeset/{changeset_id:int}/close')
 async def close_changeset(
-    changeset_id: PositiveInt,
+    changeset_id: ChangesetId,
     _: Annotated[User, api_user('write_api')],
 ):
     await ChangesetService.close(changeset_id)
@@ -132,8 +138,8 @@ async def close_changeset(
 @router.get('/changesets.json')
 async def query_changesets(
     changesets_query: Annotated[str | None, Query(alias='changesets', min_length=1)] = None,
-    display_name: Annotated[DisplayName | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
-    user_id: Annotated[PositiveInt | None, Query(alias='user')] = None,
+    display_name: Annotated[DisplayName | None, Query(min_length=1)] = None,
+    user_id: Annotated[UserId | None, Query(alias='user')] = None,
     time: Annotated[str | None, Query(min_length=1)] = None,
     open_str: Annotated[str | None, Query(alias='open')] = None,
     closed_str: Annotated[str | None, Query(alias='closed')] = None,
@@ -144,22 +150,22 @@ async def query_changesets(
     # treat any non-empty string as True
     open = bool(open_str)
     closed = bool(closed_str)
-    # small logical optimization
+
+    # Logical optimization
     if open and closed:
-        return Format06.encode_changesets(())
+        return Format06.encode_changesets([])
 
-    geometry = parse_bbox(bbox) if (bbox is not None) else None
+    geometry = parse_bbox(bbox)
 
+    changeset_ids: list[ChangesetId] | None = None
     if changesets_query is not None:
-        changeset_ids = set()
-        for c in changesets_query.split(','):
-            c = c.strip()
-            if c.isdigit():
-                changeset_ids.add(int(c))
-        if not changeset_ids:
+        try:
+            ids = np.fromstring(changesets_query, np.uint64, sep=',')
+        except ValueError:
+            return Response('Changesets query must be a comma-separated list of integers', status.HTTP_400_BAD_REQUEST)
+        if not ids.size:
             return Response('No changesets were given to search for', status.HTTP_400_BAD_REQUEST)
-    else:
-        changeset_ids = None
+        changeset_ids = np.unique(ids).tolist()  # type: ignore
 
     user: User | None = None
     if display_name is not None and user_id is not None:
@@ -190,18 +196,20 @@ async def query_changesets(
         closed_after = None
         created_before = None
 
-    with options_context(joinedload(Changeset.user).load_only(User.display_name), raiseload(Changeset.bounds)):
-        changesets = await ChangesetQuery.find_many_by_query(
-            changeset_ids=changeset_ids,
-            user_ids=(user.id,) if (user is not None) else None,
-            created_before=created_before,
-            closed_after=closed_after,
-            is_open=True if open else (False if closed else None),
-            geometry=geometry,
-            legacy_geometry=True,
-            sort='asc' if (order == 'newest') else 'desc',
-            limit=limit,
-        )
+    changesets = await ChangesetQuery.find_many_by_query(
+        changeset_ids=changeset_ids,
+        user_ids=[user['id']] if (user is not None) else None,
+        created_before=created_before,
+        closed_after=closed_after,
+        is_open=True if open else (False if closed else None),
+        geometry=geometry,
+        legacy_geometry=True,
+        sort='asc' if (order == 'newest') else 'desc',
+        limit=limit,
+    )
 
-    await ChangesetCommentQuery.resolve_num_comments(changesets)
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_users(changesets))
+        tg.create_task(ChangesetCommentQuery.resolve_num_comments(changesets))
+
     return Format06.encode_changesets(changesets)

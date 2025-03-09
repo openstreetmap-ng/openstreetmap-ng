@@ -5,15 +5,16 @@ from starlette import status
 from app.exceptions.api_error import APIError
 from app.exceptions.trace_mixin import TraceExceptionsMixin
 from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE
+from app.models.db.trace import TraceId
 
 
 class TraceExceptions06Mixin(TraceExceptionsMixin):
     @override
-    def trace_not_found(self, trace_id: int) -> NoReturn:
+    def trace_not_found(self, trace_id: TraceId) -> NoReturn:
         raise APIError(status.HTTP_404_NOT_FOUND)
 
     @override
-    def trace_access_denied(self, trace_id: int) -> NoReturn:
+    def trace_access_denied(self, trace_id: TraceId) -> NoReturn:
         raise APIError(status.HTTP_403_FORBIDDEN)
 
     @override

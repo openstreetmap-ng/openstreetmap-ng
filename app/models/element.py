@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from typing import Literal, NewType
 
 import cython
@@ -112,6 +111,18 @@ def element_type(s: str) -> ElementType:
 #         return f'{self.type[0]}{self.id}v{self.version}'
 
 
+def versioned_typed_element_id(type: ElementType, s: str) -> tuple[TypedElementId, int]:
+    """Parse a versioned element reference from a string."""
+    idx = s.rindex('v')
+    id: ElementId = int(s[:idx])  # type: ignore
+    version = int(s[idx + 1 :])
+    if id == 0:
+        raise ValueError('Element id must be non-zero')
+    if version <= 0:
+        raise ValueError('Element version must be positive')
+    return typed_element_id(type, id), version
+
+
 def typed_element_id(type: ElementType, id: ElementId) -> TypedElementId:
     """
     Encode element type and id into a 64-bit integer:
@@ -131,7 +142,6 @@ def typed_element_id(type: ElementType, id: ElementId) -> TypedElementId:
         if id >= 1 << 56:
             raise OverflowError(f'ElementId {id} is too large for TypedElementId')
         result = id
-        result <<= 1
 
     if type == 'node':
         return result  # type: ignore
@@ -175,7 +185,7 @@ def split_typed_element_ids(ids: list[TypedElementId]) -> list[tuple[ElementType
     return [_split_typed_element_id(id) for id in ids]
 
 
-def split_typed_element_ids2(elements: Iterable[Element | ElementInit]) -> list[tuple[ElementType, ElementId]]:
+def split_typed_element_ids2(elements: list[Element] | list[ElementInit]) -> list[tuple[ElementType, ElementId]]:
     return [_split_typed_element_id(e['typed_id']) for e in elements]
 
 

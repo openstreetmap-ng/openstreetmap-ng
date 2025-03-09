@@ -1,5 +1,3 @@
-from collections.abc import Iterable
-
 import cython
 import numpy as np
 from lxml.etree import CDATA
@@ -29,7 +27,7 @@ class Note06Mixin:
             return {'note': _encode_note(note, is_json=False, is_gpx=False)}
 
     @staticmethod
-    def encode_notes(notes: Iterable[Note]) -> dict:
+    def encode_notes(notes: list[Note]) -> dict:
         """
         >>> encode_notes([
         ...     Note(...),

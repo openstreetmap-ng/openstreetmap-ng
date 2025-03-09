@@ -1,5 +1,3 @@
-from collections.abc import Iterable
-
 import cython
 
 from app.lib.date_utils import legacy_date
@@ -11,7 +9,7 @@ from app.models.db.changeset_comment import ChangesetComment
 
 class Changeset06Mixin:
     @staticmethod
-    def encode_changesets(changesets: Iterable[Changeset]) -> dict:
+    def encode_changesets(changesets: list[Changeset]) -> dict:
         """
         >>> encode_changesets([
         ...     Changeset(...),
@@ -19,10 +17,12 @@ class Changeset06Mixin:
         ... ])
         {'changeset': [{'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}]}
         """
-        if format_is_json():
-            return {'changesets': [_encode_changeset(changeset, is_json=True) for changeset in changesets]}
-        else:
-            return {'changeset': [_encode_changeset(changeset, is_json=False) for changeset in changesets]}
+        is_json: cython.bint = format_is_json()
+        return {
+            'changesets' if is_json else 'changeset': [
+                _encode_changeset(changeset, is_json=is_json) for changeset in changesets
+            ]
+        }
 
 
 @cython.cfunc

@@ -48,7 +48,6 @@ class OAuth2TokenService:
         code_challenge: str | None,
         state: str | None,
     ) -> dict[str, str] | OAuth2TokenOOB | OAuth2Application: ...
-
     @staticmethod
     @overload
     async def authorize(
@@ -61,7 +60,6 @@ class OAuth2TokenService:
         code_challenge: str | None,
         state: str | None,
     ) -> dict[str, str] | OAuth2TokenOOB: ...
-
     @staticmethod
     async def authorize(
         *,

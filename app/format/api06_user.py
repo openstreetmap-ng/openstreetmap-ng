@@ -1,5 +1,4 @@
 from asyncio import TaskGroup
-from collections.abc import Collection, Iterable
 
 import cython
 import numpy as np
@@ -11,7 +10,7 @@ from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import get_xattr
 from app.models.db.user import User, user_avatar_url
-from app.models.db.user_pref import UserPref, UserPrefListValidator
+from app.models.db.user_pref import UserPref, UserPrefKey, UserPrefListValidator
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.message_query import MessageQuery
 from app.queries.trace_query import TraceQuery
@@ -28,7 +27,7 @@ class User06Mixin:
         return {'user': await _encode_user(user, is_json=format_is_json())}
 
     @staticmethod
-    async def encode_users(users: Iterable[User]) -> dict:
+    async def encode_users(users: list[User]) -> dict:
         """
         >>> encode_users([
         ...     User(...),
@@ -37,12 +36,14 @@ class User06Mixin:
         {'user': [{'@id': 1234, '@display_name': 'userName', ...}]}
         """
         is_json = format_is_json()
+
         async with TaskGroup() as tg:
             tasks = [tg.create_task(_encode_user(user, is_json=is_json)) for user in users]
+
         return {('users' if is_json else 'user'): [task.result() for task in tasks]}
 
     @staticmethod
-    def encode_user_preferences(prefs: Iterable[UserPref]) -> dict:
+    def encode_user_preferences(prefs: list[UserPref]) -> dict:
         """
         >>> encode_user_preferences([
         ...     UserPref(key='key1', value='value1'),
@@ -52,19 +53,19 @@ class User06Mixin:
         """
         if format_is_json():
             return {'preferences': {pref['key']: pref['value'] for pref in prefs}}
-        else:
-            return {'preferences': {'preference': [{'@k': pref['key'], '@v': pref['value']} for pref in prefs]}}
+
+        return {'preferences': {'preference': [{'@k': pref['key'], '@v': pref['value']} for pref in prefs]}}
 
     @staticmethod
-    def decode_user_preferences(prefs: Collection[dict[str, str]]) -> list[UserPref]:
+    def decode_user_preferences(prefs: list[dict[str, str]]) -> list[UserPref]:
         """
         >>> decode_user_preferences([{'@k': 'key', '@v': 'value'}])
         [UserPref(key='key', value='value')]
         """
-        # check for duplicate keys
-        seen_keys: set[str] = set()
+        # Check for duplicate keys
+        seen_keys: set[UserPrefKey] = set()
         for pref in prefs:
-            key: str = pref['@k']
+            key: UserPrefKey = pref['@k']  # type: ignore
             if key in seen_keys:
                 raise_for.pref_duplicate_key(key)
             seen_keys.add(key)

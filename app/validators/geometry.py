@@ -13,12 +13,8 @@ _T = TypeVar('_T', bound=BaseGeometry)
 
 @overload
 def validate_geometry(value: dict[str, Any]) -> BaseGeometry: ...
-
-
 @overload
 def validate_geometry(value: _T) -> _T: ...
-
-
 def validate_geometry(value: dict[str, Any] | _T) -> BaseGeometry | _T:
     """Validate a geometry."""
     geom: BaseGeometry = shape(value) if isinstance(value, dict) else value

@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from pathlib import Path
 
 import cython
@@ -31,7 +30,7 @@ def _get_wiki_pages() -> dict[tuple[str, str], frozenset[str | None]]:
 _WIKI_PAGES = _get_wiki_pages()
 
 
-def tags_format_osm_wiki(tags: Iterable[TagFormat]) -> None:
+def tags_format_osm_wiki(tags: list[TagFormat]) -> None:
     """Format tags with supported wiki links."""
     locales = translation_locales()
     for tag in tags:

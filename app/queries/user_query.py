@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from typing import Any, Literal
 
 from psycopg.rows import dict_row
@@ -88,7 +87,7 @@ class UserQuery:
         *,
         max_distance: float = NEARBY_USERS_RADIUS_METERS,
         limit: int | None = None,
-    ) -> Sequence[User]:
+    ) -> list[User]:
         """Find nearby users. Users position is determined by their home point."""
         params: list[Any] = [point, max_distance, point]
 
@@ -187,7 +186,7 @@ class UserQuery:
         user_key: str = 'user',
         kind: type[UserDisplay] | type[User] = UserDisplay,
     ) -> None:
-        """Resolve users for a list of items."""
+        """Resolve user fields for the given items."""
         if not items:
             return
 
@@ -220,6 +219,7 @@ class UserQuery:
 
     @staticmethod
     async def resolve_elements_users(elements: list[Element]) -> None:
+        """Resolve the user_id and user fields for the given elements."""
         if not elements:
             return
 

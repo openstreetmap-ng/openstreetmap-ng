@@ -26,18 +26,12 @@ _MASK: np.uint64 = _create_mentissa_mask()
 
 @overload
 def compressible_geometry(geometry: _GeomT) -> _GeomT: ...
-
-
 @overload
 def compressible_geometry(geometry: NDArray[np.float64]) -> NDArray[np.float64]: ...
-
-
 def compressible_geometry(geometry: _GeomT | NDArray[np.float64]) -> _GeomT | NDArray[np.float64]:
     """
     Make geometry easily compressible by reducing mentissa noise.
-
     It is then necessary to round the coordinates back.
-
     Inspired by http://www.danbaston.com/posts/2018/02/15/optimizing-postgis-geometries.html
     """
     if isinstance(geometry, BaseGeometry):

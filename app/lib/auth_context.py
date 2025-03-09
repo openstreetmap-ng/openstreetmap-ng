@@ -42,16 +42,10 @@ def auth_user_scopes() -> tuple[User | None, tuple[Scope, ...]]:
 
 @overload
 def auth_user() -> User | None: ...
-
-
 @overload
 def auth_user(*, required: Literal[True]) -> User: ...
-
-
 @overload
 def auth_user(*, required: Literal[False]) -> User | None: ...
-
-
 def auth_user(*, required: bool = False) -> User | None:
     """Get the authenticated user."""
     user = _CTX.get()[0]

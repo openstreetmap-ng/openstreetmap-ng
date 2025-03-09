@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from typing import Any
 
 from fastapi import Depends, params
 
@@ -11,13 +11,13 @@ def xml_body(path: str) -> params.Depends:
     """Returns a dependency for extracting XML data from the request body."""
     parts: list[str] = path.split('/')
     bad_xml_name = parts[-1]
-    bad_xml_message = f"XML doesn't contain an {path} element."
+    bad_xml_message = f'Not found {path} element in the XML.'
 
     # backwards compatibility
     if bad_xml_name == 'gpx_file':
         bad_xml_name = 'trace'
 
-    def dependency() -> dict | Sequence:
+    def dependency() -> list[tuple[str, Any]] | dict[str, Any]:
         xml = get_request()._body  # noqa: SLF001
         data = XMLToDict.parse(xml)
 

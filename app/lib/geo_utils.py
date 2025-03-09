@@ -1,3 +1,5 @@
+from typing import overload
+
 import cython
 from h3 import compact_cells, geo_to_h3shape, h3shape_to_cells_experimental
 from pyproj import Geod
@@ -60,7 +62,11 @@ def haversine_distance(p1: Point, p2: Point) -> float:
     return c * 6371000  # R
 
 
-def parse_bbox(s: str) -> Polygon | MultiPolygon:
+@overload
+def parse_bbox(s: str) -> Polygon | MultiPolygon: ...
+@overload
+def parse_bbox(s: None) -> None: ...
+def parse_bbox(s: str | None) -> Polygon | MultiPolygon | None:
     """
     Parse a bbox string or bounds.
 
@@ -71,7 +77,10 @@ def parse_bbox(s: str) -> Polygon | MultiPolygon:
     >>> parse_bbox('1,2,3,4')
     POLYGON ((1 2, 1 4, 3 4, 3 2, 1 2))
     """
-    parts = s.strip().split(',', 3)
+    if s is None:
+        return None
+
+    parts: list[str] = s.strip().split(',', 3)
     try:
         precision = GEO_COORDINATE_PRECISION
         minx: cython.double = round(float(parts[0].strip()), precision)

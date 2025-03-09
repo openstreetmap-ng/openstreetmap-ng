@@ -13,7 +13,7 @@ from app.lib.date_utils import utcnow
 from app.lib.geo_utils import parse_bbox
 from app.lib.options_context import options_context
 from app.lib.translation import primary_translation_locale, t
-from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT, DISPLAY_NAME_MAX_LENGTH
+from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.changeset import Changeset
 from app.models.db.user import User
@@ -29,20 +29,21 @@ async def history_feed(
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
-    geometry = parse_bbox(bbox) if (bbox is not None) else None
+    geometry = parse_bbox(bbox)
     return await _get_feed(geometry=geometry, limit=limit)
 
 
 @router.get('/user/{display_name:str}/history/feed')
 async def user_history_feed(
-    display_name: Annotated[DisplayName, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
+    display_name: Annotated[DisplayName, Path(min_length=1)],
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
     if user is None:
         return Response(None, status.HTTP_404_NOT_FOUND, media_type='application/atom+xml')
-    geometry = parse_bbox(bbox) if (bbox is not None) else None
+
+    geometry = parse_bbox(bbox)
     return await _get_feed(user=user, geometry=geometry, limit=limit)
 
 
@@ -55,7 +56,8 @@ async def user_permalink_history_feed(
     user = await UserQuery.find_one_by_id(user_id)
     if user is None:
         return Response(None, status.HTTP_404_NOT_FOUND, media_type='application/atom+xml')
-    geometry = parse_bbox(bbox) if (bbox is not None) else None
+
+    geometry = parse_bbox(bbox)
     return await _get_feed(user=user, geometry=geometry, limit=limit)
 
 

@@ -25,7 +25,6 @@ class UserTokenQuery:
         *,
         check_email_hash: bool = True,
     ) -> UserToken | None: ...
-
     @staticmethod
     @overload
     async def find_one_by_token_struct(
@@ -34,7 +33,6 @@ class UserTokenQuery:
         *,
         check_email_hash: bool = True,
     ) -> UserTokenEmailChange | None: ...
-
     @staticmethod
     @overload
     async def find_one_by_token_struct(
@@ -43,7 +41,6 @@ class UserTokenQuery:
         *,
         check_email_hash: bool = True,
     ) -> UserTokenEmailReply | None: ...
-
     @staticmethod
     async def find_one_by_token_struct(
         token_type: UserTokenType,

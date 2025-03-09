@@ -1,6 +1,5 @@
-from collections.abc import Iterable
-
 import cython
+from shapely import measurement
 
 from app.models.db.changeset import Changeset
 from app.models.db.user import user_avatar_url
@@ -9,7 +8,7 @@ from app.models.proto.shared_pb2 import RenderChangesetsData, SharedBounds
 
 class LeafletChangesetMixin:
     @staticmethod
-    def encode_changesets(changesets: Iterable[Changeset]) -> RenderChangesetsData:
+    def encode_changesets(changesets: list[Changeset]) -> RenderChangesetsData:
         """Format changesets into a minimal structure, suitable for map rendering."""
         return RenderChangesetsData(changesets=[_encode_changeset(changeset) for changeset in changesets])
 
@@ -25,14 +24,14 @@ def _encode_changeset(changeset: Changeset):
         else None
     )
 
-    params_bounds = [
-        SharedBounds(*cb['bounds'].bounds)
-        for cb in changeset['bounds']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-    ]
+    bboxes: list[list[float]]
+    bboxes = measurement.bounds(changeset['bounds'].geoms).tolist()  # type: ignore
+    params_bounds = [SharedBounds(*bbox) for bbox in bboxes]
 
     closed_at = changeset['closed_at']
     timeago_date = closed_at if (closed_at is not None) else changeset['created_at']
     timeago_html = f'<time datetime="{timeago_date.isoformat()}" data-style="long"></time>'
+
     return RenderChangesetsData.Changeset(
         id=changeset['id'],
         user=params_user,

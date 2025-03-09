@@ -1,9 +1,8 @@
 import logging
 from typing import Annotated, Literal
 
-from annotated_types import Le
+from annotated_types import Gt, Le
 from fastapi import APIRouter, Query, Response
-from pydantic import PositiveInt
 
 from app.format import FormatLeaflet
 from app.lib.exceptions_context import raise_for
@@ -19,7 +18,7 @@ router = APIRouter(prefix='/api/web')
 @router.get('/map')
 async def get_map(
     bbox: Annotated[str, Query()],
-    limit: Annotated[Annotated[PositiveInt, Le(MAP_QUERY_LEGACY_NODES_LIMIT)] | Literal[''], Query()],
+    limit: Annotated[Annotated[int, Gt(0), Le(MAP_QUERY_LEGACY_NODES_LIMIT)] | Literal[''], Query()],
 ):
     logging.warning('Limit is %r', limit)
     geometry = parse_bbox(bbox)

@@ -6,7 +6,7 @@ from psycopg import OperationalError
 
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.limits import OPTIMISTIC_DIFF_RETRY_TIMEOUT
-from app.models.db.element import Element, ElementInit
+from app.models.db.element import ElementInit
 from app.models.element import TypedElementId
 from app.services.optimistic_diff.apply import OptimisticDiffApply
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare

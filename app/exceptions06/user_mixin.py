@@ -5,23 +5,27 @@ from starlette import status
 from app.exceptions.api_error import APIError
 from app.exceptions.user_mixin import UserExceptionsMixin
 from app.limits import USER_PREF_BULK_SET_LIMIT
+from app.models.db.oauth2_application import ApplicationId
+from app.models.db.user import UserId
+from app.models.db.user_pref import UserPrefKey
+from app.models.types import DisplayName
 
 
 class UserExceptions06Mixin(UserExceptionsMixin):
     @override
-    def user_not_found(self, name_or_id: str | int) -> NoReturn:
+    def user_not_found(self, name_or_id: DisplayName | UserId) -> NoReturn:
         raise APIError(status.HTTP_404_NOT_FOUND, detail=f'User {name_or_id} not known')
 
     @override
-    def user_not_found_bad_request(self, name_or_id: str | int) -> NoReturn:
+    def user_not_found_bad_request(self, name_or_id: DisplayName | UserId) -> NoReturn:
         raise APIError(status.HTTP_400_BAD_REQUEST, detail=f'User {name_or_id} not known')
 
     @override
-    def pref_not_found(self, app_id: int | None, key: str) -> NoReturn:
+    def pref_not_found(self, app_id: ApplicationId | None, key: UserPrefKey) -> NoReturn:
         raise APIError(status.HTTP_404_NOT_FOUND, detail=f'Preference {key!r} not found')
 
     @override
-    def pref_duplicate_key(self, key: str) -> NoReturn:
+    def pref_duplicate_key(self, key: UserPrefKey) -> NoReturn:
         raise APIError(status.HTTP_406_NOT_ACCEPTABLE, detail=f'Duplicate preferences with key {key}')
 
     @override

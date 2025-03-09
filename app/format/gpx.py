@@ -2,8 +2,7 @@ from datetime import datetime
 from typing import Any, NamedTuple
 
 import cython
-import numpy as np
-from shapely import MultiLineString, MultiPolygon, Polygon, contains_xy, force_2d, force_3d, get_coordinates, prepare
+from shapely import MultiLineString, force_2d, force_3d, get_coordinates
 
 from app.lib.exceptions_context import raise_for
 from app.models.db.trace import Trace, trace_is_timestamps_via_api
@@ -64,58 +63,39 @@ class FormatGPX:
         }
 
     @staticmethod
-    def encode_tracks_filter(traces: list[Trace], boundary: Polygon | MultiPolygon) -> dict:
-        """
-        Encode multiple traces as GPX tracks, filtering to only include
-        points within the specified boundary geometry.
-        """
-        # Prepare the boundary for faster contains checks
-        prepare(boundary)
-
+    def encode_tracks(traces: list[Trace]) -> dict:
         trk: list[dict] = []
 
         for trace in traces:
+            coordinates_, segment_nums_ = get_coordinates(force_3d(trace['segments']).geoms, True, True)  # type: ignore
+            coordinates: list[list[float]] = coordinates_.tolist()
+            segment_nums: list[int] = segment_nums_.tolist()
             capture_times = trace['capture_times']
-            capture_times_arr = np.array(capture_times) if (capture_times is not None) else None
-            point_index: cython.Py_ssize_t = 0
+
+            current_segment_num: int = -1
             trkseg: list[dict] = []
+            trkpt: list[dict] = []
 
-            for segment in force_3d(trace['segments']).geoms:
-                segment_coords_arr = get_coordinates(segment, True)
-                segment_size: cython.Py_ssize_t = len(segment_coords_arr)
-                mask = contains_xy(boundary, segment_coords_arr[:, :2])
+            for t in (
+                zip(coordinates, segment_nums, capture_times, strict=True)
+                if capture_times is not None
+                else zip(coordinates, segment_nums, strict=True)
+            ):
+                (lon, lat, elevation) = t[0]
+                segment_num = t[1]
 
-                # Skip if no points are in boundary
-                if not np.any(mask):
-                    point_index += segment_size
-                    continue
+                # Handle start of new segment
+                if segment_num > current_segment_num:
+                    current_segment_num = segment_num
+                    trkpt = []
+                    trkseg.append({'trkpt': trkpt})
 
-                segment_coords_arr = segment_coords_arr[mask]
-
-                # Add capture times if available
-                if capture_times_arr is not None:
-                    indices = np.where(mask)[0] + point_index
-                    segment_coords_arr = np.column_stack((segment_coords_arr, capture_times_arr[indices]))
-
-                point_index += segment_size
-                segment_coords: list[list[Any]] = segment_coords_arr.tolist()  # type: ignore
-                trkpt: list[dict] = []
-
-                for t in segment_coords:
-                    if capture_times_arr is not None:
-                        lon, lat, elevation, capture_time = t
-                    else:
-                        lon, lat, elevation = t
-                        capture_time = None
-
-                    data: dict[str, Any] = {'@lon': lon, '@lat': lat}
-                    if elevation:
-                        data['ele'] = elevation
-                    if capture_time is not None:
-                        data['time'] = capture_time
-                    trkpt.append(data)
-
-                trkseg.append({'trkpt': trkpt})
+                data: dict[str, Any] = {'@lon': lon, '@lat': lat}
+                if elevation:
+                    data['ele'] = elevation
+                if capture_times is not None:
+                    data['time'] = t[2]  # type: ignore
+                trkpt.append(data)
 
             # Add track if it is not empty
             if trkseg:

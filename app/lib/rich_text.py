@@ -19,8 +19,9 @@ from psycopg.sql import SQL, Identifier
 
 from app.config import TRUSTED_HOSTS
 from app.db import db2
+from app.lib.crypto import hash_bytes
 from app.limits import RICH_TEXT_CACHE_EXPIRE
-from app.services.cache_service import CacheContext, CacheEntry, CacheService
+from app.services.cache_service import CacheContext, CacheService
 
 TextFormat = Literal['html', 'markdown', 'plain']
 
@@ -28,7 +29,6 @@ TextFormat = Literal['html', 'markdown', 'plain']
 def process_rich_text(text: str, text_format: TextFormat) -> str:
     """
     Get a rich text string by text and format.
-
     This function runs synchronously and does not use cache.
     """
     text = text.strip()
@@ -55,25 +55,28 @@ def process_rich_text(text: str, text_format: TextFormat) -> str:
     raise NotImplementedError(f'Unsupported rich text format {text_format!r}')
 
 
-async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) -> CacheEntry:
+async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) -> tuple[str, bytes]:
     """
     Get a rich text cache entry by text and format, generating one if not found.
-
     If cache_id is provided, it will be used to accelerate cache lookup.
     """
-    cache_context = CacheContext(f'RichText:{text_format}')
-    hash_key: cython.bint = cache_id is None
 
     async def factory() -> bytes:
         return process_rich_text(text, text_format).encode()
 
-    return await CacheService.get(
-        text if hash_key else cache_id,
-        cache_context,
-        factory,
-        hash_key=hash_key,
-        ttl=RICH_TEXT_CACHE_EXPIRE,
-    )
+    if cache_id is None:
+        cache_id = hash_bytes(text)
+
+    processed = (
+        await CacheService.get(
+            cache_id.hex(),  # type: ignore
+            CacheContext(f'RichText:{text_format}'),
+            factory,
+            ttl=RICH_TEXT_CACHE_EXPIRE,
+        )
+    ).decode()
+
+    return processed, cache_id
 
 
 class _HasId(TypedDict):
@@ -104,19 +107,17 @@ async def resolve_rich_text(
     to_update: list[tuple[Any, bytes, bytes]] = []
 
     for task, obj in zip(tasks, mapping.values(), strict=True):
-        cache_entry = task.result()
-        obj[rich_field_name] = cache_entry.value.decode()  # type: ignore
+        processed, cache_id = task.result()
+        obj[rich_field_name] = processed  # type: ignore
 
         current_hash: bytes = obj[rich_hash_field_name]  # type: ignore
-        new_hash = cache_entry.id
-        if current_hash != new_hash:
-            to_update.append((obj['id'], current_hash, new_hash))
+        if current_hash != cache_id:
+            to_update.append((obj['id'], current_hash, cache_id))
 
     if not to_update:
         return
 
     async with db2(True, autocommit=True) as conn:
-        value_sql = SQL('%s, %s, %s')
         await conn.execute(
             SQL("""
                 UPDATE {table} SET {field} = v.new_hash
@@ -125,7 +126,7 @@ async def resolve_rich_text(
             """).format(
                 table=Identifier(table),
                 field=Identifier(rich_hash_field_name),
-                values=SQL('), (').join(value_sql for _ in to_update),
+                values=SQL('), (').join([SQL('%s, %s, %s')] * len(to_update)),
             ),
             [v for vals in to_update for v in vals],
         )

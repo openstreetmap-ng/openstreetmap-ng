@@ -1,5 +1,3 @@
-from collections.abc import Iterable
-
 import cython
 
 from app.models.db.trace import Trace, TraceMetaInit, TraceMetaInitValidator, trace_tags_from_str
@@ -15,7 +13,7 @@ class Trace06Mixin:
         return {'gpx_file': _encode_gpx_file(trace)}
 
     @staticmethod
-    def encode_gpx_files(traces: Iterable[Trace]) -> dict:
+    def encode_gpx_files(traces: list[Trace]) -> dict:
         """
         >>> encode_gpx_files([
         ...     Trace(...),

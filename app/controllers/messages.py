@@ -16,7 +16,6 @@ from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.translation import t
 from app.limits import (
-    DISPLAY_NAME_MAX_LENGTH,
     MESSAGE_BODY_MAX_LENGTH,
     MESSAGE_SUBJECT_MAX_LENGTH,
     MESSAGES_INBOX_PAGE_SIZE,
@@ -123,7 +122,7 @@ async def outbox(
 @router.get('/message/new')
 async def new_message(
     user: Annotated[User, web_user()],
-    to: Annotated[DisplayName | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
+    to: Annotated[DisplayName | None, Query(min_length=1)] = None,
     to_id: Annotated[PositiveInt | None, Query()] = None,
     reply: Annotated[PositiveInt | None, Query()] = None,
     reply_diary: Annotated[PositiveInt | None, Query()] = None,
@@ -190,7 +189,6 @@ async def new_message(
             'recipient_id': recipient_id,
             'subject': subject,
             'body': body,
-            'DISPLAY_NAME_MAX_LENGTH': DISPLAY_NAME_MAX_LENGTH,
             'MESSAGE_SUBJECT_MAX_LENGTH': MESSAGE_SUBJECT_MAX_LENGTH,
             'MESSAGE_BODY_MAX_LENGTH': MESSAGE_BODY_MAX_LENGTH,
         },

@@ -69,11 +69,11 @@ class ChangesetCommentQuery:
         changesets: list[Changeset],
         *,
         limit_per_changeset: int | None,
-        resolve_rich_text: bool = True,
-    ) -> None:
-        """Resolve comments for changesets."""
+        resolve_rich_text: bool = False,
+    ) -> list[ChangesetComment]:
+        """Resolve comments for changesets. Returns the resolved comments."""
         if not changesets:
-            return
+            return []
 
         id_map: dict[ChangesetId, list[ChangesetComment]] = {}
         for changeset in changesets:
@@ -121,3 +121,5 @@ class ChangesetCommentQuery:
 
         if resolve_rich_text:
             await changeset_comments_resolve_rich_text(comments)
+
+        return comments

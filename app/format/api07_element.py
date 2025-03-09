@@ -1,11 +1,9 @@
-from collections.abc import Iterable
-
 import cython
 import numpy as np
 from shapely import Point, lib
 
 from app.models.db.element import Element
-from app.models.element import TypedElementId, split_typed_element_id
+from app.models.element import TypedElementId, split_typed_element_id, split_typed_element_ids
 
 
 class Element07Mixin:
@@ -14,7 +12,7 @@ class Element07Mixin:
         return _encode_element(element)
 
     @staticmethod
-    def encode_elements(elements: Iterable[Element]) -> list[dict]:
+    def encode_elements(elements: list[Element]) -> list[dict]:
         return [_encode_element(element) for element in elements]
 
 
@@ -22,7 +20,7 @@ class Element07Mixin:
 def _encode_element(element: Element) -> dict:
     type, id = split_typed_element_id(element['typed_id'])
     visible = element['visible']
-    result: dict = {
+    result = {
         'type': type,
         'id': id,
         'version': element['version'],
@@ -49,19 +47,23 @@ def _encode_element(element: Element) -> dict:
 
 
 @cython.cfunc
-def _encode_members(members: Iterable[TypedElementId], members_roles: Iterable[str] | None) -> list[dict]:
-    result: list[dict] = []
+def _encode_members(members: list[TypedElementId], members_roles: list[str] | None) -> list[dict]:
     if members_roles is None:
-        # ways
-        for member in members:
-            type, id = split_typed_element_id(member)
-            result.append({'type': type, 'id': id})
+        # Ways
+        return [
+            {'type': type, 'id': id}  #
+            for type, id in split_typed_element_ids(members)
+        ]
     else:
-        # relations
-        for member, role in zip(members, members_roles, strict=True):
-            type, id = split_typed_element_id(member)
-            result.append({'type': type, 'id': id, 'role': role})
-    return result
+        # Relations
+        return [
+            {'type': type, 'id': id, 'role': role}
+            for (type, id), role in zip(
+                split_typed_element_ids(members),
+                members_roles,
+                strict=True,
+            )
+        ]
 
 
 @cython.cfunc

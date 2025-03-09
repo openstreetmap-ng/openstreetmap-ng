@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Any, Literal
 
@@ -11,7 +12,7 @@ from app.lib.date_utils import utcnow
 from app.lib.standard_pagination import standard_pagination_range
 from app.limits import NOTE_USER_PAGE_SIZE
 from app.models.db.note import Note, NoteId
-from app.models.db.note_comment import NoteEvent
+from app.models.db.note_comment import NoteComment, NoteEvent
 from app.models.db.user import UserId, user_is_moderator
 
 
@@ -243,3 +244,18 @@ class NoteQuery:
 
         async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
+
+    @staticmethod
+    async def resolve_legacy_note(comments: list[NoteComment]) -> None:
+        """Resolve legacy note fields for the given comments."""
+        if not comments:
+            return
+
+        id_map: dict[NoteId, list[NoteComment]] = defaultdict(list)
+        for comment in comments:
+            id_map[comment['note_id']].append(comment)
+
+        notes = await NoteQuery.find_many_by_query(note_ids=list(id_map), limit=len(id_map))
+        for note in notes:
+            for comment in id_map[note['id']]:
+                comment['legacy_note'] = note

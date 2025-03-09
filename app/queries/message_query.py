@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from typing import NamedTuple
 
 import cython
@@ -49,7 +48,7 @@ class MessageQuery:
         after: MessageId | None = None,
         before: MessageId | None = None,
         limit: int,
-    ) -> Sequence[Message]:
+    ) -> list[Message]:
         """Get user messages."""
         user_id = auth_user(required=True)['id']
 
@@ -131,9 +130,5 @@ class MessageQuery:
                 (user_id, user_id, user_id),
             ) as r,
         ):
-            rows_iter = iter(await r.fetchall())
-            return _MessageCountByUserResult(
-                total=next(rows_iter)[0],
-                unread=next(rows_iter)[0],
-                sent=next(rows_iter)[0],
-            )
+            (total,), (unread,), (sent,) = await r.fetchall()
+            return _MessageCountByUserResult(total, unread, sent)

@@ -1,5 +1,3 @@
-from collections.abc import Sequence
-
 import cython
 from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
@@ -13,7 +11,7 @@ from app.models.db.changeset import Changeset
 
 class ChangesetRSS06Mixin:
     @staticmethod
-    async def encode_changesets(fg: FeedGenerator, changesets: Sequence[Changeset]) -> None:
+    async def encode_changesets(fg: FeedGenerator, changesets: list[Changeset]) -> None:
         """Encode changesets into a feed."""
         fg.load_extension('geo')
         for changeset in changesets:

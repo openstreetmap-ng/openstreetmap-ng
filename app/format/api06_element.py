@@ -105,9 +105,8 @@ class Element06Mixin:
 
     @staticmethod
     def decode_osmchange(
-        changes: list[tuple[OSMChangeAction, list[tuple[ElementType, dict]]]] | dict,
-        *,
         changeset_id: ChangesetId | None,
+        changes: list[tuple[OSMChangeAction, list[tuple[ElementType, dict]]]] | dict,
     ) -> list[ElementInit]:
         """
         If changeset_id is None, it will be extracted from the element data.

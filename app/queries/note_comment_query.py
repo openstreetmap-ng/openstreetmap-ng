@@ -124,11 +124,11 @@ class NoteCommentQuery:
         *,
         per_note_sort: Literal['asc', 'desc'] = 'desc',
         per_note_limit: int | None = None,
-        resolve_rich_text: bool = True,
-    ) -> None:
-        """Resolve comments for notes."""
+        resolve_rich_text: bool = False,
+    ) -> list[NoteComment]:
+        """Resolve comments for notes. Returns the resolved comments."""
         if not notes:
-            return
+            return []
 
         id_map: dict[NoteId, list[NoteComment]] = {}
         for note in notes:
@@ -176,3 +176,5 @@ class NoteCommentQuery:
 
         if resolve_rich_text:
             await note_comments_resolve_rich_text(comments)
+
+        return comments

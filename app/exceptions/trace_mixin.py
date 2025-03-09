@@ -1,14 +1,16 @@
 from abc import abstractmethod
 from typing import NoReturn
 
+from app.models.db.trace import TraceId
+
 
 class TraceExceptionsMixin:
     @abstractmethod
-    def trace_not_found(self, trace_id: int) -> NoReturn:
+    def trace_not_found(self, trace_id: TraceId) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
-    def trace_access_denied(self, trace_id: int) -> NoReturn:
+    def trace_access_denied(self, trace_id: TraceId) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod

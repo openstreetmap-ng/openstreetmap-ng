@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, NoReturn
 from starlette import status
 
 from app.exceptions.api_error import APIError
+from app.models.scope import Scope
 
 if TYPE_CHECKING:
     from app.models.db.oauth2_token import OAuth2CodeChallengeMethod
@@ -20,7 +21,7 @@ class AuthExceptionsMixin:
         )
 
     @abstractmethod
-    def insufficient_scopes(self, scopes: Iterable[str]) -> NoReturn:
+    def insufficient_scopes(self, scopes: Iterable[Scope]) -> NoReturn:
         raise NotImplementedError
 
     def bad_user_token_struct(self) -> NoReturn:

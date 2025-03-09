@@ -8,7 +8,7 @@ from starlette import status
 
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.limits import DIARY_COMMENTS_PAGE_SIZE, DISPLAY_NAME_MAX_LENGTH
+from app.limits import DIARY_COMMENTS_PAGE_SIZE
 from app.models.db.diary import Diary
 from app.models.db.diary_comment import DiaryComment
 from app.models.types import DisplayName
@@ -20,7 +20,7 @@ router = APIRouter()
 
 @router.get('/user/{display_name:str}/diary/comments')
 async def user_diary_comments(
-    display_name: Annotated[DisplayName, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
+    display_name: Annotated[DisplayName, Path(min_length=1)],
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
 ):

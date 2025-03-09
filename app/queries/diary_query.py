@@ -1,5 +1,4 @@
 from asyncio import TaskGroup
-from collections.abc import Sequence
 from typing import Any
 
 import cython
@@ -22,8 +21,7 @@ class DiaryQuery:
             db2() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
-                SELECT *
-                FROM diary
+                SELECT * FROM diary
                 WHERE id = %s
                 """,
                 (diary_id,),
@@ -54,7 +52,7 @@ class DiaryQuery:
         after: DiaryId | None = None,
         before: DiaryId | None = None,
         limit: int,
-    ) -> Sequence[Diary]:
+    ) -> list[Diary]:
         """Find recent diaries."""
         assert user_id is None or language is None, 'Only one of user_id and language can be set'
 
@@ -79,8 +77,7 @@ class DiaryQuery:
             params.append(after)
 
         query = SQL("""
-            SELECT *
-            FROM diary
+            SELECT * FROM diary
             WHERE {where}
             ORDER BY id {order}
             LIMIT %s

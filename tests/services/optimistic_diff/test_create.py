@@ -109,7 +109,7 @@ async def test_create_invalid_changeset_size(changeset_id: int):
             point=Point(0, 0),
             members=[],
         )
-        for i in range(-1, -UserRoleLimits.get_changeset_max_size(()) - 2, -1)
+        for i in range(-1, -UserRoleLimits.get_changeset_max_size(None) - 2, -1)
     )
     with pytest.raises(Exception):
         await OptimisticDiff.run(elements)

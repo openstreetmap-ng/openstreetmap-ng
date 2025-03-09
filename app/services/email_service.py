@@ -53,7 +53,6 @@ class EmailService:
         ref: str | None = None,
         priority: int = 0,
     ) -> None: ...
-
     @staticmethod
     @overload
     async def schedule(
@@ -66,7 +65,6 @@ class EmailService:
         ref: str | None = None,
         priority: int = 0,
     ) -> None: ...
-
     @staticmethod
     async def schedule(
         source: MailSource,

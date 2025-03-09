@@ -1,5 +1,4 @@
 import os
-from collections.abc import Iterable
 from itertools import chain
 from pathlib import Path
 
@@ -24,9 +23,9 @@ dirs = (
     'app/validators',
 )
 
-extra_paths: Iterable[Path] = map(
-    Path,
-    (
+extra_paths = [
+    Path(p)
+    for p in (
         'app/db.py',
         'app/utils.py',
         'app/models/element.py',
@@ -34,8 +33,8 @@ extra_paths: Iterable[Path] = map(
         'app/models/tags_format.py',
         'scripts/preload_convert.py',
         'scripts/replication.py',
-    ),
-)
+    )
+]
 
 blacklist: dict[str, set[str]] = {
     # Reason: Unsupported PEP-654 Exception Groups
@@ -45,12 +44,12 @@ blacklist: dict[str, set[str]] = {
     },
 }
 
-paths = (
+paths = [
     p
     for dir_ in dirs  #
     for p in chain(Path(dir_).rglob('*.py'), extra_paths)
     if p.name not in blacklist.get(p.parent.as_posix(), set())
-)
+]
 
 extra_args: list[str] = [
     '-g',

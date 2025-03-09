@@ -1,5 +1,5 @@
 import logging
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any, Literal, Protocol, overload
 
@@ -24,26 +24,31 @@ _PARSER = tree.XMLParser(
 
 class XMLToDict:
     @staticmethod
-    def parse(xml_bytes: bytes, *, size_limit: int | None = XML_PARSE_MAX_SIZE) -> dict[str, Any]:
+    def parse(
+        xml_bytes: bytes, *, size_limit: int | None = XML_PARSE_MAX_SIZE
+    ) -> dict[str, list[tuple[str, Any]] | dict[str, Any]]:
         """Parse XML string to dict."""
         if (size_limit is not None) and len(xml_bytes) > size_limit:
             raise_for.input_too_big(len(xml_bytes))
+
         logging.debug('Parsing %s XML string', sizestr(len(xml_bytes)))
         root = tree.fromstring(xml_bytes, parser=_PARSER)  # noqa: S320
-        return {_strip_namespace(root.tag): _parse_element(root)}
+        root_element = _parse_element(root)
+
+        if isinstance(root_element, str):
+            raise_for.bad_xml(root.tag, f'XML contains only text: {root_element}', xml_bytes)
+
+        return {_strip_namespace(root.tag): root_element}
 
     @staticmethod
     @overload
     def unparse(d: dict[str, Any]) -> str: ...
-
     @staticmethod
     @overload
     def unparse(d: dict[str, Any], *, raw: Literal[True]) -> bytes: ...
-
     @staticmethod
     @overload
     def unparse(d: dict[str, Any], *, raw: Literal[False]) -> str: ...
-
     @staticmethod
     def unparse(d: dict[str, Any], *, raw: bool = False) -> str | bytes:
         """Unparse dict to XML string."""
@@ -135,7 +140,7 @@ def _unparse_element(key: str, value: Any) -> list[tree._Element]:
         return [element]
 
     # encode sequence of ...
-    elif isinstance(value, Sequence) and not isinstance(value, str):
+    elif isinstance(value, list | tuple):
         if not value:
             return []
         first = value[0]
@@ -145,7 +150,7 @@ def _unparse_element(key: str, value: Any) -> list[tree._Element]:
             return [e for v in value for e in _unparse_element(key, v)]
 
         # encode sequence of (key, value) tuples
-        elif isinstance(first, Sequence) and not isinstance(first, str):
+        elif isinstance(first, list | tuple):
             element = Element(key)
             element_attrib = element.attrib  # read property once for performance
             element_extend = element.extend

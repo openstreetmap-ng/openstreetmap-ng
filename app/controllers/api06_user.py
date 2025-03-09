@@ -1,12 +1,13 @@
 from typing import Annotated
 
+import numpy as np
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 
 from app.format import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
-from app.models.db.user import User
+from app.models.db.user import User, UserId
 from app.queries.user_query import UserQuery
 
 router = APIRouter(prefix='/api/0.6')
@@ -43,14 +44,13 @@ async def get_user(
 async def get_many_users(
     query: Annotated[str, Query(alias='users', min_length=1)],
 ):
-    user_ids = set()
-    for q in query.split(','):
-        q = q.strip()
-        if q.isdigit():
-            user_ids.add(int(q))
-
-    if not user_ids:
+    try:
+        ids = np.fromstring(query, np.uint64, sep=',')
+    except ValueError:
+        return Response('Users query must be a comma-separated list of integers', status.HTTP_400_BAD_REQUEST)
+    if not ids.size:
         return Response('No users were given to search for', status.HTTP_400_BAD_REQUEST)
 
+    user_ids: list[UserId] = ids.tolist()  # type: ignore
     users = await UserQuery.find_many_by_ids(user_ids)
     return await Format06.encode_users(users)

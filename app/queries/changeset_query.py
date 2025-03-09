@@ -124,6 +124,9 @@ class ChangesetQuery:
             params.append(changeset_id_before)
 
         if user_ids is not None:
+            if not user_ids:
+                return []
+
             conditions.append(SQL('user_id = ANY(%s)'))
             params.append(user_ids)
 

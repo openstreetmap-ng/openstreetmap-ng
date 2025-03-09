@@ -1,4 +1,3 @@
-from collections.abc import Collection
 from copy import deepcopy
 from functools import cache
 from pathlib import Path
@@ -30,7 +29,7 @@ def pytest_configure(config: pytest.Config):
     config.addinivalue_line('markers', 'extended: mark test as part of the extended test suite')
 
 
-def pytest_collection_modifyitems(config: pytest.Config, items: Collection[pytest.Item]):
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
     # run all tests in the session in the same event loop
     # https://pytest-asyncio.readthedocs.io/en/latest/how-to-guides/run_session_tests_in_same_loop.html
     session_scope_marker = pytest.mark.asyncio(loop_scope='session')
@@ -74,10 +73,10 @@ async def changeset_id(client: AsyncClient):
 
 
 @cache
-def _gpx_data() -> dict:
+def _gpx_data():
     return XMLToDict.parse(Path('tests/data/8473730.gpx').read_bytes())
 
 
 @pytest.fixture
-def gpx() -> dict:
+def gpx():
     return deepcopy(_gpx_data())

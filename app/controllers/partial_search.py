@@ -1,7 +1,5 @@
 from asyncio import TaskGroup
 from base64 import urlsafe_b64encode
-from collections.abc import Collection
-from itertools import chain
 from typing import Annotated
 
 import cython
@@ -16,11 +14,14 @@ from app.limits import (
     SEARCH_QUERY_MAX_LENGTH,
     SEARCH_RESULTS_LIMIT,
 )
-from app.models.db.element import Element
-from app.models.element import ElementId, ElementRef, ElementType
-from app.models.geometry import Latitude, Longitude, Zoom
+from app.models.db.element import Element, SequenceId
+from app.models.element import (
+    TYPED_ELEMENT_ID_WAY_MAX,
+    TYPED_ELEMENT_ID_WAY_MIN,
+    TypedElementId,
+)
 from app.models.proto.shared_pb2 import PartialSearchParams, RenderElementsData
-from app.queries.element_member_query import ElementMemberQuery
+from app.models.types import Latitude, Longitude, Zoom
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery
 
@@ -37,7 +38,7 @@ async def get_search(
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
     async with TaskGroup() as tg:
-        tasks = tuple(
+        tasks = [
             tg.create_task(
                 NominatimQuery.search(
                     q=query,
@@ -47,12 +48,13 @@ async def get_search(
                 )
             )
             for search_bound in search_bounds
-        )
+        ]
 
-    task_results = tuple(task.result() for task in tasks)
-    task_index = Search.best_results_index(task_results)
-    bounds = search_bounds[task_index][0]
-    results = Search.deduplicate_similar_results(task_results[task_index])
+    results = [task.result() for task in tasks]
+    best_index = Search.best_results_index(results)
+    bounds = search_bounds[best_index][0]
+    results = Search.deduplicate_similar_results(results[best_index])
+
     return await _get_response(
         at_sequence_id=at_sequence_id,
         bounds=bounds,
@@ -68,7 +70,7 @@ async def get_where_is_this(
     zoom: Annotated[Zoom, Query()],
 ):
     result = await NominatimQuery.reverse(Point(lon, lat), zoom)
-    results = (result,) if (result is not None) else ()
+    results = [result] if (result is not None) else []
     return await _get_response(
         at_sequence_id=None,
         bounds=None,
@@ -77,57 +79,69 @@ async def get_where_is_this(
     )
 
 
+class ElementMemberQuery:
+    pass
+
+
 async def _get_response(
     *,
-    at_sequence_id: int | None,
+    at_sequence_id: SequenceId | None,
     bounds: str | None,
-    results: Collection[SearchResult],
+    results: list[SearchResult],
     where_is_this: bool,
 ):
-    elements = tuple(r.element for r in results)
-    await ElementMemberQuery.resolve_members(elements)
+    members: list[TypedElementId] = []
+    for result in results:
+        result_members = result.element['members']
+        if result_members:
+            members.extend(result_members)
 
-    members_refs = {ElementRef(member.type, member.id) for element in elements for member in element.members}  # type: ignore
     members_elements = await ElementQuery.get_by_refs(
-        members_refs,
+        members,
         at_sequence_id=at_sequence_id,
         recurse_ways=True,
         limit=None,
     )
-    members_map: dict[tuple[ElementType, ElementId], Element] = {
-        (member.type, member.id): member  #
-        for member in members_elements
-    }
 
+    members_map: dict[TypedElementId, Element] = {member['typed_id']: member for member in members_elements}
     Search.improve_point_accuracy(results, members_map)
     Search.remove_overlapping_points(results)
 
     # prepare data for rendering
     renders: list[RenderElementsData] = [None] * len(results)  # type: ignore
 
+    typed_element_id_way_min: cython.ulonglong = TYPED_ELEMENT_ID_WAY_MIN
+    typed_element_id_way_max: cython.ulonglong = TYPED_ELEMENT_ID_WAY_MAX
+
     i: cython.Py_ssize_t
     for i, result in enumerate(results):
-        element = result.element
-        element_members = tuple(members_map[member.type, member.id] for member in element.members)  # type: ignore
-        full_data = chain(
-            (element,),
-            element_members,
-            (
-                members_map[mm.type, mm.id]
-                for member in element_members
-                if member.type == 'way'  # recurse_ways
-                for mm in member.members  # pyright: ignore[reportOptionalIterable]
-            ),
-        )
+        result_element = result.element
+        full_data: list[Element] = [result_element]
+
+        result_members = result_element['members']
+        if result_members:
+            for member in result_members:
+                member_element = members_map[member]
+                full_data.append(member_element)
+
+                member_members = member_element['members']
+                if not member_members:
+                    continue
+
+                typed_id: cython.ulonglong = member_element['typed_id']
+                if typed_id < typed_element_id_way_min or typed_id > typed_element_id_way_max:
+                    continue
+
+                # Recurse_ways
+                full_data.extend(members_map[mm] for mm in member_members)
 
         render = FormatLeaflet.encode_elements(full_data, detailed=False, areas=False)
+        renders[i] = render
 
-        # ensure there is always a node, it's nice visually
+        # Ensure there is always a node. It's nice visually.
         if not render.nodes:
             x, y = lib.get_coordinates(np.asarray(result.point, np.object_), False, False)[0].tolist()
             render.nodes.append(RenderElementsData.Node(id=0, lon=x, lat=y))
-
-        renders[i] = render
 
     params = PartialSearchParams(
         bounds_str=bounds,

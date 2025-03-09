@@ -1,5 +1,3 @@
-from collections.abc import Iterable
-
 import cython
 import numpy as np
 from shapely import lib
@@ -10,7 +8,7 @@ from app.models.proto.shared_pb2 import RenderNotesData
 
 class LeafletNoteMixin:
     @staticmethod
-    def encode_notes(notes: Iterable[Note]) -> RenderNotesData:
+    def encode_notes(notes: list[Note]) -> RenderNotesData:
         """Format notes into a minimal structure, suitable for map rendering."""
         return RenderNotesData(notes=[_encode_note(note) for note in notes])
 

@@ -1,6 +1,5 @@
 import logging
 import re
-from collections.abc import Sequence
 from itertools import chain
 from pathlib import Path
 from typing import NamedTuple
@@ -91,29 +90,24 @@ logging.info(
 )
 
 
-def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str] | tuple[str, str]:
+def map_i18next_files(locales: tuple[LocaleCode, ...]) -> list[str]:
     """
     Map the locales to i18next files.
-
     Returns at most two files: primary and fallback locale.
-
     >>> map_i18next_files([LocaleCode('pl'), LocaleCode('en'), LocaleCode('de')])
     ('pl-e4c39a792074d67c.js', 'en-c39c7633ceb0ce46.js')
     """
-    # i18next supports only primary+fallback locale
-    primary_file = _I18NEXT_MAP[locales[0]]
-    return (
-        (primary_file, _I18NEXT_MAP[locales[-1]])
-        if len(locales) > 1  #
-        else (primary_file,)
-    )
+    result = [_I18NEXT_MAP[locales[0]]]
+    if len(locales) > 1:
+        result.append(_I18NEXT_MAP[locales[-1]])
+    return result
 
 
 # optionally wrap map_i18next_files to always regenerate _i18next_map
 if FORCE_RELOAD_LOCALE_FILES:
     _map_i18next_files_inner = map_i18next_files
 
-    def map_i18next_files(locales: Sequence[LocaleCode]) -> tuple[str] | tuple[str, str]:
+    def map_i18next_files(locales: tuple[LocaleCode, ...]) -> list[str]:
         global _I18NEXT_MAP
         _I18NEXT_MAP = _load_locale()[0]  # pyright: ignore [reportConstantRedefinition]
         return _map_i18next_files_inner(locales)
@@ -134,7 +128,6 @@ def is_installed_locale(code: LocaleCode) -> bool:
 def normalize_locale(code: LocaleCode) -> LocaleCode | None:
     """
     Normalize locale code case.
-
     Returns None if the locale is not installed.
 
     >>> normalize_locale(LocaleCode('EN'))

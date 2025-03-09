@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Iterable, Sequence
 
 import cython
 import numpy as np
@@ -16,7 +15,7 @@ from app.models.proto.shared_pb2 import RenderElementsData
 class LeafletElementMixin:
     @staticmethod
     def encode_elements(
-        elements: Iterable[Element],
+        elements: list[Element],
         *,
         detailed: cython.bint,
         areas: cython.bint = True,
@@ -41,7 +40,7 @@ class LeafletElementMixin:
         )
 
     @staticmethod
-    def encode_query_features(results: Iterable[QueryFeatureResult]) -> list[RenderElementsData]:
+    def encode_query_features(results: list[QueryFeatureResult]) -> list[RenderElementsData]:
         """Format query features results into a minimal structure, suitable for map rendering."""
         encoded: list[RenderElementsData] = []
 
@@ -159,7 +158,7 @@ def _render_nodes(
 
 
 @cython.cfunc
-def _check_way_area(tags: dict[str, str], members: Sequence[TypedElementId]):
+def _check_way_area(tags: dict[str, str], members: list[TypedElementId]):
     """Check if the way should be displayed as an area."""
     return (
         len(members) > 2  # has enough members

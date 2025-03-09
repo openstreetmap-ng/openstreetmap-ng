@@ -1,4 +1,3 @@
-from collections.abc import Container
 from datetime import datetime
 from typing import Annotated, Literal, NewType, NotRequired, TypedDict
 
@@ -114,11 +113,9 @@ def trace_is_timestamps_via_api(trace: Trace) -> bool:
     return trace['visibility'] in {'identifiable', 'trackable'}
 
 
-def trace_is_visible_to(trace: Trace, user: User | None, scopes: Container[Scope]) -> bool:
+def trace_is_visible_to(trace: Trace, user: User | None, scopes: tuple[Scope, ...]) -> bool:
     """Check if the trace is visible to the user."""
-    if trace_is_linked_to_user_on_site(trace):
-        return True
-    return (
+    return trace_is_linked_to_user_on_site(trace) or (
         user is not None  #
         and trace['user_id'] == user['id']
         and 'read_gpx' in scopes

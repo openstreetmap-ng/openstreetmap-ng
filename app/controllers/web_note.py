@@ -65,7 +65,6 @@ async def get_map(bbox: Annotated[str, Query()]):
         notes,
         per_note_sort='asc',
         per_note_limit=1,
-        resolve_rich_text=False,
     )
     return Response(
         FormatLeaflet.encode_notes(notes).SerializeToString(),
@@ -125,7 +124,6 @@ async def user_notes_page(
                     notes,
                     per_note_sort='asc',
                     per_note_limit=1,
-                    resolve_rich_text=False,
                 )
             )
     return await render_response('notes/page.jinja2', {'notes': notes[::-1]})

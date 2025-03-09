@@ -1,5 +1,4 @@
 import os
-from collections.abc import Collection, Mapping, MutableMapping
 from pathlib import Path
 from typing import Any
 
@@ -168,7 +167,6 @@ def convert_number_format(data: dict):
 def convert_plural_structure(data: dict):
     """
     Convert plural dicts to singular keys.
-
     >>> convert_plural_structure({'example': {'one': '1', 'two': '2', 'three': '3'}})
     {'example_one': '1', 'example_two': '2', 'example_three': '3'}
     """
@@ -193,7 +191,6 @@ def convert_plural_structure(data: dict):
 def rename_buggy_keys(data: dict):
     """
     Rename keys that bug-out during i18next -> gnu conversion.
-
     >>> rename_buggy_keys({'some_other': 'value'})
     {'some other': 'value'}
     """
@@ -216,14 +213,14 @@ def rename_buggy_keys(data: dict):
         data[k_alt] = data[k]
 
 
-def deep_dict_update(d: MutableMapping, u: Mapping) -> None:
+def deep_dict_update(d: dict, u: dict) -> None:
     for k, uv in u.items():
         dv = d.get(k)
         if dv is None:
             d[k] = uv
-        elif isinstance(dv, MutableMapping) and isinstance(uv, Mapping):
+        elif isinstance(dv, dict) and isinstance(uv, dict):
             deep_dict_update(dv, uv)
-        elif isinstance(dv, Collection) and isinstance(uv, Collection):
+        elif isinstance(dv, list | tuple) and isinstance(uv, list | tuple):
             d[k] = [*dv, *uv]
         else:
             d[k] = uv

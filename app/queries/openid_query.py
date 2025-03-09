@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Sequence
 from typing import NotRequired, TypedDict
 
 import orjson
@@ -22,16 +21,16 @@ class OpenIDDiscovery(TypedDict):
     userinfo_endpoint: str
     revocation_endpoint: str
     jwks_uri: str
-    scopes_supported: Sequence[str]
-    response_types_supported: Sequence[str]
-    response_modes_supported: Sequence[str]
-    grant_types_supported: Sequence[str]
-    code_challenge_methods_supported: Sequence[str]
-    token_endpoint_auth_methods_supported: Sequence[str]
-    subject_types_supported: Sequence[str]
-    id_token_signing_alg_values_supported: Sequence[str]
-    claim_types_supported: Sequence[str]
-    claims_supported: Sequence[str]
+    scopes_supported: list[str]
+    response_types_supported: list[str]
+    response_modes_supported: list[str]
+    grant_types_supported: list[str]
+    code_challenge_methods_supported: list[str]
+    token_endpoint_auth_methods_supported: list[str]
+    subject_types_supported: list[str]
+    id_token_signing_alg_values_supported: list[str]
+    claim_types_supported: list[str]
+    claims_supported: list[str]
 
 
 class OpenIDQuery:

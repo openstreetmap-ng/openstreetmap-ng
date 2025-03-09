@@ -1,4 +1,4 @@
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable
 from functools import wraps
 from typing import Any, NoReturn, override
 
@@ -14,7 +14,7 @@ from app.lib.format_style_context import format_style
 from app.lib.xmltodict import XMLToDict
 from app.middlewares.request_context_middleware import get_request
 
-_json_attributes = {
+_JSON_ATTRS = {
     'version': '0.6',
     'generator': GENERATOR,
     'copyright': COPYRIGHT,
@@ -22,7 +22,7 @@ _json_attributes = {
     'license': LICENSE_URL,
 }
 
-_xml_attributes = {
+_XML_ATTRS = {
     '@version': '0.6',
     '@generator': GENERATOR,
     '@copyright': COPYRIGHT,
@@ -30,7 +30,7 @@ _xml_attributes = {
     '@license': LICENSE_URL,
 }
 
-_gpx_attributes = {
+_GPX_ATTRS = {
     '@version': '1.1',
     '@creator': GENERATOR,
     '@copyright': COPYRIGHT,
@@ -53,16 +53,17 @@ class OSMResponse(Response):
     @classmethod
     def serialize(cls, content: Any) -> Response:
         style = format_style()
+
         if style == 'json':
             return _serialize_json(content)
-        elif style == 'xml':
+        if style == 'xml':
             return _serialize_xml(cls.xml_root, content)
-        elif style == 'rss':
+        if style == 'rss':
             return _serialize_rss(content)
-        elif style == 'gpx':
+        if style == 'gpx':
             return _serialize_gpx(cls.xml_root, content)
-        else:
-            raise NotImplementedError(f'Unsupported osm format style {style!r}')
+
+        raise NotImplementedError(f'Unsupported osm format style {style!r}')
 
 
 class OSMChangeResponse(OSMResponse):
@@ -82,10 +83,9 @@ def _serialize_json(content: Any):
     # include json attributes if api 0.6 and not notes
     request_path: str = get_request().url.path
     if request_path.startswith('/api/0.6/') and not request_path.startswith('/api/0.6/notes'):
-        if isinstance(content, Mapping):
-            content = {**_json_attributes, **content}
-        else:
+        if not isinstance(content, dict):
             raise TypeError(f'Invalid json content type {type(content)}')
+        content = {**_JSON_ATTRS, **content}
 
     encoded = orjson.dumps(content, option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_UTC_Z)
     return Response(encoded, media_type='application/json; charset=utf-8')
@@ -93,10 +93,10 @@ def _serialize_json(content: Any):
 
 @cython.cfunc
 def _serialize_xml(xml_root: str, content: Any):
-    if isinstance(content, Mapping):
-        content = {xml_root: {**_xml_attributes, **content}}
-    elif isinstance(content, Sequence) and not isinstance(content, str):
-        content = {xml_root: (*_xml_attributes.items(), *content)}
+    if isinstance(content, dict):
+        content = {xml_root: {**_XML_ATTRS, **content}}
+    elif isinstance(content, list | tuple):
+        content = {xml_root: (*_XML_ATTRS.items(), *content)}
     else:
         raise TypeError(f'Invalid xml content type {type(content)}')
 
@@ -114,10 +114,10 @@ def _serialize_rss(content: Any):
 
 @cython.cfunc
 def _serialize_gpx(xml_root: str, content: Any):
-    if isinstance(content, Mapping):
-        content = {xml_root: {**_gpx_attributes, **content}}
-    elif isinstance(content, Sequence) and not isinstance(content, str):
-        content = {xml_root: (*_gpx_attributes.items(), *content)}
+    if isinstance(content, dict):
+        content = {xml_root: {**_GPX_ATTRS, **content}}
+    elif isinstance(content, list | tuple):
+        content = {xml_root: (*_GPX_ATTRS.items(), *content)}
     else:
         raise TypeError(f'Invalid xml content type {type(content)}')
 
@@ -128,13 +128,11 @@ def _serialize_gpx(xml_root: str, content: Any):
 def setup_api_router_response(router: APIRouter) -> None:
     """
     Setup APIRouter to use optimized OSMResponse serialization.
-
     Default FastAPI serialization is slow and redundant.
-
     This is quite hacky as FastAPI does not expose an easy way to override it.
     """
     for route in router.routes:
-        # override only supported endpoints
+        # Overriding only supported endpoints
         if not isinstance(route, APIRoute):
             continue
 
@@ -144,7 +142,7 @@ def setup_api_router_response(router: APIRouter) -> None:
             response_class = OSMResponse
 
         route.endpoint = _get_serializing_endpoint(route.endpoint, response_class)
-        # fixup other fields:
+        # Also fixup other fields:
         route.dependant = get_dependant(path=route.path_format, call=route.endpoint)
         route.app = request_response(route.get_route_handler())
 
@@ -155,10 +153,7 @@ def _get_serializing_endpoint(endpoint: Callable, response_class: type[OSMRespon
     async def serializing_endpoint(*args, **kwargs):
         content = await endpoint(*args, **kwargs)
 
-        # pass-through serialized response
-        if isinstance(content, Response):
-            return content
-
-        return response_class.serialize(content)
+        # Serialize responses only if needed
+        return content if isinstance(content, Response) else response_class.serialize(content)
 
     return serializing_endpoint

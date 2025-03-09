@@ -1,37 +1,33 @@
-from collections.abc import Collection
-
 from app.models.db.user import UserRole
 
 
 class UserRoleLimits:
     @staticmethod
-    def get_changeset_max_size(roles: Collection[UserRole]) -> int:
-        """
-        Get the maximum size of a changeset for the given roles.
-
-        >>> UserRoleLimits.get_changeset_max_size(())
-        10_000
-        """
+    def get_changeset_max_size(roles: list[UserRole] | None) -> int:
+        """Get the maximum size of a changeset for the given roles."""
         result = _CHANGESET_MAX_SIZE[None]
+        if roles is None:
+            return result
+
         for role in roles:
             value = _CHANGESET_MAX_SIZE.get(role)
             if value is not None and result < value:
                 result = value
+
         return result
 
     @staticmethod
-    def get_rate_limit_quota(roles: Collection[UserRole]) -> int:
-        """
-        Get the rate limit quota for the given roles.
-
-        >>> UserRoleLimits.get_rate_limit_quota(())
-        10_000
-        """
+    def get_rate_limit_quota(roles: list[UserRole] | None) -> int:
+        """Get the rate limit quota for the given roles."""
         result = _RATE_LIMIT_QUOTA[None]
+        if roles is None:
+            return result
+
         for role in roles:
             value = _RATE_LIMIT_QUOTA.get(role)
             if value is not None and result < value:
                 result = value
+
         return result
 
 

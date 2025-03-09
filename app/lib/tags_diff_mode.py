@@ -1,12 +1,11 @@
-from collections.abc import Sequence
 from copy import copy
 
 from app.lib.tags_format import tags_format
-from app.models.db.element import Element, ElementInit
+from app.models.db.element import Element
 from app.models.tags_format import TagFormat
 
 
-def tags_diff_mode(previous_element: ElementInit | None, elements_data: Sequence[dict]) -> None:
+def tags_diff_mode(previous_element: Element | None, elements_data: list[dict]) -> None:
     """Update tags data to include necessary tags diff mode information."""
     previous_tags: dict[str, TagFormat] = (
         tags_format(tags)

@@ -1,5 +1,4 @@
 import os
-from collections.abc import Iterable
 from contextlib import contextmanager
 from functools import partial
 from multiprocessing.pool import Pool
@@ -59,7 +58,7 @@ def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
 @click.argument('input', nargs=-1, type=click.Path(dir_okay=False, path_type=Path))
 @click.option('size', '--size', '-s', default=DEFAULT_SIZE, show_default=True)
 @click.option('quality', '--quality', '-q', default=DEFAULT_QUALITY, show_default=True)
-def file(input: Iterable[Path], size: int, quality: int) -> None:
+def file(input: tuple[Path, ...], size: int, quality: int) -> None:
     root = Path()
     for i in input:
         output = get_output_path(i, root=root)

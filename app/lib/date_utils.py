@@ -10,12 +10,8 @@ from app.lib.translation import primary_translation_locale
 
 @overload
 def legacy_date(date: None) -> None: ...
-
-
 @overload
 def legacy_date(date: datetime) -> datetime: ...
-
-
 def legacy_date(date: datetime | None) -> datetime | None:
     """
     Convert date to legacy format (strip microseconds).

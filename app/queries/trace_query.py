@@ -81,7 +81,7 @@ class TraceQuery:
         tag: str | None = None,
         after: TraceId | None = None,
         before: TraceId | None = None,
-        limit: int,
+        limit: int | None,
     ) -> list[Trace]:
         """Find recent traces."""
         order_desc: cython.bint = (after is None) or (before is not None)
@@ -109,16 +109,22 @@ class TraceQuery:
             conditions.append(SQL('id > %s'))
             params.append(after)
 
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
+
         query = SQL("""
             SELECT * FROM trace
             WHERE {conditions}
             ORDER BY id {order}
-            LIMIT %s
+            {limit}
         """).format(
             conditions=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
             order=SQL('DESC' if order_desc else 'ASC'),
+            limit=limit_clause,
         )
-        params.append(limit)
 
         # Always return in consistent order regardless of the query
         if not order_desc:
@@ -171,14 +177,19 @@ class TraceQuery:
             return []
 
         tree = STRtree([geometry])
+        filtered_traces: list[Trace] = []
+
+        points: NDArray[np.object_]
+        segment_indices: NDArray[np.integer]
+        intersect_indices: NDArray[np.integer]
 
         for trace in traces:
-            points: NDArray[np.object_]
-            segment_indices: NDArray[np.integer]
-            intersect_indices: NDArray[np.integer]
-
             points, segment_indices = get_parts(trace['segments'].geoms, return_index=True)  # type: ignore
             intersect_indices = tree.query(points, predicate='intersects')[0]
+            if not intersect_indices.size:
+                continue
+
+            filtered_traces.append(trace)
             split_indices = np.unique(segment_indices[intersect_indices], return_index=True)[1][1:]
 
             # Reconstruct segments to contain only intersecting points
@@ -191,7 +202,8 @@ class TraceQuery:
                 if capture_times is not None:
                     trace['capture_times'] = np.array(capture_times, np.object_)[intersect_indices].tolist()  # type: ignore
 
-        if identifiable_trackable:
+        traces = filtered_traces
+        if not traces or identifiable_trackable:
             return traces
 
         # For public/private, return a simplified representation
@@ -217,7 +229,7 @@ class TraceQuery:
     async def resolve_coords(
         traces: list[Trace],
         *,
-        limit_per_trace: int,
+        limit_per_trace: int | None = None,
         resolution: int | None,
     ) -> None:
         """Resolve coordinates for traces, with optional sampling and resolution adjustment."""
@@ -225,27 +237,33 @@ class TraceQuery:
             return
 
         trace_map = {trace['id']: trace for trace in traces}
+        params: list[Any] = [list(trace_map)]
+
+        if limit_per_trace is not None:
+            where_clause = SQL('WHERE index % GREATEST(1, (size / %s)::int) = 0')
+            params.append(limit_per_trace)
+        else:
+            where_clause = SQL('')
+
+        query = SQL("""
+            SELECT id, ST_Collect(point)
+            FROM (
+                SELECT
+                    id,
+                    (dp).geom AS point,
+                    (dp).path[1] AS index,
+                    size
+                FROM trace
+                CROSS JOIN LATERAL ST_DumpPoints(ST_Force2D(segments)) AS dp
+                WHERE id = ANY(%s)
+            )
+            {where}
+            GROUP BY id
+            """).format(where=where_clause)
 
         async with (
             db2() as conn,
-            await conn.execute(
-                """
-                SELECT id, ST_Collect(point)
-                FROM (
-                    SELECT
-                        id,
-                        (dp).geom AS point,
-                        (dp).path[1] AS index,
-                        size
-                    FROM trace
-                    CROSS JOIN LATERAL ST_DumpPoints(ST_Force2D(segments)) AS dp
-                    WHERE id = ANY(%s)
-                )
-                WHERE index % GREATEST(1, (size / %s)::int) = 0
-                GROUP BY id
-                """,
-                (list(trace_map), limit_per_trace),
-            ) as r,
+            await conn.execute(query, params) as r,
         ):
             trace_id: TraceId
             geom: MultiPoint

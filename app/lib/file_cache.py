@@ -1,7 +1,7 @@
 import fcntl
 import logging
 import time
-from asyncio import get_running_loop
+from asyncio import get_running_loop, timeout
 from datetime import timedelta
 from io import BufferedWriter
 from pathlib import Path
@@ -12,6 +12,7 @@ from google.protobuf.message import DecodeError
 from sizestr import sizestr
 
 from app.config import FILE_CACHE_DIR, FILE_CACHE_SIZE_GB
+from app.limits import FILE_CACHE_LOCK_TIMEOUT
 from app.models.proto.server_pb2 import FileCacheMeta
 from app.models.types import StorageKey
 
@@ -36,8 +37,11 @@ class _FileCacheLock:
         dir.mkdir(parents=True, exist_ok=True)
         lock_path = dir.joinpath(f'.{self.path.name}.lock')
         lock_file = self._file = lock_path.open('wb')
-        loop = get_running_loop()
-        await loop.run_in_executor(None, lambda: fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX))
+
+        async with timeout(FILE_CACHE_LOCK_TIMEOUT.total_seconds()):
+            loop = get_running_loop()
+            await loop.run_in_executor(None, lambda: fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX))
+
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

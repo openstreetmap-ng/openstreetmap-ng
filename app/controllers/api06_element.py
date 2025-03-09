@@ -1,10 +1,7 @@
 from asyncio import TaskGroup
-from collections.abc import Collection, Iterable, Sequence
-from itertools import chain
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Response, status
-from pydantic import PositiveInt
+from fastapi import APIRouter, Path, Query, Response, status
 
 from app.format import Format06
 from app.lib.auth_context import api_user
@@ -12,8 +9,14 @@ from app.lib.exceptions_context import raise_for
 from app.lib.xml_body import xml_body
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef, split_typed_element_id
-from app.queries.element_member_query import ElementMemberQuery
+from app.models.element import (
+    ElementId,
+    ElementType,
+    TypedElementId,
+    split_typed_element_id,
+    typed_element_id,
+    versioned_typed_element_id,
+)
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
 from app.services.optimistic_diff import OptimisticDiff
@@ -28,7 +31,7 @@ router = APIRouter(prefix='/api/0.6')
 @router.put('/{type:element_type}/create')
 async def create_element(
     type: ElementType,
-    elements: Annotated[Sequence, xml_body('osm')],
+    elements: Annotated[list, xml_body('osm')],
     _: Annotated[User, api_user('write_api')],
 ):
     data = _get_element_data(elements, type)
@@ -51,8 +54,8 @@ async def create_element(
 @router.put('/{type:element_type}/{id:int}')
 async def update_element(
     type: ElementType,
-    id: PositiveInt,
-    elements: Annotated[Sequence, xml_body('osm')],
+    id: Annotated[ElementId, Path(gt=0)],  # Updating requires a positive id
+    elements: Annotated[list, xml_body('osm')],
     _: Annotated[User, api_user('write_api')],
 ):
     data = _get_element_data(elements, type)
@@ -73,8 +76,8 @@ async def update_element(
 @router.delete('/{type:element_type}/{id:int}')
 async def delete_element(
     type: ElementType,
-    id: PositiveInt,
-    elements: Annotated[Sequence, xml_body('osm')],
+    id: Annotated[ElementId, Path(gt=0)],  # Updating requires a positive id
+    elements: Annotated[list, xml_body('osm')],
     _: Annotated[User, api_user('write_api')],
 ):
     data = _get_element_data(elements, type)
@@ -98,17 +101,28 @@ async def delete_element(
 @router.get('/{type:element_type}s.json')
 async def get_many(
     type: ElementType,
-    query: Annotated[str | None, Query(alias=f'{type}s')] = None,
+    nodes: Annotated[str | None, Query()] = None,
+    ways: Annotated[str | None, Query()] = None,
+    relations: Annotated[str | None, Query()] = None,
 ):
+    if type == 'node':
+        query = nodes
+    elif type == 'way':
+        query = ways
+    elif type == 'relation':
+        query = relations
+    else:
+        raise NotImplementedError(f'Unsupported element type {type!r}')
+
     if not query:
         return Response(
             f'The parameter {type}s is required, and must be of the form {type}s=ID[vVER][,ID[vVER][,ID[vVER]...]].',
             status.HTTP_400_BAD_REQUEST,
         )
 
-    # remove duplicates and preserve order
+    # Remove duplicates and preserve order
     parsed_query_set: set[str] = set()
-    parsed_query: list[VersionedElementRef | ElementRef] = []
+    parsed_query: list[TypedElementId | tuple[TypedElementId, int]] = []
 
     try:
         for q in query.split(','):
@@ -117,136 +131,125 @@ async def get_many(
                 continue
             parsed_query_set.add(q)
             parsed_query.append(
-                VersionedElementRef.from_type_str(type, q)
+                versioned_typed_element_id(type, q)
                 if 'v' in q  #
-                else ElementRef(type, ElementId(int(q)))
+                else typed_element_id(type, int(q))  # type: ignore
             )
     except ValueError:
-        # return not found on parsing errors, why?, idk
+        # Return not found on parsing errors, why?, IDK
         return Response(None, status.HTTP_404_NOT_FOUND)
 
     elements = await ElementQuery.find_many_by_any_refs(parsed_query, limit=None)
-    if any(element is None for element in elements):
+    if None in elements:
         return Response(None, status.HTTP_404_NOT_FOUND)
 
-    return await _encode_elements(elements)  # pyright: ignore[reportArgumentType]
+    return await _encode_elements(elements)  # type: ignore
 
 
 @router.get('/{type:element_type}/{id:int}')
 @router.get('/{type:element_type}/{id:int}.xml')
 @router.get('/{type:element_type}/{id:int}.json')
-async def get_latest(type: ElementType, id: Annotated[ElementId, PositiveInt]):
-    ref = ElementRef(type, id)
-    elements = await ElementQuery.get_by_refs((ref,), limit=1)
-    element = elements[0] if elements else None
-    if element is None:
-        raise_for.element_not_found(ref)
-    if not element.visible:
+async def get_latest(type: ElementType, id: ElementId):
+    typed_id = typed_element_id(type, id)
+    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
+    if not elements:
+        raise_for.element_not_found(typed_id)
+
+    element = elements[0]
+    if not element['visible']:
         return Response(None, status.HTTP_410_GONE)
+
     return await _encode_element(element)
 
 
 @router.get('/{type:element_type}/{id:int}/{version:int}')
 @router.get('/{type:element_type}/{id:int}/{version:int}.xml')
 @router.get('/{type:element_type}/{id:int}/{version:int}.json')
-async def get_version(
-    type: ElementType,
-    id: Annotated[ElementId, PositiveInt],
-    version: Annotated[int, PositiveInt],
-):
-    ref = VersionedElementRef(type, id, version)
-    elements = await ElementQuery.get_by_versioned_refs((ref,), limit=1)
-    element = elements[0] if elements else None
-    if element is None:
+async def get_version(type: ElementType, id: ElementId, version: int):
+    ref = (typed_element_id(type, id), version)
+    elements = await ElementQuery.get_by_versioned_refs([ref], limit=1)
+    if not elements:
         raise_for.element_not_found(ref)
-    return await _encode_element(element)
+
+    return await _encode_element(elements[0])
 
 
 @router.get('/{type:element_type}/{id:int}/history')
 @router.get('/{type:element_type}/{id:int}/history.xml')
 @router.get('/{type:element_type}/{id:int}/history.json')
-async def get_history(type: ElementType, id: Annotated[ElementId, PositiveInt]):
-    ref = ElementRef(type, id)
-    elements = await ElementQuery.get_versions_by_ref(ref, limit=None)
+async def get_history(type: ElementType, id: ElementId):
+    typed_id = typed_element_id(type, id)
+    elements = await ElementQuery.get_versions_by_ref(typed_id, limit=None)
     if not elements:
-        raise_for.element_not_found(ref)
+        raise_for.element_not_found(typed_id)
+
     return await _encode_elements(elements)
 
 
 @router.get('/{type:element_type}/{id:int}/full')
 @router.get('/{type:element_type}/{id:int}/full.xml')
 @router.get('/{type:element_type}/{id:int}/full.json')
-async def get_full(type: ElementType, id: Annotated[ElementId, PositiveInt]):
-    ref = ElementRef(type, id)
+async def get_full(type: ElementType, id: ElementId):
+    typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
     elements = await ElementQuery.get_by_refs(
-        (ref,),
+        [typed_id],
         at_sequence_id=at_sequence_id,
         limit=1,
     )
-    element = elements[0] if elements else None
+    if not elements:
+        raise_for.element_not_found(typed_id)
 
-    if element is None:
-        raise_for.element_not_found(ref)
-    if not element.visible:
+    element = elements[0]
+    if not element['visible']:
         return Response(None, status.HTTP_410_GONE)
 
     async with TaskGroup() as tg:
-        tg.create_task(UserQuery.resolve_elements_users(elements, display_name=True))
-        tg.create_task(ElementMemberQuery.resolve_members(elements))
+        tg.create_task(UserQuery.resolve_elements_users(elements))
 
-    members_refs = {ElementRef(member.type, member.id) for member in element.members}  # pyright: ignore[reportOptionalIterable]
-    members_elements = await ElementQuery.get_by_refs(
-        members_refs,
-        at_sequence_id=at_sequence_id,
-        recurse_ways=True,
-        limit=None,
-    )
+        if members := element['members']:
+            members_elements = await ElementQuery.get_by_refs(
+                members,
+                at_sequence_id=at_sequence_id,
+                recurse_ways=True,
+                limit=None,
+            )
+            elements.extend(members_elements)
+            tg.create_task(UserQuery.resolve_elements_users(members_elements))
 
-    async with TaskGroup() as tg:
-        tg.create_task(UserQuery.resolve_elements_users(members_elements, display_name=True))
-        tg.create_task(ElementMemberQuery.resolve_members(members_elements))
-
-    return Format06.encode_elements(chain((element,), members_elements))
+    return Format06.encode_elements(elements)
 
 
 @router.get('/{type:element_type}/{id:int}/relations')
 @router.get('/{type:element_type}/{id:int}/relations.xml')
 @router.get('/{type:element_type}/{id:int}/relations.json')
-async def get_parent_relations(type: ElementType, id: Annotated[ElementId, PositiveInt]):
-    ref = ElementRef(type, id)
-    elements = await ElementQuery.get_parents_by_refs((ref,), parent_type='relation', limit=None)
+async def get_parent_relations(type: ElementType, id: ElementId):
+    typed_id = typed_element_id(type, id)
+    elements = await ElementQuery.get_parents_by_refs([typed_id], parent_type='relation', limit=None)
     return await _encode_elements(elements)
 
 
 @router.get('/node/{id:int}/ways')
 @router.get('/node/{id:int}/ways.xml')
 @router.get('/node/{id:int}/ways.json')
-async def get_parent_ways(id: Annotated[ElementId, PositiveInt]):
-    ref = ElementRef('node', id)
-    elements = await ElementQuery.get_parents_by_refs((ref,), parent_type='way', limit=None)
+async def get_parent_ways(id: ElementId):
+    typed_id = typed_element_id('node', id)
+    elements = await ElementQuery.get_parents_by_refs([typed_id], parent_type='way', limit=None)
     return await _encode_elements(elements)
 
 
-def _get_element_data(
-    elements: Iterable[tuple[ElementType, dict]], type: ElementType
-) -> tuple[ElementType, dict] | None:
+def _get_element_data(elements: list[tuple[ElementType, dict]], type: ElementType) -> tuple[ElementType, dict] | None:
     """Get the first element of the given type from the sequence of elements."""
     return next((s for s in elements if s[0] == type), None)
 
 
 async def _encode_element(element: Element):
     """Resolve required data fields for element and encode it."""
-    elements = (element,)
-    async with TaskGroup() as tg:
-        tg.create_task(UserQuery.resolve_elements_users(elements, display_name=True))
-        tg.create_task(ElementMemberQuery.resolve_members(elements))
+    await UserQuery.resolve_elements_users([element])
     return Format06.encode_element(element)
 
 
-async def _encode_elements(elements: Collection[Element]):
+async def _encode_elements(elements: list[Element]):
     """Resolve required data fields for elements and encode them."""
-    async with TaskGroup() as tg:
-        tg.create_task(UserQuery.resolve_elements_users(elements, display_name=True))
-        tg.create_task(ElementMemberQuery.resolve_members(elements))
+    await UserQuery.resolve_elements_users(elements)
     return Format06.encode_elements(elements)
