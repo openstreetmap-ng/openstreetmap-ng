@@ -150,7 +150,7 @@ class TraceQuery:
         visibility: list[TraceVisibility] = (
             ['identifiable', 'trackable'] if identifiable_trackable else ['public', 'private']
         )
-        conditions: list[Composable] = [SQL('h3_r11 && %s AND visibility = ANY(%s)')]
+        conditions: list[Composable] = [SQL('h3_points_to_cells_range(segments, 11) && %s AND visibility = ANY(%s)')]
         params: list[Any] = [h3_cells, visibility]
 
         if legacy_offset is not None:
