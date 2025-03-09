@@ -11,12 +11,13 @@ from app.lib.translation import t
 from app.limits import USER_DESCRIPTION_MAX_LENGTH
 from app.models.db.connected_account import AuthProvider
 from app.models.db.user import Editor, User
-from app.models.types import DisplayNameValidating, LocaleCode, Password
+from app.models.types import LocaleCode, Password
 from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID
 from app.services.user_service import UserService
+from app.validators.display_name import DisplayNameValidating
 from app.validators.email import EmailValidating
 
 router = APIRouter(prefix='/api/web')
