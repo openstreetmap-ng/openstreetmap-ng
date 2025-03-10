@@ -90,13 +90,12 @@ def timeago(date: datetime | None, *, html: bool = False) -> str:
         ago = nt('datetime.distance_in_words_ago.x_years', int(total_seconds / (3600 * 24 * 365)))
     else:
         # almost X years ago
-        ago = nt('datetime.distance_in_words_ago.almost_x_years', int(ceil(total_seconds / (3600 * 24 * 365))))
+        ago = nt('datetime.distance_in_words_ago.almost_x_years', int(ceil(total_seconds / (3600 * 24 * 365))))  # noqa: RUF046
 
-    return (
-        f'<time datetime="{date.isoformat()}" title="{date.strftime(t("time.formats.friendly"))}">{ago}</time>'
-        if html
-        else ago
-    )
+    if html:
+        return f'<time datetime="{date.isoformat()}" title="{date.strftime(t("time.formats.friendly"))}">{ago}</time>'
+
+    return ago
 
 
 # TODO: ideally we should fix translation

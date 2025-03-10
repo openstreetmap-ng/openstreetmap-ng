@@ -216,8 +216,8 @@ async def _get_element_data(element: Element, at_sequence_id: SequenceId, *, inc
 
     prev_version = version - 1 if version > 1 else None
     next_version = version + 1 if element['next_sequence_id'] is not None else None
-    icon = features_icons((element,))[0]
-    name = features_names((element,))[0]
+    icon = features_icons([element])[0]
+    name = features_names([element])[0]
     tags_map = tags_format(element['tags'])
     render_data = FormatLeaflet.encode_elements(full_data, detailed=True)
 

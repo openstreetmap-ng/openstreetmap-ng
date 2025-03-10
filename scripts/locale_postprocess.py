@@ -170,7 +170,7 @@ def convert_plural_structure(data: dict):
     >>> convert_plural_structure({'example': {'one': '1', 'two': '2', 'three': '3'}})
     {'example_one': '1', 'example_two': '2', 'example_three': '3'}
     """
-    for k, v in tuple(data.items()):
+    for k, v in list(data.items()):
         # skip non-dict values
         if not isinstance(v, dict):
             continue
@@ -196,7 +196,7 @@ def rename_buggy_keys(data: dict):
     """
     buggy_keys = []
     abort = False
-    for k, v in tuple(data.items()):
+    for k, v in list(data.items()):
         if isinstance(v, dict):
             rename_buggy_keys(v)
             continue

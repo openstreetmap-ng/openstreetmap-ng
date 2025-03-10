@@ -46,7 +46,7 @@ class NoteService:
         if user is not None:
             # Prevent OAuth to create user-authorized note
             if 'web_user' not in scopes and 'write_notes' not in scopes:
-                raise_for.insufficient_scopes(('write_notes',))
+                raise_for.insufficient_scopes(['write_notes'])
             user_id = user['id']
             user_ip = None
         else:
@@ -160,7 +160,7 @@ class NoteService:
 
             elif event == 'hidden':
                 if not user_is_moderator(user):
-                    raise_for.insufficient_scopes(('role_moderator',))
+                    raise_for.insufficient_scopes(['role_moderator'])
                 update.append(SQL('hidden_at = statement_timestamp()'))
 
             else:

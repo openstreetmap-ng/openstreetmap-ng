@@ -237,21 +237,19 @@ async def _copy_elements(conn: AsyncConnection, elements: list[Element]) -> None
                 element: Element
 
             for element in elements:
-                data = write_row(
-                    (
-                        element['sequence_id'],
-                        element['next_sequence_id'],
-                        element['created_at'],
-                        element['changeset_id'],
-                        element['typed_id'],
-                        element['version'],
-                        element['visible'],
-                        element['tags'],
-                        element['point'],
-                        element['members'],
-                        element['members_roles'],
-                    )
-                )
+                data = write_row((
+                    element['sequence_id'],
+                    element['next_sequence_id'],
+                    element['created_at'],
+                    element['changeset_id'],
+                    element['typed_id'],
+                    element['version'],
+                    element['visible'],
+                    element['tags'],
+                    element['point'],
+                    element['members'],
+                    element['members_roles'],
+                ))
                 if data:
                     buffer.write(data)
 

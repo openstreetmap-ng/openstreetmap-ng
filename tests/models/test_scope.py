@@ -12,4 +12,4 @@ def test_from_str():
 
 
 def test_from_str_public():
-    assert frozenset(scope_from_str(' '.join(get_args(Scope)))) == PUBLIC_SCOPES
+    assert set(scope_from_str(' '.join(get_args(Scope)))) == set(PUBLIC_SCOPES)

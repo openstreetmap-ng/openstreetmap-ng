@@ -42,11 +42,11 @@ async def update_prefs(
     _: Annotated[User, api_user('write_prefs')],
 ):
     try:
-        prefs = Format06.decode_user_preferences(data.get('preference', ()))
+        prefs = Format06.decode_user_preferences(data.get('preference'))
     except Exception as e:
         raise_for.bad_xml('preferences', str(e))
 
-    await UserPrefService.upsert_many(prefs)
+    await UserPrefService.upsert(prefs)
 
 
 @router.put('/user/preferences/{key}')
@@ -55,8 +55,8 @@ async def update_pref(
     _: Annotated[User, api_user('write_prefs')],
 ):
     value = get_request()._body.decode()  # noqa: SLF001
-    user_pref = Format06.decode_user_preferences(({'@k': key, '@v': value},))[0]
-    await UserPrefService.upsert_one(user_pref)
+    prefs = Format06.decode_user_preferences([{'@k': key, '@v': value}])
+    await UserPrefService.upsert(prefs)
 
 
 @router.delete('/user/preferences/{key}')

@@ -34,7 +34,7 @@ class TestService:
                         name='TestApp',
                         client_id=ClientId('testapp'),
                         client_secret=None,
-                        scopes=tuple(PUBLIC_SCOPES),
+                        scopes=PUBLIC_SCOPES,
                         is_confidential=False,
                     )
                 )
@@ -52,7 +52,7 @@ class TestService:
                         name='TestApp-Secret',
                         client_id=ClientId('testapp-secret'),
                         client_secret='testapp.secret',  # noqa: S106
-                        scopes=tuple(PUBLIC_SCOPES),
+                        scopes=PUBLIC_SCOPES,
                         is_confidential=True,
                     )
                 )

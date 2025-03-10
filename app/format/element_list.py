@@ -123,13 +123,11 @@ def _encode_parents(
         type, id = split_typed_element_id(parent['typed_id'])
         role = (
             ', '.join(
-                sorted(
-                    {
-                        role
-                        for member, role in zip(parent['members'], parent['members_roles'], strict=True)  # pyright: ignore [reportArgumentType]
-                        if role and member == ref
-                    }
-                )
+                sorted({
+                    role
+                    for member, role in zip(parent['members'], parent['members_roles'], strict=True)  # pyright: ignore [reportArgumentType]
+                    if role and member == ref
+                })
             )
             if type == 'relation'
             else None

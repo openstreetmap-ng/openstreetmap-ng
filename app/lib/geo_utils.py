@@ -114,12 +114,10 @@ def parse_bbox(s: str | None) -> Polygon | MultiPolygon | None:
 
     # meridian crossing
     return validate_geometry(
-        MultiPolygon(
-            (
-                box(minx, miny, 180, maxy),
-                box(-180, miny, maxx - 360, maxy),
-            )
-        )
+        MultiPolygon((
+            box(minx, miny, 180, maxy),
+            box(-180, miny, maxx - 360, maxy),
+        ))
     )
 
 

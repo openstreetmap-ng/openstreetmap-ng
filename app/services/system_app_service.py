@@ -49,7 +49,7 @@ class SystemAppService:
                 SystemApp(
                     name='Personal Access Token',
                     client_id=SYSTEM_APP_PAT_CLIENT_ID,
-                    scopes=tuple(PUBLIC_SCOPES),
+                    scopes=PUBLIC_SCOPES,
                 ),
                 SystemApp(
                     name='iD',

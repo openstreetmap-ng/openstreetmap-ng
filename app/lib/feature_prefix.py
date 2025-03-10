@@ -45,19 +45,19 @@ def _feature_prefix_tags(tags: dict[str, str]):
         return None
 
     # read method once for performance
-    _t = t
+    t_ = t
 
     # key+value matches
     for key, value in tags.items():
         message = f'geocoder.search_osm_nominatim.prefix.{key}.{value}'
-        translated = _t(message)
+        translated = t_(message)
         if translated != message:
             return translated
 
     # key matches
     for key, value in tags.items():
         message = f'geocoder.search_osm_nominatim.prefix.{key}.yes'
-        translated = _t(message)
+        translated = t_(message)
         if translated != message:
             # provide automatic feature prefix for unknown tags
             # e.g., amenity=cooking_school -> 'Cooking school'

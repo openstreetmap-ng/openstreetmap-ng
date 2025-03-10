@@ -13,17 +13,15 @@ async def test_changeset_comment_crud(client: AsyncClient):
     # create changeset
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'changeset': {
-                        'tag': [
-                            {'@k': 'created_by', '@v': test_changeset_comment_crud.__name__},
-                        ]
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'created_by', '@v': test_changeset_comment_crud.__name__},
+                    ]
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     changeset_id = int(r.text)

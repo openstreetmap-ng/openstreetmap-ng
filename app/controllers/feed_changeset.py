@@ -4,19 +4,16 @@ from fastapi import APIRouter, Path, Query, Response
 from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy.orm import joinedload, raiseload
 from starlette import status
 
 from app.config import APP_URL, ATTRIBUTION_URL
 from app.format import FormatRSS06
 from app.lib.date_utils import utcnow
 from app.lib.geo_utils import parse_bbox
-from app.lib.options_context import options_context
 from app.lib.translation import primary_translation_locale, t
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.middlewares.request_context_middleware import get_request
-from app.models.db.changeset import Changeset
-from app.models.db.user import User
+from app.models.db.user import User, UserId
 from app.models.types import DisplayName
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
@@ -30,7 +27,7 @@ async def history_feed(
     limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     geometry = parse_bbox(bbox)
-    return await _get_feed(geometry=geometry, limit=limit)
+    return await _get_feed(None, geometry, limit)
 
 
 @router.get('/user/{display_name:str}/history/feed')
@@ -44,12 +41,12 @@ async def user_history_feed(
         return Response(None, status.HTTP_404_NOT_FOUND, media_type='application/atom+xml')
 
     geometry = parse_bbox(bbox)
-    return await _get_feed(user=user, geometry=geometry, limit=limit)
+    return await _get_feed(user, geometry, limit)
 
 
 @router.get('/user-id/{user_id:int}/history/feed')
 async def user_permalink_history_feed(
-    user_id: PositiveInt,
+    user_id: UserId,
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
@@ -58,23 +55,18 @@ async def user_permalink_history_feed(
         return Response(None, status.HTTP_404_NOT_FOUND, media_type='application/atom+xml')
 
     geometry = parse_bbox(bbox)
-    return await _get_feed(user=user, geometry=geometry, limit=limit)
+    return await _get_feed(user, geometry, limit)
 
 
-async def _get_feed(
-    *,
-    user: User | None = None,
-    geometry: BaseGeometry | None,
-    limit: int,
-):
-    with options_context(joinedload(Changeset.user).load_only(User.display_name), raiseload(Changeset.bounds)):
-        changesets = await ChangesetQuery.find_many_by_query(
-            user_ids=(user.id,) if (user is not None) else None,
-            geometry=geometry,
-            legacy_geometry=True,
-            sort='desc',
-            limit=limit,
-        )
+async def _get_feed(user: User | None, geometry: BaseGeometry | None, limit: int) -> str:
+    changesets = await ChangesetQuery.find_many_by_query(
+        user_ids=[user['id']] if (user is not None) else None,
+        geometry=geometry,
+        legacy_geometry=True,
+        sort='desc',
+        limit=limit,
+    )
+    await UserQuery.resolve_users(changesets)
 
     request_url = str(get_request().url)
     html_url = request_url.replace('/feed', '')
@@ -91,9 +83,9 @@ async def _get_feed(
     fg.rights(ATTRIBUTION_URL)
 
     if user is not None:
-        fg.title(t('changesets.index.title_user', user=user.display_name))
+        fg.title(t('changesets.index.title_user', user=user['display_name']))
     else:
         fg.title(t('changesets.index.title'))
 
-    await FormatRSS06.encode_changesets(fg, changesets)
+    FormatRSS06.encode_changesets(fg, changesets)
     return fg.atom_str()

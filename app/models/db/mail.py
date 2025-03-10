@@ -4,7 +4,7 @@ from typing import Literal, NewType, NotRequired, TypedDict
 from app.models.db.user import User, UserId
 
 MailId = NewType('MailId', int)
-MailSource = Literal[None, 'message', 'diary_comment']  # None: for system/no source
+MailSource = Literal['message', 'diary_comment'] | None  # None: for system/no source
 
 
 class MailInit(TypedDict):

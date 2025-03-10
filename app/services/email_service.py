@@ -207,7 +207,7 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
         message['From'] = SMTP_NOREPLY_FROM
 
     else:
-        from app.services.user_token_email_reply_service import UserTokenEmailReplyService
+        from app.services.user_token_email_reply_service import UserTokenEmailReplyService  # noqa: PLC0415
 
         from_user = mail['from_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
         reply_address = await UserTokenEmailReplyService.create_address(to_user, mail['source'])

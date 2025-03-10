@@ -28,7 +28,7 @@ else:
 
 # TODO: test 200MP file
 
-AvatarType = Literal[None, 'gravatar', 'custom']
+AvatarType = Literal['gravatar', 'custom'] | None
 
 DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
 DEFAULT_APP_AVATAR_URL = '/static/img/app.webp'
@@ -39,7 +39,7 @@ class Image:
 
     @staticmethod
     @overload
-    def get_avatar_url(image_type: Literal[None], *, app: bool = False) -> str: ...
+    def get_avatar_url(image_type: None, *, app: bool = False) -> str: ...
     @staticmethod
     @overload
     def get_avatar_url(image_type: Literal['gravatar'], image_id: int) -> str: ...

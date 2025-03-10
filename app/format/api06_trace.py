@@ -26,14 +26,12 @@ class Trace06Mixin:
     @staticmethod
     def decode_gpx_file(gpx_file: dict) -> TraceMetaInit:
         """Decode trace metadata from gpx_file structure."""
-        return TraceMetaInitValidator.validate_python(
-            {
-                'name': gpx_file.get('@name'),
-                'description': gpx_file.get('description'),
-                'tags': trace_tags_from_str(gpx_file.get('tags')),
-                'visibility': gpx_file.get('@visibility'),
-            }
-        )
+        return TraceMetaInitValidator.validate_python({
+            'name': gpx_file.get('@name'),
+            'description': gpx_file.get('description'),
+            'tags': trace_tags_from_str(gpx_file.get('tags')),
+            'visibility': gpx_file.get('@visibility'),
+        })
 
 
 @cython.cfunc

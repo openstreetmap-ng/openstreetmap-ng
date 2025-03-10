@@ -5,7 +5,10 @@ from multiprocessing.pool import Pool
 from pathlib import Path
 from time import perf_counter
 
+import cairosvg
 import click
+import cv2
+import numpy as np
 
 cli = click.Group()
 
@@ -33,11 +36,7 @@ def get_output_path(input: Path, /, *, root: Path) -> Path:
 
 
 def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
-    import cairosvg
-    import cv2
-    import numpy as np
-
-    png_data: bytes = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)
+    png_data = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)
     img = cv2.imdecode(np.frombuffer(png_data, np.uint8), cv2.IMREAD_UNCHANGED)
     _, img = cv2.imencode(output.suffix, img, (cv2.IMWRITE_WEBP_QUALITY, quality))
 

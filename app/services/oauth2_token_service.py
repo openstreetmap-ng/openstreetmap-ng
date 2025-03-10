@@ -40,18 +40,6 @@ class OAuth2TokenService:
     @overload
     async def authorize(
         *,
-        init: Literal[True],
-        client_id: ClientId,
-        redirect_uri: Uri,
-        scopes: tuple[PublicScope, ...],
-        code_challenge_method: OAuth2CodeChallengeMethod | None,
-        code_challenge: str | None,
-        state: str | None,
-    ) -> dict[str, str] | OAuth2TokenOOB | OAuth2Application: ...
-    @staticmethod
-    @overload
-    async def authorize(
-        *,
         init: Literal[False],
         client_id: ClientId,
         redirect_uri: Uri,
@@ -60,6 +48,18 @@ class OAuth2TokenService:
         code_challenge: str | None,
         state: str | None,
     ) -> dict[str, str] | OAuth2TokenOOB: ...
+    @staticmethod
+    @overload
+    async def authorize(
+        *,
+        init: bool,
+        client_id: ClientId,
+        redirect_uri: Uri,
+        scopes: tuple[PublicScope, ...],
+        code_challenge_method: OAuth2CodeChallengeMethod | None,
+        code_challenge: str | None,
+        state: str | None,
+    ) -> dict[str, str] | OAuth2TokenOOB | OAuth2Application: ...
     @staticmethod
     async def authorize(
         *,

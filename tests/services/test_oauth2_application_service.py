@@ -19,10 +19,10 @@ async def test_validate_redirect_uris_too_many():
 
 async def test_validate_redirect_uris_too_long():
     with translation_context(LocaleCode('en')):
-        uris = f'https://1.com\n https://{'a' * (OAUTH_APP_URI_MAX_LENGTH - 12)}.com \n'
+        uris = f'https://1.com\n https://{"a" * (OAUTH_APP_URI_MAX_LENGTH - 12)}.com \n'
         OAuth2ApplicationService.validate_redirect_uris(uris)
 
-        uris = f'https://1.com\n https://{'a' * (OAUTH_APP_URI_MAX_LENGTH - 11)}.com \n'
+        uris = f'https://1.com\n https://{"a" * (OAUTH_APP_URI_MAX_LENGTH - 11)}.com \n'
         with pytest.raises(HTTPException):
             OAuth2ApplicationService.validate_redirect_uris(uris)
 

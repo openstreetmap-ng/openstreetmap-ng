@@ -223,19 +223,19 @@ def _transform_wikipedia(lang: str, value: ValueFormat):
     return ValueFormat(value.text, 'url-safe', f'https://{lang}.wikipedia.org/wiki/{text}')
 
 
-_FORMATTER_MAP: dict[str, tuple[Callable[[list[str], list[ValueFormat]], list[ValueFormat]], ...]] = {
-    'colour': (_format_color,),
-    'comment': (_format_comment,),
-    'email': (_format_email,),
-    'phone': (_format_phone,),
-    'fax': (_format_phone,),
-    'host': (_format_url,),
-    'website': (_format_url,),
-    'url': (_format_url,),
-    'source': (_format_url,),
-    'image': (_format_url,),
-    'wikidata': (_format_wikidata,),
-    'wikimedia_commons': (_format_wikimedia_commons,),
-    'wikipedia': (_format_url, _format_wikipedia),
+_FORMATTER_MAP: dict[str, list[Callable[[list[str], list[ValueFormat]], list[ValueFormat]]]] = {
+    'colour': [_format_color],
+    'comment': [_format_comment],
+    'email': [_format_email],
+    'phone': [_format_phone],
+    'fax': [_format_phone],
+    'host': [_format_url],
+    'website': [_format_url],
+    'url': [_format_url],
+    'source': [_format_url],
+    'image': [_format_url],
+    'wikidata': [_format_wikidata],
+    'wikimedia_commons': [_format_wikimedia_commons],
+    'wikipedia': [_format_url, _format_wikipedia],
 }
 _SUPPORTED_KEYS = frozenset(_FORMATTER_MAP.keys())

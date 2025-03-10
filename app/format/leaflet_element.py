@@ -50,11 +50,11 @@ class LeafletElementMixin:
             if type == 'node':
                 point = result.geoms[0][0]
                 render_node = RenderElementsData.Node(id=id, lon=point[0], lat=point[1])
-                encoded.append(RenderElementsData(nodes=(render_node,)))
+                encoded.append(RenderElementsData(nodes=[render_node]))
 
             elif type == 'way':
                 render_way = RenderElementsData.Way(id=id, line=encode_lonlat(result.geoms[0], 6))
-                encoded.append(RenderElementsData(ways=(render_way,)))
+                encoded.append(RenderElementsData(ways=[render_way]))
 
             elif type == 'relation':
                 nodes: list[RenderElementsData.Node] = []
@@ -169,21 +169,19 @@ def _check_way_area(tags: dict[str, str], members: list[TypedElementId]):
     )
 
 
-_AREA_TAGS: frozenset[str] = frozenset(
-    (
-        'amenity',
-        'area',
-        'building',
-        'building:part',
-        'leisure',
-        'tourism',
-        'ruins',
-        'historic',
-        'landuse',
-        'military',
-        'natural',
-        'sport',
-    )
-)
+_AREA_TAGS: frozenset[str] = frozenset((
+    'amenity',
+    'area',
+    'building',
+    'building:part',
+    'leisure',
+    'tourism',
+    'ruins',
+    'historic',
+    'landuse',
+    'military',
+    'natural',
+    'sport',
+))
 
 _AREA_PREFIXES: tuple[str, ...] = ('area:',)

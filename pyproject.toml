@@ -83,6 +83,7 @@ packages = ["app", "scripts", "tests", "typings"]
 [tool.ruff]
 indent-width = 4
 line-length = 120
+preview = true
 target-version = "py313"
 
 [tool.ruff.lint]
@@ -101,10 +102,13 @@ ignore = [
   "E501", # line-too-long
   "ISC001", # single-line-implicit-string-concatenation
   "ISC002", # multi-line-implicit-string-concatenation
+  "LOG015", # root-logger-call
   "PLR09", # too-many-*
   "PLR1702", # too-many-nested-blocks
   "PLR2",
+  "PLR6301", # no-self-use
   "PLW0603", # global-statement
+  "PLW1514", # unspecified-encoding
   "PLW2901", # redefined-loop-name
   "PT001", # pytest-fixture-incorrect-parentheses-style
   "PT006", # pytest-parametrize-names-wrong-type
@@ -112,6 +116,7 @@ ignore = [
   "PT018", # pytest-composite-assertion
   "PT023", # pytest-incorrect-mark-parentheses-style
   "PYI025", # unaliased-collections-abc-set-import
+  "UP047", # non-pep695-generic-function
   "Q000", # bad-quotes-inline-string
   "Q001", # bad-quotes-multiline-string
   "Q002", # bad-quotes-docstring

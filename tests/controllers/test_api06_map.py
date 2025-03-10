@@ -13,17 +13,15 @@ async def test_map_read(client: AsyncClient):
     # create changeset
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'changeset': {
-                        'tag': [
-                            {'@k': 'created_by', '@v': test_map_read.__name__},
-                        ]
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'created_by', '@v': test_map_read.__name__},
+                    ]
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     changeset_id = int(r.text)
@@ -31,20 +29,18 @@ async def test_map_read(client: AsyncClient):
     # create node
     r = await client.put(
         '/api/0.6/node/create',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'node': {
-                        '@changeset': changeset_id,
-                        '@lon': 1.2345678111111,
-                        '@lat': 2.3456789111111,
-                        'tag': [
-                            {'@k': 'created_by', '@v': test_map_read.__name__},
-                        ],
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'node': {
+                    '@changeset': changeset_id,
+                    '@lon': 1.2345678111111,
+                    '@lat': 2.3456789111111,
+                    'tag': [
+                        {'@k': 'created_by', '@v': test_map_read.__name__},
+                    ],
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     node_id = int(r.text)
@@ -63,16 +59,14 @@ async def test_map_read(client: AsyncClient):
     r = await client.request(
         'DELETE',
         f'/api/0.6/node/{node_id}',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'node': {
-                        '@changeset': changeset_id,
-                        '@version': 1,
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'node': {
+                    '@changeset': changeset_id,
+                    '@version': 1,
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     version = int(r.text)

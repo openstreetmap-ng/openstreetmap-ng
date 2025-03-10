@@ -17,11 +17,11 @@ _extra_names_path = Path('config/locale/extra_names.json')
 _names_path = Path('config/locale/names.json')
 
 
-async def get_download_locales() -> tuple[LocaleCode, ...]:
+async def get_download_locales() -> list[LocaleCode]:
     r = await HTTP.get('https://translatewiki.net/wiki/Special:ExportTranslations', params={'group': 'out-osm-site'})
     r.raise_for_status()
-    matches = re.finditer(r"<option value='([\w-]+)'.*?>\1 - ", r.text)
-    return tuple(LocaleCode(match[1]) for match in matches)
+    matches = re.finditer(r"<option value='(?P<value>[\w-]+)'.*?>(?P=value) - ", r.text)
+    return [LocaleCode(match.group('value')) for match in matches]
 
 
 @retry(timedelta(minutes=2))
@@ -37,22 +37,22 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
         if content_disposition is None:
             return None  # missing translation
 
-        match_locale = re.search(r'filename="([\w-]+)\.yml"', content_disposition)
+        match_locale = re.search(r'filename="(?P<locale>[\w-]+)\.yml"', content_disposition)
         if match_locale is None:
             raise ValueError(f'Failed to match filename for {locale!r}')
 
-        locale = LocaleCode(match_locale[1])
+        locale = LocaleCode(match_locale.group('locale'))
         if locale == 'x-invalidLanguageCode':
             print(f'[❔] {locale}: invalid language code')
             return None
 
-    match = re.match(r'# Messages for (.+?) \((.+?)\)', r.text)
+    match = re.match(r'# Messages for (?P<english>.+?) \((?P<native>.+?)\)', r.text)
     if match is None:
         raise ValueError(f'Failed to match language names for {locale!r}')
 
-    english_name = match[1].strip()
-    native_name = match[2].strip()
-    if english_name == 'Message documentation':
+    english = match.group('english').strip()
+    native = match.group('native').strip()
+    if english == 'Message documentation':
         print(f'[❔] {locale}: not a language')
         return None
 
@@ -65,8 +65,8 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
 
     return LocaleName(
         code=locale,
-        english=english_name,
-        native=native_name,
+        english=english,
+        native=native,
         installed=True,
     )
 

@@ -25,63 +25,55 @@ PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')
 if not PLANET_INPUT_PATH.is_file():
     raise FileNotFoundError(f'Planet data file not found: {PLANET_INPUT_PATH}')
 
-_PLANET_SCHEMA = pa.schema(
-    [
-        pa.field('changeset_id', pa.uint64()),
-        pa.field('type', pa.string()),
-        pa.field('id', pa.uint64()),
-        pa.field('version', pa.uint64()),
-        pa.field('visible', pa.bool_()),
-        pa.field('tags', pa.string()),
-        pa.field('point', pa.string()),
-        pa.field(
-            'members',
-            pa.list_(
-                pa.struct(
-                    [
-                        pa.field('order', pa.uint16()),
-                        pa.field('type', pa.string()),
-                        pa.field('id', pa.uint64()),
-                        pa.field('role', pa.string()),
-                    ]
-                )
-            ),
+_PLANET_SCHEMA = pa.schema([
+    pa.field('changeset_id', pa.uint64()),
+    pa.field('type', pa.string()),
+    pa.field('id', pa.uint64()),
+    pa.field('version', pa.uint64()),
+    pa.field('visible', pa.bool_()),
+    pa.field('tags', pa.string()),
+    pa.field('point', pa.string()),
+    pa.field(
+        'members',
+        pa.list_(
+            pa.struct([
+                pa.field('order', pa.uint16()),
+                pa.field('type', pa.string()),
+                pa.field('id', pa.uint64()),
+                pa.field('role', pa.string()),
+            ])
         ),
-        pa.field('created_at', pa.timestamp('ms', 'UTC')),
-        pa.field('user_id', pa.uint64()),
-        pa.field('display_name', pa.string()),
-    ]
-)
+    ),
+    pa.field('created_at', pa.timestamp('ms', 'UTC')),
+    pa.field('user_id', pa.uint64()),
+    pa.field('display_name', pa.string()),
+])
 
 NOTES_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osn')
 NOTES_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osn.parquet')
 if not NOTES_INPUT_PATH.is_file():
     raise FileNotFoundError(f'Notes data file not found: {PLANET_INPUT_PATH}')
 
-_NOTES_SCHEMA = pa.schema(
-    [
-        pa.field('id', pa.uint64()),
-        pa.field('point', pa.string()),
-        pa.field(
-            'comments',
-            pa.list_(
-                pa.struct(
-                    [
-                        pa.field('user_id', pa.uint64()),
-                        pa.field('display_name', pa.string()),
-                        pa.field('event', pa.string()),
-                        pa.field('body', pa.string()),
-                        pa.field('created_at', pa.timestamp('ms', 'UTC')),
-                    ]
-                )
-            ),
+_NOTES_SCHEMA = pa.schema([
+    pa.field('id', pa.uint64()),
+    pa.field('point', pa.string()),
+    pa.field(
+        'comments',
+        pa.list_(
+            pa.struct([
+                pa.field('user_id', pa.uint64()),
+                pa.field('display_name', pa.string()),
+                pa.field('event', pa.string()),
+                pa.field('body', pa.string()),
+                pa.field('created_at', pa.timestamp('ms', 'UTC')),
+            ])
         ),
-        pa.field('created_at', pa.timestamp('ms', 'UTC')),
-        pa.field('updated_at', pa.timestamp('ms', 'UTC')),
-        pa.field('closed_at', pa.timestamp('ms', 'UTC')),
-        pa.field('hidden_at', pa.timestamp('ms', 'UTC')),
-    ]
-)
+    ),
+    pa.field('created_at', pa.timestamp('ms', 'UTC')),
+    pa.field('updated_at', pa.timestamp('ms', 'UTC')),
+    pa.field('closed_at', pa.timestamp('ms', 'UTC')),
+    pa.field('hidden_at', pa.timestamp('ms', 'UTC')),
+])
 
 _MEMORY_LIMIT = 2 * (1024 * 1024 * 1024)  # real: ~2 GB memory usage per worker
 _NUM_WORKERS = os.process_cpu_count() or 1
@@ -167,21 +159,19 @@ def planet_worker(
         else:
             raise NotImplementedError(f'Unsupported element type {element_type!r}')
 
-        data.append(
-            {
-                'changeset_id': element['@changeset'],
-                'type': element_type,
-                'id': element['@id'],
-                'version': element['@version'],
-                'visible': (tags is not None) or (point is not None) or bool(members),
-                'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
-                'point': point,
-                'members': members,
-                'created_at': element['@timestamp'],
-                'user_id': element.get('@uid'),
-                'display_name': element.get('@user'),
-            }
-        )
+        data.append({
+            'changeset_id': element['@changeset'],
+            'type': element_type,
+            'id': element['@id'],
+            'version': element['@version'],
+            'visible': (tags is not None) or (point is not None) or bool(members),
+            'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
+            'point': point,
+            'members': members,
+            'created_at': element['@timestamp'],
+            'user_id': element.get('@uid'),
+            'display_name': element.get('@user'),
+        })
 
     pq.write_table(
         pa.Table.from_pylist(data, schema=_PLANET_SCHEMA),
@@ -196,7 +186,7 @@ def planet_worker(
 def run_planet_workers() -> None:
     input_size = PLANET_INPUT_PATH.stat().st_size
     num_tasks = input_size // _WORKER_MEMORY_LIMIT
-    from_seek_search = (b'  <node', b'  <way', b'  <relation')
+    from_seek_search = [b'  <node', b'  <way', b'  <relation']
     from_seeks: list[int] = []
     print(f'Configuring {num_tasks} tasks (using {_NUM_WORKERS} workers)')
 
@@ -313,28 +303,24 @@ def notes_worker(args: tuple[int, int, int]) -> None:
                 note_closed_at = None
                 note_hidden_at = None
 
-            comments.append(
-                {
-                    'user_id': comment.get('@uid'),
-                    'display_name': comment.get('@user'),
-                    'event': event,
-                    'body': comment.get('#text', ''),
-                    'created_at': comment_created_at,
-                }
-            )
+            comments.append({
+                'user_id': comment.get('@uid'),
+                'display_name': comment.get('@user'),
+                'event': event,
+                'body': comment.get('#text', ''),
+                'created_at': comment_created_at,
+            })
 
         point = compressible_geometry(Point(note['@lon'], note['@lat'])).wkb_hex
-        data.append(
-            {
-                'id': note['@id'],
-                'point': point,
-                'comments': comments,
-                'created_at': note_created_at,
-                'updated_at': note_updated_at,
-                'closed_at': note_closed_at,
-                'hidden_at': note_hidden_at,
-            }
-        )
+        data.append({
+            'id': note['@id'],
+            'point': point,
+            'comments': comments,
+            'created_at': note_created_at,
+            'updated_at': note_updated_at,
+            'closed_at': note_closed_at,
+            'hidden_at': note_hidden_at,
+        })
 
     pq.write_table(
         pa.Table.from_pylist(data, schema=_NOTES_SCHEMA),
@@ -349,7 +335,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
 def run_notes_workers() -> None:
     input_size = NOTES_INPUT_PATH.stat().st_size
     num_tasks = input_size // _WORKER_MEMORY_LIMIT
-    from_seek_search = (b'<note',)
+    from_seek_search = [b'<note']
     from_seeks = []
 
     print(f'Configuring {num_tasks} tasks (using {_NUM_WORKERS} workers)')

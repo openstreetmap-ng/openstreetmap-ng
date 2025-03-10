@@ -14,12 +14,10 @@ def standard_pagination_range(
 ) -> tuple[int, int]:
     """
     Get the range of items for the given page.
-
     The last page returns an offset of 0.
-
     Returns a tuple of (limit, offset).
     """
-    num_pages: cython.int = int(ceil(num_items / page_size))
+    num_pages: cython.int = int(ceil(num_items / page_size))  # noqa: RUF046
     if 1 <= page <= num_pages:
         return page_size, (num_pages - page) * page_size
     return 0, 0

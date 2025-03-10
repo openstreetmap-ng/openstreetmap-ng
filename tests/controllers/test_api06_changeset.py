@@ -14,19 +14,17 @@ async def test_changeset_crud(client: AsyncClient):
     # create changeset
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'changeset': {
-                        'tag': [
-                            {'@k': 'comment', '@v': 'create'},
-                            {'@k': 'created_by', '@v': test_changeset_crud.__name__},
-                            {'@k': 'remove_me', '@v': 'remove_me'},
-                        ]
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'comment', '@v': 'create'},
+                        {'@k': 'created_by', '@v': test_changeset_crud.__name__},
+                        {'@k': 'remove_me', '@v': 'remove_me'},
+                    ]
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     changeset_id = int(r.text)
@@ -50,18 +48,16 @@ async def test_changeset_crud(client: AsyncClient):
     # update changeset
     r = await client.put(
         f'/api/0.6/changeset/{changeset_id}',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'changeset': {
-                        'tag': [
-                            {'@k': 'comment', '@v': 'update'},
-                            {'@k': 'created_by', '@v': test_changeset_crud.__name__},
-                        ]
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'comment', '@v': 'update'},
+                        {'@k': 'created_by', '@v': test_changeset_crud.__name__},
+                    ]
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     changeset = XMLToDict.parse(r.content)['osm']['changeset']
@@ -100,9 +96,9 @@ async def test_changeset_upload(client: AsyncClient):
     # create changeset
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_changeset_upload.__name__}]}}}
-        ),
+        content=XMLToDict.unparse({
+            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_changeset_upload.__name__}]}}
+        }),
     )
     assert r.is_success, r.text
     changeset_id = int(r.text)
@@ -110,16 +106,14 @@ async def test_changeset_upload(client: AsyncClient):
     # upload changes
     r = await client.post(
         f'/api/0.6/changeset/{changeset_id}/upload',
-        content=XMLToDict.unparse(
-            {
-                'osmChange': {
-                    'create': [
-                        ('node', {'@id': -1, '@lat': 0, '@lon': 0}),
-                        ('way', {'@id': -1, 'nd': [{'@ref': -1}]}),
-                    ]
-                }
+        content=XMLToDict.unparse({
+            'osmChange': {
+                'create': [
+                    ('node', {'@id': -1, '@lat': 0, '@lon': 0}),
+                    ('way', {'@id': -1, 'nd': [{'@ref': -1}]}),
+                ]
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
 
@@ -162,25 +156,25 @@ async def test_changesets_tags_max_len(client: AsyncClient):
     # create changeset (at the limit)
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {'osm': {'changeset': {'tag': [{'@k': '0' * TAGS_KEY_MAX_LENGTH, '@v': '0' * 255}]}}}
-        ),
+        content=XMLToDict.unparse({
+            'osm': {'changeset': {'tag': [{'@k': '0' * TAGS_KEY_MAX_LENGTH, '@v': '0' * 255}]}}
+        }),
     )
     assert r.is_success, r.text
 
     # create changeset (above the limit)
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {'osm': {'changeset': {'tag': [{'@k': '0' * (TAGS_KEY_MAX_LENGTH + 1), '@v': '0' * 255}]}}}
-        ),
+        content=XMLToDict.unparse({
+            'osm': {'changeset': {'tag': [{'@k': '0' * (TAGS_KEY_MAX_LENGTH + 1), '@v': '0' * 255}]}}
+        }),
     )
     assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {'osm': {'changeset': {'tag': [{'@k': '0' * TAGS_KEY_MAX_LENGTH, '@v': '0' * 256}]}}}
-        ),
+        content=XMLToDict.unparse({
+            'osm': {'changeset': {'tag': [{'@k': '0' * TAGS_KEY_MAX_LENGTH, '@v': '0' * 256}]}}
+        }),
     )
     assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
 
@@ -211,35 +205,31 @@ async def test_changesets_tags_size(client: AsyncClient):
     # create changeset (at the limit)
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'changeset': {
-                        'tag': [
-                            {'@k': f'{i:0{TAGS_KEY_MAX_LENGTH}d}', '@v': f'{i:0{TAGS_KEY_MAX_LENGTH}d}'}
-                            for i in range(num_tags)
-                        ]
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': f'{i:0{TAGS_KEY_MAX_LENGTH}d}', '@v': f'{i:0{TAGS_KEY_MAX_LENGTH}d}'}
+                        for i in range(num_tags)
+                    ]
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
 
     # create changeset (above the limit)
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'changeset': {
-                        'tag': [
-                            {'@k': f'{i:0{TAGS_KEY_MAX_LENGTH}d}', '@v': f'{i:0{TAGS_KEY_MAX_LENGTH}d}'}
-                            for i in range(num_tags + 1)
-                        ]
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': f'{i:0{TAGS_KEY_MAX_LENGTH}d}', '@v': f'{i:0{TAGS_KEY_MAX_LENGTH}d}'}
+                        for i in range(num_tags + 1)
+                    ]
                 }
             }
-        ),
+        }),
     )
     assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text

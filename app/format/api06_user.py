@@ -56,11 +56,14 @@ class User06Mixin:
         return {'preferences': {'preference': [{'@k': pref['key'], '@v': pref['value']} for pref in prefs]}}
 
     @staticmethod
-    def decode_user_preferences(prefs: list[dict[str, str]]) -> list[UserPref]:
+    def decode_user_preferences(prefs: list[dict[str, str]] | None) -> list[UserPref]:
         """
         >>> decode_user_preferences([{'@k': 'key', '@v': 'value'}])
         [UserPref(key='key', value='value')]
         """
+        if not prefs:
+            return []
+
         # Check for duplicate keys
         seen_keys: set[UserPrefKey] = set()
         for pref in prefs:
@@ -167,9 +170,9 @@ async def _encode_user(user: User, *, is_json: cython.bint) -> dict:
 def _encode_language(language: str, *, is_json: cython.bint):
     """
     >>> _encode_language('en')
-    {'lang': ('en',)}
+    {'lang': ['en']}
     """
-    return (language,) if is_json else {'lang': (language,)}
+    return [language] if is_json else {'lang': [language]}
 
 
 @cython.cfunc

@@ -73,10 +73,10 @@ async def test_note_with_xml(client: AsyncClient):
     assert props['@lon'] == 0
     assert props['@lat'] == 0
     assert int(props['id']) > 0
-    assert props['url'] == f'{API_URL}/api/0.6/notes/{props['id']}'
+    assert props['url'] == f'{API_URL}/api/0.6/notes/{props["id"]}'
     assert 'reopen_url' not in props
-    assert props['comment_url'] == f'{API_URL}/api/0.6/notes/{props['id']}/comment'
-    assert props['close_url'] == f'{API_URL}/api/0.6/notes/{props['id']}/close'
+    assert props['comment_url'] == f'{API_URL}/api/0.6/notes/{props["id"]}/comment'
+    assert props['close_url'] == f'{API_URL}/api/0.6/notes/{props["id"]}/close'
     assert 'date_created' in props
     assert 'date_closed' not in props
     assert props['status'] == 'open'
@@ -84,7 +84,7 @@ async def test_note_with_xml(client: AsyncClient):
     assert len(comments) == 1
     assert 'date' in comments[-1]
     assert comments[-1]['user'] == 'user1'
-    assert comments[-1]['user_url'] == f'{APP_URL}/user-id/{comments[-1]['uid']}'
+    assert comments[-1]['user_url'] == f'{APP_URL}/user-id/{comments[-1]["uid"]}'
     assert comments[-1]['action'] == 'opened'
     assert comments[-1]['text'] == test_note_with_xml.__qualname__
     assert comments[-1]['html'] == f'<p>{test_note_with_xml.__qualname__}</p>'

@@ -239,11 +239,11 @@ async def _get_activity_data(user: User) -> dict:
         created_since,
         today + timedelta(days=1),
         timedelta(days=1),
-        dtype=datetime,
+        'datetime64[D]',
     ).tolist()
     activity = np.array(
-        tuple(changesets_count_per_day.get(date.replace(tzinfo=UTC), 0) for date in dates_range),
-        dtype=np.uint64,
+        [changesets_count_per_day.get(date.replace(tzinfo=UTC), 0) for date in dates_range],
+        np.uint64,
     )
     activity_positive = activity[activity > 0]
     max_activity_clip = np.percentile(activity_positive, 95) if activity_positive.size else 1

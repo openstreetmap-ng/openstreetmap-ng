@@ -32,15 +32,11 @@ from app.queries.user_query import UserQuery
 OSMChangeAction = Literal['create', 'modify', 'delete']
 
 
+@dataclass(kw_only=True, slots=True)
 class ElementStateEntry:
-    __slots__ = ('current', 'remote')
-
+    # noinspection PyFinal
     remote: Final[Element | None]
     current: ElementInit
-
-    def __init__(self, *, remote: Element | None, current: ElementInit):
-        self.remote = remote
-        self.current = current
 
 
 @dataclass(slots=True)
@@ -243,7 +239,7 @@ class OptimisticDiffPrepare:
         typed_id = element['typed_id']
 
         # Check if not referenced by element state
-        positive_refs = self._reference_override[(typed_id, True)]
+        positive_refs = self._reference_override[typed_id, True]
         if positive_refs:
             if element.get('delete_if_unused'):
                 return False
@@ -256,7 +252,7 @@ class OptimisticDiffPrepare:
 
         parent_typed_ids = self._elements_parents_refs[typed_id]
         if parent_typed_ids:
-            negative_refs = self._reference_override[(typed_id, False)]
+            negative_refs = self._reference_override[typed_id, False]
             used_by = parent_typed_ids - negative_refs
             if used_by:
                 if element.get('delete_if_unused'):
@@ -298,15 +294,15 @@ class OptimisticDiffPrepare:
         if typed_ids_removed is not None:
             typed_ids_removed_: list[TypedElementId] = typed_ids_removed.tolist()  # type: ignore
             for ref in typed_ids_removed_:
-                reference_override[(ref, True)].discard(typed_id)
-                reference_override[(ref, False)].add(typed_id)
+                reference_override[ref, True].discard(typed_id)
+                reference_override[ref, False].add(typed_id)
 
         # Add new references
         if typed_ids_added is not None:
             typed_ids_added_: list[TypedElementId] = typed_ids_added.tolist()  # type: ignore
             for ref in typed_ids_added_:
-                reference_override[(ref, True)].add(typed_id)
-                reference_override[(ref, False)].discard(typed_id)
+                reference_override[ref, True].add(typed_id)
+                reference_override[ref, False].discard(typed_id)
             return typed_ids_added_
 
         return None

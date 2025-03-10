@@ -52,15 +52,13 @@ class NominatimQuery:
     async def reverse(point: Point, zoom: int = 14) -> SearchResult | None:
         """Reverse geocode a point into a human-readable name."""
         x, y = get_coordinates(point)[0].tolist()
-        path = '/reverse?' + urlencode(
-            {
-                'format': 'jsonv2',
-                'lon': f'{x:.5f}',
-                'lat': f'{y:.5f}',
-                'zoom': zoom,
-                'accept-language': primary_translation_locale(),
-            }
-        )
+        path = '/reverse?' + urlencode({
+            'format': 'jsonv2',
+            'lon': f'{x:.5f}',
+            'lat': f'{y:.5f}',
+            'zoom': zoom,
+            'accept-language': primary_translation_locale(),
+        })
 
         async def factory() -> bytes:
             logging.debug('Nominatim reverse cache miss for path %r', path)
@@ -86,7 +84,7 @@ class NominatimQuery:
         limit: int,
     ) -> list[SearchResult]:
         """Search for a location by name and optional bounds."""
-        polygons = bounds.geoms if isinstance(bounds, MultiPolygon) else (bounds,)
+        polygons = bounds.geoms if isinstance(bounds, MultiPolygon) else [bounds]
 
         async with TaskGroup() as tg:
             tasks = [
@@ -114,22 +112,20 @@ async def _search(
     at_sequence_id: SequenceId | None,
     limit: int,
 ) -> list[SearchResult]:
-    path = '/search?' + urlencode(
-        {
-            'format': 'jsonv2',
-            'q': q,
-            'limit': limit,
-            **(
-                {
-                    'viewbox': ','.join(f'{x:.5f}' for x in bounds.bounds),
-                    'bounded': 1,
-                }
-                if (bounds is not None)
-                else {}
-            ),
-            'accept-language': primary_translation_locale(),
-        }
-    )
+    path = '/search?' + urlencode({
+        'format': 'jsonv2',
+        'q': q,
+        'limit': limit,
+        **(
+            {
+                'viewbox': ','.join(f'{x:.5f}' for x in bounds.bounds),
+                'bounded': 1,
+            }
+            if (bounds is not None)
+            else {}
+        ),
+        'accept-language': primary_translation_locale(),
+    })
 
     async def factory() -> bytes:
         logging.debug('Nominatim search cache miss for path %r', path)

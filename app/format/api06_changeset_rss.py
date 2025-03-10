@@ -11,7 +11,7 @@ from app.models.db.changeset import Changeset
 
 class ChangesetRSS06Mixin:
     @staticmethod
-    async def encode_changesets(fg: FeedGenerator, changesets: list[Changeset]) -> None:
+    def encode_changesets(fg: FeedGenerator, changesets: list[Changeset]) -> None:
         """Encode changesets into a feed."""
         fg.load_extension('geo')
         for changeset in changesets:

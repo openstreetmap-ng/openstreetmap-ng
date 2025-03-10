@@ -13,7 +13,7 @@ from psycopg_pool import AsyncConnectionPool
 from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_URL
 
 
-async def _configure_connection(conn: AsyncConnection) -> None:
+async def _configure_connection(conn: AsyncConnection) -> None:  # noqa: RUF029
     cursor = conn.cursor
 
     @wraps(cursor)
@@ -23,7 +23,7 @@ async def _configure_connection(conn: AsyncConnection) -> None:
         kwargs.setdefault('binary', True)
         return cursor(*args, **kwargs)
 
-    conn.cursor = wrapped  # pyright: ignore [reportAttributeAccessIssue]
+    conn.cursor = wrapped  # type: ignore
 
 
 _PSYCOPG_POOL = AsyncConnectionPool(
@@ -45,7 +45,7 @@ set_json_loads(orjson.loads)
 @asynccontextmanager
 async def psycopg_pool_open():
     """Open and close the psycopg pool."""
-    from app.services.migration_service import MigrationService
+    from app.services.migration_service import MigrationService  # noqa: PLC0415
 
     await _PSYCOPG_POOL.open()
     await MigrationService.migrate_database()

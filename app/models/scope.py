@@ -9,7 +9,7 @@ PublicScope = Literal[
     'write_notes',
 ]
 
-PUBLIC_SCOPES: frozenset[PublicScope] = frozenset(get_args(PublicScope))
+PUBLIC_SCOPES: tuple[PublicScope, ...] = get_args(PublicScope)
 
 Scope = (
     PublicScope

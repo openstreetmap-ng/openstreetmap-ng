@@ -16,17 +16,15 @@ async def test_element_crud(client: AsyncClient):
     # create changeset
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'changeset': {
-                        'tag': [
-                            {'@k': 'created_by', '@v': test_element_crud.__name__},
-                        ]
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'created_by', '@v': test_element_crud.__name__},
+                    ]
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     changeset_id = int(r.text)
@@ -41,22 +39,20 @@ async def test_element_crud(client: AsyncClient):
     # create node
     r = await client.put(
         '/api/0.6/node/create',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'node': {
-                        '@changeset': changeset_id,
-                        '@lon': 1,
-                        '@lat': 2,
-                        'tag': [
-                            {'@k': 'created_by', '@v': test_element_crud.__name__},
-                            {'@k': 'update_me', '@v': 'update_me'},
-                            {'@k': 'remove_me', '@v': 'remove_me'},
-                        ],
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'node': {
+                    '@changeset': changeset_id,
+                    '@lon': 1,
+                    '@lat': 2,
+                    'tag': [
+                        {'@k': 'created_by', '@v': test_element_crud.__name__},
+                        {'@k': 'update_me', '@v': 'update_me'},
+                        {'@k': 'remove_me', '@v': 'remove_me'},
+                    ],
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     node_id = int(r.text)
@@ -100,22 +96,20 @@ async def test_element_crud(client: AsyncClient):
     # update node
     r = await client.put(
         f'/api/0.6/node/{node_id}',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'node': {
-                        '@changeset': changeset_id,
-                        '@version': 1,
-                        '@lon': 3,
-                        '@lat': 4,
-                        'tag': [
-                            {'@k': 'created_by', '@v': test_element_crud.__name__},
-                            {'@k': 'update_me', '@v': 'updated'},
-                        ],
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'node': {
+                    '@changeset': changeset_id,
+                    '@version': 1,
+                    '@lon': 3,
+                    '@lat': 4,
+                    'tag': [
+                        {'@k': 'created_by', '@v': test_element_crud.__name__},
+                        {'@k': 'update_me', '@v': 'updated'},
+                    ],
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     version = int(r.text)
@@ -163,21 +157,19 @@ async def test_element_crud(client: AsyncClient):
     r = await client.request(
         'DELETE',
         f'/api/0.6/node/{node_id}',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'node': {
-                        '@changeset': changeset_id,
-                        '@version': 2,
-                        '@lon': 5,
-                        '@lat': 6,
-                        'tag': [
-                            {'@k': 'created_by', '@v': test_element_crud.__name__},
-                        ],
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'node': {
+                    '@changeset': changeset_id,
+                    '@version': 2,
+                    '@lon': 5,
+                    '@lat': 6,
+                    'tag': [
+                        {'@k': 'created_by', '@v': test_element_crud.__name__},
+                    ],
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     version = int(r.text)
@@ -223,17 +215,15 @@ async def test_element_create_many_post(client: AsyncClient):
     # create changeset
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'changeset': {
-                        'tag': [
-                            {'@k': 'created_by', '@v': test_element_create_many_post.__name__},
-                        ]
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'created_by', '@v': test_element_create_many_post.__name__},
+                    ]
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     changeset_id = int(r.text)
@@ -248,32 +238,30 @@ async def test_element_create_many_post(client: AsyncClient):
     # create node
     r = await client.post(
         '/api/0.6/nodes',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'node': (
-                        {
-                            '@changeset': changeset_id,
-                            '@lon': 1,
-                            '@lat': 2,
-                            'tag': [
-                                {'@k': 'created_by', '@v': test_element_create_many_post.__name__},
-                                {'@k': 'id', '@v': '1'},
-                            ],
-                        },
-                        {
-                            '@changeset': changeset_id,
-                            '@lon': 2,
-                            '@lat': 3,
-                            'tag': [
-                                {'@k': 'created_by', '@v': test_element_create_many_post.__name__},
-                                {'@k': 'id', '@v': '2'},
-                            ],
-                        },
-                    )
-                }
+        content=XMLToDict.unparse({
+            'osm': {
+                'node': (
+                    {
+                        '@changeset': changeset_id,
+                        '@lon': 1,
+                        '@lat': 2,
+                        'tag': [
+                            {'@k': 'created_by', '@v': test_element_create_many_post.__name__},
+                            {'@k': 'id', '@v': '1'},
+                        ],
+                    },
+                    {
+                        '@changeset': changeset_id,
+                        '@lon': 2,
+                        '@lat': 3,
+                        'tag': [
+                            {'@k': 'created_by', '@v': test_element_create_many_post.__name__},
+                            {'@k': 'id', '@v': '2'},
+                        ],
+                    },
+                )
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
     node_id = int(r.text)

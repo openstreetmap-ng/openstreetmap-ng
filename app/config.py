@@ -148,50 +148,48 @@ PYDANTIC_CONFIG = ConfigDict(
 
 
 # Logging configuration
-dictConfig(
-    {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'default': {
-                '()': 'uvicorn.logging.DefaultFormatter',
-                'fmt': '%(levelprefix)s | %(asctime)s | %(name)s %(message)s',
-                'datefmt': '%Y-%m-%d %H:%M:%S',
-            },
+dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            '()': 'uvicorn.logging.DefaultFormatter',
+            'fmt': '%(levelprefix)s | %(asctime)s | %(name)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
         },
-        'handlers': {
-            'default': {
-                'formatter': 'default',
-                'class': 'logging.StreamHandler',
-                'stream': 'ext://sys.stderr',
-            },
+    },
+    'handlers': {
+        'default': {
+            'formatter': 'default',
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stderr',
         },
-        'loggers': {
-            'root': {'handlers': ['default'], 'level': LOG_LEVEL},
-            **{
-                # reduce logging verbosity of some modules
-                module: {'handlers': [], 'level': 'INFO'}
-                for module in (
-                    'hpack',
-                    'httpx',
-                    'httpcore',
-                    'markdown_it',
-                    'multipart',
-                    'python_multipart',
-                )
-            },
-            **{
-                # conditional database logging
-                module: {'handlers': [], 'level': 'INFO'}
-                for module in (
-                    'sqlalchemy.engine',
-                    'sqlalchemy.pool',
-                )
-                if POSTGRES_LOG
-            },
+    },
+    'loggers': {
+        'root': {'handlers': ['default'], 'level': LOG_LEVEL},
+        **{
+            # reduce logging verbosity of some modules
+            module: {'handlers': [], 'level': 'INFO'}
+            for module in (
+                'hpack',
+                'httpx',
+                'httpcore',
+                'markdown_it',
+                'multipart',
+                'python_multipart',
+            )
         },
-    }
-)
+        **{
+            # conditional database logging
+            module: {'handlers': [], 'level': 'INFO'}
+            for module in (
+                'sqlalchemy.engine',
+                'sqlalchemy.pool',
+            )
+            if POSTGRES_LOG
+        },
+    },
+})
 
 # Sentry configuration
 if SENTRY_DSN := (getenv('SENTRY_DSN') if ('pytest' not in sys.modules) else None):

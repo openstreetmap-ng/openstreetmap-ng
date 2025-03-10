@@ -74,34 +74,30 @@ _FREQUENCY_MERGE_EVERY: dict[_Frequency, int] = {
     'day': 7,
 }
 
-_PARQUET_SCHEMA = pa.schema(
-    [
-        pa.field('sequence_id', pa.uint64()),
-        pa.field('changeset_id', pa.uint64()),
-        pa.field('type', pa.string()),
-        pa.field('id', pa.uint64()),
-        pa.field('version', pa.uint64()),
-        pa.field('visible', pa.bool_()),
-        pa.field('tags', pa.string()),
-        pa.field('point', pa.string()),
-        pa.field(
-            'members',
-            pa.list_(
-                pa.struct(
-                    [
-                        pa.field('order', pa.uint16()),
-                        pa.field('type', pa.string()),
-                        pa.field('id', pa.uint64()),
-                        pa.field('role', pa.string()),
-                    ]
-                )
-            ),
+_PARQUET_SCHEMA = pa.schema([
+    pa.field('sequence_id', pa.uint64()),
+    pa.field('changeset_id', pa.uint64()),
+    pa.field('type', pa.string()),
+    pa.field('id', pa.uint64()),
+    pa.field('version', pa.uint64()),
+    pa.field('visible', pa.bool_()),
+    pa.field('tags', pa.string()),
+    pa.field('point', pa.string()),
+    pa.field(
+        'members',
+        pa.list_(
+            pa.struct([
+                pa.field('order', pa.uint16()),
+                pa.field('type', pa.string()),
+                pa.field('id', pa.uint64()),
+                pa.field('role', pa.string()),
+            ])
         ),
-        pa.field('created_at', pa.timestamp('ms', 'UTC')),
-        pa.field('user_id', pa.uint64()),
-        pa.field('display_name', pa.string()),
-    ]
-)
+    ),
+    pa.field('created_at', pa.timestamp('ms', 'UTC')),
+    pa.field('user_id', pa.uint64()),
+    pa.field('display_name', pa.string()),
+])
 
 _APP_STATE_PATH = REPLICATION_DIR / 'state.json'
 
@@ -249,22 +245,20 @@ def _parse_actions(
                 raise NotImplementedError(f'Unsupported element type {element_type!r}')
 
             last_sequence_id += 1
-            data.append(
-                {
-                    'sequence_id': last_sequence_id,
-                    'changeset_id': element['@changeset'],
-                    'type': element_type,
-                    'id': element['@id'],
-                    'version': element['@version'],
-                    'visible': (tags is not None) or (point is not None) or bool(members),
-                    'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
-                    'point': point,
-                    'members': members,
-                    'created_at': element['@timestamp'],
-                    'user_id': element.get('@uid'),
-                    'display_name': element.get('@user'),
-                }
-            )
+            data.append({
+                'sequence_id': last_sequence_id,
+                'changeset_id': element['@changeset'],
+                'type': element_type,
+                'id': element['@id'],
+                'version': element['@version'],
+                'visible': (tags is not None) or (point is not None) or bool(members),
+                'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
+                'point': point,
+                'members': members,
+                'created_at': element['@timestamp'],
+                'user_id': element.get('@uid'),
+                'display_name': element.get('@user'),
+            })
 
         if len(data) >= 1024 * 1024:  # batch size
             flush()
