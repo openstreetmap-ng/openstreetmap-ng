@@ -189,7 +189,6 @@ async def _apply_migrations(conn: AsyncConnection, migrations: list[tuple[Versio
                 """,
                 (str(version), hash),
             )
-            await conn.commit()
 
             logging.debug('Successfully applied migration %s', version)
 
