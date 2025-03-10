@@ -78,10 +78,6 @@ async def get_where_is_this(
     )
 
 
-class ElementMemberQuery:
-    pass
-
-
 async def _get_response(
     *,
     at_sequence_id: SequenceId | None,

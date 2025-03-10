@@ -1,7 +1,7 @@
 from asyncio import TaskGroup
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Form, Path, Query, Response
+from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
 
 from app.format import FormatLeaflet
@@ -23,7 +23,7 @@ router = APIRouter(prefix='/api/web/changeset')
 
 @router.post('/{changeset_id:int}/comment')
 async def create_comment(
-    changeset_id: Annotated[ChangesetId, Path(gt=0)],
+    changeset_id: ChangesetId,
     comment: Annotated[str, Form(min_length=1, max_length=CHANGESET_COMMENT_BODY_MAX_LENGTH)],
     _: Annotated[User, web_user()],
 ):
@@ -66,7 +66,7 @@ async def get_map(
 
 @router.get('/{changeset_id:int}/comments')
 async def comments_page(
-    changeset_id: Annotated[ChangesetId, Path(gt=0)],
+    changeset_id: ChangesetId,
     page: Annotated[PositiveInt, Query()],
     num_items: Annotated[PositiveInt, Query()],
 ):

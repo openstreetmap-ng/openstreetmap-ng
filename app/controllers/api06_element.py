@@ -152,10 +152,10 @@ async def get_many(
 async def get_latest(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
     elements = await ElementQuery.get_by_refs([typed_id], limit=1)
-    if not elements:
+    element = next(iter(elements), None)
+    if element is None:
         raise_for.element_not_found(typed_id)
 
-    element = elements[0]
     if not element['visible']:
         return Response(None, status.HTTP_410_GONE)
 
@@ -192,15 +192,11 @@ async def get_history(type: ElementType, id: ElementId):
 async def get_full(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.get_by_refs(
-        [typed_id],
-        at_sequence_id=at_sequence_id,
-        limit=1,
-    )
-    if not elements:
+    elements = await ElementQuery.get_by_refs([typed_id], at_sequence_id=at_sequence_id, limit=1)
+    element = next(iter(elements), None)
+    if element is None:
         raise_for.element_not_found(typed_id)
 
-    element = elements[0]
     if not element['visible']:
         return Response(None, status.HTTP_410_GONE)
 

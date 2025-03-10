@@ -12,7 +12,6 @@ from app.limits import (
     DIARY_BODY_MAX_LENGTH,
     DIARY_LIST_PAGE_SIZE,
     DIARY_TITLE_MAX_LENGTH,
-    LOCALE_CODE_MAX_LENGTH,
 )
 from app.models.db.diary import DiaryId, diaries_resolve_rich_text
 from app.models.db.user import User, UserDisplay
@@ -48,7 +47,7 @@ async def index(
 
 @router.get('/diary/{language:str}')
 async def language_index(
-    language: Annotated[LocaleCode, Path(min_length=1, max_length=LOCALE_CODE_MAX_LENGTH)],
+    language: Annotated[LocaleCode, Path(min_length=1)],
     after: Annotated[DiaryId | None, Query()] = None,
     before: Annotated[DiaryId | None, Query()] = None,
 ):

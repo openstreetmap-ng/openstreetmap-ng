@@ -10,8 +10,8 @@ from app.lib.search import Search
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.db.element import SequenceId
-from app.models.geometry import Latitude, Longitude
 from app.models.proto.shared_pb2 import RoutingResult, SharedBounds
+from app.models.types import Latitude, Longitude
 from app.queries.element_query import ElementQuery
 from app.queries.graphhopper_query import GraphHopperProfiles, GraphHopperQuery
 from app.queries.nominatim_query import NominatimQuery
@@ -58,11 +58,13 @@ async def route(
         result.MergeFrom(RoutingResult(start=start_endpoint))
     if end_endpoint is not None:
         result.MergeFrom(RoutingResult(end=end_endpoint))
+
     return Response(result.SerializeToString(), media_type='application/x-protobuf')
 
 
 async def _resolve_names(bbox: str, start: str, start_loaded: str, end: str, end_loaded: str):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
+
     async with TaskGroup() as tg:
         from_task = (
             tg.create_task(_resolve_name('start', start, bbox, at_sequence_id))
@@ -74,6 +76,7 @@ async def _resolve_names(bbox: str, start: str, start_loaded: str, end: str, end
             if (end != end_loaded)  #
             else None
         )
+
     resolve_from = from_task.result() if (from_task is not None) else None
     resolve_to = to_task.result() if (to_task is not None) else None
     return resolve_from, resolve_to
@@ -110,10 +113,10 @@ async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: Seque
     task_results = [task.result() for task in tasks]
     task_index = Search.best_results_index(task_results)
     results = task_results[task_index]
-    if not results:
+    result = next(iter(results), None)
+    if result is None:
         StandardFeedback.raise_error(field, t('javascripts.directions.errors.no_place', place=query))
 
-    result = results[0]
     x, y = get_coordinates(result.point)[0].tolist()
     return RoutingResult.Endpoint(
         name=result.display_name,

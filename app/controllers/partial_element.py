@@ -30,18 +30,14 @@ router = APIRouter(prefix='/api/partial')
 async def get_latest(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.get_by_refs(
-        [typed_id],
-        at_sequence_id=at_sequence_id,
-        limit=1,
-    )
-    if not elements:
+    elements = await ElementQuery.get_by_refs([typed_id], at_sequence_id=at_sequence_id, limit=1)
+    element = next(iter(elements), None)
+    if element is None:
         return await render_response(
             'partial/not_found.jinja2',
             {'type': type, 'id': id},
             status=status.HTTP_404_NOT_FOUND,
         )
-    element = elements[0]
 
     # if the element was superseded (very small chance), get data just before
     last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
@@ -56,19 +52,15 @@ async def get_latest(type: ElementType, id: ElementId):
 async def get_version(type: ElementType, id: ElementId, version: int):
     versioned_typed_id = (typed_element_id(type, id), version)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.get_by_versioned_refs(
-        [versioned_typed_id],
-        at_sequence_id=at_sequence_id,
-        limit=1,
-    )
-    if not elements:
+    elements = await ElementQuery.get_by_versioned_refs([versioned_typed_id], at_sequence_id=at_sequence_id, limit=1)
+    element = next(iter(elements), None)
+    if element is None:
         id_text = f'{id} {t("browse.version").lower()} {version}'
         return await render_response(
             'partial/not_found.jinja2',
             {'type': type, 'id': id_text},
             status=status.HTTP_404_NOT_FOUND,
         )
-    element = elements[0]
 
     # if the element was superseded, get data just before
     last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)

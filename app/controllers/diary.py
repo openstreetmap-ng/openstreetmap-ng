@@ -46,7 +46,6 @@ async def details(diary_id: DiaryId):
             )
         diary = diaries[0]
 
-    is_subscribed = is_subscribed_t.result()
     diary_comments_num_items = diary['num_comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     diary_comments_num_pages = ceil(diary_comments_num_items / DIARY_COMMENTS_PAGE_SIZE)
 
@@ -55,7 +54,7 @@ async def details(diary_id: DiaryId):
         {
             **data,
             'diary': diary,
-            'is_subscribed': is_subscribed,
+            'is_subscribed': is_subscribed_t.result(),
             'diary_comments_num_items': diary_comments_num_items,
             'diary_comments_num_pages': diary_comments_num_pages,
             'DIARY_COMMENT_BODY_MAX_LENGTH': DIARY_COMMENT_BODY_MAX_LENGTH,

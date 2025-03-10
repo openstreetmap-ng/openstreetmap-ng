@@ -11,7 +11,7 @@ from starlette.responses import RedirectResponse
 from app.lib.auth_context import auth_user, web_user
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.limits import TRACE_TAG_MAX_LENGTH, TRACES_LIST_PAGE_SIZE
+from app.limits import TRACES_LIST_PAGE_SIZE
 from app.models.db.trace import Trace
 from app.models.db.user import User
 from app.models.types import DisplayName
@@ -118,7 +118,7 @@ async def index(
 
 @router.get('/traces/tag/{tag:str}')
 async def tagged(
-    tag: Annotated[str, Path(min_length=1, max_length=TRACE_TAG_MAX_LENGTH)],
+    tag: Annotated[str, Path(min_length=1)],
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
@@ -140,7 +140,7 @@ async def personal(
 @router.get('/user/{display_name:str}/traces/tag/{tag:str}')
 async def personal_tagged(
     display_name: Annotated[DisplayName, Path(min_length=1)],
-    tag: Annotated[str, Path(min_length=1, max_length=TRACE_TAG_MAX_LENGTH)],
+    tag: Annotated[str, Path(min_length=1)],
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
