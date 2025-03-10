@@ -1,13 +1,11 @@
 from asyncio import TaskGroup
 from typing import Annotated
 
+import cython
 from fastapi import APIRouter, Path, Query
-from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import auth_user
 from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, LOCALES_NAMES_MAP, normalize_locale
-from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale
 from app.limits import (
@@ -16,120 +14,14 @@ from app.limits import (
     DIARY_TITLE_MAX_LENGTH,
     LOCALE_CODE_MAX_LENGTH,
 )
-from app.models.db.diary import Diary
-from app.models.db.user import User
+from app.models.db.diary import DiaryId, diaries_resolve_rich_text
+from app.models.db.user import User, UserDisplay
 from app.models.types import DisplayName, LocaleCode
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery
 
 router = APIRouter()
-
-
-async def get_diaries_data(
-    *,
-    user: User | None,
-    language: LocaleCode | None,
-    after: int | None,
-    before: int | None,
-    user_from_diary: bool = False,
-    with_navigation: bool = True,
-) -> dict:
-    primary_locale = primary_translation_locale()
-    primary_locale_name = INSTALLED_LOCALES_NAMES_MAP[primary_locale].native
-    user_id = user.id if (user is not None) else None
-    language = normalize_locale(language) if (language is not None) else None
-    if language is not None:
-        locale_name = LOCALES_NAMES_MAP[language]
-        language_name = locale_name.native if (language == primary_locale) else locale_name.english
-    else:
-        language_name = None
-
-    with options_context(
-        joinedload(Diary.user).load_only(
-            User.id,
-            User.display_name,
-            User.avatar_type,
-            User.avatar_id,
-        )
-    ):
-        diaries = await DiaryQuery.find_many_recent(
-            user_id=user_id,
-            language=language,
-            after=after,
-            before=before,
-            limit=DIARY_LIST_PAGE_SIZE,
-        )
-
-    async def new_after_task():
-        after = diaries[0].id
-        after_diaries = await DiaryQuery.find_many_recent(
-            user_id=user_id,
-            language=language,
-            after=after,
-            limit=1,
-        )
-        return after if after_diaries else None
-
-    async def new_before_task():
-        before = diaries[-1].id
-        before_diaries = await DiaryQuery.find_many_recent(
-            user_id=user_id,
-            language=language,
-            before=before,
-            limit=1,
-        )
-        return before if before_diaries else None
-
-    new_after_t = None
-    new_before_t = None
-    if diaries:
-        if user_from_diary:
-            user = diaries[0].user
-            user_id = user.id
-
-        async with TaskGroup() as tg:
-            tg.create_task(DiaryQuery.resolve_location_name(diaries))
-            tg.create_task(DiaryCommentQuery.resolve_num_comments(diaries))
-            for diary in diaries:
-                tg.create_task(diary.resolve_rich_text())
-            if with_navigation:
-                new_after_t = tg.create_task(new_after_task())
-                new_before_t = tg.create_task(new_before_task())
-    new_after = new_after_t.result() if (new_after_t is not None) else None
-    new_before = new_before_t.result() if (new_before_t is not None) else None
-
-    base_url = f'/user/{user.display_name}/diary' if (user is not None) else '/diary'
-    if language is not None:
-        base_url += f'/{language}'
-
-    if language is not None:
-        if language == primary_locale:
-            active_tab = 1  # viewing own language diaries
-        else:
-            active_tab = 2  # viewing other language diaries
-    elif user is not None:
-        current_user = auth_user()
-        if (current_user is not None) and user.id == current_user.id:
-            active_tab = 3  # viewing own diaries
-        else:
-            active_tab = 4  # viewing other user's diaries
-    else:
-        active_tab = 0  # viewing all diaries
-
-    return {
-        'profile': user,
-        'active_tab': active_tab,
-        'primary_locale': primary_locale,
-        'primary_locale_name': primary_locale_name,
-        'base_url': base_url,
-        'language': language,
-        'language_name': language_name,
-        'new_after': new_after,
-        'new_before': new_before,
-        'diaries': diaries,
-        'LOCALES_NAMES_MAP': LOCALES_NAMES_MAP,
-    }
 
 
 @router.get('/diary/new')
@@ -147,8 +39,8 @@ async def new():
 
 @router.get('/diary')
 async def index(
-    after: Annotated[PositiveInt | None, Query()] = None,
-    before: Annotated[PositiveInt | None, Query()] = None,
+    after: Annotated[DiaryId | None, Query()] = None,
+    before: Annotated[DiaryId | None, Query()] = None,
 ):
     data = await get_diaries_data(user=None, language=None, after=after, before=before)
     return await render_response('diaries/index.jinja2', data)
@@ -157,8 +49,8 @@ async def index(
 @router.get('/diary/{language:str}')
 async def language_index(
     language: Annotated[LocaleCode, Path(min_length=1, max_length=LOCALE_CODE_MAX_LENGTH)],
-    after: Annotated[PositiveInt | None, Query()] = None,
-    before: Annotated[PositiveInt | None, Query()] = None,
+    after: Annotated[DiaryId | None, Query()] = None,
+    before: Annotated[DiaryId | None, Query()] = None,
 ):
     data = await get_diaries_data(user=None, language=language, after=after, before=before)
     return await render_response('diaries/index.jinja2', data)
@@ -167,9 +59,116 @@ async def language_index(
 @router.get('/user/{display_name:str}/diary')
 async def personal_index(
     display_name: Annotated[DisplayName, Path(min_length=1)],
-    after: Annotated[PositiveInt | None, Query()] = None,
-    before: Annotated[PositiveInt | None, Query()] = None,
+    after: Annotated[DiaryId | None, Query()] = None,
+    before: Annotated[DiaryId | None, Query()] = None,
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
     data = await get_diaries_data(user=user, language=None, after=after, before=before)
     return await render_response('diaries/index.jinja2', data)
+
+
+async def get_diaries_data(
+    *,
+    user: User | UserDisplay | None,
+    language: LocaleCode | None,
+    after: DiaryId | None,
+    before: DiaryId | None,
+    user_from_diary: bool = False,
+    with_navigation: bool = True,  # If True, will resolve new_after/new_before fields
+) -> dict:
+    user_id = user['id'] if user is not None else None
+    primary_locale = primary_translation_locale()
+    primary_locale_name = INSTALLED_LOCALES_NAMES_MAP[primary_locale].native
+
+    language = normalize_locale(language)
+    if language is not None:
+        locale_name = LOCALES_NAMES_MAP[language]
+        language_name = locale_name.native if (language == primary_locale) else locale_name.english
+    else:
+        language_name = None
+
+    diaries = await DiaryQuery.find_many_recent(
+        user_id=user_id,
+        language=language,
+        after=after,
+        before=before,
+        limit=DIARY_LIST_PAGE_SIZE,
+    )
+
+    async def new_after_task():
+        after = diaries[0]['id']
+        after_diaries = await DiaryQuery.find_many_recent(
+            user_id=user_id,
+            language=language,
+            after=after,
+            limit=1,
+        )
+        return after if after_diaries else None
+
+    async def new_before_task():
+        before = diaries[-1]['id']
+        before_diaries = await DiaryQuery.find_many_recent(
+            user_id=user_id,
+            language=language,
+            before=before,
+            limit=1,
+        )
+        return before if before_diaries else None
+
+    new_after_t = None
+    new_before_t = None
+
+    if diaries:
+        async with TaskGroup() as tg:
+            tg.create_task(UserQuery.resolve_users(diaries))
+            tg.create_task(diaries_resolve_rich_text(diaries))
+            tg.create_task(DiaryQuery.resolve_location_name(diaries))
+            tg.create_task(DiaryCommentQuery.resolve_num_comments(diaries))
+
+            if with_navigation:
+                new_after_t = tg.create_task(new_after_task())
+                new_before_t = tg.create_task(new_before_task())
+
+        if user_from_diary:
+            user = diaries[0]['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+            user_id = user['id']
+
+    new_after = new_after_t.result() if new_after_t is not None else None
+    new_before = new_before_t.result() if new_before_t is not None else None
+
+    base_url = f'/user/{user["display_name"]}/diary' if user is not None else '/diary'
+    if language is not None:
+        base_url += f'/{language}'
+
+    active_tab = _get_active_tab(user, language, primary_locale)
+
+    return {
+        'profile': user,
+        'active_tab': active_tab,
+        'primary_locale': primary_locale,
+        'primary_locale_name': primary_locale_name,
+        'base_url': base_url,
+        'language': language,
+        'language_name': language_name,
+        'new_after': new_after,
+        'new_before': new_before,
+        'diaries': diaries,
+        'LOCALES_NAMES_MAP': LOCALES_NAMES_MAP,
+    }
+
+
+@cython.cfunc
+def _get_active_tab(user: User | UserDisplay | None, language: LocaleCode | None, primary_locale: LocaleCode) -> int:
+    """Get the active tab number for the diaries page."""
+    if language is not None:
+        if language == primary_locale:
+            return 1  # viewing own language diaries
+        return 2  # viewing other language diaries
+
+    if user is not None:
+        current_user = auth_user()
+        if current_user is not None and user['id'] == current_user['id']:
+            return 3  # viewing own diaries
+        return 4  # viewing other user's diaries
+
+    return 0  # viewing all diaries

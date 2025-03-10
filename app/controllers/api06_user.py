@@ -2,7 +2,6 @@ from typing import Annotated
 
 import numpy as np
 from fastapi import APIRouter, Query, Response, status
-from pydantic import PositiveInt
 
 from app.format import Format06
 from app.lib.auth_context import api_user
@@ -26,10 +25,9 @@ async def get_current_user(
 @router.get('/user/{user_id:int}.xml')
 @router.get('/user/{user_id:int}.json')
 async def get_user(
-    user_id: PositiveInt,
+    user_id: UserId,
 ):
     user = await UserQuery.find_one_by_id(user_id)
-
     if user is None:
         raise_for.user_not_found(user_id)
     if False:  # TODO: if user deleted

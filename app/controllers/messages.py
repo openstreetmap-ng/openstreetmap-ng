@@ -3,7 +3,6 @@ from typing import Annotated
 
 import cython
 from fastapi import APIRouter, Query
-from pydantic import PositiveInt
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -29,68 +28,6 @@ from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
 
 router = APIRouter()
-
-
-async def _get_messages_data(
-    inbox: bool,
-    show: MessageId | None,
-    after: MessageId | None,
-    before: MessageId | None,
-) -> dict:
-    if (show is not None) and (after is None) and (before is None):
-        before = show + 1  # type: ignore
-
-    messages = await MessageQuery.get_messages(
-        inbox=inbox,
-        after=after,
-        before=before,
-        limit=MESSAGES_INBOX_PAGE_SIZE,
-    )
-
-    async def new_after_task():
-        after = messages[0]['id']
-        after_messages = await MessageQuery.get_messages(
-            inbox=inbox,
-            after=after,
-            limit=1,
-        )
-        return after if after_messages else None
-
-    async def new_before_task():
-        before = messages[-1]['id']
-        before_messages = await MessageQuery.get_messages(
-            inbox=inbox,
-            before=before,
-            limit=1,
-        )
-        return before if before_messages else None
-
-    async with TaskGroup() as tg:
-        if inbox:
-            user_id_key = 'from_user_id'
-            user_key = 'from_user'
-        else:
-            user_id_key = 'to_user_id'
-            user_key = 'to_user'
-        tg.create_task(UserQuery.resolve_users(messages, user_id_key=user_id_key, user_key=user_key))
-
-        if messages:
-            new_after_t = tg.create_task(new_after_task())
-            new_before_t = tg.create_task(new_before_task())
-            new_after, new_before = await new_after_t, await new_before_t
-            current_before = messages[0]['id'] + 1
-        else:
-            new_after, new_before = None, None
-            current_before = None
-
-    return {
-        'inbox': inbox,
-        'new_after': new_after,
-        'new_before': new_before,
-        'current_before': current_before,
-        'messages': messages,
-        'active_message_id': show,
-    }
 
 
 @router.get('/messages/inbox')
@@ -208,10 +145,72 @@ async def legacy_message_to(display_name: DisplayName):
 
 
 @router.get('/messages/{message_id:int}')
-async def legacy_message(message_id: PositiveInt):
+async def legacy_message(message_id: MessageId):
     return RedirectResponse(f'/messages/inbox?show={message_id}', status.HTTP_302_FOUND)
 
 
 @router.get('/messages/{message_id:int}/reply')
-async def legacy_message_reply(message_id: PositiveInt):
+async def legacy_message_reply(message_id: MessageId):
     return RedirectResponse(f'/message/new?reply={message_id}', status.HTTP_302_FOUND)
+
+
+async def _get_messages_data(
+    inbox: bool,
+    show: MessageId | None,
+    after: MessageId | None,
+    before: MessageId | None,
+) -> dict:
+    if (show is not None) and (after is None) and (before is None):
+        before = show + 1  # type: ignore
+
+    messages = await MessageQuery.get_messages(
+        inbox=inbox,
+        after=after,
+        before=before,
+        limit=MESSAGES_INBOX_PAGE_SIZE,
+    )
+
+    async def new_after_task():
+        after = messages[0]['id']
+        after_messages = await MessageQuery.get_messages(
+            inbox=inbox,
+            after=after,
+            limit=1,
+        )
+        return after if after_messages else None
+
+    async def new_before_task():
+        before = messages[-1]['id']
+        before_messages = await MessageQuery.get_messages(
+            inbox=inbox,
+            before=before,
+            limit=1,
+        )
+        return before if before_messages else None
+
+    async with TaskGroup() as tg:
+        if inbox:
+            user_id_key = 'from_user_id'
+            user_key = 'from_user'
+        else:
+            user_id_key = 'to_user_id'
+            user_key = 'to_user'
+        tg.create_task(UserQuery.resolve_users(messages, user_id_key=user_id_key, user_key=user_key))
+
+        if messages:
+            new_after_t = tg.create_task(new_after_task())
+            new_before_t = tg.create_task(new_before_task())
+            new_after, new_before = await new_after_t, await new_before_t
+            current_before = messages[0]['id'] + 1
+        else:
+            new_after, new_before = None, None
+            current_before = None
+
+    return {
+        'inbox': inbox,
+        'new_after': new_after,
+        'new_before': new_before,
+        'current_before': current_before,
+        'messages': messages,
+        'active_message_id': show,
+    }

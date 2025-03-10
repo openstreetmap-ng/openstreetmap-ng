@@ -1,31 +1,29 @@
+from asyncio import TaskGroup
 from base64 import b64decode
 from typing import Annotated, get_args
 
 from fastapi import APIRouter, Form, Header, Query, Request, Response
 from pydantic import SecretStr
-from sqlalchemy.orm import joinedload
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import APP_URL, TEST_ENV
 from app.lib.auth_context import api_user, web_user
 from app.lib.exceptions_context import raise_for
-from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.limits import OAUTH_APP_URI_MAX_LENGTH, OAUTH_CODE_CHALLENGE_MAX_LENGTH
-from app.models.db.oauth2_application import OAuth2Application
+from app.limits import OAUTH_CODE_CHALLENGE_MAX_LENGTH
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,
     OAuth2GrantType,
     OAuth2ResponseMode,
     OAuth2ResponseType,
-    OAuth2Token,
     OAuth2TokenEndpointAuthMethod,
     OAuth2TokenOOB,
 )
-from app.models.db.user import User
+from app.models.db.user import User, user_avatar_url
 from app.models.scope import PUBLIC_SCOPES, scope_from_str
 from app.models.types import ClientId, Uri
+from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.openid_query import OpenIDDiscovery
 from app.queries.user_query import UserQuery
@@ -34,11 +32,12 @@ from app.utils import extend_query_params
 
 router = APIRouter()
 
-_RESPONSE_TYPES_SUPPORTED = get_args(OAuth2ResponseType)
-_RESPONSE_MODES_SUPPORTED = get_args(OAuth2ResponseMode)
-_GRANT_TYPES_SUPPORTED = get_args(OAuth2GrantType)
-_CODE_CHALLENGE_METHODS_SUPPORTED = get_args(OAuth2CodeChallengeMethod)
-_TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED = get_args(OAuth2TokenEndpointAuthMethod)
+_SCOPES_SUPPORTED: list[str] = list(PUBLIC_SCOPES)
+_RESPONSE_TYPES_SUPPORTED = list(get_args(OAuth2ResponseType))
+_RESPONSE_MODES_SUPPORTED = list(get_args(OAuth2ResponseMode))
+_GRANT_TYPES_SUPPORTED = list(get_args(OAuth2GrantType))
+_CODE_CHALLENGE_METHODS_SUPPORTED = list(get_args(OAuth2CodeChallengeMethod))
+_TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED = list(get_args(OAuth2TokenEndpointAuthMethod))
 
 
 @router.get('/.well-known/openid-configuration')
@@ -51,7 +50,7 @@ async def openid_configuration() -> OpenIDDiscovery:
         'introspection_endpoint': f'{APP_URL}/oauth2/introspect',
         'userinfo_endpoint': f'{APP_URL}/oauth2/userinfo',
         'jwks_uri': f'{APP_URL}/oauth2/discovery/keys',  # TODO:
-        'scopes_supported': PUBLIC_SCOPES,
+        'scopes_supported': _SCOPES_SUPPORTED,
         'response_types_supported': _RESPONSE_TYPES_SUPPORTED,
         'response_modes_supported': _RESPONSE_MODES_SUPPORTED,
         'grant_types_supported': _GRANT_TYPES_SUPPORTED,
@@ -70,7 +69,7 @@ async def authorize(
     request: Request,
     _: Annotated[User, web_user()],
     client_id: Annotated[ClientId, Query(min_length=1)],
-    redirect_uri: Annotated[Uri, Query(min_length=1, max_length=OAUTH_APP_URI_MAX_LENGTH)],
+    redirect_uri: Annotated[Uri, Query(min_length=1)],
     response_type: Annotated[OAuth2ResponseType, Query()],
     response_mode: Annotated[OAuth2ResponseMode, Query()] = 'query',
     scope: Annotated[str, Query()] = '',
@@ -124,22 +123,27 @@ async def authorize(
 
 
 @router.post('/oauth2/token')
-async def token_(
+async def post_token(
     grant_type: Annotated[OAuth2GrantType, Form()],
-    redirect_uri: Annotated[str, Form(min_length=1, max_length=OAUTH_APP_URI_MAX_LENGTH)],
+    redirect_uri: Annotated[Uri, Form(min_length=1)],
     code: Annotated[str, Form(min_length=1)],
     code_verifier: Annotated[str | None, Form(min_length=1, max_length=OAUTH_CODE_CHALLENGE_MAX_LENGTH)] = None,
-    client_id: Annotated[str | None, Form(min_length=1)] = None,
+    client_id: Annotated[ClientId | None, Form(min_length=1)] = None,
     client_secret: Annotated[SecretStr | None, Form(min_length=1)] = None,
     authorization: Annotated[str | None, Header(min_length=1)] = None,
 ):
-    if grant_type != OAuth2GrantType.authorization_code:
+    if grant_type != 'authorization_code':
         raise NotImplementedError(f'Unsupported grant type {grant_type!r}')
+
     if client_id is None and client_secret is None and authorization is not None:
         scheme, _, param = authorization.partition(' ')
         if scheme.casefold() == 'basic':
-            client_id, _, client_secret_ = b64decode(param).decode().partition(':')
+            client_id, _, client_secret_ = b64decode(param).decode().partition(':')  # type: ignore
             client_secret = SecretStr(client_secret_) if client_secret_ else None
+            del client_secret_
+        del param
+    del authorization
+
     if client_id is None:
         raise_for.oauth_bad_client_id()
 
@@ -158,25 +162,31 @@ async def revoke(token: Annotated[SecretStr, Form(min_length=1)]):
     return Response()
 
 
-# generally this endpoint should not be publicly accessible
-# in this case it's fine, since we don't expose any sensitive information
+# Generally this endpoint should not be publicly accessible.
+# In this case it's fine, since we don't expose any sensitive information.
 @router.post('/oauth2/introspect')
 async def introspect(token: Annotated[SecretStr, Form(min_length=1)]):
-    with options_context(
-        joinedload(OAuth2Token.user).load_only(User.display_name),
-        joinedload(OAuth2Token.application).load_only(OAuth2Application.client_id),
-    ):
-        token_ = await OAuth2TokenQuery.find_one_authorized_by_token(token)
+    token_ = await OAuth2TokenQuery.find_one_authorized_by_token(token)
     if token_ is None:
         raise_for.oauth_bad_user_token()
+
+    async with TaskGroup() as tg:
+        token_user_t = tg.create_task(UserQuery.find_one_by_id(token_['user_id']))
+        token_app_t = tg.create_task(OAuth2ApplicationQuery.find_one_by_id(token_['application_id']))
+
+    token_user = token_user_t.result()
+    assert token_user is not None, f'Parent user {token_["user_id"]!r} must exist'
+    token_app = token_app_t.result()
+    assert token_app is not None, f'Parent app {token_["application_id"]!r} must exist'
+
     return {
         'active': True,
         'iss': APP_URL,
-        'iat': int(token_.authorized_at.timestamp()),  # pyright: ignore[reportOptionalMemberAccess]
-        'client_id': token_.application.client_id,
-        'scope': token_.scopes_str,
-        'sub': str(token_.user_id),
-        'name': token_.user.display_name,
+        'iat': int(token_['authorized_at'].timestamp()),  # type: ignore
+        'client_id': token_app['client_id'],
+        'scope': ' '.join(token_['scopes']),
+        'sub': str(token_['user_id']),
+        'name': token_user['display_name'],
     }
 
 
@@ -185,8 +195,8 @@ async def introspect(token: Annotated[SecretStr, Form(min_length=1)]):
 async def userinfo(user: Annotated[User, api_user()]):
     return {
         # TODO: compare fields with osm ruby
-        'sub': str(user.id),
-        'name': user.display_name,
-        'picture': f'{APP_URL}{user.avatar_url}',
-        'locale': user.language,
+        'sub': str(user['id']),
+        'name': user['display_name'],
+        'picture': f'{APP_URL}{user_avatar_url(user)}',
+        'locale': user['language'],
     }

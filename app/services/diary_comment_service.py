@@ -111,7 +111,7 @@ async def _send_activity_email(comment: DiaryComment) -> None:
     comment_user = comment['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     comment_user_id = comment_user['id']
     comment_user_name = comment_user['display_name']
-    ref = f'diary-{diary["id"]}'
+    ref = f'diary-{diary_id}'
 
     async with TaskGroup() as tg:
         for subscribed_user in users:

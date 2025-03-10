@@ -19,18 +19,18 @@ async def edit(
     if editor is None:
         current_user = auth_user()
         if current_user is not None:
-            editor = current_user.editor
+            editor = current_user['editor']
         if editor is None:
             editor = DEFAULT_EDITOR
 
     if editor == 'id':
         return await render_response('edit/id.jinja2', {'ID_URL': ID_URL})
-    elif editor == 'rapid':
+    if editor == 'rapid':
         return await render_response('edit/rapid.jinja2', {'RAPID_URL': RAPID_URL})
-    elif editor == 'remote':
+    if editor == 'remote':
         return await render_response('index.jinja2')
-    else:
-        raise NotImplementedError(f'Unsupported editor {editor!r}')
+
+    raise NotImplementedError(f'Unsupported editor {editor!r}')
 
 
 @router.get('/id')

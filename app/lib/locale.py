@@ -1,7 +1,7 @@
 import logging
 import re
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, overload
 
 import cython
 import orjson
@@ -124,7 +124,11 @@ def is_installed_locale(code: LocaleCode) -> bool:
     return code in INSTALLED_LOCALES_NAMES_MAP
 
 
-def normalize_locale(code: LocaleCode) -> LocaleCode | None:
+@overload
+def normalize_locale(code: None) -> None: ...
+@overload
+def normalize_locale(code: LocaleCode) -> LocaleCode | None: ...
+def normalize_locale(code: LocaleCode | None) -> LocaleCode | None:
     """
     Normalize locale code case.
     Returns None if the locale is not installed.
@@ -136,6 +140,6 @@ def normalize_locale(code: LocaleCode) -> LocaleCode | None:
     """
     return (
         code
-        if code in INSTALLED_LOCALES_NAMES_MAP  #
+        if code is None or code in INSTALLED_LOCALES_NAMES_MAP
         else _INSTALLED_LOCALES_CODES_NORMALIZED_MAP.get(_normalize(code))
     )

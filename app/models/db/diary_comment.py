@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import NewType, NotRequired, TypedDict
 
 from app.lib.rich_text import resolve_rich_text
-from app.models.db.diary import DiaryId
+from app.models.db.diary import Diary, DiaryId
 from app.models.db.user import UserDisplay, UserId
 
 DiaryCommentId = NewType('DiaryCommentId', int)
@@ -22,6 +22,7 @@ class DiaryComment(DiaryCommentInit):
     # runtime
     user: NotRequired[UserDisplay]
     body_rich: NotRequired[str]
+    diary: NotRequired[Diary]
 
 
 async def diary_comments_resolve_rich_text(objs: list[DiaryComment]) -> None:

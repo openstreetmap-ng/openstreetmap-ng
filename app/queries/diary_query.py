@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from collections import defaultdict
 from typing import Any
 
 import cython
@@ -8,6 +9,7 @@ from psycopg.sql import SQL, Composable
 
 from app.db import db2
 from app.models.db.diary import Diary, DiaryId
+from app.models.db.diary_comment import DiaryComment
 from app.models.db.user import UserId
 from app.models.types import LocaleCode
 from app.queries.nominatim_query import NominatimQuery
@@ -17,17 +19,22 @@ class DiaryQuery:
     @staticmethod
     async def find_one_by_id(diary_id: DiaryId) -> Diary | None:
         """Find a diary by id."""
+        diaries = await DiaryQuery.find_many_by_ids([diary_id])
+        return next(iter(diaries), None)
+
+    @staticmethod
+    async def find_many_by_ids(ids: list[DiaryId]) -> list[Diary]:
         async with (
             db2() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM diary
-                WHERE id = %s
+                WHERE id IN %s
                 """,
-                (diary_id,),
+                (ids,),
             ) as r,
         ):
-            return await r.fetchone()  # type: ignore
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def count_by_user_id(user_id: UserId) -> int:
@@ -114,3 +121,18 @@ class DiaryQuery:
             for d in diaries:
                 if d['point'] is not None:
                     tg.create_task(task(d))
+
+    @staticmethod
+    async def resolve_diary(comments: list[DiaryComment]) -> None:
+        """Resolve diary fields for the given comments."""
+        if not comments:
+            return
+
+        id_map: dict[DiaryId, list[DiaryComment]] = defaultdict(list)
+        for comment in comments:
+            id_map[comment['diary_id']].append(comment)
+
+        diaries = await DiaryQuery.find_many_by_ids(list(id_map))
+        for diary in diaries:
+            for comment in id_map[diary['id']]:
+                comment['diary'] = diary

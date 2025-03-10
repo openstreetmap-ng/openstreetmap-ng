@@ -52,12 +52,15 @@ async def communities():
 async def copyright_i18n(locale: LocaleCode):
     if not is_installed_locale(locale):
         return Response(None, status.HTTP_404_NOT_FOUND)
+
     with translation_context(locale):
         title = t('layouts.copyright')
         copyright_translated_title = t('site.copyright.legal_babble.title_html')
         copyright_content = render_jinja('copyright_content.jinja2')
+
     primary_locale = primary_translation_locale()
     show_notice = locale != primary_locale or primary_locale != DEFAULT_LOCALE
+
     return await render_response(
         'copyright.jinja2',
         {
@@ -78,9 +81,11 @@ async def copyright_():
 async def about_i18n(locale: LocaleCode):
     if not is_installed_locale(locale):
         return Response(None, status.HTTP_404_NOT_FOUND)
+
     with translation_context(locale):
         title = t('layouts.about')
         about_content = render_jinja('about_content.jinja2')
+
     return await render_response(
         'about.jinja2',
         {

@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Annotated, Literal
 
 from annotated_types import MinLen
-from fastapi import APIRouter, Path, Query, Request
+from fastapi import APIRouter, Query, Request
 from feedgen.feed import FeedGenerator
 from pydantic import BaseModel, PositiveInt
 
@@ -68,7 +68,7 @@ async def create_note2(body: _CreateNote):
 @router.post('/notes/{note_id:int}/comment.json')
 @router.post('/notes/{note_id:int}/comment.gpx', response_class=GPXResponse)
 async def create_note_comment(
-    note_id: Annotated[NoteId, Path(gt=0)],
+    note_id: NoteId,
     text: Annotated[str, Query(min_length=1)],
     _: Annotated[User, api_user('write_notes')],
 ):
@@ -85,7 +85,7 @@ async def create_note_comment(
 @router.get('/notes/{note_id:int}.gpx', response_class=GPXResponse)
 async def get_note(
     request: Request,
-    note_id: Annotated[NoteId, Path(gt=0)],
+    note_id: NoteId,
 ):
     notes = await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
     if not notes:
@@ -111,7 +111,7 @@ async def get_note(
 @router.post('/notes/{note_id:int}/close.gpx', response_class=GPXResponse)
 async def close_note(
     _: Annotated[User, api_user('write_notes')],
-    note_id: Annotated[NoteId, Path(gt=0)],
+    note_id: NoteId,
     text: Annotated[str, Query()] = '',
 ):
     await NoteService.comment(note_id, text, 'closed')
@@ -126,7 +126,7 @@ async def close_note(
 @router.post('/notes/{note_id:int}/reopen.gpx', response_class=GPXResponse)
 async def reopen_note(
     _: Annotated[User, api_user('write_notes')],
-    note_id: Annotated[NoteId, Path(gt=0)],
+    note_id: NoteId,
     text: Annotated[str, Query()] = '',
 ):
     await NoteService.comment(note_id, text, 'reopened')
@@ -141,7 +141,7 @@ async def reopen_note(
 @router.delete('/notes/{note_id:int}.gpx', response_class=GPXResponse)
 async def hide_note(
     _: Annotated[User, api_user('write_notes', 'role_moderator')],
-    note_id: Annotated[NoteId, Path(gt=0)],
+    note_id: NoteId,
     text: Annotated[str, Query()] = '',
 ):
     await NoteService.comment(note_id, text, 'hidden')

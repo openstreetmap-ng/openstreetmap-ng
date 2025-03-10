@@ -98,7 +98,7 @@ def user_extend_scopes(user: User, scopes: tuple[Scope, ...]) -> tuple[Scope, ..
 
 
 def user_avatar_url(user: User | UserDisplay) -> str:
-    """Get the url for the user's avatar image."""
+    """Get the relative url for the user's avatar image."""
     avatar_type = user['avatar_type']
     if avatar_type is None:
         return DEFAULT_USER_AVATAR_URL

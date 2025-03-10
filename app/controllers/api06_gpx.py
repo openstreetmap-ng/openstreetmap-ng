@@ -2,6 +2,7 @@ from asyncio import TaskGroup
 from typing import Annotated
 
 from fastapi import APIRouter, File, Form, Query, Response, UploadFile
+from pydantic import NonNegativeInt
 
 from app.format import Format06
 from app.format.gpx import FormatGPX
@@ -138,7 +139,7 @@ async def delete_trace(
 @router.get('/trackpoints.gpx', response_class=GPXResponse)
 async def trackpoints(
     bbox: Annotated[str, Query()],
-    page_number: Annotated[int, Query(alias='pageNumber', ge=0)] = 0,
+    page_number: Annotated[NonNegativeInt, Query(alias='pageNumber')] = 0,
 ):
     geometry = parse_bbox(bbox)
     if geometry.area > TRACE_POINT_QUERY_AREA_MAX_SIZE:

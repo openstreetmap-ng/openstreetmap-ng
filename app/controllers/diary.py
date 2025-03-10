@@ -2,7 +2,7 @@ from asyncio import TaskGroup
 from math import ceil
 from typing import Annotated
 
-from fastapi import APIRouter, Path
+from fastapi import APIRouter
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -25,15 +25,15 @@ router = APIRouter()
 
 
 @router.get('/diary/{diary_id:int}')
-async def details(diary_id: Annotated[DiaryId, Path(gt=0)]):
+async def details(diary_id: DiaryId):
     async with TaskGroup() as tg:
         is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed('diary', diary_id))
 
         data = await get_diaries_data(
             user=None,
             language=None,
-            after=diary_id - 1,
-            before=diary_id + 1,
+            after=diary_id - 1,  # type: ignore
+            before=diary_id + 1,  # type: ignore
             user_from_diary=True,
             with_navigation=False,
         )
@@ -44,8 +44,8 @@ async def details(diary_id: Annotated[DiaryId, Path(gt=0)]):
                 {'diary_id': diary_id},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        diary = diaries[0]
 
-    diary = diaries[0]
     is_subscribed = is_subscribed_t.result()
     diary_comments_num_items = diary['num_comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     diary_comments_num_pages = ceil(diary_comments_num_items / DIARY_COMMENTS_PAGE_SIZE)
@@ -66,7 +66,7 @@ async def details(diary_id: Annotated[DiaryId, Path(gt=0)]):
 @router.get('/diary/{diary_id:int}/edit')
 async def edit(
     user: Annotated[User, web_user()],
-    diary_id: Annotated[DiaryId, Path(gt=0)],
+    diary_id: DiaryId,
 ):
     diary = await DiaryQuery.find_one_by_id(diary_id)
     if diary is None or diary['user_id'] != user['id']:
@@ -95,8 +95,5 @@ async def edit(
 
 
 @router.get('/user/{_:str}/diary/{diary_id:int}{suffix:path}')
-async def legacy_user_diary(
-    diary_id: Annotated[DiaryId, Path(gt=0)],
-    suffix: str,
-):
+async def legacy_user_diary(_, diary_id: DiaryId, suffix: str):
     return RedirectResponse(f'/diary/{diary_id}{suffix}', status.HTTP_301_MOVED_PERMANENTLY)
