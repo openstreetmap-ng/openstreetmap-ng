@@ -1,6 +1,5 @@
 import cython
-import numpy as np
-from shapely import Point, lib
+from shapely import Point, get_coordinates
 
 from app.models.db.element import Element
 from app.models.element import TypedElementId, split_typed_element_id, split_typed_element_ids
@@ -72,5 +71,5 @@ def _encode_point(point: Point) -> dict:
     >>> _encode_point(Point(1, 2))
     {'lon': 1, 'lat': 2}
     """
-    x, y = lib.get_coordinates(np.asarray(point, np.object_), False, False)[0].tolist()
+    x, y = get_coordinates(point)[0].tolist()
     return {'lon': x, 'lat': y}

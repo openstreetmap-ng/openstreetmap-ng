@@ -97,13 +97,13 @@ async def main():
     locales = await get_download_locales()
 
     async with TaskGroup() as tg:
-        tasks = tuple(tg.create_task(download_locale(locale)) for locale in locales)
+        tasks = [tg.create_task(download_locale(locale)) for locale in locales]
 
-    locales_names: list[LocaleName] = list(filter(None, (task.result() for task in tasks)))
+    locales_names = [locale for task in tasks if (locale := task.result())]
     add_extra_locales_names(locales_names)
 
     locales_names.sort(key=lambda v: v.code)
-    locales_names_dict = tuple(ln._asdict() for ln in locales_names)
+    locales_names_dict = [ln._asdict() for ln in locales_names]
     buffer = orjson.dumps(
         locales_names_dict, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE
     )

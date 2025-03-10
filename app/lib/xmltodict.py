@@ -80,7 +80,7 @@ def _parse_element(element: tree._Element):
 
     # parse children
     sequence_mark: cython.bint = False
-    if children := tuple(element):
+    if children := list(element):
         # read property once for performance
         force_sequence_root: set[str] = _FORCE_SEQUENCE_ROOT
         force_list: set[str] = _FORCE_LIST

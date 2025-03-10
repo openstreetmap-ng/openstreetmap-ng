@@ -1,6 +1,5 @@
 import sys
 from hashlib import sha256
-from itertools import chain
 from logging.config import dictConfig
 from os import chdir, environ, getenv
 from pathlib import Path
@@ -112,17 +111,17 @@ WIKIMEDIA_OAUTH_PUBLIC = getenv('WIKIMEDIA_OAUTH_PUBLIC')
 WIKIMEDIA_OAUTH_SECRET = getenv('WIKIMEDIA_OAUTH_SECRET')
 
 TRUSTED_HOSTS: frozenset[str] = frozenset(
-    host.casefold()
-    for host in chain(
-        (
+    h.casefold()
+    for host in (
+        *(
             line
-            for line in (line.strip() for line in Path('config/trusted_hosts.txt').read_text().splitlines())
-            if line and not line.startswith('#')
+            for line in Path('config/trusted_hosts.txt').read_text().splitlines()
+            if not line.lstrip().startswith('#')
         ),
-        (urlsplit(url).hostname for _, url in LOCAL_CHAPTERS),
-        getenv('TRUSTED_HOSTS_EXTRA', '').split(),
+        *(urlsplit(url).hostname or '' for _, url in LOCAL_CHAPTERS),
+        *getenv('TRUSTED_HOSTS_EXTRA', '').split(),
     )
-    if host
+    if (h := host.strip())
 )
 
 TEST_USER_EMAIL_SUFFIX = '@test.test'

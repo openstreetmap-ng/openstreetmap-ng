@@ -1,6 +1,7 @@
 import re
 from collections.abc import Callable
 from pathlib import Path
+from typing import overload
 
 import cython
 import orjson
@@ -29,8 +30,15 @@ _WIKI_LANG_RE = re.compile(r'^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?$')
 _WIKI_LANG_VALUE_RE = re.compile(r'^(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?):(?P<text>.+)$')
 
 
-def tags_format(tags: dict[str, str]) -> dict[str, TagFormat]:
+@overload
+def tags_format(tags: None) -> None: ...
+@overload
+def tags_format(tags: dict[str, str]) -> dict[str, TagFormat]: ...
+def tags_format(tags: dict[str, str] | None) -> dict[str, TagFormat] | None:
     """Format tags for displaying on the website (colors, urls, etc.)."""
+    if tags is None:
+        return None
+
     result = dict(sorted((key, TagFormat(key, value)) for key, value in tags.items()))
     result_values = list(result.values())
 

@@ -3,9 +3,8 @@ from base64 import urlsafe_b64encode
 from typing import Annotated
 
 import cython
-import numpy as np
 from fastapi import APIRouter, Query
-from shapely import Point, lib
+from shapely import Point, get_coordinates
 
 from app.format import FormatLeaflet
 from app.lib.render_response import render_response
@@ -90,12 +89,12 @@ async def _get_response(
     results: list[SearchResult],
     where_is_this: bool,
 ):
-    members: list[TypedElementId] = []
-    for result in results:
-        result_members = result.element['members']
-        if result_members:
-            members.extend(result_members)
-
+    members: list[TypedElementId] = [
+        member  #
+        for result in results
+        if (result_members := result.element['members'])
+        for member in result_members
+    ]
     members_elements = await ElementQuery.get_by_refs(
         members,
         at_sequence_id=at_sequence_id,
@@ -140,7 +139,7 @@ async def _get_response(
 
         # Ensure there is always a node. It's nice visually.
         if not render.nodes:
-            x, y = lib.get_coordinates(np.asarray(result.point, np.object_), False, False)[0].tolist()
+            x, y = get_coordinates(result.point)[0].tolist()
             render.nodes.append(RenderElementsData.Node(id=0, lon=x, lat=y))
 
     params = PartialSearchParams(

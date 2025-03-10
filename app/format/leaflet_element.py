@@ -1,9 +1,8 @@
 import logging
 
 import cython
-import numpy as np
 from polyline_rs import encode_lonlat
-from shapely import Point, lib
+from shapely import Point, get_coordinates
 
 from app.lib.elements_filter import ElementsFilter
 from app.lib.query_features import QueryFeatureResult
@@ -85,11 +84,12 @@ def _render_ways(
     result: list[RenderElementsData.Way] = []
 
     for way in ways:
-        way_id = split_typed_element_id(way['typed_id'])[1]
         way_members = way['members']
-        assert way_members is not None, 'Way members must be set'
+        if not way_members:
+            continue
 
         member_nodes.update(way_members)
+        way_id = split_typed_element_id(way['typed_id'])[1]
         segments: list[list[Point]] = []
         current_segment: list[Point] = []
 
@@ -126,9 +126,8 @@ def _render_ways(
             else False
         )
         for segment in segments:
-            segment_geom: list[list[float]]
-            segment_geom = lib.get_coordinates(np.asarray(segment, np.object_), False, False).tolist()  # type: ignore
-            line = encode_lonlat(segment_geom, 6)
+            geom: list[list[float]] = get_coordinates(segment).tolist()  # type: ignore
+            line = encode_lonlat(geom, 6)
             result.append(RenderElementsData.Way(id=way_id, line=line, area=is_area))
 
     return result
@@ -140,13 +139,13 @@ def _render_nodes(
     member_nodes: set[TypedElementId],
     detailed: cython.bint,
 ) -> list[RenderElementsData.Node]:
-    nodes = ElementsFilter.filter_nodes_interesting(node_id_map.values(), member_nodes, detailed=detailed)
+    nodes = list(node_id_map.values())
+    nodes = ElementsFilter.filter_nodes_interesting(nodes, member_nodes, detailed=detailed)
     if not nodes:
         return []
 
     points = [node['point'] for node in nodes]
-    geoms: list[list[float]]
-    geoms = lib.get_coordinates(np.asarray(points, np.object_), False, False).tolist()  # type: ignore
+    geoms: list[list[float]] = get_coordinates(points).tolist()  # type: ignore
     return [
         RenderElementsData.Node(
             id=split_typed_element_id(node['typed_id'])[1],

@@ -1,6 +1,5 @@
 import cython
-import numpy as np
-from shapely import lib
+from shapely import get_coordinates
 
 from app.models.db.note import Note
 from app.models.proto.shared_pb2 import RenderNotesData
@@ -15,7 +14,7 @@ class LeafletNoteMixin:
 
 @cython.cfunc
 def _encode_note(note: Note):
-    x, y = lib.get_coordinates(np.asarray(note['point'], np.object_), False, False)[0].tolist()
+    x, y = get_coordinates(note['point'])[0].tolist()
     body = note['comments'][0]['body']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     if len(body) > 100:
         body = body[:100] + '...'

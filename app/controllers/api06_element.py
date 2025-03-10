@@ -207,15 +207,14 @@ async def get_full(type: ElementType, id: ElementId):
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_elements_users(elements))
 
-        if members := element['members']:
-            members_elements = await ElementQuery.get_by_refs(
-                members,
-                at_sequence_id=at_sequence_id,
-                recurse_ways=True,
-                limit=None,
-            )
-            elements.extend(members_elements)
-            tg.create_task(UserQuery.resolve_elements_users(members_elements))
+        members_elements = await ElementQuery.get_by_refs(
+            element['members'],
+            at_sequence_id=at_sequence_id,
+            recurse_ways=True,
+            limit=None,
+        )
+        elements.extend(members_elements)
+        tg.create_task(UserQuery.resolve_elements_users(members_elements))
 
     return Format06.encode_elements(elements)
 

@@ -61,7 +61,7 @@ class LocalChaptersExtractor:
         communities_dict: dict[str, dict[str, Any]] = orjson.loads(resources)['resources']
 
         # filter only local chapters
-        self.communities = tuple(c for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF')
+        self.communities = [c for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF']
 
     def extract(self, locale: str) -> dict:
         source_path = _oci_dir.joinpath(f'i18n/{locale.replace("-", "_")}.yaml')

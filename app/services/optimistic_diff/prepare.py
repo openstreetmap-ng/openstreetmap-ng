@@ -342,10 +342,11 @@ class OptimisticDiffPrepare:
 
     async def _check_members_remote(self) -> None:
         """Check if the members exist and are visible using the database."""
-        remote_refs: set[TypedElementId] = set()
-        for _, members in self._elements_check_members_remote:
-            remote_refs.update(members)
-
+        remote_refs = {
+            member  #
+            for _, members in self._elements_check_members_remote
+            for member in members
+        }
         if not remote_refs:
             return
 
@@ -353,7 +354,6 @@ class OptimisticDiffPrepare:
             list(remote_refs),
             at_sequence_id=self.at_sequence_id,
         )
-
         hidden_refs = remote_refs.difference(visible_refs)
         if not hidden_refs:
             return

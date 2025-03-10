@@ -14,6 +14,9 @@ class FormatElementList:
         elements: list[Element],
     ) -> dict[ElementType, list[PartialChangesetParams.Element]]:
         """Format elements for displaying on the website (icons, strikethrough, sort)."""
+        if not elements:
+            return {}
+
         # element.version > 1 is mostly redundant
         # but ensures backward-compatible compliance for PositiveInt
         prev_refs: list[tuple[TypedElementId, int]] = [
@@ -49,19 +52,26 @@ class FormatElementList:
         ref: TypedElementId,
         parents: list[Element],
     ) -> list[PartialElementParams.Entry]:
-        return _encode_parents(
-            ref,
-            parents,
-            features_names(parents),
-            features_icons(parents),
+        return (
+            _encode_parents(
+                ref,
+                parents,
+                features_names(parents),
+                features_icons(parents),
+            )
+            if parents
+            else []
         )
 
     @staticmethod
     def element_members(
-        members: list[TypedElementId],
-        members_roles: list[str],
+        members: list[TypedElementId] | None,
+        members_roles: list[str] | None,
         members_elements: list[Element],
     ) -> list[PartialElementParams.Entry]:
+        if not members:
+            return []
+
         type_id_map: dict[TypedElementId, tuple[str | None, FeatureIcon | None]]
         type_id_map = {
             element['typed_id']: (name, icon)
@@ -145,8 +155,11 @@ def _encode_parents(
 def _encode_members(
     type_id_map: dict[TypedElementId, tuple[str | None, FeatureIcon | None]],
     members: list[TypedElementId],
-    members_roles: list[str],
+    members_roles: list[str] | list[None] | None,
 ):
+    if members_roles is None:
+        members_roles = [None] * len(members)
+
     result: list[PartialElementParams.Entry] = []
     for member, role in zip(members, members_roles, strict=True):
         data = type_id_map.get(member)

@@ -98,7 +98,7 @@ async def test_create_invalid_id(changeset_id: int):
 
 @pytest.mark.extended
 async def test_create_invalid_changeset_size(changeset_id: int):
-    elements = tuple(
+    elements = [
         Element(
             changeset_id=changeset_id,
             type='node',
@@ -110,7 +110,7 @@ async def test_create_invalid_changeset_size(changeset_id: int):
             members=[],
         )
         for i in range(-1, -UserRoleLimits.get_changeset_max_size(None) - 2, -1)
-    )
+    ]
     with pytest.raises(Exception):
         await OptimisticDiff.run(elements)
 

@@ -1,7 +1,6 @@
 import cython
-import numpy as np
 from lxml.etree import CDATA
-from shapely import Point, lib
+from shapely import Point, get_coordinates
 
 from app.config import API_URL, APP_URL
 from app.lib.date_utils import format_sql_date, legacy_date
@@ -163,7 +162,7 @@ def _encode_point_json(point: Point) -> list[float]:
     >>> _encode_point_json(Point(1, 2))
     [1, 2]
     """
-    return lib.get_coordinates(np.asarray(point, np.object_), False, False)[0].tolist()
+    return get_coordinates(point)[0].tolist()
 
 
 @cython.cfunc
@@ -172,5 +171,5 @@ def _encode_point_xml(point: Point) -> dict[str, float]:
     >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
-    x, y = lib.get_coordinates(np.asarray(point, np.object_), False, False)[0].tolist()
+    x, y = get_coordinates(point)[0].tolist()
     return {'@lon': x, '@lat': y}

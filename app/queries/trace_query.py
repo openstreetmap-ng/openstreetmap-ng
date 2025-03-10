@@ -5,7 +5,16 @@ import numpy as np
 from numpy.typing import NDArray
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
-from shapely import MultiLineString, MultiPoint, MultiPolygon, Polygon, STRtree, force_2d, get_parts, lib
+from shapely import (
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Polygon,
+    STRtree,
+    force_2d,
+    get_coordinates,
+    get_parts,
+)
 
 from app.db import db2
 from app.lib.auth_context import auth_user_scopes
@@ -267,11 +276,12 @@ class TraceQuery:
         ):
             trace_id: TraceId
             geom: MultiPoint
-            for trace_id, geom in await r.fetchall():
-                coords = lib.get_coordinates(np.asarray(geom, np.object_), False, False)
 
-                # Apply resolution transformation if needed
+            for trace_id, geom in await r.fetchall():
+                coords = get_coordinates(geom)
+
                 if resolution is not None and len(coords) >= 2:
+                    # Optionally scale coordinates to the given resolution
                     coords = mercator(coords, resolution, resolution).astype(np.uint)
                 elif len(coords) < 2:
                     coords = np.empty((0,), dtype=np.uint)

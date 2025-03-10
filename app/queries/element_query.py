@@ -263,7 +263,7 @@ class ElementQuery:
 
     @staticmethod
     async def get_by_refs(
-        typed_ids: list[TypedElementId],
+        typed_ids: list[TypedElementId] | None,
         *,
         at_sequence_id: SequenceId | None = None,
         recurse_ways: bool = False,
@@ -304,15 +304,15 @@ class ElementQuery:
         if not recurse_ways or (limit is not None and len(result) >= limit):
             return result
 
-        node_typed_ids: set[TypedElementId] = set()
-        for e in result:
-            members = e.get('members')
-            if members is not None and TYPED_ELEMENT_ID_WAY_MIN <= e['typed_id'] <= TYPED_ELEMENT_ID_WAY_MAX:
-                node_typed_ids.update(members)
-
+        node_typed_ids = {
+            member
+            for e in result
+            if (members := e.get('members'))  #
+            and TYPED_ELEMENT_ID_WAY_MIN <= e['typed_id'] <= TYPED_ELEMENT_ID_WAY_MAX
+            for member in members
+        }
         # Remove node typed_ids we already have
         node_typed_ids.difference_update(typed_ids)
-
         if not node_typed_ids:
             return result
 
@@ -611,9 +611,12 @@ class ElementQuery:
 
                 # fetch ways' nodes
                 if not partial_ways:
-                    ways_nodes_typed_ids: set[TypedElementId] = set()
-                    for way in ways:
-                        ways_nodes_typed_ids.update(way['members'])  # pyright: ignore [reportArgumentType]
+                    ways_nodes_typed_ids = {
+                        member  #
+                        for way in ways
+                        if (way_members := way['members'])
+                        for member in way_members
+                    }
                     ways_nodes_typed_ids.difference_update(nodes_typed_ids)
                     ways_nodes = await ElementQuery.get_by_refs(
                         list(ways_nodes_typed_ids),

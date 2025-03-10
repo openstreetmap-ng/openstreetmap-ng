@@ -2,7 +2,7 @@ from typing import Any, TypeVar, overload
 
 import numpy as np
 from pydantic import BeforeValidator
-from shapely import Point, lib
+from shapely import Point, get_coordinates
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
@@ -18,7 +18,7 @@ def validate_geometry(value: _T) -> _T: ...
 def validate_geometry(value: dict[str, Any] | _T) -> BaseGeometry | _T:
     """Validate a geometry."""
     geom: BaseGeometry = shape(value) if isinstance(value, dict) else value
-    coords = lib.get_coordinates(np.asarray(geom, np.object_), False, False)
+    coords = get_coordinates(geom)
     if not np.all(
         (coords[:, 0] >= -180)
         & (coords[:, 0] <= 180)  #

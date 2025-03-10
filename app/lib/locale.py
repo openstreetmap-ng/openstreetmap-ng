@@ -1,6 +1,5 @@
 import logging
 import re
-from itertools import chain
 from pathlib import Path
 from typing import NamedTuple
 
@@ -50,7 +49,7 @@ def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]
     if DEFAULT_LOCALE not in i18next_map:
         raise ValueError(f'Default locale {DEFAULT_LOCALE!r} was not found in installed locales')
     # check that all language codes are short enough
-    for code in chain(i18next_map, locale_names_map):
+    for code in (*i18next_map, *locale_names_map):
         if len(code) > LOCALE_CODE_MAX_LENGTH:
             raise ValueError(f'Locale code {code!r} is too long ({len(code)} > {LOCALE_CODE_MAX_LENGTH})')
 

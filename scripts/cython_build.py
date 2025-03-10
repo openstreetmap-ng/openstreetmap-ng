@@ -1,5 +1,4 @@
 import os
-from itertools import chain
 from pathlib import Path
 
 from Cython.Build import cythonize
@@ -47,7 +46,7 @@ blacklist: dict[str, set[str]] = {
 paths = [
     p
     for dir_ in dirs  #
-    for p in chain(Path(dir_).rglob('*.py'), extra_paths)
+    for p in (*Path(dir_).rglob('*.py'), *extra_paths)
     if p.name not in blacklist.get(p.parent.as_posix(), set())
 ]
 

@@ -9,6 +9,7 @@ from app.lib.geo_utils import try_parse_point
 from app.lib.search import Search
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
+from app.models.db.element import SequenceId
 from app.models.geometry import Latitude, Longitude
 from app.models.proto.shared_pb2 import RoutingResult, SharedBounds
 from app.queries.element_query import ElementQuery
@@ -78,8 +79,8 @@ async def _resolve_names(bbox: str, start: str, start_loaded: str, end: str, end
     return resolve_from, resolve_to
 
 
-async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: int) -> RoutingResult.Endpoint:
-    # try to parse as literal point
+async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: SequenceId) -> RoutingResult.Endpoint:
+    # Try to parse as literal point
     point = try_parse_point(query)
     if point is not None:
         x, y = get_coordinates(point)[0].tolist()
@@ -90,11 +91,11 @@ async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: int) 
             lat=y,
         )
 
-    # fallback to nominatim search
+    # Fallback to nominatim search
     search_bounds = Search.get_search_bounds(bbox, local_max_iterations=1)
 
     async with TaskGroup() as tg:
-        tasks = tuple(
+        tasks = [
             tg.create_task(
                 NominatimQuery.search(
                     q=query,
@@ -104,9 +105,9 @@ async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: int) 
                 )
             )
             for search_bound in search_bounds
-        )
+        ]
 
-    task_results = tuple(task.result() for task in tasks)
+    task_results = [task.result() for task in tasks]
     task_index = Search.best_results_index(task_results)
     results = task_results[task_index]
     if not results:
