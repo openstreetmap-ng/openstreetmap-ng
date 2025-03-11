@@ -10,7 +10,7 @@ from app.lib.auth_context import auth_user
 from app.lib.standard_pagination import standard_pagination_range
 from app.limits import NOTE_COMMENTS_PAGE_SIZE
 from app.models.db.note import Note, NoteId
-from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
+from app.models.db.note_comment import NoteComment
 from app.models.db.user import user_is_moderator
 
 
@@ -124,7 +124,6 @@ class NoteCommentQuery:
         *,
         per_note_sort: Literal['asc', 'desc'] = 'desc',
         per_note_limit: int | None = None,
-        resolve_rich_text: bool = False,
     ) -> list[NoteComment]:
         """Resolve comments for notes. Returns the resolved comments."""
         if not notes:
@@ -173,8 +172,5 @@ class NoteCommentQuery:
 
         for note in notes:
             note['num_comments'] = len(note['comments'])  # pyright: ignore [reportTypedDictNotRequiredAccess]
-
-        if resolve_rich_text:
-            await note_comments_resolve_rich_text(comments)
 
         return comments

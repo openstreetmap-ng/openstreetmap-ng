@@ -36,7 +36,7 @@ async def get_map(
     bbox: Annotated[str | None, Query()] = None,
     scope: Annotated[Literal['nearby', 'friends'] | None, Query()] = None,  # TODO: support scope
     display_name: Annotated[DisplayName | None, Query(min_length=1)] = None,
-    before: Annotated[ChangesetId | None, Query(gt=0)] = None,
+    before: Annotated[ChangesetId | None, Query()] = None,
 ):
     geometry = parse_bbox(bbox)
 

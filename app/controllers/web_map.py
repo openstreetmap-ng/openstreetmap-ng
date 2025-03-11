@@ -9,7 +9,6 @@ from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.proto.shared_pb2 import RenderElementsData
-from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 
 router = APIRouter(prefix='/api/web')
@@ -46,7 +45,6 @@ async def get_map(
             media_type='application/x-protobuf',
         )
 
-    await ElementMemberQuery.resolve_members(elements)
     return Response(
         FormatLeaflet.encode_elements(elements, detailed=True, areas=False).SerializeToString(),
         media_type='application/x-protobuf',

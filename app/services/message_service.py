@@ -85,7 +85,7 @@ class MessageService:
         return message_id
 
     @staticmethod
-    async def set_state(message_id: MessageId, *, is_read: bool) -> None:
+    async def set_state(message_id: MessageId, *, read: bool) -> None:
         """Mark a message as read or unread."""
         user_id = auth_user(required=True)['id']
 
@@ -98,7 +98,7 @@ class MessageService:
                 AND to_user_id = %s
                 AND NOT to_user_hidden
                 """,
-                (is_read, message_id, user_id),
+                (read, message_id, user_id),
             )
 
             if not result.rowcount:

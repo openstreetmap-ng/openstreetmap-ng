@@ -92,9 +92,12 @@ async def settings_password(
         old_password=old_password,
         new_password=new_password,
     )
+
     if revoke_other_sessions:
         current_session = await AuthService.authenticate_oauth2(None)
-        await OAuth2TokenService.revoke_by_client_id(SYSTEM_APP_WEB_CLIENT_ID, skip_ids=[current_session.id])  # pyright: ignore[reportOptionalMemberAccess]
+        assert current_session is not None
+        await OAuth2TokenService.revoke_by_client_id(SYSTEM_APP_WEB_CLIENT_ID, skip_ids=[current_session['id']])  # pyright: ignore[reportOptionalMemberAccess]
+
     return StandardFeedback.success_result(None, t('settings.password_has_been_changed'))
 
 

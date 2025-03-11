@@ -39,12 +39,12 @@ async def login(
         display_name_or_email=display_name_or_email,
         password=password,
     )
-    max_age = COOKIE_AUTH_MAX_AGE if remember else None
+
     response = Response()
     response.set_cookie(
         key='auth',
         value=access_token.get_secret_value(),
-        max_age=max_age,
+        max_age=COOKIE_AUTH_MAX_AGE if remember else None,
         secure=not TEST_ENV,
         httponly=True,
         samesite='lax',
@@ -150,11 +150,13 @@ async def reset_password_token(
     new_password: Annotated[Password, Form()],
 ):
     revoke_other_sessions = auth_user() is None
+
     await UserService.reset_password(
         token=token,
         new_password=new_password,
         revoke_other_sessions=revoke_other_sessions,
     )
+
     return StandardFeedback.success_result(
         None,
         t('settings.password_reset_success')

@@ -10,6 +10,7 @@ from app.lib.date_utils import utcnow
 from app.lib.render_response import render_response
 from app.limits import NOTE_COMMENTS_PAGE_SIZE, NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.models.db.note import NoteId, note_status
+from app.models.db.note_comment import note_comments_resolve_rich_text
 from app.models.proto.shared_pb2 import PartialNoteParams
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
@@ -35,13 +36,9 @@ async def get_note(id: NoteId):
         tg.create_task(NoteCommentQuery.resolve_num_comments(notes))
         is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed('note', id))
 
-        comments = await NoteCommentQuery.resolve_comments(
-            notes,
-            per_note_sort='asc',
-            per_note_limit=1,
-            resolve_rich_text=True,
-        )
+        comments = await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
         tg.create_task(UserQuery.resolve_users(comments))
+        tg.create_task(note_comments_resolve_rich_text(comments))
 
     closed_at = note['closed_at']
     if closed_at is not None:

@@ -68,7 +68,7 @@ async def new_message(
 
     if reply is not None:
         reply_message = await MessageQuery.get_message_by_id(reply)
-        is_recipient: cython.bint = reply_message['from_user_id'] == user['id']
+        is_recipient: cython.bint = reply_message['to_user_id'] == user['id']
 
         async with TaskGroup() as tg:
             items = [reply_message]
