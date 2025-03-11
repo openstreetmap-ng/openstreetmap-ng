@@ -199,10 +199,14 @@ class TraceQuery:
                 continue
 
             filtered_traces.append(trace)
-            split_indices = np.unique(segment_indices[intersect_indices], return_index=True)[1][1:]
 
             # Reconstruct segments to contain only intersecting points
-            trace['segments'] = MultiLineString(np.split(points[intersect_indices], split_indices))
+            new_segment_indices = segment_indices[intersect_indices]
+            new_points = points[intersect_indices]
+
+            split_indices = np.unique(new_segment_indices, return_index=True)[1][1:]
+            segments = np.split(new_points, split_indices)
+            trace['segments'] = MultiLineString(segments)
 
             if identifiable_trackable:
                 # Reconstruct capture_times to match new segments

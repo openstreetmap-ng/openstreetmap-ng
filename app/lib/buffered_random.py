@@ -12,6 +12,8 @@ _BUFFER = BytesIO()
 
 @cython.cfunc
 def _randbytes(n: cython.Py_ssize_t) -> bytes:
+    assert n > 0, 'Buffered random must generate positive number of bytes'
+
     buffer = _BUFFER
     result: bytes = buffer.read(n)
     remaining: cython.Py_ssize_t = n - len(result)

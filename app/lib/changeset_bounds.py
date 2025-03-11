@@ -83,12 +83,12 @@ def extend_changeset_bounds(bounds: MultiPolygon, points: list[Point]) -> MultiP
 
 
 @cython.cfunc
-def _cluster_points(points: list[Point]) -> list[list[NDArray[np.float64]]]:
+def _cluster_points(points: list[Point]) -> list[NDArray[np.float64]]:
     num_points: cython.Py_ssize_t = len(points)
     coords = get_coordinates(points)
 
     if num_points == 1:
-        return [[coords[0]]]
+        return [coords]
 
     if num_points <= CHANGESET_BBOX_LIMIT:
         n_clusters = None
@@ -103,13 +103,16 @@ def _cluster_points(points: list[Point]) -> list[list[NDArray[np.float64]]]:
         linkage='single',
         distance_threshold=distance_threshold,
     )
-    clustering.fit(coords)
+    labels = clustering.fit_predict(coords)
 
-    clusters: list[list[NDArray[np.float64]]] = [[] for _ in range(clustering.n_clusters_)]
-    for label, coord in zip(clustering.labels_, coords, strict=True):
-        clusters[label].append(coord)
+    # Sort points by label
+    sort_idx = np.argsort(labels)
+    sorted_labels = labels[sort_idx]
+    sorted_coords = coords[sort_idx]
 
-    return clusters
+    # Split the coords at the boundaries
+    split_indices = np.unique(sorted_labels, return_index=True)[1][1:]
+    return np.split(sorted_coords, split_indices)
 
 
 @cython.cfunc
