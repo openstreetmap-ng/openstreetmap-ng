@@ -171,22 +171,18 @@ async def introspect(token: Annotated[SecretStr, Form(min_length=1)]):
         raise_for.oauth_bad_user_token()
 
     async with TaskGroup() as tg:
-        token_user_t = tg.create_task(UserQuery.find_one_by_id(token_['user_id']))
-        token_app_t = tg.create_task(OAuth2ApplicationQuery.find_one_by_id(token_['application_id']))
-
-    token_user = token_user_t.result()
-    assert token_user is not None, f'Parent user {token_["user_id"]!r} must exist'
-    token_app = token_app_t.result()
-    assert token_app is not None, f'Parent app {token_["application_id"]!r} must exist'
+        items = [token_]
+        tg.create_task(UserQuery.resolve_users(items))
+        tg.create_task(OAuth2ApplicationQuery.resolve_applications(items))
 
     return {
         'active': True,
         'iss': APP_URL,
         'iat': int(token_['authorized_at'].timestamp()),  # type: ignore
-        'client_id': token_app['client_id'],
+        'client_id': token_['application']['client_id'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
         'scope': ' '.join(token_['scopes']),
         'sub': str(token_['user_id']),
-        'name': token_user['display_name'],
+        'name': token_['user']['display_name'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
     }
 
 

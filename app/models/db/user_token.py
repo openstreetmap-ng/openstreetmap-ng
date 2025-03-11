@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Literal, NewType, TypedDict
+from typing import Literal, NewType, NotRequired, TypedDict
 
 from app.limits import (
     USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE,
@@ -8,7 +8,7 @@ from app.limits import (
     USER_TOKEN_RESET_PASSWORD_EXPIRE,
 )
 from app.models.db.mail import MailSource
-from app.models.db.user import UserId
+from app.models.db.user import User, UserId
 from app.models.types import Email
 
 UserTokenId = NewType('UserTokenId', int)
@@ -28,6 +28,9 @@ class UserTokenInit(TypedDict):
     user_id: UserId
     user_email_hashed: bytes  # TODO: email change expire all tokens
     token_hashed: bytes
+
+    # runtime
+    user: NotRequired[User]
 
 
 class UserToken(UserTokenInit):

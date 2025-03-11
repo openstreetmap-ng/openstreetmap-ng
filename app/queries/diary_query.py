@@ -29,7 +29,7 @@ class DiaryQuery:
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM diary
-                WHERE id IN %s
+                WHERE id = ANY(%s)
                 """,
                 (ids,),
             ) as r,

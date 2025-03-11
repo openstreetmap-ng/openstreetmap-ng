@@ -25,7 +25,7 @@ class NoteQuery:
         open: bool | None = None,
     ) -> int:
         """
-        Count notes interacted with by user id.
+        Count the notes interacted with by the given user.
         If commented_other is True, it will count activity on non-own notes.
         """
         conditions: list[Composable] = []

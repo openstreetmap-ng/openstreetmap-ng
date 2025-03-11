@@ -1,26 +1,25 @@
+from asyncio import TaskGroup
 from typing import Annotated
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Query
-from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import API_URL
 from app.lib.auth_context import web_user
-from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.limits import (
     OAUTH_APP_NAME_MAX_LENGTH,
     OAUTH_PAT_LIMIT,
     OAUTH_PAT_NAME_MAX_LENGTH,
 )
-from app.models.db.oauth2_application import OAuth2Application
-from app.models.db.oauth2_token import OAuth2Token
+from app.models.db.oauth2_application import ApplicationId
+from app.models.db.oauth2_token import OAuth2TokenId
 from app.models.db.user import User
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
+from app.queries.user_query import UserQuery
 
 router = APIRouter()
 
@@ -29,12 +28,12 @@ router = APIRouter()
 async def applications_authorizations(
     user: Annotated[User, web_user()],
 ):
-    with options_context(
-        joinedload(OAuth2Token.application)  #
-        .joinedload(OAuth2Application.user)
-        .load_only(User.id, User.display_name, User.avatar_type, User.avatar_id),
-    ):
-        tokens = await OAuth2TokenQuery.find_unique_per_app_by_user_id(user.id)
+    tokens = await OAuth2TokenQuery.find_unique_per_app_by_user_id(user['id'])
+
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_users(tokens))
+        tg.create_task(OAuth2ApplicationQuery.resolve_applications(tokens))
+
     return await render_response(
         'settings/applications/authorizations.jinja2',
         {
@@ -47,7 +46,8 @@ async def applications_authorizations(
 async def applications_admin(
     user: Annotated[User, web_user()],
 ):
-    apps = await OAuth2ApplicationQuery.get_many_by_user_id(user.id)
+    apps = await OAuth2ApplicationQuery.get_many_by_user_id(user['id'])
+
     return await render_response(
         'settings/applications/admin.jinja2',
         {
@@ -59,12 +59,13 @@ async def applications_admin(
 
 @router.get('/settings/applications/admin/{id:int}/edit')
 async def application_admin(
-    id: PositiveInt,
+    id: ApplicationId,
     user: Annotated[User, web_user()],
 ):
-    app = await OAuth2ApplicationQuery.find_one_by_id(id, user_id=user.id)
+    app = await OAuth2ApplicationQuery.find_one_by_id(id, user_id=user['id'])
     if app is None:
         return RedirectResponse('/settings/applications/admin', status.HTTP_303_SEE_OTHER)
+
     return await render_response(
         'settings/applications/edit.jinja2',
         {
@@ -75,11 +76,12 @@ async def application_admin(
 
 
 @router.get('/settings/applications/tokens')
-async def tokens(
+async def get_tokens(
     user: Annotated[User, web_user()],
-    expand: Annotated[PositiveInt | None, Query()] = None,
+    expand: Annotated[OAuth2TokenId | None, Query()] = None,
 ):
-    tokens = await OAuth2TokenQuery.find_many_pats_by_user(user_id=user.id, limit=OAUTH_PAT_LIMIT)
+    tokens = await OAuth2TokenQuery.find_many_pats_by_user(user['id'], limit=OAUTH_PAT_LIMIT)
+
     return await render_response(
         'settings/applications/tokens.jinja2',
         {
@@ -98,5 +100,5 @@ async def legacy_applications_authorizations():
 
 
 @router.get('/oauth2/applications{_:path}')
-async def legacy_applications_admin():
+async def legacy_applications_admin(_):
     return RedirectResponse('/settings/applications/admin', status.HTTP_301_MOVED_PERMANENTLY)
