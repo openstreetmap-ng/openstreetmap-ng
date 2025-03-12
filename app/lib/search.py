@@ -64,7 +64,7 @@ class Search:
         bbox_center_x = minx + bbox_width_2
         bbox_center_y = miny + bbox_height_2
 
-        local_iterations: cython.int = 1 if local_only else int(ceil(log2(search_local_area_limit / bbox_area)))
+        local_iterations: cython.int = 1 if local_only else int(ceil(log2(search_local_area_limit / bbox_area)))  # noqa: RUF046
         local_iterations = min(local_iterations, search_local_max_iterations)
 
         logging.debug('Searching area of %d with %d local iterations', bbox_area, local_iterations)

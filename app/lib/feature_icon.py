@@ -42,7 +42,7 @@ def _get_popular_stats() -> dict[str, dict[str, int]]:
 def _check_config():
     # ensure all icons are present
     total_icons: cython.Py_ssize_t = 0
-    for key_config in _config.values():
+    for key_config in _CONFIG.values():
         for icon in key_config.values():
             with Path('app/static/img/element', icon).open('rb'):
                 pass
@@ -50,9 +50,9 @@ def _check_config():
     logging.info('Loaded %d feature icons', total_icons)
 
 
-_config = _get_config()
-_config_keys = frozenset(k.split('.', 1)[0] for k in _config)
-_popular_stats = _get_popular_stats()
+_CONFIG = _get_config()
+_CONFIG_KEYS = frozenset(k.split('.', 1)[0] for k in _CONFIG)
+_POPULAR_STATS = _get_popular_stats()
 _check_config()
 
 
@@ -73,7 +73,8 @@ def _feature_icon(element: Element | ElementInit):
     tags = element['tags']
     if not tags:
         return None
-    matched_keys = _config_keys.intersection(tags)
+
+    matched_keys: frozenset[str] = _CONFIG_KEYS.intersection(tags)
     if not matched_keys:
         return None
 
@@ -88,7 +89,7 @@ def _feature_icon(element: Element | ElementInit):
 
             # prefer type-specific icons first
             for config_key in (f'{key}.{type}', key):
-                values_icons_map = _config.get(config_key)
+                values_icons_map = _CONFIG.get(config_key)
                 if values_icons_map is None:
                     continue
 
@@ -96,7 +97,7 @@ def _feature_icon(element: Element | ElementInit):
                 if icon is None:
                     continue
 
-                popularity = _popular_stats.get(config_key, {}).get(value, 0)
+                popularity = _POPULAR_STATS.get(config_key, {}).get(value, 0)
                 title = f'{key}={value}' if specific else key
 
                 if result is None:

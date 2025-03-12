@@ -17,7 +17,6 @@ def redirect_referrer() -> RedirectResponse:
 def _redirect_url() -> str:
     """
     Get the redirect URL from the request referrer.
-
     If the referrer is missing or is in a different domain, return '/'.
     """
     request = get_request()
@@ -43,7 +42,6 @@ def _redirect_url() -> str:
 def _process_referrer(referrer: str):
     """
     Process the referrer value.
-
     Returns None if the referrer is missing or is in a different domain.
     """
     if not referrer:

@@ -35,7 +35,6 @@ class TraceFile:
     def extract(buffer: bytes) -> list[bytes]:
         """
         Extract the trace files from the buffer.
-
         The buffer may be compressed, in which case it will be decompressed first.
         """
         # multiple layers allow to handle nested archives such as .tar.gz

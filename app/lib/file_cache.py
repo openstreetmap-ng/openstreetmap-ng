@@ -152,6 +152,6 @@ class FileCache:
 
 
 @cython.cfunc
-def _get_path(base_dir: Path, key: StorageKey, /) -> Path:
+def _get_path(base_dir: Path, key: StorageKey, /):
     """Get the path to a file in the cache."""
     return base_dir.joinpath(key[:2], key[2:4], key) if len(key) > 4 else base_dir.joinpath(key)

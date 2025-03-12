@@ -56,12 +56,12 @@ class Image:
         """
         if image_type is None:
             return DEFAULT_APP_AVATAR_URL if app else DEFAULT_USER_AVATAR_URL
-        elif image_type == 'gravatar':
+        if image_type == 'gravatar':
             return f'/api/web/gravatar/{image_id}'
-        elif image_type == 'custom':
+        if image_type == 'custom':
             return f'/api/web/avatar/{image_id}'
-        else:
-            raise NotImplementedError(f'Unsupported avatar type {image_type!r}')
+
+        raise NotImplementedError(f'Unsupported avatar type {image_type!r}')
 
     @staticmethod
     async def normalize_avatar(data: bytes) -> bytes:

@@ -1,4 +1,5 @@
-from typing import override
+import re
+from typing import get_args, override
 
 from starlette.convertors import Convertor
 
@@ -6,7 +7,7 @@ from app.models.element import ElementType, element_type
 
 
 class ElementTypeConvertor(Convertor):
-    regex = r'node|way|relation'
+    regex = '|'.join(re.escape(v) for v in get_args(ElementType))
     convert = staticmethod(element_type)  # type: ignore
 
     @override

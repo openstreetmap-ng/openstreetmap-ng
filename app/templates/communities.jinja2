@@ -16,11 +16,11 @@
         <p>{{ t('site.communities.local_chapters.about_text') }}</p>
         <p>{{ t('site.communities.local_chapters.list_text') }}</p>
         <ul>
-            {% for id, url in local_chapters %}
+            {% for lc in local_chapters %}
                 <li>
-                    <a href="{{ url }}" rel="noopener"
-                       title="{{ t('osm_community_index.communities.' ~ id ~ '.description') }}">
-                        {{ t('osm_community_index.communities.' ~ id ~ '.name') }}
+                    <a href="{{ lc.url }}" rel="noopener"
+                       title="{{ t('osm_community_index.communities.' ~ lc.id ~ '.description') }}">
+                        {{ t('osm_community_index.communities.' ~ lc.id ~ '.name') }}
                     </a>
                 </li>
             {% endfor %}

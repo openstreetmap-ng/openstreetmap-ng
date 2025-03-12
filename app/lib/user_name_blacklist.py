@@ -18,12 +18,15 @@ def user_name_blacklist_routes(app: Starlette) -> None:
     for route in app.routes:
         if not isinstance(route, Route):
             continue
+
         match = path_re.search(route.path)
         if match is None:
             continue
+
         name = match['display_name']
         if name[0] == '{':
             continue
+
         result.append(_normalize(name))
 
     _BLACKLIST.update(result)

@@ -16,10 +16,8 @@ def _get_wiki_pages() -> dict[tuple[str, str], frozenset[str | None]]:
     data = orjson.loads(Path('config/wiki_pages.json').read_bytes())
     return {
         (key, value): frozenset(
-            normalize_locale(locale)
-            if locale  #
-            else DEFAULT_LOCALE
-            for locale in locales
+            normalize_locale(locale) if locale else DEFAULT_LOCALE
+            for locale in locales  #
         )
         for key, value_locales in data.items()
         for value, locales in value_locales.items()
@@ -36,17 +34,17 @@ def tags_format_osm_wiki(tags: list[TagFormat]) -> None:
     for tag in tags:
         key = tag.key.text
         tag.key = _transform(
-            locales=locales,
             key=key,
-            processing_values=False,
             value=tag.key,
+            processing_values=False,
+            locales=locales,
         )
         tag.values = [
             _transform(
-                locales=locales,
                 key=key,
-                processing_values=True,
                 value=value,
+                processing_values=True,
+                locales=locales,
             )
             for value in tag.values
         ]
@@ -54,11 +52,11 @@ def tags_format_osm_wiki(tags: list[TagFormat]) -> None:
 
 @cython.cfunc
 def _transform(
-    *,
-    locales: tuple[LocaleCode, ...],
     key: str,
-    processing_values: cython.bint,
     value: ValueFormat,
+    *,
+    processing_values: cython.bint,
+    locales: tuple[LocaleCode, ...],
 ):
     # skip already styled
     if value.format is not None:
@@ -72,13 +70,12 @@ def _transform(
 
     # prioritize wiki pages that match the user's language preferences
     for locale in locales:
-        if locale not in wiki_locales:
-            continue
-        url = (
-            f'https://wiki.openstreetmap.org/wiki/{page}'
-            if locale == DEFAULT_LOCALE
-            else f'https://wiki.openstreetmap.org/wiki/{locale.title()}:{page}'
-        )
-        return ValueFormat(value.text, 'url-safe', url)
+        if locale in wiki_locales:
+            url = (
+                f'https://wiki.openstreetmap.org/wiki/{page}'
+                if locale == DEFAULT_LOCALE
+                else f'https://wiki.openstreetmap.org/wiki/{locale.title()}:{page}'
+            )
+            return ValueFormat(value.text, 'url-safe', url)
 
     return value

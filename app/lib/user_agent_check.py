@@ -2,7 +2,6 @@ import logging
 import os
 import re
 import subprocess
-from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
 
@@ -53,12 +52,15 @@ def _browserslist_versions() -> dict[str, float]:
 
     if not cache_path.is_file() or lock_mtime > cache_path.stat().st_mtime:
         stdout = subprocess.check_output(('bunx', 'browserslist'), env={**os.environ, 'NO_COLOR': '1'}).decode()
-        result: defaultdict[str, float] = defaultdict(lambda: float('inf'))
+        result: dict[str, float] = {}
 
         for line in stdout.splitlines():
             browser, _, version = line.partition(' ')
             version = min(float(v) for v in version.split('-'))
-            result[browser] = min(result[browser], version)
+
+            current = result.get(browser)
+            if current is None or version < current:
+                result[browser] = version
 
         cache_path.write_bytes(orjson.dumps(result))
         os.utime(cache_path, (lock_mtime, lock_mtime))

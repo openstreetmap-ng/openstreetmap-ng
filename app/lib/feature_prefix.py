@@ -91,9 +91,9 @@ def _feature_prefix_administrative(tags: dict[str, str]) -> str:
 def _feature_prefix_type(type: ElementType) -> str:
     if type == 'node':
         return t('javascripts.query.node')
-    elif type == 'way':
+    if type == 'way':
         return t('javascripts.query.way')
-    elif type == 'relation':
+    if type == 'relation':
         return t('javascripts.query.relation')
 
     raise NotImplementedError(f'Unsupported element type {type!r}')

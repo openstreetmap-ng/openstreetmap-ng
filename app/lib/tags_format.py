@@ -238,4 +238,4 @@ _FORMATTER_MAP: dict[str, list[Callable[[list[str], list[ValueFormat]], list[Val
     'wikimedia_commons': [_format_wikimedia_commons],
     'wikipedia': [_format_url, _format_wikipedia],
 }
-_SUPPORTED_KEYS = frozenset(_FORMATTER_MAP.keys())
+_SUPPORTED_KEYS = frozenset(_FORMATTER_MAP)

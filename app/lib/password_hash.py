@@ -36,7 +36,6 @@ class PasswordHash:
     def hash(password: Password) -> bytes | None:
         """
         Hash a password using the latest recommended algorithm.
-
         Returns None if the given password schema cannot be used.
         """
         transmit_password = TransmitUserPassword.FromString(b64decode(password.get_secret_value()))
@@ -144,13 +143,12 @@ def _verify_legacy_md5(password_text: str, digest: str, extra: str):
 @cython.cfunc
 def _verify_legacy_pbkdf2(password_text: str, digest: str, extra: str):
     password_hashed_b = b64decode(digest)
-    algorithm, iterations_, salt = extra.split('!')
-    iterations = int(iterations_)
+    algorithm, iterations, salt = extra.split('!', 2)
     valid_hash_b = pbkdf2_hmac(
         hash_name=algorithm,
         password=password_text.encode(),
         salt=salt.encode(),
-        iterations=iterations,
+        iterations=int(iterations),
         dklen=len(password_hashed_b),
     )
     success = compare_digest(password_hashed_b, valid_hash_b)

@@ -128,7 +128,7 @@ class DiaryQuery:
         if not comments:
             return
 
-        id_map: dict[DiaryId, list[DiaryComment]] = defaultdict(list)
+        id_map: defaultdict[DiaryId, list[DiaryComment]] = defaultdict(list)
         for comment in comments:
             id_map[comment['diary_id']].append(comment)
 

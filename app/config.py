@@ -118,7 +118,7 @@ TRUSTED_HOSTS: frozenset[str] = frozenset(
             for line in Path('config/trusted_hosts.txt').read_text().splitlines()
             if not line.lstrip().startswith('#')
         ),
-        *(urlsplit(url).hostname or '' for _, url in LOCAL_CHAPTERS),
+        *(urlsplit(lc.url).hostname or '' for lc in LOCAL_CHAPTERS),
         *getenv('TRUSTED_HOSTS_EXTRA', '').split(),
     )
     if (h := host.strip())

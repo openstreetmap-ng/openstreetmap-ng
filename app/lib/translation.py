@@ -9,8 +9,8 @@ import numpy as np
 from app.lib.locale import DEFAULT_LOCALE, is_installed_locale
 from app.models.types import LocaleCode
 
-_LOCALE_DIR = Path('config/locale/gnu')
 _CTX: ContextVar[tuple[tuple[LocaleCode, ...], GNUTranslations]] = ContextVar('Translation')
+_LOCALE_DIR = Path('config/locale/gnu')
 
 
 # removing lru_cache will not enable live-reload for translations
@@ -29,7 +29,6 @@ def _get_translation(locales: tuple[LocaleCode, ...]) -> GNUTranslations:
 def translation_context(primary_locale: LocaleCode, /):
     """
     Context manager for setting the translation in ContextVar.
-
     Languages order determines the preference, from most to least preferred.
     """
     processed: tuple[LocaleCode, ...]

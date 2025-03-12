@@ -7,7 +7,7 @@ import orjson
 
 
 @cython.cfunc
-def _bun_versions(*names: str) -> list[str]:
+def _bun_versions(names: tuple[str, ...], /) -> list[str]:
     """Get the installed versions of the given JS packages."""
     names_set = set(names)
     lock_data = Path('bun.lock').read_bytes()
@@ -23,5 +23,5 @@ def _bun_versions(*names: str) -> list[str]:
     return [result[name] for name in names]
 
 
-ID_VERSION, RAPID_VERSION = _bun_versions('iD', '@rapideditor/rapid')
+ID_VERSION, RAPID_VERSION = _bun_versions(('iD', '@rapideditor/rapid'))
 logging.info('Packages versions: iD=%s, Rapid=%s', ID_VERSION, RAPID_VERSION)
