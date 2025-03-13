@@ -182,8 +182,7 @@ async def _apply_migrations(conn: AsyncConnection, migrations: list[tuple[Versio
                 """
                 INSERT INTO migration (version, hash)
                 VALUES (%s, %s)
-                ON CONFLICT (version) DO UPDATE
-                SET
+                ON CONFLICT (version) DO UPDATE SET
                     hash = EXCLUDED.hash,
                     applied_at = DEFAULT
                 """,

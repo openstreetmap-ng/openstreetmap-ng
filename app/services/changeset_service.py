@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from time import perf_counter
 
+from psycopg import AsyncConnection
 from sentry_sdk.api import start_transaction
 
 from app.config import SENTRY_CHANGESET_MANAGEMENT_MONITOR, TEST_ENV
@@ -147,7 +148,6 @@ class ChangesetService:
     async def force_process():
         """
         Force the changeset processing loop to wake up early, and wait for it to finish.
-
         This method is only available during testing, and is limited to the current process.
         """
         logging.debug('Requesting changeset processing loop early wakeup')
@@ -159,7 +159,7 @@ class ChangesetService:
 @retry(None)
 async def _process_task() -> None:
     while True:
-        async with db2() as conn:
+        async with db2(True) as conn:
             # Lock is just a random unique number
             async with await conn.execute('SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)') as r:
                 acquired: bool = (await r.fetchone())[0]  # type: ignore
@@ -168,9 +168,10 @@ async def _process_task() -> None:
                 ts = perf_counter()
                 with SENTRY_CHANGESET_MANAGEMENT_MONITOR, start_transaction(op='task', name='changeset-management'):
                     async with TaskGroup() as tg:
-                        tg.create_task(_close_inactive())
-                        tg.create_task(_delete_empty())
+                        tg.create_task(_close_inactive(conn))
+                        tg.create_task(_delete_empty(conn))
                 tt = perf_counter() - ts
+
                 # on success, sleep ~1min
                 delay = random.uniform(50, 70) - tt  # noqa: S311
             else:
@@ -193,38 +194,36 @@ async def _process_task() -> None:
                 event_task.cancel()
 
 
-async def _close_inactive() -> None:
+async def _close_inactive(conn: AsyncConnection) -> None:
     """Close all inactive changesets."""
-    async with db2(True) as conn:
-        result = await conn.execute(
-            """
-            UPDATE changeset
-            SET closed_at = statement_timestamp(), updated_at = DEFAULT
-            WHERE closed_at IS NULL AND (
-                updated_at < statement_timestamp() - %s OR
-                (updated_at >= statement_timestamp() - %s AND
-                 created_at < statement_timestamp() - %s)
-            )
-            """,
-            (CHANGESET_IDLE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT),
+    result = await conn.execute(
+        """
+        UPDATE changeset
+        SET closed_at = statement_timestamp(), updated_at = DEFAULT
+        WHERE closed_at IS NULL AND (
+            updated_at < statement_timestamp() - %s OR
+            (updated_at >= statement_timestamp() - %s AND
+             created_at < statement_timestamp() - %s)
         )
+        """,
+        (CHANGESET_IDLE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT),
+    )
 
-        if result.rowcount:
-            logging.debug('Closed %d inactive changesets', result.rowcount)
+    if result.rowcount:
+        logging.debug('Closed %d inactive changesets', result.rowcount)
 
 
-async def _delete_empty() -> None:
+async def _delete_empty(conn: AsyncConnection) -> None:
     """Delete empty changesets after a timeout."""
-    async with db2(True) as conn:
-        result = await conn.execute(
-            """
-            DELETE FROM changeset
-            WHERE closed_at IS NOT NULL
-            AND closed_at < statement_timestamp() - %s
-            AND size = 0
-            """,
-            (CHANGESET_EMPTY_DELETE_TIMEOUT,),
-        )
+    result = await conn.execute(
+        """
+        DELETE FROM changeset
+        WHERE closed_at IS NOT NULL
+        AND closed_at < statement_timestamp() - %s
+        AND size = 0
+        """,
+        (CHANGESET_EMPTY_DELETE_TIMEOUT,),
+    )
 
-        if result.rowcount:
-            logging.debug('Deleted %d empty changesets', result.rowcount)
+    if result.rowcount:
+        logging.debug('Deleted %d empty changesets', result.rowcount)

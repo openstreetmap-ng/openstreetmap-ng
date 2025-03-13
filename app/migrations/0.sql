@@ -1,6 +1,9 @@
-CREATE EXTENSION hstore;
-CREATE EXTENSION h3;
-CREATE EXTENSION h3_postgis CASCADE; -- Also creates postgis extension
+CREATE
+    EXTENSION hstore;
+CREATE
+    EXTENSION h3;
+CREATE
+    EXTENSION h3_postgis CASCADE; -- Also creates postgis extension
 
 CREATE FUNCTION h3_points_to_cells_range(
     geom geometry,
@@ -314,3 +317,11 @@ CREATE TABLE files
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     PRIMARY KEY (context, key)
 );
+
+CREATE UNLOGGED TABLE rate_limit
+(
+    key        text PRIMARY KEY,
+    usage      real        NOT NULL,
+    updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
+);
+CREATE INDEX rate_limit_updated_at_idx ON rate_limit (updated_at);

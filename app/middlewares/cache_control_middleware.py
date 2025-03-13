@@ -32,7 +32,7 @@ class CacheControlMiddleware:
                 status_code: cython.int = message['status']
 
                 if 200 <= status_code < 300 or status_code == 301:
-                    state: dict = request.state._state  # noqa: SLF001
+                    state = request.state._state  # noqa: SLF001
                     header = state.get('cache_control_header')
                     if header is not None:
                         headers = MutableHeaders(raw=message['headers'])
@@ -50,7 +50,7 @@ def cache_control(max_age: timedelta, stale: timedelta):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            state: dict = get_request().state._state  # noqa: SLF001
+            state = get_request().state._state  # noqa: SLF001
             state['cache_control_header'] = header
             return await func(*args, **kwargs)
 

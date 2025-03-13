@@ -151,8 +151,7 @@ async def _register_app(app: SystemApp) -> None:
                 %(user_id)s, %(name)s, %(client_id)s,
                 %(scopes)s, %(confidential)s, %(redirect_uris)s
             )
-            ON CONFLICT (client_id) DO UPDATE
-            SET
+            ON CONFLICT (client_id) DO UPDATE SET
                 name = EXCLUDED.name,
                 scopes = EXCLUDED.scopes
             RETURNING id

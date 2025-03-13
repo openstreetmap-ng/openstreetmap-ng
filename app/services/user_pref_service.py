@@ -38,8 +38,8 @@ class UserPrefService:
                 user_id, app_id, key, value
             )
             VALUES {}
-            ON CONFLICT (user_id, app_id, key) DO UPDATE
-            SET value = EXCLUDED.value
+            ON CONFLICT (user_id, app_id, key) DO UPDATE SET
+                value = EXCLUDED.value
         """).format(SQL(',').join(values))
 
         async with db2(True) as conn:

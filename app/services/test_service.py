@@ -92,8 +92,7 @@ class TestService:
                     %(language)s, %(activity_tracking)s, %(crash_reporting)s,
                     %(created_ip)s, %(roles)s, COALESCE(%(created_at)s, statement_timestamp())
                 )
-                ON CONFLICT (display_name) DO UPDATE
-                SET
+                ON CONFLICT (display_name) DO UPDATE SET
                     email = EXCLUDED.email,
                     email_verified = EXCLUDED.email_verified,
                     password_pb = EXCLUDED.password_pb,
@@ -147,8 +146,7 @@ class TestService:
                     %(client_secret_hashed)s, %(client_secret_preview)s,
                     %(confidential)s, %(redirect_uris)s, %(scopes)s
                 )
-                ON CONFLICT (client_id) DO UPDATE
-                SET
+                ON CONFLICT (client_id) DO UPDATE SET
                     name = EXCLUDED.name,
                     client_secret_hashed = EXCLUDED.client_secret_hashed,
                     client_secret_preview = EXCLUDED.client_secret_preview,

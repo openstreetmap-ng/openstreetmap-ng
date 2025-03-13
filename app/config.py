@@ -240,6 +240,22 @@ SENTRY_CHANGESET_MANAGEMENT_MONITOR = sentry_sdk.monitor(
     },
 )
 
+
+SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR = sentry_sdk.monitor(
+    getenv('SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG', 'osm-ng-rate-limit-management'),
+    {
+        'schedule': {
+            'type': 'interval',
+            'value': 5,
+            'unit': 'minute',
+        },
+        'checkin_margin': 5,
+        'max_runtime': 60,
+        'failure_issue_threshold': 288,  # 1d
+        'recovery_threshold': 1,
+    },
+)
+
 SENTRY_USERS_DELETED_TXT_MONITOR = sentry_sdk.monitor(
     getenv('SENTRY_USERS_DELETED_TXT_MONITOR_SLUG', 'osm-ng-users-deleted-txt'),
     {
