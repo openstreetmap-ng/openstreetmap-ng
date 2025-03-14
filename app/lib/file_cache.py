@@ -62,6 +62,8 @@ class FileCache:
         Returns None if the cache is not found.
         """
         path = _get_path(self._base_dir, key)
+        if not path.is_file():
+            return None
 
         try:
             loop = get_running_loop()
