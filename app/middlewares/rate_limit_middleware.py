@@ -1,4 +1,5 @@
 import logging
+from asyncio import TaskGroup
 from functools import wraps
 
 from starlette.datastructures import MutableHeaders
@@ -58,10 +59,9 @@ def rate_limit(*, weight: float = 1):
                 key = f'ip:{request.client.host}'  # pyright: ignore[reportOptionalMemberAccess]
                 quota = UserRoleLimits.get_rate_limit_quota(None)
 
-            rate_limit_headers = await RateLimitService.update(key, weight, quota, raise_on_limit=True)
-
-            # Proceed with the request
-            result = await func(*args, **kwargs)
+            async with TaskGroup() as tg:
+                request_task = tg.create_task(func(*args, **kwargs))
+                rate_limit_headers = await RateLimitService.update(key, weight, quota, raise_on_limit=True)
 
             # Check if the weight was increased
             state = request.state._state  # noqa: SLF001
@@ -71,7 +71,7 @@ def rate_limit(*, weight: float = 1):
 
             # Save the headers to the request state
             state['rate_limit_headers'] = rate_limit_headers
-            return result
+            return request_task.result()
 
         return wrapper
 
