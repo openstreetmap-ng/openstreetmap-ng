@@ -5,11 +5,11 @@ from io import BytesIO
 
 import brotli
 import cython
-from sizestr import sizestr
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from zstandard import ZstdDecompressor
 
 from app.lib.exceptions_context import raise_for
+from app.lib.sizestr import sizestr
 from app.limits import REQUEST_BODY_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
 

@@ -1129,7 +1129,6 @@ dependencies = [
     { name = "sentry-sdk", extra = ["aiohttp", "fastapi", "httpx", "pure-eval"] },
     { name = "setuptools" },
     { name = "shapely" },
-    { name = "sizestr" },
     { name = "starlette-compress" },
     { name = "supervisor" },
     { name = "tqdm" },
@@ -1200,7 +1199,6 @@ requires-dist = [
     { name = "sentry-sdk", extras = ["aiohttp", "fastapi", "httpx", "pure-eval"], specifier = ">=2.19.0" },
     { name = "setuptools" },
     { name = "shapely" },
-    { name = "sizestr", specifier = ">=1.0.0" },
     { name = "starlette-compress" },
     { name = "supervisor" },
     { name = "tqdm" },
@@ -1870,21 +1868,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050 },
-]
-
-[[package]]
-name = "sizestr"
-version = "1.1.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/09/a4/edcca24b8a024ea5a7eeb1f172cd528ea131c5382daf0493eae1448e0df3/sizestr-1.1.0.tar.gz", hash = "sha256:cbad7109296414eaba97d7bd2f3ee7a7208d256c82914171a1a1d10f50c83a97", size = 11837 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1e/ca/c1f390550840659bd0a92a1e67eb48b3533cb73386c43476851e85fa3c56/sizestr-1.1.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:de5a3c9273f079f5c05c043746bee873d37c57a2ef9e538a108ae6be55c3f8ae", size = 209960 },
-    { url = "https://files.pythonhosted.org/packages/46/ec/3b932d560cad6bac7329fef07f16d37d585064f5d51c1d19a6b326fdd91f/sizestr-1.1.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:da34160c7bf38a8344157ebfe8032395f17e33b9ccaf01c222d41baf576a4069", size = 205361 },
-    { url = "https://files.pythonhosted.org/packages/88/f2/c6b2c6793497d589802f458d7d2c470b1269b1ad59222afd795f2288c5f0/sizestr-1.1.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:bb0e6ebdc7b7d382b05e2751664add8821f4313c68fb4bcf5eb67a75272e98bf", size = 213665 },
-    { url = "https://files.pythonhosted.org/packages/a2/5f/5a66add66ef25f3c07318b16b06dbbb4f790f3d555369a13295c135f7b0f/sizestr-1.1.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:adf6c3b3cff453e3bd3deed73e96f162d66a9a11cf3f9e30dab889642d60981b", size = 223028 },
-    { url = "https://files.pythonhosted.org/packages/62/0a/22bea949a3709f7eec517665ab39eb58d7bc2cc99d8577c112034de92ac8/sizestr-1.1.0-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:7fe596bf68eee099abe12cc3976335d4c4dc82bc074feb9687eb653a03a6c39c", size = 420364 },
-    { url = "https://files.pythonhosted.org/packages/b7/cd/09f4ce1368712e87c18f5440d39d3812341857fc46b51820eea3eefbb040/sizestr-1.1.0-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:a9055643bdf509825d14a13f59d93d93b0b846c0110ddd85020c564339d404a0", size = 403496 },
-    { url = "https://files.pythonhosted.org/packages/84/73/0b90c6cd16d6b05e2d39daac6f4f8b7faf4acc531d86db9e1013818523a2/sizestr-1.1.0-cp39-abi3-win_amd64.whl", hash = "sha256:50726adceb6c953c8828f674e0cf5d4abeeeb10b341705afc98007ab3c4c2db0", size = 110330 },
 ]
 
 [[package]]

@@ -10,10 +10,10 @@ from typing import ClassVar, NamedTuple, override
 
 import cython
 import magic
-from sizestr import sizestr
 from zstandard import ZstdCompressor, ZstdDecompressor, ZstdError
 
 from app.lib.exceptions_context import raise_for
+from app.lib.sizestr import sizestr
 from app.limits import (
     TRACE_FILE_ARCHIVE_MAX_FILES,
     TRACE_FILE_COMPRESS_ZSTD_LEVEL,
