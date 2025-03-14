@@ -8,9 +8,9 @@ import cython
 import numpy as np
 from cv2.typing import MatLike
 from numpy.typing import NDArray
-from sizestr import sizestr
 
 from app.lib.exceptions_context import raise_for
+from app.lib.sizestr import sizestr
 from app.limits import (
     AVATAR_MAX_FILE_SIZE,
     AVATAR_MAX_MEGAPIXELS,

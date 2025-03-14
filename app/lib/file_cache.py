@@ -9,9 +9,9 @@ from typing import NamedTuple
 
 import cython
 from google.protobuf.message import DecodeError
-from sizestr import sizestr
 
 from app.config import FILE_CACHE_DIR, FILE_CACHE_SIZE_GB
+from app.lib.sizestr import sizestr
 from app.limits import FILE_CACHE_LOCK_TIMEOUT
 from app.models.proto.server_pb2 import FileCacheMeta
 from app.models.types import StorageKey
