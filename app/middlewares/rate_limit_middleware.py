@@ -2,13 +2,19 @@ import logging
 from asyncio import TaskGroup
 from functools import wraps
 
+from fastapi import HTTPException
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.lib.auth_context import auth_user
+from app.lib.file_cache import FileCache
 from app.lib.user_role_limits import UserRoleLimits
+from app.limits import RATE_LIMIT_OPTIMISTIC_BLACKLIST_EXPIRE
 from app.middlewares.request_context_middleware import get_request
+from app.models.types import StorageKey
 from app.services.rate_limit_service import RateLimitService
+
+_BLACKLIST = FileCache('RateLimit')
 
 
 class RateLimitMiddleware:
@@ -53,15 +59,34 @@ def rate_limit(*, weight: float = 1):
             request = get_request()
             user = auth_user()
             if user is not None:
-                key = f'uid:{user["id"]}'
+                key: StorageKey = f'uid:{user["id"]}'  # type: ignore
                 quota = UserRoleLimits.get_rate_limit_quota(user['roles'])
             else:
-                key = f'ip:{request.client.host}'  # pyright: ignore[reportOptionalMemberAccess]
+                key: StorageKey = f'ip:{request.client.host}'  # type: ignore
                 quota = UserRoleLimits.get_rate_limit_quota(None)
 
-            async with TaskGroup() as tg:
-                request_task = tg.create_task(func(*args, **kwargs))
-                rate_limit_headers = await RateLimitService.update(key, weight, quota, raise_on_limit=True)
+            if await _BLACKLIST.get(key) is None:
+                # If not blacklisted, perform optimistic checking to reduce latency.
+                async with TaskGroup() as tg:
+                    request_task = tg.create_task(func(*args, **kwargs))
+
+                    try:
+                        rate_limit_headers = await RateLimitService.update(key, weight, quota)
+                    except HTTPException:
+                        # If rate limit is hit, temporarily blacklist the user from optimistic checks.
+                        request_task.cancel()
+                        async with _BLACKLIST.lock(key) as lock:
+                            if await _BLACKLIST.get(key) is None:
+                                logging.info('Rate limit hit for %r, blacklisting from optimistic checks', key)
+                                await _BLACKLIST.set(lock, b'', ttl=RATE_LIMIT_OPTIMISTIC_BLACKLIST_EXPIRE)
+                        raise
+
+                result = request_task.result()
+
+            else:
+                # If blacklisted, perform sequential checking to save on resources.
+                rate_limit_headers = await RateLimitService.update(key, weight, quota)
+                result = await func(*args, **kwargs)
 
             # Check if the weight was increased
             state = request.state._state  # noqa: SLF001
@@ -71,7 +96,7 @@ def rate_limit(*, weight: float = 1):
 
             # Save the headers to the request state
             state['rate_limit_headers'] = rate_limit_headers
-            return request_task.result()
+            return result
 
         return wrapper
 
