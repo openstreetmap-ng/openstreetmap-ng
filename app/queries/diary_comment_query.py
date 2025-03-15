@@ -35,8 +35,7 @@ class DiaryCommentQuery:
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
-                SELECT *
-                FROM diary_comment
+                SELECT * FROM diary_comment
                 WHERE id = %s
                 """,
                 (comment_id,),
@@ -66,8 +65,7 @@ class DiaryCommentQuery:
             params.append(after)
 
         query = SQL("""
-            SELECT *
-            FROM diary_comment
+            SELECT * FROM diary_comment
             WHERE {where}
             ORDER BY id {order}
             LIMIT %s
@@ -109,8 +107,7 @@ class DiaryCommentQuery:
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM (
-                    SELECT *
-                    FROM diary_comment
+                    SELECT * FROM diary_comment
                     WHERE diary_id = %s
                     ORDER BY id DESC
                     OFFSET %s

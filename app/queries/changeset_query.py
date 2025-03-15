@@ -88,8 +88,7 @@ class ChangesetQuery:
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
-                SELECT *
-                FROM changeset
+                SELECT * FROM changeset
                 WHERE id = %s
                 """,
                 (changeset_id,),
@@ -166,8 +165,7 @@ class ChangesetQuery:
             limit_clause = SQL('')
 
         query = SQL("""
-            SELECT *
-            FROM changeset
+            SELECT * FROM changeset
             WHERE {where}
             ORDER BY id {order}
             {limit}

@@ -62,6 +62,7 @@ class TestService:
     async def create_user(
         name: DisplayName,
         *,
+        email_verified: bool = True,
         language: LocaleCode = DEFAULT_LOCALE,
         created_at: datetime | None = None,
         roles: list[UserRole] | None = None,
@@ -69,7 +70,7 @@ class TestService:
         """Create a test user."""
         user_init: UserInit = {
             'email': Email(f'{name}{TEST_USER_EMAIL_SUFFIX}'),
-            'email_verified': True,
+            'email_verified': email_verified,
             'display_name': name,
             'password_pb': b'',
             'language': language,
