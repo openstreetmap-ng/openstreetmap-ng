@@ -1,14 +1,14 @@
 import cython
 
 if cython.compiled:
-    from cython.cimports.libc.math import floor, isfinite, log
+    from cython.cimports.libc.math import isfinite, log
 else:
-    from math import floor, isfinite, log
+    from math import isfinite, log
 
 _SUFFIXES = (' KiB', ' MiB', ' GiB', ' TiB', ' PiB', ' EiB', ' ZiB')
 
 
-def sizestr(size: cython.float) -> str:
+def sizestr(size: cython.double) -> str:
     """
     Convert byte size to human-readable string.
     >>> sizestr(10_000)
@@ -26,7 +26,7 @@ def sizestr(size: cython.float) -> str:
     if size < 1024:
         return f'{prefix}{int(size)} B'
 
-    exp = floor(log(size) / 6.931471805599453)  # log(1024) = 6.931...
+    exp: cython.int = int(log(size) / 6.931471805599453)  # log(1024) = 6.931...
     if exp > 7:
         return '(too large to display)'
 
