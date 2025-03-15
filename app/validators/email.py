@@ -132,8 +132,8 @@ EmailValidator = BeforeValidator(validate_email)
 # but this causes circular import
 EmailValidating = Annotated[
     Email,
-    EmailValidator,
     MinLen(EMAIL_MIN_LENGTH),
     MaxLen(EMAIL_MAX_LENGTH),
+    EmailValidator,
     BoundaryWhitespaceValidator,
 ]
