@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 from inspect import unwrap
 
@@ -13,6 +14,7 @@ async def test_retry():
     @retry(None)
     async def func():
         nonlocal runs
+        await asyncio.sleep(0)
         runs += 1
 
         # raise exception on first run
@@ -26,13 +28,14 @@ async def test_retry():
 async def test_retry_timeout():
     @retry(timedelta())
     async def func():
+        await asyncio.sleep(0)
         raise RuntimeError
 
     with pytest.raises(TimeoutError):
         await func()
 
 
-async def test_retry_unwrap():
+def test_retry_unwrap():
     async def func():
         pass
 

@@ -1,5 +1,6 @@
 from collections.abc import Awaitable, Callable
 from datetime import timedelta
+from inspect import isawaitable
 from typing import NewType
 
 import cython
@@ -16,7 +17,7 @@ class CacheService:
     async def get(
         key: StorageKey,
         context: CacheContext,
-        factory: Callable[[], Awaitable[bytes]],
+        factory: Callable[[], Awaitable[bytes] | bytes],
         *,
         ttl: timedelta = CACHE_DEFAULT_EXPIRE,
     ) -> bytes:
@@ -40,7 +41,10 @@ class CacheService:
                 return value
 
             # No one else has generated it, so we'll do it
-            value = await factory()
+            value = factory()
+            if isawaitable(value):
+                value = await value
+
             await fc.set(lock, value, ttl=ttl)
             return value
 

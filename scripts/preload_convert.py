@@ -1,4 +1,3 @@
-import asyncio
 import gc
 import os
 from collections.abc import Callable
@@ -220,7 +219,7 @@ def merge_planet_worker_results() -> None:
 
     with duckdb_connect() as conn:
         print('Creating table')
-        parquets = conn.read_parquet([path.as_posix() for path in paths])  # type: ignore
+        parquets = conn.read_parquet([path.as_posix() for path in paths])  # type: ignore  # noqa: F841
         conn.sql("""
         CREATE TEMP TABLE sequence AS
         SELECT
@@ -510,7 +509,7 @@ def _write_user() -> None:
         """)
 
 
-async def main() -> None:
+def main() -> None:
     # run_planet_workers()
     # merge_planet_worker_results()
     # run_notes_workers()
@@ -531,5 +530,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
     print('Done! Done! Done!')

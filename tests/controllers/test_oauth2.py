@@ -1,4 +1,5 @@
 from itertools import product
+from typing import get_args
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -11,7 +12,7 @@ from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.date_utils import utcnow
 from app.lib.locale import DEFAULT_LOCALE
 from app.lib.xmltodict import XMLToDict
-from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2ResponseMode, OAuth2TokenEndpointAuthMethod
+from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2TokenEndpointAuthMethod
 from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID
 
 
@@ -59,7 +60,7 @@ async def test_authorize_invalid_extra_scopes(client: AsyncClient):
 
 @pytest.mark.parametrize(
     ('code_challenge_method', 'token_endpoint_auth_method'),
-    list(product(OAuth2CodeChallengeMethod, OAuth2TokenEndpointAuthMethod)),
+    list(product(get_args(OAuth2CodeChallengeMethod), get_args(OAuth2TokenEndpointAuthMethod))),
 )
 async def test_authorize_token_oob(
     client: AsyncClient,
@@ -74,12 +75,12 @@ async def test_authorize_token_oob(
         client_secret='testapp.secret',  # noqa: S106
         scope='',
         redirect_uri='urn:ietf:wg:oauth:2.0:oob',
-        code_challenge_method=code_challenge_method.value,
-        token_endpoint_auth_method=token_endpoint_auth_method.value,
+        code_challenge_method=code_challenge_method,
+        token_endpoint_auth_method=token_endpoint_auth_method,
     )
     code_verifier = buffered_rand_urlsafe(32)
 
-    if code_challenge_method == OAuth2CodeChallengeMethod.plain:  # authlib doesn't support plain method
+    if code_challenge_method == 'plain':  # authlib doesn't support plain method
         authorization_url, state = auth_client.create_authorization_url(
             '/oauth2/authorize', code_challenge=code_verifier, code_challenge_method='plain'
         )
@@ -104,7 +105,7 @@ async def test_authorize_token_oob(
     )
     assert data['access_token']
     assert data['token_type'] == 'Bearer'
-    assert data['scope'] == ''
+    assert not data['scope']
     assert data['created_at']
 
     r = await auth_client.get('/api/0.6/user/details.json')
@@ -126,7 +127,7 @@ async def test_authorize_token_response_redirect(client: AsyncClient, is_fragmen
         redirect_uri='http://localhost/callback',
     )
     authorization_url, state = auth_client.create_authorization_url(
-        '/oauth2/authorize', response_mode=OAuth2ResponseMode.fragment if is_fragment else OAuth2ResponseMode.query
+        '/oauth2/authorize', response_mode='fragment' if is_fragment else 'query'
     )
 
     r = await client.post(authorization_url)
@@ -148,7 +149,7 @@ async def test_authorize_token_response_redirect(client: AsyncClient, is_fragmen
     )
     assert data['access_token']
     assert data['token_type'] == 'Bearer'
-    assert data['scope'] == ''
+    assert not data['scope']
     assert data['created_at']
 
     r = await auth_client.get('/api/0.6/user/details.json')
@@ -168,9 +169,7 @@ async def test_authorize_response_form_post(client: AsyncClient):
         scope='',
         redirect_uri='http://localhost/callback',
     )
-    authorization_url, state = auth_client.create_authorization_url(
-        '/oauth2/authorize', response_mode=OAuth2ResponseMode.form_post
-    )
+    authorization_url, _state = auth_client.create_authorization_url('/oauth2/authorize', response_mode='form_post')
 
     r = await client.post(authorization_url)
     assert r.is_success, r.text
@@ -203,7 +202,7 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
     )
     assert data['access_token']
     assert data['token_type'] == 'Bearer'
-    assert data['scope'] == ''
+    assert not data['scope']
     assert data['created_at']
     access_token = data['access_token']
 
@@ -218,7 +217,7 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
     assert data['iss'] == APP_URL
     assert data['iat'] >= int(authorization_date.timestamp())
     assert data['client_id'] == 'testapp'
-    assert data['scope'] == ''
+    assert not data['scope']
     assert data['name'] == 'user1'
     assert 'exp' not in data
 
@@ -274,7 +273,7 @@ async def test_access_token_in_form(client: AsyncClient, valid_scope: bool):
     )
     if valid_scope:
         assert r.is_success, r.text
-        props: dict = XMLToDict.parse(r.content)['osm']['note'][0]
+        props: dict = XMLToDict.parse(r.content)['osm']['note'][0]  # type: ignore
         comments: list[dict] = props['comments']['comment']
         assert comments[-1]['user'] == 'user1'
     else:

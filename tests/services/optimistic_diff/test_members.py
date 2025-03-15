@@ -44,7 +44,7 @@ async def test_members_simple(changeset_id: int):
     assert element.members is not None
     assert element.members[0].type == 'node'
     assert element.members[0].id == node_id
-    assert element.members[0].role == ''
+    assert not element.members[0].role
 
 
 async def test_members_delete(changeset_id: int):

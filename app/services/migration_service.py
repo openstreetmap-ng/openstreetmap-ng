@@ -1,4 +1,5 @@
 import logging
+from operator import itemgetter
 from pathlib import Path
 from typing import NamedTuple
 
@@ -89,7 +90,7 @@ class MigrationService:
             await _ensure_db_table(conn)
             current_migration = await _get_current_migration(conn)
 
-            migrations = await _find_migrations(current_migration)
+            migrations = _find_migrations(current_migration)
             if not migrations:
                 logging.debug('No migrations to apply. Database is up to date.')
                 return
@@ -130,9 +131,9 @@ async def _get_current_migration(conn: AsyncConnection) -> _MigrationInfo | None
         return _MigrationInfo(Version(row[0]), row[1]) if row is not None else None
 
 
-async def _find_migrations(current_migration: _MigrationInfo | None) -> list[tuple[Version, Path]]:
+def _find_migrations(current_migration: _MigrationInfo | None) -> list[tuple[Version, Path]]:
     migrations = [(Version(p.stem), p) for p in _MIGRATIONS_DIR.glob('*.sql')]
-    migrations.sort(key=lambda x: x[0])
+    migrations.sort(key=itemgetter(0))
     assert migrations, 'No migration files found'
 
     if current_migration is None:

@@ -29,4 +29,4 @@ def test_encrypt_prevent_empty_string():
 
 
 def test_decrypt_empty():
-    assert decrypt(b'') == ''
+    assert not decrypt(b'')

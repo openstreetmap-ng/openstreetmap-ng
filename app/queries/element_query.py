@@ -395,7 +395,7 @@ class ElementQuery:
         for element in typed_task.result():
             elements_by_ref[element['typed_id']] = element
         for element in versioned_task.result():
-            elements_by_ref[(element['typed_id'], element['version'])] = element
+            elements_by_ref[element['typed_id'], element['version']] = element
 
         # Prepare results in the same order as input refs, avoiding duplicates
         result_set: set[SequenceId] = set()

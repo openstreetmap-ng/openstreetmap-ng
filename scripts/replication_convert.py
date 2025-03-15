@@ -1,4 +1,3 @@
-import asyncio
 import shutil
 
 import duckdb
@@ -149,7 +148,7 @@ def _write_user() -> None:
         )
 
 
-async def main() -> None:
+def main() -> None:
     PRELOAD_DIR.mkdir(exist_ok=True, parents=True)
     print('Writing changeset')
     _write_changeset()
@@ -160,5 +159,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
     print('Done! Done! Done!')

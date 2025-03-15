@@ -7,7 +7,7 @@ from app.models.types import LocaleCode, Uri
 from app.services.oauth2_application_service import OAuth2ApplicationService
 
 
-async def test_validate_redirect_uris_too_many():
+def test_validate_redirect_uris_too_many():
     with translation_context(LocaleCode('en')):
         uris = '\nhttps://example.com' * OAUTH_APP_URI_LIMIT
         OAuth2ApplicationService.validate_redirect_uris(uris)
@@ -17,7 +17,7 @@ async def test_validate_redirect_uris_too_many():
             OAuth2ApplicationService.validate_redirect_uris(uris)
 
 
-async def test_validate_redirect_uris_too_long():
+def test_validate_redirect_uris_too_long():
     with translation_context(LocaleCode('en')):
         uris = f'https://1.com\n https://{"a" * (OAUTH_APP_URI_MAX_LENGTH - 12)}.com \n'
         OAuth2ApplicationService.validate_redirect_uris(uris)
@@ -28,18 +28,18 @@ async def test_validate_redirect_uris_too_long():
 
 
 @pytest.mark.parametrize('uri', ['urn:ietf:wg:oauth:2.0:oob', 'urn:ietf:wg:oauth:2.0:oob:auto'])
-async def test_validate_redirect_uris_oob(uri):
+def test_validate_redirect_uris_oob(uri):
     with translation_context(LocaleCode('en')):
         OAuth2ApplicationService.validate_redirect_uris(uri)
 
 
 @pytest.mark.parametrize('uri', ['https:', 'https://', 'uwu'])
-async def test_validate_redirect_uris_invalid(uri):
+def test_validate_redirect_uris_invalid(uri):
     with translation_context(LocaleCode('en')), pytest.raises(HTTPException):
         OAuth2ApplicationService.validate_redirect_uris(uri)
 
 
-async def test_validate_redirect_uris_insecure():
+def test_validate_redirect_uris_insecure():
     with translation_context(LocaleCode('en')):
         uris = 'http://localhost\nhttp://127.0.0.1'
         OAuth2ApplicationService.validate_redirect_uris(uris)
@@ -49,7 +49,7 @@ async def test_validate_redirect_uris_insecure():
             OAuth2ApplicationService.validate_redirect_uris(uris)
 
 
-async def test_validate_redirect_uris_deduplicate():
+def test_validate_redirect_uris_deduplicate():
     uris = 'https://1.com\nhttps://2.com\nhttps://1.com'
     assert OAuth2ApplicationService.validate_redirect_uris(uris) == (
         Uri('https://1.com'),

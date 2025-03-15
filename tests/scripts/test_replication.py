@@ -4,7 +4,7 @@ from pathlib import Path
 import pyarrow.parquet as pq
 import pytest
 
-from scripts.replication import AppState, ReplicaState, _iterate
+from scripts.replication import AppState, ReplicaState, _iterate  # noqa: PLC2701
 
 
 @pytest.mark.extended
