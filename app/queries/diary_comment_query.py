@@ -4,7 +4,7 @@ import cython
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
-from app.db import db2
+from app.db import db
 from app.lib.standard_pagination import standard_pagination_range
 from app.limits import DIARY_COMMENTS_PAGE_SIZE
 from app.models.db.diary import Diary
@@ -17,7 +17,7 @@ class DiaryCommentQuery:
     async def count_by_user_id(user_id: UserId) -> int:
         """Count diary comments by user id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT COUNT(*) FROM diary_comment
@@ -32,7 +32,7 @@ class DiaryCommentQuery:
     async def find_one_by_id(comment_id: DiaryCommentId) -> DiaryComment | None:
         """Find a diary comment by id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT *
@@ -85,7 +85,7 @@ class DiaryCommentQuery:
             """).format(query)
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
             return await r.fetchall()  # type: ignore
@@ -105,7 +105,7 @@ class DiaryCommentQuery:
         )
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM (
@@ -132,7 +132,7 @@ class DiaryCommentQuery:
         id_map = {diary['id']: diary for diary in diaries}
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT c.value, (

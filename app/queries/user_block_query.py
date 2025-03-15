@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-from app.db import db2
+from app.db import db
 from app.models.types import UserId
 
 
@@ -14,7 +14,7 @@ class UserBlockQuery:
     async def count_received_by_user_id(user_id: UserId) -> _UserBlockCountByUserResult:
         """Count received blocks by user id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT COUNT(*) FROM user_block
@@ -33,7 +33,7 @@ class UserBlockQuery:
     async def count_given_by_user_id(user_id: UserId) -> _UserBlockCountByUserResult:
         """Count given blocks by user id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT COUNT(*) FROM user_block

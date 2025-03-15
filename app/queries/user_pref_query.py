@@ -1,6 +1,6 @@
 from psycopg.rows import dict_row
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.models.db.user_pref import UserPref
 from app.models.types import ApplicationId, UserPrefKey
@@ -13,7 +13,7 @@ class UserPrefQuery:
         user_id = auth_user(required=True)['id']
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM user_pref
@@ -32,7 +32,7 @@ class UserPrefQuery:
         user_id = auth_user(required=True)['id']
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM user_pref

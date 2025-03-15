@@ -1,7 +1,7 @@
 from urllib.parse import urlsplit
 
 from app.config import APP_URL
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
@@ -41,7 +41,7 @@ class UserTokenEmailChangeService:
         if token is None:
             raise_for.bad_user_token_struct()
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 SELECT user_id, email_change_new FROM user_token
@@ -92,7 +92,7 @@ async def _create_token(new_email: Email) -> UserTokenStruct:
     }
 
     async with (
-        db2(True) as conn,
+        db(True) as conn,
         await conn.execute(
             """
             INSERT INTO user_token (

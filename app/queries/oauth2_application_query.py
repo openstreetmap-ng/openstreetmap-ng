@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from psycopg.rows import dict_row
 
-from app.db import db2
+from app.db import db
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.types import ApplicationId, ClientId, UserId
@@ -21,7 +21,7 @@ class OAuth2ApplicationQuery:
     @staticmethod
     async def find_many_by_ids(ids: list[ApplicationId]) -> list[OAuth2Application]:
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM oauth2_application
@@ -36,7 +36,7 @@ class OAuth2ApplicationQuery:
     async def find_one_by_client_id(client_id: ClientId) -> OAuth2Application | None:
         """Find an OAuth2 application by client id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM oauth2_application
@@ -51,7 +51,7 @@ class OAuth2ApplicationQuery:
     async def get_many_by_user_id(user_id: UserId) -> list[OAuth2Application]:
         """Get all OAuth2 applications by user id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM oauth2_application

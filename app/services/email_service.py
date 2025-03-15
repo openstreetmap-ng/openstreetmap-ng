@@ -20,7 +20,7 @@ from app.config import (
     SMTP_USER,
     TEST_ENV,
 )
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_context
 from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_context
@@ -93,7 +93,7 @@ class EmailService:
         }
 
         async with (
-            db2(True, autocommit=True) as conn,
+            db(True, autocommit=True) as conn,
             await conn.execute(
                 """
                 INSERT INTO mail (
@@ -134,7 +134,7 @@ async def _process_task() -> None:
 async def _process_task_inner() -> None:
     logging.debug('Started scheduled mail processing')
 
-    async with _smtp_factory() as smtp, db2(True) as conn:
+    async with _smtp_factory() as smtp, db(True) as conn:
         while True:
             now = utcnow()
             async with await conn.cursor(row_factory=dict_row).execute(

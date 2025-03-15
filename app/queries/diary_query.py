@@ -7,7 +7,7 @@ from httpx import HTTPError
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
-from app.db import db2
+from app.db import db
 from app.models.db.diary import Diary
 from app.models.db.diary_comment import DiaryComment
 from app.models.types import DiaryId, LocaleCode, UserId
@@ -24,7 +24,7 @@ class DiaryQuery:
     @staticmethod
     async def find_many_by_ids(ids: list[DiaryId]) -> list[Diary]:
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM diary
@@ -39,7 +39,7 @@ class DiaryQuery:
     async def count_by_user_id(user_id: UserId) -> int:
         """Count diaries by user id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT COUNT(*) FROM diary
@@ -100,7 +100,7 @@ class DiaryQuery:
                 ORDER BY id DESC
             """).format(query)
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod

@@ -1,7 +1,7 @@
 import logging
 
 from app.config import SMTP_MESSAGES_FROM_HOST
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_context, auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
@@ -36,7 +36,7 @@ class UserTokenEmailReplyService:
         if token is None:
             raise_for.bad_user_token_struct()
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             result = await conn.execute(
                 """
                 UPDATE user_token
@@ -78,7 +78,7 @@ async def _create_token(replying_user: User, mail_source: MailSource) -> UserTok
     }
 
     async with (
-        db2(True) as conn,
+        db(True) as conn,
         await conn.execute(
             """
             INSERT INTO user_token (

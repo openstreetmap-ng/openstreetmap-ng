@@ -3,7 +3,7 @@ from asyncio import TaskGroup
 from datetime import datetime
 from typing import cast
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.standard_feedback import StandardFeedback
@@ -41,7 +41,7 @@ class MessageService:
         }
 
         async with (
-            db2(True) as conn,
+            db(True) as conn,
             await conn.execute(
                 """
                 INSERT INTO message (
@@ -89,7 +89,7 @@ class MessageService:
         """Mark a message as read or unread."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             result = await conn.execute(
                 """
                 UPDATE message
@@ -110,7 +110,7 @@ class MessageService:
         # TODO: account delete, prune messages
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 SELECT from_user_id, from_user_hidden, to_user_id, to_user_hidden

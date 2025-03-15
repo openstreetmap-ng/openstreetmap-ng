@@ -3,7 +3,7 @@ import time
 from collections import deque
 from statistics import median
 
-from app.db import db2
+from app.db import db
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.translation import t, translation_context
@@ -61,7 +61,7 @@ async def _create_token(user) -> UserTokenStruct:
     }
 
     async with (
-        db2(True) as conn,
+        db(True) as conn,
         await conn.execute(
             """
             INSERT INTO user_token (

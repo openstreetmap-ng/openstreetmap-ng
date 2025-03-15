@@ -6,7 +6,7 @@ from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
 
 from app.config import LEGACY_SEQUENCE_ID_MARGIN
-from app.db import db2
+from app.db import db
 from app.lib.exceptions_context import raise_for
 from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.element import Element
@@ -32,7 +32,7 @@ class ElementQuery:
         Get the current sequence id.
         Returns 0 if no elements exist.
         """
-        async with db2() as conn, await conn.execute('SELECT MAX(sequence_id) FROM element') as r:
+        async with db() as conn, await conn.execute('SELECT MAX(sequence_id) FROM element') as r:
             row = await r.fetchone()
             return row[0] if row is not None else 0  # type: ignore
 
@@ -43,7 +43,7 @@ class ElementQuery:
         Returns 0 if no elements exist with the given type.
         """
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT MAX(typed_id) FROM element
@@ -91,7 +91,7 @@ class ElementQuery:
             LIMIT 1
         """).format(conditions=SQL(' OR ').join(conditions))
 
-        async with db2() as conn, await conn.execute(query, params) as r:
+        async with db() as conn, await conn.execute(query, params) as r:
             return await r.fetchone() is None
 
     @staticmethod
@@ -108,7 +108,7 @@ class ElementQuery:
             return True
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT 1
@@ -146,7 +146,7 @@ class ElementQuery:
             AND {sequence}
         """).format(sequence=sequence_clause)
 
-        async with db2() as conn, await conn.execute(query, params) as r:
+        async with db() as conn, await conn.execute(query, params) as r:
             return await r.fetchall()
 
     @staticmethod
@@ -175,7 +175,7 @@ class ElementQuery:
             GROUP BY typed_id
         """).format(sequence=sequence_clause)
 
-        async with db2() as conn, await conn.execute(query, params) as r:
+        async with db() as conn, await conn.execute(query, params) as r:
             return dict(await r.fetchall())
 
     @staticmethod
@@ -216,7 +216,7 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -258,7 +258,7 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -297,7 +297,7 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             result: list[Element] = await r.fetchall()  # type: ignore
 
         # Return if not recursing or reached the limit
@@ -340,7 +340,7 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             result.extend(await r.fetchall())  # type: ignore
             return result
 
@@ -460,7 +460,7 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -503,7 +503,7 @@ class ElementQuery:
         )
         params.append(members)
 
-        async with db2() as conn, await conn.execute(query, params) as r:
+        async with db() as conn, await conn.execute(query, params) as r:
             result: dict[TypedElementId, set[TypedElementId]] = {member: set() for member in members}
             for row in await r.fetchall():
                 result[row[0]].add(row[1])
@@ -522,7 +522,7 @@ class ElementQuery:
             ORDER BY {sort_by}
         """).format(sort_by=Identifier(sort_by))
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, (changeset_id,)) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, (changeset_id,)) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -572,7 +572,7 @@ class ElementQuery:
         """).format(limit=limit_clause)
 
         # Find all matching nodes within the geometry
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             nodes: list[Element] = await r.fetchall()  # type: ignore
             if not nodes:
                 return []
@@ -658,7 +658,7 @@ class ElementQuery:
             return next_sequence_id - 1  # type: ignore
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT MAX(sequence_id) FROM element

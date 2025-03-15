@@ -3,7 +3,7 @@ from typing import Literal, overload
 
 from psycopg.rows import dict_row
 
-from app.db import db2
+from app.db import db
 from app.lib.crypto import hash_compare
 from app.models.db.user_token import (
     USER_TOKEN_EXPIRE,
@@ -49,7 +49,7 @@ class UserTokenQuery:
         check_email_hash: bool = True,
     ) -> UserToken | None:
         """Find a user token by token struct."""
-        async with db2() as conn:
+        async with db() as conn:
             async with await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM user_token

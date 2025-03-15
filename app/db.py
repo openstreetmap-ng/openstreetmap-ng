@@ -67,7 +67,7 @@ def psycopg_pool_open_decorator(func):
 
 
 @asynccontextmanager
-async def db2(write: bool = False, *, autocommit: bool = False, isolation_level: IsolationLevel | None = None):
+async def db(write: bool = False, *, autocommit: bool = False, isolation_level: IsolationLevel | None = None):
     """Get a database connection."""
     read_only = not write
     if read_only and autocommit:
@@ -86,7 +86,7 @@ async def db2(write: bool = False, *, autocommit: bool = False, isolation_level:
 
 async def db_update_stats(*, vacuum: bool = False) -> None:
     """Update the database statistics."""
-    async with db2(True, autocommit=True) as conn:
+    async with db(True, autocommit=True) as conn:
         await conn.execute('VACUUM ANALYZE' if vacuum else 'ANALYZE')
 
 

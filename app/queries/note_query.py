@@ -6,7 +6,7 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.standard_pagination import standard_pagination_range
@@ -68,7 +68,7 @@ class NoteQuery:
         if conditions:
             query = SQL('{} AND {}').format(query, SQL(' AND ').join(conditions))
 
-        async with db2() as conn, await conn.execute(query, params) as r:
+        async with db() as conn, await conn.execute(query, params) as r:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
@@ -138,7 +138,7 @@ class NoteQuery:
         """).format(query)
         params.extend((stmt_offset, stmt_limit))
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -243,7 +243,7 @@ class NoteQuery:
             limit=limit_clause,
         )
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod

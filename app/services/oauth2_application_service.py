@@ -6,7 +6,7 @@ from fastapi import UploadFile
 from pydantic import SecretStr
 from rfc3986 import uri_reference
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
@@ -44,7 +44,7 @@ class OAuth2ApplicationService:
             'client_id': client_id,
         }
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 INSERT INTO oauth2_application (
@@ -116,7 +116,7 @@ class OAuth2ApplicationService:
         """Update an OAuth2 application."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             result = await conn.execute(
                 """
                 UPDATE oauth2_application
@@ -149,7 +149,7 @@ class OAuth2ApplicationService:
         data = await avatar_file.read()
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 SELECT avatar_id, client_id
@@ -201,7 +201,7 @@ class OAuth2ApplicationService:
 
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE oauth2_application
@@ -221,7 +221,7 @@ class OAuth2ApplicationService:
         """Delete an OAuth2 application."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 DELETE FROM oauth2_application

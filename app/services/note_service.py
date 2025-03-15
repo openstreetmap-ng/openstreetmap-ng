@@ -11,7 +11,7 @@ from psycopg.sql import SQL, Composable
 from shapely import Point, lib
 from shapely.coordinates import get_coordinates
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user, auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
@@ -52,7 +52,7 @@ class NoteService:
             user_id = None
             user_ip = get_request_ip()
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             note_init: NoteInit = {
                 'point': point,
             }
@@ -125,7 +125,7 @@ class NoteService:
             FOR UPDATE
         """).format(conditions=SQL(' AND ').join(conditions))
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.cursor(row_factory=dict_row).execute(query, params) as r:
                 note: Note | None = await r.fetchone()  # type: ignore
                 if note is None:
@@ -225,7 +225,7 @@ class NoteService:
         """Find all notes without comments and delete them."""
         logging.info('Deleting notes without comments')
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             result = await conn.execute(
                 """
                 DELETE FROM note

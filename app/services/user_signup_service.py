@@ -1,6 +1,6 @@
 import logging
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_context
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
@@ -46,7 +46,7 @@ class UserSignupService:
         }
 
         async with (
-            db2(True) as conn,
+            db(True) as conn,
             await conn.execute(
                 """
                 INSERT INTO "user" (

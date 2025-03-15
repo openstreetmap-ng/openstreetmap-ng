@@ -5,7 +5,7 @@ from psycopg.sql import SQL, Composable, Identifier
 from shapely import Point
 
 from app.config import DELETED_USER_EMAIL_SUFFIX
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.user_name_blacklist import is_user_name_blacklisted
 from app.limits import NEARBY_USERS_RADIUS_METERS
@@ -21,7 +21,7 @@ class UserQuery:
     async def find_one_by_id(user_id: UserId) -> User | None:
         """Find a user by id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM "user"
@@ -36,7 +36,7 @@ class UserQuery:
     async def find_one_by_display_name(display_name: DisplayName) -> User | None:
         """Find a user by display name."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM "user"
@@ -51,7 +51,7 @@ class UserQuery:
     async def find_one_by_email(email: Email) -> User | None:
         """Find a user by email."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM "user"
@@ -69,7 +69,7 @@ class UserQuery:
             return []
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM "user"
@@ -104,7 +104,7 @@ class UserQuery:
         """).format(limit=limit_clause)
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
             return await r.fetchall()  # type: ignore
@@ -174,7 +174,7 @@ class UserQuery:
             limit=limit_clause,
         )
 
-        async with db2() as conn, await conn.execute(query, params) as r:
+        async with db() as conn, await conn.execute(query, params) as r:
             return [row[0] for row in await r.fetchall()]
 
     @staticmethod
@@ -209,7 +209,7 @@ class UserQuery:
         """).format(_USER_DISPLAY_SELECT if kind is UserDisplay else SQL('*'))
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(query, (list(id_map),)) as r,
         ):
             for row in await r.fetchall():
@@ -232,7 +232,7 @@ class UserQuery:
                 list_.append(element)
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT id, user_id FROM changeset

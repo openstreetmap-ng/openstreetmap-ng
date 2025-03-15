@@ -1,6 +1,6 @@
 import logging
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.limits import AUTH_PROVIDER_UID_MAX_LENGTH
 from app.models.db.connected_account import AuthProvider, ConnectedAccountInit
@@ -24,7 +24,7 @@ class ConnectedAccountService:
             'user_id': user_id,
         }
 
-        async with db2(write=True) as conn:
+        async with db(write=True) as conn:
             await conn.execute(
                 """
                 INSERT INTO connected_account (
@@ -44,7 +44,7 @@ class ConnectedAccountService:
         """Remove an external account connection from the current user."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(write=True) as conn:
+        async with db(write=True) as conn:
             await conn.execute(
                 """
                 DELETE FROM connected_account

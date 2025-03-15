@@ -1,6 +1,6 @@
 from shapely.geometry.multipolygon import MultiPolygon
 
-from app.db import db2
+from app.db import db
 from app.models.db.changeset import Changeset
 from app.models.types import ChangesetId
 
@@ -15,7 +15,7 @@ class ChangesetBoundsQuery:
         id_map = {changeset['id']: changeset for changeset in changesets}
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT changeset_id, ST_Collect(bounds)

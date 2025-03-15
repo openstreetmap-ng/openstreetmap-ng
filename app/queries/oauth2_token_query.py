@@ -4,7 +4,7 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL
 from pydantic import SecretStr
 
-from app.db import db2
+from app.db import db
 from app.lib.crypto import hash_bytes
 from app.models.db.oauth2_application import SYSTEM_APP_PAT_CLIENT_ID
 from app.models.db.oauth2_token import OAuth2Token
@@ -20,7 +20,7 @@ class OAuth2TokenQuery:
         access_token_hashed = hash_bytes(access_token.get_secret_value())
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM oauth2_token
@@ -57,7 +57,7 @@ class OAuth2TokenQuery:
             {limit}
         """).format(limit=limit_clause)
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -97,14 +97,14 @@ class OAuth2TokenQuery:
             {limit}
         """).format(limit=limit_clause)
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def find_unique_per_app_by_user_id(user_id: UserId) -> list[OAuth2Token]:
         """Find unique OAuth2 tokens per app for the given user."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT DISTINCT ON (application_id) * FROM oauth2_token

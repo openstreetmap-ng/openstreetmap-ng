@@ -1,7 +1,7 @@
 from psycopg.abc import Params, Query
 from psycopg.rows import dict_row
 
-from app.db import db2
+from app.db import db
 from app.lib.standard_pagination import standard_pagination_range
 from app.limits import CHANGESET_COMMENTS_PAGE_SIZE
 from app.models.db.changeset import Changeset
@@ -25,7 +25,7 @@ class ChangesetCommentQuery:
         )
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM (
@@ -51,7 +51,7 @@ class ChangesetCommentQuery:
         id_map = {changeset['id']: changeset for changeset in changesets}
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT c.value, (
@@ -104,7 +104,7 @@ class ChangesetCommentQuery:
             """
             params = (list(id_map),)
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             comments: list[ChangesetComment] = await r.fetchall()  # type: ignore
 
         current_changeset_id: ChangesetId | None = None

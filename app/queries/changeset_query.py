@@ -5,7 +5,7 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from shapely.geometry.base import BaseGeometry
 
-from app.db import db2
+from app.db import db
 from app.models.db.changeset import Changeset
 from app.models.types import ChangesetId, UserId
 
@@ -18,7 +18,7 @@ class ChangesetQuery:
             return {}
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT id, updated_at
@@ -34,7 +34,7 @@ class ChangesetQuery:
     async def count_by_user_id(user_id: UserId) -> int:
         """Count changesets by user id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT COUNT(*) FROM changeset
@@ -51,7 +51,7 @@ class ChangesetQuery:
     ) -> tuple[ChangesetId | None, ChangesetId | None]:
         """Get the user's previous and next changeset ids."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 (
@@ -85,7 +85,7 @@ class ChangesetQuery:
     async def find_by_id(changeset_id: ChangesetId) -> Changeset | None:
         """Find a changeset by id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT *
@@ -178,7 +178,7 @@ class ChangesetQuery:
         )
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
             return await r.fetchall()  # type: ignore
@@ -187,7 +187,7 @@ class ChangesetQuery:
     async def count_per_day_by_user_id(user_id: UserId, created_since: datetime) -> dict[datetime, int]:
         """Count changesets per day by user id since given date."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT DATE_TRUNC('day', created_at) AS day, COUNT(id)

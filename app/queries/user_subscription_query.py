@@ -1,6 +1,6 @@
 from psycopg.rows import dict_row
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscriptionTarget
@@ -19,7 +19,7 @@ class UserSubscriptionQuery:
             return False
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT 1 FROM user_subscription
@@ -35,7 +35,7 @@ class UserSubscriptionQuery:
     async def get_subscribed_users(target: UserSubscriptionTarget, target_id: UserSubscriptionTargetId) -> list[User]:
         """Get users subscribed to the target."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT "user".* FROM "user"

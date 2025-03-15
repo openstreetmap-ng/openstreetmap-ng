@@ -5,7 +5,7 @@ from typing import cast
 
 import cython
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
@@ -35,7 +35,7 @@ class ChangesetCommentService:
             'body': text,
         }
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 SELECT 1 FROM changeset
@@ -83,7 +83,7 @@ class ChangesetCommentService:
     async def delete_comment_unsafe(comment_id: ChangesetCommentId) -> ChangesetId:
         """Delete any changeset comment. Returns the parent changeset id."""
         async with (
-            db2(True) as conn,
+            db(True) as conn,
             await conn.execute(
                 """
                 DELETE FROM changeset_comment

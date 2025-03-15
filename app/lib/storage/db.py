@@ -1,6 +1,6 @@
 from typing import override
 
-from app.db import db2
+from app.db import db
 from app.lib.buffered_random import buffered_rand_storage_key
 from app.lib.storage.base import StorageBase
 from app.models.types import StorageKey
@@ -18,7 +18,7 @@ class DBStorage(StorageBase):
     @override
     async def load(self, key: StorageKey) -> bytes:
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT data FROM files
@@ -36,7 +36,7 @@ class DBStorage(StorageBase):
     async def save(self, data: bytes, suffix: str, metadata: dict[str, str] | None = None) -> StorageKey:
         key = buffered_rand_storage_key(suffix)
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 INSERT INTO files (context, key, data, metadata)
@@ -49,7 +49,7 @@ class DBStorage(StorageBase):
 
     @override
     async def delete(self, key: StorageKey) -> None:
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 DELETE FROM files

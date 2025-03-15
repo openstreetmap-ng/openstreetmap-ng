@@ -4,7 +4,7 @@ from typing import Any
 import cython
 from psycopg.sql import SQL, Composable
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.limits import USER_PREF_BULK_SET_LIMIT
@@ -42,7 +42,7 @@ class UserPrefService:
                 value = EXCLUDED.value
         """).format(SQL(',').join(values))
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(query, params)
 
     @staticmethod
@@ -50,7 +50,7 @@ class UserPrefService:
         """Delete a user preference by app id and key."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             logging.debug('Deleting user pref %r for app %r', key, app_id)
             await conn.execute(
                 """
@@ -67,7 +67,7 @@ class UserPrefService:
         """Delete all user preferences by app id."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             logging.debug('Deleting user prefs for app %r', app_id)
             await conn.execute(
                 """

@@ -16,7 +16,7 @@ from shapely import (
     get_parts,
 )
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user_scopes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
@@ -36,7 +36,7 @@ class TraceQuery:
         Raises if the trace is not visible to the current user.
         """
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM trace
@@ -79,7 +79,7 @@ class TraceQuery:
         if user is None or user['id'] != user_id or 'read_gpx' not in scopes:
             query = SQL("{} AND visibility IN ('identifiable', 'public')").format(query)
 
-        async with db2() as conn, await conn.execute(query, (user_id,)) as r:
+        async with db() as conn, await conn.execute(query, (user_id,)) as r:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
@@ -141,7 +141,7 @@ class TraceQuery:
                 ORDER BY id DESC
             """).format(query)
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -179,7 +179,7 @@ class TraceQuery:
         )
         params.append(limit)
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             traces: list[Trace] = await r.fetchall()  # type: ignore
         if not traces:
             return []
@@ -274,7 +274,7 @@ class TraceQuery:
             """).format(where=where_clause)
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(query, params) as r,
         ):
             trace_id: TraceId

@@ -8,7 +8,7 @@ from psycopg import AsyncConnection
 from psycopg.sql import SQL, Identifier
 
 from app.config import TEST_ENV
-from app.db import db2
+from app.db import db
 from app.lib.crypto import hash_bytes
 
 
@@ -25,7 +25,7 @@ class MigrationService:
     @staticmethod
     async def fix_sequence_counters() -> None:
         """Fix the sequence counters."""
-        async with db2(True, autocommit=True) as conn:
+        async with db(True, autocommit=True) as conn:
             # For each table, get the correct sequence name and then set its value
             async with await conn.execute("""
                 SELECT
@@ -54,7 +54,7 @@ class MigrationService:
     @staticmethod
     async def fix_next_sequence_id() -> None:
         """Fix the element's next_sequence_id field."""
-        async with db2(True, autocommit=True) as conn:
+        async with db(True, autocommit=True) as conn:
             await conn.execute("""
                 WITH next_version AS (
                     SELECT
@@ -84,7 +84,7 @@ class MigrationService:
         any pending migrations in sequential order, identified by files
         named with PEP 440 versions (e.g., 0.sql, 1.sql, 2.sql).
         """
-        async with db2(True) as conn:
+        async with db(True) as conn:
             # Acquire blocking exclusive lock
             await conn.execute('SELECT pg_advisory_xact_lock(4708896507819139515::bigint)')
             await _ensure_db_table(conn)

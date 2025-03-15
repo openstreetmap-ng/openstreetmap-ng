@@ -5,7 +5,7 @@ from typing import NamedTuple
 from pydantic import SecretStr
 
 from app.config import NAME
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
@@ -105,7 +105,7 @@ class SystemAppService:
             'code_challenge': None,
         }
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 INSERT INTO oauth2_token (
@@ -139,7 +139,7 @@ async def _register_app(app: SystemApp) -> None:
     }
 
     async with (
-        db2(True) as conn,
+        db(True) as conn,
         await conn.execute(
             """
             INSERT INTO oauth2_application (

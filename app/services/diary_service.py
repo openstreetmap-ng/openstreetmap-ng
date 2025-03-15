@@ -4,7 +4,7 @@ from typing import Any
 from psycopg.sql import SQL, Composable
 from shapely import Point
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.diary import DiaryInit
@@ -37,7 +37,7 @@ class DiaryService:
         }
 
         async with (
-            db2(True) as conn,
+            db(True) as conn,
             await conn.execute(
                 """
                 INSERT INTO diary (
@@ -69,7 +69,7 @@ class DiaryService:
         """Update a diary entry."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             result = await conn.execute(
                 """
                 UPDATE diary
@@ -114,5 +114,5 @@ class DiaryService:
             WHERE {conditions}
         """).format(conditions=SQL(' AND ').join(conditions))
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(query, params)

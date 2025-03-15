@@ -12,7 +12,7 @@ from sentry_sdk import start_transaction
 from starlette import status
 
 from app.config import SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR, TEST_ENV
-from app.db import db2
+from app.db import db
 from app.lib.retry import retry
 from app.lib.testmethod import testmethod
 
@@ -38,7 +38,7 @@ class RateLimitService:
         """
         quota_per_second = quota / _QUOTA_WINDOW_SECONDS
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             # Uses a leaky bucket algorithm where the usage decreases over time.
             async with await conn.execute(
                 """
@@ -108,7 +108,7 @@ class RateLimitService:
 @retry(None)
 async def _process_task() -> None:
     while True:
-        async with db2(True) as conn:
+        async with db(True) as conn:
             # Lock is just a random unique number
             async with await conn.execute('SELECT pg_try_advisory_xact_lock(8569304793767999080::bigint)') as r:
                 acquired: bool = (await r.fetchone())[0]  # type: ignore

@@ -7,7 +7,7 @@ from shlex import quote
 from psycopg.sql import SQL, Identifier
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
-from app.db import db2, db_update_stats, psycopg_pool_open_decorator
+from app.db import db, db_update_stats, psycopg_pool_open_decorator
 from app.services.migration_service import MigrationService
 
 _NUM_COPY_WORKERS = min(os.process_cpu_count() or 1, 8)
@@ -27,12 +27,12 @@ def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
 
 
 async def _index_task(sql: str) -> None:
-    async with db2(True, autocommit=True) as conn:
+    async with db(True, autocommit=True) as conn:
         await conn.execute(sql)  # type: ignore
 
 
 async def _load_table(table: str, tg: TaskGroup) -> None:
-    async with db2(True, autocommit=True) as conn:
+    async with db(True, autocommit=True) as conn:
         # drop indexes that are not used by any constraint
         cursor = await conn.execute(
             """
@@ -96,7 +96,7 @@ async def _load_table(table: str, tg: TaskGroup) -> None:
 async def _load_tables() -> None:
     tables = ('user', 'changeset', 'element')
 
-    async with db2(True, autocommit=True) as conn:
+    async with db(True, autocommit=True) as conn:
         print('Truncating tables')
         await conn.execute(SQL('TRUNCATE {} RESTART IDENTITY CASCADE').format(SQL(',').join(map(Identifier, tables))))
 
@@ -107,7 +107,7 @@ async def _load_tables() -> None:
 
 @psycopg_pool_open_decorator
 async def main() -> None:
-    async with db2() as conn:
+    async with db() as conn:
         cursor = await conn.execute('SELECT 1 FROM element ORDER BY sequence_id LIMIT 1')
         exists = await cursor.fetchone() is not None
 

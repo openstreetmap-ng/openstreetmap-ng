@@ -10,7 +10,7 @@ from psycopg import AsyncConnection
 from sentry_sdk.api import start_transaction
 
 from app.config import SENTRY_CHANGESET_MANAGEMENT_MONITOR, TEST_ENV
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
@@ -36,7 +36,7 @@ class ChangesetService:
         }
 
         async with (
-            db2(True) as conn,
+            db(True) as conn,
             await conn.execute(
                 """
                 INSERT INTO changeset (
@@ -61,7 +61,7 @@ class ChangesetService:
         """Update changeset tags."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 SELECT user_id, closed_at
@@ -100,7 +100,7 @@ class ChangesetService:
         """Close a changeset."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 SELECT user_id, closed_at
@@ -159,7 +159,7 @@ class ChangesetService:
 @retry(None)
 async def _process_task() -> None:
     while True:
-        async with db2(True) as conn:
+        async with db(True) as conn:
             # Lock is just a random unique number
             async with await conn.execute('SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)') as r:
                 acquired: bool = (await r.fetchone())[0]  # type: ignore

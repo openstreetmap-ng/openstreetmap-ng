@@ -4,7 +4,7 @@ from datetime import datetime
 from ipaddress import IPv4Address
 
 from app.config import TEST_USER_EMAIL_SUFFIX
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_context
 from app.lib.crypto import hash_bytes
 from app.lib.locale import DEFAULT_LOCALE
@@ -79,7 +79,7 @@ class TestService:
         }
         assert user_is_test(user_init), 'Test service must only create test users'
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 INSERT INTO "user" (
@@ -133,7 +133,7 @@ class TestService:
             Uri('urn:ietf:wg:oauth:2.0:oob'),
         ]
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 INSERT INTO oauth2_application (

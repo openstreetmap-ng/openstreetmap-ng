@@ -11,7 +11,7 @@ from sqlalchemy.orm import DeclarativeBase
 from zstandard import ZstdDecompressor
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
-from app.db import db2, db_update_stats, psycopg_pool_open_decorator
+from app.db import db, db_update_stats, psycopg_pool_open_decorator
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
@@ -38,14 +38,14 @@ def _get_csv_header(path: Path) -> str:
 
 
 async def _index_task(sql: str) -> None:
-    async with db2(True, autocommit=True) as conn:
+    async with db(True, autocommit=True) as conn:
         await conn.execute(sql)  # type: ignore
 
 
 async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
     table_name = table.__tablename__
 
-    async with db2(True, autocommit=True) as conn:
+    async with db(True, autocommit=True) as conn:
         # drop indexes that are not used by any constraint
         cursor = await conn.execute(
             """
@@ -100,7 +100,7 @@ async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
 async def _load_tables() -> None:
     tables = (User, Changeset, Element, ElementMember, Note, NoteComment)
 
-    async with db2(True, autocommit=True) as conn:
+    async with db(True, autocommit=True) as conn:
         print('Truncating tables')
         await conn.execute(
             SQL('TRUNCATE {tables} RESTART IDENTITY CASCADE').format(
@@ -115,7 +115,7 @@ async def _load_tables() -> None:
 
 @psycopg_pool_open_decorator
 async def main() -> None:
-    async with db2() as conn:
+    async with db() as conn:
         cursor = await conn.execute('SELECT 1 FROM element ORDER BY sequence_id LIMIT 1')
         exists = await cursor.fetchone() is not None
 

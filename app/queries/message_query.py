@@ -4,7 +4,7 @@ import cython
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.message import Message
@@ -24,7 +24,7 @@ class MessageQuery:
         user_id = auth_user(required=True)['id']
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM message
@@ -89,7 +89,7 @@ class MessageQuery:
                 ORDER BY id DESC
             """).format(query)
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -98,7 +98,7 @@ class MessageQuery:
         user_id = auth_user(required=True)['id']
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT COUNT(*) FROM message
@@ -115,7 +115,7 @@ class MessageQuery:
     async def count_by_user_id(user_id: UserId) -> _MessageCountByUserResult:
         """Count received messages by user id."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT COUNT(*) FROM message

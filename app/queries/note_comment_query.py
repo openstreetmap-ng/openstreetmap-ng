@@ -5,7 +5,7 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from shapely.geometry.base import BaseGeometry
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.standard_pagination import standard_pagination_range
 from app.limits import NOTE_COMMENTS_PAGE_SIZE
@@ -51,7 +51,7 @@ class NoteCommentQuery:
             limit=limit_clause,
         )
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -73,7 +73,7 @@ class NoteCommentQuery:
         )
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM (
@@ -105,7 +105,7 @@ class NoteCommentQuery:
         id_map = {note['id']: note for note in notes}
 
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.execute(
                 """
                 SELECT c.value, (
@@ -158,7 +158,7 @@ class NoteCommentQuery:
             """
             params = (list(id_map),)
 
-        async with db2() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
             comments: list[NoteComment] = await r.fetchall()  # type: ignore
 
         current_note_id: NoteId | None = None

@@ -1,6 +1,6 @@
 import logging
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.types import UserSubscriptionTargetId
@@ -12,7 +12,7 @@ class UserSubscriptionService:
         """Subscribe the user to the target."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 INSERT INTO user_subscription (user_id, target, target_id)
@@ -29,7 +29,7 @@ class UserSubscriptionService:
         """Unsubscribe the user from the target."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 DELETE FROM user_subscription

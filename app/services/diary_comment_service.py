@@ -5,7 +5,7 @@ from typing import Any, cast
 
 from psycopg.sql import SQL, Composable
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
@@ -31,7 +31,7 @@ class DiaryCommentService:
             'body': body,
         }
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 SELECT id FROM diary
@@ -91,7 +91,7 @@ class DiaryCommentService:
             WHERE {conditions}
         """).format(conditions=SQL(' AND ').join(conditions))
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(query, params)
 
 

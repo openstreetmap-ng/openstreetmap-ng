@@ -6,7 +6,7 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
 
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes, hash_compare, hash_s256_code_challenge
@@ -131,7 +131,7 @@ class OAuth2TokenService:
             'code_challenge': code_challenge,
         }
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 INSERT INTO oauth2_token (
@@ -184,7 +184,7 @@ class OAuth2TokenService:
 
         authorization_code_hashed = hash_bytes(authorization_code)
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM oauth2_token
@@ -276,7 +276,7 @@ class OAuth2TokenService:
         }
 
         async with (
-            db2(True) as conn,
+            db(True) as conn,
             await conn.execute(
                 """
                 INSERT INTO oauth2_token (
@@ -307,7 +307,7 @@ class OAuth2TokenService:
         del access_token_
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE oauth2_token
@@ -334,7 +334,7 @@ class OAuth2TokenService:
         """Revoke the given token by id."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 DELETE FROM oauth2_token
@@ -350,7 +350,7 @@ class OAuth2TokenService:
         """Revoke the given access token."""
         access_token_hashed = hash_bytes(access_token.get_secret_value())
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 DELETE FROM oauth2_token
@@ -384,7 +384,7 @@ class OAuth2TokenService:
             WHERE {conditions}
         """).format(conditions=SQL(' AND ').join(conditions))
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(query, params)
 
         logging.debug('Revoked OAuth2 app tokens %d for user %d', app_id, user_id)
@@ -398,7 +398,7 @@ class OAuth2TokenService:
     ) -> None:
         """Revoke all current user tokens for the given OAuth2 client."""
         async with (
-            db2() as conn,
+            db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT id FROM oauth2_application

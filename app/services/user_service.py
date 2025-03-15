@@ -4,7 +4,7 @@ from fastapi import UploadFile
 from pydantic import SecretStr
 
 from app.config import FREEZE_TEST_USER
-from app.db import db2
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.image import AvatarType, Image
@@ -77,7 +77,7 @@ class UserService:
         user = auth_user(required=True)
         user_id = user['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE "user"
@@ -98,7 +98,7 @@ class UserService:
         data = await avatar_file.read()
         avatar_id = await ImageService.upload_avatar(data) if data and avatar_type == 'custom' else None
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE "user"
@@ -132,7 +132,7 @@ class UserService:
         data = await background_file.read()
         background_id = await ImageService.upload_background(data) if data else None
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE "user"
@@ -167,7 +167,7 @@ class UserService:
         if user_is_test(user) and FREEZE_TEST_USER and display_name != user['display_name']:
             StandardFeedback.raise_error('display_name', 'Changing test user display_name is disabled')
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE "user"
@@ -187,7 +187,7 @@ class UserService:
         """Update default editor"""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE "user"
@@ -253,7 +253,7 @@ class UserService:
         new_password_pb = PasswordHash.hash(new_password)
         assert new_password_pb is not None, 'Provided password schemas cannot be used during update_password'
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE "user"
@@ -289,7 +289,7 @@ class UserService:
         if revoke_other_sessions:
             await OAuth2TokenService.revoke_by_client_id(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 SELECT 1 FROM user_token
@@ -326,7 +326,7 @@ class UserService:
         """Update the user timezone."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             result = await conn.execute(
                 """
                 UPDATE "user"
@@ -345,7 +345,7 @@ class UserService:
         """Request a scheduled deletion of the user."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE "user"
@@ -360,7 +360,7 @@ class UserService:
         """Abort a scheduled deletion of the user."""
         user_id = auth_user(required=True)['id']
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE "user"
@@ -375,7 +375,7 @@ class UserService:
         """Find old pending users and delete them."""
         logging.debug('Deleting old pending users')
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 DELETE FROM "user"
@@ -394,7 +394,7 @@ async def _rehash_user_password(user: User, password: Password) -> None:
     if new_password_pb is None:
         return
 
-    async with db2(True) as conn:
+    async with db(True) as conn:
         result = await conn.execute(
             """
             UPDATE "user"

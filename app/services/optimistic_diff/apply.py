@@ -5,7 +5,7 @@ from io import BytesIO
 import cython
 from psycopg import AsyncConnection
 
-from app.db import db2
+from app.db import db
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.date_utils import utcnow
 from app.models.db.changeset import Changeset
@@ -33,7 +33,7 @@ class OptimisticDiffApply:
         if not prepare.apply_elements:
             return {}
 
-        async with db2(True) as conn:
+        async with db(True) as conn:
             # Lock the tables to avoid concurrent updates.
             # Then perform all the updates at once.
             await conn.execute('LOCK TABLE changeset, changeset_bounds, element IN EXCLUSIVE MODE')

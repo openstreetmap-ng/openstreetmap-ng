@@ -18,7 +18,7 @@ from markdown_it.utils import EnvType, OptionsDict
 from psycopg.sql import SQL, Identifier
 
 from app.config import TRUSTED_HOSTS
-from app.db import db2
+from app.db import db
 from app.lib.crypto import hash_bytes
 from app.limits import RICH_TEXT_CACHE_EXPIRE
 from app.services.cache_service import CacheContext, CacheService
@@ -117,7 +117,7 @@ async def resolve_rich_text(
     if not to_update:
         return
 
-    async with db2(True, autocommit=True) as conn:
+    async with db(True, autocommit=True) as conn:
         await conn.execute(
             SQL("""
                 UPDATE {table} SET {field} = v.new_hash
