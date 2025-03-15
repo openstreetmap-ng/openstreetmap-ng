@@ -2,8 +2,7 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import NoReturn
 
-from app.models.db.changeset import ChangesetId
-from app.models.db.changeset_comment import ChangesetCommentId
+from app.models.types import ChangesetCommentId, ChangesetId
 
 
 class ChangesetExceptionsMixin:

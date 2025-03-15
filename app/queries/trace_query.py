@@ -24,9 +24,8 @@ from app.lib.geo_utils import polygon_to_h3
 from app.lib.mercator import mercator
 from app.lib.storage import TRACE_STORAGE
 from app.lib.trace_file import TraceFile
-from app.models.db.trace import Trace, TraceId, TraceVisibility, trace_is_visible_to
-from app.models.db.user import UserId
-from app.models.types import StorageKey
+from app.models.db.trace import Trace, TraceVisibility, trace_is_visible_to
+from app.models.types import StorageKey, TraceId, UserId
 
 
 class TraceQuery:

@@ -5,8 +5,9 @@ from fastapi import APIRouter, Form, UploadFile
 from app.exceptions.api_error import APIError
 from app.lib.auth_context import web_user
 from app.lib.standard_feedback import StandardFeedback
-from app.models.db.trace import TraceId, TraceVisibility
+from app.models.db.trace import TraceVisibility
 from app.models.db.user import User
+from app.models.types import TraceId
 from app.services.trace_service import TraceService
 
 router = APIRouter(prefix='/api/web/traces')

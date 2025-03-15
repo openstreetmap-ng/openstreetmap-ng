@@ -17,16 +17,15 @@ from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
 from app.limits import GEO_COORDINATE_PRECISION
 from app.middlewares.request_context_middleware import get_request_ip
-from app.models.db.note import Note, NoteId, NoteInit
+from app.models.db.note import Note, NoteInit
 from app.models.db.note_comment import (
     NoteComment,
-    NoteCommentId,
     NoteCommentInit,
     NoteEvent,
     note_comments_resolve_rich_text,
 )
 from app.models.db.user import UserDisplay, user_is_moderator
-from app.models.types import DisplayName
+from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery

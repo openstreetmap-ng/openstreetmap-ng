@@ -7,9 +7,8 @@ from shapely import Point
 from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.models.db.diary import DiaryId, DiaryInit
-from app.models.db.user import UserId
-from app.models.types import LocaleCode
+from app.models.db.diary import DiaryInit
+from app.models.types import DiaryId, LocaleCode, UserId
 from app.services.user_subscription_service import UserSubscriptionService
 
 

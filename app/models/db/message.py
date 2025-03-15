@@ -1,15 +1,14 @@
 import logging
 from datetime import datetime
 from email.message import EmailMessage, MIMEPart
-from typing import NewType, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
 import cython
 from bs4 import BeautifulSoup
 
 from app.lib.rich_text import resolve_rich_text
-from app.models.db.user import UserDisplay, UserId
-
-MessageId = NewType('MessageId', int)
+from app.models.db.user import UserDisplay
+from app.models.types import MessageId, UserId
 
 
 class MessageInit(TypedDict):

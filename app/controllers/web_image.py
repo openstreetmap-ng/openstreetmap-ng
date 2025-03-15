@@ -3,8 +3,7 @@ from typing import Annotated
 import magic
 from fastapi import APIRouter, Path, Response
 
-from app.models.db.user import UserId
-from app.models.types import StorageKey
+from app.models.types import StorageKey, UserId
 from app.queries.image_query import ImageQuery
 
 router = APIRouter(prefix='/api/web')

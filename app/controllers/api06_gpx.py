@@ -11,8 +11,9 @@ from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.lib.xml_body import xml_body
 from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
-from app.models.db.trace import TraceId, TraceVisibility
+from app.models.db.trace import TraceVisibility
 from app.models.db.user import User
+from app.models.types import TraceId
 from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
 from app.responses.osm_response import GPXResponse

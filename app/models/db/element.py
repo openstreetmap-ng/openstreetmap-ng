@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Literal, NewType, NotRequired, TypedDict
+from typing import Annotated, Literal, NotRequired, TypedDict
 
 import cython
 import numpy as np
@@ -9,15 +9,13 @@ from shapely import Point
 
 from app.config import PYDANTIC_CONFIG
 from app.limits import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT, TAGS_KEY_MAX_LENGTH
-from app.models.db.changeset import ChangesetId
-from app.models.db.user import UserDisplay, UserId
+from app.models.db.user import UserDisplay
 from app.models.element import TYPED_ELEMENT_ID_NODE_MAX, TypedElementId, split_typed_element_id
+from app.models.types import ChangesetId, SequenceId, UserId
 from app.validators.geometry import GeometryValidator
 from app.validators.tags import TagsValidating
 from app.validators.unicode import UnicodeValidator
 from app.validators.xml import XMLSafeValidator
-
-SequenceId = NewType('SequenceId', int)
 
 
 class ElementInit(TypedDict):

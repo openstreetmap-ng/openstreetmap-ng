@@ -4,10 +4,7 @@ from typing import NoReturn
 from starlette import status
 
 from app.exceptions.api_error import APIError
-from app.models.db.oauth2_application import ApplicationId
-from app.models.db.user import UserId
-from app.models.db.user_pref import UserPrefKey
-from app.models.types import DisplayName
+from app.models.types import ApplicationId, DisplayName, UserId, UserPrefKey
 
 
 class UserExceptionsMixin:

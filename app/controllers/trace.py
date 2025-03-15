@@ -9,8 +9,8 @@ from starlette.responses import RedirectResponse
 from app.config import API_URL
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
-from app.models.db.trace import TraceId
 from app.models.db.user import User
+from app.models.types import TraceId
 from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
 

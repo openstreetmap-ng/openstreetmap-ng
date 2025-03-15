@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal, NewType, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 from shapely import Point
+
+from app.models.types import NoteId
 
 if TYPE_CHECKING:
     from app.models.db.note_comment import NoteComment
@@ -10,7 +12,6 @@ if TYPE_CHECKING:
 # TODO: ensure updated at on members
 # TODO: pruner
 
-NoteId = NewType('NoteId', int)
 NoteStatus = Literal['open', 'closed', 'hidden']
 
 

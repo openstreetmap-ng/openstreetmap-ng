@@ -19,8 +19,9 @@ from app.limits import (
     NOMINATIM_SEARCH_CACHE_EXPIRE,
     NOMINATIM_SEARCH_HTTP_TIMEOUT,
 )
-from app.models.db.element import Element, SequenceId
+from app.models.db.element import Element
 from app.models.element import ElementId, ElementType, TypedElementId, typed_element_id
+from app.models.types import SequenceId
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP

@@ -1,11 +1,9 @@
 from datetime import datetime
-from typing import NewType, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
 from app.lib.rich_text import resolve_rich_text
-from app.models.db.changeset import ChangesetId
-from app.models.db.user import UserDisplay, UserId
-
-ChangesetCommentId = NewType('ChangesetCommentId', int)
+from app.models.db.user import UserDisplay
+from app.models.types import ChangesetCommentId, ChangesetId, UserId
 
 
 class ChangesetCommentInit(TypedDict):

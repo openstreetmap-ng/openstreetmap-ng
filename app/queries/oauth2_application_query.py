@@ -3,10 +3,9 @@ from collections import defaultdict
 from psycopg.rows import dict_row
 
 from app.db import db2
-from app.models.db.oauth2_application import ApplicationId, OAuth2Application
+from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
-from app.models.db.user import UserId
-from app.models.types import ClientId
+from app.models.types import ApplicationId, ClientId, UserId
 
 
 class OAuth2ApplicationQuery:

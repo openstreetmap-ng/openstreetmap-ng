@@ -1,9 +1,9 @@
 from datetime import datetime
-from typing import Literal, NewType, NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
-from app.models.db.user import User, UserId
+from app.models.db.user import User
+from app.models.types import MailId, UserId
 
-MailId = NewType('MailId', int)
 MailSource = Literal['message', 'diary_comment'] | None  # None: for system/no source
 
 

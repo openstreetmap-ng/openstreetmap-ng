@@ -6,8 +6,8 @@ from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import primary_translation_locale, t
 from app.middlewares.request_context_middleware import get_request_ip
-from app.models.db.user import UserId, UserInit
-from app.models.types import DisplayName, Email, Password
+from app.models.db.user import UserInit
+from app.models.types import DisplayName, Email, Password, UserId
 from app.queries.user_query import UserQuery
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 from app.validators.email import validate_email_deliverability

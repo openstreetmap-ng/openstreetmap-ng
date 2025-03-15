@@ -9,10 +9,9 @@ from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.user_name_blacklist import is_user_name_blacklisted
 from app.limits import NEARBY_USERS_RADIUS_METERS
-from app.models.db.changeset import ChangesetId
 from app.models.db.element import Element
-from app.models.db.user import User, UserDisplay, UserId
-from app.models.types import DisplayName, Email
+from app.models.db.user import User, UserDisplay
+from app.models.types import ChangesetId, DisplayName, Email, UserId
 
 _USER_DISPLAY_SELECT = SQL(',').join([Identifier(k) for k in UserDisplay.__annotations__])
 

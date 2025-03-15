@@ -6,9 +6,9 @@ from fastapi import APIRouter, Form, Response
 
 from app.lib.auth_context import web_user
 from app.limits import MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH
-from app.models.db.message import MessageId, messages_resolve_rich_text
-from app.models.db.user import User, UserId, user_avatar_url
-from app.models.types import DisplayName
+from app.models.db.message import messages_resolve_rich_text
+from app.models.db.user import User, user_avatar_url
+from app.models.types import DisplayName, MessageId, UserId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
 from app.services.message_service import MessageService

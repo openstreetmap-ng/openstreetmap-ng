@@ -17,11 +17,8 @@ from app.limits import (
     MESSAGE_SUBJECT_MAX_LENGTH,
     MESSAGES_INBOX_PAGE_SIZE,
 )
-from app.models.db.diary import DiaryId
-from app.models.db.diary_comment import DiaryCommentId
-from app.models.db.message import MessageId
-from app.models.db.user import User, UserId
-from app.models.types import DisplayName
+from app.models.db.user import User
+from app.models.types import DiaryCommentId, DiaryId, DisplayName, MessageId, UserId
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.message_query import MessageQuery

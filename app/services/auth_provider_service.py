@@ -14,10 +14,11 @@ from app.lib.crypto import hash_compare, hmac_bytes
 from app.lib.render_response import render_response
 from app.limits import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_MAX_AGE, COOKIE_AUTH_MAX_AGE
 from app.models.db.connected_account import AUTH_PROVIDERS, AuthProvider, AuthProviderAction
+from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.services.connected_account_service import ConnectedAccountService
-from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID, SystemAppService
+from app.services.system_app_service import SystemAppService
 from app.utils import extend_query_params, secure_referer
 
 

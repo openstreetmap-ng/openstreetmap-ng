@@ -9,9 +9,8 @@ from app.lib.geo_utils import try_parse_point
 from app.lib.search import Search
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
-from app.models.db.element import SequenceId
 from app.models.proto.shared_pb2 import RoutingResult, SharedBounds
-from app.models.types import Latitude, Longitude
+from app.models.types import Latitude, Longitude, SequenceId
 from app.queries.element_query import ElementQuery
 from app.queries.graphhopper_query import GraphHopperProfiles, GraphHopperQuery
 from app.queries.nominatim_query import NominatimQuery

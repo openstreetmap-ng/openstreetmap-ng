@@ -6,8 +6,7 @@ from starlette import status
 from app.exceptions.api_error import APIError
 from app.exceptions.changeset_mixin import ChangesetExceptionsMixin
 from app.lib.date_utils import legacy_date
-from app.models.db.changeset import ChangesetId
-from app.models.db.changeset_comment import ChangesetCommentId
+from app.models.types import ChangesetCommentId, ChangesetId
 
 
 class ChangesetExceptions06Mixin(ChangesetExceptionsMixin):

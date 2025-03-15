@@ -1,16 +1,15 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal, NewType, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 from shapely import MultiPolygon, Polygon
 
 from app.lib.auth_context import auth_user
 from app.lib.user_role_limits import UserRoleLimits
-from app.models.db.user import UserDisplay, UserId
+from app.models.db.user import UserDisplay
+from app.models.types import ChangesetId, UserId
 
 if TYPE_CHECKING:
     from app.models.db.changeset_comment import ChangesetComment
-
-ChangesetId = NewType('ChangesetId', int)
 
 
 class ChangesetInit(TypedDict):

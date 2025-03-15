@@ -9,9 +9,9 @@ from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
-from app.models.db.diary import DiaryId
-from app.models.db.diary_comment import DiaryComment, DiaryCommentId, DiaryCommentInit, diary_comments_resolve_rich_text
-from app.models.db.user import UserDisplay, UserId
+from app.models.db.diary_comment import DiaryComment, DiaryCommentInit, diary_comments_resolve_rich_text
+from app.models.db.user import UserDisplay
+from app.models.types import DiaryCommentId, DiaryId, UserId
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService

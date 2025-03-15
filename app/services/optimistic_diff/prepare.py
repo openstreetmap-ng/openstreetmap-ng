@@ -12,7 +12,7 @@ from app.lib.auth_context import auth_user
 from app.lib.changeset_bounds import extend_changeset_bounds
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset, changeset_set_size
-from app.models.db.element import Element, ElementInit, SequenceId
+from app.models.db.element import Element, ElementInit
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -24,6 +24,7 @@ from app.models.element import (
     split_typed_element_ids,
     split_typed_element_ids2,
 )
+from app.models.types import SequenceId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery

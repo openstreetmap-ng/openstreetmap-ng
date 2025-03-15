@@ -15,10 +15,9 @@ from app.limits import (
     DIARY_TITLE_MAX_LENGTH,
     LOCALE_CODE_MAX_LENGTH,
 )
-from app.models.db.diary import DiaryId
 from app.models.db.diary_comment import diary_comments_resolve_rich_text
 from app.models.db.user import User
-from app.models.types import Latitude, LocaleCode, Longitude
+from app.models.types import DiaryId, Latitude, LocaleCode, Longitude
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.user_query import UserQuery
 from app.services.diary_comment_service import DiaryCommentService

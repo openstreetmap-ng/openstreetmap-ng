@@ -1,17 +1,15 @@
 from datetime import datetime
-from typing import NewType, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
 from app.lib.image import DEFAULT_APP_AVATAR_URL, Image
-from app.models.db.user import UserDisplay, UserId
+from app.models.db.user import UserDisplay
 from app.models.scope import PublicScope
-from app.models.types import ClientId, StorageKey, Uri
-from app.services.system_app_service import (
-    SYSTEM_APP_ID_CLIENT_ID,
-    SYSTEM_APP_RAPID_CLIENT_ID,
-    SYSTEM_APP_WEB_CLIENT_ID,
-)
+from app.models.types import ApplicationId, ClientId, StorageKey, Uri, UserId
 
-ApplicationId = NewType('ApplicationId', int)
+SYSTEM_APP_WEB_CLIENT_ID = ClientId('SystemApp.web')
+SYSTEM_APP_PAT_CLIENT_ID = ClientId('SystemApp.pat')
+SYSTEM_APP_ID_CLIENT_ID = ClientId('SystemApp.id')
+SYSTEM_APP_RAPID_CLIENT_ID = ClientId('SystemApp.rapid')
 
 _CLIENT_ID_AVATAR_URL_MAP: dict[ClientId, str] = {
     SYSTEM_APP_WEB_CLIENT_ID: '/static/img/favicon/256-app.webp',

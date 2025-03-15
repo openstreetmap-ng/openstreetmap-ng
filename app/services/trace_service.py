@@ -14,7 +14,6 @@ from app.lib.trace_file import TraceFile
 from app.lib.xmltodict import XMLToDict
 from app.limits import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.models.db.trace import (
-    TraceId,
     TraceInit,
     TraceInitValidator,
     TraceMetaInit,
@@ -22,7 +21,7 @@ from app.models.db.trace import (
     TraceVisibility,
     trace_tags_from_str,
 )
-from app.models.types import StorageKey
+from app.models.types import StorageKey, TraceId
 
 
 class TraceService:

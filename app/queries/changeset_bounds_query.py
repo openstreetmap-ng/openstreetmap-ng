@@ -1,7 +1,8 @@
 from shapely.geometry.multipolygon import MultiPolygon
 
 from app.db import db2
-from app.models.db.changeset import Changeset, ChangesetId
+from app.models.db.changeset import Changeset
+from app.models.types import ChangesetId
 
 
 class ChangesetBoundsQuery:

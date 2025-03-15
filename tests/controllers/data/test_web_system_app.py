@@ -1,12 +1,12 @@
 from httpx import AsyncClient, Response
 from starlette import status
 
-from app.models.types import ClientId
-from app.services.system_app_service import (
+from app.models.db.oauth2_application import (
     SYSTEM_APP_ID_CLIENT_ID,
     SYSTEM_APP_RAPID_CLIENT_ID,
     SYSTEM_APP_WEB_CLIENT_ID,
 )
+from app.models.types import ClientId
 
 
 async def test_create_access_token(client: AsyncClient):

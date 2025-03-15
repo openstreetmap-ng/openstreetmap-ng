@@ -8,10 +8,9 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
 from app.db import db2
-from app.models.db.diary import Diary, DiaryId
+from app.models.db.diary import Diary
 from app.models.db.diary_comment import DiaryComment
-from app.models.db.user import UserId
-from app.models.types import LocaleCode
+from app.models.types import DiaryId, LocaleCode, UserId
 from app.queries.nominatim_query import NominatimQuery
 
 

@@ -1,7 +1,7 @@
 from typing import NamedTuple
 
 from app.db import db2
-from app.models.db.user import UserId
+from app.models.types import UserId
 
 
 class _UserBlockCountByUserResult(NamedTuple):

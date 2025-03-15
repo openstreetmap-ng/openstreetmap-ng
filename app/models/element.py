@@ -1,8 +1,9 @@
-from typing import Literal, NewType
+from typing import TYPE_CHECKING, Literal, NewType
 
 import cython
 
-from app.models.db.element import Element, ElementInit
+if TYPE_CHECKING:
+    from app.models.db.element import Element, ElementInit
 
 ElementType = Literal['node', 'way', 'relation']
 ElementId = NewType('ElementId', int)
@@ -185,7 +186,7 @@ def split_typed_element_ids(ids: list[TypedElementId]) -> list[tuple[ElementType
     return [_split_typed_element_id(id) for id in ids]
 
 
-def split_typed_element_ids2(elements: list[Element] | list[ElementInit]) -> list[tuple[ElementType, ElementId]]:
+def split_typed_element_ids2(elements: list['Element'] | list['ElementInit']) -> list[tuple[ElementType, ElementId]]:
     return [_split_typed_element_id(e['typed_id']) for e in elements]
 
 

@@ -14,13 +14,14 @@ from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
+from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import Editor, User, user_avatar_url, user_is_test
 from app.models.types import DisplayName, Email, LocaleCode, Password
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
 from app.services.image_service import ImageService
 from app.services.oauth2_token_service import OAuth2TokenService
-from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID, SystemAppService
+from app.services.system_app_service import SystemAppService
 from app.services.user_token_email_change_service import UserTokenEmailChangeService
 from app.validators.email import validate_email, validate_email_deliverability
 

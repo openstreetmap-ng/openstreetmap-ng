@@ -1,6 +1,6 @@
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
-from typing import Literal, NewType, NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 from shapely import Point
 
@@ -8,9 +8,8 @@ from app.config import DELETED_USER_EMAIL_SUFFIX, TEST_USER_EMAIL_SUFFIX
 from app.lib.image import DEFAULT_USER_AVATAR_URL, AvatarType, Image
 from app.lib.rich_text import resolve_rich_text
 from app.models.scope import Scope
-from app.models.types import DisplayName, Email, LocaleCode, StorageKey
+from app.models.types import DisplayName, Email, LocaleCode, StorageKey, UserId
 
-UserId = NewType('UserId', int)
 UserRole = Literal['moderator', 'administrator']
 Editor = Literal['id', 'rapid', 'remote']
 

@@ -13,14 +13,14 @@ from app.limits import (
     SEARCH_QUERY_MAX_LENGTH,
     SEARCH_RESULTS_LIMIT,
 )
-from app.models.db.element import Element, SequenceId
+from app.models.db.element import Element
 from app.models.element import (
     TYPED_ELEMENT_ID_WAY_MAX,
     TYPED_ELEMENT_ID_WAY_MIN,
     TypedElementId,
 )
 from app.models.proto.shared_pb2 import PartialSearchParams, RenderElementsData
-from app.models.types import Latitude, Longitude, Zoom
+from app.models.types import Latitude, Longitude, SequenceId, Zoom
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery
 

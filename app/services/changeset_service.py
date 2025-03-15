@@ -16,8 +16,8 @@ from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
 from app.lib.testmethod import testmethod
 from app.limits import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT
-from app.models.db.changeset import ChangesetId, ChangesetInit
-from app.models.db.user import UserId
+from app.models.db.changeset import ChangesetInit
+from app.models.types import ChangesetId, UserId
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()

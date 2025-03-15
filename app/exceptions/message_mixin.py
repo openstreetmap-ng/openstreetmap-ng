@@ -3,7 +3,7 @@ from typing import NoReturn
 from starlette import status
 
 from app.exceptions.api_error import APIError
-from app.models.db.message import MessageId
+from app.models.types import MessageId
 
 
 class MessageExceptionsMixin:

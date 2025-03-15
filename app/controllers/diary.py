@@ -16,8 +16,9 @@ from app.limits import (
     DIARY_COMMENTS_PAGE_SIZE,
     DIARY_TITLE_MAX_LENGTH,
 )
-from app.models.db.diary import Diary, DiaryId
+from app.models.db.diary import Diary
 from app.models.db.user import User
+from app.models.types import DiaryId
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 

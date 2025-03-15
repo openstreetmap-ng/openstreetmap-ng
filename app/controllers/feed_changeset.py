@@ -13,8 +13,8 @@ from app.lib.geo_utils import parse_bbox
 from app.lib.translation import primary_translation_locale, t
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.middlewares.request_context_middleware import get_request
-from app.models.db.user import User, UserId
-from app.models.types import DisplayName
+from app.models.db.user import User
+from app.models.types import DisplayName, UserId
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 

@@ -4,7 +4,8 @@ from fastapi import APIRouter, Response
 
 from app.lib.auth_context import web_user
 from app.models.db.user import User
-from app.models.db.user_subscription import UserSubscriptionTarget, UserSubscriptionTargetId
+from app.models.db.user_subscription import UserSubscriptionTarget
+from app.models.types import UserSubscriptionTargetId
 from app.services.user_subscription_service import UserSubscriptionService
 
 router = APIRouter(prefix='/api/web/user-subscription')

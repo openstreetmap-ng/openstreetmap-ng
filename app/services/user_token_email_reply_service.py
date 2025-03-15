@@ -10,9 +10,9 @@ from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import EMAIL_REPLY_USAGE_LIMIT
 from app.models.db.mail import MailSource
 from app.models.db.user import User
-from app.models.db.user_token import UserTokenEmailReplyInit, UserTokenId
+from app.models.db.user_token import UserTokenEmailReplyInit
 from app.models.proto.server_pb2 import UserTokenStruct
-from app.models.types import Email
+from app.models.types import Email, UserTokenId
 from app.queries.user_query import UserQuery
 from app.queries.user_token_email_reply_query import UserTokenEmailReplyQuery
 from app.services.message_service import MessageService

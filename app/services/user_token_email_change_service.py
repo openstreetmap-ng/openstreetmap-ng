@@ -8,10 +8,9 @@ from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.models.db.user import UserId
-from app.models.db.user_token import UserTokenEmailChangeInit, UserTokenId
+from app.models.db.user_token import UserTokenEmailChangeInit
 from app.models.proto.server_pb2 import UserTokenStruct
-from app.models.types import Email
+from app.models.types import Email, UserId, UserTokenId
 from app.queries.user_token_query import UserTokenQuery
 from app.services.email_service import EmailService
 

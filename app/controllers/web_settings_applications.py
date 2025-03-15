@@ -11,10 +11,9 @@ from app.limits import (
     OAUTH_APP_URI_MAX_LENGTH,
     OAUTH_PAT_NAME_MAX_LENGTH,
 )
-from app.models.db.oauth2_application import ApplicationId
-from app.models.db.oauth2_token import OAuth2TokenId
 from app.models.db.user import User
 from app.models.scope import scope_from_kwargs
+from app.models.types import ApplicationId, OAuth2TokenId
 from app.services.oauth2_application_service import OAuth2ApplicationService
 from app.services.oauth2_token_service import OAuth2TokenService
 

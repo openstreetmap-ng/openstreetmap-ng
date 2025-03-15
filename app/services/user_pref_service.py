@@ -8,8 +8,8 @@ from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.limits import USER_PREF_BULK_SET_LIMIT
-from app.models.db.oauth2_application import ApplicationId
-from app.models.db.user_pref import UserPref, UserPrefKey
+from app.models.db.user_pref import UserPref
+from app.models.types import ApplicationId, UserPrefKey
 
 # TODO: make it clear not to store sensitive data or to encrypt it
 # TODO: limit app prefs count

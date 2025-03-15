@@ -7,8 +7,8 @@ from psycopg.sql import SQL, Composable
 from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.models.db.message import Message, MessageId
-from app.models.db.user import UserId
+from app.models.db.message import Message
+from app.models.types import MessageId, UserId
 
 
 class _MessageCountByUserResult(NamedTuple):

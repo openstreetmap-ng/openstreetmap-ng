@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal, TypedDict, get_args
 
-from app.models.db.user import UserId
+from app.models.types import UserId
 
 AuthProvider = Literal['google', 'facebook', 'microsoft', 'github', 'wikimedia']
 # TODO: openid

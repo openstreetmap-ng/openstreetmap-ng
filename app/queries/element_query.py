@@ -9,8 +9,7 @@ from app.config import LEGACY_SEQUENCE_ID_MARGIN
 from app.db import db2
 from app.lib.exceptions_context import raise_for
 from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
-from app.models.db.changeset import ChangesetId
-from app.models.db.element import Element, SequenceId
+from app.models.db.element import Element
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -23,6 +22,7 @@ from app.models.element import (
     TypedElementId,
     split_typed_element_id,
 )
+from app.models.types import ChangesetId, SequenceId
 
 
 class ElementQuery:

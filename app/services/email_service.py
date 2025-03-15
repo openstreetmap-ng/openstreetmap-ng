@@ -26,7 +26,8 @@ from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail, MailInit, MailSource
-from app.models.db.user import User, UserId, user_is_deleted, user_is_test
+from app.models.db.user import User, user_is_deleted, user_is_test
+from app.models.types import UserId
 
 _PROCESS_LOCK = Lock()
 

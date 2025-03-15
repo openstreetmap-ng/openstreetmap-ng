@@ -1,12 +1,10 @@
 from datetime import datetime
-from typing import Literal, NewType, NotRequired, TypedDict, override
+from typing import Literal, NotRequired, TypedDict, override
 
-from app.models.db.oauth2_application import ApplicationId, OAuth2Application
-from app.models.db.user import User, UserId
+from app.models.db.oauth2_application import OAuth2Application
+from app.models.db.user import User
 from app.models.scope import PublicScope
-from app.models.types import Uri
-
-OAuth2TokenId = NewType('OAuth2TokenId', int)
+from app.models.types import ApplicationId, OAuth2TokenId, Uri, UserId
 
 OAuth2ResponseType = Literal['code']
 OAuth2ResponseMode = Literal['query', 'fragment', 'form_post']

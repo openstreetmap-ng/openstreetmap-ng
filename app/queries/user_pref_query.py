@@ -2,8 +2,8 @@ from psycopg.rows import dict_row
 
 from app.db import db2
 from app.lib.auth_context import auth_user
-from app.models.db.oauth2_application import ApplicationId
-from app.models.db.user_pref import UserPref, UserPrefKey
+from app.models.db.user_pref import UserPref
+from app.models.types import ApplicationId, UserPrefKey
 
 
 class UserPrefQuery:

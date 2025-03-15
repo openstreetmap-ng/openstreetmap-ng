@@ -24,8 +24,8 @@ from app.limits import (
     USER_NEW_DAYS,
     USER_RECENT_ACTIVITY_ENTRIES,
 )
-from app.models.db.user import User, UserId, users_resolve_rich_text
-from app.models.types import DisplayName
+from app.models.db.user import User, users_resolve_rich_text
+from app.models.types import DisplayName, UserId
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.diary_comment_query import DiaryCommentQuery

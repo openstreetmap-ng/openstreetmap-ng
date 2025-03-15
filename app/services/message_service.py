@@ -8,9 +8,9 @@ from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t, translation_context
-from app.models.db.message import Message, MessageId, MessageInit, messages_resolve_rich_text
-from app.models.db.user import UserDisplay, UserId
-from app.models.types import DisplayName
+from app.models.db.message import Message, MessageInit, messages_resolve_rich_text
+from app.models.db.user import UserDisplay
+from app.models.types import DisplayName, MessageId, UserId
 from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
 

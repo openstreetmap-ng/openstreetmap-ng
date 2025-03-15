@@ -6,9 +6,8 @@ from fastapi import APIRouter, Form
 from app.format import Format06
 from app.lib.auth_context import api_user
 from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
-from app.models.db.changeset import ChangesetId
-from app.models.db.changeset_comment import ChangesetCommentId
 from app.models.db.user import User
+from app.models.types import ChangesetCommentId, ChangesetId
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery

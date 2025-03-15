@@ -6,8 +6,8 @@ from starlette import status
 
 from app.lib.render_response import render_response
 from app.limits import DIARY_COMMENTS_PAGE_SIZE
-from app.models.db.diary_comment import DiaryCommentId, diary_comments_resolve_rich_text
-from app.models.types import DisplayName
+from app.models.db.diary_comment import diary_comments_resolve_rich_text
+from app.models.types import DiaryCommentId, DisplayName
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery

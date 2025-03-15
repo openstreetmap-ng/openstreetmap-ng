@@ -9,7 +9,6 @@ from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.limits import GEO_COORDINATE_PRECISION
-from app.models.db.changeset import ChangesetId
 from app.models.db.element import Element, ElementInit, validate_elements
 from app.models.element import (
     ElementId,
@@ -20,6 +19,7 @@ from app.models.element import (
     split_typed_element_ids2,
     typed_element_id,
 )
+from app.models.types import ChangesetId
 from app.services.optimistic_diff.prepare import OSMChangeAction
 
 

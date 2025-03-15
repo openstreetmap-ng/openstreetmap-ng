@@ -1,11 +1,10 @@
 from datetime import datetime
-from typing import NewType, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
 from app.lib.rich_text import resolve_rich_text
-from app.models.db.diary import Diary, DiaryId
-from app.models.db.user import UserDisplay, UserId
-
-DiaryCommentId = NewType('DiaryCommentId', int)
+from app.models.db.diary import Diary
+from app.models.db.user import UserDisplay
+from app.models.types import DiaryCommentId, DiaryId, UserId
 
 
 class DiaryCommentInit(TypedDict):

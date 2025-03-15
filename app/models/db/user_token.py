@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Literal, NewType, NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 from app.limits import (
     USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE,
@@ -8,10 +8,9 @@ from app.limits import (
     USER_TOKEN_RESET_PASSWORD_EXPIRE,
 )
 from app.models.db.mail import MailSource
-from app.models.db.user import User, UserId
-from app.models.types import Email
+from app.models.db.user import User
+from app.models.types import Email, UserId, UserTokenId
 
-UserTokenId = NewType('UserTokenId', int)
 UserTokenType = Literal['account_confirm', 'email_change', 'email_reply', 'reset_password']
 
 USER_TOKEN_EXPIRE: dict[UserTokenType, timedelta] = {

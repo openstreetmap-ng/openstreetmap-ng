@@ -19,10 +19,10 @@ from app.limits import (
     NOTE_QUERY_DEFAULT_LIMIT,
     NOTE_QUERY_LEGACY_MAX_LIMIT,
 )
-from app.models.db.note import Note, NoteId
+from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
-from app.models.db.user import User, UserId
-from app.models.types import DisplayName, Latitude, Longitude
+from app.models.db.user import User
+from app.models.types import DisplayName, Latitude, Longitude, NoteId, UserId
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery

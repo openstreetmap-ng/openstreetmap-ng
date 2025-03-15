@@ -6,7 +6,8 @@ from fastapi import APIRouter, Query, Response, status
 from app.format import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
-from app.models.db.user import User, UserId
+from app.models.db.user import User
+from app.models.types import UserId
 from app.queries.user_query import UserQuery
 
 router = APIRouter(prefix='/api/0.6')

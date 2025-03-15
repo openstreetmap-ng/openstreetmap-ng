@@ -2,7 +2,7 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import NoReturn
 
-from app.models.db.note import NoteId
+from app.models.types import NoteId
 
 
 class NoteExceptionsMixin:

@@ -6,8 +6,8 @@ from psycopg.sql import SQL, Composable
 from shapely.geometry.base import BaseGeometry
 
 from app.db import db2
-from app.models.db.changeset import Changeset, ChangesetId
-from app.models.db.user import UserId
+from app.models.db.changeset import Changeset
+from app.models.types import ChangesetId, UserId
 
 
 class ChangesetQuery:

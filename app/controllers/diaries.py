@@ -13,9 +13,9 @@ from app.limits import (
     DIARY_LIST_PAGE_SIZE,
     DIARY_TITLE_MAX_LENGTH,
 )
-from app.models.db.diary import DiaryId, diaries_resolve_rich_text
+from app.models.db.diary import diaries_resolve_rich_text
 from app.models.db.user import User, UserDisplay
-from app.models.types import DisplayName, LocaleCode
+from app.models.types import DiaryId, DisplayName, LocaleCode
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery

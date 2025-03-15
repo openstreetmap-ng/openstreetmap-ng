@@ -8,9 +8,9 @@ from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.translation import t, translation_context
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.models.db.user_token import UserTokenId, UserTokenInit
+from app.models.db.user_token import UserTokenInit
 from app.models.proto.server_pb2 import UserTokenStruct
-from app.models.types import Email
+from app.models.types import Email, UserTokenId
 from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
 

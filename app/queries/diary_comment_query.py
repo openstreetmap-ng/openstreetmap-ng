@@ -7,9 +7,9 @@ from psycopg.sql import SQL, Composable
 from app.db import db2
 from app.lib.standard_pagination import standard_pagination_range
 from app.limits import DIARY_COMMENTS_PAGE_SIZE
-from app.models.db.diary import Diary, DiaryId
-from app.models.db.diary_comment import DiaryComment, DiaryCommentId
-from app.models.db.user import UserId
+from app.models.db.diary import Diary
+from app.models.db.diary_comment import DiaryComment
+from app.models.types import DiaryCommentId, DiaryId, UserId
 
 
 class DiaryCommentQuery:

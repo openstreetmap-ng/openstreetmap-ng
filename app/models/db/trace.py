@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Literal, NewType, NotRequired, TypedDict
+from typing import Annotated, Literal, NotRequired, TypedDict
 
 import numpy as np
 from annotated_types import MaxLen, MinLen
@@ -9,19 +9,20 @@ from shapely import MultiLineString
 
 from app.config import PYDANTIC_CONFIG
 from app.limits import TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
-from app.models.db.user import User, UserDisplay, UserId
+from app.models.db.user import User, UserDisplay
 from app.models.scope import Scope
-from app.models.types import StorageKey
+from app.models.types import StorageKey, TraceId, UserId
 from app.validators.filename import FileNameValidator
 from app.validators.geometry import GeometryValidator
 from app.validators.url import UrlSafeValidator
 from app.validators.xml import XMLSafeValidator
 
-TraceId = NewType('TraceId', int)
 TraceVisibility = Literal['identifiable', 'public', 'trackable', 'private']
 
 
 class TraceMetaInit(TypedDict):
+    __pydantic_config__ = PYDANTIC_CONFIG  # type: ignore
+
     name: Annotated[
         str,
         FileNameValidator,
@@ -55,8 +56,8 @@ class TraceInit(TraceMetaInit):
     capture_times: list[datetime | None] | None
 
 
-TraceMetaInitValidator = TypeAdapter(TraceMetaInit, config=PYDANTIC_CONFIG)
-TraceInitValidator = TypeAdapter(TraceInit, config=PYDANTIC_CONFIG)
+TraceMetaInitValidator = TypeAdapter(TraceMetaInit)
+TraceInitValidator = TypeAdapter(TraceInit)
 
 
 class Trace(TraceInit):

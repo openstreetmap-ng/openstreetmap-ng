@@ -5,7 +5,7 @@ from starlette import status
 from app.exceptions.api_error import APIError
 from app.exceptions.trace_mixin import TraceExceptionsMixin
 from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE
-from app.models.db.trace import TraceId
+from app.models.types import TraceId
 
 
 class TraceExceptions06Mixin(TraceExceptionsMixin):

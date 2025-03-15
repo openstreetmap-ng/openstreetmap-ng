@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import NoReturn
 
-from app.models.db.trace import TraceId
+from app.models.types import TraceId
 
 
 class TraceExceptionsMixin:

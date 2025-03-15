@@ -20,13 +20,12 @@ from app.limits import (
     OAUTH_SECRET_PREVIEW_LENGTH,
 )
 from app.models.db.oauth2_application import (
-    ApplicationId,
     OAuth2Application,
     OAuth2ApplicationInit,
     oauth2_app_avatar_url,
 )
 from app.models.scope import PublicScope
-from app.models.types import ClientId, StorageKey, Uri
+from app.models.types import ApplicationId, ClientId, StorageKey, Uri
 from app.services.image_service import ImageService
 from app.utils import splitlines_trim
 from app.validators.url import UriValidator

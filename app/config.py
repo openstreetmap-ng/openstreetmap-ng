@@ -141,6 +141,7 @@ POSTGRES_SQLALCHEMY_URL = POSTGRES_URL.replace('postgresql://', 'postgresql+asyn
 
 PYDANTIC_CONFIG = ConfigDict(
     extra='forbid',
+    arbitrary_types_allowed=True,
     allow_inf_nan=False,
     strict=True,
     cache_strings='keys',

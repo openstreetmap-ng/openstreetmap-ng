@@ -10,11 +10,16 @@ from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
-from app.models.db.oauth2_application import ApplicationId, OAuth2ApplicationInit
+from app.models.db.oauth2_application import (
+    SYSTEM_APP_ID_CLIENT_ID,
+    SYSTEM_APP_PAT_CLIENT_ID,
+    SYSTEM_APP_RAPID_CLIENT_ID,
+    SYSTEM_APP_WEB_CLIENT_ID,
+    OAuth2ApplicationInit,
+)
 from app.models.db.oauth2_token import OAuth2TokenInit
-from app.models.db.user import UserId
 from app.models.scope import PUBLIC_SCOPES, Scope
-from app.models.types import ClientId
+from app.models.types import ApplicationId, ClientId, UserId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 
 SYSTEM_APP_CLIENT_ID_MAP: dict[ClientId, ApplicationId] = {}
@@ -27,12 +32,6 @@ class SystemApp(NamedTuple):
     name: str
     client_id: ClientId
     scopes: tuple[Scope, ...]
-
-
-SYSTEM_APP_WEB_CLIENT_ID = ClientId('SystemApp.web')
-SYSTEM_APP_PAT_CLIENT_ID = ClientId('SystemApp.pat')
-SYSTEM_APP_ID_CLIENT_ID = ClientId('SystemApp.id')
-SYSTEM_APP_RAPID_CLIENT_ID = ClientId('SystemApp.rapid')
 
 
 class SystemAppService:

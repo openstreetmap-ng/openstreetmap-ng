@@ -16,21 +16,19 @@ from app.limits import (
     OAUTH_SECRET_PREVIEW_LENGTH,
     OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
 )
-from app.models.db.oauth2_application import ApplicationId, OAuth2Application, oauth2_app_is_system
+from app.models.db.oauth2_application import SYSTEM_APP_PAT_CLIENT_ID, OAuth2Application, oauth2_app_is_system
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,
     OAuth2Token,
-    OAuth2TokenId,
     OAuth2TokenInit,
     OAuth2TokenOOB,
     oauth2_token_is_oob,
 )
-from app.models.db.user import UserId
 from app.models.scope import PublicScope
-from app.models.types import ClientId, Uri
+from app.models.types import ApplicationId, ClientId, OAuth2TokenId, Uri, UserId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
-from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP, SYSTEM_APP_PAT_CLIENT_ID
+from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 
 # TODO: limit number of access tokens per user+app
 

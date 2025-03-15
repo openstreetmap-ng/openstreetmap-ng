@@ -12,8 +12,8 @@ from app.lib.render_response import render_response
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_COMMENTS_PAGE_SIZE
-from app.models.db.changeset import ChangesetId
 from app.models.proto.shared_pb2 import PartialChangesetParams, SharedBounds
+from app.models.types import ChangesetId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery

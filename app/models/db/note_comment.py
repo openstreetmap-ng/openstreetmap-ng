@@ -1,12 +1,12 @@
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
-from typing import Literal, NewType, NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 from app.lib.rich_text import resolve_rich_text
-from app.models.db.note import Note, NoteId
-from app.models.db.user import UserDisplay, UserId
+from app.models.db.note import Note
+from app.models.db.user import UserDisplay
+from app.models.types import NoteCommentId, NoteId, UserId
 
-NoteCommentId = NewType('NoteCommentId', int)
 NoteEvent = Literal['opened', 'closed', 'reopened', 'commented', 'hidden']
 
 

@@ -1,13 +1,11 @@
 from datetime import datetime
-from typing import NewType, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
 from shapely import Point
 
 from app.lib.rich_text import resolve_rich_text
-from app.models.db.user import UserDisplay, UserId
-from app.models.types import LocaleCode
-
-DiaryId = NewType('DiaryId', int)
+from app.models.db.user import UserDisplay
+from app.models.types import DiaryId, LocaleCode, UserId
 
 
 class DiaryInit(TypedDict):

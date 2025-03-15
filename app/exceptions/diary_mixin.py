@@ -3,8 +3,7 @@ from typing import NoReturn
 from starlette import status
 
 from app.exceptions.api_error import APIError
-from app.models.db.diary import DiaryId
-from app.models.db.diary_comment import DiaryCommentId
+from app.models.types import DiaryCommentId, DiaryId
 
 
 class DiaryExceptionsMixin:

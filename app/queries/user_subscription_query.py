@@ -3,7 +3,8 @@ from psycopg.rows import dict_row
 from app.db import db2
 from app.lib.auth_context import auth_user
 from app.models.db.user import User
-from app.models.db.user_subscription import UserSubscriptionTarget, UserSubscriptionTargetId
+from app.models.db.user_subscription import UserSubscriptionTarget
+from app.models.types import UserSubscriptionTargetId
 
 
 class UserSubscriptionQuery:

@@ -8,7 +8,7 @@ from app.lib.exceptions_context import raise_for
 from app.lib.xml_body import xml_body
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
-from app.models.db.user_pref import UserPrefKey
+from app.models.types import UserPrefKey
 from app.queries.user_pref_query import UserPrefQuery
 from app.services.user_pref_service import UserPrefService
 

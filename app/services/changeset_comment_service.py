@@ -9,15 +9,13 @@ from app.db import db2
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
-from app.models.db.changeset import ChangesetId
 from app.models.db.changeset_comment import (
     ChangesetComment,
-    ChangesetCommentId,
     ChangesetCommentInit,
     changeset_comments_resolve_rich_text,
 )
 from app.models.db.user import UserDisplay
-from app.models.types import DisplayName
+from app.models.types import ChangesetCommentId, ChangesetId, DisplayName
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService

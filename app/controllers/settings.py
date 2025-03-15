@@ -15,11 +15,11 @@ from app.limits import (
     PASSWORD_MIN_LENGTH,
     URLSAFE_BLACKLIST,
 )
+from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.services.auth_service import AuthService
-from app.services.system_app_service import SYSTEM_APP_WEB_CLIENT_ID
 
 router = APIRouter()
 

@@ -11,9 +11,9 @@ from app.lib.locale import DEFAULT_LOCALE
 from app.lib.testmethod import testmethod
 from app.limits import OAUTH_SECRET_PREVIEW_LENGTH
 from app.models.db.oauth2_application import OAuth2ApplicationInit
-from app.models.db.user import UserId, UserInit, UserRole, user_is_test
+from app.models.db.user import UserInit, UserRole, user_is_test
 from app.models.scope import PUBLIC_SCOPES, PublicScope
-from app.models.types import ClientId, DisplayName, Email, LocaleCode, Uri
+from app.models.types import ClientId, DisplayName, Email, LocaleCode, Uri, UserId
 
 
 class TestService:

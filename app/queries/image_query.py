@@ -1,7 +1,6 @@
 from app.lib.exceptions_context import raise_for
 from app.lib.storage import AVATAR_STORAGE, BACKGROUND_STORAGE
-from app.models.db.user import UserId
-from app.models.types import StorageKey
+from app.models.types import StorageKey, UserId
 from app.queries.gravatar_query import GravatarQuery
 from app.queries.user_query import UserQuery
 
