@@ -140,9 +140,10 @@ async def _authenticate_with_test_user(request: Request) -> tuple[User, tuple[Sc
         return None
 
     logging.debug('Attempting to authenticate with test user %r', param)
-    user = await UserQuery.find_one_by_display_name(DisplayName(param))
+    user_display_name = DisplayName(param)
+    user = await UserQuery.find_one_by_display_name(user_display_name)
     if user is None:
-        raise_for.user_not_found(param)
+        raise_for.user_not_found(user_display_name)
 
     scopes = user_extend_scopes(user, _SESSION_AUTH_SCOPES)
     return user, scopes

@@ -102,7 +102,7 @@ class OAuth2ApplicationService:
                 StandardFeedback.raise_error('redirect_uris', t('validation.insecure_redirect_uri'))
 
         # deduplicate (order-preserving) and cast type
-        return list({uri: None for uri in uris})  # type: ignore
+        return list(dict.fromkeys(uris))  # type: ignore
 
     @staticmethod
     async def update_settings(
