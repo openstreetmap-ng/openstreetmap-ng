@@ -485,6 +485,7 @@
       "DE",
       "ES",
       "FR",
+      "IT",
       "JA",
       "Pl",
       "RU",
@@ -1100,6 +1101,7 @@
     "*": [
       "",
       "Cs",
+      "DE",
       "ES",
       "JA",
       "Uk"
@@ -1110,7 +1112,8 @@
       "",
       "Cs",
       "ES",
-      "JA"
+      "JA",
+      "Th"
     ]
   },
   "addr:provisionalnumber": {
@@ -4785,6 +4788,7 @@
       "ES",
       "FR",
       "Gcf",
+      "Io",
       "JA",
       "NL",
       "Pl",
@@ -7042,6 +7046,11 @@
       "Uk"
     ]
   },
+  "bicycle:*": {
+    "*": [
+      ""
+    ]
+  },
   "bicycle:designated:type": {
     "*": [
       "",
@@ -7268,6 +7277,11 @@
       "JA",
       "Pt",
       "RU"
+    ]
+  },
+  "boat:*": {
+    "*": [
+      ""
     ]
   },
   "boat:clothes": {
@@ -9045,6 +9059,8 @@
       "Uk"
     ],
     "sauna": [
+      "",
+      "Io",
       "RU"
     ],
     "school": [
@@ -9388,7 +9404,8 @@
       ""
     ],
     "villa": [
-      ""
+      "",
+      "DE"
     ],
     "warehouse": [
       "",
@@ -9654,6 +9671,9 @@
       "",
       "Ko",
       "RU"
+    ],
+    "steps": [
+      ""
     ],
     "yes": [
       ""
@@ -10646,11 +10666,6 @@
   },
   "category": {
     "*": [
-      ""
-    ]
-  },
-  "cave": {
-    "grotto": [
       ""
     ]
   },
@@ -14092,6 +14107,9 @@
       "",
       "ES"
     ],
+    "surinamese": [
+      ""
+    ],
     "sushi": [
       "",
       "DE",
@@ -15575,6 +15593,11 @@
       ""
     ]
   },
+  "disc_golf:course": {
+    "*": [
+      ""
+    ]
+  },
   "disease:*": {
     "*": [
       ""
@@ -16339,6 +16362,7 @@
       "Cs",
       "ES",
       "FR",
+      "IT",
       "JA",
       "Pl",
       "RU",
@@ -20229,7 +20253,8 @@
       ""
     ],
     "ground_clearance": [
-      ""
+      "",
+      "Pl"
     ],
     "hole": [
       "",
@@ -20286,6 +20311,9 @@
       "",
       "Pl"
     ],
+    "risk_of_grounding": [
+      ""
+    ],
     "road_narrows": [
       ""
     ],
@@ -20315,6 +20343,9 @@
       "",
       "DE",
       "ES"
+    ],
+    "tide": [
+      ""
     ],
     "traffic_signals": [
       ""
@@ -20768,7 +20799,8 @@
       ""
     ],
     "endocrinology": [
-      ""
+      "",
+      "DE"
     ],
     "equine-assisted": [
       ""
@@ -21981,6 +22013,7 @@
       "Fa",
       "Fi",
       "Hu",
+      "IT",
       "JA",
       "Ko",
       "Ms",
@@ -25367,6 +25400,9 @@
       "Pl",
       "RU"
     ],
+    "arcade_machine": [
+      ""
+    ],
     "arena": [
       "",
       "RU"
@@ -27472,6 +27508,9 @@
       "Ko",
       "Pl"
     ],
+    "platform": [
+      ""
+    ],
     "power_hydro": [
       "",
       "Cs",
@@ -27579,6 +27618,9 @@
     "slurry_basin": [
       ""
     ],
+    "slurry_tank": [
+      ""
+    ],
     "snow_cannon": [
       "",
       "DE",
@@ -27640,6 +27682,10 @@
     "submarine_cable": [
       "",
       "Pl"
+    ],
+    "summit_board": [
+      "",
+      "Zh-hant"
     ],
     "summit_cross": [
       ""
@@ -29636,6 +29682,7 @@
   },
   "motorcycle:*": {
     "*": [
+      "",
       "RU"
     ]
   },
@@ -29867,6 +29914,21 @@
       "RU"
     ]
   },
+  "mtb:scale:amtb": {
+    "*": [
+      ""
+    ]
+  },
+  "mtb:scale:amtb:inclusive": {
+    "*": [
+      ""
+    ]
+  },
+  "mtb:scale:amtb:technical": {
+    "*": [
+      ""
+    ]
+  },
   "mtb:scale:imba": {
     "*": [
       "",
@@ -30073,6 +30135,7 @@
       "RU",
       "Sv",
       "Th",
+      "Tr",
       "Uk",
       "Zh-hans",
       "Zh-hant"
@@ -30542,6 +30605,11 @@
       ""
     ]
   },
+  "name:din": {
+    "*": [
+      ""
+    ]
+  },
   "name:diq": {
     "*": [
       ""
@@ -31000,6 +31068,11 @@
       ""
     ]
   },
+  "name:kac": {
+    "*": [
+      ""
+    ]
+  },
   "name:kbd": {
     "*": [
       ""
@@ -31282,6 +31355,11 @@
     ]
   },
   "name:mi": {
+    "*": [
+      ""
+    ]
+  },
+  "name:mia": {
     "*": [
       ""
     ]
@@ -32897,6 +32975,7 @@
       "ES",
       "FR",
       "Fa",
+      "IT",
       "JA",
       "Pl",
       "Pt",
@@ -33818,6 +33897,15 @@
     "US:NY:Otsego": [
       ""
     ],
+    "US:NY:Parkway": [
+      ""
+    ],
+    "US:NY:Parkway:LI": [
+      ""
+    ],
+    "US:NY:Parkway:NYC": [
+      ""
+    ],
     "US:NY:Putnam": [
       ""
     ],
@@ -34065,6 +34153,9 @@
       ""
     ],
     "US:PA:Turnpike": [
+      ""
+    ],
+    "US:PIPC": [
       ""
     ],
     "US:RI": [
@@ -34611,6 +34702,7 @@
       "DE",
       "ES",
       "FR",
+      "Io",
       "JA",
       "Pl"
     ]
@@ -39991,6 +40083,11 @@
       "Zh-hans"
     ]
   },
+  "railway:maximum_current": {
+    "*": [
+      ""
+    ]
+  },
   "railway:milestone:catenary_mast": {
     "*": [
       ""
@@ -40733,6 +40830,11 @@
     ]
   },
   "recycling:tyres": {
+    "*": [
+      ""
+    ]
+  },
+  "recycling:waste": {
     "*": [
       ""
     ]
@@ -41933,6 +42035,11 @@
   "ref:masaf": {
     "*": [
       "IT"
+    ]
+  },
+  "ref:metropoliaztm": {
+    "*": [
+      "Pl"
     ]
   },
   "ref:mhs": {
@@ -46258,6 +46365,9 @@
       "FR",
       "RU"
     ],
+    "bomb_shelter": [
+      ""
+    ],
     "changing_rooms": [
       "",
       "ES",
@@ -50431,6 +50541,9 @@
       "FR",
       "IT"
     ],
+    "hopscotch": [
+      ""
+    ],
     "horse_racing": [
       "",
       "DE",
@@ -51685,6 +51798,7 @@
     ],
     "mud": [
       "",
+      "DE",
       "ES",
       "Ko"
     ],
@@ -52800,7 +52914,8 @@
   },
   "topless": {
     "*": [
-      ""
+      "",
+      "Io"
     ]
   },
   "topmark": {
@@ -52989,6 +53104,7 @@
       "Fi",
       "Gcf",
       "JA",
+      "Ko",
       "Pl",
       "Pt",
       "RU"
@@ -53372,6 +53488,11 @@
     ]
   },
   "towpath": {
+    "*": [
+      ""
+    ]
+  },
+  "trackage_rights": {
     "*": [
       ""
     ]
