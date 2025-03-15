@@ -1,4 +1,5 @@
 import logging
+from asyncio import TaskGroup
 from contextlib import asynccontextmanager, contextmanager
 from functools import wraps
 from pathlib import Path
@@ -7,7 +8,10 @@ from tempfile import TemporaryDirectory
 import duckdb
 import orjson
 from psycopg import AsyncConnection, IsolationLevel
+from psycopg.types import TypeInfo
+from psycopg.types.hstore import register_hstore
 from psycopg.types.json import set_json_dumps, set_json_loads
+from psycopg.types.shapely import register_shapely
 from psycopg_pool import AsyncConnectionPool
 
 from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_URL
@@ -47,12 +51,13 @@ async def psycopg_pool_open():
     """Open and close the psycopg pool."""
     from app.services.migration_service import MigrationService  # noqa: PLC0415
 
-    await _PSYCOPG_POOL.open()
-    await MigrationService.migrate_database()
-    try:
-        yield _PSYCOPG_POOL
-    finally:
-        await _PSYCOPG_POOL.close()
+    async with _PSYCOPG_POOL:
+        await MigrationService.migrate_database()
+        await _register_types()
+        # Reset the connection pool to ensure the new types are used.
+
+    async with _PSYCOPG_POOL:
+        yield
 
 
 def psycopg_pool_open_decorator(func):
@@ -66,12 +71,30 @@ def psycopg_pool_open_decorator(func):
     return wrapper
 
 
+async def _register_types():
+    """
+    Register db support for additional types.
+    https://www.psycopg.org/psycopg3/docs/basic/pgtypes.html
+    """
+    async with db() as conn, TaskGroup() as tg:
+        hstore_task = tg.create_task(TypeInfo.fetch(conn, 'hstore'))
+        geometry_task = tg.create_task(TypeInfo.fetch(conn, 'geometry'))
+
+    hstore_info = hstore_task.result()
+    assert hstore_info is not None, 'hstore type not found'
+    register_hstore(hstore_info, None)
+
+    geometry_info = geometry_task.result()
+    assert geometry_info is not None, 'geometry type not found'
+    register_shapely(geometry_info, None)
+
+
 @asynccontextmanager
 async def db(write: bool = False, *, autocommit: bool = False, isolation_level: IsolationLevel | None = None):
     """Get a database connection."""
+    assert write or not autocommit, 'autocommit=True must be used with write=True'
+
     read_only = not write
-    if read_only and autocommit:
-        raise ValueError('autocommit=True must be used with write=True')
 
     async with _PSYCOPG_POOL.connection() as conn:
         if conn.read_only != read_only:
