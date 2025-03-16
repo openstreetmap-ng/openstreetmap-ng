@@ -1,3 +1,4 @@
+from asyncio import TaskGroup
 from copy import deepcopy
 from functools import cache
 from pathlib import Path
@@ -11,7 +12,7 @@ from app.lib.auth_context import auth_context
 from app.lib.exceptions_context import exceptions_context
 from app.lib.xmltodict import XMLToDict
 from app.main import main
-from app.models.types import DisplayName
+from app.models.types import ChangesetId, DisplayName
 from app.queries.user_query import UserQuery
 from tests.utils.lifespan_manager import LifespanManager
 
@@ -60,16 +61,23 @@ def client(transport: ASGITransport) -> AsyncClient:
 async def changeset_id(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
-    # create changeset
-    r = await client.put(
-        '/api/0.6/changeset/create',
-        content=XMLToDict.unparse({'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': 'tests'}]}}}),
-    )
+    async with TaskGroup() as tg:
+        create_task = tg.create_task(
+            client.put(
+                '/api/0.6/changeset/create',
+                content=XMLToDict.unparse({'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': 'tests'}]}}}),
+            )
+        )
+        user_task = tg.create_task(UserQuery.find_one_by_display_name(DisplayName('user1')))
+
+    r = create_task.result()
     assert r.is_success, r.text
 
-    user = await UserQuery.find_one_by_display_name(DisplayName('user1'))
+    user = user_task.result()
+    assert user is not None, 'Test user "user1" must exist'
+
     with exceptions_context(Exceptions06()), auth_context(user, ()):
-        yield int(r.text)
+        yield ChangesetId(int(r.text))
 
 
 @cache
