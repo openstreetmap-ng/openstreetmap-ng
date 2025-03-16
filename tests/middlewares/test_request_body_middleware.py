@@ -15,7 +15,7 @@ from app.lib.xmltodict import XMLToDict
 from app.limits import REQUEST_BODY_MAX_SIZE
 from app.models.types import ChangesetId
 
-# Prefer using lightweight compression levels for faster tests.
+# Lightweight compression levels for faster tests.
 _ENCODING_COMPRESS: list[tuple[str, Callable[[bytes], bytes]]] = [
     ('gzip', partial(gzip.compress, compresslevel=0)),
     ('deflate', partial(zlib.compress, level=0)),
@@ -38,11 +38,12 @@ async def test_compressed_form(
 
     # Setup test data
     text = f'{encoding}-compressed form'
+    content = urlencode({'text': text})
 
     # Execute request with compressed form data
     r = await client.post(
         f'/api/0.6/changeset/{changeset_id}/comment',
-        content=compress(urlencode({'text': text}).encode()),
+        content=compress(content.encode()),
         headers={
             'Content-Encoding': encoding,
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -70,11 +71,12 @@ async def test_compressed_json(
 
     # Setup test data
     text = f'{encoding}-compressed json'
+    content = orjson.dumps({'lon': 0, 'lat': 0, 'text': text})
 
     # Execute request with compressed JSON
     r = await client.post(
         '/api/0.6/notes.json',
-        content=compress(orjson.dumps({'lon': 0, 'lat': 0, 'text': text})),
+        content=compress(content),
         headers={
             'Content-Encoding': encoding,
             'Content-Type': 'application/json',
@@ -89,7 +91,7 @@ async def test_compressed_json(
     assert props['status'] == 'open', 'Note must be created with open status'
     assert len(comments) == 1, 'Note must have exactly one comment'
     assert comments[-1]['user'] == 'user1', 'Comment user must be correct'
-    assert comments[-1]['action'] == 'opened', "Comment action must be 'opened'"
+    assert comments[-1]['action'] == 'opened', 'Comment action must be "opened"'
     assert comments[-1]['text'] == text, 'Comment text must match input'
 
 
@@ -105,14 +107,14 @@ async def test_compressed_xml(
     client.headers['Authorization'] = 'User user1'
 
     # Setup test data
-    xml_content = XMLToDict.unparse({
+    content = XMLToDict.unparse({
         'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': f'{encoding}-compressed xml'}]}},
     })
 
     # Execute request with compressed XML
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=compress(xml_content.encode()),
+        content=compress(content.encode()),
         headers={
             'Content-Encoding': encoding,
             'Content-Type': 'application/xml',
@@ -127,10 +129,9 @@ async def test_compressed_xml(
 async def test_bad_compression_data(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
-    # Execute request with bad compression
     r = await client.post(
         '/api/0.6/notes.json',
-        content=b'Bad compressed data',
+        content=b'Bad compressed data',  # Intentionally corrupted data
         headers={
             'Content-Encoding': 'gzip',
             'Content-Type': 'application/json',
@@ -144,11 +145,11 @@ async def test_bad_compression_data(client: AsyncClient):
 async def test_passthrough_unsupported_compression(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
-    # Setup test with unsupported compression
-    text = 'test note with unknown compression'
+    # Setup test data
+    text = 'unknown compression'
     content = orjson.dumps({'lon': 0, 'lat': 0, 'text': text})
 
-    # Execute request with unknown compression type
+    # Execute request
     r = await client.post(
         '/api/0.6/notes.json',
         content=content,
@@ -161,16 +162,17 @@ async def test_passthrough_unsupported_compression(client: AsyncClient):
     # Verify response
     assert r.is_success, f'Request must succeed, got {r.status_code}: {r.text}'
 
+    props: dict = r.json()['properties']
+    comments: list[dict] = props['comments']
+    assert comments[-1]['text'] == text, 'Comment text must match input'
+
 
 @pytest.mark.extended
 async def test_size_limit_after_decompression(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
-    # Setup large compressible payload
-    large_text = 'a' * REQUEST_BODY_MAX_SIZE
-    content = gzip.compress(orjson.dumps({'lon': 0, 'lat': 0, 'text': large_text}), compresslevel=0)
-
-    # Verify compressed size is under limit but decompressed exceeds
+    # Create data that's small when compressed but exceeds limits when decompressed
+    content = gzip.compress(orjson.dumps({'lon': 0, 'lat': 0, 'text': 'A' * REQUEST_BODY_MAX_SIZE}), compresslevel=0)
     assert len(content) < REQUEST_BODY_MAX_SIZE, 'Compressed content must be under size limit'
 
     # Execute request

@@ -77,5 +77,5 @@ def test_splitlines_trim(s, expected):
         ('/test?key=value', '/test?key=value'),
     ],
 )
-def test_secure_referer(referer: str | None, expected):
+def test_secure_referer(referer, expected):
     assert secure_referer(referer) == expected

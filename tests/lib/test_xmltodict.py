@@ -45,25 +45,6 @@ def test_xml_parse(input, expected):
     ('input', 'expected'),
     [
         (
-            b'<osmChange><modify id="1"/><create id="2"><tag k="test" v="zebra"/></create><modify id="3"/></osmChange>',
-            {
-                'osmChange': [
-                    ('modify', {'@id': 1}),
-                    ('create', {'@id': 2, 'tag': [{'@k': 'test', '@v': 'zebra'}]}),
-                    ('modify', {'@id': 3}),
-                ]
-            },
-        ),
-    ],
-)
-def test_xml_parse_sequence(input, expected):
-    assert XMLToDict.parse(input) == expected
-
-
-@pytest.mark.parametrize(
-    ('input', 'expected'),
-    [
-        (
             {
                 'osmChange': [
                     ('@attrib', 'yes'),

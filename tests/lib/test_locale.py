@@ -25,7 +25,7 @@ def test_locales_names_sorted():
         ('NonExistent', False),
     ],
 )
-def test_installed_locale(locale: str, expected: bool):
+def test_installed_locale(locale, expected):
     assert is_installed_locale(LocaleCode(locale)) == expected
 
 
@@ -37,7 +37,7 @@ def test_installed_locale(locale: str, expected: bool):
         ('NonExistent', None),
     ],
 )
-def test_normalize_locale(locale: str, expected: str | None):
+def test_normalize_locale(locale, expected):
     assert normalize_locale(LocaleCode(locale)) == expected
 
 
@@ -48,7 +48,7 @@ def test_normalize_locale(locale: str, expected: str | None):
         ('en', 'english', 'english', 'english'),
     ],
 )
-def test_locales_names(code: LocaleCode, english: str, native: str, display_name: str):
+def test_locales_names(code, english, native, display_name):
     locale_name = LOCALES_NAMES_MAP[code]
     assert locale_name.english.casefold() == english
     assert locale_name.native.casefold() == native

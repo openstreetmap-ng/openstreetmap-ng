@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.rich_text import TextFormat, process_rich_text
+from app.lib.rich_text import process_rich_text
 
 
 @pytest.mark.parametrize(
@@ -47,8 +47,8 @@ from app.lib.rich_text import TextFormat, process_rich_text
         ('//example.com', '<p>//example.com</p>'),
     ],
 )
-def test_plain_formatting(input: str, output: str):
-    assert process_rich_text(input, TextFormat.plain) == output
+def test_plain_formatting(input, output):
+    assert process_rich_text(input, 'plain') == output
 
 
 @pytest.mark.parametrize(
@@ -75,5 +75,5 @@ def test_plain_formatting(input: str, output: str):
         ),
     ],
 )
-def test_markdown_formatting(input: str, output: str):
-    assert process_rich_text(input, TextFormat.markdown).strip() == output
+def test_markdown_formatting(input, output):
+    assert process_rich_text(input, 'markdown').strip() == output

@@ -13,14 +13,14 @@ _EMAIL_VALIDATOR = TypeAdapter(EmailValidating, config=PYDANTIC_CONFIG)
     ('email', 'valid'),
     [
         ('example@gmail.com', True),
-        (' example@gmail.com', False),  # leading whitespace
-        ('example@gmail.com ', False),  # trailing whitespace
-        ('example@gmail.com.', False),  # dot at the end
-        ('@gmail.com', False),  # missing local part
-        ('example@.com', False),  # missing domain
-        ('example@gmail.com@', False),  # missing domain
-        ('example@gmail.com@gmail.com', False),  # multiple @
-        ('a' * EMAIL_MAX_LENGTH + '@gmail.com', False),  # too long
+        (' example@gmail.com', False),  # Leading whitespace
+        ('example@gmail.com ', False),  # Trailing whitespace
+        ('example@gmail.com.', False),  # Dot at the end
+        ('@gmail.com', False),  # Missing local part
+        ('example@.com', False),  # Missing domain
+        ('example@gmail.com@', False),  # Missing domain
+        ('example@gmail.com@gmail.com', False),  # Multiple @
+        ('a' * EMAIL_MAX_LENGTH + '@gmail.com', False),  # Too long
     ],
 )
 def test_email_validating(email, valid):

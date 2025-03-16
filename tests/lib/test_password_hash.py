@@ -13,6 +13,7 @@ def test_password_hash_v1():
     password = Password(SecretStr(b64encode(password.SerializeToString()).decode()))
     password_pb = PasswordHash.hash(password)
     assert password_pb is not None
+
     verified = PasswordHash.verify(
         password_pb=password_pb,
         password=password,
@@ -28,6 +29,7 @@ def test_password_hash_v1_missmatch():
     password_2 = Password(SecretStr(b64encode(password_2.SerializeToString()).decode()))
     password_pb = PasswordHash.hash(password_1)
     assert password_pb is not None
+
     verified = PasswordHash.verify(
         password_pb=password_pb,
         password=password_2,
@@ -43,6 +45,7 @@ def test_password_hash_v1_test_user():
     password_2 = Password(SecretStr(b64encode(password_2.SerializeToString()).decode()))
     password_pb = PasswordHash.hash(password_1)
     assert password_pb is not None
+
     verified = PasswordHash.verify(
         password_pb=password_pb,
         password=password_2,
@@ -67,6 +70,7 @@ def test_password_hash_legacy_argon():
             extra=None,
         )
     ).SerializeToString()
+
     assert PasswordHash.verify(
         password_pb=password_pb,
         password=password,
@@ -83,6 +87,7 @@ def test_password_hash_legacy_md5():
             extra='salt',
         )
     ).SerializeToString()
+
     assert PasswordHash.verify(
         password_pb=password_pb,
         password=password,
