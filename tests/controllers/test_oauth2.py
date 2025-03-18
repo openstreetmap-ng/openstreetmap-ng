@@ -3,8 +3,10 @@ from typing import get_args
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
+from annotated_types import Ge
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from httpx import AsyncClient
+from pydantic import PositiveInt
 from starlette import status
 
 from app.config import APP_URL
@@ -14,16 +16,22 @@ from app.lib.locale import DEFAULT_LOCALE
 from app.lib.xmltodict import XMLToDict
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2ResponseMode, OAuth2TokenEndpointAuthMethod
+from tests.utils.assert_model import assert_model
 
 
 async def test_openid_configuration(client: AsyncClient):
     r = await client.get('/.well-known/openid-configuration')
     assert r.is_success, r.text
-
     config = r.json()
-    assert config['issuer'] == APP_URL
-    assert config['authorization_endpoint'] == f'{APP_URL}/oauth2/authorize'
-    assert config['token_endpoint'] == f'{APP_URL}/oauth2/token'
+
+    assert_model(
+        config,
+        {
+            'issuer': APP_URL,
+            'authorization_endpoint': f'{APP_URL}/oauth2/authorize',
+            'token_endpoint': f'{APP_URL}/oauth2/token',
+        },
+    )
 
 
 async def test_authorize_invalid_system_app(client: AsyncClient):
@@ -109,15 +117,20 @@ async def test_authorize_token_oob(
     )
 
     # Verify token data
-    assert data['access_token'], 'Access token must be present'
-    assert data['token_type'] == 'Bearer', 'Token type must be Bearer'
-    assert 'scope' in data, 'Scope field must be present'
-    assert data['created_at'], 'Created timestamp must be present'
+    assert_model(
+        data,
+        {
+            'access_token': str,
+            'token_type': 'Bearer',
+            'scope': '',
+            'created_at': PositiveInt,
+        },
+    )
 
     # Verify token can be used for API access
     r = await auth_client.get('/api/0.6/user/details.json')
     assert r.is_success, r.text
-    assert r.json()['user']['display_name'] == 'user1', 'User identity must be correct'
+    assert_model(r.json()['user'], {'display_name': 'user1'})
 
 
 @pytest.mark.parametrize('is_fragment', [False, True])
@@ -157,15 +170,20 @@ async def test_authorize_response_redirect(client: AsyncClient, is_fragment):
     )
 
     # Verify token data
-    assert data['access_token'], 'Access token must be present'
-    assert data['token_type'] == 'Bearer', 'Token type must be Bearer'
-    assert 'scope' in data, 'Scope field must be present'
-    assert data['created_at'], 'Created timestamp must be present'
+    assert_model(
+        data,
+        {
+            'access_token': str,
+            'token_type': 'Bearer',
+            'scope': '',
+            'created_at': PositiveInt,
+        },
+    )
 
     # Verify token can be used for API access
     r = await auth_client.get('/api/0.6/user/details.json')
     assert r.is_success, r.text
-    assert r.json()['user']['display_name'] == 'user1', 'User identity must be correct'
+    assert_model(r.json()['user'], {'display_name': 'user1'})
 
 
 async def test_authorize_response_form_post(client: AsyncClient):
@@ -219,29 +237,39 @@ async def test_token_introspection_and_userinfo(client: AsyncClient):
     # Verify token works for API access
     r = await auth_client.get('/api/0.6/user/details.json')
     assert r.is_success, r.text
-    assert r.json()['user']['display_name'] == 'user1'
+    assert_model(r.json()['user'], {'display_name': 'user1'})
 
     # Test token introspection
     r = await auth_client.post('/oauth2/introspect', data={'token': access_token})
     assert r.is_success, r.text
-
     introspect_data = r.json()
-    assert introspect_data['active'] is True, 'Token must be active'
-    assert introspect_data['iss'] == APP_URL, 'Issuer must match app URL'
-    assert introspect_data['iat'] >= int(authorization_date.timestamp()), 'Issue time must be valid'
-    assert introspect_data['client_id'] == 'testapp', 'Client id must match'
-    assert not introspect_data['scope'], 'No scope should be present'
-    assert introspect_data['name'] == 'user1', 'Username must match'
+
+    assert_model(
+        introspect_data,
+        {
+            'active': True,
+            'iss': APP_URL,
+            'iat': Ge(int(authorization_date.timestamp())),
+            'client_id': 'testapp',
+            'scope': '',
+            'name': 'user1',
+        },
+    )
     assert 'exp' not in introspect_data, 'No expiration must be set'
 
     # Test userinfo endpoint
     r = await auth_client.get('/oauth2/userinfo')
     assert r.is_success, r.text
-
     userinfo_data = r.json()
-    assert userinfo_data['name'] == 'user1', 'Name must match'
-    assert userinfo_data['picture'].startswith(APP_URL), 'Picture URL must be from app domain'
-    assert userinfo_data['locale'] == DEFAULT_LOCALE, 'Locale must match default'
+
+    assert_model(
+        userinfo_data,
+        {
+            'name': 'user1',
+            'picture': str,
+            'locale': DEFAULT_LOCALE,
+        },
+    )
 
     # Verify picture URL is accessible
     r = await auth_client.get(userinfo_data['picture'])
@@ -330,8 +358,8 @@ async def test_access_token_in_form(client: AsyncClient, valid_scope):
         # With valid scope, the request should succeed
         assert r.is_success, r.text
         props: dict = XMLToDict.parse(r.content)['osm']['note'][0]  # type: ignore
-        comments: list[dict] = props['comments']['comment']
-        assert comments[-1]['user'] == 'user1', 'Comment must be from the correct user'
+        assert len(props['comments']['comment']) == 1
+        assert_model(props['comments']['comment'][0], {'user': 'user1', 'action': 'opened'})
     else:
         # Without valid scope, the request should fail with permission error
         assert r.status_code == status.HTTP_403_FORBIDDEN, r.text

@@ -6,14 +6,15 @@ from pydantic import ConfigDict, create_model
 
 def assert_model(
     data: dict,
-    validators: dict[str, Any],
+    fields: dict[str, Any],
+    /,
     *,
     strict: bool = False,
 ) -> None:
     """
     Validate a dictionary structure against a set of validators.
     :param data: The input dictionary to validate.
-    :param validators: A dictionary mapping field names to Pydantic validators.
+    :param fields: A dictionary mapping field names to Pydantic validators.
     :param strict: If True, no extra fields are allowed in the input.
     """
     field_definitions = {
@@ -25,7 +26,7 @@ def assert_model(
             ),
             ...,
         )
-        for field_name, validator in validators.items()
+        for field_name, validator in fields.items()
     }
 
     create_model(

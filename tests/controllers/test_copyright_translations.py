@@ -8,14 +8,7 @@ from app.models.types import DisplayName, LocaleCode
 from app.services.test_service import TestService
 
 
-@pytest.mark.parametrize(
-    'locale',
-    [
-        'invalid',
-        'xx',
-        '123',
-    ],
-)
+@pytest.mark.parametrize('locale', ['invalid', 'xx', '123'])
 async def test_copyright_invalid_locale(client: AsyncClient, locale):
     r = await client.get(f'/copyright/{locale}')
     assert r.status_code == status.HTTP_404_NOT_FOUND, r.text

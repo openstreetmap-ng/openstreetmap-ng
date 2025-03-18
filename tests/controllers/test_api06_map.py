@@ -4,6 +4,7 @@ from httpx import AsyncClient
 
 from app.lib.xmltodict import XMLToDict
 from app.limits import GEO_COORDINATE_PRECISION
+from tests.utils.assert_model import assert_model
 
 
 async def test_map_read(client: AsyncClient):
@@ -49,10 +50,18 @@ async def test_map_read(client: AsyncClient):
     # Find our node in the response
     nodes = [value for key, value in map_data if key == 'node']
     target_node = next((node for node in nodes if node['@id'] == node_id), None)
-
-    assert target_node is not None, 'Created node not found in map response'
-    assert float(target_node['@lon']) == lon, 'Node longitude mismatch'
-    assert float(target_node['@lat']) == lat, 'Node latitude mismatch'
+    assert target_node is not None, 'Created node must be found in map response'
+    assert_model(
+        target_node,
+        {
+            '@id': node_id,
+            '@lon': lon,
+            '@lat': lat,
+            '@changeset': changeset_id,
+            '@version': 1,
+            '@visible': True,
+        },
+    )
 
     # Delete the node
     r = await client.request(

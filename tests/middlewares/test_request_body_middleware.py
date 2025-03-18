@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 import brotli
 import orjson
 import pytest
+from annotated_types import Len
 from httpx import AsyncClient
 from starlette import status
 from zstandard import ZstdCompressor
@@ -14,6 +15,7 @@ from zstandard import ZstdCompressor
 from app.lib.xmltodict import XMLToDict
 from app.limits import REQUEST_BODY_MAX_SIZE
 from app.models.types import ChangesetId
+from tests.utils.assert_model import assert_model
 
 # Lightweight compression levels for faster tests.
 _ENCODING_COMPRESS: list[tuple[str, Callable[[bytes], bytes]]] = [
@@ -37,7 +39,7 @@ async def test_compressed_form(
     client.headers['Authorization'] = 'User user1'
 
     # Setup test data
-    text = f'{encoding}-compressed form'
+    text = f'{test_compressed_form.__qualname__}: {encoding}'
     content = urlencode({'text': text})
 
     # Execute request with compressed form data
@@ -54,8 +56,13 @@ async def test_compressed_form(
     assert r.is_success, r.text
 
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
-    assert changeset['@id'] == changeset_id, 'Changeset id must match'
-    assert changeset['@comments_count'] == 1, 'Comment must be added'
+    assert_model(
+        changeset,
+        {
+            '@id': changeset_id,
+            '@comments_count': 1,
+        },
+    )
 
 
 @pytest.mark.parametrize(
@@ -70,7 +77,7 @@ async def test_compressed_json(
     client.headers['Authorization'] = 'User user1'
 
     # Setup test data
-    text = f'{encoding}-compressed json'
+    text = f'{test_compressed_json.__qualname__}: {encoding}'
     content = orjson.dumps({'lon': 0, 'lat': 0, 'text': text})
 
     # Execute request with compressed JSON
@@ -87,12 +94,15 @@ async def test_compressed_json(
     assert r.is_success, r.text
 
     props: dict = r.json()['properties']
-    comments: list[dict] = props['comments']
-    assert props['status'] == 'open', 'Note must be created with open status'
-    assert len(comments) == 1, 'Note must have exactly one comment'
-    assert comments[-1]['user'] == 'user1', 'Comment user must be correct'
-    assert comments[-1]['action'] == 'opened', 'Comment action must be "opened"'
-    assert comments[-1]['text'] == text, 'Comment text must match input'
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'opened',
+            'text': text,
+        },
+    )
 
 
 @pytest.mark.parametrize(
@@ -108,7 +118,7 @@ async def test_compressed_xml(
 
     # Setup test data
     content = XMLToDict.unparse({
-        'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': f'{encoding}-compressed xml'}]}},
+        'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': f'{test_compressed_xml.__qualname__}: {encoding}'}]}},
     })
 
     # Execute request with compressed XML
@@ -149,7 +159,7 @@ async def test_passthrough_unsupported_compression(client: AsyncClient):
     text = 'unknown compression'
     content = orjson.dumps({'lon': 0, 'lat': 0, 'text': text})
 
-    # Execute request
+    # Execute request with unsupported compression header
     r = await client.post(
         '/api/0.6/notes.json',
         content=content,
@@ -163,8 +173,15 @@ async def test_passthrough_unsupported_compression(client: AsyncClient):
     assert r.is_success, r.text
 
     props: dict = r.json()['properties']
-    comments: list[dict] = props['comments']
-    assert comments[-1]['text'] == text, 'Comment text must match input'
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'opened',
+            'text': text,
+        },
+    )
 
 
 @pytest.mark.extended

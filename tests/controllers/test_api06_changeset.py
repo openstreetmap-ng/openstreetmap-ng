@@ -1,4 +1,7 @@
+from datetime import datetime
+
 import pytest
+from annotated_types import Gt
 from httpx import AsyncClient
 from starlette import status
 
@@ -6,6 +9,7 @@ from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.format import Format06
 from app.lib.xmltodict import XMLToDict
 from app.limits import TAGS_KEY_MAX_LENGTH, TAGS_LIMIT, TAGS_MAX_SIZE
+from tests.utils.assert_model import assert_model
 
 
 async def test_changeset_crud(client: AsyncClient):
@@ -36,10 +40,15 @@ async def test_changeset_crud(client: AsyncClient):
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
     tags = Format06.decode_tags_and_validate(changeset['tag'])
 
-    assert changeset['@id'] == changeset_id
-    assert changeset['@user'] == 'user1'
-    assert changeset['@open'] is True
-    assert changeset['@created_at'] == changeset['@updated_at']
+    assert_model(
+        changeset,
+        {
+            '@id': changeset_id,
+            '@user': 'user1',
+            '@open': True,
+            '@created_at': changeset['@updated_at'],  # Equal to updated_at on creation
+        },
+    )
     assert '@closed_at' not in changeset
     assert len(tags) == 3
     assert tags['comment'] == 'create'
@@ -64,7 +73,7 @@ async def test_changeset_crud(client: AsyncClient):
     changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
     tags = Format06.decode_tags_and_validate(changeset['tag'])
 
-    assert changeset['@updated_at'] > last_updated_at
+    assert_model(changeset, {'@updated_at': Gt(last_updated_at)})
     assert len(tags) == 2
     assert tags['comment'] == 'update'
     assert 'remove_me' not in tags
@@ -81,10 +90,15 @@ async def test_changeset_crud(client: AsyncClient):
     assert r.is_success, r.text
     changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
 
-    assert changeset['@open'] is False
-    assert changeset['@updated_at'] > last_updated_at
-    assert '@closed_at' in changeset
-    assert changeset['@changes_count'] == 0
+    assert_model(
+        changeset,
+        {
+            '@open': False,
+            '@updated_at': Gt(last_updated_at),
+            '@closed_at': datetime,
+            '@changes_count': 0,
+        },
+    )
     assert '@min_lat' not in changeset
     assert '@max_lat' not in changeset
     assert '@min_lon' not in changeset
@@ -128,14 +142,19 @@ async def test_changeset_upload(client: AsyncClient):
     assert r.is_success, r.text
     changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
 
-    assert changeset['@open'] is False
-    assert '@updated_at' in changeset
-    assert '@closed_at' in changeset
-    assert changeset['@changes_count'] == 2
-    assert changeset['@min_lat'] == 0
-    assert changeset['@max_lat'] == 0
-    assert changeset['@min_lon'] == 0
-    assert changeset['@max_lon'] == 0
+    assert_model(
+        changeset,
+        {
+            '@open': False,
+            '@updated_at': datetime,
+            '@closed_at': datetime,
+            '@changes_count': 2,
+            '@min_lat': 0,
+            '@max_lat': 0,
+            '@min_lon': 0,
+            '@max_lon': 0,
+        },
+    )
 
 
 @pytest.mark.parametrize('include', [True, False])
@@ -170,10 +189,15 @@ async def test_changeset_with_discussion(client: AsyncClient, include):
 
     if include:
         # Verify the comment exists
-        comments: list = changeset['discussion']['comment']
-        assert len(comments) == 1
-        assert comments[0]['user'] == 'user1'
-        assert comments[0]['text'] == comment_text
+        assert len(changeset['discussion']['comment']) == 1
+        comment = changeset['discussion']['comment'][0]
+        assert_model(
+            comment,
+            {
+                'user': 'user1',
+                'text': comment_text,
+            },
+        )
     else:
         assert 'discussion' not in changeset
 

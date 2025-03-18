@@ -65,7 +65,7 @@ class TraceFile:
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
         loop = get_running_loop()
         result = await loop.run_in_executor(None, _ZSTD_COMPRESS, buffer)
-        logging.debug('Trace archive zstd-compressed size is %s', sizestr(len(result)))
+        logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
         return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
 
     @staticmethod

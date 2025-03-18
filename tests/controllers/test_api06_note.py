@@ -1,12 +1,15 @@
 import random
 
 import pytest
+from annotated_types import Len
 from httpx import AsyncClient
+from pydantic import PositiveInt
 from starlette import status
 
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.xmltodict import XMLToDict
 from app.limits import GEO_COORDINATE_PRECISION
+from tests.utils.assert_model import assert_model
 
 
 async def test_note_create_xml(client: AsyncClient):
@@ -17,21 +20,30 @@ async def test_note_create_xml(client: AsyncClient):
         params={'lon': 0, 'lat': 0, 'text': test_note_create_xml.__qualname__},
     )
     assert r.is_success, r.text
-
     note: dict = XMLToDict.parse(r.content)['osm']['note'][0]  # type: ignore
-    assert note['@lat'] == 0
-    assert note['@lon'] == 0
-    assert 'id' in note
-    assert 'url' in note
-    assert 'comment_url' in note
-    assert 'close_url' in note
-    assert note['status'] == 'open'
-
     comments = note['comments']['comment']
+
+    assert_model(
+        note,
+        {
+            '@lat': 0,
+            '@lon': 0,
+            'id': PositiveInt,
+            'status': 'open',
+            'url': str,
+            'comment_url': str,
+            'close_url': str,
+        },
+    )
     assert len(comments) == 1
-    assert comments[0]['user'] == 'user1'
-    assert comments[0]['action'] == 'opened'
-    assert comments[0]['text'] == test_note_create_xml.__qualname__
+    assert_model(
+        comments[0],
+        {
+            'user': 'user1',
+            'action': 'opened',
+            'text': test_note_create_xml.__qualname__,
+        },
+    )
 
 
 async def test_note_create_json(client: AsyncClient):
@@ -42,14 +54,17 @@ async def test_note_create_json(client: AsyncClient):
         json={'lon': 0, 'lat': 0, 'text': test_note_create_json.__qualname__},
     )
     assert r.is_success, r.text
+    props = r.json()['properties']
 
-    data = r.json()
-    props = data['properties']
-    assert props['status'] == 'open'
-    assert len(props['comments']) == 1
-    assert props['comments'][0]['user'] == 'user1'
-    assert props['comments'][0]['action'] == 'opened'
-    assert props['comments'][0]['text'] == test_note_create_json.__qualname__
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(
+        props['comments'][0],
+        {
+            'user': 'user1',
+            'action': 'opened',
+            'text': test_note_create_json.__qualname__,
+        },
+    )
 
 
 async def test_note_create_gpx(client: AsyncClient):
@@ -60,12 +75,17 @@ async def test_note_create_gpx(client: AsyncClient):
         params={'lon': 0, 'lat': 0, 'text': test_note_create_gpx.__qualname__},
     )
     assert r.is_success, r.text
-
     waypoint: dict = XMLToDict.parse(r.content)['gpx']['wpt'][0]  # type: ignore
-    assert waypoint['@lat'] == 0
-    assert waypoint['@lon'] == 0
-    assert 'name' in waypoint
-    assert 'desc' in waypoint
+
+    assert_model(
+        waypoint,
+        {
+            '@lat': 0,
+            '@lon': 0,
+            'name': str,
+            'desc': str,
+        },
+    )
 
 
 async def test_note_create_anonymous(client: AsyncClient):
@@ -74,14 +94,17 @@ async def test_note_create_anonymous(client: AsyncClient):
         json={'lon': 0, 'lat': 0, 'text': test_note_create_anonymous.__qualname__},
     )
     assert r.is_success, r.text
+    props = r.json()['properties']
 
-    data = r.json()
-    props = data['properties']
-    assert props['status'] == 'open'
-    assert len(props['comments']) == 1
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(
+        props['comments'][0],
+        {
+            'action': 'opened',
+            'text': test_note_create_anonymous.__qualname__,
+        },
+    )
     assert 'user' not in props['comments'][0]
-    assert props['comments'][0]['action'] == 'opened'
-    assert props['comments'][0]['text'] == test_note_create_anonymous.__qualname__
 
 
 async def test_note_crud(client: AsyncClient):
@@ -96,16 +119,21 @@ async def test_note_crud(client: AsyncClient):
     props = r.json()['properties']
     note_id = props['id']
 
-    assert props['status'] == 'open'
-    assert len(props['comments']) == 1
-    assert props['comments'][0]['user'] == 'user1'
-    assert props['comments'][0]['action'] == 'opened'
-    assert props['comments'][0]['text'] == test_note_crud.__qualname__
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'opened',
+            'text': test_note_crud.__qualname__,
+        },
+    )
 
     # Step 2: Read the note
     r = await client.get(f'/api/0.6/notes/{note_id}.json')
     assert r.is_success, r.text
-    assert r.json()['properties']['id'] == note_id
+    props = r.json()['properties']
+    assert_model(props, {'id': note_id})
 
     # Step 3: Comment on the note
     r = await client.post(
@@ -115,11 +143,15 @@ async def test_note_crud(client: AsyncClient):
     assert r.is_success, r.text
     props = r.json()['properties']
 
-    assert props['status'] == 'open'
-    assert len(props['comments']) == 2
-    assert props['comments'][1]['user'] == 'user1'
-    assert props['comments'][1]['action'] == 'commented'
-    assert props['comments'][1]['text'] == 'Adding a comment'
+    assert_model(props, {'status': 'open', 'comments': Len(2, 2)})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'commented',
+            'text': 'Adding a comment',
+        },
+    )
 
     # Step 4: Close the note
     r = await client.post(
@@ -129,12 +161,15 @@ async def test_note_crud(client: AsyncClient):
     assert r.is_success, r.text
     props = r.json()['properties']
 
-    assert props['status'] == 'closed'
-    assert len(props['comments']) == 3
-    assert props['comments'][2]['user'] == 'user1'
-    assert props['comments'][2]['action'] == 'closed'
-    assert props['comments'][2]['text'] == 'Closing note'
-    assert 'date_closed' in props
+    assert_model(props, {'status': 'closed', 'comments': Len(3, 3), 'date_closed': str})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'closed',
+            'text': 'Closing note',
+        },
+    )
 
     # Step 5: Reopen the note
     r = await client.post(
@@ -144,11 +179,15 @@ async def test_note_crud(client: AsyncClient):
     assert r.is_success, r.text
     props = r.json()['properties']
 
-    assert props['status'] == 'open'
-    assert len(props['comments']) == 4
-    assert props['comments'][3]['user'] == 'user1'
-    assert props['comments'][3]['action'] == 'reopened'
-    assert props['comments'][3]['text'] == 'Reopening note'
+    assert_model(props, {'status': 'open', 'comments': Len(4, 4)})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'reopened',
+            'text': 'Reopening note',
+        },
+    )
     assert 'date_closed' not in props
 
     # Step 6: Hide the note (requires moderator privileges)
@@ -161,10 +200,15 @@ async def test_note_crud(client: AsyncClient):
     props = r.json()['properties']
 
     # Check that comments history is preserved and hide action is recorded
-    assert len(props['comments']) == 5
-    assert props['comments'][4]['user'] == 'moderator'
-    assert props['comments'][4]['action'] == 'hidden'
-    assert props['comments'][4]['text'] == 'Hiding inappropriate note'
+    assert_model(props, {'status': 'hidden', 'comments': Len(5, 5)})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'moderator',
+            'action': 'hidden',
+            'text': 'Hiding inappropriate note',
+        },
+    )
 
     # Step 7: Verify hidden note is not accessible to regular users
     client.headers['Authorization'] = 'User user1'
@@ -204,11 +248,11 @@ async def test_note_query_by_bbox(client: AsyncClient):
         },
     )
     assert r.is_success, r.text
+    props = r.json()['features'][0]['properties']
 
     # Verify that note is found
-    props = r.json()['features'][0]['properties']
-    assert len(props['comments']) == 1
-    assert props['comments'][0]['text'] == test_note_query_by_bbox.__qualname__
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(props['comments'][0], {'text': test_note_query_by_bbox.__qualname__})
 
 
 async def test_note_search(client: AsyncClient):
@@ -230,11 +274,11 @@ async def test_note_search(client: AsyncClient):
         },
     )
     assert r.is_success, r.text
+    props = r.json()['features'][0]['properties']
 
     # Verify that note is found
-    props = r.json()['features'][0]['properties']
-    assert len(props['comments']) == 1
-    assert props['comments'][0]['text'] == text
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(props['comments'][0], {'text': text})
 
 
 async def test_invalid_note_id(client: AsyncClient):
