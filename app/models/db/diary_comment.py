@@ -8,13 +8,13 @@ from app.models.types import DiaryCommentId, DiaryId, UserId
 
 
 class DiaryCommentInit(TypedDict):
+    id: DiaryCommentId
     user_id: UserId
     diary_id: DiaryId
     body: str  # TODO: validate size
 
 
 class DiaryComment(DiaryCommentInit):
-    id: DiaryCommentId
     body_rich_hash: bytes | None
     created_at: datetime
 

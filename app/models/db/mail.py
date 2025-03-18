@@ -8,6 +8,7 @@ MailSource = Literal['message', 'diary_comment'] | None  # None: for system/no s
 
 
 class MailInit(TypedDict):
+    id: MailId
     source: MailSource
     from_user_id: UserId | None
     to_user_id: UserId
@@ -18,7 +19,6 @@ class MailInit(TypedDict):
 
 
 class Mail(MailInit):
-    id: MailId
     processing_counter: int
     created_at: datetime
     scheduled_at: datetime

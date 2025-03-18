@@ -3,6 +3,8 @@ from asyncio import TaskGroup
 from datetime import datetime
 from ipaddress import IPv4Address
 
+from zid import zid
+
 from app.config import TEST_USER_EMAIL_SUFFIX
 from app.db import db
 from app.lib.auth_context import auth_context
@@ -122,6 +124,7 @@ class TestService:
     ) -> None:
         """Create a test OAuth2 application."""
         app_init: OAuth2ApplicationInit = {
+            'id': zid(),  # type: ignore
             'user_id': UserId(1),
             'name': name,
             'client_id': client_id,
@@ -138,12 +141,12 @@ class TestService:
             await conn.execute(
                 """
                 INSERT INTO oauth2_application (
-                    user_id, name, client_id,
+                    id, user_id, name, client_id,
                     client_secret_hashed, client_secret_preview,
                     confidential, redirect_uris, scopes
                 )
                 VALUES (
-                    %(user_id)s, %(name)s, %(client_id)s,
+                    %(id)s, %(user_id)s, %(name)s, %(client_id)s,
                     %(client_secret_hashed)s, %(client_secret_preview)s,
                     %(confidential)s, %(redirect_uris)s, %(scopes)s
                 )

@@ -172,6 +172,7 @@ dictConfig({
             # reduce logging verbosity of some modules
             module: {'handlers': [], 'level': 'INFO'}
             for module in (
+                'botocore',
                 'hpack',
                 'httpx',
                 'httpcore',
@@ -179,15 +180,6 @@ dictConfig({
                 'multipart',
                 'python_multipart',
             )
-        },
-        **{
-            # conditional database logging
-            module: {'handlers': [], 'level': 'INFO'}
-            for module in (
-                'sqlalchemy.engine',
-                'sqlalchemy.pool',
-            )
-            if POSTGRES_LOG
         },
     },
 })

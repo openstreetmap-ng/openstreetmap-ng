@@ -1,10 +1,10 @@
 import logging
-from asyncio import TaskGroup
 from contextlib import asynccontextmanager, contextmanager
 from functools import wraps
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import cython
 import duckdb
 import orjson
 from psycopg import AsyncConnection, IsolationLevel
@@ -30,14 +30,20 @@ async def _configure_connection(conn: AsyncConnection) -> None:  # noqa: RUF029
     conn.cursor = wrapped  # type: ignore
 
 
-_PSYCOPG_POOL = AsyncConnectionPool(
-    POSTGRES_URL,
-    min_size=2,
-    max_size=100,
-    open=False,
-    configure=_configure_connection,
-    num_workers=3,  # workers for opening new connections
-)
+@cython.cfunc
+def _init_pool():
+    global _PSYCOPG_POOL
+    _PSYCOPG_POOL = AsyncConnectionPool(  # pyright: ignore [reportConstantRedefinition]
+        POSTGRES_URL,
+        min_size=2,
+        max_size=100,
+        open=False,
+        configure=_configure_connection,
+        num_workers=3,  # workers for opening new connections
+    )
+
+
+_PSYCOPG_POOL: AsyncConnectionPool
 
 set_json_dumps(orjson.dumps)
 set_json_loads(orjson.loads)
@@ -51,11 +57,13 @@ async def psycopg_pool_open():
     """Open and close the psycopg pool."""
     from app.services.migration_service import MigrationService  # noqa: PLC0415
 
+    _init_pool()
     async with _PSYCOPG_POOL:
         await MigrationService.migrate_database()
         await _register_types()
         # Reset the connection pool to ensure the new types are used.
 
+    _init_pool()
     async with _PSYCOPG_POOL:
         yield
 
@@ -76,17 +84,14 @@ async def _register_types():
     Register db support for additional types.
     https://www.psycopg.org/psycopg3/docs/basic/pgtypes.html
     """
-    async with db() as conn, TaskGroup() as tg:
-        hstore_task = tg.create_task(TypeInfo.fetch(conn, 'hstore'))
-        geometry_task = tg.create_task(TypeInfo.fetch(conn, 'geometry'))
+    async with db() as conn:
+        hstore_info = await TypeInfo.fetch(conn, 'hstore')
+        assert hstore_info is not None, 'hstore type not found'
+        register_hstore(hstore_info, None)
 
-    hstore_info = hstore_task.result()
-    assert hstore_info is not None, 'hstore type not found'
-    register_hstore(hstore_info, None)
-
-    geometry_info = geometry_task.result()
-    assert geometry_info is not None, 'geometry type not found'
-    register_shapely(geometry_info, None)
+        geometry_info = await TypeInfo.fetch(conn, 'geometry')
+        assert geometry_info is not None, 'geometry type not found'
+        register_shapely(geometry_info, None)
 
 
 @asynccontextmanager

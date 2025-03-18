@@ -8,8 +8,8 @@ from typing import Any, Literal, overload
 
 import cython
 from aiosmtplib import SMTP
-from arrow.api import utcnow
 from psycopg.rows import dict_row
+from zid import zid
 
 from app.config import (
     SMTP_HOST,
@@ -22,12 +22,13 @@ from app.config import (
 )
 from app.db import db
 from app.lib.auth_context import auth_context
+from app.lib.date_utils import utcnow
 from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail, MailInit, MailSource
 from app.models.db.user import User, user_is_deleted, user_is_test
-from app.models.types import UserId
+from app.models.types import MailId, UserId
 
 _PROCESS_LOCK = Lock()
 
@@ -82,7 +83,9 @@ class EmailService:
         with auth_context(to_user, ()), translation_context(to_user['language']):
             body = render_jinja(template_name, template_data)
 
+        mail_id: MailId = zid()  # type: ignore
         mail_init: MailInit = {
+            'id': mail_id,
             'source': source,
             'from_user_id': from_user_id,
             'to_user_id': to_user['id'],
@@ -92,8 +95,7 @@ class EmailService:
             'priority': priority,
         }
 
-        async with (
-            db(True, autocommit=True) as conn,
+        async with db(True, autocommit=True) as conn:
             await conn.execute(
                 """
                 INSERT INTO mail (
@@ -102,14 +104,11 @@ class EmailService:
                 VALUES (
                     %(source)s, %(from_user_id)s, %(to_user_id)s, %(subject)s, %(body)s, %(ref)s, %(priority)s
                 )
-                RETURNING id
                 """,
                 mail_init,
-            ) as r,
-        ):
-            row = await r.fetchone()
-            assert row is not None, 'Mail must be scheduled'
-            logging.info('Scheduled mail %r to user %d with subject %r', row[0], to_user['id'], subject)
+            )
+
+        logging.info('Scheduled mail %r to user %d with subject %r', mail_id, to_user['id'], subject)
 
         loop = get_running_loop()
         loop.create_task(_process_task())  # noqa: RUF006

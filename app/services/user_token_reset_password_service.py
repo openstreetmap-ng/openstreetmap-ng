@@ -3,6 +3,8 @@ import time
 from collections import deque
 from statistics import median
 
+from zid import zid
+
 from app.db import db
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
@@ -53,28 +55,26 @@ async def _create_token(user) -> UserTokenStruct:
     token_bytes = buffered_randbytes(32)
     token_hashed = hash_bytes(token_bytes)
 
+    token_id: UserTokenId = zid()  # type: ignore
     token_init: UserTokenInit = {
+        'id': token_id,
         'type': 'reset_password',
         'user_id': user_id,
         'user_email_hashed': user_email_hashed,
         'token_hashed': token_hashed,
     }
 
-    async with (
-        db(True) as conn,
+    async with db(True) as conn:
         await conn.execute(
             """
             INSERT INTO user_token (
-                type, user_id, user_email_hashed, token_hashed
+                id, type, user_id, user_email_hashed, token_hashed
             )
             VALUES (
-                %(type)s, %(user_id)s, %(user_email_hashed)s, %(token_hashed)s
+                %(id)s, %(type)s, %(user_id)s, %(user_email_hashed)s, %(token_hashed)s
             )
-            RETURNING id
             """,
             token_init,
-        ) as r,
-    ):
-        token_id: UserTokenId = (await r.fetchone())[0]  # type: ignore
+        )
 
     return UserTokenStruct(id=token_id, token=token_bytes)

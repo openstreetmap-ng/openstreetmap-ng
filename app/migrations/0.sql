@@ -70,21 +70,21 @@ CREATE TABLE connected_account
 );
 CREATE UNIQUE INDEX connected_account_provider_uid_idx ON connected_account (provider, uid);
 
-CREATE TYPE public_scope AS ENUM ('read_prefs', 'write_prefs', 'write_api', 'read_gpx', 'write_gpx', 'write_notes');
+CREATE TYPE scope AS ENUM ('web_user', 'read_prefs', 'write_prefs', 'write_api', 'read_gpx', 'write_gpx', 'write_notes');
 CREATE TABLE oauth2_application
 (
     id                    bigint PRIMARY KEY,
     user_id               bigint REFERENCES "user",
-    name                  text           NOT NULL,
+    name                  text        NOT NULL,
     avatar_id             text,
-    client_id             text           NOT NULL,
+    client_id             text        NOT NULL,
     client_secret_hashed  bytea,
     client_secret_preview text,
-    confidential          boolean        NOT NULL DEFAULT false,
-    redirect_uris         text[]         NOT NULL DEFAULT '{}',
-    scopes                public_scope[] NOT NULL DEFAULT '{}',
-    created_at            timestamptz    NOT NULL DEFAULT statement_timestamp(),
-    updated_at            timestamptz    NOT NULL DEFAULT statement_timestamp()
+    confidential          boolean     NOT NULL DEFAULT false,
+    redirect_uris         text[]      NOT NULL DEFAULT '{}',
+    scopes                scope[]     NOT NULL DEFAULT '{}',
+    created_at            timestamptz NOT NULL DEFAULT statement_timestamp(),
+    updated_at            timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 CREATE UNIQUE INDEX oauth2_application_client_id_idx ON oauth2_application (client_id);
 CREATE INDEX oauth2_application_user_idx ON oauth2_application (user_id);
@@ -93,16 +93,16 @@ CREATE TYPE oauth2_code_challenge_method AS ENUM ('plain', 'S256');
 CREATE TABLE oauth2_token
 (
     id                    bigint PRIMARY KEY,
-    user_id               bigint         NOT NULL REFERENCES "user",
-    application_id        bigint         NOT NULL REFERENCES oauth2_application,
+    user_id               bigint      NOT NULL REFERENCES "user",
+    application_id        bigint      NOT NULL REFERENCES oauth2_application,
     name                  text,
     token_hashed          bytea,
     token_preview         text,
     redirect_uri          text,
-    scopes                public_scope[] NOT NULL,
+    scopes                scope[]     NOT NULL,
     code_challenge_method oauth2_code_challenge_method,
     code_challenge        text,
-    created_at            timestamptz    NOT NULL DEFAULT statement_timestamp(),
+    created_at            timestamptz NOT NULL DEFAULT statement_timestamp(),
     authorized_at         timestamptz
 );
 CREATE UNIQUE INDEX oauth2_token_hashed_idx ON oauth2_token (token_hashed) WHERE token_hashed IS NOT NULL;

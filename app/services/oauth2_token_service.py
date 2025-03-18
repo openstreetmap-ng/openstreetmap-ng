@@ -5,6 +5,7 @@ from typing import Any, Literal, overload
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
+from zid import zid
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -120,6 +121,7 @@ class OAuth2TokenService:
         authorization_code_hashed = hash_bytes(authorization_code)
 
         token_init: OAuth2TokenInit = {
+            'id': zid(),  # type: ignore
             'user_id': user_id,
             'application_id': app['id'],
             'name': None,
@@ -135,12 +137,12 @@ class OAuth2TokenService:
             await conn.execute(
                 """
                 INSERT INTO oauth2_token (
-                    user_id, application_id, name,
+                    id, user_id, application_id, name,
                     token_hashed, token_preview, redirect_uri,
                     scopes, code_challenge_method, code_challenge
                 )
                 VALUES (
-                    %(user_id)s, %(application_id)s, %(name)s,
+                    %(id)s, %(user_id)s, %(application_id)s, %(name)s,
                     %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
                     %(scopes)s, %(code_challenge_method)s, %(code_challenge)s
                 )
@@ -264,6 +266,7 @@ class OAuth2TokenService:
         user_id = auth_user(required=True)['id']
 
         token_init: OAuth2TokenInit = {
+            'id': zid(),  # type: ignore
             'user_id': user_id,
             'application_id': app_id,
             'name': name,
@@ -280,12 +283,12 @@ class OAuth2TokenService:
             await conn.execute(
                 """
                 INSERT INTO oauth2_token (
-                    user_id, application_id, name,
+                    id, user_id, application_id, name,
                     token_hashed, token_preview, redirect_uri,
                     scopes, code_challenge_method, code_challenge
                 )
                 VALUES (
-                    %(user_id)s, %(application_id)s, %(name)s,
+                    %(id)s, %(user_id)s, %(application_id)s, %(name)s,
                     %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
                     %(scopes)s, %(code_challenge_method)s, %(code_challenge)s
                 )

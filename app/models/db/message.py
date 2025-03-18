@@ -12,6 +12,7 @@ from app.models.types import MessageId, UserId
 
 
 class MessageInit(TypedDict):
+    id: MessageId
     from_user_id: UserId
     to_user_id: UserId
     subject: str
@@ -19,7 +20,6 @@ class MessageInit(TypedDict):
 
 
 class Message(MessageInit):
-    id: MessageId
     from_user_hidden: bool
     to_user_hidden: bool
     read: bool

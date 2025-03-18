@@ -14,6 +14,7 @@ OAuth2TokenEndpointAuthMethod = Literal['client_secret_post', 'client_secret_bas
 
 
 class OAuth2TokenInit(TypedDict):
+    id: OAuth2TokenId
     user_id: UserId
     application_id: ApplicationId
     name: str | None  # PATs only
@@ -26,7 +27,6 @@ class OAuth2TokenInit(TypedDict):
 
 
 class OAuth2Token(OAuth2TokenInit):
-    id: OAuth2TokenId
     created_at: datetime
     authorized_at: datetime | None
 

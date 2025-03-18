@@ -31,7 +31,7 @@ else:
 AvatarType = Literal['gravatar', 'custom'] | None
 
 DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
-DEFAULT_USER_AVATAR = Path('app').joinpath(DEFAULT_USER_AVATAR_URL).read_bytes()
+DEFAULT_USER_AVATAR = Path('app' + DEFAULT_USER_AVATAR_URL).read_bytes()
 DEFAULT_APP_AVATAR_URL = '/static/img/app.webp'
 
 

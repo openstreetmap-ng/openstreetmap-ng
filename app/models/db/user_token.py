@@ -23,6 +23,7 @@ USER_TOKEN_EXPIRE: dict[UserTokenType, timedelta] = {
 
 # TODO: validate from address
 class UserTokenInit(TypedDict):
+    id: UserTokenId
     type: UserTokenType
     user_id: UserId
     user_email_hashed: bytes  # TODO: email change expire all tokens
@@ -33,7 +34,6 @@ class UserTokenInit(TypedDict):
 
 
 class UserToken(UserTokenInit):
-    id: UserTokenId
     created_at: datetime
 
 

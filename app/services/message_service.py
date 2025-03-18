@@ -3,6 +3,8 @@ from asyncio import TaskGroup
 from datetime import datetime
 from typing import cast
 
+from zid import zid
+
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
@@ -33,7 +35,9 @@ class MessageService:
         if recipient_id == from_user_id:
             StandardFeedback.raise_error('recipient', t('validation.cant_send_message_to_self'))
 
+        message_id: MessageId = zid()  # type: ignore
         message_init: MessageInit = {
+            'id': message_id,
             'from_user_id': from_user_id,
             'to_user_id': recipient_id,
             'subject': subject,
@@ -50,14 +54,12 @@ class MessageService:
                 VALUES (
                     %(from_user_id)s, %(to_user_id)s, %(subject)s, %(body)s
                 )
-                RETURNING id, created_at
+                RETURNING created_at
                 """,
                 message_init,
             ) as r,
         ):
-            message_id: MessageId
-            created_at: datetime
-            message_id, created_at = await r.fetchone()  # type: ignore
+            created_at: datetime = (await r.fetchone())[0]  # type: ignore
 
         logging.info(
             'Sent message %d from user %d to recipient %r with subject %r',

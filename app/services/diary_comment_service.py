@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any, cast
 
 from psycopg.sql import SQL, Composable
+from zid import zid
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -25,7 +26,9 @@ class DiaryCommentService:
         user = auth_user(required=True)
         user_id = user['id']
 
+        comment_id: DiaryCommentId = zid()  # type: ignore
         comment_init: DiaryCommentInit = {
+            'id': comment_id,
             'user_id': user_id,
             'diary_id': diary_id,
             'body': body,
@@ -47,18 +50,16 @@ class DiaryCommentService:
             async with await conn.execute(
                 """
                 INSERT INTO diary_comment (
-                    user_id, diary_id, body
+                    id, user_id, diary_id, body
                 )
                 VALUES (
-                    %(user_id)s, %(diary_id)s, %(body)s
+                    %(id)s, %(user_id)s, %(diary_id)s, %(body)s
                 )
-                RETURNING id, created_at
+                RETURNING created_at
                 """,
                 comment_init,
             ) as r:
-                comment_id: DiaryCommentId
-                created_at: datetime
-                comment_id, created_at = await r.fetchone()  # type: ignore
+                created_at: datetime = (await r.fetchone())[0]  # type: ignore
 
         logging.debug('Created diary comment %d on diary %d by user %d', comment_id, diary_id, user_id)
 

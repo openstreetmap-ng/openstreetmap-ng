@@ -3,6 +3,7 @@ from asyncio import TaskGroup
 from typing import NamedTuple
 
 from pydantic import SecretStr
+from zid import zid
 
 from app.config import NAME
 from app.db import db
@@ -31,7 +32,7 @@ Mapping of SystemApp client IDs to database IDs.
 class SystemApp(NamedTuple):
     name: str
     client_id: ClientId
-    scopes: tuple[Scope, ...]
+    scopes: list[Scope]
 
 
 class SystemAppService:
@@ -43,34 +44,34 @@ class SystemAppService:
                 SystemApp(
                     name=NAME,
                     client_id=SYSTEM_APP_WEB_CLIENT_ID,
-                    scopes=('web_user',),
+                    scopes=['web_user'],
                 ),
                 SystemApp(
                     name='Personal Access Token',
                     client_id=SYSTEM_APP_PAT_CLIENT_ID,
-                    scopes=PUBLIC_SCOPES,
+                    scopes=list(PUBLIC_SCOPES),
                 ),
                 SystemApp(
                     name='iD',
                     client_id=SYSTEM_APP_ID_CLIENT_ID,
-                    scopes=(
+                    scopes=[
                         'read_prefs',
                         'write_prefs',
                         'write_api',
                         'read_gpx',
                         'write_notes',
-                    ),
+                    ],
                 ),
                 SystemApp(
                     name='Rapid',
                     client_id=SYSTEM_APP_RAPID_CLIENT_ID,
-                    scopes=(
+                    scopes=[
                         'read_prefs',
                         'write_prefs',
                         'write_api',
                         'read_gpx',
                         'write_notes',
-                    ),
+                    ],
                 ),
             ):
                 tg.create_task(_register_app(app))
@@ -94,6 +95,7 @@ class SystemAppService:
         del access_token_
 
         token_init: OAuth2TokenInit = {
+            'id': zid(),  # type: ignore
             'user_id': user_id,
             'application_id': app_id,
             'name': None,
@@ -109,13 +111,13 @@ class SystemAppService:
             await conn.execute(
                 """
                 INSERT INTO oauth2_token (
-                    user_id, application_id, name,
+                    id, user_id, application_id, name,
                     token_hashed, token_preview, redirect_uri,
                     scopes, code_challenge_method, code_challenge,
                     authorized_at
                 )
                 VALUES (
-                    %(user_id)s, %(application_id)s, %(name)s,
+                    %(id)s, %(user_id)s, %(application_id)s, %(name)s,
                     %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
                     %(scopes)s, %(code_challenge_method)s, %(code_challenge)s,
                     statement_timestamp()
@@ -133,6 +135,7 @@ async def _register_app(app: SystemApp) -> None:
     logging.info('Registering system app %r', app.name)
 
     app_init: OAuth2ApplicationInit = {
+        'id': zid(),  # type: ignore
         'user_id': None,
         'name': app.name,
         'client_id': app.client_id,
@@ -143,11 +146,11 @@ async def _register_app(app: SystemApp) -> None:
         await conn.execute(
             """
             INSERT INTO oauth2_application (
-                user_id, name, client_id,
+                id, user_id, name, client_id,
                 scopes, confidential, redirect_uris
             )
             VALUES (
-                %(user_id)s, %(name)s, %(client_id)s,
+                %(id)s, %(user_id)s, %(name)s, %(client_id)s,
                 %(scopes)s, %(confidential)s, %(redirect_uris)s
             )
             ON CONFLICT (client_id) DO UPDATE SET

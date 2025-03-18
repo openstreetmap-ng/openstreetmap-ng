@@ -19,13 +19,13 @@ _CLIENT_ID_AVATAR_URL_MAP: dict[ClientId, str] = {
 
 
 class OAuth2ApplicationInit(TypedDict):
+    id: ApplicationId
     user_id: UserId | None
     name: str
     client_id: ClientId
 
 
 class OAuth2Application(OAuth2ApplicationInit):
-    id: ApplicationId
     avatar_id: StorageKey | None
     client_secret_hashed: bytes | None
     client_secret_preview: str | None

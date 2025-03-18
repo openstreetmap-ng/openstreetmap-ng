@@ -5,6 +5,7 @@ from typing import cast
 from fastapi import UploadFile
 from pydantic import SecretStr
 from rfc3986 import uri_reference
+from zid import zid
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -38,26 +39,26 @@ class OAuth2ApplicationService:
         user_id = auth_user(required=True)['id']
         client_id = ClientId(buffered_rand_urlsafe(32))
 
+        app_id: ApplicationId = zid()  # type: ignore
         app_init: OAuth2ApplicationInit = {
+            'id': app_id,
             'user_id': user_id,
             'name': name,
             'client_id': client_id,
         }
 
         async with db(True) as conn:
-            async with await conn.execute(
+            await conn.execute(
                 """
                 INSERT INTO oauth2_application (
-                    user_id, name, client_id
+                    id, user_id, name, client_id
                 )
                 VALUES (
-                    %(user_id)s, %(name)s, %(client_id)s
+                    %(id)s, %(user_id)s, %(name)s, %(client_id)s
                 )
-                RETURNING id
                 """,
                 app_init,
-            ) as r:
-                app_id: ApplicationId = (await r.fetchone())[0]  # type: ignore
+            )
 
             # Check count after insert to prevent race conditions
             async with await conn.execute(

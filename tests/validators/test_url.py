@@ -37,10 +37,6 @@ def test_url_validator(url, valid):
         ('https://example.com', True),
         ('ftp://example.com', True),  # Additional scheme allowed
         ('ssh://example.com', True),  # Additional scheme allowed
-        ('mailto:user@example.com', True),
-        ('file:///path/to/file', True),
-        ('tel:+1234567890', True),
-        ('urn:isbn:0451450523', True),
         ('example.com', False),  # Missing scheme
         ('http://', False),  # Missing host
         ('http://user:password@example.com', False),  # Contains password

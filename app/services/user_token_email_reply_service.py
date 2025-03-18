@@ -1,5 +1,7 @@
 import logging
 
+from zid import zid
+
 from app.config import SMTP_MESSAGES_FROM_HOST
 from app.db import db
 from app.lib.auth_context import auth_context, auth_user
@@ -67,7 +69,9 @@ async def _create_token(replying_user: User, mail_source: MailSource) -> UserTok
     token_bytes = buffered_randbytes(16)
     token_hashed = hash_bytes(token_bytes)
 
+    token_id: UserTokenId = zid()  # type: ignore
     token_init: UserTokenEmailReplyInit = {
+        'id': token_id,
         'type': 'email_reply',
         'user_id': user_id,
         'user_email_hashed': user_email_hashed,
@@ -77,23 +81,19 @@ async def _create_token(replying_user: User, mail_source: MailSource) -> UserTok
         'email_reply_usage_count': 0,
     }
 
-    async with (
-        db(True) as conn,
+    async with db(True) as conn:
         await conn.execute(
             """
             INSERT INTO user_token (
-                type, user_id, user_email_hashed, token_hashed,
+                id, type, user_id, user_email_hashed, token_hashed,
                 email_reply_source, email_reply_to_user_id, email_reply_usage_count
             )
             VALUES (
-                %(type)s, %(user_id)s, %(user_email_hashed)s, %(token_hashed)s,
+                %(id)s, %(type)s, %(user_id)s, %(user_email_hashed)s, %(token_hashed)s,
                 %(email_reply_source)s, %(email_reply_to_user_id)s, %(email_reply_usage_count)s
             )
-            RETURNING id
             """,
             token_init,
-        ) as r,
-    ):
-        token_id: UserTokenId = (await r.fetchone())[0]  # type: ignore
+        )
 
     return UserTokenStruct(id=token_id, token=token_bytes)

@@ -15,9 +15,9 @@ Scope = (
     PublicScope
     | Literal[
         # additional scopes
+        'web_user',
         'read_email',
         'skip_authorization',
-        'web_user',
         # role-specific scopes
         'role_moderator',
         'role_administrator',
