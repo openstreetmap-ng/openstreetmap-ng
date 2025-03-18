@@ -31,12 +31,11 @@ else:
 AvatarType = Literal['gravatar', 'custom'] | None
 
 DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
+DEFAULT_USER_AVATAR = Path('app').joinpath(DEFAULT_USER_AVATAR_URL).read_bytes()
 DEFAULT_APP_AVATAR_URL = '/static/img/app.webp'
 
 
 class Image:
-    default_avatar: bytes = Path('app/static/img/avatar.webp').read_bytes()
-
     @staticmethod
     @overload
     def get_avatar_url(image_type: None, *, app: bool = False) -> str: ...

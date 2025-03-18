@@ -122,6 +122,7 @@ ignore = [
   "Q003", # avoidable-escaped-quote
   "S101", # assert
   "S105", # hardcoded-password-string
+  "S311", # suspicious-non-cryptographic-random-usage
   "S404", # suspicious-subprocess-import
   "S6",
   "SIM105", # suppressible-exception

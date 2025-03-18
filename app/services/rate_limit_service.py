@@ -120,10 +120,10 @@ async def _process_task() -> None:
                 tt = perf_counter() - ts
 
                 # on success, sleep ~5min
-                delay = random.uniform(290, 310) - tt  # noqa: S311
+                delay = random.uniform(290, 310) - tt
             else:
                 # on failure, sleep ~1h
-                delay = random.uniform(1800, 5400)  # noqa: S311
+                delay = random.uniform(1800, 5400)
 
         if not TEST_ENV:
             await asyncio.sleep(delay)

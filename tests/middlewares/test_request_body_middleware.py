@@ -51,7 +51,7 @@ async def test_compressed_form(
     )
 
     # Verify response
-    assert r.is_success, f'Request must succeed, got {r.status_code}: {r.text}'
+    assert r.is_success, r.text
 
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
     assert changeset['@id'] == changeset_id, 'Changeset id must match'
@@ -84,7 +84,7 @@ async def test_compressed_json(
     )
 
     # Verify response
-    assert r.is_success, f'Request must succeed, got {r.status_code}: {r.text}'
+    assert r.is_success, r.text
 
     props: dict = r.json()['properties']
     comments: list[dict] = props['comments']
@@ -122,7 +122,7 @@ async def test_compressed_xml(
     )
 
     # Verify response
-    assert r.is_success, f'Request must succeed, got {r.status_code}: {r.text}'
+    assert r.is_success, r.text
     assert int(r.text) > 0, 'Changeset id must be positive'
 
 
@@ -139,7 +139,7 @@ async def test_bad_compression_data(client: AsyncClient):
     )
 
     # Verify response
-    assert r.is_client_error, f'Request must result in client error, got {r.status_code}: {r.text}'
+    assert r.is_client_error, r.text
 
 
 async def test_passthrough_unsupported_compression(client: AsyncClient):
@@ -160,7 +160,7 @@ async def test_passthrough_unsupported_compression(client: AsyncClient):
     )
 
     # Verify response
-    assert r.is_success, f'Request must succeed, got {r.status_code}: {r.text}'
+    assert r.is_success, r.text
 
     props: dict = r.json()['properties']
     comments: list[dict] = props['comments']
@@ -186,6 +186,4 @@ async def test_size_limit_after_decompression(client: AsyncClient):
     )
 
     # Verify response
-    assert r.status_code == status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, (
-        f'Request must result in 413 error, got {r.status_code}: {r.text}'
-    )
+    assert r.status_code == status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, r.text

@@ -18,7 +18,7 @@ from app.services.user_service import UserService
     ],
 )
 async def test_delete_old_pending_users(email_verified: bool, should_delete: bool):
-    # Create a test user that's older than the expiration period
+    # Create a user that's older than the expiration period
     display_name = DisplayName(f'email_{"verified" if email_verified else "unverified"}')
     created_at = utcnow() - USER_PENDING_EXPIRE - timedelta(days=1)
     await TestService.create_user(display_name, email_verified=email_verified, created_at=created_at)

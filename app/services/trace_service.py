@@ -42,8 +42,8 @@ class TraceService:
         try:
             tracks: list[dict] = []
             for gpx_bytes in TraceFile.extract(file_bytes):
-                tracks = XMLToDict.parse(gpx_bytes).get('gpx', {}).get('trk', [])  # type: ignore
-                tracks.extend(tracks)
+                new_tracks = XMLToDict.parse(gpx_bytes).get('gpx', {}).get('trk', [])  # type: ignore
+                tracks.extend(new_tracks)
         except Exception as e:
             raise_for.bad_trace_file(str(e))
 

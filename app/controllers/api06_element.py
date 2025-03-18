@@ -25,6 +25,7 @@ router = APIRouter(prefix='/api/0.6')
 
 # TODO: redaction (403 forbidden), https://wiki.openstreetmap.org/wiki/API_v0.6#Redaction:_POST_/api/0.6/[node|way|relation]/#id/#version/redact?redaction=#redaction_id
 # TODO: HttpUrl, ConstrainedUrl
+# TODO: create many
 
 
 @router.post('/{type:element_type}s')

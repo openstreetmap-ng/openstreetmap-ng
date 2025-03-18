@@ -40,7 +40,7 @@ def retry(timeout: timedelta | None, *, sleep_init: cython.double = 0.15, sleep_
                         exc_info=True,
                     )
                     await asyncio.sleep(sleep)
-                    sleep = random.uniform(sleep * 1.5, sleep * 2.5)  # noqa: S311
+                    sleep = random.uniform(sleep * 1.5, sleep * 2.5)
                     sleep = min(sleep, sleep_limit)
 
         return wrapper

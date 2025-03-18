@@ -146,7 +146,7 @@ async def query_changesets(
     order: Annotated[Literal['newest', 'oldest'], Query()] = 'newest',
     limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
-    # treat any non-empty string as True
+    # Treat any non-empty string as True
     open = bool(open_str)
     closed = bool(closed_str)
 
