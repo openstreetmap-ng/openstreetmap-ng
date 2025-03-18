@@ -157,8 +157,8 @@ class TraceService:
                 """,
                 (trace_id,),
             ) as r:
-                file_id: StorageKey | None = await r.fetchone()
-                if file_id is None:
+                row: tuple[StorageKey] | None = await r.fetchone()
+                if row is None:
                     raise_for.trace_not_found(trace_id)
 
             result = await conn.execute(
@@ -173,7 +173,7 @@ class TraceService:
                 raise_for.trace_access_denied(trace_id)
 
         # After successful delete, also remove the file
-        await TRACE_STORAGE.delete(file_id)
+        await TRACE_STORAGE.delete(row[0])
 
 
 @cython.cfunc

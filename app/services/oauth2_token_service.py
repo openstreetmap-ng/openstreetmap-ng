@@ -265,8 +265,9 @@ class OAuth2TokenService:
         app_id = SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID]
         user_id = auth_user(required=True)['id']
 
+        token_id: OAuth2TokenId = zid()  # type: ignore
         token_init: OAuth2TokenInit = {
-            'id': zid(),  # type: ignore
+            'id': token_id,
             'user_id': user_id,
             'application_id': app_id,
             'name': name,
@@ -278,8 +279,7 @@ class OAuth2TokenService:
             'code_challenge': None,
         }
 
-        async with (
-            db(True) as conn,
+        async with db(True) as conn:
             await conn.execute(
                 """
                 INSERT INTO oauth2_token (
@@ -292,12 +292,11 @@ class OAuth2TokenService:
                     %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
                     %(scopes)s, %(code_challenge_method)s, %(code_challenge)s
                 )
-                RETURNING id
                 """,
                 token_init,
-            ) as r,
-        ):
-            return (await r.fetchone())[0]  # type: ignore
+            )
+
+        return token_id
 
     @staticmethod
     async def reset_pat_access_token(pat_id: OAuth2TokenId) -> SecretStr:
