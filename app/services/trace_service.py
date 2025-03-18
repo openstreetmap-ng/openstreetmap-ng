@@ -84,9 +84,9 @@ class TraceService:
                     RETURNING id
                     """,
                     trace_init,
-                ) as decoded,
+                ) as r,
             ):
-                return await decoded.fetchone()  # type: ignore
+                return await r.fetchone()  # type: ignore
 
         except Exception:
             # Clean up trace file on error
