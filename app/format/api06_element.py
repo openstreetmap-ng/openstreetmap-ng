@@ -59,12 +59,12 @@ class Element06Mixin:
         return result  # pyright: ignore[reportReturnType]
 
     @staticmethod
-    def decode_element(element: tuple[ElementType, dict]) -> ElementInit:
+    def decode_elements(elements: list[tuple[ElementType, dict]]) -> list[ElementInit]:
         """
-        >>> decode_element(('node', {'@id': 1, '@version': 1, ...}))
+        >>> decode_elements(('node', {'@id': 1, '@version': 1, ...}))
         Element(type='node', ...)
         """
-        return validate_elements([_decode_element_unsafe(*element, changeset_id=None)])[0]
+        return validate_elements([_decode_element_unsafe(*element, changeset_id=None) for element in elements])
 
     @staticmethod
     def encode_osmchange(elements: list[Element]) -> list[tuple[OSMChangeAction, dict[ElementType, dict]]]:

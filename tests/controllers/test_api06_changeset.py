@@ -194,7 +194,7 @@ async def test_changeset_with_discussion(client: AsyncClient, include):
         assert_model(
             comment,
             {
-                'user': 'user1',
+                '@user': 'user1',
                 'text': comment_text,
             },
         )

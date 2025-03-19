@@ -24,6 +24,7 @@ async def test_changeset_comment_crud(client: AsyncClient):
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset_updated_at = changeset['@updated_at']
 
     assert_model(
         changeset,
@@ -32,8 +33,6 @@ async def test_changeset_comment_crud(client: AsyncClient):
             '@comments_count': 0,
         },
     )
-
-    last_updated_at = changeset['@updated_at']
 
     # Create comment
     comment_text = 'Test comment for API testing'
@@ -46,7 +45,7 @@ async def test_changeset_comment_crud(client: AsyncClient):
         {
             '@id': changeset_id,
             '@comments_count': 1,
-            '@updated_at': Gt(last_updated_at),
+            '@updated_at': changeset_updated_at,
         },
     )
     assert 'discussion' not in changeset
@@ -62,19 +61,18 @@ async def test_changeset_comment_crud(client: AsyncClient):
         {
             '@id': changeset_id,
             '@comments_count': 1,
-            '@updated_at': Gt(last_updated_at),
+            '@updated_at': changeset_updated_at,
         },
     )
     assert_model(
         comment,
         {
-            '@date': changeset['@updated_at'],
-            'user': 'user1',
+            '@date': Gt(changeset_updated_at),
+            '@user': 'user1',
             'text': comment_text,
         },
     )
 
-    last_updated_at = changeset['@updated_at']
     comment_id = comment['@id']
 
     # Delete comment (requires moderator)
@@ -93,6 +91,6 @@ async def test_changeset_comment_crud(client: AsyncClient):
         {
             '@id': changeset_id,
             '@comments_count': 0,
-            '@updated_at': Gt(last_updated_at),
+            '@updated_at': changeset_updated_at,
         },
     )

@@ -16,13 +16,7 @@ async def test_element_crud(client: AsyncClient):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {
-                'changeset': {
-                    'tag': [
-                        {'@k': 'created_by', '@v': test_element_crud.__name__},
-                    ]
-                }
-            }
+            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_element_crud.__name__}]}}
         }),
     )
     assert r.is_success, r.text
@@ -44,7 +38,6 @@ async def test_element_crud(client: AsyncClient):
                     '@lon': 1,
                     '@lat': 2,
                     'tag': [
-                        {'@k': 'created_by', '@v': test_element_crud.__name__},
                         {'@k': 'update_me', '@v': 'update_me'},
                         {'@k': 'remove_me', '@v': 'remove_me'},
                     ],
@@ -65,18 +58,17 @@ async def test_element_crud(client: AsyncClient):
         {
             '@updated_at': Gt(last_updated_at),
             '@changes_count': 1,
-            '@min_lon': 1,
-            '@max_lon': 1,
-            '@min_lat': 2,
-            '@max_lat': 2,
+            '@min_lon': 1.0,
+            '@max_lon': 1.0,
+            '@min_lat': 2.0,
+            '@max_lat': 2.0,
         },
     )
 
     # Read node details
     r = await client.get(f'/api/0.6/node/{node_id}')
     assert r.is_success, r.text
-    node: dict = XMLToDict.parse(r.content)['osm']['node']  # type: ignore
-    tags = Format06.decode_tags_and_validate(node['tag'])
+    node: dict = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')  # type: ignore
 
     assert_model(
         node,
@@ -85,11 +77,12 @@ async def test_element_crud(client: AsyncClient):
             '@version': 1,
             '@changeset': changeset_id,
             '@visible': True,
-            '@lon': 1,
-            '@lat': 2,
-            'tag': Len(3, 3),
+            '@lon': 1.0,
+            '@lat': 2.0,
+            'tag': Len(2, 2),
         },
     )
+    tags = Format06.decode_tags_and_validate(node['tag'])
     assert tags['update_me'] == 'update_me'
     assert tags['remove_me'] == 'remove_me'
 
@@ -108,9 +101,9 @@ async def test_element_crud(client: AsyncClient):
             '@changeset': changeset_id,
             '@timestamp': changeset['@updated_at'],
             '@visible': True,
-            '@lon': 1,
-            '@lat': 2,
-            'tag': Len(3, 3),
+            '@lon': 1.0,
+            '@lat': 2.0,
+            'tag': Len(2, 2),
         },
     )
     tags = Format06.decode_tags_and_validate(node['tag'])
@@ -129,10 +122,7 @@ async def test_element_crud(client: AsyncClient):
                     '@version': 1,
                     '@lon': 3,
                     '@lat': 4,
-                    'tag': [
-                        {'@k': 'created_by', '@v': test_element_crud.__name__},
-                        {'@k': 'update_me', '@v': 'updated'},
-                    ],
+                    'tag': [{'@k': 'update_me', '@v': 'updated'}],
                 }
             }
         }),
@@ -151,10 +141,10 @@ async def test_element_crud(client: AsyncClient):
         {
             '@updated_at': Gt(last_updated_at),
             '@changes_count': 2,
-            '@min_lon': 1,
-            '@max_lon': 3,
-            '@min_lat': 2,
-            '@max_lat': 4,
+            '@min_lon': 1.0,
+            '@max_lon': 3.0,
+            '@min_lat': 2.0,
+            '@max_lat': 4.0,
         },
     )
 
@@ -174,9 +164,9 @@ async def test_element_crud(client: AsyncClient):
             '@changeset': changeset_id,
             '@timestamp': changeset['@updated_at'],
             '@visible': True,
-            '@lon': 3,
-            '@lat': 4,
-            'tag': Len(2, 2),
+            '@lon': 3.0,
+            '@lat': 4.0,
+            'tag': Len(1, 1),
         },
     )
     tags = Format06.decode_tags_and_validate(node['tag'])
@@ -289,7 +279,7 @@ async def test_element_create_many_post(client: AsyncClient):
         # Read and verify the node
         r = await client.get(f'/api/0.6/node/{node_id + offset}')
         assert r.is_success, r.text
-        node: dict = XMLToDict.parse(r.content)['osm']['node']  # type: ignore
+        node: dict = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')  # type: ignore
 
         assert_model(
             node,
@@ -354,15 +344,15 @@ async def test_element_version_and_history(client: AsyncClient):
     # Get specific version (version 1)
     r = await client.get(f'/api/0.6/node/{node_id}/1')
     assert r.is_success, r.text
-    node: dict = XMLToDict.parse(r.content)['osm']['node'][0]  # type: ignore
+    node: dict = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')  # type: ignore
 
     assert_model(
         node,
         {
             '@id': node_id,
             '@version': 1,
-            '@lon': 1,
-            '@lat': 2,
+            '@lon': 1.0,
+            '@lat': 2.0,
             'tag': [{'@k': 'version', '@v': '1'}],
         },
     )
@@ -370,15 +360,15 @@ async def test_element_version_and_history(client: AsyncClient):
     # Get specific version (version 2)
     r = await client.get(f'/api/0.6/node/{node_id}/2')
     assert r.is_success, r.text
-    node = XMLToDict.parse(r.content)['osm']['node'][0]  # type: ignore
+    node = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')  # type: ignore
 
     assert_model(
         node,
         {
             '@id': node_id,
             '@version': 2,
-            '@lon': 3,
-            '@lat': 4,
+            '@lon': 3.0,
+            '@lat': 4.0,
             'tag': [{'@k': 'version', '@v': '2'}],
         },
     )
@@ -386,7 +376,7 @@ async def test_element_version_and_history(client: AsyncClient):
     # Get history
     r = await client.get(f'/api/0.6/node/{node_id}/history')
     assert r.is_success, r.text
-    nodes: list[dict] = XMLToDict.parse(r.content)['osm']['node']  # type: ignore
+    nodes: list[dict] = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']  # type: ignore
 
     # History must return an array of all versions
     assert len(nodes) == 2, 'History must contain 2 versions'
@@ -448,7 +438,7 @@ async def test_get_multiple_elements(client: AsyncClient):
     # Get multiple nodes
     r = await client.get(f'/api/0.6/nodes?nodes={node2_id},{node1_id}')
     assert r.is_success, r.text
-    nodes: list[dict] = XMLToDict.parse(r.content)['osm']['node']  # type: ignore
+    nodes: list[dict] = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']  # type: ignore
 
     assert len(nodes) == 2, 'Response must contain 2 nodes'
     assert_model(nodes[0], {'@id': node2_id})
@@ -457,7 +447,7 @@ async def test_get_multiple_elements(client: AsyncClient):
     # Get multiple nodes with version specifier
     r = await client.get(f'/api/0.6/nodes?nodes={node2_id}v1,{node1_id}v1')
     assert r.is_success, r.text
-    nodes = XMLToDict.parse(r.content)['osm']['node']  # type: ignore
+    nodes = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']  # type: ignore
 
     assert len(nodes) == 2, 'Response must contain 2 nodes'
     assert_model(nodes[0], {'@id': node2_id, '@version': 1})
@@ -533,7 +523,7 @@ async def test_element_visibility(client: AsyncClient):
     # Verify history is still accessible
     r = await client.get(f'/api/0.6/node/{node_id}/history')
     assert r.is_success, r.text
-    nodes: list[dict] = XMLToDict.parse(r.content)['osm']['node']  # type: ignore
+    nodes: list[dict] = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']  # type: ignore
 
     # History must return an array of all versions
     assert len(nodes) == 2, 'History must contain 2 versions'

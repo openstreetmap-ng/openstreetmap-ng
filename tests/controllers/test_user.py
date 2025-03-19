@@ -16,7 +16,7 @@ async def test_user_permalink(client: AsyncClient, path):
     assert r.headers['Location'] == f'/user/user1{path}'
 
 
-async def test_user_permalink_not_found(client: AsyncClient, user_id):
+async def test_user_permalink_not_found(client: AsyncClient):
     r = await client.get('/user-id/0', follow_redirects=False)
     assert r.status_code == status.HTTP_404_NOT_FOUND, r.text
 

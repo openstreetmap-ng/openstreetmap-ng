@@ -6,7 +6,7 @@ from typing import Final, Literal
 
 import cython
 import numpy as np
-from shapely import Point, box, union_all
+from shapely import Point, bounds, box
 
 from app.lib.auth_context import auth_user
 from app.lib.changeset_bounds import extend_changeset_bounds
@@ -561,5 +561,13 @@ class OptimisticDiffPrepare:
 
         # Update union_bounds
         union_bounds = self.changeset['union_bounds']
-        new_union_bounds = union_all([union_bounds, new_bounds]) if union_bounds is not None else new_bounds
-        self.changeset['union_bounds'] = box(*new_union_bounds.bounds)
+        if union_bounds is None:
+            self.changeset['union_bounds'] = box(*new_bounds.bounds)
+        else:
+            bounds_arr = bounds([union_bounds, new_bounds])
+            self.changeset['union_bounds'] = box(
+                bounds_arr[:, 0].min(),
+                bounds_arr[:, 1].min(),
+                bounds_arr[:, 2].max(),
+                bounds_arr[:, 3].max(),
+            )

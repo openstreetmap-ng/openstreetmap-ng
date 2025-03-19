@@ -35,19 +35,20 @@ async def create_element(
     elements: Annotated[list, xml_body('osm')],
     _: Annotated[User, api_user('write_api')],
 ):
-    data = _get_element_data(elements, type)
-    if data is None:
+    data = _get_elements_data(elements, type)
+    if not data:
         raise_for.bad_xml(type, f"XML doesn't contain an osm/{type} element.")
 
-    data[1]['@id'] = -1  # dynamic id allocation
-    data[1]['@version'] = 0
+    for i, d in enumerate(data, 1):
+        d[1]['@id'] = -i  # Force dynamic id allocation
+        d[1]['@version'] = 0
 
     try:
-        element = Format06.decode_element(data)
+        elements = Format06.decode_elements(data)
     except Exception as e:
         raise_for.bad_xml(type, str(e))
 
-    assigned_ref_map = await OptimisticDiff.run([element])
+    assigned_ref_map = await OptimisticDiff.run(elements)
     assigned_id = split_typed_element_id(next(iter(assigned_ref_map.values()))[0])[1]
     return Response(str(assigned_id), media_type='text/plain')
 
@@ -59,19 +60,20 @@ async def update_element(
     elements: Annotated[list, xml_body('osm')],
     _: Annotated[User, api_user('write_api')],
 ):
-    data = _get_element_data(elements, type)
-    if data is None:
+    data = _get_elements_data(elements, type)
+    if not data:
         raise_for.bad_xml(type, f"XML doesn't contain an osm/{type} element.")
 
-    data[1]['@id'] = id
+    for d in data:
+        d[1]['@id'] = id
 
     try:
-        element = Format06.decode_element(data)
+        elements = Format06.decode_elements(data)
     except Exception as e:
         raise_for.bad_xml(type, str(e))
 
-    await OptimisticDiff.run([element])
-    return Response(str(element['version']), media_type='text/plain')
+    await OptimisticDiff.run(elements)
+    return Response(str(elements[-1]['version']), media_type='text/plain')
 
 
 @router.delete('/{type:element_type}/{id:int}')
@@ -81,20 +83,22 @@ async def delete_element(
     elements: Annotated[list, xml_body('osm')],
     _: Annotated[User, api_user('write_api')],
 ):
-    data = _get_element_data(elements, type)
-    if data is None:
+    data = _get_elements_data(elements, type)
+    if not data:
         raise_for.bad_xml(type, f"XML doesn't contain an osm/{type} element.")
 
-    data[1]['@id'] = id
-    data[1]['@visible'] = False
+    data = [data[0]]  # Supports deleting only one element
+    for d in data:
+        d[1]['@id'] = id
+        d[1]['@visible'] = False
 
     try:
-        element = Format06.decode_element(data)
+        elements = Format06.decode_elements(data)
     except Exception as e:
         raise_for.bad_xml(type, str(e))
 
-    await OptimisticDiff.run([element])
-    return Response(str(element['version']), media_type='text/plain')
+    await OptimisticDiff.run(elements)
+    return Response(str(elements[-1]['version']), media_type='text/plain')
 
 
 @router.get('/{type:element_type}s')
@@ -234,9 +238,9 @@ async def get_parent_ways(id: ElementId):
     return await _encode_elements(elements)
 
 
-def _get_element_data(elements: list[tuple[ElementType, dict]], type: ElementType) -> tuple[ElementType, dict] | None:
+def _get_elements_data(elements: list[tuple[ElementType, dict]], type: ElementType) -> list[tuple[ElementType, dict]]:
     """Get the first element of the given type from the sequence of elements."""
-    return next((s for s in elements if s[0] == type), None)
+    return [s for s in elements if s[0] == type]
 
 
 async def _encode_element(element: Element):

@@ -98,7 +98,7 @@ class TraceService:
         *,
         name: str,
         description: str,
-        tags: str | list[str],
+        tags: list[str],
         visibility: TraceVisibility,
     ) -> None:
         """Update a trace."""
@@ -107,7 +107,7 @@ class TraceService:
         meta_init: TraceMetaInit = {
             'name': name,
             'description': description,
-            'tags': trace_tags_from_str(tags) if isinstance(tags, str) else tags,
+            'tags': tags,
             'visibility': visibility,
         }
         meta_init = TraceMetaInitValidator.validate_python(meta_init)

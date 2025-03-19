@@ -5,7 +5,7 @@ from fastapi import APIRouter, Form, UploadFile
 from app.exceptions.api_error import APIError
 from app.lib.auth_context import web_user
 from app.lib.standard_feedback import StandardFeedback
-from app.models.db.trace import TraceVisibility
+from app.models.db.trace import TraceVisibility, trace_tags_from_str
 from app.models.db.user import User
 from app.models.types import TraceId
 from app.services.trace_service import TraceService
@@ -45,7 +45,7 @@ async def update(
             trace_id,
             name=name,
             description=description,
-            tags=tags,
+            tags=trace_tags_from_str(tags),
             visibility=visibility,
         )
     except* APIError as e:

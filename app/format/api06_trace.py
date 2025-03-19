@@ -1,6 +1,6 @@
 import cython
 
-from app.models.db.trace import Trace, TraceMetaInit, TraceMetaInitValidator, trace_tags_from_str
+from app.models.db.trace import Trace, TraceMetaInit, TraceMetaInitValidator
 
 
 class Trace06Mixin:
@@ -29,7 +29,7 @@ class Trace06Mixin:
         return TraceMetaInitValidator.validate_python({
             'name': gpx_file.get('@name'),
             'description': gpx_file.get('description'),
-            'tags': trace_tags_from_str(gpx_file.get('tags')),
+            'tags': gpx_file.get('tag', []),
             'visibility': gpx_file.get('@visibility'),
         })
 

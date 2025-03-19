@@ -1,5 +1,6 @@
 from asyncio import TaskGroup
 from typing import Annotated, Literal
+from warnings import catch_warnings, filterwarnings
 
 import numpy as np
 from fastapi import APIRouter, Query, Response, status
@@ -159,7 +160,9 @@ async def query_changesets(
     changeset_ids: list[ChangesetId] | None = None
     if changesets_query is not None:
         try:
-            ids = np.fromstring(changesets_query, np.uint64, sep=',')
+            with catch_warnings():
+                filterwarnings('ignore', category=DeprecationWarning, message='.*could not be read to its end.*')
+                ids = np.fromstring(changesets_query, np.uint64, sep=',')
         except ValueError:
             return Response('Changesets query must be a comma-separated list of integers', status.HTTP_400_BAD_REQUEST)
         if not ids.size:

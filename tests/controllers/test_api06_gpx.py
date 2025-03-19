@@ -79,6 +79,8 @@ async def test_gpx_crud(client: AsyncClient, gpx: dict):
             '@user': 'user1',
             '@timestamp': created_at,
             '@name': updated_filename,
+            '@lon': float,
+            '@lat': float,
             '@visibility': 'identifiable',
             '@pending': False,
             'description': 'Updated description',

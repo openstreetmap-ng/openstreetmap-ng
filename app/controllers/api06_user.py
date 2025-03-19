@@ -1,4 +1,5 @@
 from typing import Annotated
+from warnings import catch_warnings, filterwarnings
 
 import numpy as np
 from fastapi import APIRouter, Query, Response, status
@@ -44,7 +45,9 @@ async def get_many_users(
     query: Annotated[str, Query(alias='users', min_length=1)],
 ):
     try:
-        ids = np.fromstring(query, np.uint64, sep=',')
+        with catch_warnings():
+            filterwarnings('ignore', category=DeprecationWarning, message='.*could not be read to its end.*')
+            ids = np.fromstring(query, np.uint64, sep=',')
     except ValueError:
         return Response('Users query must be a comma-separated list of integers', status.HTTP_400_BAD_REQUEST)
     if not ids.size:
