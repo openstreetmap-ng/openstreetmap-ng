@@ -1,11 +1,12 @@
+from collections.abc import Mapping
 from typing import Annotated, Any, get_origin
 
-from annotated_types import Predicate
+from annotated_types import BaseMetadata, GroupedMetadata, Predicate
 from pydantic import ConfigDict, create_model
 
 
 def assert_model(
-    data: dict,
+    data: Mapping,
     fields: dict[str, Any],
     /,
     *,
@@ -22,7 +23,11 @@ def assert_model(
             (
                 validator
                 if isinstance(validator, type) or get_origin(validator) is not None
-                else Annotated[type(validator), Predicate(lambda x, v=validator: x == v)]
+                else (
+                    Annotated[Any, validator]
+                    if isinstance(validator, BaseMetadata | GroupedMetadata)
+                    else Annotated[type(validator), Predicate(lambda x, v=validator: x == v)]
+                )
             ),
             ...,
         )

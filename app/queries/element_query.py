@@ -33,8 +33,7 @@ class ElementQuery:
         Returns 0 if no elements exist.
         """
         async with db() as conn, await conn.execute('SELECT MAX(sequence_id) FROM element') as r:
-            row = await r.fetchone()
-            return row[0] if row is not None else 0  # type: ignore
+            return (await r.fetchone())[0] or 0  # type: ignore
 
     @staticmethod
     async def get_current_ids() -> dict[ElementType, ElementId]:
@@ -66,9 +65,11 @@ class ElementQuery:
             ) as r,
         ):
             result: dict[ElementType, int] = {'node': 0, 'way': 0, 'relation': 0}
-            for row in await r.fetchall():
-                type, id = split_typed_element_id(row[0])
-                result[type] = id
+            typed_id: TypedElementId | None
+            for (typed_id,) in await r.fetchall():
+                if typed_id is not None:
+                    type, id = split_typed_element_id(typed_id)
+                    result[type] = id
             return result  # type: ignore
 
     @staticmethod
@@ -111,9 +112,8 @@ class ElementQuery:
             db() as conn,
             await conn.execute(
                 """
-                SELECT 1
-                FROM element_member
-                WHERE sequence_id > %s AND typed_id = ANY(%s)
+                SELECT 1 FROM element
+                WHERE sequence_id > %s AND members && %s::bigint[]
                 LIMIT 1
                 """,
                 (after_sequence_id, members),
@@ -147,7 +147,7 @@ class ElementQuery:
         """).format(sequence=sequence_clause)
 
         async with db() as conn, await conn.execute(query, params) as r:
-            return await r.fetchall()
+            return [c for (c,) in await r.fetchall()]
 
     @staticmethod
     async def get_current_versions_by_refs(
@@ -426,7 +426,7 @@ class ElementQuery:
         if not members or parent_type == 'node':
             return []
 
-        conditions: list[Composable] = [SQL('members && %s')]
+        conditions: list[Composable] = [SQL('members && %s::bigint[]')]
         params: list[Any] = [members]
 
         if at_sequence_id is None:
@@ -474,7 +474,7 @@ class ElementQuery:
         if not members:
             return {}
 
-        conditions: list[Composable] = [SQL('parent.members && %s AND member = ANY(%s)')]
+        conditions: list[Composable] = [SQL('parent.members && %s::bigint[] AND member = ANY(%s)')]
         params: list[Any] = [members, members]
 
         if at_sequence_id is None:
@@ -501,12 +501,11 @@ class ElementQuery:
             conditions=SQL(' AND ').join(conditions),
             limit=limit_clause,
         )
-        params.append(members)
 
         async with db() as conn, await conn.execute(query, params) as r:
             result: dict[TypedElementId, set[TypedElementId]] = {member: set() for member in members}
-            for row in await r.fetchall():
-                result[row[0]].add(row[1])
+            for member, parent in await r.fetchall():
+                result[member].add(parent)
             return result
 
     @staticmethod
@@ -670,5 +669,4 @@ class ElementQuery:
                 (next_sequence_id, next_sequence_id),
             ) as r,
         ):
-            row = await r.fetchone()
-            return row[0] if row is not None else None
+            return (await r.fetchone())[0]  # type: ignore

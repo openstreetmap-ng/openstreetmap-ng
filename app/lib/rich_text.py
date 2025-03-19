@@ -122,7 +122,7 @@ async def resolve_rich_text(
             SQL("""
                 UPDATE {table} SET {field} = v.new_hash
                 FROM (VALUES ({values})) AS v(id, old_hash, new_hash)
-                WHERE id = v.id AND {field} = v.old_hash
+                WHERE {table}.id = v.id AND {field} = v.old_hash
             """).format(
                 table=Identifier(table),
                 field=Identifier(rich_hash_field_name),

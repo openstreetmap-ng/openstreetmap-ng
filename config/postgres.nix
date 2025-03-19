@@ -24,6 +24,9 @@ pkgs.writeText "postgres.conf" (''
   maintenance_work_mem = 1024MB
   vacuum_buffer_usage_limit = 256MB
 
+  # use UTC timezone
+  timezone = 'UTC'
+
   # disable parallel gather:
   # introduces noticeable overhead and is never useful
   # we only perform relatively small queries and rely heavily on indexes

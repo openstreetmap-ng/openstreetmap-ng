@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Callable
 from contextlib import asynccontextmanager, contextmanager
 from functools import wraps
 from pathlib import Path
@@ -8,13 +9,16 @@ import cython
 import duckdb
 import orjson
 from psycopg import AsyncConnection, IsolationLevel
+from psycopg.abc import AdaptContext
 from psycopg.types import TypeInfo
-from psycopg.types.hstore import register_hstore
+from psycopg.types.enum import EnumInfo
 from psycopg.types.json import set_json_dumps, set_json_loads
-from psycopg.types.shapely import register_shapely
 from psycopg_pool import AsyncConnectionPool
 
 from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_URL
+from app.lib.register_hstore import register_hstore
+from app.lib.register_shapely import register_shapely
+from app.lib.register_string_enum import register_string_enum
 
 
 async def _configure_connection(conn: AsyncConnection) -> None:  # noqa: RUF029
@@ -85,13 +89,33 @@ async def _register_types():
     https://www.psycopg.org/psycopg3/docs/basic/pgtypes.html
     """
     async with db() as conn:
-        hstore_info = await TypeInfo.fetch(conn, 'hstore')
-        assert hstore_info is not None, 'hstore type not found'
-        register_hstore(hstore_info, None)
 
-        geometry_info = await TypeInfo.fetch(conn, 'geometry')
-        assert geometry_info is not None, 'geometry type not found'
-        register_shapely(geometry_info, None)
+        async def register_enum(name: str) -> None:
+            info = await EnumInfo.fetch(conn, name)
+            assert info is not None, f'{name} enum not found'
+            register_string_enum(info, None)
+            logging.debug('Registered database enum %r', name)
+
+        await register_enum('auth_provider')
+        await register_enum('avatar_type')
+        await register_enum('editor')
+        await register_enum('mail_source')
+        await register_enum('note_event')
+        await register_enum('oauth2_code_challenge_method')
+        await register_enum('scope')
+        await register_enum('trace_visibility')
+        await register_enum('user_role')
+        await register_enum('user_subscription_target')
+        await register_enum('user_token_type')
+
+        async def register_type(name: str, register_callable: Callable[[TypeInfo, AdaptContext | None], None]) -> None:
+            info = await TypeInfo.fetch(conn, name)
+            assert info is not None, f'{name} type not found'
+            register_callable(info, None)
+            logging.debug('Registered database type %r', name)
+
+        await register_type('hstore', register_hstore)
+        await register_type('geometry', register_shapely)
 
 
 @asynccontextmanager

@@ -95,7 +95,7 @@ async def lifespan(_):
 
 register_url_convertor('element_type', ElementTypeConvertor())
 
-main = FastAPI(title=NAME, lifespan=lifespan)
+main = FastAPI(debug=TEST_ENV, title=NAME, lifespan=lifespan)
 
 main.add_middleware(ParallelTasksMiddleware)
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
@@ -124,7 +124,6 @@ main.add_middleware(RequestContextMiddleware)
 if TEST_ENV:
     main.add_middleware(VersionMiddleware)
     main.add_middleware(RuntimeMiddleware)
-
 
 # TODO: /static default cache control
 main.mount('/static', PrecompressedStaticFiles('app/static'), name='static')

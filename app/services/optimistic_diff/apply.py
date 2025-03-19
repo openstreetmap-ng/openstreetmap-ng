@@ -1,4 +1,4 @@
-from asyncio import TaskGroup
+from asyncio import Lock, TaskGroup
 from datetime import datetime
 from io import BytesIO
 
@@ -22,6 +22,8 @@ from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff.prepare import ElementStateEntry, OptimisticDiffPrepare
 
+_WRITE_LOCK = Lock()
+
 
 class OptimisticDiffApply:
     @staticmethod
@@ -38,7 +40,7 @@ class OptimisticDiffApply:
             # Then perform all the updates at once.
             await conn.execute('LOCK TABLE changeset, changeset_bounds, element IN EXCLUSIVE MODE')
 
-            async with conn.pipeline(), TaskGroup() as tg:
+            async with TaskGroup() as tg:
                 # Check if the element_state is valid
                 tg.create_task(_check_elements_latest(prepare.element_state))
 
@@ -107,37 +109,43 @@ async def _update_changeset(conn: AsyncConnection, now: datetime, changeset: Cha
             f'Changeset {changeset_id} is outdated ({changeset["updated_at"]} != {db_updated_at})'
         )
 
-    # Update the changeset
-    closed_at = now if 'size_limit_reached' in changeset else None
-    updated_at = now
-    await conn.execute(
-        """
-        UPDATE changeset
-        SET
-            size = %s,
-            union_bounds = %s,
-            closed_at = %s,
-            updated_at = %s
-        WHERE id = %s
-        """,
-        (changeset['size'], changeset['union_bounds'], closed_at, updated_at, changeset_id),
-    )
+    async with _WRITE_LOCK, conn.pipeline():
+        # Update the changeset
+        closed_at = now if 'size_limit_reached' in changeset else None
+        updated_at = now
+        await conn.execute(
+            """
+            UPDATE changeset
+            SET
+                size = %s,
+                union_bounds = %s,
+                closed_at = %s,
+                updated_at = %s
+            WHERE id = %s
+            """,
+            (changeset['size'], changeset['union_bounds'], closed_at, updated_at, changeset_id),
+        )
 
-    # Update the changeset bounds
-    await conn.execute(
-        """
-        DELETE FROM changeset_bounds
-        WHERE changeset_id = %s
-        """,
-        (changeset_id,),
-    )
-    await conn.execute(
-        """
-        INSERT INTO changeset_bounds (changeset_id, bounds)
-        SELECT %s, (ST_Dump(%s)).geom
-        """,
-        (changeset_id, changeset['bounds']),  # type: ignore
-    )
+        # Update the changeset bounds
+        # It's not possible for bounds to switch from MultiPolygon to None.
+        bounds = changeset.get('bounds')
+        if bounds is None:
+            return
+
+        await conn.execute(
+            """
+            DELETE FROM changeset_bounds
+            WHERE changeset_id = %s
+            """,
+            (changeset_id,),
+        )
+        await conn.execute(
+            """
+            INSERT INTO changeset_bounds (changeset_id, bounds)
+            SELECT %s, (ST_Dump(%s)).geom
+            """,
+            (changeset_id, bounds),
+        )
 
 
 async def _update_elements(
@@ -209,12 +217,13 @@ async def _update_elements(
                 for member in members
             ]
 
-    await _copy_elements(conn, elements)
+    async with _WRITE_LOCK:
+        await _copy_elements(conn, elements)
 
-    # Remote batch update of next_sequence_id.
-    # This must run after the copy/insert finishes.
-    if update_typed_ids:
-        await _update_next_sequence_id(conn, current_sequence_id, update_typed_ids)
+        # Remote batch update of next_sequence_id.
+        # This must run after the copy/insert finishes.
+        if update_typed_ids:
+            await _update_next_sequence_id(conn, current_sequence_id, update_typed_ids)
 
     return assigned_id_map
 

@@ -6,6 +6,7 @@ from app.models.element import ElementId, typed_element_id
 from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff import OptimisticDiff
+from tests.utils.assert_model import assert_model
 
 
 async def test_way_with_single_node_member(changeset_id: ChangesetId):
@@ -162,21 +163,22 @@ async def test_relation_with_self_reference(changeset_id: ChangesetId):
     relation_typed_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
 
     # Retrieve the relation and check its members
-    relations = await ElementQuery.get_by_refs([relation_typed_id], limit=1)
-    assert relations, 'Relation must exist in database'
-    relation_element = relations[0]
-
-    # For a self-referential relation, the first version should have the relation itself as a member
-    assert relation_element['members'] is not None, 'Relation must have members'
-    assert len(relation_element['members']) == 1, 'Relation must have exactly one member'
-    assert relation_element['members'][0] == relation_typed_id, 'Relation must reference itself'
-    assert relation_element['members_roles'][0] == 'role', 'Relation member must have correct role'  # type: ignore
-
-    # The second (deleted) version should have no members
-    deleted_relations = await ElementQuery.get_by_refs([relation_typed_id], limit=2)
-    deleted_relation = next(r for r in deleted_relations if r['version'] == 2)
-    assert deleted_relation['members'] is None, 'Deleted relation must have no members'
-    assert deleted_relation['members_roles'] is None, 'Deleted relation must have no members roles'
+    relations = await ElementQuery.get_by_versioned_refs([(relation_typed_id, 1), (relation_typed_id, 2)])
+    version_map = {relation['version']: relation for relation in relations}
+    assert_model(
+        version_map[1],
+        {
+            'members': [relation_typed_id],
+            'members_roles': ['role'],
+        },
+    )
+    assert_model(
+        version_map[2],
+        {
+            'members': None,
+            'members_roles': None,
+        },
+    )
 
 
 async def test_invalid_reference_to_nonexistent_node(changeset_id: ChangesetId):

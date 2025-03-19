@@ -13,6 +13,7 @@ class UserBlockQuery:
     @staticmethod
     async def count_received_by_user_id(user_id: UserId) -> _UserBlockCountByUserResult:
         """Count received blocks by user id."""
+        return _UserBlockCountByUserResult(0, 0)  # TODO: implement
         async with (
             db() as conn,
             await conn.execute(
@@ -32,6 +33,7 @@ class UserBlockQuery:
     @staticmethod
     async def count_given_by_user_id(user_id: UserId) -> _UserBlockCountByUserResult:
         """Count given blocks by user id."""
+        return _UserBlockCountByUserResult(0, 0)  # TODO: implement
         async with (
             db() as conn,
             await conn.execute(

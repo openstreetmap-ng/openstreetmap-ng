@@ -19,26 +19,22 @@ class ProfilerMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope['type'] != 'http':
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
         if 'profile' not in get_request().query_params:
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
         profiler = Profiler()
         profiler.start()
 
         async def wrapper(message: Message) -> None:
-            if message['type'] != 'http.response.start':
-                return
-
-            profiler.stop()
-            response = HTMLResponse(profiler.output_html())
-            await response(scope, receive, send)
+            if message['type'] == 'http.response.start':
+                profiler.stop()
+                response = HTMLResponse(profiler.output_html())
+                return await response(scope, receive, send)
 
         try:
-            await self.app(scope, receive, wrapper)
+            return await self.app(scope, receive, wrapper)
         finally:
             if profiler.is_running:
                 profiler.stop()

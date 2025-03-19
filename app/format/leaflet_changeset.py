@@ -26,8 +26,8 @@ def _encode_changeset(changeset: Changeset):
         else None
     )
 
-    bboxes: list[list[float]]
-    bboxes = measurement.bounds(changeset['bounds'].geoms).tolist()  # type: ignore
+    bounds = changeset.get('bounds')
+    bboxes: list[list[float]] = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
     params_bounds = list(starmap(SharedBounds, bboxes))
 
     closed_at = changeset['closed_at']

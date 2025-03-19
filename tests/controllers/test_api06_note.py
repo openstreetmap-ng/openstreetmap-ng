@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 
 import pytest
 from annotated_types import Len
@@ -26,8 +27,8 @@ async def test_note_create_xml(client: AsyncClient):
     assert_model(
         note,
         {
-            '@lat': 0,
-            '@lon': 0,
+            '@lat': 0.0,
+            '@lon': 0.0,
             'id': PositiveInt,
             'status': 'open',
             'url': str,
@@ -75,15 +76,18 @@ async def test_note_create_gpx(client: AsyncClient):
         params={'lon': 0, 'lat': 0, 'text': test_note_create_gpx.__qualname__},
     )
     assert r.is_success, r.text
-    waypoint: dict = XMLToDict.parse(r.content)['gpx']['wpt'][0]  # type: ignore
+    waypoint: dict = XMLToDict.parse(r.content)['gpx']['wpt']  # type: ignore
 
     assert_model(
         waypoint,
         {
-            '@lat': 0,
-            '@lon': 0,
+            '@lat': 0.0,
+            '@lon': 0.0,
+            'time': datetime,
             'name': str,
+            'link': dict,
             'desc': str,
+            'extensions': dict,
         },
     )
 
@@ -161,7 +165,7 @@ async def test_note_crud(client: AsyncClient):
     assert r.is_success, r.text
     props = r.json()['properties']
 
-    assert_model(props, {'status': 'closed', 'comments': Len(3, 3), 'date_closed': str})
+    assert_model(props, {'status': 'closed', 'comments': Len(3, 3), 'closed_at': str})
     assert_model(
         props['comments'][-1],
         {
@@ -188,7 +192,7 @@ async def test_note_crud(client: AsyncClient):
             'text': 'Reopening note',
         },
     )
-    assert 'date_closed' not in props
+    assert 'closed_at' not in props
 
     # Step 6: Hide the note (requires moderator privileges)
     client.headers['Authorization'] = 'User moderator'
@@ -282,6 +286,8 @@ async def test_note_search(client: AsyncClient):
 
 
 async def test_invalid_note_id(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
     # Try to access a non-existent note
     r = await client.get('/api/0.6/notes/0.json')
     assert r.status_code == status.HTTP_404_NOT_FOUND, r.text

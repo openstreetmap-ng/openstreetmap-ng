@@ -111,7 +111,7 @@ async def legacy_forgot_password():
 
 @router.get('/user/reset-password')
 async def legacy_reset_password(token: Annotated[SecretStr, Query(min_length=1)]):
-    return RedirectResponse(f'/reset-password?token={token}', status.HTTP_301_MOVED_PERMANENTLY)
+    return RedirectResponse(f'/reset-password?token={token.get_secret_value()}', status.HTTP_301_MOVED_PERMANENTLY)
 
 
 @router.get('/user-id/{user_id:int}{suffix:path}')

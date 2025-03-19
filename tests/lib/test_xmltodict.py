@@ -32,8 +32,8 @@ from app.lib.xmltodict import XMLToDict, get_xattr
             },
         ),
         (
-            "<?xml version='1.0' encoding='UTF-8'?>\n<root>&lt;span&gt;/user/小智智/traces/10908782&lt;/span&gt;</root>".encode(),
-            {'root': '<span>/user/小智智/traces/10908782</span>'},
+            "<?xml version='1.0' encoding='UTF-8'?>\n<root><test>&lt;span&gt;/user/小智智/traces/10908782&lt;/span&gt;</test></root>".encode(),
+            {'root': {'test': '<span>/user/小智智/traces/10908782</span>'}},
         ),
     ],
 )

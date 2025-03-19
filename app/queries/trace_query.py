@@ -10,10 +10,9 @@ from shapely import (
     MultiPoint,
     MultiPolygon,
     Polygon,
-    STRtree,
-    force_2d,
     get_coordinates,
-    get_parts,
+    intersects_xy,
+    prepare,
 )
 
 from app.db import db
@@ -158,7 +157,9 @@ class TraceQuery:
         visibility: list[TraceVisibility] = (
             ['identifiable', 'trackable'] if identifiable_trackable else ['public', 'private']
         )
-        conditions: list[Composable] = [SQL('h3_points_to_cells_range(segments, 11) && %s AND visibility = ANY(%s)')]
+        conditions: list[Composable] = [
+            SQL('h3_points_to_cells_range(segments, 11) && %s::h3index[] AND visibility = ANY(%s)')
+        ]
         params: list[Any] = [h3_cells, visibility]
 
         if legacy_offset is not None:
@@ -184,24 +185,26 @@ class TraceQuery:
         if not traces:
             return []
 
-        tree = STRtree([geometry])
+        prepare(geometry)
         filtered_traces: list[Trace] = []
 
         points: NDArray[np.object_]
         segment_indices: NDArray[np.integer]
-        intersect_indices: NDArray[np.integer]
 
         for trace in traces:
-            points, segment_indices = get_parts(trace['segments'].geoms, return_index=True)  # type: ignore
-            intersect_indices = tree.query(points, predicate='intersects')[0]
-            if not intersect_indices.size:
-                continue
-
-            filtered_traces.append(trace)
+            points, segment_indices = get_coordinates(
+                trace['segments'].geoms,  # type: ignore
+                include_z=identifiable_trackable,
+                return_index=True,
+            )
 
             # Reconstruct segments to contain only intersecting points
-            new_segment_indices = segment_indices[intersect_indices]
-            new_points = points[intersect_indices]
+            intersect_mask = intersects_xy(geometry, points)
+            new_points = points[intersect_mask]
+            if not new_points.size:
+                continue
+            new_segment_indices = segment_indices[intersect_mask]
+            filtered_traces.append(trace)
 
             split_indices = np.unique(new_segment_indices, return_index=True)[1][1:]
             segments = np.split(new_points, split_indices)
@@ -212,14 +215,14 @@ class TraceQuery:
                 # Public/private visibility discards capture_times
                 capture_times = trace['capture_times']
                 if capture_times is not None:
-                    trace['capture_times'] = np.array(capture_times, np.object_)[intersect_indices].tolist()  # type: ignore
+                    trace['capture_times'] = np.array(capture_times, np.object_)[intersect_mask].tolist()  # type: ignore
 
         traces = filtered_traces
         if not traces or identifiable_trackable:
             return traces
 
         # For public/private, return a simplified representation
-        segments = force_2d(MultiLineString([line for trace in traces for line in trace['segments'].geoms]))
+        segments = MultiLineString([line for trace in traces for line in trace['segments'].geoms])
         now = utcnow()
         simplified: Trace = {
             'id': TraceId(0),
@@ -252,7 +255,7 @@ class TraceQuery:
         params: list[Any] = [list(trace_map)]
 
         if limit_per_trace is not None:
-            where_clause = SQL('WHERE index % GREATEST(1, (size / %s)::int) = 0')
+            where_clause = SQL('WHERE index %% GREATEST(1, (size / %s)::int) = 1')
             params.append(limit_per_trace)
         else:
             where_clause = SQL('')
@@ -263,7 +266,7 @@ class TraceQuery:
                 SELECT
                     id,
                     (dp).geom AS point,
-                    (dp).path[1] AS index,
+                    (dp).path[2] AS index,
                     size
                 FROM trace
                 CROSS JOIN LATERAL ST_DumpPoints(ST_Force2D(segments)) AS dp
@@ -283,10 +286,12 @@ class TraceQuery:
             for trace_id, geom in await r.fetchall():
                 coords = get_coordinates(geom)
 
-                if resolution is not None and len(coords) >= 2:
+                if resolution is not None:
                     # Optionally scale coordinates to the given resolution
-                    coords = mercator(coords, resolution, resolution).astype(np.uint)
-                elif len(coords) < 2:
-                    coords = np.empty((0,), dtype=np.uint)
+                    coords = (
+                        mercator(coords, resolution, resolution).astype(np.uint)
+                        if len(coords) >= 2
+                        else np.empty((0,), dtype=np.uint)
+                    )
 
                 trace_map[trace_id]['coords'] = coords

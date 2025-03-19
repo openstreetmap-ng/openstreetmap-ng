@@ -69,11 +69,11 @@ class ChangesetQuery:
                 {'changeset_id': changeset_id, 'user_id': user_id},
             ) as r,
         ):
-            ids: list[ChangesetId] = await r.fetchall()
+            rows: list[tuple[ChangesetId]] = await r.fetchall()
 
         prev_id: ChangesetId | None = None
         next_id: ChangesetId | None = None
-        for id in ids:
+        for (id,) in rows:
             if id < changeset_id:
                 prev_id = id
             else:

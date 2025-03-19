@@ -4,7 +4,6 @@ from fastapi import Request
 from pydantic import SecretStr
 
 from app.config import TEST_ENV
-from app.lib.exceptions_context import raise_for
 from app.lib.testmethod import testmethod
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
@@ -52,12 +51,8 @@ class AuthService:
     async def authenticate_oauth2(access_token: SecretStr | None) -> OAuth2Token | None:
         """
         Authenticate a user with OAuth2.
-
         If param is None, it will be read from the request cookies.
-
-        Returns None if the token is not found.
-
-        Raises an exception if the token is not authorized.
+        Returns None if the token is not found, or if it is not authorized.
         """
         if access_token is None:
             auth = get_request().cookies.get('auth')
@@ -67,11 +62,8 @@ class AuthService:
             del auth
 
         token = await OAuth2TokenQuery.find_one_authorized_by_token(access_token)
-        if token is None:
+        if token is None or token['authorized_at'] is None:
             return None
-
-        if token['authorized_at'] is None:
-            raise_for.oauth_bad_user_token()
 
         return token
 
@@ -142,8 +134,7 @@ async def _authenticate_with_test_user(request: Request) -> tuple[User, tuple[Sc
     logging.debug('Attempting to authenticate with test user %r', param)
     user_display_name = DisplayName(param)
     user = await UserQuery.find_one_by_display_name(user_display_name)
-    if user is None:
-        raise_for.user_not_found(user_display_name)
+    assert user is not None
 
     scopes = user_extend_scopes(user, _SESSION_AUTH_SCOPES)
     return user, scopes

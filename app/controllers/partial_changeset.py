@@ -67,8 +67,8 @@ async def get_changeset(id: ChangesetId):
     changeset_comments_num_items = changeset['num_comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     changeset_comments_num_pages = ceil(changeset_comments_num_items / CHANGESET_COMMENTS_PAGE_SIZE)
 
-    bboxes: list[list[float]]
-    bboxes = measurement.bounds(changeset['bounds'].geoms).tolist()  # type: ignore
+    bounds = changeset.get('bounds')
+    bboxes: list[list[float]] = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
     params_bounds = list(starmap(SharedBounds, bboxes))
 
     params = PartialChangesetParams(

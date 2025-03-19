@@ -13,6 +13,7 @@ from app.lib.geo_utils import (
     radians_to_meters,
     try_parse_point,
 )
+from app.limits import GEO_COORDINATE_PRECISION
 
 _EARTH_RADIUS_METERS = 6371000
 
@@ -59,6 +60,8 @@ def test_haversine_distance(p1, p2, expected_meters):
     [
         # Simple
         ('-1,-2,3.3,4.4', box(-1, -2, 3.3, 4.4)),
+        # Zero-sized
+        ('0,0,0,0', box(0, 0, 0, 0)),
         # Wrap around
         ('-560,20,-550,30', box(160, 20, 170, 30)),
         # Whole world
@@ -70,14 +73,13 @@ def test_haversine_distance(p1, p2, expected_meters):
     ],
 )
 def test_parse_bbox(s: str, expected: Polygon | MultiPolygon):
-    assert parse_bbox(s) == expected
+    assert parse_bbox(s).equals_exact(expected, 0.1**GEO_COORDINATE_PRECISION / 2)
 
 
 @pytest.mark.parametrize(
     'bbox',
     [
         '1,2,3',
-        '1,2,1,2',
         '1,2,3,4,5',
         '3,2,1,4',
         '1,4,3,2',

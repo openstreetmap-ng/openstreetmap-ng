@@ -556,8 +556,7 @@ class OptimisticDiffPrepare:
             return
 
         # Update changeset bounds
-        bounds = self.changeset['bounds']  # type: ignore
-        new_bounds = extend_changeset_bounds(bounds, bbox_points)
+        new_bounds = extend_changeset_bounds(self.changeset.get('bounds'), bbox_points)
         self.changeset['bounds'] = new_bounds
 
         # Update union_bounds

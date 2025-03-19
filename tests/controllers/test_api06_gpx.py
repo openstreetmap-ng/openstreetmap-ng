@@ -251,14 +251,14 @@ async def test_trackpoints_visibility(client: AsyncClient, gpx: dict):
     trk = next((t for t in trks if t.get('url') == f'/trace/{trace_id}'), None)
     assert trk is None, 'Private trace must not be identified in trackpoints query'
 
-    # Update the trace to make it public
+    # Update the trace to make it identifiable
     r = await client.put(
         f'/api/0.6/gpx/{trace_id}',
         content=XMLToDict.unparse({
             'osm': {
                 'gpx_file': {
                     '@name': test_filename,
-                    '@visibility': 'public',
+                    '@visibility': 'identifiable',
                     'description': test_description,
                 },
             },

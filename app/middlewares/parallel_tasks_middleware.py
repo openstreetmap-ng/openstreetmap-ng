@@ -37,12 +37,11 @@ class ParallelTasksMiddleware:
 
     async def __call__(self, scope: StarletteScope, receive: Receive, send: Send) -> None:
         if scope['type'] != 'http':
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
         async with TaskGroup() as tg:
             with _messages_count_unread(tg):
-                await self.app(scope, receive, send)
+                return await self.app(scope, receive, send)
 
     @staticmethod
     async def messages_count_unread() -> int | None:

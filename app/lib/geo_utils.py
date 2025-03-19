@@ -184,6 +184,8 @@ def _h3_optimal_resolution(
     # Scale factor adjusts with balance_factor - higher balance = more cells
     scale_factor = 10 * (0.5 + balance_factor)
     target_cells = scale_factor * (1 + log_area)
+    if target_cells < 1:
+        return max_resolution
 
     # Calculate total area to cover with hexagons
     # This includes an overlap factor that increases with balance_factor

@@ -175,7 +175,7 @@ class UserQuery:
         )
 
         async with db() as conn, await conn.execute(query, params) as r:
-            return [row[0] for row in await r.fetchall()]
+            return [c for (c,) in await r.fetchall()]
 
     @staticmethod
     async def resolve_users(

@@ -259,17 +259,17 @@ CREATE TYPE trace_visibility AS ENUM ('identifiable', 'public', 'trackable', 'pr
 CREATE TABLE trace
 (
     id            bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id       bigint                          NOT NULL REFERENCES "user",
-    name          text                            NOT NULL,
-    description   text                            NOT NULL,
-    tags          text[]                          NOT NULL,
-    visibility    trace_visibility                NOT NULL,
-    file_id       text                            NOT NULL,
-    size          integer                         NOT NULL,
-    segments      geometry(MultiLineString, 4326) NOT NULL,
+    user_id       bigint                           NOT NULL REFERENCES "user",
+    name          text                             NOT NULL,
+    description   text                             NOT NULL,
+    tags          text[]                           NOT NULL,
+    visibility    trace_visibility                 NOT NULL,
+    file_id       text                             NOT NULL,
+    size          integer                          NOT NULL,
+    segments      geometry(MultiLineStringZ, 4326) NOT NULL,
     capture_times timestamptz[],
-    created_at    timestamptz                     NOT NULL DEFAULT statement_timestamp(),
-    updated_at    timestamptz                     NOT NULL DEFAULT statement_timestamp()
+    created_at    timestamptz                      NOT NULL DEFAULT statement_timestamp(),
+    updated_at    timestamptz                      NOT NULL DEFAULT statement_timestamp()
 );
 CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id, id);
 CREATE INDEX trace_tags_idx ON trace USING gin (tags);

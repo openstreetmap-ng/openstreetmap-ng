@@ -1,6 +1,4 @@
-from typing import get_args
-
-from app.models.scope import PUBLIC_SCOPES, Scope, scope_from_kwargs, scope_from_str
+from app.models.scope import PUBLIC_SCOPES, scope_from_kwargs, scope_from_str
 
 
 def test_from_kwargs():
@@ -12,4 +10,4 @@ def test_from_str():
 
 
 def test_from_str_public():
-    assert set(scope_from_str(' '.join(get_args(Scope)))) == set(PUBLIC_SCOPES)
+    assert set(scope_from_str(' '.join(PUBLIC_SCOPES))) == set(PUBLIC_SCOPES)

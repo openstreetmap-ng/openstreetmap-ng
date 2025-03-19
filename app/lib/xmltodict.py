@@ -7,6 +7,7 @@ import cython
 import lxml.etree as tree
 from lxml.etree import CDATA, Element
 
+from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.lib.sizestr import sizestr
@@ -89,6 +90,9 @@ def _parse_element(element: tree._Element):
         for child in children:
             k = _strip_namespace(child.tag)
             v = _parse_element(child)
+
+            if isinstance(v, str) and (call := value_postprocessor.get(k)) is not None:  # pyright: ignore [reportUnnecessaryIsInstance]
+                v = call(v)
 
             # in sequence mode, return root element as tuple
             if k in force_sequence_root:
@@ -217,13 +221,18 @@ def _parse_xml_version(value: str):
     return int(value) if ('.' not in value) else float(value)
 
 
+@cython.cfunc
+def _parse_xml_date(value: str):
+    return datetime.fromisoformat(value) if ' ' not in value else parse_date(value)
+
+
 _VALUE_POSTPROCESSOR: dict[str, Callable[[str], Any]] = {
     'changeset': int,
     'changes_count': int,
-    'closed_at': datetime.fromisoformat,
+    'closed_at': _parse_xml_date,
     'comments_count': int,
-    'created_at': datetime.fromisoformat,
-    'date': datetime.fromisoformat,
+    'created_at': _parse_xml_date,
+    'date': _parse_xml_date,
     'id': int,
     'lat': float,
     'lon': float,
@@ -236,10 +245,10 @@ _VALUE_POSTPROCESSOR: dict[str, Callable[[str], Any]] = {
     'open': _parse_xml_bool,
     'pending': _parse_xml_bool,
     'ref': int,
-    'time': datetime.fromisoformat,
-    'timestamp': datetime.fromisoformat,
+    'time': _parse_xml_date,
+    'timestamp': _parse_xml_date,
     'uid': int,
-    'updated_at': datetime.fromisoformat,
+    'updated_at': _parse_xml_date,
     'version': _parse_xml_version,
     'visible': _parse_xml_bool,
 }

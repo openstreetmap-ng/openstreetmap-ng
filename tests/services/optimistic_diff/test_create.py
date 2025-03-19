@@ -2,7 +2,7 @@ import pytest
 from shapely import Point
 
 from app.lib.user_role_limits import UserRoleLimits
-from app.models.db.element import ElementInit
+from app.models.db.element import ElementInit, validate_elements
 from app.models.element import ElementId, ElementType, typed_element_id
 from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
@@ -69,35 +69,35 @@ async def test_create_node_with_tags(changeset_id: ChangesetId):
 
 
 @pytest.mark.parametrize(
-    ('element_type', 'expected_members'),
+    ('element_type', 'members'),
     [
         (
             'way',
             [
-                typed_element_id('node', ElementId(1)),
-                typed_element_id('node', ElementId(2)),
+                typed_element_id('node', ElementId((1 << 56) - 1)),
+                typed_element_id('node', ElementId((1 << 56) - 2)),
             ],
         ),
         (
             'relation',
             [
-                typed_element_id('node', ElementId(1)),
-                typed_element_id('way', ElementId(1)),
+                typed_element_id('node', ElementId((1 << 56) - 1)),
+                typed_element_id('way', ElementId((1 << 56) - 1)),
             ],
         ),
     ],
 )
-async def test_create_with_nonexistent_members(changeset_id: ChangesetId, element_type: ElementType, expected_members):
+async def test_create_with_nonexistent_members(changeset_id: ChangesetId, element_type: ElementType, members):
     # Create a way or relation with members
     element: ElementInit = {
         'changeset_id': changeset_id,
         'typed_id': typed_element_id(element_type, ElementId(-1)),
         'version': 1,
         'visible': True,
-        'tags': {'name': f'Test {element_type.capitalize()}'},
+        'tags': {},
         'point': None,
-        'members': expected_members,
-        'members_roles': [''] * len(expected_members) if element_type == 'relation' else None,
+        'members': members,
+        'members_roles': [''] * len(members) if element_type == 'relation' else None,
     }
 
     # Should fail because the referenced elements don't exist
@@ -106,9 +106,9 @@ async def test_create_with_nonexistent_members(changeset_id: ChangesetId, elemen
 
 
 async def test_create_with_zero_changeset_id():
-    # Create element with invalid changeset ID
+    # Create element with invalid changeset id
     element: ElementInit = {
-        'changeset_id': ChangesetId(0),  # Invalid changeset ID
+        'changeset_id': ChangesetId(0),  # Invalid changeset id
         'typed_id': typed_element_id('node', ElementId(-1)),
         'version': 1,
         'visible': True,
@@ -118,7 +118,7 @@ async def test_create_with_zero_changeset_id():
         'members_roles': None,
     }
 
-    # Operation must fail due to invalid changeset ID
+    # Operation must fail due to invalid changeset id
     with pytest.raises(Exception):
         await OptimisticDiff.run([element])
 
@@ -148,16 +148,16 @@ async def test_create_with_multiple_changesets(changeset_id: ChangesetId):
         },
     ]
 
-    # Operation must fail due to different changeset IDs
+    # Operation must fail due to different changeset ids
     with pytest.raises(Exception):
         await OptimisticDiff.run(elements)
 
 
 async def test_create_with_positive_id(changeset_id: ChangesetId):
-    # Create element with positive ID (should be negative for new elements)
+    # Create element with positive id (should be negative for new elements)
     element: ElementInit = {
         'changeset_id': changeset_id,
-        'typed_id': typed_element_id('node', ElementId(1)),  # Positive ID is invalid for creation
+        'typed_id': typed_element_id('node', ElementId(1)),  # Positive id is invalid for creation
         'version': 1,
         'visible': True,
         'tags': {},
@@ -166,7 +166,7 @@ async def test_create_with_positive_id(changeset_id: ChangesetId):
         'members_roles': None,
     }
 
-    # Operation must fail due to invalid element ID
+    # Operation must fail due to invalid element id
     with pytest.raises(Exception):
         await OptimisticDiff.run([element])
 
@@ -247,7 +247,7 @@ async def test_create_multiple_nodes(changeset_id: ChangesetId):
     # Verify mapping for all created elements
     assert len(assigned_ref_map) == 2
 
-    # Get the assigned IDs
+    # Get the assigned ids
     typed_ids = [
         assigned_ref_map[typed_element_id('node', ElementId(-1))][0],
         assigned_ref_map[typed_element_id('node', ElementId(-2))][0],
@@ -265,7 +265,7 @@ async def test_create_multiple_nodes(changeset_id: ChangesetId):
     assert name_map['Node 2']['point'] == Point(1, 1)
 
 
-async def test_create_hidden(changeset_id: ChangesetId):
+def test_create_hidden(changeset_id: ChangesetId):
     # Try to create an element with visible=False (invalid for version 1)
     element: ElementInit = {
         'changeset_id': changeset_id,
@@ -280,4 +280,4 @@ async def test_create_hidden(changeset_id: ChangesetId):
 
     # Operation must fail due to creation of invisible element
     with pytest.raises(Exception):
-        await OptimisticDiff.run([element])
+        validate_elements([element])

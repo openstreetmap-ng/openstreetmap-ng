@@ -11,7 +11,7 @@ from app.services.oauth2_application_service import OAuth2ApplicationService
     ('uris', 'expected'),
     [
         # Count limits
-        ('\nhttps://example.com' * OAUTH_APP_URI_LIMIT, ['https://example.com'] * OAUTH_APP_URI_LIMIT),
+        ('\nhttps://example.com' * OAUTH_APP_URI_LIMIT, ['https://example.com']),
         ('\nhttps://example.com' * (OAUTH_APP_URI_LIMIT + 1), None),
         # Length limits
         (

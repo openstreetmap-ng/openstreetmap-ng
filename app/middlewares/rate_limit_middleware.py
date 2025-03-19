@@ -31,8 +31,7 @@ class RateLimitMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope['type'] != 'http':
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
         async def wrapper(message: Message) -> None:
             if message['type'] == 'http.response.start':
@@ -42,9 +41,9 @@ class RateLimitMiddleware:
                     headers = MutableHeaders(raw=message['headers'])
                     headers.update(rate_limit_headers)
 
-            await send(message)
+            return await send(message)
 
-        await self.app(scope, receive, wrapper)
+        return await self.app(scope, receive, wrapper)
 
 
 def rate_limit(*, weight: float = 1):

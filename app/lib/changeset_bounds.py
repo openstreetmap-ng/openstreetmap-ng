@@ -8,10 +8,9 @@ from sklearn.cluster import AgglomerativeClustering
 from app.limits import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
 
 
-def extend_changeset_bounds(bounds: MultiPolygon, points: list[Point]) -> MultiPolygon:
+def extend_changeset_bounds(bounds: MultiPolygon | None, points: list[Point]) -> MultiPolygon:
     bbox_limit: cython.Py_ssize_t = CHANGESET_BBOX_LIMIT
-    bboxes: list[list[float]]
-    bboxes = measurement.bounds(bounds.geoms).tolist()  # type: ignore
+    bboxes: list[list[float]] = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
     num_bboxes: cython.Py_ssize_t = len(bboxes)
     num_bounds: cython.Py_ssize_t = num_bboxes
     dirty_mask: list[bool] = [False] * bbox_limit
@@ -24,9 +23,8 @@ def extend_changeset_bounds(bounds: MultiPolygon, points: list[Point]) -> MultiP
 
     # process clusters
     for cluster in _cluster_points(points):
-        cluster_ = np.array(cluster, np.float64)
-        minx, miny = cluster_.min(axis=0).tolist()
-        maxx, maxy = cluster_.max(axis=0).tolist()
+        minx, miny = cluster.min(axis=0).tolist()
+        maxx, maxy = cluster.max(axis=0).tolist()
         bbox = [minx, miny, maxx, maxy]
 
         # below the limit, find the intersection, otherwise find the nearest
@@ -69,11 +67,15 @@ def extend_changeset_bounds(bounds: MultiPolygon, points: list[Point]) -> MultiP
         check_queue.append(i)
 
     # combine results
-    result: list[Polygon] = [
-        box(*bboxes[i]) if dirty_mask[i] else poly  # type: ignore
-        for i, poly in enumerate(bounds.geoms)
-        if not deleted_mask[i]
-    ]
+    result: list[Polygon] = (
+        [
+            box(*bboxes[i]) if dirty_mask[i] else poly  # type: ignore
+            for i, poly in enumerate(bounds.geoms)
+            if not deleted_mask[i]
+        ]
+        if bounds is not None
+        else []
+    )
     result.extend(
         box(*bbox)  # type: ignore
         for i, bbox in enumerate(bboxes[num_bounds:], num_bounds)
@@ -85,6 +87,7 @@ def extend_changeset_bounds(bounds: MultiPolygon, points: list[Point]) -> MultiP
 @cython.cfunc
 def _cluster_points(points: list[Point]) -> list[NDArray[np.float64]]:
     num_points: cython.Py_ssize_t = len(points)
+    assert num_points > 0, 'Clustering requires at least one point'
     coords = get_coordinates(points)
 
     if num_points == 1:

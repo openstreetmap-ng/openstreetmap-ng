@@ -149,10 +149,10 @@ async def test_changeset_upload(client: AsyncClient):
             '@updated_at': datetime,
             '@closed_at': datetime,
             '@changes_count': 2,
-            '@min_lat': 0,
-            '@max_lat': 0,
-            '@min_lon': 0,
-            '@max_lon': 0,
+            '@min_lat': 0.0,
+            '@max_lat': 0.0,
+            '@min_lon': 0.0,
+            '@max_lon': 0.0,
         },
     )
 

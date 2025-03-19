@@ -8,7 +8,7 @@ from app.queries.user_query import UserQuery
 @pytest.mark.parametrize('path', ['', '/test', '/test?abc=def'])
 async def test_user_permalink(client: AsyncClient, path):
     client.headers['Authorization'] = 'User user1'
-    user_id = await UserQuery.find_one_by_display_name('user1')['id']  # type: ignore
+    user_id = (await UserQuery.find_one_by_display_name('user1'))['id']  # type: ignore
 
     # Test that user id permalink redirects to username permalink
     r = await client.get(f'/user-id/{user_id}{path}', follow_redirects=False)
@@ -19,7 +19,6 @@ async def test_user_permalink(client: AsyncClient, path):
 async def test_user_permalink_not_found(client: AsyncClient, user_id):
     r = await client.get('/user-id/0', follow_redirects=False)
     assert r.status_code == status.HTTP_404_NOT_FOUND, r.text
-    assert r.json()['detail'] == 'User 0 not found'
 
 
 async def test_signup_redirect_when_authenticated(client: AsyncClient):

@@ -2,7 +2,6 @@ import logging
 
 import cython
 from fastapi import UploadFile
-from psycopg.rows import dict_row
 
 from app.db import db
 from app.format.gpx import FormatGPX
@@ -72,7 +71,7 @@ class TraceService:
             # Insert into database
             async with (
                 db(True) as conn,
-                await conn.cursor(row_factory=dict_row).execute(
+                await conn.execute(
                     """
                     INSERT INTO trace (
                         user_id, name, description, tags, visibility,
@@ -86,7 +85,7 @@ class TraceService:
                     trace_init,
                 ) as r,
             ):
-                return await r.fetchone()  # type: ignore
+                return (await r.fetchone())[0]  # type: ignore
 
         except Exception:
             # Clean up trace file on error

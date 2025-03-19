@@ -35,4 +35,4 @@ class ConnectedAccountQuery:
                 (user_id,),
             ) as r,
         ):
-            return [row[0] for row in await r.fetchall()]
+            return [c for (c,) in await r.fetchall()]

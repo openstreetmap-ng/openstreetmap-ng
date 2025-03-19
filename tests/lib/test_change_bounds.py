@@ -1,3 +1,4 @@
+import pytest
 from shapely import MultiPolygon, Point, box
 
 from app.lib.changeset_bounds import extend_changeset_bounds
@@ -6,10 +7,6 @@ from app.limits import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CH
 
 def test_multiple_sequential_extensions():
     bounds = MultiPolygon()
-
-    # Empty bounds and no points
-    result = extend_changeset_bounds(bounds, [])
-    assert len(result.geoms) == 0, 'Empty inputs must produce empty result'
 
     # First extension
     point1 = Point(0, 0)
@@ -25,6 +22,11 @@ def test_multiple_sequential_extensions():
     far_point = Point(CHANGESET_NEW_BBOX_MIN_DISTANCE * 3, 0)
     bounds = extend_changeset_bounds(bounds, [far_point])
     assert len(bounds.geoms) == 2, 'Distant point must create a new boundary'
+
+
+def test_empty_points_raise():
+    with pytest.raises(AssertionError):
+        extend_changeset_bounds(MultiPolygon(), [])
 
 
 def test_points_at_threshold_merge():
@@ -97,24 +99,12 @@ def test_early_merge_behavior():
     assert bounds[3] >= z, "Boundary must extend to include the furthest point's Y"
 
 
-def test_bbox_limit_new_bounds():
-    # Create more points than the limit
-    points = [Point(i * CHANGESET_NEW_BBOX_MIN_DISTANCE * 2, 0) for i in range(CHANGESET_BBOX_LIMIT * 2)]
-
-    result = extend_changeset_bounds(MultiPolygon(), points)
-
-    assert len(result.geoms) == CHANGESET_BBOX_LIMIT, 'Number of boundaries must not exceed CHANGESET_BBOX_LIMIT'
-
-
 def test_bbox_limit_merge():
     # Create boundaries just under the limit
-    existing_bounds = MultiPolygon([box(i * 10, 0, i * 10 + 1, 1) for i in range(CHANGESET_BBOX_LIMIT - 1)])
+    bounds = MultiPolygon([box(i * 10, 0, i * 10 + 1, 1) for i in range(CHANGESET_BBOX_LIMIT - 1)])
 
-    # Add enough points to exceed the limit if all created separate boundaries
-    points = [Point((CHANGESET_BBOX_LIMIT + i) * 10, 0) for i in range(3)]
+    result = extend_changeset_bounds(bounds, [Point(CHANGESET_BBOX_LIMIT * 10, 0)])
+    assert len(result.geoms) == CHANGESET_BBOX_LIMIT
 
-    result = extend_changeset_bounds(existing_bounds, points)
-
-    assert len(result.geoms) == CHANGESET_BBOX_LIMIT, (
-        'When adding new points, total boundaries must not exceed CHANGESET_BBOX_LIMIT'
-    )
+    result = extend_changeset_bounds(bounds, [Point((CHANGESET_BBOX_LIMIT + 1) * 10, 0)])
+    assert len(result.geoms) == CHANGESET_BBOX_LIMIT

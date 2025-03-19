@@ -47,7 +47,7 @@ class AuthExceptionsMixin:
         raise NotImplementedError
 
     def oauth_bad_client_id(self) -> NoReturn:
-        raise APIError(status.HTTP_401_UNAUTHORIZED, detail='Invalid client ID')
+        raise APIError(status.HTTP_401_UNAUTHORIZED, detail='Invalid client id')
 
     def oauth_bad_client_secret(self) -> NoReturn:
         raise APIError(status.HTTP_401_UNAUTHORIZED, detail='Invalid client secret')

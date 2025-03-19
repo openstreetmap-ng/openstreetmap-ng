@@ -84,7 +84,6 @@ def utcnow() -> datetime:
 def parse_date(s: str) -> datetime:
     """
     Parse a string into a datetime object.
-
     Timezone information is ignored and the returned datetime object is always in UTC.
 
     >>> parse_date('2010-10-31')
