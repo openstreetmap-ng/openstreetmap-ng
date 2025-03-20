@@ -19,10 +19,10 @@ from tests.utils.assert_model import assert_model
 
 # Lightweight compression levels for faster tests.
 _ENCODING_COMPRESS: list[tuple[str, Callable[[bytes], bytes]]] = [
-    ('gzip', partial(gzip.compress, compresslevel=0)),
-    ('deflate', partial(zlib.compress, level=0)),
-    ('br', partial(brotli.compress, quality=0)),
-    ('zstd', ZstdCompressor(level=0).compress),
+    ('gzip', partial(gzip.compress, compresslevel=1)),
+    ('deflate', partial(zlib.compress, level=1)),
+    ('br', partial(brotli.compress, quality=1)),
+    ('zstd', ZstdCompressor(level=1).compress),
 ]
 
 
@@ -189,7 +189,7 @@ async def test_size_limit_after_decompression(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
     # Create data that's small when compressed but exceeds limits when decompressed
-    content = gzip.compress(orjson.dumps({'lon': 0, 'lat': 0, 'text': 'A' * REQUEST_BODY_MAX_SIZE}), compresslevel=0)
+    content = gzip.compress(orjson.dumps({'lon': 0, 'lat': 0, 'text': 'A' * REQUEST_BODY_MAX_SIZE}), compresslevel=1)
     assert len(content) < REQUEST_BODY_MAX_SIZE, 'Compressed content must be under size limit'
 
     # Execute request
