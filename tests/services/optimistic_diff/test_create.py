@@ -8,6 +8,7 @@ from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
 from app.services.changeset_service import ChangesetService
 from app.services.optimistic_diff import OptimisticDiff
+from tests.utils.assert_model import assert_model
 
 
 async def test_create_node(changeset_id: ChangesetId):
@@ -27,19 +28,9 @@ async def test_create_node(changeset_id: ChangesetId):
     assigned_ref_map = await OptimisticDiff.run([element])
     typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
-    # Query the created element
-    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
-    assert elements, 'Created element must exist in database'
-
-    created_element = elements[0]
-
     # Verify the created element
-    assert created_element['changeset_id'] == changeset_id
-    assert created_element['version'] == 1
-    assert created_element['visible'] is True
-    assert created_element['tags'] == {}
-    assert created_element['point'] == Point(0, 0)
-    assert not created_element['members']
+    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
+    assert_model(elements[0], element | {'typed_id': typed_id})
 
 
 async def test_create_node_with_tags(changeset_id: ChangesetId):
@@ -59,13 +50,9 @@ async def test_create_node_with_tags(changeset_id: ChangesetId):
     assigned_ref_map = await OptimisticDiff.run([element])
     typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
-    # Query and verify the created element
+    # Verify the created element
     elements = await ElementQuery.get_by_refs([typed_id], limit=1)
-    assert elements, 'Created element must exist in database'
-
-    created_element = elements[0]
-    assert created_element['tags'] == {'name': 'Test Node', 'amenity': 'cafe'}
-    assert created_element['point'] == Point(1.5, 2.5)
+    assert_model(elements[0], element | {'typed_id': typed_id})
 
 
 @pytest.mark.parametrize(
@@ -244,25 +231,16 @@ async def test_create_multiple_nodes(changeset_id: ChangesetId):
     # Push changes to the database
     assigned_ref_map = await OptimisticDiff.run(elements)
 
-    # Verify mapping for all created elements
-    assert len(assigned_ref_map) == 2
-
-    # Get the assigned ids
     typed_ids = [
         assigned_ref_map[typed_element_id('node', ElementId(-1))][0],
         assigned_ref_map[typed_element_id('node', ElementId(-2))][0],
     ]
 
-    # Query and verify created elements
+    # Verify the created elements
     created_elements = await ElementQuery.get_by_refs(typed_ids)
-    assert len(created_elements) == 2
-
-    # Check that both elements were created with correct attributes
     name_map = {e['tags']['name']: e for e in created_elements}  # type: ignore
-    assert 'Node 1' in name_map
-    assert 'Node 2' in name_map
-    assert name_map['Node 1']['point'] == Point(0, 0)
-    assert name_map['Node 2']['point'] == Point(1, 1)
+    assert_model(name_map['Node 1'], elements[0] | {'typed_id': typed_ids[0]})
+    assert_model(name_map['Node 2'], elements[1] | {'typed_id': typed_ids[1]})
 
 
 def test_create_hidden(changeset_id: ChangesetId):

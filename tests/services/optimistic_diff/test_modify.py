@@ -2,10 +2,11 @@ import pytest
 from shapely import Point
 
 from app.models.db.element import ElementInit
-from app.models.element import ElementId, split_typed_element_id, typed_element_id
+from app.models.element import ElementId, typed_element_id
 from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff import OptimisticDiff
+from tests.utils.assert_model import assert_model
 
 
 async def test_modify_node_tags_and_location(changeset_id: ChangesetId):
@@ -34,27 +35,13 @@ async def test_modify_node_tags_and_location(changeset_id: ChangesetId):
     }
 
     # Push elements to the database
-    elements = [node_create, node_modify]
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run([node_create, node_modify])
 
-    # Get the assigned ID
     node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
-    # Retrieve the node and check its properties
-    nodes = await ElementQuery.get_by_refs([node_typed_id], limit=1)
-    assert nodes, 'Node must exist in database'
-    node_element = nodes[0]
-
-    # Verify the node has been properly modified
-    assert node_element['changeset_id'] == changeset_id, 'Node must have correct changeset ID'
-    element_type, element_id = split_typed_element_id(node_typed_id)
-    assert element_type == 'node', 'Element must be a node'
-    assert element_id > 0, 'Element must have a positive ID'
-    assert node_element['version'] == 2, 'Node must be at version 2'
-    assert node_element['visible'] is True, 'Node must be visible'
-    assert node_element['tags'] == {'modified': 'yes'}, 'Node must have updated tags'
-    assert node_element['point'] == Point(1, 2), 'Node must have updated location'
-    assert node_element['members'] is None, 'Node must have no members'
+    # Verify the modified element
+    elements = await ElementQuery.get_by_refs([node_typed_id], limit=1)
+    assert_model(elements[0], node_modify | {'typed_id': node_typed_id})
 
 
 async def test_modify_way_members(changeset_id: ChangesetId):
@@ -109,27 +96,22 @@ async def test_modify_way_members(changeset_id: ChangesetId):
     }
 
     # Push all elements to the database
-    elements = [node1, node2, way_create, way_modify]
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run([node1, node2, way_create, way_modify])
 
-    # Get the assigned IDs
     node1_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
     node2_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-2))][0]
     way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]
 
-    # Retrieve the way and check its properties
-    ways = await ElementQuery.get_by_refs([way_typed_id], limit=1)
-    assert ways, 'Way must exist in database'
-    way_element = ways[0]
-
-    # Verify the way has been properly modified
-    assert way_element['version'] == 2, 'Way must be at version 2'
-    assert way_element['visible'] is True, 'Way must be visible'
-    assert way_element['tags'] == {'highway': 'residential', 'modified': 'yes'}, 'Way must have updated tags'
-    assert way_element['members'] is not None, 'Way must have members'
-    assert len(way_element['members']) == 2, 'Way must have exactly two members'
-    assert way_element['members'][0] == node1_typed_id, 'First way member must be Node 1'
-    assert way_element['members'][1] == node2_typed_id, 'Second way member must be Node 2'
+    # Verify the modified way
+    elements = await ElementQuery.get_by_refs([way_typed_id], limit=1)
+    assert_model(
+        elements[0],
+        way_modify
+        | {
+            'typed_id': way_typed_id,
+            'members': [node1_typed_id, node2_typed_id],
+        },
+    )
 
 
 async def test_modify_relation_members_and_roles(changeset_id: ChangesetId):
@@ -184,29 +166,22 @@ async def test_modify_relation_members_and_roles(changeset_id: ChangesetId):
     }
 
     # Push all elements to the database
-    elements = [node, way, relation_create, relation_modify]
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run([node, way, relation_create, relation_modify])
 
-    # Get the assigned IDs
     node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
     way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]
     relation_typed_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
 
-    # Retrieve the relation and check its properties
-    relations = await ElementQuery.get_by_refs([relation_typed_id], limit=1)
-    assert relations, 'Relation must exist in database'
-    relation_element = relations[0]
-
-    # Verify the relation has been properly modified
-    assert relation_element['version'] == 2, 'Relation must be at version 2'
-    assert relation_element['visible'] is True, 'Relation must be visible'
-    assert relation_element['tags'] == {'type': 'test', 'modified': 'yes'}, 'Relation must have updated tags'
-    assert relation_element['members'] is not None, 'Relation must have members'
-    assert len(relation_element['members']) == 2, 'Relation must have exactly two members'
-    assert relation_element['members'][0] == node_typed_id, 'First relation member must be the node'
-    assert relation_element['members'][1] == way_typed_id, 'Second relation member must be the way'
-    assert relation_element['members_roles'][0] == 'new_node_role', 'Node member must have updated role'  # type: ignore
-    assert relation_element['members_roles'][1] == 'way_role', 'Way member must have correct role'  # type: ignore
+    # Verify the modified relation
+    elements = await ElementQuery.get_by_refs([relation_typed_id], limit=1)
+    assert_model(
+        elements[0],
+        relation_modify
+        | {
+            'typed_id': relation_typed_id,
+            'members': [node_typed_id, way_typed_id],
+        },
+    )
 
 
 async def test_invalid_version_gap(changeset_id: ChangesetId):
@@ -235,14 +210,13 @@ async def test_invalid_version_gap(changeset_id: ChangesetId):
     }
 
     # Operation must fail due to version gap
-    elements = [node_create, node_modify]
     with pytest.raises(Exception):
-        await OptimisticDiff.run(elements)
+        await OptimisticDiff.run([node_create, node_modify])
 
 
 async def test_multiple_consecutive_modifications(changeset_id: ChangesetId):
-    # Push elements to the database
-    elements: list[ElementInit] = [
+    # Create elements for multiple versions of a node
+    nodes: list[ElementInit] = [
         {
             'changeset_id': changeset_id,
             'typed_id': typed_element_id('node', ElementId(-1)),
@@ -255,17 +229,12 @@ async def test_multiple_consecutive_modifications(changeset_id: ChangesetId):
         }
         for i in range(1, 4)
     ]
-    assigned_ref_map = await OptimisticDiff.run(elements)
 
-    # Get the assigned ID
+    # Push all elements to the database
+    assigned_ref_map = await OptimisticDiff.run(nodes)
     node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
-    # Retrieve all versions of the node
-    node_versions = await ElementQuery.get_versions_by_ref(node_typed_id, sort='asc')
-    assert len(node_versions) == 3, 'Node must have three versions'
-
-    # Verify each version has the correct properties
-    for i, node in enumerate(node_versions, 1):
-        assert node['version'] == i, f'Node version {i} must have correct version number'
-        assert node['tags'] == {'version': str(i)}, f'Node version {i} must have correct tags'
-        assert node['point'] == Point(i, i), f'Node version {i} must have correct location'
+    # Verify each version
+    elements = await ElementQuery.get_versions_by_ref(node_typed_id, sort='asc')
+    for element, node in zip(elements, nodes, strict=True):
+        assert_model(element, node | {'typed_id': node_typed_id})

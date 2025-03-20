@@ -6,6 +6,7 @@ from app.models.element import ElementId, typed_element_id
 from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff import OptimisticDiff
+from tests.utils.assert_model import assert_model
 
 
 async def test_delete_if_unused(changeset_id: ChangesetId):
@@ -47,21 +48,12 @@ async def test_delete_if_unused(changeset_id: ChangesetId):
     }
 
     # Apply all changes
-    elements = [node, way, node_delete]
-    assigned_ref_map = await OptimisticDiff.run(elements)
-
-    # Verify mapping exists for created elements
+    assigned_ref_map = await OptimisticDiff.run([node, way, node_delete])
     typed_id_node = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
-    # Retrieve and check the node (should still be visible at version 1 since it's in use)
-    nodes = await ElementQuery.get_by_refs([typed_id_node], limit=1)
-    assert nodes, 'Node must exist in database'
-    node_element = nodes[0]
-
-    # Since the node is used by a way, "delete_if_unused" should have no effect
-    # and the node should remain at version 1 and visible
-    assert node_element['version'] == 1, 'Node must remain at version 1 when referenced by way'
-    assert node_element['visible'] is True, 'Node must remain visible when referenced by way'
+    # Verify the created element
+    elements = await ElementQuery.get_by_refs([typed_id_node], limit=1)
+    assert_model(elements[0], node | {'typed_id': typed_id_node})
 
 
 async def test_delete_invalid_repeated(changeset_id: ChangesetId):
@@ -125,9 +117,8 @@ async def test_delete_node(changeset_id: ChangesetId):
     typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
     # Verify it was created
-    nodes = await ElementQuery.get_by_refs([typed_id], limit=1)
-    assert nodes, 'Node must exist in database'
-    assert nodes[0]['visible'] is True, 'Node must be visible initially'
+    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
+    assert_model(elements[0], node | {'typed_id': typed_id})
 
     # Delete the node (mark it invisible)
     node_delete: ElementInit = {
@@ -144,13 +135,9 @@ async def test_delete_node(changeset_id: ChangesetId):
     # Apply the delete operation
     await OptimisticDiff.run([node_delete])
 
-    # Retrieve the node and check that it's now hidden
-    nodes = await ElementQuery.get_by_refs([typed_id], limit=1)
-    assert nodes, 'Node must still exist in database after deletion'
-    assert nodes[0]['visible'] is False, 'Node must be hidden after deletion'
-    assert nodes[0]['version'] == 2, 'Node must be at version 2 after deletion'
-    assert nodes[0]['tags'] is None, 'Deleted node must have no tags'
-    assert nodes[0]['point'] is None, 'Deleted node must have no geometry'
+    # Verify it was deleted
+    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
+    assert_model(elements[0], node_delete)
 
 
 async def test_delete_way_with_nodes(changeset_id: ChangesetId):
@@ -193,8 +180,7 @@ async def test_delete_way_with_nodes(changeset_id: ChangesetId):
     }
 
     # Push all elements to the database
-    elements = [node1, node2, way]
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run([node1, node2, way])
     way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]
 
     # Delete the way (mark it invisible)
@@ -212,12 +198,9 @@ async def test_delete_way_with_nodes(changeset_id: ChangesetId):
     # Apply the delete operation
     await OptimisticDiff.run([way_delete])
 
-    # Retrieve the way and check that it's now hidden
-    ways = await ElementQuery.get_by_refs([way_typed_id], limit=1)
-    assert ways, 'Way must still exist in database after deletion'
-    assert ways[0]['visible'] is False, 'Way must be hidden after deletion'
-    assert ways[0]['members'] is None, 'Deleted way must have no members'
-    assert ways[0]['tags'] is None, 'Deleted way must have no tags'
+    # Verify it was deleted
+    elements = await ElementQuery.get_by_refs([way_typed_id], limit=1)
+    assert_model(elements[0], way_delete)
 
 
 async def test_delete_nonexistent_element(changeset_id: ChangesetId):

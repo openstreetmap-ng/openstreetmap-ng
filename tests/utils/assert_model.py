@@ -7,7 +7,7 @@ from pydantic import ConfigDict, create_model
 
 def assert_model(
     data: Mapping,
-    fields: dict[str, Any],
+    fields: Mapping[str, Any],
     /,
     *,
     strict: bool = False,
