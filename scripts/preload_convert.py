@@ -390,9 +390,11 @@ def _write_changeset() -> None:
             SELECT
                 changeset_id AS id,
                 ANY_VALUE(user_id) AS user_id,
+                '' AS tags,
+                MIN(created_at) AS created_at,
+                MAX(created_at) AS updated_at,
                 MAX(created_at) AS closed_at,
-                COUNT(*) AS size,
-                '{{}}' AS tags
+                COUNT(*) AS size
             FROM planet
             GROUP BY changeset_id
             ORDER BY changeset_id
@@ -403,38 +405,68 @@ def _write_changeset() -> None:
 def _write_element() -> None:
     with duckdb_connect() as conn:
         planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
+
+        # Compute typed_id from type and id.
+        # Source implementation: app.models.element.typed_element_id
+        conn.execute("""
+        CREATE MACRO typed_element_id(type, id) AS
+        CASE
+            WHEN type = 'node' THEN id
+            WHEN type = 'way' THEN (id | (1::bigint << 60))
+            WHEN type = 'relation' THEN (id | (2::bigint << 60))
+            ELSE NULL
+        END
+        """)
+
+        # Utility for quoting text
+        conn.execute("""
+        CREATE MACRO quote(str) AS
+        '"' || replace(replace(str, '\\', '\\\\'), '"', '\\"') || '"'
+        """)
+
+        # Convert JSON dict to hstore
+        conn.execute("""
+        CREATE MACRO json_to_hstore(json) AS
+        array_to_string(
+            list_transform(
+                json_keys(json),
+                k -> quote(k) || '=>' || quote(json_extract_string(json, k))
+            ),
+            ','
+        )
+        """)
+
+        # Encode array in Postgres-compatible format
+        conn.execute("""
+        CREATE MACRO pg_array(arr) AS
+        '{' || array_to_string(arr, ',') || '}'
+        """)
+
         conn.sql(f"""
         COPY (
             SELECT
                 sequence_id,
                 changeset_id,
-                type,
-                id,
+                typed_element_id(type, id) AS typed_id,
                 version,
                 visible,
-                tags,
+                CASE WHEN visible THEN json_to_hstore(tags) ELSE NULL END AS tags,
                 point,
+                CASE
+                    WHEN visible AND type != 'node' THEN
+                        pg_array(list_transform(members, x -> typed_element_id(x.type, x.id)))
+                    ELSE NULL
+                END AS members,
+                CASE
+                    WHEN visible AND type = 'relation' THEN
+                        pg_array(list_transform(members, x -> quote(x.role)))
+                    ELSE NULL
+                END AS members_roles,
                 created_at,
                 next_sequence_id
             FROM planet
             ORDER BY type, id, version
         ) TO {_get_csv_path('element').as_posix()!r}
-        """)
-
-
-def _write_element_member() -> None:
-    with duckdb_connect() as conn:
-        planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
-        conn.sql(f"""
-        COPY (
-            SELECT * FROM (
-                SELECT
-                    sequence_id,
-                    UNNEST(members, max_depth := 2)
-                FROM planet
-            )
-            ORDER BY type, id, sequence_id
-        ) TO {_get_csv_path('element_member').as_posix()!r}
         """)
 
 
@@ -464,7 +496,6 @@ def _write_note_comment() -> None:
             SELECT * EXCLUDE (display_name) FROM (
                 SELECT
                     id AS note_id,
-                    NULL AS user_ip,
                     UNNEST(comments, max_depth := 2)
                 FROM notes
                 ORDER BY id
@@ -481,46 +512,47 @@ def _write_user() -> None:
         COPY (
             SELECT DISTINCT ON (user_id)
                 user_id AS id,
-                display_name,
                 (user_id || '@localhost.invalid') AS email,
+                TRUE as email_verified,
+                (display_name || '_' || user_id) AS display_name,
                 '' AS password_pb,
-                '127.0.0.1' AS created_ip,
-                'active' AS status,
                 'en' AS language,
                 TRUE AS activity_tracking,
-                TRUE AS crash_reporting
+                TRUE AS crash_reporting,
+                '127.0.0.1' AS created_ip
             FROM (
-                SELECT
+                SELECT DISTINCT ON (user_id)
                     user_id,
                     display_name
                 FROM planet
+                WHERE user_id IS NOT NULL
+
                 UNION ALL
-                SELECT
+
+                SELECT DISTINCT ON (user_id)
                     user_id,
                     display_name,
                 FROM (
                     SELECT UNNEST(comments, max_depth := 2)
                     FROM notes
                 )
+                WHERE user_id IS NOT NULL
             )
-            WHERE user_id IS NOT NULL
             ORDER BY user_id
         ) TO {_get_csv_path('user').as_posix()!r}
         """)
 
 
 def main() -> None:
-    # run_planet_workers()
-    # merge_planet_worker_results()
-    # run_notes_workers()
-    # merge_notes_worker_results()
+    run_planet_workers()
+    merge_planet_worker_results()
+    run_notes_workers()
+    merge_notes_worker_results()
 
     print('Writing changeset')
     _write_changeset()
     print('Writing element')
     _write_element()
-    print('Writing element member')
-    _write_element_member()
     print('Writing note')
     _write_note()
     print('Writing note comment')

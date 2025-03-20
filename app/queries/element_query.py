@@ -86,8 +86,7 @@ class ElementQuery:
             params.extend((typed_id, version))
 
         query = SQL("""
-            SELECT 1
-            FROM element
+            SELECT 1 FROM element
             WHERE next_sequence_id IS NOT NULL AND ({conditions})
             LIMIT 1
         """).format(conditions=SQL(' OR ').join(conditions))

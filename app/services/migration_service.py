@@ -41,14 +41,15 @@ class MigrationService:
 
             async with conn.pipeline():
                 for table_name, column_name, sequence_name in sequences:
+                    logging.debug('Fixing sequence %r', sequence_name)
                     await conn.execute(
                         SQL("""
-                            SELECT setval({sequence}, COALESCE((SELECT MAX({column}) FROM {table}), 0))
+                            SELECT setval(%s, COALESCE((SELECT MAX({column}) FROM {table}), 0))
                         """).format(
-                            sequence=Identifier(sequence_name),
                             column=Identifier(column_name),
                             table=Identifier(table_name),
-                        )
+                        ),
+                        (sequence_name,),
                     )
 
     @staticmethod

@@ -134,7 +134,8 @@ class TraceService:
             if not result.rowcount:
                 async with await conn.execute(
                     """
-                    SELECT 1 FROM trace WHERE id = %s
+                    SELECT 1 FROM trace
+                    WHERE id = %s
                     """,
                     (trace_id,),
                 ) as r:

@@ -39,6 +39,7 @@ class HstoreBinaryLoader(RecursiveLoader):
             return {}
 
         null_marker: cython.uint = 0xFFFFFFFF
+        encoding = self._encoding
         pos: cython.uint = 4
         result = {}
 
@@ -46,7 +47,7 @@ class HstoreBinaryLoader(RecursiveLoader):
             key_size: cython.uint = unpack('!I', view[pos : pos + 4])[0]
             pos += 4
 
-            key = str(view[pos : pos + key_size], 'utf-8')
+            key = str(view[pos : pos + key_size], encoding)
             pos += key_size
 
             value_size: cython.uint = unpack('!I', view[pos : pos + 4])[0]
@@ -55,7 +56,7 @@ class HstoreBinaryLoader(RecursiveLoader):
             if value_size == null_marker:
                 value = None
             else:
-                value = str(view[pos : pos + value_size], 'utf-8')
+                value = str(view[pos : pos + value_size], encoding)
                 pos += value_size
 
             result[key] = value
@@ -73,7 +74,7 @@ class HstoreBinaryDumper(RecursiveDumper):
     _encoding: str
 
     @override
-    def dump(self, obj: dict[str, str | None], *, pack_into=struct.pack_into) -> Buffer | None:
+    def dump(self, obj: dict[str, str | None], *, pack_into=struct.pack_into) -> Buffer:
         if not obj:
             return b'\x00\x00\x00\x00'
 
@@ -82,14 +83,14 @@ class HstoreBinaryDumper(RecursiveDumper):
         encoded: list[tuple[bytes, bytes | None]] = []
 
         for key, value in obj.items():
-            key_bytes = key.encode(encoding)
+            key_bytes = bytes(key, encoding)
             pos += 4 + len(key_bytes)
 
             if value is None:
                 value_bytes = None
                 pos += 4
             else:
-                value_bytes = value.encode(encoding)
+                value_bytes = bytes(value, encoding)
                 pos += 4 + len(value_bytes)
 
             encoded.append((key_bytes, value_bytes))
