@@ -205,7 +205,7 @@ async def test_create_with_closed_changeset(changeset_id: ChangesetId):
 
 async def test_create_multiple_nodes(changeset_id: ChangesetId):
     # Create multiple elements in a single operation
-    elements: list[ElementInit] = [
+    nodes: list[ElementInit] = [
         {
             'changeset_id': changeset_id,
             'typed_id': typed_element_id('node', ElementId(-1)),
@@ -229,7 +229,7 @@ async def test_create_multiple_nodes(changeset_id: ChangesetId):
     ]
 
     # Push changes to the database
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run(nodes)
 
     typed_ids = [
         assigned_ref_map[typed_element_id('node', ElementId(-1))][0],
@@ -237,10 +237,10 @@ async def test_create_multiple_nodes(changeset_id: ChangesetId):
     ]
 
     # Verify the created elements
-    created_elements = await ElementQuery.get_by_refs(typed_ids)
-    name_map = {e['tags']['name']: e for e in created_elements}  # type: ignore
-    assert_model(name_map['Node 1'], elements[0] | {'typed_id': typed_ids[0]})
-    assert_model(name_map['Node 2'], elements[1] | {'typed_id': typed_ids[1]})
+    elements = await ElementQuery.get_by_refs(typed_ids)
+    name_map = {e['tags']['name']: e for e in elements}  # type: ignore
+    assert_model(name_map['Node 1'], nodes[0] | {'typed_id': typed_ids[0]})
+    assert_model(name_map['Node 2'], nodes[1] | {'typed_id': typed_ids[1]})
 
 
 def test_create_hidden(changeset_id: ChangesetId):

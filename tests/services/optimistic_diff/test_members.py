@@ -104,19 +104,16 @@ async def test_delete_way_then_referenced_node(changeset_id: ChangesetId):
     }
 
     # Push all elements to the database
-    elements = [node, way, way_delete, node_delete]
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run([node, way, way_delete, node_delete])
 
-    # Verify mapping contains expected elements with correct versions
     node_versions = assigned_ref_map[typed_element_id('node', ElementId(-1))]
     assert len(node_versions) == 2
+    node_typed_id = node_versions[0]
     way_versions = assigned_ref_map[typed_element_id('way', ElementId(-1))]
     assert len(way_versions) == 2
-
-    # Verify both elements are now hidden
-    node_typed_id = node_versions[0]
     way_typed_id = way_versions[0]
 
+    # Verify both elements are now hidden
     nodes = await ElementQuery.get_by_refs([node_typed_id], limit=1)
     assert_model(nodes[0], node_delete | {'typed_id': node_typed_id})
     ways = await ElementQuery.get_by_refs([way_typed_id], limit=1)
@@ -149,8 +146,7 @@ async def test_relation_with_self_reference(changeset_id: ChangesetId):
     }
 
     # Push all elements to the database
-    elements = [relation, relation_delete]
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run([relation, relation_delete])
 
     relation_typed_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
 
@@ -323,8 +319,7 @@ async def test_way_with_multiple_nodes(changeset_id: ChangesetId):
     }
 
     # Push all elements to the database
-    elements = [node1, node2, way]
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run([node1, node2, way])
 
     node1_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
     node2_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-2))][0]
@@ -383,8 +378,7 @@ async def test_relation_with_mixed_members(changeset_id: ChangesetId):
     }
 
     # Push all elements to the database
-    elements = [node, way, relation]
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run([node, way, relation])
 
     node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
     way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]

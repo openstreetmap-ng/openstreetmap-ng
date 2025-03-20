@@ -94,9 +94,8 @@ async def test_delete_invalid_repeated(changeset_id: ChangesetId):
     }
 
     # Operation must fail due to multiple delete operations on the same element
-    elements = [node, node_delete1, node_delete2]
     with pytest.raises(Exception):
-        await OptimisticDiff.run(elements)
+        await OptimisticDiff.run([node, node_delete1, node_delete2])
 
 
 async def test_delete_node(changeset_id: ChangesetId):
