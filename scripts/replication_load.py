@@ -4,6 +4,7 @@ from asyncio import TaskGroup, create_subprocess_shell
 from asyncio.subprocess import Process
 from shlex import quote
 
+from psycopg.abc import Query
 from psycopg.sql import SQL, Identifier
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
@@ -26,14 +27,32 @@ def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
     return copy_paths, header
 
 
-async def _index_task(sql: str) -> None:
+async def _sql_execute(sql: Query) -> None:
     async with db(True, autocommit=True) as conn:
-        await conn.execute(sql)  # type: ignore
+        await conn.execute(sql)
 
 
-async def _load_table(table: str, tg: TaskGroup) -> None:
-    async with db(True, autocommit=True) as conn:
-        # drop indexes that are not used by any constraint
+async def _gather_table_constraints(table: str) -> dict[str, SQL]:
+    """Gather all foreign key constraints for a table."""
+    async with db() as conn:
+        cursor = await conn.execute(
+            """
+            SELECT con.conname, pg_get_constraintdef(con.oid)
+            FROM pg_constraint con
+            JOIN pg_class rel ON rel.oid = con.conrelid
+            JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+            WHERE rel.relname = %s
+            AND nsp.nspname = 'public'
+            AND con.contype != 'p';  -- Exclude primary key constraints
+            """,
+            (table,),
+        )
+        return {name: SQL(sql) for name, sql in await cursor.fetchall()}
+
+
+async def _gather_table_indexes(table: str) -> dict[str, SQL]:
+    """Gather all non-constraint indexes for a table."""
+    async with db() as conn:
         cursor = await conn.execute(
             """
             SELECT pgi.indexname, pgi.indexdef
@@ -48,11 +67,24 @@ async def _load_table(table: str, tg: TaskGroup) -> None:
             """,
             (table, table),
         )
-        index_sqls: dict[str, str] = dict(await cursor.fetchall())
-        assert index_sqls, f'No indexes found for {table} table'
-        print(f'Dropping indexes {index_sqls!r}')
-        await conn.execute(SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, index_sqls))))
+        return {name: SQL(sql) for name, sql in await cursor.fetchall()}
 
+
+async def _load_table(table: str, tg: TaskGroup) -> None:
+    indexes = await _gather_table_indexes(table)
+    assert indexes, f'No indexes found for {table} table'
+    constraints = await _gather_table_constraints(table)
+
+    # Drop constraints and indexes before loading
+    async with db(True, autocommit=True) as conn:
+        print(f'Dropping {len(indexes)} indexes: {indexes!r}')
+        await conn.execute(SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes))))
+
+        print(f'Dropping {len(constraints)} constraints: {constraints!r}')
+        for name in constraints:
+            await conn.execute(SQL('ALTER TABLE {} DROP CONSTRAINT {}').format(Identifier(table), Identifier(name)))
+
+    # Load the data
     copy_paths, header = _get_copy_paths_and_header(table)
     columns = [f'"{c}"' for c in header.split(',')]
     proc: Process | None = None
@@ -78,19 +110,22 @@ async def _load_table(table: str, tg: TaskGroup) -> None:
         if proc is not None:
             proc.terminate()
 
-    async def postprocess() -> None:
-        if table == 'element':
-            key = 'element_version_idx'
-            print(f'Recreating index {key!r}')
-            await _index_task(index_sqls.pop(key))
-            print('Fixing element next_sequence_id field')
-            await MigrationService.fix_next_sequence_id()
+    if table == 'element':
+        key = 'element_version_idx'
+        print(f'Recreating index {key!r}')
+        await _sql_execute(indexes.pop(key))
+        print('Fixing element next_sequence_id field')
+        await MigrationService.fix_next_sequence_id()
 
-        print('Recreating indexes')
-        for sql in index_sqls.values():
-            tg.create_task(_index_task(sql))
+    print(f'Recreating {len(indexes)} indexes')
+    for sql in indexes.values():
+        tg.create_task(_sql_execute(sql))
 
-    tg.create_task(postprocess())
+    print(f'Recreating {len(constraints)} constraints')
+    for name, sql in constraints.items():
+        tg.create_task(
+            _sql_execute(SQL('ALTER TABLE {} ADD CONSTRAINT {} {}').format(Identifier(table), Identifier(name), sql))
+        )
 
 
 async def _load_tables() -> None:
@@ -108,7 +143,7 @@ async def _load_tables() -> None:
 @psycopg_pool_open_decorator
 async def main() -> None:
     async with db() as conn:
-        cursor = await conn.execute('SELECT 1 FROM element ORDER BY sequence_id LIMIT 1')
+        cursor = await conn.execute('SELECT 1 FROM element LIMIT 1')
         exists = await cursor.fetchone() is not None
 
     if exists and not input('Database is not empty. Continue? (y/N): ').lower().startswith('y'):
