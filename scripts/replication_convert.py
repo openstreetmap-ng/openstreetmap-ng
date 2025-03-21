@@ -9,7 +9,7 @@ _PARQUET_PATHS = [
     p.as_posix()
     for p in sorted(
         (
-            # *REPLICATION_DIR.glob('bundle_*.parquet'),
+            *REPLICATION_DIR.glob('bundle_*.parquet'),
             *REPLICATION_DIR.glob('replica_*.parquet'),
         ),
         key=lambda p: int(p.stem.split('_', 1)[1]),
