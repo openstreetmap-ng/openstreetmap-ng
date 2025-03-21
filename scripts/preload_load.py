@@ -127,7 +127,7 @@ async def _load_table(table: str, tg: TaskGroup) -> None:
 
 
 async def _load_tables() -> None:
-    tables = ('user', 'changeset', 'element', 'note', 'note_comment')
+    tables = ('user', 'note', 'note_comment', 'changeset', 'element')
 
     async with db(True, autocommit=True) as conn:
         print('Truncating tables')
