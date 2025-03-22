@@ -3,7 +3,7 @@
         {% if not entry_hide_avatar %}
             <div class="col-auto d-none d-md-block">
                 <a class="d-block" href="/user/{{ diary.user.display_name }}" rel="author">
-                    <img class="side-avatar avatar" src="{{ diary.user.avatar_url }}"
+                    <img class="side-avatar avatar" src="{{ user_avatar_url(diary.user) }}"
                          alt="{{ t('alt.profile_picture') }}"
                          loading="lazy">
                 </a>
@@ -15,7 +15,7 @@
             <p class="small mb-2">
                 {% set link_user -%}
                 <a href="/user/{{ diary.user.display_name }}" rel="author">
-                    <img class="avatar d-md-none" src="{{ diary.user.avatar_url }}"
+                    <img class="avatar d-md-none" src="{{ user_avatar_url(diary.user) }}"
                          alt="{{ t('alt.profile_picture') }}"
                          loading="lazy">
                     {{- diary.user.display_name -}}

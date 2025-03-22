@@ -44,7 +44,7 @@ class MigrationService:
                     logging.debug('Fixing sequence %r', sequence_name)
                     await conn.execute(
                         SQL("""
-                            SELECT setval(%s, COALESCE((SELECT MAX({column}) FROM {table}), 0))
+                            SELECT setval(%s, COALESCE((SELECT MAX({column}) FROM {table}), 1))
                         """).format(
                             column=Identifier(column_name),
                             table=Identifier(table_name),

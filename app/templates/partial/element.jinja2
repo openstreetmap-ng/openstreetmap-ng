@@ -1,29 +1,30 @@
+{% set _type, _id = split_typed_element_id(element.typed_id) %}
 <div class="sidebar-content" data-params="{{ params }}">
     <div class="section">
         <div class="row g-1 mb-1">
             <div class="col">
                 <h2>
                     {% if icon is not none %}
-                    <img class="sidebar-title-icon" src="/static/img/element/{{ icon.filename }}"
-                        title="{{ icon.title }}">
+                        <img class="sidebar-title-icon" src="/static/img/element/{{ icon.filename }}"
+                             title="{{ icon.title }}">
                     {% endif %}
                     <span class="sidebar-title">
-                        {% if element.type == 'node' %}
-                        {{ t('javascripts.query.node') }}:
-                        {% elif element.type == 'way' %}
-                        {{ t('javascripts.query.way') }}:
-                        {% elif element.type == 'relation' %}
-                        {{ t('javascripts.query.relation') }}:
+                        {% if _type == 'node' %}
+                            {{ t('javascripts.query.node') }}:
+                        {% elif _type == 'way' %}
+                            {{ t('javascripts.query.way') }}:
+                        {% elif _type == 'relation' %}
+                            {{ t('javascripts.query.relation') }}:
                         {% endif %}
 
                         {% if name %}
-                        <bdi>{{ name }}</bdi> ({{ element.id }})
+                            <bdi>{{ name }}</bdi> ({{ _id }})
                         {% else %}
-                        {{ element.id }}
+                            {{ _id }}
                         {% endif %}
                     </span>
                     <span class="version-badge badge {% if next_version is none %}is-latest{% endif %}"
-                        title="{{ t('browse.version') }} {{ element.version }} {% if next_version is none %}({{ t('state.latest') }}){% endif %}">
+                          title="{{ t('browse.version') }} {{ element.version }} {% if next_version is none %}({{ t('state.latest') }}){% endif %}">
                         v{{ element.version }}
                     </span>
                 </h2>
@@ -36,33 +37,33 @@
     </div>
     <div class="section text-center">
         {% if prev_version is not none or next_version is not none %}
-        <div class="mb-2">
-            {% if prev_version is not none %}
-            <a href="/{{ element.type }}/{{ element.id }}/history/{{ prev_version }}" rel="prev">
-                «
-                v{{ prev_version }}
-            </a>
-            ·
-            {% endif %}
-            <a href="/{{ element.type }}/{{ element.id }}/history">
-                {{ t('browse.view_history') }}
-            </a>
-            {% if next_version is not none %}
-            ·
-            <a href="/{{ element.type }}/{{ element.id }}/history/{{ next_version }}" rel="next">
-                v{{ next_version }}
-                »
-            </a>
-            {% endif %}
-        </div>
+            <div class="mb-2">
+                {% if prev_version is not none %}
+                    <a href="/{{ _type }}/{{ _id }}/history/{{ prev_version }}" rel="prev">
+                        «
+                        v{{ prev_version }}
+                    </a>
+                    ·
+                {% endif %}
+                <a href="/{{ _type }}/{{ _id }}/history">
+                    {{ t('browse.view_history') }}
+                </a>
+                {% if next_version is not none %}
+                    ·
+                    <a href="/{{ _type }}/{{ _id }}/history/{{ next_version }}" rel="next">
+                        v{{ next_version }}
+                        »
+                    </a>
+                {% endif %}
+            </div>
         {% endif %}
 
         {% if element.visible %}
-        <small>
-            <a href="{{ API_URL }}/api/0.6/{{ element.type }}/{{ element.id }}/{{ element.version }}">
-                {{ t('browse.download_xml') }}
-            </a>
-        </small>
+            <small>
+                <a href="{{ API_URL }}/api/0.6/{{ _type }}/{{ _id }}/{{ element.version }}">
+                    {{ t('browse.download_xml') }}
+                </a>
+            </small>
         {% endif %}
     </div>
 </div>

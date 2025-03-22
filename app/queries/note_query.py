@@ -163,12 +163,12 @@ class NoteQuery:
 
         # Only show hidden notes to moderators
         if not user_is_moderator(auth_user()):
-            conditions.append(SQL('note.hidden_at IS NULL'))
+            conditions.append(SQL('hidden_at IS NULL'))
 
         if phrase is not None:
             conditions.append(
                 SQL("""
-                note.id IN (
+                id IN (
                     SELECT DISTINCT note_id
                     FROM note_comment
                     WHERE to_tsvector('simple', body) @@ phraseto_tsquery(%s)
@@ -180,7 +180,7 @@ class NoteQuery:
         if user_id is not None:
             conditions.append(
                 SQL("""
-                note.id IN (
+                id IN (
                     SELECT DISTINCT note_id
                     FROM note_comment
                     WHERE user_id = %s
@@ -192,7 +192,7 @@ class NoteQuery:
         if event is not None:
             conditions.append(
                 SQL("""
-                note.id IN (
+                id IN (
                     SELECT DISTINCT note_id
                     FROM note_comment
                     WHERE event = %s
@@ -202,26 +202,26 @@ class NoteQuery:
             params.append(event)
 
         if note_ids is not None:
-            conditions.append(SQL('note.id = ANY(%s)'))
+            conditions.append(SQL('id = ANY(%s)'))
             params.append(note_ids)
 
         if max_closed_days is not None:
             if max_closed_days > 0:
-                conditions.append(SQL('(note.closed_at IS NULL OR note.closed_at >= %s)'))
+                conditions.append(SQL('(closed_at IS NULL OR closed_at >= %s)'))
                 params.append(utcnow() - timedelta(days=max_closed_days))
             else:
-                conditions.append(SQL('note.closed_at IS NULL'))
+                conditions.append(SQL('closed_at IS NULL'))
 
         if geometry is not None:
-            conditions.append(SQL('ST_Intersects(note.point, %s)'))
+            conditions.append(SQL('ST_Intersects(point, %s)'))
             params.append(geometry)
 
         if date_from is not None:
-            conditions.append(SQL('note.{} >= %s').format(sort_by_identifier))
+            conditions.append(SQL('{} >= %s').format(sort_by_identifier))
             params.append(date_from)
 
         if date_to is not None:
-            conditions.append(SQL('note.{} < %s').format(sort_by_identifier))
+            conditions.append(SQL('{} < %s').format(sort_by_identifier))
             params.append(date_to)
 
         if limit is not None:
@@ -232,9 +232,9 @@ class NoteQuery:
 
         # Build the query with all conditions
         query = SQL("""
-            SELECT note.* FROM note
+            SELECT * FROM note
             WHERE {condition}
-            ORDER BY note.{sort_by} {sort_dir}
+            ORDER BY {sort_by} {sort_dir}
             {limit}
         """).format(
             condition=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),

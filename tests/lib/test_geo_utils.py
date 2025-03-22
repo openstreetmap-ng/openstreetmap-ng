@@ -1,8 +1,7 @@
 import math
 
 import pytest
-from shapely import MultiPolygon, Point, box
-from shapely.geometry.polygon import Polygon
+from shapely import MultiPolygon, Point, Polygon, box
 
 from app.lib.geo_utils import (
     degrees_to_meters,

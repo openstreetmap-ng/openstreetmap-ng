@@ -1,4 +1,4 @@
-from shapely.geometry.multipolygon import MultiPolygon
+from shapely import MultiPolygon
 
 from app.db import db
 from app.models.db.changeset import Changeset

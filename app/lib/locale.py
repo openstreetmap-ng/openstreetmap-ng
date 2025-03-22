@@ -64,11 +64,6 @@ def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]
         if len(code) > LOCALE_CODE_MAX_LENGTH:
             raise ValueError(f'Locale code {code!r} is too long ({len(code)} > {LOCALE_CODE_MAX_LENGTH})')
 
-    # Log missing locales
-    not_found = [ln.code for ln in locale_names_map.values() if not ln.installed]
-    if not_found:
-        logging.info('Found locale names which are not installed: %s', not_found)
-
     return i18next_map, locale_names_map
 
 
@@ -91,6 +86,11 @@ logging.info(
     len(LOCALES_NAMES_MAP),
     len(INSTALLED_LOCALES_NAMES_MAP),
 )
+
+# Log missing locales
+if _not_found := [ln.code for ln in LOCALES_NAMES_MAP.values() if not ln.installed]:
+    logging.info('Found locale names which are not installed: %s', _not_found)
+del _not_found
 
 
 def map_i18next_files(locales: tuple[LocaleCode, ...]) -> list[str]:

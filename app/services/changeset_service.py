@@ -159,7 +159,7 @@ class ChangesetService:
 @retry(None)
 async def _process_task() -> None:
     while True:
-        async with db(True) as conn:
+        async with db(True, autocommit=True) as conn:
             # Lock is just a random unique number
             async with await conn.execute('SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)') as r:
                 acquired: bool = (await r.fetchone())[0]  # type: ignore
@@ -167,9 +167,8 @@ async def _process_task() -> None:
             if acquired:
                 ts = perf_counter()
                 with SENTRY_CHANGESET_MANAGEMENT_MONITOR, start_transaction(op='task', name='changeset-management'):
-                    async with TaskGroup() as tg:
-                        tg.create_task(_close_inactive(conn))
-                        tg.create_task(_delete_empty(conn))
+                    await _close_inactive(conn)
+                    await _delete_empty(conn)
                 tt = perf_counter() - ts
 
                 # on success, sleep ~1min
@@ -215,15 +214,20 @@ async def _close_inactive(conn: AsyncConnection) -> None:
 
 async def _delete_empty(conn: AsyncConnection) -> None:
     """Delete empty changesets after a timeout."""
-    result = await conn.execute(
-        """
-        DELETE FROM changeset
-        WHERE closed_at IS NOT NULL
-        AND closed_at < statement_timestamp() - %s
-        AND size = 0
-        """,
-        (CHANGESET_EMPTY_DELETE_TIMEOUT,),
-    )
+    async with conn.transaction():
+        # The delete query tends to use a slow seqscan, probably because of skewed statistics.
+        # Force disabling seqscan to prefer using our custom index.
+        await conn.execute('SET LOCAL enable_seqscan = off')
 
-    if result.rowcount:
-        logging.debug('Deleted %d empty changesets', result.rowcount)
+        result = await conn.execute(
+            """
+            DELETE FROM changeset
+            WHERE closed_at IS NOT NULL
+            AND closed_at < statement_timestamp() - %s
+            AND size = 0
+            """,
+            (CHANGESET_EMPTY_DELETE_TIMEOUT,),
+        )
+
+        if result.rowcount:
+            logging.debug('Deleted %d empty changesets', result.rowcount)

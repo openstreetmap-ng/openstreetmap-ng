@@ -9,6 +9,9 @@ from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
 from app.lib.static_asset_hash import HASH_AWARE_PATHS
 from app.lib.translation import nt, primary_translation_locale, t
+from app.models.db.oauth2_application import oauth2_app_avatar_url
+from app.models.db.user import user_avatar_url
+from app.models.element import split_typed_element_id
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil
@@ -46,7 +49,6 @@ def render_jinja(template_name: str, template_data: dict[str, Any] | None = None
 def timeago(date: datetime | None, *, html: bool = False) -> str:
     """
     Get a human-readable time difference from the given date.
-
     Optionally, return the result as an HTML <time> element.
 
     >>> timeago(datetime(2021, 12, 31, 15, 30, 45))
@@ -113,6 +115,9 @@ _J2.globals.update(
     zip=zip,
     timeago=timeago,
     format_rfc2822_date=format_rfc2822_date,
+    user_avatar_url=user_avatar_url,
+    oauth2_app_avatar_url=oauth2_app_avatar_url,
+    split_typed_element_id=split_typed_element_id,
 )
 
 # configure template filters

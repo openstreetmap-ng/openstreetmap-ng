@@ -12,6 +12,7 @@ from zstandard import ZstdDecompressor
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
 from app.db import db, db_update_stats, psycopg_pool_open_decorator
+from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
 
 _COPY_WORKERS = min(os.process_cpu_count() or 1, 8)
@@ -127,7 +128,7 @@ async def _load_table(table: str, tg: TaskGroup) -> None:
 
 
 async def _load_tables() -> None:
-    tables = ('user', 'note', 'note_comment', 'changeset', 'element')
+    tables = ('user', 'changeset', 'element', 'note', 'note_comment')
 
     async with db(True, autocommit=True) as conn:
         print('Truncating tables')
@@ -140,10 +141,7 @@ async def _load_tables() -> None:
 
 @psycopg_pool_open_decorator
 async def main() -> None:
-    async with db() as conn:
-        cursor = await conn.execute('SELECT 1 FROM element LIMIT 1')
-        exists = await cursor.fetchone() is not None
-
+    exists = await ElementQuery.get_current_sequence_id() > 0
     if exists and not input('Database is not empty. Continue? (y/N): ').lower().startswith('y'):
         print('Aborted')
         return

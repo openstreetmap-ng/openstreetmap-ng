@@ -1,16 +1,15 @@
-CREATE
-    EXTENSION hstore;
-CREATE
-    EXTENSION h3;
-CREATE
-    EXTENSION h3_postgis CASCADE; -- Also creates postgis extension
+CREATE EXTENSION IF NOT EXISTS btree_gin;
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS hstore;
+CREATE EXTENSION IF NOT EXISTS h3;
+CREATE EXTENSION IF NOT EXISTS h3_postgis CASCADE; -- Also creates postgis extension
 
 CREATE FUNCTION h3_points_to_cells_range(
     geom geometry,
     resolution integer
 ) RETURNS h3index[] AS
 $$
-WITH RECURSIVE hierarchy(cell, res) AS (
+WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
     -- Base case: cells at finest resolution
     SELECT public.h3_lat_lng_to_cell((dp).geom, resolution), resolution
     FROM public.ST_DumpPoints(geom) AS dp
@@ -123,7 +122,7 @@ CREATE INDEX changeset_user_idx ON changeset (user_id, id) WHERE user_id IS NOT 
 CREATE INDEX changeset_user_created_at_idx ON changeset (user_id, created_at) WHERE user_id IS NOT NULL;
 CREATE INDEX changeset_created_at_idx ON changeset (created_at);
 CREATE INDEX changeset_closed_at_idx ON changeset (closed_at, (size = 0)) WHERE closed_at IS NOT NULL;
-CREATE INDEX changeset_open_idx ON changeset (updated_at) WHERE closed_at IS NULL;
+CREATE INDEX changeset_open_idx ON changeset (updated_at) INCLUDE (created_at) WHERE closed_at IS NULL;
 CREATE INDEX changeset_union_bounds_idx ON changeset USING gist (union_bounds) WHERE union_bounds IS NOT NULL;
 
 CREATE TABLE changeset_bounds
@@ -161,9 +160,12 @@ CREATE TABLE element
 );
 CREATE INDEX element_changeset_idx ON element (changeset_id);
 CREATE UNIQUE INDEX element_version_idx ON element (typed_id, version);
-CREATE INDEX element_current_idx ON element (typed_id, next_sequence_id, sequence_id);
-CREATE INDEX element_node_point_idx ON element (point) WHERE point IS NOT NULL AND next_sequence_id IS NULL;
-CREATE INDEX element_members_idx ON element USING gin (members) WHERE cardinality(members) > 0;
+CREATE INDEX element_current_idx ON element (typed_id, next_sequence_id) INCLUDE (sequence_id);
+CREATE INDEX element_point_idx ON element USING gist (point) WHERE point IS NOT NULL AND next_sequence_id IS NULL;
+CREATE INDEX element_members_ways_idx ON element USING gin (members)
+    WHERE cardinality(members) > 0 AND (typed_id BETWEEN 1152921504606846976 AND 2305843009213693951);
+CREATE INDEX element_members_relations_idx ON element USING gin (members)
+    WHERE cardinality(members) > 0 AND (typed_id BETWEEN 2305843009213693952 AND 3458764513820540927);
 
 CREATE TABLE diary
 (
@@ -233,11 +235,11 @@ CREATE TABLE note
     closed_at  timestamptz,
     hidden_at  timestamptz
 );
-CREATE INDEX note_point_idx ON note USING gist (point);
+CREATE INDEX note_point_idx ON note USING gist (point, created_at, updated_at, closed_at);
 CREATE INDEX note_created_at_idx ON note (created_at);
 CREATE INDEX note_updated_at_idx ON note (updated_at);
 CREATE INDEX note_closed_at_idx ON note (closed_at);
-CREATE INDEX note_hidden_at_idx ON note (hidden_at);
+CREATE INDEX note_hidden_idx ON note (hidden_at) WHERE hidden_at IS NOT NULL;
 
 CREATE TYPE note_event AS ENUM ('opened', 'closed', 'reopened', 'commented', 'hidden');
 CREATE TABLE note_comment

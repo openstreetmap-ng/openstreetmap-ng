@@ -101,7 +101,6 @@ class ElementQuery:
     ) -> bool:
         """
         Check if the given elements are currently unreferenced.
-
         after_sequence_id is used as an optimization.
         """
         if not members:
@@ -112,8 +111,12 @@ class ElementQuery:
             await conn.execute(
                 """
                 SELECT 1 FROM element
-                WHERE sequence_id > %s AND members && %s::bigint[]
-                LIMIT 1
+                WHERE sequence_id > %s
+                AND cardinality(members) > 0 AND members && %s::bigint[]
+                AND (
+                    typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
+                    typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
+                ) LIMIT 1
                 """,
                 (after_sequence_id, members),
             ) as r,
@@ -425,7 +428,7 @@ class ElementQuery:
         if not members or parent_type == 'node':
             return []
 
-        conditions: list[Composable] = [SQL('members && %s::bigint[]')]
+        conditions: list[Composable] = [SQL('cardinality(members) > 0 AND members && %s::bigint[]')]
         params: list[Any] = [members]
 
         if at_sequence_id is None:
@@ -434,13 +437,18 @@ class ElementQuery:
             conditions.append(SQL('sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)'))
             params.extend((at_sequence_id, at_sequence_id))
 
-        if parent_type == 'way':
-            conditions.append(SQL('typed_id BETWEEN %s AND %s'))
-            params.extend((TYPED_ELEMENT_ID_WAY_MIN, TYPED_ELEMENT_ID_WAY_MAX))
+        if parent_type is None:
+            conditions.append(
+                SQL("""(
+                    typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
+                    typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
+                )""")
+            )
+        elif parent_type == 'way':
+            conditions.append(SQL('typed_id BETWEEN 1152921504606846976 AND 2305843009213693951'))
         elif parent_type == 'relation':
-            conditions.append(SQL('typed_id BETWEEN %s AND %s'))
-            params.extend((TYPED_ELEMENT_ID_RELATION_MIN, TYPED_ELEMENT_ID_RELATION_MAX))
-        elif parent_type is not None:
+            conditions.append(SQL('typed_id BETWEEN 2305843009213693952 AND 3458764513820540927'))
+        else:
             raise NotImplementedError(f'Unsupported parent type {parent_type!r}')
 
         if limit is not None:
@@ -473,7 +481,16 @@ class ElementQuery:
         if not members:
             return {}
 
-        conditions: list[Composable] = [SQL('parent.members && %s::bigint[] AND member = ANY(%s)')]
+        conditions: list[Composable] = [
+            SQL("""
+                member = ANY(%s)
+                AND cardinality(parent.members) > 0 AND parent.members && %s::bigint[]
+                AND (
+                    typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
+                    typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
+                )
+            """)
+        ]
         params: list[Any] = [members, members]
 
         if at_sequence_id is None:

@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 from pydantic import PositiveInt
-from shapely.coordinates import get_coordinates
+from shapely import get_coordinates
 from starlette import status
 
 from app.format import FormatLeaflet

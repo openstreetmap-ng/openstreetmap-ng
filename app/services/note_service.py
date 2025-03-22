@@ -8,8 +8,7 @@ import numpy as np
 from httpx import HTTPError
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
-from shapely import Point, lib
-from shapely.coordinates import get_coordinates
+from shapely import Point, get_coordinates, lib
 
 from app.db import db
 from app.lib.auth_context import auth_user, auth_user_scopes

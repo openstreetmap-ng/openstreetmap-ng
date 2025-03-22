@@ -21,7 +21,7 @@
             <div class="row mb-3">
                 {% if _avatar_in_header %}
                     <div class="col-auto">
-                        <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                        <img class="avatar" src="{{ user_avatar_url(profile) }}" alt="{{ t('alt.profile_picture') }}">
                     </div>
                 {% endif %}
                 <div class="col">

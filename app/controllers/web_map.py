@@ -1,4 +1,3 @@
-import logging
 from typing import Annotated, Literal
 
 from annotated_types import Gt, Le
@@ -19,7 +18,6 @@ async def get_map(
     bbox: Annotated[str, Query()],
     limit: Annotated[Annotated[int, Gt(0), Le(MAP_QUERY_LEGACY_NODES_LIMIT)] | Literal[''], Query()],
 ):
-    logging.warning('Limit is %r', limit)
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         raise_for.map_query_area_too_big()
