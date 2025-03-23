@@ -1,13 +1,12 @@
 import cython
 
 from app.config import AVATAR_STORAGE_URI, BACKGROUND_STORAGE_URI, TRACE_STORAGE_URI
-from app.lib.storage.base import StorageBase
 from app.lib.storage.db import DBStorage
 from app.lib.storage.s3 import S3Storage
 
 
 @cython.cfunc
-def _get_storage(uri: str) -> StorageBase:
+def _get_storage(uri: str):
     """
     Parse a storage URI and return the appropriate storage implementation.
 

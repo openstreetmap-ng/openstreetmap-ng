@@ -64,7 +64,7 @@ class Element06Mixin:
         >>> decode_elements(('node', {'@id': 1, '@version': 1, ...}))
         Element(type='node', ...)
         """
-        return validate_elements([_decode_element_unsafe(*element, changeset_id=None) for element in elements])
+        return validate_elements([_decode_element_unsafe(type, data, changeset_id=None) for (type, data) in elements])
 
     @staticmethod
     def encode_osmchange(elements: list[Element]) -> list[tuple[OSMChangeAction, dict[ElementType, dict]]]:
