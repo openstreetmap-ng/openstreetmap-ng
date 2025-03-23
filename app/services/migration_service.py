@@ -39,18 +39,16 @@ class MigrationService:
             """) as r:
                 sequences: list[tuple[str, str, str]] = await r.fetchall()
 
-            async with conn.pipeline():
-                for table_name, column_name, sequence_name in sequences:
-                    logging.debug('Fixing sequence %r', sequence_name)
-                    await conn.execute(
-                        SQL("""
-                            SELECT setval(%s, COALESCE((SELECT MAX({column}) FROM {table}), 1))
-                        """).format(
-                            column=Identifier(column_name),
-                            table=Identifier(table_name),
-                        ),
-                        (sequence_name,),
-                    )
+            for table, column, sequence in sequences:
+                query = SQL('SELECT MAX({}) FROM {}').format(Identifier(column), Identifier(table))
+                async with await conn.execute(query) as r:
+                    row: tuple[int] | None = await r.fetchone()
+                    if row is None:
+                        continue
+
+                last_value = row[0]
+                logging.debug('Setting sequence counter %r to %d', sequence, last_value)
+                await conn.execute('SELECT setval(%s, %s)', (sequence, last_value))
 
     @staticmethod
     async def fix_next_sequence_id() -> None:
