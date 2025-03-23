@@ -7,7 +7,7 @@ from starlette import status
 from app.config import APP_URL, GOOGLE_OAUTH_PUBLIC, GOOGLE_OAUTH_SECRET
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.openid import parse_openid_token_no_verify
-from app.models.auth_provider import AuthProvider, AuthProviderAction
+from app.models.db.connected_account import AuthProviderAction
 from app.queries.openid_query import OpenIDQuery
 from app.services.auth_provider_service import AuthProviderService
 from app.utils import HTTP
@@ -26,7 +26,7 @@ async def google_authorize(
         return Response('Google OAuth credentials are not configured', status.HTTP_503_SERVICE_UNAVAILABLE)
     openid = await OpenIDQuery.discovery('https://accounts.google.com')
     return AuthProviderService.continue_authorize(
-        provider=AuthProvider.google,
+        provider='google',
         action=action,
         referer=referer,
         redirect_uri=openid['authorization_endpoint'],
@@ -48,7 +48,7 @@ async def google_callback(
     auth_provider_state: Annotated[str, Cookie()],
 ):
     state_ = AuthProviderService.validate_state(
-        provider=AuthProvider.google,
+        provider='google',
         query_state=state,
         cookie_state=auth_provider_state,
     )

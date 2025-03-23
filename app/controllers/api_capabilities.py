@@ -18,7 +18,7 @@ from app.limits import (
 
 router = APIRouter(prefix='/api')
 
-_legacy_imagery_blacklist = (
+_LEGACY_IMAGERY_BLACKLIST = (
     '.*\\.google(apis)?\\..*/.*',
     'http://xdworld\\.vworld\\.kr:8080/.*',
     '.*\\.here\\.com[/:].*',
@@ -34,7 +34,7 @@ _legacy_imagery_blacklist = (
 @router.get('/0.6/capabilities.json')
 async def legacy_capabilities():
     user = auth_user()
-    user_roles = user.roles if (user is not None) else ()
+    user_roles = user['roles'] if user is not None else None
     changeset_max_size = UserRoleLimits.get_changeset_max_size(user_roles)
     xattr = get_xattr()
 
@@ -81,7 +81,7 @@ async def legacy_capabilities():
         },
         'policy': {
             'imagery': {
-                'blacklist': tuple({xattr('regex'): entry} for entry in _legacy_imagery_blacklist),
+                'blacklist': [{xattr('regex'): entry} for entry in _LEGACY_IMAGERY_BLACKLIST],
             },
         },
     }
@@ -92,4 +92,4 @@ async def legacy_capabilities():
 @router.get('/versions.json')
 async def legacy_versions():
     xattr = get_xattr()
-    return {'api': {xattr('versions', xml='version'): ('0.6',)}}
+    return {'api': {xattr('versions', xml='version'): ['0.6']}}

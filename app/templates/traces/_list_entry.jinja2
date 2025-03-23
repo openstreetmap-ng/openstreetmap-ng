@@ -9,7 +9,7 @@
             <div class="header text-muted d-flex justify-content-between">
                 <div>
                     <a href="/user/{{ trace.user.display_name }}">
-                        <img class="avatar" src="{{ trace.user.avatar_url }}"
+                        <img class="avatar" src="{{ user_avatar_url(trace.user) }}"
                              alt="{{ t('alt.profile_picture') }}"
                              loading="lazy">
                         {{- trace.user.display_name -}}

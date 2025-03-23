@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import lru_cache
@@ -10,18 +9,18 @@ import numpy as np
 from app.lib.locale import DEFAULT_LOCALE, is_installed_locale
 from app.models.types import LocaleCode
 
-_locale_dir = Path('config/locale/gnu')
-_context: ContextVar[tuple[tuple[LocaleCode, ...], GNUTranslations]] = ContextVar('TranslationContext')
+_CTX: ContextVar[tuple[tuple[LocaleCode, ...], GNUTranslations]] = ContextVar('Translation')
+_LOCALE_DIR = Path('config/locale/gnu')
 
 
 # removing lru_cache will not enable live-reload for translations
 # gettext always caches .mo files internally
 @lru_cache(maxsize=256)
-def _get_translation(locales: Iterable[LocaleCode]) -> GNUTranslations:
+def _get_translation(locales: tuple[LocaleCode, ...]) -> GNUTranslations:
     """Get the translation object for the given languages."""
     return translation(
         domain='messages',
-        localedir=_locale_dir,
+        localedir=_LOCALE_DIR,
         languages=locales,
     )
 
@@ -30,7 +29,6 @@ def _get_translation(locales: Iterable[LocaleCode]) -> GNUTranslations:
 def translation_context(primary_locale: LocaleCode, /):
     """
     Context manager for setting the translation in ContextVar.
-
     Languages order determines the preference, from most to least preferred.
     """
     processed: tuple[LocaleCode, ...]
@@ -41,12 +39,11 @@ def translation_context(primary_locale: LocaleCode, /):
     else:
         processed = (DEFAULT_LOCALE,)
 
-    translation = _get_translation(processed)
-    token = _context.set((processed, translation))
+    token = _CTX.set((processed, _get_translation(processed)))
     try:
         yield
     finally:
-        _context.reset(token)
+        _CTX.reset(token)
 
 
 def translation_locales() -> tuple[LocaleCode, ...]:
@@ -56,7 +53,7 @@ def translation_locales() -> tuple[LocaleCode, ...]:
     >>> translation_locales()
     ('pl', 'en')
     """
-    return _context.get()[0]
+    return _CTX.get()[0]
 
 
 def primary_translation_locale() -> LocaleCode:
@@ -66,18 +63,18 @@ def primary_translation_locale() -> LocaleCode:
     >>> primary_translation_locale()
     'en'
     """
-    return _context.get()[0][0]
+    return _CTX.get()[0][0]
 
 
 def t(message: str, /, **kwargs) -> str:
     """Get the translation for the given message."""
-    trans: GNUTranslations = _context.get()[1]
+    trans: GNUTranslations = _CTX.get()[1]
     translated = trans.gettext(message)
-    return translated.format(**kwargs) if len(kwargs) > 0 else translated
+    return translated.format(**kwargs) if kwargs else translated
 
 
 def nt(message: str, /, count: int | np.integer, **kwargs) -> str:
     """Get the translation for the given message, with pluralization."""
-    trans: GNUTranslations = _context.get()[1]
+    trans: GNUTranslations = _CTX.get()[1]
     translated = trans.ngettext(message, message, count)  # pyright: ignore[reportArgumentType]
-    return translated.format(count=count, **kwargs) if len(kwargs) > 0 else translated.format(count=count)
+    return translated.format(count=count, **kwargs) if kwargs else translated.format(count=count)

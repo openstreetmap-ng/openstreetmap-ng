@@ -1,16 +1,29 @@
-from sqlalchemy import BigInteger, ForeignKey, PrimaryKeyConstraint, Unicode
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import Annotated, TypedDict
 
-from app.models.db.base import Base
-from app.models.db.user import User
+from annotated_types import MaxLen, MinLen
+from pydantic import TypeAdapter
+
+from app.config import PYDANTIC_CONFIG
+from app.models.types import ApplicationId, UserId, UserPrefKey, UserPrefVal
+from app.validators.xml import XMLSafeValidator
 
 
-class UserPref(Base.NoID):
-    __tablename__ = 'user_pref'
+class UserPref(TypedDict):
+    user_id: UserId
+    app_id: ApplicationId | None
+    key: Annotated[
+        UserPrefKey,
+        MinLen(1),
+        MaxLen(255),
+        XMLSafeValidator,
+    ]
+    value: Annotated[
+        UserPrefVal,
+        MinLen(1),
+        MaxLen(255),
+        XMLSafeValidator,
+    ]  # TODO: test validate size
 
-    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    app_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    key: Mapped[str] = mapped_column(Unicode(255), nullable=False)
-    value: Mapped[str] = mapped_column(Unicode(255), nullable=False)
 
-    __table_args__ = (PrimaryKeyConstraint(user_id, app_id, key),)
+# TODO: check use
+UserPrefListValidator = TypeAdapter(list[UserPref], config=PYDANTIC_CONFIG)

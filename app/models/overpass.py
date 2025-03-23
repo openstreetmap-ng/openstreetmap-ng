@@ -24,13 +24,13 @@ class _OverpassElement(TypedDict):
 
 
 class OverpassNode(_OverpassElement):
-    type: Literal[Literal['node']]
+    type: Literal['node']
     lat: float
     lon: float
 
 
 class OverpassWay(_OverpassElement):
-    type: Literal[Literal['way']]
+    type: Literal['way']
     nodes: list[ElementId]
     bounds: _OverpassBounds
     geometry: list[_OverpassPoint]
@@ -57,7 +57,7 @@ class OverpassRelationMember(_OverpassElementMember):
 
 
 class OverpassRelation(_OverpassElement):
-    type: Literal[Literal['relation']]
+    type: Literal['relation']
     bounds: _OverpassBounds
     members: list['OverpassElementMember']
 

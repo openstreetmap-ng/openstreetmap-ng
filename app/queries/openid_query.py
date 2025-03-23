@@ -1,16 +1,16 @@
 import logging
-from collections.abc import Sequence
 from typing import NotRequired, TypedDict
 
 import orjson
 
+from app.lib.crypto import hash_storage_key
 from app.limits import (
     OPENID_DISCOVERY_HTTP_TIMEOUT,
 )
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP
 
-_cache_context = CacheContext('OpenID')
+_CTX = CacheContext('OpenID')
 
 
 class OpenIDDiscovery(TypedDict):
@@ -21,16 +21,16 @@ class OpenIDDiscovery(TypedDict):
     userinfo_endpoint: str
     revocation_endpoint: str
     jwks_uri: str
-    scopes_supported: Sequence[str]
-    response_types_supported: Sequence[str]
-    response_modes_supported: Sequence[str]
-    grant_types_supported: Sequence[str]
-    code_challenge_methods_supported: Sequence[str]
-    token_endpoint_auth_methods_supported: Sequence[str]
-    subject_types_supported: Sequence[str]
-    id_token_signing_alg_values_supported: Sequence[str]
-    claim_types_supported: Sequence[str]
-    claims_supported: Sequence[str]
+    scopes_supported: list[str]
+    response_types_supported: list[str]
+    response_modes_supported: list[str]
+    grant_types_supported: list[str]
+    code_challenge_methods_supported: list[str]
+    token_endpoint_auth_methods_supported: list[str]
+    subject_types_supported: list[str]
+    id_token_signing_alg_values_supported: list[str]
+    claim_types_supported: list[str]
+    claims_supported: list[str]
 
 
 class OpenIDQuery:
@@ -47,10 +47,6 @@ class OpenIDQuery:
             r.raise_for_status()
             return r.content
 
-        cache = await CacheService.get(
-            base_url,
-            context=_cache_context,
-            factory=factory,
-            ttl=OPENID_DISCOVERY_HTTP_TIMEOUT,
-        )
-        return orjson.loads(cache.value)
+        key = hash_storage_key(base_url, '.json')
+        content = await CacheService.get(key, _CTX, factory, ttl=OPENID_DISCOVERY_HTTP_TIMEOUT)
+        return orjson.loads(content)

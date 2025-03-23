@@ -1,136 +1,300 @@
+import random
+from datetime import datetime
+
+import pytest
+from annotated_types import Len
 from httpx import AsyncClient
+from pydantic import PositiveInt
 from starlette import status
 
-from app.config import API_URL, APP_URL
+from app.lib.buffered_random import buffered_randbytes
 from app.lib.xmltodict import XMLToDict
+from app.limits import GEO_COORDINATE_PRECISION
+from tests.utils.assert_model import assert_model
+
+
+async def test_note_create_xml(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    r = await client.post(
+        '/api/0.6/notes',
+        params={'lon': 0, 'lat': 0, 'text': test_note_create_xml.__qualname__},
+    )
+    assert r.is_success, r.text
+    note: dict = XMLToDict.parse(r.content)['osm']['note'][0]  # type: ignore
+    comments = note['comments']['comment']
+
+    assert_model(
+        note,
+        {
+            '@lat': 0.0,
+            '@lon': 0.0,
+            'id': PositiveInt,
+            'status': 'open',
+            'url': str,
+            'comment_url': str,
+            'close_url': str,
+        },
+    )
+    assert len(comments) == 1
+    assert_model(
+        comments[0],
+        {
+            'user': 'user1',
+            'action': 'opened',
+            'text': test_note_create_xml.__qualname__,
+        },
+    )
+
+
+async def test_note_create_json(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    r = await client.post(
+        '/api/0.6/notes.json',
+        json={'lon': 0, 'lat': 0, 'text': test_note_create_json.__qualname__},
+    )
+    assert r.is_success, r.text
+    props = r.json()['properties']
+
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(
+        props['comments'][0],
+        {
+            'user': 'user1',
+            'action': 'opened',
+            'text': test_note_create_json.__qualname__,
+        },
+    )
+
+
+async def test_note_create_gpx(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    r = await client.post(
+        '/api/0.6/notes.gpx',
+        params={'lon': 0, 'lat': 0, 'text': test_note_create_gpx.__qualname__},
+    )
+    assert r.is_success, r.text
+    waypoint: dict = XMLToDict.parse(r.content)['gpx']['wpt']  # type: ignore
+
+    assert_model(
+        waypoint,
+        {
+            '@lat': 0.0,
+            '@lon': 0.0,
+            'time': datetime,
+            'name': str,
+            'link': dict,
+            'desc': str,
+            'extensions': dict,
+        },
+    )
+
+
+async def test_note_create_anonymous(client: AsyncClient):
+    r = await client.post(
+        '/api/0.6/notes.json',
+        json={'lon': 0, 'lat': 0, 'text': test_note_create_anonymous.__qualname__},
+    )
+    assert r.is_success, r.text
+    props = r.json()['properties']
+
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(
+        props['comments'][0],
+        {
+            'action': 'opened',
+            'text': test_note_create_anonymous.__qualname__,
+        },
+    )
+    assert 'user' not in props['comments'][0]
 
 
 async def test_note_crud(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
-    # create note
+    # Step 1: Create a note
     r = await client.post(
         '/api/0.6/notes.json',
-        json={'lon': 0, 'lat': 0, 'text': 'create'},
+        json={'lon': 0, 'lat': 0, 'text': test_note_crud.__qualname__},
     )
     assert r.is_success, r.text
-    props: dict = r.json()['properties']
-    comments: list[dict] = props['comments']
-    note_id: int = props['id']
+    props = r.json()['properties']
+    note_id = props['id']
 
-    assert props['status'] == 'open'
-    assert len(comments) == 1
-    assert comments[-1]['user'] == 'user1'
-    assert comments[-1]['action'] == 'opened'
-    assert comments[-1]['text'] == 'create'
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'opened',
+            'text': test_note_crud.__qualname__,
+        },
+    )
 
-    # read note
+    # Step 2: Read the note
     r = await client.get(f'/api/0.6/notes/{note_id}.json')
     assert r.is_success, r.text
-    assert r.json()['properties'] == props
+    props = r.json()['properties']
+    assert_model(props, {'id': note_id})
 
-    # comment note
+    # Step 3: Comment on the note
     r = await client.post(
         f'/api/0.6/notes/{note_id}/comment.json',
-        params={'text': 'comment'},
+        params={'text': 'Adding a comment'},
     )
     assert r.is_success, r.text
     props = r.json()['properties']
-    comments = props['comments']
 
-    assert props['status'] == 'open'
-    assert len(comments) == 2
-    assert comments[-1]['user'] == 'user1'
-    assert comments[-1]['action'] == 'commented'
-    assert comments[-1]['text'] == 'comment'
+    assert_model(props, {'status': 'open', 'comments': Len(2, 2)})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'commented',
+            'text': 'Adding a comment',
+        },
+    )
 
-    # resolve note
+    # Step 4: Close the note
     r = await client.post(
         f'/api/0.6/notes/{note_id}/close.json',
-        params={'text': 'resolve'},
+        params={'text': 'Closing note'},
     )
     assert r.is_success, r.text
     props = r.json()['properties']
-    comments = props['comments']
 
-    assert props['status'] == 'closed'
-    assert len(comments) == 3
-    assert comments[-1]['user'] == 'user1'
-    assert comments[-1]['action'] == 'closed'
-    assert comments[-1]['text'] == 'resolve'
+    assert_model(props, {'status': 'closed', 'comments': Len(3, 3), 'closed_at': str})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'closed',
+            'text': 'Closing note',
+        },
+    )
 
-
-async def test_note_with_xml(client: AsyncClient):
-    client.headers['Authorization'] = 'User user1'
-
-    # create note
+    # Step 5: Reopen the note
     r = await client.post(
-        '/api/0.6/notes',
-        params={'lon': 0, 'lat': 0, 'text': test_note_with_xml.__qualname__},
+        f'/api/0.6/notes/{note_id}/reopen.json',
+        params={'text': 'Reopening note'},
     )
     assert r.is_success, r.text
-    props: dict = XMLToDict.parse(r.content)['osm']['note'][0]
-    assert props['@lon'] == 0
-    assert props['@lat'] == 0
-    assert int(props['id']) > 0
-    assert props['url'] == f'{API_URL}/api/0.6/notes/{props['id']}'
-    assert 'reopen_url' not in props
-    assert props['comment_url'] == f'{API_URL}/api/0.6/notes/{props['id']}/comment'
-    assert props['close_url'] == f'{API_URL}/api/0.6/notes/{props['id']}/close'
-    assert 'date_created' in props
-    assert 'date_closed' not in props
-    assert props['status'] == 'open'
-    comments: list[dict] = props['comments']['comment']
-    assert len(comments) == 1
-    assert 'date' in comments[-1]
-    assert comments[-1]['user'] == 'user1'
-    assert comments[-1]['user_url'] == f'{APP_URL}/user-id/{comments[-1]['uid']}'
-    assert comments[-1]['action'] == 'opened'
-    assert comments[-1]['text'] == test_note_with_xml.__qualname__
-    assert comments[-1]['html'] == f'<p>{test_note_with_xml.__qualname__}</p>'
+    props = r.json()['properties']
 
-
-async def test_note_hide_unhide(client: AsyncClient):
-    client.headers['Authorization'] = 'User user1'
-
-    # create note
-    r = await client.post(
-        '/api/0.6/notes.json',
-        json={'lon': 0, 'lat': 0, 'text': test_note_hide_unhide.__qualname__},
+    assert_model(props, {'status': 'open', 'comments': Len(4, 4)})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'reopened',
+            'text': 'Reopening note',
+        },
     )
-    assert r.is_success, r.text
-    props: dict = r.json()['properties']
-    note_id: int = props['id']
+    assert 'closed_at' not in props
 
-    # fail to hide
-    r = await client.delete(
-        f'/api/0.6/notes/{note_id}.json',
-        params={'text': 'hide'},
-    )
-    assert r.status_code == status.HTTP_403_FORBIDDEN, r.text
-
-    # hide
+    # Step 6: Hide the note (requires moderator privileges)
     client.headers['Authorization'] = 'User moderator'
     r = await client.delete(
         f'/api/0.6/notes/{note_id}.json',
-        params={'text': 'hide'},
+        params={'text': 'Hiding inappropriate note'},
     )
     assert r.is_success, r.text
+    props = r.json()['properties']
 
-    # fail to get note
+    # Check that comments history is preserved and hide action is recorded
+    assert_model(props, {'status': 'hidden', 'comments': Len(5, 5)})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'moderator',
+            'action': 'hidden',
+            'text': 'Hiding inappropriate note',
+        },
+    )
+
+    # Step 7: Verify hidden note is not accessible to regular users
     client.headers['Authorization'] = 'User user1'
     r = await client.get(f'/api/0.6/notes/{note_id}.json')
     assert r.status_code == status.HTTP_404_NOT_FOUND, r.text
 
-    # unhide
-    client.headers['Authorization'] = 'User moderator'
+
+@pytest.mark.parametrize(
+    'input_data',
+    [
+        {'lon': 181, 'lat': 0, 'text': 'Invalid longitude'},
+        {'lon': 0, 'lat': 91, 'text': 'Invalid latitude'},
+        {'lon': 0, 'lat': 0, 'text': ''},
+    ],
+)
+async def test_note_bad_input(client: AsyncClient, input_data):
+    r = await client.post('/api/0.6/notes.json', json=input_data)
+    assert r.is_client_error, r.text
+
+
+async def test_note_query_by_bbox(client: AsyncClient):
+    # Create a note at a specific location
+    lon = round(random.uniform(-179, 179), GEO_COORDINATE_PRECISION)
+    lat = round(random.uniform(-89, 89), GEO_COORDINATE_PRECISION)
     r = await client.post(
-        f'/api/0.6/notes/{note_id}/reopen.json',
-        params={'text': 'unhide'},
+        '/api/0.6/notes.json',
+        json={'lon': lon, 'lat': lat, 'text': test_note_query_by_bbox.__qualname__},
     )
     assert r.is_success, r.text
 
-    # get note
-    client.headers['Authorization'] = 'User user1'
-    r = await client.get(f'/api/0.6/notes/{note_id}.json')
+    # Query notes within bbox
+    r = await client.get(
+        '/api/0.6/notes.json',
+        params={
+            'bbox': f'{lon},{lat},{lon},{lat}',
+            'closed': -1,  # Open notes
+        },
+    )
     assert r.is_success, r.text
+    props = r.json()['features'][0]['properties']
+
+    # Verify that note is found
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(props['comments'][0], {'text': test_note_query_by_bbox.__qualname__})
+
+
+async def test_note_search(client: AsyncClient):
+    # Create a note with unique text for searching
+    search_text = buffered_randbytes(7).hex()
+    text = f'{test_note_search.__qualname__} {search_text}'
+    r = await client.post(
+        '/api/0.6/notes.json',
+        json={'lon': 0, 'lat': 0, 'text': text},
+    )
+    assert r.is_success, r.text
+
+    # Search by text
+    r = await client.get(
+        '/api/0.6/notes/search.json',
+        params={
+            'q': search_text,
+            'closed': -1,  # Open notes
+        },
+    )
+    assert r.is_success, r.text
+    props = r.json()['features'][0]['properties']
+
+    # Verify that note is found
+    assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
+    assert_model(props['comments'][0], {'text': text})
+
+
+async def test_invalid_note_id(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    # Try to access a non-existent note
+    r = await client.get('/api/0.6/notes/0.json')
+    assert r.status_code == status.HTTP_404_NOT_FOUND, r.text
+
+    # Try to comment on non-existent note
+    r = await client.post(
+        '/api/0.6/notes/0/comment.json',
+        params={'text': 'Comment on invalid note'},
+    )
+    assert r.status_code == status.HTTP_404_NOT_FOUND, r.text

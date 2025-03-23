@@ -2,7 +2,7 @@
     <li id="comment{{ comment.id }}" class="social-entry">
         <p class="header text-muted">
             <a href="/user/{{ comment.user.display_name }}">
-                <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
+                <img class="avatar" src="{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}"
                      loading="lazy">
                 {{- comment.user.display_name -}}
             </a>

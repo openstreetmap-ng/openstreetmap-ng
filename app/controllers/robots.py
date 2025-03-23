@@ -29,7 +29,7 @@ Disallow: /user_blocks
 User-agent: *
 Disallow: /
 """
-    ).strip(),
+    ).lstrip(),
     media_type='text/plain',
 )
 

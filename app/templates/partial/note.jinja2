@@ -31,7 +31,8 @@
                         {{ t('browse.anonymous') }}
                     {% else %}
                         <a href="/user/{{ header.user.display_name }}" rel="author">
-                        <img class="avatar" src="{{ header.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                        <img class="avatar" src="{{ user_avatar_url(header.user) }}"
+                             alt="{{ t('alt.profile_picture') }}">
                         {{- header.user.display_name -}}
                     </a>
                     {% endif %}

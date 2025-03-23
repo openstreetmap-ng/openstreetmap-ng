@@ -1,9 +1,11 @@
 import logging
+from asyncio import TaskGroup
+from typing import cast
 
 from fastapi import UploadFile
 from pydantic import SecretStr
 from rfc3986 import uri_reference
-from sqlalchemy import delete, func, select, text, update
+from zid import zid
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -18,10 +20,13 @@ from app.limits import (
     OAUTH_APP_URI_MAX_LENGTH,
     OAUTH_SECRET_PREVIEW_LENGTH,
 )
-from app.models.db.oauth2_application import OAuth2Application
-from app.models.db.oauth2_token import OAuth2Token
-from app.models.scope import Scope
-from app.models.types import Uri
+from app.models.db.oauth2_application import (
+    OAuth2Application,
+    OAuth2ApplicationInit,
+    oauth2_app_avatar_url,
+)
+from app.models.scope import PublicScope
+from app.models.types import ApplicationId, ClientId, StorageKey, Uri
 from app.services.image_service import ImageService
 from app.utils import splitlines_trim
 from app.validators.url import UriValidator
@@ -29,157 +34,199 @@ from app.validators.url import UriValidator
 
 class OAuth2ApplicationService:
     @staticmethod
-    async def create(*, name: str) -> int:
+    async def create(*, name: str) -> ApplicationId:
         """Create an OAuth2 application."""
-        user_id = auth_user(required=True).id
-        client_id = buffered_rand_urlsafe(32)
+        user_id = auth_user(required=True)['id']
+        client_id = ClientId(buffered_rand_urlsafe(32))
 
-        async with db(True) as session:
-            app = OAuth2Application(
-                user_id=user_id,
-                name=name,
-                client_id=client_id,
-                scopes=(),
-                is_confidential=False,
-                redirect_uris=(),
+        app_id: ApplicationId = zid()  # type: ignore
+        app_init: OAuth2ApplicationInit = {
+            'id': app_id,
+            'user_id': user_id,
+            'name': name,
+            'client_id': client_id,
+        }
+
+        async with db(True) as conn:
+            await conn.execute(
+                """
+                INSERT INTO oauth2_application (
+                    id, user_id, name, client_id
+                )
+                VALUES (
+                    %(id)s, %(user_id)s, %(name)s, %(client_id)s
+                )
+                """,
+                app_init,
             )
-            session.add(app)
-            await session.flush()
 
-            # check count after insert to prevent race conditions
-            stmt = select(func.count()).select_from(
-                select(text('1'))  #
-                .where(OAuth2Application.user_id == user_id)
-                .subquery()
-            )
-            count = (await session.execute(stmt)).scalar_one()
-            if count > OAUTH_APP_ADMIN_LIMIT:
-                StandardFeedback.raise_error(None, t('validation.reached_app_limit'))
+            # Check count after insert to prevent race conditions
+            async with await conn.execute(
+                """
+                SELECT COUNT(*) FROM oauth2_application
+                WHERE user_id = %s
+                """,
+                (user_id,),
+            ) as r:
+                count: int = (await r.fetchone())[0]  # type: ignore
+                if count > OAUTH_APP_ADMIN_LIMIT:
+                    StandardFeedback.raise_error(None, t('validation.reached_app_limit'))
 
-        return app.id
+        return app_id
 
     @staticmethod
-    def validate_redirect_uris(redirect_uris: str) -> tuple[Uri, ...]:
+    def validate_redirect_uris(redirect_uris: str) -> list[Uri]:
+        """Validate redirect URIs."""
         uris = splitlines_trim(redirect_uris)
         if len(uris) > OAUTH_APP_URI_LIMIT:
             StandardFeedback.raise_error('redirect_uris', t('validation.too_many_redirect_uris'))
+
         for uri in uris:
             if len(uri) > OAUTH_APP_URI_MAX_LENGTH:
                 StandardFeedback.raise_error('redirect_uris', t('validation.redirect_uri_too_long'))
+
             if uri in {'urn:ietf:wg:oauth:2.0:oob', 'urn:ietf:wg:oauth:2.0:oob:auto'}:
                 continue
+
             try:
                 UriValidator.validate(uri_reference(uri))
             except Exception:
                 logging.debug('Invalid redirect URI %r', uri)
                 StandardFeedback.raise_error('redirect_uris', t('validation.invalid_redirect_uri'))
+
             normalized = f'{uri.casefold()}/'
             if (
                 normalized.startswith('http://')  #
                 and not normalized.startswith(('http://127.0.0.1/', 'http://localhost/'))
             ):
                 StandardFeedback.raise_error('redirect_uris', t('validation.insecure_redirect_uri'))
+
         # deduplicate (order-preserving) and cast type
-        return tuple({Uri(uri): None for uri in uris})
+        return list(dict.fromkeys(uris))  # type: ignore
 
     @staticmethod
     async def update_settings(
         *,
-        app_id: int,
+        app_id: ApplicationId,
         name: str,
         is_confidential: bool,
-        redirect_uris: tuple[Uri, ...],
-        scopes: tuple[Scope, ...],
+        redirect_uris: list[Uri],
+        scopes: tuple[PublicScope, ...],
         revoke_all_authorizations: bool,
     ) -> None:
         """Update an OAuth2 application."""
-        async with db(True) as session:
-            stmt = (
-                update(OAuth2Application)
-                .where(
-                    OAuth2Application.id == app_id,
-                    OAuth2Application.user_id == auth_user(required=True).id,
-                )
-                .values(
-                    {
-                        OAuth2Application.name: name,
-                        OAuth2Application.is_confidential: is_confidential,
-                        OAuth2Application.redirect_uris: redirect_uris,
-                        OAuth2Application.scopes: scopes,
-                    }
-                )
-                .inline()
+        user_id = auth_user(required=True)['id']
+
+        async with db(True) as conn:
+            result = await conn.execute(
+                """
+                UPDATE oauth2_application
+                SET
+                    name = %s,
+                    confidential = %s,
+                    redirect_uris = %s,
+                    scopes = %s,
+                    updated_at = DEFAULT
+                WHERE id = %s AND user_id = %s
+                """,
+                (name, is_confidential, redirect_uris, list(scopes), app_id, user_id),
             )
-            result = await session.execute(stmt)
+
             if not result.rowcount:
                 raise_for.unauthorized()
 
             if revoke_all_authorizations:
-                await session.commit()
-                await session.execute(delete(OAuth2Token).where(OAuth2Token.application_id == app_id))
+                await conn.execute(
+                    """
+                    DELETE FROM oauth2_token
+                    WHERE application_id = %s
+                    """,
+                    (app_id,),
+                )
 
     @staticmethod
-    async def update_avatar(app_id: int, avatar_file: UploadFile) -> str:
-        """
-        Update app's avatar.
-
-        Returns the new avatar URL.
-        """
+    async def update_avatar(app_id: ApplicationId, avatar_file: UploadFile) -> str:
+        """Update app's avatar. Returns the new avatar URL."""
         data = await avatar_file.read()
-        avatar_id = await ImageService.upload_avatar(data) if data else None
+        user_id = auth_user(required=True)['id']
 
-        # update app data
-        async with db(True) as session:
-            stmt = (
-                select(OAuth2Application)
-                .where(
-                    OAuth2Application.id == app_id,
-                    OAuth2Application.user_id == auth_user(required=True).id,
-                )
-                .with_for_update()
+        async with db(True) as conn:
+            async with await conn.execute(
+                """
+                SELECT avatar_id, client_id
+                FROM oauth2_application
+                WHERE id = %s AND user_id = %s
+                FOR UPDATE
+                """,
+                (app_id, user_id),
+            ) as r:
+                row = await r.fetchone()
+                if row is None:
+                    raise_for.unauthorized()
+                old_avatar_id: StorageKey | None
+                client_id: ClientId
+                old_avatar_id, client_id = row
+
+            avatar_id = await ImageService.upload_avatar(data) if data else None
+
+            await conn.execute(
+                """
+                UPDATE oauth2_application
+                SET
+                    avatar_id = %s,
+                    updated_at = DEFAULT
+                WHERE id = %s AND user_id = %s
+                """,
+                (avatar_id, app_id, user_id),
             )
-            app = await session.scalar(stmt)
-            if app is None:
-                raise_for.unauthorized()
 
-            old_avatar_id = app.avatar_id
-            app.avatar_id = avatar_id
-
-        # cleanup old avatar
         if old_avatar_id is not None:
-            await ImageService.delete_avatar_by_id(old_avatar_id)
+            async with TaskGroup() as tg:
+                tg.create_task(ImageService.delete_avatar_by_id(old_avatar_id))
 
-        return app.avatar_url
+        return oauth2_app_avatar_url(
+            cast(
+                OAuth2Application,
+                {'avatar_id': avatar_id, 'client_id': client_id},
+            )
+        )
 
     @staticmethod
-    async def reset_client_secret(app_id: int) -> SecretStr:
+    async def reset_client_secret(app_id: ApplicationId) -> SecretStr:
         """Reset the client secret and return the new one."""
-        client_secret = buffered_rand_urlsafe(32)
-        client_secret_hashed = hash_bytes(client_secret)
-        async with db(True) as session:
-            stmt = (
-                update(OAuth2Application)
-                .where(
-                    OAuth2Application.id == app_id,
-                    OAuth2Application.user_id == auth_user(required=True).id,
-                )
-                .values(
-                    {
-                        OAuth2Application.client_secret_hashed: client_secret_hashed,
-                        OAuth2Application.client_secret_preview: client_secret[:OAUTH_SECRET_PREVIEW_LENGTH],
-                    }
-                )
-                .inline()
+        client_secret_ = buffered_rand_urlsafe(32)
+        client_secret_hashed = hash_bytes(client_secret_)
+        client_secret_preview = client_secret_[:OAUTH_SECRET_PREVIEW_LENGTH]
+        client_secret = SecretStr(client_secret_)
+        del client_secret_
+
+        user_id = auth_user(required=True)['id']
+
+        async with db(True) as conn:
+            await conn.execute(
+                """
+                UPDATE oauth2_application
+                SET
+                    client_secret_hashed = %s,
+                    client_secret_preview = %s,
+                    updated_at = DEFAULT
+                WHERE id = %s AND user_id = %s
+                """,
+                (client_secret_hashed, client_secret_preview, app_id, user_id),
             )
-            await session.execute(stmt)
-        return SecretStr(client_secret)
+
+        return client_secret
 
     @staticmethod
-    async def delete(app_id: int) -> None:
+    async def delete(app_id: ApplicationId) -> None:
         """Delete an OAuth2 application."""
-        async with db(True) as session:
-            stmt = delete(OAuth2Application).where(
-                OAuth2Application.id == app_id,
-                OAuth2Application.user_id == auth_user(required=True).id,
+        user_id = auth_user(required=True)['id']
+
+        async with db(True) as conn:
+            await conn.execute(
+                """
+                DELETE FROM oauth2_application
+                WHERE id = %s AND user_id = %s
+                """,
+                (app_id, user_id),
             )
-            await session.execute(stmt)

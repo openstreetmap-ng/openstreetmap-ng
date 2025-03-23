@@ -1,9 +1,25 @@
-from app.lib.image import AvatarType, Image
-from app.models.types import StorageKey
+import pytest
+
+from app.lib.image import Image
 
 
-def test_get_avatar_url():
-    assert Image.get_avatar_url(AvatarType.default, app=False) == '/static/img/avatar.webp'
-    assert Image.get_avatar_url(AvatarType.default, app=True) == '/static/img/app.webp'
-    assert Image.get_avatar_url(AvatarType.gravatar, 123) == '/api/web/gravatar/123'
-    assert Image.get_avatar_url(AvatarType.custom, StorageKey('123')) == '/api/web/avatar/123'
+@pytest.mark.parametrize(
+    ('image_type', 'image_id', 'expected'),
+    [
+        ('gravatar', 123, '/api/web/gravatar/123'),
+        ('custom', '123', '/api/web/avatar/123'),
+    ],
+)
+def test_get_avatar_url(image_type, image_id, expected):
+    assert Image.get_avatar_url(image_type, image_id) == expected
+
+
+@pytest.mark.parametrize(
+    ('app', 'expected'),
+    [
+        (False, '/static/img/avatar.webp'),
+        (True, '/static/img/app.webp'),
+    ],
+)
+def test_default_avatar_url(app, expected):
+    assert Image.get_avatar_url(None, app=app) == expected

@@ -1,40 +1,57 @@
 import logging
+from collections.abc import Callable
 from contextlib import asynccontextmanager, contextmanager
 from functools import wraps
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import cython
 import duckdb
 import orjson
+from psycopg import AsyncConnection, IsolationLevel
+from psycopg.abc import AdaptContext
+from psycopg.types import TypeInfo
+from psycopg.types.enum import EnumInfo
 from psycopg.types.json import set_json_dumps, set_json_loads
 from psycopg_pool import AsyncConnectionPool
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from valkey.asyncio import ConnectionPool, Valkey
 
-from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_SQLALCHEMY_URL, POSTGRES_URL, VALKEY_URL
+from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_URL
+from app.lib.register_hstore import register_hstore
+from app.lib.register_shapely import register_shapely
+from app.lib.register_string_enum import register_string_enum
 
-_DB_ENGINE = create_async_engine(
-    POSTGRES_SQLALCHEMY_URL,
-    query_cache_size=1024,
-    pool_size=100,  # concurrent connections target
-    max_overflow=-1,  # unlimited concurrent connections overflow
-    json_deserializer=orjson.loads,
-    json_serializer=lambda v: orjson.dumps(v).decode(),
-)
 
-_PSYCOPG_POOL = AsyncConnectionPool(
-    POSTGRES_URL,
-    min_size=2,
-    max_size=100,
-    open=False,
-    num_workers=3,  # workers for opening new connections
-)
+async def _configure_connection(conn: AsyncConnection) -> None:  # noqa: RUF029
+    cursor = conn.cursor
+
+    @wraps(cursor)
+    def wrapped(*args, **kwargs):
+        # Default to binary mode for all cursors
+        # Explicitly set binary=False to revert to text mode
+        kwargs.setdefault('binary', True)
+        return cursor(*args, **kwargs)
+
+    conn.cursor = wrapped  # type: ignore
+
+
+@cython.cfunc
+def _init_pool():
+    global _PSYCOPG_POOL
+    _PSYCOPG_POOL = AsyncConnectionPool(  # pyright: ignore [reportConstantRedefinition]
+        POSTGRES_URL,
+        min_size=2,
+        max_size=100,
+        open=False,
+        configure=_configure_connection,
+        num_workers=3,  # workers for opening new connections
+    )
+
+
+_PSYCOPG_POOL: AsyncConnectionPool
 
 set_json_dumps(orjson.dumps)
 set_json_loads(orjson.loads)
 
-
-_VALKEY_POOL = ConnectionPool.from_url(VALKEY_URL)
 
 # TODO: test unicode normalization comparison
 
@@ -42,11 +59,17 @@ _VALKEY_POOL = ConnectionPool.from_url(VALKEY_URL)
 @asynccontextmanager
 async def psycopg_pool_open():
     """Open and close the psycopg pool."""
-    await _PSYCOPG_POOL.open()
-    try:
-        yield _PSYCOPG_POOL
-    finally:
-        await _PSYCOPG_POOL.close()
+    from app.services.migration_service import MigrationService  # noqa: PLC0415
+
+    _init_pool()
+    async with _PSYCOPG_POOL:
+        await MigrationService.migrate_database()
+        await _register_types()
+        # Reset the connection pool to ensure the new types are used.
+
+    _init_pool()
+    async with _PSYCOPG_POOL:
+        yield
 
 
 def psycopg_pool_open_decorator(func):
@@ -60,44 +83,63 @@ def psycopg_pool_open_decorator(func):
     return wrapper
 
 
-@asynccontextmanager
-async def db(write: bool = False, *, no_transaction: bool = False):
-    """Get a database session."""
-    async with AsyncSession(
-        _DB_ENGINE,
-        expire_on_commit=False,
-        close_resets_only=False,  # prevent closed sessions from being reused
-    ) as session:
-        if no_transaction:
-            await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
-        yield session
-        if write:
-            await session.commit()
+async def _register_types():
+    """
+    Register db support for additional types.
+    https://www.psycopg.org/psycopg3/docs/basic/pgtypes.html
+    """
+    async with db() as conn:
+
+        async def register_enum(name: str) -> None:
+            info = await EnumInfo.fetch(conn, name)
+            assert info is not None, f'{name} enum not found'
+            register_string_enum(info, None)
+            logging.debug('Registered database enum %r', name)
+
+        await register_enum('auth_provider')
+        await register_enum('avatar_type')
+        await register_enum('editor')
+        await register_enum('mail_source')
+        await register_enum('note_event')
+        await register_enum('oauth2_code_challenge_method')
+        await register_enum('scope')
+        await register_enum('trace_visibility')
+        await register_enum('user_role')
+        await register_enum('user_subscription_target')
+        await register_enum('user_token_type')
+
+        async def register_type(name: str, register_callable: Callable[[TypeInfo, AdaptContext | None], None]) -> None:
+            info = await TypeInfo.fetch(conn, name)
+            assert info is not None, f'{name} type not found'
+            register_callable(info, None)
+            logging.debug('Registered database type %r', name)
+
+        await register_type('hstore', register_hstore)
+        await register_type('geometry', register_shapely)
 
 
 @asynccontextmanager
-async def db2(write: bool = False, *, autocommit: bool = False):
+async def db(write: bool = False, *, autocommit: bool = False, isolation_level: IsolationLevel | None = None):
     """Get a database connection."""
+    assert write or not autocommit, 'autocommit=True must be used with write=True'
+
+    read_only = not write
+
     async with _PSYCOPG_POOL.connection() as conn:
-        if autocommit and not write:
-            raise ValueError('autocommit=True must be used with write=True')
+        if conn.read_only != read_only:
+            await conn.set_read_only(read_only)
         if conn.autocommit != autocommit:
             await conn.set_autocommit(autocommit)
+        if conn.isolation_level != isolation_level:
+            await conn.set_isolation_level(isolation_level)
+
         yield conn
-        if not write:
-            await conn.rollback()
 
 
 async def db_update_stats(*, vacuum: bool = False) -> None:
     """Update the database statistics."""
-    async with db2(True, autocommit=True) as conn:
+    async with db(True, autocommit=True) as conn:
         await conn.execute('VACUUM ANALYZE' if vacuum else 'ANALYZE')
-
-
-@asynccontextmanager
-async def valkey():
-    async with Valkey(connection_pool=_VALKEY_POOL) as r:
-        yield r
 
 
 @contextmanager

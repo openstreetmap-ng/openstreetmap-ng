@@ -3,7 +3,6 @@ dependencies = [
   "aioboto3",
   "aiohttp[speedups]",
   "aiosmtplib",
-  "alembic",
   "argon2-cffi",
   "arrow",
   "beautifulsoup4[charset-normalizer,lxml]",
@@ -16,9 +15,9 @@ dependencies = [
   "fastapi>=0",
   "feedgen",
   "githead>=1.2.0",
+  "h3>=4.2.1",
   "httpx[brotli,zstd]",
   "jinja2",
-  "libvalkey>=4.0.1b1",
   "lrucache-rs>=1.0.0",
   "lxml",
   "markdown-it-py[linkify,plugins]",
@@ -35,6 +34,7 @@ dependencies = [
   "pycryptodomex",
   "pydantic",
   "pyinstrument",
+  "pyproj>=3.7.1",
   "python-dateutil",
   "python-magic",
   "python-multipart",
@@ -43,16 +43,13 @@ dependencies = [
   "rfc3986",
   "rtree",
   "scikit-learn",
-  "sentry-sdk[aiohttp,fastapi,httpx,pure-eval,sqlalchemy]>=2.19.0",
+  "sentry-sdk[aiohttp,fastapi,httpx,pure-eval]>=2.19.0",
   "setuptools",
   "shapely",
-  "sizestr>=1.0.0",
-  "sqlalchemy[postgresql-asyncpg]",
   "starlette-compress",
   "supervisor",
   "tqdm",
   "uvicorn[standard]",
-  "valkey[libvalkey]>=6.0.0",
   "zid>=1.0.0",
   "zstandard",
 ]
@@ -83,9 +80,9 @@ python-preference = "only-system"
 packages = ["app", "scripts", "tests", "typings"]
 
 [tool.ruff]
-extend-exclude = ["app/alembic/versions"]
 indent-width = 4
 line-length = 120
+preview = true
 target-version = "py313"
 
 [tool.ruff.lint]
@@ -104,22 +101,29 @@ ignore = [
   "E501", # line-too-long
   "ISC001", # single-line-implicit-string-concatenation
   "ISC002", # multi-line-implicit-string-concatenation
+  "LOG015", # root-logger-call
   "PLR09", # too-many-*
   "PLR1702", # too-many-nested-blocks
   "PLR2",
+  "PLR6301", # no-self-use
   "PLW0603", # global-statement
+  "PLW1514", # unspecified-encoding
   "PLW2901", # redefined-loop-name
   "PT001", # pytest-fixture-incorrect-parentheses-style
   "PT006", # pytest-parametrize-names-wrong-type
   "PT011", # pytest-raises-too-broad
+  "PT018", # pytest-composite-assertion
   "PT023", # pytest-incorrect-mark-parentheses-style
   "PYI025", # unaliased-collections-abc-set-import
+  "UP047", # non-pep695-generic-function
   "Q000", # bad-quotes-inline-string
   "Q001", # bad-quotes-multiline-string
   "Q002", # bad-quotes-docstring
   "Q003", # avoidable-escaped-quote
   "S101", # assert
   "S105", # hardcoded-password-string
+  "S311", # suspicious-non-cryptographic-random-usage
+  "S404", # suspicious-subprocess-import
   "S6",
   "SIM105", # suppressible-exception
   "SIM108", # if-else-block-instead-of-if-exp
@@ -132,6 +136,7 @@ select = [
   "ASYNC", # flake8-async
   "B", # flake8-bugbear
   "C4", # flake8-comprehensions
+  "C90", # mccabe
   "D200", # unnecessary-multiline-docstring
   "D201", # blank-line-before-function
   "D202", # blank-line-after-function
@@ -183,6 +188,7 @@ select = [
   "W6",
   "YTT", # flake8-2020
 ]
+extend-safe-fixes = ["D2"]
 fixable = ["ALL"]
 unfixable = []
 
@@ -211,7 +217,6 @@ disableBytesTypePromotions = true
 exclude = [
   "**/.*",
   "**/__pycache__",
-  "app/alembic/versions",
   "app/models/proto/**/*_pb2.py",
   "node_modules",
 ]

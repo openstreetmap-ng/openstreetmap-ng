@@ -1,188 +1,251 @@
-from collections import defaultdict
-from collections.abc import Collection, Sequence
-from typing import Literal
+from typing import Any, Literal
 
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable, Identifier
 from shapely import Point
-from sqlalchemy import func, null, select, text
 
 from app.config import DELETED_USER_EMAIL_SUFFIX
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.options_context import apply_options_context
 from app.lib.user_name_blacklist import is_user_name_blacklisted
 from app.limits import NEARBY_USERS_RADIUS_METERS
-from app.models.db.changeset import Changeset
 from app.models.db.element import Element
-from app.models.db.user import User
-from app.models.types import DisplayNameType, EmailType
+from app.models.db.user import User, UserDisplay
+from app.models.types import ChangesetId, DisplayName, Email, UserId
+
+_USER_DISPLAY_SELECT = SQL(',').join([Identifier(k) for k in UserDisplay.__annotations__])
 
 
 class UserQuery:
     @staticmethod
-    async def find_one_by_id(user_id: int) -> User | None:
+    async def find_one_by_id(user_id: UserId) -> User | None:
         """Find a user by id."""
-        async with db() as session:
-            stmt = select(User).where(User.id == user_id)
-            stmt = apply_options_context(stmt)
-            return await session.scalar(stmt)
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM "user"
+                WHERE id = %s
+                """,
+                (user_id,),
+            ) as r,
+        ):
+            return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_one_by_display_name(display_name: DisplayNameType) -> User | None:
+    async def find_one_by_display_name(display_name: DisplayName) -> User | None:
         """Find a user by display name."""
-        async with db() as session:
-            stmt = select(User).where(User.display_name == display_name)
-            stmt = apply_options_context(stmt)
-            return await session.scalar(stmt)
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM "user"
+                WHERE display_name = %s
+                """,
+                (display_name,),
+            ) as r,
+        ):
+            return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_one_by_email(email: EmailType) -> User | None:
+    async def find_one_by_email(email: Email) -> User | None:
         """Find a user by email."""
-        async with db() as session:
-            stmt = select(User).where(User.email == email)
-            stmt = apply_options_context(stmt)
-            return await session.scalar(stmt)
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM "user"
+                WHERE email = %s
+                """,
+                (email,),
+            ) as r,
+        ):
+            return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_many_by_ids(user_ids: Collection[int]) -> Sequence[User]:
+    async def find_many_by_ids(user_ids: list[UserId]) -> list[User]:
         """Find users by ids."""
         if not user_ids:
-            return ()
-        async with db() as session:
-            stmt = select(User).where(User.id.in_(text(','.join(map(str, user_ids)))))
-            stmt = apply_options_context(stmt)
-            return (await session.scalars(stmt)).all()
+            return []
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM "user"
+                WHERE id = ANY(%s)
+                """,
+                (list(user_ids),),
+            ) as r,
+        ):
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def find_many_nearby(
         point: Point,
         *,
         max_distance: float = NEARBY_USERS_RADIUS_METERS,
-        limit: int | None,
-    ) -> Sequence[User]:
-        """
-        Find nearby users.
+        limit: int | None = None,
+    ) -> list[User]:
+        """Find nearby users. Users position is determined by their home point."""
+        params: list[Any] = [point, max_distance, point]
 
-        Users position is determined by their home point.
-        """
-        async with db() as session:
-            stmt = (
-                select(User)
-                .where(
-                    User.home_point != null(),
-                    func.ST_DWithin(User.home_point, func.ST_GeomFromText(point.wkt, 4326), max_distance),
-                )
-                .order_by(func.ST_Distance(User.home_point, func.ST_GeomFromText(point.wkt, 4326)))
-            )
-            stmt = apply_options_context(stmt)
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
 
-            if limit is not None:
-                stmt = stmt.limit(limit)
+        query = SQL("""
+            SELECT * FROM "user"
+            WHERE ST_DWithin(home_point, %s, %s)
+            ORDER BY home_point <-> %s
+            {limit}
+        """).format(limit=limit_clause)
 
-            return (await session.scalars(stmt)).all()
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def check_display_name_available(display_name: DisplayNameType) -> bool:
+    async def check_display_name_available(display_name: DisplayName) -> bool:
         """Check if a display name is available."""
+        # Check if the name is unchanged
         user = auth_user()
-        # check if the name is unchanged
-        if user is not None and user.display_name == display_name:
+        if user is not None and user['display_name'] == display_name:
             return True
-        # check if the name is blacklisted
+
+        # Check if the name is blacklisted
         if is_user_name_blacklisted(display_name):
             return False
-        # check if the name is available
+
+        # Check if the name is available
         other_user = await UserQuery.find_one_by_display_name(display_name)
-        return other_user is None or (user is not None and other_user.id == user.id)
+        return other_user is None or (user is not None and other_user['id'] == user['id'])
 
     @staticmethod
-    async def check_email_available(email: EmailType) -> bool:
+    async def check_email_available(email: Email) -> bool:
         """Check if an email is available."""
+        # Check if the email is unchanged
         user = auth_user()
-        # check if the email is unchanged
-        if user is not None and user.email == email:
+        if user is not None and user['email'] == email:
             return True
-        # check if the email is available
+
+        # Check if the email is available
         other_user = await UserQuery.find_one_by_email(email)
-        return other_user is None or (user is not None and other_user.id == user.id)
+        return other_user is None or (user is not None and other_user['id'] == user['id'])
 
     @staticmethod
     async def get_deleted_ids(
         *,
-        after: int | None = None,
-        before: int | None = None,
+        after: UserId | None = None,
+        before: UserId | None = None,
         sort: Literal['asc', 'desc'] = 'asc',
-        limit: int | None,
-    ) -> Sequence[int]:
+        limit: int | None = None,
+    ) -> list[UserId]:
         """Get the ids of deleted users."""
-        async with db() as session:
-            stmt = select(User.id)
-            where_and = [User.email.endswith(DELETED_USER_EMAIL_SUFFIX)]
-            if after is not None:
-                where_and.append(User.id > after)
-            if before is not None:
-                where_and.append(User.id < before)
-            stmt = stmt.where(*where_and)
-            stmt = stmt.order_by(User.id.asc() if sort == 'asc' else User.id.desc())
-            if limit is not None:
-                stmt = stmt.limit(limit)
-            return (await session.scalars(stmt)).all()
+        conditions: list[Composable] = [SQL('email LIKE %s')]
+        params: list[Any] = [f'%{DELETED_USER_EMAIL_SUFFIX}']
+
+        if after is not None:
+            conditions.append(SQL('id > %s'))
+            params.append(after)
+
+        if before is not None:
+            conditions.append(SQL('id < %s'))
+            params.append(before)
+
+        if limit is not None:
+            limit_clause = SQL('LIMIT %s')
+            params.append(limit)
+        else:
+            limit_clause = SQL('')
+
+        query = SQL("""
+            SELECT id FROM "user"
+            WHERE {conditions}
+            ORDER BY id {order}
+            {limit}
+        """).format(
+            conditions=SQL(' AND ').join(conditions),
+            order=SQL(sort),
+            limit=limit_clause,
+        )
+
+        async with db() as conn, await conn.execute(query, params) as r:
+            return [c for (c,) in await r.fetchall()]
 
     @staticmethod
-    async def resolve_elements_users(elements: Collection[Element], *, display_name: bool) -> None:
-        """
-        Resolve the elements users ids.
+    async def resolve_users(
+        items: list,
+        *,
+        user_id_key: str = 'user_id',
+        user_key: str = 'user',
+        kind: type[UserDisplay] | type[User] = UserDisplay,
+    ) -> None:
+        """Resolve user fields for the given items."""
+        if not items:
+            return
 
-        If display_name is True, the users display name is also resolved.
-        """
+        id_map: dict[UserId, list] = {}
+        for item in items:
+            user_id: UserId | None = item.get(user_id_key)
+            if user_id is None:
+                continue
+            list_ = id_map.get(user_id)
+            if list_ is None:
+                id_map[user_id] = [item]
+            else:
+                list_.append(item)
+
+        if not id_map:
+            return
+
+        query = SQL("""
+            SELECT {} FROM "user"
+            WHERE id = ANY(%s)
+        """).format(_USER_DISPLAY_SELECT if kind is UserDisplay else SQL('*'))
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, (list(id_map),)) as r,
+        ):
+            for row in await r.fetchall():
+                for item in id_map[row['id']]:
+                    item[user_key] = row
+
+    @staticmethod
+    async def resolve_elements_users(elements: list[Element]) -> None:
+        """Resolve the user_id and user fields for the given elements."""
         if not elements:
             return
-        id_elements_map: defaultdict[int, list[Element]] = defaultdict(list)
+
+        id_map: dict[ChangesetId, list[Element]] = {}
         for element in elements:
-            id_elements_map[element.changeset_id].append(element)
+            changeset_id = element['changeset_id']
+            list_ = id_map.get(changeset_id)
+            if list_ is None:
+                id_map[changeset_id] = [element]
+            else:
+                list_.append(element)
 
-        if display_name:
-            async with db() as session:
-                stmt = (
-                    select(Changeset.id, Changeset.user_id, User.display_name)
-                    .join(User, Changeset.user_id == User.id)
-                    .where(Changeset.id.in_(text(','.join(map(str, id_elements_map)))))
-                )
-                rows = (await session.execute(stmt)).all()
-            for changeset_id, user_id, display_name_str in rows:
-                for element in id_elements_map[changeset_id]:
-                    element.user_id = user_id
-                    element.user_display_name = display_name_str
-        else:
-            async with db() as session:
-                stmt2 = select(Changeset.id, Changeset.user_id).where(
-                    Changeset.id.in_(text(','.join(map(str, id_elements_map))))
-                )
-                rows = (await session.execute(stmt2)).all()
-            for changeset_id, user_id in rows:
-                for element in id_elements_map[changeset_id]:
-                    element.user_id = user_id
-                    element.user_display_name = None
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT id, user_id FROM changeset
+                WHERE id = ANY(%s)
+                """,
+                (list(id_map),),
+            ) as r,
+        ):
+            changeset_id: ChangesetId
+            user_id: UserId | None
+            for changeset_id, user_id in await r.fetchall():
+                if user_id is not None:
+                    for element in id_map[changeset_id]:
+                        element['user_id'] = user_id
 
-    # @staticmethod
-    # async def resolve_note_comments_users(comments: Sequence[NoteComment]) -> None:
-    #     """
-    #     Resolve the user of note comments.
-    #     """
-    #     comments_ = []
-    #     user_id_comments_map = defaultdict(list)
-    #     for comment in comments:
-    #         if comment.user_id is not None and comment.user is None:
-    #             comments_.append(comment)
-    #             user_id_comments_map[comment.user_id].append(comment)
-
-    #     if not comments_:
-    #         return
-
-    #     async with db() as session:
-    #         stmt = select(User).where(User.id.in_(text(','.join(map(str, user_id_comments_map)))))
-    #         stmt = apply_options_context(stmt)
-    #         users = (await session.scalars(stmt)).all()
-
-    #     for user in users:
-    #         for comment in user_id_comments_map[user.id]:
-    #             comment.user = user
+        await UserQuery.resolve_users(elements)

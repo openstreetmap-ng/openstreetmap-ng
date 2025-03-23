@@ -7,17 +7,11 @@ from app.exceptions.api_error import APIError
 
 
 class RequestExceptionsMixin:
-    def request_uri_too_long(self) -> NoReturn:
-        raise APIError(status.HTTP_414_REQUEST_URI_TOO_LONG, detail='URI Too Long')
-
     def request_timeout(self) -> NoReturn:
         raise APIError(status.HTTP_504_GATEWAY_TIMEOUT, detail='Request Timeout')
 
     def too_many_requests(self) -> NoReturn:
         raise APIError(status.HTTP_429_TOO_MANY_REQUESTS, detail='Too Many Requests')
-
-    def request_decompression_failed(self) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail='Request decompression failed')
 
     def bad_cursor(self) -> NoReturn:
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid database cursor')

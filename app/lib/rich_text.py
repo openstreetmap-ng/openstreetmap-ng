@@ -2,10 +2,9 @@ import logging
 import tomllib
 from asyncio import TaskGroup
 from collections.abc import Iterable, Sequence
-from enum import Enum
 from html import escape
 from pathlib import Path
-from typing import cast
+from typing import Any, Literal, LiteralString, TypedDict, cast
 from urllib.parse import urlsplit, urlunsplit
 
 import cython
@@ -16,159 +15,142 @@ from markdown_it import MarkdownIt
 from markdown_it.renderer import RendererHTML
 from markdown_it.token import Token
 from markdown_it.utils import EnvType, OptionsDict
-from sqlalchemy import update
+from psycopg.sql import SQL, Identifier
 
 from app.config import TRUSTED_HOSTS
 from app.db import db
+from app.lib.crypto import hash_bytes
 from app.limits import RICH_TEXT_CACHE_EXPIRE
-from app.services.cache_service import CacheContext, CacheEntry, CacheService
+from app.services.cache_service import CacheContext, CacheService
 
-
-class TextFormat(str, Enum):
-    html = 'html'
-    markdown = 'markdown'
-    plain = 'plain'
+TextFormat = Literal['html', 'markdown', 'plain']
 
 
 def process_rich_text(text: str, text_format: TextFormat) -> str:
     """
     Get a rich text string by text and format.
-
     This function runs synchronously and does not use cache.
     """
     text = text.strip()
-    if text_format == TextFormat.markdown:
-        text = _md.render(text)
+
+    if text_format == 'markdown':
+        text = _MD.render(text)
         return nh3.clean(
             text,
-            tags=_allowed_tags,
-            attributes=_allowed_attributes,
+            tags=_ALLOWED_TAGS,
+            attributes=_ALLOWED_ATTRS,
             link_rel=None,
         )
-    elif text_format == TextFormat.plain:
+
+    elif text_format == 'plain':
         text = escape(text)
         text = _process_plain(text)
         return nh3.clean(
             text,
-            tags=_plain_allowed_tags,
-            attributes=_plain_allowed_attributes,
+            tags=_PLAIN_ALLOWED_TAGS,
+            attributes=_PLAIN_ALLOWED_ATTRS,
             link_rel=None,
         )
-    else:
-        raise NotImplementedError(f'Unsupported rich text format {text_format!r}')
+
+    raise NotImplementedError(f'Unsupported rich text format {text_format!r}')
 
 
-async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) -> CacheEntry:
+async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) -> tuple[str, bytes]:
     """
     Get a rich text cache entry by text and format, generating one if not found.
-
     If cache_id is provided, it will be used to accelerate cache lookup.
     """
-    cache_context = CacheContext(f'RichText:{text_format.value}')
 
-    async def factory() -> bytes:
+    def factory() -> bytes:
         return process_rich_text(text, text_format).encode()
 
-    # accelerate cache lookup by id if available
-    if cache_id is not None:
-        return await CacheService.get(
-            cache_id,
-            cache_context,
+    if cache_id is None:
+        cache_id = hash_bytes(text)
+
+    processed = (
+        await CacheService.get(
+            cache_id.hex(),  # type: ignore
+            CacheContext(f'RichText:{text_format}'),
             factory,
             ttl=RICH_TEXT_CACHE_EXPIRE,
         )
-    else:
-        return await CacheService.get(
-            text,
-            cache_context,
-            factory,
-            hash_key=True,
-            ttl=RICH_TEXT_CACHE_EXPIRE,
-        )
+    ).decode()
+
+    return processed, cache_id
 
 
-class RichTextMixin:
-    __rich_text_fields__: tuple[tuple[str, TextFormat], ...] = ()
-
-    async def resolve_rich_text(self) -> None:
-        """Resolve rich text fields."""
-        fields = self.__rich_text_fields__
-        num_fields: int = len(fields)
-        if num_fields == 0:
-            logging.warning('%s has not defined rich text fields', type(self).__qualname__)
-            return
-
-        logging.debug('Resolving %d rich text fields', num_fields)
-        async with TaskGroup() as tg:
-            for field_name, text_format in fields:
-                tg.create_task(_resolve_rich_text_task(self, field_name, text_format))
+class _HasId(TypedDict):
+    id: Any
 
 
-async def _resolve_rich_text_task(self, field_name: str, text_format: TextFormat) -> None:
-    rich_field_name = field_name + '_rich'
-    rich_hash_field_name = field_name + '_rich_hash'
+async def resolve_rich_text(
+    objs: Iterable[_HasId],
+    table: LiteralString,
+    field: LiteralString,
+    text_format: TextFormat,
+) -> None:
+    rich_field_name = field + '_rich'
+    rich_hash_field_name = field + '_rich_hash'
 
     # skip if already resolved
-    if getattr(self, rich_field_name) is not None:
+    mapping: dict[Any, _HasId] = {obj['id']: obj for obj in objs if rich_field_name not in obj}
+    if not mapping:
         return
 
-    text: str = getattr(self, field_name)
-    text_rich_hash: bytes | None = getattr(self, rich_hash_field_name)
-    cache_entry = await rich_text(text, text_rich_hash, text_format)
-    cache_entry_id: bytes = cache_entry.id
+    async with TaskGroup() as tg:
+        tasks = [
+            tg.create_task(rich_text(obj[field], obj[rich_hash_field_name], text_format))  # type: ignore
+            for obj in mapping.values()
+        ]
 
-    # assign new hash if changed
-    if text_rich_hash != cache_entry_id:
-        updated_at = getattr(self, 'updated_at', None)
-        async with db(True) as session:
-            cls = type(self)
-            stmt = (
-                update(cls)
-                .where(
-                    cls.id == self.id,
-                    getattr(cls, rich_hash_field_name) == text_rich_hash,
-                )
-                .values(
-                    {
-                        rich_hash_field_name: cache_entry_id,
-                        # preserve updated_at if it exists
-                        **({'updated_at': updated_at} if (updated_at is not None) else {}),
-                    }
-                )
-                .inline()
-            )
-            await session.execute(stmt)
+    # list of (id, current_hash, new_hash)
+    to_update: list[tuple[Any, bytes, bytes]] = []
 
-        logging.debug('Rich text field %r hash was changed', field_name)
-        setattr(self, rich_hash_field_name, cache_entry_id)
+    for task, obj in zip(tasks, mapping.values(), strict=True):
+        processed, cache_id = task.result()
+        obj[rich_field_name] = processed  # type: ignore
 
-    # assign value to instance
-    setattr(self, rich_field_name, cache_entry.value.decode())
+        current_hash: bytes = obj[rich_hash_field_name]  # type: ignore
+        if current_hash != cache_id:
+            to_update.append((obj['id'], current_hash, cache_id))
 
+    if not to_update:
+        return
 
-@cython.cfunc
-def _get_allowed_tags_and_attributes() -> tuple[set[str], dict[str, set[str]]]:
-    data = tomllib.loads(Path('config/rich_text.toml').read_text())
-    allowed_tags = set(data['allowed_tags'])
-    allowed_attributes = {k: set(v) for k, v in data['allowed_attributes'].items()}
-    return allowed_tags, allowed_attributes
+    async with db(True, autocommit=True) as conn:
+        await conn.execute(
+            SQL("""
+                UPDATE {table} SET {field} = v.new_hash
+                FROM (VALUES ({values})) AS v(id, old_hash, new_hash)
+                WHERE {table}.id = v.id AND {field} = v.old_hash
+            """).format(
+                table=Identifier(table),
+                field=Identifier(rich_hash_field_name),
+                values=SQL('), (').join([SQL('%s, %s, %s')] * len(to_update)),
+            ),
+            [v for vals in to_update for v in vals],
+        )
+
+    logging.debug('Rich text %r hash changed for %d objects', field, len(to_update))
 
 
 def _render_image(self: RendererHTML, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
     token = tokens[idx]
-    token.attrs['decoding'] = 'async'
-    token.attrs['loading'] = 'lazy'
+    attrs: dict[str, str | int | float] = token.attrs
+    attrs['decoding'] = 'async'
+    attrs['loading'] = 'lazy'
     return self.image(tokens, idx, options, env)
 
 
 def _render_link(self: RendererHTML, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
     token = tokens[idx]
-    trusted_href = _process_trusted_link(token.attrs.get('href'))
+    attrs: dict[str, str | int | float] = token.attrs
+    trusted_href = _process_trusted_link(attrs.get('href'))
     if trusted_href is not None:
-        token.attrs['href'] = trusted_href
-        token.attrs['rel'] = _trusted_link_rel
+        attrs['href'] = trusted_href
+        attrs['rel'] = _TRUSTED_LINK_REL
     else:
-        token.attrs['rel'] = _untrusted_link_rel
+        attrs['rel'] = _UNTRUSTED_LINK_REL
     return self.renderToken(tokens, idx, options, env)
 
 
@@ -176,17 +158,21 @@ def _render_link(self: RendererHTML, tokens: Sequence[Token], idx: int, options:
 def _process_trusted_link(href: str | float | None):
     if href is None:
         return None
+
     parts = urlsplit(str(href))
     hostname = parts.hostname
     if hostname is None:
         # relative, absolute, or empty href
         return href
+
     hostname = hostname.casefold()
-    if hostname not in _trusted_hosts and not any(hostname.endswith(host) for host in _trusted_hosts_dot):
+    if hostname not in TRUSTED_HOSTS and not hostname.endswith(_TRUSTED_HOSTS_DOT):
         return None
+
     # href is trusted, upgrade to https
     if parts.scheme == 'http':
         return urlunsplit(parts._replace(scheme='https'))
+
     return href
 
 
@@ -200,44 +186,54 @@ def _process_plain(text: str) -> str:
     if not text:
         return '<p></p>'
 
-    matches: Iterable[LinkifyMatch] | None = _linkify.match(text)
+    matches: list[LinkifyMatch] | None = _LINKIFY.match(text)
     if matches is None:
-        # small optimization for text without links (most common)
+        # optimize for text without any links
         text = f'<p>{text}</p>'
     else:
         result: list[str] = ['<p>']
+
         last_pos: int = 0
         for match in matches:
             prefix = text[last_pos : match.index]
             href = match.url
             trusted_href = _process_trusted_link(href)
             if trusted_href is not None:
-                result.append(f'{prefix}<a href="{trusted_href}" rel="{_trusted_link_rel}">{match.text}</a>')
+                result.append(f'{prefix}<a href="{trusted_href}" rel="{_TRUSTED_LINK_REL}">{match.text}</a>')
             else:
-                result.append(f'{prefix}<a href="{href}" rel="{_untrusted_link_rel}">{match.text}</a>')
+                result.append(f'{prefix}<a href="{href}" rel="{_UNTRUSTED_LINK_REL}">{match.text}</a>')
             last_pos = match.last_index
+
         # add remaining text after last link
         if last_pos < len(text):
             suffix = text[last_pos:]
             result.append(suffix)
+
         result.append('</p>')
         text = ''.join(result)
 
     return text.replace('\n', '<br>')
 
 
-_allowed_tags, _allowed_attributes = _get_allowed_tags_and_attributes()
-_plain_allowed_tags = {'p', 'br', 'a'}
-_plain_allowed_attributes = {'a': {'href', 'rel'}}
-_md = MarkdownIt('commonmark', {'linkify': True, 'typographer': True})
-_md.enable(('linkify', 'smartquotes', 'replacements'))
-_md.add_render_rule('image', _render_image)
-_md.add_render_rule('link_open', _render_link)
-_linkify = cast(LinkifyIt, _md.linkify)
-_linkify.tlds('onion', keep_old=True)  # support onion links
-_linkify.add('ftp:', None)  # disable ftp links
-_linkify.add('//', None)  # disable double-slash links
-_trusted_hosts = TRUSTED_HOSTS
-_trusted_hosts_dot = tuple(f'.{host}' for host in TRUSTED_HOSTS)
-_trusted_link_rel = 'noopener'
-_untrusted_link_rel = 'noopener nofollow'
+@cython.cfunc
+def _load_allowed_tags_and_attributes() -> tuple[set[str], dict[str, set[str]]]:
+    data = tomllib.loads(Path('config/rich_text.toml').read_text())
+    allowed_tags = set(data['allowed_tags'])
+    allowed_attributes = {k: set(v) for k, v in data['allowed_attributes'].items()}
+    return allowed_tags, allowed_attributes
+
+
+_ALLOWED_TAGS, _ALLOWED_ATTRS = _load_allowed_tags_and_attributes()
+_PLAIN_ALLOWED_TAGS = {'p', 'br', 'a'}
+_PLAIN_ALLOWED_ATTRS = {'a': {'href', 'rel'}}
+_MD = MarkdownIt('commonmark', {'linkify': True, 'typographer': True})
+_MD.enable(('linkify', 'smartquotes', 'replacements'))
+_MD.add_render_rule('image', _render_image)
+_MD.add_render_rule('link_open', _render_link)
+_LINKIFY = cast(LinkifyIt, _MD.linkify)
+_LINKIFY.tlds('onion', keep_old=True)  # support onion links
+_LINKIFY.add('ftp:', None)  # disable ftp links
+_LINKIFY.add('//', None)  # disable double-slash links
+_TRUSTED_HOSTS_DOT = tuple(f'.{host}' for host in TRUSTED_HOSTS)
+_TRUSTED_LINK_REL = 'noopener'
+_UNTRUSTED_LINK_REL = 'noopener nofollow'

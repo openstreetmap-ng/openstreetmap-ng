@@ -1,46 +1,48 @@
 {% if messages %}
-<ul class="messages-list social-list list-unstyled">
-    {% for message in messages %}
-    <li class="social-action social-entry {% if message.id == active_message_id %}active{% endif %} {% if inbox and not message.is_read %}unread{% endif %}"
-        data-id="{{ message.id }}">
-        <p class="header text-muted d-flex justify-content-between">
-            {% if inbox %}
-            <span>
+    <ul class="messages-list social-list list-unstyled">
+        {% for message in messages %}
+            <li class="social-action social-entry {% if message.id == active_message_id %}active{% endif %} {% if inbox and not message.is_read %}unread{% endif %}"
+                data-id="{{ message.id }}">
+                <p class="header text-muted d-flex justify-content-between">
+                    {% if inbox %}
+                        <span>
                 <a href="/user/{{ message.from_user.display_name }}">
-                    <img class="avatar" src="{{ message.from_user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                        loading="lazy">
+                    <img class="avatar" src="{{ user_avatar_url(message.from_user) }}"
+                         alt="{{ t('alt.profile_picture') }}"
+                         loading="lazy">
                     {{- message.from_user.display_name -}}
                 </a>
                 {{ t('messages.action_sent') }}
                 <time datetime="{{ message.created_at.isoformat() }}" data-style="long"></time>
             </span>
-            {% else %}
-            <span>
+                    {% else %}
+                        <span>
                 <a href="/user/{{ message.to_user.display_name }}">
-                    <img class="avatar" src="{{ message.to_user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                        loading="lazy">
+                    <img class="avatar" src="{{ user_avatar_url(message.to_user) }}"
+                         alt="{{ t('alt.profile_picture') }}"
+                         loading="lazy">
                     {{- message.to_user.display_name -}}
                 </a>
                 {{ t('messages.action_delivered') }}
                 <time datetime="{{ message.created_at.isoformat() }}" data-style="long"></time>
             </span>
-            {% endif %}
-            <span>
+                    {% endif %}
+                    <span>
                 <a class="stretched-link" href="?before={{ current_before }}&show={{ message.id }}"></a>
                 <span class="unread-badge badge text-bg-primary">
                     <i class="bi bi-bell-fill me-1"></i>
                     {{- t('state.unread') }}
                 </span>
             </span>
-        </p>
-        <div class="body">
-            <h6 class="title">{{ message.subject }}</h6>
-            <p class="description">{{ message.body | truncate(250) }}</p>
-        </div>
-    </li>
-    {% endfor %}
-</ul>
-{% include 'messages/_list_nav.jinja2' %}
+                </p>
+                <div class="body">
+                    <h6 class="title">{{ message.subject }}</h6>
+                    <p class="description">{{ message.body | truncate(250) }}</p>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    {% include 'messages/_list_nav.jinja2' %}
 {% else %}
-<h3>{{ t('traces.index.empty_title') }}</h3>
+    <h3>{{ t('traces.index.empty_title') }}</h3>
 {% endif %}

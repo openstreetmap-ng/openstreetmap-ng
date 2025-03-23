@@ -1,6 +1,5 @@
 import sys
 from hashlib import sha256
-from itertools import chain
 from logging.config import dictConfig
 from os import chdir, environ, getenv
 from pathlib import Path
@@ -8,6 +7,8 @@ from urllib.parse import urlsplit
 
 import sentry_sdk
 from githead import githead
+from pydantic import ConfigDict
+from sentry_sdk.integrations.gnu_backtrace import GnuBacktraceIntegration
 from sentry_sdk.integrations.pure_eval import PureEvalIntegration
 
 from app.lib.local_chapters import LOCAL_CHAPTERS
@@ -53,6 +54,10 @@ TEST_ENV = getenv('TEST_ENV', '0').strip().lower() in {'1', 'true', 'yes'}
 LOG_LEVEL = getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
 GC_LOG = getenv('GC_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
 
+AVATAR_STORAGE_URI = getenv('AVATAR_STORAGE_URI', 'db://avatar')
+BACKGROUND_STORAGE_URI = getenv('BACKGROUND_STORAGE_URI', 'db://background')
+TRACE_STORAGE_URI = getenv('TRACE_STORAGE_URI', 'db://trace')
+
 FREEZE_TEST_USER = getenv('FREEZE_TEST_USER', '1').strip().lower() in {'1', 'true', 'yes'}
 FORCE_RELOAD_LOCALE_FILES = getenv('FORCE_RELOAD_LOCALE_FILES', '0').strip().lower() in {'1', 'true', 'yes'}
 LEGACY_HIGH_PRECISION_TIME = getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in {'1', 'true', 'yes'}
@@ -60,7 +65,6 @@ LEGACY_SEQUENCE_ID_MARGIN = getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().low
 
 FILE_CACHE_DIR = _path(getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
 FILE_CACHE_SIZE_GB = int(getenv('FILE_CACHE_SIZE_GB', '128'))
-FILE_STORE_DIR = _path(getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
 PLANET_DIR = _path(getenv('PLANET_DIR', 'data/planet'), mkdir=True)
 PRELOAD_DIR = _path(getenv('PRELOAD_DIR', 'data/preload'))
 REPLICATION_DIR = _path(getenv('REPLICATION_DIR', 'data/replication'), mkdir=True)
@@ -72,8 +76,6 @@ POSTGRES_URL = getenv('POSTGRES_URL', f'postgresql://postgres@/postgres?host={_p
 
 DUCKDB_MEMORY_LIMIT = getenv('DUCKDB_MEMORY_LIMIT', '8GB')
 DUCKDB_TMPDIR = getenv('DUCKDB_TMPDIR')
-
-VALKEY_URL = getenv('VALKEY_URL', f'unix://{_path("data/valkey.sock")}?protocol=3')
 
 SMTP_NOREPLY_FROM = getenv('SMTP_NOREPLY_FROM', SMTP_USER)
 SMTP_MESSAGES_FROM = getenv('SMTP_MESSAGES_FROM', SMTP_USER)
@@ -109,21 +111,21 @@ WIKIMEDIA_OAUTH_PUBLIC = getenv('WIKIMEDIA_OAUTH_PUBLIC')
 WIKIMEDIA_OAUTH_SECRET = getenv('WIKIMEDIA_OAUTH_SECRET')
 
 TRUSTED_HOSTS: frozenset[str] = frozenset(
-    host.casefold()
-    for host in chain(
-        (
+    h.casefold()
+    for host in (
+        *(
             line
-            for line in (line.strip() for line in Path('config/trusted_hosts.txt').read_text().splitlines())
-            if line and not line.startswith('#')
+            for line in Path('config/trusted_hosts.txt').read_text().splitlines()
+            if not line.lstrip().startswith('#')
         ),
-        (urlsplit(url).hostname for _, url in LOCAL_CHAPTERS),
-        getenv('TRUSTED_HOSTS_EXTRA', '').split(),
+        *(urlsplit(lc.url).hostname or '' for lc in LOCAL_CHAPTERS),
+        *getenv('TRUSTED_HOSTS_EXTRA', '').split(),
     )
-    if host
+    if (h := host.strip())
 )
 
 TEST_USER_EMAIL_SUFFIX = '@test.test'
-DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'
+DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'  # SQL index depends on this value
 
 FORCE_CRASH_REPORTING = getenv('FORCE_CRASH_REPORTING', '0').strip().lower() in {'1', 'true', 'yes'}
 SENTRY_TRACES_SAMPLE_RATE = float(getenv('SENTRY_TRACES_SAMPLE_RATE', '1'))
@@ -137,51 +139,50 @@ SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES
 
 POSTGRES_SQLALCHEMY_URL = POSTGRES_URL.replace('postgresql://', 'postgresql+asyncpg://', 1)
 
-# Logging configuration
-dictConfig(
-    {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'default': {
-                '()': 'uvicorn.logging.DefaultFormatter',
-                'fmt': '%(levelprefix)s | %(asctime)s | %(name)s %(message)s',
-                'datefmt': '%Y-%m-%d %H:%M:%S',
-            },
-        },
-        'handlers': {
-            'default': {
-                'formatter': 'default',
-                'class': 'logging.StreamHandler',
-                'stream': 'ext://sys.stderr',
-            },
-        },
-        'loggers': {
-            'root': {'handlers': ['default'], 'level': LOG_LEVEL},
-            **{
-                # reduce logging verbosity of some modules
-                module: {'handlers': [], 'level': 'INFO'}
-                for module in (
-                    'hpack',
-                    'httpx',
-                    'httpcore',
-                    'markdown_it',
-                    'multipart',
-                    'python_multipart',
-                )
-            },
-            **{
-                # conditional database logging
-                module: {'handlers': [], 'level': 'INFO'}
-                for module in (
-                    'sqlalchemy.engine',
-                    'sqlalchemy.pool',
-                )
-                if POSTGRES_LOG
-            },
-        },
-    }
+PYDANTIC_CONFIG = ConfigDict(
+    extra='forbid',
+    arbitrary_types_allowed=True,
+    allow_inf_nan=False,
+    strict=True,
+    cache_strings='keys',
 )
+
+
+# Logging configuration
+dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            '()': 'uvicorn.logging.DefaultFormatter',
+            'fmt': '%(levelprefix)s | %(asctime)s | %(name)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    'handlers': {
+        'default': {
+            'formatter': 'default',
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stderr',
+        },
+    },
+    'loggers': {
+        'root': {'handlers': ['default'], 'level': LOG_LEVEL},
+        **{
+            # reduce logging verbosity of some modules
+            module: {'handlers': [], 'level': 'INFO'}
+            for module in (
+                'botocore',
+                'hpack',
+                'httpx',
+                'httpcore',
+                'markdown_it',
+                'multipart',
+                'python_multipart',
+            )
+        },
+    },
+})
 
 # Sentry configuration
 if SENTRY_DSN := (getenv('SENTRY_DSN') if ('pytest' not in sys.modules) else None):
@@ -189,11 +190,14 @@ if SENTRY_DSN := (getenv('SENTRY_DSN') if ('pytest' not in sys.modules) else Non
         dsn=SENTRY_DSN,
         release=VERSION,
         environment=urlsplit(APP_URL).hostname,
+        integrations=[
+            GnuBacktraceIntegration(),
+            PureEvalIntegration(),
+        ],
         keep_alive=True,
         traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
         trace_propagation_targets=None,
         profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
-        integrations=(PureEvalIntegration(),),
         _experiments={
             'continuous_profiling_auto_start': True,
         },
@@ -225,6 +229,22 @@ SENTRY_CHANGESET_MANAGEMENT_MONITOR = sentry_sdk.monitor(
         'checkin_margin': 5,
         'max_runtime': 60,
         'failure_issue_threshold': 60,  # 1h
+        'recovery_threshold': 1,
+    },
+)
+
+
+SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR = sentry_sdk.monitor(
+    getenv('SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG', 'osm-ng-rate-limit-management'),
+    {
+        'schedule': {
+            'type': 'interval',
+            'value': 5,
+            'unit': 'minute',
+        },
+        'checkin_margin': 5,
+        'max_runtime': 60,
+        'failure_issue_threshold': 288,  # 1d
         'recovery_threshold': 1,
     },
 )

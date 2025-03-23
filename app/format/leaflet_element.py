@@ -1,152 +1,187 @@
 import logging
-from collections.abc import Iterable, Sequence
 
 import cython
-import numpy as np
 from polyline_rs import encode_lonlat
-from shapely import Point, lib
+from shapely import Point, get_coordinates
 
 from app.lib.elements_filter import ElementsFilter
 from app.lib.query_features import QueryFeatureResult
 from app.models.db.element import Element
-from app.models.db.element_member import ElementMember
-from app.models.element import ElementId
+from app.models.element import TypedElementId, split_typed_element_id
 from app.models.proto.shared_pb2 import RenderElementsData
 
 
 class LeafletElementMixin:
     @staticmethod
     def encode_elements(
-        elements: Iterable[Element],
+        elements: list[Element],
         *,
-        detailed: cython.char,
-        areas: cython.char = True,
+        detailed: cython.bint,
+        areas: cython.bint = True,
     ) -> RenderElementsData:
         """Format elements into a minimal structure, suitable for map rendering."""
-        node_id_map: dict[ElementId, Element] = {}
+        node_id_map: dict[TypedElementId, Element] = {}
         ways: list[Element] = []
-        member_nodes_ids: set[ElementId] = set()
         for element in elements:
-            if element.type == 'node':
-                node_id_map[element.id] = element
-            elif element.type == 'way':
+            typed_id = element['typed_id']
+            type = split_typed_element_id(typed_id)[0]
+            if type == 'node':
+                node_id_map[typed_id] = element
+            elif type == 'way':
                 ways.append(element)
 
-        render_ways: list[RenderElementsData.Way] = []
-        for way in ways:
-            way_members = way.members
-            if way_members is None:
-                raise AssertionError('Way members must be set')
-
-            way_id = way.id
-            member_nodes_ids.update(member.id for member in way_members)
-            current_segment: list[Point] = []
-            segments: list[list[Point]] = [current_segment]
-
-            for node_ref in way_members:
-                node = node_id_map.get(node_ref.id)
-                if node is None:
-                    # split way on gap
-                    if current_segment:
-                        current_segment = []
-                        segments.append(current_segment)
-                    continue
-
-                point = node.point
-                if point is None:
-                    logging.warning(
-                        'Missing point for node %d version %d (part of way %d version %d)',
-                        node.id,
-                        node.version,
-                        way_id,
-                        way.version,
-                    )
-                    continue
-
-                current_segment.append(point)
-
-            is_area = _check_way_area(way.tags, way_members) if areas and len(segments) == 1 else False
-            for segment in segments:
-                if not segment:
-                    continue
-                segment_geom: list[list[float]]
-                segment_geom = lib.get_coordinates(np.asarray(segment, dtype=np.object_), False, False).tolist()  # type: ignore
-                line = encode_lonlat(segment_geom, 6)
-                render_ways.append(RenderElementsData.Way(id=way_id, line=line, area=is_area))
-
-        encode_nodes = ElementsFilter.filter_nodes_interesting(
-            node_id_map.values(), member_nodes_ids, detailed=detailed
-        )
-        encode_points = tuple(node.point for node in encode_nodes)
-        encode_geom: list[list[float]]
-        encode_geom = lib.get_coordinates(np.asarray(encode_points, dtype=np.object_), False, False).tolist()  # type: ignore
-        render_nodes = tuple(
-            RenderElementsData.Node(id=node.id, lon=geom[0], lat=geom[1])
-            for node, geom in zip(encode_nodes, encode_geom, strict=True)
-        )
+        member_nodes: set[TypedElementId] = set()
+        render_ways = _render_ways(ways=ways, node_id_map=node_id_map, areas=areas, member_nodes=member_nodes)
+        render_nodes = _render_nodes(node_id_map=node_id_map, member_nodes=member_nodes, detailed=detailed)
         return RenderElementsData(
             nodes=render_nodes,
             ways=render_ways,
         )
 
     @staticmethod
-    def encode_query_features(results: Iterable[QueryFeatureResult]) -> list[RenderElementsData]:
+    def encode_query_features(results: list[QueryFeatureResult]) -> list[RenderElementsData]:
         """Format query features results into a minimal structure, suitable for map rendering."""
         encoded: list[RenderElementsData] = []
+
         for result in results:
             element = result.element
-            element_type = element.type
-            if element_type == 'node':
+            type, id = split_typed_element_id(element['typed_id'])
+
+            if type == 'node':
                 point = result.geoms[0][0]
-                render_node = RenderElementsData.Node(id=element.id, lon=point[0], lat=point[1])
-                encoded.append(RenderElementsData(nodes=(render_node,)))
-            elif element_type == 'way':
-                render_way = RenderElementsData.Way(id=element.id, line=encode_lonlat(result.geoms[0], 6))
-                encoded.append(RenderElementsData(ways=(render_way,)))
-            elif element_type == 'relation':
+                render_node = RenderElementsData.Node(id=id, lon=point[0], lat=point[1])
+                encoded.append(RenderElementsData(nodes=[render_node]))
+
+            elif type == 'way':
+                render_way = RenderElementsData.Way(id=id, line=encode_lonlat(result.geoms[0], 6))
+                encoded.append(RenderElementsData(ways=[render_way]))
+
+            elif type == 'relation':
                 nodes: list[RenderElementsData.Node] = []
                 ways: list[RenderElementsData.Way] = []
                 for geom in result.geoms:
                     if len(geom) == 1:
                         point = geom[0]
-                        nodes.append(RenderElementsData.Node(id=element.id, lon=point[0], lat=point[1]))
+                        nodes.append(RenderElementsData.Node(id=id, lon=point[0], lat=point[1]))
                     else:
-                        ways.append(RenderElementsData.Way(id=element.id, line=encode_lonlat(geom, 6)))
-                encoded.append(RenderElementsData(nodes=tuple(nodes), ways=tuple(ways)))
+                        ways.append(RenderElementsData.Way(id=id, line=encode_lonlat(geom, 6)))
+                encoded.append(RenderElementsData(nodes=nodes, ways=ways))
+
             else:
-                raise NotImplementedError(f'Unsupported element type {element_type!r}')
+                raise NotImplementedError(f'Unsupported element type {type!r}')
+
         return encoded
 
 
 @cython.cfunc
-def _check_way_area(tags: dict[str, str], members: Sequence[ElementMember]):
+def _render_ways(
+    *,
+    ways: list[Element],
+    node_id_map: dict[TypedElementId, Element],
+    areas: cython.bint,
+    member_nodes: set[TypedElementId],
+) -> list[RenderElementsData.Way]:
+    result: list[RenderElementsData.Way] = []
+
+    for way in ways:
+        way_members = way['members']
+        if not way_members:
+            continue
+
+        member_nodes.update(way_members)
+        way_id = split_typed_element_id(way['typed_id'])[1]
+        segments: list[list[Point]] = []
+        current_segment: list[Point] = []
+
+        for node_ref in way_members:
+            node = node_id_map.get(node_ref)
+            if node is None:
+                # split way on gap
+                if current_segment:
+                    current_segment = []
+                    segments.append(current_segment)
+                continue
+
+            point = node['point']
+            if point is None:
+                node_id = split_typed_element_id(node['typed_id'])[1]
+                logging.warning(
+                    'Missing point for node %d version %d (part of way %d version %d)',
+                    node_id,
+                    node['version'],
+                    way_id,
+                    way['version'],
+                )
+                continue
+
+            current_segment.append(point)
+
+        # Finish the segment if non-empty
+        if current_segment:
+            segments.append(current_segment)
+
+        is_area = (
+            _check_way_area(way['tags'], way_members)  # type: ignore
+            if areas and len(segments) == 1
+            else False
+        )
+        for segment in segments:
+            geom: list[list[float]] = get_coordinates(segment).tolist()  # type: ignore
+            line = encode_lonlat(geom, 6)
+            result.append(RenderElementsData.Way(id=way_id, line=line, area=is_area))
+
+    return result
+
+
+@cython.cfunc
+def _render_nodes(
+    node_id_map: dict[TypedElementId, Element],
+    member_nodes: set[TypedElementId],
+    detailed: cython.bint,
+) -> list[RenderElementsData.Node]:
+    nodes = list(node_id_map.values())
+    nodes = ElementsFilter.filter_nodes_interesting(nodes, member_nodes, detailed=detailed)
+    if not nodes:
+        return []
+
+    points = [node['point'] for node in nodes]
+    geoms: list[list[float]] = get_coordinates(points).tolist()  # type: ignore
+    return [
+        RenderElementsData.Node(
+            id=split_typed_element_id(node['typed_id'])[1],
+            lon=geom[0],
+            lat=geom[1],
+        )
+        for node, geom in zip(nodes, geoms, strict=True)
+    ]
+
+
+@cython.cfunc
+def _check_way_area(tags: dict[str, str], members: list[TypedElementId]):
     """Check if the way should be displayed as an area."""
-    if len(members) <= 2:
-        return False
-    is_closed = members[0].id == members[-1].id
-    if not is_closed:
-        return False
-    area_tags = _area_tags.intersection(tags)
-    if area_tags:
-        return True
-    return any(key.startswith(_area_prefixes) for key in tags)
-
-
-_area_tags: frozenset[str] = frozenset(
-    (
-        'amenity',
-        'area',
-        'building',
-        'building:part',
-        'leisure',
-        'tourism',
-        'ruins',
-        'historic',
-        'landuse',
-        'military',
-        'natural',
-        'sport',
+    return (
+        len(members) > 2  # has enough members
+        and members[0] == members[-1]  # is closed
+        and (
+            bool(_AREA_TAGS.intersection(tags))  # has area tag
+            or any(key.startswith(_AREA_PREFIXES) for key in tags)  # has area prefix
+        )
     )
-)
 
-_area_prefixes: tuple[str, ...] = ('area:',)
+
+_AREA_TAGS: frozenset[str] = frozenset((
+    'amenity',
+    'area',
+    'building',
+    'building:part',
+    'leisure',
+    'tourism',
+    'ruins',
+    'historic',
+    'landuse',
+    'military',
+    'natural',
+    'sport',
+))
+
+_AREA_PREFIXES: tuple[str, ...] = ('area:',)

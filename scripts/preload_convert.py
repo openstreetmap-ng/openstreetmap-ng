@@ -1,4 +1,3 @@
-import asyncio
 import gc
 import os
 from collections.abc import Callable
@@ -18,7 +17,6 @@ from app.config import PRELOAD_DIR
 from app.db import duckdb_connect
 from app.lib.compressible_geometry import compressible_geometry
 from app.lib.xmltodict import XMLToDict
-from app.models.db import *  # noqa: F403
 from app.models.element import ElementType
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
@@ -26,63 +24,55 @@ PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')
 if not PLANET_INPUT_PATH.is_file():
     raise FileNotFoundError(f'Planet data file not found: {PLANET_INPUT_PATH}')
 
-_PLANET_SCHEMA = pa.schema(
-    [
-        pa.field('changeset_id', pa.uint64()),
-        pa.field('type', pa.string()),
-        pa.field('id', pa.uint64()),
-        pa.field('version', pa.uint64()),
-        pa.field('visible', pa.bool_()),
-        pa.field('tags', pa.string()),
-        pa.field('point', pa.string()),
-        pa.field(
-            'members',
-            pa.list_(
-                pa.struct(
-                    [
-                        pa.field('order', pa.uint16()),
-                        pa.field('type', pa.string()),
-                        pa.field('id', pa.uint64()),
-                        pa.field('role', pa.string()),
-                    ]
-                )
-            ),
+_PLANET_SCHEMA = pa.schema([
+    pa.field('changeset_id', pa.uint64()),
+    pa.field('type', pa.string()),
+    pa.field('id', pa.uint64()),
+    pa.field('version', pa.uint64()),
+    pa.field('visible', pa.bool_()),
+    pa.field('tags', pa.string()),
+    pa.field('point', pa.string()),
+    pa.field(
+        'members',
+        pa.list_(
+            pa.struct([
+                pa.field('order', pa.uint16()),
+                pa.field('type', pa.string()),
+                pa.field('id', pa.uint64()),
+                pa.field('role', pa.string()),
+            ])
         ),
-        pa.field('created_at', pa.timestamp('ms', 'UTC')),
-        pa.field('user_id', pa.uint64()),
-        pa.field('display_name', pa.string()),
-    ]
-)
+    ),
+    pa.field('created_at', pa.timestamp('ms', 'UTC')),
+    pa.field('user_id', pa.uint64()),
+    pa.field('display_name', pa.string()),
+])
 
 NOTES_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osn')
 NOTES_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osn.parquet')
 if not NOTES_INPUT_PATH.is_file():
     raise FileNotFoundError(f'Notes data file not found: {PLANET_INPUT_PATH}')
 
-_NOTES_SCHEMA = pa.schema(
-    [
-        pa.field('id', pa.uint64()),
-        pa.field('point', pa.string()),
-        pa.field(
-            'comments',
-            pa.list_(
-                pa.struct(
-                    [
-                        pa.field('user_id', pa.uint64()),
-                        pa.field('display_name', pa.string()),
-                        pa.field('event', pa.string()),
-                        pa.field('body', pa.string()),
-                        pa.field('created_at', pa.timestamp('ms', 'UTC')),
-                    ]
-                )
-            ),
+_NOTES_SCHEMA = pa.schema([
+    pa.field('id', pa.uint64()),
+    pa.field('point', pa.string()),
+    pa.field(
+        'comments',
+        pa.list_(
+            pa.struct([
+                pa.field('user_id', pa.uint64()),
+                pa.field('display_name', pa.string()),
+                pa.field('event', pa.string()),
+                pa.field('body', pa.string()),
+                pa.field('created_at', pa.timestamp('ms', 'UTC')),
+            ])
         ),
-        pa.field('created_at', pa.timestamp('ms', 'UTC')),
-        pa.field('updated_at', pa.timestamp('ms', 'UTC')),
-        pa.field('closed_at', pa.timestamp('ms', 'UTC')),
-        pa.field('hidden_at', pa.timestamp('ms', 'UTC')),
-    ]
-)
+    ),
+    pa.field('created_at', pa.timestamp('ms', 'UTC')),
+    pa.field('updated_at', pa.timestamp('ms', 'UTC')),
+    pa.field('closed_at', pa.timestamp('ms', 'UTC')),
+    pa.field('hidden_at', pa.timestamp('ms', 'UTC')),
+])
 
 _MEMORY_LIMIT = 2 * (1024 * 1024 * 1024)  # real: ~2 GB memory usage per worker
 _NUM_WORKERS = os.process_cpu_count() or 1
@@ -121,7 +111,7 @@ def planet_worker(
             input_buffer = f_in.read(to_seek)
 
     elements: list[tuple[ElementType, dict]]
-    elements = XMLToDict.parse(input_buffer, size_limit=None)['osm']
+    elements = XMLToDict.parse(input_buffer, size_limit=None)['osm']  # type: ignore
     # free memory
     del input_buffer
 
@@ -168,21 +158,19 @@ def planet_worker(
         else:
             raise NotImplementedError(f'Unsupported element type {element_type!r}')
 
-        data.append(
-            {
-                'changeset_id': element['@changeset'],
-                'type': element_type,
-                'id': element['@id'],
-                'version': element['@version'],
-                'visible': (tags is not None) or (point is not None) or bool(members),
-                'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
-                'point': point,
-                'members': members,
-                'created_at': element['@timestamp'],
-                'user_id': element.get('@uid'),
-                'display_name': element.get('@user'),
-            }
-        )
+        data.append({
+            'changeset_id': element['@changeset'],
+            'type': element_type,
+            'id': element['@id'],
+            'version': element['@version'],
+            'visible': (tags is not None) or (point is not None) or bool(members),
+            'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
+            'point': point,
+            'members': members,
+            'created_at': element['@timestamp'],
+            'user_id': element.get('@uid'),
+            'display_name': element.get('@user'),
+        })
 
     pq.write_table(
         pa.Table.from_pylist(data, schema=_PLANET_SCHEMA),
@@ -197,7 +185,7 @@ def planet_worker(
 def run_planet_workers() -> None:
     input_size = PLANET_INPUT_PATH.stat().st_size
     num_tasks = input_size // _WORKER_MEMORY_LIMIT
-    from_seek_search = (b'  <node', b'  <way', b'  <relation')
+    from_seek_search = [b'  <node', b'  <way', b'  <relation']
     from_seeks: list[int] = []
     print(f'Configuring {num_tasks} tasks (using {_NUM_WORKERS} workers)')
 
@@ -211,10 +199,10 @@ def run_planet_workers() -> None:
             from_seek += min_find
             from_seeks.append(from_seek)
 
-    args: tuple[tuple[int, int, int], ...] = tuple(
+    args: list[tuple[int, int, int]] = [
         (i, from_seek, (from_seeks[i + 1] if i + 1 < num_tasks else input_size))
         for i, from_seek in enumerate(from_seeks)
-    )
+    ]
     with Pool(_NUM_WORKERS) as pool:
         for _ in tqdm(
             pool.imap_unordered(planet_worker, args),
@@ -231,7 +219,7 @@ def merge_planet_worker_results() -> None:
 
     with duckdb_connect() as conn:
         print('Creating table')
-        parquets = conn.read_parquet([path.as_posix() for path in paths])  # type: ignore
+        parquets = conn.read_parquet([path.as_posix() for path in paths])  # type: ignore  # noqa: F841
         conn.sql("""
         CREATE TEMP TABLE sequence AS
         SELECT
@@ -286,7 +274,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
             input_buffer = f_in.read(to_seek)
 
     notes: list[dict]
-    notes = XMLToDict.parse(input_buffer, size_limit=None)['osm-notes']['note']
+    notes = XMLToDict.parse(input_buffer, size_limit=None)['osm-notes']['note']  # type: ignore
     # free memory
     del input_buffer
 
@@ -314,28 +302,24 @@ def notes_worker(args: tuple[int, int, int]) -> None:
                 note_closed_at = None
                 note_hidden_at = None
 
-            comments.append(
-                {
-                    'user_id': comment.get('@uid'),
-                    'display_name': comment.get('@user'),
-                    'event': event,
-                    'body': comment.get('#text', ''),
-                    'created_at': comment_created_at,
-                }
-            )
+            comments.append({
+                'user_id': comment.get('@uid'),
+                'display_name': comment.get('@user'),
+                'event': event,
+                'body': comment.get('#text', ''),
+                'created_at': comment_created_at,
+            })
 
         point = compressible_geometry(Point(note['@lon'], note['@lat'])).wkb_hex
-        data.append(
-            {
-                'id': note['@id'],
-                'point': point,
-                'comments': comments,
-                'created_at': note_created_at,
-                'updated_at': note_updated_at,
-                'closed_at': note_closed_at,
-                'hidden_at': note_hidden_at,
-            }
-        )
+        data.append({
+            'id': note['@id'],
+            'point': point,
+            'comments': comments,
+            'created_at': note_created_at,
+            'updated_at': note_updated_at,
+            'closed_at': note_closed_at,
+            'hidden_at': note_hidden_at,
+        })
 
     pq.write_table(
         pa.Table.from_pylist(data, schema=_NOTES_SCHEMA),
@@ -350,7 +334,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
 def run_notes_workers() -> None:
     input_size = NOTES_INPUT_PATH.stat().st_size
     num_tasks = input_size // _WORKER_MEMORY_LIMIT
-    from_seek_search = (b'<note',)
+    from_seek_search = [b'<note']
     from_seeks = []
 
     print(f'Configuring {num_tasks} tasks (using {_NUM_WORKERS} workers)')
@@ -365,10 +349,10 @@ def run_notes_workers() -> None:
                 from_seek += min_find
             from_seeks.append(from_seek)
 
-    args: tuple[tuple[int, int, int], ...] = tuple(
+    args: list[tuple[int, int, int]] = [
         (i, from_seek, (from_seeks[i + 1] if i + 1 < num_tasks else input_size))
         for i, from_seek in enumerate(from_seeks)
-    )
+    ]
     with Pool(_NUM_WORKERS) as pool:
         for _ in tqdm(
             pool.imap_unordered(notes_worker, args),
@@ -406,9 +390,11 @@ def _write_changeset() -> None:
             SELECT
                 changeset_id AS id,
                 ANY_VALUE(user_id) AS user_id,
+                '' AS tags,
+                MIN(created_at) AS created_at,
+                MAX(created_at) AS updated_at,
                 MAX(created_at) AS closed_at,
-                COUNT(*) AS size,
-                '{{}}' AS tags
+                COUNT(*) AS size
             FROM planet
             GROUP BY changeset_id
             ORDER BY changeset_id
@@ -419,38 +405,68 @@ def _write_changeset() -> None:
 def _write_element() -> None:
     with duckdb_connect() as conn:
         planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
+
+        # Compute typed_id from type and id.
+        # Source implementation: app.models.element.typed_element_id
+        conn.execute("""
+        CREATE MACRO typed_element_id(type, id) AS
+        CASE
+            WHEN type = 'node' THEN id
+            WHEN type = 'way' THEN (id | (1::bigint << 60))
+            WHEN type = 'relation' THEN (id | (2::bigint << 60))
+            ELSE NULL
+        END
+        """)
+
+        # Utility for quoting text
+        conn.execute("""
+        CREATE MACRO quote(str) AS
+        '"' || replace(replace(str, '\\', '\\\\'), '"', '\\"') || '"'
+        """)
+
+        # Convert JSON dict to hstore
+        conn.execute("""
+        CREATE MACRO json_to_hstore(json) AS
+        array_to_string(
+            list_transform(
+                json_keys(json),
+                k -> quote(k) || '=>' || quote(json_extract_string(json, k))
+            ),
+            ','
+        )
+        """)
+
+        # Encode array in Postgres-compatible format
+        conn.execute("""
+        CREATE MACRO pg_array(arr) AS
+        '{' || array_to_string(arr, ',') || '}'
+        """)
+
         conn.sql(f"""
         COPY (
             SELECT
                 sequence_id,
                 changeset_id,
-                type,
-                id,
+                typed_element_id(type, id) AS typed_id,
                 version,
                 visible,
-                tags,
+                CASE WHEN visible THEN json_to_hstore(tags) ELSE NULL END AS tags,
                 point,
+                CASE
+                    WHEN visible AND type != 'node' THEN
+                        pg_array(list_transform(members, x -> typed_element_id(x.type, x.id)))
+                    ELSE NULL
+                END AS members,
+                CASE
+                    WHEN visible AND type = 'relation' THEN
+                        pg_array(list_transform(members, x -> quote(x.role)))
+                    ELSE NULL
+                END AS members_roles,
                 created_at,
                 next_sequence_id
             FROM planet
             ORDER BY type, id, version
         ) TO {_get_csv_path('element').as_posix()!r}
-        """)
-
-
-def _write_element_member() -> None:
-    with duckdb_connect() as conn:
-        planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
-        conn.sql(f"""
-        COPY (
-            SELECT * FROM (
-                SELECT
-                    sequence_id,
-                    UNNEST(members, max_depth := 2)
-                FROM planet
-            )
-            ORDER BY type, id, sequence_id
-        ) TO {_get_csv_path('element_member').as_posix()!r}
         """)
 
 
@@ -480,7 +496,6 @@ def _write_note_comment() -> None:
             SELECT * EXCLUDE (display_name) FROM (
                 SELECT
                     id AS note_id,
-                    NULL AS user_ip,
                     UNNEST(comments, max_depth := 2)
                 FROM notes
                 ORDER BY id
@@ -497,35 +512,42 @@ def _write_user() -> None:
         COPY (
             SELECT DISTINCT ON (user_id)
                 user_id AS id,
-                display_name,
                 (user_id || '@localhost.invalid') AS email,
+                TRUE as email_verified,
+                CASE
+                    WHEN COUNT(*) OVER (PARTITION BY display_name) > 1
+                    THEN display_name || '_' || user_id
+                    ELSE display_name
+                END AS display_name,
                 '' AS password_pb,
-                '127.0.0.1' AS created_ip,
-                'active' AS status,
                 'en' AS language,
                 TRUE AS activity_tracking,
-                TRUE AS crash_reporting
+                TRUE AS crash_reporting,
+                '127.0.0.1' AS created_ip
             FROM (
-                SELECT
+                SELECT DISTINCT ON (user_id)
                     user_id,
                     display_name
                 FROM planet
+                WHERE user_id IS NOT NULL
+
                 UNION ALL
-                SELECT
+
+                SELECT DISTINCT ON (user_id)
                     user_id,
                     display_name,
                 FROM (
                     SELECT UNNEST(comments, max_depth := 2)
                     FROM notes
                 )
+                WHERE user_id IS NOT NULL
             )
-            WHERE user_id IS NOT NULL
             ORDER BY user_id
         ) TO {_get_csv_path('user').as_posix()!r}
         """)
 
 
-async def main() -> None:
+def main() -> None:
     run_planet_workers()
     merge_planet_worker_results()
     run_notes_workers()
@@ -535,8 +557,6 @@ async def main() -> None:
     _write_changeset()
     print('Writing element')
     _write_element()
-    print('Writing element member')
-    _write_element_member()
     print('Writing note')
     _write_note()
     print('Writing note comment')
@@ -546,5 +566,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
     print('Done! Done! Done!')

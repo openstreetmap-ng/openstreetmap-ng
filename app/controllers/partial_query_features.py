@@ -7,8 +7,8 @@ from shapely import Point
 from app.format import FormatLeaflet
 from app.lib.query_features import QueryFeatures
 from app.lib.render_response import render_response
-from app.models.geometry import Latitude, Longitude, Zoom
 from app.models.proto.shared_pb2 import PartialQueryFeaturesParams
+from app.models.types import Latitude, Longitude, Zoom
 from app.queries.overpass_query import OverpassQuery
 
 router = APIRouter(prefix='/api/partial/query')

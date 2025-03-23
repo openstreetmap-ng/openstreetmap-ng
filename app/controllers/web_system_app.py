@@ -14,5 +14,5 @@ async def create_access_token(
     client_id: Annotated[Literal['SystemApp.id', 'SystemApp.rapid'], Form()],
     _: Annotated[User, web_user()],
 ):
-    access_token = await SystemAppService.create_access_token(client_id)
+    access_token = await SystemAppService.create_access_token(client_id)  # type: ignore
     return {'access_token': access_token.get_secret_value()}

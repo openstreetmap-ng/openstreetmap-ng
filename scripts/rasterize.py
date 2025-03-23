@@ -1,12 +1,14 @@
 import os
-from collections.abc import Iterable
 from contextlib import contextmanager
 from functools import partial
 from multiprocessing.pool import Pool
 from pathlib import Path
 from time import perf_counter
 
+import cairosvg
 import click
+import cv2
+import numpy as np
 
 cli = click.Group()
 
@@ -34,11 +36,7 @@ def get_output_path(input: Path, /, *, root: Path) -> Path:
 
 
 def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
-    import cairosvg
-    import cv2
-    import numpy as np
-
-    png_data: bytes = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)
+    png_data = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)
     img = cv2.imdecode(np.frombuffer(png_data, np.uint8), cv2.IMREAD_UNCHANGED)
     _, img = cv2.imencode(output.suffix, img, (cv2.IMWRITE_WEBP_QUALITY, quality))
 
@@ -59,7 +57,7 @@ def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
 @click.argument('input', nargs=-1, type=click.Path(dir_okay=False, path_type=Path))
 @click.option('size', '--size', '-s', default=DEFAULT_SIZE, show_default=True)
 @click.option('quality', '--quality', '-q', default=DEFAULT_QUALITY, show_default=True)
-def file(input: Iterable[Path], size: int, quality: int) -> None:
+def file(input: tuple[Path, ...], size: int, quality: int) -> None:
     root = Path()
     for i in input:
         output = get_output_path(i, root=root)

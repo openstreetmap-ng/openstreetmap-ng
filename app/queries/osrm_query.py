@@ -44,7 +44,7 @@ class OSRMQuery:
         points: list[tuple[float, float]] = []
         routing_steps: list[RoutingResult.Step] = [None] * len(leg['steps'])  # type: ignore
 
-        i: cython.int
+        i: cython.Py_ssize_t
         for i, step in enumerate(leg['steps']):
             step_points = decode_latlon(step['geometry'], 6)
             points.extend(step_points[1:] if i > 0 else step_points)  # extend without overlaps
@@ -78,14 +78,14 @@ def _get_maneuver_id(type: str, modifier: str) -> str:
 
 @cython.cfunc
 def _get_step_text(step: OSRMStep, maneuver_id: str) -> str:
-    translation_key = _MANEUVER_ID_TO_TRANSLATION_MAP.get(maneuver_id)
-    if translation_key is None:
+    translation = _MANEUVER_ID_TO_TRANSLATION_MAP.get(maneuver_id)
+    if translation is None:
         logging.warning('Unsupported OSRM maneuver id %r', maneuver_id)
         return ''
 
     step_name = step['name']
     step_ref = step.get('ref')
-    is_own_name: cython.char
+    is_own_name: cython.bint
     if step_name and step_ref is not None:
         name = f'{step_name} ({step_ref})'
         is_own_name = True
@@ -100,45 +100,39 @@ def _get_step_text(step: OSRMStep, maneuver_id: str) -> str:
         is_own_name = False
 
     if maneuver_id in {'exit rotary', 'exit roundabout'}:
-        return t(translation_key, name=name)
+        return t(translation, name=name)
 
     if maneuver_id in {'rotary', 'roundabout'}:
         exit_num = step['maneuver'].get('exit')
         if exit_num is None:
-            return t(f'{translation_key}_without_exit', name=name)  # noqa: INT001
+            return t(f'{translation}_without_exit', name=name)  # noqa: INT001
 
         if 0 < exit_num <= 10:
             exit_translation = _MANEUVER_EXIT_TO_TRANSLATION_MAP[exit_num]
-            return t(f'{translation_key}_with_exit_ordinal', name=name, exit=t(exit_translation))  # noqa: INT001
+            return t(f'{translation}_with_exit_ordinal', name=name, exit=t(exit_translation))  # noqa: INT001
 
-        return t(f'{translation_key}_with_exit', name=name, exit=exit_num)  # noqa: INT001
+        return t(f'{translation}_with_exit', name=name, exit=exit_num)  # noqa: INT001
 
     if maneuver_id in {'on ramp left', 'on ramp right', 'off ramp left', 'off ramp right'}:
         exits = step.get('exits')
         destinations = step.get('destinations')
-        with_parts = []
-        params = {}
+        params: dict[str, str] = {}
 
-        if (exits is not None) and maneuver_id in {'off ramp left', 'off ramp right'}:
-            with_parts.append('exit')
+        if exits is not None and maneuver_id in {'off ramp left', 'off ramp right'}:
             params['exit'] = exits
-
         if is_own_name:
-            with_parts.append('name')
             params['name'] = name
-
         if destinations is not None:
-            with_parts.append('directions')
             params['directions'] = destinations
 
         # Perform simple translation if no parameters
         if not params:
-            return t(translation_key)
+            return t(translation)
 
-        with_translation_key = f'{translation_key}_with_{"_".join(with_parts)}'
+        with_translation_key = f'{translation}_with_{"_".join(params)}'
         return t(with_translation_key, **params)
 
-    return t(f'{translation_key}_without_exit', name=name)  # noqa: INT001
+    return t(f'{translation}_without_exit', name=name)  # noqa: INT001
 
 
 _MANEUVER_ID_TO_ICON_MAP = {

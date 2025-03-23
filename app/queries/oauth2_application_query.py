@@ -1,43 +1,79 @@
-from collections.abc import Sequence
+from collections import defaultdict
 
-from sqlalchemy import select
+from psycopg.rows import dict_row
 
 from app.db import db
-from app.lib.options_context import apply_options_context
 from app.models.db.oauth2_application import OAuth2Application
+from app.models.db.oauth2_token import OAuth2Token
+from app.models.types import ApplicationId, ClientId, UserId
 
 
 class OAuth2ApplicationQuery:
     @staticmethod
-    async def find_one_by_id(app_id: int, *, user_id: int | None = None) -> OAuth2Application | None:
+    async def find_one_by_id(app_id: ApplicationId, *, user_id: UserId | None = None) -> OAuth2Application | None:
         """Find an OAuth2 application by id."""
-        async with db() as session:
-            stmt = select(OAuth2Application)
-            stmt = apply_options_context(stmt)
-            where_and = [OAuth2Application.id == app_id]
-
-            if user_id is not None:
-                where_and.append(OAuth2Application.user_id == user_id)
-
-            stmt = stmt.where(*where_and)
-            return await session.scalar(stmt)
+        apps = await OAuth2ApplicationQuery.find_many_by_ids([app_id])
+        app = next(iter(apps), None)
+        if (app is not None) and (user_id is not None) and app['user_id'] != user_id:
+            return None
+        return app
 
     @staticmethod
-    async def find_one_by_client_id(client_id: str) -> OAuth2Application | None:
+    async def find_many_by_ids(ids: list[ApplicationId]) -> list[OAuth2Application]:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM oauth2_application
+                WHERE id = ANY(%s)
+                """,
+                (ids,),
+            ) as r,
+        ):
+            return await r.fetchall()  # type: ignore
+
+    @staticmethod
+    async def find_one_by_client_id(client_id: ClientId) -> OAuth2Application | None:
         """Find an OAuth2 application by client id."""
-        async with db() as session:
-            stmt = select(OAuth2Application).where(OAuth2Application.client_id == client_id)
-            stmt = apply_options_context(stmt)
-            return await session.scalar(stmt)
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM oauth2_application
+                WHERE client_id = %s
+                """,
+                (client_id,),
+            ) as r,
+        ):
+            return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def get_many_by_user_id(user_id: int) -> Sequence[OAuth2Application]:
+    async def get_many_by_user_id(user_id: UserId) -> list[OAuth2Application]:
         """Get all OAuth2 applications by user id."""
-        async with db() as session:
-            stmt = (
-                select(OAuth2Application)
-                .where(OAuth2Application.user_id == user_id)
-                .order_by(OAuth2Application.id.desc())
-            )
-            stmt = apply_options_context(stmt)
-            return (await session.scalars(stmt)).all()
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM oauth2_application
+                WHERE user_id = %s
+                ORDER BY id DESC
+                """,
+                (user_id,),
+            ) as r,
+        ):
+            return await r.fetchall()  # type: ignore
+
+    @staticmethod
+    async def resolve_applications(tokens: list[OAuth2Token]) -> None:
+        """Resolve the applications for the given tokens."""
+        if not tokens:
+            return
+
+        id_map: defaultdict[ApplicationId, list[OAuth2Token]] = defaultdict(list)
+        for token in tokens:
+            id_map[token['application_id']].append(token)
+
+        apps = await OAuth2ApplicationQuery.find_many_by_ids(list(id_map))
+        for app in apps:
+            for token in id_map[app['id']]:
+                token['application'] = app

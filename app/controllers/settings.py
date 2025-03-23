@@ -1,3 +1,4 @@
+from asyncio import TaskGroup
 from typing import Annotated
 
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
@@ -14,6 +15,7 @@ from app.limits import (
     PASSWORD_MIN_LENGTH,
     URLSAFE_BLACKLIST,
 )
+from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
@@ -46,16 +48,24 @@ async def settings_email(_: Annotated[User, web_user()]):
 
 @router.get('/settings/security')
 async def settings_security(user: Annotated[User, web_user()]):
-    current_session = await AuthService.authenticate_oauth2(None)
-    active_sessions = await OAuth2TokenQuery.find_many_authorized_by_user_client_id(
-        user_id=user.id,
-        client_id='SystemApp.web',
-        limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
-    )
+    async with TaskGroup() as tg:
+        current_t = tg.create_task(AuthService.authenticate_oauth2(None))
+        active_t = tg.create_task(
+            OAuth2TokenQuery.find_many_authorized_by_user_client_id(
+                user_id=user['id'],
+                client_id=SYSTEM_APP_WEB_CLIENT_ID,
+                limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
+            )
+        )
+
+    current_session = current_t.result()
+    assert current_session is not None
+    active_sessions = active_t.result()
+
     return await render_response(
         'settings/security.jinja2',
         {
-            'current_session_id': current_session.id,  # pyright: ignore[reportOptionalMemberAccess]
+            'current_session_id': current_session['id'],
             'active_sessions': active_sessions,
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
         },
@@ -64,12 +74,12 @@ async def settings_security(user: Annotated[User, web_user()]):
 
 @router.get('/settings/connections')
 async def settings_connections(user: Annotated[User, web_user()]):
-    provider_id_map = await ConnectedAccountQuery.get_provider_id_map_by_user(user.id)
+    provider_id_map = await ConnectedAccountQuery.get_providers_by_user(user['id'])
     return await render_response('settings/connections.jinja2', {'provider_id_map': provider_id_map})
 
 
 @router.get('/preferences{_:path}')
 @router.get('/account/edit')
 @router.get('/user/{_:str}/account')
-async def legacy_settings():
+async def legacy_settings(_=None):
     return RedirectResponse('/settings', status.HTTP_301_MOVED_PERMANENTLY)

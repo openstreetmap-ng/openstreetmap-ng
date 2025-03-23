@@ -9,14 +9,16 @@ from app.lib.image import AvatarType
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.limits import USER_DESCRIPTION_MAX_LENGTH
-from app.models.auth_provider import AuthProvider
+from app.models.db.connected_account import AuthProvider
+from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import Editor, User
-from app.models.types import LocaleCode, PasswordType, ValidatingDisplayNameType
+from app.models.types import LocaleCode, Password
 from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
-from app.validators.email import ValidatingEmailType
+from app.validators.display_name import DisplayNameValidating
+from app.validators.email import EmailValidating
 
 router = APIRouter(prefix='/api/web')
 
@@ -24,7 +26,7 @@ router = APIRouter(prefix='/api/web')
 @router.post('/settings')
 async def settings(
     _: Annotated[User, web_user()],
-    display_name: Annotated[ValidatingDisplayNameType, Form()],
+    display_name: Annotated[DisplayNameValidating, Form()],
     language: Annotated[LocaleCode, Form()],
     activity_tracking: Annotated[bool, Form()] = False,
     crash_reporting: Annotated[bool, Form()] = False,
@@ -69,8 +71,8 @@ async def settings_background(
 @router.post('/settings/email')
 async def settings_email(
     _: Annotated[User, web_user()],
-    email: Annotated[ValidatingEmailType, Form()],
-    password: Annotated[PasswordType, Form()],
+    email: Annotated[EmailValidating, Form()],
+    password: Annotated[Password, Form()],
 ):
     await UserService.update_email(
         new_email=email,
@@ -82,17 +84,20 @@ async def settings_email(
 @router.post('/settings/password')
 async def settings_password(
     _: Annotated[User, web_user()],
-    old_password: Annotated[PasswordType, Form()],
-    new_password: Annotated[PasswordType, Form()],
+    old_password: Annotated[Password, Form()],
+    new_password: Annotated[Password, Form()],
     revoke_other_sessions: Annotated[bool, Form()] = False,
 ):
     await UserService.update_password(
         old_password=old_password,
         new_password=new_password,
     )
+
     if revoke_other_sessions:
         current_session = await AuthService.authenticate_oauth2(None)
-        await OAuth2TokenService.revoke_by_client_id('SystemApp.web', skip_ids=(current_session.id,))  # pyright: ignore[reportOptionalMemberAccess]
+        assert current_session is not None
+        await OAuth2TokenService.revoke_by_client_id(SYSTEM_APP_WEB_CLIENT_ID, skip_ids=[current_session['id']])  # pyright: ignore[reportOptionalMemberAccess]
+
     return StandardFeedback.success_result(None, t('settings.password_has_been_changed'))
 
 

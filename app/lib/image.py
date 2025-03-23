@@ -1,6 +1,5 @@
 import logging
 from asyncio import get_running_loop
-from enum import Enum
 from pathlib import Path
 from typing import Literal, overload
 
@@ -9,9 +8,9 @@ import cython
 import numpy as np
 from cv2.typing import MatLike
 from numpy.typing import NDArray
-from sizestr import sizestr
 
 from app.lib.exceptions_context import raise_for
+from app.lib.sizestr import sizestr
 from app.limits import (
     AVATAR_MAX_FILE_SIZE,
     AVATAR_MAX_MEGAPIXELS,
@@ -29,44 +28,39 @@ else:
 
 # TODO: test 200MP file
 
+AvatarType = Literal['gravatar', 'custom'] | None
 
-class AvatarType(str, Enum):
-    default = 'default'
-    gravatar = 'gravatar'
-    custom = 'custom'
+DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
+DEFAULT_USER_AVATAR = Path('app' + DEFAULT_USER_AVATAR_URL).read_bytes()
+DEFAULT_APP_AVATAR_URL = '/static/img/app.webp'
 
 
 class Image:
-    default_avatar: bytes = Path('app/static/img/avatar.webp').read_bytes()
-
     @staticmethod
     @overload
-    def get_avatar_url(image_type: Literal[AvatarType.default], *, app: bool = False) -> str: ...
-
+    def get_avatar_url(image_type: None, *, app: bool = False) -> str: ...
     @staticmethod
     @overload
-    def get_avatar_url(image_type: Literal[AvatarType.gravatar], image_id: int) -> str: ...
-
+    def get_avatar_url(image_type: Literal['gravatar'], image_id: int) -> str: ...
     @staticmethod
     @overload
-    def get_avatar_url(image_type: Literal[AvatarType.custom], image_id: StorageKey) -> str: ...
-
+    def get_avatar_url(image_type: Literal['custom'], image_id: StorageKey) -> str: ...
     @staticmethod
     def get_avatar_url(image_type: AvatarType, image_id: int | StorageKey = 0, *, app: bool = False) -> str:
         """
         Get the url of the avatar image.
 
-        >>> Image.get_avatar_url(AvatarType.custom, StorageKey('123456'))
+        >>> Image.get_avatar_url('custom', StorageKey('123456'))
         '/api/web/avatar/123456'
         """
-        if image_type == AvatarType.default:
-            return '/static/img/avatar.webp' if not app else '/static/img/app.webp'
-        elif image_type == AvatarType.gravatar:
+        if image_type is None:
+            return DEFAULT_APP_AVATAR_URL if app else DEFAULT_USER_AVATAR_URL
+        if image_type == 'gravatar':
             return f'/api/web/gravatar/{image_id}'
-        elif image_type == AvatarType.custom:
+        if image_type == 'custom':
             return f'/api/web/avatar/{image_id}'
-        else:
-            raise NotImplementedError(f'Unsupported avatar type {image_type!r}')
+
+        raise NotImplementedError(f'Unsupported avatar type {image_type!r}')
 
     @staticmethod
     async def normalize_avatar(data: bytes) -> bytes:
@@ -87,10 +81,7 @@ class Image:
         >>> Image.get_background_url(StorageKey('123456'))
         '/api/web/background/123456'
         """
-        if image_id is not None:
-            return f'/api/web/background/{image_id}'
-        else:
-            return None
+        return f'/api/web/background/{image_id}' if (image_id is not None) else None
 
     @staticmethod
     async def normalize_background(data: bytes) -> bytes:
@@ -110,7 +101,7 @@ async def _normalize_image(
     min_ratio: cython.double,
     max_ratio: cython.double,
     max_megapixels: cython.int,
-    max_file_size: cython.int,
+    max_file_size: int | None,
 ) -> bytes:
     """
     Normalize the avatar image.

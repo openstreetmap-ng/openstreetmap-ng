@@ -1,26 +1,32 @@
-from collections.abc import Collection
 from typing import TYPE_CHECKING, NoReturn, override
 
 from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.element_mixin import ElementExceptionsMixin
+from app.models.element import TypedElementId, split_typed_element_id, split_typed_element_ids
 
 if TYPE_CHECKING:
-    from app.models.db.element import Element
-    from app.models.element import ElementRef, VersionedElementRef
+    from app.models.db.element import Element, ElementInit
 
 
 class ElementExceptions06Mixin(ElementExceptionsMixin):
     @override
-    def element_not_found(self, element_ref: 'ElementRef | VersionedElementRef') -> NoReturn:
+    def element_not_found(self, element_ref: TypedElementId | tuple[TypedElementId, int]) -> NoReturn:
+        if isinstance(element_ref, int):
+            type, id = split_typed_element_id(element_ref)
+            # version = None
+        else:
+            type, id = split_typed_element_id(element_ref[0])
+            # version = element_ref[1]
+
         raise APIError(
             status.HTTP_404_NOT_FOUND,
-            detail=f'The {element_ref.type} with the id {element_ref.id} was not found',
+            detail=f'The {type} with the id {id} was not found',
         )
 
     @override
-    def element_redacted(self, versioned_ref: 'VersionedElementRef') -> NoReturn:
+    def element_redacted(self, versioned_ref: tuple[TypedElementId, int]) -> NoReturn:
         self.element_not_found(versioned_ref)
 
     @override
@@ -31,10 +37,11 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
         )
 
     @override
-    def element_already_deleted(self, element: 'Element') -> NoReturn:
+    def element_already_deleted(self, element_ref: TypedElementId) -> NoReturn:
+        type, id = split_typed_element_id(element_ref)
         raise APIError(
             status.HTTP_412_PRECONDITION_FAILED,
-            detail=f'Cannot delete an already deleted {element.type} with id {element.id}.',
+            detail=f'Cannot delete an already deleted {type} with id {id}.',
         )
 
     @override
@@ -42,58 +49,73 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
         raise APIError(status.HTTP_409_CONFLICT, detail='You need to supply a changeset to be able to make a change')
 
     @override
-    def element_version_conflict(self, element: 'Element', local_version: int) -> NoReturn:
+    def element_version_conflict(self, element: 'Element | ElementInit', local_version: int) -> NoReturn:
+        type, id = split_typed_element_id(element['typed_id'])
         raise APIError(
             status.HTTP_409_CONFLICT,
-            detail=f'Version mismatch: Provided {element.version - 1}, server had: {local_version} of {element.type} {element.id}',
+            detail=f'Version mismatch: Provided {element["version"] - 1}, server had: {local_version} of {type} {id}',
         )
 
     @override
-    def element_member_not_found(self, parent_ref: 'ElementRef', member_ref: 'ElementRef') -> NoReturn:
-        if parent_ref.type == 'way':
+    def element_member_not_found(self, parent_ref: TypedElementId, member_ref: TypedElementId) -> NoReturn:
+        parent_type, parent_id = split_typed_element_id(parent_ref)
+        member_type, member_id = split_typed_element_id(member_ref)
+
+        if parent_type == 'way':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
-                detail=f'Way {parent_ref.id} requires the nodes with id in ({member_ref.id}), which either do not exist, or are not visible.',
+                detail=f'Way {parent_id} requires the nodes with id in ({member_id}), which either do not exist, or are not visible.',
             )
-        elif parent_ref.type == 'relation':
+
+        if parent_type == 'relation':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
-                detail=f'Relation with id {parent_ref.id} cannot be saved due to {member_ref.type} with id {member_ref.id}',
+                detail=f'Relation with id {parent_id} cannot be saved due to {member_type} with id {member_id}',
             )
-        else:
-            raise NotImplementedError(f'Unsupported element type {parent_ref.type!r}')
+
+        raise NotImplementedError(f'Unsupported element type {parent_type!r}')
 
     @override
-    def element_in_use(self, element: 'Element', used_by: Collection['ElementRef']) -> NoReturn:
+    def element_in_use(self, element_ref: TypedElementId, used_by: list[TypedElementId]) -> NoReturn:
         # wtf is this condition
-        if element.type == 'node':
-            if ref_ways := tuple(ref for ref in used_by if ref.type == 'way'):
+        type, id = split_typed_element_id(element_ref)
+        used_by_type_id = split_typed_element_ids(used_by)
+
+        if type == 'node':
+            ref_ways = [type_id for type_id in used_by_type_id if type_id[0] == 'way']
+            if ref_ways:
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
-                    detail=f'Node {element.id} is still used by ways {",".join(str(ref.id) for ref in ref_ways)}.',
+                    detail=f'Node {id} is still used by ways {",".join(str(ref[1]) for ref in ref_ways)}.',
                 )
-            elif ref_relations := tuple(ref for ref in used_by if ref.type == 'relation'):
+
+            ref_relations = [type_id for type_id in used_by_type_id if type_id[0] == 'relation']
+            if ref_relations:
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
-                    detail=f'Node {element.id} is still used by relations {",".join(str(ref.id) for ref in ref_relations)}.',
+                    detail=f'Node {id} is still used by relations {",".join(str(ref[1]) for ref in ref_relations)}.',
                 )
-            else:
-                raise NotImplementedError(f'Unsupported element type {next(iter(used_by)).type!r}')
-        elif element.type == 'way':
-            if ref_relations := tuple(ref for ref in used_by if ref.type == 'relation'):
+
+            raise NotImplementedError(f'Unsupported element type {next(iter(used_by_type_id))[0]!r}')
+
+        if type == 'way':
+            ref_relations = [type_id for type_id in used_by_type_id if type_id[0] == 'relation']
+            if ref_relations:
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
-                    detail=f'Way {element.id} is still used by relations {",".join(str(ref.id) for ref in ref_relations)}.',
+                    detail=f'Way {id} is still used by relations {",".join(str(ref[1]) for ref in ref_relations)}.',
                 )
-            else:
-                raise NotImplementedError(f'Unsupported element type {next(iter(used_by)).type!r}')
-        elif element.type == 'relation':
-            if ref_relations := tuple(ref for ref in used_by if ref.type == 'relation'):
+
+            raise NotImplementedError(f'Unsupported element type {next(iter(used_by_type_id))[0]!r}')
+
+        if type == 'relation':
+            ref_relations = [type_id for type_id in used_by_type_id if type_id[0] == 'relation']
+            if ref_relations:
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
-                    detail=f'The relation {element.id} is used in relation ' f'{ref_relations[0].id}.',
+                    detail=f'The relation {id} is used in relation {ref_relations[0][1]}.',
                 )
-            else:
-                raise NotImplementedError(f'Unsupported element type {next(iter(used_by)).type!r}')
-        else:
-            raise NotImplementedError(f'Unsupported element type {element.type!r}')
+
+            raise NotImplementedError(f'Unsupported element type {next(iter(used_by_type_id))[0]!r}')
+
+        raise NotImplementedError(f'Unsupported element type {type!r}')

@@ -1,6 +1,5 @@
 import logging
 from asyncio import TaskGroup
-from collections.abc import Iterable, Sequence
 from typing import NotRequired, TypedDict
 from urllib.parse import urlencode
 
@@ -9,6 +8,7 @@ import orjson
 from shapely import MultiPolygon, Point, Polygon, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
+from app.lib.crypto import hash_storage_key
 from app.lib.feature_icon import features_icons
 from app.lib.feature_prefix import features_prefixes
 from app.lib.search import SearchResult
@@ -20,12 +20,13 @@ from app.limits import (
     NOMINATIM_SEARCH_HTTP_TIMEOUT,
 )
 from app.models.db.element import Element
-from app.models.element import ElementId, ElementRef, ElementType
+from app.models.element import ElementId, ElementType, TypedElementId, typed_element_id
+from app.models.types import SequenceId
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP
 
-_cache_context = CacheContext('Nominatim')
+_CTX = CacheContext('Nominatim')
 
 # https://nominatim.org/release-docs/develop/api/Search/
 # https://nominatim.org/release-docs/develop/api/Reverse/
@@ -52,15 +53,13 @@ class NominatimQuery:
     async def reverse(point: Point, zoom: int = 14) -> SearchResult | None:
         """Reverse geocode a point into a human-readable name."""
         x, y = get_coordinates(point)[0].tolist()
-        path = '/reverse?' + urlencode(
-            {
-                'format': 'jsonv2',
-                'lon': f'{x:.5f}',
-                'lat': f'{y:.5f}',
-                'zoom': zoom,
-                'accept-language': primary_translation_locale(),
-            }
-        )
+        path = '/reverse?' + urlencode({
+            'format': 'jsonv2',
+            'lon': f'{x:.5f}',
+            'lat': f'{y:.5f}',
+            'zoom': zoom,
+            'accept-language': primary_translation_locale(),
+        })
 
         async def factory() -> bytes:
             logging.debug('Nominatim reverse cache miss for path %r', path)
@@ -71,13 +70,9 @@ class NominatimQuery:
             r.raise_for_status()
             return r.content
 
-        cache = await CacheService.get(
-            path,
-            context=_cache_context,
-            factory=factory,
-            ttl=NOMINATIM_REVERSE_CACHE_EXPIRE,
-        )
-        response_entries = (orjson.loads(cache.value),)
+        key = hash_storage_key(path, '.json')
+        content = await CacheService.get(key, _CTX, factory, ttl=NOMINATIM_REVERSE_CACHE_EXPIRE)
+        response_entries = [orjson.loads(content)]
         result = await _get_search_result(at_sequence_id=None, response_entries=response_entries)
         return next(iter(result), None)
 
@@ -86,14 +81,14 @@ class NominatimQuery:
         *,
         q: str,
         bounds: Polygon | MultiPolygon | None = None,
-        at_sequence_id: int | None,
+        at_sequence_id: SequenceId | None,
         limit: int,
     ) -> list[SearchResult]:
         """Search for a location by name and optional bounds."""
-        polygons = bounds.geoms if isinstance(bounds, MultiPolygon) else (bounds,)
+        polygons = bounds.geoms if isinstance(bounds, MultiPolygon) else [bounds]
 
         async with TaskGroup() as tg:
-            tasks = tuple(
+            tasks = [
                 tg.create_task(
                     _search(
                         q=q,
@@ -103,39 +98,35 @@ class NominatimQuery:
                     )
                 )
                 for polygon in polygons
-            )
+            ]
 
         # results are sorted from highest to lowest importance
-        return sorted(
-            (result for task in tasks for result in task.result()),
-            key=lambda r: r.importance,
-            reverse=True,
-        )
+        results = [result for task in tasks for result in task.result()]
+        results.sort(key=lambda r: r.importance, reverse=True)
+        return results
 
 
 async def _search(
     *,
     q: str,
     bounds: Polygon | None,
-    at_sequence_id: int | None,
+    at_sequence_id: SequenceId | None,
     limit: int,
 ) -> list[SearchResult]:
-    path = '/search?' + urlencode(
-        {
-            'format': 'jsonv2',
-            'q': q,
-            'limit': limit,
-            **(
-                {
-                    'viewbox': ','.join(f'{x:.5f}' for x in bounds.bounds),
-                    'bounded': 1,
-                }
-                if (bounds is not None)
-                else {}
-            ),
-            'accept-language': primary_translation_locale(),
-        }
-    )
+    path = '/search?' + urlencode({
+        'format': 'jsonv2',
+        'q': q,
+        'limit': limit,
+        **(
+            {
+                'viewbox': ','.join(f'{x:.5f}' for x in bounds.bounds),
+                'bounded': 1,
+            }
+            if (bounds is not None)
+            else {}
+        ),
+        'accept-language': primary_translation_locale(),
+    })
 
     async def factory() -> bytes:
         logging.debug('Nominatim search cache miss for path %r', path)
@@ -148,14 +139,8 @@ async def _search(
 
     # cache only stable queries
     if bounds is None:
-        cache = await CacheService.get(
-            path,
-            context=_cache_context,
-            factory=factory,
-            hash_key=True,
-            ttl=NOMINATIM_SEARCH_CACHE_EXPIRE,
-        )
-        response = cache.value
+        key = hash_storage_key(path, '.json')
+        response = await CacheService.get(key, _CTX, factory, ttl=NOMINATIM_SEARCH_CACHE_EXPIRE)
     else:
         response = await factory()
 
@@ -165,37 +150,46 @@ async def _search(
 
 async def _get_search_result(
     *,
-    at_sequence_id: int | None,
-    response_entries: Iterable[NominatimPlace],
+    at_sequence_id: SequenceId | None,
+    response_entries: list[NominatimPlace],
 ) -> list[SearchResult]:
     """Convert nominatim places into search results."""
-    refs: list[ElementRef] = []
+    typed_ids: list[TypedElementId] = []
     entries: list[NominatimPlace] = []
     for entry in response_entries:
         # some results are abstract and have no osm_type/osm_id
         osm_type = entry.get('osm_type')
         osm_id = entry.get('osm_id')
-        if (osm_type is None) or (osm_id is None):
+        if osm_type is None or osm_id is None:
             continue
-
-        ref = ElementRef(osm_type, osm_id)
-        refs.append(ref)
+        typed_ids.append(typed_element_id(osm_type, osm_id))
         entries.append(entry)
 
     # fetch elements in the order of entries
-    elements: Sequence[Element | None]
-    elements = await ElementQuery.get_by_refs(refs, at_sequence_id=at_sequence_id, limit=len(refs))
-    ref_element_map: dict[ElementRef, Element] = {ElementRef(e.type, e.id): e for e in elements}
-    elements = tuple(ref_element_map.get(ref) for ref in refs)  # not all elements may be found in the database
+    type_id_map: dict[TypedElementId, Element] = {
+        e['typed_id']: e
+        for e in await ElementQuery.get_by_refs(
+            typed_ids,
+            at_sequence_id=at_sequence_id,
+            limit=len(typed_ids),
+        )
+    }
 
-    icons = features_icons(elements)
-    prefixes = features_prefixes(elements)
+    elements = [type_id_map.get(typed_id) for typed_id in typed_ids]  # not all elements may be found in the database
     result: list[SearchResult] = []
-    for entry, element, icon, prefix in zip(entries, elements, icons, prefixes, strict=True):
-        # skip non-existing elements
-        if element is None or not element.visible:
-            continue
-        if prefix is None:
+
+    for entry, element, icon, prefix in zip(
+        entries,
+        elements,
+        features_icons(elements),
+        features_prefixes(elements),
+        strict=True,
+    ):
+        if (
+            element is None  #
+            or not element['visible']
+            or prefix is None
+        ):
             continue
 
         bbox = entry['boundingbox']
@@ -221,4 +215,5 @@ async def _get_search_result(
                 bounds=bounds,
             )
         )
+
     return result

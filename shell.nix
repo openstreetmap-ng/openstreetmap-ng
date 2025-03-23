@@ -6,7 +6,6 @@
 , postgresMinWalSizeGb ? 1
 , postgresMaxWalSizeGb ? 10
 , postgresVerbose ? 2  # 0 = no, 1 = some, 2 = most
-, enableValkey ? true
 , enableMailpit ? true
 , gunicornWorkers ? 1
 , gunicornPort ? 8000
@@ -14,13 +13,13 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/d98abf5cf5914e5e4e9d57205e3af55ca90ffc1d.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/94c4dbe77c0740ebba36c173672ca15a7926c993.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   postgresConf = import ./config/postgres.nix { inherit hostMemoryMb hostDiskCoW postgresCpuThreads postgresMinWalSizeGb postgresMaxWalSizeGb postgresVerbose pkgs projectDir; };
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
-  supervisordConf = import ./config/supervisord.nix { inherit isDevelopment enablePostgres enableValkey enableMailpit pkgs postgresConf; };
+  supervisordConf = import ./config/supervisord.nix { inherit isDevelopment enablePostgres enableMailpit pkgs postgresConf; };
 
   stdenv' = pkgs.gcc14Stdenv;
   wrapPrefix = if (!stdenv'.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
@@ -46,21 +45,6 @@ let
   watchexec' = makeScript "watchexec" ''
     exec ${pkgs.watchexec}/bin/watchexec --wrap-process=none "$@"
   '';
-
-  # local update until fixed upstream:
-  # https://github.com/NixOS/nixpkgs/issues/383368
-  timescaledb-parallel-copy' = pkgs.buildGoModule rec {
-    pname = "timescaledb-parallel-copy";
-    version = "0.9.0";
-    doCheck = false;
-    src = pkgs.fetchFromGitHub {
-      owner = "timescale";
-      repo = pname;
-      rev = "v${version}";
-      sha256 = "sha256-vd+2KpURyVhcVf2ESHcyZLJCw+z+WbnTJX9Uy4ZAPoE=";
-    };
-    vendorHash = "sha256-MRso2uihMUc+rLwljwZZR1+1cXADCNg+JUpRcRU918g=";
-  };
 
   # https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/build-support/trivial-builders/default.nix
   makeScript = with pkgs; name: text:
@@ -104,30 +88,11 @@ let
     bun
     biome
     # Services:
-    (postgresql_17_jit.withPackages (ps: [ ps.postgis ])) # SOON: ps.timescaledb-apache
-    timescaledb-parallel-copy'
-    valkey
+    (postgresql_17_jit.withPackages (ps: [ ps.postgis ps.h3-pg ])) # SOON: ps.timescaledb-apache
+    timescaledb-parallel-copy
     mailpit
 
     # Scripts:
-    # -- Alembic
-    (makeScript "alembic-migration" ''
-      name="$1"
-      if [ -z "$name" ]; then read -rp "Database migration name: " name; fi
-      python -m alembic -c config/alembic.ini revision --autogenerate --message "$name"
-    '')
-    (makeScript "alembic-upgrade" ''
-      latest_version=6
-      current_version=$(cat data/alembic/version.txt 2>/dev/null || echo "")
-      if [ -n "$current_version" ] && [ "$current_version" -ne "$latest_version" ]; then
-        echo "NOTICE: Database migrations are not compatible"
-        echo "NOTICE: Run 'dev-clean' to reset the database before proceeding"
-        exit 1
-      fi
-      python -m alembic -c config/alembic.ini upgrade head
-      echo $latest_version > data/alembic/version.txt
-    '')
-
     # -- Cython
     (makeScript "cython-build" "python scripts/cython_build.py build_ext --inplace --parallel \"$(nproc --all)\"")
     (makeScript "cython-build-pgo" ''
@@ -371,7 +336,7 @@ let
           --username=postgres
       fi
 
-      mkdir -p data/alembic data/mailpit data/postgres_unix data/supervisor
+      mkdir -p data/mailpit data/postgres_unix data/supervisor
       python -m supervisor.supervisord -c ${supervisordConf}
       echo "Supervisor started"
 
@@ -388,8 +353,7 @@ let
         sleep 0.1
       done
 
-      echo "Postgres started, running migrations"
-      alembic-upgrade
+      echo "Postgres started"
     '')
     (makeScript "dev-stop" ''
       pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
@@ -409,7 +373,7 @@ let
     '')
     (makeScript "dev-clean" ''
       dev-stop
-      rm -rf data/alembic/ data/postgres/ data/postgres_unix/
+      rm -rf data/postgres/ data/postgres_unix/
     '')
     (makeScript "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
     (makeScript "dev-logs-watch-js" "tail -f data/supervisor/watch-js.log")

@@ -44,7 +44,7 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
     def oauth2_bad_verifier(self, code_challenge_method: 'OAuth2CodeChallengeMethod') -> NoReturn:
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,
-            detail=f'OAuth2 verifier invalid for {code_challenge_method.value} code challenge method',
+            detail=f'OAuth2 verifier invalid for {code_challenge_method} code challenge method',
         )
 
     @override

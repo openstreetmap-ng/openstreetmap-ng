@@ -90,7 +90,7 @@ def test_get_weekday_name(locale, short, expected):
         assert get_weekday_name(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC), short=short) == expected
 
 
-def test_utcnow():
+def test_utcnow_is_utc():
     assert utcnow().tzinfo is UTC
 
 

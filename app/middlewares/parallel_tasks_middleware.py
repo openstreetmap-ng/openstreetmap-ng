@@ -7,27 +7,24 @@ from starlette.types import Scope as StarletteScope
 
 from app.lib.auth_context import auth_scopes
 from app.middlewares.request_context_middleware import get_request
-from app.models.scope import Scope
 from app.queries.message_query import MessageQuery
 
-_messages_count_unread_context: ContextVar[Task[int]] = ContextVar('_messages_count_unread_context')
+_MESSAGES_COUNT_UNREAD_CTX: ContextVar[Task[int]] = ContextVar('MessageCountUnread')
 
 
 @contextmanager
 def _messages_count_unread(tg: TaskGroup):
     # skip count_unread for API and static requests
-    if not (
-        Scope.web_user in auth_scopes()  #
-        and not get_request().url.path.startswith(('/api/', '/static'))
-    ):
+    if 'web_user' not in auth_scopes() or get_request().url.path.startswith(('/api/', '/static')):
         yield
         return
 
-    token = _messages_count_unread_context.set(tg.create_task(MessageQuery.count_unread()))
+    task = tg.create_task(MessageQuery.count_unread())
+    token = _MESSAGES_COUNT_UNREAD_CTX.set(task)
     try:
         yield
     finally:
-        _messages_count_unread_context.reset(token)
+        _MESSAGES_COUNT_UNREAD_CTX.reset(token)
 
 
 class ParallelTasksMiddleware:
@@ -40,15 +37,14 @@ class ParallelTasksMiddleware:
 
     async def __call__(self, scope: StarletteScope, receive: Receive, send: Send) -> None:
         if scope['type'] != 'http':
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
         async with TaskGroup() as tg:
             with _messages_count_unread(tg):
-                await self.app(scope, receive, send)
+                return await self.app(scope, receive, send)
 
     @staticmethod
     async def messages_count_unread() -> int | None:
         """Get the number of unread messages."""
-        task = _messages_count_unread_context.get(None)
+        task = _MESSAGES_COUNT_UNREAD_CTX.get(None)
         return (await task) if (task is not None) else None

@@ -1,8 +1,7 @@
 import math
 
 import pytest
-from shapely import MultiPolygon, Point, box
-from shapely.geometry.polygon import Polygon
+from shapely import MultiPolygon, Point, Polygon, box
 
 from app.lib.geo_utils import (
     degrees_to_meters,
@@ -13,16 +12,17 @@ from app.lib.geo_utils import (
     radians_to_meters,
     try_parse_point,
 )
+from app.limits import GEO_COORDINATE_PRECISION
 
-_earth_radius_meters = 6371000
+_EARTH_RADIUS_METERS = 6371000
 
 
 @pytest.mark.parametrize(
     ('meters', 'radians'),
     [
         (0, 0),
-        (_earth_radius_meters, 1),
-        (_earth_radius_meters * math.pi, math.pi),
+        (_EARTH_RADIUS_METERS, 1),
+        (_EARTH_RADIUS_METERS * math.pi, math.pi),
     ],
 )
 def test_meters_radians(meters, radians):
@@ -34,7 +34,7 @@ def test_meters_radians(meters, radians):
     ('meters', 'degrees'),
     [
         (0, 0),
-        (_earth_radius_meters, 57.29577951308232),
+        (_EARTH_RADIUS_METERS, 57.29577951308232),
     ],
 )
 def test_meters_degrees(meters, degrees):
@@ -57,27 +57,28 @@ def test_haversine_distance(p1, p2, expected_meters):
 @pytest.mark.parametrize(
     ('s', 'expected'),
     [
-        # simple
+        # Simple
         ('-1,-2,3.3,4.4', box(-1, -2, 3.3, 4.4)),
-        # wrap around
+        # Zero-sized
+        ('0,0,0,0', box(0, 0, 0, 0)),
+        # Wrap around
         ('-560,20,-550,30', box(160, 20, 170, 30)),
-        # whole world
+        # Whole world
         ('100,20,900,30', box(-180, 20, 180, 30)),
-        # meridian
+        # Meridian
         ('175,10,195,20', MultiPolygon((box(175, 10, 180, 20), box(-180, 10, -165, 20)))),
-        # normalize latitude
+        # Normalize latitude
         ('1,-95,3,4', box(1, -90, 3, 4)),
     ],
 )
 def test_parse_bbox(s: str, expected: Polygon | MultiPolygon):
-    assert parse_bbox(s) == expected
+    assert parse_bbox(s).equals_exact(expected, 0.1**GEO_COORDINATE_PRECISION / 2)
 
 
 @pytest.mark.parametrize(
     'bbox',
     [
         '1,2,3',
-        '1,2,1,2',
         '1,2,3,4,5',
         '3,2,1,4',
         '1,4,3,2',

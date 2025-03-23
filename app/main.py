@@ -50,6 +50,7 @@ from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
 from app.services.changeset_service import ChangesetService
 from app.services.email_service import EmailService
+from app.services.rate_limit_service import RateLimitService
 from app.services.system_app_service import SystemAppService
 from app.services.test_service import TestService
 
@@ -85,7 +86,7 @@ async def lifespan(_):
 
         await SystemAppService.on_startup()
 
-        async with EmailService.context(), ChangesetService.context():
+        async with EmailService.context(), ChangesetService.context(), RateLimitService.context():
             # freeze uncollected gc objects for improved performance
             gc.collect()
             gc.freeze()
@@ -94,7 +95,7 @@ async def lifespan(_):
 
 register_url_convertor('element_type', ElementTypeConvertor())
 
-main = FastAPI(title=NAME, lifespan=lifespan)
+main = FastAPI(debug=TEST_ENV, title=NAME, lifespan=lifespan)
 
 main.add_middleware(ParallelTasksMiddleware)
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
@@ -123,7 +124,6 @@ main.add_middleware(RequestContextMiddleware)
 if TEST_ENV:
     main.add_middleware(VersionMiddleware)
     main.add_middleware(RuntimeMiddleware)
-
 
 # TODO: /static default cache control
 main.mount('/static', PrecompressedStaticFiles('app/static'), name='static')

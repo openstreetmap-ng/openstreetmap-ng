@@ -2,10 +2,12 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import NoReturn
 
+from app.models.types import ChangesetCommentId, ChangesetId
+
 
 class ChangesetExceptionsMixin:
     @abstractmethod
-    def changeset_not_found(self, changeset_id: int) -> NoReturn:
+    def changeset_not_found(self, changeset_id: ChangesetId) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
@@ -13,15 +15,15 @@ class ChangesetExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def changeset_already_closed(self, changeset_id: int, closed_at: datetime) -> NoReturn:
+    def changeset_already_closed(self, changeset_id: ChangesetId, closed_at: datetime) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
-    def changeset_not_subscribed(self, changeset_id: int) -> NoReturn:
+    def changeset_not_subscribed(self, changeset_id: ChangesetId) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
-    def changeset_already_subscribed(self, changeset_id: int) -> NoReturn:
+    def changeset_already_subscribed(self, changeset_id: ChangesetId) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
@@ -29,5 +31,5 @@ class ChangesetExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def changeset_comment_not_found(self, comment_id: int) -> NoReturn:
+    def changeset_comment_not_found(self, comment_id: ChangesetCommentId) -> NoReturn:
         raise NotImplementedError

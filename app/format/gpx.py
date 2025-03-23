@@ -1,27 +1,22 @@
-from collections.abc import Iterable, Sequence, Sized
 from datetime import datetime
-from itertools import zip_longest
+from typing import Any, NamedTuple
 
 import cython
-import numpy as np
-from shapely import Point, lib, multipoints
+from shapely import MultiLineString, force_2d, force_3d, get_coordinates
 
-from app.limits import (
-    GEO_COORDINATE_PRECISION,
-    TRACE_SEGMENT_MAX_AREA,
-    TRACE_SEGMENT_MAX_AREA_LENGTH,
-    TRACE_SEGMENT_MAX_SIZE,
-)
-from app.models.db.trace_ import Trace
-from app.models.db.trace_segment import TraceSegment
-from app.validators.geometry import validate_geometry
+from app.lib.exceptions_context import raise_for
+from app.models.db.trace import Trace, trace_is_timestamps_via_api
 
-_default = object()
+
+class DecodeTracksResult(NamedTuple):
+    size: int
+    segments: MultiLineString
+    capture_times: list[datetime | None] | None
 
 
 class FormatGPX:
     @staticmethod
-    def encode_track(segments_groups: Iterable[Iterable[TraceSegment]], trace_: Trace | None = _default) -> dict:  # pyright: ignore[reportArgumentType]
+    def encode_track(trace: Trace) -> dict:
         """
         >>> encode_track([
         ...     TraceSegment(...),
@@ -29,220 +24,145 @@ class FormatGPX:
         ... ])
         {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}, {'@lon': 3, '@lat': 4}]}]}]}
         """
-        trace_is_default: cython.char = trace_ is _default
+        capture_times = trace['capture_times']
+        capture_times_iter = iter(capture_times) if (capture_times is not None) else None
+        trkseg: list[dict] = []
 
-        trks: list[dict] = []
-        trksegs: list[dict] | None = None
-        trkpts: list[dict] | None = None
-        last_trace_id: cython.int = -1
-        last_track_num: cython.int = -1
+        for segment in force_3d(trace['segments']).geoms:
+            segment_coords: list[list[float]] = get_coordinates(segment, True).tolist()  # type: ignore
+            trkpt: list[dict] = []
 
-        for segment in (s for ss in segments_groups for s in ss):
-            trace = segment.trace if trace_is_default else trace_
-
-            # if trace is available via api, encode full information
-            if (trace is not None) and trace.timestamps_via_api:
-                trace_id: cython.int = segment.trace_id
-                track_num: cython.int = segment.track_num
-
-                # handle trace change
-                if last_trace_id != trace_id:
-                    trksegs = []
-                    trks.append(
-                        {
-                            'name': trace.name,
-                            'desc': trace.description,
-                            'url': f'/trace/{trace_id}',
-                            'trkseg': trksegs,
-                        }
-                    )
-                    last_trace_id = trace_id
-                    last_track_num = -1
-
-                # handle track change
-                if last_track_num != track_num:
-                    if trksegs is None:
-                        raise AssertionError('Track segments must be set')
-                    trkpts = []
-                    trksegs.append({'trkpt': trkpts})
-                    last_track_num = track_num
-
-            # otherwise, encode only coordinates
-            # handle track and track segment change
-            elif (last_trace_id > -1 or trksegs is None) or (last_track_num > -1 or trkpts is None):
-                trksegs = []
-                trks.append({'trkseg': trksegs})
-                trkpts = []
-                trksegs.append({'trkpt': trkpts})
-                last_trace_id = -1
-                last_track_num = -1
-
-            points: list[list[float]]
-            points = lib.get_coordinates(np.asarray(segment.points, dtype=np.object_), False, False).tolist()  # type: ignore
-            capture_times = segment.capture_times
-            if capture_times is None:
-                capture_times = []
-            elevations = segment.elevations
-            if elevations is None:
-                elevations = []
-
-            if trkpts is None:
-                raise AssertionError('Track points must be set')
-            for (lon, lat), capture_time, elevation in zip_longest(points, capture_times, elevations):
-                data = {'@lon': lon, '@lat': lat}
-                if capture_time is not None:
-                    data['time'] = capture_time
-                if elevation is not None:
+            for lon, lat, elevation in segment_coords:
+                data: dict[str, Any] = {'@lon': lon, '@lat': lat}
+                if elevation:
                     data['ele'] = elevation
-                trkpts.append(data)
+                if (
+                    capture_times_iter is not None  #
+                    and (capture_time := next(capture_times_iter)) is not None
+                ):
+                    data['time'] = capture_time
+                trkpt.append(data)
 
-        return {'trk': trks}
+            trkseg.append({'trkpt': trkpt})
+
+        return {
+            'trk': [
+                (
+                    {
+                        'name': trace['name'],
+                        'desc': trace['description'],
+                        'url': f'/trace/{trace["id"]}',
+                        'trkseg': trkseg,
+                    }
+                    if trace_is_timestamps_via_api(trace)
+                    else {
+                        'trkseg': trkseg,
+                    }
+                )
+            ]
+        }
 
     @staticmethod
-    def decode_tracks(tracks: Iterable[dict], *, track_num_start: cython.int = 0) -> list[TraceSegment]:
-        """
-        >>> decode_tracks([{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}])
-        [TraceSegment(...)]
-        """
-        segment_max_area: cython.double = TRACE_SEGMENT_MAX_AREA
-        segment_max_area_length: cython.double = TRACE_SEGMENT_MAX_AREA_LENGTH
-        segment_max_size: cython.int = TRACE_SEGMENT_MAX_SIZE
-        result: list[TraceSegment] = []
+    def encode_tracks(traces: list[Trace]) -> dict:
+        trk: list[dict] = []
 
-        track_num: cython.int
-        segment_num: cython.int
-        current_minx: cython.double
-        current_miny: cython.double
-        current_maxx: cython.double
-        current_maxy: cython.double
-        points: list[tuple[float, float]] = []
-        capture_times: list[datetime | None] = []
-        elevations: list[float | None] = []
+        for trace in traces:
+            coordinates_, segment_nums_ = get_coordinates(force_3d(trace['segments']).geoms, True, True)  # type: ignore
+            coordinates: list[list[float]] = coordinates_.tolist()
+            segment_nums: list[int] = segment_nums_.tolist()
+            capture_times = trace['capture_times']
 
-        trk: dict
-        trkseg: dict
-        trkpt: dict
+            current_segment_num: int = -1
+            trkseg: list[dict] = []
+            trkpt: list[dict] = []
 
-        for trk in tracks:
-            track_num = track_num_start
-            for track_num, trkseg in enumerate(trk.get('trkseg', ()), track_num_start):
-                segment_num = 0
-                current_minx = 180
-                current_miny = 90
-                current_maxx = -180
-                current_maxy = -90
+            for t in (
+                zip(coordinates, segment_nums, capture_times, strict=True)
+                if capture_times is not None
+                else zip(coordinates, segment_nums, strict=True)
+            ):
+                (lon, lat, elevation) = t[0]
+                segment_num = t[1]
 
-                for trkpt in trkseg.get('trkpt', ()):
-                    lon: float | None = trkpt.get('@lon')
-                    lat: float | None = trkpt.get('@lat')
-                    if lon is None or lat is None:
-                        continue
+                # Handle start of new segment
+                if segment_num > current_segment_num:
+                    current_segment_num = segment_num
+                    trkpt = []
+                    trkseg.append({'trkpt': trkpt})
 
-                    lon_c: cython.double = lon
-                    lat_c: cython.double = lat
-                    time_str: str | None = trkpt.get('time')
-                    time = datetime.fromisoformat(time_str) if time_str is not None else None
-                    elevation_str: str | None = trkpt.get('ele')
-                    elevation = float(elevation_str) if elevation_str is not None else None
+                data: dict[str, Any] = {'@lon': lon, '@lat': lat}
+                if elevation:
+                    data['ele'] = elevation
+                if capture_times is not None:
+                    data['time'] = t[2]  # type: ignore
+                trkpt.append(data)
 
-                    current_minx = min(current_minx, lon_c)
-                    current_miny = min(current_miny, lat_c)
-                    current_maxx = max(current_maxx, lon_c)
-                    current_maxy = max(current_maxy, lat_c)
-
-                    if _should_finish_segment(
-                        segment_max_area=segment_max_area,
-                        segment_max_area_length=segment_max_area_length,
-                        segment_max_size=segment_max_size,
-                        minx=current_minx,
-                        miny=current_miny,
-                        maxx=current_maxx,
-                        maxy=current_maxy,
-                        points=points,
-                    ):
-                        _finish_segment(
-                            result=result,
-                            points=points,
-                            capture_times=capture_times,
-                            elevations=elevations,
-                            track_num=track_num,
-                            segment_num=segment_num,
-                        )
-                        current_minx = lon_c
-                        current_miny = lat_c
-                        current_maxx = lon_c
-                        current_maxy = lat_c
-                        segment_num += 1
-
-                    points.append((lon, lat))
-                    capture_times.append(time)
-                    elevations.append(elevation)
-
-                _finish_segment(
-                    result=result,
-                    track_num=track_num,
-                    segment_num=segment_num,
-                    points=points,
-                    capture_times=capture_times,
-                    elevations=elevations,
+            # Add track if it is not empty
+            if trkseg:
+                trk.append(
+                    {
+                        'name': trace['name'],
+                        'desc': trace['description'],
+                        'url': f'/trace/{trace["id"]}',
+                        'trkseg': trkseg,
+                    }
+                    if trace_is_timestamps_via_api(trace)
+                    else {
+                        'trkseg': trkseg,
+                    }
                 )
 
-            track_num_start = track_num + 1
+        return {'trk': trk}
 
-        return result
+    @staticmethod
+    def decode_tracks(tracks: list[dict]) -> DecodeTracksResult:
+        size: cython.Py_ssize_t = 0
+        segments: list[list[tuple[float, float, float]]] = []
+        capture_times: list[datetime | None] = []
+        has_elevation: cython.bint = False
+        has_capture_times: cython.bint = False
 
+        for track in tracks:
+            for segment in track.get('trkseg', ()):
+                points: list[tuple[float, float, float]] = []  # (lon, lat, elevation)
 
-@cython.cfunc
-def _should_finish_segment(
-    *,
-    segment_max_area: cython.double,
-    segment_max_area_length: cython.double,
-    segment_max_size: cython.int,
-    minx: cython.double,
-    miny: cython.double,
-    maxx: cython.double,
-    maxy: cython.double,
-    points: Sized,
-) -> cython.char:
-    """Check if the segment should be finished before adding the point."""
-    width: cython.double = maxx - minx
-    height: cython.double = maxy - miny
-    return (
-        width * height > segment_max_area  # check area
-        or width > segment_max_area_length  # check width
-        or height > segment_max_area_length  # check height
-        or len(points) + 1 >= segment_max_size  # check length
-    )
+                for point in segment.get('trkpt', ()):
+                    if (lon := point.get('@lon')) is None or (lat := point.get('@lat')) is None:
+                        continue
 
+                    # Get elevation if available
+                    elevation: float | None = point.get('ele')
+                    if elevation is not None:
+                        has_elevation = True
+                    else:
+                        elevation = 0
 
-@cython.cfunc
-def _finish_segment(
-    *,
-    result: list[TraceSegment],
-    track_num: cython.int,
-    segment_num: cython.int,
-    points: list[tuple[float, float]],
-    capture_times: list[datetime | None],
-    elevations: list[float | None],
-):
-    """Finish the segment and add it to the result."""
-    if not points:
-        return
+                    # Get timestamp if available
+                    time: datetime | None = point.get('time')
+                    if time is not None:
+                        has_capture_times = True
 
-    points_: Sequence[Point] = lib.points(np.array(points, np.float64).round(GEO_COORDINATE_PRECISION))
-    multipoint = validate_geometry(multipoints(points_))
-    capture_times_ = capture_times.copy() if any(v is not None for v in capture_times) else None
-    elevations_ = elevations.copy() if any(v is not None for v in elevations) else None
-    result.append(
-        TraceSegment(
-            track_num=track_num,
-            segment_num=segment_num,
-            points=multipoint,
-            capture_times=capture_times_,
-            elevations=elevations_,
-        )
-    )
+                    # Add the point with elevation
+                    points.append((lon, lat, elevation))
+                    capture_times.append(time)
 
-    points.clear()
-    capture_times.clear()
-    elevations.clear()
+                # Finish the segment if non-empty
+                segment_size: cython.Py_ssize_t = len(points)
+                if segment_size:
+                    if segment_size < 2:
+                        raise_for.bad_trace_file('Trace segment is too short or incomplete')
+
+                    size += segment_size
+                    segments.append(points)
+
+        if size < 2:
+            raise_for.bad_trace_file('Trace is too short or incomplete')
+
+        # Create the MultiLineString
+        multilinestring = MultiLineString(segments)
+
+        # Remove Z dimension if no elevation data
+        if not has_elevation:
+            multilinestring = force_2d(multilinestring)
+
+        return DecodeTracksResult(size, multilinestring, capture_times if has_capture_times else None)

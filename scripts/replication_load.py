@@ -4,18 +4,15 @@ from asyncio import TaskGroup, create_subprocess_shell
 from asyncio.subprocess import Process
 from shlex import quote
 
+from psycopg.abc import Query
 from psycopg.sql import SQL, Identifier
-from sqlalchemy.orm import DeclarativeBase
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
-from app.db import db2, db_update_stats, psycopg_pool_open_decorator
-from app.models.db.changeset import Changeset
-from app.models.db.element import Element
-from app.models.db.element_member import ElementMember
-from app.models.db.user import User
+from app.db import db, db_update_stats, psycopg_pool_open_decorator
+from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
 
-_COPY_WORKERS = min(os.process_cpu_count() or 1, 8)
+_NUM_COPY_WORKERS = min(os.process_cpu_count() or 1, 8)
 
 
 def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
@@ -31,16 +28,32 @@ def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
     return copy_paths, header
 
 
-async def _index_task(sql: str) -> None:
-    async with db2(True, autocommit=True) as conn:
-        await conn.execute(sql)  # type: ignore
+async def _sql_execute(sql: Query) -> None:
+    async with db(True, autocommit=True) as conn:
+        await conn.execute(sql)
 
 
-async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
-    table_name = table.__tablename__
+async def _gather_table_constraints(table: str) -> dict[str, SQL]:
+    """Gather all foreign key constraints for a table."""
+    async with db() as conn:
+        cursor = await conn.execute(
+            """
+            SELECT con.conname, pg_get_constraintdef(con.oid)
+            FROM pg_constraint con
+            JOIN pg_class rel ON rel.oid = con.conrelid
+            JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+            WHERE rel.relname = %s
+            AND nsp.nspname = 'public'
+            AND con.contype != 'p';  -- Exclude primary key constraints
+            """,
+            (table,),
+        )
+        return {name: SQL(sql) for name, sql in await cursor.fetchall()}
 
-    async with db2(True, autocommit=True) as conn:
-        # drop indexes that are not used by any constraint
+
+async def _gather_table_indexes(table: str) -> dict[str, SQL]:
+    """Gather all non-constraint indexes for a table."""
+    async with db() as conn:
         cursor = await conn.execute(
             """
             SELECT pgi.indexname, pgi.indexdef
@@ -53,20 +66,32 @@ async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
                 WHERE pgc.conrelid = %s::regclass
             );
             """,
-            (table_name, table_name),
+            (table, table),
         )
-        index_sqls: dict[str, str] = dict(await cursor.fetchall())
-        if not index_sqls:
-            raise AssertionError(f'No indexes found for {table_name} table')
-        print(f'Dropping indexes {index_sqls!r}')
-        await conn.execute(SQL('DROP INDEX {0}').format(SQL(',').join(map(Identifier, index_sqls))))
+        return {name: SQL(sql) for name, sql in await cursor.fetchall()}
 
-    copy_paths, header = _get_copy_paths_and_header(table_name)
+
+async def _load_table(table: str, tg: TaskGroup) -> None:
+    indexes = await _gather_table_indexes(table)
+    assert indexes, f'No indexes found for {table} table'
+    constraints = await _gather_table_constraints(table)
+
+    # Drop constraints and indexes before loading
+    async with db(True, autocommit=True) as conn:
+        print(f'Dropping {len(indexes)} indexes: {indexes!r}')
+        await conn.execute(SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes))))
+
+        print(f'Dropping {len(constraints)} constraints: {constraints!r}')
+        for name in constraints:
+            await conn.execute(SQL('ALTER TABLE {} DROP CONSTRAINT {}').format(Identifier(table), Identifier(name)))
+
+    # Load the data
+    copy_paths, header = _get_copy_paths_and_header(table)
     columns = [f'"{c}"' for c in header.split(',')]
     proc: Process | None = None
 
     try:
-        print(f'Populating {table_name} table ({len(columns)} columns)...')
+        print(f'Populating {table} table ({len(columns)} columns)...')
         proc = await create_subprocess_shell(
             f'zstd -d --stdout {" ".join(f"{quote(p)}" for p in copy_paths)}'
             ' | timescaledb-parallel-copy'
@@ -75,8 +100,8 @@ async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
             f' --connection={quote(POSTGRES_URL)}'
             ' --skip-header=false'
             ' --reporting-period=30s'
-            f' --table={quote(table_name)}'
-            f' --workers={_COPY_WORKERS}',
+            f' --table={quote(table)}'
+            f' --workers={_NUM_COPY_WORKERS}',
         )
         exit_code = await proc.wait()
         if exit_code:
@@ -86,31 +111,30 @@ async def _load_table(table: type[DeclarativeBase], tg: TaskGroup) -> None:
         if proc is not None:
             proc.terminate()
 
-    async def postprocess() -> None:
-        if table is User:
-            key = 'element_version_idx'
-            print(f'Recreating index {key!r}')
-            await _index_task(index_sqls.pop(key))
-            print('Fixing element next_sequence_id field')
-            await MigrationService.fix_next_sequence_id()
+    if table == 'element':
+        key = 'element_version_idx'
+        print(f'Recreating index {key!r}')
+        await _sql_execute(indexes.pop(key))
+        print('Fixing element next_sequence_id field')
+        await MigrationService.fix_next_sequence_id()
 
-        print('Recreating indexes')
-        for sql in index_sqls.values():
-            tg.create_task(_index_task(sql))
+    print(f'Recreating {len(indexes)} indexes')
+    for sql in indexes.values():
+        tg.create_task(_sql_execute(sql))
 
-    tg.create_task(postprocess())
+    print(f'Recreating {len(constraints)} constraints')
+    for name, sql in constraints.items():
+        tg.create_task(
+            _sql_execute(SQL('ALTER TABLE {} ADD CONSTRAINT {} {}').format(Identifier(table), Identifier(name), sql))
+        )
 
 
 async def _load_tables() -> None:
-    tables = (User, Changeset, Element, ElementMember)
+    tables = ('user', 'changeset', 'element')
 
-    async with db2(True, autocommit=True) as conn:
+    async with db(True, autocommit=True) as conn:
         print('Truncating tables')
-        await conn.execute(
-            SQL('TRUNCATE {tables} RESTART IDENTITY CASCADE').format(
-                tables=SQL(',').join(Identifier(table.__tablename__) for table in tables)
-            )
-        )
+        await conn.execute(SQL('TRUNCATE {} RESTART IDENTITY CASCADE').format(SQL(',').join(map(Identifier, tables))))
 
     async with TaskGroup() as tg:
         for table in tables:
@@ -119,10 +143,7 @@ async def _load_tables() -> None:
 
 @psycopg_pool_open_decorator
 async def main() -> None:
-    async with db2() as conn:
-        cursor = await conn.execute('SELECT 1 FROM element ORDER BY sequence_id LIMIT 1')
-        exists = await cursor.fetchone() is not None
-
+    exists = await ElementQuery.get_current_sequence_id() > 0
     if exists and not input('Database is not empty. Continue? (y/N): ').lower().startswith('y'):
         print('Aborted')
         return

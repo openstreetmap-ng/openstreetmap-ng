@@ -13,7 +13,7 @@ from starlette.datastructures import Headers
 from starlette.responses import FileResponse, Response
 from starlette.staticfiles import NotModifiedResponse, StaticFiles
 from starlette.types import Scope
-from starlette_compress import _parse_accept_encoding
+from starlette_compress import _parse_accept_encoding  # noqa: PLC2701
 
 from app.config import TEST_ENV
 
@@ -52,7 +52,7 @@ class PrecompressedStaticFiles(StaticFiles):
         if (result is not None) and not TEST_ENV:
             return result
 
-        paths = _try_paths(request_path, accept_encoding) if accept_encoding else ((request_path, None),)
+        paths = _try_paths(request_path, accept_encoding) if accept_encoding else [(request_path, None)]
         for path, encoding in paths:
             try:
                 full_path, stat_result = self.lookup_path(path)

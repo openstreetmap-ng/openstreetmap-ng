@@ -19,7 +19,7 @@
         <td style="width: 50px; vertical-align: top">
             <div style="margin: 1em">
                 <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}">
-                    <img src="{{ APP_URL }}{{ comment.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
+                    <img src="{{ APP_URL }}{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}"
                          width="50"
                          height="50" style="border-radius: 50%">
                 </a>

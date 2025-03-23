@@ -10,7 +10,7 @@ from app.models.types import LocaleCode
     ('tags', 'key', 'values'),
     [
         (
-            # comment with potentially malicious content
+            # Script tag
             {'comment': 'https://example.com <script>'},
             ValueFormat('comment', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:comment'),
             [
@@ -22,7 +22,7 @@ from app.models.types import LocaleCode
             ],
         ),
         (
-            # colors
+            # Color
             {'colour': '#ff0000;invalid;AliceBlue'},
             ValueFormat('colour', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:colour'),
             [
@@ -32,7 +32,7 @@ from app.models.types import LocaleCode
             ],
         ),
         (
-            # emails
+            # Email
             {'email': 'support@openstreetmap.org;example@example.com'},
             ValueFormat('email', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:email'),
             [
@@ -41,7 +41,7 @@ from app.models.types import LocaleCode
             ],
         ),
         (
-            # phones
+            # Phone
             {'phone': '+1-234-567-8901;+7925805204786492'},
             ValueFormat('phone', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:phone'),
             [
@@ -50,7 +50,7 @@ from app.models.types import LocaleCode
             ],
         ),
         (
-            # urls
+            # URL
             {'url': 'HTTPS://www.openstreetmap.org;ftp://www.openstreetmap.org'},
             ValueFormat('url', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:url'),
             [
@@ -59,37 +59,37 @@ from app.models.types import LocaleCode
             ],
         ),
         (
-            # wikipedia with fragment
+            # Wikipedia
             {'wikipedia': 'Test#abc'},
             ValueFormat('wikipedia', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:wikipedia'),
             [ValueFormat('Test#abc', 'url-safe', 'https://en.wikipedia.org/wiki/Test#abc')],
         ),
         (
-            # regional wikipedia
+            # Regional Wikipedia
             {'pl:wikipedia': 'Test'},
             ValueFormat('pl:wikipedia'),
             [ValueFormat('Test', 'url-safe', 'https://pl.wikipedia.org/wiki/Test')],
         ),
         (
-            # wikidata id
+            # Wikipedia id
             {'wikidata': 'q123'},
             ValueFormat('wikidata', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Key:wikidata'),
             [ValueFormat('q123', 'url-safe', 'https://www.wikidata.org/entity/q123')],
         ),
         (
-            # commons file prefix
+            # Wikimedia Commons file: prefix
             {'wikimedia_commons': 'file:Test'},
             ValueFormat('wikimedia_commons', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Key:wikimedia_commons'),
             [ValueFormat('file:Test', 'url-safe', 'https://commons.wikimedia.org/wiki/file:Test')],
         ),
         (
-            # commons category prefix
+            # Wikimedia Commons category: prefix
             {'wikimedia_commons': 'Category:Test'},
             ValueFormat('wikimedia_commons', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Key:wikimedia_commons'),
             [ValueFormat('Category:Test', 'url-safe', 'https://commons.wikimedia.org/wiki/Category:Test')],
         ),
         (
-            # full osm wiki key/tag support
+            # Wiki key/value link
             {'amenity': 'bench'},
             ValueFormat('amenity', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:amenity'),
             [ValueFormat('bench', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Tag:amenity=bench')],

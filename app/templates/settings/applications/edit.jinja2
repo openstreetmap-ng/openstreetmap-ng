@@ -68,6 +68,8 @@
 
 
 
+
+
                                {% if app.client_secret_preview is not none %}{{ app.client_secret_preview }}...{% endif %}"
                            readonly>
                     <button class="btn btn-light border reset-secret-button" type="button">
@@ -109,7 +111,7 @@
             <label class="form-label d-block">
                 {{ t('settings.redirect_uris') }}
                 <textarea class="form-control mt-2" name="redirect_uris" rows="4"
-                          placeholder="http://127.0.0.1/callback">{{ app.redirect_uris_str }}</textarea>
+                          placeholder="http://127.0.0.1/callback">{{ '\n'.join(app.redirect_uris) }}</textarea>
             </label>
             <p class="form-text mb-3">
                 {{ t('settings.redirect_uris_description') }}
@@ -192,7 +194,7 @@
                       action="/api/web/settings/applications/admin/{{ app.id }}/avatar"
                       enctype="multipart/form-data">
                     <input class="visually-hidden" type="file" name="avatar_file" accept="image/*">
-                    <img class="avatar" src="{{ app.avatar_url }}" alt="{{ t('alt.application_image') }}">
+                    <img class="avatar" src="{{ oauth2_app_avatar_url(app) }}" alt="{{ t('alt.application_image') }}">
                     <div class="dropdown">
                         <button class="btn btn-sm btn-light border dropdown-toggle" type="button"
                                 data-bs-toggle="dropdown"

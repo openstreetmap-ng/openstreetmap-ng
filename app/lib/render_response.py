@@ -18,10 +18,9 @@ from app.lib.translation import translation_locales
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.request_context_middleware import get_request
-from app.models.db.user import Editor
+from app.models.db.user import DEFAULT_EDITOR
 from app.models.proto.shared_pb2 import WebConfig
 
-_DEFAULT_EDITOR = Editor.get_default().value
 _CONFIG_BASE = WebConfig(
     sentry_config=(
         WebConfig.SentryConfig(
@@ -50,18 +49,19 @@ async def render_response(
     data = {
         'request': get_request(),
         'I18NEXT_FILES': map_i18next_files(translation_locales()),
-        'DEFAULT_EDITOR': _DEFAULT_EDITOR,
+        'DEFAULT_EDITOR': DEFAULT_EDITOR,
         'WEB_CONFIG': _CONFIG_DEFAULT,
     }
 
     user = auth_user()
     if user is not None:
         user_config = WebConfig.UserConfig(
-            id=user.id,
-            activity_tracking=user.activity_tracking,
-            crash_reporting=user.crash_reporting,
+            id=user['id'],
+            activity_tracking=user['activity_tracking'],
+            crash_reporting=user['crash_reporting'],
         )
-        user_home_point = user.home_point
+
+        user_home_point = user['home_point']
         if user_home_point is not None:
             x, y = get_coordinates(user_home_point)[0].tolist()
             user_config.home_point = WebConfig.UserConfig.HomePoint(lon=x, lat=y)
@@ -76,4 +76,5 @@ async def render_response(
 
     if template_data is not None:
         data.update(template_data)
+
     return HTMLResponse(render_jinja(template_name, data), status_code=status)

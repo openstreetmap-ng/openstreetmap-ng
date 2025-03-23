@@ -62,7 +62,6 @@
                     <h6>{{ t('settings.requested_permissions') }}</h6>
                     <ul class="list-unstyled">
                         {% for scope in token.scopes %}
-                            {% set scope = scope.value %}
                             <li class="d-flex">
                                 <i class="bi bi-check text-success me-1"></i>
                                 <span>

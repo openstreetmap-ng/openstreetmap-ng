@@ -1,28 +1,25 @@
 from typing import Any, TypeVar, overload
 
 import numpy as np
-from pydantic import PlainValidator
-from shapely import Point, lib
+from pydantic import BeforeValidator
+from shapely import MultiPolygon, Point, Polygon, buffer, get_coordinates, set_srid
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
 from app.lib.exceptions_context import raise_for
+from app.limits import GEO_COORDINATE_PRECISION
 
-T = TypeVar('T', bound=BaseGeometry)
+_T = TypeVar('_T', bound=BaseGeometry)
 
 
 @overload
 def validate_geometry(value: dict[str, Any]) -> BaseGeometry: ...
-
-
 @overload
-def validate_geometry(value: T) -> T: ...
-
-
-def validate_geometry(value: dict[str, Any] | T) -> BaseGeometry | T:
+def validate_geometry(value: _T) -> _T: ...
+def validate_geometry(value: dict[str, Any] | _T) -> BaseGeometry | _T:
     """Validate a geometry."""
     geom: BaseGeometry = shape(value) if isinstance(value, dict) else value
-    coords = lib.get_coordinates(np.asarray(geom, dtype=np.object_), False, False)
+    coords = get_coordinates(geom)
     if not np.all(
         (coords[:, 0] >= -180)
         & (coords[:, 0] <= 180)  #
@@ -31,14 +28,19 @@ def validate_geometry(value: dict[str, Any] | T) -> BaseGeometry | T:
     ):
         raise_for.bad_geometry_coordinates()
 
-    # optimized validation for points
+    # Optimized validation for points
     if isinstance(geom, Point):
         if coords.shape != (1, 2):
             raise_for.bad_geometry()
+
+    # Validate the geometry but accept zero-sized polygons
     elif not geom.is_valid:
-        raise_for.bad_geometry()
+        if isinstance(geom, Polygon | MultiPolygon) and not geom.length:
+            geom = buffer(geom, 0.1**GEO_COORDINATE_PRECISION / 4, 0)
+        else:
+            raise_for.bad_geometry()
 
-    return geom
+    return set_srid(geom, 4326)
 
 
-GeometryValidator = PlainValidator(validate_geometry)
+GeometryValidator = BeforeValidator(validate_geometry)

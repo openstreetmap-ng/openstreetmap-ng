@@ -9,9 +9,10 @@
         <form class="authorize-form card" method="POST">
             <div class="card-body py-4 py-sm-5 px-3 px-sm-4 px-md-5">
                 <div class="d-flex justify-content-center align-items-center mb-3">
-                    <img class="header-avatar avatar" src="{{ app.avatar_url }}" alt="{{ t('alt.application_image') }}">
+                    <img class="header-avatar avatar" src="{{ oauth2_app_avatar_url(app) }}"
+                         alt="{{ t('alt.application_image') }}">
                     <i class="bi bi-arrow-right fs-4 mx-3 d-none d-md-block"></i>
-                    <img class="header-avatar avatar d-none d-md-block" src="{{ user.avatar_url }}"
+                    <img class="header-avatar avatar d-none d-md-block" src="{{ user_avatar_url(user) }}"
                          alt="{{ t('alt.profile_picture') }}">
                 </div>
                 <h4 class="card-title text-center mb-0">
@@ -23,7 +24,7 @@
                 <p class="form-text text-center mt-0 mb-4">
                     {% set _user_link %}
                     <a href="/user/{{ user.display_name }}" target="_blank">
-                        <img class="avatar me-1 d-md-none" src="{{ user.avatar_url }}"
+                        <img class="avatar me-1 d-md-none" src="{{ user_avatar_url(user) }}"
                              alt="{{ t('alt.profile_picture') }}">
                         {{- user.display_name -}}
                     </a>
@@ -36,7 +37,6 @@
                         <h5>{{ t('oauth.app_is_requesting_permissions_to', name=_app_name) | safe }}</h5>
                         <ul class="list-unstyled mb-0">
                             {% for scope in scopes %}
-                                {% set scope = scope.value %}
                                 <li class="d-flex">
                                     <i class="bi bi-check text-success me-1"></i>
                                     <span>
@@ -81,7 +81,7 @@
                         <ul class="list-unstyled mb-0">
                             {% set _owner_link %}
                             <a href="/user/{{ app.user.display_name }}" target="_blank">
-                                <img class="avatar me-1" src="{{ app.user.avatar_url }}"
+                                <img class="avatar me-1" src="{{ user_avatar_url(app.user) }}"
                                      alt="{{ t('alt.profile_picture') }}">
                                 {{- app.user.display_name -}}
                             </a>

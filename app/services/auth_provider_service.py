@@ -1,7 +1,6 @@
 import logging
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from time import time
-from typing import cast
 
 import cython
 from fastapi import HTTPException, Response
@@ -14,7 +13,8 @@ from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_compare, hmac_bytes
 from app.lib.render_response import render_response
 from app.limits import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_MAX_AGE, COOKIE_AUTH_MAX_AGE
-from app.models.auth_provider import AuthProvider, AuthProviderAction
+from app.models.db.connected_account import AUTH_PROVIDERS, AuthProvider, AuthProviderAction
+from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.services.connected_account_service import ConnectedAccountService
@@ -63,7 +63,7 @@ class AuthProviderService:
         state = AuthProviderState.FromString(urlsafe_b64decode(buffer_b64))
         if state.timestamp + AUTH_PROVIDER_STATE_MAX_AGE < time():
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Authorization timed out, please try again')
-        if state.provider != provider.value:
+        if state.provider != provider:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state provider')
         return state
 
@@ -75,16 +75,20 @@ class AuthProviderService:
         name: str | None,
         email: str | None,
     ) -> Response:
-        provider = AuthProvider(state.provider)
-        action = cast(AuthProviderAction, state.action)
+        if state.provider not in AUTH_PROVIDERS:
+            raise NotImplementedError(f'Unsupported auth provider {state.provider!r}')
+        # noinspection PyTypeChecker
+        provider: AuthProvider = state.provider
+        action: AuthProviderAction = state.action  # type: ignore
         uid = str(uid)
 
         if action == 'login':
             user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
             if user_id is None:
                 return await render_response('user/auth_provider/not_found.jinja2', {'provider': provider})
+
             logging.debug('Authenticated user %d using auth provider %r', user_id, provider)
-            access_token = await SystemAppService.create_access_token('SystemApp.web', user_id=user_id)
+            access_token = await SystemAppService.create_access_token(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
             max_age = COOKIE_AUTH_MAX_AGE  # TODO: remember option for auth providers
             response = RedirectResponse(secure_referer(state.referer), status.HTTP_303_SEE_OTHER)
             response.delete_cookie('auth_provider_state')
@@ -104,8 +108,9 @@ class AuthProviderService:
                 user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
                 if user_id is None:
                     await ConnectedAccountService.add_connection(provider, uid)
-                elif user_id != current_user.id:
+                elif user_id != current_user['id']:
                     raise NotImplementedError  # TODO: handle used by another user
+
             response = RedirectResponse('/settings/connections', status.HTTP_303_SEE_OTHER)
             response.delete_cookie('auth_provider_state')
             return response
@@ -114,6 +119,7 @@ class AuthProviderService:
             user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
             if user_id is not None:
                 raise NotImplementedError  # TODO: handle used by another user
+
             verification = _create_signed_verification(
                 provider=provider,
                 uid=uid,
@@ -143,15 +149,23 @@ class AuthProviderService:
         """
         if not s:
             return None
+
         parts = s.encode().split(b'.', 1)
         if len(parts) != 2:
-            return None  # malformed
+            logging.debug('Auth provider verification is malformed')
+            return None
+
         buffer_b64, hmac_b64 = parts
         if not hash_compare(buffer_b64, urlsafe_b64decode(hmac_b64), hash_func=hmac_bytes):
-            return None  # invalid HMAC
+            logging.debug('Auth provider verification HMAC is invalid')
+            return None
+
         verification = AuthProviderVerification.FromString(urlsafe_b64decode(buffer_b64))
         if verification.timestamp + AUTH_PROVIDER_VERIFICATION_MAX_AGE < time():
-            return None  # expired
+            logging.debug('Auth provider verification is expired')
+            return None
+
+        logging.debug('Successful auth provider verification')
         return verification
 
 
@@ -170,7 +184,7 @@ def _create_signed_state(
     buffer_b64 = urlsafe_b64encode(
         AuthProviderState(
             timestamp=int(time()),
-            provider=provider.value,
+            provider=provider,
             action=action,
             referer=referer,
             nonce=buffered_randbytes(16),
@@ -196,7 +210,7 @@ def _create_signed_verification(
     buffer_b64 = urlsafe_b64encode(
         AuthProviderVerification(
             timestamp=int(time()),
-            provider=provider.value,
+            provider=provider,
             uid=uid,
             name=name,
             email=email,

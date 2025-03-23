@@ -5,7 +5,7 @@
                 {{ t('browse.anonymous') }}
             {% else %}
                 <a href="/user/{{ changeset.user.display_name }}">
-                <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
+                <img class="avatar" src="{{ user_avatar_url(changeset.user) }}" alt="{{ t('alt.profile_picture') }}"
                      loading="lazy">
                 {{- changeset.user.display_name -}}
             </a>

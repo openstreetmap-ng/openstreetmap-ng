@@ -5,7 +5,7 @@ from pydantic import SecretStr
 from starlette import status
 
 from app.config import WIKIMEDIA_OAUTH_PUBLIC, WIKIMEDIA_OAUTH_SECRET
-from app.models.auth_provider import AuthProvider, AuthProviderAction
+from app.models.db.connected_account import AuthProviderAction
 from app.services.auth_provider_service import AuthProviderService
 from app.utils import HTTP
 
@@ -20,7 +20,7 @@ async def wikimedia_authorize(
     if not WIKIMEDIA_OAUTH_PUBLIC or not WIKIMEDIA_OAUTH_SECRET:
         return Response('Wikimedia OAuth credentials are not configured', status.HTTP_503_SERVICE_UNAVAILABLE)
     return AuthProviderService.continue_authorize(
-        provider=AuthProvider.wikimedia,
+        provider='wikimedia',
         action=action,
         referer=referer,
         redirect_uri='https://meta.wikimedia.org/w/rest.php/oauth2/authorize',
@@ -38,7 +38,7 @@ async def wikimedia_callback(
     auth_provider_state: Annotated[str, Cookie()],
 ):
     state_ = AuthProviderService.validate_state(
-        provider=AuthProvider.wikimedia,
+        provider='wikimedia',
         query_state=state,
         cookie_state=auth_provider_state,
     )

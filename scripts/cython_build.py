@@ -1,6 +1,4 @@
 import os
-from collections.abc import Iterable
-from itertools import chain
 from pathlib import Path
 
 from Cython.Build import cythonize
@@ -24,9 +22,9 @@ dirs = (
     'app/validators',
 )
 
-extra_paths: Iterable[Path] = map(
-    Path,
-    (
+extra_paths = [
+    Path(p)
+    for p in (
         'app/db.py',
         'app/utils.py',
         'app/models/element.py',
@@ -34,24 +32,23 @@ extra_paths: Iterable[Path] = map(
         'app/models/tags_format.py',
         'scripts/preload_convert.py',
         'scripts/replication.py',
-    ),
-)
+    )
+]
 
 blacklist: dict[str, set[str]] = {
-    'app/services': {
-        'email_service.py',
-    },
+    # Reason: Unsupported PEP-654 Exception Groups
+    # https://github.com/cython/cython/issues/4993
     'app/services/optimistic_diff': {
         '__init__.py',
     },
 }
 
-paths = (
+paths = [
     p
     for dir_ in dirs  #
-    for p in chain(Path(dir_).rglob('*.py'), extra_paths)
+    for p in (*Path(dir_).rglob('*.py'), *extra_paths)
     if p.name not in blacklist.get(p.parent.as_posix(), set())
-)
+]
 
 extra_args: list[str] = [
     '-g',

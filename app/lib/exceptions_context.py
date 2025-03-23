@@ -4,23 +4,23 @@ from typing import Any, cast, override
 
 from app.exceptions import Exceptions
 
-_context: ContextVar[Exceptions] = ContextVar('ExceptionsContext')
+_CTX: ContextVar[Exceptions] = ContextVar('Exceptions')
 
 
 @contextmanager
 def exceptions_context(implementation: Exceptions):
     """Context manager for setting the exceptions type in ContextVar."""
-    token = _context.set(implementation)
+    token = _CTX.set(implementation)
     try:
         yield
     finally:
-        _context.reset(token)
+        _CTX.reset(token)
 
 
 class _RaiseFor:
     @override
     def __getattribute__(self, name: str) -> Any:
-        return getattr(_context.get(), name)
+        return getattr(_CTX.get(), name)
 
 
 raise_for = cast(Exceptions, cast(object, _RaiseFor()))

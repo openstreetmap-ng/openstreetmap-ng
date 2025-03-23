@@ -8,7 +8,7 @@ from app.middlewares.request_context_middleware import get_request
 
 FormatStyle = Literal['json', 'xml', 'rss', 'gpx']
 
-_context: ContextVar[FormatStyle] = ContextVar('FormatStyleContext')
+_CTX: ContextVar[FormatStyle] = ContextVar('FormatStyle')
 
 
 @contextmanager
@@ -19,7 +19,7 @@ def format_style_context():
     Format style is auto-detected from the request.
     """
     request_path: str = get_request().url.path
-    is_modern_api: cython.char
+    is_modern_api: cython.bint
 
     # path defaults
     if request_path.startswith(('/api/web/', '/api/partial/', '/api/0.7/')):
@@ -47,33 +47,33 @@ def format_style_context():
         elif extension == 'gpx':
             style = 'gpx'
 
-    token = _context.set(style)
+    token = _CTX.set(style)
     try:
         yield
     finally:
-        _context.reset(token)
+        _CTX.reset(token)
 
 
 def format_style() -> FormatStyle:
     """Get the configured format style."""
-    return _context.get()
+    return _CTX.get()
 
 
 def format_is_json() -> bool:
     """Check if the format style is JSON."""
-    return _context.get() == 'json'
+    return _CTX.get() == 'json'
 
 
 def format_is_xml() -> bool:
     """Check if the format style is XML."""
-    return _context.get() == 'xml'
+    return _CTX.get() == 'xml'
 
 
 def format_is_rss() -> bool:
     """Check if the format style is RSS."""
-    return _context.get() == 'rss'
+    return _CTX.get() == 'rss'
 
 
 def format_is_gpx() -> bool:
     """Check if the format style is GPX."""
-    return _context.get() == 'gpx'
+    return _CTX.get() == 'gpx'

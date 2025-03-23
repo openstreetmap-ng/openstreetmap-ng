@@ -1,13 +1,14 @@
 import logging
+from typing import Any
 
+from psycopg.sql import SQL, Composable
 from shapely import Point
-from sqlalchemy import delete, select
 
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.models.db.diary import Diary
-from app.models.db.user_subscription import UserSubscriptionTarget
-from app.models.types import LocaleCode
+from app.lib.exceptions_context import raise_for
+from app.models.db.diary import DiaryInit
+from app.models.types import DiaryId, LocaleCode, UserId
 from app.services.user_subscription_service import UserSubscriptionService
 
 
@@ -19,65 +20,99 @@ class DiaryService:
         body: str,
         language: LocaleCode,
         point: Point | None,
-    ) -> int:
+    ) -> DiaryId:
         """
         Post a new diary entry.
 
         Returns the diary id.
         """
-        user_id = auth_user(required=True).id
-        async with db(True) as session:
-            diary = Diary(
-                user_id=user_id,
-                title=title,
-                body=body,
-                language=language,
-                point=point,
-            )
-            session.add(diary)
-        diary_id = diary.id
+        user_id = auth_user(required=True)['id']
+
+        diary_init: DiaryInit = {
+            'user_id': user_id,
+            'title': title,
+            'body': body,
+            'language': language,
+            'point': point,
+        }
+
+        async with (
+            db(True) as conn,
+            await conn.execute(
+                """
+                INSERT INTO diary (
+                    user_id, title, body, language, point
+                )
+                VALUES (
+                    %(user_id)s, %(title)s, %(body)s, %(language)s, %(point)s
+                )
+                RETURNING id
+                """,
+                diary_init,
+            ) as r,
+        ):
+            diary_id: DiaryId = (await r.fetchone())[0]  # type: ignore
+
         logging.debug('Created diary %d by user %d', diary_id, user_id)
-        await UserSubscriptionService.subscribe(UserSubscriptionTarget.diary, diary_id)
+        await UserSubscriptionService.subscribe('diary', diary_id)
         return diary_id
 
     @staticmethod
     async def update(
         *,
-        diary_id: int,
+        diary_id: DiaryId,
         title: str,
         body: str,
         language: LocaleCode,
         point: Point | None,
     ) -> None:
         """Update a diary entry."""
-        async with db(True) as session:
-            stmt = (
-                select(Diary)
-                .where(
-                    Diary.id == diary_id,
-                    Diary.user_id == auth_user(required=True).id,
-                )
-                .with_for_update()
+        user_id = auth_user(required=True)['id']
+
+        async with db(True) as conn:
+            result = await conn.execute(
+                """
+                UPDATE diary
+                SET
+                    title = %(title)s,
+                    body = %(body)s,
+                    body_rich_hash = CASE
+                        WHEN %(body)s != diary.body THEN NULL
+                        ELSE body_rich_hash
+                    END,
+                    language = %(language)s,
+                    point = %(point)s,
+                    updated_at = DEFAULT
+                WHERE id = %(diary_id)s
+                AND user_id = %(user_id)s
+                """,
+                {
+                    'diary_id': diary_id,
+                    'user_id': user_id,
+                    'title': title,
+                    'body': body,
+                    'language': language,
+                    'point': point,
+                },
             )
-            diary = await session.scalar(stmt)
-            if diary is None:
-                return
 
-            if diary.body != body:
-                diary.body = body
-                diary.body_rich_hash = None
-
-            if diary.title != title or diary.language != language or diary.point != point:
-                diary.title = title
-                diary.language = language
-                diary.point = point
+            if not result.rowcount:
+                raise_for.diary_not_found(diary_id)
 
     @staticmethod
-    async def delete(diary_id: int) -> None:
+    async def delete(diary_id: DiaryId, *, current_user_id: UserId | None = None) -> None:
         """Delete a diary entry."""
-        async with db(True) as session:
-            stmt = delete(Diary).where(
-                Diary.id == diary_id,
-                Diary.user_id == auth_user(required=True).id,
-            )
-            await session.execute(stmt)
+        conditions: list[Composable] = [SQL('id = %s')]
+        params: list[Any] = [diary_id]
+
+        if current_user_id is not None:
+            conditions.append(SQL('user_id = %s'))
+            params.append(current_user_id)
+
+        query = SQL("""
+            DELETE FROM diary
+            WHERE {conditions}
+        """).format(conditions=SQL(' AND ').join(conditions))
+
+        async with db(True) as conn:
+            await conn.execute(query, params)

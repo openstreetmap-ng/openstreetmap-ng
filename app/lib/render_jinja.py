@@ -9,6 +9,9 @@ from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
 from app.lib.static_asset_hash import HASH_AWARE_PATHS
 from app.lib.translation import nt, primary_translation_locale, t
+from app.models.db.oauth2_application import oauth2_app_avatar_url
+from app.models.db.user import user_avatar_url
+from app.models.element import split_typed_element_id
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil
@@ -16,7 +19,7 @@ else:
     from math import ceil
 
 
-_j2 = Environment(
+_J2 = Environment(
     loader=FileSystemLoader('app/templates'),
     autoescape=True,
     cache_size=1024,
@@ -29,24 +32,23 @@ _j2 = Environment(
 
 def render_jinja(template_name: str, template_data: dict[str, Any] | None = None) -> str:
     """Render the given Jinja2 template with translation."""
-    user = auth_user()
-    lang = primary_translation_locale()
     data = {
         'VERSION': VERSION,
         'TEST_ENV': TEST_ENV,
         'APP_URL': APP_URL,
-        'user': user,
-        'lang': lang,
+        'user': auth_user(),
+        'lang': primary_translation_locale(),
     }
+
     if template_data is not None:
         data.update(template_data)
-    return _j2.get_template(template_name).render(data)
+
+    return _J2.get_template(template_name).render(data)
 
 
 def timeago(date: datetime | None, *, html: bool = False) -> str:
     """
     Get a human-readable time difference from the given date.
-
     Optionally, return the result as an HTML <time> element.
 
     >>> timeago(datetime(2021, 12, 31, 15, 30, 45))
@@ -90,13 +92,12 @@ def timeago(date: datetime | None, *, html: bool = False) -> str:
         ago = nt('datetime.distance_in_words_ago.x_years', int(total_seconds / (3600 * 24 * 365)))
     else:
         # almost X years ago
-        ago = nt('datetime.distance_in_words_ago.almost_x_years', int(ceil(total_seconds / (3600 * 24 * 365))))
+        ago = nt('datetime.distance_in_words_ago.almost_x_years', int(ceil(total_seconds / (3600 * 24 * 365))))  # noqa: RUF046
 
     if html:
-        friendly_date = date.strftime(t('time.formats.friendly'))
-        return f'<time datetime="{date.isoformat()}" title="{friendly_date}">{ago}</time>'
-    else:
-        return ago
+        return f'<time datetime="{date.isoformat()}" title="{date.strftime(t("time.formats.friendly"))}">{ago}</time>'
+
+    return ago
 
 
 # TODO: ideally we should fix translation
@@ -106,7 +107,7 @@ def stripspecial(value: str) -> str:
 
 
 # configure template globals
-_j2.globals.update(
+_J2.globals.update(
     HASH_AWARE_PATHS=HASH_AWARE_PATHS,
     t=t,
     nt=nt,
@@ -114,9 +115,12 @@ _j2.globals.update(
     zip=zip,
     timeago=timeago,
     format_rfc2822_date=format_rfc2822_date,
+    user_avatar_url=user_avatar_url,
+    oauth2_app_avatar_url=oauth2_app_avatar_url,
+    split_typed_element_id=split_typed_element_id,
 )
 
 # configure template filters
-_j2.filters.update(
+_J2.filters.update(
     stripspecial=stripspecial,
 )

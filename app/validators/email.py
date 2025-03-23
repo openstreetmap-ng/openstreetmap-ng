@@ -12,22 +12,24 @@ from dns.resolver import NXDOMAIN, NoAnswer, NoNameservers
 from email_validator import EmailNotValidError
 from email_validator import validate_email as validate_email_
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
-from pydantic import AfterValidator
+from pydantic import BeforeValidator
 
 from app.config import TEST_ENV
+from app.lib.crypto import hash_bytes
 from app.limits import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT, EMAIL_MIN_LENGTH
-from app.models.types import EmailType
+from app.models.types import Email
 from app.services.cache_service import CacheContext, CacheService
+from app.validators.whitespace import BoundaryWhitespaceValidator
 
-_cache_context = CacheContext('EmailValidator')
-_resolver = Resolver()
-_resolver.timeout = EMAIL_DELIVERABILITY_DNS_TIMEOUT.total_seconds()
-_resolver.lifetime = _resolver.timeout + 2
-_resolver.cache = None  # using valkey cache
-_resolver.retry_servfail = True
+_CTX = CacheContext('EmailValidator')
+_RESOLVER = Resolver()
+_RESOLVER.timeout = EMAIL_DELIVERABILITY_DNS_TIMEOUT.total_seconds()
+_RESOLVER.lifetime = _RESOLVER.timeout + 2
+_RESOLVER.cache = None  # using custom cache
+_RESOLVER.retry_servfail = True
 
 
-def validate_email(email: str) -> EmailType:
+def validate_email(email: str) -> Email:
     """
     Validate and normalize email address.
 
@@ -37,7 +39,7 @@ def validate_email(email: str) -> EmailType:
     'example@ツ.life'
     """
     try:
-        return EmailType(
+        return Email(
             validate_email_(
                 email,
                 check_deliverability=False,
@@ -48,7 +50,7 @@ def validate_email(email: str) -> EmailType:
         raise ValueError(f'Invalid email address {email!r}') from e
 
 
-async def validate_email_deliverability(email: str) -> bool:
+async def validate_email_deliverability(email: Email) -> bool:
     """Validate deliverability of an email address."""
     try:
         info = validate_email_(
@@ -63,20 +65,17 @@ async def validate_email_deliverability(email: str) -> bool:
 
     async def factory() -> bytes:
         logging.debug('Email domain deliverability cache miss for %r', domain)
-        return (
-            b'\xff'  #
-            if await _check_domain_deliverability(domain)
-            else b'\x00'
+        return b'\xff' if await _check_domain_deliverability(domain) else b'\x00'
+
+    success = (
+        await CacheService.get(
+            hash_bytes(domain).hex(),  # type: ignore
+            _CTX,
+            factory,
+            ttl=EMAIL_DELIVERABILITY_CACHE_EXPIRE,
         )
-
-    cache_entry = await CacheService.get(
-        domain,
-        context=_cache_context,
-        factory=factory,
-        ttl=EMAIL_DELIVERABILITY_CACHE_EXPIRE,
+        == b'\xff'
     )
-
-    success = cache_entry.value == b'\xff'
     logging.info('Email domain deliverability for %r: %s', domain, success)
     return success
 
@@ -91,7 +90,7 @@ async def _check_domain_deliverability(domain: str) -> bool:
             nonlocal success
 
             try:
-                answer = await _resolver.resolve(domain, rd)
+                answer = await _RESOLVER.resolve(domain, rd)
                 rrset = answer.rrset
             except NoAnswer:
                 rrset = None
@@ -127,5 +126,14 @@ async def _check_domain_deliverability(domain: str) -> bool:
     return success
 
 
-EmailValidator = AfterValidator(validate_email)
-ValidatingEmailType = Annotated[EmailType, EmailValidator, MinLen(EMAIL_MIN_LENGTH), MaxLen(EMAIL_MAX_LENGTH)]
+EmailValidator = BeforeValidator(validate_email)
+
+# ideally, should be defined in app/models/types.py
+# but this causes circular import
+EmailValidating = Annotated[
+    Email,
+    MinLen(EMAIL_MIN_LENGTH),
+    MaxLen(EMAIL_MAX_LENGTH),
+    EmailValidator,
+    BoundaryWhitespaceValidator,
+]

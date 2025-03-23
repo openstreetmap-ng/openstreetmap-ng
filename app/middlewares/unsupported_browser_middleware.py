@@ -21,8 +21,7 @@ class UnsupportedBrowserMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope['type'] != 'http':
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
         request = get_request()
         user_agent = request.headers.get('User-Agent')
@@ -32,10 +31,9 @@ class UnsupportedBrowserMiddleware:
             or request.method != 'GET'
             or request.cookies.get('unsupported_browser_override') is not None
         ) and not (TEST_ENV and 'unsupported_browser' in request.query_params):
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
-        capture: cython.char = False
+        capture: cython.bint = False
 
         async def wrapper(message: Message) -> None:
             nonlocal capture
@@ -44,21 +42,20 @@ class UnsupportedBrowserMiddleware:
                 capture = _should_capture(message)
 
             if not capture:
-                await send(message)
-                return
+                return await send(message)
 
             logging.debug('Client browser is not supported')
             response = await render_response('unsupported_browser.jinja2', status=status.HTTP_501_NOT_IMPLEMENTED)
-            await response(scope, receive, send)
+            return await response(scope, receive, send)
 
-        await self.app(scope, receive, wrapper)
+        return await self.app(scope, receive, wrapper)
 
 
 @cython.cfunc
-def _should_capture(message: Message) -> cython.char:
+def _should_capture(message: Message) -> cython.bint:
     status_code: cython.int = message['status']
     if status_code != 200:
         return False
     headers = Headers(raw=message['headers'])
-    content_type: str | None = headers.get('Content-Type')
+    content_type = headers.get('Content-Type')
     return content_type is not None and content_type.startswith('text/html')

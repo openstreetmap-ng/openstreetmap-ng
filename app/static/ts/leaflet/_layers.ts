@@ -243,7 +243,7 @@ export const addMapLayerSources = (map: MaplibreMap, kind: "all" | "base" | Laye
     for (const [layerId, config] of exactConfig ? [[kind, exactConfig] as [LayerId, LayerConfig]] : layersConfig) {
         if (kind === "base" && !config.isBaseLayer) continue
         const specType = config.specification.type
-        if (specType === "raster") {
+        if (specType === "raster" || specType === "geojson") {
             if (!watchMap && config.darkTiles) watchMap = true
             if (isDarkTheme && config.darkTiles) {
                 // @ts-ignore

@@ -74,34 +74,30 @@ _FREQUENCY_MERGE_EVERY: dict[_Frequency, int] = {
     'day': 7,
 }
 
-_PARQUET_SCHEMA = pa.schema(
-    [
-        pa.field('sequence_id', pa.uint64()),
-        pa.field('changeset_id', pa.uint64()),
-        pa.field('type', pa.string()),
-        pa.field('id', pa.uint64()),
-        pa.field('version', pa.uint64()),
-        pa.field('visible', pa.bool_()),
-        pa.field('tags', pa.string()),
-        pa.field('point', pa.string()),
-        pa.field(
-            'members',
-            pa.list_(
-                pa.struct(
-                    [
-                        pa.field('order', pa.uint16()),
-                        pa.field('type', pa.string()),
-                        pa.field('id', pa.uint64()),
-                        pa.field('role', pa.string()),
-                    ]
-                )
-            ),
+_PARQUET_SCHEMA = pa.schema([
+    pa.field('sequence_id', pa.uint64()),
+    pa.field('changeset_id', pa.uint64()),
+    pa.field('type', pa.string()),
+    pa.field('id', pa.uint64()),
+    pa.field('version', pa.uint64()),
+    pa.field('visible', pa.bool_()),
+    pa.field('tags', pa.string()),
+    pa.field('point', pa.string()),
+    pa.field(
+        'members',
+        pa.list_(
+            pa.struct([
+                pa.field('order', pa.uint16()),
+                pa.field('type', pa.string()),
+                pa.field('id', pa.uint64()),
+                pa.field('role', pa.string()),
+            ])
         ),
-        pa.field('created_at', pa.timestamp('ms', 'UTC')),
-        pa.field('user_id', pa.uint64()),
-        pa.field('display_name', pa.string()),
-    ]
-)
+    ),
+    pa.field('created_at', pa.timestamp('ms', 'UTC')),
+    pa.field('user_id', pa.uint64()),
+    pa.field('display_name', pa.string()),
+])
 
 _APP_STATE_PATH = REPLICATION_DIR / 'state.json'
 
@@ -172,7 +168,11 @@ async def _iterate(state: AppState) -> AppState:
             compression='lz4',
             write_statistics=False,
         ) as writer:
-            last_sequence_id = _parse_actions(writer, actions, last_sequence_id=state.last_sequence_id)
+            last_sequence_id = _parse_actions(
+                writer,
+                actions,  # type: ignore
+                last_sequence_id=state.last_sequence_id,
+            )
 
     return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
 
@@ -245,22 +245,20 @@ def _parse_actions(
                 raise NotImplementedError(f'Unsupported element type {element_type!r}')
 
             last_sequence_id += 1
-            data.append(
-                {
-                    'sequence_id': last_sequence_id,
-                    'changeset_id': element['@changeset'],
-                    'type': element_type,
-                    'id': element['@id'],
-                    'version': element['@version'],
-                    'visible': (tags is not None) or (point is not None) or bool(members),
-                    'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
-                    'point': point,
-                    'members': members,
-                    'created_at': element['@timestamp'],
-                    'user_id': element.get('@uid'),
-                    'display_name': element.get('@user'),
-                }
-            )
+            data.append({
+                'sequence_id': last_sequence_id,
+                'changeset_id': element['@changeset'],
+                'type': element_type,
+                'id': element['@id'],
+                'version': element['@version'],
+                'visible': (tags is not None) or (point is not None) or bool(members),
+                'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
+                'point': point,
+                'members': members,
+                'created_at': element['@timestamp'],
+                'user_id': element.get('@uid'),
+                'display_name': element.get('@user'),
+            })
 
         if len(data) >= 1024 * 1024:  # batch size
             flush()
@@ -315,12 +313,14 @@ async def _increase_frequency(state: AppState) -> AppState:
     step: cython.int = 2 << 4
     new_sequence_number: cython.longlong = int(state.last_replica.sequence_number * frequency_downscale)
     direction_forward: bool | None = None
+
     while True:
         if not step:
             raise ValueError(f"Couldn't find {new_frequency!r} replica at {current_created_at!r}")
 
         url = _get_replication_url(new_frequency, new_sequence_number)
         r = await HTTP.get(url + '.state.txt')
+
         if r.status_code == status.HTTP_404_NOT_FOUND:
             if direction_forward is None:
                 direction_forward = False
@@ -328,12 +328,14 @@ async def _increase_frequency(state: AppState) -> AppState:
                 step >>= 1
             new_sequence_number -= step
             continue
+
         r.raise_for_status()
         new_replica = _parse_replica_state(r.text)
 
         if abs(new_replica.created_at - current_created_at) < found_threshold:
             # found
             return replace(state, frequency=new_frequency, last_replica=new_replica)
+
         if new_replica.created_at > current_created_at:
             # too late
             if direction_forward is None:
@@ -341,6 +343,7 @@ async def _increase_frequency(state: AppState) -> AppState:
             elif direction_forward:
                 step >>= 1
             new_sequence_number -= step
+
         else:
             # too early
             if direction_forward is None:
@@ -363,8 +366,6 @@ def _get_replication_url(frequency: _Frequency, sequence_number: int | None) -> 
 def _parse_replica_state(state: str):
     data: dict[str, str] = {}
     line: str
-    key: str
-    val: str
     for line in state.splitlines():
         if not line or line[0] == '#':
             continue

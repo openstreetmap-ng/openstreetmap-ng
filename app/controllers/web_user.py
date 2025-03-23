@@ -1,7 +1,6 @@
 from typing import Annotated
 
 import orjson
-from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from fastapi import APIRouter, Cookie, Form, Query, Response
 from pydantic import SecretStr
 from starlette import status
@@ -13,39 +12,40 @@ from app.lib.redirect_referrer import redirect_referrer
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.limits import COOKIE_AUTH_MAX_AGE, DISPLAY_NAME_MAX_LENGTH, TIMEZONE_MAX_LENGTH
-from app.models.db.user import User, UserStatus
-from app.models.types import DisplayNameType, EmailType, PasswordType, ValidatingDisplayNameType
+from app.limits import COOKIE_AUTH_MAX_AGE, TIMEZONE_MAX_LENGTH
+from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
+from app.models.db.user import User
+from app.models.types import DisplayName, Email, Password
 from app.services.auth_provider_service import AuthProviderService
 from app.services.oauth2_token_service import OAuth2TokenService
+from app.services.system_app_service import SystemAppService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 from app.services.user_token_email_change_service import UserTokenEmailChangeService
 from app.services.user_token_reset_password_service import UserTokenResetPasswordService
-from app.validators.email import ValidatingEmailType
+from app.validators.display_name import DisplayNameValidating
+from app.validators.email import EmailValidating
 
 router = APIRouter(prefix='/api/web/user')
 
 
 @router.post('/login')
 async def login(
-    display_name_or_email: Annotated[
-        DisplayNameType | EmailType, Form(min_length=1, max_length=max(DISPLAY_NAME_MAX_LENGTH, EMAIL_MAX_LENGTH))
-    ],
-    password: Annotated[PasswordType, Form()],
+    display_name_or_email: Annotated[DisplayName | Email, Form(min_length=1)],
+    password: Annotated[Password, Form()],
     remember: Annotated[bool, Form()] = False,
 ):
     access_token = await UserService.login(
         display_name_or_email=display_name_or_email,
         password=password,
     )
-    max_age = COOKIE_AUTH_MAX_AGE if remember else None
+
     response = Response()
     response.set_cookie(
         key='auth',
         value=access_token.get_secret_value(),
-        max_age=max_age,
+        max_age=COOKIE_AUTH_MAX_AGE if remember else None,
         secure=not TEST_ENV,
         httponly=True,
         samesite='lax',
@@ -66,28 +66,32 @@ async def logout(
 
 @router.post('/signup')
 async def signup(
-    display_name: Annotated[ValidatingDisplayNameType, Form()],
-    email: Annotated[ValidatingEmailType, Form()],
-    password: Annotated[PasswordType, Form()],
+    display_name: Annotated[DisplayNameValidating, Form()],
+    email: Annotated[EmailValidating, Form()],
+    password: Annotated[Password, Form()],
     tracking: Annotated[bool, Form()] = False,
     auth_provider_verification: Annotated[str | None, Cookie()] = None,
 ):
     verification = AuthProviderService.validate_verification(auth_provider_verification)
-    email_confirmed = (verification is not None) and verification.email == email
-    access_token = await UserSignupService.signup(
+    email_confirmed = verification is not None and verification.email == email
+
+    user_id = await UserSignupService.signup(
         display_name=display_name,
         email=email,
         password=password,
         tracking=tracking,
         email_confirmed=email_confirmed,
     )
-    redirect_url = '/welcome' if email_confirmed else '/user/account-confirm/pending'
+
     response = Response(
-        orjson.dumps({'redirect_url': redirect_url}),
+        orjson.dumps({'redirect_url': '/welcome' if email_confirmed else '/user/account-confirm/pending'}),
         media_type='application/json; charset=utf-8',
     )
+
     if email_confirmed:
         response.delete_cookie('auth_provider_verification')
+
+    access_token = await SystemAppService.create_access_token(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
     response.set_cookie(
         key='auth',
         value=access_token.get_secret_value(),
@@ -96,6 +100,7 @@ async def signup(
         httponly=True,
         samesite='lax',
     )
+
     return response
 
 
@@ -113,11 +118,12 @@ async def account_confirm(
 async def account_confirm_resend(
     user: Annotated[User, web_user()],
 ):
-    if user.status != UserStatus.pending_activation:
+    if user['email_verified']:
         return {'is_active': True}
+
     await UserTokenAccountConfirmService.send_email()
     return StandardFeedback.success_result(
-        None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email)
+        None, t('confirmations.resend_success_flash.confirmation_sent', email=user['email'])
     )
 
 
@@ -133,7 +139,7 @@ async def email_change_confirm(
 
 @router.post('/reset-password')
 async def reset_password(
-    email: Annotated[EmailType, Form()],
+    email: Annotated[Email, Form()],
 ):
     await UserTokenResetPasswordService.send_email(email)
     return StandardFeedback.success_result(None, t('settings.password_reset_link_sent'))
@@ -142,14 +148,16 @@ async def reset_password(
 @router.post('/reset-password/token')
 async def reset_password_token(
     token: Annotated[SecretStr, Form()],
-    new_password: Annotated[PasswordType, Form()],
+    new_password: Annotated[Password, Form()],
 ):
     revoke_other_sessions = auth_user() is None
+
     await UserService.reset_password(
         token=token,
         new_password=new_password,
         revoke_other_sessions=revoke_other_sessions,
     )
+
     return StandardFeedback.success_result(
         None,
         t('settings.password_reset_success')

@@ -1,20 +1,19 @@
 {% for comment in comments %}
-    {% set _event = comment.event.value %}
     <li class="social-entry">
         <p class="header text-muted">
             <a href="/user/{{ comment.user.display_name }}">
-                <img class="avatar" src="{{ comment.user.avatar_url }}"
+                <img class="avatar" src="{{ user_avatar_url(comment.user) }}"
                      alt="{{ t('alt.profile_picture') }}"
                      loading="lazy">
                 {{- comment.user.display_name -}}
             </a>
-            {% if _event == 'commented' %}
+            {% if comment.event == 'commented' %}
                 {{ t('action.commented') }}
-            {% elif _event == 'closed' %}
+            {% elif comment.event == 'closed' %}
                 {{ t('action.resolved') }}
-            {% elif _event == 'reopened' %}
+            {% elif comment.event == 'reopened' %}
                 {{ t('action.reactivated') }}
-            {% elif _event == 'hidden' %}
+            {% elif comment.event == 'hidden' %}
                 {{ t('action.hidden') }}
             {% endif %}
             <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>

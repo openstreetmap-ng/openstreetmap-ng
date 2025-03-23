@@ -1,15 +1,16 @@
 import logging
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any, Literal, Protocol, overload
 
 import cython
 import lxml.etree as tree
 from lxml.etree import CDATA, Element
-from sizestr import sizestr
 
+from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
+from app.lib.sizestr import sizestr
 from app.limits import XML_PARSE_MAX_SIZE
 
 _PARSER = tree.XMLParser(
@@ -24,26 +25,31 @@ _PARSER = tree.XMLParser(
 
 class XMLToDict:
     @staticmethod
-    def parse(xml_bytes: bytes, *, size_limit: int | None = XML_PARSE_MAX_SIZE) -> dict[str, Any]:
+    def parse(
+        xml_bytes: bytes, *, size_limit: int | None = XML_PARSE_MAX_SIZE
+    ) -> dict[str, list[tuple[str, Any]] | dict[str, Any]]:
         """Parse XML string to dict."""
         if (size_limit is not None) and len(xml_bytes) > size_limit:
             raise_for.input_too_big(len(xml_bytes))
+
         logging.debug('Parsing %s XML string', sizestr(len(xml_bytes)))
         root = tree.fromstring(xml_bytes, parser=_PARSER)  # noqa: S320
-        return {_strip_namespace(root.tag): _parse_element(root)}
+        root_element = _parse_element(root)
+
+        if isinstance(root_element, str):
+            raise_for.bad_xml(root.tag, f'XML contains only text: {root_element}', xml_bytes)
+
+        return {_strip_namespace(root.tag): root_element}
 
     @staticmethod
     @overload
     def unparse(d: dict[str, Any]) -> str: ...
-
     @staticmethod
     @overload
     def unparse(d: dict[str, Any], *, raw: Literal[True]) -> bytes: ...
-
     @staticmethod
     @overload
     def unparse(d: dict[str, Any], *, raw: Literal[False]) -> str: ...
-
     @staticmethod
     def unparse(d: dict[str, Any], *, raw: bool = False) -> str | bytes:
         """Unparse dict to XML string."""
@@ -52,12 +58,13 @@ class XMLToDict:
 
         root_k, root_v = next(iter(d.items()))
         elements = _unparse_element(root_k, root_v)
+        root_element = next(iter(elements), None)
 
         # always return the root element, even if it's empty
-        if not elements:
-            elements = (Element(root_k),)
+        if root_element is None:
+            root_element = Element(root_k)
 
-        result = tree.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
+        result = tree.tostring(root_element, encoding='UTF-8', xml_declaration=True)
         logging.debug('Unparsed %s XML string', sizestr(len(result)))
         return result if raw else result.decode()
 
@@ -73,8 +80,8 @@ def _parse_element(element: tree._Element):
     ]
 
     # parse children
-    sequence_mark: cython.char = False
-    if children := tuple(element):
+    sequence_mark: cython.bint = False
+    if children := list(element):
         # read property once for performance
         force_sequence_root: set[str] = _FORCE_SEQUENCE_ROOT
         force_list: set[str] = _FORCE_LIST
@@ -83,6 +90,9 @@ def _parse_element(element: tree._Element):
         for child in children:
             k = _strip_namespace(child.tag)
             v = _parse_element(child)
+
+            if isinstance(v, str) and (call := value_postprocessor.get(k)) is not None:  # pyright: ignore [reportUnnecessaryIsInstance]
+                v = call(v)
 
             # in sequence mode, return root element as tuple
             if k in force_sequence_root:
@@ -115,7 +125,7 @@ def _parse_element(element: tree._Element):
 
 
 @cython.cfunc
-def _unparse_element(key: str, value: Any):
+def _unparse_element(key: str, value: Any) -> list[tree._Element]:
     k: str
     v: Any
 
@@ -131,20 +141,20 @@ def _unparse_element(key: str, value: Any):
                 element.text = _to_string(v)
             else:
                 element_extend(_unparse_element(k, v))
-        return (element,)
+        return [element]
 
     # encode sequence of ...
-    elif isinstance(value, Sequence) and not isinstance(value, str):
+    elif isinstance(value, list | tuple):
         if not value:
-            return ()
+            return []
         first = value[0]
 
         # encode sequence of dicts
         if isinstance(first, dict):
-            return tuple(e for v in value for e in _unparse_element(key, v))
+            return [e for v in value for e in _unparse_element(key, v)]
 
         # encode sequence of (key, value) tuples
-        elif isinstance(first, Sequence) and not isinstance(first, str):
+        elif isinstance(first, list | tuple):
             element = Element(key)
             element_attrib = element.attrib  # read property once for performance
             element_extend = element.extend
@@ -155,12 +165,12 @@ def _unparse_element(key: str, value: Any):
                     element.text = _to_string(v)
                 else:
                     element_extend(_unparse_element(k, v))
-            return (element,)
+            return [element]
 
         # encode sequence of scalars
         else:
             result: list[tree._Element] = [None] * len(value)  # type: ignore
-            i: cython.int
+            i: cython.Py_ssize_t
             for i, v in enumerate(value):
                 element = Element(key)
                 element.text = _to_string(v)
@@ -171,7 +181,7 @@ def _unparse_element(key: str, value: Any):
     else:
         element = Element(key)
         element.text = _to_string(value)
-        return (element,)
+        return [element]
 
 
 # tags that will become tuples (order-preserving): [('tag', ...), ('tag', ...), ...]
@@ -211,16 +221,22 @@ def _parse_xml_version(value: str):
     return int(value) if ('.' not in value) else float(value)
 
 
+@cython.cfunc
+def _parse_xml_date(value: str):
+    return datetime.fromisoformat(value) if ' ' not in value else parse_date(value)
+
+
 _VALUE_POSTPROCESSOR: dict[str, Callable[[str], Any]] = {
     'changeset': int,
     'changes_count': int,
-    'closed_at': datetime.fromisoformat,
+    'closed_at': _parse_xml_date,
     'comments_count': int,
-    'created_at': datetime.fromisoformat,
-    'date': datetime.fromisoformat,
+    'created_at': _parse_xml_date,
+    'date': _parse_xml_date,
     'id': int,
     'lat': float,
     'lon': float,
+    'ele': float,
     'max_lat': float,
     'max_lon': float,
     'min_lat': float,
@@ -229,9 +245,10 @@ _VALUE_POSTPROCESSOR: dict[str, Callable[[str], Any]] = {
     'open': _parse_xml_bool,
     'pending': _parse_xml_bool,
     'ref': int,
-    'timestamp': datetime.fromisoformat,
+    'time': _parse_xml_date,
+    'timestamp': _parse_xml_date,
     'uid': int,
-    'updated_at': datetime.fromisoformat,
+    'updated_at': _parse_xml_date,
     'version': _parse_xml_version,
     'visible': _parse_xml_bool,
 }
@@ -241,18 +258,19 @@ _VALUE_POSTPROCESSOR: dict[str, Callable[[str], Any]] = {
 def _to_string(v: Any) -> str:
     if isinstance(v, str | CDATA):
         return v
-    elif isinstance(v, datetime):
+
+    if isinstance(v, datetime):
         # strip timezone for backwards-compatible format
         tzinfo = v.tzinfo
         if tzinfo is not None:
-            if tzinfo is not UTC:
-                raise AssertionError(f'Timezone must be UTC, got {tzinfo!r}')
+            assert tzinfo is UTC, f'Timezone must be UTC, got {tzinfo!r}'
             v = v.replace(tzinfo=None)
         return v.isoformat() + 'Z'
-    elif isinstance(v, bool):
+
+    if isinstance(v, bool):
         return 'true' if (v is True) else 'false'
-    else:
-        return str(v)
+
+    return str(v)
 
 
 @cython.cfunc

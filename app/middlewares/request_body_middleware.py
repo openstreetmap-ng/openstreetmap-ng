@@ -5,11 +5,12 @@ from io import BytesIO
 
 import brotli
 import cython
-from sizestr import sizestr
+from fastapi import Response
+from starlette import status
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from zstandard import ZstdDecompressor
 
-from app.lib.exceptions_context import raise_for
+from app.lib.sizestr import sizestr
 from app.limits import REQUEST_BODY_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
 
@@ -26,42 +27,53 @@ class RequestBodyMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope['type'] != 'http':
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
         request = get_request()
-        input_size: cython.int = 0
+        input_size: cython.Py_ssize_t = 0
         buffer = BytesIO()
 
         async for chunk in request.stream():
-            chunk_size: cython.int = len(chunk)
-            if chunk_size == 0:
+            chunk_size: cython.Py_ssize_t = len(chunk)
+            if not chunk_size:
                 break
+
             input_size += chunk_size
             if input_size > REQUEST_BODY_MAX_SIZE:
-                raise_for.input_too_big(input_size)
+                return await Response(
+                    f'Request body exceeded {sizestr(REQUEST_BODY_MAX_SIZE)}',
+                    status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                )(scope, receive, send)
+
             buffer.write(chunk)
 
-        if input_size > 0:
+        if input_size:
             body = buffer.getvalue()
-            content_encoding: str | None = request.headers.get('Content-Encoding')
+            content_encoding = request.headers.get('Content-Encoding')
             decompressor = _get_decompressor(content_encoding)
 
             if decompressor is not None:
                 try:
                     body = decompressor(body)
                 except Exception:
-                    raise_for.request_decompression_failed()
+                    return await Response(
+                        'Unable to decompress request body',
+                        status.HTTP_400_BAD_REQUEST,
+                    )(scope, receive, send)
 
                 logging.debug(
-                    'Request body size: %s -> %s (decompressed; %s)',
+                    'Request body size: %s -> %s (compression: %s)',
                     sizestr(input_size),
                     sizestr(len(body)),
                     content_encoding,
                 )
 
                 if len(body) > REQUEST_BODY_MAX_SIZE:
-                    raise_for.input_too_big(len(body))
+                    return await Response(
+                        f'Decompressed request body exceeded {sizestr(REQUEST_BODY_MAX_SIZE)}',
+                        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    )(scope, receive, send)
+
             else:
                 logging.debug(
                     'Request body size: %s',
@@ -71,7 +83,7 @@ class RequestBodyMiddleware:
             body = b''
 
         request._body = body  # update shared instance # noqa: SLF001
-        wrapper_finished: cython.char = False
+        wrapper_finished: cython.bint = False
 
         async def wrapper() -> Message:
             nonlocal wrapper_finished
@@ -80,7 +92,7 @@ class RequestBodyMiddleware:
             wrapper_finished = True
             return {'type': 'http.request', 'body': body}
 
-        await self.app(scope, wrapper, send)
+        return await self.app(scope, wrapper, send)
 
 
 @cython.cfunc

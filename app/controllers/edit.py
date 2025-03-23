@@ -6,7 +6,7 @@ from app.config import ID_URL, RAPID_URL
 from app.lib.auth_context import auth_user, web_user
 from app.lib.bun_packages import ID_VERSION, RAPID_VERSION
 from app.lib.render_response import render_response
-from app.models.db.user import Editor, User
+from app.models.db.user import DEFAULT_EDITOR, Editor, User
 
 router = APIRouter()
 
@@ -19,18 +19,18 @@ async def edit(
     if editor is None:
         current_user = auth_user()
         if current_user is not None:
-            editor = current_user.editor
+            editor = current_user['editor']
         if editor is None:
-            editor = Editor.get_default()
+            editor = DEFAULT_EDITOR
 
-    if editor == Editor.id:
+    if editor == 'id':
         return await render_response('edit/id.jinja2', {'ID_URL': ID_URL})
-    elif editor == Editor.rapid:
+    if editor == 'rapid':
         return await render_response('edit/rapid.jinja2', {'RAPID_URL': RAPID_URL})
-    elif editor == Editor.remote:
+    if editor == 'remote':
         return await render_response('index.jinja2')
-    else:
-        raise NotImplementedError(f'Unsupported editor {editor!r}')
+
+    raise NotImplementedError(f'Unsupported editor {editor!r}')
 
 
 @router.get('/id')

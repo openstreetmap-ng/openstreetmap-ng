@@ -5,7 +5,7 @@ from pydantic import SecretStr
 from starlette import status
 
 from app.config import APP_URL, FACEBOOK_OAUTH_PUBLIC, FACEBOOK_OAUTH_SECRET
-from app.models.auth_provider import AuthProvider, AuthProviderAction
+from app.models.db.connected_account import AuthProviderAction
 from app.services.auth_provider_service import AuthProviderService
 from app.utils import HTTP
 
@@ -22,7 +22,7 @@ async def facebook_authorize(
     if not FACEBOOK_OAUTH_PUBLIC or not FACEBOOK_OAUTH_SECRET:
         return Response('Facebook OAuth credentials are not configured', status.HTTP_503_SERVICE_UNAVAILABLE)
     return AuthProviderService.continue_authorize(
-        provider=AuthProvider.facebook,
+        provider='facebook',
         action=action,
         referer=referer,
         redirect_uri='https://www.facebook.com/v22.0/dialog/oauth',
@@ -42,7 +42,7 @@ async def facebook_callback(
     auth_provider_state: Annotated[str, Cookie()],
 ):
     state_ = AuthProviderService.validate_state(
-        provider=AuthProvider.facebook,
+        provider='facebook',
         query_state=state,
         cookie_state=auth_provider_state,
     )

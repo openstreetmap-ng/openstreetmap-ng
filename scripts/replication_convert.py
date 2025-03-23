@@ -1,4 +1,3 @@
-import asyncio
 import shutil
 
 import duckdb
@@ -34,30 +33,79 @@ def _write_changeset() -> None:
         SELECT
             changeset_id AS id,
             ANY_VALUE(user_id) AS user_id,
+            '' AS tags,
+            MIN(created_at) AS created_at,
+            MAX(created_at) AS updated_at,
             MAX(created_at) AS closed_at,
-            COUNT(*) AS size,
-            '{}' AS tags
+            COUNT(*) AS size
         FROM parquets
         GROUP BY changeset_id
         """
-        _write_output(conn, parquets, 'changeset', changeset_sql, 'id,user_id,closed_at,size,tags')
+        _write_output(
+            conn, parquets, 'changeset', changeset_sql, 'id,user_id,tags,created_at,updated_at,closed_at,size'
+        )
 
 
 def _write_element() -> None:
     with duckdb_connect() as conn:
         parquets = conn.read_parquet(_PARQUET_PATHS)  # type: ignore
+
+        # Compute typed_id from type and id.
+        # Source implementation: app.models.element.typed_element_id
+        conn.execute("""
+        CREATE MACRO typed_element_id(type, id) AS
+        CASE
+            WHEN type = 'node' THEN id
+            WHEN type = 'way' THEN (id | (1::bigint << 60))
+            WHEN type = 'relation' THEN (id | (2::bigint << 60))
+            ELSE NULL
+        END
+        """)
+
+        # Utility for quoting text
+        conn.execute("""
+        CREATE MACRO quote(str) AS
+        '"' || replace(replace(str, '\\', '\\\\'), '"', '\\"') || '"'
+        """)
+
+        # Convert JSON dict to hstore
+        conn.execute("""
+        CREATE MACRO json_to_hstore(json) AS
+        array_to_string(
+            list_transform(
+                json_keys(json),
+                k -> quote(k) || '=>' || quote(json_extract_string(json, k))
+            ),
+            ','
+        )
+        """)
+
+        # Encode array in Postgres-compatible format
+        conn.execute("""
+        CREATE MACRO pg_array(arr) AS
+        '{' || array_to_string(arr, ',') || '}'
+        """)
+
         element_sql = """
         SELECT
             sequence_id,
             changeset_id,
-            type,
-            id,
+            typed_element_id(type, id) AS typed_id,
             version,
             visible,
-            tags,
+            CASE WHEN visible THEN json_to_hstore(tags) ELSE NULL END AS tags,
             point,
-            created_at,
-            NULL AS next_sequence_id
+            CASE
+                WHEN visible AND type != 'node' THEN
+                    pg_array(list_transform(members, x -> typed_element_id(x.type, x.id)))
+                ELSE NULL
+            END AS members,
+            CASE
+                WHEN visible AND type = 'relation' THEN
+                    pg_array(list_transform(members, x -> quote(x.role)))
+                ELSE NULL
+            END AS members_roles,
+            created_at
         FROM parquets
         """
         _write_output(
@@ -65,20 +113,8 @@ def _write_element() -> None:
             parquets,
             'element',
             element_sql,
-            'sequence_id,changeset_id,type,id,version,visible,tags,point,created_at,next_sequence_id',
+            'sequence_id,changeset_id,typed_id,version,visible,tags,point,members,members_roles,created_at',
         )
-
-
-def _write_element_member() -> None:
-    with duckdb_connect() as conn:
-        parquets = conn.read_parquet(_PARQUET_PATHS)  # type: ignore
-        element_member_sql = """
-        SELECT
-            sequence_id,
-            UNNEST(members, max_depth := 2)
-        FROM parquets
-        """
-        _write_output(conn, parquets, 'element_member', element_member_sql, 'sequence_id,order,type,id,role')
 
 
 def _write_user() -> None:
@@ -87,14 +123,18 @@ def _write_user() -> None:
         user_sql = """
         SELECT
             user_id AS id,
-            (SUBSTRING(display_name, 1, 15) || '_' || user_id) AS display_name,
             (user_id || '@localhost.invalid') AS email,
+            TRUE as email_verified,
+            CASE
+                WHEN COUNT(*) OVER (PARTITION BY display_name) > 1
+                THEN display_name || '_' || user_id
+                ELSE display_name
+            END AS display_name,
             '' AS password_pb,
-            '127.0.0.1' AS created_ip,
-            'active' AS status,
             'en' AS language,
             TRUE AS activity_tracking,
-            TRUE AS crash_reporting
+            TRUE AS crash_reporting,
+            '127.0.0.1' AS created_ip
         FROM (
             SELECT DISTINCT ON (user_id)
                 user_id,
@@ -108,22 +148,20 @@ def _write_user() -> None:
             parquets,
             'user',
             user_sql,
-            'id,display_name,email,password_pb,created_ip,status,language,activity_tracking,crash_reporting',
+            'id,email,email_verified,display_name,password_pb,language,activity_tracking,crash_reporting,created_ip',
         )
 
 
-async def main() -> None:
+def main() -> None:
     PRELOAD_DIR.mkdir(exist_ok=True, parents=True)
     print('Writing changeset')
     _write_changeset()
     print('Writing element')
     _write_element()
-    print('Writing element member')
-    _write_element_member()
     print('Writing user')
     _write_user()
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
     print('Done! Done! Done!')

@@ -14,7 +14,7 @@ from app.models.types import LocaleCode
 
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#language
 # limit to matches only supported by our translation files: config/locale
-_accept_language_re = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
+_ACCEPT_LANGUAGE_RE = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
 
 
 class TranslationMiddleware:
@@ -27,18 +27,17 @@ class TranslationMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope['type'] != 'http':
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
         with translation_context(_get_request_language()):
-            await self.app(scope, receive, send)
+            return await self.app(scope, receive, send)
 
 
 @cython.cfunc
 def _get_request_language():
     user = auth_user()
     if user is not None:
-        return user.language
+        return user['language']
     accept_language = get_request().headers.get('Accept-Language')
     if accept_language:
         return _parse_accept_language(accept_language)
@@ -56,9 +55,9 @@ def _parse_accept_language(accept_language: str) -> LocaleCode:
     'pl'
     """
     current_q: cython.double = 0
-    current_lang = DEFAULT_LOCALE
+    current_lang: LocaleCode = DEFAULT_LOCALE
 
-    for match in _accept_language_re.finditer(accept_language):
+    for match in _ACCEPT_LANGUAGE_RE.finditer(accept_language):
         q_str: str | None = match['q']
         q_num: cython.double
         if q_str is None:

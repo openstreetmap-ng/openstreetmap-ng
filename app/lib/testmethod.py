@@ -1,18 +1,15 @@
 from functools import wraps
 
-import cython
-
 from app.config import TEST_ENV
 
 
 def testmethod(func):
     """Decorator to mark a method as runnable only in test environment."""
-    test_env: cython.char = bool(TEST_ENV)
+    if TEST_ENV:
+        return func
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if not test_env:
-            raise AssertionError('Test method cannot be called outside test environment')
-        return func(*args, **kwargs)
+        raise AssertionError('Test method must only run in the test environment')
 
     return wrapper

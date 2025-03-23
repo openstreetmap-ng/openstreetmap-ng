@@ -10,12 +10,8 @@ from app.lib.translation import primary_translation_locale
 
 @overload
 def legacy_date(date: None) -> None: ...
-
-
 @overload
 def legacy_date(date: datetime) -> datetime: ...
-
-
 def legacy_date(date: datetime | None) -> datetime | None:
     """
     Convert date to legacy format (strip microseconds).
@@ -36,10 +32,8 @@ def format_sql_date(date: datetime | None) -> str:
     if date is None:
         return 'None'
     tzinfo = date.tzinfo
-    if tzinfo is not None and tzinfo is not UTC:
-        raise AssertionError(f'Timezone must be UTC, got {tzinfo!r}')
-    fmt = '%Y-%m-%d %H:%M:%S UTC' if date.microsecond == 0 else '%Y-%m-%d %H:%M:%S.%f UTC'
-    return date.strftime(fmt)
+    assert tzinfo is None or tzinfo is UTC, f'Timezone must be UTC, got {tzinfo!r}'
+    return date.strftime('%Y-%m-%d %H:%M:%S UTC' if not date.microsecond else '%Y-%m-%d %H:%M:%S.%f UTC')
 
 
 def format_rfc2822_date(date: datetime) -> str:
@@ -90,7 +84,6 @@ def utcnow() -> datetime:
 def parse_date(s: str) -> datetime:
     """
     Parse a string into a datetime object.
-
     Timezone information is ignored and the returned datetime object is always in UTC.
 
     >>> parse_date('2010-10-31')
@@ -98,9 +91,5 @@ def parse_date(s: str) -> datetime:
     """
     date = dateutil.parser.parse(s, ignoretz=False)
 
-    if date.tzinfo is None:
-        # attach UTC timezone if missing
-        return date.replace(tzinfo=UTC)
-    else:
-        # convert to UTC timezone
-        return date.astimezone(UTC)
+    # attach or convert to UTC timezone
+    return date.replace(tzinfo=UTC) if (date.tzinfo is None) else date.astimezone(UTC)

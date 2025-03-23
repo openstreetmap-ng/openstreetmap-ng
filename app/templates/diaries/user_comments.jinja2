@@ -20,7 +20,7 @@
                         <li class="social-action social-entry">
                             <p class="header text-muted">
                                 <a href="/user/{{ profile.display_name }}">
-                                    <img class="avatar" src="{{ profile.avatar_url }}"
+                                    <img class="avatar" src="{{ user_avatar_url(profile) }}"
                                          alt="{{ t('alt.profile_picture') }}"
                                          loading="lazy">
                                     {{- profile.display_name -}}

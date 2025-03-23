@@ -1,20 +1,6 @@
 import pytest
 
-from app.utils import extend_query_params, secure_referer, unicode_normalize
-
-
-@pytest.mark.parametrize(
-    ('text', 'expected'),
-    [
-        # already in NFC form
-        ('naïve café', 'naïve café'),
-        # NFD to NFC (diacritics separated)
-        ('nai\u0308ve cafe\u0301', 'naïve café'),
-        ('', ''),
-    ],
-)
-def test_unicode_normalize(text, expected):
-    assert unicode_normalize(text) == expected
+from app.utils import extend_query_params, secure_referer, splitlines_trim
 
 
 @pytest.mark.parametrize(
@@ -70,6 +56,18 @@ def test_extend_query_params(uri, params, expected, expected_fragment):
 
 
 @pytest.mark.parametrize(
+    ('s', 'expected'),
+    [
+        ('', []),
+        ('foo\n\nbar\n', ['foo', 'bar']),
+        ('foo \n bar', ['foo', 'bar']),
+    ],
+)
+def test_splitlines_trim(s, expected):
+    assert splitlines_trim(s) == expected
+
+
+@pytest.mark.parametrize(
     ('referer', 'expected'),
     [
         (None, '/'),
@@ -79,5 +77,5 @@ def test_extend_query_params(uri, params, expected, expected_fragment):
         ('/test?key=value', '/test?key=value'),
     ],
 )
-def test_secure_referer(referer: str | None, expected: str):
+def test_secure_referer(referer, expected):
     assert secure_referer(referer) == expected

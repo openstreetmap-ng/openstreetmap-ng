@@ -1,6 +1,5 @@
 { isDevelopment
 , enablePostgres
-, enableValkey
 , enableMailpit
 , pkgs
 , postgresConf
@@ -17,12 +16,6 @@ pkgs.writeText "supervisord.conf" (''
   command=postgres -c config_file=${postgresConf} -D data/postgres
   stdout_logfile=data/supervisor/postgres.log
   stderr_logfile=data/supervisor/postgres.log
-
-'' + pkgs.lib.optionalString enableValkey ''
-  [program:valkey]
-  command=valkey-server config/valkey.conf
-  stdout_logfile=data/supervisor/valkey.log
-  stderr_logfile=data/supervisor/valkey.log
 
 '' + pkgs.lib.optionalString enableMailpit ''
   [program:mailpit]

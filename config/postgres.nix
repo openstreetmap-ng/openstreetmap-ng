@@ -21,8 +21,12 @@ pkgs.writeText "postgres.conf" (''
   shared_buffers = ${toString (builtins.floor (hostMemoryMb / 4))}MB
   effective_cache_size = ${toString (builtins.floor (hostMemoryMb / 2))}MB
   work_mem = 64MB
+  hash_mem_multiplier = 4.0
   maintenance_work_mem = 1024MB
   vacuum_buffer_usage_limit = 256MB
+
+  # use UTC timezone
+  timezone = 'UTC'
 
   # disable parallel gather:
   # introduces noticeable overhead and is never useful
@@ -41,7 +45,7 @@ pkgs.writeText "postgres.conf" (''
 
   # increase statistics target
   # reason: more accurate query plans
-  default_statistics_target = 500
+  default_statistics_target = 1000
 
   # increase max connections
   max_connections = 10000

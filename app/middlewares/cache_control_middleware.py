@@ -18,29 +18,27 @@ class CacheControlMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope['type'] != 'http':
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
         request = get_request()
         request_method = request.method
         if request_method not in {'GET', 'HEAD'}:
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
         async def wrapper(message: Message) -> None:
             if message['type'] == 'http.response.start':
                 status_code: cython.int = message['status']
 
                 if 200 <= status_code < 300 or status_code == 301:
-                    state: dict = request.state._state  # noqa: SLF001
-                    cache_control: str | None = state.get('cache_control_header')
-                    if cache_control is not None:
+                    state = request.state._state  # noqa: SLF001
+                    header = state.get('cache_control_header')
+                    if header is not None:
                         headers = MutableHeaders(raw=message['headers'])
-                        headers.setdefault('Cache-Control', cache_control)
+                        headers.setdefault('Cache-Control', header)
 
-            await send(message)
+            return await send(message)
 
-        await self.app(scope, receive, wrapper)
+        return await self.app(scope, receive, wrapper)
 
 
 def cache_control(max_age: timedelta, stale: timedelta):
@@ -50,7 +48,7 @@ def cache_control(max_age: timedelta, stale: timedelta):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            state: dict = get_request().state._state  # noqa: SLF001
+            state = get_request().state._state  # noqa: SLF001
             state['cache_control_header'] = header
             return await func(*args, **kwargs)
 

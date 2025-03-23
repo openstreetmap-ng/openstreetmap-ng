@@ -1,8 +1,5 @@
-from collections.abc import Iterable
-
 import cython
-import numpy as np
-from shapely import lib
+from shapely import get_coordinates
 
 from app.models.db.note import Note
 from app.models.proto.shared_pb2 import RenderNotesData
@@ -10,21 +7,21 @@ from app.models.proto.shared_pb2 import RenderNotesData
 
 class LeafletNoteMixin:
     @staticmethod
-    def encode_notes(notes: Iterable[Note]) -> RenderNotesData:
+    def encode_notes(notes: list[Note]) -> RenderNotesData:
         """Format notes into a minimal structure, suitable for map rendering."""
-        return RenderNotesData(notes=tuple(_encode_note(note) for note in notes))
+        return RenderNotesData(notes=[_encode_note(note) for note in notes])
 
 
 @cython.cfunc
 def _encode_note(note: Note):
-    x, y = lib.get_coordinates(np.asarray(note.point, dtype=np.object_), False, False)[0].tolist()
-    body = note.comments[0].body
+    x, y = get_coordinates(note['point'])[0].tolist()
+    body = note['comments'][0]['body']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     if len(body) > 100:
         body = body[:100] + '...'
     return RenderNotesData.Note(
-        id=note.id,
+        id=note['id'],
         lon=x,
         lat=y,
         text=body,
-        open=note.closed_at is None,
+        open=note['closed_at'] is None,
     )

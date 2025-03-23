@@ -8,29 +8,29 @@
         <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}">{{ comment.user.display_name }}</a>
         {% endset %}
 
-        {% if comment.event.value == 'opened' %}
+        {% if comment.event == 'opened' %}
             {{ t('api.notes.comment.opened_at_by_html', when=when, user=user) | safe }}
-            {% elseif comment.event.value == 'closed' %}
+        {% elif comment.event == 'closed' %}
             {{ t('api.notes.comment.closed_at_by_html', when=when, user=user) | safe }}
-            {% elseif comment.event.value == 'reopened' %}
+        {% elif comment.event == 'reopened' %}
             {{ t('api.notes.comment.reopened_at_by_html', when=when, user=user) | safe }}
-            {% elseif comment.event.value == 'commented' %}
+        {% elif comment.event == 'commented' %}
             {{ t('api.notes.comment.commented_at_by_html', when=when, user=user) | safe }}
-            {% elseif comment.event.value == 'hidden' %}
+        {% elif comment.event == 'hidden' %}
             {{ t('api.notes.comment.hidden_at_by_html', when=when, user=user) | safe }}
         {% endif %}
 
         {% else %}
 
-        {% if comment.event.value == 'opened' %}
+        {% if comment.event == 'opened' %}
             {{ t('api.notes.comment.opened_at_html', when=when) | safe }}
-            {% elseif comment.event.value == 'closed' %}
+        {% elif comment.event == 'closed' %}
             {{ t('api.notes.comment.closed_at_html', when=when) | safe }}
-            {% elseif comment.event.value == 'reopened' %}
+        {% elif comment.event == 'reopened' %}
             {{ t('api.notes.comment.reopened_at_html', when=when) | safe }}
-            {% elseif comment.event.value == 'commented' %}
+        {% elif comment.event == 'commented' %}
             {{ t('api.notes.comment.commented_at_html', when=when) | safe }}
-            {% elseif comment.event.value == 'hidden' %}
+        {% elif comment.event == 'hidden' %}
             {{ t('api.notes.comment.hidden_at_html', when=when) | safe }}
         {% endif %}
 
@@ -38,4 +38,3 @@
     </div>
     <div class="note-comment-text">{{ comment.body_rich | safe }}</div>
 </div>
-{% endfor %}

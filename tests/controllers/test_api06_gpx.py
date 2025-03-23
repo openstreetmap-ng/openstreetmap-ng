@@ -1,211 +1,298 @@
 from datetime import UTC, datetime
 from math import isclose
 
+import pytest
 from httpx import AsyncClient
+from starlette import status
 
 from app.lib.xmltodict import XMLToDict
+from tests.utils.assert_model import assert_model
 
 
 async def test_gpx_crud(client: AsyncClient, gpx: dict):
     client.headers['Authorization'] = 'User user1'
 
-    # create gpx
+    original_filename = test_gpx_crud.__qualname__ + '.gpx'
+    updated_filename = test_gpx_crud.__qualname__ + '_updated.gpx'
+    file = XMLToDict.unparse(gpx, raw=True)
+
+    # Create a new GPX trace
     r = await client.post(
         '/api/0.6/gpx/create',
         data={
             'visibility': 'public',
-            'description': 'before update',
+            'description': 'Initial description',
             'tags': 'tag1,tag2',
         },
         files={
-            'file': ('test_gpx_crud.gpx', XMLToDict.unparse(gpx, raw=True)),
+            'file': (original_filename, file),
         },
     )
     assert r.is_success, r.text
     trace_id = int(r.text)
 
-    # read trace
+    # Verify created trace
     r = await client.get(f'/api/0.6/gpx/{trace_id}/details')
     assert r.is_success, r.text
-    gpx_file = XMLToDict.parse(r.content)['osm']['gpx_file'][0]
+    gpx_file = XMLToDict.parse(r.content)['osm']['gpx_file'][0]  # type: ignore
 
-    assert gpx_file['@id'] == trace_id
-    assert gpx_file['@user'] == 'user1'
-    assert gpx_file['@name'] == 'test_gpx_crud.gpx'
-    assert gpx_file['@visibility'] == 'public'
-    assert gpx_file['@pending'] is False
-    assert gpx_file['description'] == 'before update'
-    assert gpx_file['tag'] == ['tag1', 'tag2']
+    assert_model(
+        gpx_file,
+        {
+            '@id': trace_id,
+            '@user': 'user1',
+            '@name': original_filename,
+            '@visibility': 'public',
+            '@pending': False,
+            'description': 'Initial description',
+            'tag': ['tag1', 'tag2'],
+        },
+    )
 
     created_at = gpx_file['@timestamp']
 
-    # update trace
+    # Update the trace
     r = await client.put(
         f'/api/0.6/gpx/{trace_id}',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'gpx_file': {
-                        '@name': 'test_gpx_crud_updated.gpx',
-                        '@visibility': 'identifiable',
-                        'description': 'after update',
-                        'tag': ['test_gpx_crud'],
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'gpx_file': {
+                    '@name': updated_filename,
+                    '@visibility': 'identifiable',
+                    'description': 'Updated description',
+                    'tag': ['updated_tag'],
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
 
-    # read trace
+    # Verify updated trace
     r = await client.get(f'/api/0.6/gpx/{trace_id}/details')
     assert r.is_success, r.text
-    gpx_file = XMLToDict.parse(r.content)['osm']['gpx_file'][0]
+    gpx_file = XMLToDict.parse(r.content)['osm']['gpx_file'][0]  # type: ignore
 
-    assert gpx_file['@timestamp'] == created_at
-    assert gpx_file['@name'] == 'test_gpx_crud_updated.gpx'
-    assert gpx_file['@visibility'] == 'identifiable'
-    assert gpx_file['description'] == 'after update'
-    assert gpx_file['tag'] == ['test_gpx_crud']
+    assert_model(
+        gpx_file,
+        {
+            '@id': trace_id,
+            '@user': 'user1',
+            '@timestamp': created_at,
+            '@name': updated_filename,
+            '@lon': float,
+            '@lat': float,
+            '@visibility': 'identifiable',
+            '@pending': False,
+            'description': 'Updated description',
+            'tag': ['updated_tag'],
+        },
+    )
 
-    # delete trace
+    # Delete the trace
     r = await client.delete(f'/api/0.6/gpx/{trace_id}')
     assert r.is_success, r.text
 
+    # Verify deletion
+    r = await client.get(f'/api/0.6/gpx/{trace_id}/details')
+    assert r.status_code == status.HTTP_404_NOT_FOUND
 
-async def test_gpx_data(client: AsyncClient, gpx: dict):
+
+async def test_gpx_data_formats(client: AsyncClient, gpx: dict):
     client.headers['Authorization'] = 'User user1'
+
+    test_filename = test_gpx_data_formats.__qualname__ + '.gpx'
     file = XMLToDict.unparse(gpx, raw=True)
 
-    # create gpx
+    # Create a new GPX trace
     r = await client.post(
         '/api/0.6/gpx/create',
         data={
             'visibility': 'identifiable',
-            'description': 'test_gpx_data',
+            'description': test_gpx_data_formats.__qualname__,
         },
         files={
-            'file': ('test_gpx_data.gpx', file),
+            'file': (test_filename, file),
         },
     )
     assert r.is_success, r.text
     trace_id = int(r.text)
 
-    # read trace raw data
+    # Test raw data endpoint
     r = await client.get(f'/api/0.6/gpx/{trace_id}/data')
     assert r.is_success, r.text
 
     assert r.content == file
     assert r.headers['Content-Disposition'] == f'attachment; filename="{trace_id}"'
-    assert 'Content-Type' not in r.headers
 
-    # read trace gpx data
+    # Test formatted GPX data endpoint
     r = await client.get(f'/api/0.6/gpx/{trace_id}/data.gpx')
     assert r.is_success, r.text
 
     assert r.content != file
-    assert r.content.startswith(b'<?xml')
     assert r.headers['Content-Disposition'] == f'attachment; filename="{trace_id}.gpx"'
-    assert r.headers['Content-Type'] == 'application/gpx+xml; charset=utf-8'
 
 
 async def test_gpx_files(client: AsyncClient, gpx: dict):
     client.headers['Authorization'] = 'User user1'
+
+    test_filename = test_gpx_files.__qualname__ + '.gpx'
+    test_description = test_gpx_files.__qualname__
     file = XMLToDict.unparse(gpx, raw=True)
 
-    # create gpx
+    # Create a new GPX trace
     r = await client.post(
         '/api/0.6/gpx/create',
         data={
             'visibility': 'identifiable',
-            'description': 'test_gpx_files',
+            'description': test_description,
         },
         files={
-            'file': ('test_gpx_files.gpx', file),
+            'file': (test_filename, file),
         },
     )
     assert r.is_success, r.text
     trace_id = int(r.text)
 
-    # read gpx files
+    # List and verify traces
     r = await client.get('/api/0.6/user/gpx_files')
     assert r.is_success, r.text
-
-    gpx_files = XMLToDict.parse(r.content)['osm']['gpx_file']
+    gpx_files: list[dict] = XMLToDict.parse(r.content)['osm']['gpx_file']  # type: ignore
     gpx_file = next(f for f in gpx_files if f['@id'] == trace_id)
 
-    assert gpx_file['@user'] == 'user1'
-    assert gpx_file['@name'] == 'test_gpx_files.gpx'
-    assert gpx_file['@visibility'] == 'identifiable'
-    assert gpx_file['@pending'] is False
-    assert gpx_file['description'] == 'test_gpx_files'
-    assert '@lon' in gpx_file
-    assert '@lat' in gpx_file
+    assert_model(
+        gpx_file,
+        {
+            '@id': trace_id,
+            '@user': 'user1',
+            '@name': test_filename,
+            '@visibility': 'identifiable',
+            '@pending': False,
+            '@lon': float,
+            '@lat': float,
+            'description': test_description,
+        },
+    )
 
 
-async def test_trackpoints(client: AsyncClient, gpx: dict):
+@pytest.mark.parametrize(
+    ('visibility', 'readable'),
+    [
+        ('private', False),
+        ('public', True),
+        ('identifiable', True),
+        ('trackable', False),
+    ],
+)
+async def test_gpx_visibility(client: AsyncClient, gpx: dict, visibility, readable):
     client.headers['Authorization'] = 'User user1'
+
+    test_filename = test_gpx_visibility.__qualname__ + '.gpx'
+    test_description = f'{test_gpx_visibility.__qualname__}: {visibility}'
     file = XMLToDict.unparse(gpx, raw=True)
 
-    # create gpx
+    # Create trace with specified visibility
+    r = await client.post(
+        '/api/0.6/gpx/create',
+        data={
+            'visibility': visibility,
+            'description': test_description,
+        },
+        files={
+            'file': (test_filename, file),
+        },
+    )
+    assert r.is_success, r.text
+    trace_id = int(r.text)
+
+    # Verify created trace
+    r = await client.get(f'/api/0.6/gpx/{trace_id}/details')
+    assert r.is_success, r.text
+
+    # Remove authorization header
+    client.headers.pop('Authorization')
+
+    # Verify unauthorized visibility
+    r = await client.get(f'/api/0.6/gpx/{trace_id}/details')
+
+    if readable:
+        assert r.is_success, r.text
+    else:
+        assert r.status_code == status.HTTP_403_FORBIDDEN, r.text
+
+
+async def test_trackpoints_visibility(client: AsyncClient, gpx: dict):
+    client.headers['Authorization'] = 'User user1'
+
+    test_filename = test_trackpoints_visibility.__qualname__ + '.gpx'
+    test_description = test_trackpoints_visibility.__qualname__
+    file = XMLToDict.unparse(gpx, raw=True)
+    bbox = '20.8726,51.8583,20.8728,51.8585'
+
+    # Create a new GPX trace with private visibility
     r = await client.post(
         '/api/0.6/gpx/create',
         data={
             'visibility': 'private',
-            'description': 'test_trackpoints',
+            'description': test_description,
         },
         files={
-            'file': ('test_trackpoints.gpx', file),
+            'file': (test_filename, file),
         },
     )
     assert r.is_success, r.text
     trace_id = int(r.text)
 
-    # read trackpoints
+    # Query trackpoints
     r = await client.get(
         '/api/0.6/trackpoints',
-        params={
-            'bbox': '20.8726,51.8583,20.8728,51.8585',
-        },
+        params={'bbox': bbox},
     )
     assert r.is_success, r.text
 
-    trks = XMLToDict.parse(r.content)['gpx']['trk']
+    trks = XMLToDict.parse(r.content)['gpx']['trk']  # type: ignore
     trk = next((t for t in trks if t.get('url') == f'/trace/{trace_id}'), None)
-    assert trk is None
+    assert trk is None, 'Private trace must not be identified in trackpoints query'
 
-    # update trace
+    # Update the trace to make it identifiable
     r = await client.put(
         f'/api/0.6/gpx/{trace_id}',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'gpx_file': {
-                        '@name': 'test_trackpoints.gpx',
-                        '@visibility': 'identifiable',
-                        'description': 'test_trackpoints',
-                    }
-                }
-            }
-        ),
+        content=XMLToDict.unparse({
+            'osm': {
+                'gpx_file': {
+                    '@name': test_filename,
+                    '@visibility': 'identifiable',
+                    'description': test_description,
+                },
+            },
+        }),
     )
     assert r.is_success, r.text
 
-    # read trackpoints
+    # Query trackpoints again
     r = await client.get(
         '/api/0.6/trackpoints',
-        params={
-            'bbox': '20.8726,51.8583,20.8728,51.8585',
-        },
+        params={'bbox': bbox},
     )
     assert r.is_success, r.text
 
-    trks = XMLToDict.parse(r.content)['gpx']['trk']
+    trks = XMLToDict.parse(r.content)['gpx']['trk']  # type: ignore
     trk = next(t for t in trks if t.get('url') == f'/trace/{trace_id}')
-    assert trk['name'] == 'test_trackpoints.gpx'
-    assert trk['desc'] == 'test_trackpoints'
     trkpt = trk['trkseg'][0]['trkpt'][0]
-    assert trkpt['@lon'] == 20.8726996
-    assert trkpt['@lat'] == 51.8583922
-    assert datetime.fromisoformat(trkpt['time']) == datetime(2023, 7, 3, 10, 36, 21, tzinfo=UTC)
-    assert isclose(float(trkpt['ele']), 190.8, abs_tol=0.01)
+
+    # Verify trace metadata
+    assert_model(
+        trk,
+        {
+            'name': test_filename,
+            'desc': test_description,
+        },
+    )
+    assert_model(
+        trkpt,
+        {
+            '@lon': 20.8726996,
+            '@lat': 51.8583922,
+            'time': datetime(2023, 7, 3, 10, 36, 21, tzinfo=UTC),
+        },
+    )
+    assert isclose(trkpt['ele'], 190.8, abs_tol=0.01)

@@ -1,60 +1,51 @@
-from sqlalchemy import false, func, select, text
+from typing import NamedTuple
 
 from app.db import db
-from app.models.db.user_block import UserBlock
+from app.models.types import UserId
+
+
+class _UserBlockCountByUserResult(NamedTuple):
+    total: int
+    active: int
 
 
 class UserBlockQuery:
     @staticmethod
-    async def count_received_by_user_id(user_id: int) -> tuple[int, int]:
-        """
-        Count received blocks by user id.
-
-        Returns a tuple of (total, active).
-        """
-        async with db() as session:
-            stmt_total = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    UserBlock.to_user_id == user_id,
-                )
-                .subquery()
-            )
-            stmt_active = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    UserBlock.to_user_id == user_id,
-                    UserBlock.expired == false(),
-                )
-                .subquery()
-            )
-            stmt = stmt_total.union_all(stmt_active)
-            total, active = (await session.scalars(stmt)).all()
-            return total, active
+    async def count_received_by_user_id(user_id: UserId) -> _UserBlockCountByUserResult:
+        """Count received blocks by user id."""
+        return _UserBlockCountByUserResult(0, 0)  # TODO: implement
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*) FROM user_block
+                WHERE to_user_id = %s
+                UNION ALL
+                SELECT COUNT(*) FROM user_block
+                WHERE to_user_id = %s AND NOT expired
+                """,
+                (user_id, user_id),
+            ) as r,
+        ):
+            (total,), (active,) = await r.fetchall()
+            return _UserBlockCountByUserResult(total, active)
 
     @staticmethod
-    async def count_given_by_user_id(user_id: int) -> tuple[int, int]:
-        """
-        Count given blocks by user id.
-
-        Returns a tuple of (total, active).
-        """
-        async with db() as session:
-            stmt_total = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    UserBlock.from_user_id == user_id,
-                )
-                .subquery()
-            )
-            stmt_active = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    UserBlock.from_user_id == user_id,
-                    UserBlock.expired == false(),
-                )
-                .subquery()
-            )
-            stmt = stmt_total.union_all(stmt_active)
-            total, active = (await session.scalars(stmt)).all()
-            return total, active
+    async def count_given_by_user_id(user_id: UserId) -> _UserBlockCountByUserResult:
+        """Count given blocks by user id."""
+        return _UserBlockCountByUserResult(0, 0)  # TODO: implement
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*) FROM user_block
+                WHERE from_user_id = %s
+                UNION ALL
+                SELECT COUNT(*) FROM user_block
+                WHERE from_user_id = %s AND NOT expired
+                """,
+                (user_id, user_id),
+            ) as r,
+        ):
+            (total,), (active,) = await r.fetchall()
+            return _UserBlockCountByUserResult(total, active)

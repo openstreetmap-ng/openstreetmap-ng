@@ -1,7 +1,6 @@
 import pytest
 
 from app.lib.user_name_blacklist import is_user_name_blacklisted
-from app.models.types import DisplayNameType
 
 
 @pytest.mark.parametrize(
@@ -14,5 +13,5 @@ from app.models.types import DisplayNameType
         ('NorthCrab', False),
     ],
 )
-def test_is_user_name_blacklisted(display_name: DisplayNameType, blacklisted: bool):
+def test_is_user_name_blacklisted(display_name, blacklisted):
     assert is_user_name_blacklisted(display_name) == blacklisted

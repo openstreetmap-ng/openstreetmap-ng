@@ -1,24 +1,22 @@
 import logging
 import time
-from collections.abc import Collection
 
 import cython
-from sqlalchemy.exc import IntegrityError
+from psycopg import OperationalError
 
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.limits import OPTIMISTIC_DIFF_RETRY_TIMEOUT
-from app.models.db.element import Element
-from app.models.element import ElementRef
+from app.models.db.element import ElementInit
+from app.models.element import TypedElementId
 from app.services.optimistic_diff.apply import OptimisticDiffApply
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
 
 class OptimisticDiff:
     @staticmethod
-    async def run(elements: Collection[Element]) -> dict[ElementRef, list[Element]]:
+    async def run(elements: list[ElementInit]) -> dict[TypedElementId, tuple[TypedElementId, list[int]]]:
         """
         Perform an optimistic diff update of the elements.
-
         Returns a dict, mapping original element refs to the new elements.
         """
         if not elements:
@@ -26,13 +24,15 @@ class OptimisticDiff:
 
         ts = time.monotonic()
         attempt: cython.int = 0
+
         while True:
             try:
-                attempt += 1
-                prep = OptimisticDiffPrepare(elements)
+                prep = OptimisticDiffPrepare(elements.copy())
                 await prep.prepare()
                 return await OptimisticDiffApply.apply(prep)
-            except* (OptimisticDiffError, IntegrityError) as e:
+            except* (OptimisticDiffError, OperationalError) as e:
+                attempt += 1
+
                 # retry is not possible, re-raise the exception
                 timeout_seconds = time.monotonic() - ts
                 if timeout_seconds >= OPTIMISTIC_DIFF_RETRY_TIMEOUT.total_seconds():
