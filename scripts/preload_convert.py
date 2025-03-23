@@ -514,7 +514,11 @@ def _write_user() -> None:
                 user_id AS id,
                 (user_id || '@localhost.invalid') AS email,
                 TRUE as email_verified,
-                (display_name || '_' || user_id) AS display_name,
+                CASE
+                    WHEN COUNT(*) OVER (PARTITION BY display_name) > 1
+                    THEN display_name || '_' || user_id
+                    ELSE display_name
+                END AS display_name,
                 '' AS password_pb,
                 'en' AS language,
                 TRUE AS activity_tracking,
