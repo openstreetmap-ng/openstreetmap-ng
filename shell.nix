@@ -95,6 +95,13 @@ let
     # Scripts:
     # -- Cython
     (makeScript "cython-build" "python scripts/cython_build.py build_ext --inplace --parallel \"$(nproc --all)\"")
+    (makeScript "cython-build-fast" ''
+      CYTHON_FLAGS="\
+        -O0 \
+        -fno-lto \
+        -fno-ipa-pta" \
+      cython-build
+    '')
     (makeScript "cython-build-pgo" ''
       found_so=false
       files_up_to_date=true
@@ -146,7 +153,7 @@ let
         \( -path 'app/static/*' -o -path 'app/templates/*' \) \
         -delete
     '')
-    (makeScript "watch-cython" "exec watchexec -o queue -w app --exts py cython-build")
+    (makeScript "watch-cython" "exec watchexec -o queue -w app --exts py cython-build-fast")
 
     # -- SASS
     (makeScript "sass-pipeline" ''
@@ -571,11 +578,6 @@ let
         grep -Eo "[0-9a-f]{40}")
       sed -i -E "s|/nixpkgs/archive/[0-9a-f]{40}\.tar\.gz|/nixpkgs/archive/$hash.tar.gz|" shell.nix
       echo "Nixpkgs updated to $hash"
-    '')
-    (makeScript "docker-build-push" ''
-      cython-clean && cython-build
-      if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
-      docker push "$(docker load < "$(nix-build --no-out-link)" | sed -n -E 's/Loaded image: (\S+)/\1/p')"
     '')
   ];
 

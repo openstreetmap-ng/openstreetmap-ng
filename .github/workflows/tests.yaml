@@ -57,7 +57,7 @@ jobs:
       - name: Build Cython modules
         if: matrix.implementation == 'cython'
         run: |
-          nix-shell --pure --run "CYTHON_FLAGS='-O0 -fno-lto -fno-ipa-pta' cython-build"
+          nix-shell --pure --run "cython-build-fast"
 
       - name: Start services
         run: |
