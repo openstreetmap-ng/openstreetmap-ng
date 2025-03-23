@@ -123,7 +123,6 @@ in
   };
 
   systemd.services.osm-ng-replication = {
-    enable = false;
     after = [ "osm-ng-dev.service" ];
     bindsTo = [ "osm-ng-dev.service" ];
     wantedBy = [ "default.target" ];
