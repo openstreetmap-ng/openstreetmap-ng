@@ -33,7 +33,7 @@ class XMLToDict:
             raise_for.input_too_big(len(xml_bytes))
 
         logging.debug('Parsing %s XML string', sizestr(len(xml_bytes)))
-        root = tree.fromstring(xml_bytes, parser=_PARSER)  # noqa: S320
+        root = tree.fromstring(xml_bytes, parser=_PARSER)
         root_element = _parse_element(root)
 
         if isinstance(root_element, str):
@@ -144,7 +144,7 @@ def _unparse_element(key: str, value: Any) -> list[tree._Element]:
         return [element]
 
     # encode sequence of ...
-    elif isinstance(value, list | tuple):
+    elif isinstance(value, (list, tuple)):
         if not value:
             return []
         first = value[0]
@@ -154,7 +154,7 @@ def _unparse_element(key: str, value: Any) -> list[tree._Element]:
             return [e for v in value for e in _unparse_element(key, v)]
 
         # encode sequence of (key, value) tuples
-        elif isinstance(first, list | tuple):
+        elif isinstance(first, (list, tuple)):
             element = Element(key)
             element_attrib = element.attrib  # read property once for performance
             element_extend = element.extend
@@ -255,8 +255,8 @@ _VALUE_POSTPROCESSOR: dict[str, Callable[[str], Any]] = {
 
 
 @cython.cfunc
-def _to_string(v: Any) -> str:
-    if isinstance(v, str | CDATA):
+def _to_string(v: Any):
+    if isinstance(v, (str, CDATA)):
         return v
 
     if isinstance(v, datetime):
