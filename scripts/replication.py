@@ -292,11 +292,10 @@ def _bundle_data_if_needed(state: AppState):
     click.echo(f'Bundling {num_paths_str}')
 
     with duckdb_connect() as conn:
-        parquets = conn.read_parquet(input_paths)  # type: ignore  # noqa: F841
         conn.sql(f"""
         COPY (
             SELECT *
-            FROM parquets
+            FROM read_parquet({input_paths!r})
         ) TO {output_path!r}
         (COMPRESSION ZSTD, COMPRESSION_LEVEL 9, ROW_GROUP_SIZE_BYTES '128MB')
         """)

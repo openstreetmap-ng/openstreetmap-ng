@@ -219,15 +219,14 @@ def merge_planet_worker_results() -> None:
 
     with duckdb_connect() as conn:
         print('Creating table')
-        parquets = conn.read_parquet([path.as_posix() for path in paths])  # type: ignore  # noqa: F841
-        conn.sql("""
+        conn.sql(f"""
         CREATE TEMP TABLE sequence AS
         SELECT
             ROW_NUMBER() OVER (ORDER BY created_at) AS sequence_id,
             type,
             id,
             version
-        FROM parquets
+        FROM read_parquet({[path.as_posix() for path in paths]!r})
         """)
         print('Creating index')
         conn.sql('CREATE INDEX type_id_version_idx ON sequence (type, id, version)')
@@ -369,11 +368,10 @@ def merge_notes_worker_results() -> None:
 
     with duckdb_connect() as conn:
         print(f'Merging {len(paths)} worker files')
-        parquets = conn.read_parquet([path.as_posix() for path in paths])  # type: ignore  # noqa: F841
         conn.sql(f"""
         COPY (
             SELECT *
-            FROM parquets
+            FROM read_parquet({[path.as_posix() for path in paths]!r})
         ) TO {NOTES_PARQUET_PATH.as_posix()!r}
         (COMPRESSION ZSTD, COMPRESSION_LEVEL 3, ROW_GROUP_SIZE_BYTES '128MB')
         """)
@@ -384,7 +382,6 @@ def merge_notes_worker_results() -> None:
 
 def _write_changeset() -> None:
     with duckdb_connect() as conn:
-        planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
         conn.sql(f"""
         COPY (
             SELECT
@@ -395,7 +392,7 @@ def _write_changeset() -> None:
                 MAX(created_at) AS updated_at,
                 MAX(created_at) AS closed_at,
                 COUNT(*) AS size
-            FROM planet
+            FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
             GROUP BY changeset_id
             ORDER BY changeset_id
         ) TO {_get_csv_path('changeset').as_posix()!r}
@@ -404,8 +401,6 @@ def _write_changeset() -> None:
 
 def _write_element() -> None:
     with duckdb_connect() as conn:
-        planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
-
         # Compute typed_id from type and id.
         # Source implementation: app.models.element.typed_element_id
         conn.execute("""
@@ -464,7 +459,7 @@ def _write_element() -> None:
                 END AS members_roles,
                 created_at,
                 next_sequence_id
-            FROM planet
+            FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
             ORDER BY type, id, version
         ) TO {_get_csv_path('element').as_posix()!r}
         """)
@@ -472,7 +467,6 @@ def _write_element() -> None:
 
 def _write_note() -> None:
     with duckdb_connect() as conn:
-        notes = conn.read_parquet(NOTES_PARQUET_PATH.as_posix())  # noqa: F841
         conn.sql(f"""
         COPY (
             SELECT
@@ -482,7 +476,7 @@ def _write_note() -> None:
                 updated_at,
                 closed_at,
                 hidden_at
-            FROM notes
+            FROM read_parquet({NOTES_PARQUET_PATH.as_posix()!r})
             ORDER BY id
         ) TO {_get_csv_path('note').as_posix()!r}
         """)
@@ -490,14 +484,13 @@ def _write_note() -> None:
 
 def _write_note_comment() -> None:
     with duckdb_connect() as conn:
-        notes = conn.read_parquet(NOTES_PARQUET_PATH.as_posix())  # noqa: F841
         conn.sql(f"""
         COPY (
             SELECT * EXCLUDE (display_name) FROM (
                 SELECT
                     id AS note_id,
                     UNNEST(comments, max_depth := 2)
-                FROM notes
+                FROM read_parquet({NOTES_PARQUET_PATH.as_posix()!r})
                 ORDER BY id
             )
         ) TO {_get_csv_path('note_comment').as_posix()!r}
@@ -506,8 +499,6 @@ def _write_note_comment() -> None:
 
 def _write_user() -> None:
     with duckdb_connect() as conn:
-        planet = conn.read_parquet(PLANET_PARQUET_PATH.as_posix())  # noqa: F841
-        notes = conn.read_parquet(NOTES_PARQUET_PATH.as_posix())  # noqa: F841
         conn.sql(f"""
         COPY (
             SELECT DISTINCT ON (user_id)
@@ -528,7 +519,7 @@ def _write_user() -> None:
                 SELECT DISTINCT ON (user_id)
                     user_id,
                     display_name
-                FROM planet
+                FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
                 WHERE user_id IS NOT NULL
 
                 UNION ALL
@@ -538,7 +529,7 @@ def _write_user() -> None:
                     display_name,
                 FROM (
                     SELECT UNNEST(comments, max_depth := 2)
-                    FROM notes
+                    FROM read_parquet({NOTES_PARQUET_PATH.as_posix()!r})
                 )
                 WHERE user_id IS NOT NULL
             )
