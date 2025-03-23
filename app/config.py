@@ -69,8 +69,6 @@ PLANET_DIR = _path(getenv('PLANET_DIR', 'data/planet'), mkdir=True)
 PRELOAD_DIR = _path(getenv('PRELOAD_DIR', 'data/preload'))
 REPLICATION_DIR = _path(getenv('REPLICATION_DIR', 'data/replication'), mkdir=True)
 
-# see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
-POSTGRES_LOG = getenv('POSTGRES_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
 # https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS
 POSTGRES_URL = getenv('POSTGRES_URL', f'postgresql://postgres@/postgres?host={_path("data/postgres_unix")}&port=49560')
 

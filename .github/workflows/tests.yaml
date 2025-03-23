@@ -10,9 +10,15 @@ on:
 
 jobs:
   test:
+    name: ${{ matrix.implementation }} tests (${{ matrix.os }})
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest ]
+        implementation: [ python, cython ]
+        exclude:
+          - os: macos-latest
+            implementation: cython
+      fail-fast: false
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -48,12 +54,15 @@ jobs:
             config/locale/i18next
             config/locale/postprocess
 
+      - name: Build Cython modules
+        if: matrix.implementation == 'cython'
+        run: |
+          nix-shell --pure --run "cython-build"
+
       - name: Start services
         run: |
           nix-shell --pure --run "dev-start"
 
       - name: Run tests
-        env:
-          POSTGRES_LOG: 1
         run: |
           nix-shell --pure --run "run-tests --extended --term"
