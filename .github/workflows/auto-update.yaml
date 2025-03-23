@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: nixbuild/nix-quick-install-action@v29
+      - uses: nixbuild/nix-quick-install-action@v30
 
       - name: Generate cache key
         run: |
@@ -19,7 +19,7 @@ jobs:
           echo "NIXPKGS_HASH=$nixpkgs_hash" >> $GITHUB_ENV
           echo "CACHE_KEY=${{ runner.os }}-$nixpkgs_hash" >> $GITHUB_ENV
 
-      - uses: nix-community/cache-nix-action@v5
+      - uses: nix-community/cache-nix-action@v6
         with:
           primary-key: nix-${{ env.CACHE_KEY }}
 
