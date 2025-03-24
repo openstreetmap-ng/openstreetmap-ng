@@ -5,12 +5,15 @@ import {
     feedbackIntegration,
     setUser,
     showReportDialog,
+    type User,
 } from "@sentry/browser"
 import { activityTracking, config, crashReporting } from "./_config"
+import { getTimezoneName } from "./_intl"
 import { getAppTheme } from "./_local-storage"
 
 if (crashReporting) {
     console.debug("Enabling crash reporting")
+    const userConfig = config.userConfig
     const sentryConfig = config.sentryConfig
 
     const tracePropagationTargets: (string | RegExp)[] = [/^(?!\/static)/]
@@ -38,11 +41,16 @@ if (crashReporting) {
         },
     })
 
-    if (config.userConfig) {
-        const userId = config.userConfig.id
-        console.debug("Providing user ID information", userId)
-        setUser({ id: userId.toString() })
+    const userInfo: User = {
+        id: userConfig?.id?.toString(),
+        username: userConfig?.displayName,
+        ip_address: "{{auto}}",
+        geo: {
+            region: getTimezoneName(),
+        },
     }
+    console.debug("Providing user information", userInfo)
+    setUser(userInfo)
 
     if (config.forceCrashReporting) {
         console.debug("Enabling feedback integration")

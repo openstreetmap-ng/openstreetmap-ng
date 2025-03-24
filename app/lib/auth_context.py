@@ -1,11 +1,12 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Literal, overload
+from typing import Any, Literal, overload
 from urllib.parse import parse_qs, urlencode
 
 import cython
 from fastapi import HTTPException, Security
 from fastapi.security import SecurityScopes
+from sentry_sdk import set_user
 from starlette import status
 
 from app.config import TEST_ENV
@@ -25,8 +26,18 @@ _CTX: ContextVar[tuple[User | None, tuple[Scope, ...]]] = ContextVar('Auth')
 def auth_context(user: User | None, scopes: tuple[Scope, ...]):
     """Context manager for authenticating the user."""
     # safety check, prevent test user auth in non-test env
-    if (user is not None) and not TEST_ENV and user_is_test(user):
+    if user is not None and not TEST_ENV and user_is_test(user):
         raise RuntimeError('Test user authentication is forbidden in non-test environment')
+
+    sentry_user: dict[str, Any] = {
+        'ip_address': '{{auto}}',
+    }
+    if user is not None:
+        sentry_user['id'] = str(user['id'])  # as string, matching frontend behavior
+        sentry_user['username'] = user['display_name']
+        if timezone := user['timezone']:
+            sentry_user['geo.region'] = timezone
+    set_user(sentry_user)
 
     token = _CTX.set((user, scopes))
     try:
