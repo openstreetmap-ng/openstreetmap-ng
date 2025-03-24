@@ -1,7 +1,7 @@
 <div class="social-entry">
     <p class="header text-muted d-flex justify-content-between">
         <span>
-            {% if changeset.user is none %}
+            {% if not changeset.user %}
                 {{ t('browse.anonymous') }}
             {% else %}
                 <a href="/user/{{ changeset.user.display_name }}">

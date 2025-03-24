@@ -41,16 +41,3 @@ def note_status(note: Note) -> NoteStatus:
 
 
 # TODO: delete forever hidden notes
-
-#     @hybrid_method
-#     def visible_to(self, user: User | None) -> bool:  # pyright: ignore[reportRedeclaration]
-#         if (user is not None) and user.is_moderator:
-#             return True
-#         return self.hidden_at is None
-#
-#     @visible_to.expression
-#     @classmethod
-#     def visible_to(cls, user: User | None) -> ColumnElement[bool]:
-#         if (user is not None) and user.is_moderator:
-#             return true()
-#         return cls.hidden_at == null()

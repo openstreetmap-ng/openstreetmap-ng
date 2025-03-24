@@ -1,7 +1,7 @@
 import logging
 from asyncio import TaskGroup
 from datetime import datetime
-from typing import Any, cast
+from typing import Any
 
 import cython
 import numpy as np
@@ -23,7 +23,7 @@ from app.models.db.note_comment import (
     NoteEvent,
     note_comments_resolve_rich_text,
 )
-from app.models.db.user import UserDisplay, user_is_moderator
+from app.models.db.user import user_is_moderator
 from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
@@ -211,7 +211,7 @@ class NoteService:
             'body': text,
             'body_rich_hash': None,
             'created_at': created_at,
-            'user': cast(UserDisplay, user),
+            'user': user,  # type: ignore
         }
 
         async with TaskGroup() as tg:

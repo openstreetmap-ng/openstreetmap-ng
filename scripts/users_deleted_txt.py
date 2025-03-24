@@ -3,6 +3,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from app.config import PLANET_DIR, SENTRY_USERS_DELETED_TXT_MONITOR
+from app.models.types import UserId
 from app.queries.user_query import UserQuery
 
 _BUFFER_SIZE = 32 * 1024 * 1024  # 32 MB
@@ -27,11 +28,13 @@ async def main():
         ) as f,
     ):
         f.write('# user IDs of deleted users.\n')
-        after: int = 0
+        after = UserId(0)
+
         while True:
             ids = await UserQuery.get_deleted_ids(after=after, sort='asc', limit=_BATCH_SIZE)
             if not ids:
                 break
+
             f.writelines(f'{id}\n' for id in ids)
             new_after = ids[-1]
             print(f'Saved range: {after + 1} - {new_after}')

@@ -1,6 +1,5 @@
 import logging
 from asyncio import TaskGroup
-from typing import cast
 
 from fastapi import UploadFile
 from pydantic import SecretStr
@@ -21,7 +20,6 @@ from app.limits import (
     OAUTH_SECRET_PREVIEW_LENGTH,
 )
 from app.models.db.oauth2_application import (
-    OAuth2Application,
     OAuth2ApplicationInit,
     oauth2_app_avatar_url,
 )
@@ -184,12 +182,7 @@ class OAuth2ApplicationService:
             async with TaskGroup() as tg:
                 tg.create_task(ImageService.delete_avatar_by_id(old_avatar_id))
 
-        return oauth2_app_avatar_url(
-            cast(
-                OAuth2Application,
-                {'avatar_id': avatar_id, 'client_id': client_id},
-            )
-        )
+        return oauth2_app_avatar_url({'avatar_id': avatar_id, 'client_id': client_id})  # type: ignore
 
     @staticmethod
     async def reset_client_secret(app_id: ApplicationId) -> SecretStr:

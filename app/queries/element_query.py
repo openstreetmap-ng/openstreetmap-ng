@@ -239,7 +239,7 @@ class ElementQuery:
             conditions.append(SQL('(typed_id = %s AND version = %s)'))
             params.extend((typed_id, version))
 
-        conditions: list[Composable] = [SQL('({})').format(SQL(' OR ').join(conditions))]
+        conditions = [SQL('({})').format(SQL(' OR ').join(conditions))]
 
         if at_sequence_id is not None:
             conditions.append(SQL('sequence_id <= %s'))
@@ -318,7 +318,7 @@ class ElementQuery:
         if not node_typed_ids:
             return result
 
-        params: list[Any] = [list(node_typed_ids)]
+        params = [list(node_typed_ids)]
 
         if at_sequence_id is None:
             sequence_clause = SQL('next_sequence_id IS NULL')

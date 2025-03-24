@@ -255,7 +255,7 @@ class TraceQuery:
         params: list[Any] = [list(trace_map)]
 
         if limit_per_trace is not None:
-            where_clause = SQL('WHERE index %% GREATEST(1, (size / %s)::int) = 1')
+            where_clause = SQL('WHERE index %% GREATEST(1, (size / %s)::int) = 0')
             params.append(limit_per_trace)
         else:
             where_clause = SQL('')
@@ -266,7 +266,7 @@ class TraceQuery:
                 SELECT
                     id,
                     (dp).geom AS point,
-                    (dp).path[2] AS index,
+                    (ROW_NUMBER() OVER (PARTITION BY id ORDER BY (dp).path) - 1) AS index,
                     size
                 FROM trace
                 CROSS JOIN LATERAL ST_DumpPoints(ST_Force2D(segments)) AS dp

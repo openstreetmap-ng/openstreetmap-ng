@@ -15,9 +15,10 @@ message WebConfig {
         }
 
         uint64 id = 1;  // User ID
-        bool activity_tracking = 2;  // Enable usage analytics
-        bool crash_reporting = 3;  // Enable automatic error reports
-        optional HomePoint home_point = 4;  // User's home point
+        string display_name = 2;  // User display name
+        bool activity_tracking = 3;  // Enable usage analytics
+        bool crash_reporting = 4;  // Enable automatic error reports
+        optional HomePoint home_point = 5;  // User's home point
     }
 
     // Sentry configuration

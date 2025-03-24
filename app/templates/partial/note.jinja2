@@ -27,7 +27,7 @@
         <div class="social-entry">
             <p class="header text-muted d-flex justify-content-between">
                 <span>
-                    {% if header.user_id is none %}
+                    {% if not header.user %}
                         {{ t('browse.anonymous') }}
                     {% else %}
                         <a href="/user/{{ header.user.display_name }}" rel="author">
@@ -43,7 +43,7 @@
             {% if header.body %}
                 <div class="body pre">{{ header.body_rich | safe }}</div>
             {% endif %}
-            {% if header.user_id is none %}
+            {% if not header.user %}
                 <div class="alert alert-warning mb-2" role="alert">
                     {{ t('notes.show.anonymous_warning') }}
                 </div>

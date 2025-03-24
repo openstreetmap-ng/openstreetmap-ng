@@ -15,7 +15,7 @@
         <div class="social-entry">
             <p class="header text-muted d-flex justify-content-between">
                 <span>
-                    {% if changeset.user_id is none %}
+                    {% if not changeset.user %}
                         {{ t('browse.anonymous') }}
                     {% else %}
                         <a href="/user/{{ changeset.user.display_name }}" rel="author">
@@ -151,7 +151,7 @@
 
     </div>
     <div class="section text-center">
-        {% if changeset.user_id is not none %}
+        {% if changeset.user %}
             <div class="mb-2">
                 {% if prev_changeset_id %}
                     <a href="/changeset/{{ prev_changeset_id }}" rel="prev">

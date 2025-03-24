@@ -1,7 +1,6 @@
 import logging
 from asyncio import TaskGroup
 from datetime import datetime
-from typing import cast
 
 from zid import zid
 
@@ -11,7 +10,6 @@ from app.lib.exceptions_context import raise_for
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t, translation_context
 from app.models.db.message import Message, MessageInit, messages_resolve_rich_text
-from app.models.db.user import UserDisplay
 from app.models.types import DisplayName, MessageId, UserId
 from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
@@ -80,7 +78,7 @@ class MessageService:
             'body': body,
             'body_rich_hash': None,
             'created_at': created_at,
-            'from_user': cast(UserDisplay, from_user),
+            'from_user': from_user,  # type: ignore
         }
 
         await _send_activity_email(message)

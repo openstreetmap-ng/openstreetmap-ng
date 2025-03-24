@@ -5,6 +5,7 @@ from typing import NotRequired, TypedDict
 
 import cython
 from bs4 import BeautifulSoup
+from zid import zid
 
 from app.lib.rich_text import resolve_rich_text
 from app.models.db.user import UserDisplay
@@ -54,12 +55,15 @@ def message_from_email(mail: EmailMessage, from_user_id: UserId, to_user_id: Use
     if body is None:
         raise ValueError(f'Email message {subject!r} has no body')
 
-    return {
+    message_id: MessageId = zid()  # type: ignore
+    message: MessageInit = {
+        'id': message_id,
         'from_user_id': from_user_id,
         'to_user_id': to_user_id,
         'subject': subject,
         'body': body,  # TODO: body check etc.
     }
+    return message
 
 
 @cython.cfunc

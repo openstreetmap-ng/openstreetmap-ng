@@ -5,7 +5,7 @@ from numpy.typing import NDArray
 if cython.compiled:
     from cython.cimports.libc.math import pi
 else:
-    from math import pi
+    from math import pi  # type: ignore
 
 
 def mercator(coords: NDArray[np.floating], width: cython.int, height: cython.int) -> NDArray[np.floating]:

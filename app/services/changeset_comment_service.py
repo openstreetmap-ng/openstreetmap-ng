@@ -1,7 +1,6 @@
 import logging
 from asyncio import TaskGroup
 from datetime import datetime
-from typing import cast
 
 import cython
 
@@ -14,7 +13,6 @@ from app.models.db.changeset_comment import (
     ChangesetCommentInit,
     changeset_comments_resolve_rich_text,
 )
-from app.models.db.user import UserDisplay
 from app.models.types import ChangesetCommentId, ChangesetId, DisplayName
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
@@ -72,7 +70,7 @@ class ChangesetCommentService:
             'body': text,
             'body_rich_hash': None,
             'created_at': created_at,
-            'user': cast(UserDisplay, user),
+            'user': user,  # type: ignore
         }
 
         async with TaskGroup() as tg:

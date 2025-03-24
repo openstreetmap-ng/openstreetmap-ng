@@ -23,7 +23,7 @@ async def index(
     after: Annotated[TraceId | None, Query()] = None,
     before: Annotated[TraceId | None, Query()] = None,
 ):
-    data = await _get_traces_data(user=None, tag=None, after=after, before=before)
+    data = await _get_data(user=None, tag=None, after=after, before=before)
     return await render_response('traces/index.jinja2', data)
 
 
@@ -33,7 +33,7 @@ async def tagged(
     after: Annotated[TraceId | None, Query()] = None,
     before: Annotated[TraceId | None, Query()] = None,
 ):
-    data = await _get_traces_data(user=None, tag=tag, after=after, before=before)
+    data = await _get_data(user=None, tag=tag, after=after, before=before)
     return await render_response('traces/index.jinja2', data)
 
 
@@ -44,7 +44,7 @@ async def personal(
     before: Annotated[TraceId | None, Query()] = None,
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
-    data = await _get_traces_data(user=user, tag=None, after=after, before=before)
+    data = await _get_data(user=user, tag=None, after=after, before=before)
     return await render_response('traces/index.jinja2', data)
 
 
@@ -56,7 +56,7 @@ async def personal_tagged(
     before: Annotated[TraceId | None, Query()] = None,
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
-    data = await _get_traces_data(user=user, tag=tag, after=after, before=before)
+    data = await _get_data(user=user, tag=tag, after=after, before=before)
     return await render_response('traces/index.jinja2', data)
 
 
@@ -78,7 +78,7 @@ async def legacy_new():
     return RedirectResponse('/trace/upload', status.HTTP_301_MOVED_PERMANENTLY)
 
 
-async def _get_traces_data(
+async def _get_data(
     *,
     user: User | None,
     tag: str | None,
@@ -121,7 +121,7 @@ async def _get_traces_data(
             new_after_t = tg.create_task(new_after_task())
             new_before_t = tg.create_task(new_before_task())
 
-        traces_lines = ';'.join(encode_lonlat(trace.coords.tolist(), 0) for trace in traces)  # type: ignore
+        traces_lines = ';'.join(encode_lonlat(trace['coords'].tolist(), 0) for trace in traces)  # type: ignore
         new_after = new_after_t.result()
         new_before = new_before_t.result()
     else:

@@ -1,7 +1,7 @@
 import logging
 from asyncio import TaskGroup
 from datetime import datetime
-from typing import Any, cast
+from typing import Any
 
 from psycopg.sql import SQL, Composable
 from zid import zid
@@ -11,7 +11,6 @@ from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
 from app.models.db.diary_comment import DiaryComment, DiaryCommentInit, diary_comments_resolve_rich_text
-from app.models.db.user import UserDisplay
 from app.models.types import DiaryCommentId, DiaryId, UserId
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
@@ -70,7 +69,7 @@ class DiaryCommentService:
             'body': body,
             'body_rich_hash': None,
             'created_at': created_at,
-            'user': cast(UserDisplay, user),
+            'user': user,  # type: ignore
         }
 
         async with TaskGroup() as tg:
