@@ -17,9 +17,7 @@ _PARQUET_PATHS = [
 ]
 
 
-def _write_output(
-    conn: duckdb.DuckDBPyConnection, parquets: duckdb.DuckDBPyRelation, table: str, select_sql: str, header: str
-) -> None:
+def _write_output(conn: duckdb.DuckDBPyConnection, table: str, select_sql: str, header: str) -> None:
     output = PRELOAD_DIR.joinpath(table)
     shutil.rmtree(output, ignore_errors=True)
     conn.sql(f'COPY ({select_sql}) TO {output.as_posix()!r} (PER_THREAD_OUTPUT TRUE, COMPRESSION ZSTD, HEADER FALSE)')
@@ -28,8 +26,7 @@ def _write_output(
 
 def _write_changeset() -> None:
     with duckdb_connect() as conn:
-        parquets = conn.read_parquet(_PARQUET_PATHS)  # type: ignore
-        changeset_sql = """
+        changeset_sql = f"""
         SELECT
             changeset_id AS id,
             ANY_VALUE(user_id) AS user_id,
@@ -38,18 +35,14 @@ def _write_changeset() -> None:
             MAX(created_at) AS updated_at,
             MAX(created_at) AS closed_at,
             COUNT(*) AS size
-        FROM parquets
+        FROM read_parquet({_PARQUET_PATHS!r})
         GROUP BY changeset_id
         """
-        _write_output(
-            conn, parquets, 'changeset', changeset_sql, 'id,user_id,tags,created_at,updated_at,closed_at,size'
-        )
+        _write_output(conn, 'changeset', changeset_sql, 'id,user_id,tags,created_at,updated_at,closed_at,size')
 
 
 def _write_element() -> None:
     with duckdb_connect() as conn:
-        parquets = conn.read_parquet(_PARQUET_PATHS)  # type: ignore
-
         # Compute typed_id from type and id.
         # Source implementation: app.models.element.typed_element_id
         conn.execute("""
@@ -86,7 +79,7 @@ def _write_element() -> None:
         '{' || array_to_string(arr, ',') || '}'
         """)
 
-        element_sql = """
+        element_sql = f"""
         SELECT
             sequence_id,
             changeset_id,
@@ -106,11 +99,10 @@ def _write_element() -> None:
                 ELSE NULL
             END AS members_roles,
             created_at
-        FROM parquets
+        FROM read_parquet({_PARQUET_PATHS!r})
         """
         _write_output(
             conn,
-            parquets,
             'element',
             element_sql,
             'sequence_id,changeset_id,typed_id,version,visible,tags,point,members,members_roles,created_at',
@@ -119,8 +111,7 @@ def _write_element() -> None:
 
 def _write_user() -> None:
     with duckdb_connect() as conn:
-        parquets = conn.read_parquet(_PARQUET_PATHS)  # type: ignore
-        user_sql = """
+        user_sql = f"""
         SELECT
             user_id AS id,
             (user_id || '@localhost.invalid') AS email,
@@ -139,13 +130,12 @@ def _write_user() -> None:
             SELECT DISTINCT ON (user_id)
                 user_id,
                 display_name
-            FROM parquets
+            FROM read_parquet({_PARQUET_PATHS!r})
             WHERE user_id IS NOT NULL
         )
         """
         _write_output(
             conn,
-            parquets,
             'user',
             user_sql,
             'id,email,email_verified,display_name,password_pb,language,activity_tracking,crash_reporting,created_ip',
