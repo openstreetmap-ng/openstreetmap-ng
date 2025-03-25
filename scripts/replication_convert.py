@@ -86,7 +86,7 @@ def _write_element() -> None:
             typed_element_id(type, id) AS typed_id,
             version,
             visible,
-            CASE WHEN visible THEN json_to_hstore(tags) ELSE NULL END AS tags,
+            CASE WHEN visible THEN json_to_hstore(json(tags)) ELSE NULL END AS tags,
             point,
             CASE
                 WHEN visible AND type != 'node' THEN
