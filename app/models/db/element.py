@@ -94,9 +94,10 @@ def _validate_way(element: ElementInit):
         return
 
     members = element['members']
-
     if not members:
-        raise ValueError('Ways must have at least one member')
+        element['members'] = None
+        return
+
     if len(members) > ELEMENT_WAY_MEMBERS_LIMIT:
         raise ValueError(f'Ways cannot have more than {ELEMENT_WAY_MEMBERS_LIMIT} members')
     if np.any(np.array(members, np.uint64) > TYPED_ELEMENT_ID_NODE_MAX):
@@ -110,26 +111,28 @@ def _validate_relation(element: ElementInit):
     if not element['visible']:
         return
 
-    members = element['members']
-    members_roles = element['members_roles']
-
     # TODO: 0.7
     # if not members:
     #     raise ValueError('Relations must have at least one member')
-    if members is None:
-        members = element['members'] = []
-    if members_roles is None:
-        members_roles = element['members_roles'] = []
+
+    members = element['members']
+    if not members:
+        element['members'] = None
+        element['members_roles'] = None
+        return
+
+    members_roles = element['members_roles']
+    assert members_roles is not None, 'members_roles must be set if members is set'
+    assert len(members) == len(members_roles), 'members and members_roles must be equal length'
+
     if len(members) > ELEMENT_RELATION_MEMBERS_LIMIT:
         raise ValueError(f'Relations cannot have more than {ELEMENT_RELATION_MEMBERS_LIMIT} members')
-
-    assert len(members) == len(members_roles), 'members and members_roles must have the same size'
 
 
 @cython.cfunc
 def _validate_visible(element: ElementInit):
-    if element['tags'] is None:
-        element['tags'] = {}
+    if not element['tags']:
+        element['tags'] = None
 
 
 @cython.cfunc

@@ -36,7 +36,6 @@ _PLANET_SCHEMA = pa.schema([
         'members',
         pa.list_(
             pa.struct([
-                pa.field('order', pa.uint16()),
                 pa.field('type', pa.string()),
                 pa.field('id', pa.uint64()),
                 pa.field('role', pa.string()),
@@ -119,42 +118,33 @@ def planet_worker(
     element: dict
 
     for element_type, element in elements:
-        tags = {tag['@k']: tag['@v'] for tag in tags_} if (tags_ := element.get('tag')) is not None else None
+        tags = {tag['@k']: tag['@v'] for tag in tags_} if (tags_ := element.get('tag')) else None
         point: str | None = None
-        members: list[dict]
+        members: list[dict] | None = None
 
         if element_type == 'node':
-            members = []
             if (lon := element.get('@lon')) is not None and (lat := element.get('@lat')) is not None:
                 point = compressible_geometry(Point(lon, lat)).wkb_hex
         elif element_type == 'way':
-            members = (
-                [
+            if members_ := element.get('nd'):
+                members = [
                     {
-                        'order': order,
                         'type': 'node',
                         'id': member['@ref'],
-                        'role': '',
+                        'role': None,
                     }
-                    for order, member in enumerate(members_)
+                    for member in members_
                 ]
-                if (members_ := element.get('nd')) is not None
-                else []
-            )
         elif element_type == 'relation':
-            members = (
-                [
+            if members_ := element.get('member'):
+                members = [
                     {
-                        'order': order,
                         'type': member['@type'],
                         'id': member['@ref'],
                         'role': member['@role'],
                     }
-                    for order, member in enumerate(members_)
+                    for member in members_
                 ]
-                if (members_ := element.get('member')) is not None
-                else []
-            )
         else:
             raise NotImplementedError(f'Unsupported element type {element_type!r}')
 
@@ -163,8 +153,8 @@ def planet_worker(
             'type': element_type,
             'id': element['@id'],
             'version': element['@version'],
-            'visible': (tags is not None) or (point is not None) or bool(members),
-            'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
+            'visible': bool(tags or point or members),
+            'tags': orjson_dumps(tags).decode() if tags else None,
             'point': point,
             'members': members,
             'created_at': element['@timestamp'],
@@ -223,8 +213,7 @@ def merge_planet_worker_results() -> None:
         CREATE TEMP TABLE sequence AS
         SELECT
             ROW_NUMBER() OVER (ORDER BY created_at) AS sequence_id,
-            type,
-            id,
+            type, id,
             version
         FROM read_parquet({[path.as_posix() for path in paths]!r})
         """)
@@ -247,7 +236,7 @@ def merge_planet_worker_results() -> None:
                 p.user_id,
                 p.display_name,
                 next.sequence_id AS next_sequence_id
-            FROM parquets AS p
+            FROM read_parquet({[path.as_posix() for path in paths]!r}) AS p
             JOIN sequence AS current USING (type, id, version)
             ASOF LEFT JOIN sequence AS next
              ON p.type = next.type
@@ -449,15 +438,19 @@ def _write_element() -> None:
                 typed_element_id(type, id) AS typed_id,
                 version,
                 visible,
-                CASE WHEN visible THEN json_to_hstore(tags) ELSE NULL END AS tags,
+                CASE
+                    WHEN tags IS NOT NULL THEN
+                        json_to_hstore(tags)
+                    ELSE NULL
+                END AS tags,
                 point,
                 CASE
-                    WHEN visible AND type != 'node' THEN
+                    WHEN members IS NOT NULL THEN
                         pg_array(list_transform(members, x -> typed_element_id(x.type, x.id)))
                     ELSE NULL
                 END AS members,
                 CASE
-                    WHEN visible AND type = 'relation' THEN
+                    WHEN members IS NOT NULL AND type = 'relation' THEN
                         pg_array(list_transform(members, x -> quote(x.role)))
                     ELSE NULL
                 END AS members_roles,

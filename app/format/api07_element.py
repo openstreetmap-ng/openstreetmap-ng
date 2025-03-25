@@ -37,25 +37,32 @@ def _encode_element(element: Element) -> dict:
         point = element['point']
         assert point is not None, 'point must be set for visible nodes'
         result['point'] = _encode_point(point)
+    elif type == 'way':
+        result['members'] = _encode_way_members(element['members'])
+    elif type == 'relation':
+        result['members'] = _encode_relation_members(element['members'], element['members_roles'])
     else:
-        members = element['members']
-        assert members is not None, 'members must be set for visible ways/relations'
-        result['members'] = _encode_members(members, element['members_roles'])
+        raise NotImplementedError(f'Unsupported element type {type!r}')
 
     return result
 
 
 @cython.cfunc
-def _encode_members(members: list[TypedElementId], members_roles: list[str] | None) -> list[dict]:
-    if members_roles is None:
-        # Ways
-        return [
+def _encode_way_members(members: list[TypedElementId] | None) -> list[dict]:
+    return (
+        [
             {'type': type, 'id': id}  #
             for type, id in split_typed_element_ids(members)
         ]
-    else:
-        # Relations
-        return [
+        if members
+        else []
+    )
+
+
+@cython.cfunc
+def _encode_relation_members(members: list[TypedElementId] | None, members_roles: list[str] | None) -> list[dict]:
+    return (
+        [
             {'type': type, 'id': id, 'role': role}
             for (type, id), role in zip(
                 split_typed_element_ids(members),
@@ -63,6 +70,9 @@ def _encode_members(members: list[TypedElementId], members_roles: list[str] | No
                 strict=True,
             )
         ]
+        if members and members_roles
+        else []
+    )
 
 
 @cython.cfunc

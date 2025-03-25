@@ -90,15 +90,19 @@ def _write_element() -> None:
             typed_element_id(type, id) AS typed_id,
             version,
             visible,
-            CASE WHEN visible THEN json_to_hstore(tags) ELSE NULL END AS tags,
+            CASE
+                WHEN tags != '{{}}' THEN
+                    json_to_hstore(tags)
+                ELSE NULL
+            END AS tags,
             point,
             CASE
-                WHEN visible AND type != 'node' THEN
+                WHEN len(members) > 0 THEN
                     pg_array(list_transform(members, x -> typed_element_id(x.type, x.id)))
                 ELSE NULL
             END AS members,
             CASE
-                WHEN visible AND type = 'relation' THEN
+                WHEN len(members) > 0 AND type = 'relation' THEN
                     pg_array(list_transform(members, x -> quote(x.role)))
                 ELSE NULL
             END AS members_roles,

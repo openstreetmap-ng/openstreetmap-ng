@@ -273,11 +273,8 @@ def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
     {'@id': 1, '@version': 1, ...}
     """
     type, id = split_typed_element_id(element['typed_id'])
-    is_node: cython.bint = type == 'node'
-    is_way: cython.bint = not is_node and type == 'way'
-    is_relation: cython.bint = not is_node and not is_way
 
-    tags = element['tags'] or {}
+    tags = element['tags']
     point = element['point']
     members = element['members']
     members_roles = element['members_roles']
@@ -298,7 +295,7 @@ def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
             'changeset': element['changeset_id'],
             'timestamp': legacy_date(element['created_at']),
             'visible': element['visible'],
-            'tags': tags,
+            'tags': tags or {},
             **(
                 _encode_point_json(point)  #
                 if point is not None
@@ -306,12 +303,12 @@ def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
             ),
             **(
                 {'nodes': _encode_nodes_json(members)}  #
-                if is_way and members is not None
+                if type == 'way' and members is not None
                 else {}
             ),
             **(
                 {'members': _encode_members_json(members, members_roles)}
-                if is_relation and members is not None and members_roles is not None
+                if type == 'relation' and members is not None and members_roles is not None
                 else {}
             ),
         }
@@ -330,7 +327,7 @@ def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
             '@changeset': element['changeset_id'],
             '@timestamp': legacy_date(element['created_at']),
             '@visible': element['visible'],
-            'tag': [{'@k': k, '@v': v} for k, v in tags.items()],
+            'tag': [{'@k': k, '@v': v} for k, v in tags.items()] if tags else [],
             **(
                 _encode_point_xml(point)  #
                 if point is not None
@@ -338,12 +335,12 @@ def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
             ),
             **(
                 {'nd': _encode_nodes_xml(members)}  #
-                if is_way and members is not None
+                if type == 'way' and members
                 else {}
             ),
             **(
                 {'member': _encode_members_xml(members, members_roles)}  #
-                if is_relation and members is not None and members_roles is not None
+                if type == 'relation' and members and members_roles
                 else {}
             ),
         }
@@ -353,7 +350,6 @@ def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
 def _decode_element_unsafe(type: ElementType, data: dict, *, changeset_id: ChangesetId | None):
     """
     This method does not validate the input data.
-
     If changeset_id is None, it will be extracted from the element data.
 
     >>> decode_element(('node', {'@id': 1, '@version': 1, ...}))
@@ -361,7 +357,7 @@ def _decode_element_unsafe(type: ElementType, data: dict, *, changeset_id: Chang
     """
     tags = (
         _decode_tags_unsafe(data_tags)  #
-        if (data_tags := data.get('tag')) is not None
+        if (data_tags := data.get('tag'))
         else None
     )
     point = (
@@ -371,16 +367,16 @@ def _decode_element_unsafe(type: ElementType, data: dict, *, changeset_id: Chang
         and (lat := data.get('@lat')) is not None
         else None
     )
+    members = None
+    members_roles = None
 
     # decode members from either nd or member
-    if type == 'way' and (data_nodes := data.get('nd')) is not None:
-        members = _decode_nodes(data_nodes)
-        members_roles = None
-    elif type == 'relation' and (data_members := data.get('member')) is not None:
-        members, members_roles = _decode_members_unsafe(data_members)
-    else:
-        members = None
-        members_roles = None
+    if type == 'way':
+        if data_nodes := data.get('nd'):
+            members = _decode_nodes(data_nodes)
+    elif type == 'relation':  # noqa: SIM102
+        if data_members := data.get('member'):
+            members, members_roles = _decode_members_unsafe(data_members)
 
     result: ElementInit = {
         'changeset_id': changeset_id if (changeset_id is not None) else data['@changeset'],
