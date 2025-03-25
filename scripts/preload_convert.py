@@ -413,10 +413,14 @@ def _write_element() -> None:
         END
         """)
 
-        # Utility for quoting text
+        # Utilities for escaping text
         conn.execute("""
         CREATE MACRO quote(str) AS
         '"' || replace(replace(str, '\\', '\\\\'), '"', '\\"') || '"'
+        """)
+        conn.execute("""
+        CREATE MACRO jsonpointer_escape(key) AS
+        '/' || replace(replace(key, '~', '~0'), '/', '~1')
         """)
 
         # Convert JSON dict to hstore
@@ -425,7 +429,7 @@ def _write_element() -> None:
         array_to_string(
             list_transform(
                 json_keys(json),
-                k -> quote(k) || '=>' || quote(json_extract_string(json, k))
+                k -> quote(k) || '=>' || quote(json_extract_string(json, jsonpointer_escape(k)))
             ),
             ','
         )
@@ -445,7 +449,7 @@ def _write_element() -> None:
                 typed_element_id(type, id) AS typed_id,
                 version,
                 visible,
-                CASE WHEN visible THEN json_to_hstore(json(tags)) ELSE NULL END AS tags,
+                CASE WHEN visible THEN json_to_hstore(tags) ELSE NULL END AS tags,
                 point,
                 CASE
                     WHEN visible AND type != 'node' THEN
