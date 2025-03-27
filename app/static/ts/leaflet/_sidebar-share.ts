@@ -1,6 +1,6 @@
 import i18next from "i18next"
 import { type Map as MaplibreMap, Marker } from "maplibre-gl"
-import { getLastShareExportFormat, setLastShareExportFormat } from "../_local-storage"
+import { shareExportFormatStorage } from "../_local-storage"
 import { qsParse } from "../_qs.ts"
 import { isLatitude, isLongitude } from "../_utils.ts"
 import { exportMapImage } from "./_export-image"
@@ -128,14 +128,10 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
 
         // On format change, remember the selection
         const formatSelect = exportForm.querySelector("select.format-select")
-        formatSelect.addEventListener("change", () => {
-            const format = formatSelect.value
-            console.debug("onFormatSelectChange", format)
-            setLastShareExportFormat(format)
-        })
+        formatSelect.addEventListener("change", () => shareExportFormatStorage.set(formatSelect.value))
 
         // Restore last form values
-        const lastShareExportFormat = getLastShareExportFormat()
+        const lastShareExportFormat = shareExportFormatStorage.get()
         for (const option of formatSelect.options) {
             if (option.value === lastShareExportFormat) {
                 option.selected = true

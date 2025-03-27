@@ -1,4 +1,4 @@
-import { getAppTheme, setAppTheme } from "./_local-storage"
+import { themeStorage } from "./_local-storage"
 import { getDeviceThemePreference } from "./_utils.ts"
 
 export type AppTheme = "light" | "dark" | "auto"
@@ -24,7 +24,7 @@ if (control) {
     }
 
     const updateState = (forceAppTheme?: AppTheme): void => {
-        const appTheme = forceAppTheme ?? getAppTheme()
+        const appTheme = forceAppTheme ?? themeStorage.get()
         const activeTheme = appTheme === "auto" ? getDeviceThemePreference() : appTheme
         console.debug("Updating theme state, preference:", appTheme, "; active:", activeTheme)
 
@@ -46,9 +46,9 @@ if (control) {
 
     for (const [theme, itemButton] of themeItemButtonMap.entries()) {
         itemButton.addEventListener("click", () => {
-            if (getAppTheme() === theme) return
+            if (themeStorage.get() === theme) return
             console.debug("Handling application theme change to", theme)
-            setAppTheme(theme)
+            themeStorage.set(theme)
             updateState(theme)
         })
     }

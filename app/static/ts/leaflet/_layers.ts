@@ -9,7 +9,7 @@ import {
     type SourceSpecification,
     type StyleSpecification,
 } from "maplibre-gl"
-import { getActiveTheme, getMapOverlayOpacity } from "../_local-storage.ts"
+import { getActiveTheme, overlayOpacityStorage } from "../_local-storage.ts"
 import { addThemeEventHandler } from "../_navbar-theme.ts"
 import { staticCache } from "../_utils.ts"
 import libertyStyle from "../vector-styles/liberty.json"
@@ -184,7 +184,7 @@ layersConfig.set("aerial" as LayerId, {
     },
     layerOptions: {
         paint: {
-            "raster-opacity": getMapOverlayOpacity("aerial"),
+            "raster-opacity": overlayOpacityStorage("aerial").get(),
         },
     },
     layerCode: "A" as LayerCode,

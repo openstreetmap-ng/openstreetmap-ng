@@ -1,16 +1,16 @@
 import { config } from "../_config.ts"
 import { getTimezoneName } from "../_intl.ts"
-import { getLastTimezoneUpdateTime, setLastTimezoneUpdateTime } from "../_local-storage.ts"
+import { timezoneUpdateTimeStorage } from "../_local-storage.ts"
 import { getUnixTimestamp, requestIdleCallbackPolyfill } from "../_utils.ts"
 
 const updateDelay = 24 * 3600 // 1 day
 
 const timezoneUpdate = (): void => {
-    const last = getLastTimezoneUpdateTime()
+    const last = timezoneUpdateTimeStorage.get()
     const now = getUnixTimestamp()
     if (last && last + updateDelay > now) return
 
-    setLastTimezoneUpdateTime(now)
+    timezoneUpdateTimeStorage.set(now)
     const timezone = getTimezoneName()
     console.debug("Updating user timezone", timezone)
 
@@ -24,7 +24,7 @@ const timezoneUpdate = (): void => {
         cache: "no-store",
         priority: "low",
     })
-        .then(async (resp) => {
+        .then((resp) => {
             if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
             console.debug("Successfully updated user timezone")
         })

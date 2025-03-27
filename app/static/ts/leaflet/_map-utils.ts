@@ -2,7 +2,7 @@ import i18next from "i18next"
 import { type EaseToOptions, type IControl, type LngLat, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
 import { config } from "../_config"
 import { getTimezoneName } from "../_intl.ts"
-import { getLastMapState, setLastMapState } from "../_local-storage"
+import { mapStateStorage } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
 import { shortLinkEncode } from "../_shortlink"
 import { timezoneBoundsMap } from "../_timezone-bbox"
@@ -127,7 +127,7 @@ export const setMapState = (map: MaplibreMap, state: MapState, options?: EaseToO
     const { lon, lat, zoom, layersCode } = state
     map.panTo([lon, lat], { ...(options ?? {}), zoom })
     setMapLayersCode(map, layersCode)
-    setLastMapState(state)
+    mapStateStorage.set(state)
 }
 
 /**
@@ -233,7 +233,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
 
     // Delay search parsing, most URLs have a valid hash state
     const searchParams = qsParse(window.location.search.substring(1))
-    const lastState = getLastMapState()
+    const lastState = mapStateStorage.get()
 
     // 2. Use the bounds from the bbox query parameter
     if (searchParams.bbox) {

@@ -9,7 +9,7 @@ import {
 } from "@sentry/browser"
 import { activityTracking, config, crashReporting } from "./_config"
 import { getTimezoneName } from "./_intl"
-import { getAppTheme } from "./_local-storage"
+import { themeStorage } from "./_local-storage"
 
 if (crashReporting) {
     console.debug("Enabling crash reporting")
@@ -54,7 +54,7 @@ if (crashReporting) {
 
     if (config.forceCrashReporting) {
         console.debug("Enabling feedback integration")
-        const appTheme = getAppTheme()
+        const appTheme = themeStorage.get()
         addIntegration(
             feedbackIntegration({
                 triggerLabel: "Report Issue",

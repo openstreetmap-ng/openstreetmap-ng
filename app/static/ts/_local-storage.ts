@@ -1,141 +1,86 @@
 import type { AppTheme } from "./_navbar-theme"
-import { getDeviceThemePreference, getUnixTimestamp, isLatitude, isLongitude, isZoom } from "./_utils"
+import { getDeviceThemePreference, getUnixTimestamp, isLatitude, isLongitude, isZoom, memoize } from "./_utils"
 import type { MapState } from "./leaflet/_map-utils"
 
-const mapStateVersion = 1
+type StorageConfig<T> = {
+    defaultValue?: T
+    deserialize?: (value: string) => T
+    serialize?: (value: T) => string
+    validate?: (value: T) => boolean
+    logOperations?: boolean
+}
 
-/**
- * Get app theme from local storage
- * @example
- * getAppTheme()
- * // => "auto"
- */
-export const getAppTheme = (): AppTheme => (localStorage.getItem("theme") || "auto") as AppTheme
+function createStorage<T>(
+    key: string,
+    config: StorageConfig<T> & { defaultValue: T },
+): { get: () => T; set: (value: T) => void }
+function createStorage<T>(key: string, config?: StorageConfig<T>): { get: () => T | null; set: (value: T) => void }
+function createStorage<T>(key: string, config: StorageConfig<T> = {}) {
+    const {
+        defaultValue = null,
+        deserialize = JSON.parse,
+        serialize = JSON.stringify,
+        validate,
+        logOperations = true,
+    } = config
 
-/** Get the active app theme, resolving "auto" if necessary */
+    return {
+        get: (): T | null => {
+            const stored = localStorage.getItem(key)
+            if (stored === null) return defaultValue
+
+            try {
+                const parsed = deserialize(stored)
+                return !validate || validate(parsed) ? parsed : defaultValue
+            } catch {
+                return defaultValue
+            }
+        },
+
+        set: (value: T): void => {
+            if (logOperations) console.debug("Storage set:", key, "=", value)
+            localStorage.setItem(key, serialize(value))
+        },
+    }
+}
+
+const createScopedStorage = <T>(prefix: string, config?: StorageConfig<T>) =>
+    memoize((scope: string) => createStorage<T>(`${prefix}-${scope}`, config))
+
+export const themeStorage = createStorage<AppTheme>("theme", {
+    defaultValue: "auto",
+})
 export const getActiveTheme = (): "light" | "dark" => {
-    const appTheme = getAppTheme()
+    const appTheme = themeStorage.get()
     return appTheme === "auto" ? getDeviceThemePreference() : appTheme
 }
 
-/** Set app theme to local storage */
-export const setAppTheme = (theme: AppTheme): void => {
-    console.debug("setAppTheme", theme)
-    localStorage.setItem("theme", theme)
-}
+export const mapStateStorage = createStorage<MapState>("mapState", {
+    validate: (value) => isLongitude(value.lon) && isLatitude(value.lat) && isZoom(value.zoom),
+    logOperations: false,
+})
 
-/**
- * Get last map state from local storage
- * @example
- * getLastMapState()
- * // => { lon: 16.3725, lat: 48.208889, zoom: 12, layersCode: "K" }
- */
-export const getLastMapState = (): MapState | null => {
-    const lastMapState = localStorage.getItem("lastMapState")
-    if (!lastMapState) return null
-    const { version, lon, lat, zoom, layersCode } = JSON.parse(lastMapState)
-    if (version === mapStateVersion && isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
-        return { lon, lat, zoom, layersCode }
-    }
-    return null
-}
+const bannerStorage = createScopedStorage<number>("bannerHidden")
+export const isBannerHidden = (name: string) => bannerStorage(name).get() !== null
+export const markBannerHidden = (name: string) => bannerStorage(name).set(getUnixTimestamp())
 
-/**
- * Set last map state to local storage
- * @example
- * setLastMapState({ lon: 16.3725, lat: 48.208889, zoom: 12, layersCode: "K" })
- */
-export const setLastMapState = (state: MapState): void => {
-    const { lon, lat, zoom, layersCode } = state
-    localStorage.setItem(
-        "lastMapState",
-        JSON.stringify({
-            version: mapStateVersion,
-            lon,
-            lat,
-            zoom,
-            layersCode,
-        }),
-    )
-}
+export const routingEngineStorage = createStorage<string>("routingEngine")
 
-/**
- * Check whether user has hidden a banner
- * @example
- * isBannerHidden("welcome")
- */
-export const isBannerHidden = (name: string): boolean => localStorage.getItem(`bannerHidden-${name}`) !== null
+export const overlayOpacityStorage = createScopedStorage<number>("overlayOpacity", {
+    defaultValue: 0.55,
+    validate: (v) => v >= 0 && v <= 1,
+    logOperations: false,
+})
 
-/** Mark a banner as hidden in local storage */
-export const markBannerHidden = (name: string): void => {
-    console.debug("markBannerHidden", name)
-    localStorage.setItem(`bannerHidden-${name}`, getUnixTimestamp().toString())
-}
+export const shareExportFormatStorage = createStorage<string>("shareExportFormat", {
+    defaultValue: "image/jpeg",
+})
 
-/** Get access token for system app from local storage */
-export const getSystemAppAccessToken = (clientId: string): string | null =>
-    localStorage.getItem(`systemAppAccessToken-${clientId}`)
+export const tagsDiffStorage = createStorage<boolean>("tagsDiff", {
+    defaultValue: true,
+})
+export const systemAppAccessTokenStorage = createScopedStorage<string>("systemAppAccessToken", {
+    logOperations: false,
+})
 
-/** Set access token for system app to local storage */
-export const setSystemAppAccessToken = (clientId: string, accessToken: string): void =>
-    localStorage.setItem(`systemAppAccessToken-${clientId}`, accessToken)
-
-/**
- * Get last routing engine from local storage
- * @example
- * getLastRoutingEngine()
- * // => "graphhopper_car"
- */
-export const getLastRoutingEngine = (): string | null => localStorage.getItem("routingEngine")
-
-/**
- * Set last routing engine to local storage
- * @example
- * setLastRoutingEngine("graphhopper_car")
- */
-export const setLastRoutingEngine = (engine: string): void => {
-    console.debug("setLastRoutingEngine", engine)
-    localStorage.setItem("routingEngine", engine)
-}
-
-/** Get overlay opacity from local storage, in the range [0, 1] */
-export const getMapOverlayOpacity = (name: string): number => {
-    const opacity = localStorage.getItem(`overlayOpacity-${name}`)
-    const defaultOpacity = 0.55
-    return opacity ? Number.parseFloat(opacity) : defaultOpacity
-}
-
-/** Set overlay opacity to local storage, in the range [0, 1] */
-export const setMapOverlayOpacity = (name: string, opacity: number): void => {
-    localStorage.setItem(`overlayOpacity-${name}`, opacity.toString())
-}
-
-/** Get last selected export format from local storage */
-export const getLastShareExportFormat = (): string => localStorage.getItem("shareExportFormat") ?? "image/jpeg"
-
-/** Set last selected export format to local storage */
-export const setLastShareExportFormat = (format: string): void => {
-    console.debug("setLastShareExportFormat", format)
-    localStorage.setItem("shareExportFormat", format)
-}
-
-/** Get tags diff mode state from local storage */
-export const getTagsDiffMode = (): boolean => (localStorage.getItem("tagsDiffMode") || "true") === "true"
-
-/** Set tags diff mode to local storage */
-export const setTagsDiffMode = (state: boolean): void => {
-    console.debug("setTagsDiffMode", state)
-    localStorage.setItem("tagsDiffMode", state.toString())
-}
-
-/** Get last timezone update timestamp */
-export const getLastTimezoneUpdateTime = (): number | null => {
-    const time = localStorage.getItem("timezoneUpdateTime")
-    return time ? Number.parseInt(time) : null
-}
-
-/** Set last timezone update timestamp to current time */
-export const setLastTimezoneUpdateTime = (time: number): void => {
-    console.debug("setLastTimezoneUpdateTime", time)
-    localStorage.setItem("timezoneUpdateTime", time.toString())
-}
+export const timezoneUpdateTimeStorage = createStorage<number>("timezoneUpdateTime")

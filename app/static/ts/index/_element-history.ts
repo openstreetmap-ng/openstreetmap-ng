@@ -1,5 +1,5 @@
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { getTagsDiffMode, setTagsDiffMode } from "../_local-storage"
+import { tagsDiffStorage } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
 import { setPageTitle } from "../_title"
 import { staticCache } from "../_utils.ts"
@@ -31,9 +31,9 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
         const tagsDiffCheckbox = sidebarContent.querySelector("input.tags-diff-mode")
         if (!tagsDiffCheckbox) return
 
-        tagsDiffCheckbox.checked = getTagsDiffMode()
+        tagsDiffCheckbox.checked = tagsDiffStorage.get()
         tagsDiffCheckbox.addEventListener("change", () => {
-            setTagsDiffMode(tagsDiffCheckbox.checked)
+            tagsDiffStorage.set(tagsDiffCheckbox.checked)
             controller.unload()
             controller.load(loadMatchGroups)
         })
@@ -97,7 +97,7 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
             const { type, id } = matchGroups
             loadMatchGroups = matchGroups
             const params = qsParse(location.search.substring(1))
-            params.tags_diff_mode = getTagsDiffMode().toString()
+            params.tags_diff_mode = tagsDiffStorage.get().toString()
             const url = `/api/partial/${type}/${id}/history?${qsEncode(params)}`
             base.load(url)
         },

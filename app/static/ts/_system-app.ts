@@ -1,11 +1,11 @@
-import { getSystemAppAccessToken, setSystemAppAccessToken } from "./_local-storage"
+import { systemAppAccessTokenStorage } from "./_local-storage"
 import { wrapMessageEventValidator } from "./_utils"
 
 /** Load system app access token and call successCallback with it */
 const loadSystemApp = (clientId: string, successCallback: (token: string) => void): void => {
     console.debug("loadSystemApp", clientId)
 
-    const accessToken = getSystemAppAccessToken(clientId)
+    const accessToken = systemAppAccessTokenStorage(clientId).get()
     if (!accessToken) {
         createAccessToken(clientId, successCallback)
         return
@@ -48,7 +48,7 @@ const createAccessToken = (clientId: string, successCallback: (token: string) =>
 
             const data = await resp.json()
             const accessToken = data.access_token
-            setSystemAppAccessToken(clientId, accessToken)
+            systemAppAccessTokenStorage(clientId).set(accessToken)
             successCallback(accessToken)
         })
         .catch((error) => {

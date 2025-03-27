@@ -12,7 +12,7 @@ import {
     Popup,
 } from "maplibre-gl"
 import { formatDistance, formatDistanceRounded, formatHeight, formatTime } from "../_format-utils"
-import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage"
+import { routingEngineStorage } from "../_local-storage"
 import { decodeLonLat } from "../_polyline.ts"
 import { qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
@@ -232,7 +232,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     // On engine input change, remember the last routing engine
     engineInput.addEventListener("input", () => {
         console.debug("onEngineInputChange")
-        setLastRoutingEngine(engineInput.value)
+        routingEngineStorage.set(engineInput.value)
         submitFormIfFilled()
     })
 
@@ -507,5 +507,5 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
 
 /** Get initial routing engine identifier */
 const getInitialRoutingEngine = (engine?: string): string | null => {
-    return engine ?? getLastRoutingEngine()
+    return engine ?? routingEngineStorage.get()
 }

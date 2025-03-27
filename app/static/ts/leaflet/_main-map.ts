@@ -1,7 +1,7 @@
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
 import { config } from "../_config"
 import { isMetricUnit } from "../_intl.ts"
-import { setLastMapState } from "../_local-storage.ts"
+import { mapStateStorage } from "../_local-storage.ts"
 import { handleEditRemotePath, updateNavbarAndHash } from "../_navbar"
 import { wrapIdleCallbackStatic } from "../_utils.ts"
 import { getChangesetController } from "../index/_changeset"
@@ -57,7 +57,7 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
     const saveMapStateLazy = wrapIdleCallbackStatic(() => {
         const state = getMapState(map)
         updateNavbarAndHash(state)
-        setLastMapState(state)
+        mapStateStorage.set(state)
     })
     map.on("moveend", saveMapStateLazy)
     addLayerEventHandler(saveMapStateLazy)

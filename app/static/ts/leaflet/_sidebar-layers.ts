@@ -1,7 +1,7 @@
 import { Tooltip } from "bootstrap"
 import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
 import { config } from "../_config"
-import { getMapOverlayOpacity, setMapOverlayOpacity } from "../_local-storage"
+import { overlayOpacityStorage } from "../_local-storage"
 import { staticCache, throttle } from "../_utils.ts"
 import {
     type LayerId,
@@ -220,13 +220,13 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
 
         for (const range of this.sidebar.querySelectorAll("input.overlay-opacity")) {
             const layerId = range.dataset.layerId as LayerId
-            range.value = (getMapOverlayOpacity(layerId) * 100).toString()
+            range.value = (overlayOpacityStorage(layerId).get() * 100).toString()
             range.addEventListener(
                 "input",
                 throttle(() => {
                     const opacity = Number.parseFloat(range.value) / 100
                     map.setPaintProperty(layerId, "raster-opacity", opacity)
-                    setMapOverlayOpacity(layerId, opacity)
+                    overlayOpacityStorage(layerId).set(opacity)
                 }, 100),
             )
         }
