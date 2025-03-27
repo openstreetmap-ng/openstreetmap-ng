@@ -98,9 +98,9 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
             const commentButton = commentForm.querySelector("button.comment-btn")
             const submitButtons = commentForm.querySelectorAll("button[type=submit]")
 
-            /** On success callback, reload the note and simulate map move (reload notes layer) */
+            /** On success callback, reload the note details and the notes layer */
             const onFormSuccess = () => {
-                map.panBy([0, 0], { animate: false })
+                map.fire("reloadnoteslayer")
                 controller.unload()
                 controller.load({ id: params.id.toString() })
             }

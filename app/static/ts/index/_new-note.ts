@@ -42,8 +42,8 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
     commentInput.addEventListener("input", updateButtonState)
 
     configureStandardForm(form, ({ note_id }) => {
-        // On success callback, navigate to the new note and simulate map move (reload notes layer)
-        map.panBy([0, 0], { animate: false })
+        // On success callback, navigate to the new note and reload the notes layer
+        map.fire("reloadnoteslayer")
         routerNavigateStrict(`/note/${note_id}`)
     })
 

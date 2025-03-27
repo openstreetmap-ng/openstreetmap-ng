@@ -127,6 +127,11 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
             })
     }
     map.on("moveend", updateLayer)
+    map.on("reloadnoteslayer", () => {
+        console.debug("Reloading notes layer")
+        fetchedBounds = null
+        updateLayer()
+    })
 
     addLayerEventHandler((isAdded, eventLayerId) => {
         if (eventLayerId !== layerId) return
