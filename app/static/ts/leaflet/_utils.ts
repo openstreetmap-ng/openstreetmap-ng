@@ -106,6 +106,8 @@ export const closestPointOnSegment = (test: Point, start: Point, end: Point): Po
 }
 
 export const configureDefaultMapBehavior = (map: MaplibreMap): void => {
+    map.setProjection({ type: "mercator" })
+
     map.dragRotate.disable()
     map.keyboard.disableRotation()
     map.touchZoomRotate.disableRotation()

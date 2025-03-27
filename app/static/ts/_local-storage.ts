@@ -72,6 +72,8 @@ export const overlayOpacityStorage = createScopedStorage<number>("overlayOpacity
     logOperations: false,
 })
 
+export const globeProjectionStorage = createStorage<boolean>("globeProjection")
+
 export const shareExportFormatStorage = createStorage<string>("shareExportFormat", {
     defaultValue: "image/jpeg",
 })

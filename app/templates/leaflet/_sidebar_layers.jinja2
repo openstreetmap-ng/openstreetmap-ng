@@ -2,13 +2,20 @@
     <div class="sidebar-content">
         <div class="section">
 
-            <div class="row g-1 mb-3">
+            <div class="row g-1 mb-1">
                 <div class="col">
                     <h2>{{ t('javascripts.map.layers.header') }}</h2>
                 </div>
                 <div class="col-auto">
                     <button class="sidebar-close-btn btn-close" aria-label="{{ t('javascripts.close') }}"></button>
                 </div>
+            </div>
+
+            <div class="form-check ms-1 mb-3">
+                <label class="form-check-label d-block">
+                    <input class="form-check-input globe-projection" type="checkbox">
+                    {{ t('map.enable_3d_projection') }}
+                </label>
             </div>
 
             <div class="base layer" data-layer-id="standard">

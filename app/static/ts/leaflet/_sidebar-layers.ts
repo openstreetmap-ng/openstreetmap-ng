@@ -1,7 +1,7 @@
 import { Tooltip } from "bootstrap"
 import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
 import { config } from "../_config"
-import { overlayOpacityStorage } from "../_local-storage"
+import { globeProjectionStorage, overlayOpacityStorage } from "../_local-storage"
 import { staticCache, throttle } from "../_utils.ts"
 import {
     type LayerId,
@@ -169,6 +169,26 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
             }
         }
         map.on("zoomend", updateAvailableOverlays)
+
+        // Setup globe perspective checkbox
+        const globeProjectionCheckbox = this.sidebar.querySelector("input.globe-projection") as HTMLInputElement
+        if (globeProjectionCheckbox) {
+            // Handle checkbox changes
+            globeProjectionCheckbox.addEventListener("change", () => {
+                const enabled = globeProjectionCheckbox.checked
+                globeProjectionStorage.set(enabled)
+                const projection = { type: enabled ? "globe" : "mercator" }
+                map.setProjection(projection)
+            })
+
+            // Initialize checkbox state from local storage
+            const enabled = globeProjectionStorage.get()
+            if (enabled !== null && globeProjectionCheckbox.checked !== enabled) {
+                console.debug("Setting globe projection checkbox to", enabled)
+                globeProjectionCheckbox.checked = enabled
+                globeProjectionCheckbox.dispatchEvent(new Event("change"))
+            }
+        }
 
         /** On layer click, update the active (base) layer */
         const onContainerClick = (e: MouseEvent) => {

@@ -3,6 +3,7 @@ editor:
     name: Rapid
   default: Default editor
 map:
+  enable_3d_projection: Enable 3D Projection
   layers:
     esri_world_imagery: Esri World Imagery
     liberty: Liberty

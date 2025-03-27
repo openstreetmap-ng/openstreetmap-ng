@@ -28,6 +28,6 @@ const isImperialRegion = (): boolean => {
 /** User preference for metric units */
 export const isMetricUnit = staticCache(() => {
     const result = !(isImperialLanguage() && isImperialRegion())
-    console.debug("Is using metric units?", result)
+    console.debug("Using metric units:", result)
     return result
 })

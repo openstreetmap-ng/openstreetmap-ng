@@ -38,6 +38,7 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
     console.debug("Initializing main map")
     const map = new MaplibreMap({
         container,
+        minZoom: 1,
         maxZoom: 19,
         attributionControl: { compact: true, customAttribution: "" },
         refreshExpiredTiles: false,
