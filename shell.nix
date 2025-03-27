@@ -13,7 +13,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/94c4dbe77c0740ebba36c173672ca15a7926c993.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/25d1b84f5c90632a623c48d83a2faf156451e6b1.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   postgresConf = import ./config/postgres.nix { inherit hostMemoryMb hostDiskCoW postgresCpuThreads postgresMinWalSizeGb postgresMaxWalSizeGb postgresVerbose pkgs projectDir; };
