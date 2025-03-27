@@ -20,37 +20,60 @@
 
             <div class="base layer" data-layer-id="standard">
                 <div class="map-container"></div>
-                <label>{{ t('javascripts.map.base.standard' ) }}</label>
+                <label>
+                    <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo') }}">
+                    {{ t('javascripts.map.base.standard' ) }}
+                </label>
             </div>
 
-            <div class="base layer" data-layer-id="cyclosm">
-                <div class="map-container"></div>
-                <label>{{ t('javascripts.map.base.cyclosm' ) }}</label>
-            </div>
+            <hr>
 
-            <div class="base layer" data-layer-id="cyclemap">
-                <div class="map-container"></div>
-                <label>{{ t('javascripts.map.base.cycle_map' ) }}</label>
-            </div>
+            <div class="layer-order collapsed">
+                <ul>
 
-            <div class="base layer" data-layer-id="transportmap">
-                <div class="map-container"></div>
-                <label>{{ t('javascripts.map.base.transport_map' ) }}</label>
-            </div>
+                    <li class="base layer" data-layer-id="cyclosm">
+                        <div class="map-container"></div>
+                        <label>{{ t('javascripts.map.base.cyclosm' ) }}</label>
+                    </li>
 
-            <div class="base layer" data-layer-id="tracestracktopo">
-                <div class="map-container"></div>
-                <label>{{ t('javascripts.map.base.tracestracktop_topo' ) }}</label>
-            </div>
+                    <li class="base layer" data-layer-id="cyclemap">
+                        <div class="map-container"></div>
+                        <label>{{ t('javascripts.map.base.cycle_map' ) }}</label>
+                    </li>
 
-            <div class="base layer" data-layer-id="liberty">
-                <div class="map-container"></div>
-                <label>{{ t('map.layers.liberty' ) }} <span class="vector">{{ t('map.layers.vector') }}</span></label>
-            </div>
+                    <li class="base layer" data-layer-id="transportmap">
+                        <div class="map-container"></div>
+                        <label>{{ t('javascripts.map.base.transport_map' ) }}</label>
+                    </li>
 
-            <div class="base layer mb-2" data-layer-id="hot">
-                <div class="map-container"></div>
-                <label>{{ t('javascripts.map.base.hot' ) }}</label>
+                    <li class="base layer" data-layer-id="tracestracktopo">
+                        <div class="map-container"></div>
+                        <label>{{ t('javascripts.map.base.tracestracktop_topo' ) }}</label>
+                    </li>
+
+                    <li class="base layer" data-layer-id="liberty">
+                        <div class="map-container"></div>
+                        <label>{{ t('map.layers.liberty' ) }} <span
+                            class="vector">{{ t('map.layers.vector') }}</span></label>
+                    </li>
+
+                    <li class="base layer mb-1" data-layer-id="hot">
+                        <div class="map-container"></div>
+                        <label>{{ t('javascripts.map.base.hot' ) }}</label>
+                    </li>
+
+                </ul>
+
+                <button class="btn btn-sm btn-link w-100" type="button">
+                    <span class="show-more">
+                        {{ t('action.show_more') -}}
+                        <i class="bi bi-caret-down-fill small ms-1"></i>
+                    </span>
+                    <span class="show-less">
+                        {{ t('action.show_less') -}}
+                        <i class="bi bi-caret-up-fill small ms-1"></i>
+                    </span>
+                </button>
             </div>
 
         </div>

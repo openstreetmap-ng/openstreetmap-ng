@@ -433,6 +433,8 @@ action:
   disconnect: Disconnect
   updated: updated
   clear_markers: Clear markers
+  show_more: Show more
+  show_less: Show less
 state:
   any: Any
   open: Open

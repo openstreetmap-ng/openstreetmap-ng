@@ -26,6 +26,12 @@
             backdrop-filter: blur(0.5rem);
             border-bottom-right-radius: $border-radius-sm;
             z-index: 850;
+
+            img {
+                position: relative;
+                top: -0.09em;
+                height: 1em;
+            }
         }
 
         .vector {
@@ -45,14 +51,44 @@
 
         // Change border color depending on the state
         &.active {
-            box-shadow: 0 0 0 0.25rem $primary;
+            box-shadow:
+                0 0 0 1px var(--bs-body-bg),
+                0 0 0 0.25rem $primary;
         }
 
         &:hover {
-            box-shadow: 0 0 0 0.25rem rgba($primary, 0.4);
+            box-shadow:
+                0 0 0 0 transparent,
+                0 0 0 0.25rem rgba($primary, 0.4);
 
             &.active {
-                box-shadow: 0 0 0 0.25rem shade-color($primary, 20%);
+                box-shadow:
+                    0 0 0 0 transparent,
+                    0 0 0 0.25rem shade-color($primary, 20%);
+            }
+        }
+    }
+
+    .layer-order {
+        ul {
+            margin: -0.875rem -1em 0;
+            padding: 0.875rem 1em 0;
+        }
+
+        &.collapsed {
+            ul {
+                max-height: 16rem;
+                mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 80%, rgba(0, 0, 0, 0));
+            }
+
+            .show-less {
+                display: none;
+            }
+        }
+
+        &:not(.collapsed) {
+            .show-more {
+                display: none;
             }
         }
     }

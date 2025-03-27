@@ -1,5 +1,6 @@
 import type { AppTheme } from "./_navbar-theme"
 import { getDeviceThemePreference, getUnixTimestamp, isLatitude, isLongitude, isZoom, memoize } from "./_utils"
+import type { LayerId } from "./leaflet/_layers.ts"
 import type { MapState } from "./leaflet/_map-utils"
 
 type StorageConfig<T> = {
@@ -66,13 +67,15 @@ export const markBannerHidden = (name: string) => bannerStorage(name).set(getUni
 
 export const routingEngineStorage = createStorage<string>("routingEngine")
 
+export const globeProjectionStorage = createStorage<boolean>("globeProjection")
+
+export const layerOrderStorage = createStorage<LayerId[]>("layerOrder")
+
 export const overlayOpacityStorage = createScopedStorage<number>("overlayOpacity", {
     defaultValue: 0.55,
     validate: (v) => v >= 0 && v <= 1,
     logOperations: false,
 })
-
-export const globeProjectionStorage = createStorage<boolean>("globeProjection")
 
 export const shareExportFormatStorage = createStorage<string>("shareExportFormat", {
     defaultValue: "image/jpeg",

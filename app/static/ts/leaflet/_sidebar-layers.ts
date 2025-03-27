@@ -1,7 +1,7 @@
 import { Tooltip } from "bootstrap"
 import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
 import { config } from "../_config"
-import { globeProjectionStorage, overlayOpacityStorage } from "../_local-storage"
+import { globeProjectionStorage, layerOrderStorage, overlayOpacityStorage } from "../_local-storage"
 import { staticCache, throttle } from "../_utils.ts"
 import {
     type LayerId,
@@ -32,9 +32,9 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
         const minimaps: MaplibreMap[] = []
         const layerIdContainerMap = new Map<LayerId, HTMLElement>()
         for (const container of [
-            ...this.sidebar.querySelectorAll("div.base.layer"),
-            ...this.sidebar.querySelectorAll("div.overlay.layer"),
-        ]) {
+            ...this.sidebar.querySelectorAll(".base.layer"),
+            ...this.sidebar.querySelectorAll(".overlay.layer"),
+        ] as HTMLElement[]) {
             const layerId = container.dataset.layerId as LayerId
             layerIdContainerMap.set(layerId, container)
         }
@@ -69,6 +69,28 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
             }
         })
 
+        const layerOrderContainer = this.sidebar.querySelector(".layer-order")
+        const layerOrderItems = layerOrderContainer.querySelector("ul")
+        const layerCollapseButton = layerOrderContainer.querySelector("button")
+        layerCollapseButton.addEventListener("click", () => {
+            layerOrderContainer.classList.toggle("collapsed")
+        })
+
+        const updateLayerOrder = (selectedLayerId?: LayerId) => {
+            let order = layerOrderStorage.get() || []
+
+            if (selectedLayerId && selectedLayerId !== "standard") {
+                // Create a new order with the selected layer upfront
+                order = [selectedLayerId, ...order.filter((id) => id !== selectedLayerId)]
+                layerOrderStorage.set(order)
+            }
+
+            for (const layerId of order.reverse()) {
+                const container = layerIdContainerMap.get(layerId)
+                if (container) layerOrderItems.prepend(container)
+            }
+        }
+
         // On sidebar shown, update the sidebar state
         button.addEventListener("click", () => {
             // Skip updates if the sidebar is hidden
@@ -83,6 +105,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
                 minimap.resize()
                 minimap.jumpTo(options)
             }
+            updateLayerOrder()
             updateAvailableOverlays()
         })
 
@@ -199,6 +222,8 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
             if (config.isBaseLayer) {
                 // Skip updates if the container is already active
                 if (container.classList.contains("active")) return
+
+                updateLayerOrder(layerId)
                 const activeLayerId = getMapBaseLayerId(map)
                 if (activeLayerId) removeMapLayer(map, activeLayerId)
                 addMapLayer(map, layerId)
