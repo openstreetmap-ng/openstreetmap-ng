@@ -101,7 +101,7 @@ export const renderObjects = (objects: OSMObject[], options?: Partial<RenderOpti
             properties: {
                 type: "note",
                 id: note.id?.toString(),
-                open: note.open,
+                status: note.status,
                 text: note.text,
             },
             geometry: {
@@ -174,7 +174,7 @@ export const convertRenderNotesData = (render: RenderNotesData): OSMNote[] => {
             type: "note",
             id: note.id,
             geom: [note.lon, note.lat],
-            open: note.open,
+            status: note.status as "open" | "closed" | "hidden",
             text: note.text,
         })
     }

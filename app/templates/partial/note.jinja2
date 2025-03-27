@@ -108,7 +108,7 @@
                     </div>
                     <div class="row g-1">
                         <div class="col">
-                            {% if user.is_moderator %}
+                            {% if user_is_moderator(user) %}
                                 <button class="btn btn-light border" type="submit" data-event="hidden">
                                     {{ t('notes.show.hide') }}
                                 </button>
@@ -129,7 +129,7 @@
                 {% elif status == 'closed' %}
                     <div class="row g-1">
                         <div class="col">
-                            {% if user.is_moderator %}
+                            {% if user_is_moderator(user) %}
                                 <button class="btn btn-light border" type="submit" data-event="hidden">
                                     {{ t('notes.show.hide') }}
                                 </button>

@@ -81,7 +81,7 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
                             type: "note",
                             id: null,
                             geom: [lngLat.lng, lngLat.lat],
-                            open: true,
+                            status: "open",
                             text: "",
                         },
                     ],

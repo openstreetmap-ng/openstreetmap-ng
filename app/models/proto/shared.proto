@@ -108,8 +108,8 @@ message RenderNotesData {
         uint64 id = 1;  // Note ID
         float lon = 2;  // Longitude
         float lat = 3;  // Latitude
-        string text = 4;  // Note plain-text content
-        bool open = 5;  // Whether note is unresolved
+        string text = 4;  // Plain-text content
+        string status = 5;  // Current status (open, closed, hidden)
     }
 
     repeated Note notes = 1;  // Notes in current query
@@ -207,7 +207,7 @@ message PartialNoteParams {
     uint64 id = 1;  // Note ID
     float lon = 2;  // Longitude
     float lat = 3;  // Latitude
-    bool open = 4;  // Whether note is unresolved
+    string status = 4;  // Current status (open, closed, hidden)
 }
 
 // Partial query features response params

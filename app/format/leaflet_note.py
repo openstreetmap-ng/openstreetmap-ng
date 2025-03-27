@@ -1,7 +1,7 @@
 import cython
 from shapely import get_coordinates
 
-from app.models.db.note import Note
+from app.models.db.note import Note, note_status
 from app.models.proto.shared_pb2 import RenderNotesData
 
 
@@ -23,5 +23,5 @@ def _encode_note(note: Note):
         lon=x,
         lat=y,
         text=body,
-        open=note['closed_at'] is None,
+        status=note_status(note),
     )

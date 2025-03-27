@@ -2,6 +2,7 @@ import type { Map as MaplibreMap } from "maplibre-gl"
 
 export const markerOpenImageUrl = "/static/img/marker/open.webp"
 export const markerClosedImageUrl = "/static/img/marker/closed.webp"
+export const markerHiddenImageUrl = "/static/img/marker/hidden.webp"
 export const markerBlueImageUrl = "/static/img/marker/blue.webp"
 export const markerRedImageUrl = "/static/img/marker/red.webp"
 

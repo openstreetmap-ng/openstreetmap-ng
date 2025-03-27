@@ -23,8 +23,8 @@ export interface OSMNote {
     type: "note"
     id?: bigint
     geom: [number, number]
-    open: boolean
     text: string
+    status: "open" | "closed" | "hidden"
 }
 
 /** [minLon, minLat, maxLon, maxLat] */

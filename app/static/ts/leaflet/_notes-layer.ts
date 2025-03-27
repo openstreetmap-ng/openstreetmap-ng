@@ -4,7 +4,7 @@ import { config } from "../_config"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderNotesDataSchema } from "../proto/shared_pb"
 import { clearMapHover, setMapHover } from "./_hover.ts"
-import { loadMapImage, markerClosedImageUrl, markerOpenImageUrl } from "./_image.ts"
+import { loadMapImage, markerClosedImageUrl, markerHiddenImageUrl, markerOpenImageUrl } from "./_image.ts"
 import { type LayerCode, type LayerId, addLayerEventHandler, emptyFeatureCollection, layersConfig } from "./_layers"
 import { convertRenderNotesData, renderObjects } from "./_render-objects"
 import { getLngLatBoundsIntersection, getLngLatBoundsSize } from "./_utils"
@@ -19,7 +19,7 @@ layersConfig.set(layerId as LayerId, {
     layerTypes: ["symbol"],
     layerOptions: {
         layout: {
-            "icon-image": ["case", ["boolean", ["get", "open"], false], "marker-open", "marker-closed"],
+            "icon-image": ["concat", "marker-", ["get", "status"]],
             "icon-allow-overlap": true,
             "icon-size": 41 / 128,
             "icon-padding": 0,
@@ -135,6 +135,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
             // Load image resources
             loadMapImage(map, "marker-open", markerOpenImageUrl)
             loadMapImage(map, "marker-closed", markerClosedImageUrl)
+            loadMapImage(map, "marker-hidden", markerHiddenImageUrl)
             updateLayer()
         } else {
             abortController?.abort()

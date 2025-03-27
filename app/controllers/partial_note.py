@@ -54,7 +54,7 @@ async def get_note(id: NoteId):
 
     x, y = get_coordinates(note['point'])[0].tolist()
     place = f'{y:.5f}, {x:.5f}'
-    params = PartialNoteParams(id=id, lon=x, lat=y, open=closed_at is None)
+    params = PartialNoteParams(id=id, lon=x, lat=y, status=note_status(note))
 
     return await render_response(
         'partial/note.jinja2',
