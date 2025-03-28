@@ -8,7 +8,7 @@ from psycopg.abc import Query
 from psycopg.sql import SQL, Identifier
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
-from app.db import db, db_update_stats, psycopg_pool_open_decorator
+from app.db import db, psycopg_pool_open_decorator
 from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
 from scripts.preload_load import gather_table_constraints, gather_table_indexes
@@ -120,8 +120,9 @@ async def main() -> None:
 
     await _load_tables()
 
-    print('Updating statistics')
-    await db_update_stats(vacuum=True)
+    print('Vacuuming and updating statistics')
+    async with db(True, autocommit=True) as conn:
+        await conn.execute('VACUUM FREEZE ANALYZE')
 
     print('Fixing sequence counters consistency')
     await MigrationService.fix_sequence_counters()

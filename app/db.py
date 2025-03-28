@@ -136,12 +136,6 @@ async def db(write: bool = False, *, autocommit: bool = False, isolation_level: 
         yield conn
 
 
-async def db_update_stats(*, vacuum: bool = False) -> None:
-    """Update the database statistics."""
-    async with db(True, autocommit=True) as conn:
-        await conn.execute('VACUUM ANALYZE' if vacuum else 'ANALYZE')
-
-
 @contextmanager
 def duckdb_connect(database: str | Path = ':memory:'):
     with (
