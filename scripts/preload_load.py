@@ -19,10 +19,7 @@ _COPY_WORKERS = min(os.process_cpu_count() or 1, 8)
 
 
 def _get_csv_path(name: str) -> Path:
-    p = PRELOAD_DIR.joinpath(f'{name}.csv.zst')
-    if not p.is_file():
-        raise FileNotFoundError(f'File not found: {p}')
-    return p
+    return PRELOAD_DIR.joinpath(f'{name}.csv.zst')
 
 
 def _get_csv_header(path: Path) -> str:
@@ -37,7 +34,7 @@ async def _sql_execute(sql: Query) -> None:
         await conn.execute(sql)
 
 
-async def _gather_table_constraints(table: str) -> dict[str, SQL]:
+async def gather_table_constraints(table: str) -> dict[str, SQL]:
     """Gather all foreign key constraints for a table."""
     async with db() as conn:
         cursor = await conn.execute(
@@ -55,7 +52,7 @@ async def _gather_table_constraints(table: str) -> dict[str, SQL]:
         return {name: SQL(sql) for name, sql in await cursor.fetchall()}
 
 
-async def _gather_table_indexes(table: str) -> dict[str, SQL]:
+async def gather_table_indexes(table: str) -> dict[str, SQL]:
     """Gather all non-constraint indexes for a table."""
     async with db() as conn:
         cursor = await conn.execute(
@@ -75,10 +72,15 @@ async def _gather_table_indexes(table: str) -> dict[str, SQL]:
         return {name: SQL(sql) for name, sql in await cursor.fetchall()}
 
 
-async def _load_table(table: str, tg: TaskGroup) -> None:
-    indexes = await _gather_table_indexes(table)
+async def load_table(table: str, tg: TaskGroup) -> None:
+    path = _get_csv_path(table)
+    if not path.is_file():
+        print(f'Skipped loading {table} table (source file not found)')
+        return
+
+    indexes = await gather_table_indexes(table)
     assert indexes, f'No indexes found for {table} table'
-    constraints = await _gather_table_constraints(table)
+    constraints = await gather_table_constraints(table)
 
     # Drop constraints and indexes before loading
     async with db(True, autocommit=True) as conn:
@@ -90,7 +92,6 @@ async def _load_table(table: str, tg: TaskGroup) -> None:
             await conn.execute(SQL('ALTER TABLE {} DROP CONSTRAINT {}').format(Identifier(table), Identifier(name)))
 
     # Load the data
-    path = _get_csv_path(table)
     header = _get_csv_header(path)
     columns = [f'"{c}"' for c in header.split(',')]
     proc: Process | None = None
@@ -136,7 +137,7 @@ async def _load_tables() -> None:
 
     async with TaskGroup() as tg:
         for table in tables:
-            await _load_table(table, tg)
+            await load_table(table, tg)
 
 
 @psycopg_pool_open_decorator
@@ -154,7 +155,8 @@ async def main() -> None:
     print('Fixing sequence counters consistency')
     await MigrationService.fix_sequence_counters()
 
+    print('Done! Done! Done!')
+
 
 if __name__ == '__main__':
     asyncio.run(main())
-    print('Done! Done! Done!')

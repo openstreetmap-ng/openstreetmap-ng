@@ -11,6 +11,8 @@ from app.config import POSTGRES_URL, PRELOAD_DIR
 from app.db import db, db_update_stats, psycopg_pool_open_decorator
 from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
+from scripts.preload_load import gather_table_constraints, gather_table_indexes
+from scripts.preload_load import load_table as preload_load_table
 
 _NUM_COPY_WORKERS = min(os.process_cpu_count() or 1, 8)
 
@@ -33,48 +35,10 @@ async def _sql_execute(sql: Query) -> None:
         await conn.execute(sql)
 
 
-async def _gather_table_constraints(table: str) -> dict[str, SQL]:
-    """Gather all foreign key constraints for a table."""
-    async with db() as conn:
-        cursor = await conn.execute(
-            """
-            SELECT con.conname, pg_get_constraintdef(con.oid)
-            FROM pg_constraint con
-            JOIN pg_class rel ON rel.oid = con.conrelid
-            JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
-            WHERE rel.relname = %s
-            AND nsp.nspname = 'public'
-            AND con.contype != 'p';  -- Exclude primary key constraints
-            """,
-            (table,),
-        )
-        return {name: SQL(sql) for name, sql in await cursor.fetchall()}
-
-
-async def _gather_table_indexes(table: str) -> dict[str, SQL]:
-    """Gather all non-constraint indexes for a table."""
-    async with db() as conn:
-        cursor = await conn.execute(
-            """
-            SELECT pgi.indexname, pgi.indexdef
-            FROM pg_indexes pgi
-            WHERE pgi.schemaname = 'public'
-            AND pgi.tablename = %s
-            AND pgi.indexname NOT IN (
-                SELECT pgc.conindid::regclass::text
-                FROM pg_constraint pgc
-                WHERE pgc.conrelid = %s::regclass
-            );
-            """,
-            (table, table),
-        )
-        return {name: SQL(sql) for name, sql in await cursor.fetchall()}
-
-
 async def _load_table(table: str, tg: TaskGroup) -> None:
-    indexes = await _gather_table_indexes(table)
+    indexes = await gather_table_indexes(table)
     assert indexes, f'No indexes found for {table} table'
-    constraints = await _gather_table_constraints(table)
+    constraints = await gather_table_constraints(table)
 
     # Drop constraints and indexes before loading
     async with db(True, autocommit=True) as conn:
@@ -130,7 +94,7 @@ async def _load_table(table: str, tg: TaskGroup) -> None:
 
 
 async def _load_tables() -> None:
-    tables = ('user', 'changeset', 'element')
+    tables = ('user', 'changeset', 'element', 'note', 'note_comment')
 
     async with db(True, autocommit=True) as conn:
         print('Truncating tables')
@@ -138,7 +102,11 @@ async def _load_tables() -> None:
 
     async with TaskGroup() as tg:
         for table in tables:
-            await _load_table(table, tg)
+            await (
+                preload_load_table
+                if table in {'note', 'note_comment'}  #
+                else _load_table
+            )(table, tg)
 
 
 @psycopg_pool_open_decorator
@@ -156,7 +124,8 @@ async def main() -> None:
     print('Fixing sequence counters consistency')
     await MigrationService.fix_sequence_counters()
 
+    print('Done! Done! Done!')
+
 
 if __name__ == '__main__':
     asyncio.run(main())
-    print('Done! Done! Done!')

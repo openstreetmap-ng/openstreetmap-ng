@@ -1,9 +1,10 @@
-import shutil
+from shutil import rmtree
 
 import duckdb
 
 from app.config import PRELOAD_DIR, REPLICATION_DIR
 from app.db import duckdb_connect
+from scripts.preload_convert import NOTES_PARQUET_PATH
 
 _PARQUET_PATHS = [
     p.as_posix()
@@ -19,7 +20,7 @@ _PARQUET_PATHS = [
 
 def _write_output(conn: duckdb.DuckDBPyConnection, table: str, select_sql: str, header: str) -> None:
     output = PRELOAD_DIR.joinpath(table)
-    shutil.rmtree(output, ignore_errors=True)
+    rmtree(output, ignore_errors=True)
     conn.sql(f'COPY ({select_sql}) TO {output.as_posix()!r} (PER_THREAD_OUTPUT TRUE, COMPRESSION ZSTD, HEADER FALSE)')
     output.joinpath('header.csv').write_text(header)
 
@@ -119,8 +120,30 @@ def _write_element() -> None:
 
 def _write_user() -> None:
     with duckdb_connect() as conn:
+        sources = [
+            f"""
+            SELECT DISTINCT ON (user_id)
+                user_id,
+                display_name
+            FROM read_parquet({_PARQUET_PATHS!r})
+            WHERE user_id IS NOT NULL
+            """
+        ]
+
+        if NOTES_PARQUET_PATH.is_file():
+            sources.append(f"""
+            SELECT DISTINCT ON (user_id)
+                user_id,
+                display_name
+            FROM (
+                SELECT UNNEST(comments, max_depth := 2)
+                FROM read_parquet({NOTES_PARQUET_PATH.as_posix()!r})
+            )
+            WHERE user_id IS NOT NULL
+            """)
+
         user_sql = f"""
-        SELECT
+        SELECT DISTINCT ON (user_id)
             user_id AS id,
             (user_id || '@localhost.invalid') AS email,
             TRUE as email_verified,
@@ -135,11 +158,7 @@ def _write_user() -> None:
             TRUE AS crash_reporting,
             '127.0.0.1' AS created_ip
         FROM (
-            SELECT DISTINCT ON (user_id)
-                user_id,
-                display_name
-            FROM read_parquet({_PARQUET_PATHS!r})
-            WHERE user_id IS NOT NULL
+            {'\nUNION ALL\n'.join(sources)}
         )
         """
         _write_output(
@@ -152,6 +171,11 @@ def _write_user() -> None:
 
 def main() -> None:
     PRELOAD_DIR.mkdir(exist_ok=True, parents=True)
+
+    action = 'WILL' if NOTES_PARQUET_PATH.is_file() else 'WILL NOT'
+    if input(f'User data {action} include notes data. Continue? (y/N): ').strip().lower() not in {'y', 'yes'}:
+        return
+
     print('Writing changeset')
     _write_changeset()
     print('Writing element')
@@ -159,7 +183,8 @@ def main() -> None:
     print('Writing user')
     _write_user()
 
+    print('Done! Done! Done!')
+
 
 if __name__ == '__main__':
     main()
-    print('Done! Done! Done!')

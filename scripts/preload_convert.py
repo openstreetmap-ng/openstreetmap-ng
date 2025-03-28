@@ -1,5 +1,6 @@
 import gc
 import os
+from argparse import ArgumentParser
 from collections.abc import Callable
 from datetime import datetime
 from multiprocessing import Pool
@@ -21,8 +22,6 @@ from app.models.element import ElementType
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
 PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')
-if not PLANET_INPUT_PATH.is_file():
-    raise FileNotFoundError(f'Planet data file not found: {PLANET_INPUT_PATH}')
 
 _PLANET_SCHEMA = pa.schema([
     pa.field('changeset_id', pa.uint64()),
@@ -49,8 +48,6 @@ _PLANET_SCHEMA = pa.schema([
 
 NOTES_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osn')
 NOTES_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osn.parquet')
-if not NOTES_INPUT_PATH.is_file():
-    raise FileNotFoundError(f'Notes data file not found: {PLANET_INPUT_PATH}')
 
 _NOTES_SCHEMA = pa.schema([
     pa.field('id', pa.uint64()),
@@ -494,8 +491,31 @@ def _write_note_comment() -> None:
         """)
 
 
-def _write_user() -> None:
+def _write_user(modes: set[str]) -> None:
     with duckdb_connect() as conn:
+        sources = []
+
+        if 'planet' in modes:
+            sources.append(f"""
+                SELECT DISTINCT ON (user_id)
+                    user_id,
+                    display_name
+                FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
+                WHERE user_id IS NOT NULL
+            """)
+
+        if 'notes' in modes:
+            sources.append(f"""
+                SELECT DISTINCT ON (user_id)
+                    user_id,
+                    display_name
+                FROM (
+                    SELECT UNNEST(comments, max_depth := 2)
+                    FROM read_parquet({NOTES_PARQUET_PATH.as_posix()!r})
+                )
+                WHERE user_id IS NOT NULL
+            """)
+
         conn.sql(f"""
         COPY (
             SELECT DISTINCT ON (user_id)
@@ -513,22 +533,7 @@ def _write_user() -> None:
                 TRUE AS crash_reporting,
                 '127.0.0.1' AS created_ip
             FROM (
-                SELECT DISTINCT ON (user_id)
-                    user_id,
-                    display_name
-                FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
-                WHERE user_id IS NOT NULL
-
-                UNION ALL
-
-                SELECT DISTINCT ON (user_id)
-                    user_id,
-                    display_name,
-                FROM (
-                    SELECT UNNEST(comments, max_depth := 2)
-                    FROM read_parquet({NOTES_PARQUET_PATH.as_posix()!r})
-                )
-                WHERE user_id IS NOT NULL
+                {'\nUNION ALL\n'.join(sources)}
             )
             ORDER BY user_id
         ) TO {_get_csv_path('user').as_posix()!r}
@@ -536,23 +541,46 @@ def _write_user() -> None:
 
 
 def main() -> None:
-    run_planet_workers()
-    merge_planet_worker_results()
-    run_notes_workers()
-    merge_notes_worker_results()
+    parser = ArgumentParser()
+    parser.add_argument(
+        'modes',
+        nargs='*',
+        choices=['planet', 'notes', 'user'],
+        default=['planet', 'notes', 'user'],
+    )
+    args = parser.parse_args()
+    modes = set(args.modes)
 
-    print('Writing changeset')
-    _write_changeset()
-    print('Writing element')
-    _write_element()
-    print('Writing note')
-    _write_note()
-    print('Writing note comment')
-    _write_note_comment()
-    print('Writing user')
-    _write_user()
+    if 'planet' in modes:
+        if not PLANET_INPUT_PATH.is_file():
+            raise FileNotFoundError(f'Planet data file not found: {PLANET_INPUT_PATH}')
+
+        run_planet_workers()
+        merge_planet_worker_results()
+
+        print('Writing changeset')
+        _write_changeset()
+        print('Writing element')
+        _write_element()
+
+    if 'notes' in modes:
+        if not NOTES_INPUT_PATH.is_file():
+            raise FileNotFoundError(f'Notes data file not found: {PLANET_INPUT_PATH}')
+
+        run_notes_workers()
+        merge_notes_worker_results()
+
+        print('Writing note')
+        _write_note()
+        print('Writing note comment')
+        _write_note_comment()
+
+    if 'user' in modes:
+        print('Writing user')
+        _write_user(modes)
+
+    print('Done! Done! Done!')
 
 
 if __name__ == '__main__':
     main()
-    print('Done! Done! Done!')
