@@ -70,9 +70,8 @@ _NOTES_SCHEMA = pa.schema([
     pa.field('hidden_at', pa.timestamp('ms', 'UTC')),
 ])
 
-_MEMORY_LIMIT = 2 * (1024 * 1024 * 1024)  # real: ~2 GB memory usage per worker
 _NUM_WORKERS = os.process_cpu_count() or 1
-_WORKER_MEMORY_LIMIT = _MEMORY_LIMIT // _NUM_WORKERS
+_TASK_SIZE = 64 * 1024 * 1024  # 64MB
 
 # freeze all gc objects before starting for improved performance
 gc.collect()
@@ -171,7 +170,7 @@ def planet_worker(
 
 def run_planet_workers() -> None:
     input_size = PLANET_INPUT_PATH.stat().st_size
-    num_tasks = input_size // _WORKER_MEMORY_LIMIT
+    num_tasks = input_size // _TASK_SIZE
     from_seek_search = [b'  <node', b'  <way', b'  <relation']
     from_seeks: list[int] = []
     print(f'Configuring {num_tasks} tasks (using {_NUM_WORKERS} workers)')
@@ -201,7 +200,7 @@ def run_planet_workers() -> None:
 
 def merge_planet_worker_results() -> None:
     input_size = PLANET_INPUT_PATH.stat().st_size
-    num_tasks = input_size // _WORKER_MEMORY_LIMIT
+    num_tasks = input_size // _TASK_SIZE
     paths = [_get_worker_path(PLANET_PARQUET_PATH, i) for i in range(num_tasks)]
 
     with duckdb_connect() as conn:
@@ -318,7 +317,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
 
 def run_notes_workers() -> None:
     input_size = NOTES_INPUT_PATH.stat().st_size
-    num_tasks = input_size // _WORKER_MEMORY_LIMIT
+    num_tasks = input_size // _TASK_SIZE
     from_seek_search = [b'<note']
     from_seeks = []
 
@@ -349,7 +348,7 @@ def run_notes_workers() -> None:
 
 def merge_notes_worker_results() -> None:
     input_size = NOTES_INPUT_PATH.stat().st_size
-    num_tasks = input_size // _WORKER_MEMORY_LIMIT
+    num_tasks = input_size // _TASK_SIZE
     paths = [_get_worker_path(NOTES_PARQUET_PATH, i) for i in range(num_tasks)]
 
     with duckdb_connect() as conn:
