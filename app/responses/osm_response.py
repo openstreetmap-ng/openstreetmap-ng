@@ -81,8 +81,8 @@ class GPXResponse(OSMResponse):
 @cython.cfunc
 def _serialize_json(content: Any):
     # include json attributes if api 0.6 and not notes
-    request_path: str = get_request().url.path
-    if request_path.startswith('/api/0.6/') and not request_path.startswith('/api/0.6/notes'):
+    path: str = get_request().url.path
+    if path.startswith('/api/0.6/') and not path.startswith('/api/0.6/notes'):
         if not isinstance(content, dict):
             raise TypeError(f'Invalid json content type {type(content)}')
         content = {**_JSON_ATTRS, **content}

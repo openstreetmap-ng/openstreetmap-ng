@@ -24,7 +24,7 @@ from app.models.types import Latitude, Longitude, SequenceId, Zoom
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery
 
-router = APIRouter(prefix='/api/partial')
+router = APIRouter(prefix='/api/web/partial')
 
 
 @router.get('/search')

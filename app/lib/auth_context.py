@@ -110,14 +110,14 @@ def _get_referer() -> str:
     Get referer for the current request.
     If not explicit referer is provided, return current destination instead.
     """
-    request_url = get_request().url
-    referrers = parse_qs(request_url.query).get('referer')
+    url = get_request().url
+    referrers = parse_qs(url.query).get('referer')
     if referrers is None:
-        return request_url.path
+        return url.path
 
     # Referrer must start with '/' to avoid open redirect
     referrer = referrers[0]
     if referrer[0].startswith('/'):
         return referrer[0]
 
-    return f'{request_url.path}?{request_url.query}'
+    return f'{url.path}?{url.query}'

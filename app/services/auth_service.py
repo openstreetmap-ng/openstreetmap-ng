@@ -22,14 +22,14 @@ class AuthService:
     async def authenticate_request() -> tuple[User | None, tuple[Scope, ...]]:
         """Authenticate the request. Returns the authenticated user (if any) and scopes."""
         request = get_request()
-        request_path: str = request.url.path
+        path: str = request.url.path
 
         # Skip authentication for static requests
-        if request_path.startswith('/static'):
+        if path.startswith('/static'):
             return None, ()
 
         # Try OAuth2 authentication for API endpoints
-        if request_path.startswith(('/api/0.6/', '/api/0.7/', '/oauth2/')):
+        if path.startswith(('/api/0.6/', '/api/0.7/', '/oauth2/')):
             r = await _authenticate_with_oauth2(request)
             if r is not None:
                 return r[0], r[1]

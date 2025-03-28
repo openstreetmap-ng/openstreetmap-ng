@@ -173,17 +173,13 @@ let
         --use autoprefixer \
         --replace \
         --no-map
-      mode_hash=${if isDevelopment then "0" else "1"}
-      if [ "$1" = "hash" ]; then mode_hash=1; fi
-      if [ "$mode_hash" -eq 1 ]; then
-        echo "[sass-pipeline] Working in hash mode"
-        for file in "$dst"/*.css; do
-          hash=$(b3sum --no-names --length=6 "$file")
-          new_file="''${file%.css}.$hash.css"
-          mv "$file" "$new_file"
-          echo "  $new_file"
-        done
-      fi
+
+      for file in "$dst"/*.css; do
+        hash=$(b3sum --no-names --length=6 "$file")
+        new_file="''${file%.css}.$hash.css"
+        mv "$file" "$new_file"
+        echo "  $new_file"
+      done
     '')
     (makeScript "watch-sass" "exec watchexec -o queue -w app/static/sass sass-pipeline")
 
@@ -203,27 +199,12 @@ let
         --out-dir "$tmp" \
         "$src"
 
-      files=("$tmp"/!(_*).js)
-      mode_hash=${if isDevelopment then "0" else "1"}
-      if [ "$1" = "hash" ]; then mode_hash=1; fi
-      if [ "$mode_hash" -eq 1 ]; then
-        echo "[js-pipeline] Working in hash mode"
-        bun_args=(
-          --entry-naming="[dir]/[name].[hash].[ext]"
-          --minify
-          --sourcemap=linked
-        )
-      else
-        bun_args=(
-          --entry-naming="[dir]/[name].[ext]"
-          --minify-syntax --minify-whitespace
-          --sourcemap=inline
-        )
-      fi
       bun build \
-        "''${bun_args[@]}" \
+        --entry-naming="[dir]/[name].[hash].[ext]" \
+        --minify \
+        --sourcemap=linked \
         --outdir "$dst" \
-        "''${files[@]}"
+        "$tmp"/!(_*).js
     '')
     (makeScript "watch-js" "exec watchexec -o queue -w app/static/ts js-pipeline")
 

@@ -5,7 +5,10 @@ import cython
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from app.limits import STATIC_CACHE_MAX_AGE, STATIC_CACHE_STALE
 from app.middlewares.request_context_middleware import get_request
+
+_STATIC_HEADER = f'public, max-age={int(STATIC_CACHE_MAX_AGE.total_seconds())}, stale-while-revalidate={int(STATIC_CACHE_STALE.total_seconds())}, immutable'
 
 
 class CacheControlMiddleware:
@@ -32,6 +35,8 @@ class CacheControlMiddleware:
                 if 200 <= status_code < 300 or status_code == 301:
                     state = request.state._state  # noqa: SLF001
                     header = state.get('cache_control_header')
+                    if header is None and request.url.path.startswith('/static'):
+                        header = _STATIC_HEADER
                     if header is not None:
                         headers = MutableHeaders(raw=message['headers'])
                         headers.setdefault('Cache-Control', header)

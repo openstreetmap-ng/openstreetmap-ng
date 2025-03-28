@@ -31,8 +31,10 @@ from app.limits import (
     COMPRESS_HTTP_MIN_SIZE,
     COMPRESS_HTTP_ZSTD_LEVEL,
 )
+from app.middlewares.api_cors_middleware import APICorsMiddleware
 from app.middlewares.auth_middleware import AuthMiddleware
 from app.middlewares.cache_control_middleware import CacheControlMiddleware
+from app.middlewares.default_headers_middleware import DefaultHeadersMiddleware
 from app.middlewares.exceptions_middleware import ExceptionsMiddleware
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
 from app.middlewares.limit_url_size_middleware import LimitUrlSizeMiddleware
@@ -43,9 +45,9 @@ from app.middlewares.rate_limit_middleware import RateLimitMiddleware
 from app.middlewares.request_body_middleware import RequestBodyMiddleware
 from app.middlewares.request_context_middleware import RequestContextMiddleware
 from app.middlewares.runtime_middleware import RuntimeMiddleware
+from app.middlewares.subdomain_middleware import SubdomainMiddleware
 from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
-from app.middlewares.version_middleware import VersionMiddleware
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
 from app.services.changeset_service import ChangesetService
@@ -106,12 +108,14 @@ main.add_middleware(
     brotli_quality=COMPRESS_HTTP_BROTLI_QUALITY,
     gzip_level=COMPRESS_HTTP_GZIP_LEVEL,
 )
+main.add_middleware(APICorsMiddleware)
 main.add_middleware(CacheControlMiddleware)
 main.add_middleware(RateLimitMiddleware)
-main.add_middleware(FormatStyleMiddleware)  # TODO: check raise before this middleware
+main.add_middleware(FormatStyleMiddleware)
 main.add_middleware(TranslationMiddleware)  # depends on: auth
 main.add_middleware(AuthMiddleware)
 main.add_middleware(RequestBodyMiddleware)
+main.add_middleware(SubdomainMiddleware)
 main.add_middleware(LimitUrlSizeMiddleware)
 main.add_middleware(ExceptionsMiddleware)
 
@@ -120,9 +124,9 @@ if TEST_ENV:
     main.add_middleware(ProfilerMiddleware)
 
 main.add_middleware(RequestContextMiddleware)
+main.add_middleware(DefaultHeadersMiddleware)
 
 if TEST_ENV:
-    main.add_middleware(VersionMiddleware)
     main.add_middleware(RuntimeMiddleware)
 
 # TODO: /static default cache control

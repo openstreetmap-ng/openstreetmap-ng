@@ -68,16 +68,16 @@ async def _get_feed(user: User | None, geometry: BaseGeometry | None, limit: int
     )
     await UserQuery.resolve_users(changesets)
 
-    request_url = str(get_request().url)
-    html_url = request_url.replace('/feed', '')
+    url = str(get_request().url)
+    html_url = url.replace('/feed', '')
 
     fg = FeedGenerator()
     fg.language(primary_translation_locale())
-    fg.id(request_url)
+    fg.id(url)
     fg.updated(utcnow())
 
     fg.link(rel='self', type='text/html', href=html_url)
-    fg.link(rel='alternate', type='application/atom+xml', href=request_url)
+    fg.link(rel='alternate', type='application/atom+xml', href=url)
     fg.icon(f'{APP_URL}/static/img/favicon/64.webp')
     fg.logo(f'{APP_URL}/static/img/favicon/256.webp')
     fg.rights(ATTRIBUTION_URL)

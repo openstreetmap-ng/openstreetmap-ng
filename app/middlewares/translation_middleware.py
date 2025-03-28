@@ -48,7 +48,6 @@ def _get_request_language():
 def _parse_accept_language(accept_language: str) -> LocaleCode:
     """
     Parse the accept language header.
-
     Returns the most preferred and supported language.
 
     >>> _parse_accept_language('en-US;q=0.8,*;q=0.5,pl,es;q=0.9')

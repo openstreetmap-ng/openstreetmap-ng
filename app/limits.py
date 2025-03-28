@@ -37,6 +37,8 @@ COMPRESS_HTTP_GZIP_LEVEL = 3
 COOKIE_AUTH_MAX_AGE = int(timedelta(days=365).total_seconds())
 COOKIE_GENERIC_MAX_AGE = int(timedelta(days=365).total_seconds())
 
+CORS_MAX_AGE = timedelta(days=1)
+
 DNS_CACHE_EXPIRE = timedelta(minutes=10)
 
 # Q95: 1745, Q99: 3646, Q99.9: 10864, Q100: 636536
@@ -65,6 +67,8 @@ FIND_LIMIT = 100
 GEO_COORDINATE_PRECISION = 7
 
 GRAVATAR_CACHE_EXPIRE = timedelta(days=1)
+
+HSTS_MAX_AGE = timedelta(days=365)
 
 HTTP_TIMEOUT = timedelta(seconds=20)
 
@@ -141,6 +145,9 @@ SEARCH_LOCAL_MAX_ITERATIONS = 7
 SEARCH_LOCAL_RATIO = 0.5  # [0 - 1], smaller = more locality
 SEARCH_QUERY_MAX_LENGTH = 255
 SEARCH_RESULTS_LIMIT = 100  # nominatim has hard-coded upper limit of 50
+
+STATIC_CACHE_MAX_AGE = timedelta(days=30)
+STATIC_CACHE_STALE = timedelta(days=30)
 
 STORAGE_KEY_MAX_LENGTH = 64
 

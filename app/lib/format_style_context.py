@@ -15,29 +15,24 @@ _CTX: ContextVar[FormatStyle] = ContextVar('FormatStyle')
 def format_style_context():
     """
     Context manager for setting the format style in ContextVar.
-
-    Format style is auto-detected from the request.
+    Format style is auto-detected from the request.y
     """
-    request_path: str = get_request().url.path
-    is_modern_api: cython.bint
+    path: str = get_request().url.path
 
     # path defaults
-    if request_path.startswith(('/api/web/', '/api/partial/', '/api/0.7/')):
-        is_modern_api = True
-    elif request_path.startswith('/api/'):
-        is_modern_api = False
-    else:
-        is_modern_api = True
-
-    style: FormatStyle = 'json' if is_modern_api else 'xml'
-
-    # path overrides
-    if request_path.endswith('/feed'):
-        style = 'rss'
+    is_modern_api: cython.bint = (
+        not path.startswith('/api/')  #
+        or path.startswith(('/api/web/', '/api/0.7/'))
+    )
+    style: FormatStyle = (
+        'rss'
+        if path.endswith('/feed')  #
+        else ('json' if is_modern_api else 'xml')
+    )
 
     # extension overrides (legacy)
     if not is_modern_api:
-        extension = request_path.rsplit('.', 1)[-1]
+        extension = path.rsplit('.', 1)[-1]
         if extension == 'json':
             style = 'json'
         elif extension == 'xml':

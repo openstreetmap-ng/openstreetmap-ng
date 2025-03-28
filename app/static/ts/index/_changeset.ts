@@ -89,7 +89,7 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
 
     const controller: IndexController = {
         load: ({ id }) => {
-            base.load(`/api/partial/changeset/${id}`)
+            base.load(`/api/web/partial/changeset/${id}`)
         },
         unload: () => {
             map.off("zoomend", refocus)
