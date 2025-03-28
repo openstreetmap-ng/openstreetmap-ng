@@ -81,9 +81,9 @@ class ElementQuery:
         conditions: list[Composable] = []
         params: list[Any] = []
 
-        for typed_id, version in versioned_refs:
+        for ref in versioned_refs:
             conditions.append(SQL('(typed_id = %s AND version = %s)'))
-            params.extend((typed_id, version))
+            params.extend(ref)
 
         query = SQL("""
             SELECT 1 FROM element
@@ -235,9 +235,9 @@ class ElementQuery:
         conditions: list[Composable] = []
         params: list[Any] = []
 
-        for typed_id, version in versioned_refs:
+        for ref in versioned_refs:
             conditions.append(SQL('(typed_id = %s AND version = %s)'))
-            params.extend((typed_id, version))
+            params.extend(ref)
 
         conditions = [SQL('({})').format(SQL(' OR ').join(conditions))]
 
