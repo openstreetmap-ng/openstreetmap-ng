@@ -117,8 +117,9 @@ class ChangesetCommentQuery:
                 current_comments = id_map[changeset_id]
             current_comments.append(comment)
 
-        for changeset in changesets:
-            changeset['num_comments'] = len(changeset['comments'])  # pyright: ignore [reportTypedDictNotRequiredAccess]
+        if limit_per_changeset is None:
+            for changeset in changesets:
+                changeset['num_comments'] = len(changeset['comments'])  # pyright: ignore [reportTypedDictNotRequiredAccess]
 
         if resolve_rich_text:
             await changeset_comments_resolve_rich_text(comments)

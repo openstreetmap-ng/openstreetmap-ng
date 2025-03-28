@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from psycopg.rows import dict_row
@@ -149,11 +149,11 @@ class ChangesetQuery:
             if not legacy_geometry:
                 conditions.append(
                     SQL("""
-                        id IN (
-                            SELECT DISTINCT changeset_id
-                            FROM changeset_bounds
-                            WHERE ST_Intersects(bounds, %s)
-                        )
+                    EXISTS (
+                        SELECT 1 FROM changeset_bounds
+                        WHERE changeset_id = changeset.id
+                        AND ST_Intersects(bounds, %s)
+                    )
                     """)
                 )
                 params.append(geometry)
@@ -182,13 +182,13 @@ class ChangesetQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def count_per_day_by_user_id(user_id: UserId, created_since: datetime) -> dict[datetime, int]:
+    async def count_per_day_by_user_id(user_id: UserId, created_since: datetime) -> dict[date, int]:
         """Count changesets per day by user id since given date."""
         async with (
             db() as conn,
             await conn.execute(
                 """
-                SELECT DATE_TRUNC('day', created_at) AS day, COUNT(id)
+                SELECT created_at::date AS day, COUNT(id)
                 FROM changeset
                 WHERE user_id = %s AND created_at >= %s
                 GROUP BY day

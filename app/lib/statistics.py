@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import date, timedelta
 from itertools import cycle
 from typing import TypedDict
 
@@ -49,18 +49,15 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
     activity_per_day = await ChangesetQuery.count_per_day_by_user_id(user_id, created_since)
 
     # Generate continuous date range
-    dates_range: list[datetime] = np.arange(
-        created_since,
-        today + timedelta(days=1),
+    dates_range: list[date] = np.arange(
+        created_since.replace(tzinfo=None),
+        today.replace(tzinfo=None) + timedelta(days=1),
         timedelta(days=1),
         'datetime64[D]',
     ).tolist()
 
     # Map activity counts to each date
-    activity = np.array(
-        [activity_per_day.get(date.replace(tzinfo=UTC), 0) for date in dates_range],
-        np.uint32,
-    )
+    activity = np.array([activity_per_day.get(d, 0) for d in dates_range], np.uint32)
 
     # Calculate activity intensity levels (0-19 scale)
     activity_positive = activity[activity > 0]
@@ -69,7 +66,7 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
 
     # Create weekday labels (showing every other day)
     i: cython.Py_ssize_t  # noqa: F842
-    weekdays = [get_weekday_name(date, short=True) if i % 2 == 1 else '' for i, date in enumerate(dates_range[:7])]
+    weekdays = [get_weekday_name(d, short=True) if i % 2 == 1 else '' for i, d in enumerate(dates_range[:7])]
 
     # Initialize activity grid (7 rows for days of the week)
     day_rows: list[list[UserActivitySummaryRow]] = [[] for _ in range(7)]
@@ -78,21 +75,20 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
     day_row: list[UserActivitySummaryRow]
     level: int
     value: int
-    date: datetime
 
-    for day_row, level, value, date in zip(
+    for day_row, level, value, d in zip(
         cycle(day_rows),
         activity_levels.tolist(),  # type: ignore
         activity.tolist(),  # type: ignore
         dates_range,
     ):
-        day_row.append({'level': level, 'value': value, 'date': format_short_date(date)})
+        day_row.append({'level': level, 'value': value, 'date': format_short_date(d)})
 
         # Track month changes for month labels
-        if date.day == 1:
+        if d.day == 1:
             # Fill gaps with None for weeks without month labels
             months.extend([None] * (len(day_row) - len(months)))
-            months.append(get_month_name(date, short=True))
+            months.append(get_month_name(d, short=True))
 
     return {
         'activity_months': months,

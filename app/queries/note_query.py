@@ -33,12 +33,15 @@ class NoteQuery:
         params: list[Any] = []
 
         if commented_other:
-            # Find notes where user commented but didn't open them
+            # Count notes where user commented but didn't open them
             query = SQL("""
-                SELECT COUNT(DISTINCT note_id) FROM note_comment
-                JOIN note ON note_id = note.id
-                WHERE user_id = %s
-                AND event = 'commented'
+                SELECT COUNT(*) FROM note
+                WHERE EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = %s
+                    AND event = 'commented'
+                )
                 AND NOT EXISTS (
                     SELECT 1 FROM note_comment
                     WHERE note_id = note.id
@@ -48,12 +51,15 @@ class NoteQuery:
             """)
             params.extend((user_id, user_id))
         else:
-            # Find notes opened by the user
+            # Count notes opened by the user
             query = SQL("""
-                SELECT COUNT(*) FROM note_comment
-                JOIN note ON note_id = note.id
-                WHERE user_id = %s
-                AND event = 'opened'
+                SELECT COUNT(*) FROM note
+                WHERE EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = %s
+                    AND event = 'opened'
+                )
             """)
             params.append(user_id)
 
@@ -93,10 +99,13 @@ class NoteQuery:
         if commented_other:
             # Find notes where user commented but didn't open them
             query = SQL("""
-                SELECT DISTINCT note.* FROM note_comment
-                JOIN note ON note_id = note.id
-                WHERE user_id = %s
-                AND event = 'commented'
+                SELECT note.* FROM note
+                WHERE EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = %s
+                    AND event = 'commented'
+                )
                 AND NOT EXISTS (
                     SELECT 1 FROM note_comment
                     WHERE note_id = note.id
@@ -108,10 +117,13 @@ class NoteQuery:
         else:
             # Find notes opened by the user
             query = SQL("""
-                SELECT note.* FROM note_comment
-                JOIN note ON note_id = note.id
-                WHERE user_id = %s
-                AND event = 'opened'
+                SELECT note.* FROM note
+                WHERE EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = %s
+                    AND event = 'opened'
+                )
             """)
             params.append(user_id)
 
@@ -168,38 +180,39 @@ class NoteQuery:
         if phrase is not None:
             conditions.append(
                 SQL("""
-                id IN (
-                    SELECT DISTINCT note_id
-                    FROM note_comment
-                    WHERE to_tsvector('simple', body) @@ phraseto_tsquery(%s)
+                EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND to_tsvector('simple', body) @@ phraseto_tsquery(%s)
                 )
                 """)
             )
             params.append(phrase)
 
-        if user_id is not None:
+        if event is not None:
+            assert user_id is not None, 'user_id must be set if event is set'
             conditions.append(
                 SQL("""
-                id IN (
-                    SELECT DISTINCT note_id
-                    FROM note_comment
-                    WHERE user_id = %s
+                EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = %s
+                    AND event = %s
+                )
+                """)
+            )
+            params.extend((user_id, event))
+        elif user_id is not None:
+            conditions.append(
+                SQL("""
+                EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = %s
                 )
                 """)
             )
             params.append(user_id)
-
-        if event is not None:
-            conditions.append(
-                SQL("""
-                id IN (
-                    SELECT DISTINCT note_id
-                    FROM note_comment
-                    WHERE event = %s
-                )
-                """)
-            )
-            params.append(event)
 
         if note_ids is not None:
             conditions.append(SQL('id = ANY(%s)'))

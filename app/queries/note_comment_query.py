@@ -171,7 +171,8 @@ class NoteCommentQuery:
                 current_comments = id_map[note_id]
             current_comments.append(comment)
 
-        for note in notes:
-            note['num_comments'] = len(note['comments'])  # pyright: ignore [reportTypedDictNotRequiredAccess]
+        if per_note_limit is None:
+            for note in notes:
+                note['num_comments'] = len(note['comments'])  # pyright: ignore [reportTypedDictNotRequiredAccess]
 
         return comments

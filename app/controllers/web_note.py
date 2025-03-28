@@ -103,6 +103,7 @@ async def user_notes_page(
 
     async with TaskGroup() as tg:
         comments = await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
+        tg.create_task(NoteCommentQuery.resolve_num_comments(notes))
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(note_comments_resolve_rich_text(comments))
 

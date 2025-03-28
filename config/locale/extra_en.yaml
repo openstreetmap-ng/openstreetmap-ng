@@ -437,7 +437,6 @@ action:
   show_less: Show less
 state:
   any: Any
-  open: Open
   hidden: Hidden
   latest: latest
   preparing: Preparing

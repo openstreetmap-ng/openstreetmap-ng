@@ -254,7 +254,7 @@ CREATE TABLE note_comment
     created_at     timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 CREATE INDEX note_comment_note_id_idx ON note_comment (note_id, id);
-CREATE INDEX note_comment_event_user_id_idx ON note_comment (event, user_id, id);
+CREATE INDEX note_comment_event_user_id_idx ON note_comment (event, user_id, note_id);
 CREATE INDEX note_comment_body_idx ON note_comment USING gin (to_tsvector('simple', body));
 
 CREATE TYPE trace_visibility AS ENUM ('identifiable', 'public', 'trackable', 'private');
