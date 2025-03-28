@@ -541,15 +541,11 @@ def _write_user(modes: set[str]) -> None:
 
 
 def main() -> None:
+    choices = ['planet', 'notes', 'user']
     parser = ArgumentParser()
-    parser.add_argument(
-        'modes',
-        nargs='*',
-        choices=['planet', 'notes', 'user'],
-        default=['planet', 'notes', 'user'],
-    )
+    parser.add_argument('modes', nargs='*', choices=choices)
     args = parser.parse_args()
-    modes = set(args.modes)
+    modes = set(args.modes or choices)
 
     if 'planet' in modes:
         if not PLANET_INPUT_PATH.is_file():

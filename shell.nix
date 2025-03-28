@@ -371,7 +371,7 @@ let
     # -- Preload
     (makeScript "preload-clean" "rm -rf data/preload/")
     (makeScript "preload-convert" ''
-      python scripts/preload_convert.py
+      python scripts/preload_convert.py "$@"
       for file in data/preload/*.csv; do
         zstd \
           --rm \
