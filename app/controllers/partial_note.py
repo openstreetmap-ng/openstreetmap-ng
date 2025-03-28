@@ -18,7 +18,7 @@ from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 
-router = APIRouter(prefix='/api/web/partial/note')
+router = APIRouter(prefix='/partial/note')
 
 
 # TODO: pagination discussion, note, changeset, diary

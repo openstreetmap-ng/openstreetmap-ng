@@ -11,7 +11,7 @@ from app.models.proto.shared_pb2 import PartialQueryFeaturesParams
 from app.models.types import Latitude, Longitude, Zoom
 from app.queries.overpass_query import OverpassQuery
 
-router = APIRouter(prefix='/api/web/partial/query')
+router = APIRouter(prefix='/partial/query')
 
 
 @router.get('/nearby')

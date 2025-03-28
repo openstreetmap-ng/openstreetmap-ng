@@ -139,7 +139,7 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
 
     const controller: IndexController = {
         load: ({ id }) => {
-            const url = `/api/web/partial/note/${id}`
+            const url = `/partial/note/${id}`
             base.load(url)
         },
         unload: () => {

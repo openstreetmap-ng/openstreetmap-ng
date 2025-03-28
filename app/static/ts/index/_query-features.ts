@@ -172,7 +172,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
             const zoomFloor = zoom | 0
             onSidebarLoading(center, zoomFloor, abortSignal)
             fetch(
-                `/api/web/partial/query/nearby?${qsEncode({
+                `/partial/query/nearby?${qsEncode({
                     lon: lon.toString(),
                     lat: lat.toString(),
                     zoom: zoomFloor.toString(),
@@ -202,7 +202,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
 
             // Fetch enclosing features
             fetch(
-                `/api/web/partial/query/enclosing?${qsEncode({
+                `/partial/query/enclosing?${qsEncode({
                     lon: lon.toString(),
                     lat: lat.toString(),
                 })}`,

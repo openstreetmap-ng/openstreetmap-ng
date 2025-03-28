@@ -98,7 +98,7 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
             loadMatchGroups = matchGroups
             const params = qsParse(location.search.substring(1))
             params.tags_diff_mode = tagsDiffStorage.get().toString()
-            const url = `/api/web/partial/${type}/${id}/history?${qsEncode(params)}`
+            const url = `/partial/${type}/${id}/history?${qsEncode(params)}`
             base.load(url)
         },
         unload: () => {

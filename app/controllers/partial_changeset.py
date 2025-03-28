@@ -21,7 +21,7 @@ from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 
-router = APIRouter(prefix='/api/web/partial/changeset')
+router = APIRouter(prefix='/partial/changeset')
 
 
 @router.get('/{id:int}')

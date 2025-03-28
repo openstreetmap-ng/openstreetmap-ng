@@ -48,7 +48,7 @@ export const getElementController = (map: MaplibreMap): IndexController => {
 
     return {
         load: ({ type, id, version }) => {
-            const url = version ? `/api/web/partial/${type}/${id}/history/${version}` : `/api/web/partial/${type}/${id}`
+            const url = version ? `/partial/${type}/${id}/history/${version}` : `/partial/${type}/${id}`
             base.load(url)
         },
         unload: () => {

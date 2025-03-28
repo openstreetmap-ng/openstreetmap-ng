@@ -24,7 +24,7 @@ from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
 
-router = APIRouter(prefix='/api/web/partial')
+router = APIRouter(prefix='/partial')
 
 
 @router.get('/{type:element_type}/{id:int}')

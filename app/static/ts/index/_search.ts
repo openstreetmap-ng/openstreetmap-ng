@@ -245,7 +245,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
                 setSearchFormQuery(null)
 
                 const zoom = (Number(options?.zoom ?? searchParams.zoom ?? map.getZoom()) | 0).toString()
-                const url = `/api/web/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`
+                const url = `/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`
                 base.load(url)
             } else {
                 setPageTitle(query || searchTitle)
@@ -258,7 +258,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
                     map.getBounds().adjustAntiMeridian(),
                     -0.01,
                 ).toArray()
-                const url = `/api/web/partial/search?${qsEncode({
+                const url = `/partial/search?${qsEncode({
                     q: query,
                     bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
                     local_only: Boolean(options?.localOnly).toString(),
