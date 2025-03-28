@@ -56,13 +56,18 @@ class MigrationService:
         async with (
             db(True, autocommit=True) as conn,
             await conn.execute("""
-                DELETE FROM element
-                WHERE sequence_id NOT IN (
-                    SELECT ANY_VALUE(sequence_id)
+                WITH dups AS MATERIALIZED (
+                    SELECT
+                        typed_id, version,
+                        ANY_VALUE(sequence_id) AS sequence_id
                     FROM element
                     GROUP BY typed_id, version
+                    HAVING COUNT(*) > 1
                 )
-                RETURNING sequence_id, typed_id, version
+                DELETE FROM element USING dups
+                WHERE element.typed_id = dups.typed_id
+                AND element.version = dups.version
+                AND element.sequence_id != dups.sequence_id
             """) as r,
         ):
             if rows := await r.fetchall():
