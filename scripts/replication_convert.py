@@ -158,7 +158,7 @@ def _write_user() -> None:
             TRUE AS crash_reporting,
             '127.0.0.1' AS created_ip
         FROM (
-            {'\nUNION ALL\n'.join(sources)}
+            {' UNION ALL '.join(sources)}
         )
         """
         _write_output(

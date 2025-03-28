@@ -79,7 +79,9 @@ async def _load_table(table: str, tg: TaskGroup) -> None:
         key = 'element_version_idx'
         print(f'Recreating index {key!r}')
         await _sql_execute(indexes.pop(key))
-        print('Fixing element next_sequence_id field')
+        print('Deleting duplicated element rows')
+        await MigrationService.fix_duplicated_element_version()
+        print('Fixing element.next_sequence_id field')
         await MigrationService.fix_next_sequence_id()
 
     print(f'Recreating {len(indexes)} indexes')

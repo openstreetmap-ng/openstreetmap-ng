@@ -51,6 +51,26 @@ class MigrationService:
                 await conn.execute('SELECT setval(%s, %s)', (sequence, last_value))
 
     @staticmethod
+    async def fix_duplicated_element_version() -> None:
+        """Delete duplicated element (typed_id, version) rows."""
+        async with (
+            db(True, autocommit=True) as conn,
+            await conn.execute("""
+                DELETE FROM element
+                WHERE sequence_id NOT IN (
+                    SELECT ANY_VALUE(sequence_id)
+                    FROM element
+                    GROUP BY typed_id, version
+                )
+                RETURNING sequence_id, typed_id, version
+            """) as r,
+        ):
+            if rows := await r.fetchall():
+                logging.warning(
+                    'Deleted %d duplicated element rows (sequence_id, typed_id, version): %s', len(rows), rows
+                )
+
+    @staticmethod
     async def fix_next_sequence_id() -> None:
         """Fix the element's next_sequence_id field."""
         async with db(True, autocommit=True) as conn:

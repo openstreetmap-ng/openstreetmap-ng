@@ -532,7 +532,7 @@ def _write_user(modes: set[str]) -> None:
                 TRUE AS crash_reporting,
                 '127.0.0.1' AS created_ip
             FROM (
-                {'\nUNION ALL\n'.join(sources)}
+                {' UNION ALL '.join(sources)}
             )
             ORDER BY user_id
         ) TO {_get_csv_path('user').as_posix()!r}

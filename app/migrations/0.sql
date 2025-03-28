@@ -159,7 +159,7 @@ CREATE TABLE element
     created_at       timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 CREATE INDEX element_changeset_idx ON element (changeset_id);
-CREATE UNIQUE INDEX element_version_idx ON element (typed_id, version);
+CREATE INDEX element_version_idx ON element (typed_id, version);
 CREATE INDEX element_current_idx ON element (typed_id, next_sequence_id) INCLUDE (sequence_id);
 CREATE INDEX element_point_idx ON element USING gist (point) WHERE point IS NOT NULL AND next_sequence_id IS NULL;
 CREATE INDEX element_members_ways_idx ON element USING gin (members)
