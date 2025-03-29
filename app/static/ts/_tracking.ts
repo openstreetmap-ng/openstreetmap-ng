@@ -4,7 +4,6 @@ import {
     browserTracingIntegration,
     feedbackIntegration,
     setUser,
-    showReportDialog,
     type User,
 } from "@sentry/browser"
 import { activityTracking, config, crashReporting } from "./_config"
@@ -30,15 +29,6 @@ if (crashReporting) {
         tracePropagationTargets: tracePropagationTargets,
         skipBrowserExtensionCheck: true,
         integrations: [browserTracingIntegration()],
-        beforeSend: (event) => {
-            // Check if it is an exception, and if so, show the report dialog
-            // https://docs.sentry.io/platforms/javascript/user-feedback/#crash-report-modal
-            if (event.exception && event.event_id) {
-                console.debug("Showing report dialog for event", event.event_id)
-                showReportDialog({ eventId: event.event_id })
-            }
-            return event
-        },
     })
 
     const userInfo: User = {
