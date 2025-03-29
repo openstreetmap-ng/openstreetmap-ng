@@ -10,6 +10,7 @@ from app.lib.locale import DEFAULT_LOCALE, is_installed_locale
 from app.lib.render_jinja import render_jinja
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale, t, translation_context
+from app.middlewares.default_headers_middleware import CSP_HEADER
 from app.models.db.user import User
 from app.models.types import LocaleCode
 from app.utils import secure_referer
@@ -122,6 +123,11 @@ async def welcome(_: Annotated[User, web_user()]):
     return await render_response('welcome.jinja2')
 
 
+_EXPORT_EMBED_CSP_HEADER = CSP_HEADER.replace('frame-ancestors', 'frame-ancestors *', 1)
+
+
 @router.get('/export/embed.html')
 async def export_embed():
-    return await render_response('embed.jinja2')
+    response = await render_response('embed.jinja2')
+    response.headers['Content-Security-Policy'] = _EXPORT_EMBED_CSP_HEADER
+    return response

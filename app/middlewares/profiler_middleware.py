@@ -31,6 +31,7 @@ class ProfilerMiddleware:
             if message['type'] == 'http.response.start':
                 profiler.stop()
                 response = HTMLResponse(profiler.output_html())
+                response.headers['Content-Security-Policy'] = ''
                 return await response(scope, receive, send)
 
         try:
