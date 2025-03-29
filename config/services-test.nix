@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 # Service configuration for OSM-NG testing instance
-# Specs: hmad.large (4T, 32GB RAM, 100GB SSD) + 1000GB SSD
+# Specs: hmad.large (4T, 32GB RAM, 100GB SSD) + 2000GB SSD
 # https://cloudferro.com/pricing/virtual-machines-vm-2/
 
 let
