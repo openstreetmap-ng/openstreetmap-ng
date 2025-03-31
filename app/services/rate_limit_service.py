@@ -11,7 +11,7 @@ from psycopg import AsyncConnection
 from sentry_sdk import start_transaction
 from starlette import status
 
-from app.config import SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR, TEST_ENV
+from app.config import ENV, SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR
 from app.db import db
 from app.lib.retry import retry
 from app.lib.testmethod import testmethod
@@ -125,11 +125,11 @@ async def _process_task() -> None:
                 # on failure, sleep ~1h
                 delay = random.uniform(1800, 5400)
 
-        if not TEST_ENV:
+        if ENV != 'dev':
             await asyncio.sleep(delay)
             continue
 
-        # Test environment supports early wakeup
+        # Dev environment supports early wakeup
         _PROCESS_DONE_EVENT.set()
         async with TaskGroup() as tg:
             event_task = tg.create_task(_PROCESS_REQUEST_EVENT.wait())

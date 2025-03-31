@@ -2,11 +2,11 @@ import logging
 
 import cython
 
-from app.config import TEST_ENV
+from app.config import ENV
 
 if cython.compiled:
     logging.info('🐇 Cython modules are compiled')
-elif not TEST_ENV:
+elif ENV == 'prod':
     # require Cython modules to be compiled in production
     raise ImportError('Cython modules are not compiled')
 else:

@@ -1,7 +1,7 @@
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.config import APP_URL, ID_URL, RAPID_URL, SENTRY_DSN, TEST_ENV, VERSION
+from app.config import APP_URL, ENV, ID_URL, RAPID_URL, SENTRY_DSN, VERSION
 from app.limits import HSTS_MAX_AGE
 
 # Please keep it CSP version 2-compatible for the time being.
@@ -42,7 +42,7 @@ class DefaultHeadersMiddleware:
                 headers.setdefault('Content-Security-Policy', CSP_HEADER)
                 headers['Strict-Transport-Security'] = _HSTS_HEADER
 
-                if TEST_ENV:
+                if ENV != 'prod':
                     headers['X-Version'] = VERSION
 
             return await send(message)

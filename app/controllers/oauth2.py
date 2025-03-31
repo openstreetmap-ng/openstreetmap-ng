@@ -7,7 +7,7 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import APP_URL, TEST_ENV
+from app.config import APP_URL, ENV
 from app.lib.auth_context import api_user, web_user
 from app.lib.exceptions_context import raise_for
 from app.lib.render_response import render_response
@@ -97,7 +97,7 @@ async def authorize(
             'oauth2/oob.jinja2',
             {'authorization_code': authorization_code},
         )
-        if TEST_ENV:
+        if ENV == 'dev':
             response.headers['Test-OAuth2-Authorization-Code'] = authorization_code
         return response
 

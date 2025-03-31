@@ -3,33 +3,23 @@
 {% block body_class %}login-body{% endblock %}
 {% block body %}
 
-<div class="content-header"></div>
-<div class="content-body">
-    <div class="container">
+    <div class="content-header"></div>
+    <div class="content-body">
+        <div class="container">
 
-        <div class="modal position-static d-block" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header border-0">
+            <div class="modal position-static d-block" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header border-0"></div>
+                        <div class="login-body modal-body px-4 pt-0">
+                            {% include '_login_body.jinja2' %}
+                        </div>
+                        {% include '_login_footer.jinja2' %}
                     </div>
-                    <div class="login-body modal-body px-4 pt-0">
-                        {% include '_login_body.jinja2' %}
-                    </div>
-                    {% if TEST_ENV %}
-                    <div class="modal-footer">
-                        {% for _login in ('user1', 'user2', 'moderator', 'admin') %}
-                        <button class="autofill-btn btn btn-sm btn-secondary" data-login="{{ _login }}"
-                            data-password="x">
-                            {{ _login }}
-                        </button>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
-</div>
 
 {% endblock %}

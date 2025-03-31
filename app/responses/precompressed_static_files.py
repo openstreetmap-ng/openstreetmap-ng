@@ -15,7 +15,7 @@ from starlette.staticfiles import NotModifiedResponse, StaticFiles
 from starlette.types import Scope
 from starlette_compress import _parse_accept_encoding  # noqa: PLC2701
 
-from app.config import TEST_ENV
+from app.config import ENV
 
 _CacheKey = tuple[str, str | None]
 _CacheValue = tuple[str, StatResultType, str | None]
@@ -49,7 +49,7 @@ class PrecompressedStaticFiles(StaticFiles):
     def _resolve(self, request_path: str, accept_encoding: str | None) -> _CacheValue:
         cache_key: _CacheKey = (request_path, accept_encoding)
         result = self._resolve_cache.get(cache_key)
-        if (result is not None) and not TEST_ENV:
+        if result is not None and ENV != 'dev':  # Ignore cache in dev environment: live reloading
             return result
 
         paths = _try_paths(request_path, accept_encoding) if accept_encoding else [(request_path, None)]

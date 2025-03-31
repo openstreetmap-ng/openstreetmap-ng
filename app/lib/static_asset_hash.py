@@ -6,7 +6,7 @@ from typing import override
 
 import cython
 
-from app.config import TEST_ENV
+from app.config import ENV
 
 
 @cython.cfunc
@@ -43,8 +43,8 @@ Mapping to hash-aware paths.
 '/static/js/main.wcb165d8.js'
 """
 
-if TEST_ENV:
-    # In test environment, update the mapping on each access
+if ENV == 'dev':
+    # In dev environment, update the mapping on each access
 
     class _UpdatingHashAwarePaths(UserDict):
         @override

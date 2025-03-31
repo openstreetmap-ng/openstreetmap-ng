@@ -6,7 +6,7 @@ from starlette.responses import HTMLResponse
 
 from app.config import (
     API_URL,
-    FORCE_CRASH_REPORTING,
+    ENV,
     SENTRY_DSN,
     SENTRY_TRACES_SAMPLE_RATE,
     VERSION,
@@ -31,7 +31,7 @@ _CONFIG_BASE = WebConfig(
         else None
     ),
     version=VERSION,
-    force_crash_reporting=FORCE_CRASH_REPORTING,
+    env=ENV,
     api_url=API_URL,
     map_query_area_max_size=MAP_QUERY_AREA_MAX_SIZE,
     note_query_area_max_size=NOTE_QUERY_AREA_MAX_SIZE,

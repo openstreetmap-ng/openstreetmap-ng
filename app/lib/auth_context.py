@@ -9,7 +9,7 @@ from fastapi.security import SecurityScopes
 from sentry_sdk import set_user
 from starlette import status
 
-from app.config import TEST_ENV
+from app.config import ENV
 from app.lib.exceptions_context import raise_for
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User, user_is_test
@@ -26,8 +26,8 @@ _CTX: ContextVar[tuple[User | None, tuple[Scope, ...]]] = ContextVar('Auth')
 def auth_context(user: User | None, scopes: tuple[Scope, ...]):
     """Context manager for authenticating the user."""
     # safety check, prevent test user auth in non-test env
-    if user is not None and not TEST_ENV and user_is_test(user):
-        raise RuntimeError('Test user authentication is forbidden in non-test environment')
+    if user is not None and user_is_test(user) and ENV == 'prod':
+        raise RuntimeError(f'Test user authentication is disabled in {ENV} environment')
 
     sentry_user: dict[str, Any] = {
         'ip_address': '{{auto}}',

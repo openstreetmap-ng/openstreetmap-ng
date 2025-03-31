@@ -1,15 +1,16 @@
+from collections.abc import Callable
 from functools import wraps
 
-from app.config import TEST_ENV
+from app.config import ENV
 
 
-def testmethod(func):
+def testmethod(func: Callable):
     """Decorator to mark a method as runnable only in test environment."""
-    if TEST_ENV:
+    if ENV != 'prod':
         return func
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        raise AssertionError('Test method must only run in the test environment')
+        raise AssertionError(f'@testmethod: {func.__qualname__} is disabled in {ENV} environment')
 
     return wrapper

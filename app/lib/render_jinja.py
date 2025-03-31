@@ -4,7 +4,7 @@ from typing import Any
 import cython
 from jinja2 import Environment, FileSystemLoader
 
-from app.config import APP_URL, TEST_ENV, VERSION
+from app.config import APP_URL, ENV, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
 from app.lib.static_asset_hash import HASH_AWARE_PATHS
@@ -23,7 +23,7 @@ _J2 = Environment(
     loader=FileSystemLoader('app/templates'),
     autoescape=True,
     cache_size=1024,
-    auto_reload=TEST_ENV,
+    auto_reload=ENV == 'dev',
     trim_blocks=True,
     lstrip_blocks=True,
     keep_trailing_newline=False,
@@ -33,8 +33,8 @@ _J2 = Environment(
 def render_jinja(template_name: str, template_data: dict[str, Any] | None = None) -> str:
     """Render the given Jinja2 template with translation."""
     data = {
+        'ENV': ENV,
         'VERSION': VERSION,
-        'TEST_ENV': TEST_ENV,
         'APP_URL': APP_URL,
         'user': auth_user(),
         'lang': primary_translation_locale(),

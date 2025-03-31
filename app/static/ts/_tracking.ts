@@ -42,7 +42,7 @@ if (crashReporting) {
     console.debug("Providing user information", userInfo)
     setUser(userInfo)
 
-    if (config.forceCrashReporting) {
+    if (config.env === "test") {
         console.debug("Enabling feedback integration")
         const appTheme = themeStorage.get()
         addIntegration(

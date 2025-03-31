@@ -6,7 +6,7 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import TEST_ENV
+from app.config import ENV
 from app.lib.auth_context import auth_user, web_user
 from app.lib.redirect_referrer import redirect_referrer
 from app.lib.standard_feedback import StandardFeedback
@@ -46,7 +46,7 @@ async def login(
         key='auth',
         value=access_token.get_secret_value(),
         max_age=COOKIE_AUTH_MAX_AGE if remember else None,
-        secure=not TEST_ENV,
+        secure=ENV != 'dev',
         httponly=True,
         samesite='lax',
     )
@@ -96,7 +96,7 @@ async def signup(
         key='auth',
         value=access_token.get_secret_value(),
         max_age=None,
-        secure=not TEST_ENV,
+        secure=ENV != 'dev',
         httponly=True,
         samesite='lax',
     )

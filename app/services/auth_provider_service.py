@@ -7,7 +7,7 @@ from fastapi import HTTPException, Response
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import TEST_ENV
+from app.config import ENV
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_compare, hmac_bytes
@@ -43,7 +43,7 @@ class AuthProviderService:
             key='auth_provider_state',
             value=state,
             max_age=AUTH_PROVIDER_STATE_MAX_AGE,
-            secure=not TEST_ENV,
+            secure=ENV != 'dev',
             httponly=True,
             samesite='lax',
         )
@@ -96,7 +96,7 @@ class AuthProviderService:
                 key='auth',
                 value=access_token.get_secret_value(),
                 max_age=max_age,
-                secure=not TEST_ENV,
+                secure=ENV != 'dev',
                 httponly=True,
                 samesite='lax',
             )
@@ -132,7 +132,7 @@ class AuthProviderService:
                 key='auth_provider_verification',
                 value=verification,
                 max_age=AUTH_PROVIDER_VERIFICATION_MAX_AGE,
-                secure=not TEST_ENV,
+                secure=ENV != 'dev',
                 httponly=True,
                 samesite='lax',
             )

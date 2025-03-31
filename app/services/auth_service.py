@@ -3,7 +3,7 @@ import logging
 from fastapi import Request
 from pydantic import SecretStr
 
-from app.config import TEST_ENV
+from app.config import ENV
 from app.lib.testmethod import testmethod
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
@@ -40,7 +40,7 @@ class AuthService:
             return r[0], r[1]
 
         # Try test user authentication if in test environment
-        if TEST_ENV:
+        if ENV != 'prod':
             r = await _authenticate_with_test_user(request)
             if r is not None:
                 return r[0], r[1]

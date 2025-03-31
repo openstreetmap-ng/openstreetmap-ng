@@ -7,7 +7,7 @@ from packaging.version import Version
 from psycopg import AsyncConnection
 from psycopg.sql import SQL, Identifier
 
-from app.config import TEST_ENV
+from app.config import ENV
 from app.db import db
 from app.lib.crypto import hash_bytes
 
@@ -167,9 +167,9 @@ def _find_migrations(current_migration: _MigrationInfo | None) -> list[tuple[Ver
     current_version = current_migration.version
     current_hash = current_migration.hash
 
-    # In test environment, allow reapplying last migration if its hash changes.
+    # In dev environment, allow reapplying last migration if its hash changes.
     # This is useful for quick iteration during development.
-    allow_reapply = TEST_ENV
+    allow_reapply = ENV == 'dev'
 
     for migration in migrations[::-1]:
         if allow_reapply:

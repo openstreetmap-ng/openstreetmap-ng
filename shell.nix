@@ -600,9 +600,7 @@ let
 
     export LEGACY_SEQUENCE_ID_MARGIN=1
   '' + pkgs.lib.optionalString isDevelopment ''
-    export TEST_ENV=1
-    export FREEZE_TEST_USER=0
-    export FORCE_RELOAD_LOCALE_FILES=1
+    export ENV=dev
     export SECRET=development-secret
     export APP_URL=http://127.0.0.1:8000
     export NOMINATIM_URL=https://nominatim.monicz.dev

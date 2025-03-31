@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response
 
-from app.config import TEST_ENV
+from app.config import ENV
 
 router = APIRouter()
 
@@ -24,7 +24,7 @@ Disallow: /trace
 Disallow: */traces
 Disallow: /user_blocks
 """
-        if not TEST_ENV
+        if ENV == 'prod'
         else """
 User-agent: *
 Disallow: /

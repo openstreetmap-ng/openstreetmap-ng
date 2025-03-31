@@ -7,7 +7,7 @@ import cython
 from argon2 import PasswordHasher, Type
 from argon2.exceptions import VerifyMismatchError
 
-from app.config import TEST_ENV
+from app.config import ENV
 from app.models.proto.server_pb2 import UserPassword
 from app.models.proto.shared_pb2 import TransmitUserPassword
 from app.models.types import Password
@@ -54,7 +54,7 @@ class PasswordHash:
         """Verify a password against a hash and optional extra data."""
         # test user accepts any password in test environment
         if is_test_user:
-            return VerifyResult(success=TEST_ENV, rehash_needed=False)
+            return VerifyResult(success=ENV != 'prod', rehash_needed=False)
         # preload users contain no password
         if not password_pb:
             return VerifyResult(False, rehash_needed=False)

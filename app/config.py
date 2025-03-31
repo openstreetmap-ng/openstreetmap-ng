@@ -3,6 +3,7 @@ from hashlib import sha256
 from logging.config import dictConfig
 from os import chdir, environ, getenv
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlsplit
 
 import sentry_sdk
@@ -50,16 +51,13 @@ def _path(s: str, *, mkdir: bool = False) -> Path:
 
 
 # Configuration (optional)
-TEST_ENV = getenv('TEST_ENV', '0').strip().lower() in {'1', 'true', 'yes'}
-LOG_LEVEL = getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
-GC_LOG = getenv('GC_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
+ENV: Literal['dev', 'test', 'prod'] = getenv('ENV', 'prod').strip().lower()  # type: ignore
+LOG_LEVEL = getenv('LOG_LEVEL', 'INFO' if ENV == 'prod' else 'DEBUG').upper()
 
 AVATAR_STORAGE_URI = getenv('AVATAR_STORAGE_URI', 'db://avatar')
 BACKGROUND_STORAGE_URI = getenv('BACKGROUND_STORAGE_URI', 'db://background')
 TRACE_STORAGE_URI = getenv('TRACE_STORAGE_URI', 'db://trace')
 
-FREEZE_TEST_USER = getenv('FREEZE_TEST_USER', '1').strip().lower() in {'1', 'true', 'yes'}
-FORCE_RELOAD_LOCALE_FILES = getenv('FORCE_RELOAD_LOCALE_FILES', '0').strip().lower() in {'1', 'true', 'yes'}
 LEGACY_HIGH_PRECISION_TIME = getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in {'1', 'true', 'yes'}
 LEGACY_SEQUENCE_ID_MARGIN = getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().lower() in {'1', 'true', 'yes'}
 
@@ -125,7 +123,6 @@ TRUSTED_HOSTS: frozenset[str] = frozenset(
 TEST_USER_EMAIL_SUFFIX = '@test.test'
 DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'  # SQL index depends on this value
 
-FORCE_CRASH_REPORTING = getenv('FORCE_CRASH_REPORTING', '0').strip().lower() in {'1', 'true', 'yes'}
 SENTRY_TRACES_SAMPLE_RATE = float(getenv('SENTRY_TRACES_SAMPLE_RATE', '1'))
 SENTRY_PROFILES_SAMPLE_RATE = float(getenv('SENTRY_PROFILES_SAMPLE_RATE', '1'))
 

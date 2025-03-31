@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import TEST_ENV
+from app.config import ENV
 from app.limits import COOKIE_GENERIC_MAX_AGE
 
 router = APIRouter(prefix='/api/web/unsupported-browser')
@@ -15,7 +15,7 @@ async def override(request: Request) -> RedirectResponse:
         'unsupported_browser_override',
         '1',
         COOKIE_GENERIC_MAX_AGE,
-        secure=not TEST_ENV,
+        secure=ENV != 'dev',
         httponly=True,
         samesite='lax',
     )

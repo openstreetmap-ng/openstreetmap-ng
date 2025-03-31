@@ -14,7 +14,7 @@ export const activityTracking: boolean = config.userConfig?.activityTracking ?? 
 
 /** Whether to enable crash reporting */
 export const crashReporting: boolean =
-    config.sentryConfig && (config.forceCrashReporting || (config.userConfig?.crashReporting ?? defaultTracking))
+    config.sentryConfig && (config.env === "test" || (config.userConfig?.crashReporting ?? defaultTracking))
 
 /**
  * User's primary translation language

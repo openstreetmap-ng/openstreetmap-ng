@@ -16,11 +16,7 @@ from starlette.convertors import register_url_convertor
 from starlette_compress import CompressMiddleware
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
-from app.config import (
-    GC_LOG,
-    NAME,
-    TEST_ENV,
-)
+from app.config import ENV, NAME
 from app.db import psycopg_pool_open
 from app.lib.bun_packages import ID_VERSION, RAPID_VERSION
 from app.lib.starlette_convertor import ElementTypeConvertor
@@ -66,24 +62,21 @@ mimetypes.init()
 mimetypes.add_type('application/javascript', '.cjs')
 mimetypes.add_type('application/gpx+xml', '.gpx')
 
-# harden against parsing really big numbers
+# harden against parsing huge numbers
 sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
 
 # reduce gc frequency and enable debug logging
 gc.set_threshold(10_000, 10, 10)
 
-if GC_LOG and logging.root.level <= logging.DEBUG:
-    gc.set_debug(gc.DEBUG_STATS)
-
 # log when in test environment
-if TEST_ENV:
-    logging.info('🦺 Running in test environment')
+if ENV != 'prod':
+    logging.info('🦺 Running in %s environment', ENV)
 
 
 @asynccontextmanager
 async def lifespan(_):
     async with psycopg_pool_open():
-        if TEST_ENV:
+        if ENV != 'prod':
             await TestService.on_startup()
 
         await SystemAppService.on_startup()
@@ -97,7 +90,12 @@ async def lifespan(_):
 
 register_url_convertor('element_type', ElementTypeConvertor())
 
-main = FastAPI(debug=TEST_ENV, title=NAME, lifespan=lifespan)
+main = FastAPI(
+    debug=ENV != 'prod',
+    title=NAME,
+    lifespan=lifespan,
+)
+
 
 main.add_middleware(ParallelTasksMiddleware)
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
@@ -119,14 +117,16 @@ main.add_middleware(SubdomainMiddleware)
 main.add_middleware(LimitUrlSizeMiddleware)
 main.add_middleware(ExceptionsMiddleware)
 
-if TEST_ENV:
+if ENV == 'dev':
     main.add_middleware(LocalhostRedirectMiddleware)
+
+if ENV != 'prod':
     main.add_middleware(ProfilerMiddleware)
 
 main.add_middleware(RequestContextMiddleware)
 main.add_middleware(DefaultHeadersMiddleware)
 
-if TEST_ENV:
+if ENV != 'prod':
     main.add_middleware(RuntimeMiddleware)
 
 # TODO: /static default cache control

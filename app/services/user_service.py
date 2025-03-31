@@ -3,7 +3,7 @@ import logging
 from fastapi import UploadFile
 from pydantic import SecretStr
 
-from app.config import FREEZE_TEST_USER
+from app.config import ENV
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
@@ -164,7 +164,7 @@ class UserService:
 
         user = auth_user(required=True)
         user_id = user['id']
-        if user_is_test(user) and FREEZE_TEST_USER and display_name != user['display_name']:
+        if user_is_test(user) and display_name != user['display_name'] and ENV != 'dev':
             StandardFeedback.raise_error('display_name', 'Changing test user display_name is disabled')
 
         async with db(True) as conn:
@@ -207,7 +207,7 @@ class UserService:
         user = auth_user(required=True)
         if user['email'] == new_email:
             StandardFeedback.raise_error('email', t('validation.new_email_is_current'))
-        if user_is_test(user) and FREEZE_TEST_USER:
+        if user_is_test(user) and ENV != 'dev':
             StandardFeedback.raise_error('email', 'Changing test user email is disabled')
 
         verification = PasswordHash.verify(

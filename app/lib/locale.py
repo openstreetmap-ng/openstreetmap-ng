@@ -6,7 +6,7 @@ from typing import NamedTuple, overload
 import cython
 import orjson
 
-from app.config import FORCE_RELOAD_LOCALE_FILES
+from app.config import ENV
 from app.limits import LOCALE_CODE_MAX_LENGTH
 from app.models.types import LocaleCode
 
@@ -108,8 +108,8 @@ def map_i18next_files(locales: tuple[LocaleCode, ...]) -> list[str]:
     )
 
 
-# optionally wrap map_i18next_files to always regenerate _i18next_map
-if FORCE_RELOAD_LOCALE_FILES:
+# Live reloading of translations in dev environment
+if ENV == 'dev':
     _map_i18next_files_inner = map_i18next_files
 
     def map_i18next_files(locales: tuple[LocaleCode, ...]) -> list[str]:

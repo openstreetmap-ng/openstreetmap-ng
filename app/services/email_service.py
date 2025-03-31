@@ -12,13 +12,13 @@ from psycopg.rows import dict_row
 from zid import zid
 
 from app.config import (
+    ENV,
     SMTP_HOST,
     SMTP_NOREPLY_FROM,
     SMTP_NOREPLY_FROM_HOST,
     SMTP_PASS,
     SMTP_PORT,
     SMTP_USER,
-    TEST_ENV,
 )
 from app.db import db
 from app.lib.auth_context import auth_context
@@ -197,7 +197,7 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
         logging.info('Discarding mail %r to deleted user %d', mail_id, mail['to_user_id'])
         return
 
-    if user_is_test(to_user) and not TEST_ENV:
+    if user_is_test(to_user) and ENV == 'prod':
         logging.info('Discarding mail %r to test user %d', mail_id, mail['to_user_id'])
         return
 

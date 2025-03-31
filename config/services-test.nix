@@ -64,12 +64,11 @@ let
       --arg postgresVerbose 1 \
       --arg gunicornWorkers 8 \
       --run "
-        export TEST_ENV=1 \
+        export ENV=test \
         && export APP_URL=https://openstreetmap.ng \
         && export API_URL=https://api.openstreetmap.ng \
         && export ID_URL=https://id.openstreetmap.ng \
         && export RAPID_URL=https://rapid.openstreetmap.ng \
-        && export FORCE_CRASH_REPORTING=1 \
         && ${script}"
   '';
 in
