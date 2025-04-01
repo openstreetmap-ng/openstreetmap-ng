@@ -57,6 +57,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const sidebar = getActionSidebar("changesets-history")
     const parentSidebar = sidebar.closest("div.sidebar")
     const sidebarTitleElement = sidebar.querySelector(".sidebar-title")
+    const dateFilterElement = sidebar.querySelector(".date-filter")
     const entryTemplate = sidebar.querySelector("template.entry")
     const entryContainer = entryTemplate.parentElement
     const loadingContainer = sidebar.querySelector(".loading")
@@ -331,6 +332,14 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             }
             sidebarTitleElement.innerHTML = sidebarTitleHtml
             setPageTitle(sidebarTitleText)
+
+            const searchParams = qsParse(location.search.substring(1))
+
+            if (searchParams.date) {
+                dateFilterElement.textContent = t("changeset.viewing_edits_from_date", { date: searchParams.date })
+            } else {
+                dateFilterElement.innerHTML = ""
+            }
 
             addMapLayer(map, layerId)
             map.on("moveend", updateState)

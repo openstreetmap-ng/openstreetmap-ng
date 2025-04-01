@@ -12,13 +12,11 @@ map:
     title: Map overlays
     opacity: Opacity
   data:
-    display_large_data_warning: |-
-      Displaying a large amount of data might slow down your browser.
+    display_large_data_warning: Displaying a large amount of data might slow down your browser.
     hide_map_data: Hide map data
     or: or
     show_map_data: Show map data
-    too_much_data_error: |-
-      Requested too much data. Please zoom in to continue.
+    too_much_data_error: Requested too much data. Please zoom in to continue.
   data_export:
     title: Data export
   export:
@@ -41,6 +39,7 @@ changeset:
   this_changeset_is_state: This changeset is {{state}}
   count_one: "changeset"
   count_other: "changesets"
+  viewing_edits_from_date: Viewing edits from {{date}}
 element:
   tags_diff_mode: Tags diff mode
 note:
