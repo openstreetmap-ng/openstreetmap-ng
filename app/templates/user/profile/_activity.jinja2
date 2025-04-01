@@ -25,12 +25,15 @@
             {% for day in row %}
                 <td>
                     {% if day.value > 0 %}
-                        {% set title = nt('user.activity.details.count', day.value, date=day.date) %}
+                        <a href="/user/{{ profile.display_name }}/history?date={{ day.iso_date }}"
+                           class="activity activity-{{ day.level }}"
+                           data-bs-title="{{ nt('user.activity.details.count', day.value, date=day.date) }}"
+                           data-bs-toggle="tooltip"></a>
                     {% else %}
-                        {% set title = t('user.activity.details.no_activity', date=day.date) %}
+                        <div class="activity activity-0"
+                             data-bs-title="{{ t('user.activity.details.no_activity', date=day.date) }}"
+                             data-bs-toggle="tooltip"></div>
                     {% endif %}
-                    <div class="activity activity-{{ day.level }}" data-bs-title="{{ title }}"
-                         data-bs-toggle="tooltip"></div>
                 </td>
             {% endfor %}
         </tr>

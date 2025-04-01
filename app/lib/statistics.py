@@ -18,6 +18,8 @@ class UserActivitySummaryRow(TypedDict):
     """Raw activity count."""
     date: str
     """Human-readable date."""
+    iso_date: str
+    """ISO-formatted date."""
 
 
 class UserActivitySummaryResult(TypedDict):
@@ -82,7 +84,7 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
         activity.tolist(),  # type: ignore
         dates_range,
     ):
-        day_row.append({'level': level, 'value': value, 'date': format_short_date(d)})
+        day_row.append({'level': level, 'value': value, 'date': format_short_date(d), 'iso_date': d.isoformat()})
 
         # Track month changes for month labels
         if d.day == 1:

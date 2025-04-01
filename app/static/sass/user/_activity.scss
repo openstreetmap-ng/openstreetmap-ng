@@ -30,6 +30,7 @@
     .activity {
         border-radius: 25%;
         aspect-ratio: 1;
+        display: block;
 
         &:hover {
             box-shadow: 0 0 0 2px var(--bs-emphasis-color);
