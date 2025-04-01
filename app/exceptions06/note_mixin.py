@@ -3,10 +3,10 @@ from typing import NoReturn, override
 
 from starlette import status
 
+from app.config import NOTE_QUERY_AREA_MAX_SIZE
 from app.exceptions.api_error import APIError
 from app.exceptions.note_mixin import NoteExceptionsMixin
 from app.lib.date_utils import legacy_date
-from app.limits import NOTE_QUERY_AREA_MAX_SIZE
 from app.models.types import NoteId
 
 

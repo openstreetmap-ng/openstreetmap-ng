@@ -5,10 +5,9 @@ from annotated_types import Gt
 from httpx import AsyncClient
 from starlette import status
 
-from app.config import LEGACY_HIGH_PRECISION_TIME
+from app.config import LEGACY_HIGH_PRECISION_TIME, TAGS_KEY_MAX_LENGTH, TAGS_LIMIT, TAGS_MAX_SIZE
 from app.format import Format06
 from app.lib.xmltodict import XMLToDict
-from app.limits import TAGS_KEY_MAX_LENGTH, TAGS_LIMIT, TAGS_MAX_SIZE
 from tests.utils.assert_model import assert_model
 
 

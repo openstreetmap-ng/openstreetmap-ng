@@ -6,6 +6,7 @@ from pydantic import SecretStr
 from rfc3986 import uri_reference
 from zid import zid
 
+from app.config import OAUTH_APP_ADMIN_LIMIT, OAUTH_APP_URI_LIMIT, OAUTH_APP_URI_MAX_LENGTH, OAUTH_SECRET_PREVIEW_LENGTH
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
@@ -13,12 +14,6 @@ from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
-from app.limits import (
-    OAUTH_APP_ADMIN_LIMIT,
-    OAUTH_APP_URI_LIMIT,
-    OAUTH_APP_URI_MAX_LENGTH,
-    OAUTH_SECRET_PREVIEW_LENGTH,
-)
 from app.models.db.oauth2_application import (
     OAuth2ApplicationInit,
     oauth2_app_avatar_url,

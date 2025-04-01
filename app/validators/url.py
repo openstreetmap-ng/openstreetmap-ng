@@ -1,8 +1,8 @@
 from pydantic import AfterValidator
 from rfc3986.validators import Validator
 
+from app.config import URLSAFE_BLACKLIST
 from app.lib.translation import t
-from app.limits import URLSAFE_BLACKLIST
 
 _BLACKLIST_ISDISJOINT = frozenset(URLSAFE_BLACKLIST).isdisjoint
 

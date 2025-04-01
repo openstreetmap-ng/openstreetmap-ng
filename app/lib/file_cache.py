@@ -10,9 +10,8 @@ from typing import NamedTuple
 import cython
 from google.protobuf.message import DecodeError
 
-from app.config import FILE_CACHE_DIR, FILE_CACHE_SIZE_GB
+from app.config import FILE_CACHE_DIR, FILE_CACHE_LOCK_TIMEOUT, FILE_CACHE_SIZE_GB
 from app.lib.sizestr import sizestr
-from app.limits import FILE_CACHE_LOCK_TIMEOUT
 from app.models.proto.server_pb2 import FileCacheMeta
 from app.models.types import StorageKey
 
@@ -111,7 +110,7 @@ class FileCache:
         """Cleanup the file cache, removing stale entries."""
         infos: list[_CleanupInfo] = []
         total_size: int = 0
-        limit_size: int = FILE_CACHE_SIZE_GB * 1024 * 1024 * 1024
+        limit_size: int = int(FILE_CACHE_SIZE_GB * 1024 * 1024 * 1024)
         now = time.time()
 
         for path in self._base_dir.rglob('*'):

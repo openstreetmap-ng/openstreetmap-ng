@@ -12,8 +12,8 @@ from httpx import AsyncClient
 from starlette import status
 from zstandard import ZstdCompressor
 
+from app.config import REQUEST_BODY_MAX_SIZE
 from app.lib.xmltodict import XMLToDict
-from app.limits import REQUEST_BODY_MAX_SIZE
 from app.models.types import ChangesetId
 from tests.utils.assert_model import assert_model
 

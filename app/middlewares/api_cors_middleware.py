@@ -1,7 +1,7 @@
 from starlette.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.limits import CORS_MAX_AGE
+from app.config import CORS_MAX_AGE
 from app.middlewares.request_context_middleware import get_request
 
 

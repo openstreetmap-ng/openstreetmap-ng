@@ -6,8 +6,7 @@ from typing import NamedTuple, overload
 import cython
 import orjson
 
-from app.config import ENV
-from app.limits import LOCALE_CODE_MAX_LENGTH
+from app.config import ENV, LOCALE_CODE_MAX_LENGTH
 from app.models.types import LocaleCode
 
 
@@ -81,16 +80,12 @@ INSTALLED_LOCALES_NAMES_MAP = {
 }
 _INSTALLED_LOCALES_CODES_NORMALIZED_MAP = {_normalize(code): code for code in INSTALLED_LOCALES_NAMES_MAP}
 logging.info(
-    'Loaded %d locales and %d locales names (%d installed)',
+    'Loaded %d locales and %d locales names (%d installed + %d not installed)',
     len(_I18NEXT_MAP),
     len(LOCALES_NAMES_MAP),
     len(INSTALLED_LOCALES_NAMES_MAP),
+    len([ln.code for ln in LOCALES_NAMES_MAP.values() if not ln.installed]),
 )
-
-# Log missing locales
-if _not_found := [ln.code for ln in LOCALES_NAMES_MAP.values() if not ln.installed]:
-    logging.info('Found locale names which are not installed: %s', _not_found)
-del _not_found
 
 
 def map_i18next_files(locales: tuple[LocaleCode, ...]) -> list[str]:

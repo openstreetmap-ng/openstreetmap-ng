@@ -7,16 +7,16 @@ from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
 from zid import zid
 
+from app.config import (
+    OAUTH_AUTHORIZATION_CODE_TIMEOUT,
+    OAUTH_SECRET_PREVIEW_LENGTH,
+    OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
+)
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes, hash_compare, hash_s256_code_challenge
 from app.lib.exceptions_context import raise_for
-from app.limits import (
-    OAUTH_AUTHORIZATION_CODE_TIMEOUT,
-    OAUTH_SECRET_PREVIEW_LENGTH,
-    OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
-)
 from app.models.db.oauth2_application import SYSTEM_APP_PAT_CLIENT_ID, OAuth2Application, oauth2_app_is_system
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,

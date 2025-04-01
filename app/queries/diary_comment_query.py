@@ -4,9 +4,9 @@ import cython
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
+from app.config import DIARY_COMMENTS_PAGE_SIZE
 from app.db import db
 from app.lib.standard_pagination import standard_pagination_range
-from app.limits import DIARY_COMMENTS_PAGE_SIZE
 from app.models.db.diary import Diary
 from app.models.db.diary_comment import DiaryComment
 from app.models.types import DiaryCommentId, DiaryId, UserId

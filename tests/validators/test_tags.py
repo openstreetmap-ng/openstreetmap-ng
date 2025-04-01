@@ -1,6 +1,6 @@
 import pytest
 
-from app.limits import TAGS_KEY_MAX_LENGTH, TAGS_LIMIT
+from app.config import TAGS_KEY_MAX_LENGTH, TAGS_LIMIT
 from app.validators.tags import TagsValidator
 
 

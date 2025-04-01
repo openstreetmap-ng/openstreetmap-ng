@@ -6,9 +6,9 @@ from fastapi import APIRouter
 from shapely import get_coordinates
 from starlette import status
 
+from app.config import NOTE_COMMENTS_PAGE_SIZE, NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.lib.date_utils import utcnow
 from app.lib.render_response import render_response
-from app.limits import NOTE_COMMENTS_PAGE_SIZE, NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.models.db.note import note_status
 from app.models.db.note_comment import note_comments_resolve_rich_text
 from app.models.proto.shared_pb2 import PartialNoteParams

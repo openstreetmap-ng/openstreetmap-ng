@@ -7,9 +7,9 @@ from httpx import AsyncClient
 from pydantic import PositiveInt
 from starlette import status
 
+from app.config import GEO_COORDINATE_PRECISION
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.xmltodict import XMLToDict
-from app.limits import GEO_COORDINATE_PRECISION
 from tests.utils.assert_model import assert_model
 
 

@@ -2,9 +2,9 @@ from typing import NoReturn, override
 
 from starlette import status
 
+from app.config import TRACE_POINT_QUERY_AREA_MAX_SIZE
 from app.exceptions.api_error import APIError
 from app.exceptions.trace_mixin import TraceExceptionsMixin
-from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE
 from app.models.types import TraceId
 
 

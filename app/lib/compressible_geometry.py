@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from shapely import transform
 from shapely.geometry.base import BaseGeometry
 
-from app.limits import GEO_COORDINATE_PRECISION
+from app.config import GEO_COORDINATE_PRECISION
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil, log2

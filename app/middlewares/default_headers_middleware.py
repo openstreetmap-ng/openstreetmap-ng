@@ -1,8 +1,8 @@
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.config import APP_URL, ENV, ID_URL, RAPID_URL, SENTRY_DSN, VERSION
-from app.limits import HSTS_MAX_AGE
+from app.config import APP_URL, ENV, HSTS_MAX_AGE, ID_URL, RAPID_URL, VERSION
+from app.lib.sentry import SENTRY_DSN
 
 # Please keep it CSP version 2-compatible for the time being.
 CSP_HEADER = '; '.join(

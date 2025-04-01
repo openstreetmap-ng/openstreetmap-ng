@@ -6,8 +6,8 @@ from shapely import MultiPolygon, Point, Polygon, buffer, get_coordinates, set_s
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
+from app.config import GEO_COORDINATE_PRECISION
 from app.lib.exceptions_context import raise_for
-from app.limits import GEO_COORDINATE_PRECISION
 
 _T = TypeVar('_T', bound=BaseGeometry)
 

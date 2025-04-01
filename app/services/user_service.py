@@ -3,7 +3,7 @@ import logging
 from fastapi import UploadFile
 from pydantic import SecretStr
 
-from app.config import ENV
+from app.config import ENV, USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
@@ -13,7 +13,6 @@ from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import Editor, User, user_avatar_url, user_is_test
 from app.models.types import DisplayName, Email, LocaleCode, Password
@@ -275,8 +274,6 @@ class UserService:
     ) -> None:
         """Reset the user password."""
         token_struct = UserTokenStructUtils.from_str(token)
-        if token_struct is None:
-            raise_for.bad_user_token_struct()
 
         user_token = await UserTokenQuery.find_one_by_token_struct('reset_password', token_struct)
         if user_token is None:

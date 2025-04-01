@@ -6,13 +6,13 @@ import numpy as np
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 
+from app.config import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.format import Format06
 from app.lib.auth_context import api_user
 from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.lib.xml_body import xml_body
-from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.changeset_comment import changeset_comments_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import ChangesetId, DisplayName, UserId

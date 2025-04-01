@@ -4,11 +4,10 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from shapely import Point
 
-from app.config import DELETED_USER_EMAIL_SUFFIX
+from app.config import DELETED_USER_EMAIL_SUFFIX, NEARBY_USERS_RADIUS_METERS
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.user_name_blacklist import is_user_name_blacklisted
-from app.limits import NEARBY_USERS_RADIUS_METERS
 from app.models.db.element import Element
 from app.models.db.user import User, UserDisplay
 from app.models.types import ChangesetId, DisplayName, Email, UserId

@@ -5,16 +5,16 @@ from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
 from shapely import Point
 
-from app.lib.auth_context import web_user
-from app.lib.render_response import render_response
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t
-from app.limits import (
+from app.config import (
     DIARY_BODY_MAX_LENGTH,
     DIARY_COMMENT_BODY_MAX_LENGTH,
     DIARY_TITLE_MAX_LENGTH,
     LOCALE_CODE_MAX_LENGTH,
 )
+from app.lib.auth_context import web_user
+from app.lib.render_response import render_response
+from app.lib.standard_feedback import StandardFeedback
+from app.lib.translation import t
 from app.models.db.diary_comment import diary_comments_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import DiaryId, Latitude, LocaleCode, Longitude

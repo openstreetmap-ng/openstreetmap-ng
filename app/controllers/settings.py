@@ -6,15 +6,10 @@ from fastapi import APIRouter
 from starlette import status
 from starlette.responses import RedirectResponse
 
+from app.config import ACTIVE_SESSIONS_DISPLAY_LIMIT, EMAIL_MIN_LENGTH, PASSWORD_MIN_LENGTH, URLSAFE_BLACKLIST
 from app.lib.auth_context import web_user
 from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP
 from app.lib.render_response import render_response
-from app.limits import (
-    ACTIVE_SESSIONS_DISPLAY_LIMIT,
-    EMAIL_MIN_LENGTH,
-    PASSWORD_MIN_LENGTH,
-    URLSAFE_BLACKLIST,
-)
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.queries.connected_account_query import ConnectedAccountQuery

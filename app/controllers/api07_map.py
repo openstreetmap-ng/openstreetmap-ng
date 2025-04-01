@@ -2,10 +2,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
+from app.config import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.format import Format07
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
 

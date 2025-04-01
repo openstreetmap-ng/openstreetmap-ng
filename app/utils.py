@@ -2,8 +2,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from httpx import AsyncClient
 
-from app.config import USER_AGENT
-from app.limits import HTTP_TIMEOUT
+from app.config import HTTP_TIMEOUT, USER_AGENT
 
 HTTP = AsyncClient(
     headers={'User-Agent': USER_AGENT},

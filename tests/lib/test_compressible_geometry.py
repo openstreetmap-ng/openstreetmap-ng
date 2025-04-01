@@ -1,8 +1,8 @@
 import numpy as np
 from shapely import Point, points
 
+from app.config import GEO_COORDINATE_PRECISION
 from app.lib.compressible_geometry import compressible_geometry
-from app.limits import GEO_COORDINATE_PRECISION
 
 
 def test_compressible_geometry():

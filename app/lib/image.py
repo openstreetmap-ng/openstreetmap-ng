@@ -9,9 +9,7 @@ import numpy as np
 from cv2.typing import MatLike
 from numpy.typing import NDArray
 
-from app.lib.exceptions_context import raise_for
-from app.lib.sizestr import sizestr
-from app.limits import (
+from app.config import (
     AVATAR_MAX_FILE_SIZE,
     AVATAR_MAX_MEGAPIXELS,
     AVATAR_MAX_RATIO,
@@ -19,6 +17,8 @@ from app.limits import (
     BACKGROUND_MAX_MEGAPIXELS,
     BACKGROUND_MAX_RATIO,
 )
+from app.lib.exceptions_context import raise_for
+from app.lib.sizestr import sizestr
 from app.models.types import StorageKey
 
 if cython.compiled:

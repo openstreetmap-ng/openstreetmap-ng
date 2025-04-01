@@ -2,11 +2,11 @@ from typing import NamedTuple
 
 import cython
 
+from app.config import QUERY_FEATURES_RESULTS_LIMIT
 from app.lib.elements_filter import ElementsFilter
 from app.lib.feature_icon import FeatureIcon, features_icons
 from app.lib.feature_name import features_names
 from app.lib.feature_prefix import features_prefixes
-from app.limits import QUERY_FEATURES_RESULTS_LIMIT
 from app.models.db.element import ElementInit
 from app.models.element import TypedElementId, typed_element_id
 from app.models.overpass import (

@@ -5,9 +5,8 @@ import orjson
 from httpx import Timeout
 from shapely import Point, get_coordinates
 
-from app.config import OVERPASS_INTERPRETER_URL
+from app.config import OVERPASS_CACHE_EXPIRE, OVERPASS_INTERPRETER_URL
 from app.lib.crypto import hash_storage_key
-from app.limits import OVERPASS_CACHE_EXPIRE
 from app.models.overpass import OverpassElement
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP

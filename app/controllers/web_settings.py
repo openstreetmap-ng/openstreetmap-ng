@@ -4,11 +4,11 @@ from fastapi import APIRouter, Form, Response, UploadFile
 from starlette import status
 from starlette.responses import RedirectResponse
 
+from app.config import USER_DESCRIPTION_MAX_LENGTH
 from app.lib.auth_context import web_user
 from app.lib.image import AvatarType
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
-from app.limits import USER_DESCRIPTION_MAX_LENGTH
 from app.models.db.connected_account import AuthProvider
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import Editor, User

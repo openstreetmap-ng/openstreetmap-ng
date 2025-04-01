@@ -3,9 +3,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Form
 
+from app.config import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from app.format import Format06
 from app.lib.auth_context import api_user
-from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from app.models.db.user import User
 from app.models.types import ChangesetCommentId, ChangesetId
 from app.queries.changeset_comment_query import ChangesetCommentQuery

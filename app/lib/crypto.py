@@ -44,7 +44,7 @@ def hash_storage_key(s: str | bytes, suffix: str = '') -> StorageKey:
 
 def hmac_bytes(s: str | bytes) -> bytes:
     """Compute a keyed hash of the input and return the bytes digest."""
-    return _hash(s, SECRET_32).digest()
+    return _hash(s, SECRET_32.get_secret_value()).digest()
 
 
 def hash_compare(s: _T, expected: bytes, *, hash_func: Callable[[_T], bytes] = hash_bytes) -> bool:
@@ -61,7 +61,7 @@ def encrypt(s: str) -> bytes:
     """Encrypt a string using AES-CTR."""
     assert s, 'Empty string must not be encrypted'
     nonce = buffered_randbytes(15)  # +1 byte for the counter
-    cipher = AES.new(key=SECRET_32, mode=AES.MODE_CTR, nonce=nonce)
+    cipher = AES.new(key=SECRET_32.get_secret_value(), mode=AES.MODE_CTR, nonce=nonce)
     cipher_text_bytes = cipher.encrypt(s.encode())
     return b''.join((b'\x00', nonce, cipher_text_bytes))
 
@@ -75,7 +75,7 @@ def decrypt(buffer: bytes) -> str:
     if marker == 0x00:
         nonce_bytes = buffer[1:16]
         cipher_text_bytes = buffer[16:]
-        cipher = AES.new(key=SECRET_32, mode=AES.MODE_CTR, nonce=nonce_bytes)
+        cipher = AES.new(key=SECRET_32.get_secret_value(), mode=AES.MODE_CTR, nonce=nonce_bytes)
         return cipher.decrypt(cipher_text_bytes).decode()
 
     raise NotImplementedError(f'Unsupported encryption marker {marker!r}')

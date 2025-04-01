@@ -1,8 +1,8 @@
 import logging
 
+from app.config import AUTH_PROVIDER_UID_MAX_LENGTH
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.limits import AUTH_PROVIDER_UID_MAX_LENGTH
 from app.models.db.connected_account import AuthProvider, ConnectedAccountInit
 
 

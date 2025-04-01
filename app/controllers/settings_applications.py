@@ -6,14 +6,9 @@ from fastapi import APIRouter, Query
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import API_URL
+from app.config import API_URL, OAUTH_APP_NAME_MAX_LENGTH, OAUTH_PAT_LIMIT, OAUTH_PAT_NAME_MAX_LENGTH
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
-from app.limits import (
-    OAUTH_APP_NAME_MAX_LENGTH,
-    OAUTH_PAT_LIMIT,
-    OAUTH_PAT_NAME_MAX_LENGTH,
-)
 from app.models.db.user import User
 from app.models.types import ApplicationId, OAuth2TokenId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery

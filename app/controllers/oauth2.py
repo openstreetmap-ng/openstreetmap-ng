@@ -7,11 +7,10 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import APP_URL, ENV
+from app.config import APP_URL, ENV, OAUTH_CODE_CHALLENGE_MAX_LENGTH
 from app.lib.auth_context import api_user, web_user
 from app.lib.exceptions_context import raise_for
 from app.lib.render_response import render_response
-from app.limits import OAUTH_CODE_CHALLENGE_MAX_LENGTH
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,
     OAuth2GrantType,

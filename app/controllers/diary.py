@@ -7,17 +7,17 @@ from fastapi import APIRouter, Path, Query
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.lib.auth_context import auth_user, web_user
-from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, LOCALES_NAMES_MAP, normalize_locale
-from app.lib.render_response import render_response
-from app.lib.translation import primary_translation_locale
-from app.limits import (
+from app.config import (
     DIARY_BODY_MAX_LENGTH,
     DIARY_COMMENT_BODY_MAX_LENGTH,
     DIARY_COMMENTS_PAGE_SIZE,
     DIARY_LIST_PAGE_SIZE,
     DIARY_TITLE_MAX_LENGTH,
 )
+from app.lib.auth_context import auth_user, web_user
+from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, LOCALES_NAMES_MAP, normalize_locale
+from app.lib.render_response import render_response
+from app.lib.translation import primary_translation_locale
 from app.models.db.diary import Diary, diaries_resolve_rich_text
 from app.models.db.user import User, UserDisplay
 from app.models.types import DiaryId, DisplayName, LocaleCode

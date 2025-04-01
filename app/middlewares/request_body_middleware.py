@@ -10,8 +10,8 @@ from starlette import status
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from zstandard import ZstdDecompressor
 
+from app.config import REQUEST_BODY_MAX_SIZE
 from app.lib.sizestr import sizestr
-from app.limits import REQUEST_BODY_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
 
 _ZSTD_DECOMPRESS = ZstdDecompressor().decompress

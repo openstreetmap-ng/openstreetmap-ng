@@ -4,13 +4,13 @@ from typing import Annotated
 from fastapi import APIRouter, File, Form, Query, Response, UploadFile
 from pydantic import NonNegativeInt
 
+from app.config import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
 from app.format import Format06
 from app.format.gpx import FormatGPX
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.lib.xml_body import xml_body
-from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
 from app.models.db.trace import TraceVisibility
 from app.models.db.user import User
 from app.models.types import TraceId

@@ -5,8 +5,8 @@ from typing import TypedDict
 import cython
 import numpy as np
 
+from app.config import USER_ACTIVITY_CHART_WEEKS
 from app.lib.date_utils import format_short_date, get_month_name, get_weekday_name, utcnow
-from app.limits import USER_ACTIVITY_CHART_WEEKS
 from app.models.types import UserId
 from app.queries.changeset_query import ChangesetQuery
 

@@ -4,9 +4,8 @@ import cython
 from annotated_types import MaxLen, MinLen
 from pydantic import AfterValidator, TypeAdapter
 
-from app.config import PYDANTIC_CONFIG
+from app.config import PYDANTIC_CONFIG, TAGS_KEY_MAX_LENGTH, TAGS_LIMIT, TAGS_MAX_SIZE
 from app.lib.sizestr import sizestr
-from app.limits import TAGS_KEY_MAX_LENGTH, TAGS_LIMIT, TAGS_MAX_SIZE
 from app.validators.unicode import UnicodeValidator
 from app.validators.xml import XMLSafeValidator
 

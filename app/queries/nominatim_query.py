@@ -7,18 +7,18 @@ import numpy as np
 import orjson
 from shapely import MultiPolygon, Point, Polygon, get_coordinates, lib
 
-from app.config import NOMINATIM_URL
+from app.config import (
+    NOMINATIM_REVERSE_CACHE_EXPIRE,
+    NOMINATIM_REVERSE_HTTP_TIMEOUT,
+    NOMINATIM_SEARCH_CACHE_EXPIRE,
+    NOMINATIM_SEARCH_HTTP_TIMEOUT,
+    NOMINATIM_URL,
+)
 from app.lib.crypto import hash_storage_key
 from app.lib.feature_icon import features_icons
 from app.lib.feature_prefix import features_prefixes
 from app.lib.search import SearchResult
 from app.lib.translation import primary_translation_locale
-from app.limits import (
-    NOMINATIM_REVERSE_CACHE_EXPIRE,
-    NOMINATIM_REVERSE_HTTP_TIMEOUT,
-    NOMINATIM_SEARCH_CACHE_EXPIRE,
-    NOMINATIM_SEARCH_HTTP_TIMEOUT,
-)
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementType, TypedElementId, typed_element_id
 from app.models.types import SequenceId

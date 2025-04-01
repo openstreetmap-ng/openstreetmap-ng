@@ -14,9 +14,8 @@ from email_validator import validate_email as validate_email_
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from pydantic import BeforeValidator
 
-from app.config import ENV
+from app.config import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT, EMAIL_MIN_LENGTH, ENV
 from app.lib.crypto import hash_bytes
-from app.limits import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT, EMAIL_MIN_LENGTH
 from app.models.types import Email
 from app.services.cache_service import CacheContext, CacheService
 from app.validators.whitespace import BoundaryWhitespaceValidator

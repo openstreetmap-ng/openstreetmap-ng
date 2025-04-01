@@ -6,12 +6,11 @@ from pydantic import PositiveInt
 from shapely.geometry.base import BaseGeometry
 from starlette import status
 
-from app.config import APP_URL, ATTRIBUTION_URL
+from app.config import APP_URL, ATTRIBUTION_URL, CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.format import FormatRSS06
 from app.lib.date_utils import utcnow
 from app.lib.geo_utils import parse_bbox
 from app.lib.translation import primary_translation_locale, t
-from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
 from app.models.types import DisplayName, UserId

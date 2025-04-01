@@ -10,11 +10,11 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from shapely import Point, get_coordinates, lib
 
+from app.config import GEO_COORDINATE_PRECISION
 from app.db import db
 from app.lib.auth_context import auth_user, auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
-from app.limits import GEO_COORDINATE_PRECISION
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.note import Note, NoteInit
 from app.models.db.note_comment import (

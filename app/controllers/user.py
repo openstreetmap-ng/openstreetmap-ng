@@ -10,13 +10,7 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.lib.auth_context import auth_user, web_user
-from app.lib.date_utils import utcnow
-from app.lib.exceptions_context import raise_for
-from app.lib.render_response import render_response
-from app.lib.statistics import user_activity_summary
-from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.limits import (
+from app.config import (
     EMAIL_MIN_LENGTH,
     PASSWORD_MIN_LENGTH,
     URLSAFE_BLACKLIST,
@@ -24,6 +18,12 @@ from app.limits import (
     USER_NEW_DAYS,
     USER_RECENT_ACTIVITY_ENTRIES,
 )
+from app.lib.auth_context import auth_user, web_user
+from app.lib.date_utils import utcnow
+from app.lib.exceptions_context import raise_for
+from app.lib.render_response import render_response
+from app.lib.statistics import user_activity_summary
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.user import User, users_resolve_rich_text
 from app.models.types import DisplayName, UserId
 from app.queries.changeset_comment_query import ChangesetCommentQuery

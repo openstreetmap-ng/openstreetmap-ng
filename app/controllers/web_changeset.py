@@ -4,11 +4,11 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
 
+from app.config import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_QUERY_WEB_LIMIT
 from app.format import FormatLeaflet
 from app.lib.auth_context import web_user
 from app.lib.geo_utils import parse_bbox
 from app.lib.render_response import render_response
-from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_QUERY_WEB_LIMIT
 from app.models.db.changeset_comment import changeset_comments_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import ChangesetId, DisplayName

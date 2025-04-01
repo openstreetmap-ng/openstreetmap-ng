@@ -4,8 +4,8 @@ from typing import Annotated
 import cython
 from fastapi import APIRouter, Form, Response
 
+from app.config import MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH
 from app.lib.auth_context import web_user
-from app.limits import MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH
 from app.models.db.message import messages_resolve_rich_text
 from app.models.db.user import User, user_avatar_url
 from app.models.types import DisplayName, MessageId, UserId

@@ -6,11 +6,11 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
 
+from app.config import NOTE_USER_PAGE_SIZE
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.standard_pagination import standard_pagination_range
-from app.limits import NOTE_USER_PAGE_SIZE
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, NoteEvent
 from app.models.db.user import user_is_moderator

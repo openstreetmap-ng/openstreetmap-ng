@@ -6,17 +6,12 @@ from fastapi import APIRouter, Query
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import APP_URL
+from app.config import APP_URL, MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH, MESSAGES_INBOX_PAGE_SIZE
 from app.lib.auth_context import web_user
 from app.lib.date_utils import format_sql_date
 from app.lib.exceptions_context import raise_for
 from app.lib.render_response import render_response
 from app.lib.translation import t
-from app.limits import (
-    MESSAGE_BODY_MAX_LENGTH,
-    MESSAGE_SUBJECT_MAX_LENGTH,
-    MESSAGES_INBOX_PAGE_SIZE,
-)
 from app.models.db.user import User
 from app.models.types import DiaryCommentId, DiaryId, DisplayName, MessageId, UserId
 from app.queries.diary_comment_query import DiaryCommentQuery

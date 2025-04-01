@@ -18,10 +18,11 @@ from sentry_sdk import set_context, set_tag, start_transaction
 from shapely import Point
 from starlette import status
 
-from app.config import OSM_REPLICATION_URL, REPLICATION_DIR, SENTRY_REPLICATION_MONITOR
+from app.config import OSM_REPLICATION_URL, REPLICATION_DIR
 from app.db import duckdb_connect
 from app.lib.compressible_geometry import compressible_geometry
 from app.lib.retry import retry
+from app.lib.sentry import SENTRY_REPLICATION_MONITOR
 from app.lib.xmltodict import XMLToDict
 from app.models.element import ElementType
 from app.services.optimistic_diff.prepare import OSMChangeAction

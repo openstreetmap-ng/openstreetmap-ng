@@ -5,8 +5,8 @@ from h3 import compact_cells, geo_to_h3shape, h3shape_to_cells_experimental
 from pyproj import Geod
 from shapely import MultiPolygon, Point, Polygon, box, get_coordinates
 
+from app.config import GEO_COORDINATE_PRECISION
 from app.lib.exceptions_context import raise_for
-from app.limits import GEO_COORDINATE_PRECISION
 from app.validators.geometry import validate_geometry
 
 if cython.compiled:

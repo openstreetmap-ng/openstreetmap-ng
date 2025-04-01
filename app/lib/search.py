@@ -5,9 +5,9 @@ import cython
 import numpy as np
 from shapely import MultiPolygon, Point, Polygon, STRtree
 
+from app.config import SEARCH_LOCAL_AREA_LIMIT, SEARCH_LOCAL_MAX_ITERATIONS, SEARCH_LOCAL_RATIO
 from app.lib.feature_icon import FeatureIcon
 from app.lib.geo_utils import parse_bbox
-from app.limits import SEARCH_LOCAL_AREA_LIMIT, SEARCH_LOCAL_MAX_ITERATIONS, SEARCH_LOCAL_RATIO
 from app.models.db.element import Element
 from app.models.element import TypedElementId, split_typed_element_ids
 

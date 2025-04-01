@@ -5,8 +5,8 @@ from typing import NewType
 
 import cython
 
+from app.config import CACHE_DEFAULT_EXPIRE
 from app.lib.file_cache import FileCache
-from app.limits import CACHE_DEFAULT_EXPIRE
 from app.models.types import StorageKey
 
 CacheContext = NewType('CacheContext', str)

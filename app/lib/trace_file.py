@@ -12,15 +12,15 @@ import cython
 import magic
 from zstandard import ZstdCompressor, ZstdDecompressor, ZstdError
 
-from app.lib.exceptions_context import raise_for
-from app.lib.sizestr import sizestr
-from app.limits import (
+from app.config import (
     TRACE_FILE_ARCHIVE_MAX_FILES,
     TRACE_FILE_COMPRESS_ZSTD_LEVEL,
     TRACE_FILE_COMPRESS_ZSTD_THREADS,
     TRACE_FILE_MAX_LAYERS,
     TRACE_FILE_UNCOMPRESSED_MAX_SIZE,
 )
+from app.lib.exceptions_context import raise_for
+from app.lib.sizestr import sizestr
 from app.models.types import StorageKey
 
 

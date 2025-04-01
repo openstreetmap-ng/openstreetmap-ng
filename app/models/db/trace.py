@@ -7,8 +7,7 @@ from numpy.typing import NDArray
 from pydantic import TypeAdapter
 from shapely import MultiLineString
 
-from app.config import PYDANTIC_CONFIG
-from app.limits import TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
+from app.config import PYDANTIC_CONFIG, TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
 from app.models.db.user import User, UserDisplay
 from app.models.scope import Scope
 from app.models.types import StorageKey, TraceId, UserId

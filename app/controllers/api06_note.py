@@ -7,18 +7,18 @@ from fastapi import APIRouter, Query, Request
 from feedgen.feed import FeedGenerator
 from pydantic import BaseModel, PositiveInt
 
+from app.config import (
+    NOTE_QUERY_AREA_MAX_SIZE,
+    NOTE_QUERY_DEFAULT_CLOSED,
+    NOTE_QUERY_DEFAULT_LIMIT,
+    NOTE_QUERY_LEGACY_MAX_LIMIT,
+)
 from app.format import Format06, FormatRSS06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_rss
 from app.lib.geo_utils import parse_bbox
 from app.lib.translation import t
-from app.limits import (
-    NOTE_QUERY_AREA_MAX_SIZE,
-    NOTE_QUERY_DEFAULT_CLOSED,
-    NOTE_QUERY_DEFAULT_LIMIT,
-    NOTE_QUERY_LEGACY_MAX_LIMIT,
-)
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
 from app.models.db.user import User
@@ -201,7 +201,7 @@ async def get_feed(
 async def query_notes1(
     request: Request,
     bbox: Annotated[str, Query()],
-    closed: Annotated[int, Query()] = NOTE_QUERY_DEFAULT_CLOSED,
+    closed: Annotated[float, Query()] = NOTE_QUERY_DEFAULT_CLOSED,
     limit: Annotated[PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)] = NOTE_QUERY_DEFAULT_LIMIT,
 ):
     geometry = parse_bbox(bbox)

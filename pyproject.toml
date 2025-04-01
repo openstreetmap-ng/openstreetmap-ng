@@ -33,6 +33,7 @@ dependencies = [
   "pyarrow>=19.0.0",
   "pycryptodomex",
   "pydantic",
+  "pydantic-settings>=2.8.1",
   "pyinstrument",
   "pyproj>=3.7.1",
   "python-dateutil",

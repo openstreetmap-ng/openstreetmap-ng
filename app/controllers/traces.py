@@ -7,9 +7,9 @@ from polyline_rs import encode_lonlat
 from starlette import status
 from starlette.responses import RedirectResponse
 
+from app.config import TRACES_LIST_PAGE_SIZE
 from app.lib.auth_context import auth_user, web_user
 from app.lib.render_response import render_response
-from app.limits import TRACES_LIST_PAGE_SIZE
 from app.models.db.user import User
 from app.models.types import DisplayName, TraceId
 from app.queries.trace_query import TraceQuery

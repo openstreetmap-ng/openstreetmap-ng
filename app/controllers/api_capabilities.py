@@ -1,9 +1,6 @@
 from fastapi import APIRouter
 
-from app.lib.auth_context import auth_user
-from app.lib.user_role_limits import UserRoleLimits
-from app.lib.xmltodict import get_xattr
-from app.limits import (
+from app.config import (
     CHANGESET_QUERY_DEFAULT_LIMIT,
     CHANGESET_QUERY_MAX_LIMIT,
     ELEMENT_RELATION_MEMBERS_LIMIT,
@@ -15,6 +12,9 @@ from app.limits import (
     TRACE_POINT_QUERY_AREA_MAX_SIZE,
     TRACE_POINT_QUERY_DEFAULT_LIMIT,
 )
+from app.lib.auth_context import auth_user
+from app.lib.user_role_limits import UserRoleLimits
+from app.lib.xmltodict import get_xattr
 
 router = APIRouter(prefix='/api')
 

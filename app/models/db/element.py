@@ -7,8 +7,7 @@ from annotated_types import MaxLen, MinLen
 from pydantic import PositiveInt, TypeAdapter
 from shapely import Point
 
-from app.config import PYDANTIC_CONFIG
-from app.limits import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT, TAGS_KEY_MAX_LENGTH
+from app.config import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT, PYDANTIC_CONFIG, TAGS_KEY_MAX_LENGTH
 from app.models.db.user import UserDisplay
 from app.models.element import TYPED_ELEMENT_ID_NODE_MAX, TypedElementId, split_typed_element_id
 from app.models.types import ChangesetId, SequenceId, UserId

@@ -5,10 +5,10 @@ import cython
 import numpy as np
 from shapely import Point, get_coordinates, lib
 
+from app.config import GEO_COORDINATE_PRECISION
 from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
-from app.limits import GEO_COORDINATE_PRECISION
 from app.models.db.element import Element, ElementInit, validate_elements
 from app.models.element import (
     ElementId,

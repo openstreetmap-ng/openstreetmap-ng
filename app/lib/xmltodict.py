@@ -7,11 +7,11 @@ import cython
 import lxml.etree as tree
 from lxml.etree import CDATA, Element
 
+from app.config import XML_PARSE_MAX_SIZE
 from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.lib.sizestr import sizestr
-from app.limits import XML_PARSE_MAX_SIZE
 
 _PARSER = tree.XMLParser(
     recover=True,

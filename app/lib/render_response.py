@@ -4,18 +4,12 @@ from typing import Any
 from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
-from app.config import (
-    API_URL,
-    ENV,
-    SENTRY_DSN,
-    SENTRY_TRACES_SAMPLE_RATE,
-    VERSION,
-)
+from app.config import API_URL, ENV, MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.locale import map_i18next_files
 from app.lib.render_jinja import render_jinja
+from app.lib.sentry import SENTRY_DSN, SENTRY_TRACES_SAMPLE_RATE
 from app.lib.translation import translation_locales
-from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import DEFAULT_EDITOR

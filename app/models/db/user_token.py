@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Literal, NotRequired, TypedDict
 
-from app.limits import (
+from app.config import (
     USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE,
     USER_TOKEN_EMAIL_CHANGE_EXPIRE,
     USER_TOKEN_EMAIL_REPLY_EXPIRE,

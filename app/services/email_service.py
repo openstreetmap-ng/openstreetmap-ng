@@ -13,6 +13,9 @@ from zid import zid
 
 from app.config import (
     ENV,
+    MAIL_PROCESSING_TIMEOUT,
+    MAIL_UNPROCESSED_EXPIRE,
+    MAIL_UNPROCESSED_EXPONENT,
     SMTP_HOST,
     SMTP_NOREPLY_FROM,
     SMTP_NOREPLY_FROM_HOST,
@@ -25,7 +28,6 @@ from app.lib.auth_context import auth_context
 from app.lib.date_utils import utcnow
 from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_context
-from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail, MailInit, MailSource
 from app.models.db.user import User, user_is_deleted, user_is_test
 from app.models.types import MailId, UserId
@@ -240,7 +242,7 @@ def _smtp_factory():
         hostname=SMTP_HOST,
         port=port,
         username=SMTP_USER,
-        password=SMTP_PASS,
+        password=SMTP_PASS.get_secret_value(),
         use_tls=use_tls,
         start_tls=start_tls,
     )

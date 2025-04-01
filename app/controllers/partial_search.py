@@ -6,13 +6,10 @@ import cython
 from fastapi import APIRouter, Query
 from shapely import Point, get_coordinates
 
+from app.config import SEARCH_QUERY_MAX_LENGTH, SEARCH_RESULTS_LIMIT
 from app.format import FormatLeaflet
 from app.lib.render_response import render_response
 from app.lib.search import Search, SearchResult
-from app.limits import (
-    SEARCH_QUERY_MAX_LENGTH,
-    SEARCH_RESULTS_LIMIT,
-)
 from app.models.db.element import Element
 from app.models.element import (
     TYPED_ELEMENT_ID_WAY_MAX,

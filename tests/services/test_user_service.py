@@ -2,8 +2,8 @@ from datetime import timedelta
 
 import pytest
 
+from app.config import USER_PENDING_EXPIRE
 from app.lib.date_utils import utcnow
-from app.limits import USER_PENDING_EXPIRE
 from app.models.types import DisplayName
 from app.queries.user_query import UserQuery
 from app.services.test_service import TestService

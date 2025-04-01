@@ -3,9 +3,9 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Path, Query, Request
 
+from app.config import NOTE_USER_PAGE_SIZE
 from app.lib.exceptions_context import raise_for
 from app.lib.render_response import render_response
-from app.limits import NOTE_USER_PAGE_SIZE
 from app.models.types import DisplayName
 from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery

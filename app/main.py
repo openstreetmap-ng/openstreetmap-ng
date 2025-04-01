@@ -16,17 +16,18 @@ from starlette.convertors import register_url_convertor
 from starlette_compress import CompressMiddleware
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
-from app.config import ENV, NAME
-from app.db import psycopg_pool_open
-from app.lib.bun_packages import ID_VERSION, RAPID_VERSION
-from app.lib.starlette_convertor import ElementTypeConvertor
-from app.lib.user_name_blacklist import user_name_blacklist_routes
-from app.limits import (
+from app.config import (
     COMPRESS_HTTP_BROTLI_QUALITY,
     COMPRESS_HTTP_GZIP_LEVEL,
     COMPRESS_HTTP_MIN_SIZE,
     COMPRESS_HTTP_ZSTD_LEVEL,
+    ENV,
+    NAME,
 )
+from app.db import psycopg_pool_open
+from app.lib.bun_packages import ID_VERSION, RAPID_VERSION
+from app.lib.starlette_convertor import ElementTypeConvertor
+from app.lib.user_name_blacklist import user_name_blacklist_routes
 from app.middlewares.api_cors_middleware import APICorsMiddleware
 from app.middlewares.auth_middleware import AuthMiddleware
 from app.middlewares.cache_control_middleware import CacheControlMiddleware

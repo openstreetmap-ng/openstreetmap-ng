@@ -5,7 +5,7 @@ import cython
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.limits import STATIC_CACHE_MAX_AGE, STATIC_CACHE_STALE
+from app.config import STATIC_CACHE_MAX_AGE, STATIC_CACHE_STALE
 from app.middlewares.request_context_middleware import get_request
 
 _STATIC_HEADER = f'public, max-age={int(STATIC_CACHE_MAX_AGE.total_seconds())}, stale-while-revalidate={int(STATIC_CACHE_STALE.total_seconds())}, immutable'

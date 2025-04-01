@@ -4,8 +4,8 @@ import time
 import cython
 from psycopg import OperationalError
 
+from app.config import OPTIMISTIC_DIFF_RETRY_TIMEOUT
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
-from app.limits import OPTIMISTIC_DIFF_RETRY_TIMEOUT
 from app.models.db.element import ElementInit
 from app.models.element import TypedElementId
 from app.services.optimistic_diff.apply import OptimisticDiffApply

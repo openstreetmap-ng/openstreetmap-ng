@@ -11,9 +11,10 @@ from psycopg import AsyncConnection
 from sentry_sdk import start_transaction
 from starlette import status
 
-from app.config import ENV, SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR
+from app.config import ENV
 from app.db import db
 from app.lib.retry import retry
+from app.lib.sentry import SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR
 from app.lib.testmethod import testmethod
 
 _PROCESS_REQUEST_EVENT = Event()

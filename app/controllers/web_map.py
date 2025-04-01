@@ -3,10 +3,10 @@ from typing import Annotated, Literal
 from annotated_types import Gt, Le
 from fastapi import APIRouter, Query, Response
 
+from app.config import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.format import FormatLeaflet
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.proto.shared_pb2 import RenderElementsData
 from app.queries.element_query import ElementQuery
 

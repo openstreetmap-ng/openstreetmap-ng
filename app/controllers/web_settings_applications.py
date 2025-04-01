@@ -2,15 +2,15 @@ from typing import Annotated
 
 from fastapi import APIRouter, Form, Response, UploadFile
 
-from app.lib.auth_context import web_user
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t
-from app.limits import (
+from app.config import (
     OAUTH_APP_NAME_MAX_LENGTH,
     OAUTH_APP_URI_LIMIT,
     OAUTH_APP_URI_MAX_LENGTH,
     OAUTH_PAT_NAME_MAX_LENGTH,
 )
+from app.lib.auth_context import web_user
+from app.lib.standard_feedback import StandardFeedback
+from app.lib.translation import t
 from app.models.db.user import User
 from app.models.scope import scope_from_kwargs
 from app.models.types import ApplicationId, OAuth2TokenId

@@ -5,10 +5,9 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
 
-from app.config import LEGACY_SEQUENCE_ID_MARGIN
+from app.config import LEGACY_SEQUENCE_ID_MARGIN, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.db import db
 from app.lib.exceptions_context import raise_for
-from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.element import Element
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,

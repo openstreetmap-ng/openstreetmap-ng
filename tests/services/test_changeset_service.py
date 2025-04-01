@@ -3,9 +3,9 @@ from typing import Any
 
 from psycopg.sql import SQL, Identifier
 
+from app.config import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT
 from app.db import db
 from app.lib.date_utils import utcnow
-from app.limits import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT
 from app.models.types import ChangesetId
 from app.queries.changeset_query import ChangesetQuery
 from app.services.changeset_service import ChangesetService

@@ -4,10 +4,10 @@ from typing import Any
 import cython
 from psycopg.sql import SQL, Composable
 
+from app.config import USER_PREF_BULK_SET_LIMIT
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.limits import USER_PREF_BULK_SET_LIMIT
 from app.models.db.user_pref import UserPref
 from app.models.types import ApplicationId, UserPrefKey
 

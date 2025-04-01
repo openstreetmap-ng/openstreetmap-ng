@@ -3,6 +3,7 @@ import math
 import pytest
 from shapely import MultiPolygon, Point, Polygon, box
 
+from app.config import GEO_COORDINATE_PRECISION
 from app.lib.geo_utils import (
     degrees_to_meters,
     haversine_distance,
@@ -12,7 +13,6 @@ from app.lib.geo_utils import (
     radians_to_meters,
     try_parse_point,
 )
-from app.limits import GEO_COORDINATE_PRECISION
 
 _EARTH_RADIUS_METERS = 6371000
 

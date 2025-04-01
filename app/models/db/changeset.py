@@ -23,7 +23,7 @@ class Changeset(ChangesetInit):
     # TODO: test updated at optimistic
     created_at: datetime
     updated_at: datetime
-    closed_at: datetime
+    closed_at: datetime | None
     size: int
     union_bounds: Polygon | None
 

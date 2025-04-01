@@ -7,12 +7,11 @@ from fastapi import HTTPException, Response
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import ENV
+from app.config import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_MAX_AGE, COOKIE_AUTH_MAX_AGE, ENV
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_compare, hmac_bytes
 from app.lib.render_response import render_response
-from app.limits import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_MAX_AGE, COOKIE_AUTH_MAX_AGE
 from app.models.db.connected_account import AUTH_PROVIDERS, AuthProvider, AuthProviderAction
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
@@ -42,7 +41,7 @@ class AuthProviderService:
         response.set_cookie(
             key='auth_provider_state',
             value=state,
-            max_age=AUTH_PROVIDER_STATE_MAX_AGE,
+            max_age=int(AUTH_PROVIDER_STATE_MAX_AGE.total_seconds()),
             secure=ENV != 'dev',
             httponly=True,
             samesite='lax',
@@ -61,7 +60,7 @@ class AuthProviderService:
         if not hash_compare(buffer_b64, urlsafe_b64decode(query_state), hash_func=hmac_bytes):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state hmac')
         state = AuthProviderState.FromString(urlsafe_b64decode(buffer_b64))
-        if state.timestamp + AUTH_PROVIDER_STATE_MAX_AGE < time():
+        if state.timestamp + AUTH_PROVIDER_STATE_MAX_AGE.total_seconds() < time():
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Authorization timed out, please try again')
         if state.provider != provider:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state provider')
@@ -89,13 +88,12 @@ class AuthProviderService:
 
             logging.debug('Authenticated user %d using auth provider %r', user_id, provider)
             access_token = await SystemAppService.create_access_token(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
-            max_age = COOKIE_AUTH_MAX_AGE  # TODO: remember option for auth providers
             response = RedirectResponse(secure_referer(state.referer), status.HTTP_303_SEE_OTHER)
             response.delete_cookie('auth_provider_state')
             response.set_cookie(
                 key='auth',
                 value=access_token.get_secret_value(),
-                max_age=max_age,
+                max_age=int(COOKIE_AUTH_MAX_AGE.total_seconds()),  # TODO: remember option for auth providers
                 secure=ENV != 'dev',
                 httponly=True,
                 samesite='lax',
@@ -131,7 +129,7 @@ class AuthProviderService:
             response.set_cookie(
                 key='auth_provider_verification',
                 value=verification,
-                max_age=AUTH_PROVIDER_VERIFICATION_MAX_AGE,
+                max_age=int(AUTH_PROVIDER_VERIFICATION_MAX_AGE.total_seconds()),
                 secure=ENV != 'dev',
                 httponly=True,
                 samesite='lax',
@@ -161,7 +159,7 @@ class AuthProviderService:
             return None
 
         verification = AuthProviderVerification.FromString(urlsafe_b64decode(buffer_b64))
-        if verification.timestamp + AUTH_PROVIDER_VERIFICATION_MAX_AGE < time():
+        if verification.timestamp + AUTH_PROVIDER_VERIFICATION_MAX_AGE.total_seconds() < time():
             logging.debug('Auth provider verification is expired')
             return None
 

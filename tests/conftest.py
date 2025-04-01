@@ -46,7 +46,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
                 item.add_marker(skip_marker)
 
 
-@pytest_asyncio.fixture(scope='session')  # pyright: ignore[reportUntypedFunctionDecorator]
+@pytest_asyncio.fixture(scope='session')
 async def transport():
     async with LifespanManager(main):
         yield ASGITransport(main)
@@ -57,7 +57,7 @@ def client(transport: ASGITransport) -> AsyncClient:
     return AsyncClient(base_url='http://127.0.0.1:8000', transport=transport)
 
 
-@pytest_asyncio.fixture  # pyright: ignore[reportUntypedFunctionDecorator]
+@pytest_asyncio.fixture
 async def changeset_id(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 

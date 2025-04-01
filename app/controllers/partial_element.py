@@ -7,6 +7,7 @@ from pydantic import PositiveInt
 from shapely import get_coordinates
 from starlette import status
 
+from app.config import ELEMENT_HISTORY_PAGE_SIZE
 from app.format import FormatLeaflet
 from app.format.element_list import FormatElementList
 from app.lib.feature_icon import features_icons
@@ -15,7 +16,6 @@ from app.lib.render_response import render_response
 from app.lib.tags_diff_mode import tags_diff_mode
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
-from app.limits import ELEMENT_HISTORY_PAGE_SIZE
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementType, split_typed_element_id, typed_element_id
 from app.models.proto.shared_pb2 import PartialElementParams

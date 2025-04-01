@@ -3,10 +3,8 @@ from typing import NotRequired, TypedDict
 
 import orjson
 
+from app.config import OPENID_DISCOVERY_HTTP_TIMEOUT
 from app.lib.crypto import hash_storage_key
-from app.limits import (
-    OPENID_DISCOVERY_HTTP_TIMEOUT,
-)
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP
 

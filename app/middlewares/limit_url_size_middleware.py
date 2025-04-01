@@ -2,7 +2,7 @@ from fastapi import Response
 from starlette import status
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.limits import REQUEST_PATH_QUERY_MAX_LENGTH
+from app.config import REQUEST_PATH_QUERY_MAX_LENGTH
 from app.middlewares.request_context_middleware import get_request
 
 

@@ -5,7 +5,7 @@ from rtree.index import Index
 from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, measurement, multipolygons
 from sklearn.cluster import AgglomerativeClustering
 
-from app.limits import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
+from app.config import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
 
 
 def extend_changeset_bounds(bounds: MultiPolygon | None, points: list[Point]) -> MultiPolygon:

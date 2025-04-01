@@ -9,13 +9,13 @@ from time import perf_counter
 from psycopg import AsyncConnection
 from sentry_sdk.api import start_transaction
 
-from app.config import ENV, SENTRY_CHANGESET_MANAGEMENT_MONITOR
+from app.config import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT, ENV
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
+from app.lib.sentry import SENTRY_CHANGESET_MANAGEMENT_MONITOR
 from app.lib.testmethod import testmethod
-from app.limits import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT
 from app.models.db.changeset import ChangesetInit
 from app.models.types import ChangesetId, UserId
 from app.services.user_subscription_service import UserSubscriptionService

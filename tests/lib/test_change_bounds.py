@@ -1,8 +1,8 @@
 import pytest
 from shapely import MultiPolygon, Point, box
 
+from app.config import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
 from app.lib.changeset_bounds import extend_changeset_bounds
-from app.limits import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
 
 
 def test_multiple_sequential_extensions():

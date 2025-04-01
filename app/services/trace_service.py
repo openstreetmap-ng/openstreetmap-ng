@@ -3,6 +3,7 @@ import logging
 import cython
 from fastapi import UploadFile
 
+from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db
 from app.format.gpx import FormatGPX
 from app.lib.auth_context import auth_user
@@ -11,7 +12,6 @@ from app.lib.exceptions_context import raise_for
 from app.lib.storage import TRACE_STORAGE
 from app.lib.trace_file import TraceFile
 from app.lib.xmltodict import XMLToDict
-from app.limits import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.models.db.trace import (
     TraceInit,
     TraceInitValidator,

@@ -5,10 +5,10 @@ from functools import lru_cache
 import cython
 from starlette.types import ASGIApp, Receive, Scope, Send
 
+from app.config import LOCALE_CODE_MAX_LENGTH
 from app.lib.auth_context import auth_user
 from app.lib.locale import DEFAULT_LOCALE, normalize_locale
 from app.lib.translation import translation_context
-from app.limits import LOCALE_CODE_MAX_LENGTH
 from app.middlewares.request_context_middleware import get_request
 from app.models.types import LocaleCode
 

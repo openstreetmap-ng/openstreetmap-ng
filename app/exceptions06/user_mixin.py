@@ -2,9 +2,9 @@ from typing import NoReturn, override
 
 from starlette import status
 
+from app.config import USER_PREF_BULK_SET_LIMIT
 from app.exceptions.api_error import APIError
 from app.exceptions.user_mixin import UserExceptionsMixin
-from app.limits import USER_PREF_BULK_SET_LIMIT
 from app.models.types import ApplicationId, DisplayName, UserId, UserPrefKey
 
 

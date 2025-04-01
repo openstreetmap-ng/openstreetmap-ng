@@ -17,10 +17,9 @@ from markdown_it.token import Token
 from markdown_it.utils import EnvType, OptionsDict
 from psycopg.sql import SQL, Identifier
 
-from app.config import TRUSTED_HOSTS
+from app.config import RICH_TEXT_CACHE_EXPIRE, TRUSTED_HOSTS
 from app.db import db
 from app.lib.crypto import hash_bytes
-from app.limits import RICH_TEXT_CACHE_EXPIRE
 from app.services.cache_service import CacheContext, CacheService
 
 TextFormat = Literal['html', 'markdown', 'plain']

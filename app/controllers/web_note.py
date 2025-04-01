@@ -4,17 +4,17 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
 
-from app.format import FormatLeaflet
-from app.lib.auth_context import web_user
-from app.lib.exceptions_context import raise_for
-from app.lib.geo_utils import parse_bbox
-from app.lib.render_response import render_response
-from app.limits import (
+from app.config import (
     NOTE_COMMENT_BODY_MAX_LENGTH,
     NOTE_QUERY_AREA_MAX_SIZE,
     NOTE_QUERY_DEFAULT_CLOSED,
     NOTE_QUERY_WEB_LIMIT,
 )
+from app.format import FormatLeaflet
+from app.lib.auth_context import web_user
+from app.lib.exceptions_context import raise_for
+from app.lib.geo_utils import parse_bbox
+from app.lib.render_response import render_response
 from app.models.db.note_comment import NoteEvent, note_comments_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import Latitude, Longitude, NoteId, UserId

@@ -2,9 +2,9 @@ from typing import NoReturn, override
 
 from starlette import status
 
+from app.config import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.exceptions.api_error import APIError
 from app.exceptions.map_mixin import MapExceptionsMixin
-from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 
 
 class MapExceptions06Mixin(MapExceptionsMixin):
