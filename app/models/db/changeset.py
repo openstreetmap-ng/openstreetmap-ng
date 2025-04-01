@@ -25,6 +25,9 @@ class Changeset(ChangesetInit):
     updated_at: datetime
     closed_at: datetime | None
     size: int
+    num_create: int
+    num_modify: int
+    num_delete: int
     union_bounds: Polygon | None
 
     # runtime
@@ -35,10 +38,11 @@ class Changeset(ChangesetInit):
     size_limit_reached: NotRequired[Literal[True]]
 
 
-def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
-    """Try to change the changeset size. Returns True if successful."""
-    if changeset['size'] >= new_size:
-        raise ValueError('New size must be greater than the current size')
+def changeset_increase_size(changeset: Changeset, *, num_create: int, num_modify: int, num_delete: int) -> bool:
+    """Try to increase the changeset size. Returns True if successful."""
+    assert num_create >= 0, 'num_create must be non-negative'
+    assert num_modify >= 0, 'num_modify must be non-negative'
+    assert num_delete >= 0, 'num_delete must be non-negative'
 
     user = auth_user(required=True)
     user_id = user['id']
@@ -48,6 +52,7 @@ def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
     assert changeset_user_id is not None, 'Anonymous changesets are no longer supported'
     assert changeset_user_id == user_id, f'Changeset {changeset["id"]} can only be edited by the owner != {user_id}'
 
+    new_size = changeset['size'] + num_create + num_modify + num_delete
     if new_size > max_size:
         return False
 
@@ -55,4 +60,7 @@ def changeset_set_size(changeset: Changeset, new_size: int) -> bool:
         changeset['size_limit_reached'] = True  # type: ignore
 
     changeset['size'] = new_size
+    changeset['num_create'] += num_create
+    changeset['num_modify'] += num_modify
+    changeset['num_delete'] += num_delete
     return True

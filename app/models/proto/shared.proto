@@ -95,7 +95,10 @@ message RenderChangesetsData {
         bool closed = 4;  // Whether changeset is closed
         string timeago = 5;  // Human-readable timestamp HTML
         optional string comment = 6;  // Commit message
-        uint64 num_comments = 7;  // Associated discussion count
+        uint32 num_create = 7;  // Number of created elements
+        uint32 num_modify = 8;  // Number of modified elements
+        uint32 num_delete = 9;  // Number of deleted elements
+        uint64 num_comments = 10;  // Associated discussion count
     }
 
     repeated Changeset changesets = 1;  // Changesets in current query

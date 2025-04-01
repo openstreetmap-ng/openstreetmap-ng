@@ -126,6 +126,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             const commentValue = div.querySelector(".comment")
             const changesetLink = div.querySelector("a.stretched-link")
             const numCommentsValue = div.querySelector(".num-comments")
+            const statCreateValue = div.querySelector(".stat-create")
+            const statModifyValue = div.querySelector(".stat-modify")
+            const statDeleteValue = div.querySelector(".stat-delete")
 
             // Populate elements
             if (changeset.user) {
@@ -154,6 +157,22 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             numCommentsValue.classList.toggle("no-comments", !changeset.numComments)
             numCommentsValue.appendChild(document.createTextNode(changeset.numComments.toString()))
             numCommentsValue.appendChild(icon)
+
+            if (changeset.numCreate) {
+                statCreateValue.textContent = `+${changeset.numCreate}`
+            } else {
+                statCreateValue.remove()
+            }
+            if (changeset.numModify) {
+                statModifyValue.textContent = `~${changeset.numModify}`
+            } else {
+                statModifyValue.remove()
+            }
+            if (changeset.numDelete) {
+                statDeleteValue.textContent = `-${changeset.numDelete}`
+            } else {
+                statDeleteValue.remove()
+            }
 
             changesetLink.href = `/changeset/${changeset.id}`
             changesetLink.textContent = changesetIdStr

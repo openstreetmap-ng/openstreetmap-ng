@@ -118,12 +118,24 @@ async def _update_changeset(conn: AsyncConnection, now: datetime, changeset: Cha
             UPDATE changeset
             SET
                 size = %s,
+                num_create = %s,
+                num_modify = %s,
+                num_delete = %s,
                 union_bounds = %s,
                 closed_at = %s,
                 updated_at = %s
             WHERE id = %s
             """,
-            (changeset['size'], changeset['union_bounds'], closed_at, updated_at, changeset_id),
+            (
+                changeset['size'],
+                changeset['num_create'],
+                changeset['num_modify'],
+                changeset['num_delete'],
+                changeset['union_bounds'],
+                closed_at,
+                updated_at,
+                changeset_id,
+            ),
         )
 
         # Update the changeset bounds

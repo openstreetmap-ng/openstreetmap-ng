@@ -11,7 +11,7 @@ from shapely import Point, bounds, box
 from app.lib.auth_context import auth_user
 from app.lib.changeset_bounds import extend_changeset_bounds
 from app.lib.exceptions_context import raise_for
-from app.models.db.changeset import Changeset, changeset_set_size
+from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
@@ -122,6 +122,9 @@ class OptimisticDiffPrepare:
         # Use local variables for faster access + explicit type hints
         element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
         apply_elements: list[ElementInit] = self.apply_elements
+        num_create: cython.int = 0
+        num_modify: cython.int = 0
+        num_delete: cython.int = 0
 
         action: OSMChangeAction
         entry: ElementStateEntry | None
@@ -137,6 +140,7 @@ class OptimisticDiffPrepare:
 
             if version == 1:  # Handle element creation
                 action = 'create'
+                num_create += 1
 
                 if element_id >= 0:
                     raise_for.diff_create_bad_id(element)
@@ -146,7 +150,12 @@ class OptimisticDiffPrepare:
                 prev = None
 
             else:  # Handle element modification and deletion
-                action = 'modify' if element['visible'] else 'delete'
+                if element['visible']:
+                    action = 'modify'
+                    num_modify += 1
+                else:
+                    action = 'delete'
+                    num_delete += 1
 
                 entry = element_state.get(typed_id)
                 if entry is None:
@@ -178,7 +187,7 @@ class OptimisticDiffPrepare:
             else:
                 entry.current = element
 
-        self._update_changeset_size()
+        self._update_changeset_size(num_create=num_create, num_modify=num_modify, num_delete=num_delete)
 
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
@@ -517,13 +526,19 @@ class OptimisticDiffPrepare:
             tg.create_task(UserQuery.resolve_users(items))
             tg.create_task(ChangesetBoundsQuery.resolve_bounds(items))
 
-    def _update_changeset_size(self) -> None:
-        """Update and validate changeset size."""
-        new_size = self.changeset['size'] + len(self.apply_elements)
-        logging.debug('Optimistic increasing changeset %d size to %d', self.changeset['id'], new_size)
-
-        if not changeset_set_size(self.changeset, new_size):
-            raise_for.changeset_too_big(new_size)
+    def _update_changeset_size(self, *, num_create: int, num_modify: int, num_delete: int) -> None:
+        """Update and validate the changeset size."""
+        logging.debug(
+            'Optimistic updating changeset %d size (+%d, ~%d, -%d)',
+            self.changeset['id'],
+            num_create,
+            num_modify,
+            num_delete,
+        )
+        if not changeset_increase_size(
+            self.changeset, num_create=num_create, num_modify=num_modify, num_delete=num_delete
+        ):
+            raise_for.changeset_too_big(self.changeset['size'] + num_create + num_modify + num_delete)
 
     async def _update_changeset_bounds(self) -> None:
         """Update changeset bounds using the collected bbox info."""

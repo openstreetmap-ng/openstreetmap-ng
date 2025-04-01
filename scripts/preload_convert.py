@@ -376,7 +376,10 @@ def _write_changeset() -> None:
                 MIN(created_at) AS created_at,
                 MAX(created_at) AS updated_at,
                 MAX(created_at) AS closed_at,
-                COUNT(*) AS size
+                COUNT(*) AS size,
+                COUNT_IF(version = 1) AS num_create,
+                COUNT_IF(version > 1 AND visible) AS num_modify,
+                COUNT_IF(version > 1 AND NOT visible) AS num_delete
             FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
             GROUP BY changeset_id
             ORDER BY changeset_id

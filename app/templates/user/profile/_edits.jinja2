@@ -31,24 +31,37 @@
                     </span>
                         <a class="stretched-link" href="/changeset/{{ changeset.id }}">{{ changeset.id }}</a>
                     </p>
-                    <div class="body d-flex justify-content-between">
-                        <div class="comment">
-                            {% if comment is not none %}
-                                {{ comment }}
+                    <div class="body">
+                        <div class="d-flex justify-content-between">
+                            <div class="comment">
+                                {% if comment is not none %}
+                                    {{ comment }}
+                                {% else %}
+                                    {{ t('browse.no_comment') }}
+                                {% endif %}
+                            </div>
+                            {% if changeset.num_comments %}
+                                <div class="num-comments">
+                                    {{ changeset.num_comments -}}
+                                    <i class="bi bi-chat-left-text"></i>
+                                </div>
                             {% else %}
-                                {{ t('browse.no_comment') }}
+                                <div class="num-comments no-comments">
+                                    0<i class="bi bi-chat-left"></i>
+                                </div>
                             {% endif %}
                         </div>
-                        {% if changeset.num_comments %}
-                            <div class="num-comments">
-                                {{ changeset.num_comments -}}
-                                <i class="bi bi-chat-left-text"></i>
-                            </div>
-                        {% else %}
-                            <div class="num-comments no-comments">
-                                0<i class="bi bi-chat-left"></i>
-                            </div>
-                        {% endif %}
+                        <div class="changeset-stats">
+                            {% if changeset.num_create %}
+                                <span class="stat-create">+{{ changeset.num_create }}</span>
+                            {% endif %}
+                            {% if changeset.num_modify %}
+                                <span class="stat-modify">~{{ changeset.num_modify }}</span>
+                            {% endif %}
+                            {% if changeset.num_delete %}
+                                <span class="stat-delete">-{{ changeset.num_delete }}</span>
+                            {% endif %}
+                        </div>
                     </div>
                 </li>
             {% endfor %}

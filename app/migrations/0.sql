@@ -116,6 +116,9 @@ CREATE TABLE changeset
     updated_at   timestamptz NOT NULL DEFAULT statement_timestamp(),
     closed_at    timestamptz,
     size         integer     NOT NULL DEFAULT 0,
+    num_create   integer     NOT NULL DEFAULT 0,
+    num_modify   integer     NOT NULL DEFAULT 0,
+    num_delete   integer     NOT NULL DEFAULT 0,
     union_bounds geometry(Polygon, 4326)
 );
 CREATE INDEX changeset_user_idx ON changeset (user_id, id) WHERE user_id IS NOT NULL;

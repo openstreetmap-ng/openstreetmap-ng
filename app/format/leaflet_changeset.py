@@ -47,5 +47,8 @@ def _encode_changeset(changeset: Changeset):
         closed=closed_at is not None,
         timeago=timeago_html,
         comment=changeset['tags'].get('comment'),
+        num_create=changeset['num_create'],
+        num_modify=changeset['num_modify'],
+        num_delete=changeset['num_delete'],
         num_comments=changeset['num_comments'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
     )

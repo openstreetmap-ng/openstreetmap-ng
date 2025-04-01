@@ -35,11 +35,19 @@ def _write_changeset() -> None:
             MIN(created_at) AS created_at,
             MAX(created_at) AS updated_at,
             MAX(created_at) AS closed_at,
-            COUNT(*) AS size
+            COUNT(*) AS size,
+            COUNT_IF(version = 1) AS num_create,
+            COUNT_IF(version > 1 AND visible) AS num_modify,
+            COUNT_IF(version > 1 AND NOT visible) AS num_delete
         FROM read_parquet({_PARQUET_PATHS!r})
         GROUP BY changeset_id
         """
-        _write_output(conn, 'changeset', changeset_sql, 'id,user_id,tags,created_at,updated_at,closed_at,size')
+        _write_output(
+            conn,
+            'changeset',
+            changeset_sql,
+            'id,user_id,tags,created_at,updated_at,closed_at,size,num_create,num_modify,num_delete',
+        )
 
 
 def _write_element() -> None:
