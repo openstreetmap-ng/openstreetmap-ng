@@ -3,7 +3,7 @@ from asyncio import TaskGroup
 from shlex import quote
 
 from psycopg.abc import Query
-from psycopg.sql import SQL, Identifier
+from psycopg.sql import SQL, Identifier, Literal
 
 from app.config import PRELOAD_DIR
 from app.db import db, psycopg_pool_open_decorator
@@ -68,14 +68,14 @@ async def _load_table(table: str, tg: TaskGroup) -> None:
         await conn.execute(
             SQL("""
                 COPY {table} ({columns})
-                FROM PROGRAM %s
+                FROM PROGRAM {program}
                 (FORMAT CSV, FREEZE, HEADER {header})
             """).format(
                 table=Identifier(table),
                 columns=SQL(',').join(map(Identifier, columns)),
+                program=Literal(program),
                 header=SQL('TRUE' if source_has_header else 'FALSE'),
             ),
-            (program,),
         )
 
     if table == 'element':
