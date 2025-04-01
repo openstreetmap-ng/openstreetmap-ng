@@ -1,5 +1,3 @@
-from itertools import starmap
-
 import cython
 from shapely import measurement
 
@@ -28,7 +26,15 @@ def _encode_changeset(changeset: Changeset):
 
     bounds = changeset.get('bounds')
     bboxes: list[list[float]] = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
-    params_bounds = list(starmap(SharedBounds, bboxes))
+    params_bounds = [
+        SharedBounds(
+            min_lon=bbox[0],
+            min_lat=bbox[1],
+            max_lon=bbox[2],
+            max_lat=bbox[3],
+        )
+        for bbox in bboxes
+    ]
 
     closed_at = changeset['closed_at']
     timeago_date = closed_at if (closed_at is not None) else changeset['created_at']

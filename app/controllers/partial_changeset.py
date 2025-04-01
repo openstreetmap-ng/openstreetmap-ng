@@ -1,6 +1,5 @@
 from asyncio import TaskGroup
 from base64 import urlsafe_b64encode
-from itertools import starmap
 from math import ceil
 
 from fastapi import APIRouter
@@ -69,7 +68,15 @@ async def get_changeset(id: ChangesetId):
 
     bounds = changeset.get('bounds')
     bboxes: list[list[float]] = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
-    params_bounds = list(starmap(SharedBounds, bboxes))
+    params_bounds = [
+        SharedBounds(
+            min_lon=bbox[0],
+            min_lat=bbox[1],
+            max_lon=bbox[2],
+            max_lat=bbox[3],
+        )
+        for bbox in bboxes
+    ]
 
     params = PartialChangesetParams(
         id=id,

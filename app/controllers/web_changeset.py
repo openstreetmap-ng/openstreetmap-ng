@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from datetime import date, datetime, time, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, Query, Response
@@ -35,6 +36,7 @@ async def get_map(
     bbox: Annotated[str | None, Query()] = None,
     scope: Annotated[Literal['nearby', 'friends'] | None, Query()] = None,  # TODO: support scope
     display_name: Annotated[DisplayName | None, Query(min_length=1)] = None,
+    date_: Annotated[date | None, Query(alias='date')] = None,
     before: Annotated[ChangesetId | None, Query()] = None,
 ):
     geometry = parse_bbox(bbox)
@@ -45,9 +47,19 @@ async def get_map(
     else:
         user_ids = None
 
+    if date_ is not None:
+        dt = datetime.combine(date_, time(0, 0, 0))
+        created_before = dt + timedelta(days=1)
+        created_after = dt - timedelta(microseconds=1)
+    else:
+        created_before = None
+        created_after = None
+
     changesets = await ChangesetQuery.find_many_by_query(
         changeset_id_before=before,
         user_ids=user_ids,
+        created_before=created_before,
+        created_after=created_after,
         geometry=geometry,
         sort='desc',
         limit=CHANGESET_QUERY_WEB_LIMIT,

@@ -15,7 +15,7 @@ class FormatElementList:
     ) -> dict[ElementType, list[PartialChangesetParams.Element]]:
         """Format elements for displaying on the website (icons, strikethrough, sort)."""
         if not elements:
-            return {}
+            return {'node': [], 'way': [], 'relation': []}
 
         # element.version > 1 is mostly redundant
         # but ensures backward-compatible compliance for PositiveInt

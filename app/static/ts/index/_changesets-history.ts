@@ -3,7 +3,7 @@ import type { GeoJsonProperties } from "geojson"
 import i18next, { t } from "i18next"
 import { type GeoJSONSource, LngLatBounds, type MapGeoJSONFeature, type Map as MaplibreMap } from "maplibre-gl"
 import { resolveDatetimeLazy } from "../_datetime"
-import { qsEncode } from "../_qs"
+import { qsEncode, qsParse } from "../_qs"
 import { setPageTitle } from "../_title"
 import type { OSMChangeset } from "../_types"
 import { clearMapHover, setMapHover } from "../leaflet/_hover.ts"
@@ -168,14 +168,16 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     /** Set the hover state of the changeset features */
     const setHover = ({ id, firstFeatureId, numBounds }: GeoJsonProperties, hover: boolean): void => {
         const result = idSidebarMap.get(id)
-        result.classList.toggle("hover", hover)
-        if (hover) {
+        result?.classList.toggle("hover", hover)
+
+        if (hover && result) {
             // Scroll result into view
             const sidebarRect = parentSidebar.getBoundingClientRect()
             const resultRect = result.getBoundingClientRect()
             const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
             if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
         }
+
         for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
             map.setFeatureState({ source: layerId, id: i }, { hover })
         }
@@ -220,12 +222,14 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const updateState = (): void => {
         // Request full world when initial loading for scope/user
         const fetchBounds = fetchedBounds || (!loadScope && !loadDisplayName) ? map.getBounds() : null
-        const params: { [key: string]: string | undefined } = { scope: loadScope, display_name: loadDisplayName }
+        const params = qsParse(location.search.substring(1))
+        params.scope = loadScope
+        params.display_name = loadDisplayName
 
         if (fetchedBounds === fetchBounds) {
             // Load more changesets
             if (noMoreChangesets) return
-            params.before = changesets[changesets.length - 1].id.toString()
+            if (changesets.length) params.before = changesets[changesets.length - 1].id.toString()
         } else {
             // Ignore small bounds changes
             if (fetchedBounds && fetchBounds) {

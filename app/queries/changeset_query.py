@@ -69,17 +69,8 @@ class ChangesetQuery:
                 {'changeset_id': changeset_id, 'user_id': user_id},
             ) as r,
         ):
-            rows: list[tuple[ChangesetId]] = await r.fetchall()
-
-        prev_id: ChangesetId | None = None
-        next_id: ChangesetId | None = None
-        for (id,) in rows:
-            if id < changeset_id:
-                prev_id = id
-            else:
-                next_id = id
-
-        return prev_id, next_id
+            rows: list[tuple[ChangesetId | None]] = await r.fetchall()
+            return rows[0][0], rows[1][0]
 
     @staticmethod
     async def find_by_id(changeset_id: ChangesetId) -> Changeset | None:
@@ -103,6 +94,7 @@ class ChangesetQuery:
         changeset_id_before: ChangesetId | None = None,
         user_ids: list[UserId] | None = None,
         created_before: datetime | None = None,
+        created_after: datetime | None = None,
         closed_after: datetime | None = None,
         is_open: bool | None = None,
         geometry: BaseGeometry | None = None,
@@ -132,6 +124,10 @@ class ChangesetQuery:
         if created_before is not None:
             conditions.append(SQL('created_at < %s'))
             params.append(created_before)
+
+        if created_after is not None:
+            conditions.append(SQL('created_at > %s'))
+            params.append(created_after)
 
         if closed_after is not None:
             conditions.append(SQL('closed_at IS NOT NULL AND closed_at >= %s'))

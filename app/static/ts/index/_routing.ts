@@ -162,14 +162,16 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     /** Set the hover state of the step features */
     const setHover = (id: number, hover: boolean): void => {
         const result = stepsTableBody.children[id]
-        result.classList.toggle("hover", hover)
-        if (hover) {
+        result?.classList.toggle("hover", hover)
+
+        if (hover && result) {
             // Scroll result into view
             const sidebarRect = sidebar.getBoundingClientRect()
             const resultRect = result.getBoundingClientRect()
             const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
             if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
         }
+
         map.setFeatureState({ source: layerId, id: id }, { hover })
     }
 

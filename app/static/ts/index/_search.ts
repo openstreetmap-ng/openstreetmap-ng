@@ -184,9 +184,11 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
         /** Set the hover state of the search features */
         setHover = (id: number, hover: boolean): void => {
             const result = results[id]
-            result.classList.toggle("hover", hover)
+            result?.classList.toggle("hover", hover)
+
             map.setFeatureState({ source: layerId, id: id }, { hover })
-            if (hover) {
+
+            if (hover && result) {
                 // Scroll result into view
                 const sidebarRect = sidebar.getBoundingClientRect()
                 const resultRect = result.getBoundingClientRect()
