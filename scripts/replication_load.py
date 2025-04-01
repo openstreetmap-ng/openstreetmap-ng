@@ -1,26 +1,21 @@
 import asyncio
-import os
-from asyncio import TaskGroup, create_subprocess_shell
-from asyncio.subprocess import Process
+from asyncio import TaskGroup
 from shlex import quote
 
 from psycopg.abc import Query
 from psycopg.sql import SQL, Identifier
 
-from app.config import POSTGRES_URL, PRELOAD_DIR
+from app.config import PRELOAD_DIR
 from app.db import db, psycopg_pool_open_decorator
 from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
-from scripts.preload_load import gather_table_constraints, gather_table_indexes
-from scripts.preload_load import load_table as preload_load_table
-
-_NUM_COPY_WORKERS = min(os.process_cpu_count() or 1, 8)
+from scripts.preload_load import gather_table_constraints, gather_table_indexes, get_csv_header, get_csv_path
 
 
 def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
     output = PRELOAD_DIR.joinpath(table)
     copy_paths = [
-        p.as_posix()
+        p.absolute().as_posix()
         for p in sorted(
             output.glob('*.csv.zst'),
             key=lambda p: int(p.with_suffix('').stem.split('_', 1)[1]),
@@ -36,12 +31,25 @@ async def _sql_execute(sql: Query) -> None:
 
 
 async def _load_table(table: str, tg: TaskGroup) -> None:
+    if table in {'note', 'note_comment'}:
+        path = get_csv_path(table)
+        if not path.is_file():
+            print(f'Skipped loading {table} table (source file not found)')
+            return
+
+        copy_paths = [path.absolute().as_posix()]
+        header = get_csv_header(path)
+        source_has_header = True
+    else:
+        copy_paths, header = _get_copy_paths_and_header(table)
+        source_has_header = False
+
     indexes = await gather_table_indexes(table)
     assert indexes, f'No indexes found for {table} table'
     constraints = await gather_table_constraints(table)
 
-    # Drop constraints and indexes before loading
-    async with db(True, autocommit=True) as conn:
+    async with db(True) as conn:
+        # Drop constraints and indexes before loading
         print(f'Dropping {len(indexes)} indexes: {indexes!r}')
         await conn.execute(SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes))))
 
@@ -49,31 +57,26 @@ async def _load_table(table: str, tg: TaskGroup) -> None:
         for name in constraints:
             await conn.execute(SQL('ALTER TABLE {} DROP CONSTRAINT {}').format(Identifier(table), Identifier(name)))
 
-    # Load the data
-    copy_paths, header = _get_copy_paths_and_header(table)
-    columns = [f'"{c}"' for c in header.split(',')]
-    proc: Process | None = None
+        # Truncate table again (required by FREEZE)
+        await conn.execute(SQL('TRUNCATE {} RESTART IDENTITY CASCADE').format(Identifier(table)))
 
-    try:
+        # Load the data
+        columns = header.split(',')
+        program = f'zstd -d --stdout {" ".join(f"{quote(p)}" for p in copy_paths)}'
+
         print(f'Populating {table} table ({len(columns)} columns)...')
-        proc = await create_subprocess_shell(
-            f'zstd -d --stdout {" ".join(f"{quote(p)}" for p in copy_paths)}'
-            ' | timescaledb-parallel-copy'
-            ' --batch-size=100000'
-            f' --columns={quote(",".join(columns))}'
-            f' --connection={quote(POSTGRES_URL)}'
-            ' --skip-header=false'
-            ' --reporting-period=30s'
-            f' --table={quote(table)}'
-            f' --workers={_NUM_COPY_WORKERS}',
+        await conn.execute(
+            SQL("""
+                COPY {table} ({columns})
+                FROM PROGRAM %s
+                (FORMAT CSV, FREEZE, HEADER {header})
+            """).format(
+                table=Identifier(table),
+                columns=SQL(',').join(map(Identifier, columns)),
+                header=SQL('TRUE' if source_has_header else 'FALSE'),
+            ),
+            (program,),
         )
-        exit_code = await proc.wait()
-        if exit_code:
-            raise RuntimeError(f'Subprocess failed with exit code {exit_code}')
-
-    except KeyboardInterrupt:
-        if proc is not None:
-            proc.terminate()
 
     if table == 'element':
         key = 'element_version_idx'
@@ -104,11 +107,7 @@ async def _load_tables() -> None:
 
     async with TaskGroup() as tg:
         for table in tables:
-            await (
-                preload_load_table
-                if table in {'note', 'note_comment'}  #
-                else _load_table
-            )(table, tg)
+            await _load_table(table, tg)
 
 
 @psycopg_pool_open_decorator

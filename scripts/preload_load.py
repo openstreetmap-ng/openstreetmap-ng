@@ -18,11 +18,11 @@ from app.services.migration_service import MigrationService
 _COPY_WORKERS = min(os.process_cpu_count() or 1, 8)
 
 
-def _get_csv_path(name: str) -> Path:
+def get_csv_path(name: str) -> Path:
     return PRELOAD_DIR.joinpath(f'{name}.csv.zst')
 
 
-def _get_csv_header(path: Path) -> str:
+def get_csv_header(path: Path) -> str:
     with path.open('rb') as f:
         stream_reader = ZstdDecompressor().stream_reader(f)
         reader = TextIOWrapper(stream_reader)
@@ -72,8 +72,8 @@ async def gather_table_indexes(table: str) -> dict[str, SQL]:
         return {name: SQL(sql) for name, sql in await cursor.fetchall()}
 
 
-async def load_table(table: str, tg: TaskGroup) -> None:
-    path = _get_csv_path(table)
+async def _load_table(table: str, tg: TaskGroup) -> None:
+    path = get_csv_path(table)
     if not path.is_file():
         print(f'Skipped loading {table} table (source file not found)')
         return
@@ -92,7 +92,7 @@ async def load_table(table: str, tg: TaskGroup) -> None:
             await conn.execute(SQL('ALTER TABLE {} DROP CONSTRAINT {}').format(Identifier(table), Identifier(name)))
 
     # Load the data
-    header = _get_csv_header(path)
+    header = get_csv_header(path)
     columns = [f'"{c}"' for c in header.split(',')]
     proc: Process | None = None
 
@@ -137,7 +137,7 @@ async def _load_tables() -> None:
 
     async with TaskGroup() as tg:
         for table in tables:
-            await load_table(table, tg)
+            await _load_table(table, tg)
 
 
 @psycopg_pool_open_decorator
