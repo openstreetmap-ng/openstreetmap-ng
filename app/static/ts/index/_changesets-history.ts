@@ -67,6 +67,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     // Store changesets to allow loading more
     const changesets: RenderChangesetsData_Changeset[] = []
     let fetchedBounds: LngLatBounds | null = null
+    let fetchedDate: string | null = null
     let noMoreChangesets = false
     let loadScope: string | undefined = undefined
     let loadDisplayName: string | undefined = undefined
@@ -224,16 +225,48 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         // Request full world when initial loading for scope/user
         const fetchBounds = fetchedBounds || (!loadScope && !loadDisplayName) ? map.getBounds() : null
         const params = qsParse(location.search.substring(1))
+
+        // Update date filter element
+        const fetchDate = params.date
+        dateFilterElement.innerHTML = ""
+        if (fetchDate) {
+            // Create a span for the text
+            const textSpan = document.createElement("span")
+            textSpan.textContent = t("changeset.viewing_edits_from_date", { date: fetchDate })
+            textSpan.classList.add("date-filter-text")
+            dateFilterElement.appendChild(textSpan)
+
+            // Create the close button as a link
+            const closeLink = document.createElement("a")
+            closeLink.href = `${window.location.pathname}?${qsEncode({
+                ...params,
+                date: undefined,
+            })}`
+            closeLink.classList.add("btn", "btn-sm", "btn-link", "btn-close")
+            closeLink.title = t("action.remove_filter")
+            closeLink.addEventListener(
+                "click",
+                () => {
+                    setTimeout(() => {
+                        updateState()
+                    }, 0)
+                },
+                { once: true },
+            )
+
+            dateFilterElement.appendChild(closeLink)
+        }
+
         params.scope = loadScope
         params.display_name = loadDisplayName
 
-        if (fetchedBounds === fetchBounds) {
+        if (fetchedBounds === fetchBounds && fetchedDate === fetchDate) {
             // Load more changesets
             if (noMoreChangesets) return
             if (changesets.length) params.before = changesets[changesets.length - 1].id.toString()
         } else {
             // Ignore small bounds changes
-            if (fetchedBounds && fetchBounds) {
+            if (fetchedBounds && fetchBounds && fetchedDate === fetchDate) {
                 const visibleBounds = getLngLatBoundsIntersection(fetchedBounds, fetchBounds)
                 const visibleArea = getLngLatBoundsSize(visibleBounds)
                 const fetchArea = getLngLatBoundsSize(fetchBounds)
@@ -287,6 +320,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 updateLayers()
                 updateSidebar()
                 fetchedBounds = fetchBounds
+                fetchedDate = fetchDate
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
@@ -332,14 +366,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             }
             sidebarTitleElement.innerHTML = sidebarTitleHtml
             setPageTitle(sidebarTitleText)
-
-            const searchParams = qsParse(location.search.substring(1))
-
-            if (searchParams.date) {
-                dateFilterElement.textContent = t("changeset.viewing_edits_from_date", { date: searchParams.date })
-            } else {
-                dateFilterElement.innerHTML = ""
-            }
 
             addMapLayer(map, layerId)
             map.on("moveend", updateState)

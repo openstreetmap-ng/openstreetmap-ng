@@ -434,6 +434,7 @@ action:
   clear_markers: Clear markers
   show_more: Show more
   show_less: Show less
+  remove_filter: Remove filter
 state:
   any: Any
   hidden: Hidden
