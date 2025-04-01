@@ -19,6 +19,7 @@ import { convertRenderChangesetsData, renderObjects } from "../leaflet/_render-o
 import {
     getLngLatBoundsIntersection,
     getLngLatBoundsSize,
+    lngLatBoundsEqual,
     makeBoundsMinimumSize,
     padLngLatBounds,
 } from "../leaflet/_utils"
@@ -67,7 +68,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     // Store changesets to allow loading more
     const changesets: RenderChangesetsData_Changeset[] = []
     let fetchedBounds: LngLatBounds | null = null
-    let fetchedDate: string | null = null
+    let fetchedDate: string | undefined = undefined
     let noMoreChangesets = false
     let loadScope: string | undefined = undefined
     let loadDisplayName: string | undefined = undefined
@@ -101,7 +102,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             if (lngLatBounds) {
                 console.debug("Fitting map to shown changesets")
                 const lngLatBoundsPadded = padLngLatBounds(lngLatBounds, 0.3)
-                map.fitBounds(lngLatBoundsPadded, { maxZoom: 16, animate: false })
+                map.fitBounds(lngLatBoundsPadded, { maxZoom: 16, animate: false }, { skipUpdateState: true })
             }
         }
     }
@@ -215,13 +216,15 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
     /** On sidebar scroll bottom, load more changesets */
     const onSidebarScroll = (): void => {
-        if (parentSidebar.offsetHeight + parentSidebar.scrollTop < parentSidebar.scrollHeight) return
+        if (parentSidebar.offsetHeight + parentSidebar.scrollTop < parentSidebar.scrollHeight - 10) return
         console.debug("Sidebar scrolled to the bottom")
         updateState()
     }
 
     /** On map update, fetch the changesets in view and update the changesets layer */
-    const updateState = (): void => {
+    const updateState = (e?: any): void => {
+        if (e?.skipUpdateState) return
+
         // Request full world when initial loading for scope/user
         const fetchBounds = fetchedBounds || (!loadScope && !loadDisplayName) ? map.getBounds() : null
         const params = qsParse(location.search.substring(1))
@@ -244,23 +247,10 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             })}`
             closeLink.classList.add("btn", "btn-sm", "btn-link", "btn-close")
             closeLink.title = t("action.remove_filter")
-            closeLink.addEventListener(
-                "click",
-                () => {
-                    setTimeout(() => {
-                        updateState()
-                    }, 0)
-                },
-                { once: true },
-            )
-
             dateFilterElement.appendChild(closeLink)
         }
 
-        params.scope = loadScope
-        params.display_name = loadDisplayName
-
-        if (fetchedBounds === fetchBounds && fetchedDate === fetchDate) {
+        if (lngLatBoundsEqual(fetchedBounds, fetchBounds) && fetchedDate === fetchDate) {
             // Load more changesets
             if (noMoreChangesets) return
             if (changesets.length) params.before = changesets[changesets.length - 1].id.toString()
@@ -283,6 +273,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds.adjustAntiMeridian().toArray()
             params.bbox = `${minLon},${minLat},${maxLon},${maxLat}`
         }
+
+        params.scope = loadScope
+        params.display_name = loadDisplayName
 
         loadingContainer.classList.remove("d-none")
         parentSidebar.removeEventListener("scroll", onSidebarScroll)

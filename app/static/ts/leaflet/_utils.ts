@@ -54,6 +54,15 @@ export const getLngLatBoundsIntersection = (bounds1: LngLatBounds, bounds2: LngL
     return new LngLatBounds([minLon, minLat, maxLon, maxLat])
 }
 
+/** Check if two bounds are equal */
+export const lngLatBoundsEqual = (bounds1?: LngLatBounds, bounds2?: LngLatBounds): boolean => {
+    if (!bounds1 && !bounds2) return true
+    if (!bounds1 || !bounds2) return false
+    const [[minLon1, minLat1], [maxLon1, maxLat1]] = bounds1.adjustAntiMeridian().toArray()
+    const [[minLon2, minLat2], [maxLon2, maxLat2]] = bounds2.adjustAntiMeridian().toArray()
+    return minLon1 === minLon2 && minLat1 === minLat2 && maxLon1 === maxLon2 && maxLat1 === maxLat2
+}
+
 /** Pad bounds to grow/shrink them */
 export const padLngLatBounds = (bounds: LngLatBounds, padding?: number): LngLatBounds => {
     if (!padding) return bounds
