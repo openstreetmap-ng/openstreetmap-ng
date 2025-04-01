@@ -65,6 +65,11 @@
       "Uk"
     ]
   },
+  "*:research": {
+    "*": [
+      ""
+    ]
+  },
   "*:sales": {
     "*": [
       ""
@@ -185,6 +190,11 @@
     "Position_estimated": [
       "Cs",
       "FR"
+    ]
+  },
+  "FR:addr:country": {
+    "*": [
+      ""
     ]
   },
   "GNS:*": {
@@ -893,6 +903,11 @@
       "FR"
     ]
   },
+  "addr2:*": {
+    "*": [
+      ""
+    ]
+  },
   "addr:*": {
     "*": [
       "",
@@ -964,6 +979,7 @@
       "",
       "Cs",
       "ES",
+      "FR",
       "JA",
       "Pt",
       "Uk"
@@ -2034,7 +2050,66 @@
       "Zh-hans"
     ]
   },
+  "aeroway:*": {
+    "*": [
+      "",
+      "DE"
+    ]
+  },
   "aeroway:balloon": {
+    "*": [
+      "",
+      "DE"
+    ],
+    "aerodrome": [
+      ""
+    ],
+    "airstrip": [
+      "",
+      "DE"
+    ],
+    "launchpad": [
+      ""
+    ],
+    "mooring_tower": [
+      ""
+    ]
+  },
+  "aeroway:drone": {
+    "*": [
+      ""
+    ]
+  },
+  "aeroway:model_aerodrome": {
+    "*": [
+      ""
+    ],
+    "runway": [
+      ""
+    ]
+  },
+  "aeroway:research": {
+    "*": [
+      ""
+    ],
+    "rocket_range": [
+      ""
+    ]
+  },
+  "aeroway:suborbital": {
+    "*": [
+      ""
+    ],
+    "spaceport": [
+      ""
+    ]
+  },
+  "aeroway:uav": {
+    "*": [
+      ""
+    ]
+  },
+  "aeroway:weather_control": {
     "*": [
       ""
     ]
@@ -2100,10 +2175,18 @@
       ""
     ]
   },
+  "aircraft": {
+    "*": [
+      ""
+    ]
+  },
   "aircraft:type": {
     "*": [
       "",
       "RU"
+    ],
+    "glider": [
+      ""
     ]
   },
   "airmark": {
@@ -2122,6 +2205,11 @@
     ]
   },
   "alcohol": {
+    "*": [
+      ""
+    ]
+  },
+  "alcohol:sales": {
     "*": [
       ""
     ]
@@ -2167,6 +2255,11 @@
     ]
   },
   "alt_ref": {
+    "*": [
+      ""
+    ]
+  },
+  "altitude": {
     "*": [
       ""
     ]
@@ -2734,9 +2827,6 @@
       "FR",
       "RU",
       "Uk"
-    ],
-    "changing_places": [
-      ""
     ],
     "changing_room": [
       "",
@@ -5804,6 +5894,10 @@
       "Pl",
       "RU"
     ],
+    "balloon_ride": [
+      "",
+      "DE"
+    ],
     "big_wheel": [
       "",
       "RU"
@@ -5841,6 +5935,9 @@
       "DE",
       "Pl",
       "RU"
+    ],
+    "tethered_balloon": [
+      ""
     ],
     "train": [
       "",
@@ -6040,6 +6137,48 @@
       "",
       "FR",
       "RU"
+    ]
+  },
+  "balloon:*": {
+    "*": [
+      ""
+    ]
+  },
+  "balloon:height": {
+    "*": [
+      ""
+    ]
+  },
+  "balloon:launch": {
+    "*": [
+      ""
+    ],
+    "leisure": [
+      ""
+    ],
+    "monitoring": [
+      ""
+    ]
+  },
+  "balloon:repair": {
+    "*": [
+      ""
+    ]
+  },
+  "balloon:tours": {
+    "*": [
+      ""
+    ]
+  },
+  "balloon:type": {
+    "*": [
+      ""
+    ],
+    "research": [
+      ""
+    ],
+    "tethered": [
+      ""
     ]
   },
   "bar": {
@@ -8333,6 +8472,9 @@
       "RU",
       "Uk"
     ],
+    "bus_station": [
+      ""
+    ],
     "cabin": [
       "",
       "Cs",
@@ -8411,6 +8553,9 @@
       "RU",
       "Uk",
       "Yue"
+    ],
+    "cinema": [
+      ""
     ],
     "civic": [
       "",
@@ -8685,6 +8830,9 @@
       "RU",
       "Uk"
     ],
+    "government_office": [
+      ""
+    ],
     "grandstand": [
       "",
       "DE",
@@ -8716,6 +8864,9 @@
       "FR",
       "Pt",
       "RU"
+    ],
+    "guest_house": [
+      ""
     ],
     "gurdwara": [
       ""
@@ -8749,6 +8900,9 @@
       "Uk",
       "Yue",
       "Zh-hans"
+    ],
+    "hostel": [
+      ""
     ],
     "hotel": [
       "",
@@ -8836,6 +8990,9 @@
       "RU",
       "Uk"
     ],
+    "library": [
+      ""
+    ],
     "lighthouse": [
       "",
       "RU"
@@ -8845,6 +9002,9 @@
       "DE",
       "RU",
       "Uk"
+    ],
+    "mall": [
+      ""
     ],
     "manufacture": [
       "",
@@ -8856,6 +9016,9 @@
       "",
       "DE",
       "RU"
+    ],
+    "maybe": [
+      ""
     ],
     "military": [
       "",
@@ -9125,6 +9288,9 @@
       "",
       "FR",
       "RU"
+    ],
+    "shower": [
+      ""
     ],
     "shrine": [
       "",
@@ -10760,7 +10926,6 @@
   },
   "changesets_count": {
     "*": [
-      "",
       "ES",
       "FR"
     ]
@@ -11080,6 +11245,11 @@
       "Template"
     ]
   },
+  "clothes:*": {
+    "*": [
+      ""
+    ]
+  },
   "clothes:for": {
     "*": [
       ""
@@ -11120,6 +11290,10 @@
     ],
     "baduk": [
       ""
+    ],
+    "ballooning": [
+      "",
+      "DE"
     ],
     "bicycle": [
       "",
@@ -11195,6 +11369,9 @@
     "nudism": [
       "",
       "ES"
+    ],
+    "repair_cafe": [
+      ""
     ],
     "sailing": [
       "",
@@ -11297,6 +11474,11 @@
       "RU"
     ]
   },
+  "cold_water": {
+    "*": [
+      ""
+    ]
+  },
   "collection_times": {
     "*": [
       "",
@@ -11335,6 +11517,7 @@
       "DE",
       "ES",
       "FR",
+      "IT",
       "JA",
       "NL",
       "Pl",
@@ -11678,6 +11861,9 @@
       "",
       "RU"
     ],
+    "balloon": [
+      ""
+    ],
     "catalog": [
       "",
       "RU"
@@ -11902,7 +12088,8 @@
   "construction:*": {
     "*": [
       "",
-      "DE"
+      "DE",
+      "IT"
     ]
   },
   "construction:addr:*": {
@@ -14175,18 +14362,26 @@
   "culvert": {
     "*": [
       "",
+      "DE",
       "RU"
+    ],
+    "arch": [
+      "",
+      "DE"
     ],
     "box": [
       "",
+      "DE",
       "RU"
     ],
     "inverted_siphon": [
       "",
+      "DE",
       "RU"
     ],
     "pipe": [
       "",
+      "DE",
       "RU"
     ]
   },
@@ -14304,6 +14499,7 @@
   "cycle_network": {
     "*": [
       "",
+      "DE",
       "FR",
       "JA",
       "RU"
@@ -14312,6 +14508,9 @@
       ""
     ],
     "DE:BW:RadNETZ": [
+      "DE"
+    ],
+    "DE:HH:Radnetz_Hamburg": [
       "DE"
     ],
     "EuroVelo": [
@@ -14820,6 +15019,11 @@
       "DE"
     ]
   },
+  "deaf": {
+    "*": [
+      ""
+    ]
+  },
   "deanery": {
     "*": [
       "",
@@ -15051,6 +15255,9 @@
     "tiantai": [
       "",
       "JA"
+    ],
+    "ukrainian_orthodox": [
+      ""
     ]
   },
   "denotation": {
@@ -15238,11 +15445,6 @@
       "JA",
       "Pl",
       "Uk"
-    ]
-  },
-  "destination:*": {
-    "*": [
-      ""
     ]
   },
   "destination:arrow": {
@@ -16191,6 +16393,7 @@
   "education": {
     "*": [
       "",
+      "FR",
       "RU"
     ],
     "centre": [
@@ -18320,6 +18523,11 @@
       ""
     ]
   },
+  "free_flying:ground_handling": {
+    "*": [
+      ""
+    ]
+  },
   "free_refill": {
     "*": [
       "",
@@ -18444,6 +18652,11 @@
       "Cs",
       "JA",
       "RU"
+    ]
+  },
+  "furniture:repair": {
+    "*": [
+      ""
     ]
   },
   "further": {
@@ -21061,11 +21274,6 @@
       "DE"
     ]
   },
-  "height:monitoring": {
-    "*": [
-      "DE"
-    ]
-  },
   "height:range": {
     "*": [
       ""
@@ -21430,6 +21638,7 @@
       "Zh-hant"
     ],
     "hitchhiking": [
+      "",
       "FR"
     ],
     "kerb": [
@@ -22033,6 +22242,9 @@
       "",
       "Cs",
       "DE"
+    ],
+    "yes": [
+      ""
     ]
   },
   "highway:CN": {
@@ -24890,7 +25102,8 @@
       "Pl",
       "Pt",
       "RU",
-      "Th"
+      "Th",
+      "Uk"
     ],
     "religious": [
       "",
@@ -26061,6 +26274,9 @@
       "ES",
       "Pl",
       "RU"
+    ],
+    "yes": [
+      ""
     ]
   },
   "length": {
@@ -26199,6 +26415,11 @@
     "*": [
       "",
       "RU"
+    ]
+  },
+  "light:aviation": {
+    "*": [
+      ""
     ]
   },
   "light:colour": {
@@ -28156,6 +28377,11 @@
       ""
     ]
   },
+  "mast:*": {
+    "*": [
+      ""
+    ]
+  },
   "mast:construction": {
     "*": [
       ""
@@ -28586,6 +28812,11 @@
       "DE",
       "JA",
       "Pl"
+    ]
+  },
+  "maybe:*": {
+    "*": [
+      ""
     ]
   },
   "mdb_id": {
@@ -29367,6 +29598,11 @@
       ""
     ]
   },
+  "monitoring:*": {
+    "*": [
+      ""
+    ]
+  },
   "monitoring:air_quality": {
     "*": [
       "",
@@ -29427,6 +29663,11 @@
       ""
     ]
   },
+  "monitoring:height": {
+    "*": [
+      ""
+    ]
+  },
   "monitoring:meteoric_activity": {
     "*": [
       "",
@@ -29445,6 +29686,14 @@
   },
   "monitoring:pedestrian": {
     "*": [
+      ""
+    ]
+  },
+  "monitoring:radar": {
+    "*": [
+      ""
+    ],
+    "surveillance": [
       ""
     ]
   },
@@ -29494,6 +29743,7 @@
       "JA"
     ],
     "overhead_power_line": [
+      "",
       "DE"
     ]
   },
@@ -29992,6 +30242,9 @@
       "",
       "RU"
     ],
+    "balloon": [
+      ""
+    ],
     "children": [
       "",
       "DE",
@@ -30202,6 +30455,11 @@
     ],
     "Продукты": [
       "RU"
+    ]
+  },
+  "name:De_Lijn": {
+    "*": [
+      ""
     ]
   },
   "name:TEC": {
@@ -31608,6 +31866,16 @@
       ""
     ]
   },
+  "name:operator:De_Lijn": {
+    "*": [
+      ""
+    ]
+  },
+  "name:operator:TEC": {
+    "*": [
+      ""
+    ]
+  },
   "name:or": {
     "*": [
       ""
@@ -32060,7 +32328,8 @@
   },
   "name:th-Latn": {
     "*": [
-      ""
+      "",
+      "Th"
     ]
   },
   "name:ti": {
@@ -34461,6 +34730,11 @@
       "RU"
     ]
   },
+  "ngo": {
+    "*": [
+      ""
+    ]
+  },
   "nhd:com_id": {
     "*": [
       ""
@@ -34543,6 +34817,7 @@
     "*": [
       "",
       "ES",
+      "FR",
       "Gl",
       "IT",
       "Pt",
@@ -36068,9 +36343,6 @@
       "ES",
       "FR"
     ],
-    "GRTgaz": [
-      "FR"
-    ],
     "Havenbedrijf_Rotterdam_N.V.": [
       ""
     ],
@@ -36093,7 +36365,8 @@
       ""
     ],
     "NaTran": [
-      ""
+      "",
+      "FR"
     ],
     "Orange": [
       "",
@@ -39076,7 +39349,8 @@
   "proposed:*": {
     "*": [
       "",
-      "DE"
+      "DE",
+      "IT"
     ]
   },
   "proposed:highway": {
@@ -39832,6 +40106,7 @@
     ],
     "razed": [
       "",
+      "Cs",
       "DE"
     ],
     "roundhouse": [
@@ -39882,6 +40157,7 @@
     ],
     "stop": [
       "",
+      "Cs",
       "DE",
       "ES",
       "JA",
@@ -40015,6 +40291,14 @@
       "JA",
       "Pl",
       "Zh-hans"
+    ],
+    "yes": [
+      ""
+    ]
+  },
+  "railway:*": {
+    "*": [
+      ""
     ]
   },
   "railway:area": {
@@ -41349,6 +41633,11 @@
       ""
     ]
   },
+  "ref:HU:vor": {
+    "*": [
+      "Hu"
+    ]
+  },
   "ref:IDFM": {
     "*": [
       "FR"
@@ -41619,6 +41908,11 @@
     "*": [
       "",
       "DE"
+    ]
+  },
+  "ref:admin:CN": {
+    "*": [
+      ""
     ]
   },
   "ref:afdc": {
@@ -41930,6 +42224,11 @@
     "*": [
       "",
       "DE"
+    ]
+  },
+  "ref:ifsc": {
+    "*": [
+      ""
     ]
   },
   "ref:industrial": {
@@ -42894,7 +43193,6 @@
       "RU"
     ],
     "informal_settlement": [
-      "",
       "RU"
     ],
     "irregular_settlement": [
@@ -44119,6 +44417,11 @@
     ]
   },
   "sea_kayak": {
+    "*": [
+      ""
+    ]
+  },
+  "seafood:sales": {
     "*": [
       ""
     ]
@@ -46646,6 +46949,9 @@
     "baking_supplies": [
       ""
     ],
+    "balloon": [
+      ""
+    ],
     "bathroom_furnishing": [
       "",
       "Cs",
@@ -46679,6 +46985,7 @@
       "DE",
       "ES",
       "FR",
+      "IT",
       "JA",
       "Pl",
       "Pt",
@@ -49340,6 +49647,11 @@
       "Pt"
     ]
   },
+  "ski:clothes": {
+    "*": [
+      ""
+    ]
+  },
   "ski:rental": {
     "*": [
       "",
@@ -49929,6 +50241,9 @@
       "Pl",
       "RU"
     ],
+    "AT:city_limit30": [
+      "DE"
+    ],
     "BE-BRU:urban": [
       ""
     ],
@@ -50025,6 +50340,12 @@
     "*": [
       "",
       "RU"
+    ],
+    "rocket": [
+      ""
+    ],
+    "spaceplane": [
+      ""
     ]
   },
   "spacing": {
@@ -50219,6 +50540,9 @@
       "ES",
       "IT"
     ],
+    "ballooning": [
+      ""
+    ],
     "bandy": [
       "",
       "Cs",
@@ -50249,6 +50573,9 @@
     "batting_cage": [
       "",
       "ES"
+    ],
+    "beachhandball": [
+      ""
     ],
     "beachvolleyball": [
       "",
@@ -50423,6 +50750,9 @@
     "diving": [
       ""
     ],
+    "dodgeball": [
+      ""
+    ],
     "dog_agility": [
       "",
       "ES"
@@ -50509,6 +50839,9 @@
     "gaga": [
       "",
       "ES"
+    ],
+    "gliding": [
+      ""
     ],
     "golf": [
       "",
@@ -51014,6 +51347,9 @@
     "wrestling": [
       "",
       "ES"
+    ],
+    "yes": [
+      ""
     ],
     "yoga": [
       "",
@@ -51958,6 +52294,11 @@
       ""
     ]
   },
+  "surfboard:rental": {
+    "*": [
+      ""
+    ]
+  },
   "surveillance": {
     "*": [
       "",
@@ -51973,6 +52314,7 @@
   },
   "surveillance:*": {
     "*": [
+      "",
       "Pl"
     ]
   },
@@ -52378,6 +52720,7 @@
     ],
     "data_center": [
       "",
+      "DE",
       "ES",
       "FR",
       "IT"
@@ -52754,6 +53097,11 @@
     ]
   },
   "toilets:paper_supplied": {
+    "*": [
+      ""
+    ]
+  },
+  "toilets:position": {
     "*": [
       ""
     ]
@@ -53272,6 +53620,11 @@
       ""
     ]
   },
+  "tower:*": {
+    "*": [
+      ""
+    ]
+  },
   "tower:construction": {
     "*": [
       "",
@@ -53462,6 +53815,9 @@
       "Cs",
       "DE",
       "ES"
+    ],
+    "water_tower": [
+      ""
     ]
   },
   "townhall:type": {
@@ -55178,7 +55534,8 @@
     "power": [
       "",
       "DE",
-      "FR"
+      "FR",
+      "Pl"
     ],
     "sewerage": [
       "",
@@ -55322,6 +55679,7 @@
       "DE"
     ],
     "agricultural;forestry": [
+      "",
       "DE"
     ],
     "destination": [
@@ -56811,6 +57169,7 @@
       "",
       "DE",
       "ES",
+      "FR",
       "JA"
     ],
     "soakhole": [
@@ -56943,14 +57302,6 @@
       "DE"
     ]
   },
-  "weather_control": {
-    "*": [
-      ""
-    ],
-    "launchpad": [
-      ""
-    ]
-  },
   "weather_protection": {
     "*": [
       ""
@@ -57030,7 +57381,8 @@
       "FR",
       "JA",
       "Pl",
-      "Pt"
+      "Pt",
+      "Sv"
     ],
     "bog": [
       "",
@@ -57565,6 +57917,11 @@
     ]
   },
   "zone:De_Lijn": {
+    "*": [
+      ""
+    ]
+  },
+  "zone:NMBS_SNCB": {
     "*": [
       ""
     ]
