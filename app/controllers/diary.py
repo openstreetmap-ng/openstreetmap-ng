@@ -206,7 +206,7 @@ async def _get_data(
 
             if with_navigation:
                 new_after_t = tg.create_task(new_after_task())
-                new_before_t = tg.create_task(new_before_task())
+                new_before_t = tg.create_task(new_before_task())  # pyright: ignore [reportGeneralTypeIssues]
 
         if user_from_diary:
             user = diaries[0]['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]

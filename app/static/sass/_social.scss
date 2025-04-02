@@ -141,33 +141,38 @@
     }
 
     .changeset-stats {
+        @extend .font-monospace;
+        font-size: 0.7em;
+        font-weight: 600;
+        display: flex;
+
         span {
-            @extend .font-monospace;
-            display: inline-block;
-            padding: 2px 0.3rem 0;
-            font-size: 0.7em;
-            font-weight: 600;
+            padding-top: 1px;
+            padding-left: 4px;
+            padding-right: 4px;
+            margin-top: 0.25rem;
+
+            &:is(:first-child) {
+                border-top-left-radius: $border-radius-sm;
+                border-bottom-left-radius: $border-radius-sm;
+            }
+
+            &:is(:last-child) {
+                border-top-right-radius: $border-radius-sm;
+                border-bottom-right-radius: $border-radius-sm;
+            }
         }
 
         .stat-create {
-            color: $success;
-            background: rgba($success, 0.15);
-            border: 1px solid rgba($success, 0.1);
-            border-radius: $border-radius-sm;
+            @extend .text-bg-success;
         }
 
         .stat-modify {
-            color: $primary;
-            background: rgba($primary, 0.15);
-            border: 1px solid rgba($primary, 0.1);
-            border-radius: $border-radius-sm;
+            @extend .text-bg-warning;
         }
 
         .stat-delete {
-            color: $danger;
-            background: rgba($danger, 0.15);
-            border: 1px solid rgba($danger, 0.1);
-            border-radius: $border-radius-sm;
+            @extend .text-bg-danger;
         }
     }
 }

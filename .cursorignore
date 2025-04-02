@@ -1,0 +1,12 @@
+.idea
+.github/FUNDING.yml
+config/locale/download
+!config/locale/download/en.yaml
+resources
+typings
+*.gpx
+*.xcf
+ANNOUNCEMENT.md
+CONTRIBUTING.md
+SECURITY.md
+LICENSE

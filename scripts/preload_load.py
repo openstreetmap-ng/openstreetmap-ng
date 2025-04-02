@@ -15,7 +15,7 @@ from app.db import db, psycopg_pool_open_decorator
 from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
 
-_COPY_WORKERS = min(os.process_cpu_count() or 1, 8)
+_COPY_WORKERS = min(os.process_cpu_count() or 1, 8)  # type: ignore
 
 
 def get_csv_path(name: str) -> Path:

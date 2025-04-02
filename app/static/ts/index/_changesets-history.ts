@@ -159,17 +159,17 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             numCommentsValue.appendChild(icon)
 
             if (changeset.numCreate) {
-                statCreateValue.textContent = `+${changeset.numCreate}`
+                statCreateValue.textContent = changeset.numCreate.toString()
             } else {
                 statCreateValue.remove()
             }
             if (changeset.numModify) {
-                statModifyValue.textContent = `~${changeset.numModify}`
+                statModifyValue.textContent = changeset.numModify.toString()
             } else {
                 statModifyValue.remove()
             }
             if (changeset.numDelete) {
-                statDeleteValue.textContent = `-${changeset.numDelete}`
+                statDeleteValue.textContent = changeset.numDelete.toString()
             } else {
                 statDeleteValue.remove()
             }

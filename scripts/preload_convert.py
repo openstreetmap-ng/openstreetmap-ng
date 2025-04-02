@@ -70,7 +70,7 @@ _NOTES_SCHEMA = pa.schema([
     pa.field('hidden_at', pa.timestamp('ms', 'UTC')),
 ])
 
-_NUM_WORKERS = os.process_cpu_count() or 1
+_NUM_WORKERS = os.process_cpu_count() or 1  # type: ignore
 _TASK_SIZE = 64 * 1024 * 1024  # 64MB
 
 # freeze all gc objects before starting for improved performance

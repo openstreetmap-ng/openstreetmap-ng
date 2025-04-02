@@ -56,7 +56,7 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
         today.replace(tzinfo=None) + timedelta(days=1),
         timedelta(days=1),
         'datetime64[D]',
-    ).tolist()
+    ).tolist()  # type: ignore
 
     # Map activity counts to each date
     activity = np.array([activity_per_day.get(d, 0) for d in dates_range], np.uint32)
