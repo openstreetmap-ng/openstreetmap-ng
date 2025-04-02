@@ -2,7 +2,7 @@ import logging
 
 import cython
 from fastapi import UploadFile
-from asyncio import get_running_loop
+from asyncio import create_task
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db
@@ -89,8 +89,11 @@ class TraceService:
                 ) as r,
             ):
                 trace_id = (await r.fetchone())[0]  # type: ignore
-                loop = get_running_loop()
-                await loop.run_in_executor(None, TraceService.compress, trace_id, trace_init['file_id'], file_bytes)
+
+                # Create taks for heavy compression
+                create_task(TraceService._compress(
+                    trace_id, trace_init['file_id'], file_bytes))
+
                 return trace_id
 
         except Exception:
@@ -99,24 +102,30 @@ class TraceService:
             raise
 
     @staticmethod
-    async def compress(trace_id: TraceId,  file_id: str, file_bytes: bytes):
+    async def _compress(trace_id: TraceId,  file_id: str, file_bytes: bytes):
         # compress
         result = await TraceFile.compress(file_bytes)
-        # upload to database
         new_file_id = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
-        async with (
-            db(True) as conn,
-            await conn.execute(
-                """
-                UPDATE trace
-                SET file_id = %(file_id)s
-                WHERE id = %(trace_id)s
-                """,
-                {"file_id": new_file_id, "trace_id": trace_id},
-            )
-        ):
-            # after uplpading, delete previous file
-            await TRACE_STORAGE.delete(StorageKey(file_id))
+
+        try:
+            # upload to database
+            async with (
+                db(True) as conn,
+                await conn.execute(
+                    """
+                    UPDATE trace
+                    SET file_id = %(file_id)s
+                    WHERE id = %(trace_id)s
+                    """,
+                    {"file_id": new_file_id, "trace_id": trace_id},
+                )
+            ):
+                # after uplpading, delete previous file
+                await TRACE_STORAGE.delete(StorageKey(file_id))
+        except Exception:
+            # Clean up trace file on error
+            await TRACE_STORAGE.delete(new_file_id)
+            raise
 
     @staticmethod
     async def update(
