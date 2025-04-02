@@ -449,7 +449,7 @@ let
       done
       cp --archive --link "data/preload/$dataset/"*.csv.zst data/preload/
     '')
-    (makeScript "preload-load" "python scripts/preload_load.py")
+    (makeScript "preload-load" "python scripts/db_load.py -m preload")
     (makeScript "preload-pipeline" ''
       set -x
       preload-download
@@ -458,7 +458,7 @@ let
     '')
     (makeScript "replication" "python scripts/replication.py")
     (makeScript "replication-convert" "python scripts/replication_convert.py")
-    (makeScript "replication-load" "python scripts/replication_load.py")
+    (makeScript "replication-load" "python scripts/db_load.py -m replication")
 
     # -- Testing
     (makeScript "run-tests" ''

@@ -121,7 +121,7 @@ pkgs.writeText "postgres.conf" (''
 
   # configure autovacuum to use absolute thresholds
   # reason: more frequent vacuuming, predictable behavior
-  autovacuum_max_workers = 3
+  autovacuum_max_workers = 4
   autovacuum_naptime = 3min
   autovacuum_vacuum_scale_factor = 0.0
   autovacuum_vacuum_threshold = 500
