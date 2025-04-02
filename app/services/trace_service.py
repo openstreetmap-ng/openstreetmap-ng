@@ -2,7 +2,7 @@ import logging
 
 import cython
 from fastapi import UploadFile
-from asyncio import create_task
+from asyncio import create_task, sleep
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db
@@ -104,10 +104,10 @@ class TraceService:
     @staticmethod
     async def _compress(trace_id: TraceId,  file_id: str, file_bytes: bytes):
         # compress
-        result = await TraceFile.compress(file_bytes)
-        new_file_id = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
-
+        new_file_id = None
         try:
+            result = await TraceFile.compress(file_bytes)
+            new_file_id = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
             # upload to database
             async with (
                 db(True) as conn,
@@ -122,10 +122,14 @@ class TraceService:
             ):
                 # after uplpading, delete previous file
                 await TRACE_STORAGE.delete(StorageKey(file_id))
-        except Exception:
-            # Clean up trace file on error
-            await TRACE_STORAGE.delete(new_file_id)
-            raise
+        except Exception as e:
+            if new_file_id:
+                # Clean up trace file on error
+                await TRACE_STORAGE.delete(new_file_id)
+                logging.error("Error updating trace database. id: %d", trace_id, exc_info=True)
+            else:
+                logging.error("Unexpected error while compressing trace. id: %d", trace_id, exc_info=True)
+
 
     @staticmethod
     async def update(

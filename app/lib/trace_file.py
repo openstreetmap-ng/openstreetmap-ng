@@ -201,7 +201,7 @@ _ZSTD_COMPRESS = ZstdCompressor(level=TRACE_FILE_COMPRESS_ZSTD_LEVEL, threads=TR
 _ZSTD_DECOMPRESS = ZstdDecompressor().decompress
 _ZSTD_SUFFIX = '.zst'
 _ZSTD_PRECOMPRESSED_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_PRECOMPRESS_ZSTD_LEVEL)}
-_ZSTD_COMPRESSED_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_PRECOMPRESS_ZSTD_LEVEL)}
+_ZSTD_COMPRESSED_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
 
 
 class _ZstdProcessor(_TraceProcessor):
