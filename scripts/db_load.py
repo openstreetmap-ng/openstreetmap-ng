@@ -48,21 +48,23 @@ def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
 
 
 @asynccontextmanager
-async def _delay_checkpoints():
+async def _reduce_db_activity():
     async with db(True, autocommit=True) as conn:
         print('Performing a checkpoint')
         await conn.execute('CHECKPOINT')
-        print('Delaying further checkpoints')
+        print('Pausing autovacuum and checkpoint schedule')
+        await conn.execute('ALTER SYSTEM SET autovacuum = off')
         await conn.execute("ALTER SYSTEM SET checkpoint_timeout = '24h'")
-        await conn.execute("ALTER SYSTEM SET max_wal_size = '10TB'")
+        await conn.execute('ALTER SYSTEM SET checkpoint_completion_target = 0')
         await conn.execute('SELECT pg_reload_conf()')
     try:
         yield
     finally:
         async with db(True, autocommit=True) as conn:
-            print('Restoring checkpoints schedule')
+            print('Restoring db configuration')
+            await conn.execute('ALTER SYSTEM RESET autovacuum')
             await conn.execute('ALTER SYSTEM RESET checkpoint_timeout')
-            await conn.execute('ALTER SYSTEM RESET max_wal_size')
+            await conn.execute('ALTER SYSTEM RESET checkpoint_completion_target')
             await conn.execute('SELECT pg_reload_conf()')
 
 
@@ -138,7 +140,7 @@ async def _load_table(mode: _Mode, table: str) -> tuple[dict[str, SQL], dict[tup
     program = f'zstd -d --stdout {" ".join(f"{quote(p)}" for p in copy_paths)}'
     proc: Process | None = None
 
-    async with _delay_checkpoints():
+    async with _reduce_db_activity():
         try:
             print(f'Populating {table} table ({len(columns)} columns)...')
             proc = await create_subprocess_shell(
