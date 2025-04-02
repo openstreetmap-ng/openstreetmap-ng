@@ -2,6 +2,7 @@ import logging
 
 import cython
 from fastapi import UploadFile
+from asyncio import get_running_loop
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db
@@ -41,13 +42,15 @@ class TraceService:
         try:
             tracks: list[dict] = []
             for gpx_bytes in TraceFile.extract(file_bytes):
-                new_tracks = XMLToDict.parse(gpx_bytes).get('gpx', {}).get('trk', [])  # type: ignore
+                new_tracks = XMLToDict.parse(gpx_bytes).get(
+                    'gpx', {}).get('trk', [])  # type: ignore
                 tracks.extend(new_tracks)
         except Exception as e:
             raise_for.bad_trace_file(str(e))
 
         decoded = FormatGPX.decode_tracks(tracks)
-        logging.debug('Organized %d points into %d segments', decoded.size, len(decoded.segments.geoms))
+        logging.debug('Organized %d points into %d segments',
+                      decoded.size, len(decoded.segments.geoms))
 
         trace_init: TraceInit = {
             'user_id': auth_user(required=True)['id'],
@@ -63,7 +66,7 @@ class TraceService:
         trace_init = TraceInitValidator.validate_python(trace_init)
 
         # Save the compressed file after validation to avoid unnecessary work
-        result = await TraceFile.compress(file_bytes)
+        result = await TraceFile.precompress(file_bytes)
         trace_init['file_id'] = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
         logging.debug('Saved compressed trace file %r', trace_init['file_id'])
 
@@ -85,12 +88,35 @@ class TraceService:
                     trace_init,
                 ) as r,
             ):
-                return (await r.fetchone())[0]  # type: ignore
+                trace_id = (await r.fetchone())[0]  # type: ignore
+                loop = get_running_loop()
+                await loop.run_in_executor(None, TraceService.compress, trace_id, trace_init['file_id'], file_bytes)
+                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+    @staticmethod
+    async def compress(trace_id: TraceId,  file_id: str, file_bytes: bytes):
+        # compress
+        result = await TraceFile.compress(file_bytes)
+        # upload to database
+        new_file_id = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
+        async with (
+            db(True) as conn,
+            await conn.execute(
+                """
+                UPDATE trace
+                SET file_id = %(file_id)s
+                WHERE id = %(trace_id)s
+                """,
+                {"file_id": new_file_id, "trace_id": trace_id},
+            )
+        ):
+            # after uplpading, delete previous file
+            await TRACE_STORAGE.delete(StorageKey(file_id))
 
     @staticmethod
     async def update(

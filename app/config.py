@@ -53,7 +53,7 @@ SMTP_PASS: SecretStr = Field()
 # -------------------- System Configuration --------------------
 
 # Core settings
-ENV: Literal['dev', 'test', 'prod'] = 'prod'
+ENV: Literal['dev', 'test', 'prod'] = 'dev' # 'prod'
 LOG_LEVEL = 'INFO' if ENV == 'prod' else 'DEBUG'
 LEGACY_HIGH_PRECISION_TIME = False
 LEGACY_SEQUENCE_ID_MARGIN = False
@@ -252,7 +252,8 @@ TRACE_FILE_UNCOMPRESSED_MAX_SIZE = 80 * _MB
 TRACE_FILE_ARCHIVE_MAX_FILES = 10
 TRACE_FILE_MAX_LAYERS = 2
 TRACE_FILE_COMPRESS_ZSTD_THREADS = 4
-TRACE_FILE_COMPRESS_ZSTD_LEVEL = 6
+TRACE_FILE_PRECOMPRESS_ZSTD_LEVEL = 6
+TRACE_FILE_COMPRESS_ZSTD_LEVEL = 22
 TRACE_POINT_QUERY_AREA_MAX_SIZE: float = 0.25  # in square degrees
 TRACE_POINT_QUERY_DEFAULT_LIMIT = 5_000
 TRACE_POINT_QUERY_MAX_LIMIT = 5_000

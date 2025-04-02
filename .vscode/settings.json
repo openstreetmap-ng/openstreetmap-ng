@@ -1,6 +1,6 @@
 {
   "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff"
+    "editor.defaultFormatter": "ms-python.autopep8"
   },
   "[scss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
