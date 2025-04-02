@@ -54,6 +54,7 @@ async def _delay_checkpoints():
         await conn.execute('CHECKPOINT')
         print('Delaying further checkpoints')
         await conn.execute("ALTER SYSTEM SET checkpoint_timeout = '24h'")
+        await conn.execute("ALTER SYSTEM SET max_wal_size = '10TB'")
         await conn.execute('SELECT pg_reload_conf()')
     try:
         yield
@@ -61,6 +62,7 @@ async def _delay_checkpoints():
         async with db(True, autocommit=True) as conn:
             print('Restoring checkpoints schedule')
             await conn.execute('ALTER SYSTEM RESET checkpoint_timeout')
+            await conn.execute('ALTER SYSTEM RESET max_wal_size')
             await conn.execute('SELECT pg_reload_conf()')
 
 
