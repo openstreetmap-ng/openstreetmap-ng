@@ -46,14 +46,8 @@
 
     // Better centering of the badges
     .badge {
-        position: relative;
-        top: -0.05em;
-
-        // ..and the icons within them
-        i {
-            position: relative;
-            top: 0.1em;
-        }
+        display: inline-flex;
+        align-items: center;
     }
 
     .pre {
@@ -250,6 +244,11 @@
 
     .social-entry {
         height: 100%;
+
+        .badge {
+            position: relative;
+            top: -0.05em;
+        }
     }
 
     .body {

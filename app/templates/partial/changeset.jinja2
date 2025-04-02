@@ -33,12 +33,10 @@
                     {% endif %}
                 </span>
                 {% if changeset.closed_at is none %}
-                    <span>
-                    <span class="open-badge badge text-bg-success"
-                          title="{{ t('changeset.this_changeset_is_state', state=t('changeset.open').lower()) }}">
-                        <i class="bi bi-unlock-fill"></i>
+                    <span class="badge open-indicator"
+                        title="{{ t('changeset.this_changeset_is_state', state=t('changeset.open').lower()) }}">
+                        <i class="bi bi-pencil-square me-1"></i>{{ t('changeset.open') }}
                     </span>
-                </span>
                 {% endif %}
             </p>
             <div class="body fst-italic">

@@ -1,7 +1,10 @@
 .action-sidebar.changeset {
-    .open-badge {
+    .open-indicator {
+        color: $success;
+        background: rgba($success, 0.1);
+        border: 1px solid rgba($success, 0.3);
+        font-weight: 500;
         cursor: help;
-        font-size: 0.8em;
     }
 
     .elements {
