@@ -14,3 +14,4 @@ rsync \
   --archive \
   --delete \
   postgres-fresh/ postgres/
+chown osm-ng:osm-ng /data/osm-ng/data -R
