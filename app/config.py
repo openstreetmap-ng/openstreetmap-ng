@@ -53,7 +53,7 @@ SMTP_PASS: SecretStr = Field()
 # -------------------- System Configuration --------------------
 
 # Core settings
-ENV: Literal['dev', 'test', 'prod'] = 'dev' # 'prod'
+ENV: Literal['dev', 'test', 'prod'] = 'prod'
 LOG_LEVEL = 'INFO' if ENV == 'prod' else 'DEBUG'
 LEGACY_HIGH_PRECISION_TIME = False
 LEGACY_SEQUENCE_ID_MARGIN = False

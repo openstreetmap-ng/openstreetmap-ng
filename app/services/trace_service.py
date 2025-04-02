@@ -2,7 +2,7 @@ import logging
 
 import cython
 from fastapi import UploadFile
-from asyncio import create_task, sleep
+from asyncio import create_task
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db
@@ -42,15 +42,13 @@ class TraceService:
         try:
             tracks: list[dict] = []
             for gpx_bytes in TraceFile.extract(file_bytes):
-                new_tracks = XMLToDict.parse(gpx_bytes).get(
-                    'gpx', {}).get('trk', [])  # type: ignore
+                new_tracks = XMLToDict.parse(gpx_bytes).get('gpx', {}).get('trk', [])  # type: ignore
                 tracks.extend(new_tracks)
         except Exception as e:
             raise_for.bad_trace_file(str(e))
 
         decoded = FormatGPX.decode_tracks(tracks)
-        logging.debug('Organized %d points into %d segments',
-                      decoded.size, len(decoded.segments.geoms))
+        logging.debug('Organized %d points into %d segments', decoded.size, len(decoded.segments.geoms))
 
         trace_init: TraceInit = {
             'user_id': auth_user(required=True)['id'],
@@ -90,7 +88,7 @@ class TraceService:
             ):
                 trace_id = (await r.fetchone())[0]  # type: ignore
 
-                # Create taks for heavy compression
+                # Create task for heavy compression
                 create_task(TraceService._compress(
                     trace_id, trace_init['file_id'], file_bytes))
 
