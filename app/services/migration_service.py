@@ -59,7 +59,7 @@ class MigrationService:
                 WITH dups AS MATERIALIZED (
                     SELECT
                         typed_id, version,
-                        ANY_VALUE(sequence_id) AS sequence_id
+                        ARBITRARY(sequence_id) AS sequence_id
                     FROM element
                     GROUP BY typed_id, version
                     HAVING COUNT(*) > 1

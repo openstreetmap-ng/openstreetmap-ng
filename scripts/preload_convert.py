@@ -371,7 +371,7 @@ def _write_changeset() -> None:
         COPY (
             SELECT
                 changeset_id AS id,
-                ANY_VALUE(user_id) AS user_id,
+                ARBITRARY(user_id) AS user_id,
                 '' AS tags,
                 MIN(created_at) AS created_at,
                 MAX(created_at) AS updated_at,
@@ -393,10 +393,10 @@ def _write_element() -> None:
         # Source implementation: app.models.element.typed_element_id
         conn.execute("""
         CREATE MACRO typed_element_id(type, id) AS
-        CASE
-            WHEN type = 'node' THEN id
-            WHEN type = 'way' THEN (id | (1::bigint << 60))
-            WHEN type = 'relation' THEN (id | (2::bigint << 60))
+        CASE type
+            WHEN 'node' THEN id
+            WHEN 'way' THEN (id | 1152921504606846976) -- 1 << 60
+            WHEN 'relation' THEN (id | 2305843009213693952) -- 2 << 60
             ELSE NULL
         END
         """)
@@ -437,22 +437,22 @@ def _write_element() -> None:
                 typed_element_id(type, id) AS typed_id,
                 version,
                 visible,
-                CASE
-                    WHEN tags IS NOT NULL THEN
-                        json_to_hstore(tags)
-                    ELSE NULL
-                END AS tags,
+                IF(
+                    tags IS NOT NULL,
+                    json_to_hstore(tags),
+                    NULL
+                ) AS tags,
                 point,
-                CASE
-                    WHEN members IS NOT NULL THEN
-                        pg_array(list_transform(members, x -> typed_element_id(x.type, x.id)))
-                    ELSE NULL
-                END AS members,
-                CASE
-                    WHEN members IS NOT NULL AND type = 'relation' THEN
-                        pg_array(list_transform(members, x -> quote(x.role)))
-                    ELSE NULL
-                END AS members_roles,
+                IF(
+                    members IS NOT NULL,
+                    pg_array(list_transform(members, x -> typed_element_id(x.type, x.id))),
+                    NULL
+                ) AS members,
+                IF(
+                    members IS NOT NULL AND type = 'relation',
+                    pg_array(list_transform(members, x -> quote(x.role))),
+                    NULL
+                ) AS members_roles,
                 created_at,
                 next_sequence_id
             FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
@@ -524,19 +524,17 @@ def _write_user(modes: set[str]) -> None:
                 user_id AS id,
                 (user_id || '@localhost.invalid') AS email,
                 TRUE as email_verified,
-                CASE
-                    WHEN COUNT(*) OVER (PARTITION BY display_name) > 1
-                    THEN display_name || '_' || user_id
-                    ELSE display_name
-                END AS display_name,
+                IF(
+                    COUNT(*) OVER (PARTITION BY display_name) > 1,
+                    display_name || '_' || user_id,
+                    display_name
+                ) AS display_name,
                 '' AS password_pb,
                 'en' AS language,
                 TRUE AS activity_tracking,
                 TRUE AS crash_reporting,
                 '127.0.0.1' AS created_ip
-            FROM (
-                {' UNION ALL '.join(sources)}
-            )
+            FROM ({' UNION ALL '.join(sources)})
             ORDER BY user_id
         ) TO {_get_csv_path('user').as_posix()!r}
         """)
