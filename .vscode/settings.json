@@ -1,18 +1,28 @@
 {
+  "SQL-Formatter-VSCode.dataTypeCase": "lower",
+  "SQL-Formatter-VSCode.dialect": "postgresql",
+  "SQL-Formatter-VSCode.expressionWidth": 80,
+  "SQL-Formatter-VSCode.functionCase": "lower",
+  "SQL-Formatter-VSCode.keywordCase": "upper",
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
   "[scss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[sql]": {
+    "editor.defaultFormatter": "ReneSaarsoo.sql-formatter-vsc"
+  },
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
-  "[json]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,venv,.venv,vendor,data}/**",
-  "editor.rulers": [120],
+  "editor.rulers": [
+    120
+  ],
   "editor.unicodeHighlight.allowedCharacters": {
     "➕": true
   },
@@ -42,7 +52,9 @@
   "nix.serverSettings": {
     "nil": {
       "formatting": {
-        "command": ["nixpkgs-fmt"]
+        "command": [
+          "nixpkgs-fmt"
+        ]
       }
     }
   },

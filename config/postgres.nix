@@ -33,19 +33,24 @@ pkgs.writeText "postgres.conf" (''
   # we only perform relatively small queries and rely heavily on indexes
   max_parallel_workers_per_gather = 0
 
-  # use one worker per CPU thread
+  # configure number of workers
   max_worker_processes = ${toString postgresCpuThreads}
   max_parallel_workers = ${toString postgresCpuThreads}
   max_parallel_maintenance_workers = ${toString postgresCpuThreads}
   # SOON: timescaledb.max_background_workers = ${toString postgresCpuThreads}
+  autovacuum_max_workers = ${toString (builtins.floor (postgresCpuThreads / 2))}
 
   # timescaledb require open-source license and disable telemetry
   # SOON: timescaledb.license = apache
   # SOON: timescaledb.telemetry_level = off
 
+  # more aggressive autovacuum
+  autovacuum_vacuum_scale_factor = 0.1
+  autovacuum_vacuum_insert_scale_factor = 0.1
+
   # increase statistics target
   # reason: more accurate query plans
-  default_statistics_target = 1000
+  default_statistics_target = 500
 
   # increase max connections
   max_connections = 10000
@@ -118,17 +123,6 @@ pkgs.writeText "postgres.conf" (''
   log_statement = 'ddl'
   log_lock_waits = on
 '' + ''
-
-  # configure autovacuum to use absolute thresholds
-  # reason: more frequent vacuuming, predictable behavior
-  autovacuum_max_workers = 4
-  autovacuum_naptime = 3min
-  autovacuum_vacuum_scale_factor = 0.0
-  autovacuum_vacuum_threshold = 500
-  autovacuum_vacuum_insert_scale_factor = 0.0
-  autovacuum_vacuum_insert_threshold = 1000
-  autovacuum_analyze_scale_factor = 0.0
-  autovacuum_analyze_threshold = 1000
 
   # configure additional libraries
   shared_preload_libraries = 'auto_explain' # SOON: ,timescaledb

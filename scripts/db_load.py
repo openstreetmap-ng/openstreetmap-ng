@@ -50,20 +50,16 @@ def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
 @asynccontextmanager
 async def _reduce_db_activity():
     async with db(True, autocommit=True) as conn:
-        print('Performing a checkpoint')
-        await conn.execute('CHECKPOINT')
-        print('Pausing autovacuum and checkpoint schedule')
+        print('Pausing autovacuum and increasing checkpoint priority')
         await conn.execute('ALTER SYSTEM SET autovacuum = off')
-        await conn.execute("ALTER SYSTEM SET checkpoint_timeout = '24h'")
         await conn.execute('ALTER SYSTEM SET checkpoint_completion_target = 0')
         await conn.execute('SELECT pg_reload_conf()')
     try:
         yield
     finally:
         async with db(True, autocommit=True) as conn:
-            print('Restoring db configuration')
+            print('Restoring autovacuum and checkpoint settings')
             await conn.execute('ALTER SYSTEM RESET autovacuum')
-            await conn.execute('ALTER SYSTEM RESET checkpoint_timeout')
             await conn.execute('ALTER SYSTEM RESET checkpoint_completion_target')
             await conn.execute('SELECT pg_reload_conf()')
 
