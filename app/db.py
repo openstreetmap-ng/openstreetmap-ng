@@ -137,7 +137,7 @@ async def db(write: bool = False, *, autocommit: bool = False, isolation_level: 
 
 
 @contextmanager
-def duckdb_connect(database: str | Path = ':memory:'):
+def duckdb_connect(database: str | Path = ':memory:', *, progress: bool = True):
     with (
         TemporaryDirectory(prefix='osm-ng-duckdb-', dir=DUCKDB_TMPDIR) as tmpdir,
         duckdb.connect(
@@ -151,5 +151,6 @@ def duckdb_connect(database: str | Path = ':memory:'):
         ) as conn,
     ):
         logging.debug('DuckDB temp_directory: %s', tmpdir)
-        conn.sql('PRAGMA enable_progress_bar')
+        if progress:
+            conn.sql('PRAGMA enable_progress_bar')
         yield conn

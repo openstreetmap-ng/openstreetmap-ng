@@ -457,7 +457,7 @@ let
       preload-load
     '')
     (makeScript "replication" "python scripts/replication.py")
-    (makeScript "replication-convert" "python scripts/replication_convert.py")
+    (makeScript "replication-convert" "python scripts/replication_convert.py \"$@\"")
     (makeScript "replication-load" "python scripts/db_load.py -m replication")
 
     # -- Testing

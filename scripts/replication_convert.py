@@ -1,8 +1,7 @@
-from shutil import rmtree
+import logging
+from argparse import ArgumentParser
 
-import duckdb
-
-from app.config import PRELOAD_DIR, REPLICATION_DIR
+from app.config import REPLICATION_DIR
 from app.db import duckdb_connect
 from scripts.preload_convert import NOTES_PARQUET_PATH
 
@@ -18,16 +17,9 @@ _PARQUET_PATHS = [
 ]
 
 
-def _write_output(conn: duckdb.DuckDBPyConnection, table: str, select_sql: str, header: str) -> None:
-    output = PRELOAD_DIR.joinpath(table)
-    rmtree(output, ignore_errors=True)
-    conn.sql(f'COPY ({select_sql}) TO {output.as_posix()!r} (PER_THREAD_OUTPUT TRUE, COMPRESSION ZSTD, HEADER FALSE)')
-    output.joinpath('header.csv').write_text(header)
-
-
-def _write_changeset() -> None:
-    with duckdb_connect() as conn:
-        changeset_sql = f"""
+def _process_changeset() -> None:
+    with duckdb_connect(progress=False) as conn:
+        conn.sql(f"""
         SELECT
             changeset_id AS id,
             ANY_VALUE(user_id) AS user_id,
@@ -41,17 +33,11 @@ def _write_changeset() -> None:
             COUNT_IF(version > 1 AND NOT visible) AS num_delete
         FROM read_parquet({_PARQUET_PATHS!r})
         GROUP BY changeset_id
-        """
-        _write_output(
-            conn,
-            'changeset',
-            changeset_sql,
-            'id,user_id,tags,created_at,updated_at,closed_at,size,num_create,num_modify,num_delete',
-        )
+        """).write_csv('/dev/stdout')
 
 
-def _write_element() -> None:
-    with duckdb_connect() as conn:
+def _process_element() -> None:
+    with duckdb_connect(progress=False) as conn:
         # Compute typed_id from type and id.
         # Source implementation: app.models.element.typed_element_id
         conn.execute("""
@@ -92,7 +78,7 @@ def _write_element() -> None:
         '{' || array_to_string(arr, ',') || '}'
         """)
 
-        element_sql = f"""
+        conn.sql(f"""
         SELECT
             sequence_id,
             changeset_id,
@@ -117,17 +103,11 @@ def _write_element() -> None:
             END AS members_roles,
             created_at
         FROM read_parquet({_PARQUET_PATHS!r})
-        """
-        _write_output(
-            conn,
-            'element',
-            element_sql,
-            'sequence_id,changeset_id,typed_id,version,visible,tags,point,members,members_roles,created_at',
-        )
+        """).write_csv('/dev/stdout')
 
 
-def _write_user() -> None:
-    with duckdb_connect() as conn:
+def _process_user() -> None:
+    with duckdb_connect(progress=False) as conn:
         sources = [
             f"""
             SELECT DISTINCT ON (user_id)
@@ -139,6 +119,7 @@ def _write_user() -> None:
         ]
 
         if NOTES_PARQUET_PATH.is_file():
+            logging.info('User data WILL include notes data')
             sources.append(f"""
             SELECT DISTINCT ON (user_id)
                 user_id,
@@ -149,8 +130,10 @@ def _write_user() -> None:
             )
             WHERE user_id IS NOT NULL
             """)
+        else:
+            logging.warning('User data WILL NOT include notes data: source file not found')
 
-        user_sql = f"""
+        conn.sql(f"""
         SELECT DISTINCT ON (user_id)
             user_id AS id,
             (user_id || '@localhost.invalid') AS email,
@@ -168,30 +151,26 @@ def _write_user() -> None:
         FROM (
             {' UNION ALL '.join(sources)}
         )
-        """
-        _write_output(
-            conn,
-            'user',
-            user_sql,
-            'id,email,email_verified,display_name,password_pb,language,activity_tracking,crash_reporting,created_ip',
-        )
+        """).write_csv('/dev/stdout')
 
 
 def main() -> None:
-    PRELOAD_DIR.mkdir(exist_ok=True, parents=True)
+    choices = ['changeset', 'element', 'user']
+    parser = ArgumentParser()
+    parser.add_argument('mode', choices=choices)
+    args = parser.parse_args()
 
-    action = 'WILL' if NOTES_PARQUET_PATH.is_file() else 'WILL NOT'
-    if input(f'User data {action} include notes data. Continue? (y/N): ').strip().lower() not in {'y', 'yes'}:
-        return
+    logging.info('Found %d source parquet files', len(_PARQUET_PATHS))
 
-    print('Writing changeset')
-    _write_changeset()
-    print('Writing element')
-    _write_element()
-    print('Writing user')
-    _write_user()
-
-    print('Done! Done! Done!')
+    match args.mode:
+        case 'changeset':
+            _process_changeset()
+        case 'element':
+            _process_element()
+        case 'user':
+            _process_user()
+        case _:
+            raise ValueError(f'Invalid mode: {args.mode}')
 
 
 if __name__ == '__main__':
