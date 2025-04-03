@@ -214,18 +214,18 @@ WHERE
     AND next_sequence_id IS NULL;
 
 CREATE INDEX element_members_ways_idx ON element USING gin (members)
+WITH
+    (fastupdate = FALSE)
 WHERE
     cardinality(members) > 0
-    AND (typed_id BETWEEN 1152921504606846976 AND 2305843009213693951)
-WITH
-    (fastupdate = FALSE);
+    AND (typed_id BETWEEN 1152921504606846976 AND 2305843009213693951);
 
 CREATE INDEX element_members_relations_idx ON element USING gin (members)
+WITH
+    (fastupdate = FALSE)
 WHERE
     cardinality(members) > 0
-    AND (typed_id BETWEEN 2305843009213693952 AND 3458764513820540927)
-WITH
-    (fastupdate = FALSE);
+    AND (typed_id BETWEEN 2305843009213693952 AND 3458764513820540927);
 
 CREATE TABLE diary (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
