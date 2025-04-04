@@ -20,7 +20,7 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "autoDocstring.docstringFormat": "sphinx-notypes",
-  "coverage-gutters.ignoredPathGlobs": "**/{node_modules,venv,.venv,vendor,data}/**",
+  "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
   "editor.rulers": [
     120
   ],
@@ -34,10 +34,8 @@
     "**/*.so": true,
     "**/__pycache__/": true,
     "**/_generated/": true,
+    ".*cache/": true,
     ".direnv/": true,
-    ".pytest_cache/": true,
-    ".ruff_cache/": true,
-    ".sass-cache/": true,
     ".venv/": true,
     "app/static/**/*.html": false,
     "app/static/js": true,
