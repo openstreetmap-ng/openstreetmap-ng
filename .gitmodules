@@ -1,0 +1,4 @@
+[submodule "wiki"]
+	path = wiki
+	url = ../openstreetmap-ng.wiki.git
+	branch = master
