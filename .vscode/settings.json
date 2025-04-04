@@ -19,6 +19,7 @@
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
+  "autoDocstring.docstringFormat": "sphinx-notypes",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,venv,.venv,vendor,data}/**",
   "editor.rulers": [
     120

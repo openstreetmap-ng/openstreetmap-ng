@@ -6,6 +6,8 @@
     "jnoortheen.nix-ide",
     "ms-python.python",
     "ryanluker.vscode-coverage-gutters",
-    "zxh404.vscode-proto3"
+    "zxh404.vscode-proto3",
+    "editorconfig.editorconfig",
+    "renesaarsoo.sql-formatter-vsc"
   ]
 }
