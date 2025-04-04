@@ -26,7 +26,8 @@ async def applications_authorizations(
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(tokens))
-        tg.create_task(OAuth2ApplicationQuery.resolve_applications(tokens))
+        apps = await OAuth2ApplicationQuery.resolve_applications(tokens)
+        tg.create_task(UserQuery.resolve_users(apps))
 
     return await render_response(
         'settings/applications/authorizations.jinja2',

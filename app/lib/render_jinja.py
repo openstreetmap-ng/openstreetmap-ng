@@ -9,7 +9,7 @@ from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
 from app.lib.static_asset_hash import HASH_AWARE_PATHS
 from app.lib.translation import nt, primary_translation_locale, t
-from app.models.db.oauth2_application import oauth2_app_avatar_url
+from app.models.db.oauth2_application import oauth2_app_avatar_url, oauth2_app_is_system
 from app.models.db.user import user_avatar_url, user_is_admin, user_is_moderator
 from app.models.element import split_typed_element_id
 
@@ -119,6 +119,7 @@ _J2.globals.update(
     user_is_admin=user_is_admin,
     user_avatar_url=user_avatar_url,
     oauth2_app_avatar_url=oauth2_app_avatar_url,
+    oauth2_app_is_system=oauth2_app_is_system,
     split_typed_element_id=split_typed_element_id,
 )
 

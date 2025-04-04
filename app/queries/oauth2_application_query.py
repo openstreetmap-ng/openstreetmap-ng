@@ -64,10 +64,10 @@ class OAuth2ApplicationQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def resolve_applications(tokens: list[OAuth2Token]) -> None:
+    async def resolve_applications(tokens: list[OAuth2Token]) -> list[OAuth2Application]:
         """Resolve the applications for the given tokens."""
         if not tokens:
-            return
+            return []
 
         id_map: defaultdict[ApplicationId, list[OAuth2Token]] = defaultdict(list)
         for token in tokens:
@@ -77,3 +77,5 @@ class OAuth2ApplicationQuery:
         for app in apps:
             for token in id_map[app['id']]:
                 token['application'] = app
+
+        return apps
