@@ -29,7 +29,7 @@
         {{ t('settings.password_last_changed') }}
         <div class="input-group mt-2">
             <div class="form-control bg-body-tertiary">
-                <time datetime="{{ user.password_changed_at.isoformat() }}" data-style="long"></time>
+                <time datetime="{{ user.password_updated_at.isoformat() }}" data-style="long"></time>
             </div>
             <a class="btn btn-light border" href="/settings/security">
                 {{ t('settings.change_password') }}

@@ -192,22 +192,6 @@ settings:
   connections:
     external_services: External services
     description: Link your existing accounts from other services to make signing in easier.
-    service:
-      google:
-        title: Google
-        description: A technology company providing internet-based services
-      facebook:
-        title: Facebook
-        description: A social media service for connecting and sharing with communities
-      microsoft:
-        title: Microsoft
-        description: A technology company that creates computer software, hardware, and services
-      github:
-        title: GitHub
-        description: A platform where developers store, share, and collaborate on code projects
-      wikimedia:
-        title: Wikimedia
-        description: The parent organization managing Wikipedia and other wiki-based projects
   authorized_at: "Authorized at {{date}}"
   created_at: "Created at {{date}}"
   updated_at: "Updated at {{date}}"
@@ -297,6 +281,30 @@ permissions:
   manage_gps_traces: Manage GPS traces
   manage_notes: Manage notes
   access_the_website: Access the website
+service:
+  google:
+    title: Google
+    description: A technology company providing internet-based services
+  facebook:
+    title: Facebook
+    description: A social media service for connecting and sharing with communities
+  microsoft:
+    title: Microsoft
+    description: A technology company that creates computer software, hardware, and services
+  github:
+    title: GitHub
+    description: A platform where developers store, share, and collaborate on code projects
+  wikimedia:
+    title: Wikimedia
+    description: The parent organization managing Wikipedia and other wiki-based projects
+  mastodon:
+    title: Mastodon
+  bluesky:
+    title: Bluesky
+  linkedin:
+    title: LinkedIn
+  telegram:
+    title: Telegram
 oauth:
   account_not_found: Account not found
   we_couldnt_find_account: "We couldn't find an account linked to your {{provider}} login."

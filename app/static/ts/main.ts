@@ -1,8 +1,8 @@
 import "./_tracking"
 
 import "./_datetime"
-import "./_navbar-theme"
 import "./_i18n"
+import "./_navbar-theme"
 
 import "./_fixthemap"
 import "./_id"

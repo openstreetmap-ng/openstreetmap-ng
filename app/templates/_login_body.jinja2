@@ -48,7 +48,7 @@
         <form method="POST" action="/oauth2/{{ service }}/authorize">
             <input type="hidden" name="referer" required>
             <button type="submit" class="btn btn-link border"
-                    title="{{ t('settings.connections.service.' ~ service ~ '.title') }}" name="action" value="login">
+                    title="{{ t('service.' ~ service ~ '.title') }}" name="action" value="login">
                 <img src="/static/img/brand/{{ service }}.webp" draggable="false" loading="lazy">
             </button>
         </form>

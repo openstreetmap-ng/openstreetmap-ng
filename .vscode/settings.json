@@ -25,7 +25,8 @@
     120
   ],
   "editor.unicodeHighlight.allowedCharacters": {
-    "➕": true
+    "➕": true,
+    "𝕏": true
   },
   "files.exclude": {
     "**/*.c": true,
