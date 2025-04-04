@@ -111,7 +111,7 @@ class ElementQuery:
                 """
                 SELECT 1 FROM element
                 WHERE sequence_id > %s
-                AND cardinality(members) > 0 AND members && %s::bigint[]
+                AND members && %s::bigint[]
                 AND (
                     typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
                     typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
@@ -427,7 +427,7 @@ class ElementQuery:
         if not members or parent_type == 'node':
             return []
 
-        conditions: list[Composable] = [SQL('cardinality(members) > 0 AND members && %s::bigint[]')]
+        conditions: list[Composable] = [SQL('members && %s::bigint[]')]
         params: list[Any] = [members]
 
         if at_sequence_id is None:
@@ -483,7 +483,7 @@ class ElementQuery:
         conditions: list[Composable] = [
             SQL("""
                 member = ANY(%s)
-                AND cardinality(parent.members) > 0 AND parent.members && %s::bigint[]
+                AND parent.members && %s::bigint[]
                 AND (
                     typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
                     typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
