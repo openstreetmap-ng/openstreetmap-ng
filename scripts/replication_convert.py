@@ -17,9 +17,9 @@ _PARQUET_PATHS = [
 ]
 
 
-def _process_changeset() -> None:
+def _process_changeset(header_only: bool) -> None:
     with duckdb_connect(progress=False) as conn:
-        conn.sql(f"""
+        query = f"""
         SELECT
             changeset_id AS id,
             ARBITRARY(user_id) AS user_id,
@@ -33,10 +33,15 @@ def _process_changeset() -> None:
             COUNT_IF(version > 1 AND NOT visible) AS num_delete
         FROM read_parquet({_PARQUET_PATHS!r})
         GROUP BY changeset_id
-        """).write_csv('/dev/stdout')
+        """
+
+        if header_only:
+            query += ' LIMIT 0'
+
+        conn.sql(query).write_csv('/dev/stdout')
 
 
-def _process_element() -> None:
+def _process_element(header_only: bool) -> None:
     with duckdb_connect(progress=False) as conn:
         # Compute typed_id from type and id.
         # Source implementation: app.models.element.typed_element_id
@@ -78,7 +83,7 @@ def _process_element() -> None:
         '{' || array_to_string(arr, ',') || '}'
         """)
 
-        conn.sql(f"""
+        query = f"""
         SELECT
             sequence_id,
             changeset_id,
@@ -103,10 +108,15 @@ def _process_element() -> None:
             ) AS members_roles,
             created_at
         FROM read_parquet({_PARQUET_PATHS!r})
-        """).write_csv('/dev/stdout')
+        """
+
+        if header_only:
+            query += ' LIMIT 0'
+
+        conn.sql(query).write_csv('/dev/stdout')
 
 
-def _process_user() -> None:
+def _process_user(header_only: bool) -> None:
     with duckdb_connect(progress=False) as conn:
         sources = [
             f"""
@@ -133,7 +143,7 @@ def _process_user() -> None:
         else:
             logging.warning('User data WILL NOT include notes data: source file not found')
 
-        conn.sql(f"""
+        query = f"""
         SELECT DISTINCT ON (user_id)
             user_id AS id,
             (user_id || '@localhost.invalid') AS email,
@@ -149,12 +159,18 @@ def _process_user() -> None:
             TRUE AS crash_reporting,
             '127.0.0.1' AS created_ip
         FROM ({' UNION ALL '.join(sources)})
-        """).write_csv('/dev/stdout')
+        """
+
+        if header_only:
+            query += ' LIMIT 0'
+
+        conn.sql(query).write_csv('/dev/stdout')
 
 
 def main() -> None:
     choices = ['changeset', 'element', 'user']
     parser = ArgumentParser()
+    parser.add_argument('--header-only', action='store_true')
     parser.add_argument('mode', choices=choices)
     args = parser.parse_args()
 
@@ -162,11 +178,11 @@ def main() -> None:
 
     match args.mode:
         case 'changeset':
-            _process_changeset()
+            _process_changeset(args.header_only)
         case 'element':
-            _process_element()
+            _process_element(args.header_only)
         case 'user':
-            _process_user()
+            _process_user(args.header_only)
         case _:
             raise ValueError(f'Invalid mode: {args.mode}')
 

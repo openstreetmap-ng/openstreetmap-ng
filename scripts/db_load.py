@@ -2,7 +2,7 @@ import asyncio
 import os
 from argparse import ArgumentParser
 from asyncio import TaskGroup, create_subprocess_shell
-from asyncio.subprocess import Process
+from asyncio.subprocess import PIPE, Process
 from contextlib import asynccontextmanager
 from io import TextIOWrapper
 from pathlib import Path
@@ -113,10 +113,11 @@ async def _load_table(mode: _Mode, table: str) -> tuple[dict[str, SQL], dict[tup
 
         copy_paths = [path.absolute().as_posix()]
         header = _get_csv_header(path)
-        source_has_header = True
+        program = f'zstd -d --stdout {" ".join(f"{quote(p)}" for p in copy_paths)}'
     else:
-        copy_paths, header = _get_copy_paths_and_header(table)
-        source_has_header = False
+        program = f'replication-convert {table}'
+        proc = await create_subprocess_shell(f'{program} --header-only', stdout=PIPE)
+        header = (await proc.communicate())[1].decode().strip()
 
     indexes = await _gather_table_indexes(table)
     assert indexes, f'No indexes found for {table} table'
@@ -133,7 +134,6 @@ async def _load_table(mode: _Mode, table: str) -> tuple[dict[str, SQL], dict[tup
 
     # Load the data
     columns = [f'"{c}"' for c in header.split(',')]
-    program = f'zstd -d --stdout {" ".join(f"{quote(p)}" for p in copy_paths)}'
     proc: Process | None = None
 
     async with _reduce_db_activity():
@@ -144,7 +144,7 @@ async def _load_table(mode: _Mode, table: str) -> tuple[dict[str, SQL], dict[tup
                 ' --batch-size=100000'
                 f' --columns={quote(",".join(columns))}'
                 f' --connection={quote(POSTGRES_URL)}'
-                f' --skip-header={"true" if source_has_header else "false"}'
+                f' --skip-header=true'
                 ' --reporting-period=30s'
                 f' --table={quote(table)}'
                 f' --workers={_COPY_WORKERS}',
