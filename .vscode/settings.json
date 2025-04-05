@@ -70,6 +70,7 @@
   "python.terminal.activateEnvironment": false,
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
+  "scss.lint.vendorPrefix": "ignore",
   "typescript.disableAutomaticTypeAcquisition": true,
   "typescript.surveys.enabled": false,
   "typescript.tsdk": "node_modules/typescript/lib"
