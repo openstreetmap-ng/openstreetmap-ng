@@ -470,28 +470,22 @@ let
       fi
 
       term_output=0
-      extended_tests=0
+      args=(
+        --verbose
+        --no-header
+      )
+
       for arg in "$@"; do
         case "$arg" in
           --term)
             term_output=1
             ;;
-          --extended)
-            extended_tests=1
-            ;;
           *)
-            echo "Unknown argument: $arg"
-            echo "Usage: $0 [--extended] [--term]"
-            exit 1
+            args+=("$arg")
             ;;
         esac
       done
 
-      args=(
-        --verbose
-        --no-header
-      )
-      [ "$extended_tests" = "1" ] && args+=(--extended)
       set +e
       python -m coverage run -m pytest "''${args[@]}"
       result=$?
