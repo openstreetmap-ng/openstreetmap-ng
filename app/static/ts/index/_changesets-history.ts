@@ -188,12 +188,16 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     /** Set the hover state of the changeset features */
-    const setHover = ({ id, firstFeatureId, numBounds }: GeoJsonProperties, hover: boolean): void => {
+    const setHover = (
+        { id, firstFeatureId, numBounds }: GeoJsonProperties,
+        hover: boolean,
+        autoScroll = false,
+    ): void => {
         const result = idSidebarMap.get(id)
         result?.classList.toggle("hover", hover)
 
-        if (hover && result) {
-            // Scroll result into view
+        if (hover && autoScroll && result) {
+            // Scroll result into view only when auto-scroll is enabled
             const sidebarRect = parentSidebar.getBoundingClientRect()
             const resultRect = result.getBoundingClientRect()
             const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
@@ -225,7 +229,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             setMapHover(map, layerId)
         }
         hoveredFeature = feature
-        setHover(hoveredFeature.properties, true)
+        setHover(hoveredFeature.properties, true, true)
     })
     map.on("mouseleave", layerIdFill, () => {
         setHover(hoveredFeature.properties, false)
