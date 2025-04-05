@@ -56,8 +56,7 @@ class MigrationService:
         async with (
             db(True, autocommit=True) as conn,
             await conn.execute("""
-                DELETE FROM element
-                WHERE sequence_id IN (
+                WITH bad AS MATERIALIZED (
                     SELECT sequence_id
                     FROM (
                         SELECT
@@ -67,7 +66,9 @@ class MigrationService:
                     )
                     WHERE rn > 1
                 )
-                RETURNING sequence_id, typed_id, version
+                DELETE FROM element e USING bad
+                WHERE e.sequence_id = bad.sequence_id
+                RETURNING e.sequence_id, e.typed_id, e.version
             """) as r,
         ):
             if rows := await r.fetchall():
@@ -80,14 +81,17 @@ class MigrationService:
         """Set the latest flag for elements."""
         async with db(True, autocommit=True) as conn:
             await conn.execute("""
-                UPDATE element SET latest = TRUE
-                FROM (
-                    SELECT DISTINCT ON (typed_id) typed_id, version
-                    FROM element
-                    ORDER BY typed_id, version DESC
-                ) latest
-                WHERE typed_id = latest.typed_id
-                AND version = latest.version
+                WITH bad AS MATERIALIZED (
+                    SELECT * FROM (
+                        SELECT DISTINCT ON (typed_id) typed_id, version, latest
+                        FROM element
+                        ORDER BY typed_id, version DESC
+                    )
+                    WHERE NOT latest
+                )
+                UPDATE element e SET latest = TRUE FROM bad
+                WHERE e.typed_id = bad.typed_id
+                AND e.version = bad.version
             """)
 
     @staticmethod
