@@ -26,16 +26,28 @@
 
 <div class="content-header pb-0">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <h1>{{ self.heading() }}</h1>
-        <p>
-            {{ t('traces.index.description') }}
-            {% if tag %}
-            <a class="ms-2" href="{{ base_url_notag }}">
-                <i class="bi bi-x me-1"></i>
-                {{- t('traces.index.remove_tag_filter') }}
-            </a>
+        {% set _avatar_in_header = profile is not none %}
+        <div class="row mb-3">
+            {% if _avatar_in_header %}
+            <div class="col-auto">
+                <a href="/user/{{ profile.display_name }}">
+                    <img class="avatar" src="{{ user_avatar_url(profile) }}" alt="{{ t('alt.profile_picture') }}">
+                </a>
+            </div>
             {% endif %}
-        </p>
+            <div class="col">
+                <h1>{{ self.heading() }}</h1>
+                <p>
+                    {{ t('traces.index.description') }}
+                    {% if tag %}
+                    <a class="ms-2" href="{{ base_url_notag }}">
+                        <i class="bi bi-x me-1"></i>
+                        {{- t('traces.index.remove_tag_filter') }}
+                    </a>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
 
         {% include 'traces/_nav.jinja2' %}
     </div>
