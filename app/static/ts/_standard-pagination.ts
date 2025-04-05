@@ -1,3 +1,4 @@
+import i18next from "i18next"
 import { resolveDatetimeLazy } from "./_datetime"
 
 const paginationDistance = 2
@@ -13,11 +14,32 @@ export const configureStandardPagination = (container: HTMLElement): void => {
     console.debug("Initializing standard pagination", endpointPattern)
     let currentPage = totalPages
     let abortController: AbortController | null = null
+    let firstLoad = true
 
     const getCurrentPageUrl = (): string => endpointPattern.replace("{page}", currentPage.toString())
 
     const setPendingState = (state: boolean): void => {
-        renderContainer.style.opacity = state ? "0.5" : ""
+        renderContainer.style.opacity = !firstLoad && state ? "0.5" : ""
+
+        // Only show spinner during initial load
+        if (firstLoad && state) {
+            firstLoad = false
+            const spinner = document.createElement("div")
+            spinner.className = "text-center pagination-spinner"
+
+            const spinnerElement = document.createElement("div")
+            spinnerElement.className = "spinner-border text-body-secondary"
+            spinnerElement.setAttribute("role", "status")
+
+            const srText = document.createElement("span")
+            srText.className = "visually-hidden"
+            srText.textContent = i18next.t("browse.start_rjs.loading")
+
+            spinnerElement.appendChild(srText)
+            spinner.appendChild(spinnerElement)
+            renderContainer.innerHTML = ""
+            renderContainer.appendChild(spinner)
+        }
     }
 
     const updateCollection = (): void => {
