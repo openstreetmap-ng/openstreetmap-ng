@@ -23,17 +23,39 @@
                             </span>
                             <a class="stretched-link" href="/trace/{{ trace.id }}">{{ trace.id }}</a>
                         </p>
-                        <p class="body">
-                            <span class="fst-italic me-1">
-                                {{ trace.description }}
-                            </span>
-                            <span>
+                        <div class="body">
+                            <p class="mb-0">
+                                <span class="fst-italic me-1">
+                                    {{ trace.description }}
+                                </span>
                                 {% for tag in trace.tags %}
                                 <a class="hashtag"
                                     href="/user/{{ profile.display_name }}/traces/tag/{{ tag }}">#{{ tag }}</a>
                                 {% endfor %}
-                            </span>
-                        </p>
+                            </p>
+                            <div class="trace-stats">
+                                {% if trace.visibility == 'identifiable' %}
+                                <span class="stat-visibility text-bg-green">
+                                    <i class="bi bi-eye"></i>{{ t('traces.trace.identifiable') | capitalize }}
+                                </span>
+                                {% elif trace.visibility == 'public' %}
+                                <span class="stat-visibility text-bg-green">
+                                    <i class="bi bi-eye"></i>{{ t('traces.trace.public') | capitalize }}
+                                </span>
+                                {% elif trace.visibility == 'trackable' %}
+                                <span class="stat-visibility text-bg-danger">
+                                    <i class="bi bi-eye-slash"></i>{{ t('traces.trace.trackable') | capitalize }}
+                                </span>
+                                {% elif trace.visibility == 'private' %}
+                                <span class="stat-visibility text-bg-danger">
+                                    <i class="bi bi-eye-slash"></i>{{ t('traces.trace.private') | capitalize }}
+                                </span>
+                                {% endif %}
+                                <span class="stat-points text-bg-secondary">
+                                    <i class="bi bi-geo-alt"></i> {{ nt('traces.trace.count_points', trace.size) }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </li>
