@@ -598,7 +598,6 @@ let
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
     fi
 
-    export LEGACY_SEQUENCE_ID_MARGIN=1
   '' + pkgs.lib.optionalString isDevelopment ''
     export ENV=dev
     export SECRET=development-secret

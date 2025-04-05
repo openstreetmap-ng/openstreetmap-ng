@@ -102,35 +102,34 @@ async def resolve_rich_text(
             for obj in mapping.values()
         ]
 
-    # list of (id, current_hash, new_hash)
-    to_update: list[tuple[Any, bytes, bytes]] = []
-
+    params: list[Any] = []
     for task, obj in zip(tasks, mapping.values(), strict=True):
         processed, cache_id = task.result()
         obj[rich_field_name] = processed  # type: ignore
 
         current_hash: bytes = obj[rich_hash_field_name]  # type: ignore
         if current_hash != cache_id:
-            to_update.append((obj['id'], current_hash, cache_id))
+            params.extend((obj['id'], current_hash, cache_id))
 
-    if not to_update:
+    if not params:
         return
 
     async with db(True, autocommit=True) as conn:
+        num_rows = len(params) // 3
         await conn.execute(
             SQL("""
                 UPDATE {table} SET {field} = v.new_hash
-                FROM (VALUES ({values})) AS v(id, old_hash, new_hash)
+                FROM (VALUES {values}) AS v(id, old_hash, new_hash)
                 WHERE {table}.id = v.id AND {field} IS NOT DISTINCT FROM v.old_hash
             """).format(
                 table=Identifier(table),
                 field=Identifier(rich_hash_field_name),
-                values=SQL('), (').join([SQL('%s, %s, %s')] * len(to_update)),
+                values=SQL(',').join([SQL('(%s, %s, %s)')] * num_rows),
             ),
-            [v for vals in to_update for v in vals],
+            params,
         )
 
-    logging.debug('Rich text %r hash changed for %d objects', field, len(to_update))
+    logging.debug('Rich text %r hash changed for %d objects', field, num_rows)
 
 
 def _render_image(self: RendererHTML, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:

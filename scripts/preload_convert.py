@@ -204,40 +204,24 @@ def merge_planet_worker_results() -> None:
     paths = [_get_worker_path(PLANET_PARQUET_PATH, i) for i in range(num_tasks)]
 
     with duckdb_connect() as conn:
-        print('Creating table')
-        conn.sql(f"""
-        CREATE TEMP TABLE sequence AS
-        SELECT
-            ROW_NUMBER() OVER (ORDER BY created_at) AS sequence_id,
-            type, id,
-            version
-        FROM read_parquet({[path.as_posix() for path in paths]!r})
-        """)
-        print('Creating index')
-        conn.sql('CREATE INDEX type_id_version_idx ON sequence (type, id, version)')
         print(f'Merging {len(paths)} worker files')
         conn.sql(f"""
         COPY (
             SELECT
-                current.sequence_id,
-                p.changeset_id,
-                p.type,
-                p.id,
-                p.version,
-                p.visible,
-                p.tags,
-                p.point,
-                p.members,
-                p.created_at,
-                p.user_id,
-                p.display_name,
-                next.sequence_id AS next_sequence_id
-            FROM read_parquet({[path.as_posix() for path in paths]!r}) AS p
-            JOIN sequence AS current USING (type, id, version)
-            ASOF LEFT JOIN sequence AS next
-             ON p.type = next.type
-            AND p.id = next.id
-            AND p.version < next.version
+                ROW_NUMBER() OVER (ORDER BY created_at) AS sequence_id,
+                changeset_id,
+                type,
+                id,
+                version,
+                version = MAX(version) OVER (PARTITION BY type, id) AS latest,
+                visible,
+                tags,
+                point,
+                members,
+                created_at,
+                user_id,
+                display_name
+            FROM read_parquet({[path.as_posix() for path in paths]!r})
         ) TO {PLANET_PARQUET_PATH.as_posix()!r}
         (COMPRESSION ZSTD, COMPRESSION_LEVEL 3, ROW_GROUP_SIZE_BYTES '128MB')
         """)
@@ -436,6 +420,7 @@ def _write_element() -> None:
                 changeset_id,
                 typed_element_id(type, id) AS typed_id,
                 version,
+                latest,
                 visible,
                 IF(
                     tags IS NOT NULL,
@@ -453,10 +438,9 @@ def _write_element() -> None:
                     pg_array(list_transform(members, x -> quote(x.role))),
                     NULL
                 ) AS members_roles,
-                created_at,
-                next_sequence_id
+                created_at
             FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
-            ORDER BY type, id, version
+            ORDER BY typed_id, version
         ) TO {_get_csv_path('element').as_posix()!r}
         """)
 

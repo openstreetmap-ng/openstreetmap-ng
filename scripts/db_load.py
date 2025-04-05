@@ -34,19 +34,6 @@ def _get_csv_header(path: Path) -> str:
         return reader.readline().strip()
 
 
-def _get_copy_paths_and_header(table: str) -> tuple[list[str], str]:
-    output = PRELOAD_DIR.joinpath(table)
-    copy_paths = [
-        p.absolute().as_posix()
-        for p in sorted(
-            output.glob('*.csv.zst'),
-            key=lambda p: int(p.with_suffix('').stem.split('_', 1)[1]),
-        )
-    ]
-    header = output.joinpath('header.csv').read_text()
-    return copy_paths, header
-
-
 @asynccontextmanager
 async def _reduce_db_activity():
     async with db(True, autocommit=True) as conn:
@@ -102,7 +89,7 @@ async def _gather_table_constraints(table: str) -> dict[tuple[str, str], SQL]:
         return {(table, name): SQL(sql) for name, sql in await cursor.fetchall()}
 
 
-async def _load_table(mode: _Mode, table: str) -> tuple[dict[str, SQL], dict[tuple[str, str], SQL]]:
+async def _load_table(mode: _Mode, table: str, tg: TaskGroup) -> tuple[dict[str, SQL], dict[tuple[str, str], SQL]]:
     if mode == 'preload' or table in {'note', 'note_comment'}:
         path = _get_csv_path(table)
 
@@ -136,44 +123,41 @@ async def _load_table(mode: _Mode, table: str) -> tuple[dict[str, SQL], dict[tup
     columns = [f'"{c}"' for c in header.split(',')]
     proc: Process | None = None
 
-    async with _reduce_db_activity():
-        try:
-            print(f'Populating {table} table ({len(columns)} columns)...')
-            proc = await create_subprocess_shell(
-                f'{program} | timescaledb-parallel-copy'
-                ' --batch-size=100000'
-                f' --columns={quote(",".join(columns))}'
-                f' --connection={quote(POSTGRES_URL)}'
-                f' --skip-header=true'
-                ' --reporting-period=30s'
-                f' --table={quote(table)}'
-                f' --workers={_COPY_WORKERS}',
-            )
-            exit_code = await proc.wait()
-            if exit_code:
-                raise RuntimeError(f'Subprocess failed with exit code {exit_code}')
+    try:
+        print(f'Populating {table} table ({len(columns)} columns)...')
+        proc = await create_subprocess_shell(
+            f'{program} | timescaledb-parallel-copy'
+            ' --batch-size=100000'
+            f' --columns={quote(",".join(columns))}'
+            f' --connection={quote(POSTGRES_URL)}'
+            f' --skip-header=true'
+            ' --reporting-period=30s'
+            f' --table={quote(table)}'
+            f' --workers={_COPY_WORKERS}',
+        )
+        exit_code = await proc.wait()
+        if exit_code:
+            raise RuntimeError(f'Subprocess failed with exit code {exit_code}')
 
-        except KeyboardInterrupt:
-            if proc is not None:
-                proc.terminate()
+    except KeyboardInterrupt:
+        if proc is not None:
+            proc.terminate()
 
-        # Fix some replication-data issues while hot
-        if mode == 'replication' and table == 'element':
-            async with db(True, autocommit=True) as conn:
-                key = 'element_version_idx'
-                print(f'Recreating index {key!r}')
-                await conn.execute(indexes.pop(key))
-                print(f'Updating {table} table statistics')
-                await conn.execute(SQL('ANALYZE {}').format(Identifier(table)))
-
-            print('Deleting duplicated element rows')
-            await MigrationService.fix_duplicated_element_version()
-            print('Fixing element.next_sequence_id field')
-            await MigrationService.fix_next_sequence_id()
-
-        print(f'Vacuuming and freezing {table} table')
+    # Fix replication-specific element issues
+    async def replication_element_postprocess():
         async with db(True, autocommit=True) as conn:
-            await conn.execute(SQL('VACUUM FREEZE {}').format(Identifier(table)))
+            key = 'element_version_idx'
+            print(f'Recreating index {key!r}')
+            await conn.execute(indexes.pop(key))
+            print(f'Updating {table} table statistics')
+            await conn.execute(SQL('ANALYZE {}').format(Identifier(table)))
+
+        print('Starting MigrationService tasks')
+        tg.create_task(MigrationService.delete_duplicated_elements())
+        tg.create_task(MigrationService.set_latest_elements())
+
+    if mode == 'replication' and table == 'element':
+        tg.create_task(replication_element_postprocess())
 
     return indexes, constraints
 
@@ -188,10 +172,11 @@ async def _load_tables(mode: _Mode) -> None:
     indexes: dict[str, SQL] = {}
     constraints: dict[tuple[str, str], SQL] = {}
 
-    for table in tables:
-        new_indexes, new_constraints = await _load_table(mode, table)
-        indexes.update(new_indexes)
-        constraints.update(new_constraints)
+    async with TaskGroup() as tg:
+        for table in tables:
+            new_indexes, new_constraints = await _load_table(mode, table, tg)
+            indexes.update(new_indexes)
+            constraints.update(new_constraints)
 
     print(f'Recreating {len(indexes)} indexes and {len(constraints)} constraints')
     async with TaskGroup() as tg:
@@ -216,18 +201,19 @@ async def main(mode: _Mode) -> None:
         print('Aborted')
         return
 
-    await _load_tables(mode)
+    async with _reduce_db_activity():
+        await _load_tables(mode)
 
-    print('Updating global statistics')
-    async with db(True, autocommit=True) as conn:
-        await conn.execute('ANALYZE')
+        print('Vacuuming and updating statistics')
+        async with db(True, autocommit=True) as conn:
+            await conn.execute('VACUUM FREEZE ANALYZE' if mode == 'replication' else 'VACUUM ANALYZE')
 
-    print('Fixing sequence counters consistency')
-    await MigrationService.fix_sequence_counters()
+        print('Fixing sequence counters consistency')
+        await MigrationService.fix_sequence_counters()
 
-    print('Performing one final checkpoint')
-    async with db(True, autocommit=True) as conn:
-        await conn.execute('CHECKPOINT')
+        print('Performing final checkpoint')
+        async with db(True, autocommit=True) as conn:
+            await conn.execute('CHECKPOINT')
 
     print('Done! Done! Done!')
 

@@ -140,12 +140,12 @@ class NoteCommentQuery:
             # Using window functions to limit comments per note
             query = SQL("""
             WITH ranked_comments AS (
-                SELECT *, ROW_NUMBER() OVER (PARTITION BY note_id ORDER BY id {}) AS _row_number
+                SELECT *, ROW_NUMBER() OVER (PARTITION BY note_id ORDER BY id {}) AS rn
                 FROM note_comment
                 WHERE note_id = ANY(%s)
             )
             SELECT * FROM ranked_comments
-            WHERE _row_number <= %s
+            WHERE rn <= %s
             ORDER BY note_id, id
             """).format(SQL(per_note_sort))
             params = (list(id_map), per_note_limit)

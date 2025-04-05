@@ -89,6 +89,7 @@ def _process_element(header_only: bool) -> None:
             changeset_id,
             typed_element_id(type, id) AS typed_id,
             version,
+            FALSE AS latest,
             visible,
             IF(
                 tags != '{{}}',

@@ -5,7 +5,7 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
 
-from app.config import LEGACY_SEQUENCE_ID_MARGIN, MAP_QUERY_LEGACY_NODES_LIMIT
+from app.config import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.db import db
 from app.lib.exceptions_context import raise_for
 from app.models.db.element import Element
@@ -77,20 +77,21 @@ class ElementQuery:
         if not versioned_refs:
             return True
 
-        conditions: list[Composable] = []
-        params: list[Any] = []
-
-        for ref in versioned_refs:
-            conditions.append(SQL('(typed_id = %s AND version = %s)'))
-            params.extend(ref)
-
-        query = SQL("""
-            SELECT 1 FROM element
-            WHERE next_sequence_id IS NOT NULL AND ({conditions})
-            LIMIT 1
-        """).format(conditions=SQL(' OR ').join(conditions))
-
-        async with db() as conn, await conn.execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.execute(
+                SQL("""
+                    SELECT 1 FROM (VALUES {}) AS v(typed_id, version)
+                    WHERE EXISTS (
+                        SELECT 1 FROM element
+                        WHERE typed_id = v.typed_id
+                        AND version > v.version
+                    )
+                    LIMIT 1
+                """).format(SQL(',').join([SQL('(%s, %s)')] * len(versioned_refs))),
+                [v for ref in versioned_refs for v in ref],
+            ) as r,
+        ):
             return await r.fetchone() is None
 
     @staticmethod
@@ -132,20 +133,22 @@ class ElementQuery:
         if not typed_ids:
             return []
 
+        conditions: list[Composable] = [SQL('typed_id = ANY(%s)')]
         params: list[Any] = [typed_ids]
 
-        if at_sequence_id is None:
-            sequence_clause = SQL('next_sequence_id IS NULL')
-        else:
-            sequence_clause = SQL('sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)')
-            params.extend((at_sequence_id, at_sequence_id))
+        if at_sequence_id is not None:
+            conditions.append(SQL('sequence_id <= %s'))
+            params.append(at_sequence_id)
 
         query = SQL("""
-            SELECT typed_id FROM element
-            WHERE typed_id = ANY(%s)
-            AND visible
-            AND {sequence}
-        """).format(sequence=sequence_clause)
+            SELECT typed_id FROM (
+                SELECT DISTINCT ON (typed_id) typed_id, visible
+                FROM element
+                WHERE {conditions}
+                ORDER BY typed_id, sequence_id DESC
+            )
+            WHERE visible
+        """).format(conditions=SQL(' AND ').join(conditions))
 
         async with db() as conn, await conn.execute(query, params) as r:
             return [c for (c,) in await r.fetchall()]
@@ -160,21 +163,19 @@ class ElementQuery:
         if not typed_ids:
             return {}
 
+        conditions: list[Composable] = [SQL('typed_id = ANY(%s)')]
         params: list[Any] = [typed_ids]
 
-        if at_sequence_id is None:
-            sequence_clause = SQL('')
-        else:
-            sequence_clause = SQL('AND sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)')
-            params.extend((at_sequence_id, at_sequence_id))
+        if at_sequence_id is not None:
+            conditions.append(SQL('sequence_id <= %s'))
+            params.append(at_sequence_id)
 
         query = SQL("""
-            SELECT typed_id, MAX(version)
+            SELECT DISTINCT ON (typed_id) typed_id, version
             FROM element
-            WHERE typed_id = ANY(%s)
-            {sequence}
-            GROUP BY typed_id
-        """).format(sequence=sequence_clause)
+            WHERE {conditions}
+            ORDER BY typed_id, sequence_id DESC
+        """).format(conditions=SQL(' AND ').join(conditions))
 
         async with db() as conn, await conn.execute(query, params) as r:
             return dict(await r.fetchall())
@@ -185,10 +186,11 @@ class ElementQuery:
         *,
         at_sequence_id: SequenceId | None = None,
         version_range: tuple[int, int] | None = None,
-        sort: Literal['asc', 'desc'] = 'asc',
+        sort_dir: Literal['asc', 'desc'] = 'asc',
         limit: int | None = None,
     ) -> list[Element]:
         """Get versions by the given element ref."""
+        sort_by: Literal['sequence_id', 'version'] = 'sequence_id'
         conditions: list[Composable] = [SQL('typed_id = %s')]
         params: list[Any] = [typed_id]
 
@@ -197,6 +199,9 @@ class ElementQuery:
             params.append(at_sequence_id)
 
         if version_range is not None:
+            # Switch to version ordering when filtering by version range
+            # Changes nothing but enables more efficient query
+            sort_by = 'version'
             conditions.append(SQL('version BETWEEN %s AND %s'))
             params.extend(version_range)
 
@@ -209,11 +214,12 @@ class ElementQuery:
         query = SQL("""
             SELECT * FROM element
             WHERE {conditions}
-            ORDER BY version {order}
+            ORDER BY {order_by} {order_dir}
             {limit}
         """).format(
             conditions=SQL(' AND ').join(conditions),
-            order=SQL(sort),
+            order_by=Identifier(sort_by),
+            order_dir=SQL(sort_dir),
             limit=limit_clause,
         )
 
@@ -274,13 +280,12 @@ class ElementQuery:
         if not typed_ids:
             return []
 
+        conditions: list[Composable] = [SQL('typed_id = ANY(%s)')]
         params: list[Any] = [typed_ids]
 
-        if at_sequence_id is None:
-            sequence_clause = SQL('next_sequence_id IS NULL')
-        else:
-            sequence_clause = SQL('sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)')
-            params.extend((at_sequence_id, at_sequence_id))
+        if at_sequence_id is not None:
+            conditions.append(SQL('sequence_id <= %s'))
+            params.append(at_sequence_id)
 
         if limit is not None:
             limit_clause = SQL('LIMIT %s')
@@ -289,12 +294,13 @@ class ElementQuery:
             limit_clause = SQL('')
 
         query = SQL("""
-            SELECT * FROM element
-            WHERE typed_id = ANY(%s)
-            AND {sequence}
+            SELECT DISTINCT ON (typed_id) *
+            FROM element
+            WHERE {conditions}
+            ORDER BY typed_id, sequence_id DESC
             {limit}
         """).format(
-            sequence=sequence_clause,
+            conditions=SQL(' AND ').join(conditions),
             limit=limit_clause,
         )
 
@@ -305,25 +311,27 @@ class ElementQuery:
         if not recurse_ways or (limit is not None and len(result) >= limit):
             return result
 
+        typed_element_id_way_min = TYPED_ELEMENT_ID_WAY_MIN
+        typed_element_id_way_max = TYPED_ELEMENT_ID_WAY_MAX
         node_typed_ids = {
             member
             for e in result
             if (members := e.get('members'))  #
-            and TYPED_ELEMENT_ID_WAY_MIN <= e['typed_id'] <= TYPED_ELEMENT_ID_WAY_MAX
+            and typed_element_id_way_min <= e['typed_id'] <= typed_element_id_way_max
             for member in members
         }
+
         # Remove node typed_ids we already have
         node_typed_ids.difference_update(typed_ids)
         if not node_typed_ids:
             return result
 
+        conditions: list[Composable] = [SQL('typed_id = ANY(%s)')]
         params = [list(node_typed_ids)]
 
-        if at_sequence_id is None:
-            sequence_clause = SQL('next_sequence_id IS NULL')
-        else:
-            sequence_clause = SQL('sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)')
-            params.extend((at_sequence_id, at_sequence_id))
+        if at_sequence_id is not None:
+            conditions.append(SQL('sequence_id <= %s'))
+            params.append(at_sequence_id)
 
         if limit is not None:
             limit_clause = SQL('LIMIT %s')
@@ -332,12 +340,13 @@ class ElementQuery:
             limit_clause = SQL('')
 
         query = SQL("""
-            SELECT * FROM element
-            WHERE typed_id = ANY(%s)
-            AND {sequence}
+            SELECT DISTINCT ON (typed_id) *
+            FROM element
+            WHERE {conditions}
+            ORDER BY typed_id, sequence_id DESC
             {limit}
         """).format(
-            sequence=sequence_clause,
+            conditions=SQL(' AND ').join(conditions),
             limit=limit_clause,
         )
 
@@ -354,7 +363,6 @@ class ElementQuery:
     ) -> list[Element | None]:
         """
         Get elements by the versioned or element refs.
-
         Results are returned in the same order as the refs but the duplicates are skipped.
         """
         if not refs:
@@ -430,11 +438,9 @@ class ElementQuery:
         conditions: list[Composable] = [SQL('members && %s::bigint[]')]
         params: list[Any] = [members]
 
-        if at_sequence_id is None:
-            conditions.append(SQL('next_sequence_id IS NULL'))
-        else:
-            conditions.append(SQL('sequence_id <= %s AND (next_sequence_id IS NULL OR next_sequence_id > %s)'))
-            params.extend((at_sequence_id, at_sequence_id))
+        if at_sequence_id is not None:
+            conditions.append(SQL('sequence_id <= %s'))
+            params.append(at_sequence_id)
 
         if parent_type is None:
             conditions.append(
@@ -458,8 +464,10 @@ class ElementQuery:
 
         # Find elements that reference the member typed_ids
         query = SQL("""
-            SELECT * FROM element
+            SELECT DISTINCT ON (typed_id) *
+            FROM element
             WHERE {conditions}
+            ORDER BY typed_id, sequence_id DESC
             {limit}
         """).format(
             conditions=SQL(' AND ').join(conditions),
@@ -480,25 +488,23 @@ class ElementQuery:
         if not members:
             return {}
 
-        conditions: list[Composable] = [
+        inner_conditions: list[Composable] = [
             SQL("""
-                member = ANY(%s)
-                AND parent.members && %s::bigint[]
+                members && %s::bigint[]
                 AND (
                     typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
                     typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
                 )
             """)
         ]
-        params: list[Any] = [members, members]
+        params: list[Any] = [members]
 
-        if at_sequence_id is None:
-            conditions.append(SQL('parent.next_sequence_id IS NULL'))
-        else:
-            conditions.append(
-                SQL('parent.sequence_id <= %s AND (parent.next_sequence_id IS NULL OR parent.next_sequence_id > %s)')
-            )
-            params.extend((at_sequence_id, at_sequence_id))
+        if at_sequence_id is not None:
+            inner_conditions.append(SQL('sequence_id <= %s'))
+            params.append(at_sequence_id)
+
+        outer_conditions: list[Composable] = [SQL('member = ANY(%s)')]
+        params.append(members)
 
         if limit is not None:
             limit_clause = SQL('LIMIT %s')
@@ -507,13 +513,18 @@ class ElementQuery:
             limit_clause = SQL('')
 
         query = SQL("""
-            SELECT member, parent.typed_id
-            FROM element parent
-            CROSS JOIN LATERAL UNNEST(parent.members) AS member
-            WHERE {conditions}
+            SELECT member, typed_id FROM (
+                SELECT DISTINCT ON (typed_id) typed_id, members
+                FROM element
+                WHERE {inner_conditions}
+                ORDER BY typed_id, sequence_id DESC
+            )
+            CROSS JOIN LATERAL UNNEST(members) member
+            WHERE {outer_conditions}
             {limit}
         """).format(
-            conditions=SQL(' AND ').join(conditions),
+            inner_conditions=SQL(' AND ').join(inner_conditions),
+            outer_conditions=SQL(' AND ').join(outer_conditions),
             limit=limit_clause,
         )
 
@@ -580,8 +591,7 @@ class ElementQuery:
 
         query = SQL("""
             SELECT * FROM element
-            WHERE next_sequence_id IS NULL
-            AND ST_Intersects(point, %s)
+            WHERE ST_Intersects(point, %s) AND latest
             {limit}
         """).format(limit=limit_clause)
 
@@ -659,29 +669,18 @@ class ElementQuery:
 
     @staticmethod
     async def get_last_visible_sequence_id(element: Element) -> SequenceId | None:
-        """
-        Get the last sequence_id of the element, during which it was visible.
-
-        When LEGACY_SEQUENCE_ID_MARGIN is True, this method will assume that sequence_id is not accurate.
-        """
-        next_sequence_id = element['next_sequence_id']
-        if next_sequence_id is None:
+        """Get the last sequence_id of the element, during which it was visible."""
+        if element['latest']:
             return None
-
-        if not LEGACY_SEQUENCE_ID_MARGIN:
-            return next_sequence_id - 1  # type: ignore
 
         async with (
             db() as conn,
             await conn.execute(
                 """
-                SELECT MAX(sequence_id) FROM element
-                WHERE sequence_id < %s AND created_at < (
-                    SELECT created_at FROM element
-                    WHERE sequence_id = %s
-                )
+                SELECT MIN(sequence_id) - 1 FROM element
+                WHERE typed_id = %s AND sequence_id > %s
                 """,
-                (next_sequence_id, next_sequence_id),
+                (element['typed_id'], element['sequence_id']),
             ) as r,
         ):
             return (await r.fetchone())[0]  # type: ignore

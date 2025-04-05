@@ -51,23 +51,23 @@ class MigrationService:
                 await conn.execute('SELECT setval(%s, %s)', (sequence, last_value))
 
     @staticmethod
-    async def fix_duplicated_element_version() -> None:
-        """Delete duplicated element (typed_id, version) rows."""
+    async def delete_duplicated_elements() -> None:
+        """Delete duplicated elements (by typed_id, version)."""
         async with (
             db(True, autocommit=True) as conn,
             await conn.execute("""
-                WITH dups AS MATERIALIZED (
-                    SELECT
-                        typed_id, version,
-                        ARBITRARY(sequence_id) AS sequence_id
-                    FROM element
-                    GROUP BY typed_id, version
-                    HAVING COUNT(*) > 1
+                DELETE FROM element
+                WHERE sequence_id IN (
+                    SELECT sequence_id
+                    FROM (
+                        SELECT
+                            sequence_id,
+                            ROW_NUMBER() OVER (PARTITION BY typed_id, version) AS rn
+                        FROM element
+                    )
+                    WHERE rn > 1
                 )
-                DELETE FROM element USING dups
-                WHERE element.typed_id = dups.typed_id
-                AND element.version = dups.version
-                AND element.sequence_id != dups.sequence_id
+                RETURNING sequence_id, typed_id, version
             """) as r,
         ):
             if rows := await r.fetchall():
@@ -76,29 +76,18 @@ class MigrationService:
                 )
 
     @staticmethod
-    async def fix_next_sequence_id() -> None:
-        """Fix the element's next_sequence_id field."""
+    async def set_latest_elements() -> None:
+        """Set the latest flag for elements."""
         async with db(True, autocommit=True) as conn:
             await conn.execute("""
-                WITH next_version AS (
-                    SELECT
-                        e.sequence_id,
-                        n.sequence_id AS next_sequence_id
-                    FROM element e
-                    LEFT JOIN LATERAL (
-                        SELECT sequence_id FROM element
-                        WHERE typed_id = e.typed_id
-                        AND version > e.version
-                        ORDER BY version
-                        LIMIT 1
-                    ) n ON true
-                    WHERE next_sequence_id IS NULL
-                    AND n.sequence_id IS NOT NULL
-                )
-                UPDATE element
-                SET next_sequence_id = nv.next_sequence_id
-                FROM next_version nv
-                WHERE element.sequence_id = nv.sequence_id
+                UPDATE element SET latest = TRUE
+                FROM (
+                    SELECT DISTINCT ON (typed_id) typed_id, version
+                    FROM element
+                    ORDER BY typed_id, version DESC
+                ) latest
+                WHERE typed_id = latest.typed_id
+                AND version = latest.version
             """)
 
     @staticmethod

@@ -56,7 +56,6 @@ SMTP_PASS: SecretStr = Field()
 ENV: Literal['dev', 'test', 'prod'] = 'prod'
 LOG_LEVEL = 'INFO' if ENV == 'prod' else 'DEBUG'
 LEGACY_HIGH_PRECISION_TIME = False
-LEGACY_SEQUENCE_ID_MARGIN = False
 
 # Storage paths
 FILE_CACHE_DIR: _Dir = Path('data/cache')

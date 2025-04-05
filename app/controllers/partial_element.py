@@ -127,7 +127,7 @@ async def get_history(
             typed_id,
             at_sequence_id=at_sequence_id,
             version_range=(version_min, version_max),
-            sort='desc',
+            sort_dir='desc',
             limit=page_size,
         )
         elements_tasks = [tg.create_task(data_task(element)) for element in elements]
@@ -208,7 +208,7 @@ async def _get_element_data(element: Element, at_sequence_id: SequenceId, *, inc
         place = None
 
     prev_version = version - 1 if version > 1 else None
-    next_version = version + 1 if element['next_sequence_id'] is not None else None
+    next_version = version + 1 if not element['latest'] else None
     icon = features_icons([element])[0]
     name = features_names([element])[0]
     tags_map = tags_format(element['tags'])

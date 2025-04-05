@@ -247,12 +247,12 @@ class NoteQuery:
         query = SQL("""
             SELECT * FROM note
             WHERE {condition}
-            ORDER BY {sort_by} {sort_dir}
+            ORDER BY {order_by} {order_dir}
             {limit}
         """).format(
             condition=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
-            sort_by=sort_by_identifier,
-            sort_dir=SQL(sort_dir),
+            order_by=sort_by_identifier,
+            order_dir=SQL(sort_dir),
             limit=limit_clause,
         )
 

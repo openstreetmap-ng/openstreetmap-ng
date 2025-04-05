@@ -44,7 +44,7 @@ class ElementInit(TypedDict):
 
 class Element(ElementInit):
     sequence_id: SequenceId
-    next_sequence_id: SequenceId | None
+    latest: bool
     created_at: datetime
 
     # runtime

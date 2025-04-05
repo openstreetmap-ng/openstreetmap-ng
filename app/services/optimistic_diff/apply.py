@@ -4,6 +4,7 @@ from io import BytesIO
 
 import cython
 from psycopg import AsyncConnection
+from psycopg.sql import SQL
 
 from app.db import db
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
@@ -56,7 +57,9 @@ class OptimisticDiffApply:
                 # Process elements and changeset updates in parallel
                 now = utcnow()
                 tg.create_task(_update_changeset(conn, now, prepare.changeset))
-                update_elements_t = tg.create_task(_update_elements(conn, now, prepare.apply_elements))
+                update_elements_t = tg.create_task(
+                    _update_elements(conn, now, prepare.element_state, prepare.apply_elements)
+                )
 
         # Build result mapping
         assigned_id_map: dict[TypedElementId, TypedElementId] = update_elements_t.result()
@@ -161,7 +164,10 @@ async def _update_changeset(conn: AsyncConnection, now: datetime, changeset: Cha
 
 
 async def _update_elements(
-    conn: AsyncConnection, now: datetime, elements_init: list[ElementInit]
+    conn: AsyncConnection,
+    now: datetime,
+    element_state: dict[TypedElementId, ElementStateEntry],
+    elements_init: list[ElementInit],
 ) -> dict[TypedElementId, TypedElementId]:
     """Update the element table by creating new revisions."""
     async with TaskGroup() as tg:
@@ -172,7 +178,6 @@ async def _update_elements(
     current_id_map: dict[ElementType, ElementId] = current_id_task.result()
 
     elements: list[Element] = []
-    update_typed_ids: list[TypedElementId] = []
     prev_map: dict[TypedElementId, Element] = {}
     assigned_id_map: dict[TypedElementId, TypedElementId] = {}
 
@@ -188,7 +193,7 @@ async def _update_elements(
         # noinspection PyTypeChecker
         element: Element = element_init | {
             'sequence_id': sequence_id,  # type: ignore
-            'next_sequence_id': None,
+            'latest': True,
             'created_at': now,
         }
         elements.append(element)
@@ -209,13 +214,10 @@ async def _update_elements(
                 assigned_id_map[original_typed_id] = typed_id
             element['typed_id'] = typed_id
 
-        # Update next_sequence_id for previous versions.
-        # Either locally or scheduled for remote batch update.
+        # Update the latest flag for changed elements (local)
         prev = prev_map.get(typed_id)
         if prev is not None:
-            prev['next_sequence_id'] = sequence_id  # type: ignore
-        elif element['version'] > 1:
-            update_typed_ids.append(typed_id)
+            prev['latest'] = False
         prev_map[typed_id] = element
 
     # Update members with assigned ids
@@ -230,21 +232,46 @@ async def _update_elements(
             ]
 
     async with _WRITE_LOCK:
+        await _update_latest_elements(conn, element_state)
         await _copy_elements(conn, elements)
 
-        # Remote batch update of next_sequence_id.
-        # This must run after the copy/insert finishes.
-        if update_typed_ids:
-            await _update_next_sequence_id(conn, current_sequence_id, update_typed_ids)
-
     return assigned_id_map
+
+
+async def _update_latest_elements(
+    conn: AsyncConnection, element_state: dict[TypedElementId, ElementStateEntry]
+) -> None:
+    """Update the latest flag for changed elements (remote)."""
+    params = [
+        v
+        for typed_id, entry in element_state.items()
+        if entry.remote is not None
+        for v in (typed_id, entry.remote['version'])
+    ]
+    if not params:
+        return
+
+    num_rows = len(params) // 2
+    result = await conn.execute(
+        SQL("""
+            UPDATE element e SET latest = FALSE
+            FROM (VALUES {}) AS v(typed_id, version)
+            WHERE e.typed_id = v.typed_id
+            AND e.version = v.version
+            AND e.latest
+        """).format(SQL(',').join([SQL('(%s, %s)')] * num_rows)),
+        params,
+    )
+    assert result.rowcount == num_rows, (
+        f'Failed to properly update the latest flag for changed elements (remote): {result.rowcount=} != {num_rows=}'
+    )
 
 
 async def _copy_elements(conn: AsyncConnection, elements: list[Element]) -> None:
     async with conn.cursor().copy("""
         COPY element (
-            sequence_id, next_sequence_id, created_at,
-            changeset_id, typed_id, version,
+            sequence_id, created_at,
+            changeset_id, typed_id, version, latest,
             visible, tags, point, members, members_roles
         ) FROM STDIN
     """) as copy:
@@ -261,11 +288,11 @@ async def _copy_elements(conn: AsyncConnection, elements: list[Element]) -> None
             for element in elements:
                 data = write_row((
                     element['sequence_id'],
-                    element['next_sequence_id'],
                     element['created_at'],
                     element['changeset_id'],
                     element['typed_id'],
                     element['version'],
+                    element['latest'],
                     element['visible'],
                     element['tags'],
                     element['point'],
@@ -277,24 +304,3 @@ async def _copy_elements(conn: AsyncConnection, elements: list[Element]) -> None
 
             data = buffer.getvalue()
             await copy.write(data)
-
-
-async def _update_next_sequence_id(
-    conn: AsyncConnection, current_sequence_id: SequenceId, update_typed_ids: list[TypedElementId]
-) -> None:
-    await conn.execute(
-        """
-        UPDATE element e
-        SET next_sequence_id = (
-            SELECT sequence_id FROM element
-            WHERE typed_id = e.typed_id
-            AND version > e.version
-            ORDER BY version
-            LIMIT 1
-        )
-        WHERE sequence_id <= %s
-        AND next_sequence_id IS NULL
-        AND typed_id = ANY(%s)
-        """,
-        (current_sequence_id, update_typed_ids),
-    )

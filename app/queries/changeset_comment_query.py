@@ -86,12 +86,12 @@ class ChangesetCommentQuery:
             # Using window functions to limit comments per changeset
             query = """
             WITH ranked_comments AS (
-                SELECT *, ROW_NUMBER() OVER (PARTITION BY changeset_id ORDER BY id DESC) AS _row_number
+                SELECT *, ROW_NUMBER() OVER (PARTITION BY changeset_id ORDER BY id DESC) AS rn
                 FROM changeset_comment
                 WHERE changeset_id = ANY(%s)
             )
             SELECT * FROM ranked_comments
-            WHERE _row_number <= %s
+            WHERE rn <= %s
             ORDER BY changeset_id, id
             """
             params = (list(id_map), limit_per_changeset)

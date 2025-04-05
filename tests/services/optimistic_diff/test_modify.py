@@ -235,6 +235,6 @@ async def test_multiple_consecutive_modifications(changeset_id: ChangesetId):
     node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
     # Verify each version
-    elements = await ElementQuery.get_versions_by_ref(node_typed_id, sort='asc')
+    elements = await ElementQuery.get_versions_by_ref(node_typed_id, sort_dir='asc')
     for element, node in zip(elements, nodes, strict=True):
         assert_model(element, node | {'typed_id': node_typed_id})
