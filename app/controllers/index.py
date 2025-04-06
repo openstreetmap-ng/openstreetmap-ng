@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Path, Query
+from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse, Response
 
@@ -10,11 +11,13 @@ from app.lib.locale import DEFAULT_LOCALE, is_installed_locale
 from app.lib.render_jinja import render_jinja
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale, t, translation_context
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.middlewares.default_headers_middleware import CSP_HEADER
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.types import ChangesetId, LocaleCode, NoteId, UserSubscriptionTargetId
 from app.queries.user_subscription_query import UserSubscriptionQuery
+from app.services.user_token_unsubscribe_service import UserTokenUnsubscribeService
 from app.utils import secure_referer
 
 router = APIRouter()
@@ -64,12 +67,28 @@ async def get_changeset_unsubscribe(
     return await _get_unsubscribe('changeset', changeset_id)
 
 
+@router.post('/changeset/{changeset_id:int}/unsubscribe')
+async def post_changeset_unsubscribe(
+    changeset_id: Annotated[ChangesetId, Path()],
+    token: Annotated[SecretStr, Query(min_length=1)],
+):
+    return await _post_unsubscribe('changeset', changeset_id, token)
+
+
 @router.get('/note/{note_id:int}/unsubscribe')
 async def get_note_unsubscribe(
     _: Annotated[User, web_user()],
     note_id: Annotated[NoteId, Path()],
 ):
     return await _get_unsubscribe('note', note_id)
+
+
+@router.post('/note/{note_id:int}/unsubscribe')
+async def post_note_unsubscribe(
+    note_id: Annotated[NoteId, Path()],
+    token: Annotated[SecretStr, Query(min_length=1)],
+):
+    return await _post_unsubscribe('note', note_id, token)
 
 
 async def _get_unsubscribe(
@@ -80,6 +99,17 @@ async def _get_unsubscribe(
     if not await UserSubscriptionQuery.is_subscribed(unsubscribe_target, unsubscribe_id):
         return RedirectResponse(f'/{unsubscribe_target}/{unsubscribe_id}', status.HTTP_303_SEE_OTHER)
     return await index(unsubscribe_target=unsubscribe_target, unsubscribe_id=unsubscribe_id)
+
+
+async def _post_unsubscribe(
+    unsubscribe_target: UserSubscriptionTarget,
+    unsubscribe_id: UserSubscriptionTargetId,
+    /,
+    token: SecretStr,
+):
+    token_struct = await UserTokenStructUtils.from_str_stateless(token)
+    await UserTokenUnsubscribeService.unsubscribe(unsubscribe_target, unsubscribe_id, token_struct)
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.get('/communities')

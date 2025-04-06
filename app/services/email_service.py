@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate
+from time import time
 from typing import Any, Literal, overload
 
 import cython
@@ -27,13 +28,17 @@ from app.config import (
 )
 from app.db import db
 from app.lib.auth_context import auth_context
+from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_context
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.mail import Mail, MailInit, MailSource
 from app.models.db.user import User, user_is_deleted, user_is_test
+from app.models.proto.server_pb2 import StatelessUserTokenStruct
 from app.models.types import MailId, UserId
 from app.queries.user_query import UserQuery
+from app.utils import extend_query_params
 
 _PROCESS_LOCK = Lock()
 
@@ -199,8 +204,16 @@ async def _process_task_inner() -> None:
 async def _send_mail(smtp: SMTP, mail: Mail) -> None:
     mail_id = mail['id']
     to_user_id = mail['to_user_id']
-    to_user = await UserQuery.find_one_by_id(to_user_id)
-    assert to_user is not None
+    from_user_id = mail['from_user_id']
+
+    async with TaskGroup() as tg:
+        to_user_task = tg.create_task(UserQuery.find_one_by_id(to_user_id))
+        from_user_task = tg.create_task(UserQuery.find_one_by_id(from_user_id)) if from_user_id is not None else None
+
+    to_user = to_user_task.result()
+    assert to_user is not None, f'Recipient user {to_user_id} not found'
+    from_user = from_user_task.result() if from_user_task is not None else None
+    assert (from_user is not None) == (from_user_id is not None), f'Sender user {from_user_id} not found'
 
     if user_is_deleted(to_user):
         logging.info('Discarding mail %r to deleted user %d', mail_id, to_user_id)
@@ -218,12 +231,12 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
     else:
         from app.services.user_token_email_reply_service import UserTokenEmailReplyService  # noqa: PLC0415
 
-        from_user_id = mail['from_user_id']
-        assert from_user_id is not None
-        from_user = await UserQuery.find_one_by_id(from_user_id)
-        assert from_user is not None
-
-        reply_address = await UserTokenEmailReplyService.create_address(from_user, mail['source'])
+        assert from_user is not None, f'Sender must be set for {mail["source"]=!r}'
+        reply_address = await UserTokenEmailReplyService.create_address(
+            mail_source=mail['source'],
+            replying_user=from_user,
+            reply_to_user_id=to_user_id,
+        )
         message['From'] = formataddr((from_user['display_name'], reply_address))
 
     message['To'] = formataddr((to_user['display_name'], to_user['email']))
@@ -233,7 +246,7 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
 
     if ref := mail['ref']:
         _set_reference(message, ref)
-        _set_list_headers(message, ref)
+        _set_list_headers(message, ref, to_user)
         logging.debug('Set mail %r reference to %r', mail_id, ref)
 
     async with timeout(MAIL_PROCESSING_TIMEOUT.total_seconds() - 5):
@@ -251,10 +264,10 @@ def _set_reference(message: EmailMessage, ref: str) -> None:
 
 
 @cython.cfunc
-def _set_list_headers(message: EmailMessage, ref: str) -> None:
+def _set_list_headers(message: EmailMessage, ref: str, to_user: User) -> None:
     ref_type, ref_id = ref.split('-', 1)
-    list_archive = f'<{APP_URL}/{ref_type}/{ref_id}>'
-    list_unsubscribe = f'<{APP_URL}/{ref_type}/{ref_id}/unsubscribe>'
+    list_archive = f'{APP_URL}/{ref_type}/{ref_id}'
+    list_unsubscribe = f'{APP_URL}/{ref_type}/{ref_id}/unsubscribe'
 
     if ref_type == 'diary':
         list_id = formataddr((f'Diary Entry #{ref_id}', f'{ref_id}.diary.{APP_DOMAIN}'))
@@ -266,10 +279,24 @@ def _set_list_headers(message: EmailMessage, ref: str) -> None:
         logging.warning('Unsupported mail reference type: %r', ref_type)
         return
 
+    # Append stateless token param
+    token = UserTokenStructUtils.to_str(
+        StatelessUserTokenStruct(
+            timestamp=int(time()),
+            user_id=to_user['id'],
+            email_hashed=hash_bytes(to_user['email']),
+            unsubscribe=StatelessUserTokenStruct.UnsubscribeData(
+                target=ref_type,
+                target_id=int(ref_id),
+            ),
+        )
+    )
+    list_unsubscribe = extend_query_params(list_unsubscribe, {'token': token})
+
     message['List-ID'] = list_id
-    message['List-Archive'] = list_archive
-    message['List-Unsubscribe'] = list_unsubscribe
-    # TODO: after signed tokens: message['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
+    message['List-Archive'] = f'<{list_archive}>'
+    message['List-Unsubscribe'] = f'<{list_unsubscribe}>'
+    message['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
 
 
 @cython.cfunc

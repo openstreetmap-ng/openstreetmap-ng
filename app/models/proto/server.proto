@@ -6,8 +6,8 @@ syntax = "proto3";
 
 // Cursor tracks pagination state for API data fetching operations
 message Cursor {
-    int64 id = 1;  // Last fetched object's database identifier
-    optional int64 timestamp = 2;  // Optional timestamp for point-in-time pagination
+    uint64 id = 1;  // Last fetched object's database identifier
+    optional uint64 timestamp = 2;  // Optional timestamp for point-in-time pagination
 }
 
 // =============================================
@@ -17,7 +17,7 @@ message Cursor {
 // Encapsulates cached binary data with additional metadata
 message FileCacheMeta {
     bytes data = 1;  // Raw binary payload
-    optional int64 expires_at = 2;  // Unix timestamp when this cache entry becomes invalid
+    optional uint64 expires_at = 2;  // Unix timestamp when this cache entry becomes invalid
 }
 
 // =============================================
@@ -26,8 +26,22 @@ message FileCacheMeta {
 
 // User token with unique identifier for fast retrieval
 message UserTokenStruct {
-    int64 id = 1;  // Internal system identifier for the token
+    uint64 id = 1;  // Internal system identifier for the token
     bytes token = 2;  // Hashed authentication token bytes
+}
+
+// Stateless user token that doesn't require database storage
+message StatelessUserTokenStruct {
+    uint64 timestamp = 1;  // Token creation timestamp
+    uint64 user_id = 2;    // User identifier
+    bytes email_hashed = 3;  // Hash of user's email for validation
+
+    // Optional unsubscribe related fields
+    message UnsubscribeData {
+        string target = 1;  // Target type to unsubscribe from (e.g., "diary", "changeset")
+        uint64 target_id = 2;  // Target resource identifier
+    }
+    optional UnsubscribeData unsubscribe = 4;
 }
 
 // Password storage schema with versioning support

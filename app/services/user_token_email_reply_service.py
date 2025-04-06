@@ -13,7 +13,7 @@ from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.db.user_token import UserTokenEmailReplyInit
 from app.models.proto.server_pb2 import UserTokenStruct
-from app.models.types import Email, UserTokenId
+from app.models.types import Email, UserId, UserTokenId
 from app.queries.user_query import UserQuery
 from app.queries.user_token_email_reply_query import UserTokenEmailReplyQuery
 from app.services.message_service import MessageService
@@ -21,12 +21,17 @@ from app.services.message_service import MessageService
 
 class UserTokenEmailReplyService:
     @staticmethod
-    async def create_address(replying_user: User, mail_source: MailSource) -> Email:
+    async def create_address(
+        replying_user: User,
+        mail_source: MailSource,
+        *,
+        reply_to_user_id: UserId | None = None,
+    ) -> Email:
         """
         Create a new user email reply address.
         Replying user can use this address to send a message to the current user.
         """
-        token = await _create_token(replying_user, mail_source)
+        token = await _create_token(replying_user, mail_source, reply_to_user_id=reply_to_user_id)
         token_str = UserTokenStructUtils.to_str(token)
         return Email(f'{token_str}@{SMTP_MESSAGES_FROM_HOST}')
 
@@ -58,11 +63,19 @@ class UserTokenEmailReplyService:
             await MessageService.send(token['email_reply_to_user_id'], subject, body)
 
 
-async def _create_token(replying_user: User, mail_source: MailSource) -> UserTokenStruct:
+async def _create_token(
+    replying_user: User,
+    mail_source: MailSource,
+    *,
+    reply_to_user_id: UserId | None = None,
+) -> UserTokenStruct:
     """
     Create a new user email reply token.
     Replying user can use this token to send a message to the current user.
     """
+    if reply_to_user_id is None:
+        reply_to_user_id = auth_user(required=True)['id']
+
     user_id = replying_user['id']
     user_email_hashed = hash_bytes(replying_user['email'])
     token_bytes = buffered_randbytes(16)
@@ -76,7 +89,7 @@ async def _create_token(replying_user: User, mail_source: MailSource) -> UserTok
         'user_email_hashed': user_email_hashed,
         'token_hashed': token_hashed,
         'email_reply_source': mail_source,
-        'email_reply_to_user_id': auth_user(required=True)['id'],
+        'email_reply_to_user_id': reply_to_user_id,
         'email_reply_usage_count': 0,
     }
 

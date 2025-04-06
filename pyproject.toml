@@ -73,63 +73,64 @@ dev = [
 ]
 
 [tool.uv]
-package = true
-python-downloads = "never"
+package           = true
+python-downloads  = "never"
 python-preference = "only-system"
 
 [tool.setuptools]
 packages = ["app", "scripts", "tests", "typings"]
 
 [tool.ruff]
-indent-width = 4
-line-length = 120
-preview = true
+indent-width   = 4
+line-length    = 120
+preview        = true
 target-version = "py313"
 
 [tool.ruff.lint]
 # custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 ignore = [
-  "ARG001",  # unused-function-argument
-  "ARG002",  # unused-method-argument
-  "B017",    # assert-raises-exception
-  "COM812",  # missing-trailing-comma
-  "COM819",  # prohibited-trailing-comma
-  "D206",    # indent-with-spaces
-  "D300",    # triple-single-quotes
-  "E111",    # indentation-with-invalid-multiple
-  "E114",    # indentation-with-invalid-multiple-comment
-  "E117",    # over-indented
-  "E501",    # line-too-long
-  "ISC001",  # single-line-implicit-string-concatenation
-  "ISC002",  # multi-line-implicit-string-concatenation
-  "LOG015",  # root-logger-call
-  "PLR09",   # too-many-*
-  "PLR1702", # too-many-nested-blocks
+  "ARG001",   # unused-function-argument
+  "ARG002",   # unused-method-argument
+  "ASYNC109", # async-function-with-timeout
+  "B017",     # assert-raises-exception
+  "COM812",   # missing-trailing-comma
+  "COM819",   # prohibited-trailing-comma
+  "D206",     # indent-with-spaces
+  "D300",     # triple-single-quotes
+  "E111",     # indentation-with-invalid-multiple
+  "E114",     # indentation-with-invalid-multiple-comment
+  "E117",     # over-indented
+  "E501",     # line-too-long
+  "ISC001",   # single-line-implicit-string-concatenation
+  "ISC002",   # multi-line-implicit-string-concatenation
+  "LOG015",   # root-logger-call
+  "PLR09",    # too-many-*
+  "PLR1702",  # too-many-nested-blocks
   "PLR2",
-  "PLR6301", # no-self-use
-  "PLW0603", # global-statement
-  "PLW1514", # unspecified-encoding
-  "PLW2901", # redefined-loop-name
-  "PT001",   # pytest-fixture-incorrect-parentheses-style
-  "PT006",   # pytest-parametrize-names-wrong-type
-  "PT011",   # pytest-raises-too-broad
-  "PT018",   # pytest-composite-assertion
-  "PT023",   # pytest-incorrect-mark-parentheses-style
-  "PYI025",  # unaliased-collections-abc-set-import
-  "UP047",   # non-pep695-generic-function
-  "Q000",    # bad-quotes-inline-string
-  "Q001",    # bad-quotes-multiline-string
-  "Q002",    # bad-quotes-docstring
-  "Q003",    # avoidable-escaped-quote
-  "S101",    # assert
-  "S105",    # hardcoded-password-string
-  "S311",    # suspicious-non-cryptographic-random-usage
-  "S404",    # suspicious-subprocess-import
+  "PLR6301",  # no-self-use
+  "PLW0603",  # global-statement
+  "PLW1514",  # unspecified-encoding
+  "PLW2901",  # redefined-loop-name
+  "PT001",    # pytest-fixture-incorrect-parentheses-style
+  "PT006",    # pytest-parametrize-names-wrong-type
+  "PT011",    # pytest-raises-too-broad
+  "PT018",    # pytest-composite-assertion
+  "PT023",    # pytest-incorrect-mark-parentheses-style
+  "PYI025",   # unaliased-collections-abc-set-import
+  "UP047",    # non-pep695-generic-function
+  "Q000",     # bad-quotes-inline-string
+  "Q001",     # bad-quotes-multiline-string
+  "Q002",     # bad-quotes-docstring
+  "Q003",     # avoidable-escaped-quote
+  "S101",     # assert
+  "S105",     # hardcoded-password-string
+  "S311",     # suspicious-non-cryptographic-random-usage
+  "S404",     # suspicious-subprocess-import
   "S6",
-  "SIM105",  # suppressible-exception
-  "SIM108",  # if-else-block-instead-of-if-exp
-  "TRY003",  # raise-vanilla-args
-  "W191",    # tab-indentation
+  "SIM105",   # suppressible-exception
+  "SIM108",   # if-else-block-instead-of-if-exp
+  "TRY003",   # raise-vanilla-args
+  "W191",     # tab-indentation
 ]
 # see https://docs.astral.sh/ruff/rules/ for rules documentation
 select = [
@@ -194,9 +195,9 @@ fixable = ["ALL"]
 unfixable = []
 
 [tool.ruff.format]
-indent-style = "space"
-line-ending = "lf"
-quote-style = "single"
+indent-style              = "space"
+line-ending               = "lf"
+quote-style               = "single"
 skip-magic-trailing-comma = false
 
 [tool.ruff.lint.flake8-gettext]
@@ -204,7 +205,7 @@ function-names = ["nt", "t"]
 
 [tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
-inline-quotes = "single"
+inline-quotes    = "single"
 multiline-quotes = "double"
 
 [tool.ruff.lint.pep8-naming]
@@ -252,15 +253,15 @@ useLibraryCodeForTypes = false
 
 # basedpyright specific:
 reportPrivateLocalImportUsage = "warning"
-reportInvalidCast = "warning"
-reportImplicitAbstractClass = "information"
+reportInvalidCast             = "warning"
+reportImplicitAbstractClass   = "information"
 
 [tool.pytest.ini_options]
-addopts = "--quiet --import-mode=importlib"
+addopts                            = "--quiet --import-mode=importlib"
 asyncio_default_fixture_loop_scope = "session"
-asyncio_mode = "auto"
-minversion = "6.0"
-testpaths = ["tests"]
+asyncio_mode                       = "auto"
+minversion                         = "6.0"
+testpaths                          = ["tests"]
 
 [tool.coverage.run]
 source = ["app"]

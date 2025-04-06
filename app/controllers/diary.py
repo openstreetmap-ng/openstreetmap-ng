@@ -3,7 +3,8 @@ from math import ceil
 from typing import Annotated
 
 import cython
-from fastapi import APIRouter, Path, Query
+from fastapi import APIRouter, Path, Query, Response
+from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -18,6 +19,7 @@ from app.lib.auth_context import auth_user, web_user
 from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, LOCALES_NAMES_MAP, normalize_locale
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.diary import Diary, diaries_resolve_rich_text
 from app.models.db.user import User, UserDisplay
 from app.models.types import DiaryId, DisplayName, LocaleCode
@@ -25,6 +27,7 @@ from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
+from app.services.user_token_unsubscribe_service import UserTokenUnsubscribeService
 
 router = APIRouter()
 
@@ -94,6 +97,16 @@ async def get_unsubscribe(
     if not await UserSubscriptionQuery.is_subscribed('diary', diary_id):
         return RedirectResponse(f'/diary/{diary_id}', status.HTTP_303_SEE_OTHER)
     return await details(diary_id, unsubscribe=True)
+
+
+@router.post('/diary/{diary_id:int}/unsubscribe')
+async def post_unsubscribe(
+    diary_id: DiaryId,
+    token: Annotated[SecretStr, Query(min_length=1)],
+):
+    token_struct = await UserTokenStructUtils.from_str_stateless(token)
+    await UserTokenUnsubscribeService.unsubscribe('diary', diary_id, token_struct)
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.get('/diary/{diary_id:int}/edit')

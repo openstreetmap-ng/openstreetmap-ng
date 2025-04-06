@@ -21,7 +21,6 @@ USER_TOKEN_EXPIRE: dict[UserTokenType, timedelta] = {
 }
 
 
-# TODO: validate from address
 class UserTokenInit(TypedDict):
     id: UserTokenId
     type: UserTokenType
