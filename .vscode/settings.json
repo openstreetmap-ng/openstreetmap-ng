@@ -39,8 +39,9 @@
     ".direnv/": true,
     ".venv/": true,
     "app/static/**/*.html": false,
-    "app/static/js": true,
+    "app/static/js/": true,
     "build/": true,
+    "config/locale/download/": true,
     "dist/": true,
     "node_modules/": true
   },
