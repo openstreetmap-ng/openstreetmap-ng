@@ -12,6 +12,8 @@ from psycopg.rows import dict_row
 from zid import zid
 
 from app.config import (
+    APP_DOMAIN,
+    APP_URL,
     ENV,
     MAIL_PROCESSING_TIMEOUT,
     MAIL_UNPROCESSED_EXPIRE,
@@ -31,6 +33,7 @@ from app.lib.translation import translation_context
 from app.models.db.mail import Mail, MailInit, MailSource
 from app.models.db.user import User, user_is_deleted, user_is_test
 from app.models.types import MailId, UserId
+from app.queries.user_query import UserQuery
 
 _PROCESS_LOCK = Lock()
 
@@ -101,10 +104,12 @@ class EmailService:
             await conn.execute(
                 """
                 INSERT INTO mail (
-                    source, from_user_id, to_user_id, subject, body, ref, priority
+                    id, source, from_user_id, to_user_id,
+                    subject, body, ref, priority
                 )
                 VALUES (
-                    %(source)s, %(from_user_id)s, %(to_user_id)s, %(subject)s, %(body)s, %(ref)s, %(priority)s
+                    %(id)s, %(source)s, %(from_user_id)s, %(to_user_id)s,
+                    %(subject)s, %(body)s, %(ref)s, %(priority)s
                 )
                 """,
                 mail_init,
@@ -193,14 +198,16 @@ async def _process_task_inner() -> None:
 
 async def _send_mail(smtp: SMTP, mail: Mail) -> None:
     mail_id = mail['id']
-    to_user = mail['to_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+    to_user_id = mail['to_user_id']
+    to_user = await UserQuery.find_one_by_id(to_user_id)
+    assert to_user is not None
 
     if user_is_deleted(to_user):
-        logging.info('Discarding mail %r to deleted user %d', mail_id, mail['to_user_id'])
+        logging.info('Discarding mail %r to deleted user %d', mail_id, to_user_id)
         return
 
     if user_is_test(to_user) and ENV == 'prod':
-        logging.info('Discarding mail %r to test user %d', mail_id, mail['to_user_id'])
+        logging.info('Discarding mail %r to test user %d', mail_id, to_user_id)
         return
 
     message = EmailMessage()
@@ -211,8 +218,12 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
     else:
         from app.services.user_token_email_reply_service import UserTokenEmailReplyService  # noqa: PLC0415
 
-        from_user = mail['from_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-        reply_address = await UserTokenEmailReplyService.create_address(to_user, mail['source'])
+        from_user_id = mail['from_user_id']
+        assert from_user_id is not None
+        from_user = await UserQuery.find_one_by_id(from_user_id)
+        assert from_user is not None
+
+        reply_address = await UserTokenEmailReplyService.create_address(from_user, mail['source'])
         message['From'] = formataddr((from_user['display_name'], reply_address))
 
     message['To'] = formataddr((to_user['display_name'], to_user['email']))
@@ -220,17 +231,45 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
     message['Subject'] = mail['subject']
     message.set_content(mail['body'], subtype='html')
 
-    if mail['ref']:
-        full_ref = f'<osm-{mail["ref"]}@{SMTP_NOREPLY_FROM_HOST}>'
-        logging.debug('Setting mail %r reference to %r', mail_id, full_ref)
-        message['In-Reply-To'] = full_ref
-        message['References'] = full_ref
-        message['X-Entity-Ref-ID'] = full_ref  # disables threading in gmail
+    if ref := mail['ref']:
+        _set_reference(message, ref)
+        _set_list_headers(message, ref)
+        logging.debug('Set mail %r reference to %r', mail_id, ref)
 
     async with timeout(MAIL_PROCESSING_TIMEOUT.total_seconds() - 5):
         await smtp.send_message(message)
 
     logging.info('Sent mail %r to user %d with subject %r', mail_id, mail['to_user_id'], mail['subject'])
+
+
+@cython.cfunc
+def _set_reference(message: EmailMessage, ref: str) -> None:
+    full_ref = f'<osm-{ref}@{SMTP_NOREPLY_FROM_HOST}>'
+    message['In-Reply-To'] = full_ref
+    message['References'] = full_ref
+    message['X-Entity-Ref-ID'] = full_ref  # Disables threading in GMail
+
+
+@cython.cfunc
+def _set_list_headers(message: EmailMessage, ref: str) -> None:
+    ref_type, ref_id = ref.split('-', 1)
+    list_archive = f'<{APP_URL}/{ref_type}/{ref_id}>'
+    list_unsubscribe = f'<{APP_URL}/{ref_type}/{ref_id}/unsubscribe>'
+
+    if ref_type == 'diary':
+        list_id = formataddr((f'Diary Entry #{ref_id}', f'{ref_id}.diary.{APP_DOMAIN}'))
+    elif ref_type == 'changeset':
+        list_id = formataddr((f'Changeset #{ref_id}', f'{ref_id}.changeset.{APP_DOMAIN}'))
+    elif ref_type == 'note':
+        list_id = formataddr((f'Note #{ref_id}', f'{ref_id}.note.{APP_DOMAIN}'))
+    else:
+        logging.warning('Unsupported mail reference type: %r', ref_type)
+        return
+
+    message['List-ID'] = list_id
+    message['List-Archive'] = list_archive
+    message['List-Unsubscribe'] = list_unsubscribe
+    # TODO: after signed tokens: message['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
 
 
 @cython.cfunc

@@ -43,7 +43,11 @@ async def new():
 
 
 @router.get('/diary/{diary_id:int}')
-async def details(diary_id: DiaryId):
+async def details(
+    diary_id: DiaryId,
+    *,
+    unsubscribe: bool = False,
+):
     async with TaskGroup() as tg:
         is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed('diary', diary_id))
 
@@ -76,8 +80,20 @@ async def details(diary_id: DiaryId):
             'diary_comments_num_items': diary_comments_num_items,
             'diary_comments_num_pages': diary_comments_num_pages,
             'DIARY_COMMENT_BODY_MAX_LENGTH': DIARY_COMMENT_BODY_MAX_LENGTH,
+            'unsubscribe_target': 'diary' if unsubscribe else None,
+            'unsubscribe_id': diary_id if unsubscribe else None,
         },
     )
+
+
+@router.get('/diary/{diary_id:int}/unsubscribe')
+async def get_unsubscribe(
+    _: Annotated[User, web_user()],
+    diary_id: DiaryId,
+):
+    if not await UserSubscriptionQuery.is_subscribed('diary', diary_id):
+        return RedirectResponse(f'/diary/{diary_id}', status.HTTP_303_SEE_OTHER)
+    return await details(diary_id, unsubscribe=True)
 
 
 @router.get('/diary/{diary_id:int}/edit')

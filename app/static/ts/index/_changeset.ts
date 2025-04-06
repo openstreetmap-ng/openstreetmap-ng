@@ -68,10 +68,8 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
         if (commentsPagination) configureStandardPagination(commentsPagination)
 
         // On success callback, reload the changeset
-        const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
-        if (subscriptionForm) configureStandardForm(subscriptionForm, reload)
-        const commentForm = sidebarContent.querySelector("form.comment-form")
-        if (commentForm) configureStandardForm(commentForm, reload)
+        configureStandardForm(sidebarContent.querySelector("form.subscription-form"), reload)
+        configureStandardForm(sidebarContent.querySelector("form.comment-form"), reload)
     })
 
     const refocus = (e?: MapLibreEvent): void => {

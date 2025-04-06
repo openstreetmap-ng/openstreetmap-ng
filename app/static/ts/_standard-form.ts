@@ -17,7 +17,7 @@ export interface APIDetail {
  * @see https://getbootstrap.com/docs/5.3/forms/validation/
  */
 export const configureStandardForm = (
-    form: HTMLFormElement,
+    form?: HTMLFormElement,
     successCallback?: (data: any) => void,
     clientValidationCallback?: (
         form: HTMLFormElement,
@@ -25,6 +25,7 @@ export const configureStandardForm = (
     errorCallback?: (error: Error) => void,
     options?: { formAppend?: boolean; abortSignal?: boolean; removeEmptyFields?: boolean },
 ): void => {
+    if (!form) return
     console.debug("Initializing standard form", form.action)
     const submitElements = form.querySelectorAll("[type=submit]") as NodeListOf<HTMLInputElement | HTMLButtonElement>
     const passwordInputs = form.querySelectorAll("input[type=password][data-name]")

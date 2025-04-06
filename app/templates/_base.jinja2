@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ HASH_AWARE_PATHS['/static/css/main.css'] }}">
     <script src="{{ HASH_AWARE_PATHS['/static/js/main-sync.js'] }}"></script>
     {% for file in I18NEXT_FILES %}
-        <script src="/static-locale/{{ file }}" defer></script>
+    <script src="/static-locale/{{ file }}" defer></script>
     {% endfor %}
     <script src="{{ HASH_AWARE_PATHS['/static/js/main.js'] }}" type="module" defer></script>
 
@@ -36,15 +36,21 @@
     <meta property="og:image:height" content="512">
 
     <link rel="search" type="application/opensearchdescription+xml" title="OpenStreetMap Search"
-          href="/static/opensearch.xml">
+        href="/static/opensearch.xml">
 </head>
 
 <body class="{% block body_class %}{% endblock %}" {% block body_attrs %}{% endblock %}>
-{% include '_navbar.jinja2' %}
-{% block body %}{% endblock %}
-{% if user is none and self.body_class() != 'login-body' %}
+    {% include '_navbar.jinja2' %}
+
+    {% block body %}{% endblock %}
+
+    {% if user is none and self.body_class() != 'login-body' %}
     {% include '_login.jinja2' %}
-{% endif %}
+    {% endif %}
+
+    {% if unsubscribe_target and unsubscribe_id %}
+    {% include '_unsubscribe_discussion.jinja2' %}
+    {% endif %}
 </body>
 
 </html>

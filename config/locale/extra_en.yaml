@@ -335,6 +335,16 @@ notifications:
   sending_a_message: sending a message
   you_can_also_respond_privately_by_sending_a_message: You can also respond privately by {{sending_a_message}}.
   otherwise_please_ignore_this_email: Otherwise, please ignore this email.
+subscription:
+  would_you_like_to_unsubscribe_from_this_type_discussion: |-
+    Would you like to unsubscribe from this {{type}} discussion?
+  no_keep_me_updated: No, keep me updated
+  yes_unsubscribe_me: Yes, unsubscribe me
+  if_you_unsubscribe:
+    title: If you unsubscribe
+    no_notifications: You'll no longer receive notifications about updates
+    can_still_participate: You can still view and participate in the discussion
+    can_resubscribe: You can resubscribe at any time
 alt:
   logo: Logo
   country_flag: Country flag

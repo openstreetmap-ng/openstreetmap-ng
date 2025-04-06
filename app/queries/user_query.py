@@ -74,7 +74,7 @@ class UserQuery:
                 SELECT * FROM "user"
                 WHERE id = ANY(%s)
                 """,
-                (list(user_ids),),
+                (user_ids,),
             ) as r,
         ):
             return await r.fetchall()  # type: ignore

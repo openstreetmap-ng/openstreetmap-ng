@@ -10,9 +10,8 @@ import { CustomZoomControl } from "../leaflet/_zoom.ts"
 
 const body = document.querySelector("body.diary-compose-body")
 if (body) {
-    const diaryForm = body.querySelector("form.diary-form")
     configureStandardForm(
-        diaryForm,
+        body.querySelector("form.diary-form"),
         ({ redirect_url }) => {
             // On success callback, navigate to the diary
             console.debug("onDiaryFormSuccess", redirect_url)

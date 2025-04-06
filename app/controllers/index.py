@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Path, Query
 from starlette import status
 from starlette.responses import RedirectResponse, Response
 
@@ -12,7 +12,9 @@ from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale, t, translation_context
 from app.middlewares.default_headers_middleware import CSP_HEADER
 from app.models.db.user import User
-from app.models.types import LocaleCode
+from app.models.db.user_subscription import UserSubscriptionTarget
+from app.models.types import ChangesetId, LocaleCode, NoteId, UserSubscriptionTargetId
+from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.utils import secure_referer
 
 router = APIRouter()
@@ -40,8 +42,44 @@ router = APIRouter()
 @router.get('/relation/{_:int}/history')
 @router.get('/relation/{_:int}/history/{__:int}')
 @router.get('/distance')
-async def index():
-    return await render_response('index.jinja2')
+async def index(
+    *,
+    unsubscribe_target: UserSubscriptionTarget | None = None,
+    unsubscribe_id: UserSubscriptionTargetId | None = None,
+):
+    return await render_response(
+        'index.jinja2',
+        {
+            'unsubscribe_target': unsubscribe_target,
+            'unsubscribe_id': unsubscribe_id,
+        },
+    )
+
+
+@router.get('/changeset/{changeset_id:int}/unsubscribe')
+async def get_changeset_unsubscribe(
+    _: Annotated[User, web_user()],
+    changeset_id: Annotated[ChangesetId, Path()],
+):
+    return await _get_unsubscribe('changeset', changeset_id)
+
+
+@router.get('/note/{note_id:int}/unsubscribe')
+async def get_note_unsubscribe(
+    _: Annotated[User, web_user()],
+    note_id: Annotated[NoteId, Path()],
+):
+    return await _get_unsubscribe('note', note_id)
+
+
+async def _get_unsubscribe(
+    unsubscribe_target: UserSubscriptionTarget,
+    unsubscribe_id: UserSubscriptionTargetId,
+    /,
+):
+    if not await UserSubscriptionQuery.is_subscribed(unsubscribe_target, unsubscribe_id):
+        return RedirectResponse(f'/{unsubscribe_target}/{unsubscribe_id}', status.HTTP_303_SEE_OTHER)
+    return await index(unsubscribe_target=unsubscribe_target, unsubscribe_id=unsubscribe_id)
 
 
 @router.get('/communities')
