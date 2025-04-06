@@ -256,7 +256,7 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
 
 
 @cython.cfunc
-def _set_reference(message: EmailMessage, ref: str) -> None:
+def _set_reference(message: EmailMessage, ref: str):
     full_ref = f'<osm-{ref}@{SMTP_NOREPLY_FROM_HOST}>'
     message['In-Reply-To'] = full_ref
     message['References'] = full_ref
@@ -264,7 +264,7 @@ def _set_reference(message: EmailMessage, ref: str) -> None:
 
 
 @cython.cfunc
-def _set_list_headers(message: EmailMessage, ref: str, to_user: User) -> None:
+def _set_list_headers(message: EmailMessage, ref: str, to_user: User):
     ref_type, ref_id = ref.split('-', 1)
     list_archive = f'{APP_URL}/{ref_type}/{ref_id}'
     list_unsubscribe = f'{APP_URL}/{ref_type}/{ref_id}/unsubscribe'
