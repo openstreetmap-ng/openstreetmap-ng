@@ -128,7 +128,7 @@ async def permalink(
     if query := request.url.query:
         location += f'?{query}'
 
-    return RedirectResponse(location, status.HTTP_307_TEMPORARY_REDIRECT)
+    return RedirectResponse(location)
 
 
 @router.get('/user/{display_name:str}')

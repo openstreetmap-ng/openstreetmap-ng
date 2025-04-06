@@ -75,6 +75,11 @@ async def post_changeset_unsubscribe(
     return await _post_unsubscribe('changeset', changeset_id, token)
 
 
+@router.get('/changeset/{changeset_id:int}/subscription')
+async def legacy_changeset_subscription(changeset_id: ChangesetId):
+    return RedirectResponse(f'/changeset/{changeset_id}/unsubscribe')
+
+
 @router.get('/note/{note_id:int}/unsubscribe')
 async def get_note_unsubscribe(
     _: Annotated[User, web_user()],
@@ -89,6 +94,11 @@ async def post_note_unsubscribe(
     token: Annotated[SecretStr, Query(min_length=1)],
 ):
     return await _post_unsubscribe('note', note_id, token)
+
+
+@router.get('/note/{note_id:int}/subscription')
+async def legacy_note_subscription(note_id: NoteId):
+    return RedirectResponse(f'/note/{note_id}/unsubscribe')
 
 
 async def _get_unsubscribe(

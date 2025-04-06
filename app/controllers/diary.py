@@ -109,6 +109,11 @@ async def post_unsubscribe(
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 
+@router.get('/diary/{diary_id:int}/subscription')
+async def legacy_subscription(diary_id: DiaryId):
+    return RedirectResponse(f'/diary/{diary_id}/unsubscribe')
+
+
 @router.get('/diary/{diary_id:int}/edit')
 async def edit(
     user: Annotated[User, web_user()],
