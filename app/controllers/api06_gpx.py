@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, Form, Query, Response, UploadFile
 from pydantic import NonNegativeInt
+from starlette import status
 
 from app.config import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
 from app.format import Format06
@@ -124,7 +125,7 @@ async def update_trace(
         tags=trace['tags'],
         visibility=trace['visibility'],
     )
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.delete('/gpx/{trace_id:int}')
@@ -133,7 +134,7 @@ async def delete_trace(
     _: Annotated[User, api_user('write_gpx')],
 ):
     await TraceService.delete(trace_id)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.get('/trackpoints', response_class=GPXResponse)

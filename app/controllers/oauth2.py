@@ -158,7 +158,7 @@ async def post_token(
 @router.post('/oauth2/revoke')
 async def revoke(token: Annotated[SecretStr, Form(min_length=1)]):
     await OAuth2TokenService.revoke_by_access_token(token)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 # Generally this endpoint should not be publicly accessible.

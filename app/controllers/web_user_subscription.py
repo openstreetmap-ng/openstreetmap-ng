@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Response
+from starlette import status
 
 from app.lib.auth_context import web_user
 from app.models.db.user import User
@@ -18,7 +19,7 @@ async def subscribe(
     _: Annotated[User, web_user()],
 ):
     await UserSubscriptionService.subscribe(target, target_id)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/{target:str}/{target_id:int}/unsubscribe')
@@ -28,4 +29,4 @@ async def unsubscribe(
     _: Annotated[User, web_user()],
 ):
     await UserSubscriptionService.unsubscribe(target, target_id)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)

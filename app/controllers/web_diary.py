@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
 from shapely import Point
+from starlette import status
 
 from app.config import (
     DIARY_BODY_MAX_LENGTH,
@@ -93,4 +94,4 @@ async def create_comment(
     _: Annotated[User, web_user()],
 ):
     await DiaryCommentService.comment(diary_id, body)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)

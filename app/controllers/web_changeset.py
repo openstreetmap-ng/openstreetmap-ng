@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
+from starlette import status
 
 from app.config import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_QUERY_WEB_LIMIT
 from app.format import FormatLeaflet
@@ -29,7 +30,7 @@ async def create_comment(
     _: Annotated[User, web_user()],
 ):
     await ChangesetCommentService.comment(changeset_id, comment)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.get('/map')

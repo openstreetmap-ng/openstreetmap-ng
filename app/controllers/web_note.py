@@ -3,6 +3,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
+from starlette import status
 
 from app.config import (
     NOTE_COMMENT_BODY_MAX_LENGTH,
@@ -44,7 +45,7 @@ async def create_note_comment(
     text: Annotated[str, Form(max_length=NOTE_COMMENT_BODY_MAX_LENGTH)] = '',
 ):
     await NoteService.comment(note_id, text, event)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.get('/map')

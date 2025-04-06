@@ -1,8 +1,6 @@
-from urllib.parse import urlsplit
-
 from zid import zid
 
-from app.config import APP_URL
+from app.config import APP_DOMAIN
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
@@ -21,7 +19,6 @@ class UserTokenEmailChangeService:
     @staticmethod
     async def send_email(new_email: Email) -> None:
         """Send a confirmation email for the email change."""
-        app_domain = urlsplit(APP_URL).netloc
         token = await _create_token(new_email)
         await EmailService.schedule(
             source=None,
@@ -32,7 +29,7 @@ class UserTokenEmailChangeService:
             template_data={
                 'new_email': new_email,
                 'token': UserTokenStructUtils.to_str(token),
-                'app_domain': app_domain,
+                'app_domain': APP_DOMAIN,
             },
         )
 

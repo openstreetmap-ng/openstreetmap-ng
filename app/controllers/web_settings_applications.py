@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Form, Response, UploadFile
+from starlette import status
 
 from app.config import (
     OAUTH_APP_NAME_MAX_LENGTH,
@@ -26,7 +27,7 @@ async def settings_revoke_token(
     token_id: Annotated[OAuth2TokenId, Form()],
 ):
     await OAuth2TokenService.revoke_by_id(token_id)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/settings/revoke-application')
@@ -35,7 +36,7 @@ async def settings_revoke_application(
     app_id: Annotated[ApplicationId, Form()],
 ):
     await OAuth2TokenService.revoke_by_app_id(app_id)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/settings/applications/admin/create')
@@ -147,4 +148,4 @@ async def settings_application_tokens_revoke(
     token_id: OAuth2TokenId,
 ):
     await OAuth2TokenService.revoke_by_id(token_id)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)

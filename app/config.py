@@ -319,6 +319,8 @@ COPYRIGHT = 'OpenStreetMap contributors'
 ATTRIBUTION_URL = 'https://www.openstreetmap.org/copyright'
 LICENSE_URL = 'https://opendatacommons.org/licenses/odbl/1-0/'
 
+APP_DOMAIN = urlsplit(APP_URL).netloc
+
 TEST_USER_EMAIL_SUFFIX = '@test.test'
 DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'  # SQL index depends on this value
 

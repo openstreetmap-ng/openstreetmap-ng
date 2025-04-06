@@ -3,6 +3,7 @@ from typing import Annotated
 
 import cython
 from fastapi import APIRouter, Form, Response
+from starlette import status
 
 from app.config import MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH
 from app.lib.auth_context import web_user
@@ -67,7 +68,7 @@ async def unread_message(
     message_id: MessageId,
 ):
     await MessageService.set_state(message_id, read=False)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/{message_id:int}/delete')
@@ -76,4 +77,4 @@ async def delete_message(
     message_id: MessageId,
 ):
     await MessageService.delete_message(message_id)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)

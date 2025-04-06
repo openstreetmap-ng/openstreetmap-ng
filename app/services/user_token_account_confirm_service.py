@@ -1,8 +1,6 @@
-from urllib.parse import urlsplit
-
 from zid import zid
 
-from app.config import APP_URL
+from app.config import APP_DOMAIN
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
@@ -21,7 +19,6 @@ class UserTokenAccountConfirmService:
     @staticmethod
     async def send_email() -> None:
         """Send a confirmation email for the current user."""
-        app_domain = urlsplit(APP_URL).netloc
         token = await _create_token()
         await EmailService.schedule(
             source=None,
@@ -29,7 +26,7 @@ class UserTokenAccountConfirmService:
             to_user=auth_user(required=True),
             subject=t('user_mailer.signup_confirm.subject'),
             template_name='email/account_confirm.jinja2',
-            template_data={'token': UserTokenStructUtils.to_str(token), 'app_domain': app_domain},
+            template_data={'token': UserTokenStructUtils.to_str(token), 'app_domain': APP_DOMAIN},
         )
 
     @staticmethod

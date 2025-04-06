@@ -130,7 +130,7 @@ async def close_changeset(
     _: Annotated[User, api_user('write_api')],
 ):
     await ChangesetService.close(changeset_id)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.get('/changesets')

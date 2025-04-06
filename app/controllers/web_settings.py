@@ -37,7 +37,7 @@ async def settings(
         activity_tracking=activity_tracking,
         crash_reporting=crash_reporting,
     )
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/settings/editor')
@@ -46,7 +46,7 @@ async def settings_editor(
     _: Annotated[User, web_user()],
 ):
     await UserService.update_editor(editor=editor)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/settings/avatar')
@@ -107,7 +107,7 @@ async def settings_description(
     description: Annotated[str, Form(max_length=USER_DESCRIPTION_MAX_LENGTH)],
 ):
     await UserService.update_description(description=description)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/settings/connections/{provider:str}/disconnect')

@@ -40,7 +40,7 @@ async def login(
         password=password,
     )
 
-    response = Response()
+    response = Response(None, status.HTTP_204_NO_CONTENT)
     response.set_cookie(
         key='auth',
         value=access_token.get_secret_value(),
@@ -169,4 +169,4 @@ async def update_timezone(
     timezone: Annotated[str, Form(max_length=TIMEZONE_MAX_LENGTH)],
 ):
     await UserService.update_timezone(timezone)
-    return Response()
+    return Response(None, status.HTTP_204_NO_CONTENT)
