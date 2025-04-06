@@ -4,7 +4,7 @@
 <p>
     {% set _commenter -%}
     <a href="{{ APP_URL }}/user-id/{{ message.from_user_id }}"
-       style="text-decoration: none; color: #222"><b>{{ message.from_user.display_name }}</b></a>
+        style="text-decoration: none; color: #222"><b>{{ message.from_user.display_name }}</b></a>
     {%- endset %}
     {% set _subject -%}
     <i>{{ message.subject }}</i>
@@ -20,9 +20,8 @@
             <div style="margin: 1em">
                 <a href="{{ APP_URL }}/user-id/{{ message.from_user_id }}">
                     <img src="{{ APP_URL }}{{ user_avatar_url(message.from_user) }}"
-                         alt="{{ t('alt.profile_picture') }}"
-                         width="50"
-                         height="50" style="border-radius: 50%">
+                        alt="{{ t('alt.profile_picture') }}" width="50" height="50"
+                        style="background: #fff; border-radius: 50%">
                 </a>
             </div>
         </td>

@@ -1,10 +1,11 @@
 {% extends 'email/_base.jinja2' %}
+
 {% block body %}
 <p>{{ t('notifications.hello_user', user=user.display_name) }}</p>
 <p>
     {% set _commenter -%}
     <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}"
-       style="text-decoration: none; color: #222"><b>{{ comment.user.display_name }}</b></a>
+        style="text-decoration: none; color: #222"><b>{{ comment.user.display_name }}</b></a>
     {%- endset %}
     {% set _time -%}
     <time datetime="{{ comment.created_at.isoformat() }}">{{ format_rfc2822_date(comment.created_at) }}</time>
@@ -16,8 +17,9 @@
     ) | safe }}
     {% else %}
     {% set _changeset_author -%}
-    <a href="{{ APP_URL }}/user-id/{{ changeset.user_id }}"
-       style="text-decoration: none; color: #222">{{ changeset.user.display_name }}</a>
+    <a href="{{ APP_URL }}/user-id/{{ changeset.user_id }}" style="text-decoration: none; color: #222">
+        {{- changeset.user.display_name -}}
+    </a>
     {%- endset %}
     {{ t('user_mailer.changeset_comment_notification.commented.commented_changeset_html',
         commenter=_commenter,
@@ -31,25 +33,34 @@
     {% endif %}
 </p>
 {% if comment.body %}
-    <table style="width: 100%; margin: 1em 0; background: #eee">
-        <tr>
-            <td style="width: 50px; vertical-align: top">
-                <div style="margin: 1em">
-                    <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}">
-                        <img src="{{ APP_URL }}{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}"
-                             width="50"
-                             height="50" style="border-radius: 50%">
-                    </a>
-                </div>
-            </td>
-            <td style="vertical-align: top">
-                <div style="margin: 1em 1em 1em 0;">{{ comment.body_rich | safe }}</div>
-            </td>
-        </tr>
-    </table>
+<table style="width: 100%; margin: 1em 0; background: #eee">
+    <tr>
+        <td style="width: 50px; vertical-align: top">
+            <div style="margin: 1em">
+                <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}">
+                    <img src="{{ APP_URL }}{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}"
+                        width="50" height="50" style="background: #fff; border-radius: 50%">
+                </a>
+            </div>
+        </td>
+        <td style="vertical-align: top">
+            <div style="margin: 1em 1em 1em 0;">{{ comment.body_rich | safe }}</div>
+        </td>
+    </tr>
+</table>
 {% endif %}
-{% set _url -%}
-<a href="{{ APP_URL }}/changeset/{{ comment.changeset_id }}">{{ APP_URL }}/changeset/{{ comment.changeset_id }}</a>
-{%- endset %}
-<p>{{ t('user_mailer.changeset_comment_notification.details_html', url=_url) | safe }}</p>
+<p>
+    › <a href="{{ APP_URL }}/changeset/{{ comment.changeset_id }}#comment{{ comment.id }}">
+        {{- t('notifications.visit_the_discussion_page') -}}
+    </a>.
+</p>
+{% endblock %}
+
+{% block footer %}
+<p style="text-align: center; font-size: 0.85em; color: #111">
+    {{ t('subscription.no_longer_interested_in_this_discussion') }}
+    <a href="{{ APP_URL }}/changeset/{{ comment.changeset_id }}/unsubscribe">
+        {{- t('subscription.click_here_to_unsubscribe') -}}
+    </a>.
+</p>
 {% endblock %}

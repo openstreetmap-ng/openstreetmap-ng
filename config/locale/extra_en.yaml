@@ -330,14 +330,15 @@ notifications:
   click_here_to_activate_your_account: Click here to activate your account
   click_here_to_update_your_email: Click here to update your email
   click_here_to_reset_your_password: Click here to reset your password
-  click_here_to_join_the_discussion: "{{click_here}} to join the discussion."
+  visit_the_discussion_page: Visit the discussion page
   click_here_to_open_this_message_in_your_browser: "{{click_here}} to open this message in your browser."
   sending_a_message: sending a message
-  you_can_also_respond_privately_by_sending_a_message: You can also respond privately by {{sending_a_message}}.
+  you_can_respond_privately_by_sending_a_message: You can respond privately by {{sending_a_message}}.
   otherwise_please_ignore_this_email: Otherwise, please ignore this email.
 subscription:
-  would_you_like_to_unsubscribe_from_this_type_discussion: |-
-    Would you like to unsubscribe from this {{type}} discussion?
+  no_longer_interested_in_this_discussion: No longer interested in this discussion?
+  click_here_to_unsubscribe: Click here to unsubscribe
+  would_you_like_to_unsubscribe_from_this_type_discussion: Would you like to unsubscribe from this {{type}} discussion?
   no_keep_me_updated: No, keep me updated
   yes_unsubscribe_me: Yes, unsubscribe me
   if_you_unsubscribe:

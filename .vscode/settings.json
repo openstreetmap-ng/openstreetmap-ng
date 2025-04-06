@@ -26,6 +26,8 @@
   ],
   "editor.unicodeHighlight.allowedCharacters": {
     "➕": true,
+    "›": true,
+    "»": true,
     "𝕏": true
   },
   "files.exclude": {
