@@ -104,7 +104,7 @@ async def _load_table(mode: _Mode, table: str, tg: TaskGroup) -> tuple[dict[str,
     else:
         program = f'replication-convert {table}'
         proc = await create_subprocess_shell(f'{program} --header-only', stdout=PIPE)
-        header = (await proc.communicate())[1].decode().strip()
+        header = (await proc.communicate())[0].decode().strip()
 
     indexes = await _gather_table_indexes(table)
     assert indexes, f'No indexes found for {table} table'
