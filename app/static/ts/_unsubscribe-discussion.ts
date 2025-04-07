@@ -3,22 +3,21 @@ import { configureStandardForm } from "./_standard-form"
 
 const modalElement = document.getElementById("unsubscribeDiscussionModal")
 if (modalElement) {
-    const modal = new Modal(modalElement, {
-        backdrop: "static", // Prevents closing when clicking outside
-        keyboard: false,
-    })
-    modal.show()
+    const redirectLink = modalElement.querySelector("a.btn-close[href]").href
 
-    const redirectLink = modalElement.querySelector(".modal-footer a[href]")
-    redirectLink.addEventListener("click", () => {
-        // On redirect button click, hide the modal
-        console.debug("onUnsubscribeRedirect", redirectLink.href)
-        modal.hide()
+    modalElement.addEventListener("hide.bs.modal", (e) => {
+        e.preventDefault()
+        console.debug("onUnsubscribeModalHide", redirectLink)
+        window.location.href = redirectLink
     })
 
     configureStandardForm(modalElement.querySelector("form.subscription-form"), () => {
         // On success callback, redirect to the discussion page
-        console.debug("onUnsubscribeFormSuccess", redirectLink.href)
-        window.location.href = redirectLink.href
+        console.debug("onUnsubscribeFormSuccess", redirectLink)
+        window.location.href = redirectLink
     })
+
+    new Modal(modalElement, {
+        backdrop: "static", // Prevents closing when clicking outside
+    }).show()
 }
