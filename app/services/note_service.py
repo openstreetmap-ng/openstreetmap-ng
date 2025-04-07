@@ -29,6 +29,7 @@ from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
+from app.services.task_service import register_task
 from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.geometry import validate_geometry
 
@@ -219,6 +220,7 @@ class NoteService:
                 tg.create_task(_send_activity_email(note, comment))
             tg.create_task(UserSubscriptionService.subscribe('note', note_id))
 
+    @register_task
     @staticmethod
     async def delete_notes_without_comments() -> None:
         """Find all notes without comments and delete them."""

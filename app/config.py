@@ -278,6 +278,12 @@ MESSAGES_INBOX_PAGE_SIZE = 50
 ISSUE_COMMENT_BODY_MAX_LENGTH = 5_000
 REPORT_BODY_MAX_LENGTH = 50_000
 
+# -------------------- Administration --------------------
+
+# Task management
+TASK_HEARTBEAT_INTERVAL = timedelta(minutes=1)
+TASK_TIMEOUT = timedelta(minutes=3)
+
 # -------------------- Caching and Performance --------------------
 
 # General cache settings

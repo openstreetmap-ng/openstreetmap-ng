@@ -208,6 +208,9 @@ docstring-quotes = "double"
 inline-quotes    = "single"
 multiline-quotes = "double"
 
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"arrow.utcnow".msg = "You were likely intending to import `utcnow` from `app.lib.date_utils`."
+
 [tool.ruff.lint.pep8-naming]
 extend-ignore-names = ["ET"]
 
