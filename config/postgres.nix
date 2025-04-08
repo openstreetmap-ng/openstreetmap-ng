@@ -1,5 +1,6 @@
 { hostMemoryMb
 , hostDiskCoW
+, postgresPort
 , postgresCpuThreads
 , postgresMinWalSizeGb
 , postgresMaxWalSizeGb
@@ -9,12 +10,8 @@
 }:
 
 pkgs.writeText "postgres.conf" (''
-  # change default port
-  # reason: avoid conflicts with other services
-  port = 49560
-
-  # listen on socket
-  # reason: reduce latency
+  # configure listen interfaces
+  port = ${toString postgresPort}
   unix_socket_directories = '${projectDir}/data/postgres_unix'
 
   # increase buffers and memory usage

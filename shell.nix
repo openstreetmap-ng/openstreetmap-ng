@@ -2,11 +2,14 @@
 , hostMemoryMb ? 8192
 , hostDiskCoW ? false
 , enablePostgres ? true
+, postgresPort ? 49560
 , postgresCpuThreads ? 8
 , postgresMinWalSizeGb ? 1
 , postgresMaxWalSizeGb ? 10
 , postgresVerbose ? 2  # 0 = no, 1 = some, 2 = most
 , enableMailpit ? true
+, mailpitHttpPort ? 49566
+, mailpitSmtpPort ? 49565
 , gunicornWorkers ? 1
 , gunicornPort ? 8000
 }:
@@ -16,10 +19,28 @@ let
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/b0b4b5f8f621bfe213b8b21694bab52ecfcbf30b.tar.gz") { };
 
   projectDir = builtins.toString ./.;
-  postgresConf = import ./config/postgres.nix { inherit hostMemoryMb hostDiskCoW postgresCpuThreads postgresMinWalSizeGb postgresMaxWalSizeGb postgresVerbose pkgs projectDir; };
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
-  supervisordConf = import ./config/supervisord.nix { inherit isDevelopment enablePostgres enableMailpit pkgs postgresConf; };
+  postgresConf = import ./config/postgres.nix {
+    inherit
+      hostMemoryMb
+      hostDiskCoW
+      postgresPort
+      postgresCpuThreads
+      postgresMinWalSizeGb
+      postgresMaxWalSizeGb
+      postgresVerbose
+      pkgs projectDir;
+  };
+  supervisordConf = import ./config/supervisord.nix {
+    inherit
+      isDevelopment
+      enablePostgres
+      enableMailpit
+      mailpitHttpPort
+      mailpitSmtpPort
+      pkgs postgresConf;
+  };
 
   stdenv' = pkgs.gcc14Stdenv;
   wrapPrefix = if (!stdenv'.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";

@@ -1,6 +1,8 @@
 { isDevelopment
 , enablePostgres
 , enableMailpit
+, mailpitHttpPort
+, mailpitSmtpPort
 , pkgs
 , postgresConf
 }:
@@ -13,13 +15,20 @@ pkgs.writeText "supervisord.conf" (''
 
 '' + pkgs.lib.optionalString enablePostgres ''
   [program:postgres]
-  command=postgres -c config_file=${postgresConf} -D data/postgres
+  command=postgres
+    -c config_file=${postgresConf}
+    -D data/postgres
   stdout_logfile=data/supervisor/postgres.log
   stderr_logfile=data/supervisor/postgres.log
 
 '' + pkgs.lib.optionalString enableMailpit ''
   [program:mailpit]
-  command=mailpit -d data/mailpit/mailpit.db -l "127.0.0.1:49566" -s "127.0.0.1:49565" --smtp-auth-accept-any --smtp-auth-allow-insecure --enable-spamassassin spamassassin.monicz.dev:783
+  command=mailpit -d data/mailpit/mailpit.db
+    -l "127.0.0.1:${toString mailpitHttpPort}"
+    -s "127.0.0.1:${toString mailpitSmtpPort}"
+    --smtp-auth-accept-any
+    --smtp-auth-allow-insecure
+    --enable-spamassassin spamassassin.monicz.dev:783
   stdout_logfile=data/supervisor/mailpit.log
   stderr_logfile=data/supervisor/mailpit.log
 
