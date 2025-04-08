@@ -40,7 +40,7 @@ def main() -> None:
         # re-encode json to sort keys
         translation = orjson.dumps(orjson.loads(source_path.read_bytes()), option=orjson.OPT_SORT_KEYS).decode()
         # transform json to javascript
-        translation = f'if(!window.locales)window.locales={{}},window.locales["{locale}"]={{translation:{translation}}}'
+        translation = f'if(!window.locales)window.locales={{}};window.locales["{locale}"]={{translation:{translation}}}'
 
         buffer = translation.encode()
         file_hash = sha256(buffer).hexdigest()[:16]
