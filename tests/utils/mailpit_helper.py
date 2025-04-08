@@ -67,7 +67,7 @@ class MailpitHelper:
         /,
         *,
         recipient: User | None = None,
-        timeout: float = 3,
+        timeout: float = 5,
     ) -> MailpitMessageSummary:
         """Search for messages in Mailpit."""
         recipient_email = recipient['email'] if recipient is not None else None
@@ -80,7 +80,7 @@ class MailpitHelper:
 
             messages: list[MailpitMessage] = r.json()['messages']
             if not messages:
-                await sleep(0.02)
+                await sleep(0.05)
                 continue
 
             for message in messages:
@@ -97,7 +97,7 @@ class MailpitHelper:
                 return summary
 
             last_id = messages[0]['ID']
-            await sleep(0.02)
+            await sleep(0.05)
 
         raise TimeoutError('No messages found')
 
