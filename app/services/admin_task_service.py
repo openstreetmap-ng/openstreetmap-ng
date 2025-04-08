@@ -1,11 +1,13 @@
 import logging
 from asyncio import TaskGroup, sleep
 from collections.abc import Callable
+from functools import cache
 from inspect import Parameter, signature
 from operator import itemgetter
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, get_type_hints
 
 from psycopg.rows import dict_row
+from pydantic import BaseModel, create_model
 
 from app.config import ADMIN_TASK_HEARTBEAT_INTERVAL, ADMIN_TASK_TIMEOUT
 from app.db import db
@@ -80,6 +82,7 @@ class AdminTaskService:
             rows = {row['id']: row for row in await r.fetchall()}
 
         timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
+
         result: list[TaskInfo] = [
             TaskInfo(
                 id=definition.id,
@@ -94,14 +97,13 @@ class AdminTaskService:
         return result
 
     @staticmethod
-    async def start_task(task_id: str, args: dict[str, Any]) -> None:
+    async def start_task(task_id: str, args: dict[str, str]) -> None:
         definition = _REGISTRY.get(task_id)
         if definition is None:
             raise ValueError(f'Task with {task_id=!r} not found')
 
-        bound_args = signature(definition.func).bind(**args)
-        bound_args.apply_defaults()
-        validated_args = bound_args.arguments
+        # Validate and convert arguments
+        validated_args = _func_args_model(definition.func)(**args).model_dump()
 
         timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
 
@@ -126,6 +128,20 @@ class AdminTaskService:
 
         # Start the task and manage its lifecycle
         await _run_task(definition, validated_args)
+
+
+@cache
+def _func_args_model(func: Callable) -> type[BaseModel]:
+    type_hints = get_type_hints(func)
+    fields: dict[str, tuple[type, Any]] = {
+        name: (type_hints.get(name, Any), ... if (default := param.default) is Parameter.empty else default)
+        for name, param in signature(func).parameters.items()
+    }
+
+    return create_model(
+        f'{func.__qualname__}_DynamicArgs',
+        **fields,  # type: ignore
+    )
 
 
 async def _run_task(definition: TaskDefinition, args: dict[str, Any]) -> None:

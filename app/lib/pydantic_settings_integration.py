@@ -22,14 +22,12 @@ def pydantic_settings_integration(
     the original global variables with the validated values.
     """
     filtered_globals = {k: v for k, v in caller_globals.items() if name_filter(k)}
-
     if not filtered_globals:
         logging.warning('No settings found in %s matching the filter', caller_name)
         return
 
     type_hints = get_type_hints(modules[caller_name], filtered_globals)
-
-    field_definitions: dict[str, tuple[type, Any]] = {
+    fields: dict[str, tuple[type, Any]] = {
         name: (type_hints.get(name, Any if isinstance(value, FieldInfo) else type(value)), value)
         for name, value in filtered_globals.items()  #
     }
@@ -39,6 +37,6 @@ def pydantic_settings_integration(
             f'{caller_name}_DynamicSettings',
             __base__=BaseSettings,
             model_config=config,
-            **field_definitions,  # type: ignore
+            **fields,  # type: ignore
         )().model_dump()
     )
