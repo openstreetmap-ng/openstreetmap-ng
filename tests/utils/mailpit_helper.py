@@ -1,8 +1,11 @@
-from asyncio import sleep
+import time
+from asyncio import wait_for
 from email.header import decode_header, make_header
-from time import perf_counter
 from typing import TypedDict
 from urllib.parse import parse_qs, urlparse
+
+import orjson
+import websockets
 
 from app.models.db.user import User
 from app.utils import HTTP
@@ -58,6 +61,7 @@ class MailpitMessage(TypedDict):
 
 
 _API_URL = 'http://127.0.0.1:49566/api'
+_API_WS_URL = 'ws://127.0.0.1:49566/api/events'
 
 
 class MailpitHelper:
@@ -70,36 +74,44 @@ class MailpitHelper:
         timeout: float = 5,
     ) -> MailpitMessageSummary:
         """Search for messages in Mailpit."""
-        recipient_email = recipient['email'] if recipient is not None else None
-        last_id = ''
-        tt = perf_counter() + timeout
 
-        while perf_counter() < tt:
+        async def check_message(msg: MailpitMessage) -> MailpitMessageSummary | None:
+            # Check recipient if specified
+            if recipient_email is not None and all(to['Address'] != recipient_email for to in msg['To']):
+                return None
+
+            # Check if the message contains the search string
+            summary = await MailpitHelper.get_message(msg['ID'])
+            return summary if search in summary['Text'] else None
+
+        recipient_email = recipient['email'] if recipient is not None else None
+        deadline = time.monotonic() + timeout
+
+        async with websockets.connect(_API_WS_URL) as websocket:
+            # Process existing messages
             r = await HTTP.get(f'{_API_URL}/v1/messages')
             r.raise_for_status()
 
-            messages: list[MailpitMessage] = r.json()['messages']
-            if not messages:
-                await sleep(0.05)
-                continue
+            # Sorted from newest to oldest
+            messages: dict[str, MailpitMessage] = {msg['ID']: msg for msg in r.json()['messages']}
 
-            for message in messages:
-                if message['ID'] == last_id:
-                    break
+            for msg in messages.values():
+                if (summary := await check_message(msg)) is not None:
+                    return summary
 
-                if recipient_email is not None and all(to['Address'] != recipient_email for to in message['To']):
+            # Process new messages
+            while True:
+                data = await wait_for(websocket.recv(), deadline - time.monotonic())
+                event = orjson.loads(data)
+                if event.get('Type') != 'new':  # Listen for new messages only
                     continue
 
-                summary = await MailpitHelper.get_message(message['ID'])
-                if search not in summary['Text']:
+                msg: MailpitMessage = event['Data']
+                if msg['ID'] in messages:  # Skip if the message was already checked
                     continue
 
-                return summary
-
-            last_id = messages[0]['ID']
-            await sleep(0.05)
-
-        raise TimeoutError('No messages found')
+                if (summary := await check_message(msg)) is not None:
+                    return summary
 
     @staticmethod
     async def get_message(message_id: str) -> MailpitMessageSummary:

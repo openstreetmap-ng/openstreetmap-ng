@@ -1165,6 +1165,7 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "types-aioboto3", extra = ["s3"] },
     { name = "types-protobuf" },
+    { name = "websockets" },
 ]
 
 [package.metadata]
@@ -1236,6 +1237,7 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "types-aioboto3", extras = ["s3"] },
     { name = "types-protobuf" },
+    { name = "websockets", specifier = ">=15.0.1" },
 ]
 
 [[package]]

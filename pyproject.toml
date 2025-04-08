@@ -70,6 +70,7 @@ dev = [
   "pytest-asyncio",
   "types-aioboto3[s3]",
   "types-protobuf",
+  "websockets>=15.0.1",
 ]
 
 [tool.uv]
