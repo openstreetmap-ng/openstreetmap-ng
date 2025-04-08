@@ -7,7 +7,7 @@ from typing import Any, NamedTuple
 
 from psycopg.rows import dict_row
 
-from app.config import TASK_HEARTBEAT_INTERVAL, TASK_TIMEOUT
+from app.config import ADMIN_TASK_HEARTBEAT_INTERVAL, ADMIN_TASK_TIMEOUT
 from app.db import db
 from app.lib.date_utils import utcnow
 
@@ -33,7 +33,7 @@ class TaskInfo(NamedTuple):
 _REGISTRY: dict[str, TaskDefinition] = {}
 
 
-def register_task(func: Callable):
+def register_admin_task(func: Callable):
     """Decorator to register a method as a manageable task."""
     task_id = func.__name__
     if task_id in _REGISTRY:
@@ -60,7 +60,7 @@ def register_task(func: Callable):
     return func
 
 
-class TaskService:
+class AdminTaskService:
     @staticmethod
     async def list_tasks() -> list[TaskInfo]:
         """List all registered tasks and their current status."""
@@ -71,7 +71,7 @@ class TaskService:
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
-                SELECT * FROM task
+                SELECT * FROM admin_task
                 WHERE id = ANY(%s)
                 """,
                 (list(_REGISTRY),),
@@ -79,7 +79,7 @@ class TaskService:
         ):
             rows = {row['id']: row for row in await r.fetchall()}
 
-        timeout_at = utcnow() - TASK_TIMEOUT
+        timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
         result: list[TaskInfo] = [
             TaskInfo(
                 id=definition.id,
@@ -103,13 +103,13 @@ class TaskService:
         bound_args.apply_defaults()
         validated_args = bound_args.arguments
 
-        timeout_at = utcnow() - TASK_TIMEOUT
+        timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
 
         async with db(True, autocommit=True) as conn, conn.pipeline():
             # Delete timed out tasks
             await conn.execute(
                 """
-                DELETE FROM task
+                DELETE FROM admin_task
                 WHERE heartbeat_at <= %s
                 """,
                 (timeout_at,),
@@ -118,7 +118,7 @@ class TaskService:
             # Register the task
             await conn.execute(
                 """
-                INSERT INTO task (id)
+                INSERT INTO admin_task (id)
                 VALUES (%s)
                 """,
                 (task_id,),
@@ -144,7 +144,7 @@ async def _run_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
             async with db(write=True, autocommit=True) as conn:
                 await conn.execute(
                     """
-                    DELETE FROM task
+                    DELETE FROM admin_task
                     WHERE id = %s
                     """,
                     (task_id,),
@@ -156,12 +156,12 @@ async def _run_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
 async def _heartbeat_loop(task_id: str) -> None:
     while True:
         # Periodically update the heartbeat field
-        await sleep(TASK_HEARTBEAT_INTERVAL.total_seconds())
+        await sleep(ADMIN_TASK_HEARTBEAT_INTERVAL.total_seconds())
 
         async with db(write=True, autocommit=True) as conn:
             await conn.execute(
                 """
-                UPDATE task
+                UPDATE admin_task
                 SET heartbeat_at = DEFAULT
                 WHERE id = %s
                 """,
