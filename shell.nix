@@ -645,6 +645,14 @@ let
       echo "Skipped loading .env file (not found)"
     fi
 
+    echo "Running [proto-pipeline]"
+    proto-pipeline &
+    echo "Running [locale-pipeline]"
+    locale-pipeline &
+    echo "Running [static-img-pipeline]"
+    static-img-pipeline &
+    wait
+
     if [ ! -d app/static/css ]; then
       echo "Running [sass-pipeline]"
       sass-pipeline &
@@ -653,12 +661,6 @@ let
       echo "Running [js-pipeline]"
       js-pipeline &
     fi
-    echo "Running [proto-pipeline]"
-    proto-pipeline &
-    echo "Running [locale-pipeline]"
-    locale-pipeline &
-    echo "Running [static-img-pipeline]"
-    static-img-pipeline &
     wait
   '';
 in
