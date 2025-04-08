@@ -36,7 +36,7 @@ def validate_geometry(value: dict[str, Any] | _T) -> BaseGeometry | _T:
     # Validate the geometry but accept zero-sized polygons
     elif not geom.is_valid:
         if isinstance(geom, Polygon | MultiPolygon) and not geom.length:
-            geom = buffer(geom, 0.1**GEO_COORDINATE_PRECISION / 4, 0)
+            geom = buffer(geom, 0.1**GEO_COORDINATE_PRECISION / 4, quad_segs=0)
         else:
             raise_for.bad_geometry()
 

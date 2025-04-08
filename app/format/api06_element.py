@@ -3,7 +3,7 @@ from typing import Any
 
 import cython
 import numpy as np
-from shapely import Point, get_coordinates, lib
+from shapely import Point, get_coordinates, points
 
 from app.config import GEO_COORDINATE_PRECISION
 from app.lib.date_utils import legacy_date
@@ -360,9 +360,9 @@ def _decode_element_unsafe(type: ElementType, data: dict, *, changeset_id: Chang
         if (data_tags := data.get('tag'))
         else None
     )
-    point = (
+    point: Point | None = (
         # numpy automatically parses strings
-        lib.points(np.array((lon, lat), np.float64).round(GEO_COORDINATE_PRECISION))
+        points(np.array((lon, lat), np.float64).round(GEO_COORDINATE_PRECISION))  # type: ignore
         if (lon := data.get('@lon')) is not None  #
         and (lat := data.get('@lat')) is not None
         else None

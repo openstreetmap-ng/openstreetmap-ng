@@ -29,7 +29,7 @@ class FormatGPX:
         trkseg: list[dict] = []
 
         for segment in force_3d(trace['segments']).geoms:
-            segment_coords: list[list[float]] = get_coordinates(segment, True).tolist()  # type: ignore
+            segment_coords: list[list[float]] = get_coordinates(segment, include_z=True).tolist()  # type: ignore
             trkpt: list[dict] = []
 
             for lon, lat, elevation in segment_coords:
@@ -67,7 +67,11 @@ class FormatGPX:
         trk: list[dict] = []
 
         for trace in traces:
-            coordinates_, segment_nums_ = get_coordinates(force_3d(trace['segments']).geoms, True, True)  # type: ignore
+            coordinates_, segment_nums_ = get_coordinates(
+                force_3d(trace['segments']).geoms,  # type: ignore
+                include_z=True,
+                return_index=True,
+            )
             coordinates: list[list[float]] = coordinates_.tolist()
             segment_nums: list[int] = segment_nums_.tolist()
             capture_times = trace['capture_times']

@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 
 import numpy as np
 import orjson
-from shapely import MultiPolygon, Point, Polygon, get_coordinates, lib
+from shapely import MultiPolygon, Point, Polygon, get_coordinates, points
 
 from app.config import (
     NOMINATIM_REVERSE_CACHE_EXPIRE,
@@ -201,7 +201,7 @@ async def _get_search_result(
 
         lon = (minx + maxx) / 2
         lat = (miny + maxy) / 2
-        point = lib.points(np.array((lon, lat), np.float64))
+        point: Point = points(np.array((lon, lat), np.float64))  # type: ignore
 
         result.append(
             SearchResult(

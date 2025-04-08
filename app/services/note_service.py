@@ -8,7 +8,7 @@ import numpy as np
 from httpx import HTTPError
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
-from shapely import Point, get_coordinates, lib
+from shapely import Point, get_coordinates, points
 
 from app.config import GEO_COORDINATE_PRECISION
 from app.db import db
@@ -38,7 +38,7 @@ class NoteService:
     @staticmethod
     async def create(lon: float, lat: float, text: str) -> NoteId:
         """Create a note and return its id."""
-        point: Point = lib.points(np.array((lon, lat), np.float64).round(GEO_COORDINATE_PRECISION))
+        point: Point = points(np.array((lon, lat), np.float64).round(GEO_COORDINATE_PRECISION))  # type: ignore
         point = validate_geometry(point)
 
         user, scopes = auth_user_scopes()

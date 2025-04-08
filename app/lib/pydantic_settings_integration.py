@@ -35,8 +35,7 @@ def pydantic_settings_integration(
     caller_globals.update(
         create_model(
             f'{caller_name}_DynamicSettings',
-            __base__=BaseSettings,
-            model_config=config,
+            __base__=type(f'{caller_name}_DynamicBaseSettings', (BaseSettings,), {'model_config': config}),
             **fields,  # type: ignore
         )().model_dump()
     )
