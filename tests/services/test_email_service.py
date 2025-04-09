@@ -1,3 +1,5 @@
+import platform
+
 import pytest
 from httpx import AsyncClient
 from starlette import status
@@ -13,6 +15,10 @@ from tests.utils.mailpit_helper import MailpitHelper
 
 
 @pytest.mark.extended
+@pytest.mark.skipif(
+    platform.system() == 'Darwin',
+    reason='Flaky (https://github.com/openstreetmap-ng/openstreetmap-ng/actions/runs/14367342795/job/40283301992)',
+)
 async def test_diary_comment_notification_and_unsubscribe(client: AsyncClient):
     user1 = await UserQuery.find_one_by_display_name(DisplayName('user1'))
     user2 = await UserQuery.find_one_by_display_name(DisplayName('user2'))
