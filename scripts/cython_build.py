@@ -1,4 +1,4 @@
-import os
+from os import process_cpu_count  # type: ignore
 from pathlib import Path
 
 from Cython.Build import cythonize
@@ -6,6 +6,13 @@ from Cython.Compiler import Options
 from setuptools import Extension, setup
 
 import app.config  # DO NOT REMOVE  # noqa: F401
+from app.lib.pydantic_settings_integration import pydantic_settings_integration
+
+CYTHON_MARCH = 'native'
+CYTHON_MTUNE = 'native'
+CYTHON_FLAGS = ''
+
+pydantic_settings_integration(__name__, globals())
 
 Options.docstrings = False
 Options.annotate = True
@@ -56,8 +63,8 @@ extra_args: list[str] = [
     '-flto=auto',
     '-pipe',
     # docs: https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc.pdf
-    '-march=' + os.getenv('CYTHON_MARCH', 'native'),
-    '-mtune=' + os.getenv('CYTHON_MTUNE', 'native'),
+    f'-march={CYTHON_MARCH}',
+    f'-mtune={CYTHON_MTUNE}',
     '-fhardened',
     '-funsafe-math-optimizations',
     '-fno-semantic-interposition',
@@ -68,7 +75,7 @@ extra_args: list[str] = [
     '-mshstk',
     # https://stackoverflow.com/a/23501290
     '--param=max-vartrack-size=0',
-    *os.getenv('CYTHON_FLAGS', '').split(),
+    *CYTHON_FLAGS.split(),
 ]
 
 setup(
@@ -85,7 +92,7 @@ setup(
             )
             for path in paths
         ],
-        nthreads=os.process_cpu_count(),  # type: ignore
+        nthreads=process_cpu_count(),
         compiler_directives={
             # https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives
             'overflowcheck': True,

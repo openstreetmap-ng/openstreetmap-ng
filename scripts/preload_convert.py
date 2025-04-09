@@ -1,9 +1,9 @@
 import gc
-import os
 from argparse import ArgumentParser
 from collections.abc import Callable
 from datetime import datetime
 from multiprocessing import Pool
+from os import process_cpu_count  # type: ignore
 from pathlib import Path
 from typing import Any
 
@@ -70,7 +70,7 @@ _NOTES_SCHEMA = pa.schema([
     pa.field('hidden_at', pa.timestamp('ms', 'UTC')),
 ])
 
-_NUM_WORKERS = os.process_cpu_count() or 1  # type: ignore
+_NUM_WORKERS = process_cpu_count() or 1
 _TASK_SIZE = 64 * 1024 * 1024  # 64MB
 
 # freeze all gc objects before starting for improved performance
