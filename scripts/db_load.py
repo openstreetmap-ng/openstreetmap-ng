@@ -1,10 +1,10 @@
 import asyncio
-import os
 from argparse import ArgumentParser
 from asyncio import TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
 from contextlib import asynccontextmanager
 from io import TextIOWrapper
+from os import process_cpu_count  # type: ignore
 from pathlib import Path
 from shlex import quote
 from typing import Literal, get_args
@@ -20,7 +20,7 @@ from app.services.migration_service import MigrationService
 
 _Mode = Literal['preload', 'replication']
 
-_COPY_WORKERS = min(os.process_cpu_count() or 1, 8)  # type: ignore
+_COPY_WORKERS = min(process_cpu_count() or 1, 8)
 
 
 def _get_csv_path(name: str) -> Path:
@@ -143,21 +143,36 @@ async def _load_table(mode: _Mode, table: str, tg: TaskGroup) -> tuple[dict[str,
         if proc is not None:
             proc.terminate()
 
-    # Fix replication-specific element issues
-    async def replication_element_postprocess():
+    async def element_postprocess():
         async with db(True, autocommit=True) as conn:
             key = 'element_version_idx'
             print(f'Recreating index {key!r}')
             await conn.execute(indexes.pop(key))
-            print(f'Updating {table} table statistics')
-            await conn.execute(SQL('ANALYZE {}').format(Identifier(table)))
+            print('Updating table statistics')
+            await conn.execute('ANALYZE element')
 
-        print('Starting MigrationService tasks')
-        tg.create_task(MigrationService.delete_duplicated_elements())
-        tg.create_task(MigrationService.set_latest_elements())
+        print('Deduplicating elements')
+        await MigrationService.deduplicate_elements()
+        print('Marking latest elements')
+        await MigrationService.mark_latest_elements()
 
-    if mode == 'replication' and table == 'element':
-        tg.create_task(replication_element_postprocess())
+    async def note_comment_postprocess():
+        async with db(True, autocommit=True) as conn:
+            key = 'note_comment_note_id_idx'
+            print(f'Recreating index {key!r}')
+            await conn.execute(indexes.pop(key))
+            print('Updating table statistics')
+            await conn.execute('ANALYZE note, note_comment')
+
+        print('Deleting notes without comments')
+        await MigrationService.delete_notes_without_comments()
+
+    # Optional postprocessing
+    if mode == 'replication':
+        if table == 'element':
+            tg.create_task(element_postprocess())
+        elif table == 'note_comment':
+            tg.create_task(note_comment_postprocess())
 
     return indexes, constraints
 

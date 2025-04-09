@@ -28,7 +28,6 @@ from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
-from app.services.admin_task_service import register_admin_task
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.geometry import validate_geometry
@@ -219,30 +218,6 @@ class NoteService:
             if send_activity_email:
                 tg.create_task(_send_activity_email(note, comment))
             tg.create_task(UserSubscriptionService.subscribe('note', note_id))
-
-    @register_admin_task
-    @staticmethod
-    async def delete_notes_without_comments() -> None:
-        """Find all notes without comments and delete them."""
-        logging.info('Deleting notes without comments')
-
-        async with db(True) as conn:
-            result = await conn.execute(
-                """
-                DELETE FROM note
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM note_comment
-                    WHERE note_id = note.id
-                )
-                """,
-            )
-
-            if not result.rowcount:
-                # Warn due to unnecessary expensive query
-                logging.warning('Not found any notes without comments')
-                return
-
-        logging.info('Deleted %d notes without comments', result.rowcount)
 
 
 async def _send_activity_email(note: Note, comment: NoteComment) -> None:

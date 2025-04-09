@@ -1,5 +1,8 @@
 import logging
+from asyncio import Semaphore, TaskGroup
+from math import ceil
 from operator import itemgetter
+from os import process_cpu_count  # type: ignore
 from pathlib import Path
 from typing import NamedTuple
 
@@ -10,6 +13,13 @@ from psycopg.sql import SQL, Identifier
 from app.config import ENV
 from app.db import db
 from app.lib.crypto import hash_bytes
+from app.models.element import (
+    TYPED_ELEMENT_ID_NODE_MIN,
+    TYPED_ELEMENT_ID_RELATION_MIN,
+    TYPED_ELEMENT_ID_WAY_MIN,
+    typed_element_id,
+)
+from app.queries.element_query import ElementQuery
 
 
 class _MigrationInfo(NamedTuple):
@@ -51,48 +61,121 @@ class MigrationService:
                 await conn.execute('SELECT setval(%s, %s)', (sequence, last_value))
 
     @staticmethod
-    async def delete_duplicated_elements() -> None:
-        """Delete duplicated elements (by typed_id, version)."""
-        async with (
-            db(True, autocommit=True) as conn,
-            await conn.execute("""
-                WITH bad AS MATERIALIZED (
-                    SELECT sequence_id
-                    FROM (
-                        SELECT
-                            sequence_id,
-                            ROW_NUMBER() OVER (PARTITION BY typed_id, version) AS rn
-                        FROM element
+    async def deduplicate_elements(
+        *,
+        parallelism: int | None = None,
+        task_size: int = 1_000_000,
+    ) -> None:
+        if parallelism is None:
+            parallelism = process_cpu_count() or 1
+
+        chunks = await _get_element_typed_id_chunks(task_size)
+        semaphore = Semaphore(parallelism)
+        logging.info('Deduplicating elements (tasks=%d, parallelism=%d)', len(chunks), parallelism)
+
+        async def process_task(start_id: int, end_id: int):
+            async with (
+                semaphore,
+                db(True, autocommit=True) as conn,
+                await conn.execute(
+                    """
+                    WITH bad AS (
+                        SELECT sequence_id
+                        FROM (
+                            SELECT
+                                sequence_id,
+                                ROW_NUMBER() OVER (PARTITION BY typed_id, version) AS rn
+                            FROM element
+                            WHERE typed_id BETWEEN %s AND %s
+                        ) sub
+                        WHERE rn > 1
                     )
-                    WHERE rn > 1
-                )
-                DELETE FROM element e USING bad
-                WHERE e.sequence_id = bad.sequence_id
-                RETURNING e.sequence_id, e.typed_id, e.version
-            """) as r,
-        ):
-            if rows := await r.fetchall():
-                logging.warning(
-                    'Deleted %d duplicated element rows (sequence_id, typed_id, version): %s', len(rows), rows
-                )
+                    DELETE FROM element e USING bad
+                    WHERE e.sequence_id = bad.sequence_id
+                    RETURNING e.sequence_id, e.typed_id, e.version
+                """,
+                    (start_id, end_id),
+                ) as r,
+            ):
+                if rows := await r.fetchall():
+                    logging.warning('Deduplicated %d elements in range [%d, %d]', len(rows), start_id, end_id)
+
+        async with TaskGroup() as tg:
+            for start_id, end_id in chunks:
+                tg.create_task(process_task(start_id, end_id))
 
     @staticmethod
-    async def set_latest_elements() -> None:
-        """Set the latest flag for elements."""
-        async with db(True, autocommit=True) as conn:
-            await conn.execute("""
-                WITH bad AS MATERIALIZED (
-                    SELECT * FROM (
-                        SELECT DISTINCT ON (typed_id) typed_id, version, latest
-                        FROM element
-                        ORDER BY typed_id, version DESC
+    async def mark_latest_elements(
+        *,
+        parallelism: int | None = None,
+        task_size: int = 1_000_000,
+    ) -> None:
+        if parallelism is None:
+            parallelism = process_cpu_count() or 1
+
+        chunks = await _get_element_typed_id_chunks(task_size)
+        semaphore = Semaphore(parallelism)
+        logging.info('Marking latest elements (tasks=%d, parallelism=%d)', len(chunks), parallelism)
+
+        async def process_task(start_id: int, end_id: int):
+            async with semaphore, db(True, autocommit=True) as conn:
+                await conn.execute(
+                    """
+                    WITH bad AS (
+                        SELECT * FROM (
+                            SELECT DISTINCT ON (typed_id) typed_id, version, latest
+                            FROM element
+                            WHERE typed_id BETWEEN %s AND %s
+                            ORDER BY typed_id, version DESC
+                        )
+                        WHERE NOT latest
                     )
-                    WHERE NOT latest
+                    UPDATE element e SET latest = TRUE FROM bad
+                    WHERE e.typed_id = bad.typed_id
+                    AND e.version = bad.version
+                    """,
+                    (start_id, end_id),
                 )
-                UPDATE element e SET latest = TRUE FROM bad
-                WHERE e.typed_id = bad.typed_id
-                AND e.version = bad.version
-            """)
+
+        async with TaskGroup() as tg:
+            for start_id, end_id in chunks:
+                tg.create_task(process_task(start_id, end_id))
+
+    @staticmethod
+    async def delete_notes_without_comments(
+        *,
+        parallelism: int | None = None,
+        task_size: int = 100_000,
+    ) -> None:
+        if parallelism is None:
+            parallelism = process_cpu_count() or 1
+
+        async with db() as conn, await conn.execute('SELECT MAX(id) FROM note') as r:
+            max_id = (await r.fetchone())[0] or 0  # type: ignore
+
+        semaphore = Semaphore(parallelism)
+        logging.info(
+            'Deleting notes without comments (tasks=%d, parallelism=%d)', ceil(max_id / task_size), parallelism
+        )
+
+        async def process_chunk(start_id: int, end_id: int):
+            async with semaphore, db(True) as conn:
+                await conn.execute(
+                    """
+                    DELETE FROM note
+                    WHERE id BETWEEN %s AND %s
+                    AND NOT EXISTS (
+                        SELECT 1 FROM note_comment
+                        WHERE note_id = note.id
+                    )
+                    """,
+                    (start_id, end_id),
+                )
+
+        async with TaskGroup() as tg:
+            for start_id in range(1, max_id + 1, task_size):
+                end_id = min(start_id + task_size - 1, max_id)
+                tg.create_task(process_chunk(start_id, end_id))
 
     @staticmethod
     async def migrate_database() -> None:
@@ -117,6 +200,47 @@ class MigrationService:
 
             new_version = migrations[-1][0]
             logging.info('Successfully migrated database from %s to %s', current_migration, new_version)
+
+
+async def _get_element_typed_id_chunks(task_size: int) -> list[tuple[int, int]]:
+    # Define actual data ranges
+    current_ids = await ElementQuery.get_current_ids()
+    active_ranges = [
+        (TYPED_ELEMENT_ID_NODE_MIN, typed_element_id('node', current_ids['node'])),
+        (TYPED_ELEMENT_ID_WAY_MIN, typed_element_id('way', current_ids['way'])),
+        (TYPED_ELEMENT_ID_RELATION_MIN, typed_element_id('relation', current_ids['relation'])),
+    ]
+
+    # Create balanced work chunks
+    current_chunk_start: int | None = None
+    current_chunk_size: int = 0
+    chunks: list[tuple[int, int]] = []
+
+    for start, end in active_ranges:
+        pos = start
+        while pos <= end:
+            if current_chunk_start is None:
+                current_chunk_start = pos
+
+            # Determine how many elements to include in this chunk
+            remaining_in_range = end - pos + 1
+            remaining_in_chunk = task_size - current_chunk_size
+            elements_to_take = min(remaining_in_range, remaining_in_chunk)
+
+            pos += elements_to_take
+            current_chunk_size += elements_to_take
+
+            # If chunk is full, add it to the list and reset
+            if current_chunk_size >= task_size:
+                chunks.append((current_chunk_start, pos - 1))
+                current_chunk_start = None
+                current_chunk_size = 0
+
+    # Add the final chunk
+    if current_chunk_start is not None:
+        chunks.append((current_chunk_start, active_ranges[-1][1]))
+
+    return chunks
 
 
 async def _ensure_db_table(conn: AsyncConnection) -> None:
