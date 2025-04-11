@@ -10,6 +10,7 @@ from typing import ClassVar, NamedTuple, override
 
 import cython
 import magic
+from sizestr import sizestr
 from zstandard import ZstdCompressor, ZstdDecompressor, ZstdError
 
 from app.config import (
@@ -20,7 +21,6 @@ from app.config import (
     TRACE_FILE_UNCOMPRESSED_MAX_SIZE,
 )
 from app.lib.exceptions_context import raise_for
-from app.lib.sizestr import sizestr
 from app.models.types import StorageKey
 
 

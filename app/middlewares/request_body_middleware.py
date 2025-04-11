@@ -6,12 +6,12 @@ from io import BytesIO
 import brotli
 import cython
 from fastapi import Response
+from sizestr import sizestr
 from starlette import status
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from zstandard import ZstdDecompressor
 
 from app.config import REQUEST_BODY_MAX_SIZE
-from app.lib.sizestr import sizestr
 from app.middlewares.request_context_middleware import get_request
 
 _ZSTD_DECOMPRESS = ZstdDecompressor().decompress

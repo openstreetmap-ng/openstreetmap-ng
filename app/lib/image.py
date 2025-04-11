@@ -8,6 +8,7 @@ import cython
 import numpy as np
 from cv2.typing import MatLike
 from numpy.typing import NDArray
+from sizestr import sizestr
 
 from app.config import (
     AVATAR_MAX_FILE_SIZE,
@@ -18,7 +19,6 @@ from app.config import (
     BACKGROUND_MAX_RATIO,
 )
 from app.lib.exceptions_context import raise_for
-from app.lib.sizestr import sizestr
 from app.models.types import StorageKey
 
 if cython.compiled:

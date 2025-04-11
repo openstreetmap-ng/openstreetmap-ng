@@ -1,10 +1,10 @@
 from typing import NoReturn, override
 
+from sizestr import sizestr
 from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.request_mixin import RequestExceptionsMixin
-from app.lib.sizestr import sizestr
 from app.middlewares.request_context_middleware import get_request
 
 
