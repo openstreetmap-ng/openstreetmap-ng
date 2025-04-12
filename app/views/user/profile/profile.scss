@@ -114,6 +114,13 @@
         }
     }
 
+    .content-body {
+        .card {
+            // Fix dropdown rendered behind card
+            position: initial;
+        }
+    }
+
     .content-list {
         height: 250px;
         overflow-x: hidden;
