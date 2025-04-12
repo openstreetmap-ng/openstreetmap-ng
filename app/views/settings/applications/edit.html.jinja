@@ -49,24 +49,29 @@
         </label>
         <div class="ms-1">
             <div class="form-check">
+
+                {# Public client #}
                 <label class="form-check-label w-100">
                     <input class="form-check-input" type="radio" name="is_confidential" value="false"
                         {% if not app.is_confidential %}checked{% endif %}>
-                    <i class="bi bi-unlock text-primary"></i>
-                    {{ t('settings.public_client') }}
+                    <i class="bi bi-unlock text-primary me-1-5"></i>
+                    {{- t('settings.public_client') }}
                 </label>
                 <p class="form-text">
                     {{ t('settings.public_client_description') }}
                 </p>
+
+                {# Confidential client #}
                 <label class="form-check-label w-100">
                     <input class="form-check-input" type="radio" name="is_confidential" value="true"
                         {% if app.is_confidential %}checked{% endif %}>
-                    <i class="bi bi-key text-primary"></i>
-                    {{ t('settings.confidential_client') }}
+                    <i class="bi bi-key text-primary me-1-5"></i>
+                    {{- t('settings.confidential_client') }}
                 </label>
                 <p class="form-text">
                     {{ t('settings.confidential_client_description') }}
                 </p>
+
             </div>
         </div>
 

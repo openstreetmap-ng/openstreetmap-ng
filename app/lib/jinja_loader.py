@@ -7,6 +7,7 @@ from jinja2 import FileSystemLoader
 _MINIFIER = Minifier(
     remove_comments=True,
     remove_empty_space=True,
+    remove_all_empty_space=True,
     reduce_boolean_attributes=True,
     remove_optional_attribute_quotes=False,
 )
