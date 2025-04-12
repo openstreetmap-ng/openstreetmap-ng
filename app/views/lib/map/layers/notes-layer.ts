@@ -6,16 +6,16 @@ import {
     type Map as MaplibreMap,
     Popup,
 } from "maplibre-gl"
-import { config } from "../config"
-import { routerNavigateStrict } from "../../index/_router"
-import { RenderNotesDataSchema } from "../proto/shared_pb"
-import { clearMapHover, setMapHover } from "./hover"
+import { config } from "../../config"
+import { routerNavigateStrict } from "../../../index/_router"
+import { RenderNotesDataSchema } from "../../proto/shared_pb"
+import { clearMapHover, setMapHover } from "../hover"
 import {
     loadMapImage,
     markerClosedImageUrl,
     markerHiddenImageUrl,
     markerOpenImageUrl,
-} from "./image"
+} from "../image"
 import {
     type LayerCode,
     type LayerId,
@@ -23,8 +23,8 @@ import {
     emptyFeatureCollection,
     layersConfig,
 } from "./layers"
-import { convertRenderNotesData, renderObjects } from "./render-objects"
-import { getLngLatBoundsIntersection, getLngLatBoundsSize } from "./utils"
+import { convertRenderNotesData, renderObjects } from "../render-objects"
+import { getLngLatBoundsIntersection, getLngLatBoundsSize } from "../utils"
 
 const layerId = "notes" as LayerId
 layersConfig.set(layerId as LayerId, {

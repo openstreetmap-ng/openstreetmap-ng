@@ -6,15 +6,15 @@ import {
     type Map as MaplibreMap,
     Marker,
 } from "maplibre-gl"
-import type { Bounds } from "../types"
-import { mod, throttle } from "../utils"
+import type { Bounds } from "../../types"
+import { mod, throttle } from "../../utils"
 import {
     type LayerId,
     addMapLayer,
     emptyFeatureCollection,
     layersConfig,
     removeMapLayer,
-} from "./layers"
+} from "../layers/layers"
 
 const layerId: LayerId = "location-filter" as LayerId
 layersConfig.set(layerId as LayerId, {

@@ -5,8 +5,8 @@ import { encodeLonLat } from "../lib/polyline"
 import { qsEncode } from "../lib/qs"
 import { beautifyZoom, zoomPrecision } from "../lib/utils"
 import { routerNavigateStrict } from "../index/_router"
-import { newNoteMinZoom } from "../lib/map/new-note"
-import { queryFeaturesMinZoom } from "../lib/map/query-features"
+import { newNoteMinZoom } from "../lib/map/controls/new-note"
+import { queryFeaturesMinZoom } from "../lib/map/controls/query-features"
 
 /** Configure the map context menu */
 export const configureContextMenu = (map: MaplibreMap): void => {

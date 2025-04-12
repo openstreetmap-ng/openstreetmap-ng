@@ -4,7 +4,7 @@ import { shareExportFormatStorage } from "../../lib/local-storage"
 import { qsParse } from "../../lib/qs"
 import { isLatitude, isLongitude } from "../../lib/utils"
 import { exportMapImage } from "../../lib/map/export-image"
-import { LocationFilterControl } from "../../lib/map/location-filter"
+import { LocationFilterControl } from "../../lib/map/controls/location-filter"
 import {
     getInitialMapState,
     getMapEmbedHtml,

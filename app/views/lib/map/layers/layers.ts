@@ -9,10 +9,10 @@ import {
     type SourceSpecification,
     type StyleSpecification,
 } from "maplibre-gl"
-import { getActiveTheme, overlayOpacityStorage } from "../local-storage"
-import { addThemeEventHandler } from "../../navbar/_theme"
-import { staticCache } from "../utils"
-import libertyStyle from "../vector-styles/liberty.json"
+import { getActiveTheme, overlayOpacityStorage } from "../../local-storage"
+import { addThemeEventHandler } from "../../../navbar/_theme"
+import { staticCache } from "../../utils"
+import libertyStyle from "../../vector-styles/liberty.json"
 
 declare const brandSymbol: unique symbol
 

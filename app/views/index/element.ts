@@ -3,7 +3,7 @@ import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { setPageTitle } from "../lib/title"
-import { type FocusLayerPaint, focusObjects } from "../lib/map/focus-layer"
+import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "../lib/map/render-objects"
 import {
     type PartialElementParams,

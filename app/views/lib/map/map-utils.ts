@@ -29,7 +29,7 @@ import {
     removeMapLayer,
     resolveExtendedLayerId,
     resolveLayerCodeOrId,
-} from "./layers"
+} from "./layers/layers"
 import { padLngLatBounds } from "./utils"
 
 export interface LonLat {

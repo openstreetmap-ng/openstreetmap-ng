@@ -18,7 +18,7 @@ import {
     type FocusLayerPaint,
     type FocusOptions,
     focusObjects,
-} from "../lib/map/focus-layer"
+} from "../lib/map/layers/focus-layer"
 import { clearMapHover, setMapHover } from "../lib/map/hover"
 import { loadMapImage, markerRedImageUrl } from "../lib/map/image"
 import {
@@ -27,7 +27,7 @@ import {
     emptyFeatureCollection,
     layersConfig,
     removeMapLayer,
-} from "../lib/map/layers"
+} from "../lib/map/layers/layers"
 import { convertRenderElementsData } from "../lib/map/render-objects"
 import {
     getLngLatBoundsIntersection,

@@ -7,7 +7,7 @@ import {
     isZoom,
     memoize,
 } from "./utils"
-import type { LayerId } from "./map/layers"
+import type { LayerId } from "./map/layers/layers"
 import type { MapState } from "./map/map-utils"
 
 type StorageConfig<T> = {

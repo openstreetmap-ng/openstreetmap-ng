@@ -15,7 +15,7 @@ import {
     hasMapLayer,
     layersConfig,
     removeMapLayer,
-} from "../../lib/map/layers"
+} from "../../lib/map/layers/layers"
 import { getMapBaseLayerId } from "../../lib/map/map-utils"
 import { SidebarToggleControl } from "./_toggle-button"
 import { configureDefaultMapBehavior, getLngLatBoundsSize } from "../../lib/map/utils"

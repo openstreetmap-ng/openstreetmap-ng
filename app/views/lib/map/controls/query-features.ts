@@ -1,8 +1,8 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { IControl, MapMouseEvent, Map as MaplibreMap } from "maplibre-gl"
-import { beautifyZoom } from "../utils"
-import { routerNavigateStrict } from "../../index/_router"
+import { beautifyZoom } from "../../utils"
+import { routerNavigateStrict } from "../../../index/_router"
 
 export const queryFeaturesMinZoom = 14
 

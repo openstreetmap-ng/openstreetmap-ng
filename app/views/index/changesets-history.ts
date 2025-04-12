@@ -19,7 +19,7 @@ import {
     getExtendedLayerId,
     layersConfig,
     removeMapLayer,
-} from "../lib/map/layers.ts"
+} from "../lib/map/layers/layers.ts"
 import {
     convertRenderChangesetsData,
     renderObjects,

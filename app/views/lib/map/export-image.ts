@@ -13,7 +13,7 @@ import {
     emptyFeatureCollection,
     layersConfig,
     removeMapLayer,
-} from "./layers"
+} from "./layers/layers"
 import { getLngLatBoundsIntersection } from "./utils"
 
 const layerId = "export-image" as LayerId

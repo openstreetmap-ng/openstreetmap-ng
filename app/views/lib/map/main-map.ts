@@ -19,10 +19,10 @@ import { getRoutingController } from "../../index/routing"
 import { getSearchController } from "../../index/search"
 import { configureSearchForm } from "../../index/search-form"
 import { configureContextMenu } from "../../index/context-menu"
-import { configureDataLayer } from "./data-layer"
+import { configureDataLayer } from "./layers/data-layer"
 import { configureFindHomeButton } from "./find-home"
-import { CustomGeolocateControl } from "./geolocate"
-import { addLayerEventHandler, addMapLayerSources } from "./layers"
+import { CustomGeolocateControl } from "./controls/geolocate"
+import { addLayerEventHandler, addMapLayerSources } from "./layers/layers"
 import {
     addControlGroup,
     getInitialMapState,
@@ -30,14 +30,14 @@ import {
     parseMapState,
     setMapState,
 } from "./map-utils"
-import { NewNoteControl } from "./new-note"
-import { configureNotesLayer } from "./notes-layer"
-import { QueryFeaturesControl } from "./query-features"
+import { NewNoteControl } from "./controls/new-note"
+import { configureNotesLayer } from "./layers/notes-layer"
+import { QueryFeaturesControl } from "./controls/query-features"
 import { LayersSidebarToggleControl } from "../../index/sidebar/layers"
 import { LegendSidebarToggleControl } from "../../index/sidebar/legend"
 import { ShareSidebarToggleControl } from "../../index/sidebar/share"
 import { configureDefaultMapBehavior } from "./utils"
-import { CustomZoomControl } from "./zoom"
+import { CustomZoomControl } from "./controls/zoom"
 
 /** Get the main map instance */
 const createMainMap = (container: HTMLElement): MaplibreMap => {

@@ -30,7 +30,7 @@ import {
     emptyFeatureCollection,
     layersConfig,
     removeMapLayer,
-} from "../lib/map/layers"
+} from "../lib/map/layers/layers"
 import { getMarkerIconElement, markerIconAnchor } from "../lib/map/utils"
 import { type RoutingResult, RoutingResultSchema } from "../lib/proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"

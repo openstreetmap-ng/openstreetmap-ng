@@ -13,7 +13,7 @@ import {
     requestAnimationFramePolyfill,
     staticCache,
 } from "../lib/utils"
-import { type FocusLayerPaint, focusObjects } from "../lib/map/focus-layer"
+import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
 import {
     type LayerId,
     addMapLayer,
@@ -21,9 +21,9 @@ import {
     getExtendedLayerId,
     layersConfig,
     removeMapLayer,
-} from "../lib/map/layers"
+} from "../lib/map/layers/layers"
 import type { LonLatZoom } from "../lib/map/map-utils"
-import { queryFeaturesMinZoom } from "../lib/map/query-features"
+import { queryFeaturesMinZoom } from "../lib/map/controls/query-features"
 import { convertRenderElementsData } from "../lib/map/render-objects"
 import { PartialQueryFeaturesParamsSchema } from "../lib/proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"

@@ -8,7 +8,7 @@ import {
 import { isMetricUnit } from "../lib/intl"
 import { decodeLonLat } from "../lib/polyline"
 import { requestAnimationFramePolyfill } from "../lib/utils"
-import { CustomGeolocateControl } from "../lib/map/geolocate"
+import { CustomGeolocateControl } from "../lib/map/controls/geolocate"
 import {
     type LayerId,
     addMapLayer,
@@ -16,10 +16,10 @@ import {
     defaultLayerId,
     emptyFeatureCollection,
     layersConfig,
-} from "../lib/map/layers"
+} from "../lib/map/layers/layers"
 import { addControlGroup } from "../lib/map/map-utils"
 import { configureDefaultMapBehavior, padLngLatBounds } from "../lib/map/utils"
-import { CustomZoomControl } from "../lib/map/zoom"
+import { CustomZoomControl } from "../lib/map/controls/zoom"
 
 const tracePreviewContainer = document.querySelector("div.trace-preview")
 if (tracePreviewContainer) {

@@ -20,7 +20,7 @@ import {
     hasMapLayer,
     layersConfig,
     removeMapLayer,
-} from "../lib/map/layers"
+} from "../lib/map/layers/layers"
 import {
     closestPointOnSegment,
     getMarkerIconElement,

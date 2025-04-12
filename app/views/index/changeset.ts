@@ -8,7 +8,7 @@ import { configureStandardForm } from "../lib/standard-form"
 import { configureStandardPagination } from "../lib/standard-pagination"
 import { setPageTitle } from "../lib/title"
 import type { Bounds, OSMChangeset } from "../lib/types"
-import { type FocusLayerPaint, focusObjects } from "../lib/map/focus-layer"
+import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer.ts"
 import { makeBoundsMinimumSize } from "../lib/map/utils"
 import {
     type PartialChangesetParams,

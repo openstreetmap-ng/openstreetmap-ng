@@ -1,7 +1,7 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
-import { routerNavigateStrict } from "../../index/_router"
+import { routerNavigateStrict } from "../../../index/_router"
 
 export const newNoteMinZoom = 12
 

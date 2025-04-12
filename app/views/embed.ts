@@ -15,7 +15,7 @@ import {
     addMapLayerSources,
     defaultLayerId,
     resolveLayerCodeOrId,
-} from "./lib/map/layers"
+} from "./lib/map/layers/layers"
 import type { LonLatZoom } from "./lib/map/map-utils"
 import {
     configureDefaultMapBehavior,
