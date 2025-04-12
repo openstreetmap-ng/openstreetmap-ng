@@ -338,7 +338,7 @@ No migration is required for the file store (local and S3), further easing the t
 
 ## Roadmap
 
-Moved to [README.md](https://github.com/Zaczero/openstreetmap-ng/blob/main/README.md).
+Moved to [README.md](https://github.com/openstreetmap-ng/openstreetmap-ng/blob/main/README.md).
 
 ## The Future
 
