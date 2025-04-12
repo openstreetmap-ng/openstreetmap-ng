@@ -1,4 +1,4 @@
-import time
+from time import perf_counter
 
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -16,11 +16,11 @@ class RuntimeMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        ts = time.perf_counter()
+        ts = perf_counter()
 
         async def wrapper(message: Message) -> None:
             if message['type'] == 'http.response.start':
-                te = time.perf_counter()
+                te = perf_counter()
                 headers = MutableHeaders(raw=message['headers'])
                 headers['X-Runtime'] = f'{te - ts:.5f}'
 

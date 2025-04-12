@@ -4,7 +4,7 @@ import random
 from asyncio import Event, TaskGroup
 from contextlib import asynccontextmanager
 from datetime import datetime
-from time import perf_counter
+from time import monotonic
 
 from psycopg import AsyncConnection
 from sentry_sdk.api import start_transaction
@@ -165,11 +165,11 @@ async def _process_task() -> None:
                 acquired: bool = (await r.fetchone())[0]  # type: ignore
 
             if acquired:
-                ts = perf_counter()
+                ts = monotonic()
                 with SENTRY_CHANGESET_MANAGEMENT_MONITOR, start_transaction(op='task', name='changeset-management'):
                     await _close_inactive(conn)
                     await _delete_empty(conn)
-                tt = perf_counter() - ts
+                tt = monotonic() - ts
 
                 # on success, sleep ~1min
                 delay = random.uniform(50, 70) - tt

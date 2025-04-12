@@ -4,7 +4,7 @@ import random
 from asyncio import Event, TaskGroup
 from contextlib import asynccontextmanager
 from datetime import timedelta
-from time import perf_counter
+from time import monotonic
 
 from fastapi import HTTPException
 from psycopg import AsyncConnection
@@ -115,10 +115,10 @@ async def _process_task() -> None:
                 acquired: bool = (await r.fetchone())[0]  # type: ignore
 
             if acquired:
-                ts = perf_counter()
+                ts = monotonic()
                 with SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR, start_transaction(op='task', name='rate-limit-management'):
                     await _delete_expired(conn)
-                tt = perf_counter() - ts
+                tt = monotonic() - ts
 
                 # on success, sleep ~5min
                 delay = random.uniform(290, 310) - tt

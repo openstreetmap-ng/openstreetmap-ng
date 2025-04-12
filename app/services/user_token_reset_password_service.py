@@ -1,7 +1,7 @@
 import asyncio
-import time
 from collections import deque
 from statistics import median
+from time import perf_counter
 
 from zid import zid
 
@@ -23,11 +23,11 @@ class UserTokenResetPasswordService:
     @staticmethod
     async def send_email(email: Email) -> None:
         """Send a password reset request to the given email address (if registered)."""
-        ts = time.perf_counter()
+        ts = perf_counter()
         to_user = await UserQuery.find_one_by_email(email)
         if to_user is None:
             # Simulate latency to harden against time-based attacks
-            delay = median(_SEND_EMAIL_LATENCY) - (time.perf_counter() - ts)
+            delay = median(_SEND_EMAIL_LATENCY) - (perf_counter() - ts)
             await asyncio.sleep(delay)
             return
 
@@ -45,7 +45,7 @@ class UserTokenResetPasswordService:
             template_data={'token': UserTokenStructUtils.to_str(token)},
         )
 
-        _SEND_EMAIL_LATENCY.append(time.perf_counter() - ts)
+        _SEND_EMAIL_LATENCY.append(perf_counter() - ts)
 
 
 async def _create_token(user) -> UserTokenStruct:
