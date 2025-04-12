@@ -4,7 +4,7 @@ import { configureStandardForm } from "../lib/standard-form"
 const loginForm = document.querySelector("form.login-form")
 if (loginForm) {
     const defaultReferrer = `${window.location.pathname}${window.location.search}`
-    const params = qsParse(window.location.search.substring(1))
+    const params = qsParse(window.location.search)
     let referrer = params.referer ?? defaultReferrer
     // Referrer must start with '/' to avoid open redirect
     if (!referrer.startsWith("/")) referrer = defaultReferrer
@@ -30,18 +30,28 @@ if (loginForm) {
     const onAutofillButtonClick = ({ target }: Event): void => {
         const dataset = (target as HTMLButtonElement).dataset
         console.debug("onAutofillButtonClick", dataset)
-        ;(
-            loginForm.elements.namedItem("display_name_or_email") as HTMLInputElement
-        ).value = dataset.login
-        loginForm.querySelector("input[type=password][data-name=password]").value =
-            dataset.password
-        ;(loginForm.elements.namedItem("remember") as HTMLInputElement).checked = true
+
+        const loginInput = loginForm.elements.namedItem(
+            "display_name_or_email",
+        ) as HTMLInputElement
+        loginInput.value = dataset.login
+
+        const passwordInput = loginForm.querySelector(
+            "input[type=password][data-name=password]",
+        ) as HTMLInputElement
+        passwordInput.value = dataset.password
+
+        const rememberInput = loginForm.elements.namedItem(
+            "remember",
+        ) as HTMLInputElement
+        rememberInput.checked = true
+
         loginForm.requestSubmit()
     }
 
     const autofillButtons = document.querySelectorAll("button.autofill-btn")
-    for (const loginButton of autofillButtons) {
-        loginButton.addEventListener("click", onAutofillButtonClick)
+    for (const btn of autofillButtons) {
+        btn.addEventListener("click", onAutofillButtonClick)
     }
 }
 

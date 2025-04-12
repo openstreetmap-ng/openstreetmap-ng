@@ -29,8 +29,13 @@ export const configureStandardForm = (
         removeEmptyFields?: boolean
     },
 ): void => {
-    if (!form) return
+    if (!form || form.classList.contains("needs-validation")) return
     console.debug("Initializing standard form", form.action)
+
+    // Disable browser validation in favor of bootstrap
+    // disables maxlength and other browser checks: form.noValidate = true
+    form.classList.add("needs-validation")
+
     const submitElements = form.querySelectorAll("[type=submit]") as NodeListOf<
         HTMLInputElement | HTMLButtonElement
     >
@@ -218,10 +223,6 @@ export const configureStandardForm = (
             handleFormFeedback("error", detail)
         }
     }
-
-    // Disable browser validation in favor of bootstrap
-    // disables maxlength and other browser checks: form.noValidate = true
-    form.classList.add("needs-validation")
 
     // On form submit, build and submit the request
     form.addEventListener("submit", async (e: SubmitEvent): Promise<void> => {

@@ -507,7 +507,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             onMapZoomOrMoveEnd()
 
             // Allow default form setting via URL search parameters
-            const searchParams = qsParse(location.search.substring(1))
+            const searchParams = qsParse(window.location.search)
             if (searchParams.route?.includes(";")) {
                 const [start, end] = searchParams.route.split(";")
                 startInput.value = start

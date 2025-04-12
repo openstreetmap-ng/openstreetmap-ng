@@ -4,7 +4,7 @@ import { encodeMapState } from "./lib/map/map-utils"
 
 const body = document.querySelector("body.fixthemap-body")
 if (body) {
-    const params = qsParse(window.location.search.substring(1))
+    const params = qsParse(window.location.search)
     let noteHref = "/note/new"
 
     // Supports default location setting via URL parameters

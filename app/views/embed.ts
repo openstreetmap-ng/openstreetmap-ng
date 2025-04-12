@@ -35,7 +35,7 @@ const map = new MaplibreMap({
 configureDefaultMapBehavior(map)
 
 // Parse search params
-const searchParams = qsParse(location.search.substring(1))
+const searchParams = qsParse(window.location.search)
 const layerId = resolveLayerCodeOrId(searchParams.layer as LayerId) ?? defaultLayerId
 addMapLayerSources(map, layerId)
 

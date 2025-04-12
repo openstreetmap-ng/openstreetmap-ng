@@ -63,7 +63,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
         })
 
         // Initialize marker from URL search parameters
-        const searchParams = qsParse(location.search.substring(1))
+        const searchParams = qsParse(window.location.search)
         if (searchParams.mlon && searchParams.mlat) {
             const mlon = Number.parseFloat(searchParams.mlon)
             const mlat = Number.parseFloat(searchParams.mlat)

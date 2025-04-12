@@ -42,13 +42,13 @@ if (body) {
         configureStandardForm(avatarForm, ({ avatar_url }) => {
             // On successful avatar upload, update avatar images
             console.debug("onAvatarFormSuccess", avatar_url)
-            for (const avatar of avatars) {
-                avatar.src = avatar_url
+            for (const avatarImage of avatars) {
+                avatarImage.src = avatar_url
             }
         })
 
         const backgroundForm = body.querySelector("form.background-form")
-        const background = backgroundForm.querySelector("img.background")
+        const backgroundImage = backgroundForm.querySelector("img.background")
         const backgroundFileInput = backgroundForm.elements.namedItem(
             "background_file",
         ) as HTMLInputElement
@@ -72,9 +72,9 @@ if (body) {
             // On successful background upload, update background images
             console.debug("onBackgroundFormSuccess", background_url)
             if (background_url) {
-                background.src = background_url
+                backgroundImage.src = background_url
             } else {
-                background.removeAttribute("src")
+                backgroundImage.removeAttribute("src")
             }
         })
 

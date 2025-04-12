@@ -275,7 +275,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
             searchAlert.addEventListener("click", onSearchAlertClick, { once: true })
             map.off("moveend", onMapZoomOrMoveEnd)
 
-            const searchParams = qsParse(window.location.search.substring(1))
+            const searchParams = qsParse(window.location.search)
             const query = searchParams.q || searchParams.query || ""
             const lon = options?.lon ?? searchParams.lon
             const lat = options?.lat ?? searchParams.lat

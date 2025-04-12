@@ -3,8 +3,7 @@ import { configureStandardPagination } from "../lib/standard-pagination"
 
 const body = document.querySelector("body.diary-details-body")
 if (body) {
-    const comments = document.getElementById("comments")
-    configureStandardPagination(comments)
+    configureStandardPagination(document.getElementById("comments"))
 
     configureStandardForm(body.querySelector("form.subscription-form"), () => {
         // On success callback, reload the page

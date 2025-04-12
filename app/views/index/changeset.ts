@@ -69,10 +69,9 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
             relation: params.relations,
         })
 
-        const commentsPagination = sidebarContent.querySelector(
-            "div.changeset-comments-pagination",
+        configureStandardPagination(
+            sidebarContent.querySelector("div.changeset-comments-pagination"),
         )
-        if (commentsPagination) configureStandardPagination(commentsPagination)
 
         // On success callback, reload the changeset
         configureStandardForm(

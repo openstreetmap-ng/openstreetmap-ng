@@ -312,7 +312,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         // Request full world when initial loading for scope/user
         const fetchBounds =
             fetchedBounds || (!loadScope && !loadDisplayName) ? map.getBounds() : null
-        const params = qsParse(location.search.substring(1))
+        const params = qsParse(window.location.search)
 
         // Update date filter element
         const fetchDate = params.date

@@ -411,7 +411,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             addMapLayer(map, layerId)
 
             // Load markers from URL
-            const searchParams = qsParse(location.search.substring(1))
+            const searchParams = qsParse(window.location.search)
             let positions: [number, number][] = []
             if (searchParams.line) {
                 try {

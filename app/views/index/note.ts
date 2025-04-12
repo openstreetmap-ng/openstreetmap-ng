@@ -102,10 +102,9 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
             map.flyTo({ center, zoom: Math.max(map.getZoom(), 15) })
         })
 
-        const commentsPagination = sidebarContent.querySelector(
-            "div.note-comments-pagination",
+        configureStandardPagination(
+            sidebarContent.querySelector("div.note-comments-pagination"),
         )
-        if (commentsPagination) configureStandardPagination(commentsPagination)
 
         const commentForm = sidebarContent.querySelector("form.comment-form")
         if (commentForm) {

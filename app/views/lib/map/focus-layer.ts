@@ -57,8 +57,8 @@ layersConfig.set(layerId as LayerId, {
     priority: 140,
 })
 
-let lastPaint: FocusLayerPaint | null = null
-let layerAdded = false
+const lastPaintMap = new WeakMap<MaplibreMap, FocusLayerPaint>()
+const layerAddedMap = new WeakSet<MaplibreMap>()
 
 // TODO: leaflet leftover
 // note: {
@@ -108,13 +108,13 @@ export const focusObjects = (
     // If there are no objects to focus, remove the focus layer
     if (!objects?.length) return
 
-    if (!layerAdded) {
-        layerAdded = true
+    if (!layerAddedMap.has(map)) {
+        layerAddedMap.add(map)
         addMapLayer(map, layerId)
     }
 
-    if (paint && lastPaint !== paint) {
-        lastPaint = paint
+    if (paint && lastPaintMap.get(map) !== paint) {
+        lastPaintMap.set(map, paint)
         for (const type of layerTypes) {
             const extendedLayerId = getExtendedLayerId(layerId, type)
             const layer = map.getLayer(extendedLayerId)

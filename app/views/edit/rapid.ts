@@ -4,8 +4,8 @@ import { getInitialMapState, parseMapState } from "../lib/map/map-utils"
 
 const iframe = document.querySelector("iframe.rapid-iframe")
 if (iframe) {
-    const hashParams = qsParse(location.hash.substring(1))
-    const searchParams = qsParse(location.search.substring(1))
+    const hashParams = qsParse(window.location.hash)
+    const searchParams = qsParse(window.location.search)
     const { lon, lat, zoom } = getInitialMapState()
     const result: { [key: string]: string } = {}
 
@@ -22,7 +22,7 @@ if (iframe) {
             result.map = undefined
 
             // Optionally override location only from hash
-            const hashState = parseMapState(location.hash)
+            const hashState = parseMapState(window.location.hash)
             if (hashState) {
                 result.map = `${hashState.zoom}/${hashState.lat}/${hashState.lon}`
             }

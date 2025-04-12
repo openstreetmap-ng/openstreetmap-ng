@@ -55,7 +55,7 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
 
             // Allow default location setting via URL search parameters
             let center: LngLat | null = null
-            const searchParams = qsParse(location.search.substring(1))
+            const searchParams = qsParse(window.location.search)
             if (searchParams.lon && searchParams.lat) {
                 const lon = Number.parseFloat(searchParams.lon)
                 const lat = Number.parseFloat(searchParams.lat)

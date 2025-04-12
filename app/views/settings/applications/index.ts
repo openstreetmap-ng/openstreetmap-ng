@@ -1,7 +1,6 @@
 import { Collapse } from "bootstrap"
 import { qsEncode, qsParse } from "../../lib/qs"
 import { configureStandardForm } from "../../lib/standard-form"
-import { initializeResetSecretControls } from "./_reset-secret-control"
 
 const body = document.querySelector("body.settings-applications-body")
 if (body) {
@@ -61,11 +60,9 @@ if (body) {
         configureStandardForm(createTokenForm, ({ token_id }) => {
             // On success callback, reload the page
             console.debug("onCreateTokenFormSuccess", token_id)
-            const searchParams = qsParse(window.location.search.substring(1))
+            const searchParams = qsParse(window.location.search)
             searchParams.expand = token_id
             window.location.href = `${window.location.pathname}?${qsEncode(searchParams)}${window.location.hash}`
         })
-
-        initializeResetSecretControls()
     }
 }

@@ -1,9 +1,11 @@
 import i18next from "i18next"
 import { resolveDatetimeLazy } from "./datetime"
+import { effect, signal } from "@preact/signals-core"
 
 const paginationDistance = 2
 
-export const configureStandardPagination = (container: HTMLElement): void => {
+export const configureStandardPagination = (container?: HTMLElement): void => {
+    if (!container) return
     const renderContainer = container.querySelector("ul.list-unstyled")
     const paginationContainers = container.querySelectorAll("ul.pagination")
 
@@ -11,13 +13,10 @@ export const configureStandardPagination = (container: HTMLElement): void => {
     const endpointPattern = dataset.action
     const totalPages = Number.parseInt(dataset.pages, 10)
     if (!totalPages) return
-    console.debug("Initializing standard pagination", endpointPattern)
-    let currentPage = totalPages
-    let abortController: AbortController | null = null
-    let firstLoad = true
 
-    const getCurrentPageUrl = (): string =>
-        endpointPattern.replace("{page}", currentPage.toString())
+    console.debug("Initializing standard pagination", endpointPattern)
+    const currentPage = signal(totalPages)
+    let firstLoad = true
 
     const setPendingState = (state: boolean): void => {
         renderContainer.style.opacity = !firstLoad && state ? "0.5" : ""
@@ -43,12 +42,14 @@ export const configureStandardPagination = (container: HTMLElement): void => {
         }
     }
 
-    const updateCollection = (): void => {
+    // Update collection
+    effect(() => {
         console.debug("configureStandardPagination", "updateCollection", currentPage)
-        abortController?.abort()
-        abortController = new AbortController()
+
+        const abortController = new AbortController()
+
         setPendingState(true)
-        fetch(getCurrentPageUrl(), {
+        fetch(endpointPattern.replace("{page}", currentPage.toString()), {
             method: "GET",
             mode: "same-origin",
             cache: "no-store",
@@ -68,9 +69,12 @@ export const configureStandardPagination = (container: HTMLElement): void => {
             .finally(() => {
                 setPendingState(false)
             })
-    }
 
-    const updatePagination = (): void => {
+        return () => abortController.abort()
+    })
+
+    // Update pagination
+    effect(() => {
         if (totalPages <= 1) {
             for (const paginationContainer of paginationContainers) {
                 paginationContainer.classList.add("d-none")
@@ -78,13 +82,14 @@ export const configureStandardPagination = (container: HTMLElement): void => {
             return
         }
         console.debug("configureStandardPagination", "updatePagination", currentPage)
+        const currentPageValue = currentPage.value
 
         for (const paginationContainer of paginationContainers) {
             paginationContainer.classList.remove("d-none")
             const paginationFragment = document.createDocumentFragment()
 
             for (let i = 1; i <= totalPages; i++) {
-                const distance = Math.abs(i - currentPage)
+                const distance = Math.abs(i - currentPageValue)
                 if (distance > paginationDistance && i !== 1 && i !== totalPages) {
                     if (i === 2 || i === totalPages - 1) {
                         const li = document.createElement("li")
@@ -105,14 +110,12 @@ export const configureStandardPagination = (container: HTMLElement): void => {
                 button.textContent = i.toString()
                 li.appendChild(button)
 
-                if (i === currentPage) {
+                if (i === currentPageValue) {
                     li.classList.add("active")
                     li.ariaCurrent = "page"
                 } else {
                     button.addEventListener("click", () => {
-                        currentPage = i
-                        updateCollection()
-                        updatePagination()
+                        currentPage.value = i
                     })
                 }
 
@@ -122,9 +125,5 @@ export const configureStandardPagination = (container: HTMLElement): void => {
             paginationContainer.innerHTML = ""
             paginationContainer.appendChild(paginationFragment)
         }
-    }
-
-    // Initial update
-    updateCollection()
-    updatePagination()
+    })
 }

@@ -181,7 +181,7 @@ export const parseMapState = (hash: string): MapState | null => {
     if (i < 0) return null
 
     // Parse the hash as a query string
-    const params = qsParse(hash.slice(i + 1))
+    const params = qsParse(hash.substring(i + 1))
 
     // Hash string must contain map parameter
     if (!params.map) return null
@@ -256,7 +256,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
     }
 
     // Delay search parsing, most URLs have a valid hash state
-    const searchParams = qsParse(window.location.search.substring(1))
+    const searchParams = qsParse(window.location.search)
     const lastState = mapStateStorage.get()
 
     // 2. Use the bounds from the bbox query parameter

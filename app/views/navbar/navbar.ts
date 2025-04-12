@@ -184,7 +184,7 @@ export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void =
 export const handleEditRemotePath = (): void => {
     if (window.location.pathname !== "/edit") return
 
-    const searchParams = qsParse(window.location.search.substring(1))
+    const searchParams = qsParse(window.location.search)
     if (searchParams.editor !== "remote") return
 
     console.debug("handleEditRemotePath")

@@ -80,7 +80,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
 
     /** Get query position from URL */
     const getURLQueryPosition = (): LonLatZoom | null => {
-        const searchParams = qsParse(location.search.substring(1))
+        const searchParams = qsParse(window.location.search)
         if (searchParams.lon && searchParams.lat) {
             const lon = Number.parseFloat(searchParams.lon)
             const lat = Number.parseFloat(searchParams.lat)

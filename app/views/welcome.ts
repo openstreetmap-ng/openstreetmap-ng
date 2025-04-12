@@ -9,7 +9,7 @@ if (body) {
 
     // Support default location setting via URL parameters
     let providedState: MapState | null = null
-    const params = qsParse(location.search.substring(1))
+    const params = qsParse(window.location.search)
     if (params.lon && params.lat) {
         const lon = Number.parseFloat(params.lon)
         const lat = Number.parseFloat(params.lat)

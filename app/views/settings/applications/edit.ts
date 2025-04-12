@@ -1,11 +1,10 @@
 import { t } from "i18next"
 import { configureStandardForm } from "../../lib/standard-form"
-import { initializeResetSecretControls } from "./_reset-secret-control"
 
 const body = document.querySelector("body.settings-application-edit-body")
 if (body) {
     const avatarForm = body.querySelector("form.avatar-form")
-    const avatar = avatarForm.querySelector("img.avatar")
+    const avatarImage = avatarForm.querySelector("img.avatar")
     const avatarFileInput = avatarForm.elements.namedItem(
         "avatar_file",
     ) as HTMLInputElement
@@ -28,7 +27,7 @@ if (body) {
     configureStandardForm(avatarForm, ({ avatar_url }) => {
         // On successful avatar upload, update avatar image
         console.debug("onAvatarFormSuccess", avatar_url)
-        avatar.src = avatar_url
+        avatarImage.src = avatar_url
     })
 
     const editForm = body.querySelector("form.edit-form")
@@ -68,14 +67,11 @@ if (body) {
         window.location.href = redirect_url
     })
 
-    // On delete button click, request confirmation
     const deleteButton = deleteForm.querySelector("button[type=submit]")
     deleteButton.addEventListener("click", (event: Event) => {
+        // On delete button click, request confirmation
         if (!confirm(t("settings.delete_this_application_question"))) {
             event.preventDefault()
         }
     })
-
-    // Finally, initialize reset secret controls
-    initializeResetSecretControls()
 }
