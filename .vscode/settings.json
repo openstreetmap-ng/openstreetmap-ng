@@ -31,6 +31,14 @@
     "➕": true,
     "𝕏": true
   },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "*.html.jinja": "${capture}.*",
+    "README.md": "LICENSE",
+    "package.json": "bun.lock",
+    "pyproject.toml": "uv.lock"
+  },
   "files.exclude": {
     "**/*.c": true,
     "**/*.egg-info/": true,
