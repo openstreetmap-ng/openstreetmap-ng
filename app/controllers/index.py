@@ -51,7 +51,7 @@ async def index(
     unsubscribe_id: UserSubscriptionTargetId | None = None,
 ):
     return await render_response(
-        'index.jinja2',
+        'index/index',
         {
             'unsubscribe_target': unsubscribe_target,
             'unsubscribe_id': unsubscribe_id,
@@ -124,7 +124,7 @@ async def _post_unsubscribe(
 
 @router.get('/communities')
 async def communities():
-    return await render_response('communities.jinja2', {'local_chapters': LOCAL_CHAPTERS})
+    return await render_response('communities', {'local_chapters': LOCAL_CHAPTERS})
 
 
 @router.get('/copyright/{locale:str}')
@@ -135,13 +135,13 @@ async def copyright_i18n(locale: LocaleCode):
     with translation_context(locale):
         title = t('layouts.copyright')
         copyright_translated_title = t('site.copyright.legal_babble.title_html')
-        copyright_content = render_jinja('copyright_content.jinja2')
+        copyright_content = render_jinja('copyright/_content')
 
     primary_locale = primary_translation_locale()
     show_notice = locale != primary_locale or primary_locale != DEFAULT_LOCALE
 
     return await render_response(
-        'copyright.jinja2',
+        'copyright/copyright',
         {
             'title': title,
             'copyright_content': copyright_content,
@@ -163,10 +163,10 @@ async def about_i18n(locale: LocaleCode):
 
     with translation_context(locale):
         title = t('layouts.about')
-        about_content = render_jinja('about_content.jinja2')
+        about_content = render_jinja('about/_content')
 
     return await render_response(
-        'about.jinja2',
+        'about/about',
         {
             'title': title,
             'about_content': about_content,
@@ -181,24 +181,24 @@ async def about():
 
 @router.get('/help')
 async def help_():
-    return await render_response('help.jinja2')
+    return await render_response('help')
 
 
 @router.get('/fixthemap')
 async def fixthemap():
-    return await render_response('fixthemap.jinja2')
+    return await render_response('fixthemap')
 
 
 @router.get('/login')
 async def login(referer: Annotated[str | None, Query()] = None):
     if auth_user() is not None:
         return RedirectResponse(secure_referer(referer), status.HTTP_303_SEE_OTHER)
-    return await render_response('user/login.jinja2')
+    return await render_response('user/login')
 
 
 @router.get('/welcome')
 async def welcome(_: Annotated[User, web_user()]):
-    return await render_response('welcome.jinja2')
+    return await render_response('welcome')
 
 
 _EXPORT_EMBED_CSP_HEADER = CSP_HEADER.replace('frame-ancestors', 'frame-ancestors *', 1)
@@ -206,6 +206,6 @@ _EXPORT_EMBED_CSP_HEADER = CSP_HEADER.replace('frame-ancestors', 'frame-ancestor
 
 @router.get('/export/embed.html')
 async def export_embed():
-    response = await render_response('embed.jinja2')
+    response = await render_response('embed')
     response.headers['Content-Security-Policy'] = _EXPORT_EMBED_CSP_HEADER
     return response

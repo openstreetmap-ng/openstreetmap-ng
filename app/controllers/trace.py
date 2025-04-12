@@ -19,7 +19,7 @@ router = APIRouter(prefix='/trace')
 
 @router.get('/upload')
 async def upload(_: Annotated[User, web_user()]):
-    return await render_response('traces/upload.jinja2')
+    return await render_response('traces/upload')
 
 
 @router.get('/{trace_id:int}')
@@ -33,7 +33,7 @@ async def details(trace_id: TraceId):
 
     trace_line = encode_lonlat(trace['coords'].tolist(), 6)  # type: ignore
     return await render_response(
-        'traces/details.jinja2',
+        'traces/details',
         {
             'trace': trace,
             'trace_line': trace_line,
@@ -56,7 +56,7 @@ async def edit(
 
     trace_line = encode_lonlat(trace['coords'].tolist(), 6)  # type: ignore
     return await render_response(
-        'traces/edit.jinja2',
+        'traces/edit',
         {
             'trace': trace,
             'trace_line': trace_line,

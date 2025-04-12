@@ -22,7 +22,7 @@ router = APIRouter()
 @router.get('/settings')
 async def settings(_: Annotated[User, web_user()]):
     return await render_response(
-        'settings/index.jinja2',
+        'settings/settings',
         {
             'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
             'INSTALLED_LOCALES_NAMES_MAP': INSTALLED_LOCALES_NAMES_MAP,
@@ -33,7 +33,7 @@ async def settings(_: Annotated[User, web_user()]):
 @router.get('/settings/email')
 async def settings_email(_: Annotated[User, web_user()]):
     return await render_response(
-        'settings/email.jinja2',
+        'settings/email',
         {
             'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
             'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,
@@ -58,7 +58,7 @@ async def settings_security(user: Annotated[User, web_user()]):
     active_sessions = active_t.result()
 
     return await render_response(
-        'settings/security.jinja2',
+        'settings/security',
         {
             'current_session_id': current_session['id'],
             'active_sessions': active_sessions,
@@ -70,7 +70,7 @@ async def settings_security(user: Annotated[User, web_user()]):
 @router.get('/settings/connections')
 async def settings_connections(user: Annotated[User, web_user()]):
     provider_id_map = await ConnectedAccountQuery.get_providers_by_user(user['id'])
-    return await render_response('settings/connections.jinja2', {'provider_id_map': provider_id_map})
+    return await render_response('settings/connections', {'provider_id_map': provider_id_map})
 
 
 @router.get('/preferences{_:path}')

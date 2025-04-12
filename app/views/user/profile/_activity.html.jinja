@@ -1,0 +1,57 @@
+<h3 class="ms-1">{{ t('user.activity.recent') }}</h3>
+<p class="mb-2">
+    {% set mapping_day = nt('user.activity.mapping_day.count', activity_days) %}
+    {% set num_changesets %}{{ activity_sum }} {{ nt('changeset.count', activity_sum) }}{% endset %}
+    {% set last_n_months = nt('user.activity.last_n_months.count', 6) %}
+    {{ t('user.activity.summary',
+        mapping_day=mapping_day,
+        num_changesets=num_changesets,
+        last_n_months=last_n_months) }}
+</p>
+
+<table class="activity-chart mb-2">
+    <tr class="months-row">
+        {% for month in activity_months %}
+        {% if month is not none %}
+        <td class="month-cell">{{ month }}</td>
+        {% else %}
+        <td></td>
+        {% endif %}
+        {% endfor %}
+    </tr>
+    {% for weekday, row in zip(activity_weekdays, activity_rows) %}
+    <tr>
+        <td class="week-cell">{{ weekday }}</td>
+        {% for day in row %}
+        <td>
+            {% if day.value > 0 %}
+            <a href="/user/{{ profile.display_name }}/history?date={{ day.iso_date }}"
+                class="activity activity-{{ day.level }}"
+                data-bs-title="{{ nt('user.activity.details.count', day.value, date=day.date) }}"
+                data-bs-toggle="tooltip"></a>
+            {% else %}
+            <div class="activity activity-0" data-bs-title="{{ t('user.activity.details.no_activity', date=day.date) }}"
+                data-bs-toggle="tooltip"></div>
+            {% endif %}
+        </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+
+<div class="d-flex justify-content-between small">
+    <div>
+        <a class="me-1" href="/user/{{ profile.display_name }}/statistics">
+            {{ t('user.activity.view_all') -}}
+            <i class="bi bi-box-arrow-up-right ms-2"></i>
+        </a>
+    </div>
+    <div class="text-muted">
+        {{ t('user.activity.less') }} (0)
+        <span class="inline-activity activity activity-0"></span>
+        <span class="inline-activity activity activity-6"></span>
+        <span class="inline-activity activity activity-12"></span>
+        <span class="inline-activity activity activity-19"></span>
+        {{ t('user.activity.more') }} ({{ activity_max }})
+    </div>
+</div>

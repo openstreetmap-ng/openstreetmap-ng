@@ -1,0 +1,56 @@
+.tags {
+    @extend .rounded-2;
+    border: 1px solid $table-border-color;
+    overflow: hidden;
+
+    table {
+        table-layout: fixed;
+        vertical-align: middle;
+        margin-bottom: unset;
+
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    td {
+        padding: 0.25em 0.55em;
+
+        .tag-value {
+            white-space: pre-wrap;
+        }
+    }
+
+    td:first-child {
+        @extend .bg-body-tertiary;
+        border-right: 1px solid $table-border-color;
+    }
+
+    td:last-child {
+        // Style the color preview box
+        // (used with colour, roof:colour, etc.)
+        .color-preview {
+            @extend .border;
+            @extend .rounded-1;
+            display: inline-block;
+            width: 1.1em;
+            height: 1.1em;
+            position: relative;
+            top: 0.2em;
+            margin-right: 0.1em;
+        }
+    }
+
+    tr:last-child td {
+        border-bottom: unset;
+    }
+}
+
+.tag-value {
+    &:not(:last-child) {
+        &::after {
+            content: ";";
+            color: black;
+        }
+    }
+}

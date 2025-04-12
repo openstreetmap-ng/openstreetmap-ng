@@ -25,7 +25,7 @@ class UserTokenEmailChangeService:
             from_user_id=None,
             to_user=auth_user(required=True),
             subject=t('user_mailer.email_confirm.subject'),
-            template_name='email/email_change_confirm.jinja2',
+            template_name='email/email-change-confirm',
             template_data={
                 'new_email': new_email,
                 'token': UserTokenStructUtils.to_str(token),

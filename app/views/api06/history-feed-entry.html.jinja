@@ -1,0 +1,41 @@
+<style>
+    th {
+        text-align: left;
+    }
+
+    tr {
+        vertical-align: top;
+    }
+</style>
+<table>
+    <tr>
+        <th>{{ t('browse.created') }}</th>
+        <td>{{ created }}</td>
+    </tr>
+    {% if closed is not none %}
+    <tr>
+        <th>{{ t('browse.closed') }}</th>
+        <td>{{ closed }}</td>
+    </tr>
+    {% endif %}
+    {% if user_permalink is not none %}
+    <tr>
+        <th>{{ t('browse.changeset.belongs_to') }}</th>
+        <td>
+            <a href="{{ user_permalink }}">{{ user_display_name }}</a>
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+        <th>{{ t('browse.tag_details.tags') }}</th>
+        <td>
+            <table cellpadding="0">
+                {% for key, value in tags.items() %}
+                <tr>
+                    <td>{{ key }} = {{ value }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </td>
+    </tr>
+</table>

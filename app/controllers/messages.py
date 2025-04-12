@@ -30,7 +30,7 @@ async def get_inbox(
     before: Annotated[MessageId | None, Query()] = None,
 ):
     data = await _get_messages_data(inbox=True, show=show, after=after, before=before)
-    return await render_response('messages/index.jinja2', data)
+    return await render_response('messages/index', data)
 
 
 @router.get('/messages/outbox')
@@ -41,7 +41,7 @@ async def get_outbox(
     before: Annotated[MessageId | None, Query()] = None,
 ):
     data = await _get_messages_data(inbox=False, show=show, after=after, before=before)
-    return await render_response('messages/index.jinja2', data)
+    return await render_response('messages/index', data)
 
 
 @router.get('/message/new')
@@ -119,7 +119,7 @@ async def new_message(
         recipient_id = recipient_user['id']
 
     return await render_response(
-        'messages/new.jinja2',
+        'messages/new',
         {
             'recipient': recipient,
             'recipient_id': recipient_id,

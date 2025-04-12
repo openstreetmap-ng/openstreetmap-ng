@@ -28,7 +28,7 @@ async def get_changeset(id: ChangesetId):
     changeset = await ChangesetQuery.find_by_id(id)
     if changeset is None:
         return await render_response(
-            'partial/not_found.jinja2',
+            'partial/not-found',
             {'type': 'changeset', 'id': id},
             status=status.HTTP_404_NOT_FOUND,
         )
@@ -87,7 +87,7 @@ async def get_changeset(id: ChangesetId):
     )
 
     return await render_response(
-        'partial/changeset.jinja2',
+        'partial/changeset',
         {
             'changeset': changeset,
             'changeset_comments_num_items': changeset_comments_num_items,

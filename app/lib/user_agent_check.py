@@ -48,7 +48,7 @@ def _browserslist_versions() -> dict[str, float]:
     """Get the mapping of supported browsers to their minimum versions."""
     lock_path = Path('package.json')
     lock_mtime = lock_path.stat().st_mtime
-    cache_path = FILE_CACHE_DIR / 'browserslist_versions.json'
+    cache_path = FILE_CACHE_DIR.joinpath('browserslist_versions.json')
 
     if not cache_path.is_file() or lock_mtime > cache_path.stat().st_mtime:
         stdout = subprocess.check_output(('bunx', 'browserslist'), env={**os.environ, 'NO_COLOR': '1'}).decode()

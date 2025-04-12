@@ -137,7 +137,7 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
                     from_user_id=None,
                     to_user=subscribed_user,
                     subject=subject,
-                    template_name='email/changeset_comment.jinja2',
+                    template_name='email/changeset-comment',
                     template_data={
                         'changeset': changeset,
                         'changeset_comment_str': changeset_comment_str,

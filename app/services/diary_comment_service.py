@@ -128,7 +128,7 @@ async def _send_activity_email(comment: DiaryComment) -> None:
                     from_user_id=comment_user_id,
                     to_user=subscribed_user,
                     subject=subject,
-                    template_name='email/diary_comment.jinja2',
+                    template_name='email/diary-comment',
                     template_data={'diary': diary, 'comment': comment},
                     ref=ref,
                 )

@@ -28,7 +28,7 @@ async def get_note(id: NoteId):
     note = next(iter(notes), None)
     if note is None:
         return await render_response(
-            'partial/not_found.jinja2',
+            'partial/not-found',
             {'type': 'note', 'id': id},
             status=status.HTTP_404_NOT_FOUND,
         )
@@ -56,7 +56,7 @@ async def get_note(id: NoteId):
     params = PartialNoteParams(id=id, lon=x, lat=y, status=note_status(note))
 
     return await render_response(
-        'partial/note.jinja2',
+        'partial/note',
         {
             'note': note,
             'place': place,

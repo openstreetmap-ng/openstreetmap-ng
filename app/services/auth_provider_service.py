@@ -84,7 +84,7 @@ class AuthProviderService:
         if action == 'login':
             user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
             if user_id is None:
-                return await render_response('user/auth_provider/not_found.jinja2', {'provider': provider})
+                return await render_response('user/auth-provider-not-found', {'provider': provider})
 
             logging.debug('Authenticated user %d using auth provider %r', user_id, provider)
             access_token = await SystemAppService.create_access_token(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)

@@ -1,0 +1,9 @@
+{% if ENV != 'prod' %}
+<div class="modal-footer">
+    {% for _login in ('user1', 'user2', 'moderator', 'admin') %}
+    <button class="autofill-btn btn btn-sm btn-secondary" data-login="{{ _login }}" data-password="x">
+        {{ _login }}
+    </button>
+    {% endfor %}
+</div>
+{% endif %}

@@ -16,6 +16,7 @@ dependencies = [
   "feedgen",
   "githead",
   "h3",
+  "htmlmin2",
   "httpx[brotli,zstd]",
   "jinja2",
   "lrucache-rs",
@@ -119,6 +120,7 @@ ignore = [
   "PT018",    # pytest-composite-assertion
   "PT023",    # pytest-incorrect-mark-parentheses-style
   "PYI025",   # unaliased-collections-abc-set-import
+  "UP046",    # non-pep695-generic-class
   "UP047",    # non-pep695-generic-function
   "Q000",     # bad-quotes-inline-string
   "Q001",     # bad-quotes-multiline-string

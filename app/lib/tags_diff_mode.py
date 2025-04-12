@@ -9,7 +9,7 @@ def tags_diff_mode(previous_element: Element | None, elements_data: list[dict]) 
     """Update tags data to include necessary tags diff mode information."""
     previous_tags: dict[str, TagFormat] = (
         tags_format(tags)
-        if previous_element is not None and (tags := previous_element['tags']) is not None  #
+        if previous_element is not None and (tags := previous_element['tags'])  #
         else {}
     )
 
@@ -19,7 +19,7 @@ def tags_diff_mode(previous_element: Element | None, elements_data: list[dict]) 
 
     for current in elements_data[::-1]:
         current_element: Element = current['element']
-        current_tags: dict[str, TagFormat] = current['tags_map']
+        current_tags: dict[str, TagFormat] = tags if (tags := current['tags_map']) is not None else {}
         if current_element['version'] == 1:
             previous_tags = current_tags
             continue

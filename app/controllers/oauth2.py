@@ -93,7 +93,7 @@ async def authorize(
     if isinstance(auth_result, OAuth2TokenOOB):
         authorization_code = str(auth_result)
         response = await render_response(
-            'oauth2/oob.jinja2',
+            'oauth2/oob',
             {'authorization_code': authorization_code},
         )
         if ENV == 'dev':
@@ -103,7 +103,7 @@ async def authorize(
     if 'redirect_uris' in auth_result:  # is OAuth2Application
         await UserQuery.resolve_users([auth_result])
         return await render_response(
-            'oauth2/authorize.jinja2',
+            'oauth2/authorize',
             {'app': auth_result, 'scopes': scopes, 'redirect_uri': redirect_uri},
         )
 
@@ -114,7 +114,7 @@ async def authorize(
 
     if response_mode == 'form_post':
         return await render_response(
-            'oauth2/response_form_post.jinja2',
+            'oauth2/response-form-post',
             {'redirect_uri': redirect_uri, 'auth_result': auth_result},
         )
 

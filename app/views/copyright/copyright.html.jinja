@@ -1,0 +1,24 @@
+{% extends '_base' %}
+{% block title_prefix %}{{ title }} | {% endblock %}
+{% block body %}
+
+<div class="content-header">
+    {% if show_notice %}
+    <div class="container">
+        <h1>{{ t('site.copyright.foreign.title') }}</h1>
+        {% set english_original_link %}
+        <a href="/copyright/en">{{ t('site.copyright.foreign.english_link') }}</a>
+        {%- endset %}
+        <p>
+            {{ t('site.copyright.foreign.html', english_original_link=english_original_link) | safe }}
+        </p>
+        <hr>
+    </div>
+    {% endif %}
+    <h1 class="container">
+        {{ copyright_translated_title | safe }}
+    </h1>
+</div>
+{{ copyright_content | safe }}
+
+{% endblock %}

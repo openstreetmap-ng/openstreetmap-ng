@@ -83,7 +83,7 @@ async def comments_page(
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(diary_comments_resolve_rich_text(comments))
 
-    return await render_response('diaries/comments_page.jinja2', {'comments': comments})
+    return await render_response('diary/comments-page', {'comments': comments})
 
 
 # TODO: delete comment

@@ -19,7 +19,7 @@ let
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/b0b4b5f8f621bfe213b8b21694bab52ecfcbf30b.tar.gz") { };
 
   projectDir = builtins.toString ./.;
-  preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
+  preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs makeScript; };
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
   postgresConf = import ./config/postgres.nix {
     inherit
@@ -171,24 +171,29 @@ let
         -type f \
         \( -name '*.c' -o -name '*.html' -o -name '*.so' \) \
         -not \
-        \( -path 'app/static/*' -o -path 'app/templates/*' \) \
+        \( -path 'app/static/*' -o -path 'app/views/*' \) \
         -delete
     '')
     (makeScript "watch-cython" "exec watchexec -o queue -w app --exts py cython-build-fast")
 
-    # -- SASS
-    (makeScript "sass-pipeline" ''
-      src=app/static/sass
+    # -- CSS
+    (makeScript "css-pipeline" ''
+      src=app/views
       dst=app/static/css
       rm -f "$dst"/*.{css,map}
 
+      mappings=()
+      for f in main id rapid embed; do
+        mappings+=("$src/$f.scss:$dst/$f.css")
+      done
       bun run sass \
         --quiet-deps \
         --silence-deprecation=import \
         --style compressed \
         --load-path node_modules \
         --no-source-map \
-        "$src":"$dst"
+        "''${mappings[@]}"
+
       bun run postcss \
         "$dst"/*.css \
         --use autoprefixer \
@@ -202,12 +207,12 @@ let
         echo "  $new_file"
       done
     '')
-    (makeScript "watch-sass" "exec watchexec -o queue -w app/static/sass sass-pipeline")
+    (makeScript "watch-css" "exec watchexec -o queue -w app/views -e scss css-pipeline")
 
     # -- JavaScript
     (makeScript "node" "exec bun \"$@\"")
     (makeScript "js-pipeline" ''
-      src=app/static/ts
+      src=app/views
       dst=app/static/js
       tmp="$dst/_generated"
       mkdir -p "$tmp"
@@ -225,9 +230,9 @@ let
         --minify \
         --sourcemap=linked \
         --outdir "$dst" \
-        "$tmp"/!(_*).js
+        "$tmp"/{main,main-sync,id,rapid,embed}.js
     '')
-    (makeScript "watch-js" "exec watchexec -o queue -w app/static/ts js-pipeline")
+    (makeScript "watch-js" "exec watchexec -o queue -w app/views -e ts js-pipeline")
 
     # -- Static
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
@@ -313,16 +318,16 @@ let
 
     # -- Protobuf
     (makeScript "proto-pipeline" ''
-      mkdir -p app/static/ts/proto
+      mkdir -p app/views/lib/proto
       protoc \
         -I app/models/proto \
         --plugin=node_modules/.bin/protoc-gen-es \
-        --es_out app/static/ts/proto \
+        --es_out app/views/lib/proto \
         --es_opt target=ts \
         --python_out app/models/proto \
         --pyi_out app/models/proto \
         app/models/proto/*.proto
-      rm app/static/ts/proto/server*
+      rm app/views/lib/proto/server*
     '')
     (makeScript "watch-proto" "exec watchexec -o queue -w app/models/proto --exts proto proto-pipeline")
 
@@ -385,9 +390,9 @@ let
       rm -rf data/postgres/ data/postgres_unix/
     '')
     (makeScript "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
+    (makeScript "dev-logs-watch-css" "tail -f data/supervisor/watch-css.log")
     (makeScript "dev-logs-watch-js" "tail -f data/supervisor/watch-js.log")
     (makeScript "dev-logs-watch-locale" "tail -f data/supervisor/watch-locale.log")
-    (makeScript "dev-logs-watch-sass" "tail -f data/supervisor/watch-sass.log")
 
     # -- Preload
     (makeScript "preload-clean" "rm -rf data/preload/")
@@ -551,7 +556,7 @@ let
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
     (makeScript "vector-styles-update" ''
-      dir=app/static/ts/vector-styles
+      dir=app/views/lib/vector-styles
       mkdir -p "$dir"
       styles=(
         "liberty+https://tiles.openfreemap.org/styles/liberty"
@@ -654,8 +659,8 @@ let
     wait
 
     if [ ! -d app/static/css ]; then
-      echo "Running [sass-pipeline]"
-      sass-pipeline &
+      echo "Running [css-pipeline]"
+      css-pipeline &
     fi
     if [ ! -d app/static/js ]; then
       echo "Running [js-pipeline]"

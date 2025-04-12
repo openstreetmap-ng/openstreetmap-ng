@@ -35,7 +35,7 @@ async def get_latest(type: ElementType, id: ElementId):
     element = next(iter(elements), None)
     if element is None:
         return await render_response(
-            'partial/not_found.jinja2',
+            'partial/not-found',
             {'type': type, 'id': id},
             status=status.HTTP_404_NOT_FOUND,
         )
@@ -46,7 +46,7 @@ async def get_latest(type: ElementType, id: ElementId):
         at_sequence_id = last_sequence_id
 
     data = await _get_element_data(element, at_sequence_id, include_parents=True)
-    return await render_response('partial/element.jinja2', data)
+    return await render_response('partial/element', data)
 
 
 @router.get('/{type:element_type}/{id:int}/history/{version:int}')
@@ -58,7 +58,7 @@ async def get_version(type: ElementType, id: ElementId, version: int):
     if element is None:
         id_text = f'{id} {t("browse.version").lower()} {version}'
         return await render_response(
-            'partial/not_found.jinja2',
+            'partial/not-found',
             {'type': type, 'id': id_text},
             status=status.HTTP_404_NOT_FOUND,
         )
@@ -72,14 +72,14 @@ async def get_version(type: ElementType, id: ElementId, version: int):
         include_parents = True
 
     data = await _get_element_data(element, at_sequence_id, include_parents=include_parents)
-    return await render_response('partial/element.jinja2', data)
+    return await render_response('partial/element', data)
 
 
 @router.get('/{type:element_type}/{id:int}/history')
 async def get_history(
     type: ElementType,
     id: ElementId,
-    tags_diff_mode_flag: Annotated[bool, Query(alias='tags_diff_mode')],
+    tags_diff: Annotated[bool, Query()],
     page: Annotated[PositiveInt, Query()] = 1,
 ):
     typed_id = typed_element_id(type, id)
@@ -88,7 +88,7 @@ async def get_history(
     current_version = current_version_map.get(typed_id)
     if current_version is None:
         return await render_response(
-            'partial/not_found.jinja2',
+            'partial/not-found',
             {'type': type, 'id': id},
             status=status.HTTP_404_NOT_FOUND,
         )
@@ -107,7 +107,7 @@ async def get_history(
                     limit=1,
                 )
             )
-            if tags_diff_mode_flag
+            if tags_diff
             else None
         )
 
@@ -140,14 +140,14 @@ async def get_history(
         tags_diff_mode(previous_element, elements_data)
 
     return await render_response(
-        'partial/element_history.jinja2',
+        'partial/element-history',
         {
             'type': type,
             'id': id,
             'page': page,
             'num_pages': num_pages,
             'elements_data': elements_data,
-            'tags_diff_mode': tags_diff_mode_flag,
+            'tags_diff': tags_diff,
         },
     )
 

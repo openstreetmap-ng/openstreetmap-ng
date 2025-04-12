@@ -41,7 +41,7 @@ class UserTokenResetPasswordService:
             from_user_id=None,
             to_user=to_user,
             subject=subject,
-            template_name='email/reset_password.jinja2',
+            template_name='email/reset-password',
             template_data={'token': UserTokenStructUtils.to_str(token)},
         )
 

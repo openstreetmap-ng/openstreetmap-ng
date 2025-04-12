@@ -2,11 +2,12 @@ from datetime import datetime
 from typing import Any
 
 import cython
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment
 
 from app.config import APP_URL, ENV, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
+from app.lib.jinja_loader import OptimizedFileSystemLoader
 from app.lib.static_asset_hash import HASH_AWARE_PATHS
 from app.lib.translation import nt, primary_translation_locale, t
 from app.models.db.oauth2_application import oauth2_app_avatar_url, oauth2_app_is_system
@@ -20,7 +21,7 @@ else:
 
 
 _J2 = Environment(
-    loader=FileSystemLoader('app/templates'),
+    loader=OptimizedFileSystemLoader('app/views'),
     autoescape=True,
     cache_size=1024,
     auto_reload=ENV == 'dev',

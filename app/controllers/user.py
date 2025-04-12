@@ -55,7 +55,7 @@ async def signup(auth_provider_verification: Annotated[str | None, Cookie()] = N
         email = ''
 
     return await render_response(
-        'user/signup.jinja2',
+        'user/signup',
         {
             'display_name_value': display_name,
             'email_value': email,
@@ -77,25 +77,25 @@ async def account_confirm_pending(user: Annotated[User, web_user()]):
     if user['email_verified']:
         return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
 
-    return await render_response('user/account_confirm_pending.jinja2')
+    return await render_response('user/account-confirm-pending')
 
 
 @router.get('/reset-password')
 async def reset_password(token: Annotated[SecretStr | None, Query(min_length=1)] = None):
     if token is None:
-        return await render_response('user/reset_password.jinja2')
+        return await render_response('user/reset-password')
 
     # TODO: check errors
     token_struct = UserTokenStructUtils.from_str(token)
 
     user_token = await UserTokenQuery.find_one_by_token_struct('reset_password', token_struct, check_email_hash=False)
     if user_token is None:
-        return await render_response('user/reset_password.jinja2')
+        return await render_response('user/reset-password')
 
     await UserQuery.resolve_users([user_token])
 
     return await render_response(
-        'user/reset_password_token.jinja2',
+        'user/reset-password-token',
         {
             'token': token.get_secret_value(),
             'profile': user_token['user'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
@@ -138,7 +138,7 @@ async def index(
     user = await UserQuery.find_one_by_display_name(display_name)
     if user is None:
         return await render_response(
-            'user/profile/not_found.jinja2',
+            'user/profile/not-found',
             {'name': display_name},
             status=status.HTTP_404_NOT_FOUND,
         )
@@ -224,7 +224,7 @@ async def index(
     groups = ()
 
     return await render_response(
-        'user/profile/index.jinja2',
+        'user/profile/profile',
         {
             'profile': user,
             'is_self': is_self,

@@ -4,13 +4,16 @@ root = true
 charset = utf-8
 end_of_line = lf
 indent_style = space
-indent_size = 4
-max_line_length = 120
+indent_size = 2
+max_line_length = 88
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{json,toml,yaml,nix,sh}]
-indent_size = 2
+[*.{py,html.jinja,ts,js,scss,css}]
+indent_size = 4
+
+[*.{py,html.jinja}]
+max_line_length = 120
 
 [*.md]
 max_line_length = off

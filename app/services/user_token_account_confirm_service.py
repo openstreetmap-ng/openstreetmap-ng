@@ -25,7 +25,7 @@ class UserTokenAccountConfirmService:
             from_user_id=None,
             to_user=auth_user(required=True),
             subject=t('user_mailer.signup_confirm.subject'),
-            template_name='email/account_confirm.jinja2',
+            template_name='email/account-confirm',
             template_data={'token': UserTokenStructUtils.to_str(token), 'app_domain': APP_DOMAIN},
         )
 

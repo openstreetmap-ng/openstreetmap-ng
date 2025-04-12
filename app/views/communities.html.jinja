@@ -1,0 +1,44 @@
+{% extends '_base' %}
+{% block title_prefix %}{{ t('layouts.communities') }} | {% endblock %}
+{% block body_class %}communities-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <h1 class="container">
+        {{ t('layouts.communities') }}
+    </h1>
+</div>
+<div class="content-body">
+    <div class="container">
+        <p class="lead mb-4">{{ t('site.communities.lede_text') }}</p>
+
+        <h3>{{ t('site.communities.local_chapters.title') }}</h3>
+        <p>{{ t('site.communities.local_chapters.about_text') }}</p>
+        <p>{{ t('site.communities.local_chapters.list_text') }}</p>
+        <ul>
+            {% for lc in local_chapters %}
+            <li>
+                <a href="{{ lc.url }}" rel="noopener"
+                    title="{{ t('osm_community_index.communities.' ~ lc.id ~ '.description') }}">
+                    {{ t('osm_community_index.communities.' ~ lc.id ~ '.name') }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <h3>{{ t('site.communities.other_groups.title') }}</h3>
+        <p>
+            {% set communities_wiki_link %}
+            <a href="https://wiki.openstreetmap.org/wiki/User_group">
+                {{ t('site.communities.other_groups.communities_wiki') -}}
+            </a>
+            {%- endset %}
+            {{ t(
+                'site.communities.other_groups.other_groups_html',
+                communities_wiki_link=communities_wiki_link
+            ) | safe }}
+        </p>
+    </div>
+</div>
+
+{% endblock %}

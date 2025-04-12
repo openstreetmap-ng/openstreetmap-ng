@@ -142,7 +142,7 @@ async def _get_response(
     )
 
     return await render_response(
-        'partial/search.jinja2',
+        'partial/search',
         {
             'results': results,
             'params': urlsafe_b64encode(params.SerializeToString()).decode(),

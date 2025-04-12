@@ -30,7 +30,7 @@ async def applications_authorizations(
         tg.create_task(UserQuery.resolve_users(apps))
 
     return await render_response(
-        'settings/applications/authorizations.jinja2',
+        'settings/applications/authorizations',
         {
             'tokens': tokens,
         },
@@ -44,7 +44,7 @@ async def applications_admin(
     apps = await OAuth2ApplicationQuery.get_many_by_user_id(user['id'])
 
     return await render_response(
-        'settings/applications/admin.jinja2',
+        'settings/applications/admin',
         {
             'apps': apps,
             'OAUTH_APP_NAME_MAX_LENGTH': OAUTH_APP_NAME_MAX_LENGTH,
@@ -62,7 +62,7 @@ async def application_admin(
         return RedirectResponse('/settings/applications/admin', status.HTTP_303_SEE_OTHER)
 
     return await render_response(
-        'settings/applications/edit.jinja2',
+        'settings/applications/edit',
         {
             'app': app,
             'OAUTH_APP_NAME_MAX_LENGTH': OAUTH_APP_NAME_MAX_LENGTH,
@@ -78,7 +78,7 @@ async def get_tokens(
     tokens = await OAuth2TokenQuery.find_many_pats_by_user(user['id'], limit=OAUTH_PAT_LIMIT)
 
     return await render_response(
-        'settings/applications/tokens.jinja2',
+        'settings/applications/tokens',
         {
             'expand_id': expand,
             'tokens': tokens,

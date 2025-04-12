@@ -34,7 +34,7 @@ async def index(
     active_tab = 0 if not commented else 1
 
     return await render_response(
-        'notes/index.jinja2',
+        'notes/index',
         {
             'profile': user,
             'active_tab': active_tab,

@@ -38,6 +38,4 @@ async def preview(
     _: Annotated[User, web_user()],
 ):
     html = (await rich_text(text, None, 'markdown'))[0]
-    if not html:
-        html = render_jinja('rich_text/_empty_preview.jinja2')
-    return HTMLResponse(html)
+    return HTMLResponse(html or render_jinja('rich-text/_empty'))

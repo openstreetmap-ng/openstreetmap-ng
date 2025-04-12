@@ -6,11 +6,7 @@
       "type": "debugpy",
       "request": "launch",
       "module": "uvicorn",
-      "args": [
-        "app.main:main",
-        "--no-server-header",
-        "--reload"
-      ],
+      "args": ["app.main:main", "--no-server-header", "--reload"],
       "jinja": true,
       "justMyCode": true
     },

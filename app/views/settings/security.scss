@@ -1,0 +1,40 @@
+@use "bootstrap/scss/functions";
+
+.settings-security-body {
+    .active-sessions li {
+        padding: 0.875rem 0;
+
+        &:not(:last-child) {
+            @extend .border-bottom;
+        }
+    }
+
+    .session-id {
+        font-family: monospace;
+    }
+
+    .current-session {
+        @extend .rounded-circle;
+        position: relative;
+        top: -1px;
+        display: inline-block;
+        width: 0.625em;
+        height: 0.625em;
+        background: radial-gradient(
+            circle,
+            functions.tint-color($vibrant-green, 35%) 0%,
+            $vibrant-green 70%
+        );
+        animation: pulse-shadow 3s infinite;
+        cursor: help;
+
+        @keyframes pulse-shadow {
+            0% {
+                box-shadow: 0 0 0 0 rgba($vibrant-green, 0.45);
+            }
+            100% {
+                box-shadow: 0 0 0 0.35em transparent;
+            }
+        }
+    }
+}

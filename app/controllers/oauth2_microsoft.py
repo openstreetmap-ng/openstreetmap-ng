@@ -40,7 +40,7 @@ async def microsoft_authorize(
 
 @router.get('/callback')
 async def get_microsoft_callback():
-    return await render_response('oauth2/fragment_callback.jinja2')
+    return await render_response('oauth2/fragment-callback')
 
 
 @router.post('/callback')

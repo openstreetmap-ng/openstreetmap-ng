@@ -48,8 +48,8 @@ pkgs.writeText "supervisord.conf" (''
   stdout_logfile=data/supervisor/watch-proto.log
   stderr_logfile=data/supervisor/watch-proto.log
 
-  [program:watch-sass]
-  command=watch-sass
-  stdout_logfile=data/supervisor/watch-sass.log
-  stderr_logfile=data/supervisor/watch-sass.log
+  [program:watch-css]
+  command=watch-css
+  stdout_logfile=data/supervisor/watch-css.log
+  stderr_logfile=data/supervisor/watch-css.log
 '')

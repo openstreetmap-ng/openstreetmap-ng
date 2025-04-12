@@ -1,0 +1,103 @@
+{% extends 'settings/_base' %}
+{% block title_prefix %}{{ t('settings.password_and_security') }} | {% endblock %}
+{% block body_class %}settings-security-body{% endblock %}
+{% block settings_active_href %}/settings/security{% endblock %}
+{% block settings_title %}{{ t('settings.password_and_security') | capitalize }}{% endblock %}
+{% block settings_body %}
+
+<h3 class="mb-3">{{ t('settings.change_password') }}</h3>
+<form class="password-form" method="POST" action="/api/web/settings/password">
+    <input type="text" class="d-none" name="display_name" value="{{ user.display_name }}" autocomplete="username">
+
+    <label class="form-label d-block mb-3">
+        <span class="required">{{ t('settings.current_password') }}</span>
+        <input type="password" class="form-control mt-2" data-name="old_password" autocomplete="current-password"
+            required>
+    </label>
+
+    <label class="form-label d-block mb-3">
+        <span class="required">{{ t('settings.new_password') }}</span>
+        <input type="password" class="form-control mt-2" data-name="new_password" minlength="{{ PASSWORD_MIN_LENGTH }}"
+            autocomplete="new-password" required>
+    </label>
+
+    <label class="form-label d-block mb-3">
+        <span class="required">{{ t('settings.new_password_repeat') }}</span>
+        <input type="password" class="form-control mt-2" data-name="new_password_confirm"
+            minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
+    </label>
+
+    <div class="row g-2 g-md-3 align-items-center">
+        <div class="col-md">
+            <div class="form-check ms-1">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="checkbox" name="revoke_other_sessions" value="true"
+                        autocomplete="off">
+                    {{ t('settings.logout_from_browsers') }}
+                </label>
+            </div>
+        </div>
+        <div class="col-md-auto text-end">
+            <a class="link-primary me-3" href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
+            <button class="btn btn-primary px-3" type="submit">
+                {{ t('action.submit') }}
+            </button>
+        </div>
+    </div>
+</form>
+
+<hr class="my-4">
+
+{#
+<form class="two-factor-form" method="POST" action="/api/web/settings/two-factor">
+    <h3 class="mb-3">{{ t('settings.two_factor_auth') }}</h3>
+    TODO: token, u2f, recovery
+</form>
+
+<hr class="my-4">
+#}
+
+<h3>{{ t('settings.active_sessions') }}</h3>
+<ul class="active-sessions list-unstyled">
+    {% for session in active_sessions %}
+    <li>
+        <div class="row g-2 align-items-center">
+            <div class="col-sm">
+                <h6 class="mb-1">
+                    {% if session.id == current_session_id %}
+                    <span class="current-session me-1" data-bs-toggle="tooltip"
+                        data-bs-title="{{ t('settings.this_is_your_current_session') }}"
+                        aria-label="{{ t('settings.this_is_your_current_session') }}"></span>
+                    {% endif %}
+                    {% set id %}
+                    <span class="session-id">
+                        {{ str(session.id)[:5] }}
+                        <i class="bi bi-three-dots"></i>
+                        {{ str(session.id)[-7:] }}
+                    </span>
+                    {% endset %}
+                    {{ t('settings.session_colon_id', id=id) | safe }}
+                </h6>
+                <p class="form-text mb-0">
+                    {% set date %}
+                    <time class="fw-medium" datetime="{{ session.authorized_at.isoformat() }}" data-date="long"
+                        data-time="short"></time>
+                    (<time datetime="{{ session.authorized_at.isoformat() }}" data-style="long"></time>)
+                    {% endset %}
+                    {{ t('settings.authorized_at', date=date) | safe }}
+                </p>
+            </div>
+            <div class="col-sm-auto align-self-center text-end">
+                <form class="revoke-token-form" method="POST" action="/api/web/settings/revoke-token">
+                    <input type="hidden" name="token_id" value="{{ session.id }}">
+                    <button class="btn btn-sm btn-light border" type="submit">
+                        {{ t('action.end_session') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

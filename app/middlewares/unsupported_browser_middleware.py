@@ -45,7 +45,7 @@ class UnsupportedBrowserMiddleware:
                 return await send(message)
 
             logging.debug('Client browser is not supported')
-            response = await render_response('unsupported_browser.jinja2', status=status.HTTP_501_NOT_IMPLEMENTED)
+            response = await render_response('unsupported-browser', status=status.HTTP_501_NOT_IMPLEMENTED)
             return await response(scope, receive, send)
 
         return await self.app(scope, receive, wrapper)

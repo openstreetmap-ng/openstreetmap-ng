@@ -170,6 +170,6 @@ async def _send_activity_email(message: Message) -> None:
         from_user_id=message['from_user_id'],
         to_user=to_user,
         subject=subject,
-        template_name='email/message.jinja2',
+        template_name='email/message',
         template_data={'message': message},
     )

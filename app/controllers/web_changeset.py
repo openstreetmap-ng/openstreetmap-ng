@@ -90,4 +90,4 @@ async def comments_page(
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(changeset_comments_resolve_rich_text(comments))
 
-    return await render_response('changesets/comments_page.jinja2', {'comments': comments})
+    return await render_response('changesets/comments-page', {'comments': comments})

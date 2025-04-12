@@ -24,7 +24,7 @@ async def user_diary_comments(
     user = await UserQuery.find_one_by_display_name(display_name)
     if user is None:
         return await render_response(
-            'user/profile/not_found.jinja2',
+            'user/profile/not-found',
             {'name': display_name},
             status=status.HTTP_404_NOT_FOUND,
         )
@@ -69,7 +69,7 @@ async def user_diary_comments(
     new_before = new_before_t.result() if new_before_t is not None else None
 
     return await render_response(
-        'diaries/user_comments.jinja2',
+        'diary/user-comments',
         {
             'profile': user,
             'new_after': new_after,

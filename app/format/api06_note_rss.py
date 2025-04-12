@@ -45,7 +45,7 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
     fe.link(href=web_permalink)
     fe.content(
         render_jinja(
-            'api06/note_feed_comments.jinja2',
+            'api06/note-feed-comments',
             {'comments': comments},
         ),
         type='CDATA',
@@ -95,7 +95,7 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
     fe.link(href=permalink)
     fe.content(
         render_jinja(
-            'api06/note_feed_entry.jinja2',
+            'api06/note-feed-entry',
             {'comment': comment, 'comments': legacy_note['comments']},  # pyright: ignore [reportTypedDictNotRequiredAccess]
         ),
         type='CDATA',

@@ -35,7 +35,7 @@ router = APIRouter()
 @router.get('/diary/new')
 async def new():
     return await render_response(
-        'diaries/compose.jinja2',
+        'diary/compose',
         {
             'new': True,
             'LOCALES_NAMES_MAP': LOCALES_NAMES_MAP,
@@ -65,7 +65,7 @@ async def details(
         diaries: list[Diary] = data['diaries']
         if not diaries:
             return await render_response(
-                'diaries/not_found.jinja2',
+                'diary/not-found',
                 {'diary_id': diary_id},
                 status=status.HTTP_404_NOT_FOUND,
             )
@@ -75,7 +75,7 @@ async def details(
     diary_comments_num_pages = ceil(diary_comments_num_items / DIARY_COMMENTS_PAGE_SIZE)
 
     return await render_response(
-        'diaries/details.jinja2',
+        'diary/details',
         {
             **data,
             'diary': diary,
@@ -122,14 +122,14 @@ async def edit(
     diary = await DiaryQuery.find_one_by_id(diary_id)
     if diary is None or diary['user_id'] != user['id']:
         return render_response(
-            'diaries/not_found.jinja2',
+            'diary/not-found',
             {'diary_id': diary_id},
             status=status.HTTP_404_NOT_FOUND,
         )
 
     point = diary['point']
     return await render_response(
-        'diaries/compose.jinja2',
+        'diary/compose',
         {
             'new': False,
             'LOCALES_NAMES_MAP': LOCALES_NAMES_MAP,
@@ -151,7 +151,7 @@ async def index(
     before: Annotated[DiaryId | None, Query()] = None,
 ):
     data = await _get_data(user=None, language=None, after=after, before=before)
-    return await render_response('diaries/index.jinja2', data)
+    return await render_response('diary/index', data)
 
 
 @router.get('/diary/{language:str}')
@@ -161,7 +161,7 @@ async def language_index(
     before: Annotated[DiaryId | None, Query()] = None,
 ):
     data = await _get_data(user=None, language=language, after=after, before=before)
-    return await render_response('diaries/index.jinja2', data)
+    return await render_response('diary/index', data)
 
 
 @router.get('/user/{display_name:str}/diary')
@@ -172,7 +172,7 @@ async def user_index(
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
     data = await _get_data(user=user, language=None, after=after, before=before)
-    return await render_response('diaries/index.jinja2', data)
+    return await render_response('diary/index', data)
 
 
 @router.get('/user/{_:str}/diary/{diary_id:int}{suffix:path}')

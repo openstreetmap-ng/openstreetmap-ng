@@ -112,7 +112,7 @@ def _encode_note(note: Note, *, is_json: cython.bint, is_gpx: cython.bint) -> di
             'link': {'href': f'{APP_URL}/note/{note_id}'},
             'desc': CDATA(
                 render_jinja(
-                    'api06/note_feed_comments.jinja2',
+                    'api06/note-feed-comments',
                     {'comments': note['comments']},  # pyright: ignore [reportTypedDictNotRequiredAccess]
                 )
             ),

@@ -1,0 +1,26 @@
+{% if traces %}
+{% include 'traces/_list-nav' %}
+<ul class="traces-list social-list list-unstyled" data-lines="{{ traces_lines | safe }}">
+    {% for trace in traces %}
+    {% include 'traces/_list-entry' %}
+    {% endfor %}
+</ul>
+{% include 'traces/_list-nav' %}
+{% else %}
+<h3>{{ t('traces.index.empty_title') }}</h3>
+<p>
+    {% set _upload_link %}
+    <a href="/trace/upload">{{ t('traces.index.upload_new') }}</a>
+    {%- endset %}
+    {% set _wiki_link %}
+    <a href="https://wiki.openstreetmap.org/wiki/Beginners_Guide_1.2" rel="help">
+        {{- t('traces.index.wiki_page') -}}
+    </a>
+    {%- endset %}
+    {{ t(
+        'traces.index.empty_upload_html',
+        upload_link=_upload_link,
+        wiki_link=_wiki_link
+    ) | safe }}
+</p>
+{% endif %}

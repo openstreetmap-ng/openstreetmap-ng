@@ -7,6 +7,9 @@
   "[json]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
@@ -21,13 +24,11 @@
   },
   "autoDocstring.docstringFormat": "sphinx-notypes",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
-  "editor.rulers": [
-    120
-  ],
+  "editor.rulers": [88, 120],
   "editor.unicodeHighlight.allowedCharacters": {
-    "➕": true,
-    "›": true,
     "»": true,
+    "›": true,
+    "➕": true,
     "𝕏": true
   },
   "files.exclude": {
@@ -40,7 +41,6 @@
     ".*cache/": true,
     ".direnv/": true,
     ".venv/": true,
-    "app/static/**/*.html": false,
     "app/static/js/": true,
     "build/": true,
     "config/locale/download/": true,
@@ -55,9 +55,7 @@
   "nix.serverSettings": {
     "nil": {
       "formatting": {
-        "command": [
-          "nixpkgs-fmt"
-        ]
+        "command": ["nixpkgs-fmt"]
       }
     }
   },

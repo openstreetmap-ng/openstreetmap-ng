@@ -279,7 +279,7 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
                     from_user_id=None,
                     to_user=subscribed_user,
                     subject=subject,
-                    template_name='email/note_activity.jinja2',
+                    template_name='email/note-activity',
                     template_data={'comment': comment, 'is_note_owner': is_note_owner, 'place': place},
                     ref=ref,
                 )

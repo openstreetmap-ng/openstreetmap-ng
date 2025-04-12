@@ -24,7 +24,7 @@ async def index(
     before: Annotated[TraceId | None, Query()] = None,
 ):
     data = await _get_data(user=None, tag=None, after=after, before=before)
-    return await render_response('traces/index.jinja2', data)
+    return await render_response('traces/index', data)
 
 
 @router.get('/traces/tag/{tag:str}')
@@ -34,7 +34,7 @@ async def tagged(
     before: Annotated[TraceId | None, Query()] = None,
 ):
     data = await _get_data(user=None, tag=tag, after=after, before=before)
-    return await render_response('traces/index.jinja2', data)
+    return await render_response('traces/index', data)
 
 
 @router.get('/user/{display_name:str}/traces')
@@ -45,7 +45,7 @@ async def personal(
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
     data = await _get_data(user=user, tag=None, after=after, before=before)
-    return await render_response('traces/index.jinja2', data)
+    return await render_response('traces/index', data)
 
 
 @router.get('/user/{display_name:str}/traces/tag/{tag:str}')
@@ -57,7 +57,7 @@ async def personal_tagged(
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
     data = await _get_data(user=user, tag=tag, after=after, before=before)
-    return await render_response('traces/index.jinja2', data)
+    return await render_response('traces/index', data)
 
 
 @router.get('/user/{_:str}/traces/{trace_id:int}')

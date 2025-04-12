@@ -60,7 +60,7 @@ def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
 
     fe.content(
         render_jinja(
-            'api06/history_feed_entry.jinja2',
+            'api06/history-feed-entry',
             {
                 'created': format_rfc2822_date(created_at),
                 'closed': format_rfc2822_date(closed_at) if (closed_at is not None) else None,
