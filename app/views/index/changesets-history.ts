@@ -274,7 +274,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     })
 
     let hoveredFeature: MapGeoJSONFeature | null = null
-    map.on("mouseover", layerIdFill, (e) => {
+    map.on("mousemove", layerIdFill, (e) => {
         // Find feature with the smallest bounds area
         const feature = e.features.reduce((a, b) =>
             a.properties.boundsArea < b.properties.boundsArea ? a : b,

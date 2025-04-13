@@ -110,7 +110,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
     })
 
     let hoveredFeatureId: number | null = null
-    map.on("mouseover", layerId, (e) => {
+    map.on("mousemove", layerId, (e) => {
         const featureId = e.features[0].id
         if (hoveredFeatureId) {
             if (hoveredFeatureId === featureId) return
