@@ -101,7 +101,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const idFirstFeatureIdMap = new Map<string, number>()
     const idSidebarMap = new Map<string, HTMLElement>()
 
-    const updateLayers = () => {
+    const updateLayers = (e?: any) => {
         const changesetsMinimumSize: OSMChangeset[] = []
         for (const changeset of convertRenderChangesetsData(changesets)) {
             changeset.bounds = changeset.bounds.map((bounds) =>
@@ -117,10 +117,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             )
         }
         source.setData(data)
-        console.debug("Changesets layer showing", changesets.length, "changesets")
 
         // When initial loading for scope/user, focus on the changesets
-        if (!fetchedBounds && changesets.length) {
+        if (!e && !fetchedBounds && changesets.length) {
             let lngLatBounds: LngLatBounds | null = null
             for (const changeset of changesetsMinimumSize) {
                 if (!changeset.bounds.length) continue
@@ -312,6 +311,12 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         // Request full world when initial loading for scope/user
         const fetchBounds =
             fetchedBounds || (!loadScope && !loadDisplayName) ? map.getBounds() : null
+
+        // During full world view, skip event-based updates
+        if (e && !fetchBounds) {
+            return
+        }
+
         const params = qsParse(window.location.search)
 
         // Update date filter element
@@ -464,11 +469,13 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             setPageTitle(sidebarTitleText)
 
             addMapLayer(map, layerId)
+            map.on("zoomend", updateLayers)
             map.on("moveend", updateState)
             updateState()
         },
         unload: () => {
             map.off("moveend", updateState)
+            map.off("zoomend", updateLayers)
             parentSidebar.removeEventListener("scroll", onSidebarScroll)
             removeMapLayer(map, layerId)
             source.setData(emptyFeatureCollection)
