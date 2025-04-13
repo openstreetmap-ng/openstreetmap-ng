@@ -8,6 +8,11 @@ from starlette.responses import RedirectResponse
 from app.middlewares.request_context_middleware import get_request
 
 
+def secure_referrer(referrer: str | None) -> str:
+    """Return a secure referrer, preventing open redirects."""
+    return '/' if (referrer is None or referrer[:1] != '/') else referrer
+
+
 def redirect_referrer() -> RedirectResponse:
     """Get a redirect response, respecting the referrer header."""
     return RedirectResponse(_redirect_url(), status.HTTP_303_SEE_OTHER)

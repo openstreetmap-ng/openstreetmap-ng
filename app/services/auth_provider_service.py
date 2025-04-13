@@ -11,6 +11,7 @@ from app.config import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_M
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_compare, hmac_bytes
+from app.lib.referrer import secure_referrer
 from app.lib.render_response import render_response
 from app.models.db.connected_account import AUTH_PROVIDERS, AuthProvider, AuthProviderAction
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
@@ -18,7 +19,7 @@ from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerificat
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.system_app_service import SystemAppService
-from app.utils import extend_query_params, secure_referer
+from app.utils import extend_query_params
 
 
 class AuthProviderService:
@@ -88,7 +89,7 @@ class AuthProviderService:
 
             logging.debug('Authenticated user %d using auth provider %r', user_id, provider)
             access_token = await SystemAppService.create_access_token(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
-            response = RedirectResponse(secure_referer(state.referer), status.HTTP_303_SEE_OTHER)
+            response = RedirectResponse(secure_referrer(state.referer), status.HTTP_303_SEE_OTHER)
             response.delete_cookie('auth_provider_state')
             response.set_cookie(
                 key='auth',

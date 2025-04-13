@@ -42,8 +42,3 @@ def splitlines_trim(s: str) -> list[str]:
     ['foo', 'bar']
     """
     return [line_ for line in s.splitlines() if (line_ := line.strip())]
-
-
-def secure_referer(referer: str | None) -> str:
-    """Return a secure referer, preventing open redirects."""
-    return '/' if (referer is None or referer[:1] != '/') else referer

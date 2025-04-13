@@ -8,6 +8,7 @@ from starlette.responses import RedirectResponse, Response
 from app.lib.auth_context import auth_user, web_user
 from app.lib.local_chapters import LOCAL_CHAPTERS
 from app.lib.locale import DEFAULT_LOCALE, is_installed_locale
+from app.lib.referrer import secure_referrer
 from app.lib.render_jinja import render_jinja
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale, t, translation_context
@@ -18,7 +19,6 @@ from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.types import ChangesetId, LocaleCode, NoteId, UserSubscriptionTargetId
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.user_token_unsubscribe_service import UserTokenUnsubscribeService
-from app.utils import secure_referer
 
 router = APIRouter()
 
@@ -192,7 +192,7 @@ async def fixthemap():
 @router.get('/login')
 async def login(referer: Annotated[str | None, Query()] = None):
     if auth_user() is not None:
-        return RedirectResponse(secure_referer(referer), status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(secure_referrer(referer), status.HTTP_303_SEE_OTHER)
     return await render_response('user/login')
 
 

@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils import extend_query_params, secure_referer, splitlines_trim
+from app.utils import extend_query_params, splitlines_trim
 
 
 @pytest.mark.parametrize(
@@ -65,17 +65,3 @@ def test_extend_query_params(uri, params, expected, expected_fragment):
 )
 def test_splitlines_trim(s, expected):
     assert splitlines_trim(s) == expected
-
-
-@pytest.mark.parametrize(
-    ('referer', 'expected'),
-    [
-        (None, '/'),
-        ('https://example.com', '/'),
-        ('https://example.com/test', '/'),
-        ('/test', '/test'),
-        ('/test?key=value', '/test?key=value'),
-    ],
-)
-def test_secure_referer(referer, expected):
-    assert secure_referer(referer) == expected

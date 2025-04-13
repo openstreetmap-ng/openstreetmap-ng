@@ -8,7 +8,7 @@ from starlette.responses import RedirectResponse
 
 from app.config import COOKIE_AUTH_MAX_AGE, ENV, TIMEZONE_MAX_LENGTH
 from app.lib.auth_context import auth_user, web_user
-from app.lib.redirect_referrer import redirect_referrer
+from app.lib.referrer import redirect_referrer
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
