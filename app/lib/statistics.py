@@ -6,7 +6,12 @@ import cython
 import numpy as np
 
 from app.config import USER_ACTIVITY_CHART_WEEKS
-from app.lib.date_utils import format_short_date, get_month_name, get_weekday_name, utcnow
+from app.lib.date_utils import (
+    format_short_date,
+    get_month_name,
+    get_weekday_name,
+    utcnow,
+)
 from app.models.types import UserId
 from app.queries.changeset_query import ChangesetQuery
 
@@ -48,7 +53,9 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
     created_since = today - timedelta(days=USER_ACTIVITY_CHART_WEEKS * 7 + weekday)
 
     # Fetch user activity data
-    activity_per_day = await ChangesetQuery.count_per_day_by_user_id(user_id, created_since)
+    activity_per_day = await ChangesetQuery.count_per_day_by_user_id(
+        user_id, created_since
+    )
 
     # Generate continuous date range
     dates_range: list[date] = np.arange(
@@ -63,12 +70,19 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
 
     # Calculate activity intensity levels (0-19 scale)
     activity_positive = activity[activity > 0]
-    max_activity_clip = np.percentile(activity_positive, 95) if activity_positive.size else 1
-    activity_levels = np.ceil(np.clip(activity / max_activity_clip, 0, 1) * 19).astype(np.uint8)
+    max_activity_clip = (
+        np.percentile(activity_positive, 95) if activity_positive.size else 1
+    )
+    activity_levels = (  #
+        np.ceil(np.clip(activity / max_activity_clip, 0, 1) * 19).astype(np.uint8)
+    )
 
     # Create weekday labels (showing every other day)
     i: cython.Py_ssize_t  # noqa: F842
-    weekdays = [get_weekday_name(d, short=True) if i % 2 == 1 else '' for i, d in enumerate(dates_range[:7])]
+    weekdays = [
+        get_weekday_name(d, short=True) if i % 2 == 1 else ''
+        for i, d in enumerate(dates_range[:7])
+    ]
 
     # Initialize activity grid (7 rows for days of the week)
     day_rows: list[list[UserActivitySummaryRow]] = [[] for _ in range(7)]
@@ -84,7 +98,12 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
         activity.tolist(),  # type: ignore
         dates_range,
     ):
-        day_row.append({'level': level, 'value': value, 'date': format_short_date(d), 'iso_date': d.isoformat()})
+        day_row.append({
+            'level': level,
+            'value': value,
+            'date': format_short_date(d),
+            'iso_date': d.isoformat(),
+        })
 
         # Track month changes for month labels
         if d.day == 1:

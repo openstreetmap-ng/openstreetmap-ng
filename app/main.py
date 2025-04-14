@@ -82,7 +82,11 @@ async def lifespan(_):
 
         await SystemAppService.on_startup()
 
-        async with EmailService.context(), ChangesetService.context(), RateLimitService.context():
+        async with (
+            EmailService.context(),
+            ChangesetService.context(),
+            RateLimitService.context(),
+        ):
             # freeze uncollected gc objects for improved performance
             gc.collect()
             gc.freeze()
@@ -131,8 +135,16 @@ if ENV != 'prod':
     main.add_middleware(RuntimeMiddleware)
 
 # TODO: /static default cache control
-main.mount('/static', PrecompressedStaticFiles('app/static'), name='static')
-main.mount('/static-locale', PrecompressedStaticFiles('config/locale/i18next'), name='static-locale')
+main.mount(
+    '/static',
+    PrecompressedStaticFiles('app/static'),
+    name='static',
+)
+main.mount(
+    '/static-locale',
+    PrecompressedStaticFiles('config/locale/i18next'),
+    name='static-locale',
+)
 main.mount(
     '/static-bootstrap-icons',
     PrecompressedStaticFiles('node_modules/bootstrap-icons/font/fonts'),
@@ -166,7 +178,13 @@ def _make_router(path: pathlib.Path, prefix: str) -> APIRouter:
         router.include_router(router_attr)
         router_counter += 1
         routes_counter += len(router_attr.routes)
-    logging.info('Loaded (%d routers, %d routes) from %s as %r', router_counter, routes_counter, path, prefix)
+    logging.info(
+        'Loaded (%d routers, %d routes) from %s as %r',
+        router_counter,
+        routes_counter,
+        path,
+        prefix,
+    )
     return router
 
 
@@ -177,8 +195,9 @@ user_name_blacklist_routes(main)
 @main.exception_handler(ExceptionGroup)
 async def exception_group_handler(request: Request, exc: ExceptionGroup):
     """Unpack supported exception groups."""
-    http_exception = next((e for e in exc.exceptions if isinstance(e, HTTPException)), None)
-    if http_exception is not None:
-        return await http_exception_handler(request, http_exception)
+    for e in exc.exceptions:
+        if isinstance(e, HTTPException):
+            return await http_exception_handler(request, e)
+
     traceback.print_exception(exc.__class__, exc, exc.__traceback__)
     return Response('Internal Server Error', status.HTTP_500_INTERNAL_SERVER_ERROR)

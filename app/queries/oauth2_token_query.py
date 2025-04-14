@@ -15,7 +15,9 @@ from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 
 class OAuth2TokenQuery:
     @staticmethod
-    async def find_one_authorized_by_token(access_token: SecretStr) -> OAuth2Token | None:
+    async def find_one_authorized_by_token(
+        access_token: SecretStr,
+    ) -> OAuth2Token | None:
         """Find an authorized OAuth2 token by token string."""
         access_token_hashed = hash_bytes(access_token.get_secret_value())
 
@@ -57,7 +59,10 @@ class OAuth2TokenQuery:
             {limit}
         """).format(limit=limit_clause)
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -71,7 +76,9 @@ class OAuth2TokenQuery:
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None:
             return []
-        return await OAuth2TokenQuery.find_many_authorized_by_user_app_id(user_id, app['id'], limit=limit)
+        return await OAuth2TokenQuery.find_many_authorized_by_user_app_id(
+            user_id, app['id'], limit=limit
+        )
 
     @staticmethod
     async def find_many_pats_by_user(
@@ -97,7 +104,10 @@ class OAuth2TokenQuery:
             {limit}
         """).format(limit=limit_clause)
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod

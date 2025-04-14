@@ -21,7 +21,9 @@ CSP_HEADER = '; '.join(
     )
 )
 
-_HSTS_HEADER = f'max-age={int(HSTS_MAX_AGE.total_seconds())}; includeSubDomains; preload'
+_HSTS_HEADER = (
+    f'max-age={int(HSTS_MAX_AGE.total_seconds())}; includeSubDomains; preload'
+)
 
 
 class DefaultHeadersMiddleware:

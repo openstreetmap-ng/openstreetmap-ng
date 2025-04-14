@@ -14,7 +14,9 @@ def test_route_conflicts():
             continue
 
         for p in (p for method in route_methods for p in capture_paths[method]):
-            assert not p.match(route.path), f'Route {route.path!r} is ordered after matching {p.pattern!r}'
+            assert not p.match(route.path), (
+                f'Route {route.path!r} is ordered after matching {p.pattern!r}'
+            )
 
         for method in route_methods:
             capture_paths[method].append(route.path_regex)

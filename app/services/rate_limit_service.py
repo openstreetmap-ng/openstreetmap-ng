@@ -111,12 +111,17 @@ async def _process_task() -> None:
     while True:
         async with db(True, autocommit=True) as conn:
             # Lock is just a random unique number
-            async with await conn.execute('SELECT pg_try_advisory_xact_lock(8569304793767999080::bigint)') as r:
+            async with await conn.execute(
+                'SELECT pg_try_advisory_xact_lock(8569304793767999080::bigint)'
+            ) as r:
                 acquired: bool = (await r.fetchone())[0]  # type: ignore
 
             if acquired:
                 ts = monotonic()
-                with SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR, start_transaction(op='task', name='rate-limit-management'):
+                with (
+                    SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR,
+                    start_transaction(op='task', name='rate-limit-management'),
+                ):
                     await _delete_expired(conn)
                 tt = monotonic() - ts
 

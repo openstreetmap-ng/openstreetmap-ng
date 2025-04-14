@@ -30,7 +30,9 @@ class UserPrefService:
         values: list[Composable] = [SQL('(%s, %s, %s, %s)')] * num_prefs
         params: list[Any] = []
         for pref in prefs:
-            logging.debug('Setting user pref %r for app %r', pref['key'], pref['app_id'])
+            logging.debug(
+                'Setting user pref %r for app %r', pref['key'], pref['app_id']
+            )
             params.extend((pref['user_id'], pref['app_id'], pref['key'], pref['value']))
 
         query = SQL("""

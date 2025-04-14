@@ -38,7 +38,9 @@ class Changeset(ChangesetInit):
     size_limit_reached: NotRequired[Literal[True]]
 
 
-def changeset_increase_size(changeset: Changeset, *, num_create: int, num_modify: int, num_delete: int) -> bool:
+def changeset_increase_size(
+    changeset: Changeset, *, num_create: int, num_modify: int, num_delete: int
+) -> bool:
     """Try to increase the changeset size. Returns True if successful."""
     assert num_create >= 0, 'num_create must be non-negative'
     assert num_modify >= 0, 'num_modify must be non-negative'
@@ -50,14 +52,16 @@ def changeset_increase_size(changeset: Changeset, *, num_create: int, num_modify
 
     changeset_user_id = changeset['user_id']
     assert changeset_user_id is not None, 'Anonymous changesets are no longer supported'
-    assert changeset_user_id == user_id, f'Changeset {changeset["id"]} can only be edited by the owner != {user_id}'
+    assert changeset_user_id == user_id, (
+        f'Changeset {changeset["id"]} can only be edited by the owner != {user_id}'
+    )
 
     new_size = changeset['size'] + num_create + num_modify + num_delete
     if new_size > max_size:
         return False
 
     if new_size == max_size:
-        changeset['size_limit_reached'] = True  # type: ignore
+        changeset['size_limit_reached'] = True
 
     changeset['size'] = new_size
     changeset['num_create'] += num_create

@@ -5,7 +5,12 @@ from annotated_types import Gt
 from httpx import AsyncClient
 from starlette import status
 
-from app.config import LEGACY_HIGH_PRECISION_TIME, TAGS_KEY_MAX_LENGTH, TAGS_LIMIT, TAGS_MAX_SIZE
+from app.config import (
+    LEGACY_HIGH_PRECISION_TIME,
+    TAGS_KEY_MAX_LENGTH,
+    TAGS_LIMIT,
+    TAGS_MAX_SIZE,
+)
 from app.format import Format06
 from app.lib.xmltodict import XMLToDict
 from tests.utils.assert_model import assert_model
@@ -111,7 +116,11 @@ async def test_changeset_upload(client: AsyncClient):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_changeset_upload.__name__}]}}
+            'osm': {
+                'changeset': {
+                    'tag': [{'@k': 'created_by', '@v': test_changeset_upload.__name__}]
+                }
+            }
         }),
     )
     assert r.is_success, r.text
@@ -164,7 +173,16 @@ async def test_changeset_with_discussion(client: AsyncClient, include):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_changeset_with_discussion.__name__}]}}
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {
+                            '@k': 'created_by',
+                            '@v': test_changeset_with_discussion.__name__,
+                        }
+                    ]
+                }
+            }
         }),
     )
     assert r.is_success, r.text
@@ -208,7 +226,16 @@ async def test_changeset_update_closed(client: AsyncClient):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_changeset_update_closed.__name__}]}}
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {
+                            '@k': 'created_by',
+                            '@v': test_changeset_update_closed.__name__,
+                        }
+                    ]
+                }
+            }
         }),
     )
     assert r.is_success, r.text
@@ -221,7 +248,9 @@ async def test_changeset_update_closed(client: AsyncClient):
     # Try to update the closed changeset
     r = await client.put(
         f'/api/0.6/changeset/{changeset_id}',
-        content=XMLToDict.unparse({'osm': {'changeset': {'tag': [{'@k': 'updated', '@v': 'value'}]}}}),
+        content=XMLToDict.unparse({
+            'osm': {'changeset': {'tag': [{'@k': 'updated', '@v': 'value'}]}}
+        }),
     )
     assert r.status_code == status.HTTP_409_CONFLICT, r.text
 
@@ -233,7 +262,16 @@ async def test_changeset_upload_closed(client: AsyncClient):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_changeset_upload_closed.__name__}]}}
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {
+                            '@k': 'created_by',
+                            '@v': test_changeset_upload_closed.__name__,
+                        }
+                    ]
+                }
+            }
         }),
     )
     assert r.is_success, r.text
@@ -246,7 +284,9 @@ async def test_changeset_upload_closed(client: AsyncClient):
     # Try to upload to the closed changeset
     r = await client.post(
         f'/api/0.6/changeset/{changeset_id}/upload',
-        content=XMLToDict.unparse({'osmChange': {'create': [('node', {'@id': -1, '@lat': 0, '@lon': 0})]}}),
+        content=XMLToDict.unparse({
+            'osmChange': {'create': [('node', {'@id': -1, '@lat': 0, '@lon': 0})]}
+        }),
     )
     assert r.status_code == status.HTTP_409_CONFLICT, r.text
 
@@ -258,7 +298,13 @@ async def test_changeset_close_twice(client: AsyncClient):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_changeset_close_twice.__name__}]}}
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'created_by', '@v': test_changeset_close_twice.__name__}
+                    ]
+                }
+            }
         }),
     )
     assert r.is_success, r.text
@@ -286,13 +332,19 @@ async def test_changesets_not_found(client: AsyncClient):
         (TAGS_KEY_MAX_LENGTH, 256, False),  # Value too long
     ],
 )
-async def test_changesets_tag_max_length(client: AsyncClient, key_length, value_length, should_succeed):
+async def test_changesets_tag_max_length(
+    client: AsyncClient, key_length, value_length, should_succeed
+):
     client.headers['Authorization'] = 'User user1'
 
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': '0' * key_length, '@v': '0' * value_length}]}}
+            'osm': {
+                'changeset': {
+                    'tag': [{'@k': '0' * key_length, '@v': '0' * value_length}]
+                }
+            }
         }),
     )
 
@@ -315,7 +367,11 @@ async def test_changesets_tags_limit(client: AsyncClient, num_tags, should_succe
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': str(i), '@v': str(i)} for i in range(num_tags)]}}
+            'osm': {
+                'changeset': {
+                    'tag': [{'@k': str(i), '@v': str(i)} for i in range(num_tags)]
+                }
+            }
         }),
     )
 
@@ -341,7 +397,10 @@ async def test_changesets_tags_size(client: AsyncClient, num_tags, should_succee
             'osm': {
                 'changeset': {
                     'tag': [
-                        {'@k': f'{i:0{TAGS_KEY_MAX_LENGTH}d}', '@v': f'{i:0{TAGS_KEY_MAX_LENGTH}d}'}
+                        {
+                            '@k': f'{i:0{TAGS_KEY_MAX_LENGTH}d}',
+                            '@v': f'{i:0{TAGS_KEY_MAX_LENGTH}d}',
+                        }
                         for i in range(num_tags)
                     ]
                 }

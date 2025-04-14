@@ -166,7 +166,12 @@ async def test_modify_relation_members_and_roles(changeset_id: ChangesetId):
     }
 
     # Push all elements to the database
-    assigned_ref_map = await OptimisticDiff.run([node, way, relation_create, relation_modify])
+    assigned_ref_map = await OptimisticDiff.run([
+        node,
+        way,
+        relation_create,
+        relation_modify,
+    ])
 
     node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
     way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]

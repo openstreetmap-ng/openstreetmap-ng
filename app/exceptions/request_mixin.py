@@ -32,7 +32,9 @@ class RequestExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def bad_xml(self, name: str, message: str, xml_input: bytes | None = None) -> NoReturn:
+    def bad_xml(
+        self, name: str, message: str, xml_input: bytes | None = None
+    ) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod

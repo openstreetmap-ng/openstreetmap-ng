@@ -12,7 +12,11 @@ from app.models.types import LocaleCode
         (
             # Script tag
             {'comment': 'https://example.com <script>'},
-            ValueFormat('comment', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:comment'),
+            ValueFormat(
+                'comment',
+                'url-safe',
+                'https://wiki.openstreetmap.org/wiki/Pl:Key:comment',
+            ),
             [
                 ValueFormat(
                     'https://example.com <script>',
@@ -24,7 +28,11 @@ from app.models.types import LocaleCode
         (
             # Color
             {'colour': '#ff0000;invalid;AliceBlue'},
-            ValueFormat('colour', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:colour'),
+            ValueFormat(
+                'colour',
+                'url-safe',
+                'https://wiki.openstreetmap.org/wiki/Pl:Key:colour',
+            ),
             [
                 ValueFormat('#ff0000', 'color', '#ff0000'),
                 ValueFormat('invalid'),
@@ -34,16 +42,26 @@ from app.models.types import LocaleCode
         (
             # Email
             {'email': 'support@openstreetmap.org;example@example.com'},
-            ValueFormat('email', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:email'),
+            ValueFormat(
+                'email', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:email'
+            ),
             [
-                ValueFormat('support@openstreetmap.org', 'email', 'mailto:support@openstreetmap.org'),
-                ValueFormat('example@example.com', 'email', 'mailto:example@example.com'),
+                ValueFormat(
+                    'support@openstreetmap.org',
+                    'email',
+                    'mailto:support@openstreetmap.org',
+                ),
+                ValueFormat(
+                    'example@example.com', 'email', 'mailto:example@example.com'
+                ),
             ],
         ),
         (
             # Phone
             {'phone': '+1-234-567-8901;+7925805204786492'},
-            ValueFormat('phone', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:phone'),
+            ValueFormat(
+                'phone', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:phone'
+            ),
             [
                 ValueFormat('+1-234-567-8901', 'phone', 'tel:+12345678901'),
                 ValueFormat('+7925805204786492'),
@@ -52,17 +70,31 @@ from app.models.types import LocaleCode
         (
             # URL
             {'url': 'HTTPS://www.openstreetmap.org;ftp://www.openstreetmap.org'},
-            ValueFormat('url', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:url'),
+            ValueFormat(
+                'url', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:url'
+            ),
             [
-                ValueFormat('HTTPS://www.openstreetmap.org', 'url', 'HTTPS://www.openstreetmap.org'),
+                ValueFormat(
+                    'HTTPS://www.openstreetmap.org',
+                    'url',
+                    'HTTPS://www.openstreetmap.org',
+                ),
                 ValueFormat('ftp://www.openstreetmap.org'),
             ],
         ),
         (
             # Wikipedia
             {'wikipedia': 'Test#abc'},
-            ValueFormat('wikipedia', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:wikipedia'),
-            [ValueFormat('Test#abc', 'url-safe', 'https://en.wikipedia.org/wiki/Test#abc')],
+            ValueFormat(
+                'wikipedia',
+                'url-safe',
+                'https://wiki.openstreetmap.org/wiki/Pl:Key:wikipedia',
+            ),
+            [
+                ValueFormat(
+                    'Test#abc', 'url-safe', 'https://en.wikipedia.org/wiki/Test#abc'
+                )
+            ],
         ),
         (
             # Regional Wikipedia
@@ -73,26 +105,60 @@ from app.models.types import LocaleCode
         (
             # Wikipedia id
             {'wikidata': 'q123'},
-            ValueFormat('wikidata', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Key:wikidata'),
+            ValueFormat(
+                'wikidata',
+                'url-safe',
+                'https://wiki.openstreetmap.org/wiki/Key:wikidata',
+            ),
             [ValueFormat('q123', 'url-safe', 'https://www.wikidata.org/entity/q123')],
         ),
         (
             # Wikimedia Commons file: prefix
             {'wikimedia_commons': 'file:Test'},
-            ValueFormat('wikimedia_commons', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Key:wikimedia_commons'),
-            [ValueFormat('file:Test', 'url-safe', 'https://commons.wikimedia.org/wiki/file:Test')],
+            ValueFormat(
+                'wikimedia_commons',
+                'url-safe',
+                'https://wiki.openstreetmap.org/wiki/Key:wikimedia_commons',
+            ),
+            [
+                ValueFormat(
+                    'file:Test',
+                    'url-safe',
+                    'https://commons.wikimedia.org/wiki/file:Test',
+                )
+            ],
         ),
         (
             # Wikimedia Commons category: prefix
             {'wikimedia_commons': 'Category:Test'},
-            ValueFormat('wikimedia_commons', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Key:wikimedia_commons'),
-            [ValueFormat('Category:Test', 'url-safe', 'https://commons.wikimedia.org/wiki/Category:Test')],
+            ValueFormat(
+                'wikimedia_commons',
+                'url-safe',
+                'https://wiki.openstreetmap.org/wiki/Key:wikimedia_commons',
+            ),
+            [
+                ValueFormat(
+                    'Category:Test',
+                    'url-safe',
+                    'https://commons.wikimedia.org/wiki/Category:Test',
+                )
+            ],
         ),
         (
             # Wiki key/value link
             {'amenity': 'bench'},
-            ValueFormat('amenity', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:amenity'),
-            [ValueFormat('bench', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Tag:amenity=bench')],
+            ValueFormat(
+                'amenity',
+                'url-safe',
+                'https://wiki.openstreetmap.org/wiki/Pl:Key:amenity',
+            ),
+            [
+                ValueFormat(
+                    'bench',
+                    'url-safe',
+                    'https://wiki.openstreetmap.org/wiki/Pl:Tag:amenity=bench',
+                )
+            ],
         ),
     ],
 )

@@ -16,7 +16,11 @@ async def test_element_crud(client: AsyncClient):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_element_crud.__name__}]}}
+            'osm': {
+                'changeset': {
+                    'tag': [{'@k': 'created_by', '@v': test_element_crud.__name__}]
+                }
+            }
         }),
     )
     assert r.is_success, r.text
@@ -241,7 +245,10 @@ async def test_element_create_many_post(client: AsyncClient):
             'osm': {
                 'changeset': {
                     'tag': [
-                        {'@k': 'created_by', '@v': test_element_create_many_post.__name__},
+                        {
+                            '@k': 'created_by',
+                            '@v': test_element_create_many_post.__name__,
+                        },
                     ]
                 }
             }
@@ -279,7 +286,9 @@ async def test_element_create_many_post(client: AsyncClient):
         # Read and verify the node
         r = await client.get(f'/api/0.6/node/{node_id + offset}')
         assert r.is_success, r.text
-        node: dict = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')  # type: ignore
+        node: dict = next(
+            v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node'
+        )  # type: ignore
 
         assert_model(
             node,
@@ -300,7 +309,16 @@ async def test_element_version_and_history(client: AsyncClient):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_element_version_and_history.__name__}]}}
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {
+                            '@k': 'created_by',
+                            '@v': test_element_version_and_history.__name__,
+                        }
+                    ]
+                }
+            }
         }),
     )
     assert r.is_success, r.text

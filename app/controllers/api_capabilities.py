@@ -46,7 +46,9 @@ async def legacy_capabilities():
                 xattr('maximum'): '0.6',
             },
             'area': {
-                xattr('maximum'): min(MAP_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_AREA_MAX_SIZE),
+                xattr('maximum'): min(
+                    MAP_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_AREA_MAX_SIZE
+                ),
             },
             'changesets': {
                 xattr('maximum_elements'): changeset_max_size,
@@ -81,7 +83,9 @@ async def legacy_capabilities():
         },
         'policy': {
             'imagery': {
-                'blacklist': [{xattr('regex'): entry} for entry in _LEGACY_IMAGERY_BLACKLIST],
+                'blacklist': [
+                    {xattr('regex'): entry} for entry in _LEGACY_IMAGERY_BLACKLIST
+                ],
             },
         },
     }

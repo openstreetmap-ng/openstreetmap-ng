@@ -108,7 +108,10 @@ async def _register_types():
         await register_enum('user_subscription_target')
         await register_enum('user_token_type')
 
-        async def register_type(name: str, register_callable: Callable[[TypeInfo, AdaptContext | None], None]) -> None:
+        async def register_type(
+            name: str,
+            register_callable: Callable[[TypeInfo, AdaptContext | None], None],
+        ) -> None:
             info = await TypeInfo.fetch(conn, name)
             assert info is not None, f'{name} type not found'
             register_callable(info, None)
@@ -119,7 +122,12 @@ async def _register_types():
 
 
 @asynccontextmanager
-async def db(write: bool = False, *, autocommit: bool = False, isolation_level: IsolationLevel | None = None):
+async def db(
+    write: bool = False,
+    *,
+    autocommit: bool = False,
+    isolation_level: IsolationLevel | None = None,
+):
     """Get a database connection."""
     assert write or not autocommit, 'autocommit=True must be used with write=True'
 

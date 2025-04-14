@@ -99,7 +99,9 @@ def test_xml_unparse(input, expected):
 
 def test_xml_unparse_xattr():
     xattr = get_xattr(is_json=False)
-    unparsed = XMLToDict.unparse({'root': {xattr('test', xml='test_xml'): 'test_value'}})
+    unparsed = XMLToDict.unparse({
+        'root': {xattr('test', xml='test_xml'): 'test_value'}
+    })
     expected = "<?xml version='1.0' encoding='UTF-8'?>\n<root test_xml=\"test_value\"/>"
     assert unparsed == expected
 

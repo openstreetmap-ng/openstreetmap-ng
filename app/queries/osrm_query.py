@@ -37,7 +37,9 @@ class OSRMQuery:
         data = r.json()
         if not r.is_success:
             if 'message' in data and 'code' in data:
-                raise HTTPException(r.status_code, f'{data["message"]} ({data["code"]})')
+                raise HTTPException(
+                    r.status_code, f'{data["message"]} ({data["code"]})'
+                )
             raise HTTPException(r.status_code, r.text)
 
         leg = cast(OSRMResponse, data)['routes'][0]['legs'][0]
@@ -47,9 +49,12 @@ class OSRMQuery:
         i: cython.Py_ssize_t
         for i, step in enumerate(leg['steps']):
             step_points = decode_latlon(step['geometry'], 6)
-            points.extend(step_points[1:] if i > 0 else step_points)  # extend without overlaps
+            # extend points without overlap
+            points.extend(step_points[1:] if i > 0 else step_points)
             maneuver = step['maneuver']
-            maneuver_id = _get_maneuver_id(maneuver['type'], maneuver.get('modifier', ''))
+            maneuver_id = _get_maneuver_id(
+                maneuver['type'], maneuver.get('modifier', '')
+            )
             routing_steps[i] = RoutingResult.Step(
                 num_coords=len(step_points),
                 distance=step['distance'],
@@ -69,9 +74,16 @@ class OSRMQuery:
 @cache
 def _get_maneuver_id(type: str, modifier: str) -> str:
     if type in {'on ramp', 'off ramp', 'merge', 'end of road', 'fork'}:
-        direction = 'left' if ('left' in modifier) else 'right'
+        direction = 'left' if 'left' in modifier else 'right'
         return f'{type} {direction}'
-    if type in {'depart', 'arrive', 'rotary', 'roundabout', 'exit rotary', 'exit roundabout'}:
+    if type in {
+        'depart',
+        'arrive',
+        'rotary',
+        'roundabout',
+        'exit rotary',
+        'exit roundabout',
+    }:
         return type
     return f'turn {modifier}'
 
@@ -108,12 +120,20 @@ def _get_step_text(step: OSRMStep, maneuver_id: str) -> str:
             return t(f'{translation}_without_exit', name=name)  # noqa: INT001
 
         if 0 < exit_num <= 10:
-            exit_translation = _MANEUVER_EXIT_TO_TRANSLATION_MAP[exit_num]
-            return t(f'{translation}_with_exit_ordinal', name=name, exit=t(exit_translation))  # noqa: INT001
+            return t(
+                f'{translation}_with_exit_ordinal',  # noqa: INT001
+                name=name,
+                exit=t(_MANEUVER_EXIT_TO_TRANSLATION_MAP[exit_num]),
+            )
 
         return t(f'{translation}_with_exit', name=name, exit=exit_num)  # noqa: INT001
 
-    if maneuver_id in {'on ramp left', 'on ramp right', 'off ramp left', 'off ramp right'}:
+    if maneuver_id in {
+        'on ramp left',
+        'on ramp right',
+        'off ramp left',
+        'off ramp right',
+    }:
         exits = step.get('exits')
         destinations = step.get('destinations')
         params: dict[str, str] = {}

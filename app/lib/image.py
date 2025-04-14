@@ -38,15 +38,30 @@ DEFAULT_APP_AVATAR_URL = '/static/img/app.webp'
 class Image:
     @staticmethod
     @overload
-    def get_avatar_url(image_type: None, *, app: bool = False) -> str: ...
+    def get_avatar_url(
+        image_type: None,
+        *,
+        app: bool = False,
+    ) -> str: ...
     @staticmethod
     @overload
-    def get_avatar_url(image_type: Literal['gravatar'], image_id: int) -> str: ...
+    def get_avatar_url(
+        image_type: Literal['gravatar'],
+        image_id: int,
+    ) -> str: ...
     @staticmethod
     @overload
-    def get_avatar_url(image_type: Literal['custom'], image_id: StorageKey) -> str: ...
+    def get_avatar_url(
+        image_type: Literal['custom'],
+        image_id: StorageKey,
+    ) -> str: ...
     @staticmethod
-    def get_avatar_url(image_type: AvatarType, image_id: int | StorageKey = 0, *, app: bool = False) -> str:
+    def get_avatar_url(
+        image_type: AvatarType,
+        image_id: int | StorageKey = 0,
+        *,
+        app: bool = False,
+    ) -> str:
         """
         Get the url of the avatar image.
 
@@ -81,7 +96,7 @@ class Image:
         >>> Image.get_background_url(StorageKey('123456'))
         '/api/web/background/123456'
         """
-        return f'/api/web/background/{image_id}' if (image_id is not None) else None
+        return f'/api/web/background/{image_id}' if image_id is not None else None
 
     @staticmethod
     async def normalize_background(data: bytes) -> bytes:
@@ -152,7 +167,10 @@ async def _normalize_image(
     return buffer
 
 
-async def _optimize_quality(img: MatLike, max_file_size: int | None) -> tuple[int, bytes]:
+async def _optimize_quality(
+    img: MatLike,
+    max_file_size: int | None,
+) -> tuple[int, bytes]:
     """
     Find the best image quality given the maximum file size.
 
@@ -160,7 +178,9 @@ async def _optimize_quality(img: MatLike, max_file_size: int | None) -> tuple[in
     """
     loop = get_running_loop()
 
-    _, img_ = await loop.run_in_executor(None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, 101))
+    _, img_ = await loop.run_in_executor(
+        None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, 101)
+    )
     size = img_.size
     logging.debug('Optimizing avatar quality (lossless): %s', sizestr(size))
 
@@ -176,9 +196,13 @@ async def _optimize_quality(img: MatLike, max_file_size: int | None) -> tuple[in
     # initial quick scan
     quality: cython.int
     for quality in range(80, 20 - 1, -20):
-        _, img_ = await loop.run_in_executor(None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, quality))
+        _, img_ = await loop.run_in_executor(
+            None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, quality)
+        )
         size = img_.size
-        logging.debug('Optimizing avatar quality (quick): Q%d -> %s', quality, sizestr(size))
+        logging.debug(
+            'Optimizing avatar quality (quick): Q%d -> %s', quality, sizestr(size)
+        )
 
         if size > max_file_size:
             high = quality - bs_step
@@ -195,9 +219,13 @@ async def _optimize_quality(img: MatLike, max_file_size: int | None) -> tuple[in
         # round down to the nearest bs_step
         quality = ((low + high) // 2) // bs_step * bs_step
 
-        _, img_ = await loop.run_in_executor(None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, quality))
+        _, img_ = await loop.run_in_executor(
+            None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, quality)
+        )
         size = img_.size
-        logging.debug('Optimizing avatar quality (fine): Q%d -> %s', quality, sizestr(size))
+        logging.debug(
+            'Optimizing avatar quality (fine): Q%d -> %s', quality, sizestr(size)
+        )
 
         if size > max_file_size:
             high = quality - bs_step

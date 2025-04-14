@@ -132,12 +132,12 @@ async def get_many(
     try:
         for q in query.split(','):
             q = q.strip()
-            if (not q) or (q in parsed_query_set):
+            if not q or q in parsed_query_set:
                 continue
             parsed_query_set.add(q)
             parsed_query.append(
                 versioned_typed_element_id(type, q)
-                if 'v' in q  #
+                if 'v' in q
                 else typed_element_id(type, int(q))  # type: ignore
             )
     except ValueError:
@@ -197,7 +197,9 @@ async def get_history(type: ElementType, id: ElementId):
 async def get_full(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.get_by_refs([typed_id], at_sequence_id=at_sequence_id, limit=1)
+    elements = await ElementQuery.get_by_refs(
+        [typed_id], at_sequence_id=at_sequence_id, limit=1
+    )
     element = next(iter(elements), None)
     if element is None:
         raise_for.element_not_found(typed_id)
@@ -225,7 +227,9 @@ async def get_full(type: ElementType, id: ElementId):
 @router.get('/{type:element_type}/{id:int}/relations.json')
 async def get_parent_relations(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
-    elements = await ElementQuery.get_parents_by_refs([typed_id], parent_type='relation', limit=None)
+    elements = await ElementQuery.get_parents_by_refs(
+        [typed_id], parent_type='relation', limit=None
+    )
     return await _encode_elements(elements)
 
 
@@ -234,11 +238,15 @@ async def get_parent_relations(type: ElementType, id: ElementId):
 @router.get('/node/{id:int}/ways.json')
 async def get_parent_ways(id: ElementId):
     typed_id = typed_element_id('node', id)
-    elements = await ElementQuery.get_parents_by_refs([typed_id], parent_type='way', limit=None)
+    elements = await ElementQuery.get_parents_by_refs(
+        [typed_id], parent_type='way', limit=None
+    )
     return await _encode_elements(elements)
 
 
-def _get_elements_data(elements: list[tuple[ElementType, dict]], type: ElementType) -> list[tuple[ElementType, dict]]:
+def _get_elements_data(
+    elements: list[tuple[ElementType, dict]], type: ElementType
+) -> list[tuple[ElementType, dict]]:
     """Get the first element of the given type from the sequence of elements."""
     return [s for s in elements if s[0] == type]
 

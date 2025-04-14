@@ -29,8 +29,14 @@ def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
     fe.id(f'{APP_URL}/changeset/{changeset_id}')
     fe.published(created_at)
     fe.updated(updated_at)
-    fe.link(rel='alternate', type='text/html', href=f'{APP_URL}/changeset/{changeset_id}')
-    fe.link(rel='alternate', type='application/osm+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset_id}')
+    fe.link(
+        rel='alternate', type='text/html', href=f'{APP_URL}/changeset/{changeset_id}'
+    )
+    fe.link(
+        rel='alternate',
+        type='application/osm+xml',
+        href=f'{APP_URL}/api/0.6/changeset/{changeset_id}',
+    )
     fe.link(
         rel='alternate',
         type='application/osmChange+xml',
@@ -39,10 +45,11 @@ def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
 
     tags = changeset['tags']
     comment = tags.get('comment')
-    if comment is not None:
-        fe.title(f'{t("browse.changeset.feed.title_comment", id=changeset_id, comment=comment)}')
-    else:
-        fe.title(f'{t("browse.changeset.feed.title", id=changeset_id)}')
+    fe.title(
+        t('browse.changeset.feed.title_comment', id=changeset_id, comment=comment)
+        if comment is not None
+        else t('browse.changeset.feed.title', id=changeset_id)
+    )
 
     user_id = changeset['user_id']
     if user_id is not None:
@@ -63,7 +70,9 @@ def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
             'api06/history-feed-entry',
             {
                 'created': format_rfc2822_date(created_at),
-                'closed': format_rfc2822_date(closed_at) if (closed_at is not None) else None,
+                'closed': (
+                    format_rfc2822_date(closed_at) if closed_at is not None else None
+                ),
                 'user_display_name': user_display_name,
                 'user_permalink': user_permalink,
                 'tags': tags,

@@ -61,7 +61,12 @@ class ChangesetCommentService:
                 created_at: datetime
                 comment_id, created_at = await r.fetchone()  # type: ignore
 
-        logging.debug('Created changeset comment %d on changeset %d by user %d', comment_id, changeset_id, user_id)
+        logging.debug(
+            'Created changeset comment %d on changeset %d by user %d',
+            comment_id,
+            changeset_id,
+            user_id,
+        )
 
         comment: ChangesetComment = {
             'id': comment_id,
@@ -96,7 +101,11 @@ class ChangesetCommentService:
                 raise_for.changeset_comment_not_found(comment_id)
 
             changeset_id: ChangesetId = result[0]
-            logging.debug('Deleted changeset comment %d from changeset %d', comment_id, changeset_id)
+            logging.debug(
+                'Deleted changeset comment %d from changeset %d',
+                comment_id,
+                changeset_id,
+            )
             return changeset_id
 
 
@@ -106,7 +115,9 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
     async with TaskGroup() as tg:
         tg.create_task(changeset_comments_resolve_rich_text([comment]))
         changeset_t = tg.create_task(ChangesetQuery.find_by_id(changeset_id))
-        users = await UserSubscriptionQuery.get_subscribed_users('changeset', changeset_id)
+        users = await UserSubscriptionQuery.get_subscribed_users(
+            'changeset', changeset_id
+        )
         if not users:
             return
 
@@ -128,8 +139,12 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
                 continue
 
             with translation_context(subscribed_user['language']):
-                is_changeset_owner: cython.bint = subscribed_user_id == changeset_user_id
-                subject = _get_activity_email_subject(comment_user_name, is_changeset_owner)
+                is_changeset_owner: cython.bint = (
+                    subscribed_user_id == changeset_user_id
+                )
+                subject = _get_activity_email_subject(
+                    comment_user_name, is_changeset_owner
+                )
 
             tg.create_task(
                 EmailService.schedule(
@@ -154,8 +169,9 @@ def _get_activity_email_subject(
     comment_user_name: DisplayName,
     is_changeset_owner: cython.bint,
 ) -> str:
-    return (
-        t('user_mailer.changeset_comment_notification.commented.subject_own', commenter=comment_user_name)
+    return t(
+        'user_mailer.changeset_comment_notification.commented.subject_own'
         if is_changeset_owner
-        else t('user_mailer.changeset_comment_notification.commented.subject other', commenter=comment_user_name)
+        else 'user_mailer.changeset_comment_notification.commented.subject other',
+        commenter=comment_user_name,
     )

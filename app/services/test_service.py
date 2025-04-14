@@ -24,10 +24,14 @@ class TestService:
         """Prepare the test environment."""
         with auth_context(None, ()):
             async with TaskGroup() as tg:
-                tg.create_task(TestService.create_user(DisplayName('admin'), roles=['administrator']))
-                tg.create_task(TestService.create_user(DisplayName('moderator'), roles=['moderator']))
-                tg.create_task(TestService.create_user(DisplayName('user1')))
-                tg.create_task(TestService.create_user(DisplayName('user2')))
+                tg.create_task(
+                    TestService.create_user('admin', roles=['administrator'])
+                )
+                tg.create_task(
+                    TestService.create_user('moderator', roles=['moderator'])
+                )
+                tg.create_task(TestService.create_user('user1'))
+                tg.create_task(TestService.create_user('user2'))
 
             async with TaskGroup() as tg:
                 tg.create_task(
@@ -61,7 +65,7 @@ class TestService:
     @staticmethod
     @testmethod
     async def create_user(
-        name: DisplayName,
+        name: DisplayName | str,
         *,
         email_verified: bool = True,
         language: LocaleCode = DEFAULT_LOCALE,
@@ -72,7 +76,7 @@ class TestService:
         user_init: UserInit = {
             'email': Email(f'{name}{TEST_USER_EMAIL_SUFFIX}'),
             'email_verified': email_verified,
-            'display_name': name,
+            'display_name': name,  # type: ignore
             'password_pb': b'',
             'language': language,
             'activity_tracking': False,
@@ -129,8 +133,16 @@ class TestService:
             'client_id': client_id,
         }
 
-        client_secret_hashed = hash_bytes(client_secret) if client_secret is not None else None
-        client_secret_preview = client_secret[:OAUTH_SECRET_PREVIEW_LENGTH] if client_secret is not None else None
+        client_secret_hashed = (
+            hash_bytes(client_secret)  #
+            if client_secret is not None
+            else None
+        )
+        client_secret_preview = (
+            client_secret[:OAUTH_SECRET_PREVIEW_LENGTH]
+            if client_secret is not None
+            else None
+        )
         redirect_uris: list[Uri] = [
             Uri('http://localhost/callback'),
             Uri('urn:ietf:wg:oauth:2.0:oob'),

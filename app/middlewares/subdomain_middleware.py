@@ -50,17 +50,23 @@ class SubdomainMiddleware:
         # Handle API domain (API_URL) path restrictions
         elif url.startswith(API_URL + '/'):
             if not path.startswith('/api/') or path.startswith('/api/web/'):
-                return await Response(None, status.HTTP_404_NOT_FOUND)(scope, receive, send)
+                return await Response(None, status.HTTP_404_NOT_FOUND)(
+                    scope, receive, send
+                )
 
         # Handle iD domain (ID_URL) path restrictions
         elif url.startswith(ID_URL + '/'):
             if not path.startswith(('/static', '/id')):
-                return await Response(None, status.HTTP_404_NOT_FOUND)(scope, receive, send)
+                return await Response(None, status.HTTP_404_NOT_FOUND)(
+                    scope, receive, send
+                )
 
         # Handle Rapid domain (RAPID_URL) path restrictions
         elif url.startswith(RAPID_URL + '/'):
             if not path.startswith(('/static', '/rapid')):
-                return await Response(None, status.HTTP_404_NOT_FOUND)(scope, receive, send)
+                return await Response(None, status.HTTP_404_NOT_FOUND)(
+                    scope, receive, send
+                )
 
         # Fail if request URL doesn't match any configured URLs
         else:

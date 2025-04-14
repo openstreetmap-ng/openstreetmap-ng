@@ -1,7 +1,6 @@
 import logging
 from asyncio import Task, TaskGroup
-from collections.abc import Iterable
-from typing import Annotated, cast
+from typing import Annotated
 
 from annotated_types import MaxLen, MinLen
 from dns.asyncresolver import Resolver
@@ -14,7 +13,12 @@ from email_validator import validate_email as validate_email_
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from pydantic import BeforeValidator
 
-from app.config import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT, EMAIL_MIN_LENGTH, ENV
+from app.config import (
+    EMAIL_DELIVERABILITY_CACHE_EXPIRE,
+    EMAIL_DELIVERABILITY_DNS_TIMEOUT,
+    EMAIL_MIN_LENGTH,
+    ENV,
+)
 from app.lib.crypto import hash_bytes
 from app.models.types import Email
 from app.services.cache_service import CacheContext, CacheService
@@ -111,7 +115,11 @@ async def _check_domain_deliverability(domain: str) -> bool:
 
                 # mx - treat not-null answer as success
                 # sort answers by preference in descending order
-                rrset_by_preference = sorted(cast(Iterable[MXBase], rrset), key=lambda r: r.preference, reverse=True)
+                rrset_by_preference: list[MXBase] = sorted(
+                    rrset,
+                    key=lambda r: r.preference,
+                    reverse=True,
+                )
                 exchange = str(rrset_by_preference[0].exchange)
                 success = exchange != '.'
             elif rrset:

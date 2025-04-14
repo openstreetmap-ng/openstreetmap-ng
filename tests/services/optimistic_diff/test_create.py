@@ -74,7 +74,9 @@ async def test_create_node_with_tags(changeset_id: ChangesetId):
         ),
     ],
 )
-async def test_create_with_nonexistent_members(changeset_id: ChangesetId, element_type: ElementType, members):
+async def test_create_with_nonexistent_members(
+    changeset_id: ChangesetId, element_type: ElementType, members
+):
     # Create a way or relation with members
     element: ElementInit = {
         'changeset_id': changeset_id,
@@ -144,7 +146,7 @@ async def test_create_with_positive_id(changeset_id: ChangesetId):
     # Create element with positive id (should be negative for new elements)
     element: ElementInit = {
         'changeset_id': changeset_id,
-        'typed_id': typed_element_id('node', ElementId(1)),  # Positive id is invalid for creation
+        'typed_id': typed_element_id('node', ElementId(1)),
         'version': 1,
         'visible': True,
         'tags': {},

@@ -4,7 +4,11 @@ from app.lib.feature_icon import FeatureIcon, features_icons
 from app.lib.feature_name import features_names
 from app.models.db.element import Element
 from app.models.element import ElementType, TypedElementId, split_typed_element_id
-from app.models.proto.shared_pb2 import ElementIcon, PartialChangesetParams, PartialElementParams
+from app.models.proto.shared_pb2 import (
+    ElementIcon,
+    PartialChangesetParams,
+    PartialElementParams,
+)
 from app.queries.element_query import ElementQuery
 
 
@@ -24,7 +28,9 @@ class FormatElementList:
             for element in elements
             if not element['visible'] and element['version'] > 1
         ]
-        prev_elements = await ElementQuery.get_by_versioned_refs(prev_refs, limit=len(prev_refs))
+        prev_elements = await ElementQuery.get_by_versioned_refs(
+            prev_refs, limit=len(prev_refs)
+        )
         prev_type_id_map: dict[TypedElementId, Element]
         prev_type_id_map = {element['typed_id']: element for element in prev_elements}
         tagged_elements = (
@@ -91,11 +97,15 @@ def _encode_elements(
     names: list[str | None],
     feature_icons: list[FeatureIcon | None],
 ):
-    result: dict[ElementType, list[PartialChangesetParams.Element]] = {'node': [], 'way': [], 'relation': []}
+    result: dict[ElementType, list[PartialChangesetParams.Element]] = {
+        'node': [],
+        'way': [],
+        'relation': [],
+    }
     for element, name, feature_icon in zip(elements, names, feature_icons, strict=True):
         type, id = split_typed_element_id(element['typed_id'])
         icon = (
-            ElementIcon(icon=feature_icon.filename, title=feature_icon.title)  #
+            ElementIcon(icon=feature_icon.filename, title=feature_icon.title)
             if feature_icon is not None
             else None
         )
@@ -125,7 +135,11 @@ def _encode_parents(
             ', '.join(
                 sorted({
                     role
-                    for member, role in zip(parent['members'], parent['members_roles'], strict=True)  # pyright: ignore [reportArgumentType]
+                    for member, role in zip(
+                        parent['members'],  # pyright: ignore [reportArgumentType]
+                        parent['members_roles'],  # pyright: ignore [reportArgumentType]
+                        strict=True,
+                    )
                     if role and member == ref
                 })
             )
@@ -133,7 +147,7 @@ def _encode_parents(
             else None
         )
         icon = (
-            ElementIcon(icon=feature_icon.filename, title=feature_icon.title)  #
+            ElementIcon(icon=feature_icon.filename, title=feature_icon.title)
             if feature_icon is not None
             else None
         )
@@ -167,7 +181,7 @@ def _encode_members(
         name, feature_icon = data
         type, id = split_typed_element_id(member)
         icon = (
-            ElementIcon(icon=feature_icon.filename, title=feature_icon.title)  #
+            ElementIcon(icon=feature_icon.filename, title=feature_icon.title)
             if feature_icon is not None
             else None
         )

@@ -26,7 +26,9 @@ class WikiPageInfo(NamedTuple):
 async def discover_sitemap_urls() -> list[str]:
     r = await HTTP.get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml')
     r.raise_for_status()
-    matches = re.finditer(r'https://wiki\.openstreetmap\.org/sitemap-wiki-NS_\d+-\d+.xml.gz', r.text)
+    matches = re.finditer(
+        r'https://wiki\.openstreetmap\.org/sitemap-wiki-NS_\d+-\d+.xml.gz', r.text
+    )
     result = [match[0] for match in matches]
     print(f'[🔍] Discovered {len(result)} sitemaps')
     return result
@@ -41,12 +43,17 @@ async def fetch_and_parse_sitemap(url: str) -> list[WikiPageInfo]:
     text = gzip.decompress(r.content).decode()
     result: list[WikiPageInfo] = []
 
-    for match in re.finditer(r'/(?:(?P<locale>[\w-]+):)?(?P<page>(?:Key|Tag):.*?)</loc>', text):
+    for match in re.finditer(
+        r'/(?:(?P<locale>[\w-]+):)?(?P<page>(?:Key|Tag):.*?)</loc>', text
+    ):
         locale = match['locale'] or ''
         locale = unquote_plus(locale)
 
         # skip talk pages
-        if locale.startswith(('Talk', 'Proposal')) or locale.endswith(('_talk', '_proposal')):
+        if (
+            locale.startswith(('Talk', 'Proposal'))  #
+            or locale.endswith(('_talk', '_proposal'))
+        ):
             continue
 
         page = match['page']
@@ -75,15 +82,19 @@ async def main():
     async with TaskGroup() as tg:
         tasks = [tg.create_task(fetch_and_parse_sitemap(url)) for url in urls]
 
-    key_values_locales: defaultdict[str, defaultdict[str | None, set[str]]] = defaultdict(lambda: defaultdict(set))
+    key_values_locales: defaultdict[str, defaultdict[str | None, set[str]]]
+    key_values_locales = defaultdict(lambda: defaultdict(set))
     for info in (info for task in tasks for info in task.result()):
         key_values_locales[info.key][info.value].add(info.locale)
 
     result = {
-        key: {value: sorted(locales) for value, locales in values.items()}  #
+        key: {value: sorted(locales) for value, locales in values.items()}
         for key, values in key_values_locales.items()
     }
-    buffer = orjson.dumps(result, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE)
+    buffer = orjson.dumps(
+        result,
+        option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE,
+    )
     _wiki_pages_path.write_bytes(buffer)
 
 

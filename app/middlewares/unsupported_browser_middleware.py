@@ -45,7 +45,9 @@ class UnsupportedBrowserMiddleware:
                 return await send(message)
 
             logging.debug('Client browser is not supported')
-            response = await render_response('unsupported-browser', status=status.HTTP_501_NOT_IMPLEMENTED)
+            response = await render_response(
+                'unsupported-browser', status=status.HTTP_501_NOT_IMPLEMENTED
+            )
             return await response(scope, receive, send)
 
         return await self.app(scope, receive, wrapper)
@@ -54,8 +56,9 @@ class UnsupportedBrowserMiddleware:
 @cython.cfunc
 def _should_capture(message: Message) -> cython.bint:
     status_code: cython.int = message['status']
-    if status_code != 200:
+    if status_code < 200 or status_code >= 300:
         return False
+
     headers = Headers(raw=message['headers'])
-    content_type = headers.get('Content-Type')
-    return content_type is not None and content_type.startswith('text/html')
+    content_type = headers.get('Content-Type', '')
+    return content_type.startswith('text/html')

@@ -106,9 +106,15 @@ async def _get_unsubscribe(
     unsubscribe_id: UserSubscriptionTargetId,
     /,
 ):
-    if not await UserSubscriptionQuery.is_subscribed(unsubscribe_target, unsubscribe_id):
-        return RedirectResponse(f'/{unsubscribe_target}/{unsubscribe_id}', status.HTTP_303_SEE_OTHER)
-    return await index(unsubscribe_target=unsubscribe_target, unsubscribe_id=unsubscribe_id)
+    if not await UserSubscriptionQuery.is_subscribed(
+        unsubscribe_target, unsubscribe_id
+    ):
+        return RedirectResponse(
+            f'/{unsubscribe_target}/{unsubscribe_id}', status.HTTP_303_SEE_OTHER
+        )
+    return await index(
+        unsubscribe_target=unsubscribe_target, unsubscribe_id=unsubscribe_id
+    )
 
 
 async def _post_unsubscribe(
@@ -118,7 +124,9 @@ async def _post_unsubscribe(
     token: SecretStr,
 ):
     token_struct = await UserTokenStructUtils.from_str_stateless(token)
-    await UserTokenUnsubscribeService.unsubscribe(unsubscribe_target, unsubscribe_id, token_struct)
+    await UserTokenUnsubscribeService.unsubscribe(
+        unsubscribe_target, unsubscribe_id, token_struct
+    )
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 

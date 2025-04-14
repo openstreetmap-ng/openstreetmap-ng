@@ -6,7 +6,12 @@ from fastapi import APIRouter, Query
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import APP_URL, MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH, MESSAGES_INBOX_PAGE_SIZE
+from app.config import (
+    APP_URL,
+    MESSAGE_BODY_MAX_LENGTH,
+    MESSAGE_SUBJECT_MAX_LENGTH,
+    MESSAGES_INBOX_PAGE_SIZE,
+)
 from app.lib.auth_context import web_user
 from app.lib.date_utils import format_sql_date
 from app.lib.exceptions_context import raise_for
@@ -64,9 +69,17 @@ async def new_message(
 
         async with TaskGroup() as tg:
             items = [reply_message]
-            tg.create_task(UserQuery.resolve_users(items, user_id_key='from_user_id', user_key='from_user'))
+            tg.create_task(
+                UserQuery.resolve_users(
+                    items, user_id_key='from_user_id', user_key='from_user'
+                )
+            )
             if not is_recipient:
-                tg.create_task(UserQuery.resolve_users(items, user_id_key='to_user_id', user_key='to_user'))
+                tg.create_task(
+                    UserQuery.resolve_users(
+                        items, user_id_key='to_user_id', user_key='to_user'
+                    )
+                )
 
         from_user = reply_message['from_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
         other_user = from_user if is_recipient else reply_message['to_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
@@ -76,8 +89,15 @@ async def new_message(
         subject = f'{t("messages.compose.reply.prefix")}: {reply_message["subject"]}'
         reply_header_date = format_sql_date(reply_message['created_at'])
         reply_header_user = f'[{from_user["display_name"]}]({APP_URL}/user-id/{reply_message["from_user_id"]})'
-        reply_header = t('messages.compose.reply.header', date=reply_header_date, user=reply_header_user)
-        body = '\n'.join((f'\n\n\n{reply_header}:\n', *(f'> {line}' for line in reply_message['body'].splitlines())))
+        reply_header = t(
+            'messages.compose.reply.header',
+            date=reply_header_date,
+            user=reply_header_user,
+        )
+        body = '\n'.join((
+            f'\n\n\n{reply_header}:\n',
+            *(f'> {line}' for line in reply_message['body'].splitlines()),
+        ))
 
     elif reply_diary is not None:
         diary = await DiaryQuery.find_one_by_id(reply_diary)
@@ -98,7 +118,9 @@ async def new_message(
         async with TaskGroup() as tg:
             tg.create_task(UserQuery.resolve_users([diary_comment]))
             diary = await DiaryQuery.find_one_by_id(diary_comment['diary_id'])
-            assert diary is not None, f'Parent diary {diary_comment["diary_id"]!r} must exist'
+            assert diary is not None, (
+                f'Parent diary {diary_comment["diary_id"]!r} must exist'
+            )
 
         recipient = diary_comment['user']['display_name']  # pyright: ignore [reportTypedDictNotRequiredAccess]
         recipient_id = diary_comment['user_id']
@@ -187,7 +209,11 @@ async def _get_messages_data(
         else:
             user_id_key = 'to_user_id'
             user_key = 'to_user'
-        tg.create_task(UserQuery.resolve_users(messages, user_id_key=user_id_key, user_key=user_key))
+        tg.create_task(
+            UserQuery.resolve_users(
+                messages, user_id_key=user_id_key, user_key=user_key
+            )
+        )
 
         if messages:
             new_after_t = tg.create_task(new_after_task())

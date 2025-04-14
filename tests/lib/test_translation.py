@@ -20,10 +20,16 @@ def test_translation_context():
         with translation_context(LocaleCode('pl')):
             assert primary_translation_locale() == 'pl'
             assert translation_locales() == ('pl', DEFAULT_LOCALE)
-            assert t('osm_community_index.communities.OSM-PL-chapter.name') == 'OpenStreetMap Polska'
+            assert (
+                t('osm_community_index.communities.OSM-PL-chapter.name')
+                == 'OpenStreetMap Polska'
+            )
 
         assert primary_translation_locale() == 'en'
-        assert t('osm_community_index.communities.OSM-PL-chapter.name') == 'OpenStreetMap Poland'
+        assert (
+            t('osm_community_index.communities.OSM-PL-chapter.name')
+            == 'OpenStreetMap Poland'
+        )
 
 
 def test_translation_context_unknown():

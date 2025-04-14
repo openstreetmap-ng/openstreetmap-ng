@@ -21,8 +21,13 @@ async def microsoft_authorize(
     referer: Annotated[str | None, Form()] = None,
 ):
     if not MICROSOFT_OAUTH_PUBLIC:
-        return Response('Microsoft OAuth credentials are not configured', status.HTTP_503_SERVICE_UNAVAILABLE)
-    openid = await OpenIDQuery.discovery('https://login.microsoftonline.com/common/v2.0')
+        return Response(
+            'Microsoft OAuth credentials are not configured',
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    openid = await OpenIDQuery.discovery(
+        'https://login.microsoftonline.com/common/v2.0'
+    )
     return AuthProviderService.continue_authorize(
         provider='microsoft',
         action=action,

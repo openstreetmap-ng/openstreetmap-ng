@@ -33,7 +33,11 @@ class PrecompressedStaticFiles(StaticFiles):
         full_path, stat_result, encoding = self._resolve(path, accept_encoding)
 
         media_type = _guess_media_type(path)
-        response = FileResponse(full_path, media_type=media_type, stat_result=stat_result)
+        response = FileResponse(
+            full_path,
+            media_type=media_type,
+            stat_result=stat_result,
+        )
         response_headers = response.headers
         response_headers.add_vary_header('Accept-Encoding')
 
@@ -49,10 +53,16 @@ class PrecompressedStaticFiles(StaticFiles):
     def _resolve(self, request_path: str, accept_encoding: str | None) -> _CacheValue:
         cache_key: _CacheKey = (request_path, accept_encoding)
         result = self._resolve_cache.get(cache_key)
-        if result is not None and ENV != 'dev':  # Ignore cache in dev environment: live reloading
+
+        # Support live-reloading in dev environment.
+        if result is not None and ENV != 'dev':
             return result
 
-        paths = _try_paths(request_path, accept_encoding) if accept_encoding else [(request_path, None)]
+        paths = (
+            _try_paths(request_path, accept_encoding)
+            if accept_encoding
+            else [(request_path, None)]
+        )
         for path, encoding in paths:
             try:
                 full_path, stat_result = self.lookup_path(path)

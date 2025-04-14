@@ -33,7 +33,9 @@ async def route(
     end_loaded_lat: Annotated[Latitude, Form()],
     engine: Annotated[str, Form(min_length=1)],
 ):
-    start_endpoint, end_endpoint = await _resolve_names(bbox, start, start_loaded, end, end_loaded)
+    start_endpoint, end_endpoint = await _resolve_names(
+        bbox, start, start_loaded, end, end_loaded
+    )
     if start_endpoint is not None:
         start_loaded_lon = start_endpoint.lon
         start_loaded_lat = start_endpoint.lat
@@ -51,7 +53,10 @@ async def route(
     elif engine == 'valhalla' and profile in ValhallaProfiles:
         result = await ValhallaQuery.route(start_point, end_point, profile=profile)
     else:
-        return Response(f'Unsupported engine profile: {engine}_{profile}', status.HTTP_400_BAD_REQUEST)
+        return Response(
+            f'Unsupported engine profile: {engine}_{profile}',
+            status.HTTP_400_BAD_REQUEST,
+        )
 
     if start_endpoint is not None:
         result.MergeFrom(RoutingResult(start=start_endpoint))
@@ -61,18 +66,20 @@ async def route(
     return Response(result.SerializeToString(), media_type='application/x-protobuf')
 
 
-async def _resolve_names(bbox: str, start: str, start_loaded: str, end: str, end_loaded: str):
+async def _resolve_names(
+    bbox: str, start: str, start_loaded: str, end: str, end_loaded: str
+):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
     async with TaskGroup() as tg:
         from_task = (
             tg.create_task(_resolve_name('start', start, bbox, at_sequence_id))
-            if (start != start_loaded)  #
+            if start != start_loaded
             else None
         )
         to_task = (
             tg.create_task(_resolve_name('end', end, bbox, at_sequence_id))
-            if (end != end_loaded)  #
+            if end != end_loaded
             else None
         )
 
@@ -81,7 +88,9 @@ async def _resolve_names(bbox: str, start: str, start_loaded: str, end: str, end
     return resolve_from, resolve_to
 
 
-async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: SequenceId) -> RoutingResult.Endpoint:
+async def _resolve_name(
+    field: str, query: str, bbox: str, at_sequence_id: SequenceId
+) -> RoutingResult.Endpoint:
     # Try to parse as literal point
     point = try_parse_point(query)
     if point is not None:
@@ -114,7 +123,9 @@ async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: Seque
     results = task_results[task_index]
     result = next(iter(results), None)
     if result is None:
-        StandardFeedback.raise_error(field, t('javascripts.directions.errors.no_place', place=query))
+        StandardFeedback.raise_error(
+            field, t('javascripts.directions.errors.no_place', place=query)
+        )
 
     x, y = get_coordinates(result.point)[0].tolist()
     return RoutingResult.Endpoint(

@@ -47,7 +47,12 @@ def hmac_bytes(s: str | bytes) -> bytes:
     return _hash(s, SECRET_32.get_secret_value()).digest()
 
 
-def hash_compare(s: _T, expected: bytes, *, hash_func: Callable[[_T], bytes] = hash_bytes) -> bool:
+def hash_compare(
+    s: _T,
+    expected: bytes,
+    *,
+    hash_func: Callable[[_T], bytes] = hash_bytes,
+) -> bool:
     """Compute and compare the hash of the input in a time-constant manner."""
     return compare_digest(hash_func(s), expected)
 
@@ -75,7 +80,11 @@ def decrypt(buffer: bytes) -> str:
     if marker == 0x00:
         nonce_bytes = buffer[1:16]
         cipher_text_bytes = buffer[16:]
-        cipher = AES.new(key=SECRET_32.get_secret_value(), mode=AES.MODE_CTR, nonce=nonce_bytes)
+        cipher = AES.new(
+            key=SECRET_32.get_secret_value(),
+            mode=AES.MODE_CTR,
+            nonce=nonce_bytes,
+        )
         return cipher.decrypt(cipher_text_bytes).decode()
 
     raise NotImplementedError(f'Unsupported encryption marker {marker!r}')

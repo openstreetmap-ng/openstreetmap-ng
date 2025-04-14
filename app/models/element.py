@@ -104,11 +104,15 @@ def split_typed_element_id(id: TypedElementId) -> tuple[ElementType, ElementId]:
     return _split_typed_element_id(id)
 
 
-def split_typed_element_ids(ids: list[TypedElementId]) -> list[tuple[ElementType, ElementId]]:
+def split_typed_element_ids(
+    ids: list[TypedElementId],
+) -> list[tuple[ElementType, ElementId]]:
     return [_split_typed_element_id(id) for id in ids]
 
 
-def split_typed_element_ids2(elements: list['Element'] | list['ElementInit']) -> list[tuple[ElementType, ElementId]]:
+def split_typed_element_ids2(
+    elements: list['Element'] | list['ElementInit'],
+) -> list[tuple[ElementType, ElementId]]:
     return [_split_typed_element_id(e['typed_id']) for e in elements]
 
 

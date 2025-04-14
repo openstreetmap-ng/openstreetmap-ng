@@ -77,7 +77,9 @@ class SystemAppService:
                 tg.create_task(_register_app(app))
 
     @staticmethod
-    async def create_access_token(client_id: ClientId, *, user_id: UserId | None = None) -> SecretStr:
+    async def create_access_token(
+        client_id: ClientId, *, user_id: UserId | None = None
+    ) -> SecretStr:
         """Create an OAuth2-based access token for the given system app."""
         if user_id is None:
             user_id = auth_user(required=True)['id']

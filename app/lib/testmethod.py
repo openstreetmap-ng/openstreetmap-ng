@@ -11,6 +11,8 @@ def testmethod(func: Callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        raise AssertionError(f'@testmethod: {func.__qualname__} is disabled in {ENV} environment')
+        raise AssertionError(
+            f'@testmethod: {func.__qualname__} is disabled in {ENV} environment'
+        )
 
     return wrapper

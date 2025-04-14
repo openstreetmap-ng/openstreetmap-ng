@@ -8,7 +8,9 @@ from app.models.types import UserId, UserSubscriptionTargetId
 
 class UserSubscriptionService:
     @staticmethod
-    async def subscribe(target: UserSubscriptionTarget, target_id: UserSubscriptionTargetId) -> None:
+    async def subscribe(
+        target: UserSubscriptionTarget, target_id: UserSubscriptionTargetId
+    ) -> None:
         """Subscribe the user to the target."""
         user_id = auth_user(required=True)['id']
 

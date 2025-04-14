@@ -20,8 +20,12 @@ async def query_nearby_features(
     lat: Annotated[Latitude, Query()],
     zoom: Annotated[Zoom, Query(ge=14)],
 ):
-    radius_meters = 10 * 1.5 ** (19 - zoom)  # match with app/views/index/query-features.ts
-    overpass_elements = await OverpassQuery.nearby_elements(Point(lon, lat), radius_meters)
+    radius_meters = 10 * 1.5 ** (
+        19 - zoom
+    )  # match with app/views/index/query-features.ts
+    overpass_elements = await OverpassQuery.nearby_elements(
+        Point(lon, lat), radius_meters
+    )
     results = QueryFeatures.wrap_overpass_elements(overpass_elements)
     renders = FormatLeaflet.encode_query_features(results)
 

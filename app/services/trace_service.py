@@ -47,7 +47,11 @@ class TraceService:
             raise_for.bad_trace_file(str(e))
 
         decoded = FormatGPX.decode_tracks(tracks)
-        logging.debug('Organized %d points into %d segments', decoded.size, len(decoded.segments.geoms))
+        logging.debug(
+            'Organized %d points into %d segments',
+            decoded.size,
+            len(decoded.segments.geoms),
+        )
 
         trace_init: TraceInit = {
             'user_id': auth_user(required=True)['id'],
@@ -64,7 +68,9 @@ class TraceService:
 
         # Save the compressed file after validation to avoid unnecessary work
         result = await TraceFile.compress(file_bytes)
-        trace_init['file_id'] = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
+        trace_init['file_id'] = await TRACE_STORAGE.save(
+            result.data, result.suffix, result.metadata
+        )
         logging.debug('Saved compressed trace file %r', trace_init['file_id'])
 
         try:
@@ -183,5 +189,4 @@ def _get_file_name(file: UploadFile) -> str:
 
     If not provided, use the current time as the file name.
     """
-    filename = file.filename
-    return filename if (filename is not None) else f'{utcnow().isoformat(timespec="seconds")}.gpx'
+    return file.filename or f'{utcnow().isoformat(timespec="seconds")}.gpx'

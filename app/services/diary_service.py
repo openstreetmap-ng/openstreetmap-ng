@@ -100,7 +100,9 @@ class DiaryService:
                 raise_for.diary_not_found(diary_id)
 
     @staticmethod
-    async def delete(diary_id: DiaryId, *, current_user_id: UserId | None = None) -> None:
+    async def delete(
+        diary_id: DiaryId, *, current_user_id: UserId | None = None
+    ) -> None:
         """Delete a diary entry."""
         conditions: list[Composable] = [SQL('id = %s')]
         params: list[Any] = [diary_id]

@@ -89,7 +89,10 @@ class MessageQuery:
                 ORDER BY id DESC
             """).format(query)
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod

@@ -28,7 +28,9 @@ async def index(
     open = status == 'open' if status else None
     commented = request.url.path.endswith('/commented')
 
-    notes_num_items = await NoteQuery.count_by_user_id(user['id'], commented_other=commented, open=open)
+    notes_num_items = await NoteQuery.count_by_user_id(
+        user['id'], commented_other=commented, open=open
+    )
     notes_num_pages = ceil(notes_num_items / NOTE_USER_PAGE_SIZE)
 
     active_tab = 0 if not commented else 1

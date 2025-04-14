@@ -19,7 +19,9 @@ SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG = 'osm-ng-changeset-management'
 SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG = 'osm-ng-rate-limit-management'
 SENTRY_USERS_DELETED_TXT_MONITOR_SLUG = 'osm-ng-users-deleted-txt'
 
-pydantic_settings_integration(__name__, globals(), name_filter=lambda name: name.startswith('SENTRY_'))
+pydantic_settings_integration(
+    __name__, globals(), name_filter=lambda name: name.startswith('SENTRY_')
+)
 
 if SENTRY_DSN and 'pytest' not in modules:
     sentry_sdk.init(

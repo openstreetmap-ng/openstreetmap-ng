@@ -15,7 +15,11 @@ from app.lib.date_utils import utcnow
 from app.lib.locale import DEFAULT_LOCALE
 from app.lib.xmltodict import XMLToDict
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
-from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2ResponseMode, OAuth2TokenEndpointAuthMethod
+from app.models.db.oauth2_token import (
+    OAuth2CodeChallengeMethod,
+    OAuth2ResponseMode,
+    OAuth2TokenEndpointAuthMethod,
+)
 from tests.utils.assert_model import assert_model
 
 
@@ -70,7 +74,11 @@ async def test_authorize_invalid_extra_scopes(client: AsyncClient):
 
 @pytest.mark.parametrize(
     ('code_challenge_method', 'token_endpoint_auth_method'),
-    list(product(get_args(OAuth2CodeChallengeMethod), get_args(OAuth2TokenEndpointAuthMethod))),
+    list(
+        product(
+            get_args(OAuth2CodeChallengeMethod), get_args(OAuth2TokenEndpointAuthMethod)
+        )
+    ),
 )
 async def test_authorize_token_oob(
     client: AsyncClient,
@@ -92,7 +100,9 @@ async def test_authorize_token_oob(
 
     if code_challenge_method == 'plain':  # authlib doesn't support plain method
         authorization_url, state = auth_client.create_authorization_url(
-            '/oauth2/authorize', code_challenge=code_verifier, code_challenge_method='plain'
+            '/oauth2/authorize',
+            code_challenge=code_verifier,
+            code_challenge_method='plain',
         )
     else:
         authorization_url, state = auth_client.create_authorization_url(
@@ -146,7 +156,9 @@ async def test_authorize_response_redirect(client: AsyncClient, is_fragment):
     )
 
     response_mode: OAuth2ResponseMode = 'fragment' if is_fragment else 'query'
-    authorization_url, state = auth_client.create_authorization_url('/oauth2/authorize', response_mode=response_mode)
+    authorization_url, state = auth_client.create_authorization_url(
+        '/oauth2/authorize', response_mode=response_mode
+    )
 
     # Perform authorization
     r = await client.post(authorization_url)
@@ -196,7 +208,9 @@ async def test_authorize_response_form_post(client: AsyncClient):
         scope='',
         redirect_uri='http://localhost/callback',
     )
-    authorization_url, _ = auth_client.create_authorization_url('/oauth2/authorize', response_mode='form_post')
+    authorization_url, _ = auth_client.create_authorization_url(
+        '/oauth2/authorize', response_mode='form_post'
+    )
 
     # Perform authorization
     r = await client.post(authorization_url)
@@ -359,8 +373,13 @@ async def test_access_token_in_form(client: AsyncClient, valid_scope):
         assert r.is_success, r.text
         props: dict = XMLToDict.parse(r.content)['osm']['note'][0]  # type: ignore
         assert len(props['comments']['comment']) == 1
-        assert_model(props['comments']['comment'][0], {'user': 'user1', 'action': 'opened'})
+        assert_model(
+            props['comments']['comment'][0], {'user': 'user1', 'action': 'opened'}
+        )
     else:
         # Without valid scope, the request should fail with permission error
         assert r.status_code == status.HTTP_403_FORBIDDEN, r.text
-        assert 'The request requires higher privileges than authorized (write_notes)' in r.text
+        assert (
+            'The request requires higher privileges than authorized (write_notes)'
+            in r.text
+        )

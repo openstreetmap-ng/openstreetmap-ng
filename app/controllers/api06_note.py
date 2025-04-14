@@ -202,7 +202,9 @@ async def query_notes1(
     request: Request,
     bbox: Annotated[str, Query()],
     closed: Annotated[float, Query()] = NOTE_QUERY_DEFAULT_CLOSED,
-    limit: Annotated[PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)] = NOTE_QUERY_DEFAULT_LIMIT,
+    limit: Annotated[
+        PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)
+    ] = NOTE_QUERY_DEFAULT_LIMIT,
 ):
     geometry = parse_bbox(bbox)
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
@@ -251,12 +253,16 @@ async def query_notes2(
     to: Annotated[datetime | None, DateValidator, Query()] = None,
     sort: Annotated[Literal['created_at', 'updated_at'], Query()] = 'updated_at',
     order: Annotated[Literal['oldest', 'newest'], Query()] = 'newest',
-    limit: Annotated[PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)] = NOTE_QUERY_DEFAULT_LIMIT,
+    limit: Annotated[
+        PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)
+    ] = NOTE_QUERY_DEFAULT_LIMIT,
 ):
     # Logical optimizations
     if (
-        ((from_ is not None) and (to is not None) and (from_ >= to))  # Invalid date range
-        or ((q is not None) and (not q.strip()))  # Empty query text
+        # Invalid date range
+        ((from_ is not None) and (to is not None) and (from_ >= to))
+        # Empty query text
+        or ((q is not None) and (not q.strip()))
     ):
         return Format06.encode_notes([])
 
@@ -315,7 +321,9 @@ async def query_notes2(
     return Format06.encode_notes(notes)
 
 
-async def _resolve_comments_full(notes_or_comments: list[Note] | list[NoteComment]) -> None:
+async def _resolve_comments_full(
+    notes_or_comments: list[Note] | list[NoteComment],
+) -> None:
     """Resolve note comments, their rich text and users."""
     if not notes_or_comments:
         return

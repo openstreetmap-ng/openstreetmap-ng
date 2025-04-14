@@ -15,7 +15,13 @@ _MESSAGES_COUNT_UNREAD_CTX: ContextVar[Task[int]] = ContextVar('MessageCountUnre
 @contextmanager
 def _messages_count_unread(tg: TaskGroup):
     # skip count_unread for API and static requests
-    if 'web_user' not in auth_scopes() or get_request().url.path.startswith(('/api/', '/static')):
+    if (
+        'web_user' not in auth_scopes()  #
+        or get_request().url.path.startswith((
+            '/api/',
+            '/static',
+        ))
+    ):
         yield
         return
 
@@ -35,7 +41,9 @@ class ParallelTasksMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
-    async def __call__(self, scope: StarletteScope, receive: Receive, send: Send) -> None:
+    async def __call__(
+        self, scope: StarletteScope, receive: Receive, send: Send
+    ) -> None:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
@@ -47,4 +55,4 @@ class ParallelTasksMiddleware:
     async def messages_count_unread() -> int | None:
         """Get the number of unread messages."""
         task = _MESSAGES_COUNT_UNREAD_CTX.get(None)
-        return (await task) if (task is not None) else None
+        return (await task) if task is not None else None

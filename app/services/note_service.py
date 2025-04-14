@@ -37,7 +37,9 @@ class NoteService:
     @staticmethod
     async def create(lon: float, lat: float, text: str) -> NoteId:
         """Create a note and return its id."""
-        point: Point = points(np.array((lon, lat), np.float64).round(GEO_COORDINATE_PRECISION))  # type: ignore
+        point: Point = points(
+            np.array((lon, lat), np.float64).round(GEO_COORDINATE_PRECISION)
+        )  # type: ignore
         point = validate_geometry(point)
 
         user, scopes = auth_user_scopes()
@@ -125,7 +127,9 @@ class NoteService:
         """).format(conditions=SQL(' AND ').join(conditions))
 
         async with db(True) as conn:
-            async with await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+            async with await conn.cursor(row_factory=dict_row).execute(
+                query, params
+            ) as r:
                 note: Note | None = await r.fetchone()  # type: ignore
                 if note is None:
                     raise_for.note_not_found(note_id)
@@ -247,7 +251,9 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
             )
         )
 
-        users = await UserSubscriptionQuery.get_subscribed_users('note', comment['note_id'])
+        users = await UserSubscriptionQuery.get_subscribed_users(
+            'note', comment['note_id']
+        )
         if not users:
             return
 
@@ -256,7 +262,9 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
     assert first_comments, 'Note must have at least one comment'
     first_comment_user_id: cython.longlong = first_comments[0]['user_id'] or 0
 
-    assert comment['user_id'] is not None, 'Anonymous note comments are no longer supported'
+    assert comment['user_id'] is not None, (
+        'Anonymous note comments are no longer supported'
+    )
     comment_user = comment['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     comment_user_id: cython.longlong = comment_user['id']
     comment_user_name = comment_user['display_name']
@@ -271,7 +279,9 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
 
             with translation_context(subscribed_user['language']):
                 is_note_owner: cython.bint = subscribed_user_id == first_comment_user_id
-                subject = _get_activity_email_subject(comment_user_name, comment_event, is_note_owner)
+                subject = _get_activity_email_subject(
+                    comment_user_name, comment_event, is_note_owner
+                )
 
             tg.create_task(
                 EmailService.schedule(
@@ -280,7 +290,11 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
                     to_user=subscribed_user,
                     subject=subject,
                     template_name='email/note-activity',
-                    template_data={'comment': comment, 'is_note_owner': is_note_owner, 'place': place},
+                    template_data={
+                        'comment': comment,
+                        'is_note_owner': is_note_owner,
+                        'place': place,
+                    },
                     ref=ref,
                 )
             )
@@ -294,18 +308,36 @@ def _get_activity_email_subject(
 ) -> str:
     if event == 'commented':
         if is_note_owner:
-            return t('user_mailer.note_comment_notification.commented.subject_own', commenter=comment_user_name)
+            return t(
+                'user_mailer.note_comment_notification.commented.subject_own',
+                commenter=comment_user_name,
+            )
         else:
-            return t('user_mailer.note_comment_notification.commented.subject other', commenter=comment_user_name)
+            return t(
+                'user_mailer.note_comment_notification.commented.subject other',
+                commenter=comment_user_name,
+            )
     elif event == 'closed':
         if is_note_owner:
-            return t('user_mailer.note_comment_notification.closed.subject_own', commenter=comment_user_name)
+            return t(
+                'user_mailer.note_comment_notification.closed.subject_own',
+                commenter=comment_user_name,
+            )
         else:
-            return t('user_mailer.note_comment_notification.closed.subject other', commenter=comment_user_name)
+            return t(
+                'user_mailer.note_comment_notification.closed.subject other',
+                commenter=comment_user_name,
+            )
     elif event == 'reopened':
         if is_note_owner:
-            return t('user_mailer.note_comment_notification.reopened.subject_own', commenter=comment_user_name)
+            return t(
+                'user_mailer.note_comment_notification.reopened.subject_own',
+                commenter=comment_user_name,
+            )
         else:
-            return t('user_mailer.note_comment_notification.reopened.subject other', commenter=comment_user_name)
+            return t(
+                'user_mailer.note_comment_notification.reopened.subject other',
+                commenter=comment_user_name,
+            )
 
     raise NotImplementedError(f'Unsupported activity email note event {event!r}')

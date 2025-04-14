@@ -4,7 +4,13 @@ from typing import Any
 from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
-from app.config import API_URL, ENV, MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE, VERSION
+from app.config import (
+    API_URL,
+    ENV,
+    MAP_QUERY_AREA_MAX_SIZE,
+    NOTE_QUERY_AREA_MAX_SIZE,
+    VERSION,
+)
 from app.lib.auth_context import auth_user
 from app.lib.locale import map_i18next_files
 from app.lib.render_jinja import render_jinja

@@ -9,7 +9,9 @@ import numpy as np
 from app.lib.locale import DEFAULT_LOCALE, is_installed_locale
 from app.models.types import LocaleCode
 
-_CTX: ContextVar[tuple[tuple[LocaleCode, ...], GNUTranslations]] = ContextVar('Translation')
+_CTX: ContextVar[tuple[tuple[LocaleCode, ...], GNUTranslations]] = ContextVar(
+    'Translation'
+)
 _LOCALE_DIR = Path('config/locale/gnu')
 
 
@@ -77,4 +79,5 @@ def nt(message: str, /, count: int | np.integer, **kwargs) -> str:
     """Get the translation for the given message, with pluralization."""
     trans: GNUTranslations = _CTX.get()[1]
     translated = trans.ngettext(message, message, count)  # pyright: ignore[reportArgumentType]
-    return translated.format(count=count, **kwargs) if kwargs else translated.format(count=count)
+    kwargs['count'] = count
+    return translated.format(**kwargs)

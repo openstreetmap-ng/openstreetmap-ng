@@ -42,7 +42,9 @@ def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
 
     # use lossless encoding if smaller in size
     if quality <= 100:
-        _, img_lossless = cv2.imencode(output.suffix, img, (cv2.IMWRITE_WEBP_QUALITY, 101))
+        _, img_lossless = cv2.imencode(
+            output.suffix, img, (cv2.IMWRITE_WEBP_QUALITY, 101)
+        )
         if img_lossless.size < img.size:
             img = img_lossless
 

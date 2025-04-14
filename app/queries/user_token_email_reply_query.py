@@ -11,7 +11,9 @@ from app.queries.user_token_query import UserTokenQuery
 
 class UserTokenEmailReplyQuery:
     @staticmethod
-    async def find_one_by_reply_address(reply_address: Email) -> UserTokenEmailReply | None:
+    async def find_one_by_reply_address(
+        reply_address: Email,
+    ) -> UserTokenEmailReply | None:
         """Find a user email reply token by reply email address."""
         # Strip the name part: "abc" <foo@bar.com> -> foo@bar.com
         reply_address = Email(parseaddr(reply_address)[1])
@@ -22,4 +24,6 @@ class UserTokenEmailReplyQuery:
             logging.debug('Invalid reply address format %r', reply_address)
             return None
 
-        return await UserTokenQuery.find_one_by_token_struct('email_reply', token_struct)
+        return await UserTokenQuery.find_one_by_token_struct(
+            'email_reply', token_struct
+        )

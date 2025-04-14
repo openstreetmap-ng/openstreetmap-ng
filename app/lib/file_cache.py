@@ -39,7 +39,9 @@ class _FileCacheLock:
 
         async with timeout(FILE_CACHE_LOCK_TIMEOUT.total_seconds()):
             loop = get_running_loop()
-            await loop.run_in_executor(None, lambda: fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX))
+            await loop.run_in_executor(
+                None, lambda: fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            )
 
         return self
 
@@ -88,7 +90,11 @@ class FileCache:
     @staticmethod
     async def set(lock: _FileCacheLock, data: bytes, *, ttl: timedelta | None) -> None:
         """Set a value in the file cache."""
-        expires_at = int(time.time() + ttl.total_seconds()) if (ttl is not None) else None
+        expires_at = (
+            int(time.time() + ttl.total_seconds())  #
+            if ttl is not None
+            else None
+        )
         entry = FileCacheMeta(data=data, expires_at=expires_at)
         entry_bytes = entry.SerializeToString()
 
@@ -137,7 +143,11 @@ class FileCache:
             infos.append(_CleanupInfo(expires_at, size, path))
             total_size += size
 
-        logging.debug('File cache usage is %s of %s', sizestr(total_size), sizestr(limit_size))
+        logging.debug(
+            'File cache usage is %s of %s',
+            sizestr(total_size),
+            sizestr(limit_size),
+        )
         if total_size <= limit_size:
             return
 
@@ -155,4 +165,8 @@ class FileCache:
 @cython.cfunc
 def _get_path(base_dir: Path, key: StorageKey, /):
     """Get the path to a file in the cache."""
-    return base_dir.joinpath(key[:2], key[2:4], key) if len(key) > 4 else base_dir.joinpath(key)
+    return (
+        base_dir.joinpath(key[:2], key[2:4], key)
+        if len(key) > 4
+        else base_dir.joinpath(key)
+    )

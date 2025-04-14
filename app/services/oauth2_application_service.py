@@ -6,7 +6,12 @@ from pydantic import SecretStr
 from rfc3986 import uri_reference
 from zid import zid
 
-from app.config import OAUTH_APP_ADMIN_LIMIT, OAUTH_APP_URI_LIMIT, OAUTH_APP_URI_MAX_LENGTH, OAUTH_SECRET_PREVIEW_LENGTH
+from app.config import (
+    OAUTH_APP_ADMIN_LIMIT,
+    OAUTH_APP_URI_LIMIT,
+    OAUTH_APP_URI_MAX_LENGTH,
+    OAUTH_SECRET_PREVIEW_LENGTH,
+)
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
@@ -63,7 +68,9 @@ class OAuth2ApplicationService:
             ) as r:
                 count: int = (await r.fetchone())[0]  # type: ignore
                 if count > OAUTH_APP_ADMIN_LIMIT:
-                    StandardFeedback.raise_error(None, t('validation.reached_app_limit'))
+                    StandardFeedback.raise_error(
+                        None, t('validation.reached_app_limit')
+                    )
 
         return app_id
 
@@ -72,11 +79,15 @@ class OAuth2ApplicationService:
         """Validate redirect URIs."""
         uris = splitlines_trim(redirect_uris)
         if len(uris) > OAUTH_APP_URI_LIMIT:
-            StandardFeedback.raise_error('redirect_uris', t('validation.too_many_redirect_uris'))
+            StandardFeedback.raise_error(
+                'redirect_uris', t('validation.too_many_redirect_uris')
+            )
 
         for uri in uris:
             if len(uri) > OAUTH_APP_URI_MAX_LENGTH:
-                StandardFeedback.raise_error('redirect_uris', t('validation.redirect_uri_too_long'))
+                StandardFeedback.raise_error(
+                    'redirect_uris', t('validation.redirect_uri_too_long')
+                )
 
             if uri in {'urn:ietf:wg:oauth:2.0:oob', 'urn:ietf:wg:oauth:2.0:oob:auto'}:
                 continue
@@ -85,14 +96,18 @@ class OAuth2ApplicationService:
                 UriValidator.validate(uri_reference(uri))
             except Exception:
                 logging.debug('Invalid redirect URI %r', uri)
-                StandardFeedback.raise_error('redirect_uris', t('validation.invalid_redirect_uri'))
+                StandardFeedback.raise_error(
+                    'redirect_uris', t('validation.invalid_redirect_uri')
+                )
 
             normalized = f'{uri.casefold()}/'
-            if (
-                normalized.startswith('http://')  #
-                and not normalized.startswith(('http://127.0.0.1/', 'http://localhost/'))
-            ):
-                StandardFeedback.raise_error('redirect_uris', t('validation.insecure_redirect_uri'))
+            if normalized.startswith('http://') and not normalized.startswith((
+                'http://127.0.0.1/',
+                'http://localhost/',
+            )):
+                StandardFeedback.raise_error(
+                    'redirect_uris', t('validation.insecure_redirect_uri')
+                )
 
         # deduplicate (order-preserving) and cast type
         return list(dict.fromkeys(uris))  # type: ignore

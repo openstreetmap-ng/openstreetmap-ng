@@ -31,9 +31,12 @@ class UserTokenEmailReplyService:
         Create a new user email reply address.
         Replying user can use this address to send a message to the current user.
         """
-        token = await _create_token(replying_user, mail_source, reply_to_user_id=reply_to_user_id)
-        token_str = UserTokenStructUtils.to_str(token)
-        return Email(f'{token_str}@{SMTP_MESSAGES_FROM_HOST}')
+        token = UserTokenStructUtils.to_str(
+            await _create_token(
+                replying_user, mail_source, reply_to_user_id=reply_to_user_id
+            )
+        )
+        return Email(f'{token}@{SMTP_MESSAGES_FROM_HOST}')
 
     @staticmethod
     async def reply(reply_address: Email, subject: str, body: str) -> None:
@@ -53,7 +56,9 @@ class UserTokenEmailReplyService:
                 (token['id'], EMAIL_REPLY_USAGE_LIMIT),
             )
             if not result.rowcount:
-                logging.warning('UserTokenEmailReply usage limit exceeded for %d', token['id'])
+                logging.warning(
+                    'UserTokenEmailReply usage limit exceeded for %d', token['id']
+                )
                 raise_for.bad_user_token_struct()
 
         user = await UserQuery.find_one_by_id(token['user_id'])

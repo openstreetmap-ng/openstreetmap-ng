@@ -14,7 +14,8 @@ def pydantic_settings_integration(
     caller_globals: dict[str, Any],
     /,
     config: SettingsConfigDict = BaseSettings.model_config,
-    name_filter: Callable[[str], bool] = lambda name: name[:1] != '_' and name.isupper(),
+    name_filter: Callable[[str], bool] = lambda name: name[:1] != '_'
+    and name.isupper(),
 ) -> None:
     """
     Introspects the calling module's globals, creates a dynamic Pydantic
@@ -28,14 +29,21 @@ def pydantic_settings_integration(
 
     type_hints = get_type_hints(modules[caller_name], filtered_globals)
     fields: dict[str, tuple[type, Any]] = {
-        name: (type_hints.get(name, Any if isinstance(value, FieldInfo) else type(value)), value)
-        for name, value in filtered_globals.items()  #
+        name: (
+            type_hints.get(name, Any if isinstance(value, FieldInfo) else type(value)),
+            value,
+        )
+        for name, value in filtered_globals.items()
     }
 
     caller_globals.update(
         create_model(
             f'{caller_name}_DynamicSettings',
-            __base__=type(f'{caller_name}_DynamicBaseSettings', (BaseSettings,), {'model_config': config}),
+            __base__=type(
+                f'{caller_name}_DynamicBaseSettings',
+                (BaseSettings,),
+                {'model_config': config},
+            ),
             **fields,  # type: ignore
         )().model_dump()
     )

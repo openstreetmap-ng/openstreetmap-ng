@@ -87,7 +87,10 @@ def _serialize_json(content: Any):
             raise TypeError(f'Invalid json content type {type(content)}')
         content = {**_JSON_ATTRS, **content}
 
-    encoded = orjson.dumps(content, option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_UTC_Z)
+    encoded = orjson.dumps(
+        content,
+        option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_UTC_Z,
+    )
     return Response(encoded, media_type='application/json; charset=utf-8')
 
 
@@ -136,7 +139,10 @@ def setup_api_router_response(router: APIRouter) -> None:
         if not isinstance(route, APIRoute):
             continue
 
-        if isinstance(route.response_class, type) and issubclass(route.response_class, OSMResponse):
+        if (
+            isinstance(route.response_class, type)  #
+            and issubclass(route.response_class, OSMResponse)
+        ):
             response_class = route.response_class
         else:
             response_class = OSMResponse
@@ -154,6 +160,10 @@ def _get_serializing_endpoint(endpoint: Callable, response_class: type[OSMRespon
         content = await endpoint(*args, **kwargs)
 
         # Serialize responses only if needed
-        return content if isinstance(content, Response) else response_class.serialize(content)
+        return (
+            content
+            if isinstance(content, Response)
+            else response_class.serialize(content)
+        )
 
     return serializing_endpoint

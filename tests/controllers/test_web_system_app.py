@@ -11,7 +11,9 @@ from app.models.types import ClientId
 
 async def test_create_access_token(client: AsyncClient):
     async def call_create_access_token(client_id: ClientId) -> Response:
-        return await client.post('/api/web/system-app/create-access-token', data={'client_id': client_id})
+        return await client.post(
+            '/api/web/system-app/create-access-token', data={'client_id': client_id}
+        )
 
     # Test unauthenticated access
     r = await call_create_access_token(SYSTEM_APP_ID_CLIENT_ID)

@@ -17,7 +17,11 @@ from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes, hash_compare, hash_s256_code_challenge
 from app.lib.exceptions_context import raise_for
-from app.models.db.oauth2_application import SYSTEM_APP_PAT_CLIENT_ID, OAuth2Application, oauth2_app_is_system
+from app.models.db.oauth2_application import (
+    SYSTEM_APP_PAT_CLIENT_ID,
+    OAuth2Application,
+    oauth2_app_is_system,
+)
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,
     OAuth2Token,
@@ -180,7 +184,9 @@ class OAuth2TokenService:
         if app['confidential'] and (
             client_secret is None
             or app['client_secret_hashed'] is None
-            or not hash_compare(client_secret.get_secret_value(), app['client_secret_hashed'])
+            or not hash_compare(
+                client_secret.get_secret_value(), app['client_secret_hashed']
+            )
         ):
             raise_for.oauth_bad_client_secret()
 
@@ -215,7 +221,10 @@ class OAuth2TokenService:
                     if token['code_challenge'] != verifier:
                         raise_for.oauth2_bad_verifier(code_challenge_method)
                 elif code_challenge_method == 'S256':
-                    if verifier is None or token['code_challenge'] != hash_s256_code_challenge(verifier):
+                    if (
+                        verifier is None  #
+                        or token['code_challenge'] != hash_s256_code_challenge(verifier)
+                    ):
                         raise_for.oauth2_bad_verifier(code_challenge_method)
                 else:
                     raise NotImplementedError(  # noqa: TRY301
@@ -260,7 +269,9 @@ class OAuth2TokenService:
         }
 
     @staticmethod
-    async def create_pat(*, name: str, scopes: tuple[PublicScope, ...]) -> OAuth2TokenId:
+    async def create_pat(
+        *, name: str, scopes: tuple[PublicScope, ...]
+    ) -> OAuth2TokenId:
         """Create a new Personal Access Token with the given name and scopes. Returns the token id."""
         app_id = SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID]
         user_id = auth_user(required=True)['id']
@@ -412,4 +423,6 @@ class OAuth2TokenService:
             app: OAuth2Application | None = await r.fetchone()  # type: ignore
 
         if app is not None:
-            await OAuth2TokenService.revoke_by_app_id(app['id'], user_id=user_id, skip_ids=skip_ids)
+            await OAuth2TokenService.revoke_by_app_id(
+                app['id'], user_id=user_id, skip_ids=skip_ids
+            )

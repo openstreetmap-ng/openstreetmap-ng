@@ -38,12 +38,22 @@ class Note06Mixin:
         if style == 'json':
             return {
                 'type': 'FeatureCollection',
-                'features': [_encode_note(note, is_json=True, is_gpx=False) for note in notes],
+                'features': [
+                    _encode_note(note, is_json=True, is_gpx=False) for note in notes
+                ],
             }
         elif style == 'gpx':
-            return {'wpt': [_encode_note(note, is_json=False, is_gpx=True) for note in notes]}
+            return {
+                'wpt': [
+                    _encode_note(note, is_json=False, is_gpx=True) for note in notes
+                ]
+            }
         else:
-            return {'note': [_encode_note(note, is_json=False, is_gpx=False) for note in notes]}
+            return {
+                'note': [
+                    _encode_note(note, is_json=False, is_gpx=False) for note in notes
+                ]
+            }
 
 
 @cython.cfunc
@@ -92,16 +102,23 @@ def _encode_note(note: Note, *, is_json: cython.bint, is_gpx: cython.bint) -> di
                     {
                         'reopen_url': f'{API_URL}/api/0.6/notes/{note_id}/reopen.json',
                     }
-                    if (closed_at is not None)
+                    if closed_at is not None
                     else {
                         'comment_url': f'{API_URL}/api/0.6/notes/{note_id}/comment.json',
                         'close_url': f'{API_URL}/api/0.6/notes/{note_id}/close.json',
                     }
                 ),
                 'date_created': format_sql_date(created_at),
-                **({'closed_at': format_sql_date(closed_at)} if (closed_at is not None) else {}),
+                **(
+                    {'closed_at': format_sql_date(closed_at)}
+                    if closed_at is not None
+                    else {}
+                ),
                 'status': note_status(note),
-                'comments': [_encode_note_comment(comment) for comment in note['comments']],  # pyright: ignore [reportTypedDictNotRequiredAccess]
+                'comments': [
+                    _encode_note_comment(comment)
+                    for comment in note['comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+                ],
             },
         }
     elif is_gpx:
@@ -123,14 +140,18 @@ def _encode_note(note: Note, *, is_json: cython.bint, is_gpx: cython.bint) -> di
                     {
                         'reopen_url': f'{API_URL}/api/0.6/notes/{note_id}/reopen.gpx',
                     }
-                    if (closed_at is not None)
+                    if closed_at is not None
                     else {
                         'comment_url': f'{API_URL}/api/0.6/notes/{note_id}/comment.gpx',
                         'close_url': f'{API_URL}/api/0.6/notes/{note_id}/close.gpx',
                     }
                 ),
                 'date_created': format_sql_date(created_at),
-                **({'date_closed': format_sql_date(closed_at)} if (closed_at is not None) else {}),
+                **(
+                    {'date_closed': format_sql_date(closed_at)}
+                    if closed_at is not None
+                    else {}
+                ),
                 'status': note_status(note),
             },
         }
@@ -143,16 +164,25 @@ def _encode_note(note: Note, *, is_json: cython.bint, is_gpx: cython.bint) -> di
                 {
                     'reopen_url': f'{API_URL}/api/0.6/notes/{note_id}/reopen',
                 }
-                if (closed_at is not None)
+                if closed_at is not None
                 else {
                     'comment_url': f'{API_URL}/api/0.6/notes/{note_id}/comment',
                     'close_url': f'{API_URL}/api/0.6/notes/{note_id}/close',
                 }
             ),
             'date_created': format_sql_date(created_at),
-            **({'date_closed': format_sql_date(closed_at)} if (closed_at is not None) else {}),
+            **(
+                {'date_closed': format_sql_date(closed_at)}
+                if closed_at is not None
+                else {}
+            ),
             'status': note_status(note),
-            'comments': {'comment': [_encode_note_comment(comment) for comment in note['comments']]},  # pyright: ignore [reportTypedDictNotRequiredAccess]
+            'comments': {
+                'comment': [
+                    _encode_note_comment(comment)
+                    for comment in note['comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+                ]
+            },
         }
 
 

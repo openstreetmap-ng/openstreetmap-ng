@@ -27,7 +27,9 @@ def pytest_addoption(parser: pytest.Parser):
 
 
 def pytest_configure(config: pytest.Config):
-    config.addinivalue_line('markers', 'extended: mark test as part of the extended test suite')
+    config.addinivalue_line(
+        'markers', 'extended: mark test as part of the extended test suite'
+    )
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
@@ -65,10 +67,14 @@ async def changeset_id(client: AsyncClient):
         create_task = tg.create_task(
             client.put(
                 '/api/0.6/changeset/create',
-                content=XMLToDict.unparse({'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': 'tests'}]}}}),
+                content=XMLToDict.unparse({
+                    'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': 'tests'}]}}
+                }),
             )
         )
-        user_task = tg.create_task(UserQuery.find_one_by_display_name(DisplayName('user1')))
+        user_task = tg.create_task(
+            UserQuery.find_one_by_display_name(DisplayName('user1'))
+        )
 
     r = create_task.result()
     assert r.is_success, r.text

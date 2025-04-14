@@ -20,7 +20,9 @@ router = APIRouter(prefix='/api/0.6')
 @router.post('/changeset/{changeset_id:int}/comment')
 async def create_changeset_comment(
     changeset_id: ChangesetId,
-    text: Annotated[str, Form(min_length=1, max_length=CHANGESET_COMMENT_BODY_MAX_LENGTH)],
+    text: Annotated[
+        str, Form(min_length=1, max_length=CHANGESET_COMMENT_BODY_MAX_LENGTH)
+    ],
     _: Annotated[User, api_user('write_api')],
 ):
     await ChangesetCommentService.comment(changeset_id, text)

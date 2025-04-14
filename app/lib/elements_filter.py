@@ -17,12 +17,20 @@ class ElementsFilter:
         detailed: cython.bint,
     ) -> list[_T]:
         """Return only interesting nodes."""
-        return [node for node in nodes if _check_node_interesting(node, member_nodes, detailed=detailed)]
+        return [
+            node
+            for node in nodes
+            if _check_node_interesting(node, member_nodes, detailed=detailed)
+        ]
 
     @staticmethod
     def filter_tags_interesting(elements: list[_T]) -> list[_T]:
         """Return only elements with interesting tags."""
-        return [element for element in elements if (tags := element['tags']) and _check_tags_interesting(tags)]
+        return [
+            element
+            for element in elements
+            if (tags := element['tags']) and _check_tags_interesting(tags)
+        ]
 
 
 @cython.cfunc

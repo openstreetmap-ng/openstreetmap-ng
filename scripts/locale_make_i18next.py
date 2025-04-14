@@ -12,7 +12,11 @@ _i18next_map_path = _i18next_dir.joinpath('map.json')
 
 
 def find_valid_output(locale: str, source_mtime: float) -> Path | None:
-    target_iter = iter(p for p in _i18next_dir.glob(f'{locale}-*.js') if '-' not in p.stem[len(locale) + 1 :])
+    target_iter = iter(
+        p
+        for p in _i18next_dir.glob(f'{locale}-*.js')
+        if '-' not in p.stem[len(locale) + 1 :]
+    )
     target_path = next(target_iter, None)
     if target_path is None:
         return None
@@ -38,7 +42,10 @@ def main() -> None:
             continue
 
         # re-encode json to sort keys
-        translation = orjson.dumps(orjson.loads(source_path.read_bytes()), option=orjson.OPT_SORT_KEYS).decode()
+        translation = orjson.dumps(
+            orjson.loads(source_path.read_bytes()),
+            option=orjson.OPT_SORT_KEYS,
+        ).decode()
         # transform json to javascript
         translation = f'if(!window.locales)window.locales={{}};window.locales["{locale}"]={{translation:{translation}}}'
 
@@ -54,7 +61,12 @@ def main() -> None:
         success_counter += 1
 
     if success_counter > 0:
-        buffer = orjson.dumps(file_map, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE)
+        buffer = orjson.dumps(
+            file_map,
+            option=orjson.OPT_INDENT_2
+            | orjson.OPT_SORT_KEYS
+            | orjson.OPT_APPEND_NEWLINE,
+        )
         _i18next_map_path.write_bytes(buffer)
 
     discover_str = click.style(f'{len(file_map)} locales', fg='green')

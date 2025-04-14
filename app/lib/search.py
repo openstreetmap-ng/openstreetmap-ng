@@ -5,7 +5,11 @@ import cython
 import numpy as np
 from shapely import MultiPolygon, Point, Polygon, STRtree
 
-from app.config import SEARCH_LOCAL_AREA_LIMIT, SEARCH_LOCAL_MAX_ITERATIONS, SEARCH_LOCAL_RATIO
+from app.config import (
+    SEARCH_LOCAL_AREA_LIMIT,
+    SEARCH_LOCAL_MAX_ITERATIONS,
+    SEARCH_LOCAL_RATIO,
+)
 from app.lib.feature_icon import FeatureIcon
 from app.lib.geo_utils import parse_bbox
 from app.models.db.element import Element
@@ -45,7 +49,7 @@ class Search:
         search_local_area_limit: cython.double = SEARCH_LOCAL_AREA_LIMIT
         search_local_max_iterations: cython.int = (
             local_max_iterations
-            if local_max_iterations is not None  #
+            if local_max_iterations is not None
             else SEARCH_LOCAL_MAX_ITERATIONS
         )
 
@@ -64,11 +68,16 @@ class Search:
         bbox_center_x = minx + bbox_width_2
         bbox_center_y = miny + bbox_height_2
 
-        local_iterations: cython.int = 1 if local_only else int(ceil(log2(search_local_area_limit / bbox_area)))  # noqa: RUF046
+        local_iterations: cython.int = (
+            1 if local_only else int(ceil(log2(search_local_area_limit / bbox_area)))  # noqa: RUF046
+        )
         local_iterations = min(local_iterations, search_local_max_iterations)
 
-        logging.debug('Searching area of %d with %d local iterations', bbox_area, local_iterations)
-        result: list[tuple[str, Polygon | MultiPolygon] | tuple[None, None]] = [None] * local_iterations  # type: ignore
+        logging.debug(
+            'Searching area of %d with %d local iterations', bbox_area, local_iterations
+        )
+        result: list[tuple[str, Polygon | MultiPolygon] | tuple[None, None]]
+        result = [None] * local_iterations  # type: ignore
 
         i: cython.Py_ssize_t
         for i in range(local_iterations):
@@ -113,7 +122,9 @@ class Search:
         return -2
 
     @staticmethod
-    def improve_point_accuracy(results: list[SearchResult], members_map: dict[TypedElementId, Element]) -> None:
+    def improve_point_accuracy(
+        results: list[SearchResult], members_map: dict[TypedElementId, Element]
+    ) -> None:
         """Improve accuracy of points by analyzing relations members."""
         for result, type_id in zip(
             results,
@@ -151,7 +162,9 @@ class Search:
             result
             for result, type_id in zip(
                 results,
-                split_typed_element_ids([result.element['typed_id'] for result in results]),
+                split_typed_element_ids([
+                    result.element['typed_id'] for result in results
+                ]),
                 strict=True,
             )
             if type_id[0] == 'relation'

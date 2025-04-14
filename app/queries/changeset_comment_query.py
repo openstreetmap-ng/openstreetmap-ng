@@ -5,7 +5,10 @@ from app.config import CHANGESET_COMMENTS_PAGE_SIZE
 from app.db import db
 from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.changeset import Changeset
-from app.models.db.changeset_comment import ChangesetComment, changeset_comments_resolve_rich_text
+from app.models.db.changeset_comment import (
+    ChangesetComment,
+    changeset_comments_resolve_rich_text,
+)
 from app.models.types import ChangesetId
 
 
@@ -104,7 +107,10 @@ class ChangesetCommentQuery:
             """
             params = (list(id_map),)
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             comments: list[ChangesetComment] = await r.fetchall()  # type: ignore
 
         current_changeset_id: ChangesetId | None = None

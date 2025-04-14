@@ -29,9 +29,11 @@ class QueryFeatureResult(NamedTuple):
 
 class QueryFeatures:
     @staticmethod
-    def wrap_overpass_elements(overpass_elements: list[OverpassElement]) -> list[QueryFeatureResult]:
+    def wrap_overpass_elements(
+        overpass_elements: list[OverpassElement],
+    ) -> list[QueryFeatureResult]:
         id_map: dict[TypedElementId, OverpassElement] = {
-            typed_element_id(element['type'], element['id']): element  #
+            typed_element_id(element['type'], element['id']): element
             for element in overpass_elements
         }
 
@@ -50,10 +52,11 @@ class QueryFeatures:
             for typed_id, element in id_map.items()
         ]
 
-        elements = ElementsFilter.filter_tags_interesting(elements_unfiltered)[:QUERY_FEATURES_RESULTS_LIMIT]
+        elements = ElementsFilter.filter_tags_interesting(elements_unfiltered)
         if not elements:
             return []
 
+        elements = elements[:QUERY_FEATURES_RESULTS_LIMIT]
         result: list[QueryFeatureResult] = [None] * len(elements)  # type: ignore
         geoms: list[list[tuple[float, float]]]
 
@@ -75,7 +78,9 @@ class QueryFeatures:
 
             elif element_type == 'way':
                 way_data: OverpassWay = element_data  # type: ignore
-                geoms = [[(point['lon'], point['lat']) for point in way_data['geometry']]]
+                geoms = [
+                    [(point['lon'], point['lat']) for point in way_data['geometry']]
+                ]
 
             elif element_type == 'relation':
                 relation_data: OverpassRelation = element_data  # type: ignore
@@ -90,11 +95,16 @@ class QueryFeatures:
 
                     if member_type == 'node':
                         node_member_data: OverpassNodeMember = member_data  # type: ignore
-                        geoms.append([(node_member_data['lon'], node_member_data['lat'])])
+                        geoms.append([
+                            (node_member_data['lon'], node_member_data['lat'])
+                        ])
 
                     elif member_type == 'way':
                         way_member_data: OverpassWayMember = member_data  # type: ignore
-                        geoms.append([(point['lon'], point['lat']) for point in way_member_data['geometry']])
+                        geoms.append([
+                            (point['lon'], point['lat'])
+                            for point in way_member_data['geometry']
+                        ])
 
             else:
                 raise NotImplementedError(f'Unsupported element type {element_type!r}')

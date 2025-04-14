@@ -33,7 +33,9 @@ class DBStorage(StorageBase):
             return row[0]
 
     @override
-    async def save(self, data: bytes, suffix: str, metadata: dict[str, str] | None = None) -> StorageKey:
+    async def save(
+        self, data: bytes, suffix: str, metadata: dict[str, str] | None = None
+    ) -> StorageKey:
         key = buffered_rand_storage_key(suffix)
 
         async with db(True) as conn:

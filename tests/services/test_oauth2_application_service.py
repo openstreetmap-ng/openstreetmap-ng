@@ -18,7 +18,10 @@ from app.services.oauth2_application_service import OAuth2ApplicationService
             f'https://1.com\n https://{"a" * (OAUTH_APP_URI_MAX_LENGTH - 12)}.com \n',
             ['https://1.com', f'https://{"a" * (OAUTH_APP_URI_MAX_LENGTH - 12)}.com'],
         ),
-        (f'https://1.com\n https://{"a" * (OAUTH_APP_URI_MAX_LENGTH - 11)}.com \n', None),
+        (
+            f'https://1.com\n https://{"a" * (OAUTH_APP_URI_MAX_LENGTH - 11)}.com \n',
+            None,
+        ),
         # OOB URIs
         ('urn:ietf:wg:oauth:2.0:oob', ['urn:ietf:wg:oauth:2.0:oob']),
         ('urn:ietf:wg:oauth:2.0:oob:auto', ['urn:ietf:wg:oauth:2.0:oob:auto']),
@@ -27,10 +30,16 @@ from app.services.oauth2_application_service import OAuth2ApplicationService
         ('https://', None),
         ('uwu', None),
         # Insecure URIs
-        ('http://localhost\nhttp://127.0.0.1', ['http://localhost', 'http://127.0.0.1']),
+        (
+            'http://localhost\nhttp://127.0.0.1',
+            ['http://localhost', 'http://127.0.0.1'],
+        ),
         ('http://localhost.example.com', None),
         # Duplicate URIs
-        ('https://1.com\nhttps://2.com\nhttps://1.com', ['https://1.com', 'https://2.com']),
+        (
+            'https://1.com\nhttps://2.com\nhttps://1.com',
+            ['https://1.com', 'https://2.com'],
+        ),
         ('https://1.com\nhttps://2.com', ['https://1.com', 'https://2.com']),
     ],
 )

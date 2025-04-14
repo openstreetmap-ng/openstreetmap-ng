@@ -9,7 +9,9 @@ from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.user import UserInit
 from app.models.types import DisplayName, Email, Password, UserId
 from app.queries.user_query import UserQuery
-from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
+from app.services.user_token_account_confirm_service import (
+    UserTokenAccountConfirmService,
+)
 from app.validators.email import validate_email_deliverability
 
 
@@ -25,14 +27,20 @@ class UserSignupService:
     ) -> UserId:
         """Create a new user. Returns the new user id."""
         if not await UserQuery.check_display_name_available(display_name):
-            StandardFeedback.raise_error('display_name', t('validation.display_name_is_taken'))
+            StandardFeedback.raise_error(
+                'display_name', t('validation.display_name_is_taken')
+            )
         if not await UserQuery.check_email_available(email):
-            StandardFeedback.raise_error('email', t('validation.email_address_is_taken'))
+            StandardFeedback.raise_error(
+                'email', t('validation.email_address_is_taken')
+            )
         if not await validate_email_deliverability(email):
             StandardFeedback.raise_error('email', t('validation.invalid_email_address'))
 
         password_pb = PasswordHash.hash(password)
-        assert password_pb is not None, 'Provided password schemas cannot be used during signup'
+        assert password_pb is not None, (
+            'Provided password schemas cannot be used during signup'
+        )
 
         user_init: UserInit = {
             'email': email,

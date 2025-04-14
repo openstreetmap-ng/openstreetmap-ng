@@ -2,7 +2,11 @@ import cython
 from shapely import Point, get_coordinates
 
 from app.models.db.element import Element
-from app.models.element import TypedElementId, split_typed_element_id, split_typed_element_ids
+from app.models.element import (
+    TypedElementId,
+    split_typed_element_id,
+    split_typed_element_ids,
+)
 
 
 class Element07Mixin:
@@ -40,7 +44,9 @@ def _encode_element(element: Element) -> dict:
     elif type == 'way':
         result['members'] = _encode_way_members(element['members'])
     elif type == 'relation':
-        result['members'] = _encode_relation_members(element['members'], element['members_roles'])
+        result['members'] = _encode_relation_members(
+            element['members'], element['members_roles']
+        )
     else:
         raise NotImplementedError(f'Unsupported element type {type!r}')
 
@@ -50,17 +56,16 @@ def _encode_element(element: Element) -> dict:
 @cython.cfunc
 def _encode_way_members(members: list[TypedElementId] | None) -> list[dict]:
     return (
-        [
-            {'type': type, 'id': id}  #
-            for type, id in split_typed_element_ids(members)
-        ]
+        [{'type': type, 'id': id} for type, id in split_typed_element_ids(members)]
         if members
         else []
     )
 
 
 @cython.cfunc
-def _encode_relation_members(members: list[TypedElementId] | None, members_roles: list[str] | None) -> list[dict]:
+def _encode_relation_members(
+    members: list[TypedElementId] | None, members_roles: list[str] | None
+) -> list[dict]:
     return (
         [
             {'type': type, 'id': id, 'role': role}

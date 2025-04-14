@@ -16,7 +16,11 @@ class AuthExceptionsMixin:
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,
             detail='Unauthorized',
-            headers={'WWW-Authenticate': 'Basic realm="Access to OpenStreetMap"'} if request_basic_auth else None,
+            headers=(
+                {'WWW-Authenticate': 'Basic realm="Access to OpenStreetMap"'}
+                if request_basic_auth
+                else None
+            ),
         )
 
     @abstractmethod
@@ -35,15 +39,20 @@ class AuthExceptionsMixin:
         raise NotImplementedError
 
     def oauth2_bad_code_challenge_params(self) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid code challenge parameters')
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST, detail='Invalid code challenge parameters'
+        )
 
     def oauth2_challenge_method_not_set(self) -> NoReturn:
         raise APIError(
-            status.HTTP_400_BAD_REQUEST, detail='code_verifier was provided but code_challenge_method is not set'
+            status.HTTP_400_BAD_REQUEST,
+            detail='code_verifier was provided but code_challenge_method is not set',
         )
 
     @abstractmethod
-    def oauth2_bad_verifier(self, code_challenge_method: 'OAuth2CodeChallengeMethod') -> NoReturn:
+    def oauth2_bad_verifier(
+        self, code_challenge_method: 'OAuth2CodeChallengeMethod'
+    ) -> NoReturn:
         raise NotImplementedError
 
     def oauth_bad_client_id(self) -> NoReturn:
@@ -59,4 +68,6 @@ class AuthExceptionsMixin:
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid redirect URI')
 
     def oauth_bad_scopes(self) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid authorization scopes')
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST, detail='Invalid authorization scopes'
+        )

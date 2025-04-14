@@ -15,7 +15,9 @@ HTTP = AsyncClient(
 # NOTE: breaking change
 
 
-def extend_query_params(uri: str, params: dict[str, str], *, fragment: bool = False) -> str:
+def extend_query_params(
+    uri: str, params: dict[str, str], *, fragment: bool = False
+) -> str:
     """
     Extend the query parameters of a URI.
 
@@ -30,7 +32,11 @@ def extend_query_params(uri: str, params: dict[str, str], *, fragment: bool = Fa
     query = parse_qsl(uri_.fragment if fragment else uri_.query, keep_blank_values=True)
     query.extend(params.items())
     query_str = urlencode(query)
-    uri_ = uri_._replace(fragment=query_str) if fragment else uri_._replace(query=query_str)
+    uri_ = (
+        uri_._replace(fragment=query_str)
+        if fragment
+        else uri_._replace(query=query_str)
+    )
     return urlunsplit(uri_)
 
 
@@ -41,4 +47,4 @@ def splitlines_trim(s: str) -> list[str]:
     >>> splitlines_trim('foo\\n\\nbar\\n')
     ['foo', 'bar']
     """
-    return [line_ for line in s.splitlines() if (line_ := line.strip())]
+    return [strip for line in s.splitlines() if (strip := line.strip())]

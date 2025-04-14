@@ -31,7 +31,11 @@ async def get_popularity(key: str, type: str, value: str) -> float:
         r.raise_for_status()
         data = r.json()['data']
 
-    return sum(item['count'] for item in data if not type or item['type'].startswith(type))
+    return sum(
+        item['count']  #
+        for item in data
+        if not type or item['type'].startswith(type)
+    )
 
 
 async def main():
@@ -41,13 +45,16 @@ async def main():
             key, _, type = key_orig.partition('.')
             tasks.extend(
                 ((key_orig, value), tg.create_task(get_popularity(key, type, value)))
-                for value in values  #
+                for value in values
             )
 
     for (key_orig, value), task in tasks:
         _config[key_orig][value] = task.result()
 
-    buffer = orjson.dumps(_config, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE)
+    buffer = orjson.dumps(
+        _config,
+        option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE,
+    )
     _output_path.write_bytes(buffer)
 
 

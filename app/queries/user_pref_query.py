@@ -8,7 +8,9 @@ from app.models.types import ApplicationId, UserPrefKey
 
 class UserPrefQuery:
     @staticmethod
-    async def find_one_by_app_key(app_id: ApplicationId | None, key: UserPrefKey) -> UserPref | None:
+    async def find_one_by_app_key(
+        app_id: ApplicationId | None, key: UserPrefKey
+    ) -> UserPref | None:
         """Find a user preference by app id and key."""
         user_id = auth_user(required=True)['id']
 

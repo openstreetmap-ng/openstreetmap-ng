@@ -18,7 +18,10 @@ async def wikimedia_authorize(
     referer: Annotated[str | None, Form()] = None,
 ):
     if not WIKIMEDIA_OAUTH_PUBLIC or not WIKIMEDIA_OAUTH_SECRET:
-        return Response('Wikimedia OAuth credentials are not configured', status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response(
+            'Wikimedia OAuth credentials are not configured',
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
     return AuthProviderService.continue_authorize(
         provider='wikimedia',
         action=action,

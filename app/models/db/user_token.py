@@ -11,7 +11,9 @@ from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.types import Email, UserId, UserTokenId
 
-UserTokenType = Literal['account_confirm', 'email_change', 'email_reply', 'reset_password']
+UserTokenType = Literal[
+    'account_confirm', 'email_change', 'email_reply', 'reset_password'
+]
 
 USER_TOKEN_EXPIRE: dict[UserTokenType, timedelta] = {
     'account_confirm': USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE,

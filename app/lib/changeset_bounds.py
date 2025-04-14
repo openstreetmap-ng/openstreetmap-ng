@@ -2,15 +2,30 @@ import cython
 import numpy as np
 from numpy.typing import NDArray
 from rtree.index import Index
-from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, measurement, multipolygons
+from shapely import (
+    MultiPolygon,
+    Point,
+    Polygon,
+    box,
+    get_coordinates,
+    measurement,
+    multipolygons,
+)
 from sklearn.cluster import AgglomerativeClustering
 
-from app.config import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
+from app.config import (
+    CHANGESET_BBOX_LIMIT,
+    CHANGESET_NEW_BBOX_MIN_DISTANCE,
+    CHANGESET_NEW_BBOX_MIN_RATIO,
+)
 
 
-def extend_changeset_bounds(bounds: MultiPolygon | None, points: list[Point]) -> MultiPolygon:
+def extend_changeset_bounds(
+    bounds: MultiPolygon | None, points: list[Point]
+) -> MultiPolygon:
     bbox_limit: cython.Py_ssize_t = CHANGESET_BBOX_LIMIT
-    bboxes: list[list[float]] = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
+    bboxes: list[list[float]]
+    bboxes = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
     num_bboxes: cython.Py_ssize_t = len(bboxes)
     num_bounds: cython.Py_ssize_t = num_bboxes
     dirty_mask: list[bool] = [False] * bbox_limit
@@ -52,7 +67,14 @@ def extend_changeset_bounds(bounds: MultiPolygon | None, points: list[Point]) ->
     while check_queue:
         check_i = check_queue.pop()
         bbox = bboxes[check_i]
-        i = next((idx for idx in index.intersection(_get_buffer_bbox(bbox), False) if idx != check_i), None)
+        i = next(
+            (
+                idx
+                for idx in index.intersection(_get_buffer_bbox(bbox), False)
+                if idx != check_i
+            ),
+            None,
+        )
         if i is None:
             continue
 

@@ -27,7 +27,9 @@ _W3C_COLORS = frozenset(orjson.loads(Path('config/w3c_colors.json').read_bytes()
 # make sure to match popular locale combinations, full spec is complex
 # https://taginfo.openstreetmap.org/search?q=wikipedia%3A#keys
 _WIKI_LANG_RE = re.compile(r'^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?$')
-_WIKI_LANG_VALUE_RE = re.compile(r'^(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?):(?P<text>.+)$')
+_WIKI_LANG_VALUE_RE = re.compile(
+    r'^(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?):(?P<text>.+)$'
+)
 
 
 @overload
@@ -43,7 +45,8 @@ def tags_format(tags: dict[str, str] | None) -> dict[str, TagFormat] | None:
     result_values = list(result.values())
 
     for tag in result_values:
-        key_parts = tag.key.text.split(':', maxsplit=5)  # split a:b:c keys into ['a', 'b', 'c']
+        # split a:b:c keys into ['a', 'b', 'c']
+        key_parts = tag.key.text.split(':', maxsplit=5)
         values = tag.values
         for key_part in _SUPPORTED_KEYS.intersection(key_parts):
             for call in _FORMATTER_MAP[key_part]:
@@ -56,17 +59,16 @@ def tags_format(tags: dict[str, str] | None) -> dict[str, TagFormat] | None:
 
 @cython.cfunc
 def _is_hex_color(s: str) -> cython.bint:
-    s_len: cython.Py_ssize_t = len(s)
-    if s_len != 4 and s_len != 7:  # noqa: PLR1714
-        return False
-    if s[0] != '#':
-        return False
-    i: cython.Py_ssize_t
-    for i in range(1, s_len):
-        c = s[i]
-        if not (('0' <= c <= '9') or ('A' <= c <= 'F') or ('a' <= c <= 'f')):
-            return False
-    return True
+    return (
+        (len(s) in {4, 7})
+        and s[0] == '#'
+        and all(
+            '0' <= c <= '9'  #
+            or 'A' <= c <= 'F'
+            or 'a' <= c <= 'f'
+            for c in s[1:]
+        )
+    )
 
 
 @cython.cfunc
@@ -78,7 +80,8 @@ def _is_w3c_color(s: str) -> cython.bint:
 def _format_color(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
     return [
         ValueFormat(value.text, 'color', value.text)
-        if value.format is None and (_is_hex_color(value.text) or _is_w3c_color(value.text))
+        if value.format is None
+        and (_is_hex_color(value.text) or _is_w3c_color(value.text))
         else value
         for value in values
     ]
@@ -131,7 +134,9 @@ def _format_phone(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
         info = _get_phone_info(value.text)
         if info is None or not is_possible_number(info) or not is_valid_number(info):
             continue
-        result[i] = ValueFormat(value.text, 'phone', f'tel:{format_number(info, num_format)}')
+        result[i] = ValueFormat(
+            value.text, 'phone', f'tel:{format_number(info, num_format)}'
+        )
 
     return result
 
@@ -145,7 +150,7 @@ def _is_url_string(s: str) -> cython.bint:
 def _format_url(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
     return [
         ValueFormat(value.text, 'url', value.text)
-        if value.format is None and _is_url_string(value.text)  #
+        if value.format is None and _is_url_string(value.text)
         else value
         for value in values
     ]
@@ -154,25 +159,20 @@ def _format_url(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
 @cython.cfunc
 def _is_wiki_id(s: str) -> cython.bint:
     s_len: cython.Py_ssize_t = len(s)
-    if s_len < 2:
-        return False
-    s_0 = s[0]
-    if s_0 != 'Q' and s_0 != 'q':  # noqa: PLR1714
-        return False
-    s_1 = s[1]
-    if not ('1' <= s_1 <= '9'):
-        return False
-    i: cython.Py_ssize_t
-    for i in range(2, s_len):  # noqa: SIM110
-        if not ('0' <= s[i] <= '9'):
-            return False
-    return True
+    return (
+        s_len >= 2
+        and s[0] in 'Qq'
+        and '1' <= s[1] <= '9'
+        and all('0' <= s[i] <= '9' for i in range(2, s_len))
+    )
 
 
 @cython.cfunc
 def _format_wikidata(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
     return [
-        ValueFormat(value.text, 'url-safe', f'https://www.wikidata.org/entity/{value.text}')
+        ValueFormat(
+            value.text, 'url-safe', f'https://www.wikidata.org/entity/{value.text}'
+        )
         if value.format is None and _is_wiki_id(value.text)
         else value
         for value in values
@@ -185,9 +185,13 @@ def _is_wikimedia_entry(s: str) -> cython.bint:
 
 
 @cython.cfunc
-def _format_wikimedia_commons(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
+def _format_wikimedia_commons(
+    _: list[str], values: list[ValueFormat]
+) -> list[ValueFormat]:
     return [
-        ValueFormat(value.text, 'url-safe', f'https://commons.wikimedia.org/wiki/{value.text}')
+        ValueFormat(
+            value.text, 'url-safe', f'https://commons.wikimedia.org/wiki/{value.text}'
+        )
         if value.format is None and _is_wikimedia_entry(value.text)
         else value
         for value in values
@@ -195,7 +199,9 @@ def _format_wikimedia_commons(_: list[str], values: list[ValueFormat]) -> list[V
 
 
 @cython.cfunc
-def _format_wikipedia(key_parts: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
+def _format_wikipedia(
+    key_parts: list[str], values: list[ValueFormat]
+) -> list[ValueFormat]:
     # always default to english
     lang = 'en'
 
@@ -220,10 +226,14 @@ def _transform_wikipedia(lang: str, value: ValueFormat):
         lang = match['lang']
         text = match['text']
 
-    return ValueFormat(value.text, 'url-safe', f'https://{lang}.wikipedia.org/wiki/{text}')
+    return ValueFormat(
+        value.text, 'url-safe', f'https://{lang}.wikipedia.org/wiki/{text}'
+    )
 
 
-_FORMATTER_MAP: dict[str, list[Callable[[list[str], list[ValueFormat]], list[ValueFormat]]]] = {
+_FORMATTER_MAP: dict[
+    str, list[Callable[[list[str], list[ValueFormat]], list[ValueFormat]]]
+] = {
     'colour': [_format_color],
     'comment': [_format_comment],
     'email': [_format_email],

@@ -32,18 +32,18 @@ class AuthService:
         if path.startswith(('/api/0.6/', '/api/0.7/', '/oauth2/')):
             r = await _authenticate_with_oauth2(request)
             if r is not None:
-                return r[0], r[1]
+                return r
 
         # Try session cookie authentication
         r = await _authenticate_with_cookie(request)
         if r is not None:
-            return r[0], r[1]
+            return r
 
         # Try test user authentication if in test environment
         if ENV != 'prod':
             r = await _authenticate_with_test_user(request)
             if r is not None:
-                return r[0], r[1]
+                return r
 
         return None, ()
 
@@ -76,14 +76,19 @@ async def _extract_oauth2_token(request: Request) -> SecretStr | None:
         return SecretStr(param) if scheme.casefold() == 'bearer' and param else None
 
     # Check in form data
-    if request.method == 'POST' and request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+    if (
+        request.method == 'POST'
+        and request.headers.get('Content-Type') == 'application/x-www-form-urlencoded'
+    ):
         value = (await request.form()).get('access_token')
         return SecretStr(value) if value and isinstance(value, str) else None
 
     return None
 
 
-async def _authenticate_with_oauth2(request: Request) -> tuple[User, tuple[Scope, ...]] | None:
+async def _authenticate_with_oauth2(
+    request: Request,
+) -> tuple[User, tuple[Scope, ...]] | None:
     access_token = await _extract_oauth2_token(request)
     if access_token is None:
         return None
@@ -101,7 +106,9 @@ async def _authenticate_with_oauth2(request: Request) -> tuple[User, tuple[Scope
     return user, scopes
 
 
-async def _authenticate_with_cookie(request: Request) -> tuple[User, tuple[Scope, ...]] | None:
+async def _authenticate_with_cookie(
+    request: Request,
+) -> tuple[User, tuple[Scope, ...]] | None:
     auth = request.cookies.get('auth')
     if auth is None:
         return None
@@ -122,7 +129,9 @@ async def _authenticate_with_cookie(request: Request) -> tuple[User, tuple[Scope
 
 
 @testmethod
-async def _authenticate_with_test_user(request: Request) -> tuple[User, tuple[Scope, ...]] | None:
+async def _authenticate_with_test_user(
+    request: Request,
+) -> tuple[User, tuple[Scope, ...]] | None:
     authorization = request.headers.get('Authorization')
     if authorization is None:
         return None

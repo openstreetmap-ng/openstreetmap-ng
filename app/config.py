@@ -142,7 +142,8 @@ USER_RECENT_ACTIVITY_ENTRIES = 6
 USER_PREF_BULK_SET_LIMIT = 150
 
 # User tokens
-USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE = timedelta(days=30)  # TODO: delete unconfirmed accounts
+# TODO: delete unconfirmed accounts
+USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE = timedelta(days=30)
 USER_TOKEN_EMAIL_CHANGE_EXPIRE = timedelta(days=1)
 USER_TOKEN_EMAIL_REPLY_EXPIRE = timedelta(days=2 * 365)  # 2 years
 USER_TOKEN_RESET_PASSWORD_EXPIRE = timedelta(days=1)
@@ -332,8 +333,12 @@ DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'  # SQL index depends on this valu
 
 SECRET_32 = SecretBytes(sha256(SECRET.get_secret_value().encode()).digest())
 
-SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None
-SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
+SMTP_NOREPLY_FROM_HOST = (
+    SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None
+)
+SMTP_MESSAGES_FROM_HOST = (
+    SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
+)
 
 TRUSTED_HOSTS: frozenset[str] = frozenset(
     h.casefold()

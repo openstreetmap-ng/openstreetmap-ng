@@ -51,7 +51,10 @@ class NoteCommentQuery:
             limit=limit_clause,
         )
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -91,7 +94,12 @@ class NoteCommentQuery:
             comments: list[NoteComment] = await r.fetchall()  # type: ignore
 
             # Skip the header comment
-            if skip_header and page == 1 and comments and comments[0]['event'] == 'opened':
+            if (
+                skip_header
+                and page == 1
+                and comments
+                and comments[0]['event'] == 'opened'
+            ):
                 return comments[1:]
 
             return comments
@@ -158,7 +166,10 @@ class NoteCommentQuery:
             """
             params = (list(id_map),)
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             comments: list[NoteComment] = await r.fetchall()  # type: ignore
 
         current_note_id: NoteId | None = None

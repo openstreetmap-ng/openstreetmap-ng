@@ -63,7 +63,9 @@ async def settings_application_update(
     app_id: ApplicationId,
     name: Annotated[str, Form(min_length=1, max_length=OAUTH_APP_NAME_MAX_LENGTH)],
     is_confidential: Annotated[bool, Form()],
-    redirect_uris: Annotated[str, Form(max_length=OAUTH_APP_URI_LIMIT * (OAUTH_APP_URI_MAX_LENGTH + 4))],
+    redirect_uris: Annotated[
+        str, Form(max_length=OAUTH_APP_URI_LIMIT * (OAUTH_APP_URI_MAX_LENGTH + 4))
+    ],
     read_prefs: Annotated[bool, Form()] = False,
     write_prefs: Annotated[bool, Form()] = False,
     write_api: Annotated[bool, Form()] = False,

@@ -9,7 +9,9 @@ from app.models.types import UserSubscriptionTargetId
 
 class UserSubscriptionQuery:
     @staticmethod
-    async def is_subscribed(target: UserSubscriptionTarget, target_id: UserSubscriptionTargetId) -> bool:
+    async def is_subscribed(
+        target: UserSubscriptionTarget, target_id: UserSubscriptionTargetId
+    ) -> bool:
         """
         Check if the current user is subscribed to the target.
         If the user is not authenticated, returns False.
@@ -32,7 +34,9 @@ class UserSubscriptionQuery:
             return await r.fetchone() is not None
 
     @staticmethod
-    async def get_subscribed_users(target: UserSubscriptionTarget, target_id: UserSubscriptionTargetId) -> list[User]:
+    async def get_subscribed_users(
+        target: UserSubscriptionTarget, target_id: UserSubscriptionTargetId
+    ) -> list[User]:
         """Get users subscribed to the target."""
         async with (
             db() as conn,

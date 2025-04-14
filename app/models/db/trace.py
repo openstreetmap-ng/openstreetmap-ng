@@ -113,7 +113,9 @@ def trace_is_timestamps_via_api(trace: Trace) -> bool:
     return trace['visibility'] in {'identifiable', 'trackable'}
 
 
-def trace_is_visible_to(trace: Trace, user: User | None, scopes: tuple[Scope, ...]) -> bool:
+def trace_is_visible_to(
+    trace: Trace, user: User | None, scopes: tuple[Scope, ...]
+) -> bool:
     """Check if the trace is visible to the user."""
     return trace_is_linked_to_user_on_site(trace) or (
         user is not None  #

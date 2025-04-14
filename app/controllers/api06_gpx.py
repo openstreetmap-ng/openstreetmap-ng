@@ -59,7 +59,9 @@ async def get_trace(
     async with TaskGroup() as tg:
         items = [trace]
         tg.create_task(UserQuery.resolve_users(items))
-        tg.create_task(TraceQuery.resolve_coords(items, limit_per_trace=1, resolution=None))
+        tg.create_task(
+            TraceQuery.resolve_coords(items, limit_per_trace=1, resolution=None)
+        )
 
     return Format06.encode_gpx_file(trace)
 
@@ -73,7 +75,9 @@ async def get_current_user_traces(
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(traces))
-        tg.create_task(TraceQuery.resolve_coords(traces, limit_per_trace=1, resolution=None))
+        tg.create_task(
+            TraceQuery.resolve_coords(traces, limit_per_trace=1, resolution=None)
+        )
 
     return Format06.encode_gpx_files(traces)
 
@@ -89,7 +93,10 @@ async def get_trace_gpx(
     return Response(
         content=resp.body,
         status_code=resp.status_code,
-        headers={**resp.headers, 'Content-Disposition': f'attachment; filename="{trace_id}.gpx"'},
+        headers={
+            **resp.headers,
+            'Content-Disposition': f'attachment; filename="{trace_id}.gpx"',
+        },
         media_type=resp.media_type,
     )
 

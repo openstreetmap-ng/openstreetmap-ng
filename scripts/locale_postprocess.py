@@ -16,17 +16,20 @@ _locale_extra_en_path = Path('config/locale/extra_en.yaml')
 def get_source_mtime(locale: str) -> float:
     source_path = _download_dir.joinpath(f'{locale}.yaml')
     source_mtime = source_path.stat().st_mtime
-    return source_mtime if (locale != 'en') else max(source_mtime, _locale_extra_en_path.stat().st_mtime)
+    return (
+        source_mtime
+        if locale != 'en'
+        else max(source_mtime, _locale_extra_en_path.stat().st_mtime)
+    )
 
 
 def needs_processing(locale: str, source_mtime: float) -> bool:
     source_path = _download_dir.joinpath(f'{locale}.yaml')
     target_path = _postprocess_dir.joinpath(f'{locale}.json')
-    if not source_path.is_file():
-        return False
-    if not target_path.is_file():
-        return True
-    return source_mtime > target_path.stat().st_mtime
+    return (
+        source_path.is_file()  #
+        and (not target_path.is_file() or source_mtime > target_path.stat().st_mtime)
+    )
 
 
 def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) -> str:
@@ -36,9 +39,17 @@ def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) ->
         return translated
 
     # if not, then look up the default translated name for this type of community
-    if (community_name := locale.get('_communities', {}).get(community['strings'].get('communityID'))) is not None:
+    if (
+        community_name := locale.get('_communities', {}).get(
+            community['strings'].get('communityID')
+        )
+    ) is not None:
         # and optionally interpolate the template
-        if (template := locale.get('_defaults', {}).get(community['type'], {}).get('name')) is not None:
+        if (
+            template := locale.get('_defaults', {})
+            .get(community['type'], {})
+            .get('name')
+        ) is not None:
             try:
                 # workaround around broken templates
                 # https://github.com/osmlab/osm-community-index/issues/739
@@ -57,18 +68,24 @@ def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) ->
 
 class LocalChaptersExtractor:
     def __init__(self) -> None:
-        resources = (_oci_dir.joinpath('dist/resources.min.json')).read_bytes()
-        communities_dict: dict[str, dict[str, Any]] = orjson.loads(resources)['resources']
+        resources = _oci_dir.joinpath('dist/resources.min.json').read_bytes()
+        communities_dict: dict[str, dict[str, Any]]
+        communities_dict = orjson.loads(resources)['resources']
 
         # filter only local chapters
-        self.communities = [c for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF']
+        self.communities = [
+            c
+            for c in communities_dict.values()
+            if c['type'] == 'osm-lc' and c['id'] != 'OSMF'
+        ]
 
     def extract(self, locale: str) -> dict:
         source_path = _oci_dir.joinpath(f'i18n/{locale.replace("-", "_")}.yaml')
         if not source_path.is_file():
             return {}
 
-        source_data: dict[str, Any] = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
+        source_data: dict[str, Any]
+        source_data = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
         source_data = next(iter(source_data.values()))  # strip first level of nesting
 
         communities_data: dict[str, dict[str, Any]] = {}
@@ -114,10 +131,19 @@ def main(verbose: bool):
         deep_dict_update(data, lc_extractor.extract(locale))
 
         # merge extra_ data
-        if locale == 'en' and (extra_data := yaml.load(_locale_extra_en_path.read_bytes(), yaml.CSafeLoader)):
+        if locale == 'en' and (
+            extra_data := yaml.load(
+                _locale_extra_en_path.read_bytes(), yaml.CSafeLoader
+            )
+        ):
             deep_dict_update(data, extra_data)
 
-        buffer = orjson.dumps(data, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE)
+        buffer = orjson.dumps(
+            data,
+            option=orjson.OPT_INDENT_2
+            | orjson.OPT_SORT_KEYS
+            | orjson.OPT_APPEND_NEWLINE,
+        )
         target_path = _postprocess_dir.joinpath(f'{locale}.json')
         target_path.write_bytes(buffer)
 
@@ -176,7 +202,9 @@ def convert_plural_structure(data: dict):
             continue
 
         # recurse non-plural dicts
-        if any(v_key not in {'zero', 'one', 'two', 'few', 'many', 'other'} for v_key in v):
+        if any(
+            v_key not in {'zero', 'one', 'two', 'few', 'many', 'other'} for v_key in v
+        ):
             convert_plural_structure(v)
             continue
 

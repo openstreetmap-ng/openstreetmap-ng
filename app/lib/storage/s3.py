@@ -26,7 +26,9 @@ class S3Storage(StorageBase):
     async def load(self, key: StorageKey) -> bytes:
         async def factory() -> bytes:
             async with _S3.client('s3') as s3:
-                return await (await s3.get_object(Bucket=self._bucket, Key=key))['Body'].read()
+                return await (await s3.get_object(Bucket=self._bucket, Key=key))[
+                    'Body'
+                ].read()
 
         return await CacheService.get(
             key,
@@ -36,7 +38,9 @@ class S3Storage(StorageBase):
         )
 
     @override
-    async def save(self, data: bytes, suffix: str, metadata: dict[str, str] | None = None) -> StorageKey:
+    async def save(
+        self, data: bytes, suffix: str, metadata: dict[str, str] | None = None
+    ) -> StorageKey:
         key = buffered_rand_storage_key(suffix)
 
         put_kwargs: PutObjectRequestTypeDef = {

@@ -23,7 +23,7 @@ from app.lib.geo_utils import polygon_to_h3
 from app.lib.mercator import mercator
 from app.lib.storage import TRACE_STORAGE
 from app.lib.trace_file import TraceFile
-from app.models.db.trace import Trace, TraceVisibility, trace_is_visible_to
+from app.models.db.trace import Trace, trace_is_visible_to
 from app.models.types import StorageKey, TraceId, UserId
 
 
@@ -140,7 +140,10 @@ class TraceQuery:
                 ORDER BY id DESC
             """).format(query)
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -152,15 +155,16 @@ class TraceQuery:
         legacy_offset: int | None = None,
     ) -> list[Trace]:
         """Find traces by geometry. Returns traces with segments intersecting the provided geometry."""
-        h3_cells = polygon_to_h3(geometry, max_resolution=11)
-        # noinspection PyTypeChecker
-        visibility: list[TraceVisibility] = (
-            ['identifiable', 'trackable'] if identifiable_trackable else ['public', 'private']
-        )
-        conditions: list[Composable] = [
-            SQL('h3_points_to_cells_range(segments, 11) && %s::h3index[] AND visibility = ANY(%s)')
+        params: list[Any] = [
+            # h3 cells:
+            polygon_to_h3(geometry, max_resolution=11),
+            # visibility:
+            (
+                ['identifiable', 'trackable']
+                if identifiable_trackable
+                else ['public', 'private']
+            ),
         ]
-        params: list[Any] = [h3_cells, visibility]
 
         if legacy_offset is not None:
             offset_clause = SQL('OFFSET %s')
@@ -170,20 +174,23 @@ class TraceQuery:
 
         query = SQL("""
             SELECT * FROM trace
-            WHERE {conditions}
+            WHERE h3_points_to_cells_range(segments, 11) && %s::h3index[]
+            AND visibility = ANY(%s)
             ORDER BY id DESC
             {offset}
             LIMIT %s
         """).format(
-            conditions=SQL(' AND ').join(conditions),
             offset=offset_clause,
         )
         params.append(limit)
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             traces: list[Trace] = await r.fetchall()  # type: ignore
-        if not traces:
-            return []
+            if not traces:
+                return []
 
         prepare(geometry)
         filtered_traces: list[Trace] = []
@@ -215,14 +222,19 @@ class TraceQuery:
                 # Public/private visibility discards capture_times
                 capture_times = trace['capture_times']
                 if capture_times is not None:
-                    trace['capture_times'] = np.array(capture_times, np.object_)[intersect_mask].tolist()  # type: ignore
+                    capture_times_arr = np.array(capture_times, np.object_)
+                    trace['capture_times'] = capture_times_arr[intersect_mask].tolist()  # type: ignore
 
         traces = filtered_traces
         if not traces or identifiable_trackable:
             return traces
 
         # For public/private, return a simplified representation
-        segments = MultiLineString([line for trace in traces for line in trace['segments'].geoms])
+        segments = MultiLineString([
+            line  #
+            for trace in traces
+            for line in trace['segments'].geoms
+        ])
         now = utcnow()
         simplified: Trace = {
             'id': TraceId(0),

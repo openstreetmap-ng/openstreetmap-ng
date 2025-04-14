@@ -68,7 +68,9 @@ class NoteQuery:
             conditions.append(SQL('note.hidden_at IS NULL'))
 
         if open is not None:
-            conditions.append(SQL('note.closed_at IS NULL') if open else SQL('note.closed_at IS NOT NULL'))
+            conditions.append(
+                SQL('note.closed_at IS NULL' if open else 'note.closed_at IS NOT NULL')
+            )
 
         # Add conditions to the query
         if conditions:
@@ -132,7 +134,9 @@ class NoteQuery:
             conditions.append(SQL('note.hidden_at IS NULL'))
 
         if open is not None:
-            conditions.append(SQL('note.closed_at IS NULL') if open else SQL('note.closed_at IS NOT NULL'))
+            conditions.append(
+                SQL('note.closed_at IS NULL' if open else 'note.closed_at IS NOT NULL')
+            )
 
         # Add conditions to the query
         if conditions:
@@ -150,7 +154,10 @@ class NoteQuery:
         """).format(query)
         params.extend((stmt_offset, stmt_limit))
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -256,7 +263,10 @@ class NoteQuery:
             limit=limit_clause,
         )
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -269,7 +279,9 @@ class NoteQuery:
         for comment in comments:
             id_map[comment['note_id']].append(comment)
 
-        notes = await NoteQuery.find_many_by_query(note_ids=list(id_map), limit=len(id_map))
+        notes = await NoteQuery.find_many_by_query(
+            note_ids=list(id_map), limit=len(id_map)
+        )
         for note in notes:
             for comment in id_map[note['id']]:
                 comment['legacy_note'] = note

@@ -86,7 +86,10 @@ class AdminTaskService:
         result: list[TaskInfo] = [
             TaskInfo(
                 id=definition.id,
-                running=(row := rows.get(id)) is not None and timeout_at < row['heartbeat_at'],
+                running=(
+                    (row := rows.get(id)) is not None
+                    and timeout_at < row['heartbeat_at']
+                ),
                 arguments=definition.arguments,
             )
             for id, definition in _REGISTRY.items()
@@ -134,7 +137,10 @@ class AdminTaskService:
 def _func_args_model(func: Callable) -> type[BaseModel]:
     type_hints = get_type_hints(func)
     fields: dict[str, tuple[type, Any]] = {
-        name: (type_hints.get(name, Any), ... if (default := param.default) is Parameter.empty else default)
+        name: (
+            type_hints.get(name, Any),
+            (... if (default := param.default) is Parameter.empty else default),
+        )
         for name, param in signature(func).parameters.items()
     }
 

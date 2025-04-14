@@ -31,7 +31,10 @@ class ElementQuery:
         Get the current sequence id.
         Returns 0 if no elements exist.
         """
-        async with db() as conn, await conn.execute('SELECT MAX(sequence_id) FROM element') as r:
+        async with (
+            db() as conn,
+            await conn.execute('SELECT MAX(sequence_id) FROM element') as r,
+        ):
             return (await r.fetchone())[0] or 0  # type: ignore
 
     @staticmethod
@@ -223,7 +226,10 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -265,7 +271,10 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -304,7 +313,10 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             result: list[Element] = await r.fetchall()  # type: ignore
 
         # Return if not recursing or reached the limit
@@ -316,7 +328,7 @@ class ElementQuery:
         node_typed_ids = {
             member
             for e in result
-            if (members := e.get('members'))  #
+            if (members := e.get('members'))
             and typed_element_id_way_min <= e['typed_id'] <= typed_element_id_way_max
             for member in members
         }
@@ -326,7 +338,7 @@ class ElementQuery:
         if not node_typed_ids:
             return result
 
-        conditions: list[Composable] = [SQL('typed_id = ANY(%s)')]
+        conditions = [SQL('typed_id = ANY(%s)')]
         params = [list(node_typed_ids)]
 
         if at_sequence_id is not None:
@@ -350,7 +362,10 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             result.extend(await r.fetchall())  # type: ignore
             return result
 
@@ -450,9 +465,13 @@ class ElementQuery:
                 )""")
             )
         elif parent_type == 'way':
-            conditions.append(SQL('typed_id BETWEEN 1152921504606846976 AND 2305843009213693951'))
+            conditions.append(
+                SQL('typed_id BETWEEN 1152921504606846976 AND 2305843009213693951')
+            )
         elif parent_type == 'relation':
-            conditions.append(SQL('typed_id BETWEEN 2305843009213693952 AND 3458764513820540927'))
+            conditions.append(
+                SQL('typed_id BETWEEN 2305843009213693952 AND 3458764513820540927')
+            )
         else:
             raise NotImplementedError(f'Unsupported parent type {parent_type!r}')
 
@@ -474,7 +493,10 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -529,7 +551,9 @@ class ElementQuery:
         )
 
         async with db() as conn, await conn.execute(query, params) as r:
-            result: dict[TypedElementId, set[TypedElementId]] = {member: set() for member in members}
+            result: dict[TypedElementId, set[TypedElementId]] = {
+                member: set() for member in members
+            }
             for member, parent in await r.fetchall():
                 result[member].add(parent)
             return result
@@ -547,7 +571,12 @@ class ElementQuery:
             ORDER BY {sort_by}
         """).format(sort_by=Identifier(sort_by))
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, (changeset_id,)) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                query, (changeset_id,)
+            ) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod
@@ -573,7 +602,9 @@ class ElementQuery:
         """
         if legacy_nodes_limit:
             if nodes_limit != MAP_QUERY_LEGACY_NODES_LIMIT:
-                raise ValueError('nodes_limit must be MAP_QUERY_NODES_LEGACY_LIMIT when legacy_nodes_limit is True')
+                raise ValueError(
+                    'nodes_limit must be MAP_QUERY_NODES_LEGACY_LIMIT when legacy_nodes_limit is True'
+                )
             nodes_limit += 1  # to detect limit exceeded
 
         # Get current max sequence_id to use for all queries
@@ -596,7 +627,10 @@ class ElementQuery:
         """).format(limit=limit_clause)
 
         # Find all matching nodes within the geometry
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             nodes: list[Element] = await r.fetchall()  # type: ignore
             if not nodes:
                 return []
@@ -636,7 +670,7 @@ class ElementQuery:
                 # fetch ways' nodes
                 if not partial_ways:
                     ways_nodes_typed_ids = {
-                        member  #
+                        member
                         for way in ways
                         if (way_members := way['members'])
                         for member in way_members

@@ -20,7 +20,10 @@ async def facebook_authorize(
     referer: Annotated[str | None, Form()] = None,
 ):
     if not FACEBOOK_OAUTH_PUBLIC or not FACEBOOK_OAUTH_SECRET:
-        return Response('Facebook OAuth credentials are not configured', status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response(
+            'Facebook OAuth credentials are not configured',
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
     return AuthProviderService.continue_authorize(
         provider='facebook',
         action=action,

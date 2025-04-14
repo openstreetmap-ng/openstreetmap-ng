@@ -10,17 +10,23 @@ from app.models.element import ElementType, split_typed_element_id
 
 
 @overload
-def features_prefixes(elements: Iterable[Element | ElementInit]) -> list[str]: ...  # pyright: ignore [reportOverlappingOverload]
+def features_prefixes(  # pyright: ignore [reportOverlappingOverload]
+    elements: Iterable[Element | ElementInit],
+) -> list[str]: ...
 @overload
-def features_prefixes(elements: Iterable[Element | ElementInit | None]) -> list[str | None]: ...
-def features_prefixes(elements: Iterable[Element | ElementInit | None]) -> list[str | None]:  # pyright: ignore [reportInconsistentOverload]
+def features_prefixes(
+    elements: Iterable[Element | ElementInit | None],
+) -> list[str | None]: ...
+def features_prefixes(  # pyright: ignore [reportInconsistentOverload]
+    elements: Iterable[Element | ElementInit | None],
+) -> list[str | None]:
     """
     Returns a human-readable prefix for a feature based on its type and tags.
 
     >>> features_prefixes(...)
     ['Restaurant', 'City', ...]
     """
-    return [_feature_prefix(e) if (e is not None) else None for e in elements]
+    return [_feature_prefix(e) if e is not None else None for e in elements]
 
 
 @cython.cfunc

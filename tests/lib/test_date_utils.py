@@ -19,7 +19,10 @@ from app.lib.translation import translation_context
     ('input', 'expected'),
     [
         (datetime(2021, 12, 31, 15, 30, 45), '2021-12-31 15:30:45 UTC'),  # noqa: DTZ001
-        (datetime(2021, 12, 31, 15, 30, 45, 123456, UTC), '2021-12-31 15:30:45.123456 UTC'),
+        (
+            datetime(2021, 12, 31, 15, 30, 45, 123456, UTC),
+            '2021-12-31 15:30:45.123456 UTC',
+        ),
         (None, 'None'),
     ],
 )
@@ -29,7 +32,9 @@ def test_format_sql_date(input, expected):
 
 def test_format_sql_date_non_utc():
     with pytest.raises(AssertionError):
-        format_sql_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=tzoffset(None, 32400)))
+        format_sql_date(
+            datetime(2021, 12, 31, 15, 30, 45, tzinfo=tzoffset(None, 32400))
+        )
 
 
 @pytest.mark.parametrize(
@@ -42,7 +47,10 @@ def test_format_sql_date_non_utc():
 )
 def test_format_rfc2822_date(locale, expected):
     with translation_context(locale):
-        assert format_rfc2822_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC)) == expected
+        assert (
+            format_rfc2822_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC))
+            == expected
+        )
 
 
 @pytest.mark.parametrize(
@@ -55,7 +63,10 @@ def test_format_rfc2822_date(locale, expected):
 )
 def test_format_short_date(locale, expected):
     with translation_context(locale):
-        assert format_short_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC)) == expected
+        assert (
+            format_short_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC))
+            == expected
+        )
 
 
 @pytest.mark.parametrize(
@@ -71,7 +82,10 @@ def test_format_short_date(locale, expected):
 )
 def test_get_month_name(locale, short, expected):
     with translation_context(locale):
-        assert get_month_name(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC), short=short) == expected
+        assert (
+            get_month_name(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC), short=short)
+            == expected
+        )
 
 
 @pytest.mark.parametrize(
@@ -87,7 +101,12 @@ def test_get_month_name(locale, short, expected):
 )
 def test_get_weekday_name(locale, short, expected):
     with translation_context(locale):
-        assert get_weekday_name(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC), short=short) == expected
+        assert (
+            get_weekday_name(
+                datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC), short=short
+            )
+            == expected
+        )
 
 
 def test_utcnow_is_utc():
@@ -104,9 +123,24 @@ def test_utcnow_is_utc():
         ('2010-10-31T12:34:56+01:00', datetime(2010, 10, 31, 11, 34, 56, 0, UTC)),
         ('Thu, 06 Oct 2011 02:26:12 UTC', datetime(2011, 10, 6, 2, 26, 12, 0, UTC)),
         ('16:00', utcnow().replace(hour=16, minute=0, second=0, microsecond=0)),
-        ('7/23', utcnow().replace(month=7, day=23, hour=0, minute=0, second=0, microsecond=0)),
-        ('Aug 31', utcnow().replace(month=8, day=31, hour=0, minute=0, second=0, microsecond=0)),
-        ('Aug 2000', utcnow().replace(month=8, year=2000, hour=0, minute=0, second=0, microsecond=0)),
+        (
+            '7/23',
+            utcnow().replace(
+                month=7, day=23, hour=0, minute=0, second=0, microsecond=0
+            ),
+        ),
+        (
+            'Aug 31',
+            utcnow().replace(
+                month=8, day=31, hour=0, minute=0, second=0, microsecond=0
+            ),
+        ),
+        (
+            'Aug 2000',
+            utcnow().replace(
+                month=8, year=2000, hour=0, minute=0, second=0, microsecond=0
+            ),
+        ),
     ],
 )
 def test_parse_date(input, expected):

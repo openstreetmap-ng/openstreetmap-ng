@@ -26,20 +26,34 @@ class TraceExceptions06Mixin(TraceExceptionsMixin):
 
     @override
     def trace_file_unsupported_format(self, content_type: str) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail=f'Unsupported trace file format {content_type!r}')
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail=f'Unsupported trace file format {content_type!r}',
+        )
 
     @override
     def trace_file_archive_too_deep(self) -> NoReturn:
-        raise APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Trace file archive is too deep')
+        raise APIError(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Trace file archive is too deep',
+        )
 
     @override
     def trace_file_archive_corrupted(self, content_type: str) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail=f'Trace file archive failed to decompress {content_type!r}')
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail=f'Trace file archive failed to decompress {content_type!r}',
+        )
 
     @override
     def trace_file_archive_too_many_files(self) -> NoReturn:
-        raise APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Trace file archive contains too many files')
+        raise APIError(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Trace file archive contains too many files',
+        )
 
     @override
     def bad_trace_file(self, message: str) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail=f'Failed to parse trace file: {message}')
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST, detail=f'Failed to parse trace file: {message}'
+        )

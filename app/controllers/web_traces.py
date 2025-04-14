@@ -22,7 +22,9 @@ async def upload(
     tags: Annotated[str, Form()] = '',
 ):
     try:
-        trace_id = await TraceService.upload(file, description=description, tags=tags, visibility=visibility)
+        trace_id = await TraceService.upload(
+            file, description=description, tags=tags, visibility=visibility
+        )
     except* APIError as e:
         # convert api errors to standard feedback errors
         detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))

@@ -56,7 +56,9 @@ _POPULAR_STATS = _get_popular_stats()
 _check_config()
 
 
-def features_icons(elements: Iterable[Element | ElementInit | None]) -> list[FeatureIcon | None]:
+def features_icons(
+    elements: Iterable[Element | ElementInit | None],
+) -> list[FeatureIcon | None]:
     """
     Get the icons filenames and titles for the given elements.
 
@@ -65,7 +67,7 @@ def features_icons(elements: Iterable[Element | ElementInit | None]) -> list[Fea
     >>> features_icons(...)
     (('aeroway_terminal.webp', 'aeroway=terminal'), ...)
     """
-    return [_feature_icon(e) if (e is not None) else None for e in elements]
+    return [_feature_icon(e) if e is not None else None for e in elements]
 
 
 @cython.cfunc

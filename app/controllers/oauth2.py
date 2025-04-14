@@ -58,7 +58,15 @@ async def openid_configuration() -> OpenIDDiscovery:
         'subject_types_supported': ['public'],
         'id_token_signing_alg_values_supported': ['RS256'],  # TODO:
         'claim_types_supported': ['normal'],
-        'claims_supported': ['iss', 'sub', 'aud', 'exp', 'iat', 'preferred_username', 'email'],  # TODO:
+        'claims_supported': [
+            'iss',
+            'sub',
+            'aud',
+            'exp',
+            'iat',
+            'preferred_username',
+            'email',
+        ],  # TODO:
     }
 
 
@@ -73,7 +81,9 @@ async def authorize(
     response_mode: Annotated[OAuth2ResponseMode, Query()] = 'query',
     scope: Annotated[str, Query()] = '',
     code_challenge_method: Annotated[OAuth2CodeChallengeMethod | None, Query()] = None,
-    code_challenge: Annotated[str | None, Query(min_length=1, max_length=OAUTH_CODE_CHALLENGE_MAX_LENGTH)] = None,
+    code_challenge: Annotated[
+        str | None, Query(min_length=1, max_length=OAUTH_CODE_CHALLENGE_MAX_LENGTH)
+    ] = None,
     state: Annotated[str | None, Query(min_length=1)] = None,
 ):
     if response_type != 'code':
@@ -126,7 +136,9 @@ async def post_token(
     grant_type: Annotated[OAuth2GrantType, Form()],
     redirect_uri: Annotated[Uri, Form(min_length=1)],
     code: Annotated[str, Form(min_length=1)],
-    code_verifier: Annotated[str | None, Form(min_length=1, max_length=OAUTH_CODE_CHALLENGE_MAX_LENGTH)] = None,
+    code_verifier: Annotated[
+        str | None, Form(min_length=1, max_length=OAUTH_CODE_CHALLENGE_MAX_LENGTH)
+    ] = None,
     client_id: Annotated[ClientId | None, Form(min_length=1)] = None,
     client_secret: Annotated[SecretStr | None, Form(min_length=1)] = None,
     authorization: Annotated[str | None, Header(min_length=1)] = None,

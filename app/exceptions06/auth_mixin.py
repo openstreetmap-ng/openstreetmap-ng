@@ -16,7 +16,9 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,
             detail="Couldn't authenticate you",
-            headers={'WWW-Authenticate': 'Basic realm="Access to OpenStreetMap API"'} if request_basic_auth else None,
+            headers={'WWW-Authenticate': 'Basic realm="Access to OpenStreetMap API"'}
+            if request_basic_auth
+            else None,
         )
 
     @override
@@ -28,20 +30,28 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
 
     @override
     def bad_basic_auth_format(self) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail='Malformed basic auth credentials')
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST, detail='Malformed basic auth credentials'
+        )
 
     @override
     def oauth2_bearer_missing(self) -> NoReturn:
-        raise APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth2 bearer authorization header missing')
+        raise APIError(
+            status.HTTP_401_UNAUTHORIZED,
+            detail='OAuth2 bearer authorization header missing',
+        )
 
     @override
     def oauth2_challenge_method_not_set(self) -> NoReturn:
         raise APIError(
-            status.HTTP_400_BAD_REQUEST, detail='OAuth2 verifier provided but code challenge method is not set'
+            status.HTTP_400_BAD_REQUEST,
+            detail='OAuth2 verifier provided but code challenge method is not set',
         )
 
     @override
-    def oauth2_bad_verifier(self, code_challenge_method: 'OAuth2CodeChallengeMethod') -> NoReturn:
+    def oauth2_bad_verifier(
+        self, code_challenge_method: 'OAuth2CodeChallengeMethod'
+    ) -> NoReturn:
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,
             detail=f'OAuth2 verifier invalid for {code_challenge_method} code challenge method',
@@ -49,7 +59,9 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
 
     @override
     def oauth_bad_client_secret(self) -> NoReturn:
-        raise APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth application token invalid')
+        raise APIError(
+            status.HTTP_401_UNAUTHORIZED, detail='OAuth application token invalid'
+        )
 
     @override
     def oauth_bad_user_token(self) -> NoReturn:

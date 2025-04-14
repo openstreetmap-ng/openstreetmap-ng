@@ -52,7 +52,7 @@ blacklist: dict[str, set[str]] = {
 
 paths = [
     p
-    for dir_ in dirs  #
+    for dir_ in dirs
     for p in (*Path(dir_).rglob('*.py'), *extra_paths)
     if p.name not in blacklist.get(p.parent.as_posix(), set())
 ]

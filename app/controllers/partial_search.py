@@ -26,7 +26,9 @@ router = APIRouter(prefix='/partial')
 
 @router.get('/search')
 async def get_search(
-    query: Annotated[str, Query(alias='q', min_length=1, max_length=SEARCH_QUERY_MAX_LENGTH)],
+    query: Annotated[
+        str, Query(alias='q', min_length=1, max_length=SEARCH_QUERY_MAX_LENGTH)
+    ],
     bbox: Annotated[str, Query(min_length=1)],
     local_only: Annotated[bool, Query()] = False,
 ):
@@ -66,7 +68,7 @@ async def get_where_is_this(
     zoom: Annotated[Zoom, Query()],
 ):
     result = await NominatimQuery.reverse(Point(lon, lat), zoom)
-    results = [result] if (result is not None) else []
+    results = [result] if result is not None else []
     return await _get_response(
         at_sequence_id=None,
         bounds=None,
@@ -83,7 +85,7 @@ async def _get_response(
     where_is_this: bool,
 ):
     members: list[TypedElementId] = [
-        member  #
+        member
         for result in results
         if (result_members := result.element['members'])
         for member in result_members
@@ -95,7 +97,9 @@ async def _get_response(
         limit=None,
     )
 
-    members_map: dict[TypedElementId, Element] = {member['typed_id']: member for member in members_elements}
+    members_map: dict[TypedElementId, Element] = {
+        member['typed_id']: member for member in members_elements
+    }
     Search.improve_point_accuracy(results, members_map)
     Search.remove_overlapping_points(results)
 
@@ -121,7 +125,10 @@ async def _get_response(
                     continue
 
                 typed_id: cython.ulonglong = member_element['typed_id']
-                if typed_id < typed_element_id_way_min or typed_id > typed_element_id_way_max:
+                if (
+                    typed_id < typed_element_id_way_min
+                    or typed_id > typed_element_id_way_max
+                ):
                     continue
 
                 # Recurse_ways

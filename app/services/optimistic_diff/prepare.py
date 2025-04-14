@@ -144,7 +144,9 @@ class OptimisticDiffPrepare:
 
                 if element_id >= 0:
                     raise_for.diff_create_bad_id(element)
-                assert typed_id not in element_state, f'Element {typed_id} must not exist in the element state'
+                assert typed_id not in element_state, (
+                    f'Element {typed_id} must not exist in the element state'
+                )
 
                 entry = None
                 prev = None
@@ -169,7 +171,9 @@ class OptimisticDiffPrepare:
 
             # Update references and check if all newly added members are valid
             if element_type != 'node':
-                added_members_refs = self._update_reference_override(prev, element, typed_id)
+                added_members_refs = self._update_reference_override(
+                    prev, element, typed_id
+                )
                 if added_members_refs:
                     self._check_members_local(element, added_members_refs)
 
@@ -183,11 +187,17 @@ class OptimisticDiffPrepare:
 
             # Update the current element state
             if entry is None:
-                element_state[typed_id] = ElementStateEntry(remote=None, current=element)
+                element_state[typed_id] = ElementStateEntry(
+                    remote=None, current=element
+                )
             else:
                 entry.current = element
 
-        self._update_changeset_size(num_create=num_create, num_modify=num_modify, num_delete=num_delete)
+        self._update_changeset_size(
+            num_create=num_create,
+            num_modify=num_modify,
+            num_delete=num_delete,
+        )
 
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
@@ -216,13 +226,13 @@ class OptimisticDiffPrepare:
         if len(elements) != num_typed_ids:
             found_typed_ids = {element['typed_id'] for element in elements}
             missing_typed_ids = [tid for tid in typed_ids if tid not in found_typed_ids]
-            missing_typed_id = missing_typed_ids[0] if missing_typed_ids else typed_ids[0]
+            missing_typed_id = (missing_typed_ids or typed_ids)[0]
             raise_for.element_not_found(missing_typed_id)
 
         # If they do, push them to the element state
         self.element_state = {
             element['typed_id']: ElementStateEntry(remote=element, current=element)
-            for element in elements  #
+            for element in elements
         }
 
     async def _preload_elements_parents(self) -> None:
@@ -282,14 +292,26 @@ class OptimisticDiffPrepare:
         """Update the local reference overrides. Returns the newly added references if any."""
         next_members = element['members']
         prev_members = prev['members'] if prev is not None else None
-        next_members_arr = np.unique(np.array(next_members, np.uint64)) if next_members is not None else None
-        prev_members_arr = np.unique(np.array(prev_members, np.uint64)) if prev_members is not None else None
+        next_members_arr = (
+            np.unique(np.array(next_members, np.uint64))
+            if next_members is not None
+            else None
+        )
+        prev_members_arr = (
+            np.unique(np.array(prev_members, np.uint64))
+            if prev_members is not None
+            else None
+        )
         if next_members_arr is None and prev_members_arr is None:
             return None
 
         if next_members_arr is not None and prev_members_arr is not None:
-            typed_ids_removed = np.setdiff1d(prev_members_arr, next_members_arr, assume_unique=True)
-            typed_ids_added = np.setdiff1d(next_members_arr, prev_members_arr, assume_unique=True)
+            typed_ids_removed = np.setdiff1d(
+                prev_members_arr, next_members_arr, assume_unique=True
+            )
+            typed_ids_added = np.setdiff1d(
+                next_members_arr, prev_members_arr, assume_unique=True
+            )
         elif next_members_arr is not None:
             typed_ids_removed = None
             typed_ids_added = next_members_arr
@@ -317,7 +339,9 @@ class OptimisticDiffPrepare:
 
         return None
 
-    def _check_members_local(self, parent: ElementInit, members: list[TypedElementId]) -> None:
+    def _check_members_local(
+        self, parent: ElementInit, members: list[TypedElementId]
+    ) -> None:
         """
         Check if the members exist and are visible using element state.
         Stores not found member refs for remote check.
@@ -344,12 +368,15 @@ class OptimisticDiffPrepare:
                 raise_for.element_member_not_found(parent_typed_id, member)
 
         if not_found:
-            self._elements_check_members_remote.append((parent_typed_id, set(not_found)))
+            self._elements_check_members_remote.append((
+                parent_typed_id,
+                set(not_found),
+            ))
 
     async def _check_members_remote(self) -> None:
         """Check if the members exist and are visible using the database."""
         remote_refs = {
-            member  #
+            member
             for _, members in self._elements_check_members_remote
             for member in members
         }
@@ -370,7 +397,9 @@ class OptimisticDiffPrepare:
             if hidden_ref in members:
                 raise_for.element_member_not_found(parent_typed_id, hidden_ref)
 
-    def _push_bbox_info(self, prev: ElementInit | None, element: ElementInit, element_type: ElementType) -> None:
+    def _push_bbox_info(
+        self, prev: ElementInit | None, element: ElementInit, element_type: ElementType
+    ) -> None:
         """Push bbox info for later processing."""
         if element_type == 'node':
             self._push_bbox_node_info(prev, element)
@@ -381,7 +410,9 @@ class OptimisticDiffPrepare:
         else:
             raise NotImplementedError(f'Unsupported element type {element_type!r}')
 
-    def _push_bbox_node_info(self, prev: ElementInit | None, element: ElementInit) -> None:
+    def _push_bbox_node_info(
+        self, prev: ElementInit | None, element: ElementInit
+    ) -> None:
         """Push bbox info for a node."""
         bbox_points = self._bbox_points
 
@@ -393,7 +424,9 @@ class OptimisticDiffPrepare:
         if prev_point is not None:
             bbox_points.append(prev_point)
 
-    def _push_bbox_way_info(self, prev: ElementInit | None, element: ElementInit) -> None:
+    def _push_bbox_way_info(
+        self, prev: ElementInit | None, element: ElementInit
+    ) -> None:
         """Push bbox info for a way. Way info contains all nodes."""
         next_members = element['members']
         prev_members = prev['members'] if prev is not None else None
@@ -426,7 +459,9 @@ class OptimisticDiffPrepare:
             assert point is not None, f'Node {typed_id} point must be set'
             bbox_points.append(point)
 
-    def _push_bbox_relation_info(self, prev: ElementInit | None, element: ElementInit) -> None:
+    def _push_bbox_relation_info(
+        self, prev: ElementInit | None, element: ElementInit
+    ) -> None:
         """Push bbox info for a relation. Relation info contains either all members or only changed members."""
         next_members = element['members']
         prev_members = prev['members'] if prev is not None else None
@@ -451,12 +486,14 @@ class OptimisticDiffPrepare:
             prev is None
             or prev['tags'] != element['tags']
             or np.any(
-                (typed_ids_changed >= TYPED_ELEMENT_ID_RELATION_MIN)  #
+                (typed_ids_changed >= TYPED_ELEMENT_ID_RELATION_MIN)
                 & (typed_ids_changed <= TYPED_ELEMENT_ID_RELATION_MAX)
             ).tolist()
         )
 
-        typed_ids_diff: list[TypedElementId] = (typed_ids_all if full_diff else typed_ids_changed).tolist()  # type: ignore
+        typed_ids_diff: list[TypedElementId] = (
+            typed_ids_all if full_diff else typed_ids_changed
+        ).tolist()  # type: ignore
 
         element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
         bbox_points: list[Point] = self._bbox_points
@@ -526,7 +563,9 @@ class OptimisticDiffPrepare:
             tg.create_task(UserQuery.resolve_users(items))
             tg.create_task(ChangesetBoundsQuery.resolve_bounds(items))
 
-    def _update_changeset_size(self, *, num_create: int, num_modify: int, num_delete: int) -> None:
+    def _update_changeset_size(
+        self, *, num_create: int, num_modify: int, num_delete: int
+    ) -> None:
         """Update and validate the changeset size."""
         logging.debug(
             'Optimistic updating changeset %d size (+%d, ~%d, -%d)',
@@ -536,9 +575,14 @@ class OptimisticDiffPrepare:
             num_delete,
         )
         if not changeset_increase_size(
-            self.changeset, num_create=num_create, num_modify=num_modify, num_delete=num_delete
+            self.changeset,
+            num_create=num_create,
+            num_modify=num_modify,
+            num_delete=num_delete,
         ):
-            raise_for.changeset_too_big(self.changeset['size'] + num_create + num_modify + num_delete)
+            raise_for.changeset_too_big(
+                self.changeset['size'] + num_create + num_modify + num_delete
+            )
 
     async def _update_changeset_bounds(self) -> None:
         """Update changeset bounds using the collected bbox info."""
@@ -565,7 +609,11 @@ class OptimisticDiffPrepare:
                 typed_id: cython.ulonglong = element['typed_id']
                 if typed_element_id_node_min <= typed_id <= typed_element_id_node_max:
                     id = split_typed_element_id(element['typed_id'])[1]
-                    logging.warning('Node %d version %d is missing coordinates', id, element['version'])
+                    logging.warning(
+                        'Node %d version %d is missing coordinates',
+                        id,
+                        element['version'],
+                    )
 
         if not bbox_points:
             return

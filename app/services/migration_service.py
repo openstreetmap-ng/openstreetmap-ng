@@ -50,7 +50,9 @@ class MigrationService:
                 sequences: list[tuple[str, str, str]] = await r.fetchall()
 
             for table, column, sequence in sequences:
-                query = SQL('SELECT MAX({}) FROM {}').format(Identifier(column), Identifier(table))
+                query = SQL('SELECT MAX({}) FROM {}').format(
+                    Identifier(column), Identifier(table)
+                )
                 async with await conn.execute(query) as r:
                     row: tuple[int] | None = await r.fetchone()
                     if row is None:
@@ -71,7 +73,11 @@ class MigrationService:
 
         chunks = await _get_element_typed_id_chunks(task_size)
         semaphore = Semaphore(parallelism)
-        logging.info('Deduplicating elements (tasks=%d, parallelism=%d)', len(chunks), parallelism)
+        logging.info(
+            'Deduplicating elements (tasks=%d, parallelism=%d)',
+            len(chunks),
+            parallelism,
+        )
 
         async def process_task(start_id: int, end_id: int):
             async with (
@@ -98,7 +104,12 @@ class MigrationService:
                 ) as r,
             ):
                 if rows := await r.fetchall():
-                    logging.warning('Deduplicated %d elements in range [%d, %d]', len(rows), start_id, end_id)
+                    logging.warning(
+                        'Deduplicated %d elements in range [%d, %d]',
+                        len(rows),
+                        start_id,
+                        end_id,
+                    )
 
         async with TaskGroup() as tg:
             for start_id, end_id in chunks:
@@ -115,7 +126,11 @@ class MigrationService:
 
         chunks = await _get_element_typed_id_chunks(task_size)
         semaphore = Semaphore(parallelism)
-        logging.info('Marking latest elements (tasks=%d, parallelism=%d)', len(chunks), parallelism)
+        logging.info(
+            'Marking latest elements (tasks=%d, parallelism=%d)',
+            len(chunks),
+            parallelism,
+        )
 
         async def process_task(start_id: int, end_id: int):
             async with semaphore, db(True, autocommit=True) as conn:
@@ -155,7 +170,9 @@ class MigrationService:
 
         semaphore = Semaphore(parallelism)
         logging.info(
-            'Deleting notes without comments (tasks=%d, parallelism=%d)', ceil(max_id / task_size), parallelism
+            'Deleting notes without comments (tasks=%d, parallelism=%d)',
+            ceil(max_id / task_size),
+            parallelism,
         )
 
         async def process_chunk(start_id: int, end_id: int):
@@ -186,7 +203,9 @@ class MigrationService:
         """
         async with db(True) as conn:
             # Acquire blocking exclusive lock
-            await conn.execute('SELECT pg_advisory_xact_lock(4708896507819139515::bigint)')
+            await conn.execute(
+                'SELECT pg_advisory_xact_lock(4708896507819139515::bigint)'
+            )
             await _ensure_db_table(conn)
             current_migration = await _get_current_migration(conn)
 
@@ -199,16 +218,29 @@ class MigrationService:
             await _apply_migrations(conn, migrations)
 
             new_version = migrations[-1][0]
-            logging.info('Successfully migrated database from %s to %s', current_migration, new_version)
+            logging.info(
+                'Successfully migrated database from %s to %s',
+                current_migration,
+                new_version,
+            )
 
 
 async def _get_element_typed_id_chunks(task_size: int) -> list[tuple[int, int]]:
     # Define actual data ranges
     current_ids = await ElementQuery.get_current_ids()
     active_ranges = [
-        (TYPED_ELEMENT_ID_NODE_MIN, typed_element_id('node', current_ids['node'])),
-        (TYPED_ELEMENT_ID_WAY_MIN, typed_element_id('way', current_ids['way'])),
-        (TYPED_ELEMENT_ID_RELATION_MIN, typed_element_id('relation', current_ids['relation'])),
+        (
+            TYPED_ELEMENT_ID_NODE_MIN,
+            typed_element_id('node', current_ids['node']),
+        ),
+        (
+            TYPED_ELEMENT_ID_WAY_MIN,
+            typed_element_id('way', current_ids['way']),
+        ),
+        (
+            TYPED_ELEMENT_ID_RELATION_MIN,
+            typed_element_id('relation', current_ids['relation']),
+        ),
     ]
 
     # Create balanced work chunks
@@ -272,7 +304,9 @@ async def _get_current_migration(conn: AsyncConnection) -> _MigrationInfo | None
         return _MigrationInfo(Version(row[0]), row[1]) if row is not None else None
 
 
-def _find_migrations(current_migration: _MigrationInfo | None) -> list[tuple[Version, Path]]:
+def _find_migrations(
+    current_migration: _MigrationInfo | None,
+) -> list[tuple[Version, Path]]:
     migrations = [(Version(p.stem), p) for p in _MIGRATIONS_DIR.glob('*.sql')]
     migrations.sort(key=itemgetter(0))
     assert migrations, 'No migration files found'
@@ -312,12 +346,16 @@ def _find_migrations(current_migration: _MigrationInfo | None) -> list[tuple[Ver
     return filtered[::-1]
 
 
-async def _apply_migrations(conn: AsyncConnection, migrations: list[tuple[Version, Path]]) -> None:
+async def _apply_migrations(
+    conn: AsyncConnection, migrations: list[tuple[Version, Path]]
+) -> None:
     for version, path in migrations:
         try:
             content = path.read_text()
             hash = hash_bytes(content)[:_MIGRATION_HASH_SIZE]
-            logging.debug('Applying migration %s from %s (hash=%s)', version, path, hash.hex())
+            logging.debug(
+                'Applying migration %s from %s (hash=%s)', version, path, hash.hex()
+            )
 
             await conn.cursor(binary=False).execute(content)  # type: ignore
             await conn.execute(

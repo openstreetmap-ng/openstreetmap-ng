@@ -18,7 +18,9 @@ _JINJA_UNESCAPE_RE = re.compile(r'__jinja__(\d+)__')
 class OptimizedFileSystemLoader(FileSystemLoader):
     @override
     def get_source(self, environment, template):
-        source, path, up_to_date = super().get_source(environment, template + '.html.jinja')
+        source, path, up_to_date = super().get_source(
+            environment, template + '.html.jinja'
+        )
 
         # Replace Jinja syntax with unique entities
         def repl_escape(match: re.Match[str]) -> str:

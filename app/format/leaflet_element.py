@@ -31,15 +31,21 @@ class LeafletElementMixin:
                 ways.append(element)
 
         member_nodes: set[TypedElementId] = set()
-        render_ways = _render_ways(ways=ways, node_id_map=node_id_map, areas=areas, member_nodes=member_nodes)
-        render_nodes = _render_nodes(node_id_map=node_id_map, member_nodes=member_nodes, detailed=detailed)
+        render_ways = _render_ways(
+            ways=ways, node_id_map=node_id_map, areas=areas, member_nodes=member_nodes
+        )
+        render_nodes = _render_nodes(
+            node_id_map=node_id_map, member_nodes=member_nodes, detailed=detailed
+        )
         return RenderElementsData(
             nodes=render_nodes,
             ways=render_ways,
         )
 
     @staticmethod
-    def encode_query_features(results: list[QueryFeatureResult]) -> list[RenderElementsData]:
+    def encode_query_features(
+        results: list[QueryFeatureResult],
+    ) -> list[RenderElementsData]:
         """Format query features results into a minimal structure, suitable for map rendering."""
         encoded: list[RenderElementsData] = []
 
@@ -53,7 +59,9 @@ class LeafletElementMixin:
                 encoded.append(RenderElementsData(nodes=[render_node]))
 
             elif type == 'way':
-                render_way = RenderElementsData.Way(id=id, line=encode_lonlat(result.geoms[0], 6))
+                render_way = RenderElementsData.Way(
+                    id=id, line=encode_lonlat(result.geoms[0], 6)
+                )
                 encoded.append(RenderElementsData(ways=[render_way]))
 
             elif type == 'relation':
@@ -62,9 +70,13 @@ class LeafletElementMixin:
                 for geom in result.geoms:
                     if len(geom) == 1:
                         point = geom[0]
-                        nodes.append(RenderElementsData.Node(id=id, lon=point[0], lat=point[1]))
+                        nodes.append(
+                            RenderElementsData.Node(id=id, lon=point[0], lat=point[1])
+                        )
                     else:
-                        ways.append(RenderElementsData.Way(id=id, line=encode_lonlat(geom, 6)))
+                        ways.append(
+                            RenderElementsData.Way(id=id, line=encode_lonlat(geom, 6))
+                        )
                 encoded.append(RenderElementsData(nodes=nodes, ways=ways))
 
             else:
@@ -140,7 +152,9 @@ def _render_nodes(
     detailed: cython.bint,
 ) -> list[RenderElementsData.Node]:
     nodes = list(node_id_map.values())
-    nodes = ElementsFilter.filter_nodes_interesting(nodes, member_nodes, detailed=detailed)
+    nodes = ElementsFilter.filter_nodes_interesting(
+        nodes, member_nodes, detailed=detailed
+    )
     if not nodes:
         return []
 

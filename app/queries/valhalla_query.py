@@ -16,7 +16,9 @@ ValhallaProfiles: frozenset[ValhallaProfile] = frozenset(get_args(ValhallaProfil
 
 class ValhallaQuery:
     @staticmethod
-    async def route(start: Point, end: Point, *, profile: ValhallaProfile) -> RoutingResult:
+    async def route(
+        start: Point, end: Point, *, profile: ValhallaProfile
+    ) -> RoutingResult:
         start_x, start_y = get_coordinates(start)[0].tolist()
         end_x, end_y = get_coordinates(end)[0].tolist()
         r = await HTTP.post(
@@ -39,13 +41,17 @@ class ValhallaQuery:
         data = r.json()
         if not r.is_success:
             if 'error' in data and 'error_code' in data:
-                raise HTTPException(r.status_code, f'{data["error"]} ({data["error_code"]})')
+                raise HTTPException(
+                    r.status_code, f'{data["error"]} ({data["error_code"]})'
+                )
             raise HTTPException(r.status_code, r.text)
 
         leg = cast(ValhallaResponse, data)['trip']['legs'][0]
         routing_steps: list[RoutingResult.Step] = [
             RoutingResult.Step(
-                num_coords=maneuver['end_shape_index'] - maneuver['begin_shape_index'] + 1,
+                num_coords=(
+                    maneuver['end_shape_index'] - maneuver['begin_shape_index'] + 1
+                ),
                 distance=maneuver['length'] * 1000,
                 time=maneuver['time'],
                 icon_num=_MANEUVER_TYPE_TO_ICON_MAP.get(maneuver['type'], 0),

@@ -17,13 +17,17 @@ from app.services.email_service import EmailService
 
 class MessageService:
     @staticmethod
-    async def send(recipient: DisplayName | UserId, subject: str, body: str) -> MessageId:
+    async def send(
+        recipient: DisplayName | UserId, subject: str, body: str
+    ) -> MessageId:
         """Send a message to a user."""
         recipient_id: UserId
         if isinstance(recipient, str):
             recipient_user = await UserQuery.find_one_by_display_name(recipient)
             if recipient_user is None:
-                StandardFeedback.raise_error('recipient', t('validation.user_not_found'))
+                StandardFeedback.raise_error(
+                    'recipient', t('validation.user_not_found')
+                )
             recipient_id = recipient_user['id']
         else:
             recipient_id = recipient
@@ -31,7 +35,9 @@ class MessageService:
         from_user = auth_user(required=True)
         from_user_id = from_user['id']
         if recipient_id == from_user_id:
-            StandardFeedback.raise_error('recipient', t('validation.cant_send_message_to_self'))
+            StandardFeedback.raise_error(
+                'recipient', t('validation.cant_send_message_to_self')
+            )
 
         message_id: MessageId = zid()  # type: ignore
         message_init: MessageInit = {
@@ -163,7 +169,10 @@ async def _send_activity_email(message: Message) -> None:
         assert to_user is not None, f'Recipient user {message["to_user_id"]} must exist'
 
     with translation_context(to_user['language']):
-        subject = t('user_mailer.message_notification.subject', message_title=message['subject'])
+        subject = t(
+            'user_mailer.message_notification.subject',
+            message_title=message['subject'],
+        )
 
     await EmailService.schedule(
         source='message',

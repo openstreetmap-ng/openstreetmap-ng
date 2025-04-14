@@ -29,15 +29,17 @@ class XMLToDict:
         xml_bytes: bytes, *, size_limit: int | None = XML_PARSE_MAX_SIZE
     ) -> dict[str, list[tuple[str, Any]] | dict[str, Any]]:
         """Parse XML string to dict."""
-        if (size_limit is not None) and len(xml_bytes) > size_limit:
+        if size_limit is not None and len(xml_bytes) > size_limit:
             raise_for.input_too_big(len(xml_bytes))
 
         logging.debug('Parsing %s XML string', sizestr(len(xml_bytes)))
         root = tree.fromstring(xml_bytes, parser=_PARSER)
         root_element = _parse_element(root)
 
-        if isinstance(root_element, str):
-            raise_for.bad_xml(root.tag, f'XML contains only text: {root_element}', xml_bytes)
+        if isinstance(root_element, str):  # type: ignore
+            raise_for.bad_xml(
+                root.tag, f'XML contains only text: {root_element}', xml_bytes
+            )
 
         return {_strip_namespace(root.tag): root_element}
 
@@ -109,7 +111,7 @@ def _parse_element(element: tree._Element):
 
             # add new value
             else:
-                parsed_children[k] = [v] if (k in force_list) else v
+                parsed_children[k] = [v] if k in force_list else v
 
         if parsed_children:
             parsed.extend(parsed_children.items())
@@ -218,7 +220,7 @@ def _parse_xml_bool(value: str):
 @cython.cfunc
 def _parse_xml_version(value: str):
     # for simplicity, we don't support floating-point versions
-    return int(value) if ('.' not in value) else float(value)
+    return int(value) if '.' not in value else float(value)
 
 
 @cython.cfunc
@@ -268,7 +270,7 @@ def _to_string(v: Any):
         return v.isoformat() + 'Z'
 
     if isinstance(v, bool):
-        return 'true' if (v is True) else 'false'
+        return 'true' if v is True else 'false'
 
     return str(v)
 
@@ -287,7 +289,7 @@ def _xattr_json(name: str, xml=None) -> str:
 
 
 def _xattr_xml(name: str, xml: str | None = None) -> str:
-    return f'@{xml if (xml is not None) else name}'
+    return '@' + (xml or name)
 
 
 def get_xattr(*, is_json: bool | None = None) -> _XAttrCallable:
@@ -296,4 +298,8 @@ def get_xattr(*, is_json: bool | None = None) -> _XAttrCallable:
 
     If is_json is None (default), then the current format is detected.
     """
-    return _xattr_json if (is_json if (is_json is not None) else format_is_json()) else _xattr_xml
+    return (
+        _xattr_json
+        if (is_json if is_json is not None else format_is_json())
+        else _xattr_xml
+    )

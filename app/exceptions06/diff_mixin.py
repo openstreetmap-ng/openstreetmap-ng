@@ -13,7 +13,10 @@ if TYPE_CHECKING:
 class DiffExceptions06Mixin(DiffExceptionsMixin):
     @override
     def diff_multiple_changesets(self) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail='Only one changeset can be modified at a time')
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail='Only one changeset can be modified at a time',
+        )
 
     @override
     def diff_unsupported_action(self, action: str) -> NoReturn:

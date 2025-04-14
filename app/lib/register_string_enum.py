@@ -30,16 +30,22 @@ class _StringEnumLoader(Loader):
         return self._load_map[bytes(data)]
 
 
-def _make_string_load_map(info: EnumInfo, context: AdaptContext | None) -> dict[bytes, str]:
+def _make_string_load_map(
+    info: EnumInfo, context: AdaptContext | None
+) -> dict[bytes, str]:
     encoding = conn_encoding(context.connection if context is not None else None)
     return {label.encode(encoding): label for label in info.labels}
 
 
-def _make_string_loader(name: str, load_map: dict[bytes, str]) -> type[_StringEnumLoader]:
+def _make_string_loader(
+    name: str, load_map: dict[bytes, str]
+) -> type[_StringEnumLoader]:
     attribs = {'_load_map': load_map}
     return type(f'{name.title()}StringLoader', (_StringEnumLoader,), attribs)
 
 
-def _make_string_binary_loader(name: str, load_map: dict[bytes, str]) -> type[_StringEnumLoader]:
+def _make_string_binary_loader(
+    name: str, load_map: dict[bytes, str]
+) -> type[_StringEnumLoader]:
     attribs = {'_load_map': load_map, 'format': Format.BINARY}
     return type(f'{name.title()}StringBinaryLoader', (_StringEnumLoader,), attribs)

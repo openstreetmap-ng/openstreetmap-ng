@@ -10,7 +10,9 @@ class LeafletChangesetMixin:
     @staticmethod
     def encode_changesets(changesets: list[Changeset]) -> RenderChangesetsData:
         """Format changesets into a minimal structure, suitable for map rendering."""
-        return RenderChangesetsData(changesets=[_encode_changeset(changeset) for changeset in changesets])
+        return RenderChangesetsData(
+            changesets=[_encode_changeset(changeset) for changeset in changesets]
+        )
 
 
 @cython.cfunc
@@ -25,7 +27,8 @@ def _encode_changeset(changeset: Changeset):
     )
 
     bounds = changeset.get('bounds')
-    bboxes: list[list[float]] = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
+    bboxes: list[list[float]]
+    bboxes = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
     params_bounds = [
         SharedBounds(
             min_lon=bbox[0],
@@ -37,8 +40,10 @@ def _encode_changeset(changeset: Changeset):
     ]
 
     closed_at = changeset['closed_at']
-    timeago_date = closed_at if (closed_at is not None) else changeset['created_at']
-    timeago_html = f'<time datetime="{timeago_date.isoformat()}" data-style="long"></time>'
+    timeago_date = closed_at or changeset['created_at']
+    timeago_html = (
+        f'<time datetime="{timeago_date.isoformat()}" data-style="long"></time>'
+    )
 
     return RenderChangesetsData.Changeset(
         id=changeset['id'],

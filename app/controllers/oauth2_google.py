@@ -23,7 +23,10 @@ async def google_authorize(
     referer: Annotated[str | None, Form()] = None,
 ):
     if not GOOGLE_OAUTH_PUBLIC or not GOOGLE_OAUTH_SECRET:
-        return Response('Google OAuth credentials are not configured', status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response(
+            'Google OAuth credentials are not configured',
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
     openid = await OpenIDQuery.discovery('https://accounts.google.com')
     return AuthProviderService.continue_authorize(
         provider='google',

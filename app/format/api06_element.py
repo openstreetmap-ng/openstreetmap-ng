@@ -46,7 +46,11 @@ class Element06Mixin:
         {'node': [{'@id': 1, '@version': 1, ...}], 'way': [{'@id': 2, '@version': 1, ...}]}
         """
         if format_is_json():
-            return {'elements': [_encode_element(element, is_json=True) for element in elements]}
+            return {
+                'elements': [
+                    _encode_element(element, is_json=True) for element in elements
+                ]
+            }
 
         # Merge elements of the same type together
         result: dict[ElementType, list[dict]] = {'node': [], 'way': [], 'relation': []}
@@ -64,10 +68,15 @@ class Element06Mixin:
         >>> decode_elements(('node', {'@id': 1, '@version': 1, ...}))
         Element(type='node', ...)
         """
-        return validate_elements([_decode_element_unsafe(type, data, changeset_id=None) for (type, data) in elements])
+        return validate_elements([
+            _decode_element_unsafe(type, data, changeset_id=None)
+            for (type, data) in elements
+        ])
 
     @staticmethod
-    def encode_osmchange(elements: list[Element]) -> list[tuple[OSMChangeAction, dict[ElementType, dict]]]:
+    def encode_osmchange(
+        elements: list[Element],
+    ) -> list[tuple[OSMChangeAction, dict[ElementType, dict]]]:
         """
         >>> encode_osmchange([
         ...     Element(type='node', id=1, version=1, ...),
@@ -78,7 +87,9 @@ class Element06Mixin:
             ('modify', {'way': {'@id': 2, '@version': 2, ...}}),
         ]
         """
-        result: list[tuple[OSMChangeAction, dict[ElementType, dict]]] = [None] * len(elements)  # type: ignore
+        result: list[tuple[OSMChangeAction, dict[ElementType, dict]]] = [None] * len(
+            elements
+        )  # type: ignore
         action: OSMChangeAction
 
         i: cython.Py_ssize_t
@@ -125,7 +136,7 @@ class Element06Mixin:
         result: list[ElementInit] = []
         for action, elements_data in changes:
             # skip osmChange attributes
-            if action.startswith('@'):
+            if action[:1] == '@':
                 continue
             # skip attributes-only actions
             if isinstance(elements_data, dict):
@@ -134,7 +145,9 @@ class Element06Mixin:
             if action == 'create':
                 for key, data in elements_data:
                     data['@version'] = 0
-                    element = _decode_element_unsafe(key, data, changeset_id=changeset_id)
+                    element = _decode_element_unsafe(
+                        key, data, changeset_id=changeset_id
+                    )
                     element_id = split_typed_element_id(element['typed_id'])[1]
 
                     if element_id > 0:
@@ -144,7 +157,9 @@ class Element06Mixin:
 
             elif action == 'modify':
                 for key, data in elements_data:
-                    element = _decode_element_unsafe(key, data, changeset_id=changeset_id)
+                    element = _decode_element_unsafe(
+                        key, data, changeset_id=changeset_id
+                    )
 
                     if element['version'] <= 1:
                         raise_for.diff_update_bad_version(element)
@@ -160,7 +175,9 @@ class Element06Mixin:
                         continue
 
                     data['@visible'] = False
-                    element = _decode_element_unsafe(key, data, changeset_id=changeset_id)
+                    element = _decode_element_unsafe(
+                        key, data, changeset_id=changeset_id
+                    )
 
                     if element['version'] <= 1:
                         raise_for.diff_update_bad_version(element)
@@ -203,7 +220,9 @@ def _decode_nodes(nodes: list[dict]) -> list[TypedElementId]:
 
 
 @cython.cfunc
-def _encode_members_json(members: list[TypedElementId], members_roles: list[str]) -> list[dict[str, Any]]:
+def _encode_members_json(
+    members: list[TypedElementId], members_roles: list[str]
+) -> list[dict[str, Any]]:
     """
     >>> _encode_members_json([
     ...     ElementMember(type='node', id=1, role='a'),
@@ -225,7 +244,9 @@ def _encode_members_json(members: list[TypedElementId], members_roles: list[str]
 
 
 @cython.cfunc
-def _encode_members_xml(members: list[TypedElementId], members_roles: list[str]) -> list[dict[str, Any]]:
+def _encode_members_xml(
+    members: list[TypedElementId], members_roles: list[str]
+) -> list[dict[str, Any]]:
     """
     >>> _encode_members_xml([
     ...     ElementMember(type='node', id=1, role='a'),
@@ -249,7 +270,9 @@ def _encode_members_xml(members: list[TypedElementId], members_roles: list[str])
 # TODO: validate role length
 # TODO: validate type
 @cython.cfunc
-def _decode_members_unsafe(members: list[dict]) -> tuple[list[TypedElementId], list[str]]:
+def _decode_members_unsafe(
+    members: list[dict],
+) -> tuple[list[TypedElementId], list[str]]:
     """
     This method does not validate the input data.
 
@@ -302,13 +325,15 @@ def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
                 else {}
             ),
             **(
-                {'nodes': _encode_nodes_json(members)}  #
+                {'nodes': _encode_nodes_json(members)}
                 if type == 'way' and members is not None
                 else {}
             ),
             **(
                 {'members': _encode_members_json(members, members_roles)}
-                if type == 'relation' and members is not None and members_roles is not None
+                if type == 'relation'
+                and members is not None
+                and members_roles is not None
                 else {}
             ),
         }
@@ -339,7 +364,7 @@ def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
                 else {}
             ),
             **(
-                {'member': _encode_members_xml(members, members_roles)}  #
+                {'member': _encode_members_xml(members, members_roles)}
                 if type == 'relation' and members and members_roles
                 else {}
             ),
@@ -347,7 +372,9 @@ def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
 
 
 @cython.cfunc
-def _decode_element_unsafe(type: ElementType, data: dict, *, changeset_id: ChangesetId | None):
+def _decode_element_unsafe(
+    type: ElementType, data: dict, *, changeset_id: ChangesetId | None
+):
     """
     This method does not validate the input data.
     If changeset_id is None, it will be extracted from the element data.
@@ -363,7 +390,7 @@ def _decode_element_unsafe(type: ElementType, data: dict, *, changeset_id: Chang
     point: Point | None = (
         # numpy automatically parses strings
         points(np.array((lon, lat), np.float64).round(GEO_COORDINATE_PRECISION))  # type: ignore
-        if (lon := data.get('@lon')) is not None  #
+        if (lon := data.get('@lon')) is not None
         and (lat := data.get('@lat')) is not None
         else None
     )
@@ -379,7 +406,7 @@ def _decode_element_unsafe(type: ElementType, data: dict, *, changeset_id: Chang
             members, members_roles = _decode_members_unsafe(data_members)
 
     result: ElementInit = {
-        'changeset_id': changeset_id if (changeset_id is not None) else data['@changeset'],
+        'changeset_id': changeset_id or data['@changeset'],
         'typed_id': typed_element_id(type, data['@id']),
         'version': data.get('@version', 0) + 1,
         'visible': data.get('@visible', True),

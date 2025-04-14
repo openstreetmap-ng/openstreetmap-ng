@@ -5,7 +5,9 @@ from app.models.types import UserId
 
 class ConnectedAccountQuery:
     @staticmethod
-    async def find_user_id_by_auth_provider(provider: AuthProvider, uid: str) -> UserId | None:
+    async def find_user_id_by_auth_provider(
+        provider: AuthProvider, uid: str
+    ) -> UserId | None:
         """Find a user id by auth provider and uid."""
         async with (
             db() as conn,

@@ -11,7 +11,13 @@ _gnu_dir = Path('config/locale/gnu')
 _gnu_dir.mkdir(parents=True, exist_ok=True)
 
 
-def transform(source_path: Path, source_mtime: float, *, target_path_po: Path, target_path_mo: Path) -> None:
+def transform(
+    source_path: Path,
+    source_mtime: float,
+    *,
+    target_path_po: Path,
+    target_path_mo: Path,
+) -> None:
     locale = source_path.stem
     target_path_po.parent.mkdir(parents=True, exist_ok=True)
 
@@ -71,7 +77,10 @@ def main() -> None:
             source_mtime = source_path.stat().st_mtime
             target_path_po = _gnu_dir.joinpath(locale, 'LC_MESSAGES/messages.po')
             target_path_mo = target_path_po.with_suffix('.mo')
-            if target_path_mo.is_file() and source_mtime <= target_path_mo.stat().st_mtime:
+            if (
+                target_path_mo.is_file()
+                and source_mtime <= target_path_mo.stat().st_mtime
+            ):
                 continue
 
             pool.apply_async(

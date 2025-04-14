@@ -70,7 +70,10 @@ async def legacy_mine(
     user: Annotated[User, web_user()],
     suffix: str,
 ):
-    return RedirectResponse(f'/user/{user["display_name"]}/traces{suffix}', status.HTTP_301_MOVED_PERMANENTLY)
+    return RedirectResponse(
+        f'/user/{user["display_name"]}/traces{suffix}',
+        status.HTTP_301_MOVED_PERMANENTLY,
+    )
 
 
 @router.get('/traces/new')
@@ -117,11 +120,16 @@ async def _get_data(
     if traces:
         async with TaskGroup() as tg:
             tg.create_task(UserQuery.resolve_users(traces))
-            tg.create_task(TraceQuery.resolve_coords(traces, limit_per_trace=100, resolution=90))
+            tg.create_task(
+                TraceQuery.resolve_coords(traces, limit_per_trace=100, resolution=90)
+            )
             new_after_t = tg.create_task(new_after_task())
             new_before_t = tg.create_task(new_before_task())
 
-        traces_lines = ';'.join(encode_lonlat(trace['coords'].tolist(), 0) for trace in traces)  # type: ignore
+        traces_lines = ';'.join(
+            encode_lonlat(trace['coords'].tolist(), 0)  # type: ignore
+            for trace in traces
+        )
         new_after = new_after_t.result()
         new_before = new_before_t.result()
     else:

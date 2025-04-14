@@ -26,7 +26,7 @@ async def send_message(
     recipient_id: Annotated[UserId | None, Form()] = None,
 ):
     message_id = await MessageService.send(
-        recipient=recipient_id if recipient_id is not None else recipient,
+        recipient=recipient_id or recipient,
         subject=subject,
         body=body,
     )
@@ -44,9 +44,17 @@ async def read_message(
     async with TaskGroup() as tg:
         items = [message]
         tg.create_task(messages_resolve_rich_text(items))
-        tg.create_task(UserQuery.resolve_users(items, user_id_key='from_user_id', user_key='from_user'))
+        tg.create_task(
+            UserQuery.resolve_users(
+                items, user_id_key='from_user_id', user_key='from_user'
+            )
+        )
         if not is_recipient:
-            tg.create_task(UserQuery.resolve_users(items, user_id_key='to_user_id', user_key='to_user'))
+            tg.create_task(
+                UserQuery.resolve_users(
+                    items, user_id_key='to_user_id', user_key='to_user'
+                )
+            )
         elif not message['read']:
             tg.create_task(MessageService.set_state(message_id, read=True))
 

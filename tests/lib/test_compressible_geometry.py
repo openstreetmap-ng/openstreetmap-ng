@@ -15,7 +15,9 @@ def test_compressible_geometry():
 
     for geom in geoms:
         processed = compressible_geometry(geom)
-        assert processed.equals_exact(geom, tolerance=0.5 * 10**-GEO_COORDINATE_PRECISION)
+        assert processed.equals_exact(
+            geom, tolerance=0.5 * 10**-GEO_COORDINATE_PRECISION
+        )
         if not processed.equals(geom):
             some_different = True
 

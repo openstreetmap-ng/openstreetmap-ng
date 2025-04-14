@@ -12,7 +12,7 @@ trim_trailing_whitespace = true
 [*.{py,html.jinja,ts,js,scss,css}]
 indent_size = 4
 
-[*.{py,html.jinja}]
+[*.{html.jinja}]
 max_line_length = 120
 
 [*.md]

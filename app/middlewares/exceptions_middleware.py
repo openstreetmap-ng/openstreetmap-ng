@@ -20,7 +20,11 @@ class ExceptionsMiddleware:
 
         implementation = (
             Exceptions06()
-            if get_request().url.path.startswith(('/api/0.6/', '/api/versions', '/api/capabilities'))
+            if get_request().url.path.startswith((
+                '/api/0.6/',
+                '/api/versions',
+                '/api/capabilities',
+            ))
             else Exceptions()
         )
 

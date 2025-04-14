@@ -37,7 +37,9 @@ async def messages_resolve_rich_text(objs: list[Message]) -> None:
     await resolve_rich_text(objs, 'message', 'body', 'markdown')
 
 
-def message_from_email(mail: EmailMessage, from_user_id: UserId, to_user_id: UserId) -> MessageInit:
+def message_from_email(
+    mail: EmailMessage, from_user_id: UserId, to_user_id: UserId
+) -> MessageInit:
     """Create a message instance from an email message."""
     subject: str | None = mail.get('Subject')
     if subject is None:

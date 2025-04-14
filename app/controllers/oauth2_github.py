@@ -18,7 +18,10 @@ async def github_authorize(
     referer: Annotated[str | None, Form()] = None,
 ):
     if not GITHUB_OAUTH_PUBLIC or not GITHUB_OAUTH_SECRET:
-        return Response('GitHub OAuth credentials are not configured', status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response(
+            'GitHub OAuth credentials are not configured',
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
     return AuthProviderService.continue_authorize(
         provider='github',
         action=action,

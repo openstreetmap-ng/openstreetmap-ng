@@ -14,7 +14,11 @@ async def test_map_read(client: AsyncClient):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_map_read.__name__}]}}
+            'osm': {
+                'changeset': {
+                    'tag': [{'@k': 'created_by', '@v': test_map_read.__name__}]
+                }
+            }
         }),
     )
     assert r.is_success, r.text

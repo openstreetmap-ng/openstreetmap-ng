@@ -118,7 +118,16 @@ async def test_compressed_xml(
 
     # Setup test data
     content = XMLToDict.unparse({
-        'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': f'{test_compressed_xml.__qualname__}: {encoding}'}]}},
+        'osm': {
+            'changeset': {
+                'tag': [
+                    {
+                        '@k': 'created_by',
+                        '@v': f'{test_compressed_xml.__qualname__}: {encoding}',
+                    }
+                ]
+            }
+        },
     })
 
     # Execute request with compressed XML
@@ -189,8 +198,13 @@ async def test_size_limit_after_decompression(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
     # Create data that's small when compressed but exceeds limits when decompressed
-    content = gzip.compress(orjson.dumps({'lon': 0, 'lat': 0, 'text': 'A' * REQUEST_BODY_MAX_SIZE}), compresslevel=1)
-    assert len(content) < REQUEST_BODY_MAX_SIZE, 'Compressed content must be under size limit'
+    content = gzip.compress(
+        orjson.dumps({'lon': 0, 'lat': 0, 'text': 'A' * REQUEST_BODY_MAX_SIZE}),
+        compresslevel=1,
+    )
+    assert len(content) < REQUEST_BODY_MAX_SIZE, (
+        'Compressed content must be under size limit'
+    )
 
     # Execute request
     r = await client.post(

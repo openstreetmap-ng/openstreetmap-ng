@@ -17,7 +17,12 @@ from app.lib.tags_diff_mode import tags_diff_mode
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.models.db.element import Element
-from app.models.element import ElementId, ElementType, split_typed_element_id, typed_element_id
+from app.models.element import (
+    ElementId,
+    ElementType,
+    split_typed_element_id,
+    typed_element_id,
+)
 from app.models.proto.shared_pb2 import PartialElementParams
 from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetQuery
@@ -31,7 +36,9 @@ router = APIRouter(prefix='/partial')
 async def get_latest(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.get_by_refs([typed_id], at_sequence_id=at_sequence_id, limit=1)
+    elements = await ElementQuery.get_by_refs(
+        [typed_id], at_sequence_id=at_sequence_id, limit=1
+    )
     element = next(iter(elements), None)
     if element is None:
         return await render_response(
@@ -53,7 +60,9 @@ async def get_latest(type: ElementType, id: ElementId):
 async def get_version(type: ElementType, id: ElementId, version: int):
     versioned_typed_id = (typed_element_id(type, id), version)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.get_by_versioned_refs([versioned_typed_id], at_sequence_id=at_sequence_id, limit=1)
+    elements = await ElementQuery.get_by_versioned_refs(
+        [versioned_typed_id], at_sequence_id=at_sequence_id, limit=1
+    )
     element = next(iter(elements), None)
     if element is None:
         id_text = f'{id} {t("browse.version").lower()} {version}'
@@ -71,7 +80,9 @@ async def get_version(type: ElementType, id: ElementId, version: int):
     else:
         include_parents = True
 
-    data = await _get_element_data(element, at_sequence_id, include_parents=include_parents)
+    data = await _get_element_data(
+        element, at_sequence_id, include_parents=include_parents
+    )
     return await render_response('partial/element', data)
 
 
@@ -84,7 +95,9 @@ async def get_history(
 ):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    current_version_map = await ElementQuery.get_current_versions_by_refs([typed_id], at_sequence_id=at_sequence_id)
+    current_version_map = await ElementQuery.get_current_versions_by_refs(
+        [typed_id], at_sequence_id=at_sequence_id
+    )
     current_version = current_version_map.get(typed_id)
     if current_version is None:
         return await render_response(
@@ -121,7 +134,9 @@ async def get_history(
                 at_sequence_id_ = last_sequence_id
                 include_parents = False
 
-            return await _get_element_data(element, at_sequence_id_, include_parents=include_parents)
+            return await _get_element_data(
+                element, at_sequence_id_, include_parents=include_parents
+            )
 
         elements = await ElementQuery.get_versions_by_ref(
             typed_id,
@@ -152,7 +167,9 @@ async def get_history(
     )
 
 
-async def _get_element_data(element: Element, at_sequence_id: SequenceId, *, include_parents: bool) -> dict:
+async def _get_element_data(
+    element: Element, at_sequence_id: SequenceId, *, include_parents: bool
+) -> dict:
     typed_id = element['typed_id']
     type = split_typed_element_id(typed_id)[0]
     version = element['version']
@@ -173,7 +190,9 @@ async def _get_element_data(element: Element, at_sequence_id: SequenceId, *, inc
         )
         return (
             [element, *members_elements],
-            FormatElementList.element_members(members, element['members_roles'], members_elements),
+            FormatElementList.element_members(
+                members, element['members_roles'], members_elements
+            ),
         )
 
     async def parents_task():
@@ -199,7 +218,9 @@ async def _get_element_data(element: Element, at_sequence_id: SequenceId, *, inc
     full_data, element_members = data_t.result() if data_t is not None else ([], [])
     element_parents = parents_t.result() if parents_t is not None else []
 
-    comment_tag = tags_format({'comment': changeset['tags'].get('comment') or t('browse.no_comment')})['comment']
+    comment_tag = tags_format({
+        'comment': changeset['tags'].get('comment') or t('browse.no_comment')
+    })['comment']
 
     if (point := element['point']) is not None:
         x, y = get_coordinates(point)[0].tolist()

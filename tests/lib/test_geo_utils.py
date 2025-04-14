@@ -66,7 +66,10 @@ def test_haversine_distance(p1, p2, expected_meters):
         # Whole world
         ('100,20,900,30', box(-180, 20, 180, 30)),
         # Meridian
-        ('175,10,195,20', MultiPolygon((box(175, 10, 180, 20), box(-180, 10, -165, 20)))),
+        (
+            '175,10,195,20',
+            MultiPolygon((box(175, 10, 180, 20), box(-180, 10, -165, 20))),
+        ),
         # Normalize latitude
         ('1,-95,3,4', box(1, -90, 3, 4)),
     ],

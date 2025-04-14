@@ -52,7 +52,9 @@ async def get_changeset(id: ChangesetId):
         tg.create_task(ChangesetCommentQuery.resolve_num_comments(items))
         elements_t = tg.create_task(elements_task())
         adjacent_t = tg.create_task(adjacent_task())
-        is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed('changeset', id))
+        is_subscribed_t = tg.create_task(
+            UserSubscriptionQuery.is_subscribed('changeset', id)
+        )
 
     elements = elements_t.result()
     prev_changeset_id, next_changeset_id = adjacent_t.result()
@@ -64,10 +66,13 @@ async def get_changeset(id: ChangesetId):
     comment_tag = tags.pop('comment')
 
     changeset_comments_num_items = changeset['num_comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-    changeset_comments_num_pages = ceil(changeset_comments_num_items / CHANGESET_COMMENTS_PAGE_SIZE)
+    changeset_comments_num_pages = ceil(
+        changeset_comments_num_items / CHANGESET_COMMENTS_PAGE_SIZE
+    )
 
     bounds = changeset.get('bounds')
-    bboxes: list[list[float]] = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
+    bboxes: list[list[float]]
+    bboxes = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
     params_bounds = [
         SharedBounds(
             min_lon=bbox[0],

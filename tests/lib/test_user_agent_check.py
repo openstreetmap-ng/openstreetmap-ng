@@ -16,7 +16,10 @@ from app.lib.user_agent_check import is_browser_supported
             'Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/67.0',
             False,
         ),
-        ('Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0', True),
+        (
+            'Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0',
+            True,
+        ),
         ('Unknown-User-Agent', True),
         ('', True),
     ],

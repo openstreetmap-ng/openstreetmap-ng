@@ -9,7 +9,9 @@ router = APIRouter(prefix='/api/web/unsupported-browser')
 
 @router.post('/override')
 async def override(request: Request) -> RedirectResponse:
-    response = RedirectResponse(request.headers.get('Referer') or '/', status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(
+        request.headers.get('Referer') or '/', status.HTTP_303_SEE_OTHER
+    )
     response.set_cookie(
         key='unsupported_browser_override',
         value='1',

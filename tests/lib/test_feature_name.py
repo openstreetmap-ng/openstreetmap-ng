@@ -29,9 +29,19 @@ from app.models.types import ChangesetId, LocaleCode
         # Empty tags
         ({}, None),
         # Multiple localized names - pick current locale
-        ({'name:en': 'English Name', 'name:pl': 'Polish Name', 'name': 'Default Name'}, 'Polish Name'),
+        (
+            {
+                'name:en': 'English Name',
+                'name:pl': 'Polish Name',
+                'name': 'Default Name',
+            },
+            'Polish Name',
+        ),
         # Prioritize current locale even in non-standard format
-        ({'name:pl-PL': 'Polish Regional', 'name:pl': 'Polish Standard'}, 'Polish Standard'),
+        (
+            {'name:pl-PL': 'Polish Regional', 'name:pl': 'Polish Standard'},
+            'Polish Standard',
+        ),
     ],
 )
 def test_features_names(tags: dict[str, str], expected: str | None):

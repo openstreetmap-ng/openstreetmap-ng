@@ -62,7 +62,9 @@ async def get_map(bbox: Annotated[str, Query()]):
         limit=NOTE_QUERY_WEB_LIMIT,
     )
 
-    await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
+    await NoteCommentQuery.resolve_comments(
+        notes, per_note_sort='asc', per_note_limit=1
+    )
 
     return Response(
         FormatLeaflet.encode_notes(notes).SerializeToString(),
@@ -76,7 +78,9 @@ async def comments_page(
     page: Annotated[PositiveInt, Query()],
     num_items: Annotated[PositiveInt, Query()],
 ):
-    comments = await NoteCommentQuery.get_comments_page(note_id, page=page, num_items=num_items)
+    comments = await NoteCommentQuery.get_comments_page(
+        note_id, page=page, num_items=num_items
+    )
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(comments))
@@ -103,7 +107,9 @@ async def user_notes_page(
     )
 
     async with TaskGroup() as tg:
-        comments = await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
+        comments = await NoteCommentQuery.resolve_comments(
+            notes, per_note_sort='asc', per_note_limit=1
+        )
         tg.create_task(NoteCommentQuery.resolve_num_comments(notes))
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(note_comments_resolve_rich_text(comments))

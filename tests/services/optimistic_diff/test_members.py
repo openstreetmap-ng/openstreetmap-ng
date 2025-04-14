@@ -151,7 +151,10 @@ async def test_relation_with_self_reference(changeset_id: ChangesetId):
     relation_typed_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
 
     # Verify the elements
-    elements = await ElementQuery.get_by_versioned_refs([(relation_typed_id, 1), (relation_typed_id, 2)])
+    elements = await ElementQuery.get_by_versioned_refs([
+        (relation_typed_id, 1),
+        (relation_typed_id, 2),
+    ])
     version_map = {e['version']: e for e in elements}
     assert_model(
         version_map[1],
@@ -173,7 +176,7 @@ async def test_invalid_reference_to_nonexistent_node(changeset_id: ChangesetId):
         'visible': True,
         'tags': {},
         'point': None,
-        'members': [typed_element_id('node', ElementId((1 << 56) - 1))],  # Non-existent node
+        'members': [typed_element_id('node', ElementId((1 << 56) - 1))],
         'members_roles': [''],
     }
 

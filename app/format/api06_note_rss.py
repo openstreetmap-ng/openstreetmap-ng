@@ -25,7 +25,9 @@ class NoteRSS06Mixin:
                 tg.create_task(_encode_note(fe, note))
 
     @staticmethod
-    async def encode_note_comments(fg: FeedGenerator, comments: list[NoteComment]) -> None:
+    async def encode_note_comments(
+        fg: FeedGenerator, comments: list[NoteComment]
+    ) -> None:
         """Encode note comments into a feed."""
         fg.load_extension('dc')
         fg.load_extension('geo')

@@ -206,7 +206,7 @@ async def test_delete_nonexistent_element(changeset_id: ChangesetId):
     # Try to delete a node that doesn't exist
     node_delete: ElementInit = {
         'changeset_id': changeset_id,
-        'typed_id': typed_element_id('node', ElementId((1 << 56) - 1)),  # Non-existent node
+        'typed_id': typed_element_id('node', ElementId((1 << 56) - 1)),
         'version': 2,  # Version must be > 1 for deletion
         'visible': False,
         'tags': None,

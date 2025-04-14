@@ -11,7 +11,9 @@ class StorageBase(ABC):
         """Load a file from storage by key."""
         ...
 
-    async def save(self, data: bytes, suffix: str, metadata: dict[str, str] | None = None) -> StorageKey:
+    async def save(
+        self, data: bytes, suffix: str, metadata: dict[str, str] | None = None
+    ) -> StorageKey:
         """Save a file to storage and return its key."""
         raise NotImplementedError
 

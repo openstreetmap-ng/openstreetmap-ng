@@ -54,7 +54,11 @@ def process_rich_text(text: str, text_format: TextFormat) -> str:
     raise NotImplementedError(f'Unsupported rich text format {text_format!r}')
 
 
-async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) -> tuple[str, bytes]:
+async def rich_text(
+    text: str,
+    cache_id: bytes | None,
+    text_format: TextFormat,
+) -> tuple[str, bytes]:
     """
     Get a rich text cache entry by text and format, generating one if not found.
     If cache_id is provided, it will be used to accelerate cache lookup.
@@ -92,13 +96,19 @@ async def resolve_rich_text(
     rich_hash_field_name = field + '_rich_hash'
 
     # skip if already resolved
-    mapping: dict[Any, _HasId] = {obj['id']: obj for obj in objs if rich_field_name not in obj}
+    mapping: dict[Any, _HasId] = {
+        obj['id']: obj  #
+        for obj in objs
+        if rich_field_name not in obj
+    }
     if not mapping:
         return
 
     async with TaskGroup() as tg:
         tasks = [
-            tg.create_task(rich_text(obj[field], obj[rich_hash_field_name], text_format))  # type: ignore
+            tg.create_task(
+                rich_text(obj[field], obj[rich_hash_field_name], text_format)  # type: ignore
+            )
             for obj in mapping.values()
         ]
 
@@ -132,7 +142,13 @@ async def resolve_rich_text(
     logging.debug('Rich text %r hash changed for %d objects', field, num_rows)
 
 
-def _render_image(self: RendererHTML, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
+def _render_image(
+    self: RendererHTML,
+    tokens: Sequence[Token],
+    idx: int,
+    options: OptionsDict,
+    env: EnvType,
+) -> str:
     token = tokens[idx]
     attrs: dict[str, str | int | float] = token.attrs
     attrs['decoding'] = 'async'
@@ -140,7 +156,13 @@ def _render_image(self: RendererHTML, tokens: Sequence[Token], idx: int, options
     return self.image(tokens, idx, options, env)
 
 
-def _render_link(self: RendererHTML, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
+def _render_link(
+    self: RendererHTML,
+    tokens: Sequence[Token],
+    idx: int,
+    options: OptionsDict,
+    env: EnvType,
+) -> str:
     token = tokens[idx]
     attrs: dict[str, str | int | float] = token.attrs
     trusted_href = _process_trusted_link(attrs.get('href'))
@@ -195,11 +217,11 @@ def _process_plain(text: str) -> str:
         for match in matches:
             prefix = text[last_pos : match.index]
             href = match.url
-            trusted_href = _process_trusted_link(href)
-            if trusted_href is not None:
-                result.append(f'{prefix}<a href="{trusted_href}" rel="{_TRUSTED_LINK_REL}">{match.text}</a>')
-            else:
-                result.append(f'{prefix}<a href="{href}" rel="{_UNTRUSTED_LINK_REL}">{match.text}</a>')
+            result.append(
+                f'{prefix}<a href="{trusted_href}" rel="{_TRUSTED_LINK_REL}">{match.text}</a>'
+                if (trusted_href := _process_trusted_link(href)) is not None
+                else f'{prefix}<a href="{href}" rel="{_UNTRUSTED_LINK_REL}">{match.text}</a>'
+            )
             last_pos = match.last_index
 
         # add remaining text after last link

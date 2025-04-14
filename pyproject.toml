@@ -85,7 +85,7 @@ packages = ["app", "scripts", "tests", "typings"]
 
 [tool.ruff]
 indent-width   = 4
-line-length    = 120
+line-length    = 88
 preview        = true
 target-version = "py313"
 

@@ -120,7 +120,12 @@ class EmailService:
                 mail_init,
             )
 
-        logging.info('Scheduled mail %r to user %d with subject %r', mail_id, to_user['id'], subject)
+        logging.info(
+            'Scheduled mail %r to user %d with subject %r',
+            mail_id,
+            to_user['id'],
+            subject,
+        )
 
         loop = get_running_loop()
         loop.create_task(_process_task())  # noqa: RUF006
@@ -173,7 +178,9 @@ async def _process_task_inner() -> None:
 
                 except Exception:
                     expires_at = mail['created_at'] + MAIL_UNPROCESSED_EXPIRE
-                    scheduled_at = now + timedelta(minutes=mail['processing_counter'] ** MAIL_UNPROCESSED_EXPONENT)
+                    scheduled_at = now + timedelta(
+                        minutes=mail['processing_counter'] ** MAIL_UNPROCESSED_EXPONENT
+                    )
 
                     if expires_at <= scheduled_at:
                         logging.warning(
@@ -185,7 +192,9 @@ async def _process_task_inner() -> None:
                         await conn.execute('DELETE FROM mail WHERE id = %s', (mail_id,))
                         continue
 
-                    logging.info('Requeuing unprocessed mail %r', mail_id, exc_info=True)
+                    logging.info(
+                        'Requeuing unprocessed mail %r', mail_id, exc_info=True
+                    )
                     await conn.execute(
                         """
                         UPDATE mail
@@ -208,12 +217,18 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
 
     async with TaskGroup() as tg:
         to_user_task = tg.create_task(UserQuery.find_one_by_id(to_user_id))
-        from_user_task = tg.create_task(UserQuery.find_one_by_id(from_user_id)) if from_user_id is not None else None
+        from_user_task = (
+            tg.create_task(UserQuery.find_one_by_id(from_user_id))
+            if from_user_id is not None
+            else None
+        )
 
     to_user = to_user_task.result()
     assert to_user is not None, f'Recipient user {to_user_id} not found'
     from_user = from_user_task.result() if from_user_task is not None else None
-    assert (from_user is not None) == (from_user_id is not None), f'Sender user {from_user_id} not found'
+    assert (from_user is not None) == (from_user_id is not None), (
+        f'Sender user {from_user_id} not found'
+    )
 
     if user_is_deleted(to_user):
         logging.info('Discarding mail %r to deleted user %d', mail_id, to_user_id)
@@ -229,7 +244,10 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
         message['From'] = SMTP_NOREPLY_FROM
 
     else:
-        from app.services.user_token_email_reply_service import UserTokenEmailReplyService  # noqa: PLC0415
+        # Avoid circular import
+        from app.services.user_token_email_reply_service import (  # noqa: PLC0415
+            UserTokenEmailReplyService,
+        )
 
         assert from_user is not None, f'Sender must be set for {mail["source"]=!r}'
         reply_address = await UserTokenEmailReplyService.create_address(
@@ -252,7 +270,12 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
     async with timeout(MAIL_PROCESSING_TIMEOUT.total_seconds() - 5):
         await smtp.send_message(message)
 
-    logging.info('Sent mail %r to user %d with subject %r', mail_id, mail['to_user_id'], mail['subject'])
+    logging.info(
+        'Sent mail %r to user %d with subject %r',
+        mail_id,
+        mail['to_user_id'],
+        mail['subject'],
+    )
 
 
 @cython.cfunc
@@ -270,11 +293,11 @@ def _set_list_headers(message: EmailMessage, ref: str, to_user: User):
     list_unsubscribe = f'{APP_URL}/{ref_type}/{ref_id}/unsubscribe'
 
     if ref_type == 'diary':
-        list_id = formataddr((f'Diary Entry #{ref_id}', f'{ref_id}.diary.{APP_DOMAIN}'))
+        list_title_prefix = 'Diary Entry'
     elif ref_type == 'changeset':
-        list_id = formataddr((f'Changeset #{ref_id}', f'{ref_id}.changeset.{APP_DOMAIN}'))
+        list_title_prefix = 'Changeset'
     elif ref_type == 'note':
-        list_id = formataddr((f'Note #{ref_id}', f'{ref_id}.note.{APP_DOMAIN}'))
+        list_title_prefix = 'Note'
     else:
         logging.warning('Unsupported mail reference type: %r', ref_type)
         return
@@ -293,7 +316,10 @@ def _set_list_headers(message: EmailMessage, ref: str, to_user: User):
     )
     list_unsubscribe = extend_query_params(list_unsubscribe, {'token': token})
 
-    message['List-ID'] = list_id
+    message['List-ID'] = formataddr((
+        f'{list_title_prefix} #{ref_id}',
+        f'{ref_id}.{ref_type}.{APP_DOMAIN}',
+    ))
     message['List-Archive'] = f'<{list_archive}>'
     message['List-Unsubscribe'] = f'<{list_unsubscribe}>'
     message['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'

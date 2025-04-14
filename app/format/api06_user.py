@@ -38,7 +38,9 @@ class User06Mixin:
         is_json = format_is_json()
 
         async with TaskGroup() as tg:
-            tasks = [tg.create_task(_encode_user(user, is_json=is_json)) for user in users]
+            tasks = [
+                tg.create_task(_encode_user(user, is_json=is_json)) for user in users
+            ]
 
         return {('users' if is_json else 'user'): [task.result() for task in tasks]}
 
@@ -54,7 +56,13 @@ class User06Mixin:
         if format_is_json():
             return {'preferences': {pref['key']: pref['value'] for pref in prefs}}
 
-        return {'preferences': {'preference': [{'@k': pref['key'], '@v': pref['value']} for pref in prefs]}}
+        return {
+            'preferences': {
+                'preference': [
+                    {'@k': pref['key'], '@v': pref['value']} for pref in prefs
+                ]
+            }
+        }
 
     @staticmethod
     def decode_user_preferences(prefs: list[dict[str, str]] | None) -> list[UserPref]:
@@ -93,15 +101,24 @@ async def _encode_user(user: User, *, is_json: cython.bint) -> dict:
     """
     user_id = user['id']
     current_user = auth_user()
-    access_private: cython.bint = (current_user is not None) and (current_user['id'] == user_id)
+    access_private: cython.bint
+    access_private = current_user is not None and current_user['id'] == user_id
     xattr = get_xattr(is_json=is_json)
 
     async with TaskGroup() as tg:
         changesets_task = tg.create_task(ChangesetQuery.count_by_user_id(user_id))
         traces_task = tg.create_task(TraceQuery.count_by_user_id(user_id))
-        block_received_task = tg.create_task(UserBlockQuery.count_received_by_user_id(user_id))
-        block_issued_task = tg.create_task(UserBlockQuery.count_given_by_user_id(user_id))
-        messages_count_task = tg.create_task(MessageQuery.count_by_user_id(user_id)) if access_private else None
+        block_received_task = tg.create_task(
+            UserBlockQuery.count_received_by_user_id(user_id)
+        )
+        block_issued_task = tg.create_task(
+            UserBlockQuery.count_given_by_user_id(user_id)
+        )
+        messages_count_task = (
+            tg.create_task(MessageQuery.count_by_user_id(user_id))
+            if access_private
+            else None
+        )
 
     changesets_num = changesets_task.result()
     traces_num = traces_task.result()
@@ -109,7 +126,9 @@ async def _encode_user(user: User, *, is_json: cython.bint) -> dict:
     block_issued_num, block_issued_active_num = block_issued_task.result()
 
     if messages_count_task is not None:
-        messages_received_num, messages_unread_num, messages_sent_num = messages_count_task.result()
+        messages_received_num, messages_unread_num, messages_sent_num = (
+            messages_count_task.result()
+        )
     else:
         messages_received_num = messages_unread_num = messages_sent_num = 0
 

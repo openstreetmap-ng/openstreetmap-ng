@@ -12,8 +12,10 @@ from app.validators.tags import TagsValidator
         ({'safe_key': 'safe_value'}, True),
         ({'key-with.special_chars': 'value-with.special_chars'}, True),
         # Count limit
-        ({f'key{i}': 'value' for i in range(TAGS_LIMIT)}, True),  # Exact limit of tags
-        ({f'key{i}': 'value' for i in range(TAGS_LIMIT + 1)}, False),  # Exceeds tags count
+        # Exact limit of tags
+        ({f'key{i}': 'value' for i in range(TAGS_LIMIT)}, True),
+        # Exceeds tags count
+        ({f'key{i}': 'value' for i in range(TAGS_LIMIT + 1)}, False),
         # Key length
         ({'': 'value'}, False),  # Empty key
         ({('k' * TAGS_KEY_MAX_LENGTH): 'value'}, True),  # Maximum key length

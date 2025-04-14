@@ -24,7 +24,9 @@ class NoteExceptions06Mixin(NoteExceptionsMixin):
 
     @override
     def note_open(self, note_id: NoteId) -> NoReturn:
-        raise APIError(status.HTTP_409_CONFLICT, detail=f'The note {note_id} is already open')
+        raise APIError(
+            status.HTTP_409_CONFLICT, detail=f'The note {note_id} is already open'
+        )
 
     @override
     def notes_query_area_too_big(self) -> NoReturn:

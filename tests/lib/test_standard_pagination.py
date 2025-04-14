@@ -16,4 +16,7 @@ from app.lib.standard_pagination import standard_pagination_range
 def test_standard_pagination_range(page, expected):
     page_size = 10
     num_items = 23
-    assert standard_pagination_range(page, page_size=page_size, num_items=num_items) == expected
+    assert (
+        standard_pagination_range(page, page_size=page_size, num_items=num_items)
+        == expected
+    )

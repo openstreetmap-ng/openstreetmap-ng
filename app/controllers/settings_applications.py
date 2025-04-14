@@ -6,7 +6,12 @@ from fastapi import APIRouter, Query
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import API_URL, OAUTH_APP_NAME_MAX_LENGTH, OAUTH_PAT_LIMIT, OAUTH_PAT_NAME_MAX_LENGTH
+from app.config import (
+    API_URL,
+    OAUTH_APP_NAME_MAX_LENGTH,
+    OAUTH_PAT_LIMIT,
+    OAUTH_PAT_NAME_MAX_LENGTH,
+)
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.models.db.user import User
@@ -59,7 +64,9 @@ async def application_admin(
 ):
     app = await OAuth2ApplicationQuery.find_one_by_id(id, user_id=user['id'])
     if app is None:
-        return RedirectResponse('/settings/applications/admin', status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(
+            '/settings/applications/admin', status.HTTP_303_SEE_OTHER
+        )
 
     return await render_response(
         'settings/applications/edit',
@@ -75,7 +82,9 @@ async def get_tokens(
     user: Annotated[User, web_user()],
     expand: Annotated[OAuth2TokenId | None, Query()] = None,
 ):
-    tokens = await OAuth2TokenQuery.find_many_pats_by_user(user['id'], limit=OAUTH_PAT_LIMIT)
+    tokens = await OAuth2TokenQuery.find_many_pats_by_user(
+        user['id'], limit=OAUTH_PAT_LIMIT
+    )
 
     return await render_response(
         'settings/applications/tokens',
@@ -96,4 +105,6 @@ async def legacy_applications_authorizations():
 
 @router.get('/oauth2/applications{_:path}')
 async def legacy_applications_admin(_):
-    return RedirectResponse('/settings/applications/admin', status.HTTP_301_MOVED_PERMANENTLY)
+    return RedirectResponse(
+        '/settings/applications/admin', status.HTTP_301_MOVED_PERMANENTLY
+    )

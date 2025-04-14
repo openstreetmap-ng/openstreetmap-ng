@@ -29,7 +29,9 @@ async def details(trace_id: TraceId):
     async with TaskGroup() as tg:
         items = [trace]
         tg.create_task(UserQuery.resolve_users(items))
-        tg.create_task(TraceQuery.resolve_coords(items, limit_per_trace=500, resolution=None))
+        tg.create_task(
+            TraceQuery.resolve_coords(items, limit_per_trace=500, resolution=None)
+        )
 
     trace_line = encode_lonlat(trace['coords'].tolist(), 6)  # type: ignore
     return await render_response(
@@ -66,4 +68,6 @@ async def edit(
 
 @router.get('/{trace_id:int}/data{suffix:path}')
 async def legacy_data(trace_id: TraceId, suffix: str):
-    return RedirectResponse(f'{API_URL}/api/0.6/gpx/{trace_id}/data{suffix}', status.HTTP_302_FOUND)
+    return RedirectResponse(
+        f'{API_URL}/api/0.6/gpx/{trace_id}/data{suffix}', status.HTTP_302_FOUND
+    )

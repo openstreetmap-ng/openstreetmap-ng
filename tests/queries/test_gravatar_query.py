@@ -9,4 +9,6 @@ from app.queries.gravatar_query import GravatarQuery
 async def test_gravatar_load():
     email = Email('testing@testing.invalid')
     data = await GravatarQuery.load(email)
-    assert data == DEFAULT_USER_AVATAR, 'Default avatar must be returned when Gravatar is not found'
+    assert data == DEFAULT_USER_AVATAR, (
+        'Default avatar must be returned when Gravatar is not found'
+    )

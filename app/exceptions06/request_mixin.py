@@ -28,7 +28,9 @@ class RequestExceptions06Mixin(RequestExceptionsMixin):
         )
 
     @override
-    def bad_xml(self, name: str, message: str, xml_input: bytes | None = None) -> NoReturn:
+    def bad_xml(
+        self, name: str, message: str, xml_input: bytes | None = None
+    ) -> NoReturn:
         if xml_input is None:
             xml_input = get_request()._body  # noqa: SLF001
         raise APIError(

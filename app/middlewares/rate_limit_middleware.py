@@ -70,14 +70,24 @@ def rate_limit(*, weight: float = 1):
                     request_task = tg.create_task(func(*args, **kwargs))
 
                     try:
-                        rate_limit_headers = await RateLimitService.update(key, weight, quota)
+                        rate_limit_headers = await RateLimitService.update(
+                            key, weight, quota
+                        )
                     except HTTPException:
                         # If rate limit is hit, temporarily blacklist the user from optimistic checks.
                         request_task.cancel()
                         async with _BLACKLIST.lock(key) as lock:
                             if await _BLACKLIST.get(key) is None:
-                                logging.info('Rate limit hit for %r, blacklisting from optimistic checks', key)
-                                await _BLACKLIST.set(lock, b'', ttl=RATE_LIMIT_OPTIMISTIC_BLACKLIST_EXPIRE)
+                                logging.info(
+                                    'Rate limit hit for %r, '
+                                    'blacklisting from optimistic checks',
+                                    key,
+                                )
+                                await _BLACKLIST.set(
+                                    lock,
+                                    b'',
+                                    ttl=RATE_LIMIT_OPTIMISTIC_BLACKLIST_EXPIRE,
+                                )
                         raise
 
                 result = request_task.result()
@@ -91,7 +101,9 @@ def rate_limit(*, weight: float = 1):
             state = request.state._state  # noqa: SLF001
             weight_change: float = state.get('rate_limit_weight', weight) - weight
             if weight_change > 0:
-                rate_limit_headers = await RateLimitService.update(key, weight_change, quota, raise_on_limit=False)
+                rate_limit_headers = await RateLimitService.update(
+                    key, weight_change, quota, raise_on_limit=False
+                )
 
             # Save the headers to the request state
             state['rate_limit_headers'] = rate_limit_headers

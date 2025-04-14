@@ -25,11 +25,12 @@ class FormatGPX:
         {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}, {'@lon': 3, '@lat': 4}]}]}]}
         """
         capture_times = trace['capture_times']
-        capture_times_iter = iter(capture_times) if (capture_times is not None) else None
+        capture_times_iter = iter(capture_times) if capture_times is not None else None
         trkseg: list[dict] = []
 
         for segment in force_3d(trace['segments']).geoms:
-            segment_coords: list[list[float]] = get_coordinates(segment, include_z=True).tolist()  # type: ignore
+            segment_coords: list[list[float]]
+            segment_coords = get_coordinates(segment, include_z=True).tolist()  # type: ignore
             trkpt: list[dict] = []
 
             for lon, lat, elevation in segment_coords:
@@ -37,7 +38,7 @@ class FormatGPX:
                 if elevation:
                     data['ele'] = elevation
                 if (
-                    capture_times_iter is not None  #
+                    capture_times_iter is not None
                     and (capture_time := next(capture_times_iter)) is not None
                 ):
                     data['time'] = capture_time
@@ -131,7 +132,10 @@ class FormatGPX:
                 points: list[tuple[float, float, float]] = []  # (lon, lat, elevation)
 
                 for point in segment.get('trkpt', ()):
-                    if (lon := point.get('@lon')) is None or (lat := point.get('@lat')) is None:
+                    if (
+                        (lon := point.get('@lon')) is None  #
+                        or (lat := point.get('@lat')) is None
+                    ):
                         continue
 
                     # Get elevation if available
@@ -154,7 +158,9 @@ class FormatGPX:
                 segment_size: cython.Py_ssize_t = len(points)
                 if segment_size:
                     if segment_size < 2:
-                        raise_for.bad_trace_file('Trace segment is too short or incomplete')
+                        raise_for.bad_trace_file(
+                            'Trace segment is too short or incomplete'
+                        )
 
                     size += segment_size
                     segments.append(points)
@@ -169,4 +175,6 @@ class FormatGPX:
         if not has_elevation:
             multilinestring = force_2d(multilinestring)
 
-        return DecodeTracksResult(size, multilinestring, capture_times if has_capture_times else None)
+        return DecodeTracksResult(
+            size, multilinestring, capture_times if has_capture_times else None
+        )

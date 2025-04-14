@@ -19,7 +19,7 @@ def legacy_date(dt: datetime | None, /) -> datetime | None:
     >>> legacy_date(datetime(2021, 12, 31, 15, 30, 45, 123456))
     datetime.datetime(2021, 12, 31, 15, 30, 45)
     """
-    return dt if (dt is None or LEGACY_HIGH_PRECISION_TIME) else dt.replace(microsecond=0)
+    return dt if dt is None or LEGACY_HIGH_PRECISION_TIME else dt.replace(microsecond=0)
 
 
 def format_sql_date(dt: datetime | None, /) -> str:
@@ -33,7 +33,9 @@ def format_sql_date(dt: datetime | None, /) -> str:
         return 'None'
     tzinfo = dt.tzinfo
     assert tzinfo is None or tzinfo is UTC, f'Timezone must be UTC, got {tzinfo!r}'
-    return dt.strftime('%Y-%m-%d %H:%M:%S UTC' if not dt.microsecond else '%Y-%m-%d %H:%M:%S.%f UTC')
+    return dt.strftime(
+        '%Y-%m-%d %H:%M:%S UTC' if not dt.microsecond else '%Y-%m-%d %H:%M:%S.%f UTC'
+    )
 
 
 def format_rfc2822_date(dt: date | datetime, /) -> str:
@@ -81,7 +83,7 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-def parse_date(s: str) -> datetime:
+def parse_date(s: str, /) -> datetime:
     """
     Parse a string into a datetime object.
     Timezone information is ignored and the returned datetime object is always in UTC.
@@ -92,4 +94,4 @@ def parse_date(s: str) -> datetime:
     dt = dateutil.parser.parse(s, ignoretz=False)
 
     # Set or convert to UTC timezone
-    return dt.replace(tzinfo=UTC) if (dt.tzinfo is None) else dt.astimezone(UTC)
+    return dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt.astimezone(UTC)

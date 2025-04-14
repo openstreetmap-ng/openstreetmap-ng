@@ -6,7 +6,12 @@ from fastapi import APIRouter
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import ACTIVE_SESSIONS_DISPLAY_LIMIT, EMAIL_MIN_LENGTH, PASSWORD_MIN_LENGTH, URLSAFE_BLACKLIST
+from app.config import (
+    ACTIVE_SESSIONS_DISPLAY_LIMIT,
+    EMAIL_MIN_LENGTH,
+    PASSWORD_MIN_LENGTH,
+    URLSAFE_BLACKLIST,
+)
 from app.lib.auth_context import web_user
 from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP
 from app.lib.render_response import render_response
@@ -70,7 +75,9 @@ async def settings_security(user: Annotated[User, web_user()]):
 @router.get('/settings/connections')
 async def settings_connections(user: Annotated[User, web_user()]):
     provider_id_map = await ConnectedAccountQuery.get_providers_by_user(user['id'])
-    return await render_response('settings/connections', {'provider_id_map': provider_id_map})
+    return await render_response(
+        'settings/connections', {'provider_id_map': provider_id_map}
+    )
 
 
 @router.get('/preferences{_:path}')

@@ -46,5 +46,7 @@ class OpenIDQuery:
             return r.content
 
         key = hash_storage_key(base_url, '.json')
-        content = await CacheService.get(key, _CTX, factory, ttl=OPENID_DISCOVERY_HTTP_TIMEOUT)
+        content = await CacheService.get(
+            key, _CTX, factory, ttl=OPENID_DISCOVERY_HTTP_TIMEOUT
+        )
         return orjson.loads(content)

@@ -12,7 +12,9 @@ from app.models.db.element import Element
 from app.models.db.user import User, UserDisplay
 from app.models.types import ChangesetId, DisplayName, Email, UserId
 
-_USER_DISPLAY_SELECT = SQL(',').join([Identifier(k) for k in UserDisplay.__annotations__])
+_USER_DISPLAY_SELECT = SQL(',').join([
+    Identifier(k) for k in UserDisplay.__annotations__
+])
 
 
 class UserQuery:
@@ -122,7 +124,10 @@ class UserQuery:
 
         # Check if the name is available
         other_user = await UserQuery.find_one_by_display_name(display_name)
-        return other_user is None or (user is not None and other_user['id'] == user['id'])
+        return (
+            other_user is None  #
+            or (user is not None and other_user['id'] == user['id'])
+        )
 
     @staticmethod
     async def check_email_available(email: Email) -> bool:
@@ -134,7 +139,10 @@ class UserQuery:
 
         # Check if the email is available
         other_user = await UserQuery.find_one_by_email(email)
-        return other_user is None or (user is not None and other_user['id'] == user['id'])
+        return (
+            other_user is None  #
+            or (user is not None and other_user['id'] == user['id'])
+        )
 
     @staticmethod
     async def get_deleted_ids(
@@ -209,7 +217,9 @@ class UserQuery:
 
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, (list(id_map),)) as r,
+            await conn.cursor(row_factory=dict_row).execute(
+                query, (list(id_map),)
+            ) as r,
         ):
             for row in await r.fetchall():
                 for item in id_map[row['id']]:

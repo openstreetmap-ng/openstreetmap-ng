@@ -20,7 +20,9 @@ from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
-from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
+from app.services.user_token_account_confirm_service import (
+    UserTokenAccountConfirmService,
+)
 from app.services.user_token_email_change_service import UserTokenEmailChangeService
 from app.services.user_token_reset_password_service import UserTokenResetPasswordService
 from app.validators.display_name import DisplayNameValidating
@@ -83,14 +85,20 @@ async def signup(
     )
 
     response = Response(
-        orjson.dumps({'redirect_url': '/welcome' if email_confirmed else '/user/account-confirm/pending'}),
+        orjson.dumps({
+            'redirect_url': '/welcome'
+            if email_confirmed
+            else '/user/account-confirm/pending'
+        }),
         media_type='application/json; charset=utf-8',
     )
 
     if email_confirmed:
         response.delete_cookie('auth_provider_verification')
 
-    access_token = await SystemAppService.create_access_token(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
+    access_token = await SystemAppService.create_access_token(
+        SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
+    )
     response.set_cookie(
         key='auth',
         value=access_token.get_secret_value(),
@@ -122,7 +130,8 @@ async def account_confirm_resend(
 
     await UserTokenAccountConfirmService.send_email()
     return StandardFeedback.success_result(
-        None, t('confirmations.resend_success_flash.confirmation_sent', email=user['email'])
+        None,
+        t('confirmations.resend_success_flash.confirmation_sent', email=user['email']),
     )
 
 
@@ -160,7 +169,11 @@ async def reset_password_token(
     return StandardFeedback.success_result(
         None,
         t('settings.password_reset_success')
-        + ((' ' + t('settings.password_reset_security_logout')) if revoke_other_sessions else ''),
+        + (
+            (' ' + t('settings.password_reset_security_logout'))
+            if revoke_other_sessions
+            else ''
+        ),
     )
 
 

@@ -34,8 +34,12 @@ async def get_note(id: NoteId):
         )
 
     async with TaskGroup() as tg:
-        is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed('note', id))
-        comments = await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
+        is_subscribed_t = tg.create_task(
+            UserSubscriptionQuery.is_subscribed('note', id)
+        )
+        comments = await NoteCommentQuery.resolve_comments(
+            notes, per_note_sort='asc', per_note_limit=1
+        )
         tg.create_task(NoteCommentQuery.resolve_num_comments(notes))
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(note_comments_resolve_rich_text(comments))

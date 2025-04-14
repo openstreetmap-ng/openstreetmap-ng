@@ -78,7 +78,9 @@ async def settings_email(
         new_email=email,
         password=password,
     )
-    return StandardFeedback.info_result(None, t('settings.email_change_confirmation_sent'))
+    return StandardFeedback.info_result(
+        None, t('settings.email_change_confirmation_sent')
+    )
 
 
 @router.post('/settings/password')
@@ -96,9 +98,13 @@ async def settings_password(
     if revoke_other_sessions:
         current_session = await AuthService.authenticate_oauth2(None)
         assert current_session is not None
-        await OAuth2TokenService.revoke_by_client_id(SYSTEM_APP_WEB_CLIENT_ID, skip_ids=[current_session['id']])
+        await OAuth2TokenService.revoke_by_client_id(
+            SYSTEM_APP_WEB_CLIENT_ID, skip_ids=[current_session['id']]
+        )
 
-    return StandardFeedback.success_result(None, t('settings.password_has_been_changed'))
+    return StandardFeedback.success_result(
+        None, t('settings.password_has_been_changed')
+    )
 
 
 @router.post('/settings/description')

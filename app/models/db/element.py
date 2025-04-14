@@ -7,9 +7,18 @@ from annotated_types import MaxLen, MinLen
 from pydantic import PositiveInt, TypeAdapter
 from shapely import Point
 
-from app.config import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT, PYDANTIC_CONFIG, TAGS_KEY_MAX_LENGTH
+from app.config import (
+    ELEMENT_RELATION_MEMBERS_LIMIT,
+    ELEMENT_WAY_MEMBERS_LIMIT,
+    PYDANTIC_CONFIG,
+    TAGS_KEY_MAX_LENGTH,
+)
 from app.models.db.user import UserDisplay
-from app.models.element import TYPED_ELEMENT_ID_NODE_MAX, TypedElementId, split_typed_element_id
+from app.models.element import (
+    TYPED_ELEMENT_ID_NODE_MAX,
+    TypedElementId,
+    split_typed_element_id,
+)
 from app.models.types import ChangesetId, SequenceId, UserId
 from app.validators.geometry import GeometryValidator
 from app.validators.tags import TagsValidating
@@ -98,7 +107,9 @@ def _validate_way(element: ElementInit):
         return
 
     if len(members) > ELEMENT_WAY_MEMBERS_LIMIT:
-        raise ValueError(f'Ways cannot have more than {ELEMENT_WAY_MEMBERS_LIMIT} members')
+        raise ValueError(
+            f'Ways cannot have more than {ELEMENT_WAY_MEMBERS_LIMIT} members'
+        )
     if np.any(np.array(members, np.uint64) > TYPED_ELEMENT_ID_NODE_MAX):
         raise ValueError('Ways cannot have non-node members')
 
@@ -122,10 +133,14 @@ def _validate_relation(element: ElementInit):
 
     members_roles = element['members_roles']
     assert members_roles is not None, 'members_roles must be set if members is set'
-    assert len(members) == len(members_roles), 'members and members_roles must be equal length'
+    assert len(members) == len(members_roles), (
+        'members and members_roles must be equal length'
+    )
 
     if len(members) > ELEMENT_RELATION_MEMBERS_LIMIT:
-        raise ValueError(f'Relations cannot have more than {ELEMENT_RELATION_MEMBERS_LIMIT} members')
+        raise ValueError(
+            f'Relations cannot have more than {ELEMENT_RELATION_MEMBERS_LIMIT} members'
+        )
 
 
 @cython.cfunc

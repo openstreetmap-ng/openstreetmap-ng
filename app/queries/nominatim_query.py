@@ -71,9 +71,13 @@ class NominatimQuery:
             return r.content
 
         key = hash_storage_key(path, '.json')
-        content = await CacheService.get(key, _CTX, factory, ttl=NOMINATIM_REVERSE_CACHE_EXPIRE)
+        content = await CacheService.get(
+            key, _CTX, factory, ttl=NOMINATIM_REVERSE_CACHE_EXPIRE
+        )
         response_entries = [orjson.loads(content)]
-        result = await _get_search_result(at_sequence_id=None, response_entries=response_entries)
+        result = await _get_search_result(
+            at_sequence_id=None, response_entries=response_entries
+        )
         return next(iter(result), None)
 
     @staticmethod
@@ -122,7 +126,7 @@ async def _search(
                 'viewbox': ','.join(f'{x:.5f}' for x in bounds.bounds),
                 'bounded': 1,
             }
-            if (bounds is not None)
+            if bounds is not None
             else {}
         ),
         'accept-language': primary_translation_locale(),
@@ -140,12 +144,16 @@ async def _search(
     # cache only stable queries
     if bounds is None:
         key = hash_storage_key(path, '.json')
-        response = await CacheService.get(key, _CTX, factory, ttl=NOMINATIM_SEARCH_CACHE_EXPIRE)
+        response = await CacheService.get(
+            key, _CTX, factory, ttl=NOMINATIM_SEARCH_CACHE_EXPIRE
+        )
     else:
         response = await factory()
 
     response_entries = orjson.loads(response)
-    return await _get_search_result(at_sequence_id=at_sequence_id, response_entries=response_entries)
+    return await _get_search_result(
+        at_sequence_id=at_sequence_id, response_entries=response_entries
+    )
 
 
 async def _get_search_result(
@@ -175,7 +183,8 @@ async def _get_search_result(
         )
     }
 
-    elements = [type_id_map.get(typed_id) for typed_id in typed_ids]  # not all elements may be found in the database
+    # not all elements may be found in the database
+    elements = [type_id_map.get(typed_id) for typed_id in typed_ids]
     result: list[SearchResult] = []
 
     for entry, element, icon, prefix in zip(

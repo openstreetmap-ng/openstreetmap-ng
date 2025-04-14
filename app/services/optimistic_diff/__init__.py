@@ -14,7 +14,9 @@ from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
 class OptimisticDiff:
     @staticmethod
-    async def run(elements: list[ElementInit]) -> dict[TypedElementId, tuple[TypedElementId, list[int]]]:
+    async def run(
+        elements: list[ElementInit],
+    ) -> dict[TypedElementId, tuple[TypedElementId, list[int]]]:
         """
         Perform an optimistic diff update of the elements.
         Returns a dict, mapping original element refs to the new elements.
@@ -36,7 +38,9 @@ class OptimisticDiff:
                 # retry is not possible, re-raise the exception
                 timeout_seconds = time.monotonic() - ts
                 if timeout_seconds >= OPTIMISTIC_DIFF_RETRY_TIMEOUT.total_seconds():
-                    raise TimeoutError(f'OptimisticDiff failed and timed out after {attempt} attempts') from e
+                    raise TimeoutError(
+                        f'OptimisticDiff failed and timed out after {attempt} attempts'
+                    ) from e
 
                 # retry is still possible
                 if attempt <= 2:
@@ -46,4 +50,8 @@ class OptimisticDiff:
                 else:
                     fn = logging.warning
 
-                fn('OptimisticDiff failed (attempt %d), retrying', attempt, exc_info=True)
+                fn(
+                    'OptimisticDiff failed (attempt %d), retrying',
+                    attempt,
+                    exc_info=True,
+                )

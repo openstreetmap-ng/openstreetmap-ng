@@ -12,7 +12,9 @@ from app.models.types import ChangesetId, UserId
 
 class ChangesetQuery:
     @staticmethod
-    async def get_updated_at_by_ids(changeset_ids: list[ChangesetId]) -> dict[ChangesetId, datetime]:
+    async def get_updated_at_by_ids(
+        changeset_ids: list[ChangesetId],
+    ) -> dict[ChangesetId, datetime]:
         """Get the updated at timestamp by changeset ids."""
         if not changeset_ids:
             return {}
@@ -134,11 +136,15 @@ class ChangesetQuery:
             params.append(closed_after)
 
         if is_open is not None:
-            conditions.append(SQL('closed_at IS NULL') if is_open else SQL('closed_at IS NOT NULL'))
+            conditions.append(
+                SQL('closed_at IS NULL' if is_open else 'closed_at IS NOT NULL')
+            )
 
         if geometry is not None:
             # Add union_bounds condition for both legacy and modern queries
-            conditions.append(SQL('union_bounds IS NOT NULL AND ST_Intersects(union_bounds, %s)'))
+            conditions.append(
+                SQL('union_bounds IS NOT NULL AND ST_Intersects(union_bounds, %s)')
+            )
             params.append(geometry)
 
             # In modern query, add additional filtering on changeset_bounds
@@ -178,7 +184,9 @@ class ChangesetQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def count_per_day_by_user_id(user_id: UserId, created_since: datetime) -> dict[date, int]:
+    async def count_per_day_by_user_id(
+        user_id: UserId, created_since: datetime
+    ) -> dict[date, int]:
         """Count changesets per day by user id since given date."""
         async with (
             db() as conn,

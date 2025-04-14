@@ -51,7 +51,10 @@ def _browserslist_versions() -> dict[str, float]:
     cache_path = FILE_CACHE_DIR.joinpath('browserslist_versions.json')
 
     if not cache_path.is_file() or lock_mtime > cache_path.stat().st_mtime:
-        stdout = subprocess.check_output(('bunx', 'browserslist'), env={**os.environ, 'NO_COLOR': '1'}).decode()
+        stdout = subprocess.check_output(
+            ('bunx', 'browserslist'),
+            env={**os.environ, 'NO_COLOR': '1'},
+        ).decode()
         result: dict[str, float] = {}
 
         for line in stdout.splitlines():
@@ -71,5 +74,9 @@ def _browserslist_versions() -> dict[str, float]:
 _data = _browserslist_versions()
 _CHROME_MAJOR_VERSION = int(_data['chrome'])
 _FIREFOX_MAJOR_VERSION = int(_data['firefox'])
-logging.info('Supported browsers: Chrome=%d, Firefox=%d', _CHROME_MAJOR_VERSION, _FIREFOX_MAJOR_VERSION)
+logging.info(
+    'Supported browsers: Chrome=%d, Firefox=%d',
+    _CHROME_MAJOR_VERSION,
+    _FIREFOX_MAJOR_VERSION,
+)
 del _data

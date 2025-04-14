@@ -47,7 +47,10 @@ async def signup(auth_provider_verification: Annotated[str | None, Cookie()] = N
 
     verification = AuthProviderService.validate_verification(auth_provider_verification)
     if verification is not None:
-        logging.debug('Signup form contains auth provider verification by %r', verification.provider)
+        logging.debug(
+            'Signup form contains auth provider verification by %r',
+            verification.provider,
+        )
         display_name = verification.name or ''
         email = verification.email or ''
     else:
@@ -81,14 +84,18 @@ async def account_confirm_pending(user: Annotated[User, web_user()]):
 
 
 @router.get('/reset-password')
-async def reset_password(token: Annotated[SecretStr | None, Query(min_length=1)] = None):
+async def reset_password(
+    token: Annotated[SecretStr | None, Query(min_length=1)] = None,
+):
     if token is None:
         return await render_response('user/reset-password')
 
     # TODO: check errors
     token_struct = UserTokenStructUtils.from_str(token)
 
-    user_token = await UserTokenQuery.find_one_by_token_struct('reset_password', token_struct, check_email_hash=False)
+    user_token = await UserTokenQuery.find_one_by_token_struct(
+        'reset_password', token_struct, check_email_hash=False
+    )
     if user_token is None:
         return await render_response('user/reset-password')
 
@@ -111,7 +118,10 @@ async def legacy_forgot_password():
 
 @router.get('/user/reset-password')
 async def legacy_reset_password(token: Annotated[SecretStr, Query(min_length=1)]):
-    return RedirectResponse(f'/reset-password?token={token.get_secret_value()}', status.HTTP_301_MOVED_PERMANENTLY)
+    return RedirectResponse(
+        f'/reset-password?token={token.get_secret_value()}',
+        status.HTTP_301_MOVED_PERMANENTLY,
+    )
 
 
 @router.get('/user-id/{user_id:int}{suffix:path}')
@@ -166,7 +176,11 @@ async def index(
             sort_dir='desc',
             limit=USER_RECENT_ACTIVITY_ENTRIES,
         )
-        tg.create_task(NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1))
+        tg.create_task(
+            NoteCommentQuery.resolve_comments(
+                notes, per_note_sort='asc', per_note_limit=1
+            )
+        )
         tg.create_task(NoteCommentQuery.resolve_num_comments(notes))
         return notes
 
@@ -194,12 +208,16 @@ async def index(
         # TODO: changesets_comments_count_t = ...
         notes_t = tg.create_task(notes_task(tg))
         notes_count_t = tg.create_task(NoteQuery.count_by_user_id(user_id))
-        notes_comments_count_t = tg.create_task(NoteQuery.count_by_user_id(user_id, commented_other=True))
+        notes_comments_count_t = tg.create_task(
+            NoteQuery.count_by_user_id(user_id, commented_other=True)
+        )
         traces_t = tg.create_task(traces_task())
         traces_count_t = tg.create_task(TraceQuery.count_by_user_id(user_id))
         diaries_t = tg.create_task(diaries_task())
         diaries_count_t = tg.create_task(DiaryQuery.count_by_user_id(user_id))
-        diaries_comments_count_t = tg.create_task(DiaryCommentQuery.count_by_user_id(user_id))
+        diaries_comments_count_t = tg.create_task(
+            DiaryCommentQuery.count_by_user_id(user_id)
+        )
 
     activity_data = activity_t.result()
 
@@ -212,7 +230,10 @@ async def index(
     notes_comments_count = notes_comments_count_t.result()
 
     traces = traces_t.result()
-    traces_lines = ';'.join(encode_lonlat(trace['coords'].tolist(), 0) for trace in traces)  # type: ignore
+    traces_lines = ';'.join(
+        encode_lonlat(trace['coords'].tolist(), 0)  # type: ignore
+        for trace in traces
+    )
     traces_count = traces_count_t.result()
 
     diaries = diaries_t.result()

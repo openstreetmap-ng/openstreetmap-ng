@@ -12,7 +12,9 @@ class LocalChapter(NamedTuple):
 
 @cython.cfunc
 def _get_local_chapters() -> list[LocalChapter]:
-    resources = Path('node_modules/osm-community-index/dist/resources.min.json').read_bytes()
+    resources = Path(
+        'node_modules/osm-community-index/dist/resources.min.json'
+    ).read_bytes()
     communities_dict: dict[str, dict] = orjson.loads(resources)['resources']
 
     chapters: list[LocalChapter] = [

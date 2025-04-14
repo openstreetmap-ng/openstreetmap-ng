@@ -27,7 +27,7 @@ class APICorsMiddleware:
 
         path: str = get_request().url.path
         app = (
-            self.cors  #
+            self.cors
             if (path.startswith('/api/') and not path.startswith('/api/web/'))
             else self.app
         )

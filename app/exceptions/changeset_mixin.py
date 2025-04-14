@@ -15,7 +15,9 @@ class ChangesetExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def changeset_already_closed(self, changeset_id: ChangesetId, closed_at: datetime) -> NoReturn:
+    def changeset_already_closed(
+        self, changeset_id: ChangesetId, closed_at: datetime
+    ) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod

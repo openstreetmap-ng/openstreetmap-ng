@@ -9,7 +9,12 @@ from time import monotonic
 from psycopg import AsyncConnection
 from sentry_sdk.api import start_transaction
 
-from app.config import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT, ENV
+from app.config import (
+    CHANGESET_EMPTY_DELETE_TIMEOUT,
+    CHANGESET_IDLE_TIMEOUT,
+    CHANGESET_OPEN_TIMEOUT,
+    ENV,
+)
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
@@ -161,12 +166,17 @@ async def _process_task() -> None:
     while True:
         async with db(True, autocommit=True) as conn:
             # Lock is just a random unique number
-            async with await conn.execute('SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)') as r:
+            async with await conn.execute(
+                'SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)'
+            ) as r:
                 acquired: bool = (await r.fetchone())[0]  # type: ignore
 
             if acquired:
                 ts = monotonic()
-                with SENTRY_CHANGESET_MANAGEMENT_MONITOR, start_transaction(op='task', name='changeset-management'):
+                with (
+                    SENTRY_CHANGESET_MANAGEMENT_MONITOR,
+                    start_transaction(op='task', name='changeset-management'),
+                ):
                     await _close_inactive(conn)
                     await _delete_empty(conn)
                 tt = monotonic() - ts

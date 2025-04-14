@@ -53,7 +53,7 @@ def _process_referrer(referrer: str):
         return None
 
     # return relative values as-is
-    if referrer.startswith('/'):
+    if referrer[:1] == '/':
         return referrer
 
     # otherwise, validate the referrer hostname
@@ -61,7 +61,11 @@ def _process_referrer(referrer: str):
     referrer_hostname = parts.hostname
     request_hostname = get_request().url.hostname
     if referrer_hostname != request_hostname:
-        logging.debug('Referrer hostname mismatch (%r != %r), discarding', referrer_hostname, request_hostname)
+        logging.debug(
+            'Referrer hostname mismatch (%r != %r), discarding',
+            referrer_hostname,
+            request_hostname,
+        )
         return None
 
     return referrer

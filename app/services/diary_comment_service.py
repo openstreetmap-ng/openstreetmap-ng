@@ -10,7 +10,11 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
-from app.models.db.diary_comment import DiaryComment, DiaryCommentInit, diary_comments_resolve_rich_text
+from app.models.db.diary_comment import (
+    DiaryComment,
+    DiaryCommentInit,
+    diary_comments_resolve_rich_text,
+)
 from app.models.types import DiaryCommentId, DiaryId, UserId
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
@@ -60,7 +64,12 @@ class DiaryCommentService:
             ) as r:
                 created_at: datetime = (await r.fetchone())[0]  # type: ignore
 
-        logging.debug('Created diary comment %d on diary %d by user %d', comment_id, diary_id, user_id)
+        logging.debug(
+            'Created diary comment %d on diary %d by user %d',
+            comment_id,
+            diary_id,
+            user_id,
+        )
 
         comment: DiaryComment = {
             'id': comment_id,
@@ -77,7 +86,9 @@ class DiaryCommentService:
             tg.create_task(UserSubscriptionService.subscribe('diary', diary_id))
 
     @staticmethod
-    async def delete(comment_id: DiaryCommentId, *, current_user_id: UserId | None) -> None:
+    async def delete(
+        comment_id: DiaryCommentId, *, current_user_id: UserId | None
+    ) -> None:
         """Delete a diary comment."""
         conditions: list[Composable] = [SQL('id = %s')]
         params: list[Any] = [comment_id]
@@ -120,7 +131,10 @@ async def _send_activity_email(comment: DiaryComment) -> None:
                 continue
 
             with translation_context(subscribed_user['language']):
-                subject = t('user_mailer.diary_comment_notification.subject', user=comment_user_name)
+                subject = t(
+                    'user_mailer.diary_comment_notification.subject',
+                    user=comment_user_name,
+                )
 
             tg.create_task(
                 EmailService.schedule(

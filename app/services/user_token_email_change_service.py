@@ -36,7 +36,9 @@ class UserTokenEmailChangeService:
     @staticmethod
     async def confirm(token_struct: UserTokenStruct) -> None:
         """Confirm a user email change."""
-        token = await UserTokenQuery.find_one_by_token_struct('email_change', token_struct)
+        token = await UserTokenQuery.find_one_by_token_struct(
+            'email_change', token_struct
+        )
         if token is None:
             raise_for.bad_user_token_struct()
 

@@ -114,12 +114,19 @@ def planet_worker(
     element: dict
 
     for element_type, element in elements:
-        tags = {tag['@k']: tag['@v'] for tag in tags_} if (tags_ := element.get('tag')) else None
+        tags = (
+            {tag['@k']: tag['@v'] for tag in tags_}
+            if (tags_ := element.get('tag'))
+            else None
+        )
         point: str | None = None
         members: list[dict] | None = None
 
         if element_type == 'node':
-            if (lon := element.get('@lon')) is not None and (lat := element.get('@lat')) is not None:
+            if (
+                (lon := element.get('@lon')) is not None  #
+                and (lat := element.get('@lat')) is not None
+            ):
                 point = compressible_geometry(Point(lon, lat)).wkb_hex
         elif element_type == 'way':
             if members_ := element.get('nd'):
@@ -312,7 +319,9 @@ def run_notes_workers() -> None:
             if i > 0:
                 f_in.seek(from_seek)
                 lookahead = f_in.read(1024 * 1024)  # 1 MB
-                lookahead_finds = (lookahead.find(search) for search in from_seek_search)
+                lookahead_finds = (
+                    lookahead.find(search) for search in from_seek_search
+                )
                 min_find = min(find for find in lookahead_finds if find > -1)
                 from_seek += min_find
             from_seeks.append(from_seek)

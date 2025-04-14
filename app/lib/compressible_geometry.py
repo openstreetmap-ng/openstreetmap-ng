@@ -21,7 +21,9 @@ def _create_mentissa_mask():
     max_number: cython.double = 180
     fractional_precision: cython.double = GEO_COORDINATE_PRECISION
 
-    bits_for_precision: cython.ulonglong = int(ceil(log2(max_number * 10**fractional_precision) + 1))  # noqa: RUF046
+    bits_for_precision: cython.ulonglong = int(  # noqa: RUF046
+        ceil(log2(max_number * 10**fractional_precision) + 1)
+    )
 
     full_mask: cython.ulonglong = (1 << 64) - 1
     zeros_mask: cython.ulonglong = (1 << (52 - bits_for_precision)) - 1
@@ -33,10 +35,12 @@ _MASK: np.uint64 = _create_mentissa_mask()
 
 
 @overload
-def compressible_geometry(geometry: _GeomT) -> _GeomT: ...
+def compressible_geometry(geometry: _GeomT, /) -> _GeomT: ...
 @overload
-def compressible_geometry(geometry: NDArray[np.float64]) -> NDArray[np.float64]: ...
-def compressible_geometry(geometry: _GeomT | NDArray[np.float64]) -> _GeomT | NDArray[np.float64]:
+def compressible_geometry(geometry: NDArray[np.float64], /) -> NDArray[np.float64]: ...
+def compressible_geometry(
+    geometry: _GeomT | NDArray[np.float64], /
+) -> _GeomT | NDArray[np.float64]:
     """
     Make geometry easily compressible by reducing mentissa noise.
     It is then necessary to round the coordinates back.

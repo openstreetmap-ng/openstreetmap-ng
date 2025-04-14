@@ -1,7 +1,11 @@
 import pytest
 from shapely import MultiPolygon, Point, box
 
-from app.config import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
+from app.config import (
+    CHANGESET_BBOX_LIMIT,
+    CHANGESET_NEW_BBOX_MIN_DISTANCE,
+    CHANGESET_NEW_BBOX_MIN_RATIO,
+)
 from app.lib.changeset_bounds import extend_changeset_bounds
 
 
@@ -35,7 +39,9 @@ def test_points_at_threshold_merge():
 
     result = extend_changeset_bounds(MultiPolygon(), points)
 
-    assert len(result.geoms) == 1, 'Points at threshold distance must merge into a single boundary'
+    assert len(result.geoms) == 1, (
+        'Points at threshold distance must merge into a single boundary'
+    )
     assert result.geoms[0].bounds == (0, 0, x, x), 'Boundary must contain both points'
 
 
@@ -46,10 +52,14 @@ def test_points_beyond_threshold_separate():
     result = extend_changeset_bounds(MultiPolygon(), points)
 
     # Verify both points created separate boundaries
-    assert len(result.geoms) == 2, 'Points beyond threshold distance must create separate boundaries'
+    assert len(result.geoms) == 2, (
+        'Points beyond threshold distance must create separate boundaries'
+    )
     point_coords = {(0, 0), (x, x)}
     result_coords = {(p.bounds[0], p.bounds[1]) for p in result.geoms}
-    assert point_coords == result_coords, 'Each point must create its own boundary at the correct coordinates'
+    assert point_coords == result_coords, (
+        'Each point must create its own boundary at the correct coordinates'
+    )
 
 
 def test_points_within_ratio_of_bounds_merge():
@@ -60,7 +70,9 @@ def test_points_within_ratio_of_bounds_merge():
 
     result = extend_changeset_bounds(existing_bounds, points)
 
-    assert len(result.geoms) == 1, 'Point within ratio of existing boundary must merge with it'
+    assert len(result.geoms) == 1, (
+        'Point within ratio of existing boundary must merge with it'
+    )
     assert any(p.bounds[2] >= x and p.bounds[3] >= x for p in result.geoms), (
         'Boundary must expand to include the new point'
     )
@@ -74,8 +86,12 @@ def test_points_beyond_ratio_of_bounds_separate():
 
     result = extend_changeset_bounds(existing_bounds, points)
 
-    assert len(result.geoms) == 2, 'Point beyond ratio of existing boundary must create a new boundary'
-    assert any(p.bounds == (-1, -1, 0, 0) for p in result.geoms), 'Original boundary must be preserved'
+    assert len(result.geoms) == 2, (
+        'Point beyond ratio of existing boundary must create a new boundary'
+    )
+    assert any(p.bounds == (-1, -1, 0, 0) for p in result.geoms), (
+        'Original boundary must be preserved'
+    )
     assert any(p.bounds[0] == x and p.bounds[1] == x for p in result.geoms), (
         'New boundary must be created at point location'
     )
@@ -101,10 +117,14 @@ def test_early_merge_behavior():
 
 def test_bbox_limit_merge():
     # Create boundaries just under the limit
-    bounds = MultiPolygon([box(i * 10, 0, i * 10 + 1, 1) for i in range(CHANGESET_BBOX_LIMIT - 1)])
+    bounds = MultiPolygon([
+        box(i * 10, 0, i * 10 + 1, 1) for i in range(CHANGESET_BBOX_LIMIT - 1)
+    ])
 
     result = extend_changeset_bounds(bounds, [Point(CHANGESET_BBOX_LIMIT * 10, 0)])
     assert len(result.geoms) == CHANGESET_BBOX_LIMIT
 
-    result = extend_changeset_bounds(bounds, [Point((CHANGESET_BBOX_LIMIT + 1) * 10, 0)])
+    result = extend_changeset_bounds(
+        bounds, [Point((CHANGESET_BBOX_LIMIT + 1) * 10, 0)]
+    )
     assert len(result.geoms) == CHANGESET_BBOX_LIMIT

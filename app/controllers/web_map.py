@@ -16,7 +16,9 @@ router = APIRouter(prefix='/api/web')
 @router.get('/map')
 async def get_map(
     bbox: Annotated[str, Query()],
-    limit: Annotated[Annotated[int, Gt(0), Le(MAP_QUERY_LEGACY_NODES_LIMIT)] | Literal[''], Query()],
+    limit: Annotated[
+        Annotated[int, Gt(0), Le(MAP_QUERY_LEGACY_NODES_LIMIT)] | Literal[''], Query()
+    ],
 ):
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
@@ -39,11 +41,15 @@ async def get_map(
 
     if limit and len(elements) > limit:
         return Response(
-            RenderElementsData(nodes=(), ways=(), too_much_data=True).SerializeToString(),
+            RenderElementsData(
+                nodes=(), ways=(), too_much_data=True
+            ).SerializeToString(),
             media_type='application/x-protobuf',
         )
 
     return Response(
-        FormatLeaflet.encode_elements(elements, detailed=True, areas=False).SerializeToString(),
+        FormatLeaflet.encode_elements(
+            elements, detailed=True, areas=False
+        ).SerializeToString(),
         media_type='application/x-protobuf',
     )

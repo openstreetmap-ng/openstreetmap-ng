@@ -24,7 +24,9 @@ async def avatar(avatar_id: Annotated[StorageKey, Path(min_length=1)]) -> Respon
 
 
 @router.get('/background/{background_id}')
-async def background(background_id: Annotated[StorageKey, Path(min_length=1)]) -> Response:
+async def background(
+    background_id: Annotated[StorageKey, Path(min_length=1)],
+) -> Response:
     file = await ImageQuery.get_background(background_id)
     content_type = magic.from_buffer(file[:2048], mime=True)
     return Response(file, media_type=content_type)

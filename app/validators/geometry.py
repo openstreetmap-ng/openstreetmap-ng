@@ -22,7 +22,7 @@ def validate_geometry(value: dict[str, Any] | _T) -> BaseGeometry | _T:
     coords = get_coordinates(geom)
     if not np.all(
         (coords[:, 0] >= -180)
-        & (coords[:, 0] <= 180)  #
+        & (coords[:, 0] <= 180)
         & (coords[:, 1] >= -90)
         & (coords[:, 1] <= 90)
     ):

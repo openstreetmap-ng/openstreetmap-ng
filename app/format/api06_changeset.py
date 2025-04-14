@@ -20,7 +20,8 @@ class Changeset06Mixin:
         is_json: cython.bint = format_is_json()
         return {
             'changesets' if is_json else 'changeset': [
-                _encode_changeset(changeset, is_json=is_json) for changeset in changesets
+                _encode_changeset(changeset, is_json=is_json)
+                for changeset in changesets
             ]
         }
 
@@ -71,7 +72,7 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.bint) -> dict:
             **(
                 {
                     'discussion': [
-                        _encode_changeset_comment(comment, is_json=True)  #
+                        _encode_changeset_comment(comment, is_json=True)
                         for comment in changeset['comments']
                     ]
                 }
@@ -102,7 +103,7 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.bint) -> dict:
                 {
                     'discussion': {
                         'comment': [
-                            _encode_changeset_comment(comment, is_json=False)  #
+                            _encode_changeset_comment(comment, is_json=False)
                             for comment in changeset['comments']
                         ]
                     }
@@ -114,7 +115,9 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.bint) -> dict:
 
 
 @cython.cfunc
-def _encode_changeset_comment(comment: ChangesetComment, *, is_json: cython.bint) -> dict:
+def _encode_changeset_comment(
+    comment: ChangesetComment, *, is_json: cython.bint
+) -> dict:
     """
     >>> _encode_changeset_comment(ChangesetComment(...))
     {'@uid': 1, '@user': ..., '@date': ..., 'text': 'lorem ipsum'}

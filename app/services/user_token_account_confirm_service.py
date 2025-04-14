@@ -26,13 +26,18 @@ class UserTokenAccountConfirmService:
             to_user=auth_user(required=True),
             subject=t('user_mailer.signup_confirm.subject'),
             template_name='email/account-confirm',
-            template_data={'token': UserTokenStructUtils.to_str(token), 'app_domain': APP_DOMAIN},
+            template_data={
+                'token': UserTokenStructUtils.to_str(token),
+                'app_domain': APP_DOMAIN,
+            },
         )
 
     @staticmethod
     async def confirm(token_struct: UserTokenStruct) -> None:
         """Confirm a user account."""
-        token = await UserTokenQuery.find_one_by_token_struct('account_confirm', token_struct)
+        token = await UserTokenQuery.find_one_by_token_struct(
+            'account_confirm', token_struct
+        )
         if token is None:
             raise_for.bad_user_token_struct()
 

@@ -94,6 +94,8 @@ async def test_get_multiple_users_with_nonexistent(client: AsyncClient):
         ('', status.HTTP_422_UNPROCESSABLE_ENTITY),  # Empty parameter
     ],
 )
-async def test_get_multiple_users_invalid_params(client: AsyncClient, users, expected_status):
+async def test_get_multiple_users_invalid_params(
+    client: AsyncClient, users, expected_status
+):
     r = await client.get(f'/api/0.6/users.json?users={users}')
     assert r.status_code == expected_status, r.text

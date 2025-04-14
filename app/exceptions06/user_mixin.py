@@ -15,15 +15,24 @@ class UserExceptions06Mixin(UserExceptionsMixin):
 
     @override
     def user_not_found_bad_request(self, name_or_id: DisplayName | UserId) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail=f'User {name_or_id} not known')
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST, detail=f'User {name_or_id} not known'
+        )
 
     @override
-    def pref_not_found(self, app_id: ApplicationId | None, key: UserPrefKey) -> NoReturn:
-        raise APIError(status.HTTP_404_NOT_FOUND, detail=f'Preference {key!r} not found')
+    def pref_not_found(
+        self, app_id: ApplicationId | None, key: UserPrefKey
+    ) -> NoReturn:
+        raise APIError(
+            status.HTTP_404_NOT_FOUND, detail=f'Preference {key!r} not found'
+        )
 
     @override
     def pref_duplicate_key(self, key: UserPrefKey) -> NoReturn:
-        raise APIError(status.HTTP_406_NOT_ACCEPTABLE, detail=f'Duplicate preferences with key {key}')
+        raise APIError(
+            status.HTTP_406_NOT_ACCEPTABLE,
+            detail=f'Duplicate preferences with key {key}',
+        )
 
     @override
     def pref_bulk_set_limit_exceeded(self) -> NoReturn:

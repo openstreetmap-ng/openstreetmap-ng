@@ -26,7 +26,9 @@ def assert_model(
                 else (
                     Annotated[Any, validator]
                     if isinstance(validator, BaseMetadata | GroupedMetadata)
-                    else Annotated[type(validator), Predicate(lambda x, v=validator: x == v)]
+                    else Annotated[
+                        type(validator), Predicate(lambda x, v=validator: x == v)
+                    ]
                 )
             ),
             ...,

@@ -25,7 +25,6 @@ from app.lib.retry import retry
 from app.lib.sentry import SENTRY_REPLICATION_MONITOR
 from app.lib.xmltodict import XMLToDict
 from app.models.element import ElementType
-from app.services.optimistic_diff.prepare import OSMChangeAction
 from app.utils import HTTP
 
 _Frequency = Literal['minute', 'hour', 'day']
@@ -38,15 +37,21 @@ class ReplicaState:
 
     @property
     def path(self) -> Path:
-        return REPLICATION_DIR.joinpath(f'replica_{int(self.created_at.timestamp()):020}.parquet')
+        return REPLICATION_DIR.joinpath(
+            f'replica_{int(self.created_at.timestamp()):020}.parquet'
+        )
 
     @property
     def bundle_path(self) -> Path:
-        return REPLICATION_DIR.joinpath(f'bundle_{int(self.created_at.timestamp()):020}.parquet')
+        return REPLICATION_DIR.joinpath(
+            f'bundle_{int(self.created_at.timestamp()):020}.parquet'
+        )
 
     @staticmethod
     def default() -> 'ReplicaState':
-        return ReplicaState(sequence_number=0, created_at=datetime.fromtimestamp(0, UTC))
+        return ReplicaState(
+            sequence_number=0, created_at=datetime.fromtimestamp(0, UTC)
+        )
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -59,7 +64,9 @@ class AppState:
     def next_replica(self) -> 'ReplicaState':
         return ReplicaState(
             sequence_number=self.last_replica.sequence_number + 1,
-            created_at=self.last_replica.created_at + _FREQUENCY_TIMEDELTA[self.frequency],
+            created_at=(
+                self.last_replica.created_at + _FREQUENCY_TIMEDELTA[self.frequency]
+            ),
         )
 
 
@@ -110,9 +117,14 @@ gc.disable()
 
 async def main() -> None:
     state = _load_app_state()
-    click.echo(f'Resuming replication after {state.frequency}/{state.last_replica.sequence_number}')
+    click.echo(
+        f'Resuming replication after {state.frequency}/{state.last_replica.sequence_number}'
+    )
     while True:
-        with SENTRY_REPLICATION_MONITOR, start_transaction(op='task', name='replication'):
+        with (
+            SENTRY_REPLICATION_MONITOR,
+            start_transaction(op='task', name='replication'),
+        ):
             set_tag('state.frequency', state.frequency)
             set_context(
                 'state',
@@ -126,7 +138,9 @@ async def main() -> None:
             state = await _iterate(state)
             _bundle_data_if_needed(state)
             _save_app_state(state)
-            click.echo(f'Finished replication sequence {state.frequency}/{state.last_replica.sequence_number}')
+            click.echo(
+                f'Finished replication sequence {state.frequency}/{state.last_replica.sequence_number}'
+            )
             gc.collect()
 
 
@@ -139,7 +153,9 @@ async def _iterate(state: AppState) -> AppState:
         old_frequency_str = click.style(f'{state.frequency}', fg='cyan')
         state = await _increase_frequency(state)
         new_frequency_str = click.style(f'{state.frequency}', fg='bright_cyan')
-        click.echo(f'Increased replication frequency {old_frequency_str} -> {new_frequency_str}')
+        click.echo(
+            f'Increased replication frequency {old_frequency_str} -> {new_frequency_str}'
+        )
 
     url = _get_replication_url(state.frequency, next_replica.sequence_number)
 
@@ -171,17 +187,19 @@ async def _iterate(state: AppState) -> AppState:
         ) as writer:
             last_sequence_id = _parse_actions(
                 writer,
-                actions,  # type: ignore
+                actions,
                 last_sequence_id=state.last_sequence_id,
             )
 
-    return replace(state, last_replica=remote_replica, last_sequence_id=last_sequence_id)
+    return replace(
+        state, last_replica=remote_replica, last_sequence_id=last_sequence_id
+    )
 
 
 @cython.cfunc
 def _parse_actions(
     writer: pq.ParquetWriter,
-    actions: list[tuple[OSMChangeAction, list[tuple[ElementType, dict]]]],
+    actions: list[tuple[str, list[tuple[ElementType, dict]]]],
     *,
     last_sequence_id: int,
     # HACK: faster lookup
@@ -195,10 +213,9 @@ def _parse_actions(
             writer.write_batch(record_batch, row_group_size=len(data))
             data.clear()
 
-    action: str
     for action, elements_ in actions:
         # skip osmChange attributes
-        if action[0] == '@':
+        if action[:1] == '@':
             continue
 
         elements: list[tuple[ElementType, dict]] = elements_
@@ -206,13 +223,20 @@ def _parse_actions(
         element: dict
 
         for element_type, element in elements:
-            tags = {tag['@k']: tag['@v'] for tag in tags_} if (tags_ := element.get('tag')) is not None else None
+            tags = (
+                {tag['@k']: tag['@v'] for tag in tags_}
+                if (tags_ := element.get('tag')) is not None
+                else None
+            )
             point: str | None = None
             members: list[dict]
 
             if element_type == 'node':
                 members = []
-                if (lon := element.get('@lon')) is not None and (lat := element.get('@lat')) is not None:
+                if (
+                    (lon := element.get('@lon')) is not None  #
+                    and (lat := element.get('@lat')) is not None
+                ):
                     point = compressible_geometry(Point(lon, lat)).wkb_hex
             elif element_type == 'way':
                 members = (
@@ -308,15 +332,21 @@ async def _increase_frequency(state: AppState) -> AppState:
     new_frequency: _Frequency = 'minute' if state.frequency == 'hour' else 'hour'
     new_timedelta = _FREQUENCY_TIMEDELTA[new_frequency]
     found_threshold = new_timedelta / 2
-    frequency_downscale = current_timedelta.total_seconds() / new_timedelta.total_seconds()
+    frequency_downscale = (
+        current_timedelta.total_seconds() / new_timedelta.total_seconds()
+    )
 
     step: cython.int = 2 << 4
-    new_sequence_number: cython.longlong = int(state.last_replica.sequence_number * frequency_downscale)
+    new_sequence_number: cython.longlong = int(
+        state.last_replica.sequence_number * frequency_downscale
+    )
     direction_forward: bool | None = None
 
     while True:
         if not step:
-            raise ValueError(f"Couldn't find {new_frequency!r} replica at {current_created_at!r}")
+            raise ValueError(
+                f"Couldn't find {new_frequency!r} replica at {current_created_at!r}"
+            )
 
         url = _get_replication_url(new_frequency, new_sequence_number)
         r = await HTTP.get(url + '.state.txt')

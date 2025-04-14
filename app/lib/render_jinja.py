@@ -31,7 +31,9 @@ _J2 = Environment(
 )
 
 
-def render_jinja(template_name: str, template_data: dict[str, Any] | None = None) -> str:
+def render_jinja(
+    template_name: str, template_data: dict[str, Any] | None = None, /
+) -> str:
     """Render the given Jinja2 template with translation."""
     data = {
         'ENV': ENV,
@@ -78,22 +80,40 @@ def timeago(date: datetime | None, *, html: bool = False) -> str:
         ago = nt('datetime.distance_in_words_ago.less_than_x_minutes', 1)
     elif total_seconds < 3600:
         # X minutes ago
-        ago = nt('datetime.distance_in_words_ago.x_minutes', int(total_seconds / 60))
+        ago = nt(
+            'datetime.distance_in_words_ago.x_minutes',
+            int(total_seconds / 60),
+        )
     elif total_seconds < (3600 * 24):
         # about X hours ago
-        ago = nt('datetime.distance_in_words_ago.about_x_hours', int(total_seconds / 3600))
+        ago = nt(
+            'datetime.distance_in_words_ago.about_x_hours',
+            int(total_seconds / 3600),
+        )
     elif total_seconds < (3600 * 24 * 30):
         # X days ago
-        ago = nt('datetime.distance_in_words_ago.x_days', int(total_seconds / (3600 * 24)))
+        ago = nt(
+            'datetime.distance_in_words_ago.x_days',
+            int(total_seconds / (3600 * 24)),
+        )
     elif total_seconds < (3600 * 24 * 330):
         # X months ago
-        ago = nt('datetime.distance_in_words_ago.x_months', int(total_seconds / (3600 * 24 * 30)))
+        ago = nt(
+            'datetime.distance_in_words_ago.x_months',
+            int(total_seconds / (3600 * 24 * 30)),
+        )
     elif total_seconds % (3600 * 24 * 365) < (3600 * 24 * 330):
         # X years ago
-        ago = nt('datetime.distance_in_words_ago.x_years', int(total_seconds / (3600 * 24 * 365)))
+        ago = nt(
+            'datetime.distance_in_words_ago.x_years',
+            int(total_seconds / (3600 * 24 * 365)),
+        )
     else:
         # almost X years ago
-        ago = nt('datetime.distance_in_words_ago.almost_x_years', int(ceil(total_seconds / (3600 * 24 * 365))))  # noqa: RUF046
+        ago = nt(
+            'datetime.distance_in_words_ago.almost_x_years',
+            int(ceil(total_seconds / (3600 * 24 * 365))),  # noqa: RUF046
+        )
 
     if html:
         return f'<time datetime="{date.isoformat()}" title="{date.strftime(t("time.formats.friendly"))}">{ago}</time>'

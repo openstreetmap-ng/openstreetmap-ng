@@ -14,7 +14,13 @@ async def test_changeset_comment_crud(client: AsyncClient):
     r = await client.put(
         '/api/0.6/changeset/create',
         content=XMLToDict.unparse({
-            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': test_changeset_comment_crud.__name__}]}}
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'created_by', '@v': test_changeset_comment_crud.__name__}
+                    ]
+                }
+            }
         }),
     )
     assert r.is_success, r.text
@@ -36,7 +42,9 @@ async def test_changeset_comment_crud(client: AsyncClient):
 
     # Create comment
     comment_text = 'Test comment for API testing'
-    r = await client.post(f'/api/0.6/changeset/{changeset_id}/comment', data={'text': comment_text})
+    r = await client.post(
+        f'/api/0.6/changeset/{changeset_id}/comment', data={'text': comment_text}
+    )
     assert r.is_success, r.text
     changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
 
@@ -51,7 +59,9 @@ async def test_changeset_comment_crud(client: AsyncClient):
     assert 'discussion' not in changeset
 
     # Read changeset with discussion
-    r = await client.get(f'/api/0.6/changeset/{changeset_id}', params={'include_discussion': 'true'})
+    r = await client.get(
+        f'/api/0.6/changeset/{changeset_id}', params={'include_discussion': 'true'}
+    )
     assert r.is_success, r.text
     changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
     comment = changeset['discussion']['comment'][0]
@@ -82,7 +92,9 @@ async def test_changeset_comment_crud(client: AsyncClient):
     assert r.is_success, r.text
 
     # Read changeset after deletion
-    r = await client.get(f'/api/0.6/changeset/{changeset_id}', params={'include_discussion': 'true'})
+    r = await client.get(
+        f'/api/0.6/changeset/{changeset_id}', params={'include_discussion': 'true'}
+    )
     assert r.is_success, r.text
     changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
 

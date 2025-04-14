@@ -11,4 +11,6 @@ class DiaryExceptionsMixin:
         raise APIError(status.HTTP_404_NOT_FOUND, detail=f'Diary {id} not found')
 
     def diary_comment_not_found(self, id: DiaryCommentId) -> NoReturn:
-        raise APIError(status.HTTP_404_NOT_FOUND, detail=f'Diary comment {id} not found')
+        raise APIError(
+            status.HTTP_404_NOT_FOUND, detail=f'Diary comment {id} not found'
+        )

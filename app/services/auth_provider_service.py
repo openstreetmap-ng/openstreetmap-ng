@@ -7,13 +7,22 @@ from fastapi import HTTPException, Response
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_MAX_AGE, COOKIE_AUTH_MAX_AGE, ENV
+from app.config import (
+    AUTH_PROVIDER_STATE_MAX_AGE,
+    AUTH_PROVIDER_VERIFICATION_MAX_AGE,
+    COOKIE_AUTH_MAX_AGE,
+    ENV,
+)
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_compare, hmac_bytes
 from app.lib.referrer import secure_referrer
 from app.lib.render_response import render_response
-from app.models.db.connected_account import AUTH_PROVIDERS, AuthProvider, AuthProviderAction
+from app.models.db.connected_account import (
+    AUTH_PROVIDERS,
+    AuthProvider,
+    AuthProviderAction,
+)
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
 from app.queries.connected_account_query import ConnectedAccountQuery
@@ -37,7 +46,9 @@ class AuthProviderService:
             action=action,
             referer=referer,
         )
-        redirect_uri = extend_query_params(redirect_uri, {**redirect_params, 'state': hmac})
+        redirect_uri = extend_query_params(
+            redirect_uri, {**redirect_params, 'state': hmac}
+        )
         response = RedirectResponse(redirect_uri, status.HTTP_303_SEE_OTHER)
         response.set_cookie(
             key='auth_provider_state',
@@ -58,13 +69,19 @@ class AuthProviderService:
     ) -> AuthProviderState:
         """Parse and validate an auth provider state."""
         buffer_b64 = cookie_state.encode()
-        if not hash_compare(buffer_b64, urlsafe_b64decode(query_state), hash_func=hmac_bytes):
+        if not hash_compare(
+            buffer_b64, urlsafe_b64decode(query_state), hash_func=hmac_bytes
+        ):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state hmac')
+
         state = AuthProviderState.FromString(urlsafe_b64decode(buffer_b64))
         if state.timestamp + AUTH_PROVIDER_STATE_MAX_AGE.total_seconds() < time():
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Authorization timed out, please try again')
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, 'Authorization timed out, please try again'
+            )
         if state.provider != provider:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state provider')
+
         return state
 
     @staticmethod
@@ -83,18 +100,29 @@ class AuthProviderService:
         uid = str(uid)
 
         if action == 'login':
-            user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
+            user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(
+                provider, uid
+            )
             if user_id is None:
-                return await render_response('user/auth-provider-not-found', {'provider': provider})
+                return await render_response(
+                    'user/auth-provider-not-found', {'provider': provider}
+                )
 
-            logging.debug('Authenticated user %d using auth provider %r', user_id, provider)
-            access_token = await SystemAppService.create_access_token(SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id)
-            response = RedirectResponse(secure_referrer(state.referer), status.HTTP_303_SEE_OTHER)
+            logging.debug(
+                'Authenticated user %d using auth provider %r', user_id, provider
+            )
+            access_token = await SystemAppService.create_access_token(
+                SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
+            )
+            response = RedirectResponse(
+                secure_referrer(state.referer), status.HTTP_303_SEE_OTHER
+            )
             response.delete_cookie('auth_provider_state')
             response.set_cookie(
                 key='auth',
                 value=access_token.get_secret_value(),
-                max_age=int(COOKIE_AUTH_MAX_AGE.total_seconds()),  # TODO: remember option for auth providers
+                # TODO: remember option for auth providers
+                max_age=int(COOKIE_AUTH_MAX_AGE.total_seconds()),
                 secure=ENV != 'dev',
                 httponly=True,
                 samesite='lax',
@@ -104,18 +132,24 @@ class AuthProviderService:
         elif action == 'settings':
             current_user = auth_user()
             if current_user is not None:
-                user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
+                user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(
+                    provider, uid
+                )
                 if user_id is None:
                     await ConnectedAccountService.add_connection(provider, uid)
                 elif user_id != current_user['id']:
                     raise NotImplementedError  # TODO: handle used by another user
 
-            response = RedirectResponse('/settings/connections', status.HTTP_303_SEE_OTHER)
+            response = RedirectResponse(
+                '/settings/connections', status.HTTP_303_SEE_OTHER
+            )
             response.delete_cookie('auth_provider_state')
             return response
 
         elif action == 'signup':
-            user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
+            user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(
+                provider, uid
+            )
             if user_id is not None:
                 raise NotImplementedError  # TODO: handle used by another user
 
@@ -155,12 +189,19 @@ class AuthProviderService:
             return None
 
         buffer_b64, hmac_b64 = parts
-        if not hash_compare(buffer_b64, urlsafe_b64decode(hmac_b64), hash_func=hmac_bytes):
+        if not hash_compare(
+            buffer_b64, urlsafe_b64decode(hmac_b64), hash_func=hmac_bytes
+        ):
             logging.debug('Auth provider verification HMAC is invalid')
             return None
 
-        verification = AuthProviderVerification.FromString(urlsafe_b64decode(buffer_b64))
-        if verification.timestamp + AUTH_PROVIDER_VERIFICATION_MAX_AGE.total_seconds() < time():
+        verification = AuthProviderVerification.FromString(
+            urlsafe_b64decode(buffer_b64)
+        )
+        verification_expires_at = (
+            verification.timestamp + AUTH_PROVIDER_VERIFICATION_MAX_AGE.total_seconds()
+        )
+        if verification_expires_at < time():
             logging.debug('Auth provider verification is expired')
             return None
 

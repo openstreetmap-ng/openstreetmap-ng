@@ -32,7 +32,9 @@ async def create_or_update(
     user: Annotated[User, web_user()],
     title: Annotated[str, Form(min_length=1, max_length=DIARY_TITLE_MAX_LENGTH)],
     body: Annotated[str, Form(min_length=1, max_length=DIARY_BODY_MAX_LENGTH)],
-    language: Annotated[LocaleCode, Form(min_length=1, max_length=LOCALE_CODE_MAX_LENGTH)],
+    language: Annotated[
+        LocaleCode, Form(min_length=1, max_length=LOCALE_CODE_MAX_LENGTH)
+    ],
     lon: Annotated[Longitude | None, Form()] = None,
     lat: Annotated[Latitude | None, Form()] = None,
     diary_id: Annotated[DiaryId | None, Form()] = None,
@@ -40,7 +42,10 @@ async def create_or_update(
     lon_provided = lon is not None
     lat_provided = lat is not None
     if lon_provided != lat_provided:
-        StandardFeedback.raise_error('lon' if lat_provided else 'lat', t('validation.incomplete_location_information'))
+        StandardFeedback.raise_error(
+            'lon' if lat_provided else 'lat',
+            t('validation.incomplete_location_information'),
+        )
     point = Point(lon, lat) if (lon_provided and lat_provided) else None
 
     if diary_id is None:
@@ -77,7 +82,9 @@ async def comments_page(
     page: Annotated[PositiveInt, Query()],
     num_items: Annotated[PositiveInt, Query()],
 ):
-    comments = await DiaryCommentQuery.get_diary_page(diary_id, page=page, num_items=num_items)
+    comments = await DiaryCommentQuery.get_diary_page(
+        diary_id, page=page, num_items=num_items
+    )
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(comments))

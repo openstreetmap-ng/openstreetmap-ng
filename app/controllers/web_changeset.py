@@ -26,7 +26,9 @@ router = APIRouter(prefix='/api/web/changeset')
 @router.post('/{changeset_id:int}/comment')
 async def create_comment(
     changeset_id: ChangesetId,
-    comment: Annotated[str, Form(min_length=1, max_length=CHANGESET_COMMENT_BODY_MAX_LENGTH)],
+    comment: Annotated[
+        str, Form(min_length=1, max_length=CHANGESET_COMMENT_BODY_MAX_LENGTH)
+    ],
     _: Annotated[User, web_user()],
 ):
     await ChangesetCommentService.comment(changeset_id, comment)
@@ -36,7 +38,9 @@ async def create_comment(
 @router.get('/map')
 async def get_map(
     bbox: Annotated[str | None, Query()] = None,
-    scope: Annotated[Literal['nearby', 'friends'] | None, Query()] = None,  # TODO: support scope
+    scope: Annotated[
+        Literal['nearby', 'friends'] | None, Query()
+    ] = None,  # TODO: support scope
     display_name: Annotated[DisplayName | None, Query(min_length=1)] = None,
     date_: Annotated[date | None, Query(alias='date')] = None,
     before: Annotated[ChangesetId | None, Query()] = None,
@@ -84,7 +88,9 @@ async def comments_page(
     page: Annotated[PositiveInt, Query()],
     num_items: Annotated[PositiveInt, Query()],
 ):
-    comments = await ChangesetCommentQuery.get_comments_page(changeset_id, page=page, num_items=num_items)
+    comments = await ChangesetCommentQuery.get_comments_page(
+        changeset_id, page=page, num_items=num_items
+    )
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(comments))

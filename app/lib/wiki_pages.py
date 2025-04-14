@@ -16,8 +16,8 @@ def _get_wiki_pages() -> dict[tuple[str, str], frozenset[str | None]]:
     data = orjson.loads(Path('config/wiki_pages.json').read_bytes())
     return {
         (key, value): frozenset(
-            normalize_locale(locale) if locale else DEFAULT_LOCALE
-            for locale in locales  #
+            normalize_locale(locale) if locale else DEFAULT_LOCALE  #
+            for locale in locales
         )
         for key, value_locales in data.items()
         for value, locales in value_locales.items()
@@ -62,7 +62,9 @@ def _transform(
     if value.format is not None:
         return value
 
-    wiki_locales = _WIKI_PAGES.get((key, value.text) if processing_values else (key, '*'))
+    wiki_locales = _WIKI_PAGES.get(
+        (key, value.text) if processing_values else (key, '*')
+    )
     if wiki_locales is None:
         return value
 

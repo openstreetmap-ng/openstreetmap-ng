@@ -14,7 +14,9 @@ class ConnectedAccountService:
         Returns the user_id.
         """
         if len(uid) > AUTH_PROVIDER_UID_MAX_LENGTH:
-            raise ValueError(f'Connected account uid too long: {len(uid)} > {AUTH_PROVIDER_UID_MAX_LENGTH}')
+            raise ValueError(
+                f'Connected account uid too long: {len(uid)} > {AUTH_PROVIDER_UID_MAX_LENGTH}'
+            )
 
         user_id = auth_user(required=True)['id']
 

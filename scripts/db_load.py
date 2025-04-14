@@ -89,7 +89,9 @@ async def _gather_table_constraints(table: str) -> dict[tuple[str, str], SQL]:
         return {(table, name): SQL(sql) for name, sql in await cursor.fetchall()}
 
 
-async def _load_table(mode: _Mode, table: str, tg: TaskGroup) -> tuple[dict[str, SQL], dict[tuple[str, str], SQL]]:
+async def _load_table(
+    mode: _Mode, table: str, tg: TaskGroup
+) -> tuple[dict[str, SQL], dict[tuple[str, str], SQL]]:
     if mode == 'preload' or table in {'note', 'note_comment'}:
         path = _get_csv_path(table)
 
@@ -114,10 +116,16 @@ async def _load_table(mode: _Mode, table: str, tg: TaskGroup) -> tuple[dict[str,
     print(f'Dropping {len(indexes)} indexes: {indexes!r}')
     print(f'Dropping {len(constraints)} constraints: {constraints!r}')
     async with db(True, autocommit=True) as conn:
-        await conn.execute(SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes))))
+        await conn.execute(
+            SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes)))
+        )
 
         for _, name in constraints:
-            await conn.execute(SQL('ALTER TABLE {} DROP CONSTRAINT {}').format(Identifier(table), Identifier(name)))
+            await conn.execute(
+                SQL('ALTER TABLE {} DROP CONSTRAINT {}').format(
+                    Identifier(table), Identifier(name)
+                )
+            )
 
     # Load the data
     columns = [f'"{c}"' for c in header.split(',')]
@@ -182,7 +190,11 @@ async def _load_tables(mode: _Mode) -> None:
 
     print('Truncating tables')
     async with db(True, autocommit=True) as conn:
-        await conn.execute(SQL('TRUNCATE {} RESTART IDENTITY CASCADE').format(SQL(',').join(map(Identifier, tables))))
+        await conn.execute(
+            SQL('TRUNCATE {} RESTART IDENTITY CASCADE').format(
+                SQL(',').join(map(Identifier, tables))
+            )
+        )
 
     indexes: dict[str, SQL] = {}
     constraints: dict[tuple[str, str], SQL] = {}
@@ -205,14 +217,20 @@ async def _load_tables(mode: _Mode) -> None:
 
         for (table, name), sql in constraints.items():
             tg.create_task(
-                execute(SQL('ALTER TABLE {} ADD CONSTRAINT {} {}').format(Identifier(table), Identifier(name), sql))
+                execute(
+                    SQL('ALTER TABLE {} ADD CONSTRAINT {} {}').format(
+                        Identifier(table), Identifier(name), sql
+                    )
+                )
             )
 
 
 @psycopg_pool_open_decorator
 async def main(mode: _Mode) -> None:
     exists = await ElementQuery.get_current_sequence_id() > 0
-    if exists and input('Database is not empty. Continue? (y/N): ').strip().lower() not in {'y', 'yes'}:
+    if exists and input(
+        'Database is not empty. Continue? (y/N): '
+    ).strip().lower() not in {'y', 'yes'}:
         print('Aborted')
         return
 
@@ -221,7 +239,9 @@ async def main(mode: _Mode) -> None:
 
         print('Vacuuming and updating statistics')
         async with db(True, autocommit=True) as conn:
-            await conn.execute('VACUUM FREEZE ANALYZE' if mode == 'replication' else 'VACUUM ANALYZE')
+            await conn.execute(
+                'VACUUM FREEZE ANALYZE' if mode == 'replication' else 'VACUUM ANALYZE'
+            )
 
         print('Fixing sequence counters consistency')
         await MigrationService.fix_sequence_counters()

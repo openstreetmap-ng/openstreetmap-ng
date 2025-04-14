@@ -142,7 +142,9 @@ def _process_user(header_only: bool) -> None:
             WHERE user_id IS NOT NULL
             """)
         else:
-            logging.warning('User data WILL NOT include notes data: source file not found')
+            logging.warning(
+                'User data WILL NOT include notes data: source file not found'
+            )
 
         query = f"""
         SELECT DISTINCT ON (user_id)

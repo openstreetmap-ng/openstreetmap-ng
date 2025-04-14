@@ -29,9 +29,7 @@ def auth_context(user: User | None, scopes: tuple[Scope, ...]):
     if user is not None and user_is_test(user) and ENV == 'prod':
         raise RuntimeError(f'Test user authentication is disabled in {ENV} environment')
 
-    sentry_user: dict[str, Any] = {
-        'ip_address': '{{auto}}',
-    }
+    sentry_user: dict[str, Any] = {'ip_address': '{{auto}}'}
     if user is not None:
         sentry_user['id'] = str(user['id'])  # as string, matching frontend behavior
         sentry_user['username'] = user['display_name']
@@ -90,10 +88,16 @@ def _get_user(require_security_scopes: SecurityScopes) -> User:
 
     # Must be authenticated
     if user is None:
-        if 'web_user' not in require_scopes or get_request().url.path.startswith(('/api/', '/static')):
+        if (
+            'web_user' not in require_scopes  #
+            or get_request().url.path.startswith((
+                '/api/',
+                '/static',
+            ))
+        ):
             raise_for.unauthorized(request_basic_auth=True)
         raise HTTPException(
-            status_code=status.HTTP_303_SEE_OTHER,
+            status.HTTP_303_SEE_OTHER,
             headers={'Location': f'/login?{urlencode({"referer": _get_referer()})}'},
         )
 
@@ -112,12 +116,10 @@ def _get_referer() -> str:
     """
     url = get_request().url
     referrers = parse_qs(url.query).get('referer')
-    if referrers is None:
-        return url.path
 
-    # Referrer must start with '/' to avoid open redirect
-    referrer = referrers[0]
-    if referrer[0].startswith('/'):
-        return referrer[0]
-
-    return f'{url.path}?{url.query}'
+    return (
+        referrer
+        # Referrer must start with '/' to avoid open redirect
+        if referrers and (referrer := referrers[0])[:1] == '/'
+        else f'{url.path}?{url.query}'
+    )

@@ -32,7 +32,9 @@ async def main():
         after = UserId(0)
 
         while True:
-            ids = await UserQuery.get_deleted_ids(after=after, sort='asc', limit=_BATCH_SIZE)
+            ids = await UserQuery.get_deleted_ids(
+                after=after, sort='asc', limit=_BATCH_SIZE
+            )
             if not ids:
                 break
 

@@ -60,7 +60,9 @@ class DiaryQuery:
         limit: int,
     ) -> list[Diary]:
         """Find recent diaries."""
-        assert user_id is None or language is None, 'Only one of user_id and language can be set'
+        assert user_id is None or language is None, (
+            'Only one of user_id and language can be set'
+        )
 
         order_desc: cython.bint = (after is None) or (before is not None)
         conditions: list[Composable] = []
@@ -100,7 +102,10 @@ class DiaryQuery:
                 ORDER BY id DESC
             """).format(query)
 
-        async with db() as conn, await conn.cursor(row_factory=dict_row).execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod

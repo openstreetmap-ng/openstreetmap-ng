@@ -13,6 +13,15 @@ def _validate_url_safe(v: str) -> str:
     return v
 
 
-UrlValidator = Validator().forbid_use_of_password().require_presence_of('scheme', 'host').allow_schemes('http', 'https')
-UriValidator = Validator().forbid_use_of_password().require_presence_of('scheme', 'host')
+UrlValidator = (
+    Validator()
+    .forbid_use_of_password()
+    .require_presence_of('scheme', 'host')
+    .allow_schemes('http', 'https')
+)
+UriValidator = (
+    Validator()  #
+    .forbid_use_of_password()
+    .require_presence_of('scheme', 'host')
+)
 UrlSafeValidator = AfterValidator(_validate_url_safe)

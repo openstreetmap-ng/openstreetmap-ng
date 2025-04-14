@@ -38,7 +38,9 @@ class PasswordHash:
         Hash a password using the latest recommended algorithm.
         Returns None if the given password schema cannot be used.
         """
-        transmit_password = TransmitUserPassword.FromString(b64decode(password.get_secret_value()))
+        transmit_password = TransmitUserPassword.FromString(
+            b64decode(password.get_secret_value())
+        )
         if transmit_password.v1:
             return _hash_v1(transmit_password.v1)
 
@@ -59,7 +61,9 @@ class PasswordHash:
         if not password_pb:
             return VerifyResult(False, rehash_needed=False)
 
-        transmit_password = TransmitUserPassword.FromString(b64decode(password.get_secret_value()))
+        transmit_password = TransmitUserPassword.FromString(
+            b64decode(password.get_secret_value())
+        )
         password_pb_ = UserPassword.FromString(password_pb)
         password_pb_schema: PasswordSchema = password_pb_.WhichOneof('schema')
 
@@ -68,21 +72,27 @@ class PasswordHash:
         if password_pb_schema == 'legacy':
             return _verify_legacy(transmit_password.legacy, password_pb_.legacy)
 
-        raise NotImplementedError(f'Unsupported password_pb schema: {password_pb_schema!r}')
+        raise NotImplementedError(
+            f'Unsupported password_pb schema: {password_pb_schema!r}'
+        )
 
 
 @cython.cfunc
 def _hash_v1(password_bytes: bytes) -> bytes:
     if len(password_bytes) != 64:
-        raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
+        raise ValueError(
+            f'Invalid password length, expected 64, got {len(password_bytes)}'
+        )
 
     hash_string = _HASHER_V1.hash(password_bytes)
     prefix, salt, hash = hash_string.rsplit('$', 2)
     hash = b64decode(hash + '==')
     salt = b64decode(salt + '==')
-    assert prefix == '$argon2id$v=19$m=8192,t=3,p=4' and len(hash) == 32 and len(salt) == 16, (
-        f'Invalid hasher configuration: {prefix=!r}, {len(hash)=}, {len(salt)=}'
-    )
+    assert (
+        prefix == '$argon2id$v=19$m=8192,t=3,p=4'
+        and len(hash) == 32
+        and len(salt) == 16
+    ), f'Invalid hasher configuration: {prefix=!r}, {len(hash)=}, {len(salt)=}'
 
     return UserPassword(v1=UserPassword.V1(hash=hash, salt=salt)).SerializeToString()
 
@@ -92,11 +102,15 @@ def _verify_v1(password_bytes: bytes, password_pb_v1: UserPassword.V1):
     if not password_bytes:
         return VerifyResult(False, rehash_needed=False, schema_needed='v1')
     if len(password_bytes) != 64:
-        raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
+        raise ValueError(
+            f'Invalid password length, expected 64, got {len(password_bytes)}'
+        )
 
     password_pb_hash = b64encode(password_pb_v1.hash).rstrip(b'=').decode()
     password_pb_salt = b64encode(password_pb_v1.salt).rstrip(b'=').decode()
-    password_pb_digest = f'$argon2id$v=19$m=8192,t=3,p=4${password_pb_salt}${password_pb_hash}'
+    password_pb_digest = (
+        f'$argon2id$v=19$m=8192,t=3,p=4${password_pb_salt}${password_pb_hash}'
+    )
 
     try:
         _HASHER_V1.verify(password_pb_digest, password_bytes)
@@ -120,7 +134,9 @@ def _verify_legacy(password_text: str, password_pb_legacy: UserPassword.Legacy):
     if '!' in extra:
         return _verify_legacy_pbkdf2(password_text, digest, extra)
 
-    raise NotImplementedError(f'Unsupported legacy password digest format: {digest[:10]}***, {len(digest)=}')
+    raise NotImplementedError(
+        f'Unsupported legacy password digest format: {digest[:10]}***, {len(digest)=}'
+    )
 
 
 @cython.cfunc

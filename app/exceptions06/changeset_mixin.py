@@ -12,14 +12,21 @@ from app.models.types import ChangesetCommentId, ChangesetId
 class ChangesetExceptions06Mixin(ChangesetExceptionsMixin):
     @override
     def changeset_not_found(self, changeset_id: ChangesetId) -> NoReturn:
-        raise APIError(status.HTTP_404_NOT_FOUND, detail=f'The changeset with the id {changeset_id} was not found')
+        raise APIError(
+            status.HTTP_404_NOT_FOUND,
+            detail=f'The changeset with the id {changeset_id} was not found',
+        )
 
     @override
     def changeset_access_denied(self) -> NoReturn:
-        raise APIError(status.HTTP_409_CONFLICT, detail="The user doesn't own that changeset")
+        raise APIError(
+            status.HTTP_409_CONFLICT, detail="The user doesn't own that changeset"
+        )
 
     @override
-    def changeset_already_closed(self, changeset_id: ChangesetId, closed_at: datetime) -> NoReturn:
+    def changeset_already_closed(
+        self, changeset_id: ChangesetId, closed_at: datetime
+    ) -> NoReturn:
         raise APIError(
             status.HTTP_409_CONFLICT,
             detail=f'The changeset {changeset_id} was closed at {legacy_date(closed_at).isoformat()}',
@@ -27,11 +34,17 @@ class ChangesetExceptions06Mixin(ChangesetExceptionsMixin):
 
     @override
     def changeset_not_subscribed(self, changeset_id: ChangesetId) -> NoReturn:
-        raise APIError(status.HTTP_404_NOT_FOUND, detail=f'You are not subscribed to changeset {changeset_id}.')
+        raise APIError(
+            status.HTTP_404_NOT_FOUND,
+            detail=f'You are not subscribed to changeset {changeset_id}.',
+        )
 
     @override
     def changeset_already_subscribed(self, changeset_id: ChangesetId) -> NoReturn:
-        raise APIError(status.HTTP_409_CONFLICT, detail=f'The user is already subscribed to changeset {changeset_id}')
+        raise APIError(
+            status.HTTP_409_CONFLICT,
+            detail=f'The user is already subscribed to changeset {changeset_id}',
+        )
 
     @override
     def changeset_too_big(self, size: int) -> NoReturn:

@@ -18,7 +18,10 @@ _names_path = Path('config/locale/names.json')
 
 
 async def get_download_locales() -> list[LocaleCode]:
-    r = await HTTP.get('https://translatewiki.net/wiki/Special:ExportTranslations', params={'group': 'out-osm-site'})
+    r = await HTTP.get(
+        'https://translatewiki.net/wiki/Special:ExportTranslations',
+        params={'group': 'out-osm-site'},
+    )
     r.raise_for_status()
     matches = re.finditer(r"<option value='(?P<value>[\w-]+)'.*?>(?P=value) - ", r.text)
     return [LocaleCode(match.group('value')) for match in matches]
@@ -29,7 +32,11 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
     async with _download_limiter:
         r = await HTTP.get(
             'https://translatewiki.net/wiki/Special:ExportTranslations',
-            params={'group': 'out-osm-site', 'language': locale, 'format': 'export-to-file'},
+            params={
+                'group': 'out-osm-site',
+                'language': locale,
+                'format': 'export-to-file',
+            },
         )
         r.raise_for_status()
 
@@ -37,7 +44,9 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
         if content_disposition is None:
             return None  # missing translation
 
-        match_locale = re.search(r'filename="(?P<locale>[\w-]+)\.yml"', content_disposition)
+        match_locale = re.search(
+            r'filename="(?P<locale>[\w-]+)\.yml"', content_disposition
+        )
         if match_locale is None:
             raise ValueError(f'Failed to match filename for {locale!r}')
 
@@ -72,7 +81,9 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
 
 
 def add_extra_locales_names(locales_names: list[LocaleName]):
-    extra_locales_names: dict[LocaleCode, dict] = orjson.loads(_extra_names_path.read_bytes())
+    extra_locales_names: dict[LocaleCode, dict] = orjson.loads(
+        _extra_names_path.read_bytes()
+    )
 
     for ln in locales_names:
         extra_locales_names.pop(ln.code, None)
@@ -105,7 +116,8 @@ async def main():
     locales_names.sort(key=lambda v: v.code)
     locales_names_dict = [ln._asdict() for ln in locales_names]
     buffer = orjson.dumps(
-        locales_names_dict, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE
+        locales_names_dict,
+        option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE,
     )
     _names_path.write_bytes(buffer)
 

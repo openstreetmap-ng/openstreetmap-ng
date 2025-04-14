@@ -3,7 +3,11 @@ from typing import Any
 
 from psycopg.sql import SQL, Identifier
 
-from app.config import CHANGESET_EMPTY_DELETE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT
+from app.config import (
+    CHANGESET_EMPTY_DELETE_TIMEOUT,
+    CHANGESET_IDLE_TIMEOUT,
+    CHANGESET_OPEN_TIMEOUT,
+)
 from app.db import db
 from app.lib.date_utils import utcnow
 from app.models.types import ChangesetId
@@ -27,7 +31,9 @@ async def test_changeset_inactive_close():
     # Verify it's been closed
     changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must still exist'
-    assert changeset['closed_at'] is not None, 'Changeset must be closed after processing'
+    assert changeset['closed_at'] is not None, (
+        'Changeset must be closed after processing'
+    )
 
 
 async def test_changeset_inactive_open():
@@ -53,7 +59,9 @@ async def test_changeset_open_timeout_close():
     # Create a changeset that's been open for longer than the open timeout but recently active
     old_created_at = utcnow() - CHANGESET_OPEN_TIMEOUT - timedelta(seconds=1)
     recent_updated_at = utcnow()
-    changeset_id = await _create_changeset(created_at=old_created_at, updated_at=recent_updated_at)
+    changeset_id = await _create_changeset(
+        created_at=old_created_at, updated_at=recent_updated_at
+    )
 
     # Verify it exists and is open
     changeset = await ChangesetQuery.find_by_id(changeset_id)
@@ -66,7 +74,9 @@ async def test_changeset_open_timeout_close():
     # Verify it's been closed despite recent activity
     changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must still exist'
-    assert changeset['closed_at'] is not None, 'Old changeset must be closed even if recently active'
+    assert changeset['closed_at'] is not None, (
+        'Old changeset must be closed even if recently active'
+    )
 
 
 async def test_changeset_open_timeout_open():
@@ -91,7 +101,9 @@ async def test_changeset_open_timeout_open():
 async def test_changeset_delete_empty():
     # Create an empty changeset that was closed longer ago than the delete timeout
     old_time = utcnow() - CHANGESET_EMPTY_DELETE_TIMEOUT - timedelta(seconds=1)
-    changeset_id = await _create_changeset(created_at=old_time, updated_at=old_time, closed_at=old_time)
+    changeset_id = await _create_changeset(
+        created_at=old_time, updated_at=old_time, closed_at=old_time
+    )
 
     # Verify it exists
     changeset = await ChangesetQuery.find_by_id(changeset_id)
@@ -108,7 +120,9 @@ async def test_changeset_delete_empty():
 async def test_changeset_dont_delete_empty_recent():
     # Create an empty changeset that was closed more recently than the delete timeout
     recent_time = utcnow() - CHANGESET_EMPTY_DELETE_TIMEOUT + timedelta(minutes=1)
-    changeset_id = await _create_changeset(created_at=recent_time, updated_at=recent_time, closed_at=recent_time)
+    changeset_id = await _create_changeset(
+        created_at=recent_time, updated_at=recent_time, closed_at=recent_time
+    )
 
     # Verify it exists
     changeset = await ChangesetQuery.find_by_id(changeset_id)

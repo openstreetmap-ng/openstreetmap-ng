@@ -21,14 +21,19 @@ from app.models.element import (
 from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
-from app.services.optimistic_diff.prepare import ElementStateEntry, OptimisticDiffPrepare
+from app.services.optimistic_diff.prepare import (
+    ElementStateEntry,
+    OptimisticDiffPrepare,
+)
 
 _WRITE_LOCK = Lock()
 
 
 class OptimisticDiffApply:
     @staticmethod
-    async def apply(prepare: OptimisticDiffPrepare) -> dict[TypedElementId, tuple[TypedElementId, list[int]]]:
+    async def apply(
+        prepare: OptimisticDiffPrepare,
+    ) -> dict[TypedElementId, tuple[TypedElementId, list[int]]]:
         """
         Apply the optimistic diff update.
         Returns a dict, mapping original element refs to the new versions.
@@ -39,7 +44,9 @@ class OptimisticDiffApply:
         async with db(True) as conn:
             # Lock the tables to avoid concurrent updates.
             # Then perform all the updates at once.
-            await conn.execute('LOCK TABLE changeset, changeset_bounds, element IN EXCLUSIVE MODE')
+            await conn.execute(
+                'LOCK TABLE changeset, changeset_bounds, element IN EXCLUSIVE MODE'
+            )
 
             async with TaskGroup() as tg:
                 # Check if the element_state is valid
@@ -58,11 +65,15 @@ class OptimisticDiffApply:
                 now = utcnow()
                 tg.create_task(_update_changeset(conn, now, prepare.changeset))
                 update_elements_t = tg.create_task(
-                    _update_elements(conn, now, prepare.element_state, prepare.apply_elements)
+                    _update_elements(
+                        conn, now, prepare.element_state, prepare.apply_elements
+                    )
                 )
 
         # Build result mapping
-        assigned_id_map: dict[TypedElementId, TypedElementId] = update_elements_t.result()
+        assigned_id_map: dict[TypedElementId, TypedElementId] = (
+            update_elements_t.result()
+        )
         result: dict[TypedElementId, tuple[TypedElementId, list[int]]] = {}
 
         for element in prepare.apply_elements:
@@ -70,28 +81,36 @@ class OptimisticDiffApply:
             version = element['version']
 
             if typed_id not in result:
-                result[typed_id] = (assigned_id_map[typed_id] if typed_id & 1 << 59 else typed_id, [version])
+                result[typed_id] = (
+                    # Lookup negative ids in the assigned map.
+                    assigned_id_map[typed_id] if typed_id & 1 << 59 else typed_id,
+                    [version],
+                )
             else:
                 result[typed_id][1].append(version)
 
         return result
 
 
-async def _check_elements_latest(element_state: dict[TypedElementId, ElementStateEntry]) -> None:
+async def _check_elements_latest(
+    element_state: dict[TypedElementId, ElementStateEntry],
+) -> None:
     """
     Check if the elements are the current version.
     Raises OptimisticDiffError if they are not.
     """
     versioned_refs = [
         (typed_id, entry.remote['version'])
-        for typed_id, entry in element_state.items()  #
+        for typed_id, entry in element_state.items()
         if entry.remote is not None
     ]
     if not await ElementQuery.check_is_latest(versioned_refs):
         raise OptimisticDiffError('Element is outdated')
 
 
-async def _check_elements_unreferenced(typed_ids: list[TypedElementId], after_sequence_id: SequenceId) -> None:
+async def _check_elements_unreferenced(
+    typed_ids: list[TypedElementId], after_sequence_id: SequenceId
+) -> None:
     """
     Check if the elements are currently unreferenced.
     Raises OptimisticDiffError if they are.
@@ -100,16 +119,19 @@ async def _check_elements_unreferenced(typed_ids: list[TypedElementId], after_se
         raise OptimisticDiffError(f'Element is referenced after {after_sequence_id}')
 
 
-async def _update_changeset(conn: AsyncConnection, now: datetime, changeset: Changeset) -> None:
+async def _update_changeset(
+    conn: AsyncConnection, now: datetime, changeset: Changeset
+) -> None:
     """
     Update the changeset table.
     Raises OptimisticDiffError if the changeset was modified in the meantime.
     """
     changeset_id = changeset['id']
-    db_updated_at = (await ChangesetQuery.get_updated_at_by_ids([changeset_id]))[changeset_id]
-    if changeset['updated_at'] != db_updated_at:
+    updated_at_ = await ChangesetQuery.get_updated_at_by_ids([changeset_id])
+    updated_at = updated_at_[changeset_id]
+    if changeset['updated_at'] != updated_at:
         raise OptimisticDiffError(
-            f'Changeset {changeset_id} is outdated ({changeset["updated_at"]} != {db_updated_at})'
+            f'Changeset {changeset_id} is outdated ({changeset["updated_at"]} != {updated_at})'
         )
 
     async with _WRITE_LOCK, conn.pipeline():

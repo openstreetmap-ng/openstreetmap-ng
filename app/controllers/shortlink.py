@@ -13,7 +13,9 @@ router = APIRouter()
 
 @router.get('/go/{code}')
 @cache_control(max_age=timedelta(days=30), stale=timedelta(days=30))
-async def shortlink(request: Request, code: Annotated[str, Path(min_length=3, max_length=15)]):
+async def shortlink(
+    request: Request, code: Annotated[str, Path(min_length=3, max_length=15)]
+):
     """
     Redirect to a map from a shortlink code.
     https://wiki.openstreetmap.org/wiki/Shortlink
@@ -23,7 +25,9 @@ async def shortlink(request: Request, code: Annotated[str, Path(min_length=3, ma
     except Exception:
         return Response(None, status.HTTP_404_NOT_FOUND)
 
-    fragment = '#' + urlencode({'map': [f'{z}/{lat:.5f}/{lon:.5f}']}, doseq=True, quote_via=quote)
+    fragment = '#' + urlencode(
+        {'map': [f'{z}/{lat:.5f}/{lon:.5f}']}, doseq=True, quote_via=quote
+    )
     if query := request.url.query:
         query = '?' + query
     return RedirectResponse(f'/{query}{fragment}', status.HTTP_301_MOVED_PERMANENTLY)

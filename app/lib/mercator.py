@@ -8,7 +8,11 @@ else:
     from math import pi  # type: ignore
 
 
-def mercator(coords: NDArray[np.floating], width: cython.int, height: cython.int) -> NDArray[np.floating]:
+def mercator(
+    coords: NDArray[np.floating],
+    width: cython.int,
+    height: cython.int,
+) -> NDArray[np.floating]:
     xs = coords[:, 0]
     ys = _y_sheet(coords[:, 1])
 
@@ -32,12 +36,12 @@ def mercator(coords: NDArray[np.floating], width: cython.int, height: cython.int
 
     x = (
         (xs - min_lon) / (x_size / width)
-        if x_size > 0  #
+        if x_size > 0
         else np.full(coords.shape[0], width / 2, dtype=np.float64)
     )
     y = (
         height - ((ys - min_lat) / (y_size / height))
-        if y_size > 0  #
+        if y_size > 0
         else np.full(coords.shape[0], height / 2, dtype=np.float64)
     )
     return np.column_stack((x, y))

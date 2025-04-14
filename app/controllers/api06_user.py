@@ -46,12 +46,21 @@ async def get_many_users(
 ):
     try:
         with catch_warnings():
-            filterwarnings('ignore', category=DeprecationWarning, message='.*could not be read to its end.*')
+            filterwarnings(
+                'ignore',
+                category=DeprecationWarning,
+                message='.*could not be read to its end.*',
+            )
             ids = np.fromstring(query, np.uint64, sep=',')
     except ValueError:
-        return Response('Users query must be a comma-separated list of integers', status.HTTP_400_BAD_REQUEST)
+        return Response(
+            'Users query must be a comma-separated list of integers',
+            status.HTTP_400_BAD_REQUEST,
+        )
     if not ids.size:
-        return Response('No users were given to search for', status.HTTP_400_BAD_REQUEST)
+        return Response(
+            'No users were given to search for', status.HTTP_400_BAD_REQUEST
+        )
 
     user_ids: list[UserId] = ids.tolist()  # type: ignore
     users = await UserQuery.find_many_by_ids(user_ids)

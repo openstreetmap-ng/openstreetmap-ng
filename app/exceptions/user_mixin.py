@@ -16,7 +16,9 @@ class UserExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def pref_not_found(self, app_id: ApplicationId | None, key: UserPrefKey) -> NoReturn:
+    def pref_not_found(
+        self, app_id: ApplicationId | None, key: UserPrefKey
+    ) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod

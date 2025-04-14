@@ -57,16 +57,19 @@ def haversine_distance(p1: Point, p2: Point) -> float:
     delta_lon: cython.double = _radians(lon2 - lon1)
     delta_lat: cython.double = _radians(lat2 - lat1)
 
-    a = sin(delta_lat / 2) ** 2 + cos(_radians(lat1)) * cos(_radians(lat2)) * sin(delta_lon / 2) ** 2
+    a = (
+        sin(delta_lat / 2) ** 2
+        + cos(_radians(lat1)) * cos(_radians(lat2)) * sin(delta_lon / 2) ** 2
+    )
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return c * 6371000  # R
 
 
 @overload
-def parse_bbox(s: str) -> Polygon | MultiPolygon: ...
+def parse_bbox(s: str, /) -> Polygon | MultiPolygon: ...
 @overload
-def parse_bbox(s: None) -> None: ...
-def parse_bbox(s: str | None) -> Polygon | MultiPolygon | None:
+def parse_bbox(s: None, /) -> None: ...
+def parse_bbox(s: str | None, /) -> Polygon | MultiPolygon | None:
     """
     Parse a bbox string or bounds.
 
@@ -121,7 +124,7 @@ def parse_bbox(s: str | None) -> Polygon | MultiPolygon | None:
     )
 
 
-def try_parse_point(lat_lon: str) -> Point | None:
+def try_parse_point(lat_lon: str, /) -> Point | None:
     """
     Try to parse a point string.
 

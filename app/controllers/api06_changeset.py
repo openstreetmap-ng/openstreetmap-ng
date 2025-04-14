@@ -59,7 +59,9 @@ async def get_changeset(
         tg.create_task(UserQuery.resolve_users(changesets))
 
         if include_discussion:
-            comments = await ChangesetCommentQuery.resolve_comments(changesets, limit_per_changeset=None)
+            comments = await ChangesetCommentQuery.resolve_comments(
+                changesets, limit_per_changeset=None
+            )
             tg.create_task(UserQuery.resolve_users(comments))
             tg.create_task(changeset_comments_resolve_rich_text(comments))
         else:
@@ -69,7 +71,9 @@ async def get_changeset(
 
 
 @router.get('/changeset/{changeset_id:int}/download', response_class=OSMChangeResponse)
-@router.get('/changeset/{changeset_id:int}/download.xml', response_class=OSMChangeResponse)
+@router.get(
+    '/changeset/{changeset_id:int}/download.xml', response_class=OSMChangeResponse
+)
 async def download_changeset(
     changeset_id: ChangesetId,
 ):
@@ -80,7 +84,9 @@ async def download_changeset(
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users([changeset]))
 
-        elements = await ElementQuery.get_by_changeset(changeset_id, sort_by='sequence_id')
+        elements = await ElementQuery.get_by_changeset(
+            changeset_id, sort_by='sequence_id'
+        )
         tg.create_task(UserQuery.resolve_elements_users(elements))
 
     return Format06.encode_osmchange(elements)
@@ -137,7 +143,9 @@ async def close_changeset(
 @router.get('/changesets.xml')
 @router.get('/changesets.json')
 async def query_changesets(
-    changesets_query: Annotated[str | None, Query(alias='changesets', min_length=1)] = None,
+    changesets_query: Annotated[
+        str | None, Query(alias='changesets', min_length=1)
+    ] = None,
     display_name: Annotated[DisplayName | None, Query(min_length=1)] = None,
     user_id: Annotated[UserId | None, Query(alias='user')] = None,
     time: Annotated[str | None, Query(min_length=1)] = None,
@@ -145,7 +153,9 @@ async def query_changesets(
     closed_str: Annotated[str | None, Query(alias='closed')] = None,
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     order: Annotated[Literal['newest', 'oldest'], Query()] = 'newest',
-    limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
+    limit: Annotated[
+        PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)
+    ] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     # Treat any non-empty string as True
     open = bool(open_str)
@@ -161,17 +171,29 @@ async def query_changesets(
     if changesets_query is not None:
         try:
             with catch_warnings():
-                filterwarnings('ignore', category=DeprecationWarning, message='.*could not be read to its end.*')
+                filterwarnings(
+                    'ignore',
+                    category=DeprecationWarning,
+                    message='.*could not be read to its end.*',
+                )
                 ids = np.fromstring(changesets_query, np.uint64, sep=',')
         except ValueError:
-            return Response('Changesets query must be a comma-separated list of integers', status.HTTP_400_BAD_REQUEST)
+            return Response(
+                'Changesets query must be a comma-separated list of integers',
+                status.HTTP_400_BAD_REQUEST,
+            )
         if not ids.size:
-            return Response('No changesets were given to search for', status.HTTP_400_BAD_REQUEST)
+            return Response(
+                'No changesets were given to search for', status.HTTP_400_BAD_REQUEST
+            )
         changeset_ids = np.unique(ids).tolist()  # type: ignore
 
     user: User | None = None
     if display_name is not None and user_id is not None:
-        return Response('provide either the user ID or display name, but not both', status.HTTP_400_BAD_REQUEST)
+        return Response(
+            'provide either the user ID or display name, but not both',
+            status.HTTP_400_BAD_REQUEST,
+        )
     if display_name is not None:
         user = await UserQuery.find_one_by_display_name(display_name)
         if user is None:
@@ -191,9 +213,13 @@ async def query_changesets(
                 closed_after = parse_date(time)
                 created_before = None
         except Exception:
-            return Response(f'no time information in "{time}"', status.HTTP_400_BAD_REQUEST)
-        if (created_before is not None) and closed_after > created_before:
-            return Response('The time range is invalid, T1 > T2', status.HTTP_400_BAD_REQUEST)
+            return Response(
+                f'no time information in "{time}"', status.HTTP_400_BAD_REQUEST
+            )
+        if created_before is not None and closed_after > created_before:
+            return Response(
+                'The time range is invalid, T1 > T2', status.HTTP_400_BAD_REQUEST
+            )
     else:
         closed_after = None
         created_before = None

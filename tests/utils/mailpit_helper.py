@@ -77,7 +77,10 @@ class MailpitHelper:
 
         async def check_message(msg: MailpitMessage) -> MailpitMessageSummary | None:
             # Check recipient if specified
-            if recipient_email is not None and all(to['Address'] != recipient_email for to in msg['To']):
+            if (
+                recipient_email is not None  #
+                and all(to['Address'] != recipient_email for to in msg['To'])
+            ):
                 return None
 
             # Check if the message contains the search string
@@ -93,7 +96,9 @@ class MailpitHelper:
             r.raise_for_status()
 
             # Sorted from newest to oldest
-            messages: dict[str, MailpitMessage] = {msg['ID']: msg for msg in r.json()['messages']}
+            messages: dict[str, MailpitMessage] = {
+                msg['ID']: msg for msg in r.json()['messages']
+            }
 
             for msg in messages.values():
                 if (summary := await check_message(msg)) is not None:

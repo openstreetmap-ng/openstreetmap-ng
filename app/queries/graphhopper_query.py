@@ -11,14 +11,21 @@ from app.models.proto.shared_pb2 import RoutingResult
 from app.utils import HTTP
 
 GraphHopperProfile = Literal['car', 'bike', 'foot']
-GraphHopperProfiles: frozenset[GraphHopperProfile] = frozenset(get_args(GraphHopperProfile))
+GraphHopperProfiles: frozenset[GraphHopperProfile] = frozenset(
+    get_args(GraphHopperProfile)
+)
 
 
 class GraphHopperQuery:
     @staticmethod
-    async def route(start: Point, end: Point, *, profile: GraphHopperProfile) -> RoutingResult:
+    async def route(
+        start: Point, end: Point, *, profile: GraphHopperProfile
+    ) -> RoutingResult:
         if not GRAPHHOPPER_API_KEY:
-            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, 'GraphHopper API key is not configured')
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                'GraphHopper API key is not configured',
+            )
 
         start_x, start_y = get_coordinates(start)[0].tolist()
         end_x, end_y = get_coordinates(end)[0].tolist()

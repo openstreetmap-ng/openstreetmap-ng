@@ -96,7 +96,9 @@ class HstoreBinaryDumper(RecursiveDumper):
                 buffer.append(b'\xff\xff\xff\xff')
             else:
                 value_bytes = value.encode(encoding)
-                buffer.append(i2b[i] if (i := len(value_bytes)) < 256 else i.to_bytes(4))  # noqa: FURB113
+                buffer.append(  # noqa: FURB113
+                    i2b[i] if (i := len(value_bytes)) < 256 else i.to_bytes(4)
+                )
                 buffer.append(value_bytes)
 
         return b''.join(buffer)

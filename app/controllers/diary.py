@@ -16,7 +16,11 @@ from app.config import (
     DIARY_TITLE_MAX_LENGTH,
 )
 from app.lib.auth_context import auth_user, web_user
-from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, LOCALES_NAMES_MAP, normalize_locale
+from app.lib.locale import (
+    INSTALLED_LOCALES_NAMES_MAP,
+    LOCALES_NAMES_MAP,
+    normalize_locale,
+)
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale
 from app.lib.user_token_struct_utils import UserTokenStructUtils
@@ -52,7 +56,9 @@ async def details(
     unsubscribe: bool = False,
 ):
     async with TaskGroup() as tg:
-        is_subscribed_t = tg.create_task(UserSubscriptionQuery.is_subscribed('diary', diary_id))
+        is_subscribed_t = tg.create_task(
+            UserSubscriptionQuery.is_subscribed('diary', diary_id)
+        )
 
         data = await _get_data(
             user=None,
@@ -177,7 +183,9 @@ async def user_index(
 
 @router.get('/user/{_:str}/diary/{diary_id:int}{suffix:path}')
 async def legacy_user_diary(_, diary_id: DiaryId, suffix: str):
-    return RedirectResponse(f'/diary/{diary_id}{suffix}', status.HTTP_301_MOVED_PERMANENTLY)
+    return RedirectResponse(
+        f'/diary/{diary_id}{suffix}', status.HTTP_301_MOVED_PERMANENTLY
+    )
 
 
 async def _get_data(
@@ -196,7 +204,9 @@ async def _get_data(
     language = normalize_locale(language)
     if language is not None:
         locale_name = LOCALES_NAMES_MAP[language]
-        language_name = locale_name.native if (language == primary_locale) else locale_name.english
+        language_name = (
+            locale_name.native if language == primary_locale else locale_name.english
+        )
     else:
         language_name = None
 
@@ -271,7 +281,11 @@ async def _get_data(
 
 
 @cython.cfunc
-def _get_active_tab(user: User | UserDisplay | None, language: LocaleCode | None, primary_locale: LocaleCode) -> int:
+def _get_active_tab(
+    user: User | UserDisplay | None,
+    language: LocaleCode | None,
+    primary_locale: LocaleCode,
+) -> int:
     """Get the active tab number for the diaries page."""
     if language is not None:
         if language == primary_locale:

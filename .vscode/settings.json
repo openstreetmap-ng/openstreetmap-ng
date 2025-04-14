@@ -1,9 +1,7 @@
 {
-  "SQL-Formatter-VSCode.dataTypeCase": "lower",
-  "SQL-Formatter-VSCode.dialect": "postgresql",
-  "SQL-Formatter-VSCode.expressionWidth": 80,
-  "SQL-Formatter-VSCode.functionCase": "lower",
-  "SQL-Formatter-VSCode.keywordCase": "upper",
+  "[jinja-html]": {
+    "editor.rulers": [120]
+  },
   "[json]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
@@ -24,10 +22,10 @@
   },
   "autoDocstring.docstringFormat": "sphinx-notypes",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
-  "editor.rulers": [88, 120],
+  "editor.rulers": [88],
   "editor.unicodeHighlight.allowedCharacters": {
-    "»": true,
     "›": true,
+    "»": true,
     "➕": true,
     "𝕏": true
   },
@@ -35,20 +33,20 @@
   "explorer.fileNesting.expand": false,
   "explorer.fileNesting.patterns": {
     "*.html.jinja": "${capture}.*",
-    "README.md": "LICENSE",
     "package.json": "bun.lock",
-    "pyproject.toml": "uv.lock"
+    "pyproject.toml": "uv.lock",
+    "README.md": "LICENSE"
   },
   "files.exclude": {
+    ".*cache/": true,
+    ".direnv/": true,
+    ".venv/": true,
+    "**/__pycache__/": true,
+    "**/_generated/": true,
     "**/*.c": true,
     "**/*.egg-info/": true,
     "**/*.html": true,
     "**/*.so": true,
-    "**/__pycache__/": true,
-    "**/_generated/": true,
-    ".*cache/": true,
-    ".direnv/": true,
-    ".venv/": true,
     "app/static/js/": true,
     "build/": true,
     "config/locale/download/": true,
@@ -80,6 +78,11 @@
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
   "scss.lint.vendorPrefix": "ignore",
+  "SQL-Formatter-VSCode.dataTypeCase": "lower",
+  "SQL-Formatter-VSCode.dialect": "postgresql",
+  "SQL-Formatter-VSCode.expressionWidth": 80,
+  "SQL-Formatter-VSCode.functionCase": "lower",
+  "SQL-Formatter-VSCode.keywordCase": "upper",
   "typescript.disableAutomaticTypeAcquisition": true,
   "typescript.surveys.enabled": false,
   "typescript.tsdk": "node_modules/typescript/lib"
