@@ -15,6 +15,7 @@ from zstandard import ZstdCompressor, ZstdDecompressor, ZstdError
 
 from app.config import (
     TRACE_FILE_ARCHIVE_MAX_FILES,
+    TRACE_FILE_PRECOMPRESS_ZSTD_LEVEL,
     TRACE_FILE_COMPRESS_ZSTD_LEVEL,
     TRACE_FILE_COMPRESS_ZSTD_THREADS,
     TRACE_FILE_MAX_LAYERS,
@@ -61,12 +62,21 @@ class TraceFile:
         raise_for.trace_file_archive_too_deep()
 
     @staticmethod
+    async def precompress(buffer: bytes) -> _CompressResult:
+        """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
+        loop = get_running_loop()
+        result = await loop.run_in_executor(None, _ZSTD_PRECOMPRESS, buffer)
+        logging.debug('Trace file zstd-precompressed size is %s', sizestr(len(result)))
+        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_PRECOMPRESSED_METADATA)
+
+
+    @staticmethod
     async def compress(buffer: bytes) -> _CompressResult:
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
         loop = get_running_loop()
         result = await loop.run_in_executor(None, _ZSTD_COMPRESS, buffer)
         logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
-        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
+        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_COMPRESSED_METADATA)
 
     @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: StorageKey) -> bytes:
@@ -186,10 +196,12 @@ class _ZipProcessor(_TraceProcessor):
         return result
 
 
+_ZSTD_PRECOMPRESS = ZstdCompressor(level=TRACE_FILE_PRECOMPRESS_ZSTD_LEVEL, threads=TRACE_FILE_COMPRESS_ZSTD_THREADS).compress
 _ZSTD_COMPRESS = ZstdCompressor(level=TRACE_FILE_COMPRESS_ZSTD_LEVEL, threads=TRACE_FILE_COMPRESS_ZSTD_THREADS).compress
 _ZSTD_DECOMPRESS = ZstdDecompressor().decompress
 _ZSTD_SUFFIX = '.zst'
-_ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
+_ZSTD_PRECOMPRESSED_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_PRECOMPRESS_ZSTD_LEVEL)}
+_ZSTD_COMPRESSED_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
 
 
 class _ZstdProcessor(_TraceProcessor):
