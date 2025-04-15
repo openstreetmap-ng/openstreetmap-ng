@@ -4,7 +4,7 @@ from asyncio import TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
 from contextlib import asynccontextmanager
 from io import TextIOWrapper
-from os import process_cpu_count  # type: ignore
+from os import process_cpu_count
 from pathlib import Path
 from shlex import quote
 from typing import Literal, get_args

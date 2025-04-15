@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from collections.abc import Callable
 from datetime import datetime
 from multiprocessing import Pool
-from os import process_cpu_count  # type: ignore
+from os import process_cpu_count
 from pathlib import Path
 from typing import Any
 

@@ -2,7 +2,7 @@ import logging
 from asyncio import Semaphore, TaskGroup
 from math import ceil
 from operator import itemgetter
-from os import process_cpu_count  # type: ignore
+from os import process_cpu_count
 from pathlib import Path
 from typing import NamedTuple
 

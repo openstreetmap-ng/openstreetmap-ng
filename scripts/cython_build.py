@@ -1,4 +1,4 @@
-from os import process_cpu_count  # type: ignore
+from os import process_cpu_count
 from pathlib import Path
 
 from Cython.Build import cythonize
