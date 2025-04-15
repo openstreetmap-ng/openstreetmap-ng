@@ -73,9 +73,9 @@ def api_user(*require_scopes: Scope) -> User:
     return Security(_get_user, scopes=require_scopes)
 
 
-def web_user() -> User:
+def web_user(*require_scopes: Scope) -> User:
     """Dependency for authenticating the web user."""
-    return Security(_get_user, scopes=('web_user',))
+    return Security(_get_user, scopes=('web_user', *require_scopes))
 
 
 def _get_user(require_security_scopes: SecurityScopes) -> User:

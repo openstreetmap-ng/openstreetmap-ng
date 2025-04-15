@@ -4,7 +4,7 @@ from collections.abc import Callable
 from functools import cache
 from inspect import Parameter, signature
 from operator import itemgetter
-from typing import Any, NamedTuple, get_type_hints
+from typing import Any, NewType, TypedDict, get_type_hints
 
 from psycopg.rows import dict_row
 from pydantic import BaseModel, create_model
@@ -13,31 +13,33 @@ from app.config import ADMIN_TASK_HEARTBEAT_INTERVAL, ADMIN_TASK_TIMEOUT
 from app.db import db
 from app.lib.date_utils import utcnow
 
+TaskId = NewType('TaskId', str)
 
-class TaskArgument(NamedTuple):
+
+class TaskArgument(TypedDict):
     type: str
     required: bool
     default: str
 
 
-class TaskDefinition(NamedTuple):
-    id: str
+class TaskDefinition(TypedDict):
+    id: TaskId
     arguments: dict[str, TaskArgument]
     func: Callable
 
 
-class TaskInfo(NamedTuple):
-    id: str
+class TaskInfo(TypedDict):
+    id: TaskId
     arguments: dict[str, TaskArgument]
     running: bool
 
 
-_REGISTRY: dict[str, TaskDefinition] = {}
+_REGISTRY: dict[TaskId, TaskDefinition] = {}
 
 
 def register_admin_task(func: Callable):
     """Decorator to register a method as a manageable task."""
-    task_id = func.__name__
+    task_id: TaskId = func.__name__  # type: ignore
     if task_id in _REGISTRY:
         raise ValueError(f'Task with {task_id=!r} is already registered')
 
@@ -47,17 +49,17 @@ def register_admin_task(func: Callable):
     for name, param in sig.parameters.items():
         annotation = param.annotation
         default = param.default
-        arguments[name] = TaskArgument(
-            type=annotation.__name__ if annotation is not Parameter.empty else 'Any',
-            required=default is Parameter.empty,
-            default=str(default) if default is not Parameter.empty else '',
-        )
+        arguments[name] = {
+            'type': annotation.__name__ if annotation is not Parameter.empty else 'Any',
+            'required': default is Parameter.empty,
+            'default': str(default) if default is not Parameter.empty else '',
+        }
 
-    _REGISTRY[task_id] = TaskDefinition(
-        id=task_id,
-        arguments=arguments,
-        func=func,
-    )
+    _REGISTRY[task_id] = {
+        'id': task_id,
+        'arguments': arguments,
+        'func': func,
+    }
     logging.info('Registered task %r', task_id)
     return func
 
@@ -84,14 +86,14 @@ class AdminTaskService:
         timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
 
         result: list[TaskInfo] = [
-            TaskInfo(
-                id=definition.id,
-                running=(
+            {
+                'id': definition['id'],
+                'arguments': definition['arguments'],
+                'running': (
                     (row := rows.get(id)) is not None
                     and timeout_at < row['heartbeat_at']
                 ),
-                arguments=definition.arguments,
-            )
+            }
             for id, definition in _REGISTRY.items()
         ]
 
@@ -100,13 +102,13 @@ class AdminTaskService:
         return result
 
     @staticmethod
-    async def start_task(task_id: str, args: dict[str, str]) -> None:
+    async def start_task(task_id: TaskId, args: dict[str, str]) -> None:
         definition = _REGISTRY.get(task_id)
         if definition is None:
             raise ValueError(f'Task with {task_id=!r} not found')
 
         # Validate and convert arguments
-        validated_args = _func_args_model(definition.func)(**args).model_dump()
+        validated_args = _func_args_model(definition['func'])(**args).model_dump()
 
         timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
 
@@ -151,14 +153,14 @@ def _func_args_model(func: Callable) -> type[BaseModel]:
 
 
 async def _run_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
-    task_id = definition.id
+    task_id = definition['id']
     logging.info('Task %r started with args: %s', task_id, args)
 
     async with TaskGroup() as tg:
         heartbeat_task = tg.create_task(_heartbeat_loop(task_id))
 
         try:
-            await definition.func(**args)
+            await definition['func'](**args)
         finally:
             heartbeat_task.cancel()
 
@@ -175,7 +177,7 @@ async def _run_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
         logging.info('Task %r finished successfully', task_id)
 
 
-async def _heartbeat_loop(task_id: str) -> None:
+async def _heartbeat_loop(task_id: TaskId) -> None:
     while True:
         # Periodically update the heartbeat field
         await sleep(ADMIN_TASK_HEARTBEAT_INTERVAL.total_seconds())

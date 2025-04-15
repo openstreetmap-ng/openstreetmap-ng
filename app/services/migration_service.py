@@ -20,6 +20,7 @@ from app.models.element import (
     typed_element_id,
 )
 from app.queries.element_query import ElementQuery
+from app.services.admin_task_service import register_admin_task
 
 
 class _MigrationInfo(NamedTuple):
@@ -65,11 +66,10 @@ class MigrationService:
     @staticmethod
     async def deduplicate_elements(
         *,
-        parallelism: int | None = None,
+        parallelism: int = 0,
         task_size: int = 1_000_000,
     ) -> None:
-        if parallelism is None:
-            parallelism = process_cpu_count() or 1
+        parallelism = parallelism or process_cpu_count() or 1
 
         chunks = await _get_element_typed_id_chunks(task_size)
         semaphore = Semaphore(parallelism)
@@ -118,11 +118,10 @@ class MigrationService:
     @staticmethod
     async def mark_latest_elements(
         *,
-        parallelism: int | None = None,
+        parallelism: int = 0,
         task_size: int = 1_000_000,
     ) -> None:
-        if parallelism is None:
-            parallelism = process_cpu_count() or 1
+        parallelism = parallelism or process_cpu_count() or 1
 
         chunks = await _get_element_typed_id_chunks(task_size)
         semaphore = Semaphore(parallelism)
@@ -157,13 +156,13 @@ class MigrationService:
                 tg.create_task(process_task(start_id, end_id))
 
     @staticmethod
+    @register_admin_task
     async def delete_notes_without_comments(
         *,
-        parallelism: int | None = None,
+        parallelism: int = 0,
         task_size: int = 100_000,
     ) -> None:
-        if parallelism is None:
-            parallelism = process_cpu_count() or 1
+        parallelism = parallelism or process_cpu_count() or 1
 
         async with db() as conn, await conn.execute('SELECT MAX(id) FROM note') as r:
             max_id = (await r.fetchone())[0] or 0  # type: ignore
@@ -195,17 +194,17 @@ class MigrationService:
                 tg.create_task(process_chunk(start_id, end_id))
 
     @staticmethod
+    @register_admin_task
     async def fix_changeset_counts(
         *,
-        parallelism: int | None = None,
+        parallelism: int = 0,
         task_size: int = 1_000_000,
     ) -> None:
         """
         Fix changeset counts where size != 0 but num_create = 0, num_modify = 0, and num_delete = 0.
         Calculates the counts based on the actual data in the element table.
         """
-        if parallelism is None:
-            parallelism = process_cpu_count() or 1
+        parallelism = parallelism or process_cpu_count() or 1
 
         async with (
             db() as conn,
