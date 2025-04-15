@@ -43,9 +43,9 @@ extra_paths = [
 ]
 
 blacklist: dict[str, set[str]] = {
-    # Reason: Unsupported PEP-654 Exception Groups
-    # https://github.com/cython/cython/issues/4993
     'app/services/optimistic_diff': {
+        # Reason: Unsupported PEP-654 Exception Groups
+        # https://github.com/cython/cython/issues/4993
         '__init__.py',
     },
 }
@@ -96,6 +96,7 @@ setup(
         compiler_directives={
             # https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives
             'overflowcheck': True,
+            'embedsignature': True,
             'profile': True,
             'language_level': 3,
         },

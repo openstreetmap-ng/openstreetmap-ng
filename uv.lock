@@ -1200,7 +1200,7 @@ requires-dist = [
     { name = "feedgen" },
     { name = "githead" },
     { name = "h3" },
-    { name = "htmlmin2", specifier = ">=0.1.13" },
+    { name = "htmlmin2" },
     { name = "httpx", extras = ["brotli", "zstd"] },
     { name = "jinja2" },
     { name = "lrucache-rs" },

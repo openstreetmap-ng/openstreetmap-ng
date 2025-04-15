@@ -50,7 +50,11 @@ def register_admin_task(func: Callable):
         annotation = param.annotation
         default = param.default
         arguments[name] = {
-            'type': annotation.__name__ if annotation is not Parameter.empty else 'Any',
+            'type': (
+                (annotation if isinstance(annotation, str) else annotation.__name__)
+                if annotation is not Parameter.empty
+                else 'Any'
+            ),
             'required': default is Parameter.empty,
             'default': str(default) if default is not Parameter.empty else '',
         }
