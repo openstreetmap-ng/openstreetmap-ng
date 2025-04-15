@@ -84,6 +84,21 @@
       "DE"
     ]
   },
+  "*:tours": {
+    "*": [
+      ""
+    ]
+  },
+  "*:traffic": {
+    "*": [
+      ""
+    ]
+  },
+  "*:training": {
+    "*": [
+      ""
+    ]
+  },
   "*:transition": {
     "*": [
       "",
@@ -94,6 +109,11 @@
     "*": [
       "",
       "Uk"
+    ]
+  },
+  "*:tyres": {
+    "*": [
+      ""
     ]
   },
   "3d_printing": {
@@ -2069,7 +2089,8 @@
       "DE"
     ],
     "launchpad": [
-      ""
+      "",
+      "DE"
     ],
     "mooring_tower": [
       ""
@@ -3405,6 +3426,12 @@
       "DE",
       "RU",
       "Uk"
+    ],
+    "fixme": [
+      ""
+    ],
+    "flight_school": [
+      ""
     ],
     "food_court": [
       "",
@@ -5777,6 +5804,9 @@
       "DE",
       "RU"
     ],
+    "ballooning": [
+      ""
+    ],
     "sport": [
       "",
       "DE",
@@ -5984,6 +6014,11 @@
       "RU"
     ]
   },
+  "atv:tours": {
+    "*": [
+      ""
+    ]
+  },
   "audio_loop": {
     "yes": [
       ""
@@ -6141,7 +6176,8 @@
   },
   "balloon:*": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "balloon:height": {
@@ -6151,12 +6187,19 @@
   },
   "balloon:launch": {
     "*": [
-      ""
+      "",
+      "DE"
     ],
     "leisure": [
-      ""
+      "",
+      "DE"
     ],
     "monitoring": [
+      ""
+    ]
+  },
+  "balloon:memorial": {
+    "*": [
       ""
     ]
   },
@@ -6167,7 +6210,8 @@
   },
   "balloon:tours": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "balloon:type": {
@@ -6409,6 +6453,9 @@
       "Pl",
       "RU",
       "Uk"
+    ],
+    "fascine": [
+      "FR"
     ],
     "fence": [
       "",
@@ -7236,6 +7283,11 @@
       ""
     ]
   },
+  "bicycle:tours": {
+    "*": [
+      ""
+    ]
+  },
   "bicycle:type": {
     "*": [
       "",
@@ -7420,7 +7472,8 @@
   },
   "boat:*": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "boat:clothes": {
@@ -7452,6 +7505,11 @@
     ]
   },
   "boat:sales": {
+    "*": [
+      ""
+    ]
+  },
+  "boat:tours": {
     "*": [
       ""
     ]
@@ -7874,6 +7932,9 @@
       "Pl",
       "RU",
       "Uk"
+    ],
+    "Changing_Places": [
+      ""
     ],
     "Deutsche_Post": [
       ""
@@ -9482,6 +9543,7 @@
     ],
     "tower": [
       "",
+      "DE",
       "RU",
       "Uk"
     ],
@@ -9766,6 +9828,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -10596,7 +10659,8 @@
   },
   "car:repair": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "car:sales": {
@@ -11862,7 +11926,8 @@
       "RU"
     ],
     "balloon": [
-      ""
+      "",
+      "DE"
     ],
     "catalog": [
       "",
@@ -12408,6 +12473,9 @@
     "beer": [
       ""
     ],
+    "cement": [
+      ""
+    ],
     "crop": [
       ""
     ],
@@ -12469,9 +12537,6 @@
       "RU"
     ],
     "wine": [
-      ""
-    ],
-    "zement": [
       ""
     ]
   },
@@ -13154,6 +13219,11 @@
       "",
       "ES",
       "FR"
+    ],
+    "mechanic": [
+      "",
+      "DE",
+      "ES"
     ],
     "metal_construction": [
       "",
@@ -13900,6 +13970,12 @@
     ],
     "zebra": [
       ""
+    ]
+  },
+  "crossing:markings:condition": {
+    "*": [
+      "",
+      "FR"
     ]
   },
   "crossing:on_demand": {
@@ -19920,6 +19996,9 @@
       "RU",
       "Uk"
     ],
+    "public_service": [
+      ""
+    ],
     "register_office": [
       "",
       "Cs",
@@ -19930,8 +20009,12 @@
       "RU"
     ],
     "social_security": [
+      "",
       "DE",
       "RU"
+    ],
+    "social_services": [
+      ""
     ],
     "statistics": [
       "",
@@ -19951,6 +20034,7 @@
     ],
     "transportation": [
       "",
+      "DE",
       "JA",
       "RU"
     ],
@@ -21801,6 +21885,7 @@
     ],
     "platform": [
       "",
+      "Cs",
       "DE",
       "ES",
       "JA",
@@ -23850,6 +23935,7 @@
   "insurance": {
     "health": [
       "",
+      "DE",
       "ES"
     ]
   },
@@ -26491,28 +26577,35 @@
       "FR"
     ],
     "delta": [
-      ""
+      "",
+      "FR"
     ],
     "horizontal": [
-      ""
+      "",
+      "FR"
     ],
     "semi_horizontal": [
-      ""
+      "",
+      "FR"
     ],
     "semi_vertical": [
-      ""
+      "",
+      "FR"
     ],
     "square": [
-      ""
+      "",
+      "FR"
     ],
     "triangular": [
-      ""
+      "",
+      "FR"
     ],
     "unarranged": [
       ""
     ],
     "vertical": [
-      ""
+      "",
+      "FR"
     ]
   },
   "line_attachment": {
@@ -28336,7 +28429,8 @@
   },
   "markings": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "mascot": {
@@ -28857,6 +28951,14 @@
       "",
       "Cs",
       "RU"
+    ]
+  },
+  "mechanic": {
+    "*": [
+      ""
+    ],
+    "motorcycle": [
+      ""
     ]
   },
   "mechanical": {
@@ -29544,6 +29646,11 @@
     ]
   },
   "mobile_phone:type": {
+    "*": [
+      ""
+    ]
+  },
+  "mobile_reception": {
     "*": [
       ""
     ]
@@ -30809,6 +30916,11 @@
     ]
   },
   "name:cr": {
+    "*": [
+      ""
+    ]
+  },
+  "name:crg": {
     "*": [
       ""
     ]
@@ -33116,7 +33228,8 @@
       "Pl",
       "Pt",
       "RU",
-      "Uk"
+      "Uk",
+      "Zh-hans"
     ],
     "gulf": [
       "",
@@ -33775,6 +33888,10 @@
     ],
     "JP:prefectural:nagano": [
       ""
+    ],
+    "KR:national": [
+      "",
+      "Ko"
     ],
     "MA:RN": [
       ""
@@ -35055,6 +35172,11 @@
       "JA"
     ]
   },
+  "obstacle:wheelchair": {
+    "yes": [
+      "FR"
+    ]
+  },
   "occurrence": {
     "*": [
       ""
@@ -36257,7 +36379,8 @@
   },
   "opening_hours:workshop": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "openplaques:id": {
@@ -38976,7 +39099,8 @@
       "Zh-hans"
     ],
     "outlet": [
-      ""
+      "",
+      "RU"
     ],
     "plant": [
       "",
@@ -39216,6 +39340,9 @@
       "Uk"
     ],
     "employees": [
+      ""
+    ],
+    "exceptional_permit": [
       ""
     ],
     "government": [
@@ -41205,6 +41332,7 @@
       "FR",
       "IT",
       "JA",
+      "Ko",
       "Pl",
       "Pt",
       "RU",
@@ -41285,7 +41413,8 @@
   },
   "ref:EU:ENTSOE_EIC": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "ref:EU:EUNIS": {
@@ -41985,6 +42114,11 @@
       ""
     ]
   },
+  "ref:cadastre": {
+    "*": [
+      ""
+    ]
+  },
   "ref:cadc:2020": {
     "*": [
       ""
@@ -42224,6 +42358,12 @@
     "*": [
       "",
       "DE"
+    ]
+  },
+  "ref:idescat": {
+    "*": [
+      "",
+      "Ca"
     ]
   },
   "ref:ifsc": {
@@ -43449,6 +43589,11 @@
       ""
     ]
   },
+  "roller": {
+    "*": [
+      ""
+    ]
+  },
   "roller_coaster": {
     "*": [
       "",
@@ -44389,6 +44534,16 @@
       ""
     ]
   },
+  "scuba_diving:*": {
+    "*": [
+      ""
+    ]
+  },
+  "scuba_diving:air_filling": {
+    "*": [
+      ""
+    ]
+  },
   "scuba_diving:courses": {
     "*": [
       ""
@@ -44406,6 +44561,26 @@
     ]
   },
   "scuba_diving:repair": {
+    "*": [
+      ""
+    ]
+  },
+  "scuba_diving:sales": {
+    "*": [
+      ""
+    ]
+  },
+  "scuba_diving:tours": {
+    "*": [
+      ""
+    ]
+  },
+  "scuba_diving:training": {
+    "*": [
+      ""
+    ]
+  },
+  "scuba_diving:type": {
     "*": [
       ""
     ]
@@ -46801,6 +46976,7 @@
       "Sv",
       "Tr",
       "Uk",
+      "Zh-hans",
       "Zh-hant"
     ],
     "3d_printing": [
@@ -48887,6 +49063,7 @@
     ],
     "street_vendor": [
       "",
+      "DE",
       "FR"
     ],
     "sunglasses": [
@@ -50541,7 +50718,8 @@
       "IT"
     ],
     "ballooning": [
-      ""
+      "",
+      "DE"
     ],
     "bandy": [
       "",
@@ -50573,6 +50751,15 @@
     "batting_cage": [
       "",
       "ES"
+    ],
+    "beach_hockey": [
+      ""
+    ],
+    "beach_soccer": [
+      ""
+    ],
+    "beach_tennis": [
+      ""
     ],
     "beachhandball": [
       ""
@@ -51451,7 +51638,8 @@
       "JA"
     ],
     "funicular": [
-      ""
+      "",
+      "Cs"
     ],
     "light_rail": [
       "",
@@ -51518,6 +51706,12 @@
       "",
       "FR",
       "JA"
+    ]
+  },
+  "step:stair_nosing": {
+    "*": [
+      "",
+      "FR"
     ]
   },
   "step_count": {
@@ -52315,6 +52509,7 @@
   "surveillance:*": {
     "*": [
       "",
+      "DE",
       "Pl"
     ]
   },
@@ -52542,6 +52737,12 @@
   "tactile_paving:colour": {
     "*": [
       ""
+    ]
+  },
+  "tactile_paving:condition": {
+    "*": [
+      "",
+      "FR"
     ]
   },
   "tactile_writing": {
@@ -53701,6 +53902,9 @@
       "DE",
       "Pl"
     ],
+    "church": [
+      ""
+    ],
     "clock": [
       ""
     ],
@@ -53844,6 +54048,16 @@
     ]
   },
   "towpath": {
+    "*": [
+      ""
+    ]
+  },
+  "toys": {
+    "*": [
+      ""
+    ]
+  },
+  "toys:*": {
     "*": [
       ""
     ]
@@ -54959,6 +55173,7 @@
       "Cs",
       "DE",
       "ES",
+      "IT",
       "JA",
       "Pl",
       "RU"
@@ -55346,6 +55561,11 @@
       ""
     ]
   },
+  "url:cadastre": {
+    "*": [
+      ""
+    ]
+  },
   "url:goingelectric": {
     "*": [
       ""
@@ -55522,7 +55742,8 @@
       "FR"
     ],
     "hydrant": [
-      ""
+      "",
+      "DE"
     ],
     "loudspeaker": [
       ""
@@ -56094,6 +56315,7 @@
     ],
     "rice_polishing": [
       "",
+      "JA",
       "RU"
     ],
     "sex_toys": [
@@ -56500,6 +56722,11 @@
       "",
       "Ko",
       "RU"
+    ]
+  },
+  "was:waterway": {
+    "*": [
+      ""
     ]
   },
   "washing_machine": {
@@ -57813,6 +58040,9 @@
   },
   "workshop": {
     "*": [
+      ""
+    ],
+    "motorcycle": [
       ""
     ]
   },
