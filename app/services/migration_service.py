@@ -195,6 +195,69 @@ class MigrationService:
                 tg.create_task(process_chunk(start_id, end_id))
 
     @staticmethod
+    async def fix_changeset_counts(
+        *,
+        parallelism: int | None = None,
+        task_size: int = 1_000_000,
+    ) -> None:
+        """
+        Fix changeset counts where size != 0 but num_create = 0, num_modify = 0, and num_delete = 0.
+        Calculates the counts based on the actual data in the element table.
+        """
+        if parallelism is None:
+            parallelism = process_cpu_count() or 1
+
+        async with (
+            db() as conn,
+            await conn.execute('SELECT MAX(id) FROM changeset') as r,
+        ):
+            max_id = (await r.fetchone())[0] or 0  # type: ignore
+
+        semaphore = Semaphore(parallelism)
+        logging.info(
+            'Fixing inconsistent changeset counts (tasks=%d, parallelism=%d)',
+            ceil(max_id / task_size),
+            parallelism,
+        )
+
+        async def process_chunk(start_id: int, end_id: int):
+            async with semaphore, db(True) as conn:
+                await conn.execute(
+                    """
+                    WITH good AS (
+                        SELECT
+                            changeset_id,
+                            COUNT(*) AS size,
+                            COUNT(*) FILTER (WHERE version = 1) AS num_create,
+                            COUNT(*) FILTER (WHERE version > 1 AND visible) AS num_modify,
+                            COUNT(*) FILTER (WHERE version > 1 AND NOT visible) AS num_delete
+                        FROM element
+                        WHERE changeset_id BETWEEN %s AND %s
+                        GROUP BY changeset_id
+                        HAVING EXISTS (
+                            SELECT 1 FROM changeset
+                            WHERE id = changeset_id
+                            AND size != 0
+                            AND num_create = 0 AND num_modify = 0 AND num_delete = 0
+                        )
+                    )
+                    UPDATE changeset SET
+                        size = good.size,
+                        num_create = good.num_create,
+                        num_modify = good.num_modify,
+                        num_delete = good.num_delete
+                    FROM good
+                    WHERE id = changeset_id
+                    """,
+                    (start_id, end_id),
+                )
+
+        async with TaskGroup() as tg:
+            for start_id in range(1, max_id + 1, task_size):
+                end_id = min(start_id + task_size - 1, max_id)
+                tg.create_task(process_chunk(start_id, end_id))
+
+    @staticmethod
     async def migrate_database() -> None:
         """
         This function checks the current database version and applies
