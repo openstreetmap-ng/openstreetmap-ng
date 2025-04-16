@@ -5,33 +5,37 @@
 {% block settings_title %}Administrative tasks{% endblock %}
 {% block settings_body %}
 
-{% for task in tasks %}
-<div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">
-            <code>{{ task.id }}</code>
-        </h5>
-        <span class="status-badge badge"></span>
-    </div>
-    <div class="card-body">
-        <form class="task-form" method="POST" action="/api/web/settings/tasks">
-            <input type="hidden" name="id" value="{{ task.id }}">
-            {% for arg_name, arg_info in task.arguments.items() %}
-            <div class="mb-3">
-                <label class="form-label d-block">
-                    <span {% if arg_info.required %} class="required" {% endif %}>{{ arg_name }}</span>
-                    <input type="text" class="form-control mt-2" name="arg_{{ arg_name }}"
-                        placeholder="{{ arg_info.default }}" {% if arg_info.required %}required{% endif %}>
-                </label>
-                <div class="form-text">Type: {{ arg_info.type }}</div>
+<div class="row">
+    {% for task in tasks %}
+    <div class="col-xl-6">
+        <div class="card mb-4">
+            <h5 class="card-header mb-0">
+                <code>{{ task.id }}</code>
+            </h5>
+            <div class="card-body">
+                <form class="task-form" method="POST" action="/api/web/settings/tasks">
+                    <input type="hidden" name="id" value="{{ task.id }}">
+                    {% for arg_name, arg_info in task.arguments.items() %}
+                    <div class="mb-3">
+                        <label class="form-label d-block">
+                            <span {% if arg_info.required %} class="required" {% endif %}>{{ arg_name }}</span>
+                            <input type="text" class="form-control mt-2" name="arg_{{ arg_name }}"
+                                placeholder="{{ arg_info.default }}" {% if arg_info.required %}required{% endif %}>
+                        </label>
+                        <div class="form-text">Type: {{ arg_info.type }}</div>
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex justify-content-between align-items-end">
+                        <button type="submit" class="btn btn-primary">
+                            Start task
+                        </button>
+                        <span class="status-badge badge"></span>
+                    </div>
+                </form>
             </div>
-            {% endfor %}
-            <button type="submit" class="btn btn-primary">
-                Start task
-            </button>
-        </form>
+        </div>
     </div>
+    {% endfor %}
 </div>
-{% endfor %}
 
 {% endblock %}
