@@ -2,9 +2,19 @@ import logging
 from asyncio import TaskGroup, sleep
 from collections.abc import Callable
 from functools import cache
-from inspect import Parameter, signature
+from inspect import Parameter, _empty, signature  # noqa: PLC2701
 from operator import itemgetter
-from typing import Any, NewType, TypedDict, get_type_hints
+from types import UnionType
+from typing import (
+    Any,
+    ForwardRef,
+    NewType,
+    TypedDict,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from psycopg.rows import dict_row
 from pydantic import BaseModel, create_model
@@ -47,14 +57,9 @@ def register_admin_task(func: Callable):
     arguments: dict[str, TaskArgument] = {}
 
     for name, param in sig.parameters.items():
-        annotation = param.annotation
         default = param.default
         arguments[name] = {
-            'type': (
-                (annotation if isinstance(annotation, str) else annotation.__name__)
-                if annotation is not Parameter.empty
-                else 'Any'
-            ),
+            'type': _format_annotation(param.annotation),
             'required': default is Parameter.empty,
             'default': str(default) if default is not Parameter.empty else '',
         }
@@ -197,3 +202,27 @@ async def _heartbeat_loop(task_id: TaskId) -> None:
             )
 
         logging.debug('Task %r heartbeat sent', task_id)
+
+
+def _format_annotation(annotation: Any) -> str:
+    # Simple cases
+    if annotation is _empty:  # missing
+        return 'Any'
+    if isinstance(annotation, str):  # string annotations
+        return annotation
+    if isinstance(annotation, ForwardRef):  # forward references
+        return annotation.__forward_arg__
+    if isinstance(annotation, type):  # direct types
+        return annotation.__name__
+
+    # Unpack origin and args
+    origin = get_origin(annotation)
+    args = [_format_annotation(arg) for arg in get_args(annotation)]
+
+    # Union types
+    if origin in {Union, UnionType}:
+        return ' | '.join(args)
+
+    # Generic types (e.g., list[int], dict[str, float])
+    name = getattr(origin, '__name__', None) or str(annotation).removeprefix('typing.')
+    return f'{name}[{", ".join(args)}]' if args else name
