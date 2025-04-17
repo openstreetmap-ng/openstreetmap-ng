@@ -1,0 +1,40 @@
+name: Deploy to server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id && chmod 600 ~/.ssh/id
+          echo "${{ vars.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          echo "Host remote
+            User root
+            Hostname www.openstreetmap.ng
+            IdentityFile ~/.ssh/id
+          " > ~/.ssh/config
+
+      - name: Deploy
+        run: |
+          ssh remote <<\EOF
+            set -euxo pipefail
+            cd /data/osm-ng
+
+            : Fetch changes
+            git fetch origin "${{ github.sha }}"
+
+            : Stop services
+            systemctl stop osm-ng-dev
+
+            : Reset to the specific commit
+            git reset --hard "${{ github.sha }}"
+
+            : Update and start services
+            cp config/services-test.nix /etc/nixos/services.nix
+            nixos-rebuild switch
+          EOF
