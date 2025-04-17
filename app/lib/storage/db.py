@@ -21,7 +21,7 @@ class DBStorage(StorageBase):
             db() as conn,
             await conn.execute(
                 """
-                SELECT data FROM files
+                SELECT data FROM file
                 WHERE context = %s AND key = %s
                 """,
                 (self._context, key),
@@ -41,7 +41,7 @@ class DBStorage(StorageBase):
         async with db(True) as conn:
             await conn.execute(
                 """
-                INSERT INTO files (context, key, data, metadata)
+                INSERT INTO file (context, key, data, metadata)
                 VALUES (%s, %s, %s, %s)
                 """,
                 (self._context, key, data, metadata),
@@ -54,7 +54,7 @@ class DBStorage(StorageBase):
         async with db(True) as conn:
             await conn.execute(
                 """
-                DELETE FROM files
+                DELETE FROM file
                 WHERE context = %s AND key = %s
                 """,
                 (self._context, key),

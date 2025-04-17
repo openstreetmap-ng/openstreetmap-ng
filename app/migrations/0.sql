@@ -392,7 +392,7 @@ CREATE TABLE user_token (
     email_reply_usage_count smallint
 );
 
-CREATE TABLE files (
+CREATE TABLE file (
     context text NOT NULL,
     key text NOT NULL,
     data bytea NOT NULL,
@@ -400,6 +400,14 @@ CREATE TABLE files (
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     PRIMARY KEY (context, key)
 );
+
+CREATE TABLE admin_task (
+    id text PRIMARY KEY,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    heartbeat_at timestamptz NOT NULL DEFAULT statement_timestamp()
+);
+
+CREATE INDEX admin_task_heartbeat_at_idx ON admin_task (heartbeat_at);
 
 CREATE UNLOGGED TABLE rate_limit (
     key text PRIMARY KEY,
