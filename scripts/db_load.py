@@ -239,9 +239,7 @@ async def main(mode: _Mode) -> None:
 
         print('Vacuuming and updating statistics')
         async with db(True, autocommit=True) as conn:
-            await conn.execute(
-                'VACUUM FREEZE ANALYZE' if mode == 'replication' else 'VACUUM ANALYZE'
-            )
+            await conn.execute('VACUUM ANALYZE')
 
         print('Fixing sequence counters consistency')
         await MigrationService.fix_sequence_counters()
