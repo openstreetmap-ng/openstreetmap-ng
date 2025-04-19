@@ -2,6 +2,11 @@ name: Deploy to server
 
 on:
   workflow_dispatch:
+    inputs:
+      update_server:
+        description: "Update the server before deployment"
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -23,15 +28,20 @@ jobs:
         run: |
           ssh remote <<\EOF
             set -euxo pipefail
-            cd /data/osm-ng
+
+            if [ "${{ inputs.update_server }}" = "true" ]; then
+              : Update the server
+              nixos-rebuild boot --upgrade
+            fi
 
             : Fetch changes
+            cd /data/osm-ng
             git fetch origin "${{ github.sha }}"
 
             : Stop services
             systemctl stop osm-ng-dev
 
-            : Reset to the specific commit
+            : Reset to the specified commit
             git reset --hard "${{ github.sha }}"
 
             : Update and start services
