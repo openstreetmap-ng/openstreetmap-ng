@@ -1,0 +1,28 @@
+{
+	storage file_system data/caddy
+	skip_install_trust
+	key_type p384
+	preferred_chains {
+		root_common_name "ISRG Root X1"
+	}
+}
+
+(common) {
+	log
+	header Alt-Svc "h3=\":443\"; ma=2592000; persist=1"
+}
+
+www.openstreetmap.ng, api.openstreetmap.ng, id.openstreetmap.ng, rapid.openstreetmap.ng {
+	import common
+	reverse_proxy 127.0.0.1:8000
+}
+
+mail.openstreetmap.ng {
+	import common
+	reverse_proxy 127.0.0.1:49566
+}
+
+www.osm.ng, osm.ng {
+	import common
+	redir https://www.openstreetmap.ng{uri} permanent
+}

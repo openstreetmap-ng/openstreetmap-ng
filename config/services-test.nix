@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 # Service configuration for OSM-NG testing instance
-# Specs: hmad.large (4T, 32GB RAM, 100GB SSD) + 2000GB SSD
+# Specs: hmad.large (4T, 32GB RAM, 100GB SSD) + 4000GB SSD
 # https://cloudferro.com/pricing/virtual-machines-vm-2/
 
 let
@@ -120,6 +120,33 @@ in
     ];
     script = nixShellRun "run";
   };
+
+  systemd.services.osm-ng-http =
+    let
+      caddyArgs = "--config config/Caddyfile";
+    in
+    {
+      enable = false;
+      after = [ "osm-ng.service" ];
+      bindsTo = [ "osm-ng.service" ];
+      wantedBy = [ "default.target" ];
+      unitConfig = {
+        StartLimitIntervalSec = "infinity";
+        StartLimitBurst = 30;
+      };
+      serviceConfig = pkgs.lib.mkMerge [
+        commonServiceConfig
+        {
+          Type = "exec";
+          Restart = "on-failure";
+          RestartPreventExitStatus = 1;
+          RestartSec = "5s";
+          ExecStartPre = "${pkgs.toybox}/bin/mkdir -p data/caddy";
+          ExecReload = "${pkgs.caddy}/bin/caddy reload --force ${caddyArgs}";
+        }
+      ];
+      script = "${pkgs.caddy}/bin/caddy run ${caddyArgs}";
+    };
 
   systemd.services.osm-ng-replication = {
     after = [ "osm-ng-dev.service" ];

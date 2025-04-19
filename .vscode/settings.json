@@ -65,6 +65,7 @@
       }
     }
   },
+  "npm.packageManager": "bun",
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.packageIndexDepths": [
     {

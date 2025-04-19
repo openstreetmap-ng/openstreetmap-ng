@@ -17,3 +17,7 @@ max_line_length = 120
 
 [*.md]
 max_line_length = off
+
+[Caddyfile]
+indent_style = tab
+indent_size = 4
