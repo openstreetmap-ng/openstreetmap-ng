@@ -87,9 +87,8 @@ class Element06Mixin:
             ('modify', {'way': {'@id': 2, '@version': 2, ...}}),
         ]
         """
-        result: list[tuple[OSMChangeAction, dict[ElementType, dict]]] = [None] * len(
-            elements
-        )  # type: ignore
+        result: list[tuple[OSMChangeAction, dict[ElementType, dict]]]
+        result = [None] * len(elements)  # type: ignore
         action: OSMChangeAction
 
         i: cython.Py_ssize_t

@@ -94,6 +94,7 @@ let
     curl
     jq
     watchexec'
+    pigz
     brotli
     zstd
     b3sum
@@ -482,9 +483,10 @@ let
       dev-start
       preload-load
     '')
-    (makeScript "replication" "python scripts/replication.py")
+    (makeScript "replication-download" "python scripts/replication_download.py")
     (makeScript "replication-convert" "python scripts/replication_convert.py \"$@\"")
     (makeScript "replication-load" "python scripts/db_load.py -m replication")
+    (makeScript "replication-generate" "python scripts/replication_generate.py \"$@\"")
 
     # -- Testing
     (makeScript "run-tests" ''

@@ -92,6 +92,7 @@ in
       commonServiceConfig
       {
         Type = "oneshot";
+        Nice = -10;
         RemainAfterExit = true;
         Restart = "on-failure";
         RestartSec = "30s";
@@ -114,6 +115,7 @@ in
       commonServiceConfig
       {
         Type = "exec";
+        Nice = -5;
         Restart = "on-failure";
         RestartSec = "30s";
       }
@@ -138,6 +140,7 @@ in
         commonServiceConfig
         {
           Type = "exec";
+          Nice = -3;
           Restart = "on-failure";
           RestartPreventExitStatus = 1;
           RestartSec = "5s";
@@ -148,7 +151,27 @@ in
       script = "${pkgs.caddy}/bin/caddy run ${caddyArgs}";
     };
 
-  systemd.services.osm-ng-replication = {
+  systemd.services.osm-ng-replication-generate-hour = {
+    after = [ "osm-ng-dev.service" ];
+    bindsTo = [ "osm-ng-dev.service" ];
+    wantedBy = [ "default.target" ];
+    unitConfig = {
+      StartLimitIntervalSec = "infinity";
+      StartLimitBurst = 30;
+    };
+    serviceConfig = pkgs.lib.mkMerge [
+      commonServiceConfig
+      {
+        Type = "exec";
+        Nice = 5;
+        Restart = "on-failure";
+        RestartSec = "30s";
+      }
+    ];
+    script = nixShellRun "replication-generate hour --no-backfill";
+  };
+
+  systemd.services.osm-ng-replication-download = {
     after = [ "osm-ng-dev.service" ];
     bindsTo = [ "osm-ng-dev.service" ];
     wantedBy = [ "default.target" ];
@@ -165,6 +188,6 @@ in
         RestartSec = "30s";
       }
     ];
-    script = nixShellRun "replication";
+    script = nixShellRun "replication-download";
   };
 }

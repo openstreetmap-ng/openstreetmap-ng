@@ -164,8 +164,11 @@ class MigrationService:
     ) -> None:
         parallelism = parallelism or process_cpu_count() or 1
 
-        async with db() as conn, await conn.execute('SELECT MAX(id) FROM note') as r:
-            max_id = (await r.fetchone())[0] or 0  # type: ignore
+        async with (
+            db() as conn,
+            await conn.execute('SELECT COALESCE(MAX(id), 0) FROM note') as r,
+        ):
+            max_id = (await r.fetchone())[0]  # type: ignore
 
         semaphore = Semaphore(parallelism)
         logging.info(
@@ -208,9 +211,9 @@ class MigrationService:
 
         async with (
             db() as conn,
-            await conn.execute('SELECT MAX(id) FROM changeset') as r,
+            await conn.execute('SELECT COALESCE(MAX(id), 0) FROM changeset') as r,
         ):
-            max_id = (await r.fetchone())[0] or 0  # type: ignore
+            max_id = (await r.fetchone())[0]  # type: ignore
 
         semaphore = Semaphore(parallelism)
         logging.info(

@@ -107,7 +107,7 @@ _PARQUET_SCHEMA = pa.schema([
     pa.field('display_name', pa.string()),
 ])
 
-_APP_STATE_PATH = REPLICATION_DIR / 'state.json'
+_APP_STATE_PATH = REPLICATION_DIR.joinpath('state.json')
 
 # freeze all gc objects before starting for improved performance
 gc.collect()

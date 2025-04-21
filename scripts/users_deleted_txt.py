@@ -10,9 +10,9 @@ from app.queries.user_query import UserQuery
 _BUFFER_SIZE = 32 * 1024 * 1024  # 32 MB
 _BATCH_SIZE = 100_000
 
-_USERS_DELETED_DIR = PLANET_DIR / 'users_deleted'
+_USERS_DELETED_DIR = PLANET_DIR.joinpath('users_deleted')
 _USERS_DELETED_DIR.mkdir(parents=True, exist_ok=True)
-_USERS_DELETED_TXT = _USERS_DELETED_DIR / 'users_deleted.txt'
+_USERS_DELETED_TXT = _USERS_DELETED_DIR.joinpath('users_deleted.txt')
 
 
 async def main():
@@ -44,7 +44,8 @@ async def main():
             after = new_after
 
         print('Flushing and renaming')
-    Path(f.name).rename(_USERS_DELETED_TXT)
+
+    Path(f.name).replace(_USERS_DELETED_TXT)
 
 
 if __name__ == '__main__':

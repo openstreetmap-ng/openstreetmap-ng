@@ -38,7 +38,8 @@ extra_paths = [
         'app/models/scope.py',
         'app/models/tags_format.py',
         'scripts/preload_convert.py',
-        'scripts/replication.py',
+        'scripts/replication_download.py',
+        'scripts/replication_generate.py',
     )
 ]
 

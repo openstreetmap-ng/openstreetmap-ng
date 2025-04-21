@@ -33,9 +33,11 @@ class ElementQuery:
         """
         async with (
             db() as conn,
-            await conn.execute('SELECT MAX(sequence_id) FROM element') as r,
+            await conn.execute(
+                'SELECT COALESCE(MAX(sequence_id), 0) FROM element'
+            ) as r,
         ):
-            return (await r.fetchone())[0] or 0  # type: ignore
+            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
     async def get_current_ids() -> dict[ElementType, ElementId]:

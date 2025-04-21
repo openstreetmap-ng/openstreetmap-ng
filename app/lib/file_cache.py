@@ -103,7 +103,7 @@ class FileCache:
         with temp_path.open('wb') as f:
             loop = get_running_loop()
             await loop.run_in_executor(None, f.write, entry_bytes)
-        temp_path.rename(path)
+        temp_path.replace(path)
 
     def delete(self, key: StorageKey) -> None:
         """Delete a key from the file cache."""
