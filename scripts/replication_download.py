@@ -4,7 +4,7 @@ import gzip
 import logging
 from asyncio import sleep
 from collections.abc import Callable
-from dataclasses import asdict, replace
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
@@ -13,7 +13,6 @@ import cython
 import orjson
 import pyarrow as pa
 import pyarrow.parquet as pq
-from pydantic.dataclasses import dataclass
 from sentry_sdk import set_context, set_tag, start_transaction
 from shapely import Point
 from starlette import status

@@ -18,6 +18,7 @@ async def test_iterate():
         frequency='hour',
         last_replica=ReplicaState.default(),
         last_sequence_id=0,
+        last_versioned_refs=[],
     )
 
     # Iterate once
@@ -30,7 +31,12 @@ async def test_iterate():
     try:
         # Verify the file has the expected layout
         metadata = pq.read_metadata(path)
-        assert metadata.num_columns == 15
+        assert metadata.num_columns == 12
         assert metadata.num_rows == 156829
     finally:
         path.unlink(missing_ok=True)
+
+    # Verify state was updated
+    assert state.frequency == 'hour'
+    assert state.last_sequence_id == 156829
+    assert len(state.last_versioned_refs) == 156829
