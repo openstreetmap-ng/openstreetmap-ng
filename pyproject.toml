@@ -120,6 +120,7 @@ ignore = [
   "PT018",    # pytest-composite-assertion
   "PT023",    # pytest-incorrect-mark-parentheses-style
   "PYI025",   # unaliased-collections-abc-set-import
+  "PYI041",   # redundant-numeric-union
   "UP046",    # non-pep695-generic-class
   "UP047",    # non-pep695-generic-function
   "Q000",     # bad-quotes-inline-string
