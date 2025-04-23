@@ -188,13 +188,15 @@ def _load_app_state():
             last_versioned_refs=[],
         )
 
-    return AppState(
-        **data,
-        # Restore nested lists back to tuples
-        last_versioned_refs=[
-            (typed_id, version) for typed_id, version in data['last_versioned_refs']
-        ],
+    # Fixup types
+    data['last_replica']['created_at'] = datetime.fromisoformat(
+        data['last_replica']['created_at']
     )
+    data['last_replica'] = ReplicaState(**data['last_replica'])
+    data['last_versioned_refs'] = [
+        (typed_id, version) for typed_id, version in data['last_versioned_refs']
+    ]
+    return AppState(**data)
 
 
 @cython.cfunc
