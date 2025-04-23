@@ -218,6 +218,7 @@ def _parse_actions(
     """Parse OSM change actions and write them to parquet."""
     last_versioned_refs_set = set(last_versioned_refs)
     new_versioned_refs: list[tuple[TypedElementId, int]] = []
+    skipped_duplicates: cython.ulonglong = 0
     data: list[dict] = []
 
     def flush():
@@ -243,6 +244,7 @@ def _parse_actions(
             # Skip if it's a duplicate
             ref = (typed_id, version)
             if ref in last_versioned_refs_set:
+                skipped_duplicates += 1
                 continue
             new_versioned_refs.append(ref)
 
@@ -312,6 +314,9 @@ def _parse_actions(
 
     # Write any remaining data
     flush()
+
+    if skipped_duplicates:
+        logging.warning('Skipped %d duplicate elements', skipped_duplicates)
 
     return last_sequence_id, new_versioned_refs
 
