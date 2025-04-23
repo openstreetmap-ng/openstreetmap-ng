@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from time import monotonic
 from typing import Any, Literal
 
 import cython
@@ -364,6 +365,7 @@ async def _iterate(state: AppState) -> AppState:
         last_sequence_id = state.last_sequence_id
         last_versioned_refs = []
     else:
+        ts = monotonic()
         with pq.ParquetWriter(
             remote_replica.path,
             schema=_PARQUET_SCHEMA,
@@ -376,6 +378,8 @@ async def _iterate(state: AppState) -> AppState:
                 last_sequence_id=state.last_sequence_id,
                 last_versioned_refs=state.last_versioned_refs,
             )
+        tt = monotonic() - ts
+        logging.info('Saved %d elements in %.1fs', len(last_versioned_refs), tt)
 
     return replace(
         state,
