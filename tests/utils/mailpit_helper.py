@@ -1,6 +1,6 @@
-import time
 from asyncio import wait_for
 from email.header import decode_header, make_header
+from time import monotonic
 from typing import TypedDict
 from urllib.parse import parse_qs, urlparse
 
@@ -88,7 +88,7 @@ class MailpitHelper:
             return summary if search in summary['Text'] else None
 
         recipient_email = recipient['email'] if recipient is not None else None
-        deadline = time.monotonic() + timeout
+        deadline = monotonic() + timeout
 
         async with websockets.connect(_API_WS_URL) as websocket:
             # Process existing messages
@@ -106,7 +106,7 @@ class MailpitHelper:
 
             # Process new messages
             while True:
-                data = await wait_for(websocket.recv(), deadline - time.monotonic())
+                data = await wait_for(websocket.recv(), deadline - monotonic())
                 event = orjson.loads(data)
                 if event.get('Type') != 'new':  # Listen for new messages only
                     continue

@@ -1,5 +1,5 @@
 import logging
-import time
+from time import monotonic
 
 import cython
 from psycopg import OperationalError
@@ -24,7 +24,7 @@ class OptimisticDiff:
         if not elements:
             return {}
 
-        ts = time.monotonic()
+        ts = monotonic()
         attempt: cython.int = 0
 
         while True:
@@ -36,7 +36,7 @@ class OptimisticDiff:
                 attempt += 1
 
                 # retry is not possible, re-raise the exception
-                timeout_seconds = time.monotonic() - ts
+                timeout_seconds = monotonic() - ts
                 if timeout_seconds >= OPTIMISTIC_DIFF_RETRY_TIMEOUT.total_seconds():
                     raise TimeoutError(
                         f'OptimisticDiff failed and timed out after {attempt} attempts'

@@ -5,9 +5,9 @@ import mimetypes
 import os
 import pathlib
 import sys
-import time
 import traceback
 from contextlib import asynccontextmanager
+from time import tzset
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
 from fastapi.exception_handlers import http_exception_handler
@@ -56,7 +56,7 @@ from app.services.test_service import TestService
 # set the timezone to UTC
 # note that "export TZ=UTC" from shell.nix is unreliable for some users
 os.environ['TZ'] = 'UTC'
-time.tzset()
+tzset()
 
 # register additional mimetypes
 mimetypes.init()

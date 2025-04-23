@@ -1,9 +1,9 @@
 import asyncio
 import logging
 import random
-import time
 from datetime import timedelta
 from functools import wraps
+from time import monotonic
 
 import cython
 
@@ -20,7 +20,7 @@ def retry(
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            ts: cython.double = time.monotonic()
+            ts: cython.double = monotonic()
             sleep: cython.double = sleep_init
             attempt: cython.int = 0
 
@@ -31,7 +31,7 @@ def retry(
                     attempt += 1
 
                     # retry is not possible, re-raise the exception
-                    now: cython.double = time.monotonic()
+                    now: cython.double = monotonic()
                     next_timeout_seconds: cython.double = now + sleep - ts
                     if next_timeout_seconds >= timeout_seconds and timeout is not None:
                         raise TimeoutError(
@@ -40,7 +40,7 @@ def retry(
 
                     # retry is still possible
                     logging.info(
-                        '%s failed (attempt %d), retrying in %.3f sec',
+                        '%s failed (attempt %d), retrying in %.3fs',
                         func.__qualname__,
                         attempt,
                         sleep,
