@@ -14,12 +14,11 @@ import orjson
 import pyarrow as pa
 import pyarrow.parquet as pq
 from sentry_sdk import set_context, set_tag, start_transaction
-from shapely import Point
 from starlette import status
 
 from app.config import OSM_REPLICATION_URL, REPLICATION_DIR
 from app.db import duckdb_connect
-from app.lib.compressible_geometry import compressible_geometry
+from app.lib.compressible_geometry import point_to_compressible_wkb_hex
 from app.lib.retry import retry
 from app.lib.sentry import SENTRY_REPLICATION_MONITOR
 from app.lib.xmltodict import XMLToDict
@@ -256,7 +255,7 @@ def _parse_actions(
 
             if type == 'node':
                 if (lon := element.get('@lon')) is not None:
-                    point = compressible_geometry(Point(lon, element['@lat'])).wkb_hex
+                    point = point_to_compressible_wkb_hex(lon, element['@lat'])
             elif type == 'way':
                 if (members_ := element.get('nd')) is not None:
                     members = [(member['@ref'], None) for member in members_]

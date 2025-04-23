@@ -7,12 +7,13 @@ from pathlib import Path
 import cython
 import pyarrow as pa
 import pyarrow.parquet as pq
-from shapely import Point
 from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
 from app.db import duckdb_connect
-from app.lib.compressible_geometry import compressible_geometry
+from app.lib.compressible_geometry import (
+    point_to_compressible_wkb_hex,
+)
 from app.lib.xmltodict import XMLToDict
 from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MAX,
@@ -115,7 +116,7 @@ def planet_worker(args: tuple[int, int, int]) -> None:
 
         if type == 'node':
             if (lon := element.get('@lon')) is not None:
-                point = compressible_geometry(Point(lon, element['@lat'])).wkb_hex
+                point = point_to_compressible_wkb_hex(lon, element['@lat'])
         elif type == 'way':
             if (members_ := element.get('nd')) is not None:
                 members = [(member['@ref'], None) for member in members_]
@@ -265,10 +266,9 @@ def notes_worker(args: tuple[int, int, int]) -> None:
                 'created_at': comment_created_at,
             })
 
-        point = compressible_geometry(Point(note['@lon'], note['@lat'])).wkb_hex
         data.append({
             'id': note['@id'],
-            'point': point,
+            'point': point_to_compressible_wkb_hex(note['@lon'], note['@lat']),
             'comments': comments,
             'created_at': note_created_at,
             'updated_at': note_updated_at,
