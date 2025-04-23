@@ -3,6 +3,10 @@ from argparse import ArgumentParser
 
 from app.config import REPLICATION_DIR
 from app.db import duckdb_connect
+from app.models.element import (
+    TYPED_ELEMENT_ID_RELATION_MAX,
+    TYPED_ELEMENT_ID_RELATION_MIN,
+)
 from scripts.preload_convert import NOTES_PARQUET_PATH
 
 _PARQUET_PATHS = [
@@ -43,18 +47,6 @@ def _process_changeset(header_only: bool) -> None:
 
 def _process_element(header_only: bool) -> None:
     with duckdb_connect(progress=False) as conn:
-        # Compute typed_id from type and id.
-        # Source implementation: app.models.element.typed_element_id
-        conn.execute("""
-        CREATE MACRO typed_element_id(type, id) AS
-        CASE type
-            WHEN 'node' THEN id
-            WHEN 'way' THEN (id | 1152921504606846976) -- 1 << 60
-            WHEN 'relation' THEN (id | 2305843009213693952) -- 2 << 60
-            ELSE NULL
-        END
-        """)
-
         # Utilities for escaping text
         conn.execute("""
         CREATE MACRO quote(str) AS
@@ -87,7 +79,7 @@ def _process_element(header_only: bool) -> None:
         SELECT
             sequence_id,
             changeset_id,
-            typed_element_id(type, id) AS typed_id,
+            typed_id,
             version,
             FALSE AS latest,
             visible,
@@ -99,11 +91,12 @@ def _process_element(header_only: bool) -> None:
             point,
             IF(
                 len(members) > 0,
-                pg_array(list_transform(members, x -> typed_element_id(x.type, x.id))),
+                pg_array(list_transform(members, x -> x.typed_id)),
                 NULL
             ) AS members,
             IF(
-                type = 'relation' AND len(members) > 0,
+                typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX}
+                AND len(members) > 0,
                 pg_array(list_transform(members, x -> quote(x.role))),
                 NULL
             ) AS members_roles,

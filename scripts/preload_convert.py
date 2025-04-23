@@ -73,11 +73,6 @@ _NOTES_SCHEMA = pa.schema([
 _NUM_WORKERS = process_cpu_count() or 1
 _TASK_SIZE = 64 * 1024 * 1024  # 64MB
 
-# freeze all gc objects before starting for improved performance
-gc.collect()
-gc.freeze()
-gc.disable()
-
 
 @cython.cfunc
 def _get_csv_path(name: str):
@@ -534,6 +529,11 @@ def _write_user(modes: set[str]) -> None:
 
 
 def main() -> None:
+    # Freeze all gc objects before starting for improved performance
+    gc.collect()
+    gc.freeze()
+    gc.disable()
+
     choices = ['planet', 'notes', 'user']
     parser = ArgumentParser()
     parser.add_argument('modes', nargs='*', choices=choices)
