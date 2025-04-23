@@ -1,3 +1,4 @@
+from os import process_cpu_count
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from httpx import AsyncClient
@@ -48,3 +49,16 @@ def splitlines_trim(s: str) -> list[str]:
     ['foo', 'bar']
     """
     return [strip for line in s.splitlines() if (strip := line.strip())]
+
+
+def calc_num_workers(target: int | float = 1.0) -> int:
+    """
+    Calculate the number of workers to use based on the target value.
+    If the target is an integer, it will be used as is.
+    If the target is a float, it will multiply the number of available CPUs.
+    """
+    return (
+        int(max((process_cpu_count() or 1) * target, 1))
+        if isinstance(target, float)
+        else target
+    )

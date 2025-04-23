@@ -4,7 +4,6 @@ from asyncio import TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
 from contextlib import asynccontextmanager
 from io import TextIOWrapper
-from os import process_cpu_count
 from pathlib import Path
 from shlex import quote
 from typing import Literal, get_args
@@ -17,10 +16,11 @@ from app.config import POSTGRES_URL, PRELOAD_DIR
 from app.db import db, psycopg_pool_open_decorator
 from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
+from app.utils import calc_num_workers
 
 _Mode = Literal['preload', 'replication']
 
-_COPY_WORKERS = min(process_cpu_count() or 1, 8)
+_COPY_WORKERS = calc_num_workers(8)
 
 
 def _get_csv_path(name: str) -> Path:

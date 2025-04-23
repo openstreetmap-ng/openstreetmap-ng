@@ -3,7 +3,6 @@ from argparse import ArgumentParser
 from collections.abc import Callable
 from datetime import datetime
 from multiprocessing import Pool
-from os import process_cpu_count
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +18,7 @@ from app.db import duckdb_connect
 from app.lib.compressible_geometry import compressible_geometry
 from app.lib.xmltodict import XMLToDict
 from app.models.element import ElementType
+from app.utils import calc_num_workers
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
 PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')
@@ -70,7 +70,7 @@ _NOTES_SCHEMA = pa.schema([
     pa.field('hidden_at', pa.timestamp('ms', 'UTC')),
 ])
 
-_NUM_WORKERS = process_cpu_count() or 1
+_NUM_WORKERS = calc_num_workers()
 _TASK_SIZE = 64 * 1024 * 1024  # 64MB
 
 

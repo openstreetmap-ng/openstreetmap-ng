@@ -1,4 +1,3 @@
-from os import process_cpu_count
 from pathlib import Path
 
 from Cython.Build import cythonize
@@ -7,6 +6,7 @@ from setuptools import Extension, setup
 
 import app.config  # DO NOT REMOVE  # noqa: F401
 from app.lib.pydantic_settings_integration import pydantic_settings_integration
+from app.utils import calc_num_workers
 
 CYTHON_MARCH = 'native'
 CYTHON_MTUNE = 'native'
@@ -93,7 +93,7 @@ setup(
             )
             for path in paths
         ],
-        nthreads=process_cpu_count(),
+        nthreads=calc_num_workers(),
         compiler_directives={
             # https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives
             'overflowcheck': True,

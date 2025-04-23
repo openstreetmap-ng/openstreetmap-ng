@@ -2,7 +2,6 @@ import logging
 from asyncio import Semaphore, TaskGroup
 from math import ceil
 from operator import itemgetter
-from os import process_cpu_count
 from pathlib import Path
 from typing import NamedTuple
 
@@ -21,6 +20,7 @@ from app.models.element import (
 )
 from app.queries.element_query import ElementQuery
 from app.services.admin_task_service import register_admin_task
+from app.utils import calc_num_workers
 
 
 class _MigrationInfo(NamedTuple):
@@ -66,10 +66,10 @@ class MigrationService:
     @staticmethod
     async def deduplicate_elements(
         *,
-        parallelism: int = 0,
+        parallelism: int | float = 2.0,
         task_size: int = 1_000_000,
     ) -> None:
-        parallelism = parallelism or process_cpu_count() or 1
+        parallelism = calc_num_workers(parallelism)
 
         chunks = await _get_element_typed_id_chunks(task_size)
         semaphore = Semaphore(parallelism)
@@ -118,10 +118,10 @@ class MigrationService:
     @staticmethod
     async def mark_latest_elements(
         *,
-        parallelism: int = 0,
+        parallelism: int | float = 2.0,
         task_size: int = 1_000_000,
     ) -> None:
-        parallelism = parallelism or process_cpu_count() or 1
+        parallelism = calc_num_workers(parallelism)
 
         chunks = await _get_element_typed_id_chunks(task_size)
         semaphore = Semaphore(parallelism)
@@ -159,10 +159,10 @@ class MigrationService:
     @register_admin_task
     async def delete_notes_without_comments(
         *,
-        parallelism: int = 0,
+        parallelism: int | float = 2.0,
         task_size: int = 100_000,
     ) -> None:
-        parallelism = parallelism or process_cpu_count() or 1
+        parallelism = calc_num_workers(parallelism)
 
         async with (
             db() as conn,
@@ -200,14 +200,14 @@ class MigrationService:
     @register_admin_task
     async def fix_changeset_counts(
         *,
-        parallelism: int = 0,
+        parallelism: int | float = 2.0,
         task_size: int = 1_000_000,
     ) -> None:
         """
         Fix changeset counts where size != 0 but num_create = 0, num_modify = 0, and num_delete = 0.
         Calculates the counts based on the actual data in the element table.
         """
-        parallelism = parallelism or process_cpu_count() or 1
+        parallelism = calc_num_workers(parallelism)
 
         async with (
             db() as conn,

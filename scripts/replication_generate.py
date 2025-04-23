@@ -5,7 +5,6 @@ from asyncio.subprocess import PIPE, create_subprocess_exec
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from functools import cache
-from os import process_cpu_count
 from pathlib import Path
 from shutil import copyfile
 from typing import Literal, TypedDict, get_args
@@ -24,6 +23,7 @@ from app.format import Format06
 from app.lib.date_utils import utcnow
 from app.lib.xmltodict import XMLToDict
 from app.models.db.element import Element
+from app.utils import calc_num_workers
 
 
 class _State(TypedDict):
@@ -41,11 +41,7 @@ _TIMESPAN_DELTA: dict[_TimeSpan, timedelta] = {
 
 _CHUNK_SIZE = 1_000_000
 
-_NUM_WORKERS_PIGZ = (
-    int(max((process_cpu_count() or 1) * COMPRESS_REPLICATION_GZIP_THREADS, 1))
-    if isinstance(COMPRESS_REPLICATION_GZIP_THREADS, float)
-    else COMPRESS_REPLICATION_GZIP_THREADS
-)
+_NUM_WORKERS_PIGZ = calc_num_workers(COMPRESS_REPLICATION_GZIP_THREADS)
 logging.debug('Configured pigz compression: %d workers', _NUM_WORKERS_PIGZ)
 
 
