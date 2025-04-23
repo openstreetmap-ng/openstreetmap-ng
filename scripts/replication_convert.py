@@ -47,29 +47,25 @@ def _process_changeset(header_only: bool) -> None:
 
 def _process_element(header_only: bool) -> None:
     with duckdb_connect(progress=False) as conn:
-        # Utilities for escaping text
+        # Utility for escaping text
         conn.execute("""
         CREATE MACRO quote(str) AS
         '"' || replace(replace(str, '\\', '\\\\'), '"', '\\"') || '"'
         """)
-        conn.execute("""
-        CREATE MACRO jsonpointer_escape(key) AS
-        '/' || replace(replace(key, '~', '~0'), '/', '~1')
-        """)
 
-        # Convert JSON dict to hstore
+        # Convert map to Postgres-hstore format
         conn.execute("""
-        CREATE MACRO json_to_hstore(json) AS
+        CREATE MACRO map_to_hstore(m) AS
         array_to_string(
             list_transform(
-                json_keys(json),
-                k -> quote(k) || '=>' || quote(json_extract_string(json, jsonpointer_escape(k)))
+                map_entries(m),
+                entry -> quote(entry.key) || '=>' || quote(entry.value)
             ),
             ','
         )
         """)
 
-        # Encode array in Postgres-compatible format
+        # Encode array in Postgres format
         conn.execute("""
         CREATE MACRO pg_array(arr) AS
         '{' || array_to_string(arr, ',') || '}'
@@ -84,19 +80,19 @@ def _process_element(header_only: bool) -> None:
             FALSE AS latest,
             visible,
             IF(
-                tags != '{{}}',
-                json_to_hstore(tags),
+                tags IS NOT NULL,
+                map_to_hstore(tags),
                 NULL
             ) AS tags,
             point,
             IF(
-                len(members) > 0,
+                members IS NOT NULL,
                 pg_array(list_transform(members, x -> x.typed_id)),
                 NULL
             ) AS members,
             IF(
-                typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX}
-                AND len(members) > 0,
+                members IS NOT NULL
+                AND typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
                 pg_array(list_transform(members, x -> quote(x.role))),
                 NULL
             ) AS members_roles,

@@ -1,13 +1,10 @@
 import gc
 from argparse import ArgumentParser
-from collections.abc import Callable
 from datetime import datetime
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Any
 
 import cython
-import orjson
 import pyarrow as pa
 import pyarrow.parquet as pq
 from shapely import Point
@@ -17,7 +14,13 @@ from app.config import PRELOAD_DIR
 from app.db import duckdb_connect
 from app.lib.compressible_geometry import compressible_geometry
 from app.lib.xmltodict import XMLToDict
-from app.models.element import ElementType
+from app.models.element import (
+    TYPED_ELEMENT_ID_RELATION_MAX,
+    TYPED_ELEMENT_ID_RELATION_MIN,
+    ElementType,
+    TypedElementId,
+    typed_element_id,
+)
 from app.utils import calc_num_workers
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
@@ -25,18 +28,16 @@ PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')
 
 _PLANET_SCHEMA = pa.schema([
     pa.field('changeset_id', pa.uint64()),
-    pa.field('type', pa.string()),
-    pa.field('id', pa.uint64()),
+    pa.field('typed_id', pa.uint64()),
     pa.field('version', pa.uint64()),
     pa.field('visible', pa.bool_()),
-    pa.field('tags', pa.string()),
+    pa.field('tags', pa.map_(pa.string(), pa.string())),
     pa.field('point', pa.string()),
     pa.field(
         'members',
         pa.list_(
             pa.struct([
-                pa.field('type', pa.string()),
-                pa.field('id', pa.uint64()),
+                pa.field('typed_id', pa.uint64()),
                 pa.field('role', pa.string()),
             ])
         ),
@@ -84,12 +85,7 @@ def _get_worker_path(base: Path, i: int):
     return base.with_suffix(f'{base.suffix}.{i}')
 
 
-def planet_worker(
-    args: tuple[int, int, int],
-    *,
-    # HACK: faster lookup
-    orjson_dumps: Callable[[Any], bytes] = orjson.dumps,
-) -> None:
+def planet_worker(args: tuple[int, int, int]) -> None:
     i, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
     data: list[dict] = []
 
@@ -105,54 +101,44 @@ def planet_worker(
     # free memory
     del input_buffer
 
-    element_type: str
+    type: str
     element: dict
 
-    for element_type, element in elements:
+    for type, element in elements:
         tags = (
             {tag['@k']: tag['@v'] for tag in tags_}
-            if (tags_ := element.get('tag'))
+            if (tags_ := element.get('tag')) is not None
             else None
         )
         point: str | None = None
-        members: list[dict] | None = None
+        members: list[tuple[TypedElementId, str | None]] | None = None
 
-        if element_type == 'node':
-            if (
-                (lon := element.get('@lon')) is not None  #
-                and (lat := element.get('@lat')) is not None
-            ):
-                point = compressible_geometry(Point(lon, lat)).wkb_hex
-        elif element_type == 'way':
-            if members_ := element.get('nd'):
+        if type == 'node':
+            if (lon := element.get('@lon')) is not None:
+                point = compressible_geometry(Point(lon, element['@lat'])).wkb_hex
+        elif type == 'way':
+            if (members_ := element.get('nd')) is not None:
+                members = [(member['@ref'], None) for member in members_]
+        elif type == 'relation':
+            if (members_ := element.get('member')) is not None:
                 members = [
-                    {
-                        'type': 'node',
-                        'id': member['@ref'],
-                        'role': None,
-                    }
-                    for member in members_
-                ]
-        elif element_type == 'relation':
-            if members_ := element.get('member'):
-                members = [
-                    {
-                        'type': member['@type'],
-                        'id': member['@ref'],
-                        'role': member['@role'],
-                    }
+                    (
+                        typed_element_id(member['@type'], member['@ref']),
+                        member['@role'],
+                    )
                     for member in members_
                 ]
         else:
-            raise NotImplementedError(f'Unsupported element type {element_type!r}')
+            raise NotImplementedError(f'Unsupported element type {type!r}')
 
         data.append({
             'changeset_id': element['@changeset'],
-            'type': element_type,
-            'id': element['@id'],
+            'typed_id': typed_element_id(type, element['@id']),
             'version': element['@version'],
-            'visible': bool(tags or point or members),
-            'tags': orjson_dumps(tags).decode() if tags else None,
+            'visible': (
+                (tags is not None) or (point is not None) or (members is not None)
+            ),
+            'tags': tags,
             'point': point,
             'members': members,
             'created_at': element['@timestamp'],
@@ -212,10 +198,9 @@ def merge_planet_worker_results() -> None:
             SELECT
                 ROW_NUMBER() OVER (ORDER BY created_at) AS sequence_id,
                 changeset_id,
-                type,
-                id,
+                typed_id,
                 version,
-                version = MAX(version) OVER (PARTITION BY type, id) AS latest,
+                version = MAX(version) OVER (PARTITION BY typed_id) AS latest,
                 visible,
                 tags,
                 point,
@@ -377,35 +362,19 @@ def _write_changeset() -> None:
 
 def _write_element() -> None:
     with duckdb_connect() as conn:
-        # Compute typed_id from type and id.
-        # Source implementation: app.models.element.typed_element_id
-        conn.execute("""
-        CREATE MACRO typed_element_id(type, id) AS
-        CASE type
-            WHEN 'node' THEN id
-            WHEN 'way' THEN (id | 1152921504606846976) -- 1 << 60
-            WHEN 'relation' THEN (id | 2305843009213693952) -- 2 << 60
-            ELSE NULL
-        END
-        """)
-
-        # Utilities for escaping text
+        # Utility for escaping text
         conn.execute("""
         CREATE MACRO quote(str) AS
         '"' || replace(replace(str, '\\', '\\\\'), '"', '\\"') || '"'
         """)
-        conn.execute("""
-        CREATE MACRO jsonpointer_escape(key) AS
-        '/' || replace(replace(key, '~', '~0'), '/', '~1')
-        """)
 
-        # Convert JSON dict to hstore
+        # Convert map to Postgres-hstore format
         conn.execute("""
-        CREATE MACRO json_to_hstore(json) AS
+        CREATE MACRO map_to_hstore(m) AS
         array_to_string(
             list_transform(
-                json_keys(json),
-                k -> quote(k) || '=>' || quote(json_extract_string(json, jsonpointer_escape(k)))
+                map_entries(m),
+                entry -> quote(entry.key) || '=>' || quote(entry.value)
             ),
             ','
         )
@@ -422,23 +391,24 @@ def _write_element() -> None:
             SELECT
                 sequence_id,
                 changeset_id,
-                typed_element_id(type, id) AS typed_id,
+                typed_id,
                 version,
                 latest,
                 visible,
                 IF(
                     tags IS NOT NULL,
-                    json_to_hstore(tags),
+                    map_to_hstore(tags),
                     NULL
                 ) AS tags,
                 point,
                 IF(
                     members IS NOT NULL,
-                    pg_array(list_transform(members, x -> typed_element_id(x.type, x.id))),
+                    pg_array(list_transform(members, x -> x.typed_id)),
                     NULL
                 ) AS members,
                 IF(
-                    members IS NOT NULL AND type = 'relation',
+                    members IS NOT NULL
+                    AND typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
                     pg_array(list_transform(members, x -> quote(x.role))),
                     NULL
                 ) AS members_roles,
