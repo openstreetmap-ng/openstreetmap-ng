@@ -1,3 +1,4 @@
+import struct
 from typing import TypeVar, overload
 
 import cython
@@ -51,3 +52,14 @@ def compressible_geometry(
     view = geometry.view(np.uint64)
     view &= _MASK
     return geometry
+
+
+# Pre-compute WKB prefix (byte order 1 = little endian + geometry type 1 = Point)
+_WKB_PREFIX = struct.pack('B', 1) + struct.pack('<I', 1)
+_COORDS_STRUCT = struct.Struct('<dd')
+
+
+def point_to_compressible_wkb_hex(lon: float, lat: float) -> str:
+    """Convert a coordinate pair to a compressible WKB hex format."""
+    lon, lat = compressible_geometry(np.array([lon, lat], dtype=np.float64)).tolist()  # type: ignore
+    return (_WKB_PREFIX + _COORDS_STRUCT.pack(lon, lat)).hex()
