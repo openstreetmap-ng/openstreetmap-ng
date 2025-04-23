@@ -159,6 +159,12 @@ def duckdb_connect(database: str | Path = ':memory:', *, progress: bool = True):
         ) as conn,
     ):
         logging.debug('DuckDB temp_directory: %s', tmpdir)
+
         if progress:
             conn.sql('PRAGMA enable_progress_bar')
+
+        # Disable replacement scans because they are bug-prone.
+        # Use duckdb.register to register data explicitly.
+        conn.sql('SET python_enable_replacements = FALSE')
+
         yield conn

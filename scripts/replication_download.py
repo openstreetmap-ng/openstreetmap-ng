@@ -3,12 +3,11 @@ import gc
 import gzip
 import logging
 from asyncio import sleep
-from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from time import monotonic
-from typing import Any, Literal
+from typing import Literal
 
 import cython
 import orjson
@@ -43,13 +42,13 @@ _FREQUENCY_MERGE_EVERY: dict[_Frequency, int] = {
     'day': 7,
 }
 
-_PARQUET_SCHEMA = pa.schema([
-    pa.field('sequence_id', pa.uint64()),
+_PARQUET_TMP_SCHEMA = pa.schema([
+    pa.field('parse_order', pa.uint64()),
     pa.field('changeset_id', pa.uint64()),
     pa.field('typed_id', pa.uint64()),
     pa.field('version', pa.uint64()),
     pa.field('visible', pa.bool_()),
-    pa.field('tags', pa.string()),
+    pa.field('tags', pa.map_(pa.string(), pa.string())),
     pa.field('point', pa.string()),
     pa.field(
         'members',
@@ -86,7 +85,8 @@ class ReplicaState:
     @staticmethod
     def default() -> 'ReplicaState':
         return ReplicaState(
-            sequence_number=0, created_at=datetime.fromtimestamp(0, UTC)
+            sequence_number=0,
+            created_at=datetime.fromtimestamp(0, UTC),
         )
 
 
@@ -211,11 +211,8 @@ def _parse_actions(
     writer: pq.ParquetWriter,
     actions: list[tuple[str, list[tuple[ElementType, dict]]]],
     *,
-    last_sequence_id: int,
     last_versioned_refs: list[tuple[TypedElementId, int]],
-    # HACK: faster lookup
-    orjson_dumps: Callable[[Any], bytes] = orjson.dumps,
-) -> tuple[int, list[tuple[TypedElementId, int]]]:
+) -> list[tuple[TypedElementId, int]]:
     """Parse OSM change actions and write them to parquet."""
     last_versioned_refs_set = set(last_versioned_refs)
     new_versioned_refs: list[tuple[TypedElementId, int]] = []
@@ -223,23 +220,23 @@ def _parse_actions(
     data: list[dict] = []
 
     def flush():
-        """Write accumulated data to parquet and clear buffer."""
+        """Write accumulated data to parquet and clear the buffer."""
         if data:
-            record_batch = pa.RecordBatch.from_pylist(data, schema=_PARQUET_SCHEMA)
+            record_batch = pa.RecordBatch.from_pylist(data, schema=_PARQUET_TMP_SCHEMA)
             writer.write_batch(record_batch, row_group_size=len(data))
             data.clear()
 
-    for action, elements_ in actions:
+    for action, action_value in actions:
         # Skip osmChange attributes
         if action[:1] == '@':
             continue
 
-        elements: list[tuple[ElementType, dict]] = elements_
-        element_type: str
+        elements: list[tuple[ElementType, dict]] = action_value
+        type: str
         element: dict
 
-        for element_type, element in elements:
-            typed_id = typed_element_id(element_type, element['@id'])
+        for type, element in elements:
+            typed_id = typed_element_id(type, element['@id'])
             version = element['@version']
 
             # Skip if it's a duplicate
@@ -255,53 +252,35 @@ def _parse_actions(
                 else None
             )
             point: str | None = None
-            members: list[dict]
+            members: list[tuple[TypedElementId, str | None]] | None = None
 
-            # Process by element type
-            if element_type == 'node':
-                members = []
-                if (
-                    (lon := element.get('@lon')) is not None  #
-                    and (lat := element.get('@lat')) is not None
-                ):
-                    point = compressible_geometry(Point(lon, lat)).wkb_hex
-            elif element_type == 'way':
-                members = (
-                    [
-                        {
-                            'typed_id': member['@ref'],
-                            'role': '',
-                        }
+            if type == 'node':
+                if (lon := element.get('@lon')) is not None:
+                    point = compressible_geometry(Point(lon, element['@lat'])).wkb_hex
+            elif type == 'way':
+                if (members_ := element.get('nd')) is not None:
+                    members = [(member['@ref'], None) for member in members_]
+            elif type == 'relation':
+                if (members_ := element.get('member')) is not None:
+                    members = [
+                        (
+                            typed_element_id(member['@type'], member['@ref']),
+                            member['@role'],
+                        )
                         for member in members_
                     ]
-                    if (members_ := element.get('nd')) is not None
-                    else []
-                )
-            elif element_type == 'relation':
-                members = (
-                    [
-                        {
-                            'typed_id': typed_element_id(
-                                member['@type'], member['@ref']
-                            ),
-                            'role': member['@role'],
-                        }
-                        for member in members_
-                    ]
-                    if (members_ := element.get('member')) is not None
-                    else []
-                )
             else:
-                raise NotImplementedError(f'Unsupported element type {element_type!r}')
+                raise NotImplementedError(f'Unsupported element type {type!r}')
 
-            last_sequence_id += 1
             data.append({
-                'sequence_id': last_sequence_id,
+                'parse_order': len(new_versioned_refs),
                 'changeset_id': element['@changeset'],
                 'typed_id': typed_id,
                 'version': version,
-                'visible': (tags is not None) or (point is not None) or bool(members),
-                'tags': orjson_dumps(tags).decode() if (tags is not None) else '{}',
+                'visible': (
+                    (tags is not None) or (point is not None) or (members is not None)
+                ),
+                'tags': tags,
                 'point': point,
                 'members': members,
                 'created_at': element['@timestamp'],
@@ -309,17 +288,17 @@ def _parse_actions(
                 'display_name': element.get('@user'),
             })
 
-        # Finish batch when we have accumulated enough data
-        if len(data) >= 1024 * 1024:
-            flush()
+            # Flush batch when we have accumulated enough data
+            if len(data) >= 1024 * 1024:
+                flush()
 
-    # Write any remaining data
+    # Flush any remaining data
     flush()
 
     if skipped_duplicates:
         logging.warning('Skipped %d duplicate elements', skipped_duplicates)
 
-    return last_sequence_id, new_versioned_refs
+    return new_versioned_refs
 
 
 @retry(timedelta(minutes=30))
@@ -362,29 +341,46 @@ async def _iterate(state: AppState) -> AppState:
 
     if isinstance(actions, dict):
         logging.info('Skipped empty osmChange')
-        last_sequence_id = state.last_sequence_id
         last_versioned_refs = []
     else:
         ts = monotonic()
+        tmp_path = remote_replica.path.with_name(f'.{remote_replica.path.name}.tmp')
+
+        # Parse actions and write to temporary file
         with pq.ParquetWriter(
-            remote_replica.path,
-            schema=_PARQUET_SCHEMA,
+            tmp_path,
+            schema=_PARQUET_TMP_SCHEMA,
             compression='lz4',
             write_statistics=False,
         ) as writer:
-            last_sequence_id, last_versioned_refs = _parse_actions(
+            last_versioned_refs = _parse_actions(
                 writer,
                 actions,
-                last_sequence_id=state.last_sequence_id,
                 last_versioned_refs=state.last_versioned_refs,
             )
+
+        # Use DuckDB to sort and assign sequence IDs
+        with duckdb_connect() as conn:
+            conn.sql(f"""
+            COPY (
+                SELECT
+                    {state.last_sequence_id} + ROW_NUMBER() OVER (
+                        ORDER BY created_at, parse_order
+                    )::UBIGINT AS sequence_id,
+                    * EXCLUDE (parse_order)
+                FROM read_parquet({tmp_path.as_posix()!r})
+            ) TO {remote_replica.path.as_posix()!r}
+            (COMPRESSION lz4, ROW_GROUP_SIZE_BYTES '128MB')
+            """)
+
+        tmp_path.unlink()
         tt = monotonic() - ts
         logging.info('Saved %d elements in %.1fs', len(last_versioned_refs), tt)
 
     return replace(
         state,
         last_replica=remote_replica,
-        last_sequence_id=last_sequence_id,
+        last_sequence_id=state.last_sequence_id + len(last_versioned_refs),
         last_versioned_refs=last_versioned_refs,
     )
 
