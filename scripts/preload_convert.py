@@ -11,9 +11,7 @@ from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
 from app.db import duckdb_connect
-from app.lib.compressible_geometry import (
-    point_to_compressible_wkb_hex,
-)
+from app.lib.compressible_geometry import point_to_compressible_wkb
 from app.lib.xmltodict import XMLToDict
 from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MAX,
@@ -33,7 +31,7 @@ _PLANET_SCHEMA = pa.schema([
     pa.field('version', pa.uint64()),
     pa.field('visible', pa.bool_()),
     pa.field('tags', pa.map_(pa.string(), pa.string())),
-    pa.field('point', pa.string()),
+    pa.field('point', pa.binary(21)),
     pa.field(
         'members',
         pa.list_(
@@ -53,7 +51,7 @@ NOTES_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osn.parquet')
 
 _NOTES_SCHEMA = pa.schema([
     pa.field('id', pa.uint64()),
-    pa.field('point', pa.string()),
+    pa.field('point', pa.binary(21)),
     pa.field(
         'comments',
         pa.list_(
@@ -111,12 +109,12 @@ def planet_worker(args: tuple[int, int, int]) -> None:
             if (tags_ := element.get('tag')) is not None
             else None
         )
-        point: str | None = None
+        point: bytes | None = None
         members: list[tuple[TypedElementId, str | None]] | None = None
 
         if type == 'node':
             if (lon := element.get('@lon')) is not None:
-                point = point_to_compressible_wkb_hex(lon, element['@lat'])
+                point = point_to_compressible_wkb(lon, element['@lat'])
         elif type == 'way':
             if (members_ := element.get('nd')) is not None:
                 members = [(member['@ref'], None) for member in members_]
@@ -268,7 +266,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
 
         data.append({
             'id': note['@id'],
-            'point': point_to_compressible_wkb_hex(note['@lon'], note['@lat']),
+            'point': point_to_compressible_wkb(note['@lon'], note['@lat']),
             'comments': comments,
             'created_at': note_created_at,
             'updated_at': note_updated_at,
@@ -400,7 +398,7 @@ def _write_element() -> None:
                     map_to_hstore(tags),
                     NULL
                 ) AS tags,
-                point,
+                hex(point) AS point,
                 IF(
                     members IS NOT NULL,
                     pg_array(list_transform(members, x -> x.typed_id)),
@@ -425,7 +423,7 @@ def _write_note() -> None:
         COPY (
             SELECT
                 id,
-                point,
+                hex(point) AS point,
                 created_at,
                 updated_at,
                 closed_at,

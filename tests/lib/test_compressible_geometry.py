@@ -5,7 +5,7 @@ from shapely import Point, points
 from app.config import GEO_COORDINATE_PRECISION
 from app.lib.compressible_geometry import (
     compressible_geometry,
-    point_to_compressible_wkb_hex,
+    point_to_compressible_wkb,
 )
 
 
@@ -36,5 +36,5 @@ def test_compressible_geometry():
         (6317.57327358, -12.164174127, '0101000000000000C292ADB840000090A10E5428C0'),
     ],
 )
-def test_point_to_compressible_wkb_hex(lon, lat, expected):
-    assert point_to_compressible_wkb_hex(lon, lat).upper() == expected
+def test_point_to_compressible_wkb(lon, lat, expected):
+    assert point_to_compressible_wkb(lon, lat).hex().upper() == expected

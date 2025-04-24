@@ -18,7 +18,7 @@ from starlette import status
 
 from app.config import OSM_REPLICATION_URL, REPLICATION_DIR
 from app.db import duckdb_connect
-from app.lib.compressible_geometry import point_to_compressible_wkb_hex
+from app.lib.compressible_geometry import point_to_compressible_wkb
 from app.lib.retry import retry
 from app.lib.sentry import SENTRY_REPLICATION_MONITOR
 from app.lib.xmltodict import XMLToDict
@@ -48,7 +48,7 @@ _PARQUET_TMP_SCHEMA = pa.schema([
     pa.field('version', pa.uint64()),
     pa.field('visible', pa.bool_()),
     pa.field('tags', pa.map_(pa.string(), pa.string())),
-    pa.field('point', pa.string()),
+    pa.field('point', pa.binary(21)),
     pa.field(
         'members',
         pa.list_(
@@ -252,12 +252,12 @@ def _parse_actions(
                 if (tags_ := element.get('tag')) is not None
                 else None
             )
-            point: str | None = None
+            point: bytes | None = None
             members: list[tuple[TypedElementId, str | None]] | None = None
 
             if type == 'node':
                 if (lon := element.get('@lon')) is not None:
-                    point = point_to_compressible_wkb_hex(lon, element['@lat'])
+                    point = point_to_compressible_wkb(lon, element['@lat'])
             elif type == 'way':
                 if (members_ := element.get('nd')) is not None:
                     members = [(member['@ref'], None) for member in members_]

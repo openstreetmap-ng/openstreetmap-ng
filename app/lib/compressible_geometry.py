@@ -59,7 +59,7 @@ _WKB_PREFIX = struct.pack('B', 1) + struct.pack('<I', 1)
 _COORDS_STRUCT = struct.Struct('<dd')
 
 
-def point_to_compressible_wkb_hex(lon: float, lat: float) -> str:
+def point_to_compressible_wkb(lon: float, lat: float) -> bytes:
     """Convert a coordinate pair to a compressible WKB hex format."""
     lon, lat = compressible_geometry(np.array([lon, lat], dtype=np.float64)).tolist()  # type: ignore
-    return (_WKB_PREFIX + _COORDS_STRUCT.pack(lon, lat)).hex()
+    return _WKB_PREFIX + _COORDS_STRUCT.pack(lon, lat)

@@ -84,7 +84,7 @@ def _process_element(header_only: bool) -> None:
                 map_to_hstore(tags),
                 NULL
             ) AS tags,
-            point,
+            hex(point) AS point,
             IF(
                 members IS NOT NULL,
                 pg_array(list_transform(members, x -> x.typed_id)),
