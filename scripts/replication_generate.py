@@ -167,10 +167,6 @@ async def _read_last_state(timespan: _TimeSpan, no_backfill: bool) -> _State:
 async def _wait_db_sync(next_timestamp: datetime) -> None:
     """Ensure database timestamp exceeds replication timestamp."""
     while True:
-        # Enforce commit visibility
-        async with db(True) as conn:
-            await conn.execute('LOCK TABLE element IN EXCLUSIVE MODE')
-
         async with (
             db() as conn,
             await conn.execute("""SELECT statement_timestamp()""") as r,
@@ -182,6 +178,10 @@ async def _wait_db_sync(next_timestamp: datetime) -> None:
             logging.warning('Database lagging: %.1fs, waiting...', delay)
             await asyncio.sleep(delay)
             continue
+
+        # Enforce commit visibility
+        async with db(True) as conn:
+            await conn.execute('LOCK TABLE element IN EXCLUSIVE MODE')
 
         logging.debug('Database in sync, proceeding')
         break
