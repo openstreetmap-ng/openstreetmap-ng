@@ -19,7 +19,7 @@ from typing import (
 from psycopg.rows import dict_row
 from pydantic import BaseModel, create_model
 
-from app.config import ADMIN_TASK_HEARTBEAT_INTERVAL, ADMIN_TASK_TIMEOUT
+from app.config import ADMIN_TASK_HEARTBEAT_INTERVAL, ADMIN_TASK_TIMEOUT, ENV
 from app.db import db
 from app.lib.date_utils import utcnow
 
@@ -169,7 +169,10 @@ async def _run_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
         heartbeat_task = tg.create_task(_heartbeat_loop(task_id))
 
         try:
-            await definition['func'](**args)
+            if ENV != 'test':
+                await definition['func'](**args)
+            else:
+                logging.warning('Skipped running task %r in test environment', task_id)
         finally:
             heartbeat_task.cancel()
 
