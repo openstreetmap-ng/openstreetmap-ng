@@ -151,19 +151,6 @@ async def _load_table(
         if proc is not None:
             proc.terminate()
 
-    async def element_postprocess():
-        async with db(True, autocommit=True) as conn:
-            key = 'element_version_idx'
-            print(f'Recreating index {key!r}')
-            await conn.execute(indexes.pop(key))
-            print('Updating table statistics')
-            await conn.execute('ANALYZE element')
-
-        print('Deduplicating elements')
-        await MigrationService.deduplicate_elements()
-        print('Marking latest elements')
-        await MigrationService.mark_latest_elements()
-
     async def note_comment_postprocess():
         async with db(True, autocommit=True) as conn:
             key = 'note_comment_note_id_idx'
@@ -176,11 +163,8 @@ async def _load_table(
         await MigrationService.delete_notes_without_comments()
 
     # Optional postprocessing
-    if mode == 'replication':
-        if table == 'element':
-            tg.create_task(element_postprocess())
-        elif table == 'note_comment':
-            tg.create_task(note_comment_postprocess())
+    if mode == 'replication' and table == 'note_comment':
+        tg.create_task(note_comment_postprocess())
 
     return indexes, constraints
 

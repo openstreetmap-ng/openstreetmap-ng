@@ -72,12 +72,17 @@ def _process_element(header_only: bool) -> None:
         """)
 
         query = f"""
+        WITH max_versions AS (
+            SELECT typed_id, MAX(version) AS version
+            FROM read_parquet({_PARQUET_PATHS!r})
+            GROUP BY typed_id
+        )
         SELECT
             sequence_id,
             changeset_id,
-            typed_id,
-            version,
-            FALSE AS latest,
+            e.typed_id,
+            e.version,
+            (e.version = mv.version) AS latest,
             visible,
             IF(
                 tags IS NOT NULL,
@@ -92,12 +97,13 @@ def _process_element(header_only: bool) -> None:
             ) AS members,
             IF(
                 members IS NOT NULL
-                AND typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
+                AND e.typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
                 pg_array(list_transform(members, x -> quote(x.role))),
                 NULL
             ) AS members_roles,
             created_at
-        FROM read_parquet({_PARQUET_PATHS!r})
+        FROM read_parquet({_PARQUET_PATHS!r}) e
+        JOIN max_versions mv ON e.typed_id = mv.typed_id
         """
 
         if header_only:
