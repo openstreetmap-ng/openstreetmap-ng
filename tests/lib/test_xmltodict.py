@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 import pytest
+from lxml.etree import CDATA
 
 from app.lib.xmltodict import XMLToDict, get_xattr
 
@@ -86,6 +87,10 @@ def test_xml_parse(input, expected):
         (
             {'root': {'#text': '<span>/user/小智智/traces/10908782</span>'}},
             "<?xml version='1.0' encoding='UTF-8'?>\n<root>&lt;span&gt;/user/小智智/traces/10908782&lt;/span&gt;</root>",
+        ),
+        (
+            {'root': {'#text': CDATA('<hello>')}},
+            "<?xml version='1.0' encoding='UTF-8'?>\n<root><![CDATA[<hello>]]></root>",
         ),
         (
             {'root': []},
