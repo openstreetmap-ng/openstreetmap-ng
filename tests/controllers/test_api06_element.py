@@ -94,7 +94,7 @@ async def test_element_crud(client: AsyncClient):
     r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
     assert r.is_success, r.text
 
-    action, ((type, node),) = XMLToDict.parse(r.content)['osmChange'][-1]  # type: ignore
+    action, ((type, node),) = XMLToDict.parse(r.content)['osmChange'][0]  # type: ignore
     assert action == 'create'
     assert type == 'node'
     assert_model(
@@ -156,7 +156,7 @@ async def test_element_crud(client: AsyncClient):
     r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
     assert r.is_success, r.text
 
-    action, ((type, node),) = XMLToDict.parse(r.content)['osmChange'][-1]  # type: ignore
+    action, ((type, node),) = XMLToDict.parse(r.content)['osmChange'][1]  # type: ignore
     assert action == 'modify'
     assert type == 'node'
     assert_model(
@@ -217,7 +217,7 @@ async def test_element_crud(client: AsyncClient):
     r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
     assert r.is_success, r.text
 
-    action, ((type, node),) = XMLToDict.parse(r.content)['osmChange'][-1]  # type: ignore
+    action, ((type, node),) = XMLToDict.parse(r.content)['osmChange'][2]  # type: ignore
     assert action == 'delete'
     assert_model(
         node,
