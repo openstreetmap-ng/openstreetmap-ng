@@ -38,7 +38,7 @@ class XMLToDict:
         _PARSER.feed(xml_bytes)
         root = _PARSER.close()
         k = _strip_namespace(root.tag)
-        v = _parse_element(k, root)
+        v = _parse_element(k, root, {})
 
         if not isinstance(v, (dict, list)):
             raise_for.bad_xml(k, f'XML contains only text: {v}', xml_bytes)
@@ -172,6 +172,7 @@ def _parse_element(
     element_tag_strip: str,
     element: '_Element',
     /,
+    attr_cache: dict[str, str],
     *,
     value_postprocessor: dict[str, Callable[[str], Any]] = _VALUE_POSTPROCESSOR,
     force_sequence_root: set[str] = _FORCE_SEQUENCE_ROOT,
@@ -182,7 +183,15 @@ def _parse_element(
 
     # parse attributes
     parsed: dict[str, Any | list[Any]] = {
-        '@' + k: call(v) if (call := value_postprocessor.get(k)) is not None else v  # type: ignore
+        (
+            k_
+            if (k_ := attr_cache.get(k)) is not None  # type: ignore
+            else attr_cache.setdefault(k, '@' + k)  # type: ignore
+        ): (
+            call(v)  # type: ignore
+            if (call := value_postprocessor.get(k)) is not None  # type: ignore
+            else v
+        )
         for k, v in element.attrib.items()
     }
 
@@ -191,7 +200,7 @@ def _parse_element(
 
     for child in element:
         k = _strip_namespace(child.tag)
-        v = _parse_element(k, child)
+        v = _parse_element(k, child, attr_cache)
 
         # in sequence mode, return root element as list
         if k in force_sequence_root:
@@ -303,8 +312,7 @@ def _xattr_xml(name: str, xml: str | None = None) -> str:
 def get_xattr(*, is_json: bool | None = None) -> _XAttrCallable:
     """
     Return a function to format attribute names.
-
-    If is_json is None (default), then the current format is detected.
+    If is_json is None, then the current format is detected.
     """
     return (
         _xattr_json
