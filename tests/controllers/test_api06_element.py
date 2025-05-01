@@ -1,3 +1,5 @@
+from typing import Any
+
 from annotated_types import Gt, Len
 from httpx import AsyncClient
 from starlette import status
@@ -6,6 +8,12 @@ from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.format import Format06
 from app.lib.xmltodict import XMLToDict
 from tests.utils.assert_model import assert_model
+
+
+def _strip_osmchange_attrs(
+    osmchange: list[tuple[str, Any]],
+) -> list[tuple[str, Any]]:
+    return [(action, value) for action, value in osmchange if action[:1] != '@']
 
 
 async def test_element_crud(client: AsyncClient):
@@ -94,7 +102,9 @@ async def test_element_crud(client: AsyncClient):
     r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
     assert r.is_success, r.text
 
-    action, ((type, node),) = XMLToDict.parse(r.content)['osmChange'][0]  # type: ignore
+    action, ((type, node),) = _strip_osmchange_attrs(
+        XMLToDict.parse(r.content)['osmChange']  # type: ignore
+    )[-1]
     assert action == 'create'
     assert type == 'node'
     assert_model(
@@ -156,7 +166,9 @@ async def test_element_crud(client: AsyncClient):
     r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
     assert r.is_success, r.text
 
-    action, ((type, node),) = XMLToDict.parse(r.content)['osmChange'][1]  # type: ignore
+    action, ((type, node),) = _strip_osmchange_attrs(
+        XMLToDict.parse(r.content)['osmChange']  # type: ignore
+    )[-1]
     assert action == 'modify'
     assert type == 'node'
     assert_model(
@@ -217,7 +229,9 @@ async def test_element_crud(client: AsyncClient):
     r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
     assert r.is_success, r.text
 
-    action, ((type, node),) = XMLToDict.parse(r.content)['osmChange'][2]  # type: ignore
+    action, ((type, node),) = _strip_osmchange_attrs(
+        XMLToDict.parse(r.content)['osmChange']  # type: ignore
+    )[-1]
     assert action == 'delete'
     assert_model(
         node,
