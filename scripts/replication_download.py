@@ -94,7 +94,6 @@ class AppState:
     frequency: _Frequency
     last_replica: ReplicaState
     last_sequence_id: int
-    last_versioned_refs: list[tuple[TypedElementId, int]]
 
     @property
     def next_replica(self) -> 'ReplicaState':
@@ -185,7 +184,6 @@ def _load_app_state():
             frequency='day',
             last_replica=ReplicaState.default(),
             last_sequence_id=0,
-            last_versioned_refs=[],
         )
 
     # Fixup types
@@ -193,9 +191,6 @@ def _load_app_state():
         data['last_replica']['created_at']
     )
     data['last_replica'] = ReplicaState(**data['last_replica'])
-    data['last_versioned_refs'] = [
-        (typed_id, version) for typed_id, version in data['last_versioned_refs']
-    ]
     return AppState(**data)
 
 
@@ -211,13 +206,9 @@ def _save_app_state(state: AppState):
 def _parse_actions(
     writer: pq.ParquetWriter,
     actions: list[tuple[str, list[tuple[ElementType, dict]]]],
-    *,
-    last_versioned_refs: list[tuple[TypedElementId, int]],
-) -> list[tuple[TypedElementId, int]]:
+) -> int:
     """Parse OSM change actions and write them to parquet."""
-    last_versioned_refs_set = set(last_versioned_refs)
-    new_versioned_refs: list[tuple[TypedElementId, int]] = []
-    skipped_duplicates: cython.ulonglong = 0
+    parse_order: cython.Py_ssize_t = -1
     data: list[dict] = []
 
     def flush():
@@ -236,16 +227,9 @@ def _parse_actions(
         type: str
         element: dict
 
-        for type, element in elements:
+        for parse_order, (type, element) in enumerate(elements, parse_order + 1):  # noqa: B020
             typed_id = typed_element_id(type, element['@id'])
             version = element['@version']
-
-            # Skip if it's a duplicate
-            ref = (typed_id, version)
-            if ref in last_versioned_refs_set:
-                skipped_duplicates += 1
-                continue
-            new_versioned_refs.append(ref)
 
             tags = (
                 {tag['@k']: tag['@v'] for tag in tags_}
@@ -274,7 +258,7 @@ def _parse_actions(
                 raise NotImplementedError(f'Unsupported element type {type!r}')
 
             data.append({
-                'parse_order': len(new_versioned_refs),
+                'parse_order': parse_order,
                 'changeset_id': element['@changeset'],
                 'typed_id': typed_id,
                 'version': version,
@@ -296,10 +280,7 @@ def _parse_actions(
     # Flush any remaining data
     flush()
 
-    if skipped_duplicates:
-        logging.warning('Skipped %d duplicate elements', skipped_duplicates)
-
-    return new_versioned_refs
+    return parse_order + 1
 
 
 @retry(timedelta(minutes=30))
@@ -343,7 +324,7 @@ async def _iterate(state: AppState) -> AppState:
 
     if isinstance(actions, dict):
         logging.info('Skipped empty osmChange')
-        last_versioned_refs = []
+        num_rows = 0
     else:
         ts = monotonic()
         tmp_path = remote_replica.path.with_name(f'.{remote_replica.path.name}.tmp')
@@ -358,12 +339,13 @@ async def _iterate(state: AppState) -> AppState:
                 _PARQUET_TMP_SCHEMA, [('parse_order', 'ascending')]
             ),
         ) as writer:
-            last_versioned_refs = _parse_actions(
-                writer,
-                actions,
-                last_versioned_refs=state.last_versioned_refs,
-            )
+            num_rows = _parse_actions(writer, actions)
+            assert num_rows > 0
             del actions  # free memory
+
+        tt = monotonic() - ts
+        logging.info('Parsed %d elements in %.1fs', num_rows, tt)
+        ts = monotonic()
 
         # Use DuckDB to sort and assign sequence IDs
         with duckdb_connect() as conn:
@@ -381,13 +363,12 @@ async def _iterate(state: AppState) -> AppState:
 
         tmp_path.unlink()
         tt = monotonic() - ts
-        logging.info('Saved %d elements in %.1fs', len(last_versioned_refs), tt)
+        logging.info('Assigned sequence IDs in %.1fs', tt)
 
     return replace(
         state,
         last_replica=remote_replica,
-        last_sequence_id=state.last_sequence_id + len(last_versioned_refs),
-        last_versioned_refs=last_versioned_refs,
+        last_sequence_id=state.last_sequence_id + num_rows,
     )
 
 
