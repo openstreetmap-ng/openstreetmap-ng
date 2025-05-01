@@ -339,6 +339,7 @@ async def _iterate(state: AppState) -> AppState:
         break
 
     actions = XMLToDict.parse(gzip.decompress(r.content), size_limit=None)['osmChange']
+    del r  # free memory
 
     if isinstance(actions, dict):
         logging.info('Skipped empty osmChange')
@@ -362,6 +363,7 @@ async def _iterate(state: AppState) -> AppState:
                 actions,
                 last_versioned_refs=state.last_versioned_refs,
             )
+            del actions  # free memory
 
         # Use DuckDB to sort and assign sequence IDs
         with duckdb_connect() as conn:

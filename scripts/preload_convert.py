@@ -97,8 +97,7 @@ def planet_worker(args: tuple[int, int, int]) -> None:
 
     elements: list[tuple[ElementType, dict]]
     elements = XMLToDict.parse(input_buffer, size_limit=None)['osm']  # type: ignore
-    # free memory
-    del input_buffer
+    del input_buffer  # free memory
 
     type: str
     element: dict
@@ -229,8 +228,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
 
     notes: list[dict]
     notes = XMLToDict.parse(input_buffer, size_limit=None)['osm-notes']['note']  # type: ignore
-    # free memory
-    del input_buffer
+    del input_buffer  # free memory
 
     note: dict
     for note in notes:
