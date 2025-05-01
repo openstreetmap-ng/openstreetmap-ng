@@ -344,7 +344,7 @@ async def _iterate(state: AppState) -> AppState:
             del actions  # free memory
 
         tt = monotonic() - ts
-        logging.info('Parsed %d elements in %.1fs', num_rows, tt)
+        logging.info('Processed %d elements in %.1fs', num_rows, tt)
         ts = monotonic()
 
         # Use DuckDB to sort and assign sequence IDs
