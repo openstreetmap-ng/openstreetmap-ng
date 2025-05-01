@@ -353,6 +353,9 @@ async def _iterate(state: AppState) -> AppState:
             schema=_PARQUET_TMP_SCHEMA,
             compression='lz4',
             write_statistics=False,
+            sorting_columns=pq.SortingColumn.from_ordering(
+                _PARQUET_TMP_SCHEMA, [('parse_order', 'ascending')]
+            ),
         ) as writer:
             last_versioned_refs = _parse_actions(
                 writer,
