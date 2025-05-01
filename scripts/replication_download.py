@@ -374,7 +374,7 @@ async def _iterate(state: AppState) -> AppState:
                     * EXCLUDE (parse_order)
                 FROM read_parquet({tmp_path.as_posix()!r})
             ) TO {remote_replica.path.as_posix()!r}
-            (COMPRESSION lz4, ROW_GROUP_SIZE_BYTES '128MB')
+            (COMPRESSION lz4_raw)
             """)
 
         tmp_path.unlink()

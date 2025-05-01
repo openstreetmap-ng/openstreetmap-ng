@@ -71,7 +71,7 @@ _NOTES_SCHEMA = pa.schema([
 ])
 
 _NUM_WORKERS = calc_num_workers()
-_TASK_SIZE = 64 * 1024 * 1024  # 64MB
+_TASK_SIZE = 64 * 1024 * 1024  # 64 MB
 
 
 @cython.cfunc
