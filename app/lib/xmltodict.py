@@ -170,7 +170,7 @@ def _strip_namespace(tag: str) -> str:
 @cython.cfunc
 def _parse_element(
     element_tag_strip: str,
-    element: _Element,
+    element: '_Element',
     /,
     *,
     value_postprocessor: dict[str, Callable[[str], Any]] = _VALUE_POSTPROCESSOR,
@@ -229,7 +229,7 @@ def _parse_element(
 
 
 @cython.cfunc
-def _unparse_element(key: str, value: Any) -> list[_Element]:
+def _unparse_element(key: str, value: Any) -> list['_Element']:
     k: str
     v: Any
 
