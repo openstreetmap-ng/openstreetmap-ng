@@ -18,7 +18,6 @@ async def test_iterate():
         frequency='hour',
         last_replica=ReplicaState.default(),
         last_sequence_id=0,
-        last_versioned_refs=[],
     )
 
     # Iterate once
@@ -39,4 +38,3 @@ async def test_iterate():
     # Verify state was updated
     assert state.frequency == 'hour'
     assert state.last_sequence_id == 156829
-    assert len(state.last_versioned_refs) == 156829
