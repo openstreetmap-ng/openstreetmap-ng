@@ -501,6 +501,7 @@ let
       args=(
         --verbose
         --no-header
+        --randomly-seed="$(date +%s)"
       )
 
       for arg in "$@"; do
@@ -515,7 +516,7 @@ let
       done
 
       set +e
-      python -m coverage run -m pytest "''${args[@]}"
+      (set -x; python -m coverage run -m pytest "''${args[@]}")
       result=$?
       set -e
 
