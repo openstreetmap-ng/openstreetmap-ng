@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Literal, Protocol, overload
 
 import cython
-from lxml.etree import CDATA, Element, XMLParser, tostring
+from lxml.etree import CDATA, XMLParser, tostring
 from sizestr import sizestr
 
 from app.config import XML_PARSE_MAX_SIZE
@@ -40,10 +40,10 @@ class XMLToDict:
         k = _strip_namespace(root.tag)
         v = _parse_element(k, root, {})
 
-        if not isinstance(v, (dict, list)):
+        if (t := type(v)) is not dict and t is not list:
             raise_for.bad_xml(k, f'XML contains only text: {v}', xml_bytes)
 
-        return {k: v}
+        return {k: v}  # type: ignore
 
     @staticmethod
     @overload
@@ -60,15 +60,12 @@ class XMLToDict:
         if len(d) != 1:
             raise ValueError(f'Invalid root element count {len(d)}')
 
-        root_k, root_v = next(iter(d.items()))
-        elements = _unparse_element(root_k, root_v)
-        root_element = next(iter(elements), None)
+        k, v = next(iter(d.items()))
+        dummy = _PARSER.makeelement('dummy')
+        _unparse_element(dummy, k, v, {})
+        root = e if (e := next(iter(dummy), None)) is not None else dummy.makeelement(k)
 
-        # always return the root element, even if it's empty
-        if root_element is None:
-            root_element = Element(root_k)
-
-        result = tostring(root_element, encoding='UTF-8', xml_declaration=True)
+        result = tostring(root, encoding='UTF-8', xml_declaration=True)
         logging.debug('Unparsed %s XML string', sizestr(len(result)))
         return result if raw else result.decode()
 
@@ -100,6 +97,12 @@ _FORCE_LIST: set[str] = {
 
 
 @cython.cfunc
+def _strip_namespace(tag: str) -> str:
+    return tag.rsplit('}', 1)[-1] if tag[0] == '{' else tag
+
+
+@cython.cfunc
+@cython.exceptval(check=False)
 def _parse_xml_bool(value: str):
     return value == 'true'
 
@@ -144,11 +147,26 @@ _VALUE_POSTPROCESSOR: dict[str, Callable[[str], Any]] = {
 
 
 @cython.cfunc
-def _to_string(v: Any):
-    if isinstance(v, (str, CDATA)):
+def _to_string(
+    v: Any,
+    *,
+    datetime=datetime,
+    UTC=UTC,  # noqa: N803
+    CDATA=CDATA,  # noqa: N803
+):
+    if v is True:
+        return 'true'
+    if v is False:
+        return 'false'
+    if v is None:
+        return ''
+
+    t = type(v)
+
+    if t is str or t is CDATA:
         return v
 
-    if isinstance(v, datetime):
+    if t is datetime:
         # strip timezone for backwards-compatible format
         tzinfo = v.tzinfo
         if tzinfo is not None:
@@ -156,15 +174,7 @@ def _to_string(v: Any):
             v = v.replace(tzinfo=None)
         return v.isoformat() + 'Z'
 
-    if isinstance(v, bool):
-        return 'true' if v is True else 'false'
-
     return str(v)
-
-
-@cython.cfunc
-def _strip_namespace(tag: str) -> str:
-    return tag.rsplit('}', 1)[-1] if tag[0] == '{' else tag
 
 
 @cython.cfunc
@@ -211,7 +221,7 @@ def _parse_element(
 
         # merge with existing value
         elif (parsed_v := parsed.get(k)) is not None:
-            if isinstance(parsed_v, list):
+            if type(parsed_v) is list:
                 parsed_v.append(v)
             else:
                 # upgrade from single value to list
@@ -238,63 +248,107 @@ def _parse_element(
 
 
 @cython.cfunc
-def _unparse_element(key: str, value: Any) -> list['_Element']:
+def _unparse_scalar(parent: '_Element', key: str, value: Any):
+    element = parent.makeelement(key)
+    element.text = _to_string(value)
+    parent.append(element)
+
+
+@cython.cfunc
+def _unparse_item(
+    element: '_Element',
+    k: str,
+    v: Any,
+    attr: list[tuple[str, str]],
+    /,
+    attr_cache: dict[str, str],
+):
+    kc = k[0]
+    if kc == '@':
+        attr.append((
+            (
+                k_
+                if (k_ := attr_cache.get(k)) is not None
+                else attr_cache.setdefault(k, k[1:])
+            ),
+            _to_string(v),
+        ))
+    elif kc == '#' and k == '#text':
+        element.text = _to_string(v)
+    else:
+        _unparse_element(element, k, v, attr_cache)
+
+
+@cython.cfunc
+def _unparse_dict(
+    parent: '_Element',
+    key: str,
+    value: dict[str, Any],
+    /,
+    attr_cache: dict[str, str],
+):
+    element = parent.makeelement(key)
+    parent.append(element)
+    attr: list[tuple[str, str]] = []
+
+    for k, v in value.items():
+        _unparse_item(element, k, v, attr, attr_cache)
+
+    if attr:
+        element.attrib.update(attr)
+
+
+@cython.cfunc
+def _unparse_element(
+    parent: '_Element',
+    key: str,
+    value: Any,
+    /,
+    attr_cache: dict[str, str],
+):
     k: str
     v: Any
+    t = type(value)
 
-    # encode dict
-    if isinstance(value, dict):
-        element = Element(key)
-        element_attrib = element.attrib  # read property once for performance
-        element_extend = element.extend
-        for k, v in value.items():
-            if k[0] == '@':
-                element_attrib[k[1:]] = _to_string(v)
-            elif k == '#text':
-                element.text = _to_string(v)
-            else:
-                element_extend(_unparse_element(k, v))
-        return [element]
+    # Encode dict
+    if t is dict:
+        _unparse_dict(parent, key, value, attr_cache)
 
-    # encode sequence of ...
-    elif isinstance(value, (list, tuple)):
+    # Encode sequence of ...
+    elif t is list or t is tuple:
         if not value:
-            return []
-        first = value[0]
+            return
 
-        # encode sequence of dicts
-        if isinstance(first, dict):
-            return [e for v in value for e in _unparse_element(key, v)]
+        tuples_element: _Element | None = None
+        tuples_attr: list[tuple[str, str]] | None = None
 
-        # encode sequence of (key, value) tuples
-        elif isinstance(first, (list, tuple)):
-            element = Element(key)
-            element_attrib = element.attrib  # read property once for performance
-            element_extend = element.extend
-            for k, v in value:
-                if k[0] == '@':
-                    element_attrib[k[1:]] = _to_string(v)
-                elif k == '#text':
-                    element.text = _to_string(v)
-                else:
-                    element_extend(_unparse_element(k, v))
-            return [element]
+        for v in value:
+            vt = type(v)
 
-        # encode sequence of scalars
-        else:
-            result: list[_Element] = [None] * len(value)  # type: ignore
-            i: cython.Py_ssize_t
-            for i, v in enumerate(value):
-                element = Element(key)
-                element.text = _to_string(v)
-                result[i] = element
-            return result
+            # ... dicts
+            if vt is dict:
+                _unparse_dict(parent, key, v, attr_cache)
 
-    # encode scalar
+            # ... (key, value) tuples
+            elif vt is tuple or vt is list:
+                if tuples_element is None:
+                    tuples_element = parent.makeelement(key)
+                    tuples_attr = []
+                    parent.append(tuples_element)
+
+                k, v = v
+                _unparse_item(tuples_element, k, v, tuples_attr, attr_cache)  # type: ignore
+
+            # ... scalars
+            else:
+                _unparse_scalar(parent, key, v)
+
+        if tuples_attr:
+            tuples_element.attrib.update(tuples_attr)  # type: ignore
+
+    # Encode scalar
     else:
-        element = Element(key)
-        element.text = _to_string(value)
-        return [element]
+        _unparse_scalar(parent, key, value)
 
 
 class _XAttrCallable(Protocol):

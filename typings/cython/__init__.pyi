@@ -6,5 +6,6 @@ from Cython.Shadow import *  # noqa: F403
 _Callable = TypeVar('_Callable', bound=Callable)
 
 def cfunc(func: _Callable) -> _Callable: ...
+def exceptval(*, check: bool) -> Callable[[_Callable], _Callable]: ...
 
 compiled: bool
