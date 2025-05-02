@@ -188,9 +188,6 @@ def _parse_element(
     force_sequence_root: set[str] = _FORCE_SEQUENCE_ROOT,
     force_list: set[str] = _FORCE_LIST,
 ):
-    k: str
-    v: Any
-
     # parse attributes
     parsed: dict[str, Any | list[Any]] = {
         (
@@ -306,8 +303,6 @@ def _unparse_element(
     /,
     attr_cache: dict[str, str],
 ):
-    k: str
-    v: Any
     t = type(value)
 
     # Encode dict
