@@ -90,15 +90,19 @@ async def _gather_table_constraints(table: str) -> dict[tuple[str, str], SQL]:
 
 
 async def _load_table(
-    mode: _Mode, table: str, tg: TaskGroup
-) -> tuple[dict[str, SQL], dict[tuple[str, str], SQL]]:
+    mode: _Mode,
+    table: str,
+    indexes: dict[str, SQL],
+    constraints: dict[tuple[str, str], SQL],
+    tg: TaskGroup,
+) -> None:
     if mode == 'preload' or table in {'note', 'note_comment'}:
         path = _get_csv_path(table)
 
         # Replication supports optional data files
         if mode == 'replication' and not path.is_file():
             print(f'Skipped loading {table} table (source file not found)')
-            return {}, {}
+            return
 
         copy_paths = [path.absolute().as_posix()]
         header = _get_csv_header(path)
@@ -108,24 +112,29 @@ async def _load_table(
         proc = await create_subprocess_shell(f'{program} --header-only', stdout=PIPE)
         header = (await proc.communicate())[0].decode().strip()
 
-    indexes = await _gather_table_indexes(table)
-    assert indexes, f'No indexes found for {table} table'
-    constraints = await _gather_table_constraints(table)
+    this_indexes = await _gather_table_indexes(table)
+    assert this_indexes, f'No indexes found for {table} table'
+    indexes.update(this_indexes)
+    this_constraints = await _gather_table_constraints(table)
+    constraints.update(this_constraints)
 
     # Drop constraints and indexes before loading
-    print(f'Dropping {len(indexes)} indexes: {indexes!r}')
-    print(f'Dropping {len(constraints)} constraints: {constraints!r}')
+    print(f'Dropping {len(this_indexes)} indexes: {this_indexes!r}')
+    print(f'Dropping {len(this_constraints)} constraints: {this_constraints!r}')
     async with db(True, autocommit=True) as conn:
         await conn.execute(
-            SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes)))
+            SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, this_indexes)))
         )
 
-        for _, name in constraints:
+        for _, name in this_constraints:
             await conn.execute(
                 SQL('ALTER TABLE {} DROP CONSTRAINT {}').format(
                     Identifier(table), Identifier(name)
                 )
             )
+
+    # Delete variables to avoid accidental use
+    del this_indexes, this_constraints
 
     # Load the data
     columns = [f'"{c}"' for c in header.split(',')]
@@ -166,8 +175,6 @@ async def _load_table(
     if mode == 'replication' and table == 'note_comment':
         tg.create_task(note_comment_postprocess())
 
-    return indexes, constraints
-
 
 async def _load_tables(mode: _Mode) -> None:
     tables = ['user', 'changeset', 'element', 'note', 'note_comment']
@@ -185,9 +192,7 @@ async def _load_tables(mode: _Mode) -> None:
 
     async with TaskGroup() as tg:
         for table in tables:
-            new_indexes, new_constraints = await _load_table(mode, table, tg)
-            indexes.update(new_indexes)
-            constraints.update(new_constraints)
+            await _load_table(mode, table, indexes, constraints, tg)
 
     print(f'Recreating {len(indexes)} indexes and {len(constraints)} constraints')
     async with TaskGroup() as tg:
