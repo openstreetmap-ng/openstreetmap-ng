@@ -103,8 +103,7 @@ def _process_element_worker(
         logging.info('[thr_%d] Optimizing sqlite database', thread_id)
         conn.execute('PRAGMA optimize')
 
-        logging.info('[thr_%d] Database is ready', thread_id)
-
+    logging.info('[thr_%d] Database is ready', thread_id)
     return sqlite_db
 
 
