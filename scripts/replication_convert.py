@@ -1,13 +1,17 @@
+import asyncio
 import logging
 from argparse import ArgumentParser
-from tempfile import NamedTemporaryFile
+from asyncio import TaskGroup, to_thread
+from pathlib import Path
+from tempfile import mktemp
 
-from app.config import REPLICATION_DIR, SQLITE_TMPDIR
+from app.config import REPLICATION_DIR
 from app.db import duckdb_connect, sqlite_connect
 from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MAX,
     TYPED_ELEMENT_ID_RELATION_MIN,
 )
+from app.utils import calc_num_workers
 from scripts.preload_convert import NOTES_PARQUET_PATH
 
 _PARQUET_PATHS = [
@@ -46,65 +50,101 @@ def _process_changeset(header_only: bool) -> None:
         conn.sql(query).write_csv('/dev/stdout')
 
 
-def _process_element(header_only: bool) -> None:
-    with NamedTemporaryFile(
-        prefix='osm-ng-sqlite-mv-',
-        suffix='.db',
-        dir=SQLITE_TMPDIR,
-        delete_on_close=False,
-    ) as f:
-        f.close()
+def _process_element_worker(
+    header_only: bool,
+    sqlite_db: str,
+    *,
+    thread_id: int,
+    parallelism: int,
+):
+    thread_paths = _PARQUET_PATHS[thread_id::parallelism]
+    assert thread_paths
+    sqlite_db += f'.{thread_id}'
 
-        with sqlite_connect(f.name, unsafe_faster=True) as conn:
-            conn.execute("""
-            CREATE TABLE typed_id_version
-            (typed_id INTEGER, version INTEGER)
-            """)
+    with sqlite_connect(sqlite_db, unsafe_faster=True) as conn:
+        conn.execute("""
+        CREATE TABLE typed_id_version
+        (typed_id INTEGER, version INTEGER)
+        """)
 
-        with duckdb_connect(progress=False) as conn:
-            logging.debug('Installing sqlite duckdb extension')
-            conn.sql('INSTALL sqlite')
-
-            conn.sql('LOAD sqlite')
-            conn.sql(f'ATTACH {f.name!r} AS sqlite (TYPE sqlite)')
-
-            if not header_only:
-                logging.info('Populating sqlite.typed_id_version')
-                conn.sql(f"""
-                INSERT INTO sqlite.typed_id_version
-                SELECT typed_id, version
-                FROM read_parquet({_PARQUET_PATHS!r})
-                """)
-
-        with sqlite_connect(f.name, unsafe_faster=True) as conn:
-            conn.execute("""
-            CREATE TABLE mv
-            (typed_id INTEGER, version INTEGER)
-            """)
-
-            logging.info('Populating sqlite.mv')
-            conn.execute("""
-            INSERT INTO mv
-            SELECT typed_id, MAX(version) AS version
-            FROM typed_id_version
-            GROUP BY typed_id
-            """)
-
-            logging.info('Cleaning sqlite database')
-            conn.execute('DROP TABLE typed_id_version')
-            conn.execute('VACUUM')
-
-            logging.info('Building sqlite.mv index')
-            conn.execute('CREATE INDEX mv_idx ON mv (typed_id)')
-
-            logging.info('Optimizing sqlite database')
-            conn.execute('PRAGMA optimize')
-
-            logging.info('SQLite database is ready')
-
+    if not header_only:
         with duckdb_connect(progress=False) as conn:
             conn.sql('LOAD sqlite')
-            conn.sql(f'ATTACH {f.name!r} AS sqlite (TYPE sqlite)')
+            conn.sql(f'ATTACH {sqlite_db!r} AS sqlite (TYPE sqlite)')
+
+            logging.info('[thr_%d] Populating sqlite.typed_id_version', thread_id)
+            conn.sql(f"""
+            INSERT INTO sqlite.typed_id_version
+            SELECT typed_id, version
+            FROM read_parquet({thread_paths!r})
+            """)
+
+    with sqlite_connect(sqlite_db, unsafe_faster=True) as conn:
+        conn.execute("""
+        CREATE TABLE mv
+        (typed_id INTEGER, version INTEGER)
+        """)
+
+        logging.info('[thr_%d] Populating sqlite.mv', thread_id)
+        conn.execute("""
+        INSERT INTO mv
+        SELECT typed_id, MAX(version) AS version
+        FROM typed_id_version
+        GROUP BY typed_id
+        """)
+
+        logging.info('[thr_%d] Cleaning sqlite database', thread_id)
+        conn.execute('DROP TABLE typed_id_version')
+        conn.execute('VACUUM')
+
+        logging.info('[thr_%d] Building sqlite.mv index', thread_id)
+        conn.execute('CREATE INDEX mv_idx ON mv (typed_id)')
+
+        logging.info('[thr_%d] Optimizing sqlite database', thread_id)
+        conn.execute('PRAGMA optimize')
+
+        logging.info('[thr_%d] Database is ready', thread_id)
+
+    return sqlite_db
+
+
+async def _process_element(
+    header_only: bool,
+    *,
+    parallelism: int | float = 1.0,
+) -> None:
+    parallelism = min(calc_num_workers(parallelism), len(_PARQUET_PATHS))
+
+    with duckdb_connect(progress=False) as conn:
+        logging.debug('Installing sqlite duckdb extension')
+        conn.sql('INSTALL sqlite')
+
+    sqlite_db_base = mktemp(prefix='osm-ng-sqlite-mv-', suffix='.db')  # noqa: S306
+
+    async with TaskGroup() as tg:
+        tasks = [
+            tg.create_task(
+                to_thread(
+                    _process_element_worker,
+                    header_only=header_only,
+                    sqlite_db=sqlite_db_base,
+                    thread_id=thread_id,
+                    parallelism=parallelism,
+                )
+            )
+            for thread_id in range(parallelism)
+        ]
+
+    sqlite_dbs = [t.result() for t in tasks]
+    logging.info('All worker threads completed')
+
+    try:
+        with duckdb_connect(progress=False) as conn:
+            conn.sql('LOAD sqlite')
+            for i, sqlite_db in enumerate(sqlite_dbs):
+                alias = f'sqlite{i}'
+                logging.debug('Attaching sqlite database %r as %r', sqlite_db, alias)
+                conn.sql(f'ATTACH {sqlite_db!r} AS {alias} (TYPE sqlite)')
 
             # Utility for escaping text
             conn.execute("""
@@ -136,7 +176,10 @@ def _process_element(header_only: bool) -> None:
                 changeset_id,
                 e.typed_id,
                 e.version,
-                (e.version = mv.version) AS latest,
+                (
+                    e.version =
+                    COALESCE({', '.join(f'mv{i}.version' for i in range(parallelism))})
+                ) AS latest,
                 visible,
                 IF(
                     tags IS NOT NULL,
@@ -151,19 +194,30 @@ def _process_element(header_only: bool) -> None:
                 ) AS members,
                 IF(
                     members IS NOT NULL
-                    AND e.typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
+                    AND e.typed_id BETWEEN
+                    {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
                     pg_array(list_transform(members, x -> quote(x.role))),
                     NULL
                 ) AS members_roles,
                 created_at
             FROM read_parquet({_PARQUET_PATHS!r}) e
-            JOIN sqlite.mv mv ON e.typed_id = mv.typed_id
+            {
+                '\n'.join(
+                    f'LEFT JOIN sqlite{i}.mv mv{i} ON e.typed_id = mv{i}.typed_id'
+                    for i in range(parallelism)
+                )
+            }
             """
 
             if header_only:
                 query += ' LIMIT 0'
 
             conn.sql(query).write_csv('/dev/stdout')
+
+    finally:
+        for sqlite_db in sqlite_dbs:
+            logging.debug('Removing sqlite database %r', sqlite_db)
+            Path(sqlite_db).unlink()
 
 
 def _process_user(header_only: bool) -> None:
@@ -219,7 +273,7 @@ def _process_user(header_only: bool) -> None:
         conn.sql(query).write_csv('/dev/stdout')
 
 
-def main() -> None:
+async def main() -> None:
     choices = ['changeset', 'element', 'user']
     parser = ArgumentParser()
     parser.add_argument('--header-only', action='store_true')
@@ -232,7 +286,7 @@ def main() -> None:
         case 'changeset':
             _process_changeset(args.header_only)
         case 'element':
-            _process_element(args.header_only)
+            await _process_element(args.header_only)
         case 'user':
             _process_user(args.header_only)
         case _:
@@ -240,4 +294,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
