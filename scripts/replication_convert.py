@@ -5,7 +5,7 @@ from asyncio import TaskGroup, to_thread
 from pathlib import Path
 from tempfile import mktemp
 
-from app.config import REPLICATION_DIR
+from app.config import REPLICATION_DIR, SQLITE_TMPDIR
 from app.db import duckdb_connect, sqlite_connect
 from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MAX,
@@ -118,7 +118,11 @@ async def _process_element(
         logging.debug('Installing sqlite duckdb extension')
         conn.sql('INSTALL sqlite')
 
-    sqlite_db_base = mktemp(prefix='osm-ng-sqlite-mv-', suffix='.db')  # noqa: S306
+    sqlite_db_base = mktemp(  # noqa: S306
+        prefix='osm-ng-sqlite-mv-',
+        suffix='.db',
+        dir=SQLITE_TMPDIR,
+    )
 
     async with TaskGroup() as tg:
         tasks = [
