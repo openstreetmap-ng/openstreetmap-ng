@@ -1,7 +1,9 @@
 import logging
+import sqlite3
 from collections.abc import Callable
 from contextlib import asynccontextmanager, contextmanager
 from functools import wraps
+from os import PathLike
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -15,7 +17,12 @@ from psycopg.types.enum import EnumInfo
 from psycopg.types.json import set_json_dumps, set_json_loads
 from psycopg_pool import AsyncConnectionPool
 
-from app.config import DUCKDB_MEMORY_LIMIT, DUCKDB_TMPDIR, POSTGRES_URL
+from app.config import (
+    DUCKDB_MEMORY_LIMIT,
+    DUCKDB_TMPDIR,
+    POSTGRES_URL,
+    SQLITE_CACHE_SIZE_GB,
+)
 from app.lib.register_hstore import register_hstore
 from app.lib.register_shapely import register_shapely
 from app.lib.register_string_enum import register_string_enum
@@ -166,5 +173,23 @@ def duckdb_connect(database: str | Path = ':memory:', *, progress: bool = True):
         # Disable replacement scans because they are bug-prone.
         # Use duckdb.register to register data explicitly.
         conn.sql('SET python_enable_replacements = FALSE')
+
+        yield conn
+
+
+@contextmanager
+def sqlite_connect(
+    database: str | bytes | PathLike[str] | PathLike[bytes] = ':memory:',
+    *,
+    unsafe_faster: bool = False,
+):
+    with sqlite3.connect(database, isolation_level=None) as conn:
+        for pragma, value in [
+            ('cache_size', int(-SQLITE_CACHE_SIZE_GB * 1024 * 1024)),
+            ('journal_mode', 'OFF' if unsafe_faster else 'WAL'),
+            ('synchronous', 'OFF' if unsafe_faster else 'NORMAL'),
+            ('foreign_keys', 'ON'),
+        ]:
+            conn.execute(f'PRAGMA {pragma} = {value}')
 
         yield conn

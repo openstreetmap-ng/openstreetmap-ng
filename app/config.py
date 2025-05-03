@@ -7,7 +7,14 @@ from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
 from githead import githead
-from pydantic import BeforeValidator, ConfigDict, Field, SecretBytes, SecretStr
+from pydantic import (
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    PositiveFloat,
+    SecretBytes,
+    SecretStr,
+)
 
 from app.lib.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
 from app.lib.pydantic_settings_integration import pydantic_settings_integration
@@ -73,6 +80,8 @@ TRACE_STORAGE_URI = 'db://trace'
 POSTGRES_URL = f'postgresql://postgres@/postgres?host={_validate_dir("data/postgres_unix")}&port=49560'
 DUCKDB_MEMORY_LIMIT = '8GB'
 DUCKDB_TMPDIR: str | None = None
+SQLITE_CACHE_SIZE_GB: PositiveFloat = 8
+SQLITE_TMPDIR: str | None = None
 
 # -------------------- API and Services Integration --------------------
 

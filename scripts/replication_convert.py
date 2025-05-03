@@ -1,8 +1,9 @@
 import logging
 from argparse import ArgumentParser
+from tempfile import NamedTemporaryFile
 
-from app.config import REPLICATION_DIR
-from app.db import duckdb_connect
+from app.config import REPLICATION_DIR, SQLITE_TMPDIR
+from app.db import duckdb_connect, sqlite_connect
 from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MAX,
     TYPED_ELEMENT_ID_RELATION_MIN,
@@ -46,70 +47,123 @@ def _process_changeset(header_only: bool) -> None:
 
 
 def _process_element(header_only: bool) -> None:
-    with duckdb_connect(progress=False) as conn:
-        # Utility for escaping text
-        conn.execute("""
-        CREATE MACRO quote(str) AS
-        '"' || replace(replace(str, '\\', '\\\\'), '"', '\\"') || '"'
-        """)
+    with NamedTemporaryFile(
+        prefix='osm-ng-sqlite-mv-',
+        suffix='.db',
+        dir=SQLITE_TMPDIR,
+        delete_on_close=False,
+    ) as f:
+        f.close()
 
-        # Convert map to Postgres-hstore format
-        conn.execute("""
-        CREATE MACRO map_to_hstore(m) AS
-        array_to_string(
-            list_transform(
-                map_entries(m),
-                entry -> quote(entry.key) || '=>' || quote(entry.value)
-            ),
-            ','
-        )
-        """)
+        with sqlite_connect(f.name, unsafe_faster=True) as conn:
+            conn.execute("""
+            CREATE TABLE typed_id_version
+            (typed_id INTEGER, version INTEGER)
+            """)
 
-        # Encode array in Postgres format
-        conn.execute("""
-        CREATE MACRO pg_array(arr) AS
-        '{' || array_to_string(arr, ',') || '}'
-        """)
+        with duckdb_connect(progress=False) as conn:
+            logging.debug('Installing sqlite duckdb extension')
+            conn.sql('INSTALL sqlite')
 
-        query = f"""
-        WITH max_versions AS (
+            conn.sql('LOAD sqlite')
+            conn.sql(f'ATTACH {f.name!r} AS sqlite (TYPE sqlite)')
+
+            if not header_only:
+                logging.info('Populating sqlite.typed_id_version')
+                conn.sql(f"""
+                INSERT INTO sqlite.typed_id_version
+                SELECT typed_id, version
+                FROM read_parquet({_PARQUET_PATHS!r})
+                """)
+
+        with sqlite_connect(f.name, unsafe_faster=True) as conn:
+            conn.execute("""
+            CREATE TABLE mv
+            (typed_id INTEGER, version INTEGER)
+            """)
+
+            logging.info('Populating sqlite.mv')
+            conn.execute("""
+            INSERT INTO mv
             SELECT typed_id, MAX(version) AS version
-            FROM read_parquet({_PARQUET_PATHS!r})
+            FROM typed_id_version
             GROUP BY typed_id
-        )
-        SELECT
-            sequence_id,
-            changeset_id,
-            e.typed_id,
-            e.version,
-            (e.version = mv.version) AS latest,
-            visible,
-            IF(
-                tags IS NOT NULL,
-                map_to_hstore(tags),
-                NULL
-            ) AS tags,
-            hex(point) AS point,
-            IF(
-                members IS NOT NULL,
-                pg_array(list_transform(members, x -> x.typed_id)),
-                NULL
-            ) AS members,
-            IF(
-                members IS NOT NULL
-                AND e.typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
-                pg_array(list_transform(members, x -> quote(x.role))),
-                NULL
-            ) AS members_roles,
-            created_at
-        FROM read_parquet({_PARQUET_PATHS!r}) e
-        JOIN max_versions mv ON e.typed_id = mv.typed_id
-        """
+            """)
 
-        if header_only:
-            query += ' LIMIT 0'
+            logging.info('Cleaning sqlite database')
+            conn.execute('DROP TABLE typed_id_version')
+            conn.execute('VACUUM')
 
-        conn.sql(query).write_csv('/dev/stdout')
+            logging.info('Building sqlite.mv index')
+            conn.execute('CREATE INDEX mv_idx ON mv (typed_id)')
+
+            logging.info('Optimizing sqlite database')
+            conn.execute('PRAGMA optimize')
+
+            logging.info('SQLite database is ready')
+
+        with duckdb_connect(progress=False) as conn:
+            conn.sql('LOAD sqlite')
+            conn.sql(f'ATTACH {f.name!r} AS sqlite (TYPE sqlite)')
+
+            # Utility for escaping text
+            conn.execute("""
+            CREATE MACRO quote(str) AS
+            '"' || replace(replace(str, '\\', '\\\\'), '"', '\\"') || '"'
+            """)
+
+            # Convert map to Postgres-hstore format
+            conn.execute("""
+            CREATE MACRO map_to_hstore(m) AS
+            array_to_string(
+                list_transform(
+                    map_entries(m),
+                    entry -> quote(entry.key) || '=>' || quote(entry.value)
+                ),
+                ','
+            )
+            """)
+
+            # Encode array in Postgres format
+            conn.execute("""
+            CREATE MACRO pg_array(arr) AS
+            '{' || array_to_string(arr, ',') || '}'
+            """)
+
+            query = f"""
+            SELECT
+                sequence_id,
+                changeset_id,
+                e.typed_id,
+                e.version,
+                (e.version = mv.version) AS latest,
+                visible,
+                IF(
+                    tags IS NOT NULL,
+                    map_to_hstore(tags),
+                    NULL
+                ) AS tags,
+                hex(point) AS point,
+                IF(
+                    members IS NOT NULL,
+                    pg_array(list_transform(members, x -> x.typed_id)),
+                    NULL
+                ) AS members,
+                IF(
+                    members IS NOT NULL
+                    AND e.typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
+                    pg_array(list_transform(members, x -> quote(x.role))),
+                    NULL
+                ) AS members_roles,
+                created_at
+            FROM read_parquet({_PARQUET_PATHS!r}) e
+            JOIN sqlite.mv mv ON e.typed_id = mv.typed_id
+            """
+
+            if header_only:
+                query += ' LIMIT 0'
+
+            conn.sql(query).write_csv('/dev/stdout')
 
 
 def _process_user(header_only: bool) -> None:
