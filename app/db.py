@@ -181,15 +181,20 @@ def duckdb_connect(database: str | Path = ':memory:', *, progress: bool = True):
 def sqlite_connect(
     database: str | bytes | PathLike[str] | PathLike[bytes] = ':memory:',
     *,
+    read_only: bool = False,
+    autocommit: bool = True,
     unsafe_faster: bool = False,
 ):
-    with sqlite3.connect(database, isolation_level=None) as conn:
+    with sqlite3.connect(database, autocommit=autocommit) as conn:
         for pragma, value in [
             ('cache_size', int(-SQLITE_CACHE_SIZE_GB * 1024 * 1024)),
             ('journal_mode', 'OFF' if unsafe_faster else 'WAL'),
             ('synchronous', 'OFF' if unsafe_faster else 'NORMAL'),
-            ('foreign_keys', 'ON'),
+            ('foreign_keys', 'ON'),  # future-proofing
+            ('query_only', 'ON' if read_only else 'OFF'),
         ]:
-            conn.execute(f'PRAGMA {pragma} = {value}')
+            conn.executescript(
+                f'{"COMMIT;" if conn.in_transaction else ""} PRAGMA {pragma} = {value}'
+            )
 
         yield conn
