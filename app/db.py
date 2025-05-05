@@ -14,7 +14,9 @@ from psycopg import AsyncConnection, IsolationLevel
 from psycopg.abc import AdaptContext
 from psycopg.types import TypeInfo
 from psycopg.types.enum import EnumInfo
+from psycopg.types.hstore import register_hstore
 from psycopg.types.json import set_json_dumps, set_json_loads
+from psycopg.types.shapely import register_shapely
 from psycopg_pool import AsyncConnectionPool
 
 from app.config import (
@@ -23,8 +25,6 @@ from app.config import (
     POSTGRES_URL,
     SQLITE_CACHE_SIZE_GB,
 )
-from app.lib.register_hstore import register_hstore
-from app.lib.register_shapely import register_shapely
 from app.lib.register_string_enum import register_string_enum
 
 
