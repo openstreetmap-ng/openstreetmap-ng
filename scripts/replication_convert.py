@@ -54,25 +54,25 @@ def _process_changeset(header_only: bool) -> None:
 
 def _process_element(header_only: bool, *, batch_size=500_000_000) -> None:
     with duckdb_connect(progress=False) as conn:
-
-        def typed_id_range(typed_id_min: int, typed_id_max: int, /) -> tuple[int, int]:
-            return conn.execute(f"""
-                SELECT MIN(typed_id), MAX(typed_id)
-                FROM read_parquet({_PARQUET_PATHS!r})
-                WHERE typed_id BETWEEN {typed_id_min} AND {typed_id_max}
+        r: tuple[int, ...] = (
+            conn.execute(f"""
+            SELECT
+                -- Nodes
+                MIN(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_NODE_MIN} AND {TYPED_ELEMENT_ID_NODE_MAX}) AS node_min,
+                MAX(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_NODE_MIN} AND {TYPED_ELEMENT_ID_NODE_MAX}) AS node_max,
+                -- Ways
+                MIN(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_WAY_MIN} AND {TYPED_ELEMENT_ID_WAY_MAX}) AS way_min,
+                MAX(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_WAY_MIN} AND {TYPED_ELEMENT_ID_WAY_MAX}) AS way_max,
+                -- Relations
+                MIN(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX}) AS rel_min,
+                MAX(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX}) AS rel_max
+            FROM read_parquet({_PARQUET_PATHS!r})
             """).fetchone()  # type: ignore
-
-        ranges = (
-            [
-                typed_id_range(TYPED_ELEMENT_ID_NODE_MIN, TYPED_ELEMENT_ID_NODE_MAX),
-                typed_id_range(TYPED_ELEMENT_ID_WAY_MIN, TYPED_ELEMENT_ID_WAY_MAX),
-                typed_id_range(
-                    TYPED_ELEMENT_ID_RELATION_MIN, TYPED_ELEMENT_ID_RELATION_MAX
-                ),
-            ]
             if not header_only
-            else [(0, 0)]
+            else (0, 0)
         )
+
+        ranges = [(r[i], r[i + 1]) for i in range(0, len(r), 2)]
         batches = _get_element_typed_id_batches(ranges, batch_size)
         logging.info('Processing in %d batches', len(batches))
 
