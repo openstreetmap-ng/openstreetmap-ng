@@ -100,12 +100,8 @@ def _process_element(header_only: bool, *, batch_size=500_000_000) -> None:
         '{' || array_to_string(arr, ',') || '}'
         """)
 
-        for i, (start_id, end_id) in enumerate(batches, 1):
-            logging.debug(
-                'Processing batch %d of %d: %d - %d', i, len(batches), start_id, end_id
-            )
-
-            query = f"""
+        query = ' UNION ALL '.join([
+            f"""(
             WITH max_versions AS (
                 SELECT typed_id, MAX(version) AS version
                 FROM read_parquet({_PARQUET_PATHS!r})
@@ -140,12 +136,12 @@ def _process_element(header_only: bool, *, batch_size=500_000_000) -> None:
             FROM read_parquet({_PARQUET_PATHS!r}) e
             JOIN max_versions mv ON e.typed_id = mv.typed_id
             WHERE e.typed_id BETWEEN {start_id} AND {end_id}
-            """
+            {'LIMIT 0' if header_only else ''}
+            )"""
+            for start_id, end_id in batches
+        ])
 
-            if header_only:
-                query += ' LIMIT 0'
-
-            conn.sql(query).write_csv('/dev/stdout')
+        conn.sql(query).write_csv('/dev/stdout')
 
 
 def _process_user(header_only: bool) -> None:
