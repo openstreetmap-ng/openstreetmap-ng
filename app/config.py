@@ -11,7 +11,6 @@ from pydantic import (
     BeforeValidator,
     ConfigDict,
     Field,
-    PositiveFloat,
     SecretBytes,
     SecretStr,
 )
@@ -80,8 +79,6 @@ TRACE_STORAGE_URI = 'db://trace'
 POSTGRES_URL = f'postgresql://postgres@/postgres?host={_validate_dir("data/postgres_unix")}&port=49560'
 DUCKDB_MEMORY_LIMIT = '8GB'
 DUCKDB_TMPDIR: str | None = None
-SQLITE_CACHE_SIZE_GB: PositiveFloat = 8
-SQLITE_TMPDIR: str | None = None
 
 # -------------------- API and Services Integration --------------------
 

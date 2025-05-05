@@ -1157,7 +1157,6 @@ dependencies = [
     { name = "orjson" },
     { name = "osm-shortlink" },
     { name = "phonenumbers" },
-    { name = "polars-u64-idx" },
     { name = "polyline-rs" },
     { name = "protobuf" },
     { name = "psycopg", extra = ["binary", "pool"] },
@@ -1234,7 +1233,6 @@ requires-dist = [
     { name = "orjson" },
     { name = "osm-shortlink" },
     { name = "phonenumbers" },
-    { name = "polars-u64-idx" },
     { name = "polyline-rs" },
     { name = "protobuf", specifier = "==5.29.3" },
     { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.2.7" },
@@ -1389,20 +1387,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/96/2d/02d4312c973c6050a18b314a5ad0b3210edb65a906f868e31c111dede4a6/pluggy-1.5.0.tar.gz", hash = "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1", size = 67955 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/5f/e351af9a41f866ac3f1fac4ca0613908d9a41741cfcf2228f4ad853b697d/pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669", size = 20556 },
-]
-
-[[package]]
-name = "polars-u64-idx"
-version = "1.29.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/47/6d/3792298d6c8302d2941a135391d49932f6300760db76d8e0ff304c3e0ac3/polars_u64_idx-1.29.0.tar.gz", hash = "sha256:4f51c6095c3e229894af6ed14231240e82d3f352914ae09320a28a26dcb1fd22", size = 4582868 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9b/16/098f1cecff372981ac5f156526f358a4fd4f4a8c74ab654bde5fbcf59be1/polars_u64_idx-1.29.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:ca28d089831a9385ccffea5131197dd98844b82b483ccf8488389617bccbe474", size = 34132159 },
-    { url = "https://files.pythonhosted.org/packages/d4/e7/de6e14a00c5f88cc9b6f61e5f9acabd180dc5727ca6b0dfbb337ed4fa321/polars_u64_idx-1.29.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:a6cc5750ffebaf54be4d17507ab6de3ae50bfe900f88608dfbff322fb038f283", size = 30972391 },
-    { url = "https://files.pythonhosted.org/packages/0f/1a/0bed0bac38d3fdf8687e6a090e2834b839374f65e3841ce379b798d86c81/polars_u64_idx-1.29.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c071a2514f7cdfb036ce411e78e3c57331d1d86cc46db28338e82c2ac9df41a0", size = 34735985 },
-    { url = "https://files.pythonhosted.org/packages/7d/69/74cdee5888a1c5c3da58d2560af5af5252fe2b3af083e51d78fc23a0d89b/polars_u64_idx-1.29.0-cp39-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:dd53950155ac115c9a478b1b23180403361b9a2013b74c04dc11ec140984e3f0", size = 31966387 },
-    { url = "https://files.pythonhosted.org/packages/3d/3f/7a057168cff4f0a0079d3442fc14fbe7dcf3832ba22691cb6f4c00017006/polars_u64_idx-1.29.0-cp39-abi3-win_amd64.whl", hash = "sha256:83777e5b8acdacb1921bf8b25bd2c020a907c7f47892259d76f10cf5fece6731", size = 34847005 },
-    { url = "https://files.pythonhosted.org/packages/d9/98/b43bcddb0c5af1d5e2efb3a2db12bb0f82a2f83e9775812cb62be65a0cd5/polars_u64_idx-1.29.0-cp39-abi3-win_arm64.whl", hash = "sha256:db368d86a3a0d243d31f3b429e959ddcce475556c397671c59c5235b6d2bc574", size = 31181071 },
 ]
 
 [[package]]
