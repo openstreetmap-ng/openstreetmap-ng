@@ -143,17 +143,15 @@ def _bundle_data_if_needed(state: AppState):
         .collect()
         .to_dicts()[0]['sequence_id']
     )
+    # TODO: switch to row_index when fixed: https://github.com/pola-rs/polars/issues/22612
     assert (
-        pl.scan_parquet(
-            output_path,
-            row_index_name='index',
-            row_index_offset=sequence_id,
-            low_memory=True,
-            cache=False,
+        pl.scan_parquet(output_path, low_memory=True, cache=False)
+        .select('sequence_id')
+        .with_columns(
+            index=pl.int_range(sequence_id, sequence_id + pl.len(), dtype=pl.UInt64())
         )
-        .select('index', 'sequence_id')
         .filter(pl.col('index') != pl.col('sequence_id'))
-        .head(1)
+        .first()
         .collect()
         .is_empty()
     ), 'Bundled parquet file is not sorted'
