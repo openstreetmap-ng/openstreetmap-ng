@@ -5,6 +5,7 @@ from multiprocessing import Pool
 from pathlib import Path
 
 import cython
+import polars as pl
 import pyarrow as pa
 import pyarrow.parquet as pq
 from tqdm import tqdm
@@ -82,6 +83,32 @@ def _get_csv_path(name: str):
 @cython.cfunc
 def _get_worker_path(base: Path, i: int):
     return base.with_suffix(f'{base.suffix}.{i}')
+
+
+def pl_quote(s: pl.Expr) -> pl.Expr:
+    return pl.concat_str(
+        pl.lit('"'),
+        s.str.replace_many(['\\', '"'], ['\\\\', '\\"']),
+        pl.lit('"'),
+    )
+
+
+def pl_map_to_hstore(map: pl.Expr) -> pl.Expr:
+    return map.list.eval(
+        pl.concat_str(
+            pl_quote(pl.element().struct.field('key')),
+            pl.lit('=>'),
+            pl_quote(pl.element().struct.field('value')),
+        )
+    ).list.join(',')
+
+
+def pl_pg_array(arr: pl.Expr) -> pl.Expr:
+    return pl.concat_str(
+        pl.lit('{'),
+        arr.list.join(','),
+        pl.lit('}'),
+    )
 
 
 def planet_worker(args: tuple[int, int, int]) -> None:
