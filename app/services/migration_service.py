@@ -67,15 +67,17 @@ class MigrationService:
     async def deduplicate_elements(
         *,
         parallelism: int | float = 2.0,
-        task_size: int = 1_000_000,
+        batch_size: int = 1_000_000,
     ) -> None:
         parallelism = calc_num_workers(parallelism)
 
-        chunks = await _get_element_typed_id_chunks(task_size)
+        batches = _get_element_typed_id_batches(
+            await _get_element_typed_id_ranges(), batch_size
+        )
         semaphore = Semaphore(parallelism)
         logging.info(
-            'Deduplicating elements (tasks=%d, parallelism=%d)',
-            len(chunks),
+            'Deduplicating elements (batches=%d, parallelism=%d)',
+            len(batches),
             parallelism,
         )
 
@@ -112,22 +114,24 @@ class MigrationService:
                     )
 
         async with TaskGroup() as tg:
-            for start_id, end_id in chunks:
+            for start_id, end_id in batches:
                 tg.create_task(process_task(start_id, end_id))
 
     @staticmethod
     async def mark_latest_elements(
         *,
         parallelism: int | float = 2.0,
-        task_size: int = 1_000_000,
+        batch_size: int = 1_000_000,
     ) -> None:
         parallelism = calc_num_workers(parallelism)
 
-        chunks = await _get_element_typed_id_chunks(task_size)
+        batches = _get_element_typed_id_batches(
+            await _get_element_typed_id_ranges(), batch_size
+        )
         semaphore = Semaphore(parallelism)
         logging.info(
-            'Marking latest elements (tasks=%d, parallelism=%d)',
-            len(chunks),
+            'Marking latest elements (batches=%d, parallelism=%d)',
+            len(batches),
             parallelism,
         )
 
@@ -152,7 +156,7 @@ class MigrationService:
                 )
 
         async with TaskGroup() as tg:
-            for start_id, end_id in chunks:
+            for start_id, end_id in batches:
                 tg.create_task(process_task(start_id, end_id))
 
     @staticmethod
@@ -160,7 +164,7 @@ class MigrationService:
     async def delete_notes_without_comments(
         *,
         parallelism: int | float = 2.0,
-        task_size: int = 100_000,
+        batch_size: int = 100_000,
     ) -> None:
         parallelism = calc_num_workers(parallelism)
 
@@ -172,8 +176,8 @@ class MigrationService:
 
         semaphore = Semaphore(parallelism)
         logging.info(
-            'Deleting notes without comments (tasks=%d, parallelism=%d)',
-            ceil(max_id / task_size),
+            'Deleting notes without comments (batches=%d, parallelism=%d)',
+            ceil(max_id / batch_size),
             parallelism,
         )
 
@@ -192,8 +196,8 @@ class MigrationService:
                 )
 
         async with TaskGroup() as tg:
-            for start_id in range(1, max_id + 1, task_size):
-                end_id = min(start_id + task_size - 1, max_id)
+            for start_id in range(1, max_id + 1, batch_size):
+                end_id = min(start_id + batch_size - 1, max_id)
                 tg.create_task(process_chunk(start_id, end_id))
 
     @staticmethod
@@ -201,7 +205,7 @@ class MigrationService:
     async def fix_changeset_counts(
         *,
         parallelism: int | float = 2.0,
-        task_size: int = 1_000_000,
+        batch_size: int = 1_000_000,
     ) -> None:
         """
         Fix changeset counts where size != 0 but num_create = 0, num_modify = 0, and num_delete = 0.
@@ -217,8 +221,8 @@ class MigrationService:
 
         semaphore = Semaphore(parallelism)
         logging.info(
-            'Fixing inconsistent changeset counts (tasks=%d, parallelism=%d)',
-            ceil(max_id / task_size),
+            'Fixing inconsistent changeset counts (batches=%d, parallelism=%d)',
+            ceil(max_id / batch_size),
             parallelism,
         )
 
@@ -255,8 +259,8 @@ class MigrationService:
                 )
 
         async with TaskGroup() as tg:
-            for start_id in range(1, max_id + 1, task_size):
-                end_id = min(start_id + task_size - 1, max_id)
+            for start_id in range(1, max_id + 1, batch_size):
+                end_id = min(start_id + batch_size - 1, max_id)
                 tg.create_task(process_chunk(start_id, end_id))
 
     @staticmethod
@@ -290,10 +294,10 @@ class MigrationService:
             )
 
 
-async def _get_element_typed_id_chunks(task_size: int) -> list[tuple[int, int]]:
+async def _get_element_typed_id_ranges() -> list[tuple[int, int]]:
     # Define actual data ranges
     current_ids = await ElementQuery.get_current_ids()
-    active_ranges = [
+    return [
         (
             TYPED_ELEMENT_ID_NODE_MIN,
             typed_element_id('node', current_ids['node']),
@@ -308,12 +312,17 @@ async def _get_element_typed_id_chunks(task_size: int) -> list[tuple[int, int]]:
         ),
     ]
 
-    # Create balanced work chunks
+
+def _get_element_typed_id_batches(
+    ranges: list[tuple[int, int]],
+    batch_size: int,
+) -> list[tuple[int, int]]:
+    # Create balanced batches
     current_chunk_start: int | None = None
     current_chunk_size: int = 0
     chunks: list[tuple[int, int]] = []
 
-    for start, end in active_ranges:
+    for start, end in ranges:
         pos = start
         while pos <= end:
             if current_chunk_start is None:
@@ -321,21 +330,21 @@ async def _get_element_typed_id_chunks(task_size: int) -> list[tuple[int, int]]:
 
             # Determine how many elements to include in this chunk
             remaining_in_range = end - pos + 1
-            remaining_in_chunk = task_size - current_chunk_size
+            remaining_in_chunk = batch_size - current_chunk_size
             elements_to_take = min(remaining_in_range, remaining_in_chunk)
 
             pos += elements_to_take
             current_chunk_size += elements_to_take
 
             # If chunk is full, add it to the list and reset
-            if current_chunk_size >= task_size:
+            if current_chunk_size >= batch_size:
                 chunks.append((current_chunk_start, pos - 1))
                 current_chunk_start = None
                 current_chunk_size = 0
 
     # Add the final chunk
     if current_chunk_start is not None:
-        chunks.append((current_chunk_start, active_ranges[-1][1]))
+        chunks.append((current_chunk_start, ranges[-1][1]))
 
     return chunks
 

@@ -9,7 +9,10 @@ from app.models.element import ElementId, typed_element_id
 from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
 from app.queries.note_query import NoteQuery
-from app.services.migration_service import MigrationService
+from app.services.migration_service import (
+    MigrationService,
+    _get_element_typed_id_batches,  # noqa: PLC2701
+)
 from app.services.optimistic_diff import OptimisticDiff
 from tests.utils.assert_model import assert_model
 
@@ -137,3 +140,29 @@ async def test_delete_note_without_comments():
 
         # Verify the note was deleted
         assert not await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
+
+
+@pytest.mark.parametrize(
+    ('ranges', 'batch_size', 'expected'),
+    [
+        (
+            [
+                (0, 5),
+                (11, 13),
+                (15, 20),
+            ],
+            10,
+            [(0, 15), (16, 20)],
+        ),
+        (
+            [
+                (0, 0),
+                (5, 6),
+            ],
+            1,
+            [(0, 0), (5, 5), (6, 6)],
+        ),
+    ],
+)
+def test_get_element_typed_id_batches(ranges, batch_size, expected):
+    assert _get_element_typed_id_batches(ranges, batch_size) == expected
