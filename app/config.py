@@ -61,7 +61,7 @@ SMTP_PASS: SecretStr = Field()
 
 # Core settings
 ENV: Literal['dev', 'test', 'prod'] = 'prod'
-LOG_LEVEL = 'INFO' if ENV == 'prod' else 'DEBUG'
+LOG_LEVEL: Literal['DEBUG', 'INFO', 'WARNING'] | None = None
 LEGACY_HIGH_PRECISION_TIME = False
 
 # Storage paths
@@ -372,6 +372,9 @@ PYDANTIC_CONFIG = ConfigDict(
     strict=True,
     cache_strings='keys',
 )
+
+if LOG_LEVEL is None:
+    LOG_LEVEL = 'INFO' if ENV == 'prod' else 'DEBUG'  # type: ignore
 
 # -------------------- Logging configuration --------------------
 
