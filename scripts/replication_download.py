@@ -153,7 +153,7 @@ def _bundle_data_if_needed(state: AppState):
         )
         .select('index', 'sequence_id')
         .filter(pl.col('index') != pl.col('sequence_id'))
-        .first()
+        .head(1)
         .collect()
         .is_empty()
     ), 'Bundled parquet file is not sorted'
