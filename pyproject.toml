@@ -28,6 +28,7 @@ dependencies = [
   "orjson",
   "osm-shortlink",
   "phonenumbers",
+  "polars-u64-idx",
   "polyline-rs",
   "protobuf==5.29.3",
   "psycopg[binary,pool]",

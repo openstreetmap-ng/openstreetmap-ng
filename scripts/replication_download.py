@@ -11,13 +11,13 @@ from typing import Literal
 
 import cython
 import orjson
+import polars as pl
 import pyarrow as pa
 import pyarrow.parquet as pq
 from sentry_sdk import set_context, set_tag, start_transaction
 from starlette import status
 
 from app.config import OSM_REPLICATION_URL, REPLICATION_DIR
-from app.db import duckdb_connect
 from app.lib.compressible_geometry import point_to_compressible_wkb
 from app.lib.retry import retry
 from app.lib.sentry import SENTRY_REPLICATION_MONITOR
@@ -121,24 +121,42 @@ def _bundle_data_if_needed(state: AppState):
     if state.last_replica.sequence_number % _FREQUENCY_MERGE_EVERY[state.frequency]:
         return
 
-    input_paths = [
-        p.as_posix()
-        for p in sorted(
-            REPLICATION_DIR.glob('replica_*.parquet'),
-            key=lambda p: int(p.stem.split('_', 1)[1]),
-        )
-    ]
-    output_path = state.last_replica.bundle_path.as_posix()
-    logging.info('Bundling %d replica files', len(input_paths))
+    input_paths = sorted(
+        REPLICATION_DIR.glob('replica_*.parquet'),
+        key=lambda p: int(p.stem.split('_', 1)[1]),
+    )
+    output_path = state.last_replica.bundle_path
 
-    with duckdb_connect() as conn:
-        conn.sql(f"""
-        COPY (
-            SELECT *
-            FROM read_parquet({input_paths!r})
-        ) TO {output_path!r}
-        (COMPRESSION ZSTD, COMPRESSION_LEVEL 9, ROW_GROUP_SIZE_BYTES '128MB')
-        """)
+    logging.info('Bundling %d replica files', len(input_paths))
+    (
+        pl.scan_parquet(input_paths, low_memory=True, cache=False)
+        .set_sorted('sequence_id')
+        .sink_parquet(output_path, compression='zstd', compression_level=9)
+    )
+
+    # guard against https://github.com/pola-rs/polars/issues/20324
+    logging.debug('Verifying sort order')
+    sequence_id: int = (
+        pl.scan_parquet(output_path, low_memory=True, cache=False)
+        .select('sequence_id')
+        .first()
+        .collect()
+        .to_dicts()[0]['sequence_id']
+    )
+    assert (
+        pl.scan_parquet(
+            output_path,
+            row_index_name='index',
+            row_index_offset=sequence_id,
+            low_memory=True,
+            cache=False,
+        )
+        .select('index', 'sequence_id')
+        .filter(pl.col('index') != pl.col('sequence_id'))
+        .first()
+        .collect()
+        .is_empty()
+    ), 'Bundled parquet file is not sorted'
 
 
 @cython.cfunc
@@ -347,19 +365,14 @@ async def _iterate(state: AppState) -> AppState:
         logging.info('Processed %d elements in %.1fs', num_rows, tt)
         ts = monotonic()
 
-        # Use DuckDB to sort and assign sequence IDs
-        with duckdb_connect() as conn:
-            conn.sql(f"""
-            COPY (
-                SELECT
-                    {state.last_sequence_id} + ROW_NUMBER() OVER (
-                        ORDER BY created_at, parse_order
-                    )::UBIGINT AS sequence_id,
-                    * EXCLUDE (parse_order)
-                FROM read_parquet({tmp_path.as_posix()!r})
-            ) TO {remote_replica.path.as_posix()!r}
-            (COMPRESSION lz4_raw)
-            """)
+        # Sort and assign sequence IDs
+        (
+            pl.scan_parquet(tmp_path, low_memory=True, cache=False)
+            .sort('created_at', 'parse_order')
+            .with_row_index('sequence_id', state.last_sequence_id + 1)
+            .drop('parse_order')
+            .sink_parquet(remote_replica.path, compression='lz4')
+        )
 
         tmp_path.unlink()
         tt = monotonic() - ts
