@@ -8,8 +8,9 @@ from tempfile import TemporaryDirectory
 import cython
 import duckdb
 import orjson
-from psycopg import AsyncConnection, IsolationLevel
+from psycopg import AsyncConnection, IsolationLevel, postgres
 from psycopg.abc import AdaptContext
+from psycopg.pq import Format
 from psycopg.types import TypeInfo
 from psycopg.types.enum import EnumInfo
 from psycopg.types.hstore import register_hstore
@@ -22,7 +23,6 @@ from app.config import (
     DUCKDB_TMPDIR,
     POSTGRES_URL,
 )
-from app.lib.register_string_enum import register_string_enum
 
 
 async def _configure_connection(conn: AsyncConnection) -> None:  # noqa: RUF029
@@ -93,11 +93,15 @@ async def _register_types():
     https://www.psycopg.org/psycopg3/docs/basic/pgtypes.html
     """
     async with db() as conn:
+        adapters = postgres.adapters
+        text_loader = adapters.get_loader(adapters.types['text'].oid, Format.BINARY)
+        assert text_loader is not None, 'Binary text loader not found'
 
         async def register_enum(name: str) -> None:
             info = await EnumInfo.fetch(conn, name)
             assert info is not None, f'{name} enum not found'
-            register_string_enum(info, None)
+            info.register(None)
+            adapters.register_loader(info.oid, text_loader)
             logging.debug('Registered database enum %r', name)
 
         await register_enum('auth_provider')
