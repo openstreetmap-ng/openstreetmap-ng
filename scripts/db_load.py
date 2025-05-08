@@ -20,7 +20,7 @@ from app.utils import calc_num_workers
 
 _Mode = Literal['preload', 'replication']
 
-_COPY_WORKERS = calc_num_workers(8)
+_COPY_WORKERS = min(calc_num_workers(), 8)
 
 
 def _get_csv_path(name: str) -> Path:
