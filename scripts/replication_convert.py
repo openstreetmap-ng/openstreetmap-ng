@@ -1,7 +1,7 @@
 import logging
 from argparse import ArgumentParser
 
-from app.config import REPLICATION_DIR
+from app.config import REPLICATION_CONVERT_ELEMENT_BATCH_SIZE, REPLICATION_DIR
 from app.db import duckdb_connect
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
@@ -52,7 +52,9 @@ def _process_changeset(header_only: bool) -> None:
         conn.sql(query).write_csv('/dev/stdout')
 
 
-def _process_element(header_only: bool, *, batch_size=500_000_000) -> None:
+def _process_element(
+    header_only: bool, *, batch_size=REPLICATION_CONVERT_ELEMENT_BATCH_SIZE
+) -> None:
     with duckdb_connect(progress=False) as conn:
         r: tuple[int, ...] = (
             conn.execute(f"""
