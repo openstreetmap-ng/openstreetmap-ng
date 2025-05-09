@@ -102,7 +102,6 @@ def _strip_namespace(tag: str) -> str:
 
 
 @cython.cfunc
-@cython.exceptval(check=False)
 def _parse_xml_bool(value: str):
     return value == 'true'
 
