@@ -1,6 +1,6 @@
 import asyncio
 from argparse import ArgumentParser
-from asyncio import TaskGroup, create_subprocess_shell
+from asyncio import Semaphore, TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
 from contextlib import asynccontextmanager
 from io import TextIOWrapper
@@ -20,7 +20,7 @@ from app.utils import calc_num_workers
 
 _Mode = Literal['preload', 'replication']
 
-_COPY_WORKERS = min(calc_num_workers(), 8)
+_PARALLELISM = min(calc_num_workers(), 8)
 
 
 def _get_csv_path(name: str) -> Path:
@@ -150,7 +150,7 @@ async def _load_table(
             f' --skip-header=true'
             ' --reporting-period=30s'
             f' --table={quote(table)}'
-            f' --workers={_COPY_WORKERS}',
+            f' --workers={_PARALLELISM}',
         )
         exit_code = await proc.wait()
         if exit_code:
@@ -196,9 +196,10 @@ async def _load_tables(mode: _Mode) -> None:
 
     print(f'Recreating {len(indexes)} indexes and {len(constraints)} constraints')
     async with TaskGroup() as tg:
+        semaphore = Semaphore(_PARALLELISM)
 
         async def execute(sql: Query) -> None:
-            async with db(True, autocommit=True) as conn:
+            async with semaphore, db(True, autocommit=True) as conn:
                 await conn.execute(sql)
 
         for sql in indexes.values():
