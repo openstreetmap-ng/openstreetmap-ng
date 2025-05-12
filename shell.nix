@@ -301,7 +301,7 @@ let
     # -- Locale
     (makeScript "locale-clean" "rm -rf config/locale/*/")
     (makeScript "locale-download" "python scripts/locale_download.py")
-    (makeScript "locale-postprocess" "python scripts/locale_postprocess.py")
+    (makeScript "locale-postprocess" "python scripts/locale_postprocess.py \"$@\"")
     (makeScript "locale-make-i18next" "python scripts/locale_make_i18next.py")
     (makeScript "locale-make-gnu" "python scripts/locale_make_gnu.py")
     (makeScript "locale-pipeline" ''

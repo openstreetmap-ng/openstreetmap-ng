@@ -64,7 +64,6 @@ version = "0.0.0"
 dev = [
   "authlib",
   "cairosvg",
-  "click",
   "coverage",
   "lxml-stubs",
   "pre-commit",

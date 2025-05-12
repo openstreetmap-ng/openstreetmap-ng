@@ -1,14 +1,12 @@
-import os
 import subprocess
 from functools import partial
 from multiprocessing.pool import Pool
+from os import utime
 from pathlib import Path
 
-import click
-
-_postprocess_dir = Path('config/locale/postprocess')
-_gnu_dir = Path('config/locale/gnu')
-_gnu_dir.mkdir(parents=True, exist_ok=True)
+_POSTPROCESS_DIR = Path('config/locale/postprocess')
+_GNU_DIR = Path('config/locale/gnu')
+_GNU_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def transform(
@@ -62,20 +60,20 @@ def transform(
     )
 
     # preserve mtime
-    os.utime(target_path_po, (source_mtime, source_mtime))
-    os.utime(target_path_mo, (source_mtime, source_mtime))
+    utime(target_path_po, (source_mtime, source_mtime))
+    utime(target_path_mo, (source_mtime, source_mtime))
 
 
-@click.command()
 def main() -> None:
     with Pool() as pool:
         discover_counter = 0
         success_counter = 0
-        for source_path in _postprocess_dir.glob('*.json'):
+
+        for source_path in _POSTPROCESS_DIR.glob('*.json'):
             discover_counter += 1
             locale = source_path.stem
             source_mtime = source_path.stat().st_mtime
-            target_path_po = _gnu_dir.joinpath(locale, 'LC_MESSAGES/messages.po')
+            target_path_po = _GNU_DIR.joinpath(locale, 'LC_MESSAGES/messages.po')
             target_path_mo = target_path_po.with_suffix('.mo')
             if (
                 target_path_mo.is_file()
@@ -93,12 +91,14 @@ def main() -> None:
                 )
             )
             success_counter += 1
+
         pool.close()
         pool.join()
 
-    discover_str = click.style(f'{discover_counter} locales', fg='green')
-    success_str = click.style(f'{success_counter} locales', fg='bright_green')
-    click.echo(f'[gnu] Discovered {discover_str}, transformed {success_str}')
+    print(
+        f'[gnu] Discovered {discover_counter} locales, '
+        f'transformed {success_counter} locales',
+    )
 
 
 if __name__ == '__main__':

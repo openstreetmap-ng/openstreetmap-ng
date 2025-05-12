@@ -1,31 +1,31 @@
-import os
+from argparse import ArgumentParser
+from os import utime
 from pathlib import Path
 from typing import Any
 
-import click
 import orjson
 import yaml
 
-_oci_dir = Path('node_modules/osm-community-index')
-_download_dir = Path('config/locale/download')
-_postprocess_dir = Path('config/locale/postprocess')
-_postprocess_dir.mkdir(parents=True, exist_ok=True)
-_locale_extra_en_path = Path('config/locale/extra_en.yaml')
+_OCI_DIR = Path('node_modules/osm-community-index')
+_DOWNLOAD_DIR = Path('config/locale/download')
+_POSTPROCESS_DIR = Path('config/locale/postprocess')
+_POSTPROCESS_DIR.mkdir(parents=True, exist_ok=True)
+_LOCALE_EXTRA_EN_PATH = Path('config/locale/extra_en.yaml')
 
 
 def get_source_mtime(locale: str) -> float:
-    source_path = _download_dir.joinpath(f'{locale}.yaml')
+    source_path = _DOWNLOAD_DIR.joinpath(f'{locale}.yaml')
     source_mtime = source_path.stat().st_mtime
     return (
         source_mtime
         if locale != 'en'
-        else max(source_mtime, _locale_extra_en_path.stat().st_mtime)
+        else max(source_mtime, _LOCALE_EXTRA_EN_PATH.stat().st_mtime)
     )
 
 
 def needs_processing(locale: str, source_mtime: float) -> bool:
-    source_path = _download_dir.joinpath(f'{locale}.yaml')
-    target_path = _postprocess_dir.joinpath(f'{locale}.json')
+    source_path = _DOWNLOAD_DIR.joinpath(f'{locale}.yaml')
+    target_path = _POSTPROCESS_DIR.joinpath(f'{locale}.json')
     return (
         source_path.is_file()  #
         and (not target_path.is_file() or source_mtime > target_path.stat().st_mtime)
@@ -40,8 +40,8 @@ def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) ->
 
     # if not, then look up the default translated name for this type of community
     if (
-        community_name := locale.get('_communities', {}).get(
-            community['strings'].get('communityID')
+        community_name := (
+            locale.get('_communities', {}).get(community['strings'].get('communityID'))
         )
     ) is not None:
         # and optionally interpolate the template
@@ -67,8 +67,10 @@ def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) ->
 
 
 class LocalChaptersExtractor:
+    __slots__ = ('communities',)
+
     def __init__(self) -> None:
-        resources = _oci_dir.joinpath('dist/resources.min.json').read_bytes()
+        resources = _OCI_DIR.joinpath('dist/resources.min.json').read_bytes()
         communities_dict: dict[str, dict[str, Any]]
         communities_dict = orjson.loads(resources)['resources']
 
@@ -80,7 +82,7 @@ class LocalChaptersExtractor:
         ]
 
     def extract(self, locale: str) -> dict:
-        source_path = _oci_dir.joinpath(f'i18n/{locale.replace("-", "_")}.yaml')
+        source_path = _OCI_DIR.joinpath(f'i18n/{locale.replace("-", "_")}.yaml')
         if not source_path.is_file():
             return {}
 
@@ -94,24 +96,23 @@ class LocalChaptersExtractor:
             strings = source_data.get(community_id, {})
             strings['name'] = resolve_community_name(community, source_data)
 
-            if community_id in communities_data:
-                raise ValueError(f'Duplicate community id {community_id!r}')
-
+            assert community_id not in communities_data, (
+                f'Duplicate community id {community_id!r}'
+            )
             communities_data[community_id] = strings
 
         return {'osm_community_index': {'communities': communities_data}}
 
 
-@click.command()
-@click.option('--verbose', '-v', is_flag=True)
-def main(verbose: bool):
+def main(verbose: bool) -> None:
     lc_extractor = LocalChaptersExtractor()
-    if verbose:
-        click.echo([c['id'] for c in lc_extractor.communities])
-
     discover_counter = 0
     success_counter = 0
-    for source_path in _download_dir.glob('*.yaml'):
+
+    if verbose:
+        print([c['id'] for c in lc_extractor.communities])
+
+    for source_path in _DOWNLOAD_DIR.glob('*.yaml'):
         discover_counter += 1
         locale = source_path.stem
         source_mtime = get_source_mtime(locale)
@@ -133,45 +134,46 @@ def main(verbose: bool):
         # merge extra_ data
         if locale == 'en' and (
             extra_data := yaml.load(
-                _locale_extra_en_path.read_bytes(), yaml.CSafeLoader
+                _LOCALE_EXTRA_EN_PATH.read_bytes(), yaml.CSafeLoader
             )
         ):
             deep_dict_update(data, extra_data)
 
         buffer = orjson.dumps(
             data,
-            option=orjson.OPT_INDENT_2
-            | orjson.OPT_SORT_KEYS
-            | orjson.OPT_APPEND_NEWLINE,
+            option=(
+                orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE
+            ),
         )
-        target_path = _postprocess_dir.joinpath(f'{locale}.json')
+        target_path = _POSTPROCESS_DIR.joinpath(f'{locale}.json')
         target_path.write_bytes(buffer)
 
         # preserve mtime
-        os.utime(target_path, (source_mtime, source_mtime))
+        utime(target_path, (source_mtime, source_mtime))
         success_counter += 1
 
-    discover_str = click.style(f'{discover_counter} locales', fg='green')
-    success_str = click.style(f'{success_counter} locales', fg='bright_green')
-    lc_str = click.style(f'{len(lc_extractor.communities)} local chapters', fg='green')
-    click.echo(f'Discovered {discover_str} and {lc_str}, postprocessed {success_str}')
+    print(
+        f'Discovered {discover_counter} locales '
+        f'and {len(lc_extractor.communities)} local chapters, '
+        f'postprocessed {success_counter} locales'
+    )
 
 
-def trim_values(data: dict):
+def trim_values(data: dict) -> None:
     """Trim all string values."""
     for key, value in data.items():
         if isinstance(value, dict):
             trim_values(value)
         elif isinstance(value, str):
             value = value.strip()
-            while value.startswith('\\n'):
+            while value[:2] == '\\n':
                 value = value[2:]
-            while value.endswith('\\n'):
+            while value[-2:] == '\\n':
                 value = value[:-2]
             data[key] = value.strip()
 
 
-def convert_placeholder_format(data: dict):
+def convert_placeholder_format(data: dict) -> None:
     """Convert %{placeholder} to {placeholder} in all strings."""
     for key, value in data.items():
         if isinstance(value, dict):
@@ -180,7 +182,7 @@ def convert_placeholder_format(data: dict):
             data[key] = value.replace('%{', '{{').replace('}', '}}')
 
 
-def convert_number_format(data: dict):
+def convert_number_format(data: dict) -> None:
     """Convert %e to %-d in all strings."""
     # backwards compatibility: remove leading zero from day
     for key, value in data.items():
@@ -190,7 +192,7 @@ def convert_number_format(data: dict):
             data[key] = value.replace('%e', '%-d')
 
 
-def convert_plural_structure(data: dict):
+def convert_plural_structure(data: dict) -> None:
     """
     Convert plural dicts to singular keys.
     >>> convert_plural_structure({'example': {'one': '1', 'two': '2', 'three': '3'}})
@@ -203,7 +205,8 @@ def convert_plural_structure(data: dict):
 
         # recurse non-plural dicts
         if any(
-            v_key not in {'zero', 'one', 'two', 'few', 'many', 'other'} for v_key in v
+            v_key not in {'zero', 'one', 'two', 'few', 'many', 'other'}  #
+            for v_key in v
         ):
             convert_plural_structure(v)
             continue
@@ -216,7 +219,7 @@ def convert_plural_structure(data: dict):
         data.pop(k)
 
 
-def rename_buggy_keys(data: dict):
+def rename_buggy_keys(data: dict) -> None:
     """
     Rename keys that bug-out during i18next -> gnu conversion.
     >>> rename_buggy_keys({'some_other': 'value'})
@@ -224,6 +227,7 @@ def rename_buggy_keys(data: dict):
     """
     buggy_keys = []
     abort = False
+
     for k, v in list(data.items()):
         if isinstance(v, dict):
             rename_buggy_keys(v)
@@ -234,8 +238,10 @@ def rename_buggy_keys(data: dict):
             buggy_keys.append(k)
         elif suffix in {'zero', 'one', 'two', 'few', 'many'}:
             abort = True
+
     if abort:
         return
+
     for k in buggy_keys:
         k_alt = k.replace('_other', ' other')
         data[k_alt] = data[k]
@@ -255,4 +261,7 @@ def deep_dict_update(d: dict, u: dict) -> None:
 
 
 if __name__ == '__main__':
-    main()
+    parser = ArgumentParser()
+    parser.add_argument('-v', '--verbose', action='store_true')
+    args = parser.parse_args()
+    main(args.verbose)

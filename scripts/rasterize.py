@@ -1,16 +1,14 @@
-import os
+from argparse import ArgumentParser
 from contextlib import contextmanager
 from functools import partial
 from multiprocessing.pool import Pool
+from os import utime
 from pathlib import Path
 from time import perf_counter
 
 import cairosvg
-import click
 import cv2
 import numpy as np
-
-cli = click.Group()
 
 DEFAULT_SIZE = 128
 DEFAULT_QUALITY = 80
@@ -29,9 +27,8 @@ def measure():
 
 
 def get_output_path(input: Path, /, *, root: Path) -> Path:
-    output_dir = Path(root, '_generated', input.parent.relative_to(root))
-    if not output_dir.is_dir():
-        output_dir.mkdir(parents=True)
+    output_dir = root.joinpath('_generated', input.parent.relative_to(root))
+    output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir.joinpath(input.stem + '.webp')
 
 
@@ -52,28 +49,21 @@ def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
 
     # preserve mtime
     mtime = input.stat().st_mtime
-    os.utime(output, (mtime, mtime))
+    utime(output, (mtime, mtime))
 
 
-@cli.command()
-@click.argument('input', nargs=-1, type=click.Path(dir_okay=False, path_type=Path))
-@click.option('size', '--size', '-s', default=DEFAULT_SIZE, show_default=True)
-@click.option('quality', '--quality', '-q', default=DEFAULT_QUALITY, show_default=True)
-def file(input: tuple[Path, ...], size: int, quality: int) -> None:
+def file(input: list[Path], size: int, quality: int) -> None:
     root = Path()
     for i in input:
         output = get_output_path(i, root=root)
         with measure() as time:
             rasterize(i, output, size=size, quality=quality)
 
-        check = click.style('✓', fg='bright_green')
-        output_str = click.style(output, fg='bright_cyan')
-        total_time = click.style(f'{time.ms}ms', fg='bright_white')
-        click.echo(f'{check} Rasterized SVG to {output_str} in {total_time}')
+        print(
+            f'✓ Rasterized SVG to {output} in {time.ms}ms',
+        )
 
 
-@cli.command('static-img-pipeline')
-@click.option('verbose', '--verbose', '-v', is_flag=True)
 def static_img_pipeline(verbose: bool) -> None:
     with measure() as time, Pool() as pool:
         success_counter = 0
@@ -83,7 +73,7 @@ def static_img_pipeline(verbose: bool) -> None:
             output = get_output_path(i, root=root)
             if output.is_file() and i.stat().st_mtime <= output.stat().st_mtime:
                 if verbose:
-                    click.secho(f'Skipped {output} (already exists)', fg='white')
+                    print(f'Skipped {output} (already exists)')
                 continue
             pool.apply_async(partial(rasterize, i, output, size=128, quality=80))
             success_counter += 1
@@ -93,7 +83,7 @@ def static_img_pipeline(verbose: bool) -> None:
             output = get_output_path(i, root=root)
             if output.is_file() and i.stat().st_mtime <= output.stat().st_mtime:
                 if verbose:
-                    click.secho(f'Skipped {output} (already exists)', fg='white')
+                    print(f'Skipped {output} (already exists)')
                 continue
             pool.apply_async(partial(rasterize, i, output, size=80, quality=101))
             success_counter += 1
@@ -101,11 +91,26 @@ def static_img_pipeline(verbose: bool) -> None:
         pool.close()
         pool.join()
 
-    if success_counter > 0:
-        output_str = click.style(str(success_counter), fg='bright_cyan')
-        total_time = click.style(f'{time.ms}ms', fg='bright_white', bold=True)
-        click.echo(f'Rasterized {output_str} SVGs in {total_time}')
+    if success_counter:
+        print(f'Rasterized {success_counter} SVGs in {time.ms}ms')
 
 
 if __name__ == '__main__':
-    cli()
+    parser = ArgumentParser()
+    subparsers = parser.add_subparsers(dest='command', required=True)
+
+    parser_file = subparsers.add_parser('file')
+    parser_file.set_defaults(func=file)
+    parser_file.add_argument('input', nargs='*', type=Path)
+    parser_file.add_argument('-s', '--size', type=int, default=DEFAULT_SIZE)
+    parser_file.add_argument('-q', '--quality', type=int, default=DEFAULT_QUALITY)
+
+    parser_static_img = subparsers.add_parser('static-img-pipeline')
+    parser_static_img.set_defaults(func=static_img_pipeline)
+    parser_static_img.add_argument('-v', '--verbose', action='store_true')
+
+    args = parser.parse_args()
+    kwargs = vars(args).copy()
+    del kwargs['command']
+    del kwargs['func']
+    args.func(**kwargs)

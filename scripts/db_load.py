@@ -104,9 +104,9 @@ async def _load_table(
             print(f'Skipped loading {table} table (source file not found)')
             return
 
-        copy_paths = [path.absolute().as_posix()]
+        copy_paths = [path]
         header = _get_csv_header(path)
-        program = f'zstd -d --stdout {" ".join(f"{quote(p)}" for p in copy_paths)}'
+        program = f'zstd -d --stdout {" ".join(f"{quote(str(p.absolute()))}" for p in copy_paths)}'
     else:
         program = f'replication-convert {table}'
         proc = await create_subprocess_shell(f'{program} --header-only', stdout=PIPE)
