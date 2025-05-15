@@ -873,6 +873,12 @@
       ""
     ]
   },
+  "access_sign": {
+    "*": [
+      "",
+      "NL"
+    ]
+  },
   "accommodation": {
     "*": [
       "",
@@ -3952,6 +3958,10 @@
       "RU",
       "Uk"
     ],
+    "mobility_hub": [
+      "",
+      "DE"
+    ],
     "mobility_scooter_rental": [
       ""
     ],
@@ -4792,6 +4802,10 @@
       "Pt",
       "RU",
       "Uk"
+    ],
+    "study_room": [
+      "",
+      "FR"
     ],
     "surf_school": [
       "",
@@ -6004,6 +6018,7 @@
     "*": [
       "",
       "Cs",
+      "DE",
       "ES",
       "JA"
     ]
@@ -7761,7 +7776,8 @@
     ],
     "limited_traffic_zone": [
       "",
-      "ES"
+      "ES",
+      "FR"
     ],
     "local_authority": [
       "",
@@ -8093,6 +8109,9 @@
       "RU"
     ],
     "log_bridge": [
+      ""
+    ],
+    "low_water_crossing": [
       ""
     ],
     "movable": [
@@ -10913,6 +10932,11 @@
       ""
     ]
   },
+  "caterer": {
+    "dark_kitchen": [
+      ""
+    ]
+  },
   "cave:name": {
     "*": [
       "",
@@ -11073,7 +11097,8 @@
   },
   "check_date:*": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "check_in": {
@@ -14656,6 +14681,7 @@
   "cycle_rickshaw": {
     "*": [
       "",
+      "DE",
       "ES",
       "FR",
       "RU"
@@ -15708,6 +15734,11 @@
       ""
     ]
   },
+  "diet:raw": {
+    "*": [
+      ""
+    ]
+  },
   "diet:sugar_free": {
     "*": [
       ""
@@ -16469,6 +16500,7 @@
   },
   "earth_bank": {
     "*": [
+      "",
       "RU"
     ]
   },
@@ -21806,6 +21838,7 @@
       "El",
       "FR",
       "IT",
+      "Id",
       "JA",
       "Ko",
       "Ms",
@@ -21825,6 +21858,7 @@
       "ES",
       "FR",
       "IT",
+      "Id",
       "JA",
       "Pl",
       "Pt",
@@ -21929,6 +21963,7 @@
       "FR",
       "Gcf",
       "IT",
+      "Id",
       "JA",
       "Ko",
       "Ms",
@@ -22280,6 +22315,7 @@
       "ES",
       "FR",
       "IT",
+      "Id",
       "JA",
       "Ko",
       "Ms",
@@ -22822,6 +22858,9 @@
       "",
       "ES",
       "RU"
+    ],
+    "railway_station": [
+      ""
     ],
     "rampart": [
       ""
@@ -24839,6 +24878,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "IT",
@@ -24970,10 +25010,14 @@
       "Pt",
       "RU"
     ],
+    "governmental": [
+      ""
+    ],
     "grass": [
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -25085,6 +25129,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -25793,6 +25838,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -28364,6 +28410,15 @@
       "DE",
       "RU"
     ],
+    "scheme": [
+      ""
+    ],
+    "street": [
+      ""
+    ],
+    "topo": [
+      ""
+    ],
     "toposcope": [
       "",
       "RU"
@@ -28799,6 +28854,27 @@
       "",
       "Cs",
       "DE"
+    ],
+    "AU:rural": [
+      ""
+    ],
+    "AU:urban": [
+      ""
+    ],
+    "CA-AB:rural": [
+      ""
+    ],
+    "CA-AB:urban": [
+      ""
+    ],
+    "CA-ON:rural": [
+      ""
+    ],
+    "CA-ON:urban": [
+      ""
+    ],
+    "CA:urban": [
+      ""
     ],
     "GB:motorway": [
       ""
@@ -35206,6 +35282,11 @@
       "JA"
     ]
   },
+  "obstacle:parking": {
+    "*": [
+      ""
+    ]
+  },
   "obstacle:wheelchair": {
     "yes": [
       "FR"
@@ -35311,6 +35392,9 @@
     "bail_bond_agent": [
       "",
       "RU"
+    ],
+    "broadcaster": [
+      ""
     ],
     "call_center": [
       ""
@@ -36643,6 +36727,11 @@
     "meadow_orchard": [
       "",
       "DE"
+    ]
+  },
+  "order:strahler": {
+    "*": [
+      ""
     ]
   },
   "organ": {
@@ -39407,7 +39496,7 @@
       "Pl"
     ],
     "vegetables": [
-      ""
+      "ES"
     ]
   },
   "product": {
@@ -40386,10 +40475,12 @@
     ],
     "tram_crossing": [
       "",
+      "Cs",
       "DE"
     ],
     "tram_level_crossing": [
       "",
+      "Cs",
       "DE",
       "ES"
     ],
@@ -43329,6 +43420,7 @@
   "reservation:website": {
     "*": [
       "",
+      "FR",
       "IT"
     ]
   },
@@ -43617,6 +43709,7 @@
     "*": [
       "",
       "Cs",
+      "DE",
       "ES",
       "JA"
     ]
@@ -48743,7 +48836,8 @@
       "RU"
     ],
     "peanut_butter": [
-      ""
+      "",
+      "JA"
     ],
     "perfume": [
       "",
@@ -49295,6 +49389,9 @@
       "ES",
       "Pl"
     ],
+    "truck_parts": [
+      ""
+    ],
     "truck_repair": [
       "",
       "ES",
@@ -49377,6 +49474,9 @@
       "RU"
     ],
     "video_restore": [
+      ""
+    ],
+    "wallpaper": [
       ""
     ],
     "watches": [
@@ -49596,7 +49696,8 @@
       "Uk"
     ],
     "both": [
-      ""
+      "",
+      "ES"
     ],
     "separate": [
       "",
@@ -50327,6 +50428,7 @@
       ""
     ],
     "survey": [
+      "",
       "ES"
     ],
     "voice": [
@@ -52296,6 +52398,7 @@
       "",
       "DE",
       "ES",
+      "FR",
       "RU"
     ],
     "concrete": [
@@ -52417,6 +52520,9 @@
       "DE",
       "ES",
       "JA"
+    ],
+    "paving_stones:20": [
+      ""
     ],
     "paving_stones:30": [
       ""
@@ -52908,6 +53014,7 @@
   "taxi": {
     "*": [
       "",
+      "DE",
       "ES",
       "FR",
       "IT"
@@ -53826,6 +53933,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -53987,7 +54095,8 @@
       "DE",
       "ES",
       "FR",
-      "Pl"
+      "Pl",
+      "Pt"
     ],
     "cooling": [
       "",
@@ -54063,6 +54172,7 @@
     "observation": [
       "",
       "DE",
+      "Da",
       "ES",
       "Pl"
     ],
@@ -54685,6 +54795,9 @@
     "DE:453": [
       "DE"
     ],
+    "FR:C113": [
+      ""
+    ],
     "FR:C115": [
       "",
       "FR"
@@ -54993,6 +55106,7 @@
     "*": [
       "",
       "Cs",
+      "DE",
       "Pl"
     ]
   },
@@ -56189,6 +56303,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "Pl",
       "RU"
     ],
@@ -57626,7 +57741,8 @@
   },
   "website:*": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "website:booking": {
@@ -57646,6 +57762,7 @@
       "",
       "DE",
       "Eo",
+      "FR",
       "IT"
     ]
   },
@@ -57662,7 +57779,8 @@
   },
   "website:reservation": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "website:stock": {
