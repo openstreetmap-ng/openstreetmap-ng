@@ -77,12 +77,13 @@ dev = [
 ]
 
 [tool.uv]
-package = true
+package = false
 python-downloads = "never"
 python-preference = "only-system"
 
-[tool.setuptools]
-packages = ["app", "scripts", "tests", "typings"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.ruff]
 indent-width = 4

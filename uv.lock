@@ -1127,7 +1127,7 @@ wheels = [
 [[package]]
 name = "openstreetmap-ng"
 version = "0.0.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "aioboto3" },
     { name = "aiohttp", extra = ["speedups"] },
