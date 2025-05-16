@@ -997,6 +997,15 @@ wheels = [
 ]
 
 [[package]]
+name = "meson"
+version = "1.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/2d/28/82509ddb26dc11790acc83fef183edf8fd7cbfd4c69572fd2bd10d18be2e/meson-1.8.0.tar.gz", hash = "sha256:0a9b23311271519bd03dca12d7d8b0eab582c3a2c5da433d465b6e519dc88e2f", size = 2334911 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/df/d7/f1c8acf0e597d4d07532f519780ee6e11ba285a9b092f18706b4c9118331/meson-1.8.0-py3-none-any.whl", hash = "sha256:472b7b25da286447333d32872b82d1c6f1a34024fb8ee017d7308056c25fec1f", size = 1012501 },
+]
+
+[[package]]
 name = "multidict"
 version = "6.4.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1181,6 +1190,7 @@ dependencies = [
     { name = "supervisor" },
     { name = "tqdm" },
     { name = "uvicorn", extra = ["standard"] },
+    { name = "xmltodict" },
     { name = "zid" },
     { name = "zstandard" },
 ]
@@ -1191,6 +1201,7 @@ dev = [
     { name = "cairosvg" },
     { name = "coverage" },
     { name = "lxml-stubs" },
+    { name = "meson" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -1255,6 +1266,7 @@ requires-dist = [
     { name = "supervisor" },
     { name = "tqdm" },
     { name = "uvicorn", extras = ["standard"] },
+    { name = "xmltodict", directory = "xmltodict" },
     { name = "zid" },
     { name = "zstandard" },
 ]
@@ -1265,6 +1277,7 @@ dev = [
     { name = "cairosvg" },
     { name = "coverage" },
     { name = "lxml-stubs" },
+    { name = "meson" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -2344,6 +2357,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/09/5e/1655cf481e079c1f22d0cabdd4e51733679932718dc23bf2db175f329b76/wrapt-1.17.2-cp313-cp313t-win_amd64.whl", hash = "sha256:eaf675418ed6b3b31c7a989fd007fa7c3be66ce14e5c3b27336383604c9da85c", size = 40750 },
     { url = "https://files.pythonhosted.org/packages/2d/82/f56956041adef78f849db6b289b282e72b55ab8045a75abad81898c28d19/wrapt-1.17.2-py3-none-any.whl", hash = "sha256:b18f2d1533a71f069c7f82d524a52599053d4c7166e9dd374ae2136b7f40f7c8", size = 23594 },
 ]
+
+[[package]]
+name = "xmltodict"
+version = "0.0.0"
+source = { directory = "xmltodict" }
 
 [[package]]
 name = "yarl"
