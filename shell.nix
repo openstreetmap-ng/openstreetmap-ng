@@ -106,6 +106,7 @@ let
     ruff
     gettext
     protobuf
+    ninja
     # Frontend:
     bun
     biome

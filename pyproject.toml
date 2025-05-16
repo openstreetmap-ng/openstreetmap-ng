@@ -53,6 +53,7 @@ dependencies = [
   "supervisor",
   "tqdm",
   "uvicorn[standard]",
+  "xmltodict",
   "zid",
   "zstandard",
 ]
@@ -66,6 +67,7 @@ dev = [
   "cairosvg",
   "coverage",
   "lxml-stubs",
+  "meson",
   "pre-commit",
   "pytest",
   "pytest-asyncio",
@@ -80,6 +82,9 @@ dev = [
 package = false
 python-downloads = "never"
 python-preference = "only-system"
+
+[tool.uv.sources]
+xmltodict = { path = "xmltodict" }
 
 [build-system]
 requires = ["hatchling"]

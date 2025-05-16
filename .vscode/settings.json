@@ -21,6 +21,8 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "autoDocstring.docstringFormat": "sphinx-notypes",
+  "C_Cpp.default.compileCommands": "/home/user/Source/openstreetmap-ng/xmltodict/builddir/compile_commands.json",
+  "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
   "editor.rulers": [88],
   "editor.unicodeHighlight.allowedCharacters": {
@@ -43,7 +45,7 @@
     ".venv/": true,
     "**/__pycache__/": true,
     "**/_generated/": true,
-    "**/*.c": true,
+    //"**/*.c": true,
     "**/*.egg-info/": true,
     "**/*.html": true,
     "**/*.so": true,
