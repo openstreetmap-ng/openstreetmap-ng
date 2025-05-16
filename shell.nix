@@ -116,7 +116,91 @@ let
 
     # Scripts:
     # -- Cython
-    (makeScript "cython-build" "python scripts/cython_build.py build_ext --inplace --parallel \"$(nproc --all)\"")
+    (makeScript "cython-build" ''
+      files=()
+      declare -A BLACKLIST
+
+      # Reason: Unsupported PEP-654 Exception Groups
+      # https://github.com/cython/cython/issues/4993
+      BLACKLIST["app/services/optimistic_diff/__init__.py"]=1
+
+      # Reason: Lambda default arguments fail with embedsignature=True
+      # https://github.com/cython/cython/issues/6880
+      BLACKLIST["app/lib/pydantic_settings_integration.py"]=1
+
+      DIRS=(
+        "app/exceptions" "app/exceptions06" "app/format" "app/lib"
+        "app/middlewares" "app/responses" "app/services"
+        "app/queries" "app/validators"
+      )
+      for dir in "''${DIRS[@]}"; do
+        for file in "$dir"/**/*.py; do
+          if [ -f "$file" ] && [ -z "''${BLACKLIST[$file]:-}" ]; then
+            files+=("$file")
+          fi
+        done
+      done
+
+      EXTRA_PATHS=(
+        "app/db.py" "app/utils.py"
+        "app/models/element.py" "app/models/scope.py" "app/models/tags_format.py"
+        "scripts/preload_convert.py" "scripts/replication_download.py"
+        "scripts/replication_generate.py"
+      )
+      for file in "''${EXTRA_PATHS[@]}"; do
+        if [ -f "$file" ] && [ -z "''${BLACKLIST[$file]:-}" ]; then
+          files+=("$file")
+        fi
+      done
+
+      echo "Found ''${#files[@]} source files"
+
+      _CFLAGS="-shared -fPIC \
+        $(python-config --cflags) \
+        -g -O3 -flto=auto -pipe \
+        -march=''${CYTHON_MARCH:-native} \
+        -mtune=''${CYTHON_MTUNE:-native} \
+        -funsafe-math-optimizations \
+        -fno-semantic-interposition \
+        -fno-plt \
+        -fvisibility=hidden \
+        -fipa-pta \
+        -mshstk \
+        --param=max-vartrack-size=0 \
+        -DCYTHON_PROFILE=1 \
+        ''${CYTHON_FLAGS:-}"
+
+      _LDFLAGS=$(python-config --ldflags)
+      _SUFFIX=$(python-config --extension-suffix)
+      export _CFLAGS _LDFLAGS _SUFFIX
+
+      process_file() {
+        pyfile="$1"
+        module_name="''${pyfile%.py}"  # Remove .py extension
+        module_name="''${module_name//\//.}"  # Replace '/' with '.'
+        c_file="''${pyfile%.py}.c"
+        so_file="''${pyfile%.py}$_SUFFIX"
+
+        # Skip unchanged files
+        if [ "$so_file" -nt "$pyfile" ]; then
+          return 0
+        fi
+
+        (set -x; cython -3 \
+          --annotate \
+          --directive overflowcheck=True,embedsignature=True,profile=True \
+          --module-name "$module_name" \
+          "$pyfile" -o "$c_file")
+
+        # shellcheck disable=SC2086
+        (set -x; $CC $_CFLAGS "$c_file" -o "$so_file" $_LDFLAGS)
+      }
+      export -f process_file
+
+      parallel --will-cite \
+        --bar --eta \
+        process_file ::: "''${files[@]}"
+    '')
     (makeScript "cython-build-fast" ''
       CYTHON_FLAGS="\
         -O0 \

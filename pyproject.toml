@@ -46,7 +46,6 @@ dependencies = [
   "rtree",
   "scikit-learn",
   "sentry-sdk[aiohttp,fastapi,httpx,pure-eval]",
-  "setuptools",
   "shapely",
   "sizestr",
   "starlette-compress",
