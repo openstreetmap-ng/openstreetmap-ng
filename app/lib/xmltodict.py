@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from lxml.etree import _Element
 
 _PARSER = XMLParser(
-    recover=True,
     remove_blank_text=True,
     remove_comments=True,
     remove_pis=True,
