@@ -157,16 +157,13 @@ let
 
       _CFLAGS="-shared -fPIC \
         $(python-config --cflags) \
-        -g -O3 -flto=auto -pipe \
+        -g -Ofast -flto=auto -pipe \
         -march=''${CYTHON_MARCH:-native} \
         -mtune=''${CYTHON_MTUNE:-native} \
-        -funsafe-math-optimizations \
-        -fno-semantic-interposition \
         -fno-plt \
         -fvisibility=hidden \
         -fipa-pta \
         -mshstk \
-        --param=max-vartrack-size=0 \
         -DCYTHON_PROFILE=1 \
         ''${CYTHON_FLAGS:-}"
 
