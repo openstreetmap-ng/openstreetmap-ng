@@ -28,7 +28,9 @@ xml_dep = subproject(
   default_options: {
     'minimum': 'true',
     'output': 'enabled',
+    'reader': 'enabled',
     'threads': 'enabled',
+    'writer': 'enabled',
   },
 ).get_variable('xml_dep')
 
