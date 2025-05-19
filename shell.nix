@@ -669,18 +669,14 @@ let
   ];
 
   shell' = ''
+    export TZ=UTC
     export NIX_ENFORCE_NO_NATIVE=0
     export NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
     export SSL_CERT_FILE=$NIX_SSL_CERT_FILE
     export PYTHONNOUSERSITE=1
     export PYTHONPATH="${projectDir}"
-    export TZ=UTC
     export COVERAGE_CORE=sysmon
-
-    if ! command -v git &>/dev/null; then
-      echo "Installing git (minimal)"
-      export PATH="$PATH:${pkgs.gitMinimal}/bin"
-    fi
+    export PATH="$PATH:${pkgs.gitMinimal}/bin"
 
     en_yaml_path="${projectDir}/config/locale/download/en.yaml"
     en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
