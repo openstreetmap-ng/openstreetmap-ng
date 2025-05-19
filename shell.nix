@@ -157,21 +157,17 @@ let
 
       echo "Found ''${#files[@]} source files"
 
-      _CFLAGS="-shared -fPIC \
+      CFLAGS="$CFLAGS \
+        -shared -fPIC \
         $(python-config --cflags) \
-        -g -Ofast -flto=auto -pipe \
-        -march=''${CYTHON_MARCH:-native} \
-        -mtune=''${CYTHON_MTUNE:-native} \
-        -fno-plt \
-        -fvisibility=hidden \
-        -fipa-pta \
-        -mshstk \
-        -DCYTHON_PROFILE=1 \
-        ''${CYTHON_FLAGS:-}"
+        -DCYTHON_PROFILE=1"
+      export CFLAGS
 
-      _LDFLAGS=$(python-config --ldflags)
+      LDFLAGS="$LDFLAGS $(python-config --ldflags)"
+      export LDFLAGS
+
       _SUFFIX=$(python-config --extension-suffix)
-      export _CFLAGS _LDFLAGS _SUFFIX
+      export _SUFFIX
 
       process_file() {
         pyfile="$1"
@@ -192,7 +188,7 @@ let
           "$pyfile" -o "$c_file")
 
         # shellcheck disable=SC2086
-        (set -x; $CC $_CFLAGS "$c_file" -o "$so_file" $_LDFLAGS)
+        (set -x; $CC $CFLAGS "$c_file" -o "$so_file" $LDFLAGS)
       }
       export -f process_file
 
@@ -201,10 +197,12 @@ let
         process_file ::: "''${files[@]}"
     '')
     (makeScript "cython-build-fast" ''
-      CYTHON_FLAGS="\
+      CFLAGS="$CFLAGS \
         -O0 \
         -fno-lto \
         -fno-ipa-pta" \
+      LDFLAGS="$LDFLAGS \
+        -fno-lto" \
       cython-build
     '')
     (makeScript "cython-build-pgo" ''
@@ -226,7 +224,7 @@ let
       tmpdir=$(mktemp -d)
       trap 'rm -rf "$tmpdir"' EXIT
       cython-clean
-      CYTHON_FLAGS="\
+      CFLAGS="$CFLAGS \
         -fprofile-dir=$tmpdir \
         -fprofile-generate \
         -fprofile-update=prefer-atomic" \
@@ -243,7 +241,7 @@ let
       fi
 
       rm -rf build/
-      CYTHON_FLAGS="\
+      CFLAGS="$CFLAGS \
         -fprofile-dir=$tmpdir \
         -fprofile-use \
         -fprofile-partial-training" \
@@ -698,6 +696,19 @@ let
     export PYTHONPATH="${projectDir}"
     export COVERAGE_CORE=sysmon
     export PATH="$PATH:${pkgs.gitMinimal}/bin"
+
+    export CFLAGS="$CFLAGS \
+      -g -Ofast -flto=auto \
+      -march=''${CMARCH:-native} \
+      -mtune=''${CMTUNE:-native} \
+      -fno-plt \
+      -fvisibility=hidden \
+      -fipa-pta \
+      -mshstk"
+
+    export LDFLAGS="$LDFLAGS \
+      -flto=auto \
+      -fno-semantic-interposition";
 
     en_yaml_path="${projectDir}/config/locale/download/en.yaml"
     en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
