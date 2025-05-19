@@ -47,7 +47,6 @@ let
   pythonLibs = with pkgs; [
     cairo.out
     file.out
-    libxml2.out
     libyaml.out
     zlib.out
     stdenv'.cc.cc.lib
@@ -107,6 +106,8 @@ let
     gettext
     protobuf
     ninja
+    pkg-config
+    libxml2.dev
     # Frontend:
     bun
     biome

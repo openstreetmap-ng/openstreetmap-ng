@@ -145,7 +145,8 @@ static PyObject *parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
 
     xmlTextReaderPtr reader = xmlReaderForMemory(
         buffer, buffer_size, NULL, NULL,
-        XML_PARSE_NOCDATA | XML_PARSE_COMPACT | XML_PARSE_NO_XXE | XML_PARSE_NO_SYS_CATALOG);
+        XML_PARSE_NOCDATA | XML_PARSE_COMPACT | XML_PARSE_NO_XXE);
+    // TODO: 2.14 XML_PARSE_NO_SYS_CATALOG
 
     if (!reader)
     {
