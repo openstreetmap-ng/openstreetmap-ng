@@ -705,7 +705,7 @@ let
       -fvisibility=hidden \
       -fno-semantic-interposition \
       -fno-plt \
-      -fipa-pta"
+      ${if stdenv'.isDarwin then "" else "-fipa-pta"}"
 
     export LDFLAGS="$LDFLAGS -flto=auto";
 
