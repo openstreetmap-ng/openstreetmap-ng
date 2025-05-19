@@ -997,6 +997,15 @@ wheels = [
 ]
 
 [[package]]
+name = "meson"
+version = "1.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/2d/28/82509ddb26dc11790acc83fef183edf8fd7cbfd4c69572fd2bd10d18be2e/meson-1.8.0.tar.gz", hash = "sha256:0a9b23311271519bd03dca12d7d8b0eab582c3a2c5da433d465b6e519dc88e2f", size = 2334911, upload-time = "2025-04-28T20:31:26.049Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/df/d7/f1c8acf0e597d4d07532f519780ee6e11ba285a9b092f18706b4c9118331/meson-1.8.0-py3-none-any.whl", hash = "sha256:472b7b25da286447333d32872b82d1c6f1a34024fb8ee017d7308056c25fec1f", size = 1012501, upload-time = "2025-04-28T20:31:23.351Z" },
+]
+
+[[package]]
 name = "multidict"
 version = "6.4.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1192,6 +1201,7 @@ dev = [
     { name = "cairosvg" },
     { name = "coverage" },
     { name = "lxml-stubs" },
+    { name = "meson" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -1267,6 +1277,7 @@ dev = [
     { name = "cairosvg" },
     { name = "coverage" },
     { name = "lxml-stubs" },
+    { name = "meson" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
