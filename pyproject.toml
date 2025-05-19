@@ -67,7 +67,6 @@ dev = [
   "cairosvg",
   "coverage",
   "lxml-stubs",
-  "meson",
   "pre-commit",
   "pytest",
   "pytest-asyncio",
