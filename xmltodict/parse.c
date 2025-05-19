@@ -384,10 +384,6 @@ static PyObject *parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
                     goto fail;
             }
 
-            const xmlChar *value_xml = xmlTextReaderConstValue(reader);
-            if (!value_xml || value_xml[0] == '\0') // Skip empty values
-                break;
-
             const char *postprocess_key = node_type == XML_READER_TYPE_ATTRIBUTE
                                               ? (const char *)xmlTextReaderConstLocalName(reader)
                                               : PyUnicode_AsUTF8(current_name);
@@ -424,6 +420,7 @@ static PyObject *parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
                 set_key = text_key;
             }
 
+            const xmlChar *value_xml = xmlTextReaderConstValue(reader);
             PyObject *value = postprocess_value(postprocess_key, value_xml);
             if (!value)
             {
