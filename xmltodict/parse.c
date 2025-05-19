@@ -84,11 +84,10 @@ static PyObject *postprocess_xml_date(const xmlChar *value_xml)
     return result;
 }
 
-typedef PyObject *(*ValuePostprocessorFunc)(const xmlChar *);
 typedef struct
 {
     const char *key;
-    ValuePostprocessorFunc func;
+    PyObject *(*func)(const xmlChar *);
 } ValuePostprocessorItem;
 
 static const ValuePostprocessorItem value_postprocessor_map[] = {
