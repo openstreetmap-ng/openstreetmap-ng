@@ -66,7 +66,7 @@ dev = [
   "cairosvg",
   "coverage",
   "lxml-stubs",
-  "meson",
+  "meson; sys_platform != 'darwin'",
   "pre-commit",
   "pytest",
   "pytest-asyncio",

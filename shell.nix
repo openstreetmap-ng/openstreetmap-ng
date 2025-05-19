@@ -86,7 +86,7 @@ let
       meta.mainProgram = name;
     };
 
-  packages' = with pkgs; [
+  packages' = with pkgs; (lib.optionals stdenv.isDarwin [ meson ]) ++ [
     ps
     coreutils
     findutils
