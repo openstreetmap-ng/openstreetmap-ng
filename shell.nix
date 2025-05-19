@@ -595,6 +595,11 @@ let
     export TZ=UTC
     export COVERAGE_CORE=sysmon
 
+    if ! command -v git &>/dev/null; then
+      echo "Installing git (minimal)"
+      export PATH="$PATH:${pkgs.gitMinimal}/bin"
+    fi
+
     en_yaml_path="${projectDir}/config/locale/download/en.yaml"
     en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
     current_en_yaml=$(readlink -e "$en_yaml_sym_path" || echo "")
@@ -618,7 +623,7 @@ let
     echo "Activating Python virtual environment"
     source .venv/bin/activate
 
-    if [ -d .git ] && command -v git &>/dev/null; then
+    if [ -d .git ]; then
       echo "Installing pre-commit hooks"
       python -m pre_commit install -c ${preCommitConf} --overwrite
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
