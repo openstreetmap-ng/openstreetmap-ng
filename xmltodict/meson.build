@@ -4,23 +4,9 @@ project(
   default_options: {
     'buildtype': 'release',
     'warning_level': '3',
-    #'werror': 'true',
     'c_std': 'c23',
-    'c_args': [
-      '-march=native',
-      '-mtune=native',
-      #'-fhardened',
-      '-funsafe-math-optimizations',
-      '-fno-semantic-interposition',
-      '-fno-plt',
-      '-fvisibility=hidden',
-      '-fipa-pta',
-    ],
-    #'b_lto': 'true',
-    #'b_lundef': 'false',
-    #'b_lto=true',
-    #'b_lundef=false',
   },
+  meson_version: '>=1.2.0',
 )
 
 xml_dep = subproject(
