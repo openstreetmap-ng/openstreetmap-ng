@@ -18,7 +18,7 @@ let
   # Update packages with `nixpkgs-update` command
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/3fcbdcfc707e0aa42c541b7743e05820472bdaec.tar.gz") { };
 
-  projectDir = builtins.toString ./.;
+  projectDir = toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs makeScript; };
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
   postgresConf = import ./config/postgres.nix {
