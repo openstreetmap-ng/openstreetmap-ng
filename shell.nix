@@ -671,7 +671,7 @@ let
       #!${runtimeShell}
       exec python -m $module_name "\$@"
       EOF
-        chmod +x "$temp_file"
+        chmod --reference="$script" "$temp_file"
         mv "$temp_file" "$script"
 
         echo "Patched $script"
