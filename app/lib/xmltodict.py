@@ -9,7 +9,7 @@ from sizestr import sizestr
 from app.config import XML_PARSE_MAX_SIZE
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
-from xmltodict.lib import parse
+from xmltodict.parse import parse
 
 if TYPE_CHECKING:
     from lxml.etree import _Element
