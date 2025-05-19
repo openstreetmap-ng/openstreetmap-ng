@@ -36,8 +36,8 @@ xml_dep = subproject(
 
 py = import('python').find_installation(pure: false)
 py.extension_module(
-  'lib',
-  'lib.c',
+  'parse',
+  'parse.c',
   subdir: 'xmltodict',
   dependencies: [xml_dep],
   install: true,

@@ -510,13 +510,13 @@ static PyMethodDef methods[] = {
 
 static struct PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    "xmltodict.lib",
+    "xmltodict.parse",
     NULL,
     -1,
     methods,
     NULL, NULL, NULL, NULL};
 
-PyMODINIT_FUNC PyInit_lib(void)
+PyMODINIT_FUNC PyInit_parse(void)
 {
     // Import dependencies
     PyObject *datetime_module = PyImport_ImportModule("datetime");
