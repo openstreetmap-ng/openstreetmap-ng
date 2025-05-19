@@ -697,7 +697,6 @@ let
     export PYTHONNOUSERSITE=1
     export PYTHONPATH="${projectDir}"
     export COVERAGE_CORE=sysmon
-    export PATH="$PATH:${pkgs.gitMinimal}/bin"
 
     export CFLAGS="$CFLAGS -flto=auto \
       -g -Ofast \
@@ -746,7 +745,7 @@ let
     patch-venv-bin &
   '' + ''
 
-    if [ -d .git ]; then
+    if [ -d .git ] && command -v git &>/dev/null; then
       echo "Installing pre-commit hooks"
       pre-commit install -c ${preCommitConf} --overwrite
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
