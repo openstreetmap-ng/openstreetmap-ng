@@ -1,7 +1,11 @@
 import pytest
 from rfc3986 import uri_reference
 
-from app.validators.url import UriValidator, UrlValidator, _validate_url_safe  # noqa: PLC2701
+from app.validators.url import (
+    UriValidator,
+    UrlValidator,
+    _validate_url_safe,  # noqa: PLC2701
+)
 
 
 @pytest.mark.parametrize(

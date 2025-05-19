@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Any, Literal, Protocol, overload
 import cython
 from lxml.etree import CDATA, XMLParser, tostring
 from sizestr import sizestr
+from xmltodict.parse import parse
 
 from app.config import XML_PARSE_MAX_SIZE
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
-from xmltodict.parse import parse
 
 if TYPE_CHECKING:
     from lxml.etree import _Element
