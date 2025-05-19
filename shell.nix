@@ -43,7 +43,6 @@ let
   };
 
   stdenv' = pkgs.gcc14Stdenv;
-  wrapPrefix = if (!stdenv'.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
   pythonLibs = with pkgs; [
     cairo.out
     file.out
@@ -59,7 +58,9 @@ let
     ];
     buildInputs = [ makeWrapper ];
     postBuild = ''
-      wrapProgram "$out/bin/python3.13" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
+      wrapProgram "$out/bin/python3.13" \
+        --prefix ${if stdenv'.isDarwin then "DYLD_LIBRARY_PATH" else "LD_LIBRARY_PATH"} : \
+        "${lib.makeLibraryPath pythonLibs}"
     '';
   };
   watchexec' = makeScript "watchexec" ''
@@ -157,13 +158,12 @@ let
 
       echo "Found ''${#files[@]} source files"
 
-      CFLAGS="$CFLAGS \
+      CFLAGS="$(python-config --cflags) $CFLAGS \
         -shared -fPIC \
-        $(python-config --cflags) \
         -DCYTHON_PROFILE=1"
       export CFLAGS
 
-      LDFLAGS="$LDFLAGS $(python-config --ldflags)"
+      LDFLAGS="$(python-config --ldflags) $LDFLAGS"
       export LDFLAGS
 
       _SUFFIX=$(python-config --extension-suffix)
@@ -200,9 +200,11 @@ let
       CFLAGS="$CFLAGS \
         -O0 \
         -fno-lto \
-        -fno-ipa-pta" \
+        -fno-ipa-pta \
+        -fno-sanitize=all" \
       LDFLAGS="$LDFLAGS \
-        -fno-lto" \
+        -fno-lto \
+        -fno-sanitize=all" \
       cython-build
     '')
     (makeScript "cython-build-pgo" ''
@@ -697,18 +699,27 @@ let
     export COVERAGE_CORE=sysmon
     export PATH="$PATH:${pkgs.gitMinimal}/bin"
 
-    export CFLAGS="$CFLAGS \
-      -g -Ofast -flto=auto \
+    export CFLAGS="$CFLAGS -flto=auto \
+      -g -Ofast \
       -march=''${CMARCH:-native} \
       -mtune=''${CMTUNE:-native} \
-      -fno-plt \
       -fvisibility=hidden \
+      -fno-semantic-interposition \
+      -fno-plt \
       -fipa-pta \
       -mshstk"
 
+    export LDFLAGS="$LDFLAGS -flto=auto";
+
+  '' + pkgs.lib.optionalString isDevelopment ''
+    export CFLAGS="$CFLAGS \
+      -Og \
+      -fsanitize=undefined \
+      -fno-omit-frame-pointer"
+
     export LDFLAGS="$LDFLAGS \
-      -flto=auto \
-      -fno-semantic-interposition";
+      -fsanitize=undefined"
+  '' + ''
 
     en_yaml_path="${projectDir}/config/locale/download/en.yaml"
     en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
