@@ -703,7 +703,7 @@ let
       -march=''${CMARCH:-native} \
       -mtune=''${CMTUNE:-native} \
       -fvisibility=hidden \
-      -fno-semantic-interposition \
+      ${if stdenv'.isDarwin then "" else "-fno-semantic-interposition"} \
       -fno-plt \
       -fipa-pta"
 
