@@ -196,6 +196,9 @@ static PyObject *parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
             current_list = Py_None;
             if (!current_name)
                 goto fail;
+            // TODO: prefer PyUnicode_InternFromString if defined to be immortal
+            // https://github.com/python/cpython/issues/133260
+            PyUnicode_InternInPlace(&current_name);
             break;
         }
         case XML_READER_TYPE_END_ELEMENT:
@@ -418,6 +421,8 @@ static PyObject *parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
                         goto fail;
                 }
                 set_key = text_key;
+                // TODO: remove ref count and cleanup if immortal
+                // https://github.com/python/cpython/issues/133260
             }
 
             const xmlChar *value_xml = xmlTextReaderConstValue(reader);
