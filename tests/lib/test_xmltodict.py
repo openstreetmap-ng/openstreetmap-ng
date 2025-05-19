@@ -1,9 +1,55 @@
+import gc
+import tracemalloc
+from collections.abc import Callable
 from datetime import UTC, datetime
+from functools import wraps
+from itertools import pairwise
+from tracemalloc import Statistic, StatisticDiff
 
 import pytest
 from lxml.etree import CDATA
+from sizestr import sizestr
 
 from app.lib.xmltodict import XMLToDict, get_xattr
+
+
+def _check_for_leaks(func: Callable):
+    func_lineno = func.__code__.co_firstlineno
+    iterations = 3
+    memory_usage = [0] * iterations
+
+    def filter_stats[T: list[Statistic] | list[StatisticDiff]](stats: T) -> T:
+        return [
+            stat  #
+            for stat in stats
+            if stat.traceback[0].filename == __file__
+            and stat.traceback[0].lineno >= func_lineno
+        ]  # type: ignore
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        gc.collect()
+        tracemalloc.start()
+        baseline = tracemalloc.take_snapshot()
+
+        for i in range(iterations):
+            func(*args, **kwargs)
+            gc.collect()
+            snapshot = tracemalloc.take_snapshot()
+            memory_usage[i] = sum(
+                stat.size for stat in filter_stats(snapshot.statistics('lineno'))
+            )
+
+        tracemalloc.stop()
+
+        # Check for a consistent upward trend which would indicate a leak
+        is_leaking = all(left < right for left, right in pairwise(memory_usage))
+        if is_leaking:
+            for leak in filter_stats(snapshot.compare_to(baseline, 'lineno')):  # type: ignore
+                print(f'Leaked {sizestr(leak.size_diff)}: {leak}')
+            raise AssertionError('Leaked memory')
+
+    return wrapper
 
 
 @pytest.mark.parametrize(
@@ -38,6 +84,7 @@ from app.lib.xmltodict import XMLToDict, get_xattr
         ),
     ],
 )
+@_check_for_leaks
 def test_xml_parse(input, expected):
     assert XMLToDict.parse(input) == expected
 
@@ -98,6 +145,7 @@ def test_xml_parse(input, expected):
         ),
     ],
 )
+@_check_for_leaks
 def test_xml_unparse(input, expected):
     assert XMLToDict.unparse(input) == expected
 
