@@ -106,6 +106,7 @@ let
     ruff
     gettext
     protobuf
+    meson
     ninja
     # Frontend:
     bun
