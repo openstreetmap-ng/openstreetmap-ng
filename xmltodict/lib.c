@@ -417,24 +417,25 @@ static PyObject *parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
             {
                 if (!text_key)
                 {
-                    text_key = PyUnicode_InternFromString("\#text");
+                    text_key = PyUnicode_InternFromString("#text");
                     if (!text_key)
                         goto fail;
                 }
-
                 set_key = text_key;
             }
 
             PyObject *value = postprocess_value(postprocess_key, value_xml);
             if (!value)
             {
-                Py_DECREF(set_key);
+                if (set_key != text_key)
+                    Py_DECREF(set_key);
                 PyErr_Format(PyExc_ValueError, "Invalid postprocess '%s' value: %s", postprocess_key, value_xml);
                 goto fail;
             }
 
             int set_result = PyDict_SetItem(current_dict, set_key, value);
-            Py_DECREF(set_key);
+            if (set_key != text_key)
+                Py_DECREF(set_key);
             Py_DECREF(value);
             if (set_result)
                 goto fail;
@@ -493,6 +494,7 @@ ok:
 
     Py_XDECREF(stack);
     Py_XDECREF(attr_cache);
+    Py_XDECREF(text_key);
     Py_XDECREF(parent_name);
     Py_XDECREF(current_name);
     Py_XDECREF(current_dict);
