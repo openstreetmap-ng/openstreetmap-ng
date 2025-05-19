@@ -21,6 +21,8 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "autoDocstring.docstringFormat": "sphinx-notypes",
+  "C_Cpp.default.compileCommands": "/home/user/Source/openstreetmap-ng/xmltodict/builddir/compile_commands.json",
+  "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
   "editor.rulers": [88],
   "editor.unicodeHighlight.allowedCharacters": {
@@ -41,14 +43,17 @@
     ".*cache/": true,
     ".direnv/": true,
     ".venv/": true,
+    "{app,script}/**/*.c": true,
     "**/__pycache__/": true,
     "**/_generated/": true,
-    "**/*.c": true,
     "**/*.egg-info/": true,
     "**/*.html": true,
     "**/*.so": true,
+    "**/build/": true,
+    "**/builddir/": true,
+    "**/packagecache/": true,
+    "**/subprojects/*-*/": true,
     "app/static/js/": true,
-    "build/": true,
     "config/locale/download/": true,
     "dist/": true,
     "node_modules/": true
@@ -85,6 +90,5 @@
   "SQL-Formatter-VSCode.functionCase": "lower",
   "SQL-Formatter-VSCode.keywordCase": "upper",
   "typescript.disableAutomaticTypeAcquisition": true,
-  "typescript.surveys.enabled": false,
   "typescript.tsdk": "node_modules/typescript/lib"
 }

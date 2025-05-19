@@ -16,7 +16,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/b0b4b5f8f621bfe213b8b21694bab52ecfcbf30b.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/3fcbdcfc707e0aa42c541b7743e05820472bdaec.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs makeScript; };
@@ -86,7 +86,7 @@ let
       meta.mainProgram = name;
     };
 
-  packages' = with pkgs; [
+  packages' = with pkgs; (lib.optionals stdenv.isDarwin [ meson ]) ++ [
     ps
     coreutils
     findutils
@@ -106,6 +106,7 @@ let
     ruff
     gettext
     protobuf
+    ninja
     # Frontend:
     bun
     biome
@@ -433,7 +434,7 @@ let
       fi
 
       mkdir -p data/mailpit data/postgres_unix data/supervisor
-      python -m supervisor.supervisord -c ${supervisordConf}
+      supervisord -c ${supervisordConf}
       echo "Supervisor started"
 
       echo "Waiting for Postgres to start..."
@@ -633,7 +634,7 @@ let
     (makeScript "format" ''
       set +e
       ruff check . --fix
-      python -m pre_commit run -c ${preCommitConf} --all-files
+      pre-commit run -c ${preCommitConf} --all-files
     '')
     (makeScript "pyright" "bunx basedpyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
@@ -655,6 +656,27 @@ let
     '')
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
+    (makeScript "patch-venv-bin" ''
+      find .venv/bin -maxdepth 1 -type f -executable | while read -r script; do
+        if ! head -n 1 "$script" | grep -q "\.venv/bin/python"; then continue; fi
+
+        module_name=$(grep -Po "(?<=^from )\S+" "$script")
+        if [ -z "$module_name" ]; then
+          echo "Warning: Could not extract module name from $script"
+          continue
+        fi
+
+        temp_file=$(mktemp)
+        cat > "$temp_file" << EOF
+      #!${runtimeShell}
+      exec python -m $module_name "\$@"
+      EOF
+        chmod --reference="$script" "$temp_file"
+        mv "$temp_file" "$script"
+
+        echo "Patched $script"
+      done
+    '')
     (makeScript "nixpkgs-update" ''
       hash=$(
         curl --silent --location \
@@ -667,12 +689,14 @@ let
   ];
 
   shell' = ''
+    export TZ=UTC
     export NIX_ENFORCE_NO_NATIVE=0
-    export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
+    export NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
+    export SSL_CERT_FILE=$NIX_SSL_CERT_FILE
     export PYTHONNOUSERSITE=1
     export PYTHONPATH="${projectDir}"
-    export TZ=UTC
     export COVERAGE_CORE=sysmon
+    export PATH="$PATH:${pkgs.gitMinimal}/bin"
 
     en_yaml_path="${projectDir}/config/locale/download/en.yaml"
     en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
@@ -696,10 +720,13 @@ let
 
     echo "Activating Python virtual environment"
     source .venv/bin/activate
+  '' + pkgs.lib.optionalString stdenv'.isDarwin ''
+    patch-venv-bin &
+  '' + ''
 
-    if [ -d .git ] && command -v git &>/dev/null; then
+    if [ -d .git ]; then
       echo "Installing pre-commit hooks"
-      python -m pre_commit install -c ${preCommitConf} --overwrite
+      pre-commit install -c ${preCommitConf} --overwrite
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
     fi
 

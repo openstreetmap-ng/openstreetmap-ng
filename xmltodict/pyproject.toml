@@ -1,0 +1,11 @@
+[project]
+name = 'xmltodict'
+version = "0.0.0"
+
+[build-system]
+build-backend = 'mesonpy'
+requires = ['meson-python']
+
+[tool.meson-python.args]
+setup = ['--default-library=static']
+install = ['--skip-subprojects']
