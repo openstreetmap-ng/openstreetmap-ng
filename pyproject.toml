@@ -29,7 +29,7 @@ dependencies = [
   "osm-shortlink",
   "phonenumbers",
   "polyline-rs",
-  "protobuf==5.29.3",
+  "protobuf==6.30.2",
   "psycopg[binary,pool]>=3.2.7",
   "pyarrow",
   "pycryptodomex",
