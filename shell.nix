@@ -42,7 +42,7 @@ let
       pkgs postgresConf;
   };
 
-  stdenv' = pkgs.gcc14Stdenv;
+  stdenv' = if pkgs.stdenv.isDarwin then pkgs.stdenv else pkgs.gcc14Stdenv;
   pythonLibs = with pkgs; [
     cairo.out
     file.out
@@ -703,7 +703,7 @@ let
       -march=''${CMARCH:-native} \
       -mtune=''${CMTUNE:-native} \
       -fvisibility=hidden \
-      ${if stdenv'.isDarwin then "" else "-fno-semantic-interposition"} \
+      -fno-semantic-interposition \
       -fno-plt \
       -fipa-pta"
 
