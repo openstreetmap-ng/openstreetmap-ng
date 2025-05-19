@@ -200,7 +200,7 @@ let
       CFLAGS="$CFLAGS \
         -O0 \
         -fno-lto \
-        -fno-ipa-pta \
+        ${if stdenv'.cc.isGNU then "-fno-ipa-pta" else ""} \
         -fno-sanitize=all" \
       LDFLAGS="$LDFLAGS \
         -fno-lto \
@@ -705,7 +705,7 @@ let
       -fvisibility=hidden \
       -fno-semantic-interposition \
       -fno-plt \
-      ${if stdenv'.isDarwin then "" else "-fipa-pta"}"
+      ${if stdenv'.cc.isGNU then "-fipa-pta" else ""}"
 
     export LDFLAGS="$LDFLAGS -flto=auto";
 
