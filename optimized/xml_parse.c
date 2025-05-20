@@ -131,12 +131,12 @@ static PyObject *postprocess_value(const char *key, const xmlChar *value_xml)
 
 #pragma endregion
 
-static PyObject *parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
+static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
 {
     if (PyVectorcall_NARGS(nargs) != 1)
-        return PyErr_Format(PyExc_TypeError, "parse(bytes, /) takes exactly 1 argument");
+        return PyErr_Format(PyExc_TypeError, "xml_parse(bytes, /) takes exactly 1 argument");
     if (!PyBytes_CheckExact(args[0]))
-        return PyErr_Format(PyExc_TypeError, "parse(bytes, /) first argument must be bytes");
+        return PyErr_Format(PyExc_TypeError, "xml_parse(bytes, /) first argument must be bytes");
 
     char *buffer;
     Py_ssize_t buffer_size;
@@ -506,19 +506,19 @@ ok:
 }
 
 static PyMethodDef methods[] = {
-    {"parse", _PyCFunction_CAST(parse), METH_FASTCALL, NULL},
+    {"xml_parse", _PyCFunction_CAST(xml_parse), METH_FASTCALL, NULL},
     {NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    "xmltodict.parse",
+    "optimized.xml_parse",
     NULL,
     -1,
     methods,
     NULL, NULL, NULL, NULL};
 
-PyMODINIT_FUNC PyInit_parse(void)
+PyMODINIT_FUNC PyInit_xml_parse(void)
 {
     // Import dependencies
     PyObject *datetime_module = PyImport_ImportModule("datetime");

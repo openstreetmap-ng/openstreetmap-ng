@@ -1,0 +1,3 @@
+from typing import Any
+
+def xml_parse(xml: bytes, /) -> dict[str, Any]: ...

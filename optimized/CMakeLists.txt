@@ -6,10 +6,12 @@ endif()
 
 project(${SKBUILD_PROJECT_NAME} LANGUAGES C)
 
+set(CMAKE_C_STANDARD 23)
+
 find_package(Python COMPONENTS Development.Module REQUIRED)
 find_package(LibXml2 REQUIRED)
 
-python_add_library(parse MODULE parse.c WITH_SOABI)
-target_compile_features(parse PUBLIC c_std_23)
-target_link_libraries(parse PRIVATE LibXml2::LibXml2)
-install(TARGETS parse DESTINATION ${SKBUILD_PROJECT_NAME})
+python_add_library(xml_parse MODULE xml_parse.c WITH_SOABI)
+target_link_libraries(xml_parse PRIVATE LibXml2::LibXml2)
+install(TARGETS xml_parse DESTINATION ${SKBUILD_PROJECT_NAME})
+install(FILES xml_parse.pyi DESTINATION ${SKBUILD_PROJECT_NAME})

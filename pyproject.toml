@@ -25,6 +25,7 @@ dependencies = [
   "nh3",
   "numpy",
   "opencv-python-headless",
+  "optimized",
   "orjson",
   "osm-shortlink",
   "phonenumbers",
@@ -52,7 +53,6 @@ dependencies = [
   "supervisor",
   "tqdm",
   "uvicorn[standard]",
-  "xmltodict",
   "zid",
   "zstandard",
 ]
@@ -82,7 +82,7 @@ python-downloads = "never"
 python-preference = "only-system"
 
 [tool.uv.sources]
-xmltodict = { path = "xmltodict" }
+optimized = { path = "optimized" }
 
 [build-system]
 requires = ["hatchling"]

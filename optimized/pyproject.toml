@@ -1,5 +1,5 @@
 [project]
-name = "xmltodict"
+name = "optimized"
 version = "0.0.0"
 
 [build-system]

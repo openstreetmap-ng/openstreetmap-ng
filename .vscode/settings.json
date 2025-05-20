@@ -21,7 +21,7 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "autoDocstring.docstringFormat": "sphinx-notypes",
-  "cmake.sourceDirectory": "${workspaceFolder}/xmltodict",
+  "cmake.sourceDirectory": "${workspaceFolder}/optimized",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
   "editor.rulers": [88],
   "editor.unicodeHighlight.allowedCharacters": {
