@@ -21,8 +21,7 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "autoDocstring.docstringFormat": "sphinx-notypes",
-  "C_Cpp.default.compileCommands": "/home/user/Source/openstreetmap-ng/xmltodict/builddir/compile_commands.json",
-  "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+  "cmake.sourceDirectory": "${workspaceFolder}/xmltodict",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
   "editor.rulers": [88],
   "editor.unicodeHighlight.allowedCharacters": {
@@ -50,9 +49,6 @@
     "**/*.html": true,
     "**/*.so": true,
     "**/build/": true,
-    "**/builddir/": true,
-    "**/packagecache/": true,
-    "**/subprojects/*-*/": true,
     "app/static/js/": true,
     "config/locale/download/": true,
     "dist/": true,

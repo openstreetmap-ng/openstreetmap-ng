@@ -1,11 +1,7 @@
 [project]
-name = 'xmltodict'
+name = "xmltodict"
 version = "0.0.0"
 
 [build-system]
-build-backend = 'mesonpy'
-requires = ['meson-python']
-
-[tool.meson-python.args]
-setup = ['--default-library=static']
-install = ['--skip-subprojects']
+requires = ["scikit-build-core"]
+build-backend = "scikit_build_core.build"

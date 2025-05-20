@@ -1,6 +1,25 @@
 # File created using '.gitignore Generator' for Visual Studio Code: https://bit.ly/vscode-gig
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,sass,python,node,dotenv,direnv
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,sass,python,node,dotenv,direnv
+# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,sass,python,node,dotenv,direnv,cmake
+# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,sass,python,node,dotenv,direnv,cmake
+
+### CMake ###
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+### CMake Patch ###
+CMakeUserPresets.json
+
+# External projects
+*-prefix/
 
 ### direnv ###
 .direnv
@@ -8,29 +27,6 @@
 
 ### dotenv ###
 .env
-
-### Meson ###
-# subproject directories
-**/subprojects/*
-!**/subprojects/*.wrap
-
-# Meson Directories
-meson-logs
-meson-private
-
-# Meson Files
-meson_benchmark_setup.dat
-meson_test_setup.dat
-sanitycheckcpp.cc     # C++ specific
-sanitycheckcpp.exe    # C++ specific
-
-# Ninja
-build.ninja
-.ninja_deps
-.ninja_logs
-
-# Misc
-compile_commands.json
 
 ### Node ###
 # Logs
@@ -365,7 +361,7 @@ pyrightconfig.json
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,sass,python,node,dotenv,direnv
+# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,sass,python,node,dotenv,direnv,cmake
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
 

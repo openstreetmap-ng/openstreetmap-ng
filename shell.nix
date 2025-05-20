@@ -86,7 +86,7 @@ let
       meta.mainProgram = name;
     };
 
-  packages' = with pkgs; (lib.optionals stdenv.isDarwin [ meson ]) ++ [
+  packages' = with pkgs; [
     ps
     coreutils
     findutils
@@ -106,8 +106,7 @@ let
     ruff
     gettext
     protobuf
-    ninja
-    pkg-config
+    cmake
     libxml2.dev
     # Frontend:
     bun
