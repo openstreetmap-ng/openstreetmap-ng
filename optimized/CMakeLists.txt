@@ -5,13 +5,21 @@ if(NOT DEFINED SKBUILD_PROJECT_NAME)
 endif()
 
 project(${SKBUILD_PROJECT_NAME} LANGUAGES C)
-
 set(CMAKE_C_STANDARD 23)
 
 find_package(Python COMPONENTS Development.Module REQUIRED)
 find_package(LibXml2 REQUIRED)
 
-python_add_library(xml_parse MODULE xml_parse.c WITH_SOABI)
+file(GLOB C_FILES "*.c")
+foreach(C_FILE ${C_FILES})
+  get_filename_component(MODULE_NAME ${C_FILE} NAME_WE)
+  python_add_library(${MODULE_NAME} MODULE ${C_FILE} WITH_SOABI)
+  install(TARGETS ${MODULE_NAME} DESTINATION ${SKBUILD_PROJECT_NAME})
+
+  set(PYI_FILE ${MODULE_NAME}.pyi)
+  if(EXISTS ${PYI_FILE})
+    install(FILES ${PYI_FILE} DESTINATION ${SKBUILD_PROJECT_NAME})
+  endif()
+endforeach()
+
 target_link_libraries(xml_parse PRIVATE LibXml2::LibXml2)
-install(TARGETS xml_parse DESTINATION ${SKBUILD_PROJECT_NAME})
-install(FILES xml_parse.pyi DESTINATION ${SKBUILD_PROJECT_NAME})
