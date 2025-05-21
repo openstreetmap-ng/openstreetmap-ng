@@ -11,7 +11,7 @@ from app.queries.element_query import ElementQuery
 from app.queries.note_query import NoteQuery
 from app.services.migration_service import (
     MigrationService,
-    _get_element_typed_id_batches,  # noqa: PLC2701
+    _get_element_typed_id_batches,
 )
 from app.services.optimistic_diff import OptimisticDiff
 from tests.utils.assert_model import assert_model

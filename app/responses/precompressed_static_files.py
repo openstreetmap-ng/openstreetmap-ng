@@ -13,7 +13,7 @@ from starlette.datastructures import Headers
 from starlette.responses import FileResponse, Response
 from starlette.staticfiles import NotModifiedResponse, StaticFiles
 from starlette.types import Scope
-from starlette_compress import _parse_accept_encoding  # noqa: PLC2701
+from starlette_compress import _parse_accept_encoding
 
 from app.config import ENV
 

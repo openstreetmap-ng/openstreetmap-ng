@@ -2,7 +2,7 @@ import logging
 from asyncio import TaskGroup, sleep
 from collections.abc import Callable
 from functools import cache
-from inspect import Parameter, _empty, signature  # noqa: PLC2701
+from inspect import Parameter, _empty, signature
 from operator import itemgetter
 from types import UnionType
 from typing import (

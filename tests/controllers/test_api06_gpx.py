@@ -54,18 +54,16 @@ async def test_gpx_crud(client: AsyncClient, gpx: dict):
     # Update the trace
     r = await client.put(
         f'/api/0.6/gpx/{trace_id}',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'gpx_file': {
-                        '@name': updated_filename,
-                        '@visibility': 'identifiable',
-                        'description': 'Updated description',
-                        'tag': ['updated_tag'],
-                    }
+        content=XMLToDict.unparse({
+            'osm': {
+                'gpx_file': {
+                    '@name': updated_filename,
+                    '@visibility': 'identifiable',
+                    'description': 'Updated description',
+                    'tag': ['updated_tag'],
                 }
             }
-        ),
+        }),
     )
     assert r.is_success, r.text
 
@@ -258,17 +256,15 @@ async def test_trackpoints_visibility(client: AsyncClient, gpx: dict):
     # Update the trace to make it identifiable
     r = await client.put(
         f'/api/0.6/gpx/{trace_id}',
-        content=XMLToDict.unparse(
-            {
-                'osm': {
-                    'gpx_file': {
-                        '@name': test_filename,
-                        '@visibility': 'identifiable',
-                        'description': test_description,
-                    },
+        content=XMLToDict.unparse({
+            'osm': {
+                'gpx_file': {
+                    '@name': test_filename,
+                    '@visibility': 'identifiable',
+                    'description': test_description,
                 },
-            }
-        ),
+            },
+        }),
     )
     assert r.is_success, r.text
 

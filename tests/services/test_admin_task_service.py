@@ -2,7 +2,7 @@ from typing import ForwardRef
 
 import pytest
 
-from app.services.admin_task_service import _format_annotation  # noqa: PLC2701
+from app.services.admin_task_service import _format_annotation
 
 
 @pytest.mark.parametrize(

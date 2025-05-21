@@ -25,7 +25,7 @@ from app.config import (
 )
 
 
-async def _configure_connection(conn: AsyncConnection) -> None:  # noqa: RUF029
+async def _configure_connection(conn: AsyncConnection) -> None:
     cursor = conn.cursor
 
     @wraps(cursor)
@@ -63,7 +63,7 @@ set_json_loads(orjson.loads)
 @asynccontextmanager
 async def psycopg_pool_open():
     """Open and close the psycopg pool."""
-    from app.services.migration_service import MigrationService  # noqa: PLC0415
+    from app.services.migration_service import MigrationService
 
     _init_pool()
     async with _PSYCOPG_POOL:

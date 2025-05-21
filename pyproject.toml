@@ -206,6 +206,7 @@ indent-style = "space"
 line-ending = "lf"
 quote-style = "single"
 skip-magic-trailing-comma = false
+preview = true
 
 [tool.ruff.lint.flake8-gettext]
 function-names = ["nt", "t"]

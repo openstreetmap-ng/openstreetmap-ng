@@ -11,9 +11,7 @@ from app.models.element import (
     TYPED_ELEMENT_ID_WAY_MAX,
     TYPED_ELEMENT_ID_WAY_MIN,
 )
-from app.services.migration_service import (
-    _get_element_typed_id_batches,  # noqa: PLC2701
-)
+from app.services.migration_service import _get_element_typed_id_batches
 from scripts.preload_convert import NOTES_PARQUET_PATH
 
 _PARQUET_PATHS = [

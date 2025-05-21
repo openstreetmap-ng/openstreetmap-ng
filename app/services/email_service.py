@@ -245,7 +245,7 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
 
     else:
         # Avoid circular import
-        from app.services.user_token_email_reply_service import (  # noqa: PLC0415
+        from app.services.user_token_email_reply_service import (
             UserTokenEmailReplyService,
         )
 

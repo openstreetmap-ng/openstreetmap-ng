@@ -1,6 +1,6 @@
 import pytest
 
-from app.validators.filename import _validate_filename  # noqa: PLC2701
+from app.validators.filename import _validate_filename
 
 
 @pytest.mark.parametrize(

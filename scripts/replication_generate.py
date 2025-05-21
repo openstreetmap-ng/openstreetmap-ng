@@ -85,13 +85,11 @@ def _write_state(path: Path, state: _State) -> None:
         state['timestamp'].isoformat().replace('+00:00', 'Z', 1).replace(':', '\\:')
     )
     path.write_text(
-        '\n'.join(
-            (
-                f'#{date_str}',
-                f'sequenceNumber={state["sequence_number"]}',
-                f'timestamp={timestamp_str}',
-            )
-        )
+        '\n'.join((
+            f'#{date_str}',
+            f'sequenceNumber={state["sequence_number"]}',
+            f'timestamp={timestamp_str}',
+        ))
     )
     logging.debug('State written: #%d', state['sequence_number'])
 

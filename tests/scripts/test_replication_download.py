@@ -4,11 +4,7 @@ from pathlib import Path
 import pyarrow.parquet as pq
 import pytest
 
-from scripts.replication_download import (
-    AppState,
-    ReplicaState,
-    _iterate,  # noqa: PLC2701
-)
+from scripts.replication_download import AppState, ReplicaState, _iterate
 
 
 @pytest.mark.extended
