@@ -89,7 +89,6 @@ static toStringResult to_string(PyObject *value)
     if (PyDateTime_CheckExact(value))
     {
         PyObject *tzinfo = PyDateTime_DATE_GET_TZINFO(value);
-        PyObject *value_mut = NULL;
         if (tzinfo != Py_None)
         {
             if (UNLIKELY(tzinfo != PyDateTime_TimeZone_UTC))
@@ -98,7 +97,7 @@ static toStringResult to_string(PyObject *value)
                 return (toStringResult){};
             }
 
-            value_mut = PyDateTime_FromDateAndTime(
+            value = PyDateTime_FromDateAndTime(
                 PyDateTime_GET_YEAR(value),
                 PyDateTime_GET_MONTH(value),
                 PyDateTime_GET_DAY(value),
@@ -108,11 +107,12 @@ static toStringResult to_string(PyObject *value)
                 PyDateTime_DATE_GET_MICROSECOND(value));
         }
 
-        PyObject *isoformat = PyObject_GetAttrString(value_mut ? value_mut : value, "isoformat");
+        PyObject *isoformat = PyObject_GetAttrString(value, "isoformat");
         PyObject *args[1] = {NULL};
         PyObject *result = PyObject_Vectorcall(isoformat, args + 1, 0 | PY_VECTORCALL_ARGUMENTS_OFFSET, NULL);
         Py_DECREF(isoformat);
-        Py_XDECREF(value_mut);
+        if (tzinfo != Py_None)
+            Py_DECREF(value);
         if (UNLIKELY(!result))
             return (toStringResult){};
 
