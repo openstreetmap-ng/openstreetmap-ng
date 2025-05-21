@@ -2036,17 +2036,17 @@ wheels = [
 
 [[package]]
 name = "starlette-compress"
-version = "1.5.1"
+version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "brotli", marker = "platform_python_implementation == 'CPython'" },
     { name = "brotlicffi", marker = "platform_python_implementation != 'CPython'" },
     { name = "starlette" },
-    { name = "zstandard" },
+    { name = "zstandard", marker = "python_full_version < '3.14'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d3/1b/276bb1358ba532053a7d7fdb4543d4358b86cb9833ee03a6af0a243b609d/starlette_compress-1.5.1.tar.gz", hash = "sha256:0164551eeefa83e0e3ec80eae087dffd2cb626a59ea09c451256e090b1e6e4c2", size = 51114, upload-time = "2025-03-06T10:10:37.042Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/13/ad/6cb23910ad4e821fa8de96cdfd5b825c1434a0419402d23c3d9e6ea331a3/starlette_compress-1.6.0.tar.gz", hash = "sha256:af1c15d1892fae3ac1c46762250850d6eea2f03c2382e9640ca94aebfeb32455", size = 54568, upload-time = "2025-05-21T09:37:56.807Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6a/8e/a450891ed4f8407b94ab675b02868870d3c350b1b12565d6e9ebc7e40547/starlette_compress-1.5.1-py3-none-any.whl", hash = "sha256:93e915032e14ca2f6b04759f23479fb195bd4f1fa767a35b4f763cc977b56f92", size = 6396, upload-time = "2025-03-06T10:10:35.055Z" },
+    { url = "https://files.pythonhosted.org/packages/df/4a/40ff289cdc106f6ec0c157c17f5cff13fac582ad0be54637b6081d64f547/starlette_compress-1.6.0-py3-none-any.whl", hash = "sha256:861bbf56df551bd33da95f0d7af102db0034f2786cd5ec3eae713d39a9c44ea6", size = 11390, upload-time = "2025-05-21T09:37:55.625Z" },
 ]
 
 [[package]]

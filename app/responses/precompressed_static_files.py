@@ -13,7 +13,7 @@ from starlette.datastructures import Headers
 from starlette.responses import FileResponse, Response
 from starlette.staticfiles import NotModifiedResponse, StaticFiles
 from starlette.types import Scope
-from starlette_compress import _parse_accept_encoding
+from starlette_compress._utils import parse_accept_encoding
 
 from app.config import ENV
 
@@ -95,7 +95,7 @@ def _try_paths(path: str, accept_encoding: str) -> list[tuple[str, str | None]]:
     >>> _try_paths('example.txt', 'br, gzip')
     [('example.txt.br', 'br'), ('example.txt', None)]
     """
-    accept_encodings = _parse_accept_encoding(accept_encoding)
+    accept_encodings = parse_accept_encoding(accept_encoding)
     result: list[tuple[str, str | None]] = []
 
     if 'zstd' in accept_encodings:
