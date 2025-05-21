@@ -12,7 +12,7 @@ typedef struct
 } CDATAObject;
 
 static PyObject *
-CDATA_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+CDATA_new(PyTypeObject *type, PyObject *args, PyObject *)
 {
     PyObject *text;
     if (__glibc_unlikely(!PyArg_ParseTuple(args, "U:CDATA", &text)))
@@ -135,7 +135,7 @@ static bool unparse_element(xmlDocPtr doc, xmlNodePtr parent, const char *key, P
 
 static bool unparse_scalar(xmlDocPtr doc, xmlNodePtr parent, const char *key, PyObject *value)
 {
-    xmlNodePtr element = xmlNewChild(parent, NULL, key, NULL);
+    xmlNodePtr element = xmlNewChild(parent, NULL, BAD_CAST key, NULL);
     if (__glibc_unlikely(!element))
     {
         PyErr_NoMemory();
@@ -149,7 +149,7 @@ static bool unparse_scalar(xmlDocPtr doc, xmlNodePtr parent, const char *key, Py
         const char *str = PyUnicode_AsUTF8AndSize(((CDATAObject *)value)->text, &size);
         assert(0 <= size && size <= INT_MAX);
 
-        xmlNodePtr cdata = xmlNewCDataBlock(doc, str, size);
+        xmlNodePtr cdata = xmlNewCDataBlock(doc, BAD_CAST str, size);
         if (__glibc_unlikely(!cdata))
         {
             PyErr_NoMemory();
@@ -164,13 +164,13 @@ static bool unparse_scalar(xmlDocPtr doc, xmlNodePtr parent, const char *key, Py
     int add_result;
 
     if (result.str)
-        add_result = xmlNodeAddContent(element, result.str);
+        add_result = xmlNodeAddContent(element, BAD_CAST result.str);
     else if (result.obj)
     {
         Py_ssize_t size;
         const char *str = PyUnicode_AsUTF8AndSize(result.obj, &size);
         assert(0 <= size && size <= INT_MAX);
-        add_result = xmlNodeAddContentLen(element, str, size);
+        add_result = xmlNodeAddContentLen(element, BAD_CAST str, size);
         Py_DECREF(result.obj);
     }
     else
@@ -192,10 +192,10 @@ static bool unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyO
         xmlAttrPtr attr;
 
         if (result.str)
-            attr = xmlNewProp(element, key + 1, result.str);
+            attr = xmlNewProp(element, BAD_CAST key + 1, BAD_CAST result.str);
         else if (result.obj)
         {
-            attr = xmlNewProp(element, key + 1, PyUnicode_AsUTF8(result.obj));
+            attr = xmlNewProp(element, BAD_CAST key + 1, BAD_CAST PyUnicode_AsUTF8(result.obj));
             Py_DECREF(result.obj);
         }
         else
@@ -218,7 +218,7 @@ static bool unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyO
             const char *str = PyUnicode_AsUTF8AndSize(((CDATAObject *)value)->text, &size);
             assert(0 <= size && size <= INT_MAX);
 
-            xmlNodePtr cdata = xmlNewCDataBlock(doc, str, size);
+            xmlNodePtr cdata = xmlNewCDataBlock(doc, BAD_CAST str, size);
             if (__glibc_unlikely(!cdata))
             {
                 PyErr_NoMemory();
@@ -233,13 +233,13 @@ static bool unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyO
         int add_result;
 
         if (result.str)
-            add_result = xmlNodeAddContent(element, result.str);
+            add_result = xmlNodeAddContent(element, BAD_CAST result.str);
         else if (result.obj)
         {
             Py_ssize_t size;
             const char *str = PyUnicode_AsUTF8AndSize(result.obj, &size);
             assert(0 <= size && size <= INT_MAX);
-            add_result = xmlNodeAddContentLen(element, str, size);
+            add_result = xmlNodeAddContentLen(element, BAD_CAST str, size);
             Py_DECREF(result.obj);
         }
         else
@@ -258,7 +258,7 @@ static bool unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyO
 
 static bool unparse_dict(xmlDocPtr doc, xmlNodePtr parent, const char *key, PyObject *value)
 {
-    xmlNodePtr element = xmlNewChild(parent, NULL, key, NULL);
+    xmlNodePtr element = xmlNewChild(parent, NULL, BAD_CAST key, NULL);
     if (__glibc_unlikely(!element))
     {
         PyErr_NoMemory();
@@ -315,7 +315,7 @@ static bool unparse_element(xmlDocPtr doc, xmlNodePtr parent, const char *key, P
             { // ... (key, value) tuples
                 if (!tuples_element)
                 {
-                    tuples_element = xmlNewChild(parent, NULL, key, NULL);
+                    tuples_element = xmlNewChild(parent, NULL, BAD_CAST key, NULL);
                     if (__glibc_unlikely(!tuples_element))
                     {
                         PyErr_NoMemory();
@@ -394,7 +394,7 @@ static PyObject *xml_unparse(const PyObject *, PyObject *const *args, Py_ssize_t
         return NULL;
     }
 
-    xmlNodePtr dummy = xmlNewNode(NULL, "dummy");
+    xmlNodePtr dummy = xmlNewNode(NULL, BAD_CAST "X");
     if (__glibc_unlikely(!dummy))
     {
         PyErr_NoMemory();
@@ -419,7 +419,7 @@ static PyObject *xml_unparse(const PyObject *, PyObject *const *args, Py_ssize_t
     int doc_size = 0;
     xmlDocDumpFormatMemoryEnc(doc, &doc_str, &doc_size, "UTF-8", 0);
 
-    PyObject *result = PyBytes_FromStringAndSize(doc_str, doc_size);
+    PyObject *result = PyBytes_FromStringAndSize((char *)doc_str, doc_size);
     xmlFree(doc_str);
     xmlFreeDoc(doc);
     dummy->children = NULL;
