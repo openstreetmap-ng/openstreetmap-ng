@@ -89,41 +89,21 @@ static toStringResult to_string(PyObject *value)
     if (PyDateTime_CheckExact(value))
     {
         PyObject *tzinfo = PyDateTime_DATE_GET_TZINFO(value);
-        if (tzinfo != Py_None)
+        if (UNLIKELY(tzinfo != Py_None && tzinfo != PyDateTime_TimeZone_UTC))
         {
-            if (UNLIKELY(tzinfo != PyDateTime_TimeZone_UTC))
-            {
-                PyErr_Format(PyExc_ValueError, "Timezone must be UTC, got %R", tzinfo);
-                return (toStringResult){};
-            }
-
-            value = PyDateTime_FromDateAndTime(
-                PyDateTime_GET_YEAR(value),
-                PyDateTime_GET_MONTH(value),
-                PyDateTime_GET_DAY(value),
-                PyDateTime_DATE_GET_HOUR(value),
-                PyDateTime_DATE_GET_MINUTE(value),
-                PyDateTime_DATE_GET_SECOND(value),
-                PyDateTime_DATE_GET_MICROSECOND(value));
-        }
-
-        PyObject *isoformat = PyObject_GetAttrString(value, "isoformat");
-        PyObject *args[1] = {NULL};
-        PyObject *result = PyObject_Vectorcall(isoformat, args + 1, 0 | PY_VECTORCALL_ARGUMENTS_OFFSET, NULL);
-        Py_DECREF(isoformat);
-        if (tzinfo != Py_None)
-            Py_DECREF(value);
-        if (UNLIKELY(!result))
-            return (toStringResult){};
-
-        PyObject *z = PyUnicode_FromStringAndSize("Z", 1);
-        if (UNLIKELY(!z))
-        {
-            Py_DECREF(result);
+            PyErr_Format(PyExc_ValueError, "Timezone must be UTC, got %R", tzinfo);
             return (toStringResult){};
         }
 
-        PyUnicode_AppendAndDel(&result, z);
+        int us = PyDateTime_DATE_GET_MICROSECOND(value);
+        const char *format = us ? "%04d-%02d-%02dT%02d:%02d:%02d.%06dZ" : "%04d-%02d-%02dT%02d:%02d:%02dZ";
+        PyObject *result = PyUnicode_FromFormat(
+            format,
+            PyDateTime_GET_YEAR(value), PyDateTime_GET_MONTH(value),
+            PyDateTime_GET_DAY(value),
+            PyDateTime_DATE_GET_HOUR(value), PyDateTime_DATE_GET_MINUTE(value),
+            PyDateTime_DATE_GET_SECOND(value), us);
+
         return (toStringResult){.obj = result};
     }
 
