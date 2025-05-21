@@ -85,11 +85,13 @@ def _write_state(path: Path, state: _State) -> None:
         state['timestamp'].isoformat().replace('+00:00', 'Z', 1).replace(':', '\\:')
     )
     path.write_text(
-        '\n'.join((
-            f'#{date_str}',
-            f'sequenceNumber={state["sequence_number"]}',
-            f'timestamp={timestamp_str}',
-        ))
+        '\n'.join(
+            (
+                f'#{date_str}',
+                f'sequenceNumber={state["sequence_number"]}',
+                f'timestamp={timestamp_str}',
+            )
+        )
     )
     logging.debug('State written: #%d', state['sequence_number'])
 
@@ -340,7 +342,7 @@ async def _generate_diff(
 
         async for chunk in _fetch_changes(state['timestamp'], next_timestamp):
             content: bytes = XMLToDict.unparse(
-                {'osmChange': Format06.encode_osmchange(chunk)}, raw=True
+                {'osmChange': Format06.encode_osmchange(chunk)}, binary=True
             )
 
             # Extract osmChange content (avoid duplication)

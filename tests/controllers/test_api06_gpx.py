@@ -14,7 +14,7 @@ async def test_gpx_crud(client: AsyncClient, gpx: dict):
 
     original_filename = test_gpx_crud.__qualname__ + '.gpx'
     updated_filename = test_gpx_crud.__qualname__ + '_updated.gpx'
-    file = XMLToDict.unparse(gpx, raw=True)
+    file = XMLToDict.unparse(gpx, binary=True)
 
     # Create a new GPX trace
     r = await client.post(
@@ -54,16 +54,18 @@ async def test_gpx_crud(client: AsyncClient, gpx: dict):
     # Update the trace
     r = await client.put(
         f'/api/0.6/gpx/{trace_id}',
-        content=XMLToDict.unparse({
-            'osm': {
-                'gpx_file': {
-                    '@name': updated_filename,
-                    '@visibility': 'identifiable',
-                    'description': 'Updated description',
-                    'tag': ['updated_tag'],
+        content=XMLToDict.unparse(
+            {
+                'osm': {
+                    'gpx_file': {
+                        '@name': updated_filename,
+                        '@visibility': 'identifiable',
+                        'description': 'Updated description',
+                        'tag': ['updated_tag'],
+                    }
                 }
             }
-        }),
+        ),
     )
     assert r.is_success, r.text
 
@@ -101,7 +103,7 @@ async def test_gpx_data_formats(client: AsyncClient, gpx: dict):
     client.headers['Authorization'] = 'User user1'
 
     test_filename = test_gpx_data_formats.__qualname__ + '.gpx'
-    file = XMLToDict.unparse(gpx, raw=True)
+    file = XMLToDict.unparse(gpx, binary=True)
 
     # Create a new GPX trace
     r = await client.post(
@@ -137,7 +139,7 @@ async def test_gpx_files(client: AsyncClient, gpx: dict):
 
     test_filename = test_gpx_files.__qualname__ + '.gpx'
     test_description = test_gpx_files.__qualname__
-    file = XMLToDict.unparse(gpx, raw=True)
+    file = XMLToDict.unparse(gpx, binary=True)
 
     # Create a new GPX trace
     r = await client.post(
@@ -188,7 +190,7 @@ async def test_gpx_visibility(client: AsyncClient, gpx: dict, visibility, readab
 
     test_filename = test_gpx_visibility.__qualname__ + '.gpx'
     test_description = f'{test_gpx_visibility.__qualname__}: {visibility}'
-    file = XMLToDict.unparse(gpx, raw=True)
+    file = XMLToDict.unparse(gpx, binary=True)
 
     # Create trace with specified visibility
     r = await client.post(
@@ -225,7 +227,7 @@ async def test_trackpoints_visibility(client: AsyncClient, gpx: dict):
 
     test_filename = test_trackpoints_visibility.__qualname__ + '.gpx'
     test_description = test_trackpoints_visibility.__qualname__
-    file = XMLToDict.unparse(gpx, raw=True)
+    file = XMLToDict.unparse(gpx, binary=True)
     bbox = '20.8726,51.8583,20.8728,51.8585'
 
     # Create a new GPX trace with private visibility
@@ -256,15 +258,17 @@ async def test_trackpoints_visibility(client: AsyncClient, gpx: dict):
     # Update the trace to make it identifiable
     r = await client.put(
         f'/api/0.6/gpx/{trace_id}',
-        content=XMLToDict.unparse({
-            'osm': {
-                'gpx_file': {
-                    '@name': test_filename,
-                    '@visibility': 'identifiable',
-                    'description': test_description,
+        content=XMLToDict.unparse(
+            {
+                'osm': {
+                    'gpx_file': {
+                        '@name': test_filename,
+                        '@visibility': 'identifiable',
+                        'description': test_description,
+                    },
                 },
-            },
-        }),
+            }
+        ),
     )
     assert r.is_success, r.text
 

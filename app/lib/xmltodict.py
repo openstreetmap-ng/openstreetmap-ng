@@ -31,16 +31,16 @@ class XMLToDict:
     def unparse(d: dict[str, Any]) -> str: ...
     @staticmethod
     @overload
-    def unparse(d: dict[str, Any], *, raw: Literal[True]) -> bytes: ...
+    def unparse(d: dict[str, Any], *, binary: Literal[True]) -> bytes: ...
     @staticmethod
     @overload
-    def unparse(d: dict[str, Any], *, raw: Literal[False]) -> str: ...
+    def unparse(d: dict[str, Any], *, binary: Literal[False]) -> str: ...
     @staticmethod
-    def unparse(d: dict[str, Any], *, raw: bool = False) -> str | bytes:
+    def unparse(d: dict[str, Any], *, binary: bool = False) -> str | bytes:
         """Unparse dict to XML string."""
-        result = xml_unparse(d)
+        result = xml_unparse(d, binary)
         logging.debug('Unparsed %s XML string', sizestr(len(result)))
-        return result if raw else result.decode()
+        return result
 
 
 class _XAttrCallable(Protocol):

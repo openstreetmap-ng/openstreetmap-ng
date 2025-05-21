@@ -350,7 +350,7 @@ static bool unparse_element(xmlDocPtr doc, xmlNodePtr parent, const char *key, P
 
 static PyObject *xml_unparse(const PyObject *, PyObject *const *args, Py_ssize_t nargs)
 {
-    if (UNLIKELY(PyVectorcall_NARGS(nargs) != 1 || !PyDict_CheckExact(args[0])))
+    if (UNLIKELY(PyVectorcall_NARGS(nargs) != 2 || !PyDict_CheckExact(args[0]) || !PyBool_Check(args[1])))
     {
         PyErr_BadArgument();
         return NULL;
@@ -402,7 +402,9 @@ static PyObject *xml_unparse(const PyObject *, PyObject *const *args, Py_ssize_t
     int doc_size = 0;
     xmlDocDumpFormatMemoryEnc(doc, &doc_str, &doc_size, "UTF-8", 0);
 
-    PyObject *result = PyBytes_FromStringAndSize((char *)doc_str, doc_size);
+    PyObject *result = Py_IsTrue(args[1])
+                           ? PyBytes_FromStringAndSize((char *)doc_str, doc_size)
+                           : PyUnicode_FromStringAndSize((char *)doc_str, doc_size);
     xmlFree(doc_str);
     xmlFreeDoc(doc);
     dummy->children = NULL;

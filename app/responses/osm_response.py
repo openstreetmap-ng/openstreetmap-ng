@@ -103,7 +103,7 @@ def _serialize_xml(xml_root: str, content: Any):
     else:
         raise TypeError(f'Invalid xml content type {type(content)}')
 
-    encoded = XMLToDict.unparse(content, raw=True)
+    encoded = XMLToDict.unparse(content, binary=True)
     return Response(encoded, media_type='application/xml; charset=utf-8')
 
 
@@ -124,7 +124,7 @@ def _serialize_gpx(xml_root: str, content: Any):
     else:
         raise TypeError(f'Invalid xml content type {type(content)}')
 
-    encoded = XMLToDict.unparse(content, raw=True)
+    encoded = XMLToDict.unparse(content, binary=True)
     return Response(encoded, media_type='application/gpx+xml; charset=utf-8')
 
 
