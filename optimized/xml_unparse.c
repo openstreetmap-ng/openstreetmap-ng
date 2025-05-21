@@ -4,6 +4,9 @@
 #include "libxml/tree.h"
 #include "libxml/xmlstring.h"
 
+#define UNLIKELY(x) __builtin_expect((x), 0)
+#define LIKELY(x) __builtin_expect((x), 1)
+
 #pragma region CDATA
 
 typedef struct
@@ -15,11 +18,11 @@ static PyObject *
 CDATA_new(PyTypeObject *type, PyObject *args, PyObject *)
 {
     PyObject *text;
-    if (__glibc_unlikely(!PyArg_ParseTuple(args, "U:CDATA", &text)))
+    if (UNLIKELY(!PyArg_ParseTuple(args, "U:CDATA", &text)))
         return NULL;
 
     CDATAObject *self = (CDATAObject *)type->tp_alloc(type, 0);
-    if (__glibc_unlikely(!self))
+    if (UNLIKELY(!self))
         return NULL;
 
     Py_INCREF(text);
@@ -89,7 +92,7 @@ static toStringResult to_string(PyObject *value)
         PyObject *value_mut = NULL;
         if (tzinfo != Py_None)
         {
-            if (__glibc_unlikely(tzinfo != PyDateTime_TimeZone_UTC))
+            if (UNLIKELY(tzinfo != PyDateTime_TimeZone_UTC))
             {
                 PyErr_Format(PyExc_ValueError, "Timezone must be UTC, got %R", tzinfo);
                 return (toStringResult){};
@@ -110,11 +113,11 @@ static toStringResult to_string(PyObject *value)
         PyObject *result = PyObject_Vectorcall(isoformat, args + 1, 0 | PY_VECTORCALL_ARGUMENTS_OFFSET, NULL);
         Py_DECREF(isoformat);
         Py_XDECREF(value_mut);
-        if (__glibc_unlikely(!result))
+        if (UNLIKELY(!result))
             return (toStringResult){};
 
         PyObject *z = PyUnicode_FromStringAndSize("Z", 1);
-        if (__glibc_unlikely(!z))
+        if (UNLIKELY(!z))
         {
             Py_DECREF(result);
             return (toStringResult){};
@@ -136,7 +139,7 @@ static bool unparse_element(xmlDocPtr doc, xmlNodePtr parent, const char *key, P
 static bool unparse_scalar(xmlDocPtr doc, xmlNodePtr parent, const char *key, PyObject *value)
 {
     xmlNodePtr element = xmlNewChild(parent, NULL, BAD_CAST key, NULL);
-    if (__glibc_unlikely(!element))
+    if (UNLIKELY(!element))
     {
         PyErr_NoMemory();
         return false;
@@ -150,7 +153,7 @@ static bool unparse_scalar(xmlDocPtr doc, xmlNodePtr parent, const char *key, Py
         assert(0 <= size && size <= INT_MAX);
 
         xmlNodePtr cdata = xmlNewCDataBlock(doc, BAD_CAST str, size);
-        if (__glibc_unlikely(!cdata))
+        if (UNLIKELY(!cdata))
         {
             PyErr_NoMemory();
             return false;
@@ -176,7 +179,7 @@ static bool unparse_scalar(xmlDocPtr doc, xmlNodePtr parent, const char *key, Py
     else
         return false;
 
-    if (__glibc_unlikely(add_result < 0))
+    if (UNLIKELY(add_result < 0))
     {
         PyErr_NoMemory();
         return false;
@@ -201,14 +204,14 @@ static bool unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyO
         else
             return false;
 
-        if (__glibc_unlikely(!attr))
+        if (UNLIKELY(!attr))
         {
             PyErr_NoMemory();
             return false;
         }
         return true;
     }
-    else if (key[0] == '#' && __glibc_likely(!strcmp(key, "#text")))
+    else if (key[0] == '#' && LIKELY(!strcmp(key, "#text")))
     { // Is text
 
         // Special handling for CDATA
@@ -219,7 +222,7 @@ static bool unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyO
             assert(0 <= size && size <= INT_MAX);
 
             xmlNodePtr cdata = xmlNewCDataBlock(doc, BAD_CAST str, size);
-            if (__glibc_unlikely(!cdata))
+            if (UNLIKELY(!cdata))
             {
                 PyErr_NoMemory();
                 return false;
@@ -245,7 +248,7 @@ static bool unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyO
         else
             return false;
 
-        if (__glibc_unlikely(add_result < 0))
+        if (UNLIKELY(add_result < 0))
         {
             PyErr_NoMemory();
             return false;
@@ -259,7 +262,7 @@ static bool unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyO
 static bool unparse_dict(xmlDocPtr doc, xmlNodePtr parent, const char *key, PyObject *value)
 {
     xmlNodePtr element = xmlNewChild(parent, NULL, BAD_CAST key, NULL);
-    if (__glibc_unlikely(!element))
+    if (UNLIKELY(!element))
     {
         PyErr_NoMemory();
         return false;
@@ -270,13 +273,13 @@ static bool unparse_dict(xmlDocPtr doc, xmlNodePtr parent, const char *key, PyOb
 
     while (PyDict_Next(value, &pos, &dict_key, &dict_value))
     {
-        if (__glibc_unlikely(!PyUnicode_CheckExact(dict_key)))
+        if (UNLIKELY(!PyUnicode_CheckExact(dict_key)))
         {
             PyErr_SetString(PyExc_TypeError, "Dictionary keys must be strings");
             return false;
         }
 
-        if (__glibc_unlikely(!unparse_item(doc, element, PyUnicode_AsUTF8(dict_key), dict_value)))
+        if (UNLIKELY(!unparse_item(doc, element, PyUnicode_AsUTF8(dict_key), dict_value)))
             return false;
     }
 
@@ -302,13 +305,13 @@ static bool unparse_element(xmlDocPtr doc, xmlNodePtr parent, const char *key, P
 
             if (PyDict_CheckExact(item))
             { // ... dicts
-                if (__glibc_unlikely(is_root && size > 1))
+                if (UNLIKELY(is_root && size > 1))
                 {
                     PyErr_SetString(PyExc_ValueError, "Root element cannot contain multiple dicts");
                     return false;
                 }
 
-                if (__glibc_unlikely(!unparse_dict(doc, parent, key, item)))
+                if (UNLIKELY(!unparse_dict(doc, parent, key, item)))
                     return false;
             }
             else if (PyList_CheckExact(item) || PyTuple_CheckExact(item))
@@ -316,16 +319,16 @@ static bool unparse_element(xmlDocPtr doc, xmlNodePtr parent, const char *key, P
                 if (!tuples_element)
                 {
                     tuples_element = xmlNewChild(parent, NULL, BAD_CAST key, NULL);
-                    if (__glibc_unlikely(!tuples_element))
+                    if (UNLIKELY(!tuples_element))
                     {
                         PyErr_NoMemory();
                         return false;
                     }
                 }
 
-                const bool item_is_list = __glibc_unlikely(PyList_CheckExact(item));
+                const bool item_is_list = UNLIKELY(PyList_CheckExact(item));
                 const Py_ssize_t item_size = item_is_list ? PyList_GET_SIZE(item) : PyTuple_GET_SIZE(item);
-                if (__glibc_unlikely(item_size != 2))
+                if (UNLIKELY(item_size != 2))
                 {
                     PyErr_SetString(PyExc_ValueError, "Sequence tuples must be (key, value) pairs");
                     return false;
@@ -333,24 +336,24 @@ static bool unparse_element(xmlDocPtr doc, xmlNodePtr parent, const char *key, P
 
                 PyObject *tuple_key = item_is_list ? PyList_GET_ITEM(item, 0) : PyTuple_GET_ITEM(item, 0);
                 PyObject *tuple_value = item_is_list ? PyList_GET_ITEM(item, 1) : PyTuple_GET_ITEM(item, 1);
-                if (__glibc_unlikely(!PyUnicode_CheckExact(tuple_key)))
+                if (UNLIKELY(!PyUnicode_CheckExact(tuple_key)))
                 {
                     PyErr_SetString(PyExc_TypeError, "Sequence tuples keys must be strings");
                     return false;
                 }
 
-                if (__glibc_unlikely(!unparse_item(doc, tuples_element, PyUnicode_AsUTF8(tuple_key), tuple_value)))
+                if (UNLIKELY(!unparse_item(doc, tuples_element, PyUnicode_AsUTF8(tuple_key), tuple_value)))
                     return false;
             }
             else
             { // ... scalars
-                if (__glibc_unlikely(is_root && size > 1))
+                if (UNLIKELY(is_root && size > 1))
                 {
                     PyErr_SetString(PyExc_ValueError, "Root element cannot contain multiple scalars");
                     return false;
                 }
 
-                if (__glibc_unlikely(!unparse_scalar(doc, parent, key, item)))
+                if (UNLIKELY(!unparse_scalar(doc, parent, key, item)))
                     return false;
             }
         }
@@ -367,12 +370,12 @@ static bool unparse_element(xmlDocPtr doc, xmlNodePtr parent, const char *key, P
 
 static PyObject *xml_unparse(const PyObject *, PyObject *const *args, Py_ssize_t nargs)
 {
-    if (__glibc_unlikely(PyVectorcall_NARGS(nargs) != 1 || !PyDict_CheckExact(args[0])))
+    if (UNLIKELY(PyVectorcall_NARGS(nargs) != 1 || !PyDict_CheckExact(args[0])))
     {
         PyErr_BadArgument();
         return NULL;
     }
-    if (__glibc_unlikely(PyDict_GET_SIZE(args[0]) != 1))
+    if (UNLIKELY(PyDict_GET_SIZE(args[0]) != 1))
     {
         PyErr_SetString(PyExc_ValueError, "Invalid root element count");
         return NULL;
@@ -381,28 +384,28 @@ static PyObject *xml_unparse(const PyObject *, PyObject *const *args, Py_ssize_t
     PyObject *key, *value;
     Py_ssize_t pos = 0;
     PyDict_Next(args[0], &pos, &key, &value);
-    if (__glibc_unlikely(!PyUnicode_CheckExact(key)))
+    if (UNLIKELY(!PyUnicode_CheckExact(key)))
     {
         PyErr_SetString(PyExc_TypeError, "Root key must be a string");
         return NULL;
     }
 
     xmlDocPtr doc = xmlNewDoc(NULL);
-    if (__glibc_unlikely(!doc))
+    if (UNLIKELY(!doc))
     {
         PyErr_NoMemory();
         return NULL;
     }
 
     xmlNodePtr dummy = xmlNewNode(NULL, BAD_CAST "X");
-    if (__glibc_unlikely(!dummy))
+    if (UNLIKELY(!dummy))
     {
         PyErr_NoMemory();
         xmlFreeDoc(doc);
         return NULL;
     }
 
-    if (__glibc_unlikely(!unparse_element(doc, dummy, PyUnicode_AsUTF8(key), value, true)))
+    if (UNLIKELY(!unparse_element(doc, dummy, PyUnicode_AsUTF8(key), value, true)))
     {
         const xmlError *error = xmlGetLastError();
         if (error)
