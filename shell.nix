@@ -159,7 +159,8 @@ let
 
       CFLAGS="$(python-config --cflags) $CFLAGS \
         -shared -fPIC \
-        -DCYTHON_PROFILE=1"
+        -DCYTHON_PROFILE=1 \
+        -DCYTHON_USE_SYS_MONITORING=0"
       export CFLAGS
 
       LDFLAGS="$(python-config --ldflags) $LDFLAGS"

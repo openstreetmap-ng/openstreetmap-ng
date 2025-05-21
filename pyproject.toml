@@ -8,7 +8,7 @@ dependencies = [
   "beautifulsoup4[charset-normalizer,lxml]",
   "blake3",
   "brotli",
-  "cython<3.1.0",
+  "cython",
   "dnspython",
   "duckdb",
   "email-validator",
@@ -89,7 +89,6 @@ build-backend = "hatchling.build"
 [tool.ruff]
 indent-width = 4
 line-length = 88
-preview = true
 target-version = "py313"
 
 [tool.ruff.lint]
@@ -233,6 +232,8 @@ exclude = [
   "**/.*",
   "**/__pycache__",
   "app/models/proto/**/*_pb2.py",
+  "build",
+  "data",
   "node_modules",
 ]
 include = ["app", "scripts", "tests"]
