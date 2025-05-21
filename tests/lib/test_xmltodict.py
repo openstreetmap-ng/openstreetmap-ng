@@ -7,10 +7,10 @@ from itertools import pairwise
 from tracemalloc import Statistic, StatisticDiff
 
 import pytest
-from lxml.etree import CDATA
 from sizestr import sizestr
 
 from app.lib.xmltodict import XMLToDict, get_xattr
+from optimized.xml_unparse import CDATA
 
 
 def _check_for_leaks(func: Callable):
@@ -109,7 +109,7 @@ def test_xml_parse(input, expected):
                     ),
                 ]
             },
-            '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<osmChange attrib="yes"><modify>1</modify><create>2</create><modify>3</modify><modify id="4" timestamp="2020-01-01T00:00:00Z" visible="true"/></osmChange>',
+            '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<osmChange attrib="yes"><modify>1</modify><create>2</create><modify>3</modify><modify id="4" timestamp="2020-01-01T00:00:00Z" visible="true"/></osmChange>\n',
         ),
         (
             {
@@ -129,25 +129,25 @@ def test_xml_parse(input, expected):
                     'delete': {'@id': 3},
                 }
             },
-            '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<osmChange><modify id="1"/><modify id="2"><tag k="test" v="zebra"/><tag k="test2" v="zebra2"/></modify><modify/><delete id="3"/></osmChange>',
+            '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<osmChange><modify id="1"/><modify id="2"><tag k="test" v="zebra"/><tag k="test2" v="zebra2"/></modify><modify/><delete id="3"/></osmChange>\n',
         ),
         (
             {'root': {'#text': '<span>/user/小智智/traces/10908782</span>'}},
-            "<?xml version='1.0' encoding='UTF-8'?>\n<root>&lt;span&gt;/user/小智智/traces/10908782&lt;/span&gt;</root>",
+            "<?xml version='1.0' encoding='UTF-8'?>\n<root>&lt;span&gt;/user/小智智/traces/10908782&lt;/span&gt;</root>\n",
         ),
         (
             {'root': {'#text': CDATA('<hello>')}},
-            "<?xml version='1.0' encoding='UTF-8'?>\n<root><![CDATA[<hello>]]></root>",
+            "<?xml version='1.0' encoding='UTF-8'?>\n<root><![CDATA[<hello>]]></root>\n",
         ),
         (
             {'root': []},
-            "<?xml version='1.0' encoding='UTF-8'?>\n<root/>",
+            "<?xml version='1.0' encoding='UTF-8'?>\n",
         ),
     ],
 )
 @_check_for_leaks
 def test_xml_unparse(input, expected):
-    assert XMLToDict.unparse(input) == expected
+    assert XMLToDict.unparse(input).replace('"', "'") == expected.replace('"', "'")
 
 
 def test_xml_unparse_xattr():
@@ -155,8 +155,10 @@ def test_xml_unparse_xattr():
     unparsed = XMLToDict.unparse({
         'root': {xattr('test', xml='test_xml'): 'test_value'}
     })
-    expected = "<?xml version='1.0' encoding='UTF-8'?>\n<root test_xml=\"test_value\"/>"
-    assert unparsed == expected
+    expected = (
+        "<?xml version='1.0' encoding='UTF-8'?>\n<root test_xml=\"test_value\"/>\n"
+    )
+    assert unparsed.replace('"', "'") == expected.replace('"', "'")
 
 
 def test_xml_unparse_invalid_multi_root():

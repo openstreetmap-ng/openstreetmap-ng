@@ -1,0 +1,6 @@
+from typing import Any
+
+class CDATA:
+    def __init__(self, text: str, /) -> None: ...
+
+def xml_unparse(root: dict[str, Any], /) -> bytes: ...

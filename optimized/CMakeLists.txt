@@ -23,3 +23,4 @@ foreach(C_FILE ${C_FILES})
 endforeach()
 
 target_link_libraries(xml_parse PRIVATE LibXml2::LibXml2)
+target_link_libraries(xml_unparse PRIVATE LibXml2::LibXml2)

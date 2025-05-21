@@ -43,28 +43,25 @@ static PyObject *postprocess_xml_int(const xmlChar *value_xml)
 {
     errno = 0;
     long long value = strtoll((const char *)value_xml, NULL, 10);
-    return errno == 0 ? PyLong_FromLongLong(value) : NULL;
+    return __glibc_likely(!errno) ? PyLong_FromLongLong(value) : NULL;
 }
 
 static PyObject *postprocess_xml_float(const xmlChar *value_xml)
 {
     errno = 0;
     double value = strtod((const char *)value_xml, NULL);
-    return errno == 0 ? PyFloat_FromDouble(value) : NULL;
+    return __glibc_likely(!errno) ? PyFloat_FromDouble(value) : NULL;
 }
 
 // TODO: gcc15 [[unsequenced]]
 static PyObject *postprocess_xml_bool(const xmlChar *value_xml)
 {
     if (!strcmp((const char *)value_xml, "true"))
-    {
         Py_RETURN_TRUE;
-    }
-    if (!strcmp((const char *)value_xml, "false"))
-    {
+    else if (!strcmp((const char *)value_xml, "false"))
         Py_RETURN_FALSE;
-    }
-    return NULL;
+    else
+        return NULL;
 }
 
 static PyObject *postprocess_xml_version(const xmlChar *value_xml)
@@ -131,12 +128,13 @@ static PyObject *postprocess_value(const char *key, const xmlChar *value_xml)
 
 #pragma endregion
 
-static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
+static PyObject *xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs)
 {
-    if (PyVectorcall_NARGS(nargs) != 1)
-        return PyErr_Format(PyExc_TypeError, "xml_parse(bytes, /) takes exactly 1 argument");
-    if (!PyBytes_CheckExact(args[0]))
-        return PyErr_Format(PyExc_TypeError, "xml_parse(bytes, /) first argument must be bytes");
+    if (__glibc_unlikely(PyVectorcall_NARGS(nargs) != 1 || !PyBytes_CheckExact(args[0])))
+    {
+        PyErr_BadArgument();
+        return NULL;
+    }
 
     char *buffer;
     Py_ssize_t buffer_size;
@@ -148,9 +146,10 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
         XML_PARSE_NOCDATA | XML_PARSE_COMPACT | XML_PARSE_NO_XXE);
     // TODO: 2.14 XML_PARSE_NO_SYS_CATALOG
 
-    if (!reader)
+    if (__glibc_unlikely(!reader))
     {
         const xmlError *error = xmlGetLastError();
+        xmlResetLastError();
         return PyErr_Format(PyExc_ValueError, "Error initializing XML reader: %s",
                             error && error->message ? error->message : "Unknown error");
     }
@@ -163,27 +162,27 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
     PyObject *current_dict = NULL;
     PyObject *current_list = NULL;
     PyObject *result = NULL;
-    if (!stack || !attr_cache)
+    if (__glibc_unlikely(!stack || !attr_cache))
         goto fail;
     _PyVarObject_CAST(stack)->ob_size = 0;
 
     int parse_ret = xmlTextReaderRead(reader);
     int node_type = xmlTextReaderNodeType(reader);
-    while (parse_ret == 1)
+    while (__glibc_likely(parse_ret == 1))
     {
         switch (node_type)
         {
         case XML_READER_TYPE_ELEMENT:
         {
-            if (current_dict)
+            if (__glibc_likely(current_dict != NULL))
             { // Push to stack
                 PyObject *tuple = PyTuple_Pack(3, current_name, current_dict, current_list);
-                if (!tuple)
+                if (__glibc_unlikely(!tuple))
                     goto fail;
 
                 int append_result = PyList_Append(stack, tuple);
                 Py_DECREF(tuple);
-                if (append_result)
+                if (__glibc_unlikely(append_result))
                     goto fail;
 
                 Py_DECREF(current_name);
@@ -194,7 +193,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
             current_name = PyUnicode_FromString((const char *)xmlTextReaderConstLocalName(reader));
             current_dict = Py_None;
             current_list = Py_None;
-            if (!current_name)
+            if (__glibc_unlikely(!current_name))
                 goto fail;
             // TODO: prefer PyUnicode_InternFromString if defined to be immortal
             // https://github.com/python/cpython/issues/133260
@@ -205,9 +204,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
         {
             PyObject *current_result;
             if (current_dict == Py_None && current_list == Py_None)
-            {
                 current_result = NULL;
-            }
             else if (current_list == Py_None)
             {
                 // Handle potential text-only case
@@ -234,7 +231,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
             else // current_dict != Py_None && current_list != Py_None
             {
                 PyObject *items = PyDict_Items(current_dict);
-                if (!items)
+                if (__glibc_unlikely(!items))
                     goto fail;
                 PyList_Extend(current_list, items);
                 Py_DECREF(items);
@@ -245,7 +242,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
             }
 
             Py_ssize_t stack_size = PyList_GET_SIZE(stack);
-            if (stack_size)
+            if (__glibc_likely(stack_size))
             { // Pop from stack
                 stack_size -= 1;
                 _PyVarObject_CAST(stack)->ob_size = stack_size;
@@ -268,7 +265,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
                     if (current_list == Py_None)
                     {
                         current_list = PyList_New(LIST_PREALLOC_SIZE);
-                        if (!current_list)
+                        if (__glibc_unlikely(!current_list))
                         {
                             Py_DECREF(current_result);
                             goto fail;
@@ -278,12 +275,12 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
 
                     PyObject *tuple = PyTuple_Pack(2, current_name, current_result);
                     Py_DECREF(current_result);
-                    if (!tuple)
+                    if (__glibc_unlikely(!tuple))
                         goto fail;
 
                     int append_result = PyList_Append(current_list, tuple);
                     Py_DECREF(tuple);
-                    if (append_result)
+                    if (__glibc_unlikely(append_result))
                         goto fail;
 
                     goto merge_ok;
@@ -299,13 +296,13 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
                     {
                         int append_result = PyList_Append(existing_result, current_result);
                         Py_DECREF(current_result);
-                        if (append_result)
+                        if (__glibc_unlikely(append_result))
                             goto fail;
                     }
                     else
                     { // Upgrade to a list
                         PyObject *list = PyList_New(LIST_PREALLOC_SIZE);
-                        if (!list)
+                        if (__glibc_unlikely(!list))
                         {
                             Py_DECREF(current_result);
                             goto fail;
@@ -319,7 +316,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
 
                         int set_result = PyDict_SetItem(current_dict, current_name, list);
                         Py_DECREF(list);
-                        if (set_result)
+                        if (__glibc_unlikely(set_result))
                             goto fail;
                     }
 
@@ -330,7 +327,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
                 if (current_dict == Py_None)
                 {
                     current_dict = PyDict_New();
-                    if (!current_dict)
+                    if (__glibc_unlikely(!current_dict))
                     {
                         Py_DECREF(current_result);
                         goto fail;
@@ -341,7 +338,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
                 if (in_set(current_name_c, sizeof(force_list_set) / sizeof(char *), force_list_set))
                 {
                     PyObject *list = PyList_New(LIST_PREALLOC_SIZE);
-                    if (!list)
+                    if (__glibc_unlikely(!list))
                     {
                         Py_DECREF(current_result);
                         goto fail;
@@ -355,7 +352,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
 
                 int set_result = PyDict_SetItem(current_dict, current_name, current_result);
                 Py_DECREF(current_result);
-                if (set_result)
+                if (__glibc_unlikely(set_result))
                     goto fail;
 
             merge_ok:
@@ -366,12 +363,12 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
             else
             { // Finished parsing, wrap in a dict
                 result = PyDict_New();
-                if (!result)
+                if (__glibc_unlikely(!result))
                     goto fail;
 
                 int set_result = PyDict_SetItem(result, current_name, current_result);
                 Py_DECREF(current_result);
-                if (set_result)
+                if (__glibc_unlikely(set_result))
                     goto fail;
                 goto ok;
             }
@@ -383,7 +380,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
             if (current_dict == Py_None)
             {
                 current_dict = PyDict_New();
-                if (!current_dict)
+                if (__glibc_unlikely(!current_dict))
                     goto fail;
             }
 
@@ -398,10 +395,10 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
                 if (!set_key)
                 { // Cache miss
                     set_key = PyUnicode_FromFormat("@%s", postprocess_key);
-                    if (!set_key)
+                    if (__glibc_unlikely(!set_key))
                         goto fail;
 
-                    if (PyDict_SetItemString(attr_cache, postprocess_key, set_key))
+                    if (__glibc_unlikely(PyDict_SetItemString(attr_cache, postprocess_key, set_key)))
                     {
                         Py_DECREF(set_key);
                         goto fail;
@@ -414,10 +411,10 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
             }
             else // XML_READER_TYPE_TEXT
             {
-                if (!text_key)
+                if (__glibc_unlikely(!text_key))
                 {
                     text_key = PyUnicode_InternFromString("#text");
-                    if (!text_key)
+                    if (__glibc_unlikely(!text_key))
                         goto fail;
                 }
                 set_key = text_key;
@@ -427,11 +424,11 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
 
             const xmlChar *value_xml = xmlTextReaderConstValue(reader);
             PyObject *value = postprocess_value(postprocess_key, value_xml);
-            if (!value)
+            if (__glibc_unlikely(!value))
             {
                 if (set_key != text_key)
                     Py_DECREF(set_key);
-                PyErr_Format(PyExc_ValueError, "Invalid postprocess '%s' value: %s", postprocess_key, value_xml);
+                PyErr_Format(PyExc_ValueError, "Failed to postprocess '%s' value: %s", postprocess_key, value_xml);
                 goto fail;
             }
 
@@ -439,7 +436,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
             if (set_key != text_key)
                 Py_DECREF(set_key);
             Py_DECREF(value);
-            if (set_result)
+            if (__glibc_unlikely(set_result))
                 goto fail;
             break;
         }
@@ -468,7 +465,7 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
         node_type = xmlTextReaderNodeType(reader);
     }
 
-    if (parse_ret < 0)
+    if (__glibc_unlikely(parse_ret < 0))
     {
         const xmlError *error = xmlGetLastError();
         PyErr_Format(PyExc_ValueError, "Error parsing XML: %s",
@@ -477,18 +474,18 @@ static PyObject *xml_parse(PyObject *, PyObject *const *args, Py_ssize_t nargs)
     }
 
 ok:
-    if (PyList_GET_SIZE(stack) || (!result && current_dict))
+    if (__glibc_unlikely(PyList_GET_SIZE(stack) || (!result && current_dict)))
     {
-        PyErr_Format(PyExc_AssertionError, "Stack is not empty after parsing");
+        PyErr_SetString(PyExc_AssertionError, "Stack is not empty after parsing");
         goto fail;
     }
-    if (!result)
+    if (__glibc_unlikely(!result))
     {
-        PyErr_Format(PyExc_ValueError, "Document is empty");
+        PyErr_SetString(PyExc_ValueError, "Document is empty");
         goto fail;
     }
 
-    if (0)
+    if (false)
     {
     fail:
         result = NULL;
@@ -520,7 +517,6 @@ static struct PyModuleDef module = {
 
 PyMODINIT_FUNC PyInit_xml_parse(void)
 {
-    // Import dependencies
     PyObject *datetime_module = PyImport_ImportModule("datetime");
     PyObject *datetime_class = PyObject_GetAttrString(datetime_module, "datetime");
     fromisoformat_func = PyObject_GetAttrString(datetime_class, "fromisoformat");
