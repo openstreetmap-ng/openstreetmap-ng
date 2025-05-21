@@ -702,7 +702,7 @@ let
       -march=''${CMARCH:-native} \
       -mtune=''${CMTUNE:-native} \
       -fvisibility=hidden \
-      -fno-semantic-interposition \
+      ${if stdenv'.cc.isGNU then "-fno-semantic-interposition" else ""} \
       -fno-plt \
       ${if stdenv'.cc.isGNU then "-fipa-pta" else ""}"
 
