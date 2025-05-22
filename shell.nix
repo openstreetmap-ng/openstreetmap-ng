@@ -699,7 +699,7 @@ let
     export COVERAGE_CORE=sysmon
 
     export CFLAGS="$CFLAGS -flto=auto \
-      -g -Ofast \
+      -g ${if isDevelopment then "-Og" else "-Ofast"} \
       -march=''${CMARCH:-native} \
       -mtune=''${CMTUNE:-native} \
       -fvisibility=hidden \
@@ -708,16 +708,6 @@ let
       ${if stdenv'.cc.isGNU then "-fipa-pta" else ""}"
 
     export LDFLAGS="$LDFLAGS -flto=auto";
-
-  '' + pkgs.lib.optionalString isDevelopment ''
-    export CFLAGS="$CFLAGS \
-      -Og \
-      -fsanitize=undefined \
-      -fno-omit-frame-pointer"
-
-    export LDFLAGS="$LDFLAGS \
-      -fsanitize=undefined"
-  '' + ''
 
     en_yaml_path="${projectDir}/config/locale/download/en.yaml"
     en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
