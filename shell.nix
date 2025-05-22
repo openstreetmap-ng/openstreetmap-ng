@@ -42,13 +42,12 @@ let
       pkgs postgresConf;
   };
 
-  stdenv' = if pkgs.stdenv.isDarwin then pkgs.stdenv else pkgs.gcc14Stdenv;
   pythonLibs = with pkgs; [
     cairo.out
     file.out
     libyaml.out
     zlib.out
-    stdenv'.cc.cc.lib
+    stdenv.cc.cc.lib
   ];
   python' = with pkgs; symlinkJoin {
     name = "python";
@@ -59,7 +58,7 @@ let
     buildInputs = [ makeWrapper ];
     postBuild = ''
       wrapProgram "$out/bin/python3.13" \
-        --prefix ${if stdenv'.isDarwin then "DYLD_LIBRARY_PATH" else "LD_LIBRARY_PATH"} : \
+        --prefix ${if stdenv.isDarwin then "DYLD_LIBRARY_PATH" else "LD_LIBRARY_PATH"} : \
         "${lib.makeLibraryPath pythonLibs}"
     '';
   };
@@ -80,13 +79,15 @@ let
         ${text}
       '';
       checkPhase = ''
-        ${stdenv'.shellDryRun} "$target"
+        ${stdenv.shellDryRun} "$target"
         ${shellcheck}/bin/shellcheck --severity=style "$target"
       '';
       meta.mainProgram = name;
     };
 
   packages' = with pkgs; [
+    llvmPackages_latest.clang-tools
+    llvmPackages_latest.lld
     ps
     coreutils
     findutils
@@ -200,7 +201,6 @@ let
       CFLAGS="$CFLAGS \
         -O0 \
         -fno-lto \
-        ${if stdenv'.cc.isGNU then "-fno-ipa-pta" else ""} \
         -fno-sanitize=all" \
       LDFLAGS="$LDFLAGS \
         -fno-lto \
@@ -647,25 +647,26 @@ let
     '')
   ];
 
-  shell' = ''
+  shell' = with pkgs; ''
     export TZ=UTC
     export NIX_ENFORCE_NO_NATIVE=0
-    export NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
+    export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
     export SSL_CERT_FILE=$NIX_SSL_CERT_FILE
     export PYTHONNOUSERSITE=1
     export PYTHONPATH="${projectDir}"
     export COVERAGE_CORE=sysmon
 
-    export CFLAGS="$CFLAGS -flto=auto \
+    export CFLAGS="$CFLAGS \
       -g ${if isDevelopment then "-Og" else "-Ofast"} \
       -march=''${CMARCH:-native} \
       -mtune=''${CMTUNE:-native} \
+      -flto \
       -fvisibility=hidden \
-      ${if stdenv'.cc.isGNU then "-fno-semantic-interposition" else ""} \
-      -fno-plt \
-      ${if stdenv'.cc.isGNU then "-fipa-pta" else ""}"
+      -fno-plt"
 
-    export LDFLAGS="$LDFLAGS -flto=auto";
+    export LDFLAGS="$LDFLAGS \
+      -flto \
+      -fuse-ld=lld"
 
     en_yaml_path="${projectDir}/config/locale/download/en.yaml"
     en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
@@ -689,7 +690,7 @@ let
 
     echo "Activating Python virtual environment"
     source .venv/bin/activate
-  '' + pkgs.lib.optionalString stdenv'.isDarwin ''
+  '' + lib.optionalString stdenv.isDarwin ''
     patch-venv-bin &
   '' + ''
 
@@ -699,7 +700,7 @@ let
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
     fi
 
-  '' + pkgs.lib.optionalString isDevelopment ''
+  '' + lib.optionalString isDevelopment ''
     export ENV=dev
     export SECRET=development-secret
     export APP_URL=http://127.0.0.1:8000
@@ -715,7 +716,7 @@ let
     export WIKIMEDIA_OAUTH_PUBLIC=2f7fe9e2825acc816d1e1103d203e8ec
     export WIKIMEDIA_OAUTH_SECRET=d07aaeabb5f7a5de76e3d667db3dfe0b2a5abf11
     export LEGACY_HIGH_PRECISION_TIME=1
-  '' + pkgs.lib.optionalString enableMailpit ''
+  '' + lib.optionalString enableMailpit ''
     export SMTP_HOST=127.0.0.1
     export SMTP_PORT=49565
     export SMTP_USER=mail@openstreetmap.org
@@ -750,7 +751,7 @@ let
     wait
   '';
 in
-pkgs.mkShell.override { stdenv = stdenv'; } {
+with pkgs; mkShell.override { stdenv = llvmPackages_latest.stdenv; } {
   packages = packages';
   shellHook = shell';
 }
