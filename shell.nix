@@ -753,7 +753,7 @@ let
     wait
   '';
 in
-with pkgs; mkShell.override { stdenv = llvmPackages_latest.stdenv; } {
+with pkgs; mkShell.override { stdenv = (if stdenv.isDarwin then stdenv else llvmPackages_latest.stdenv); } {
   packages = packages';
   shellHook = shell';
 }
