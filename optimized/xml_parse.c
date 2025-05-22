@@ -1,4 +1,5 @@
 #include <Python.h>
+#include <object.h>
 #include <pytypedefs.h>
 #include <stdlib.h>
 
@@ -9,7 +10,7 @@
 #define LIKELY(x) __builtin_expect((x), 1)
 #define PyScoped PyObject *__attribute__((cleanup(Py_XDECREFP)))
 
-#define LIST_PREALLOC_SIZE 8
+constexpr Py_ssize_t LIST_PREALLOC_SIZE = 8;
 
 #pragma region Globals
 

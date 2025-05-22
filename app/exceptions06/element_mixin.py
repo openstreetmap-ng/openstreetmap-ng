@@ -4,11 +4,8 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.element_mixin import ElementExceptionsMixin
-from app.models.element import (
-    TypedElementId,
-    split_typed_element_id,
-    split_typed_element_ids,
-)
+from app.models.element import TypedElementId
+from optimized import split_typed_element_id, split_typed_element_ids
 
 if TYPE_CHECKING:
     from app.models.db.element import Element, ElementInit

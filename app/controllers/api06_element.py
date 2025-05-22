@@ -9,17 +9,15 @@ from app.lib.exceptions_context import raise_for
 from app.lib.xml_body import xml_body
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.element import (
-    ElementId,
-    ElementType,
-    TypedElementId,
+from app.models.element import ElementId, ElementType, TypedElementId
+from app.queries.element_query import ElementQuery
+from app.queries.user_query import UserQuery
+from app.services.optimistic_diff import OptimisticDiff
+from optimized import (
     split_typed_element_id,
     typed_element_id,
     versioned_typed_element_id,
 )
-from app.queries.element_query import ElementQuery
-from app.queries.user_query import UserQuery
-from app.services.optimistic_diff import OptimisticDiff
 
 router = APIRouter(prefix='/api/0.6')
 

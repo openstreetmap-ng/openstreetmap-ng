@@ -11,13 +11,7 @@ from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.date_utils import utcnow
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element, ElementInit
-from app.models.element import (
-    ElementId,
-    ElementType,
-    TypedElementId,
-    split_typed_element_id,
-    typed_element_id,
-)
+from app.models.element import ElementId, ElementType, TypedElementId
 from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
@@ -25,6 +19,7 @@ from app.services.optimistic_diff.prepare import (
     ElementStateEntry,
     OptimisticDiffPrepare,
 )
+from optimized import split_typed_element_id, typed_element_id
 
 _WRITE_LOCK = Lock()
 

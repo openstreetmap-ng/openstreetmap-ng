@@ -26,3 +26,10 @@ endforeach()
 
 target_link_libraries(xml_parse PRIVATE LibXml2::LibXml2)
 target_link_libraries(xml_unparse PRIVATE LibXml2::LibXml2)
+
+# py.typed
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/py.typed)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/py.typed DESTINATION ${SKBUILD_PROJECT_NAME})
+
+# __init__.py
+INSTALL(FILES init.py DESTINATION ${SKBUILD_PROJECT_NAME} RENAME __init__.py)

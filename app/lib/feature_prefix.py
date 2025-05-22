@@ -6,7 +6,8 @@ import cython
 from app.config import FEATURE_PREFIX_TAGS_LIMIT
 from app.lib.translation import t
 from app.models.db.element import Element, ElementInit
-from app.models.element import ElementType, split_typed_element_id
+from app.models.element import ElementType
+from optimized import split_typed_element_id
 
 
 @overload

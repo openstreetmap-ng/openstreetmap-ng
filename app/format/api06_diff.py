@@ -1,11 +1,7 @@
 from typing import TypedDict
 
-from app.models.element import (
-    ElementId,
-    ElementType,
-    TypedElementId,
-    split_typed_element_id,
-)
+from app.models.element import ElementId, ElementType, TypedElementId
+from optimized import split_typed_element_id
 
 Diff06ResultDict = TypedDict(
     'Diff06ResultDict',

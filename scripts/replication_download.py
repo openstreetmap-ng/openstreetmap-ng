@@ -22,8 +22,9 @@ from app.lib.compressible_geometry import point_to_compressible_wkb
 from app.lib.retry import retry
 from app.lib.sentry import SENTRY_REPLICATION_MONITOR
 from app.lib.xmltodict import XMLToDict
-from app.models.element import ElementType, TypedElementId, typed_element_id
+from app.models.element import ElementType, TypedElementId
 from app.utils import HTTP
+from optimized import typed_element_id
 
 _Frequency = Literal['minute', 'hour', 'day']
 

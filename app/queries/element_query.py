@@ -19,9 +19,9 @@ from app.models.element import (
     ElementId,
     ElementType,
     TypedElementId,
-    split_typed_element_id,
 )
 from app.models.types import ChangesetId, SequenceId
+from optimized import split_typed_element_id
 
 
 class ElementQuery:

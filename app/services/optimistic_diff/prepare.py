@@ -20,15 +20,13 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
     ElementType,
     TypedElementId,
-    split_typed_element_id,
-    split_typed_element_ids,
-    split_typed_element_ids2,
 )
 from app.models.types import SequenceId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
+from optimized import split_typed_element_id, split_typed_element_ids
 
 OSMChangeAction = Literal['create', 'modify', 'delete']
 
@@ -132,7 +130,7 @@ class OptimisticDiffPrepare:
 
         for element, (element_type, element_id) in zip(
             self._elements,
-            split_typed_element_ids2(self._elements),
+            split_typed_element_ids(self._elements),
             strict=True,
         ):
             typed_id = element['typed_id']

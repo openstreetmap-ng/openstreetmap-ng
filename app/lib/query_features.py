@@ -8,7 +8,7 @@ from app.lib.feature_icon import FeatureIcon, features_icons
 from app.lib.feature_name import features_names
 from app.lib.feature_prefix import features_prefixes
 from app.models.db.element import ElementInit
-from app.models.element import TypedElementId, typed_element_id
+from app.models.element import TypedElementId
 from app.models.overpass import (
     OverpassElement,
     OverpassNode,
@@ -17,6 +17,7 @@ from app.models.overpass import (
     OverpassWay,
     OverpassWayMember,
 )
+from optimized import typed_element_id
 
 
 class QueryFeatureResult(NamedTuple):

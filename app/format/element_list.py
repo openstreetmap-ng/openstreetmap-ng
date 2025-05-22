@@ -3,13 +3,14 @@ import cython
 from app.lib.feature_icon import FeatureIcon, features_icons
 from app.lib.feature_name import features_names
 from app.models.db.element import Element
-from app.models.element import ElementType, TypedElementId, split_typed_element_id
+from app.models.element import ElementType, TypedElementId
 from app.models.proto.shared_pb2 import (
     ElementIcon,
     PartialChangesetParams,
     PartialElementParams,
 )
 from app.queries.element_query import ElementQuery
+from optimized import split_typed_element_id
 
 
 class FormatElementList:

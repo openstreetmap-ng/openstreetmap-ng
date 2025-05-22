@@ -121,6 +121,7 @@ ignore = [
   "PT011", # pytest-raises-too-broad
   "PT018", # pytest-composite-assertion
   "PT023", # pytest-incorrect-mark-parentheses-style
+  "PYI021", # docstring-in-stub
   "PYI025", # unaliased-collections-abc-set-import
   "PYI041", # redundant-numeric-union
   "UP046", # non-pep695-generic-class

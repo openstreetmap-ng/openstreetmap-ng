@@ -14,16 +14,13 @@ from app.config import (
     TAGS_KEY_MAX_LENGTH,
 )
 from app.models.db.user import UserDisplay
-from app.models.element import (
-    TYPED_ELEMENT_ID_NODE_MAX,
-    TypedElementId,
-    split_typed_element_id,
-)
+from app.models.element import TYPED_ELEMENT_ID_NODE_MAX, TypedElementId
 from app.models.types import ChangesetId, SequenceId, UserId
 from app.validators.geometry import GeometryValidator
 from app.validators.tags import TagsValidating
 from app.validators.unicode import UnicodeValidator
 from app.validators.xml import XMLSafeValidator
+from optimized import split_typed_element_id
 
 
 class ElementInit(TypedDict):

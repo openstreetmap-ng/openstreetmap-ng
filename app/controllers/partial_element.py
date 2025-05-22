@@ -17,17 +17,13 @@ from app.lib.tags_diff_mode import tags_diff_mode
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.models.db.element import Element
-from app.models.element import (
-    ElementId,
-    ElementType,
-    split_typed_element_id,
-    typed_element_id,
-)
+from app.models.element import ElementId, ElementType
 from app.models.proto.shared_pb2 import PartialElementParams
 from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
+from optimized import split_typed_element_id, typed_element_id
 
 router = APIRouter(prefix='/partial')
 

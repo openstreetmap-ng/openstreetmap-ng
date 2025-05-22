@@ -3,7 +3,8 @@ from typing import get_args, override
 
 from starlette.convertors import Convertor
 
-from app.models.element import ElementType, element_type
+from app.models.element import ElementType
+from optimized import element_type
 
 
 class ElementTypeConvertor(Convertor):

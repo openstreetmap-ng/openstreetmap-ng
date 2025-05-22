@@ -3,8 +3,9 @@ import pytest
 from app.lib.feature_prefix import features_prefixes
 from app.lib.translation import translation_context
 from app.models.db.element import ElementInit
-from app.models.element import ElementId, typed_element_id
+from app.models.element import ElementId
 from app.models.types import ChangesetId, LocaleCode
+from optimized import typed_element_id
 
 
 @pytest.mark.parametrize(

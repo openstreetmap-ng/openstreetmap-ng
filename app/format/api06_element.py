@@ -10,17 +10,10 @@ from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.models.db.element import Element, ElementInit, validate_elements
-from app.models.element import (
-    ElementId,
-    ElementType,
-    TypedElementId,
-    split_typed_element_id,
-    split_typed_element_ids,
-    split_typed_element_ids2,
-    typed_element_id,
-)
+from app.models.element import ElementId, ElementType, TypedElementId
 from app.models.types import ChangesetId
 from app.services.optimistic_diff.prepare import OSMChangeAction
+from optimized import split_typed_element_id, split_typed_element_ids, typed_element_id
 
 
 class Element06Mixin:
@@ -56,7 +49,7 @@ class Element06Mixin:
         result: dict[ElementType, list[dict]] = {'node': [], 'way': [], 'relation': []}
         for element, type_id in zip(
             elements,
-            split_typed_element_ids2(elements),
+            split_typed_element_ids(elements),
             strict=True,
         ):
             result[type_id[0]].append(_encode_element(element, is_json=False))
@@ -95,7 +88,7 @@ class Element06Mixin:
         for i, (element, type_id) in enumerate(
             zip(
                 elements,
-                split_typed_element_ids2(elements),
+                split_typed_element_ids(elements),
                 strict=True,
             )
         ):

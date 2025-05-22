@@ -18,9 +18,9 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
     ElementType,
     TypedElementId,
-    typed_element_id,
 )
 from app.utils import calc_num_workers
+from optimized import typed_element_id
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
 PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')
