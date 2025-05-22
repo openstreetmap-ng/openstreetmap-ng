@@ -3,7 +3,7 @@ from shapely import Point, get_coordinates
 
 from app.models.db.element import Element
 from app.models.element import TypedElementId
-from optimized import split_typed_element_id, split_typed_element_ids
+from speedup import split_typed_element_id, split_typed_element_ids
 
 
 class Element07Mixin:

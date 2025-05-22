@@ -21,7 +21,7 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "autoDocstring.docstringFormat": "sphinx-notypes",
-  "cmake.sourceDirectory": "${workspaceFolder}/optimized",
+  "cmake.sourceDirectory": "${workspaceFolder}/speedup",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
   "editor.rulers": [88],
   "editor.unicodeHighlight.allowedCharacters": {

@@ -14,7 +14,7 @@ from app.lib.feature_icon import FeatureIcon
 from app.lib.geo_utils import parse_bbox
 from app.models.db.element import Element
 from app.models.element import TypedElementId
-from optimized import split_typed_element_ids
+from speedup import split_typed_element_ids
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil, log2

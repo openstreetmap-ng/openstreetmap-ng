@@ -13,7 +13,7 @@ from app.models.element import ElementId, ElementType, TypedElementId
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
 from app.services.optimistic_diff import OptimisticDiff
-from optimized import (
+from speedup import (
     split_typed_element_id,
     typed_element_id,
     versioned_typed_element_id,

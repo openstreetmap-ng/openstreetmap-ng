@@ -1,5 +1,5 @@
 [project]
-name = "optimized"
+name = "speedup"
 version = "0.0.0"
 
 [build-system]

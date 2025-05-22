@@ -26,7 +26,7 @@ from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
-from optimized import split_typed_element_id, split_typed_element_ids
+from speedup import split_typed_element_id, split_typed_element_ids
 
 OSMChangeAction = Literal['create', 'modify', 'delete']
 

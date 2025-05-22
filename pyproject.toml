@@ -24,7 +24,6 @@ dependencies = [
   "nh3",
   "numpy",
   "opencv-python-headless",
-  "optimized",
   "orjson",
   "osm-shortlink",
   "phonenumbers",
@@ -48,6 +47,7 @@ dependencies = [
   "sentry-sdk[aiohttp,fastapi,httpx,pure-eval]",
   "shapely",
   "sizestr",
+  "speedup",
   "starlette-compress",
   "supervisor",
   "tqdm",
@@ -80,7 +80,7 @@ python-downloads = "never"
 python-preference = "only-system"
 
 [tool.uv.sources]
-optimized = { path = "optimized" }
+speedup = { path = "speedup" }
 
 [build-system]
 requires = ["hatchling"]

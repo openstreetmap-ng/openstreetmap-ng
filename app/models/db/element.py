@@ -20,7 +20,7 @@ from app.validators.geometry import GeometryValidator
 from app.validators.tags import TagsValidating
 from app.validators.unicode import UnicodeValidator
 from app.validators.xml import XMLSafeValidator
-from optimized import split_typed_element_id
+from speedup import split_typed_element_id
 
 
 class ElementInit(TypedDict):

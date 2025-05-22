@@ -45,7 +45,7 @@ CDATA_dealloc(CDATAObject *self) {
 }
 
 static PyTypeObject CDATAType = {
-  PyVarObject_HEAD_INIT(nullptr, 0).tp_name = "optimized.xml_unparse.CDATA",
+  PyVarObject_HEAD_INIT(nullptr, 0).tp_name = "speedup.xml_unparse.CDATA",
   .tp_basicsize = sizeof(CDATAObject),
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
   .tp_new = CDATA_new,
@@ -393,7 +393,7 @@ static PyMethodDef methods[] = {
 
 static struct PyModuleDef module = {
   PyModuleDef_HEAD_INIT,
-  "optimized.xml_unparse",
+  "speedup.xml_unparse",
   nullptr,
   -1,
   methods,

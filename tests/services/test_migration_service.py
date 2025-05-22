@@ -14,7 +14,7 @@ from app.services.migration_service import (
     _get_element_typed_id_batches,
 )
 from app.services.optimistic_diff import OptimisticDiff
-from optimized import typed_element_id
+from speedup import typed_element_id
 from tests.utils.assert_model import assert_model
 
 

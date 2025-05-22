@@ -4,7 +4,7 @@ from typing import get_args, override
 from starlette.convertors import Convertor
 
 from app.models.element import ElementType
-from optimized import element_type
+from speedup import element_type
 
 
 class ElementTypeConvertor(Convertor):

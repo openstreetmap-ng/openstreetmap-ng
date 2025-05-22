@@ -276,7 +276,7 @@ static PyMethodDef methods[] = {
 // Module definition
 static struct PyModuleDef module = {
   PyModuleDef_HEAD_INIT,
-  "optimized.element_type",
+  "speedup.element_type",
   nullptr,
   -1,
   methods,

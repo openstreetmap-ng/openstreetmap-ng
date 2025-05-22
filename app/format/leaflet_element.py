@@ -9,7 +9,7 @@ from app.lib.query_features import QueryFeatureResult
 from app.models.db.element import Element
 from app.models.element import TypedElementId
 from app.models.proto.shared_pb2 import RenderElementsData
-from optimized import split_typed_element_id
+from speedup import split_typed_element_id
 
 
 class LeafletElementMixin:

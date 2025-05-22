@@ -7,7 +7,7 @@ from app.lib.format_style_context import format_style
 from app.lib.render_jinja import render_jinja
 from app.models.db.note import Note, note_status
 from app.models.db.note_comment import NoteComment
-from optimized.xml_unparse import CDATA
+from speedup import CDATA
 
 
 class Note06Mixin:

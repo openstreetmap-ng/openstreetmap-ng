@@ -1145,7 +1145,6 @@ dependencies = [
     { name = "nh3" },
     { name = "numpy" },
     { name = "opencv-python-headless" },
-    { name = "optimized" },
     { name = "orjson" },
     { name = "osm-shortlink" },
     { name = "phonenumbers" },
@@ -1169,6 +1168,7 @@ dependencies = [
     { name = "sentry-sdk", extra = ["aiohttp", "fastapi", "httpx", "pure-eval"] },
     { name = "shapely" },
     { name = "sizestr" },
+    { name = "speedup" },
     { name = "starlette-compress" },
     { name = "supervisor" },
     { name = "tqdm" },
@@ -1218,7 +1218,6 @@ requires-dist = [
     { name = "nh3" },
     { name = "numpy" },
     { name = "opencv-python-headless" },
-    { name = "optimized", directory = "optimized" },
     { name = "orjson" },
     { name = "osm-shortlink" },
     { name = "phonenumbers" },
@@ -1242,6 +1241,7 @@ requires-dist = [
     { name = "sentry-sdk", extras = ["aiohttp", "fastapi", "httpx", "pure-eval"] },
     { name = "shapely" },
     { name = "sizestr" },
+    { name = "speedup", directory = "speedup" },
     { name = "starlette-compress" },
     { name = "supervisor" },
     { name = "tqdm" },
@@ -1264,11 +1264,6 @@ dev = [
     { name = "types-protobuf" },
     { name = "websockets" },
 ]
-
-[[package]]
-name = "optimized"
-version = "0.0.0"
-source = { directory = "optimized" }
 
 [[package]]
 name = "orjson"
@@ -2020,6 +2015,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/3f/f4/4a80cd6ef364b2e8b
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e7/9c/0e6afc12c269578be5c0c1c9f4b49a8d32770a080260c333ac04cc1c832d/soupsieve-2.7-py3-none-any.whl", hash = "sha256:6e60cc5c1ffaf1cebcc12e8188320b72071e922c2e897f737cadce79ad5d30c4", size = 36677, upload-time = "2025-04-20T18:50:07.196Z" },
 ]
+
+[[package]]
+name = "speedup"
+version = "0.0.0"
+source = { directory = "speedup" }
 
 [[package]]
 name = "starlette"

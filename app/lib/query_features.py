@@ -17,7 +17,7 @@ from app.models.overpass import (
     OverpassWay,
     OverpassWayMember,
 )
-from optimized import typed_element_id
+from speedup import typed_element_id
 
 
 class QueryFeatureResult(NamedTuple):

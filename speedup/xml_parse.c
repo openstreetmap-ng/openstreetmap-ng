@@ -434,7 +434,7 @@ static PyMethodDef methods[] = {
 
 static struct PyModuleDef module = {
   PyModuleDef_HEAD_INIT,
-  "optimized.xml_parse",
+  "speedup.xml_parse",
   nullptr,
   -1,
   methods,
