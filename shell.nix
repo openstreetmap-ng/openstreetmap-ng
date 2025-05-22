@@ -46,6 +46,7 @@ let
     cairo.out
     file.out
     libyaml.out
+    libxml2.out
     zlib.out
     stdenv.cc.cc.lib
   ];
@@ -657,16 +658,18 @@ let
     export COVERAGE_CORE=sysmon
 
     export CFLAGS="$CFLAGS \
-      -g ${if isDevelopment then "-Og" else "-Ofast"} \
+      -pipe -g ${if isDevelopment then "-Og" else "-O3"} \
       -march=''${CMARCH:-native} \
       -mtune=''${CMTUNE:-native} \
-      -flto \
+      -funsafe-math-optimizations \
       -fvisibility=hidden \
+      -flto=thin \
       -fno-plt"
 
     export LDFLAGS="$LDFLAGS \
-      -flto \
-      -fuse-ld=lld"
+      -flto=thin \
+      -fuse-ld=lld \
+      ${if isDevelopment then "" else "-Wl,--strip-all"}"
 
     en_yaml_path="${projectDir}/config/locale/download/en.yaml"
     en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
