@@ -1,4 +1,5 @@
 #include <Python.h>
+#include <pytypedefs.h>
 #include <stdlib.h>
 
 #include "libxml/xmlreader.h"
@@ -6,13 +7,28 @@
 
 #define UNLIKELY(x) __builtin_expect((x), 0)
 #define LIKELY(x) __builtin_expect((x), 1)
+#define PyScoped PyObject *__attribute__((cleanup(Py_XDECREFP)))
 
 #define LIST_PREALLOC_SIZE 8
 
 #pragma region Globals
 
-static PyObject *fromisoformat_func = nullptr;
-static PyObject *parse_date_func = nullptr;
+static PyObject *fromisoformat_func;
+static PyObject *parse_date_func;
+static PyObject *text_key;
+
+#pragma endregion
+#pragma region Cleanup
+
+static inline void
+Py_XDECREFP(PyObject **ptr) {
+  Py_XDECREF(*ptr);
+}
+
+static inline void
+xmlFreeTextReaderPtr(xmlTextReaderPtr *ptr) {
+  xmlFreeTextReader(*ptr);
+}
 
 #pragma endregion
 #pragma region Sets
@@ -76,12 +92,11 @@ static PyObject *
 postprocess_xml_date(const xmlChar *value_xml) {
   PyObject *callable =
     xmlStrchr(value_xml, (xmlChar)' ') ? parse_date_func : fromisoformat_func;
-  PyObject *value_py = postprocess_xml_str(value_xml);
-  PyObject *args[2] = {nullptr, value_py};
+  PyScoped value_py = postprocess_xml_str(value_xml);
+  PyObject *args[] = {nullptr, value_py};
   PyObject *result = PyObject_Vectorcall(
     callable, args + 1, 1 | PY_VECTORCALL_ARGUMENTS_OFFSET, nullptr
   );
-  Py_DECREF(value_py);
   return result;
 }
 
@@ -134,10 +149,11 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
   PyBytes_AsStringAndSize(args[0], &buffer, &buffer_size);
   assert(INT_MIN <= buffer_size && buffer_size <= INT_MAX);
 
-  xmlTextReaderPtr reader = xmlReaderForMemory(
-    buffer, buffer_size, nullptr, nullptr,
-    XML_PARSE_NOCDATA | XML_PARSE_COMPACT | XML_PARSE_NO_XXE
-  );
+  xmlTextReaderPtr __attribute__((cleanup(xmlFreeTextReaderPtr))) reader =
+    xmlReaderForMemory(
+      buffer, buffer_size, nullptr, nullptr,
+      XML_PARSE_NOCDATA | XML_PARSE_COMPACT | XML_PARSE_NO_XXE
+    );
   // TODO: 2.14 XML_PARSE_NO_SYS_CATALOG
 
   if (UNLIKELY(!reader)) {
@@ -149,32 +165,28 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
     );
   }
 
-  PyObject *stack = PyList_New(LIST_PREALLOC_SIZE);
-  PyObject *attr_cache = PyDict_New();
-  PyObject *text_key = nullptr;
-  PyObject *parent_name = nullptr;
-  PyObject *current_name = nullptr;
-  PyObject *current_dict = nullptr;
-  PyObject *current_list = nullptr;
-  PyObject *result = nullptr;
+  PyScoped stack = PyList_New(LIST_PREALLOC_SIZE);
+  PyScoped attr_cache = PyDict_New();
   if (UNLIKELY(!stack || !attr_cache))
-    goto fail;
+    return nullptr;
   _PyVarObject_CAST(stack)->ob_size = 0;
+
+  PyScoped parent_name = nullptr;
+  PyScoped current_name = nullptr;
+  PyScoped current_dict = nullptr;
+  PyScoped current_list = nullptr;
+  PyObject *result = nullptr;
 
   auto parse_ret = xmlTextReaderRead(reader);
   auto node_type = xmlTextReaderNodeType(reader);
   while (LIKELY(parse_ret == 1)) {
     switch (node_type) {
     case XML_READER_TYPE_ELEMENT: {
-      if (LIKELY(current_dict != nullptr)) { // Push to stack
-        PyObject *tuple = PyTuple_Pack(3, current_name, current_dict, current_list);
-        if (UNLIKELY(!tuple))
-          goto fail;
-
-        auto append_result = PyList_Append(stack, tuple);
-        Py_DECREF(tuple);
-        if (UNLIKELY(append_result))
-          goto fail;
+      if (LIKELY(current_dict != nullptr)) {
+        // Push to stack
+        PyScoped tuple = PyTuple_Pack(3, current_name, current_dict, current_list);
+        if (UNLIKELY(!tuple || PyList_Append(stack, tuple)))
+          return nullptr;
 
         Py_DECREF(current_name);
         Py_DECREF(current_dict);
@@ -186,19 +198,20 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
       current_dict = Py_None;
       current_list = Py_None;
       if (UNLIKELY(!current_name))
-        goto fail;
+        return nullptr;
       // TODO: prefer PyUnicode_InternFromString if defined to be
       // immortal https://github.com/python/cpython/issues/133260
       PyUnicode_InternInPlace(&current_name);
       break;
     }
     case XML_READER_TYPE_END_ELEMENT: {
-      PyObject *current_result;
+      PyScoped current_result;
+
       if (current_dict == Py_None && current_list == Py_None)
         current_result = nullptr;
       else if (current_list == Py_None) {
         // Handle potential text-only case
-        current_result = text_key && PyDict_GET_SIZE(current_dict) == 1
+        current_result = PyDict_GET_SIZE(current_dict) == 1
                            ? PyDict_GetItem(current_dict, text_key)
                            : nullptr;
 
@@ -212,31 +225,28 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
       } else if (current_dict == Py_None) {
         current_result = current_list;
         current_list = nullptr;
-      } else // current_dict != Py_None && current_list != Py_None
-      {
-        PyObject *items = PyDict_Items(current_dict);
-        if (UNLIKELY(!items))
-          goto fail;
-        PyList_Extend(current_list, items);
-        Py_DECREF(items);
-        Py_CLEAR(current_dict);
+      } else { // current_dict != Py_None && current_list != Py_None
+        PyScoped items = PyDict_Items(current_dict);
+        if (UNLIKELY(!items || PyList_Extend(current_list, items)))
+          return nullptr;
 
+        Py_CLEAR(current_dict);
         current_result = current_list;
         current_list = nullptr;
       }
 
       auto stack_size = PyList_GET_SIZE(stack);
-      if (LIKELY(stack_size)) { // Pop from stack
+      if (LIKELY(stack_size)) {
+        // Pop from stack
         stack_size -= 1;
         _PyVarObject_CAST(stack)->ob_size = stack_size;
-        PyObject *tuple = PyList_GET_ITEM(stack, stack_size);
+        PyScoped tuple = PyList_GET_ITEM(stack, stack_size);
         parent_name = PyTuple_GET_ITEM(tuple, 0);
         current_dict = PyTuple_GET_ITEM(tuple, 1);
         current_list = PyTuple_GET_ITEM(tuple, 2);
         Py_INCREF(parent_name);
         Py_INCREF(current_dict);
         Py_INCREF(current_list);
-        Py_DECREF(tuple); // Pop after resize
 
         if (!current_result)
           goto merge_ok;
@@ -248,22 +258,14 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
             )) {
           if (current_list == Py_None) {
             current_list = PyList_New(LIST_PREALLOC_SIZE);
-            if (UNLIKELY(!current_list)) {
-              Py_DECREF(current_result);
-              goto fail;
-            }
+            if (UNLIKELY(!current_list))
+              return nullptr;
             _PyVarObject_CAST(current_list)->ob_size = 0;
           }
 
-          PyObject *tuple = PyTuple_Pack(2, current_name, current_result);
-          Py_DECREF(current_result);
-          if (UNLIKELY(!tuple))
-            goto fail;
-
-          auto append_result = PyList_Append(current_list, tuple);
-          Py_DECREF(tuple);
-          if (UNLIKELY(append_result))
-            goto fail;
+          PyScoped tuple = PyTuple_Pack(2, current_name, current_result);
+          if (UNLIKELY(!tuple || PyList_Append(current_list, tuple)))
+            return nullptr;
 
           goto merge_ok;
         }
@@ -274,27 +276,23 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
                                       : nullptr;
         if (existing_result) {
           if (PyList_CheckExact(existing_result)) {
-            auto append_result = PyList_Append(existing_result, current_result);
-            Py_DECREF(current_result);
-            if (UNLIKELY(append_result))
-              goto fail;
-          } else { // Upgrade to a list
-            PyObject *list = PyList_New(LIST_PREALLOC_SIZE);
-            if (UNLIKELY(!list)) {
-              Py_DECREF(current_result);
-              goto fail;
-            }
+            if (UNLIKELY(PyList_Append(existing_result, current_result)))
+              return nullptr;
+          } else {
+            // Upgrade to a list
+            PyScoped list = PyList_New(LIST_PREALLOC_SIZE);
+            if (UNLIKELY(!list))
+              return nullptr;
             assert(LIST_PREALLOC_SIZE >= 2);
             _PyVarObject_CAST(list)->ob_size = 2;
 
             Py_INCREF(existing_result);
+            Py_INCREF(current_result);
             PyList_SET_ITEM(list, 0, existing_result);
             PyList_SET_ITEM(list, 1, current_result);
 
-            auto set_result = PyDict_SetItem(current_dict, current_name, list);
-            Py_DECREF(list);
-            if (UNLIKELY(set_result))
-              goto fail;
+            if (UNLIKELY(PyDict_SetItem(current_dict, current_name, list)))
+              return nullptr;
           }
 
           goto merge_ok;
@@ -303,10 +301,8 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
         // Append new value
         if (current_dict == Py_None) {
           current_dict = PyDict_New();
-          if (UNLIKELY(!current_dict)) {
-            Py_DECREF(current_result);
-            goto fail;
-          }
+          if (UNLIKELY(!current_dict))
+            return nullptr;
         }
 
         // Optionally wrap in a list
@@ -314,10 +310,8 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
               current_name_c, sizeof(force_list_set) / sizeof(char *), force_list_set
             )) {
           PyObject *list = PyList_New(LIST_PREALLOC_SIZE);
-          if (UNLIKELY(!list)) {
-            Py_DECREF(current_result);
-            goto fail;
-          }
+          if (UNLIKELY(!list))
+            return nullptr;
           assert(LIST_PREALLOC_SIZE >= 1);
           _PyVarObject_CAST(list)->ob_size = 1;
 
@@ -325,24 +319,18 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
           current_result = list;
         }
 
-        auto set_result = PyDict_SetItem(current_dict, current_name, current_result);
-        Py_DECREF(current_result);
-        if (UNLIKELY(set_result))
-          goto fail;
+        if (UNLIKELY(PyDict_SetItem(current_dict, current_name, current_result)))
+          return nullptr;
 
 merge_ok:
-        Py_DECREF(current_name);
-        current_name = parent_name;
+        Py_SETREF(current_name, parent_name);
         parent_name = nullptr;
-      } else { // Finished parsing, wrap in a dict
+      } else {
+        // Finished parsing, wrap in a dict
         result = PyDict_New();
-        if (UNLIKELY(!result))
-          goto fail;
+        if (UNLIKELY(!result || PyDict_SetItem(result, current_name, current_result)))
+          return nullptr;
 
-        auto set_result = PyDict_SetItem(result, current_name, current_result);
-        Py_DECREF(current_result);
-        if (UNLIKELY(set_result))
-          goto fail;
         goto ok;
       }
       break;
@@ -352,7 +340,7 @@ merge_ok:
       if (current_dict == Py_None) {
         current_dict = PyDict_New();
         if (UNLIKELY(!current_dict))
-          goto fail;
+          return nullptr;
       }
 
       const char *postprocess_key =
@@ -360,55 +348,41 @@ merge_ok:
           ? (const char *)xmlTextReaderConstLocalName(reader)
           : PyUnicode_AsUTF8(current_name);
 
-      PyObject *set_key;
+      PyScoped set_key;
       if (node_type == XML_READER_TYPE_ATTRIBUTE) {
         set_key = PyDict_GetItemString(attr_cache, postprocess_key);
-        if (!set_key) { // Cache miss
+        if (!set_key) {
+          // Cache miss
           set_key = PyUnicode_FromFormat("@%s", postprocess_key);
-          if (UNLIKELY(!set_key))
-            goto fail;
-
-          if (UNLIKELY(PyDict_SetItemString(attr_cache, postprocess_key, set_key))) {
-            Py_DECREF(set_key);
-            goto fail;
-          }
-        } else { // Cache hit
+          if (UNLIKELY(
+                !set_key || PyDict_SetItemString(attr_cache, postprocess_key, set_key)
+              ))
+            return nullptr;
+        } else {
+          // Cache hit
           Py_INCREF(set_key);
         }
-      } else // XML_READER_TYPE_TEXT
-      {
-        if (UNLIKELY(!text_key)) {
-          text_key = PyUnicode_InternFromString("#text");
-          if (UNLIKELY(!text_key))
-            goto fail;
-        }
+      } else { // XML_READER_TYPE_TEXT
         set_key = text_key;
-        // TODO: remove ref count and cleanup if immortal
-        // https://github.com/python/cpython/issues/133260
+        Py_INCREF(set_key);
       }
 
       const xmlChar *value_xml = xmlTextReaderConstValue(reader);
-      PyObject *value = postprocess_value(postprocess_key, value_xml);
+      PyScoped value = postprocess_value(postprocess_key, value_xml);
       if (UNLIKELY(!value)) {
-        if (set_key != text_key)
-          Py_DECREF(set_key);
         PyErr_Format(
           PyExc_ValueError, "Failed to postprocess '%s' value: %s", postprocess_key,
           value_xml
         );
-        goto fail;
+        return nullptr;
       }
-
-      auto set_result = PyDict_SetItem(current_dict, set_key, value);
-      if (set_key != text_key)
-        Py_DECREF(set_key);
-      Py_DECREF(value);
-      if (UNLIKELY(set_result))
-        goto fail;
+      if (UNLIKELY(PyDict_SetItem(current_dict, set_key, value)))
+        return nullptr;
       break;
     }
     }
 
+    // Iterate to the next node.
     if (node_type == XML_READER_TYPE_ELEMENT ||
         node_type == XML_READER_TYPE_ATTRIBUTE) {
       parse_ret = xmlTextReaderMoveToNextAttribute(reader);
@@ -437,32 +411,18 @@ merge_ok:
       PyExc_ValueError, "Error parsing XML: %s",
       error && error->message ? error->message : "Unknown error"
     );
-    goto fail;
+    return nullptr;
   }
 
 ok:
   if (UNLIKELY(PyList_GET_SIZE(stack) || (!result && current_dict))) {
     PyErr_SetString(PyExc_AssertionError, "Stack is not empty after parsing");
-    goto fail;
+    return nullptr;
   }
   if (UNLIKELY(!result)) {
     PyErr_SetString(PyExc_ValueError, "Document is empty");
-    goto fail;
+    return nullptr;
   }
-
-  if (false) {
-fail:
-    result = nullptr;
-  }
-
-  Py_XDECREF(stack);
-  Py_XDECREF(attr_cache);
-  Py_XDECREF(text_key);
-  Py_XDECREF(parent_name);
-  Py_XDECREF(current_name);
-  Py_XDECREF(current_dict);
-  Py_XDECREF(current_list);
-  xmlFreeTextReader(reader);
   return result;
 }
 
@@ -485,12 +445,14 @@ static struct PyModuleDef module = {
 
 PyMODINIT_FUNC
 PyInit_xml_parse(void) {
-  PyObject *datetime_module = PyImport_ImportModule("datetime");
-  PyObject *datetime_class = PyObject_GetAttrString(datetime_module, "datetime");
+  PyScoped datetime_module = PyImport_ImportModule("datetime");
+  PyScoped datetime_class = PyObject_GetAttrString(datetime_module, "datetime");
   fromisoformat_func = PyObject_GetAttrString(datetime_class, "fromisoformat");
 
-  PyObject *date_utils_module = PyImport_ImportModule("app.lib.date_utils");
+  PyScoped date_utils_module = PyImport_ImportModule("app.lib.date_utils");
   parse_date_func = PyObject_GetAttrString(date_utils_module, "parse_date");
+
+  text_key = PyUnicode_InternFromString("#text");
 
   return PyModule_Create(&module);
 }

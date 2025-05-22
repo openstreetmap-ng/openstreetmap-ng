@@ -243,10 +243,11 @@ unparse_element(
   xmlDocPtr doc, xmlNodePtr parent, const char *key, PyObject *value, bool is_root
 ) {
 
-  if (PyDict_CheckExact(value)) { // Encode dict
+  if (PyDict_CheckExact(value)) {
+    // Encode dict
     return unparse_dict(doc, parent, key, value);
-  } else if (PyList_CheckExact(value) ||
-             PyTuple_CheckExact(value)) { // Encode sequence of ...
+  } else if (PyList_CheckExact(value) || PyTuple_CheckExact(value)) {
+    // Encode sequence of ...
     auto is_list = PyList_CheckExact(value);
     auto size = is_list ? PyList_GET_SIZE(value) : PyTuple_GET_SIZE(value);
     xmlNodePtr tuples_element = nullptr;
@@ -254,7 +255,8 @@ unparse_element(
     for (typeof(size) i = 0; i < size; i++) {
       PyObject *item = is_list ? PyList_GET_ITEM(value, i) : PyTuple_GET_ITEM(value, i);
 
-      if (PyDict_CheckExact(item)) { // ... dicts
+      if (PyDict_CheckExact(item)) {
+        // ... dicts
         if (UNLIKELY(is_root && size > 1)) {
           PyErr_SetString(
             PyExc_ValueError, "Root element cannot contain multiple dicts"
@@ -264,8 +266,9 @@ unparse_element(
 
         if (UNLIKELY(!unparse_dict(doc, parent, key, item)))
           return false;
-      } else if (PyList_CheckExact(item) ||
-                 PyTuple_CheckExact(item)) { // ... (key, value) tuples
+
+      } else if (PyList_CheckExact(item) || PyTuple_CheckExact(item)) {
+        // ... (key, value) tuples
         if (!tuples_element) {
           tuples_element = xmlNewChild(parent, nullptr, BAD_CAST key, nullptr);
           if (UNLIKELY(!tuples_element)) {
@@ -296,6 +299,7 @@ unparse_element(
               doc, tuples_element, PyUnicode_AsUTF8(tuple_key), tuple_value
             )))
           return false;
+
       } else { // ... scalars
         if (UNLIKELY(is_root && size > 1)) {
           PyErr_SetString(
@@ -310,7 +314,8 @@ unparse_element(
     }
 
     return true;
-  } else { // Encode scalar
+  } else {
+    // Encode scalar
     return unparse_scalar(doc, parent, key, value);
   }
 }
