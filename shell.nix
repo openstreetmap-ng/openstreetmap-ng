@@ -100,7 +100,6 @@ let
     brotli
     zstd
     b3sum
-    nil
     nixpkgs-fmt
     # Python:
     python'
