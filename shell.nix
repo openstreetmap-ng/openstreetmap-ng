@@ -207,48 +207,6 @@ let
         -fno-sanitize=all" \
       cython-build
     '')
-    (makeScript "cython-build-pgo" ''
-      found_so=false
-      files_up_to_date=true
-      while IFS= read -r so_file; do
-        found_so=true
-        py_file="''${so_file%.*.*}.py"
-        if [ -f "$py_file" ] && [ "$py_file" -nt "$so_file" ]; then
-          files_up_to_date=false
-          break
-        fi
-      done < <(find . -type f -name "*.so" -not -path './.*')
-      if [ "$found_so" = true ] && [ "$files_up_to_date" = true ]; then
-        echo "All cython modules are up-to-date, skipping PGO build"
-        exit 0
-      fi
-
-      tmpdir=$(mktemp -d)
-      trap 'rm -rf "$tmpdir"' EXIT
-      cython-clean
-      CFLAGS="$CFLAGS \
-        -fprofile-dir=$tmpdir \
-        -fprofile-generate \
-        -fprofile-update=prefer-atomic" \
-      cython-build
-
-      set +e
-      run-tests --extended
-      result=$?
-      set -e
-      if [ "$result" -ne 0 ]; then
-        echo "Aborting PGO build due to test failure"
-        cython-clean
-        exit $result
-      fi
-
-      rm -rf build/
-      CFLAGS="$CFLAGS \
-        -fprofile-dir=$tmpdir \
-        -fprofile-use \
-        -fprofile-partial-training" \
-      cython-build
-    '')
     (makeScript "cython-clean" ''
       rm -rf build/
       find app scripts \
