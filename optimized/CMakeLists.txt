@@ -7,7 +7,7 @@ endif()
 project(${SKBUILD_PROJECT_NAME} LANGUAGES C)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
-add_compile_options(-Wall -Wextra -Wpedantic)
+add_compile_options(-Wall -Wextra -pedantic)
 
 find_package(Python COMPONENTS Development.Module REQUIRED)
 find_package(LibXml2 REQUIRED)
