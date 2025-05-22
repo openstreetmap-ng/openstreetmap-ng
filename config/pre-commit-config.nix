@@ -4,6 +4,14 @@ pkgs.writeText "pre-commit-config.yaml" ''
   repos:
     - repo: local
       hooks:
+        - id: nixpkgs-fmt
+          name: nixpkgs-fmt
+          entry: ${makeScript "entry" ''
+            ${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt "$@"
+          ''}/bin/entry
+          language: system
+          types_or: [nix]
+
         - id: ruff
           name: ruff
           entry: ${makeScript "entry" ''
@@ -22,6 +30,14 @@ pkgs.writeText "pre-commit-config.yaml" ''
           types_or: [python, pyi]
           require_serial: true
 
+        - id: clang-format
+          name: clang-format
+          entry: ${makeScript "entry" ''
+            ${pkgs.llvmPackages_latest.clang-tools}/bin/clang-format -i "$@"
+          ''}/bin/entry
+          language: system
+          types_or: [c]
+
         - id: biome
           name: biome
           entry: ${makeScript "entry" ''
@@ -29,16 +45,6 @@ pkgs.writeText "pre-commit-config.yaml" ''
           ''}/bin/entry
           language: system
           types_or: [ts, javascript]
-          require_serial: true
-
-        - id: nixpkgs-fmt
-          name: nixpkgs-fmt
-          entry: ${makeScript "entry" ''
-            ${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt "$@"
-          ''}/bin/entry
-          language: system
-          types_or: [nix]
-          require_serial: true
 
         - id: prettier
           name: prettier
@@ -47,5 +53,4 @@ pkgs.writeText "pre-commit-config.yaml" ''
           ''}/bin/entry
           language: system
           types_or: [scss]
-          require_serial: true
 ''
