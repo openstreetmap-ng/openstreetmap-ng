@@ -1,6 +1,5 @@
 ---
 BasedOnStyle: LLVM
-Language: C
 AlignAfterOpenBracket: BlockIndent
 BreakAfterAttributes: Always
 BreakAfterReturnType: All

@@ -2,6 +2,9 @@
 #include "libxml/xmlstring.h"
 #include <Python.h>
 
+#define STB_DS_IMPLEMENTATION
+#include "stb_ds.h"
+
 #define UNLIKELY(x) __builtin_expect((x), 0)
 #define LIKELY(x) __builtin_expect((x), 1)
 #define PyScoped PyObject *__attribute__((cleanup(Py_XDECREFP)))
@@ -68,11 +71,47 @@ stack_pop(Stack *stack, PyObject **name, PyObject **dict, PyObject **list) {
 
 static inline void
 stack_cleanup(Stack *stack) {
-  while (stack->depth > 0) {
+  while (stack->depth) {
     StackFrame *frame = &stack->frames[--stack->depth];
     Py_DECREF(frame->name);
     Py_DECREF(frame->dict);
     Py_DECREF(frame->list);
+  }
+}
+
+#pragma endregion
+#pragma region AttrCache
+
+typedef struct {
+  char *key;
+  PyObject *value;
+} AttrCacheEntry;
+
+static inline PyObject *
+get_attr_key(AttrCacheEntry **cache_ptr, const char *attr_name) {
+  AttrCacheEntry *cache = *cache_ptr;
+  PyObject *cached = shget(cache, attr_name);
+  // Cache hit - return existing cached value
+  if (cached)
+    return cached;
+
+  // Cache miss - create new prefixed string
+  PyObject *prefixed_key = PyUnicode_FromFormat("@%s", attr_name);
+  if (UNLIKELY(!prefixed_key))
+    return nullptr;
+
+  shput(cache, attr_name, prefixed_key);
+  *cache_ptr = cache;
+  return prefixed_key;
+}
+
+static void
+attr_cache_cleanup(AttrCacheEntry **cache_ptr) {
+  AttrCacheEntry *cache = *cache_ptr;
+  if (LIKELY(cache != nullptr)) {
+    for (auto i = 0; i < shlen(cache); i++)
+      Py_DECREF(cache[i].value);
+    shfree(cache);
   }
 }
 
@@ -211,11 +250,11 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
     );
   }
 
-  PyScoped attr_cache = PyDict_New();
-  if (UNLIKELY(!attr_cache))
-    return nullptr;
-
   Stack __attribute__((cleanup(stack_cleanup))) stack = {};
+  AttrCacheEntry *__attribute__((cleanup(attr_cache_cleanup))) attr_cache;
+  sh_new_arena(attr_cache);
+  shdefault(attr_cache, nullptr);
+
   PyScoped parent_name = nullptr;
   PyScoped current_name = nullptr;
   PyScoped current_dict = nullptr;
@@ -378,25 +417,6 @@ merge_ok:
           ? (const char *)xmlTextReaderConstLocalName(reader)
           : PyUnicode_AsUTF8(current_name);
 
-      PyScoped set_key;
-      if (node_type == XML_READER_TYPE_ATTRIBUTE) {
-        set_key = PyDict_GetItemString(attr_cache, postprocess_key);
-        if (!set_key) {
-          // Cache miss
-          set_key = PyUnicode_FromFormat("@%s", postprocess_key);
-          if (UNLIKELY(
-                !set_key || PyDict_SetItemString(attr_cache, postprocess_key, set_key)
-              ))
-            return nullptr;
-        } else {
-          // Cache hit
-          Py_INCREF(set_key);
-        }
-      } else { // XML_READER_TYPE_TEXT
-        set_key = text_key;
-        Py_INCREF(set_key);
-      }
-
       const xmlChar *value_xml = xmlTextReaderConstValue(reader);
       PyScoped value = postprocess_value(postprocess_key, value_xml);
       if (UNLIKELY(!value)) {
@@ -406,6 +426,16 @@ merge_ok:
         );
         return nullptr;
       }
+
+      PyObject *set_key;
+      if (node_type == XML_READER_TYPE_ATTRIBUTE) {
+        set_key = get_attr_key(&attr_cache, postprocess_key);
+        if (UNLIKELY(!set_key))
+          return nullptr;
+      } else { // XML_READER_TYPE_TEXT
+        set_key = text_key;
+      }
+
       if (UNLIKELY(PyDict_SetItem(current_dict, set_key, value)))
         return nullptr;
       break;
