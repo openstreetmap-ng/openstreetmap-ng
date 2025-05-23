@@ -1,6 +1,7 @@
 #include "libxml/xmlreader.h"
 #include "libxml/xmlstring.h"
 #include <Python.h>
+#include <object.h>
 
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
@@ -350,7 +351,7 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
             current_list = PyList_New(LIST_PREALLOC_SIZE);
             if (UNLIKELY(!current_list))
               return nullptr;
-            _PyVarObject_CAST(current_list)->ob_size = 0;
+            Py_SET_SIZE(current_list, 0);
           }
 
           PyScoped tuple = PyTuple_Pack(2, current_name, current_result);
@@ -373,9 +374,9 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
             PyScoped list = PyList_New(LIST_PREALLOC_SIZE);
             if (UNLIKELY(!list))
               return nullptr;
-            assert(LIST_PREALLOC_SIZE >= 2);
-            _PyVarObject_CAST(list)->ob_size = 2;
 
+            assert(LIST_PREALLOC_SIZE >= 2);
+            Py_SET_SIZE(list, 2);
             Py_INCREF(existing_result);
             Py_INCREF(current_result);
             PyList_SET_ITEM(list, 0, existing_result);
@@ -402,9 +403,9 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
           PyObject *list = PyList_New(LIST_PREALLOC_SIZE);
           if (UNLIKELY(!list))
             return nullptr;
-          assert(LIST_PREALLOC_SIZE >= 1);
-          _PyVarObject_CAST(list)->ob_size = 1;
 
+          assert(LIST_PREALLOC_SIZE >= 1);
+          Py_SET_SIZE(list, 1);
           PyList_SET_ITEM(list, 0, current_result);
           current_result = list;
         }
