@@ -80,22 +80,42 @@ stack_cleanup(Stack *stack) {
 }
 
 #pragma endregion
-#pragma region AttrCache
+#pragma region StringCache
 
 typedef struct {
-  char *key;
+  const char *key;
   PyObject *value;
-} AttrCacheEntry;
+} StringCacheEntry;
 
 static inline PyObject *
-get_attr_key(AttrCacheEntry **cache_ptr, const char *attr_name) {
-  AttrCacheEntry *cache = *cache_ptr;
-  PyObject *cached = shget(cache, attr_name);
-  // Cache hit - return existing cached value
+get_tag_name(StringCacheEntry **cache_ptr, const char *tag_name) {
+  StringCacheEntry *cache = *cache_ptr;
+  PyObject *cached = shget(cache, tag_name);
+
+  // Cache hit
   if (cached)
     return cached;
 
-  // Cache miss - create new prefixed string
+  // Cache miss
+  PyObject *tag_obj = PyUnicode_FromString(tag_name);
+  if (UNLIKELY(!tag_obj))
+    return nullptr;
+
+  shput(cache, tag_name, tag_obj);
+  *cache_ptr = cache;
+  return tag_obj;
+}
+
+static inline PyObject *
+get_attr_key(StringCacheEntry **cache_ptr, const char *attr_name) {
+  StringCacheEntry *cache = *cache_ptr;
+  PyObject *cached = shget(cache, attr_name);
+
+  // Cache hit
+  if (cached)
+    return cached;
+
+  // Cache miss
   PyObject *prefixed_key = PyUnicode_FromFormat("@%s", attr_name);
   if (UNLIKELY(!prefixed_key))
     return nullptr;
@@ -106,8 +126,8 @@ get_attr_key(AttrCacheEntry **cache_ptr, const char *attr_name) {
 }
 
 static void
-attr_cache_cleanup(AttrCacheEntry **cache_ptr) {
-  AttrCacheEntry *cache = *cache_ptr;
+cache_cleanup(StringCacheEntry **cache_ptr) {
+  StringCacheEntry *cache = *cache_ptr;
   if (LIKELY(cache != nullptr)) {
     for (auto i = 0; i < shlen(cache); i++)
       Py_DECREF(cache[i].value);
@@ -251,9 +271,10 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
   }
 
   Stack __attribute__((cleanup(stack_cleanup))) stack = {};
-  AttrCacheEntry *__attribute__((cleanup(attr_cache_cleanup))) attr_cache;
+  StringCacheEntry *__attribute__((cleanup(cache_cleanup))) tag_cache;
+  sh_new_arena(tag_cache);
+  StringCacheEntry *__attribute__((cleanup(cache_cleanup))) attr_cache;
   sh_new_arena(attr_cache);
-  shdefault(attr_cache, nullptr);
 
   PyScoped parent_name = nullptr;
   PyScoped current_name = nullptr;
@@ -272,14 +293,12 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
         return nullptr;
 
       current_name =
-        PyUnicode_FromString((const char *)xmlTextReaderConstLocalName(reader));
+        get_tag_name(&tag_cache, (const char *)xmlTextReaderConstLocalName(reader));
       current_dict = Py_None;
       current_list = Py_None;
       if (UNLIKELY(!current_name))
         return nullptr;
-      // TODO: prefer PyUnicode_InternFromString if defined to be
-      // immortal https://github.com/python/cpython/issues/133260
-      PyUnicode_InternInPlace(&current_name);
+      Py_INCREF(current_name);
       break;
     }
     case XML_READER_TYPE_END_ELEMENT: {
