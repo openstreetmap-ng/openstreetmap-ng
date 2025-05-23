@@ -341,6 +341,8 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
 
         // Append in "items" mode
         const char *current_name_c = PyUnicode_AsUTF8(current_name);
+        if (UNLIKELY(!current_name_c))
+          return nullptr;
         if (in_set(
               current_name_c, sizeof(force_items_set) / sizeof(char *), force_items_set
             )) {
@@ -431,10 +433,14 @@ merge_ok:
           return nullptr;
       }
 
-      const char *postprocess_key =
-        node_type == XML_READER_TYPE_ATTRIBUTE
-          ? (const char *)xmlTextReaderConstLocalName(reader)
-          : PyUnicode_AsUTF8(current_name);
+      const char *postprocess_key;
+      if (node_type == XML_READER_TYPE_ATTRIBUTE)
+        postprocess_key = (const char *)xmlTextReaderConstLocalName(reader);
+      else {
+        postprocess_key = PyUnicode_AsUTF8(current_name);
+        if (UNLIKELY(!postprocess_key))
+          return nullptr;
+      }
 
       const xmlChar *value_xml = xmlTextReaderConstValue(reader);
       PyScoped value = postprocess_value(postprocess_key, value_xml);

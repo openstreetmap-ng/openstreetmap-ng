@@ -5,6 +5,12 @@
 
 #define UNLIKELY(x) __builtin_expect((x), 0)
 #define LIKELY(x) __builtin_expect((x), 1)
+#define PyScoped PyObject *__attribute__((cleanup(Py_XDECREFP)))
+
+static inline void
+Py_XDECREFP(PyObject **ptr) {
+  Py_XDECREF(*ptr);
+}
 
 #pragma region CDATA
 
@@ -120,6 +126,8 @@ unparse_scalar(xmlDocPtr doc, xmlNodePtr parent, const char *key, PyObject *valu
   if (Py_TYPE(value) == &CDATAType) {
     Py_ssize_t size;
     const char *str = PyUnicode_AsUTF8AndSize(((CDATAObject *)value)->text, &size);
+    if (UNLIKELY(!str))
+      return false;
     assert(0 <= size && size <= INT_MAX);
 
     xmlNodePtr cdata = xmlNewCDataBlock(doc, BAD_CAST str, size);
@@ -138,11 +146,14 @@ unparse_scalar(xmlDocPtr doc, xmlNodePtr parent, const char *key, PyObject *valu
   if (result.str)
     add_result = xmlNodeAddContent(element, BAD_CAST result.str);
   else if (result.obj) {
+    PyScoped obj = result.obj;
     Py_ssize_t size;
-    const char *str = PyUnicode_AsUTF8AndSize(result.obj, &size);
+    const char *str = PyUnicode_AsUTF8AndSize(obj, &size);
+    if (UNLIKELY(!str))
+      return false;
     assert(0 <= size && size <= INT_MAX);
+
     add_result = xmlNodeAddContentLen(element, BAD_CAST str, size);
-    Py_DECREF(result.obj);
   } else
     return false;
 
@@ -162,9 +173,11 @@ unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyObject *value
     if (result.str)
       attr = xmlNewProp(element, BAD_CAST key + 1, BAD_CAST result.str);
     else if (result.obj) {
-      attr =
-        xmlNewProp(element, BAD_CAST key + 1, BAD_CAST PyUnicode_AsUTF8(result.obj));
-      Py_DECREF(result.obj);
+      PyScoped obj = result.obj;
+      const char *str = PyUnicode_AsUTF8(obj);
+      if (UNLIKELY(!str))
+        return false;
+      attr = xmlNewProp(element, BAD_CAST key + 1, BAD_CAST str);
     } else
       return false;
 
@@ -179,6 +192,8 @@ unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyObject *value
     if (Py_TYPE(value) == &CDATAType) {
       Py_ssize_t size;
       const char *str = PyUnicode_AsUTF8AndSize(((CDATAObject *)value)->text, &size);
+      if (UNLIKELY(!str))
+        return false;
       assert(0 <= size && size <= INT_MAX);
 
       xmlNodePtr cdata = xmlNewCDataBlock(doc, BAD_CAST str, size);
@@ -197,11 +212,14 @@ unparse_item(xmlDocPtr doc, xmlNodePtr element, const char *key, PyObject *value
     if (result.str)
       add_result = xmlNodeAddContent(element, BAD_CAST result.str);
     else if (result.obj) {
+      PyScoped obj = result.obj;
       Py_ssize_t size;
-      const char *str = PyUnicode_AsUTF8AndSize(result.obj, &size);
+      const char *str = PyUnicode_AsUTF8AndSize(obj, &size);
+      if (UNLIKELY(!str))
+        return false;
       assert(0 <= size && size <= INT_MAX);
+
       add_result = xmlNodeAddContentLen(element, BAD_CAST str, size);
-      Py_DECREF(result.obj);
     } else
       return false;
 
@@ -231,7 +249,8 @@ unparse_dict(xmlDocPtr doc, xmlNodePtr parent, const char *key, PyObject *value)
       return false;
     }
 
-    if (UNLIKELY(!unparse_item(doc, element, PyUnicode_AsUTF8(dict_key), dict_value)))
+    const char *dict_key_c = PyUnicode_AsUTF8(dict_key);
+    if (UNLIKELY(!dict_key_c || !unparse_item(doc, element, dict_key_c, dict_value)))
       return false;
   }
 
@@ -295,9 +314,11 @@ unparse_element(
           return false;
         }
 
-        if (UNLIKELY(!unparse_item(
-              doc, tuples_element, PyUnicode_AsUTF8(tuple_key), tuple_value
-            )))
+        const char *tuple_key_c = PyUnicode_AsUTF8(tuple_key);
+        if (UNLIKELY(
+              !tuple_key_c ||
+              !unparse_item(doc, tuples_element, tuple_key_c, tuple_value)
+            ))
           return false;
 
       } else { // ... scalars
@@ -343,6 +364,9 @@ xml_unparse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
     PyErr_SetString(PyExc_TypeError, "Root key must be a string");
     return nullptr;
   }
+  const char *key_c = PyUnicode_AsUTF8(key);
+  if (UNLIKELY(!key_c))
+    return nullptr;
 
   xmlDocPtr doc = xmlNewDoc(nullptr);
   if (UNLIKELY(!doc)) {
@@ -357,7 +381,7 @@ xml_unparse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
     return nullptr;
   }
 
-  if (UNLIKELY(!unparse_element(doc, dummy, PyUnicode_AsUTF8(key), value, true))) {
+  if (UNLIKELY(!unparse_element(doc, dummy, key_c, value, true))) {
     const xmlError *error = xmlGetLastError();
     if (error)
       PyErr_Format(

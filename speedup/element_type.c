@@ -27,6 +27,9 @@ element_type(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
   }
 
   const char *str = PyUnicode_AsUTF8(args[0]);
+  if (UNLIKELY(!str))
+    return nullptr;
+
   switch (str[0]) {
   case 'n':
     return node_str;
@@ -76,6 +79,9 @@ typed_element_id_impl(PyObject *type, int64_t id) {
     return PyLong_FromUnsignedLongLong(result | (RELATION_TYPE_NUM << 60));
 
   const char *str = PyUnicode_AsUTF8(type);
+  if (UNLIKELY(!str))
+    return nullptr;
+
   switch (str[0]) {
   case 'n':
     return PyLong_FromUnsignedLongLong(result | (NODE_TYPE_NUM << 60));
@@ -119,6 +125,8 @@ versioned_typed_element_id(const PyObject *, PyObject *const *args, Py_ssize_t n
 
   Py_ssize_t size;
   const char *str = PyUnicode_AsUTF8AndSize(args[1], &size);
+  if (UNLIKELY(!str))
+    return nullptr;
   if (UNLIKELY(!size || size > (20 * 2) + 2))
     goto invalid;
 
