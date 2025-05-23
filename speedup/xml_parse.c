@@ -1,25 +1,17 @@
-#include <Python.h>
-#include <object.h>
-#include <pytypedefs.h>
-#include <stdlib.h>
-
 #include "libxml/xmlreader.h"
 #include "libxml/xmlstring.h"
+#include <Python.h>
 
 #define UNLIKELY(x) __builtin_expect((x), 0)
 #define LIKELY(x) __builtin_expect((x), 1)
 #define PyScoped PyObject *__attribute__((cleanup(Py_XDECREFP)))
 
 constexpr Py_ssize_t LIST_PREALLOC_SIZE = 8;
-
-#pragma region Globals
+constexpr size_t STACK_SIZE = 10;
 
 static PyObject *fromisoformat_func;
 static PyObject *parse_date_func;
 static PyObject *text_key;
-
-#pragma endregion
-#pragma region Cleanup
 
 static inline void
 Py_XDECREFP(PyObject **ptr) {
@@ -29,6 +21,59 @@ Py_XDECREFP(PyObject **ptr) {
 static inline void
 xmlFreeTextReaderPtr(xmlTextReaderPtr *ptr) {
   xmlFreeTextReader(*ptr);
+}
+
+#pragma region Stack
+
+typedef struct {
+  PyObject *name;
+  PyObject *dict;
+  PyObject *list;
+} StackFrame;
+
+typedef struct {
+  size_t depth;
+  StackFrame frames[STACK_SIZE];
+} Stack;
+
+static inline bool
+stack_push(Stack *stack, PyObject *name, PyObject *dict, PyObject *list) {
+  if (UNLIKELY(stack->depth >= STACK_SIZE)) {
+    PyErr_Format(
+      PyExc_RecursionError, "XML nesting depth exceeded limit of %zu", STACK_SIZE
+    );
+    return false;
+  }
+
+  StackFrame *frame = &stack->frames[stack->depth++];
+  frame->name = name;
+  frame->dict = dict;
+  frame->list = list;
+  return true;
+}
+
+static inline bool
+stack_pop(Stack *stack, PyObject **name, PyObject **dict, PyObject **list) {
+  if (UNLIKELY(!stack->depth)) {
+    PyErr_SetString(PyExc_AssertionError, "Stack is empty");
+    return false;
+  }
+
+  StackFrame *frame = &stack->frames[--stack->depth];
+  *name = frame->name;
+  *dict = frame->dict;
+  *list = frame->list;
+  return true;
+}
+
+static inline void
+stack_cleanup(Stack *stack) {
+  while (stack->depth > 0) {
+    StackFrame *frame = &stack->frames[--stack->depth];
+    Py_DECREF(frame->name);
+    Py_DECREF(frame->dict);
+    Py_DECREF(frame->list);
+  }
 }
 
 #pragma endregion
@@ -166,12 +211,11 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
     );
   }
 
-  PyScoped stack = PyList_New(LIST_PREALLOC_SIZE);
   PyScoped attr_cache = PyDict_New();
-  if (UNLIKELY(!stack || !attr_cache))
+  if (UNLIKELY(!attr_cache))
     return nullptr;
-  _PyVarObject_CAST(stack)->ob_size = 0;
 
+  Stack __attribute__((cleanup(stack_cleanup))) stack = {};
   PyScoped parent_name = nullptr;
   PyScoped current_name = nullptr;
   PyScoped current_dict = nullptr;
@@ -183,16 +227,10 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
   while (LIKELY(parse_ret == 1)) {
     switch (node_type) {
     case XML_READER_TYPE_ELEMENT: {
-      if (LIKELY(current_dict != nullptr)) {
-        // Push to stack
-        PyScoped tuple = PyTuple_Pack(3, current_name, current_dict, current_list);
-        if (UNLIKELY(!tuple || PyList_Append(stack, tuple)))
-          return nullptr;
-
-        Py_DECREF(current_name);
-        Py_DECREF(current_dict);
-        Py_DECREF(current_list);
-      }
+      // Push to stack
+      if (LIKELY(current_dict != nullptr) &&
+          UNLIKELY(!stack_push(&stack, current_name, current_dict, current_list)))
+        return nullptr;
 
       current_name =
         PyUnicode_FromString((const char *)xmlTextReaderConstLocalName(reader));
@@ -236,19 +274,10 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
         current_list = nullptr;
       }
 
-      auto stack_size = PyList_GET_SIZE(stack);
-      if (LIKELY(stack_size)) {
+      if (LIKELY(stack.depth)) {
         // Pop from stack
-        stack_size -= 1;
-        _PyVarObject_CAST(stack)->ob_size = stack_size;
-        PyScoped tuple = PyList_GET_ITEM(stack, stack_size);
-        parent_name = PyTuple_GET_ITEM(tuple, 0);
-        current_dict = PyTuple_GET_ITEM(tuple, 1);
-        current_list = PyTuple_GET_ITEM(tuple, 2);
-        Py_INCREF(parent_name);
-        Py_INCREF(current_dict);
-        Py_INCREF(current_list);
-
+        if (UNLIKELY(!stack_pop(&stack, &parent_name, &current_dict, &current_list)))
+          return nullptr;
         if (!current_result)
           goto merge_ok;
 
@@ -416,7 +445,7 @@ merge_ok:
   }
 
 ok:
-  if (UNLIKELY(PyList_GET_SIZE(stack) || (!result && current_dict))) {
+  if (UNLIKELY(stack.depth || (!result && current_dict))) {
     PyErr_SetString(PyExc_AssertionError, "Stack is not empty after parsing");
     return nullptr;
   }

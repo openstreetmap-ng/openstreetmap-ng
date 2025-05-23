@@ -1,7 +1,4 @@
 #include <Python.h>
-#include <methodobject.h>
-#include <stdint.h>
-#include <stdlib.h>
 
 #define UNLIKELY(x) __builtin_expect((x), 0)
 #define LIKELY(x) __builtin_expect((x), 1)
@@ -12,22 +9,15 @@ constexpr uint64_t WAY_TYPE_NUM = 1;
 constexpr uint64_t RELATION_TYPE_NUM = 2;
 constexpr uint64_t SIGN_MASK = 1ULL << 59;
 
-#pragma region Globals
-
 static PyObject *node_str;
 static PyObject *way_str;
 static PyObject *relation_str;
 static PyObject *typed_id_key;
 
-#pragma endregion
-#pragma region Cleanup
-
 static inline void
 Py_XDECREFP(PyObject **ptr) {
   Py_XDECREF(*ptr);
 }
-
-#pragma endregion
 
 static PyObject *
 element_type(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
