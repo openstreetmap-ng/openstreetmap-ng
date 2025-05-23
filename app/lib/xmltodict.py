@@ -1,12 +1,12 @@
 import logging
-from typing import Any, Literal, Protocol, overload
+from typing import Any, Literal, LiteralString, Protocol, overload
 
 from sizestr import sizestr
 
 from app.config import XML_PARSE_MAX_SIZE
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
-from speedup import xml_parse, xml_unparse
+from speedup import xattr_json, xattr_xml, xml_parse, xml_unparse
 
 
 class XMLToDict:
@@ -43,15 +43,9 @@ class XMLToDict:
 
 
 class _XAttrCallable(Protocol):
-    def __call__(self, name: str, xml: str | None = None) -> str: ...
-
-
-def _xattr_json(name: str, xml=None) -> str:
-    return name
-
-
-def _xattr_xml(name: str, xml: str | None = None) -> str:
-    return '@' + (xml or name)
+    def __call__(
+        self, name: LiteralString, /, xml: LiteralString | None = None
+    ) -> str: ...
 
 
 def get_xattr(*, is_json: bool | None = None) -> _XAttrCallable:
@@ -60,7 +54,7 @@ def get_xattr(*, is_json: bool | None = None) -> _XAttrCallable:
     If is_json is None, then the current format is detected.
     """
     return (
-        _xattr_json
+        xattr_json
         if (is_json if is_json is not None else format_is_json())
-        else _xattr_xml
+        else xattr_xml
     )
