@@ -24,7 +24,7 @@ from app.lib.sentry import SENTRY_REPLICATION_MONITOR
 from app.lib.xmltodict import XMLToDict
 from app.models.element import ElementType, TypedElementId
 from app.utils import HTTP
-from speedup import typed_element_id
+from speedup.element_type import typed_element_id
 
 _Frequency = Literal['minute', 'hour', 'day']
 

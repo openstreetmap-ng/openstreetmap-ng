@@ -6,7 +6,7 @@ from app.models.element import ElementId
 from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff import OptimisticDiff
-from speedup import typed_element_id
+from speedup.element_type import typed_element_id
 from tests.utils.assert_model import assert_model
 
 

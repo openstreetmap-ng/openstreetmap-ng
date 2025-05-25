@@ -16,11 +16,11 @@ from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MIN,
     TYPED_ELEMENT_ID_RELATION_MIN,
     TYPED_ELEMENT_ID_WAY_MIN,
-    typed_element_id,
 )
 from app.queries.element_query import ElementQuery
 from app.services.admin_task_service import register_admin_task
 from app.utils import calc_num_workers
+from speedup.element_type import typed_element_id
 
 
 class _MigrationInfo(NamedTuple):

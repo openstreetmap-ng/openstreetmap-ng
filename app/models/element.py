@@ -1,6 +1,6 @@
 from typing import Literal, NewType
 
-from speedup import typed_element_id
+from speedup.element_type import typed_element_id
 
 ElementType = Literal['node', 'way', 'relation']
 ElementId = NewType('ElementId', int)

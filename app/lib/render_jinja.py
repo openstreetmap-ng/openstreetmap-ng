@@ -12,7 +12,7 @@ from app.lib.static_asset_hash import HASH_AWARE_PATHS
 from app.lib.translation import nt, primary_translation_locale, t
 from app.models.db.oauth2_application import oauth2_app_avatar_url, oauth2_app_is_system
 from app.models.db.user import user_avatar_url, user_is_admin, user_is_moderator
-from speedup import split_typed_element_id
+from speedup.element_type import split_typed_element_id
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil

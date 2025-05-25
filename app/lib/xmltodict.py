@@ -6,7 +6,9 @@ from sizestr import sizestr
 from app.config import XML_PARSE_MAX_SIZE
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
-from speedup import xattr_json, xattr_xml, xml_parse, xml_unparse
+from speedup.xattr import xattr_json, xattr_xml
+from speedup.xml_parse import xml_parse
+from speedup.xml_unparse import xml_unparse
 
 
 class XMLToDict:

@@ -10,7 +10,7 @@ from app.models.proto.shared_pb2 import (
     PartialElementParams,
 )
 from app.queries.element_query import ElementQuery
-from speedup import split_typed_element_id
+from speedup.element_type import split_typed_element_id
 
 
 class FormatElementList:

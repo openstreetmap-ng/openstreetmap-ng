@@ -20,11 +20,12 @@ from app.lib.feature_prefix import features_prefixes
 from app.lib.search import SearchResult
 from app.lib.translation import primary_translation_locale
 from app.models.db.element import Element
-from app.models.element import ElementId, ElementType, TypedElementId, typed_element_id
+from app.models.element import ElementId, ElementType, TypedElementId
 from app.models.types import SequenceId
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP
+from speedup.element_type import typed_element_id
 
 _CTX = CacheContext('Nominatim')
 
