@@ -49,6 +49,7 @@
     "**/*.html": true,
     "**/*.so": true,
     "**/build/": true,
+    "/nix/store/": true,
     "app/static/js/": true,
     "config/locale/download/": true,
     "dist/": true,
