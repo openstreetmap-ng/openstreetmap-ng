@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from io import TextIOWrapper
 from pathlib import Path
 from shlex import quote
+from time import monotonic
 from typing import Literal, get_args
 
 from psycopg.abc import Query
@@ -71,7 +72,7 @@ async def _gather_table_indexes(table: str) -> dict[str, SQL]:
         return {name: SQL(sql) for name, sql in await cursor.fetchall()}
 
 
-async def _gather_table_constraints(table: str) -> dict[tuple[str, str], SQL]:
+async def _gather_table_constraints(table: str) -> list[tuple[str, SQL]]:
     """Gather all foreign key constraints for a table."""
     async with db() as conn:
         cursor = await conn.execute(
@@ -86,14 +87,14 @@ async def _gather_table_constraints(table: str) -> dict[tuple[str, str], SQL]:
             """,
             (table,),
         )
-        return {(table, name): SQL(sql) for name, sql in await cursor.fetchall()}
+        return [(name, SQL(sql)) for name, sql in await cursor.fetchall()]
 
 
 async def _load_table(
     mode: _Mode,
     table: str,
     indexes: dict[str, SQL],
-    constraints: dict[tuple[str, str], SQL],
+    constraints: dict[str, list[tuple[str, SQL]]],
     tg: TaskGroup,
 ) -> None:
     if mode == 'preload' or table in {'note', 'note_comment'}:
@@ -114,22 +115,26 @@ async def _load_table(
 
     this_indexes = await _gather_table_indexes(table)
     assert this_indexes, f'No indexes found for {table} table'
-    indexes.update(this_indexes)
     this_constraints = await _gather_table_constraints(table)
-    constraints.update(this_constraints)
 
     # Drop constraints and indexes before loading
-    print(f'Dropping {len(this_indexes)} indexes: {this_indexes!r}')
-    print(f'Dropping {len(this_constraints)} constraints: {this_constraints!r}')
     async with db(True, autocommit=True) as conn:
+        print(f'Dropping {len(this_indexes)} indexes: {this_indexes!r}')
+        indexes.update(this_indexes)
         await conn.execute(
             SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, this_indexes)))
         )
 
-        for _, name in this_constraints:
+        if this_constraints:
+            print(f'Dropping {len(this_constraints)} constraints: {this_constraints!r}')
+            constraints[table] = this_constraints
             await conn.execute(
-                SQL('ALTER TABLE {} DROP CONSTRAINT {}').format(
-                    Identifier(table), Identifier(name)
+                SQL('ALTER TABLE {} {}').format(
+                    Identifier(table),
+                    SQL(',').join(
+                        SQL('DROP CONSTRAINT {}').format(Identifier(name))
+                        for name, _ in this_constraints
+                    ),
                 )
             )
 
@@ -188,28 +193,37 @@ async def _load_tables(mode: _Mode) -> None:
         )
 
     indexes: dict[str, SQL] = {}
-    constraints: dict[tuple[str, str], SQL] = {}
+    constraints: dict[str, list[tuple[str, SQL]]] = {}
 
     async with TaskGroup() as tg:
         for table in tables:
             await _load_table(mode, table, indexes, constraints, tg)
 
-    print(f'Recreating {len(indexes)} indexes and {len(constraints)} constraints')
+    print(
+        f'Recreating {len(indexes)} indexes '
+        f'and {sum(len(c) for c in constraints.values())} constraints'
+    )
     async with TaskGroup() as tg:
         semaphore = Semaphore(_PARALLELISM)
 
         async def execute(sql: Query) -> None:
             async with semaphore, db(True, autocommit=True) as conn:
+                ts = monotonic()
                 await conn.execute(sql)
+                print(f'Executed {sql!r} in {monotonic() - ts:.1f}s')
 
         for sql in indexes.values():
             tg.create_task(execute(sql))
 
-        for (table, name), sql in constraints.items():
+        for table, this_constraints in constraints.items():
             tg.create_task(
                 execute(
-                    SQL('ALTER TABLE {} ADD CONSTRAINT {} {}').format(
-                        Identifier(table), Identifier(name), sql
+                    SQL('ALTER TABLE {} {}').format(
+                        Identifier(table),
+                        SQL(',').join(
+                            SQL('ADD CONSTRAINT {} {}').format(Identifier(name), sql)
+                            for name, sql in this_constraints
+                        ),
                     )
                 )
             )
