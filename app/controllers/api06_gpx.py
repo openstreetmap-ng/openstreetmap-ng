@@ -155,7 +155,7 @@ async def trackpoints(
         raise_for.trace_points_query_area_too_big()
 
     async def public_task():
-        return await TraceQuery.find_many_by_geometry(
+        return await TraceQuery.find_many_by_geom(
             geometry,
             identifiable_trackable=True,
             limit=TRACE_POINT_QUERY_DEFAULT_LIMIT,
@@ -163,7 +163,7 @@ async def trackpoints(
         )
 
     async def private_task():
-        return await TraceQuery.find_many_by_geometry(
+        return await TraceQuery.find_many_by_geom(
             geometry,
             identifiable_trackable=False,
             limit=TRACE_POINT_QUERY_DEFAULT_LIMIT,

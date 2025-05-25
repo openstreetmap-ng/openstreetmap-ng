@@ -147,7 +147,7 @@ class TraceQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def find_many_by_geometry(
+    async def find_many_by_geom(
         geometry: Polygon | MultiPolygon,
         *,
         identifiable_trackable: cython.bint,
