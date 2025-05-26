@@ -24,8 +24,7 @@ class CacheControlMiddleware:
             return await self.app(scope, receive, send)
 
         request = get_request()
-        request_method = request.method
-        if request_method not in {'GET', 'HEAD'}:
+        if request.method not in {'GET', 'HEAD'}:
             return await self.app(scope, receive, send)
 
         async def wrapper(message: Message) -> None:
