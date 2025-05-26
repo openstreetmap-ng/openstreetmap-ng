@@ -4,10 +4,10 @@ import aioboto3
 from types_aiobotocore_s3.type_defs import PutObjectRequestTypeDef
 
 from app.config import S3_CACHE_EXPIRE
-from app.lib.buffered_random import buffered_rand_storage_key
 from app.lib.storage.base import StorageBase
 from app.models.types import StorageKey
 from app.services.cache_service import CacheContext, CacheService
+from speedup.buffered_rand import buffered_rand_storage_key
 
 _S3 = aioboto3.Session()
 

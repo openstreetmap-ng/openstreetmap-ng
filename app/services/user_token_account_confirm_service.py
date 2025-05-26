@@ -3,7 +3,6 @@ from zid import zid
 from app.config import APP_DOMAIN
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t
@@ -13,6 +12,7 @@ from app.models.proto.server_pb2 import UserTokenStruct
 from app.models.types import UserId, UserTokenId
 from app.queries.user_token_query import UserTokenQuery
 from app.services.email_service import EmailService
+from speedup.buffered_rand import buffered_randbytes
 
 
 class UserTokenAccountConfirmService:

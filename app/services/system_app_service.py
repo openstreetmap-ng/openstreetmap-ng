@@ -8,7 +8,6 @@ from zid import zid
 from app.config import NAME
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.models.db.oauth2_application import (
@@ -22,6 +21,7 @@ from app.models.db.oauth2_token import OAuth2TokenInit
 from app.models.scope import PUBLIC_SCOPES, Scope
 from app.models.types import ApplicationId, ClientId, UserId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
+from speedup.buffered_rand import buffered_rand_urlsafe
 
 SYSTEM_APP_CLIENT_ID_MAP: dict[ClientId, ApplicationId] = {}
 """

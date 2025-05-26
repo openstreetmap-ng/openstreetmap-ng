@@ -14,7 +14,6 @@ from app.config import (
     ENV,
 )
 from app.lib.auth_context import auth_user
-from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_compare, hmac_bytes
 from app.lib.referrer import secure_referrer
 from app.lib.render_response import render_response
@@ -29,6 +28,7 @@ from app.queries.connected_account_query import ConnectedAccountQuery
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.system_app_service import SystemAppService
 from app.utils import extend_query_params
+from speedup.buffered_rand import buffered_randbytes
 
 
 class AuthProviderService:

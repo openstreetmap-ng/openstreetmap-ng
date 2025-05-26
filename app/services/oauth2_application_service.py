@@ -14,7 +14,6 @@ from app.config import (
 )
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.lib.standard_feedback import StandardFeedback
@@ -28,6 +27,7 @@ from app.models.types import ApplicationId, ClientId, StorageKey, Uri
 from app.services.image_service import ImageService
 from app.utils import splitlines_trim
 from app.validators.url import UriValidator
+from speedup.buffered_rand import buffered_rand_urlsafe
 
 
 class OAuth2ApplicationService:

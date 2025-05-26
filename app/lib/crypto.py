@@ -10,8 +10,8 @@ from blake3 import blake3
 from Cryptodome.Cipher import AES
 
 from app.config import SECRET_32
-from app.lib.buffered_random import buffered_randbytes
 from app.models.types import StorageKey
+from speedup.buffered_rand import buffered_randbytes
 
 _T = TypeVar('_T')
 

@@ -1,9 +1,9 @@
 from typing import override
 
 from app.db import db
-from app.lib.buffered_random import buffered_rand_storage_key
 from app.lib.storage.base import StorageBase
 from app.models.types import StorageKey
+from speedup.buffered_rand import buffered_rand_storage_key
 
 
 class DBStorage(StorageBase):

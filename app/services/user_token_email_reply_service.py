@@ -5,7 +5,6 @@ from zid import zid
 from app.config import EMAIL_REPLY_USAGE_LIMIT, SMTP_MESSAGES_FROM_HOST
 from app.db import db
 from app.lib.auth_context import auth_context, auth_user
-from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.lib.user_token_struct_utils import UserTokenStructUtils
@@ -17,6 +16,7 @@ from app.models.types import Email, UserId, UserTokenId
 from app.queries.user_query import UserQuery
 from app.queries.user_token_email_reply_query import UserTokenEmailReplyQuery
 from app.services.message_service import MessageService
+from speedup.buffered_rand import buffered_randbytes
 
 
 class UserTokenEmailReplyService:

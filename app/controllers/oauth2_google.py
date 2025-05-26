@@ -5,12 +5,12 @@ from pydantic import SecretStr
 from starlette import status
 
 from app.config import APP_URL, GOOGLE_OAUTH_PUBLIC, GOOGLE_OAUTH_SECRET
-from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.openid import parse_openid_token_no_verify
 from app.models.db.connected_account import AuthProviderAction
 from app.queries.openid_query import OpenIDQuery
 from app.services.auth_provider_service import AuthProviderService
 from app.utils import HTTP
+from speedup.buffered_rand import buffered_rand_urlsafe
 
 router = APIRouter(prefix='/oauth2/google')
 

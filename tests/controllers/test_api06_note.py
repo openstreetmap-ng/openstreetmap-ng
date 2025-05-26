@@ -8,8 +8,8 @@ from pydantic import PositiveInt
 from starlette import status
 
 from app.config import GEO_COORDINATE_PRECISION
-from app.lib.buffered_random import buffered_randbytes
 from app.lib.xmltodict import XMLToDict
+from speedup.buffered_rand import buffered_randbytes
 from tests.utils.assert_model import assert_model
 
 

@@ -14,7 +14,6 @@ from app.config import (
 )
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes, hash_compare, hash_s256_code_challenge
 from app.lib.exceptions_context import raise_for
 from app.models.db.oauth2_application import (
@@ -34,6 +33,7 @@ from app.models.types import ApplicationId, ClientId, OAuth2TokenId, Uri, UserId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
+from speedup.buffered_rand import buffered_rand_urlsafe
 
 # TODO: limit number of access tokens per user+app
 

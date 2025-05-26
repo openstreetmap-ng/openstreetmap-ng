@@ -10,7 +10,6 @@ from pydantic import PositiveInt
 from starlette import status
 
 from app.config import APP_URL
-from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.date_utils import utcnow
 from app.lib.locale import DEFAULT_LOCALE
 from app.lib.xmltodict import XMLToDict
@@ -20,6 +19,7 @@ from app.models.db.oauth2_token import (
     OAuth2ResponseMode,
     OAuth2TokenEndpointAuthMethod,
 )
+from speedup.buffered_rand import buffered_rand_urlsafe
 from tests.utils.assert_model import assert_model
 
 

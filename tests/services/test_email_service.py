@@ -3,12 +3,12 @@ from httpx import AsyncClient
 from starlette import status
 
 from app.lib.auth_context import auth_context
-from app.lib.buffered_random import buffered_rand_urlsafe
 from app.models.types import DisplayName, LocaleCode
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.diary_comment_service import DiaryCommentService
 from app.services.diary_service import DiaryService
+from speedup.buffered_rand import buffered_rand_urlsafe
 from tests.utils.mailpit_helper import MailpitHelper
 
 
