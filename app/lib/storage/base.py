@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import LiteralString
 
 from app.models.types import StorageKey
 
@@ -12,7 +13,7 @@ class StorageBase(ABC):
         ...
 
     async def save(
-        self, data: bytes, suffix: str, metadata: dict[str, str] | None = None
+        self, data: bytes, suffix: LiteralString, metadata: dict[str, str] | None = None
     ) -> StorageKey:
         """Save a file to storage and return its key."""
         raise NotImplementedError

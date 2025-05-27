@@ -1,4 +1,4 @@
-from typing import override
+from typing import LiteralString, override
 
 import aioboto3
 from types_aiobotocore_s3.type_defs import PutObjectRequestTypeDef
@@ -39,7 +39,7 @@ class S3Storage(StorageBase):
 
     @override
     async def save(
-        self, data: bytes, suffix: str, metadata: dict[str, str] | None = None
+        self, data: bytes, suffix: LiteralString, metadata: dict[str, str] | None = None
     ) -> StorageKey:
         key = buffered_rand_storage_key(suffix)
 

@@ -1,4 +1,4 @@
-from typing import override
+from typing import LiteralString, override
 
 from app.db import db
 from app.lib.storage.base import StorageBase
@@ -34,7 +34,7 @@ class DBStorage(StorageBase):
 
     @override
     async def save(
-        self, data: bytes, suffix: str, metadata: dict[str, str] | None = None
+        self, data: bytes, suffix: LiteralString, metadata: dict[str, str] | None = None
     ) -> StorageKey:
         key = buffered_rand_storage_key(suffix)
 

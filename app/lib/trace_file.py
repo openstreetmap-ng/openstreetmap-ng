@@ -6,7 +6,7 @@ import zipfile
 from abc import ABC, abstractmethod
 from asyncio import get_running_loop
 from io import BytesIO
-from typing import ClassVar, NamedTuple, override
+from typing import ClassVar, LiteralString, NamedTuple, override
 
 import cython
 import magic
@@ -26,7 +26,7 @@ from app.models.types import StorageKey
 
 class _CompressResult(NamedTuple):
     data: bytes
-    suffix: str
+    suffix: LiteralString
     metadata: dict[str, str]
 
 
