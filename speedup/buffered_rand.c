@@ -1,10 +1,6 @@
 #include <Python.h>
-
-#ifdef __linux__
-#include <sys/random.h>
-#else
-#include <fcntl.h>
-#endif
+#include <openssl/err.h>
+#include <openssl/rand.h>
 
 #define UNLIKELY(x) __builtin_expect((x), 0)
 #define LIKELY(x) __builtin_expect((x), 1)
@@ -12,15 +8,11 @@
 constexpr size_t BUFFER_SIZE = 256;
 
 static unsigned char buffer[BUFFER_SIZE];
-static size_t buffer_pos = 0;
-static size_t buffer_valid = 0;
-#ifndef __linux__
-static int urandom_fd;
-#endif
+static size_t buffer_pos = BUFFER_SIZE;
 
 static bool
 ensure_buffer(size_t needed) {
-  if (LIKELY(buffer_valid - buffer_pos >= needed))
+  if (LIKELY(BUFFER_SIZE - buffer_pos >= needed))
     return true;
   if (UNLIKELY(needed > BUFFER_SIZE)) {
     PyErr_Format(
@@ -30,24 +22,14 @@ ensure_buffer(size_t needed) {
     return false;
   }
 
-  size_t total_read = 0;
-  ssize_t bytes_read;
-
-  while (total_read < needed) {
-#ifdef __linux__
-    bytes_read = getrandom(buffer + total_read, BUFFER_SIZE - total_read, 0);
-#else
-    bytes_read = read(urandom_fd, buffer + total_read, BUFFER_SIZE - total_read);
-#endif
-    if (UNLIKELY(bytes_read < 0)) {
-      PyErr_SetFromErrno(PyExc_OSError);
-      return false;
-    }
-    total_read += bytes_read;
+  static_assert(BUFFER_SIZE <= INT_MAX);
+  if (UNLIKELY(RAND_bytes(buffer, BUFFER_SIZE) != 1)) {
+    PyErr_Format(PyExc_OSError, "OpenSSL RNG error: %lu", ERR_get_error());
+    ERR_clear_error();
+    return false;
   }
 
   buffer_pos = 0;
-  buffer_valid = total_read;
   return true;
 }
 
@@ -60,7 +42,7 @@ encode_base64url(size_t src_len, const unsigned char src[src_len], char *dst) {
 
   // Process 3-byte groups
   for (size_t i = 0; i + 2 < src_len; i += 3) {
-    uint32_t val = (src[i] << 16) | (src[i + 1] << 8) | src[i + 2];
+    uint_fast32_t val = (src[i] << 16) | (src[i + 1] << 8) | src[i + 2];
     dst[pos++] = alphabet[(val >> 18) & 0x3F];
     dst[pos++] = alphabet[(val >> 12) & 0x3F];
     dst[pos++] = alphabet[(val >> 6) & 0x3F];
@@ -68,13 +50,13 @@ encode_base64url(size_t src_len, const unsigned char src[src_len], char *dst) {
   }
 
   // Handle remaining 1 or 2 bytes
-  size_t remaining = src_len % 3;
+  uint_fast8_t remaining = src_len % 3;
   if (remaining == 1) {
-    uint32_t val = src[src_len - 1] << 16;
+    uint_fast32_t val = src[src_len - 1] << 16;
     dst[pos++] = alphabet[(val >> 18) & 0x3F];
     dst[pos++] = alphabet[(val >> 12) & 0x3F];
   } else if (remaining == 2) {
-    uint32_t val = (src[src_len - 2] << 16) | (src[src_len - 1] << 8);
+    uint_fast32_t val = (src[src_len - 2] << 16) | (src[src_len - 1] << 8);
     dst[pos++] = alphabet[(val >> 18) & 0x3F];
     dst[pos++] = alphabet[(val >> 12) & 0x3F];
     dst[pos++] = alphabet[(val >> 6) & 0x3F];
@@ -111,7 +93,7 @@ buffered_rand_urlsafe(const PyObject *, PyObject *const *args, Py_ssize_t nargs)
     return nullptr;
 
   static char encoded[(BUFFER_SIZE * 4 + 2) / 3];
-  size_t encoded_len = encode_base64url(n, buffer + buffer_pos, encoded);
+  auto encoded_len = encode_base64url(n, buffer + buffer_pos, encoded);
   buffer_pos += n;
   return PyUnicode_FromStringAndSize(encoded, encoded_len);
 }
@@ -136,9 +118,7 @@ buffered_rand_storage_key(const PyObject *, PyObject *const *args, Py_ssize_t na
     if (UNLIKELY(!suffix_c))
       return nullptr;
     if (UNLIKELY(suffix_len > SUFFIX_MAX_SIZE)) {
-      PyErr_Format(
-        PyExc_ValueError, "Suffix must be at most %zd characters", SUFFIX_MAX_SIZE
-      );
+      PyErr_SetString(PyExc_ValueError, "Suffix is too long");
       return nullptr;
     }
   } else {
@@ -147,7 +127,7 @@ buffered_rand_storage_key(const PyObject *, PyObject *const *args, Py_ssize_t na
   }
 
   static char encoded[(RAND_SIZE * 4 + 2) / 3 + SUFFIX_MAX_SIZE];
-  size_t encoded_len = encode_base64url(RAND_SIZE, buffer + buffer_pos, encoded);
+  auto encoded_len = encode_base64url(RAND_SIZE, buffer + buffer_pos, encoded);
   buffer_pos += RAND_SIZE;
 
   // Add suffix if provided

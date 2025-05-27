@@ -22,6 +22,7 @@ target_include_directories(stb SYSTEM INTERFACE ${stb_SOURCE_DIR})
 
 find_package(Python COMPONENTS Development.Module REQUIRED)
 find_package(LibXml2 REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 file(GLOB C_FILES "*.c")
 foreach(C_FILE ${C_FILES})
@@ -39,3 +40,4 @@ endforeach()
 
 target_link_libraries(xml_parse PRIVATE LibXml2::LibXml2)
 target_link_libraries(xml_unparse PRIVATE LibXml2::LibXml2)
+target_link_libraries(buffered_rand PRIVATE OpenSSL::Crypto stb)

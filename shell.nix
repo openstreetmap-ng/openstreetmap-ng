@@ -47,6 +47,7 @@ let
     file.out
     libyaml.out
     libxml2.out
+    openssl.out
     zlib.out
     stdenv.cc.cc.lib
   ];
@@ -109,6 +110,7 @@ let
     protobuf
     cmake
     libxml2.dev
+    openssl.dev
     # Frontend:
     bun
     biome
