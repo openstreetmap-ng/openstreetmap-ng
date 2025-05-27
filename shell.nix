@@ -654,6 +654,7 @@ let
     export NIX_ENFORCE_NO_NATIVE=0
     export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
     export SSL_CERT_FILE=$NIX_SSL_CERT_FILE
+    export PATH="$PATH:${gitMinimal}/bin"
     export PYTHONNOUSERSITE=1
     export PYTHONPATH="${projectDir}"
     export COVERAGE_CORE=sysmon
@@ -698,7 +699,7 @@ let
     patch-venv-bin &
   '' + ''
 
-    if [ -d .git ] && command -v git &>/dev/null; then
+    if [ -d .git ]; then
       echo "Installing pre-commit hooks"
       pre-commit install -c ${preCommitConf} --overwrite
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
