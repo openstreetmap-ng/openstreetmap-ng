@@ -175,13 +175,5 @@ static struct PyModuleDef module = {
 
 PyMODINIT_FUNC
 PyInit_buffered_rand(void) {
-#ifndef __linux__
-  urandom_fd = open("/dev/urandom", O_RDONLY);
-  if (UNLIKELY(urandom_fd < 0)) {
-    PyErr_SetFromErrno(PyExc_OSError);
-    return nullptr;
-  }
-#endif
-
   return PyModule_Create(&module);
 }
