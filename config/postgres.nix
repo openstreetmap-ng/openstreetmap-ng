@@ -6,6 +6,7 @@
 , postgresMaxWalSizeGb
 , postgresFullPageWrites
 , postgresVerbose
+, fastIngest ? false
 , pkgs
 , projectDir
 }:
@@ -97,7 +98,7 @@ with pkgs; writeText "postgres.conf" (''
 
   # adjust configuration for SSDs
   # reason: improved performance on expected hardware
-  random_page_cost = 1
+  random_page_cost = 1.1
 '' + lib.optionalString (!stdenv.isDarwin) ''
   effective_io_concurrency = 200
   maintenance_io_concurrency = 200
@@ -129,4 +130,14 @@ with pkgs; writeText "postgres.conf" (''
   # automatically explain slow queries
   # reason: useful for troubleshooting
   auto_explain.log_min_duration = 100ms
+
+'' + lib.optionalString fastIngest ''
+  autovacuum = off
+  checkpoint_completion_target = 0
+  fsync = off
+  full_page_writes = off
+  synchronous_commit = off
+  wal_buffers = 262143
+  wal_writer_delay = 10s
+  wal_writer_flush_after = 131071
 '')

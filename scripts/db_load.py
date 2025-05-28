@@ -1,8 +1,8 @@
 import asyncio
+import logging
 from argparse import ArgumentParser
 from asyncio import Semaphore, TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
-from contextlib import asynccontextmanager
 from io import TextIOWrapper
 from pathlib import Path
 from shlex import quote
@@ -33,25 +33,6 @@ def _get_csv_header(path: Path) -> str:
         stream_reader = ZstdDecompressor().stream_reader(f)
         reader = TextIOWrapper(stream_reader)
         return reader.readline().strip()
-
-
-@asynccontextmanager
-async def _reduce_db_activity():
-    async with db(True, autocommit=True) as conn:
-        print('Pausing autovacuum and increasing checkpoint priority')
-        await conn.execute('ALTER SYSTEM SET autovacuum = off')
-        await conn.execute('ALTER SYSTEM SET checkpoint_completion_target = 0')
-        await conn.execute('ALTER SYSTEM SET synchronous_commit = off')
-        await conn.execute('SELECT pg_reload_conf()')
-    try:
-        yield
-    finally:
-        async with db(True, autocommit=True) as conn:
-            print('Restoring autovacuum and checkpoint settings')
-            await conn.execute('ALTER SYSTEM RESET autovacuum')
-            await conn.execute('ALTER SYSTEM RESET checkpoint_completion_target')
-            await conn.execute('ALTER SYSTEM RESET synchronous_commit')
-            await conn.execute('SELECT pg_reload_conf()')
 
 
 async def _gather_table_indexes(table: str) -> dict[str, SQL]:
@@ -104,7 +85,7 @@ async def _load_table(
 
         # Replication supports optional data files
         if mode == 'replication' and not path.is_file():
-            print(f'Skipped loading {table} table (source file not found)')
+            logging.info('Skipped loading %s table (source file not found)', table)
             return
 
         copy_paths = [path]
@@ -121,14 +102,16 @@ async def _load_table(
 
     # Drop constraints and indexes before loading
     async with db(True, autocommit=True) as conn:
-        print(f'Dropping {len(this_indexes)} indexes: {this_indexes!r}')
+        logging.info('Dropping %d indexes: %r', len(this_indexes), this_indexes)
         indexes.update(this_indexes)
         await conn.execute(
             SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, this_indexes)))
         )
 
         if this_constraints:
-            print(f'Dropping {len(this_constraints)} constraints: {this_constraints!r}')
+            logging.info(
+                'Dropping %d constraints: %r', len(this_constraints), this_constraints
+            )
             constraints[table] = this_constraints
             await conn.execute(
                 SQL('ALTER TABLE {} {}').format(
@@ -148,7 +131,7 @@ async def _load_table(
     proc: Process | None = None
 
     try:
-        print(f'Populating {table} table ({len(columns)} columns)...')
+        logging.info('Populating %s table (%d columns)...', table, len(columns))
         proc = await create_subprocess_shell(
             f'{program} | timescaledb-parallel-copy'
             ' --batch-size=100000'
@@ -170,12 +153,12 @@ async def _load_table(
     async def note_comment_postprocess():
         async with db(True, autocommit=True) as conn:
             key = 'note_comment_note_id_idx'
-            print(f'Recreating index {key!r}')
+            logging.info('Recreating index %r', key)
             await conn.execute(indexes.pop(key))
-            print('Updating table statistics')
+            logging.info('Updating table statistics')
             await conn.execute('ANALYZE note, note_comment')
 
-        print('Deleting notes without comments')
+        logging.info('Deleting notes without comments')
         await MigrationService.delete_notes_without_comments()
 
     # Optional postprocessing
@@ -186,7 +169,7 @@ async def _load_table(
 async def _load_tables(mode: _Mode) -> None:
     tables = ['user', 'changeset', 'element', 'note', 'note_comment']
 
-    print('Truncating tables')
+    logging.info('Truncating tables')
     async with db(True, autocommit=True) as conn:
         await conn.execute(
             SQL('TRUNCATE {} RESTART IDENTITY CASCADE').format(
@@ -201,9 +184,10 @@ async def _load_tables(mode: _Mode) -> None:
         for table in tables:
             await _load_table(mode, table, indexes, constraints, tg)
 
-    print(
-        f'Recreating {len(indexes)} indexes '
-        f'and {sum(len(c) for c in constraints.values())} constraints'
+    logging.info(
+        'Recreating %d indexes and %d constraints',
+        len(indexes),
+        sum(len(c) for c in constraints.values()),
     )
     async with TaskGroup() as tg:
         semaphore = Semaphore(_PARALLELISM)
@@ -212,7 +196,7 @@ async def _load_tables(mode: _Mode) -> None:
             async with semaphore, db(True, autocommit=True) as conn:
                 ts = monotonic()
                 await conn.execute(sql)
-                print(f'Executed {sql!r} in {monotonic() - ts:.1f}s')
+                logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
 
         for sql in indexes.values():
             tg.create_task(execute(sql))
@@ -237,24 +221,21 @@ async def main(mode: _Mode) -> None:
     if exists and input(
         'Database is not empty. Continue? (y/N): '
     ).strip().lower() not in {'y', 'yes'}:
-        print('Aborted')
+        logging.error('Aborted')
         return
 
-    async with _reduce_db_activity():
-        await _load_tables(mode)
+    await _load_tables(mode)
 
-        print('Vacuuming and updating statistics')
-        async with db(True, autocommit=True) as conn:
-            await conn.execute('VACUUM ANALYZE')
+    logging.info('Vacuuming and updating statistics')
+    async with db(True, autocommit=True) as conn:
+        await conn.execute('VACUUM ANALYZE')
 
-        print('Fixing sequence counters consistency')
-        await MigrationService.fix_sequence_counters()
+    logging.info('Fixing sequence counters consistency')
+    await MigrationService.fix_sequence_counters()
 
-        print('Performing final checkpoint')
-        async with db(True, autocommit=True) as conn:
-            await conn.execute('CHECKPOINT')
-
-    print('Done! Done! Done!')
+    logging.info('Running checkpoint')
+    async with db(True, autocommit=True) as conn:
+        await conn.execute('CHECKPOINT')
 
 
 def main_cli() -> None:

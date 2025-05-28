@@ -22,7 +22,7 @@ let
   projectDir = toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs makeScript; };
   preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
-  postgresConf = import ./config/postgres.nix {
+  postgresArgs = {
     inherit
       hostMemoryMb
       hostDiskCoW
@@ -34,15 +34,24 @@ let
       postgresVerbose
       pkgs projectDir;
   };
-  supervisordConf = import ./config/supervisord.nix {
+  postgresConf = import ./config/postgres.nix postgresArgs;
+  postgresFastIngestConf = import ./config/postgres.nix (postgresArgs // {
+    fastIngest = true;
+  });
+  supervisordArgs = {
     inherit
       isDevelopment
       enablePostgres
       enableMailpit
       mailpitHttpPort
       mailpitSmtpPort
-      pkgs postgresConf;
+      pkgs;
+    postgresConf = postgresConf;
   };
+  supervisordConf = import ./config/supervisord.nix supervisordArgs;
+  supervisordFastIngestConf = import ./config/supervisord.nix (supervisordArgs // {
+    postgresConf = postgresFastIngestConf;
+  });
 
   pythonLibs = with pkgs; [
     cairo.out
@@ -397,7 +406,7 @@ let
       fi
 
       mkdir -p data/mailpit data/postgres_unix data/supervisor
-      supervisord -c ${supervisordConf}
+      supervisord -c "''${1:-${supervisordConf}}"
       echo "Supervisor started"
 
       echo "Waiting for Postgres to start..."
@@ -521,16 +530,25 @@ let
       done
       cp --archive --link "data/preload/$dataset/"*.csv.zst data/preload/
     '')
-    (makeScript "preload-load" "python scripts/db_load.py -m preload")
+    (makeScript "_db-load" ''
+      set -x
+      : Restarting database in fast-ingest mode :
+      dev-stop
+      dev-start "${supervisordFastIngestConf}"
+      python scripts/db_load.py -m "$1"
+      : Restarting database in normal mode :
+      dev-stop
+      dev-start
+    '')
+    (makeScript "preload-load" "_db-load preload")
     (makeScript "preload-pipeline" ''
       set -x
       preload-download
-      dev-start
       preload-load
     '')
     (makeScript "replication-download" "python scripts/replication_download.py")
     (makeScript "replication-convert" "python scripts/replication_convert.py \"$@\"")
-    (makeScript "replication-load" "python scripts/db_load.py -m replication")
+    (makeScript "replication-load" "_db-load replication")
     (makeScript "replication-generate" "python scripts/replication_generate.py \"$@\"")
 
     # -- Testing
