@@ -4,6 +4,7 @@
 , postgresCpuThreads
 , postgresMinWalSizeGb
 , postgresMaxWalSizeGb
+, postgresFullPageWrites
 , postgresVerbose
 , pkgs
 , projectDir
@@ -107,6 +108,7 @@ pkgs.writeText "postgres.conf" (''
   wal_init_zero = off
   wal_recycle = off
 '' + ''
+  full_page_writes = ${if postgresFullPageWrites then "on" else "off"}
 
   # increase logging verbosity
   # reason: useful for troubleshooting

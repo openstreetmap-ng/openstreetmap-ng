@@ -6,6 +6,7 @@
 , postgresCpuThreads ? 8
 , postgresMinWalSizeGb ? 1
 , postgresMaxWalSizeGb ? 10
+, postgresFullPageWrites ? true
 , postgresVerbose ? 2  # 0 = no, 1 = some, 2 = most
 , enableMailpit ? true
 , mailpitHttpPort ? 49566
@@ -29,6 +30,7 @@ let
       postgresCpuThreads
       postgresMinWalSizeGb
       postgresMaxWalSizeGb
+      postgresFullPageWrites
       postgresVerbose
       pkgs projectDir;
   };

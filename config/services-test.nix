@@ -61,6 +61,7 @@ let
       --arg hostDiskCoW true \
       --arg postgresCpuThreads 4 \
       --arg postgresMaxWalSizeGb 30 \
+      --arg postgresFullPageWrites false \
       --arg postgresVerbose 1 \
       --arg gunicornWorkers 8 \
       --run "
