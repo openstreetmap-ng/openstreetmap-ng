@@ -7,13 +7,13 @@
 , postgresConf
 }:
 
-pkgs.writeText "supervisord.conf" (''
+with pkgs; writeText "supervisord.conf" (''
   [supervisord]
   logfile=data/supervisor/supervisord.log
   pidfile=data/supervisor/supervisord.pid
   strip_ansi=true
 
-'' + pkgs.lib.optionalString enablePostgres ''
+'' + lib.optionalString enablePostgres ''
   [program:postgres]
   command=postgres
     -c config_file=${postgresConf}
@@ -21,7 +21,7 @@ pkgs.writeText "supervisord.conf" (''
   stdout_logfile=data/supervisor/postgres.log
   stderr_logfile=data/supervisor/postgres.log
 
-'' + pkgs.lib.optionalString enableMailpit ''
+'' + lib.optionalString enableMailpit ''
   [program:mailpit]
   command=mailpit -d data/mailpit/mailpit.db
     -l "127.0.0.1:${toString mailpitHttpPort}"
@@ -32,7 +32,7 @@ pkgs.writeText "supervisord.conf" (''
   stdout_logfile=data/supervisor/mailpit.log
   stderr_logfile=data/supervisor/mailpit.log
 
-'' + pkgs.lib.optionalString isDevelopment ''
+'' + lib.optionalString isDevelopment ''
   [program:watch-js]
   command=watch-js
   stdout_logfile=data/supervisor/watch-js.log

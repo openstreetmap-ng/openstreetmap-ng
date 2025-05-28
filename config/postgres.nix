@@ -10,7 +10,7 @@
 , projectDir
 }:
 
-pkgs.writeText "postgres.conf" (''
+with pkgs; writeText "postgres.conf" (''
   # configure listen interfaces
   port = ${toString postgresPort}
   unix_socket_directories = '${projectDir}/data/postgres_unix'
@@ -98,12 +98,12 @@ pkgs.writeText "postgres.conf" (''
   # adjust configuration for SSDs
   # reason: improved performance on expected hardware
   random_page_cost = 1
-'' + pkgs.lib.optionalString (!pkgs.stdenv.isDarwin) ''
+'' + lib.optionalString (!stdenv.isDarwin) ''
   effective_io_concurrency = 200
   maintenance_io_concurrency = 200
 '' + ''
 
-'' + pkgs.lib.optionalString hostDiskCoW ''
+'' + lib.optionalString hostDiskCoW ''
   # optimize for Copy-On-Write storage
   wal_init_zero = off
   wal_recycle = off
@@ -112,13 +112,13 @@ pkgs.writeText "postgres.conf" (''
 
   # increase logging verbosity
   # reason: useful for troubleshooting
-'' + pkgs.lib.optionalString (postgresVerbose >= 2) ''
+'' + lib.optionalString (postgresVerbose >= 2) ''
   log_connections = on
   log_disconnections = on
   log_statement = 'all'
   log_lock_waits = on
   log_temp_files = 0 # == log all temp files
-'' + pkgs.lib.optionalString (postgresVerbose == 1) ''
+'' + lib.optionalString (postgresVerbose == 1) ''
   log_statement = 'ddl'
   log_lock_waits = on
 '' + ''

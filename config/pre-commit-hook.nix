@@ -1,6 +1,6 @@
 { pkgs, projectDir, preCommitConf }:
 
-pkgs.writeShellScriptBin "pre-commit-hook" ''
+with pkgs; writeShellScriptBin "pre-commit-hook" ''
   exec "${projectDir}/.venv/bin/python" -m pre_commit hook-impl \
     --config "${preCommitConf}" \
     --hook-dir "${projectDir}/.git/hooks" \
