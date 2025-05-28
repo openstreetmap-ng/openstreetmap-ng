@@ -41,6 +41,7 @@ async def _reduce_db_activity():
         print('Pausing autovacuum and increasing checkpoint priority')
         await conn.execute('ALTER SYSTEM SET autovacuum = off')
         await conn.execute('ALTER SYSTEM SET checkpoint_completion_target = 0')
+        await conn.execute('ALTER SYSTEM SET synchronous_commit = off')
         await conn.execute('SELECT pg_reload_conf()')
     try:
         yield
@@ -49,6 +50,7 @@ async def _reduce_db_activity():
             print('Restoring autovacuum and checkpoint settings')
             await conn.execute('ALTER SYSTEM RESET autovacuum')
             await conn.execute('ALTER SYSTEM RESET checkpoint_completion_target')
+            await conn.execute('ALTER SYSTEM RESET synchronous_commit')
             await conn.execute('SELECT pg_reload_conf()')
 
 
