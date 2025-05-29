@@ -1,17 +1,12 @@
 import logging
 from argparse import ArgumentParser
 
-from app.config import REPLICATION_CONVERT_ELEMENT_BATCH_SIZE, REPLICATION_DIR
+from app.config import REPLICATION_DIR
 from app.db import duckdb_connect
 from app.models.element import (
-    TYPED_ELEMENT_ID_NODE_MAX,
-    TYPED_ELEMENT_ID_NODE_MIN,
     TYPED_ELEMENT_ID_RELATION_MAX,
     TYPED_ELEMENT_ID_RELATION_MIN,
-    TYPED_ELEMENT_ID_WAY_MAX,
-    TYPED_ELEMENT_ID_WAY_MIN,
 )
-from app.services.migration_service import _get_element_typed_id_batches
 from scripts.preload_convert import NOTES_PARQUET_PATH
 
 _PARQUET_PATHS = [
@@ -50,32 +45,8 @@ def _process_changeset(header_only: bool) -> None:
         conn.sql(query).write_csv('/dev/stdout')
 
 
-def _process_element(
-    header_only: bool, *, batch_size=REPLICATION_CONVERT_ELEMENT_BATCH_SIZE
-) -> None:
+def _process_element(header_only: bool) -> None:
     with duckdb_connect(progress=False) as conn:
-        r: tuple[int, ...] = (
-            conn.execute(f"""
-            SELECT
-                -- Nodes
-                MIN(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_NODE_MIN} AND {TYPED_ELEMENT_ID_NODE_MAX}) AS node_min,
-                MAX(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_NODE_MIN} AND {TYPED_ELEMENT_ID_NODE_MAX}) AS node_max,
-                -- Ways
-                MIN(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_WAY_MIN} AND {TYPED_ELEMENT_ID_WAY_MAX}) AS way_min,
-                MAX(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_WAY_MIN} AND {TYPED_ELEMENT_ID_WAY_MAX}) AS way_max,
-                -- Relations
-                MIN(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX}) AS rel_min,
-                MAX(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX}) AS rel_max
-            FROM read_parquet({_PARQUET_PATHS!r})
-            """).fetchone()  # type: ignore
-            if not header_only
-            else (0, 0)
-        )
-
-        ranges = [(r[i], r[i + 1]) for i in range(0, len(r), 2)]
-        batches = _get_element_typed_id_batches(ranges, batch_size)
-        logging.info('Processing in %d batches', len(batches))
-
         # Utility for escaping text
         conn.execute("""
         CREATE MACRO quote(str) AS
@@ -100,46 +71,37 @@ def _process_element(
         '{' || array_to_string(arr, ',') || '}'
         """)
 
-        query = ' UNION ALL '.join([
-            f"""(
-            WITH max_versions AS (
-                SELECT typed_id, MAX(version) AS version
-                FROM read_parquet({_PARQUET_PATHS!r})
-                WHERE typed_id BETWEEN {start_id} AND {end_id}
-                GROUP BY typed_id
-            )
-            SELECT
-                sequence_id,
-                changeset_id,
-                e.typed_id,
-                e.version,
-                (e.version = mv.version) AS latest,
-                visible,
-                IF(
-                    tags IS NOT NULL,
-                    map_to_hstore(tags),
-                    NULL
-                ) AS tags,
-                hex(point) AS point,
-                IF(
-                    members IS NOT NULL,
-                    pg_array(list_transform(members, x -> x.typed_id)),
-                    NULL
-                ) AS members,
-                IF(
-                    members IS NOT NULL
-                    AND e.typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
-                    pg_array(list_transform(members, x -> quote(x.role))),
-                    NULL
-                ) AS members_roles,
-                created_at
-            FROM read_parquet({_PARQUET_PATHS!r}) e
-            JOIN max_versions mv ON e.typed_id = mv.typed_id
-            WHERE e.typed_id BETWEEN {start_id} AND {end_id}
-            {'LIMIT 0' if header_only else ''}
-            )"""
-            for start_id, end_id in batches
-        ])
+        query = f"""
+        SELECT
+            sequence_id,
+            changeset_id,
+            typed_id,
+            version,
+            FALSE AS latest,
+            visible,
+            IF(
+                tags IS NOT NULL,
+                map_to_hstore(tags),
+                NULL
+            ) AS tags,
+            hex(point) AS point,
+            IF(
+                members IS NOT NULL,
+                pg_array(list_transform(members, x -> x.typed_id)),
+                NULL
+            ) AS members,
+            IF(
+                members IS NOT NULL
+                AND typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
+                pg_array(list_transform(members, x -> quote(x.role))),
+                NULL
+            ) AS members_roles,
+            created_at
+        FROM read_parquet({_PARQUET_PATHS!r})
+        """
+
+        if header_only:
+            query += ' LIMIT 0'
 
         conn.sql(query).write_csv('/dev/stdout')
 

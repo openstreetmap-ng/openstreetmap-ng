@@ -7,9 +7,9 @@ from typing import NamedTuple
 
 from packaging.version import Version
 from psycopg import AsyncConnection
-from psycopg.sql import SQL, Identifier
+from psycopg.sql import SQL, Identifier, Literal
 
-from app.config import ENV
+from app.config import ENV, HOST_MEMORY_MB
 from app.db import db
 from app.lib.crypto import hash_bytes
 from app.models.element import (
@@ -118,25 +118,28 @@ class MigrationService:
                 tg.create_task(process_task(start_id, end_id))
 
     @staticmethod
-    async def mark_latest_elements(
-        *,
-        parallelism: int | float = 2.0,
-        batch_size: int = 1_000_000,
-    ) -> None:
+    async def mark_latest_elements(*, parallelism: int | float = 1.5) -> None:
+        work_mem_mb = HOST_MEMORY_MB // calc_num_workers(parallelism + 0.5)
         parallelism = calc_num_workers(parallelism)
-
+        work_mem = f'{work_mem_mb}MB'
+        batch_size = work_mem_mb * 1_000_000 // 200  # 200MB memory per 1M rows
         batches = _get_element_typed_id_batches(
             await _get_element_typed_id_ranges(), batch_size
         )
+
         semaphore = Semaphore(parallelism)
         logging.info(
-            'Marking latest elements (batches=%d, parallelism=%d)',
+            'Marking latest elements (batches=%d, parallelism=%d, work_mem=%s)',
             len(batches),
             parallelism,
+            work_mem,
         )
 
         async def process_task(start_id: int, end_id: int):
-            async with semaphore, db(True, autocommit=True) as conn:
+            async with semaphore, db(True) as conn:
+                await conn.execute(
+                    SQL('SET LOCAL work_mem = {}').format(Literal(work_mem))
+                )
                 await conn.execute(
                     """
                     WITH bad AS (
