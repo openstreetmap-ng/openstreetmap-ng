@@ -13,8 +13,8 @@ jobs:
     name: ${{ matrix.implementation }} tests (${{ matrix.os }})
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
-        implementation: [ python, cython ]
+        os: [ubuntu-latest, macos-latest]
+        implementation: [python, cython]
         exclude:
           - os: macos-latest
             implementation: cython
@@ -27,7 +27,7 @@ jobs:
 
       - name: Generate cache key
         run: |
-          nixpkgs_hash=$(grep -Eo 'archive/[0-9a-f]{40}\.tar\.gz' shell.nix | cut -d'/' -f2 | cut -d'.' -f1)
+          nixpkgs_hash=$(grep -Eom1 'archive/[0-9a-f]{40}\.tar\.gz' shell.nix | cut -d'/' -f2 | cut -d'.' -f1)
           echo "NIXPKGS_HASH=$nixpkgs_hash" >> $GITHUB_ENV
           echo "CACHE_KEY=${{ runner.os }}-$nixpkgs_hash" >> $GITHUB_ENV
 
