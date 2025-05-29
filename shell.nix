@@ -413,7 +413,7 @@ let
       time_start=$(date +%s)
       while ! pg_isready -q -h "${projectDir}/data/postgres_unix" -p 49560; do
         elapsed=$(($(date +%s) - time_start))
-        if [ "$elapsed" -gt 10 ]; then
+        if [ "$elapsed" -gt 30 ]; then
           tail -n 15 data/supervisor/supervisord.log data/supervisor/postgres.log
           echo "Postgres startup timeout, see above logs for details"
           dev-stop

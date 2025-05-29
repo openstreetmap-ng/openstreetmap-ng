@@ -48,7 +48,7 @@ async def _gather_table_indexes(table: str) -> dict[str, SQL]:
                 SELECT pgc.conindid::regclass::text
                 FROM pg_constraint pgc
                 WHERE pgc.conrelid = %s::regclass
-            );
+            )
             """,
             (table, table),
         )
@@ -66,7 +66,8 @@ async def _gather_table_constraints(table: str) -> list[tuple[str, SQL]]:
             JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
             WHERE rel.relname = %s
             AND nsp.nspname = 'public'
-            AND con.contype != 'p';  -- Exclude primary key constraints
+            AND con.contype != 'p'  -- Exclude primary key constraints
+            AND con.conname NOT LIKE '%%_id_not_null'
             """,
             (table,),
         )
