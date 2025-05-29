@@ -18,6 +18,7 @@
 let
   # Update packages with `nixpkgs-update` command
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/359c442b7d1f6229c1dc978116d32d6c07fe8440.tar.gz") { };
+  pkgsPostgres18 = import (fetchTarball "https://github.com/Zaczero/nixpkgs/archive/9a34d82294533b930bed6fe05873752daabbb91d.tar.gz") { };
 
   projectDir = toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs makeScript; };
@@ -126,7 +127,7 @@ let
     bun
     biome
     # Services:
-    (postgresql_17_jit.withPackages (ps: [ ps.postgis ps.h3-pg ])) # SOON: ps.timescaledb-apache
+    (pkgsPostgres18.postgresql_18_jit.withPackages (ps: [ ps.postgis ps.h3-pg ])) # SOON: ps.timescaledb-apache
     timescaledb-parallel-copy
     mailpit
 
