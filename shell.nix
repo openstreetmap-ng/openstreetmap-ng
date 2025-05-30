@@ -709,6 +709,8 @@ let
     echo "Installing Python dependencies"
     export UV_PYTHON="${python'}/bin/python"
     uv sync --frozen
+    [ -n "$(find speedup -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
+      uv add ./speedup --reinstall-package speedup
 
     echo "Installing Bun dependencies"
     export DO_NOT_TRACK=1
