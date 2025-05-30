@@ -1,7 +1,6 @@
 #include "libxml/xmlreader.h"
 #include "libxml/xmlstring.h"
 #include <Python.h>
-#include <object.h>
 
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
@@ -168,14 +167,22 @@ static PyObject *
 postprocess_xml_int(const xmlChar *value_xml) {
   errno = 0;
   auto value = strtoll((const char *)value_xml, nullptr, 10);
-  return LIKELY(!errno) ? PyLong_FromLongLong(value) : nullptr;
+  if (UNLIKELY(errno)) {
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return nullptr;
+  }
+  return PyLong_FromLongLong(value);
 }
 
 static PyObject *
 postprocess_xml_float(const xmlChar *value_xml) {
   errno = 0;
   auto value = strtod((const char *)value_xml, nullptr);
-  return LIKELY(!errno) ? PyFloat_FromDouble(value) : nullptr;
+  if (UNLIKELY(errno)) {
+    PyErr_SetFromErrno(PyExc_ValueError);
+    return nullptr;
+  }
+  return PyFloat_FromDouble(value);
 }
 
 static PyObject *
@@ -184,8 +191,10 @@ postprocess_xml_bool(const xmlChar *value_xml) {
     Py_RETURN_TRUE;
   else if (!strcmp((const char *)value_xml, "false"))
     Py_RETURN_FALSE;
-  else
+  else {
+    PyErr_Format(PyExc_ValueError, "'%s' is neither 'true' nor 'false'", value_xml);
     return nullptr;
+  }
 }
 
 static PyObject *
@@ -447,7 +456,7 @@ merge_ok:
       PyScoped value = postprocess_value(postprocess_key, value_xml);
       if (UNLIKELY(!value)) {
         PyErr_Format(
-          PyExc_ValueError, "Failed to postprocess '%s' value: %s", postprocess_key,
+          PyExc_ValueError, "Failed to postprocess '%s' value: '%s'", postprocess_key,
           value_xml
         );
         return nullptr;
