@@ -375,7 +375,7 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
             if (UNLIKELY(!list))
               return nullptr;
 
-            assert(LIST_PREALLOC_SIZE >= 2);
+            static_assert(LIST_PREALLOC_SIZE >= 2);
             Py_SET_SIZE(list, 2);
             Py_INCREF(existing_result);
             Py_INCREF(current_result);
@@ -404,7 +404,7 @@ xml_parse(const PyObject *, PyObject *const *args, Py_ssize_t nargs) {
           if (UNLIKELY(!list))
             return nullptr;
 
-          assert(LIST_PREALLOC_SIZE >= 1);
+          static_assert(LIST_PREALLOC_SIZE >= 1);
           Py_SET_SIZE(list, 1);
           PyList_SET_ITEM(list, 0, current_result);
           current_result = list;
