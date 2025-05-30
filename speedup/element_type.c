@@ -133,7 +133,11 @@ versioned_typed_element_id(const PyObject *, PyObject *const *args, Py_ssize_t n
   errno = 0;
   char *end_ptr;
   auto id = strtoll(str, &end_ptr, 10);
-  if (UNLIKELY(end_ptr == str || *end_ptr != 'v' || errno != 0))
+  if (UNLIKELY(errno)) {
+    PyErr_SetFromErrno(PyExc_ValueError);
+    goto invalid;
+  }
+  if (UNLIKELY(end_ptr == str || *end_ptr != 'v'))
     goto invalid;
   if (UNLIKELY(!id)) {
     PyErr_Format(PyExc_ValueError, "Element id must be non-zero");
@@ -142,7 +146,11 @@ versioned_typed_element_id(const PyObject *, PyObject *const *args, Py_ssize_t n
 
   errno = 0;
   auto version = strtoll(end_ptr + 1, &end_ptr, 10);
-  if (UNLIKELY(end_ptr == str || *end_ptr != '\0' || errno != 0))
+  if (UNLIKELY(errno)) {
+    PyErr_SetFromErrno(PyExc_ValueError);
+    goto invalid;
+  }
+  if (UNLIKELY(end_ptr == str || *end_ptr != '\0'))
     goto invalid;
   if (UNLIKELY(version <= 0)) {
     PyErr_Format(PyExc_ValueError, "Element version must be positive");
