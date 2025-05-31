@@ -20,8 +20,17 @@ from app.services.migration_service import MigrationService
 from app.utils import calc_num_workers
 
 _Mode = Literal['preload', 'replication']
+_Table = Literal['user', 'changeset', 'element', 'note', 'note_comment']
 
-_PARALLELISM = min(calc_num_workers(), 8)
+_FIRST_TABLES: tuple[_Table, ...] = ('user',)
+_NEXT_TABLES: dict[_Table, tuple[_Table, ...]] = {
+    'user': ('changeset', 'note'),
+    'changeset': ('element',),
+    'note': ('note_comment',),
+}
+
+_NUM_WORKERS_COPY = min(calc_num_workers(), 8)
+_INDEX_SEMAPHORE = Semaphore(calc_num_workers(1.5))
 
 
 def _get_csv_path(name: str) -> Path:
@@ -74,13 +83,7 @@ async def _gather_table_constraints(table: str) -> list[tuple[str, SQL]]:
         return [(name, SQL(sql)) for name, sql in await cursor.fetchall()]
 
 
-async def _load_table(
-    mode: _Mode,
-    table: str,
-    indexes: dict[str, SQL],
-    constraints: dict[str, list[tuple[str, SQL]]],
-    tg: TaskGroup,
-) -> None:
+async def _load_table(mode: _Mode, table: _Table, tg: TaskGroup) -> None:
     if mode == 'preload' or table in {'note', 'note_comment'}:
         path = _get_csv_path(table)
 
@@ -97,35 +100,28 @@ async def _load_table(
         proc = await create_subprocess_shell(f'{program} --header-only', stdout=PIPE)
         header = (await proc.communicate())[0].decode().strip()
 
-    this_indexes = await _gather_table_indexes(table)
-    assert this_indexes, f'No indexes found for {table} table'
-    this_constraints = await _gather_table_constraints(table)
+    indexes = await _gather_table_indexes(table)
+    assert indexes, f'No indexes found for {table} table'
+    constraints = await _gather_table_constraints(table)
 
-    # Drop constraints and indexes before loading
+    # Drop indexes and constraints before loading
     async with db(True, autocommit=True) as conn:
-        logging.info('Dropping %d indexes: %r', len(this_indexes), this_indexes)
-        indexes.update(this_indexes)
+        logging.info('Dropping %d indexes: %r', len(indexes), indexes)
         await conn.execute(
-            SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, this_indexes)))
+            SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes)))
         )
 
-        if this_constraints:
-            logging.info(
-                'Dropping %d constraints: %r', len(this_constraints), this_constraints
-            )
-            constraints[table] = this_constraints
+        if constraints:
+            logging.info('Dropping %d constraints: %r', len(constraints), constraints)
             await conn.execute(
                 SQL('ALTER TABLE {} {}').format(
                     Identifier(table),
                     SQL(',').join(
                         SQL('DROP CONSTRAINT {}').format(Identifier(name))
-                        for name, _ in this_constraints
+                        for name, _ in constraints
                     ),
                 )
             )
-
-    # Delete variables to avoid accidental use
-    del this_indexes, this_constraints
 
     # Load the data
     columns = [f'"{c}"' for c in header.split(',')]
@@ -135,13 +131,13 @@ async def _load_table(
         logging.info('Populating %s table (%d columns)...', table, len(columns))
         proc = await create_subprocess_shell(
             f'{program} | timescaledb-parallel-copy'
-            ' --batch-size=100000'
+            ' --batch-size=50000'
             f' --columns={quote(",".join(columns))}'
             f' --connection={quote(POSTGRES_URL)}'
             f' --skip-header=true'
             ' --reporting-period=30s'
             f' --table={quote(table)}'
-            f' --workers={_PARALLELISM}',
+            f' --workers={_NUM_WORKERS_COPY}',
         )
         exit_code = await proc.wait()
         if exit_code:
@@ -151,16 +147,31 @@ async def _load_table(
         if proc is not None:
             proc.terminate()
 
-    async def element_postprocess():
-        async with db(True, autocommit=True) as conn:
-            key = 'element_version_idx'
-            logging.info('Recreating index %r', key)
-            await conn.execute(indexes.pop(key))
-            logging.info('Updating table statistics')
-            await conn.execute('ANALYZE element')
+    # Recreate indexes and constraints after loading
+    async def index_postprocess():
+        logging.info('Recreating indexes and constraints')
 
-        logging.info('Marking latest elements')
-        await MigrationService.mark_latest_elements()
+        async def execute(sql: Query) -> None:
+            async with _INDEX_SEMAPHORE, db(True, autocommit=True) as conn:
+                ts = monotonic()
+                await conn.execute(sql)
+                logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
+
+        for sql in indexes.values():
+            tg.create_task(execute(sql))
+
+        if constraints:
+            tg.create_task(
+                execute(
+                    SQL('ALTER TABLE {} {}').format(
+                        Identifier(table),
+                        SQL(',').join(
+                            SQL('ADD CONSTRAINT {} {}').format(Identifier(name), sql)
+                            for name, sql in constraints
+                        ),
+                    )
+                )
+            )
 
     async def note_comment_postprocess():
         async with db(True, autocommit=True) as conn:
@@ -172,62 +183,33 @@ async def _load_table(
 
         logging.info('Deleting notes without comments')
         await MigrationService.delete_notes_without_comments()
+        await index_postprocess()
 
-    # Optional postprocessing
-    if mode == 'replication':
-        if table == 'element':
-            tg.create_task(element_postprocess())
-        elif table == 'note_comment':
-            tg.create_task(note_comment_postprocess())
+    # Begin postprocessing
+    if mode == 'replication' and table == 'note_comment':
+        tg.create_task(note_comment_postprocess())
+    else:
+        tg.create_task(index_postprocess())
 
 
 async def _load_tables(mode: _Mode) -> None:
-    tables = ['user', 'changeset', 'element', 'note', 'note_comment']
-
     logging.info('Truncating tables')
     async with db(True, autocommit=True) as conn:
         await conn.execute(
             SQL('TRUNCATE {} RESTART IDENTITY CASCADE').format(
-                SQL(',').join(map(Identifier, tables))
+                SQL(',').join(map(Identifier, get_args(_Table)))
             )
         )
 
-    indexes: dict[str, SQL] = {}
-    constraints: dict[str, list[tuple[str, SQL]]] = {}
-
     async with TaskGroup() as tg:
-        for table in tables:
-            await _load_table(mode, table, indexes, constraints, tg)
 
-    logging.info(
-        'Recreating %d indexes and %d constraints',
-        len(indexes),
-        sum(len(c) for c in constraints.values()),
-    )
-    async with TaskGroup() as tg:
-        semaphore = Semaphore(_PARALLELISM)
+        async def task(table: _Table) -> None:
+            await _load_table(mode, table, tg)
+            for next_table in _NEXT_TABLES.get(table, ()):
+                tg.create_task(task(next_table))
 
-        async def execute(sql: Query) -> None:
-            async with semaphore, db(True, autocommit=True) as conn:
-                ts = monotonic()
-                await conn.execute(sql)
-                logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
-
-        for sql in indexes.values():
-            tg.create_task(execute(sql))
-
-        for table, this_constraints in constraints.items():
-            tg.create_task(
-                execute(
-                    SQL('ALTER TABLE {} {}').format(
-                        Identifier(table),
-                        SQL(',').join(
-                            SQL('ADD CONSTRAINT {} {}').format(Identifier(name), sql)
-                            for name, sql in this_constraints
-                        ),
-                    )
-                )
-            )
+        for first_table in _FIRST_TABLES:
+            tg.create_task(task(first_table))
 
 
 @psycopg_pool_open_decorator
