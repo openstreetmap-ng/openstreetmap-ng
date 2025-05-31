@@ -7,9 +7,9 @@ from typing import NamedTuple
 
 from packaging.version import Version
 from psycopg import AsyncConnection
-from psycopg.sql import SQL, Identifier, Literal
+from psycopg.sql import SQL, Identifier
 
-from app.config import ENV, HOST_MEMORY_MB
+from app.config import ENV
 from app.db import db
 from app.lib.crypto import hash_bytes
 from app.models.element import (
@@ -62,105 +62,6 @@ class MigrationService:
                 last_value = row[0]
                 logging.debug('Setting sequence counter %r to %d', sequence, last_value)
                 await conn.execute('SELECT setval(%s, %s)', (sequence, last_value))
-
-    @staticmethod
-    async def deduplicate_elements(
-        *,
-        parallelism: int | float = 2.0,
-        batch_size: int = 1_000_000,
-    ) -> None:
-        parallelism = calc_num_workers(parallelism)
-
-        batches = _get_element_typed_id_batches(
-            await _get_element_typed_id_ranges(), batch_size
-        )
-        semaphore = Semaphore(parallelism)
-        logging.info(
-            'Deduplicating elements (batches=%d, parallelism=%d)',
-            len(batches),
-            parallelism,
-        )
-
-        async def process_task(start_id: int, end_id: int):
-            async with (
-                semaphore,
-                db(True, autocommit=True) as conn,
-                await conn.execute(
-                    """
-                    WITH bad AS (
-                        SELECT sequence_id
-                        FROM (
-                            SELECT
-                                sequence_id,
-                                ROW_NUMBER() OVER (PARTITION BY typed_id, version) AS rn
-                            FROM element
-                            WHERE typed_id BETWEEN %s AND %s
-                        ) sub
-                        WHERE rn > 1
-                    )
-                    DELETE FROM element e USING bad
-                    WHERE e.sequence_id = bad.sequence_id
-                    RETURNING e.sequence_id, e.typed_id, e.version
-                """,
-                    (start_id, end_id),
-                ) as r,
-            ):
-                if rows := await r.fetchall():
-                    logging.warning(
-                        'Deduplicated %d elements in range [%d, %d]',
-                        len(rows),
-                        start_id,
-                        end_id,
-                    )
-
-        async with TaskGroup() as tg:
-            for start_id, end_id in batches:
-                tg.create_task(process_task(start_id, end_id))
-
-    @staticmethod
-    async def mark_latest_elements(*, parallelism: int | float = 1.5) -> None:
-        work_mem_mb = HOST_MEMORY_MB // calc_num_workers(parallelism + 0.5)
-        parallelism = calc_num_workers(parallelism)
-        work_mem = f'{work_mem_mb}MB'
-        batch_size = work_mem_mb * 1_000_000 // 200  # 200MB memory per 1M rows
-        batches = _get_element_typed_id_batches(
-            await _get_element_typed_id_ranges(), batch_size
-        )
-
-        semaphore = Semaphore(parallelism)
-        logging.info(
-            'Marking latest elements (batches=%d, parallelism=%d, work_mem=%s)',
-            len(batches),
-            parallelism,
-            work_mem,
-        )
-
-        async def process_task(start_id: int, end_id: int):
-            async with semaphore, db(True) as conn:
-                await conn.execute(
-                    SQL('SET LOCAL work_mem = {}').format(Literal(work_mem))
-                )
-                await conn.execute(
-                    """
-                    WITH bad AS (
-                        SELECT * FROM (
-                            SELECT DISTINCT ON (typed_id) typed_id, version, latest
-                            FROM element
-                            WHERE typed_id BETWEEN %s AND %s
-                            ORDER BY typed_id, version DESC
-                        )
-                        WHERE NOT latest
-                    )
-                    UPDATE element e SET latest = TRUE FROM bad
-                    WHERE e.typed_id = bad.typed_id
-                    AND e.version = bad.version
-                    """,
-                    (start_id, end_id),
-                )
-
-        async with TaskGroup() as tg:
-            for start_id, end_id in batches:
-                tg.create_task(process_task(start_id, end_id))
 
     @staticmethod
     @register_admin_task

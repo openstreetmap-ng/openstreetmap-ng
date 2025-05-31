@@ -728,7 +728,6 @@ let
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
     fi
 
-    export HOST_MEMORY_MB="${toString hostMemoryMb}"
   '' + lib.optionalString isDevelopment ''
     export ENV=dev
     export SECRET=development-secret
