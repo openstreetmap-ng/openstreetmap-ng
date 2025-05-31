@@ -83,6 +83,7 @@ in
   };
 
   systemd.services.osm-ng-dev = {
+    enable = false;
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     unitConfig = {
@@ -174,6 +175,7 @@ in
   };
 
   systemd.services.osm-ng-replication-download = {
+    enable = false;
     after = [ "osm-ng-dev.service" ];
     bindsTo = [ "osm-ng-dev.service" ];
     wantedBy = [ "default.target" ];
