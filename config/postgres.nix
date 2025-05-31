@@ -21,7 +21,7 @@ with pkgs; writeText "postgres.conf" (''
   effective_cache_size = ${toString (builtins.floor (hostMemoryMb / 2))}MB
   work_mem = 64MB
   hash_mem_multiplier = 4.0
-  maintenance_work_mem = ${toString (builtins.floor (hostMemoryMb / postgresCpuThreads / 2))}MB
+  maintenance_work_mem = ${toString (builtins.floor (hostMemoryMb / postgresCpuThreads / 1.5))}MB
   vacuum_buffer_usage_limit = ${toString (builtins.floor (hostMemoryMb / 32))}MB
 
   # use UTC timezone
