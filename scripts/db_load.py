@@ -81,7 +81,7 @@ async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
                     AND con.contype != 'p'  -- Exclude primary key constraints
                     AND con.conname NOT LIKE '%%_id_not_null'
                     """
-                    if table in _NEXT_TABLES
+                    if table != 'element'
                     else ''
                 )
             ),
