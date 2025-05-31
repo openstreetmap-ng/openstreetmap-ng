@@ -5,7 +5,7 @@ umount postgres/pg_wal
 umount postgres/base/pgsql_tmp
 umount postgres/base
 rm -rf postgres
-mkdir \
+mkdir -p \
   postgres \
   postgres/base \
   postgres/base/pgsql_tmp \

@@ -33,8 +33,8 @@ _NUM_WORKERS_COPY = min(calc_num_workers(), 8)
 _INDEX_SEMAPHORE = Semaphore(calc_num_workers(1.5))
 
 
-def _get_csv_path(name: str) -> Path:
-    return PRELOAD_DIR.joinpath(f'{name}.csv.zst')
+def _get_csv_path(table: _Table) -> Path:
+    return PRELOAD_DIR.joinpath(f'{table}.csv.zst')
 
 
 def _get_csv_header(path: Path) -> str:
@@ -44,7 +44,7 @@ def _get_csv_header(path: Path) -> str:
         return reader.readline().strip()
 
 
-async def _gather_table_indexes(table: str) -> dict[str, SQL]:
+async def _gather_table_indexes(table: _Table) -> dict[str, SQL]:
     """Gather all non-constraint indexes for a table."""
     async with db() as conn:
         cursor = await conn.execute(
@@ -64,20 +64,27 @@ async def _gather_table_indexes(table: str) -> dict[str, SQL]:
         return {name: SQL(sql) for name, sql in await cursor.fetchall()}
 
 
-async def _gather_table_constraints(table: str) -> list[tuple[str, SQL]]:
+async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
     """Gather all foreign key constraints for a table."""
     async with db() as conn:
         cursor = await conn.execute(
-            """
+            SQL("""
             SELECT con.conname, pg_get_constraintdef(con.oid)
             FROM pg_constraint con
             JOIN pg_class rel ON rel.oid = con.conrelid
             JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
             WHERE rel.relname = %s
-            AND nsp.nspname = 'public'
-            AND con.contype != 'p'  -- Exclude primary key constraints
-            AND con.conname NOT LIKE '%%_id_not_null'
-            """,
+            AND nsp.nspname = 'public' {}
+            """).format(
+                SQL(
+                    """
+                    AND con.contype != 'p'  -- Exclude primary key constraints
+                    AND con.conname NOT LIKE '%%_id_not_null'
+                    """
+                    if table in _NEXT_TABLES
+                    else ''
+                )
+            ),
             (table,),
         )
         return [(name, SQL(sql)) for name, sql in await cursor.fetchall()]
