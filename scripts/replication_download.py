@@ -137,8 +137,9 @@ def _bundle_data_if_needed(state: AppState):
         COPY (
             SELECT *
             FROM read_parquet({input_paths!r})
+            ORDER BY typed_id, version
         ) TO {output_path!r}
-        (COMPRESSION ZSTD, COMPRESSION_LEVEL 9, ROW_GROUP_SIZE_BYTES '128MB')
+        (COMPRESSION ZSTD, COMPRESSION_LEVEL 9)
         """)
 
 
@@ -275,7 +276,7 @@ def _parse_actions(
             })
 
             # Flush batch when we have accumulated enough data
-            if len(data) >= 1024 * 1024:
+            if len(data) >= 122880:
                 flush()
 
     # Flush any remaining data
@@ -358,6 +359,7 @@ async def _iterate(state: AppState) -> AppState:
                     )::UBIGINT AS sequence_id,
                     * EXCLUDE (parse_order)
                 FROM read_parquet({tmp_path.as_posix()!r})
+                ORDER BY typed_id, version
             ) TO {remote_replica.path.as_posix()!r}
             (COMPRESSION lz4_raw)
             """)
