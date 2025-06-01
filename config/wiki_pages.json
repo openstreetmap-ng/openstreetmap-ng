@@ -1078,6 +1078,11 @@
       "Uk"
     ]
   },
+  "addr:housenumber:signed": {
+    "no": [
+      ""
+    ]
+  },
   "addr:khasra": {
     "*": [
       ""
@@ -2299,6 +2304,7 @@
       "Ca",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "El",
       "Et",
@@ -2557,6 +2563,7 @@
       "Ca",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "El",
       "FR",
@@ -2592,6 +2599,7 @@
       "Ca",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -3482,6 +3490,7 @@
       "Pl",
       "Pt",
       "RU",
+      "TR",
       "Uk",
       "Zh-hant"
     ],
@@ -5815,6 +5824,7 @@
     "*": [
       "",
       "Cs",
+      "El",
       "RU"
     ]
   },
@@ -6888,6 +6898,11 @@
       ""
     ]
   },
+  "baseball:bullpen": {
+    "*": [
+      ""
+    ]
+  },
   "basilica": {
     "*": [
       "",
@@ -7777,7 +7792,8 @@
     "limited_traffic_zone": [
       "",
       "ES",
-      "FR"
+      "FR",
+      "IT"
     ],
     "local_authority": [
       "",
@@ -9295,6 +9311,7 @@
     ],
     "roundhouse": [
       "",
+      "Cs",
       "RU",
       "Uk"
     ],
@@ -9695,6 +9712,10 @@
     ],
     "wine_cellar": [
       ""
+    ],
+    "workshop": [
+      "",
+      "Cs"
     ],
     "yes": [
       "",
@@ -11051,6 +11072,11 @@
   },
   "changing_table:hoist": {
     "*": [
+      ""
+    ]
+  },
+  "channelised": {
+    "yes": [
       ""
     ]
   },
@@ -13074,7 +13100,8 @@
       "FR",
       "IT",
       "Oc",
-      "Pl"
+      "Pl",
+      "Uk"
     ],
     "engraver": [
       "",
@@ -13734,6 +13761,11 @@
       ""
     ]
   },
+  "crater:age": {
+    "*": [
+      ""
+    ]
+  },
   "crater:type": {
     "*": [
       "",
@@ -13965,6 +13997,11 @@
       ""
     ]
   },
+  "crossing:buffer_marking": {
+    "*": [
+      ""
+    ]
+  },
   "crossing:chicane": {
     "*": [
       ""
@@ -13985,6 +14022,11 @@
       "JA",
       "Pl",
       "RU"
+    ]
+  },
+  "crossing:kerb_extension": {
+    "*": [
+      ""
     ]
   },
   "crossing:light": {
@@ -14157,6 +14199,7 @@
     ],
     "burger": [
       "",
+      "DE",
       "ES",
       "Gcf"
     ],
@@ -14379,6 +14422,9 @@
       "ES",
       "JA"
     ],
+    "rice_noodle": [
+      ""
+    ],
     "sandwich": [
       "",
       "ES"
@@ -14420,6 +14466,9 @@
       "ES",
       "FR",
       "JA"
+    ],
+    "syrian": [
+      ""
     ],
     "tapas": [
       "",
@@ -14977,6 +15026,9 @@
       "",
       "RU"
     ],
+    "separate": [
+      "FR"
+    ],
     "track": [
       "",
       "Cs",
@@ -15394,26 +15446,36 @@
       "Uk"
     ],
     "agricultural": [
-      ""
+      "",
+      "FR"
     ],
     "avenue": [
-      ""
+      "",
+      "FR"
     ],
     "cluster": [
       ""
     ],
+    "garden": [
+      "",
+      "FR"
+    ],
     "landmark": [
-      ""
+      "",
+      "FR"
     ],
     "natural_monument": [
       "",
-      "DE"
+      "DE",
+      "FR"
     ],
     "park": [
-      ""
+      "",
+      "FR"
     ],
     "urban": [
-      ""
+      "",
+      "FR"
     ],
     "windbreak": [
       ""
@@ -17053,10 +17115,6 @@
       "Pl",
       "RU"
     ],
-    "leader_site": [
-      "",
-      "DE"
-    ],
     "life_ring": [
       "",
       "Cs",
@@ -17327,6 +17385,11 @@
     ],
     "maxspeed": [
       "Pl"
+    ]
+  },
+  "engine_brake": {
+    "*": [
+      ""
     ]
   },
   "engineer": {
@@ -18672,6 +18735,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "JA",
       "Pt"
     ]
@@ -18923,7 +18987,8 @@
   },
   "gender_segregated": {
     "*": [
-      ""
+      "",
+      "Fa"
     ]
   },
   "generator:method": {
@@ -20714,7 +20779,8 @@
       ""
     ],
     "unexploded_ordnance": [
-      ""
+      "",
+      "DE"
     ],
     "washout": [
       ""
@@ -24171,6 +24237,11 @@
     "*": [
       "",
       "DE"
+    ]
+  },
+  "is_in:state": {
+    "*": [
+      ""
     ]
   },
   "is_legal_sidepath": {
@@ -29060,9 +29131,6 @@
     ]
   },
   "mechanic": {
-    "*": [
-      ""
-    ],
     "motorcycle": [
       ""
     ]
@@ -30508,6 +30576,7 @@
     ],
     "railway": [
       "",
+      "Cs",
       "DE",
       "RU"
     ],
@@ -33238,6 +33307,9 @@
       "",
       "ES"
     ],
+    "depression": [
+      ""
+    ],
     "desert": [
       "",
       "ES",
@@ -33274,6 +33346,9 @@
       "Pl",
       "Pt",
       "RU"
+    ],
+    "flowers": [
+      ""
     ],
     "fumarole": [
       "",
@@ -35130,6 +35205,11 @@
       ""
     ]
   },
+  "notable_tenant:wikidata": {
+    "*": [
+      ""
+    ]
+  },
   "note": {
     "*": [
       "",
@@ -35289,6 +35369,7 @@
   },
   "obstacle:wheelchair": {
     "yes": [
+      "",
       "FR"
     ]
   },
@@ -35915,6 +35996,7 @@
     ],
     "transport": [
       "",
+      "FR",
       "RU"
     ],
     "travel_agent": [
@@ -36979,6 +37061,7 @@
       "ES",
       "FR",
       "JA",
+      "Ko",
       "Pl",
       "Pt",
       "RU",
@@ -37010,6 +37093,21 @@
       ""
     ],
     "private": [
+      ""
+    ]
+  },
+  "paifang:gables": {
+    "*": [
+      ""
+    ]
+  },
+  "paifang:gates": {
+    "*": [
+      ""
+    ]
+  },
+  "paifang:posts": {
+    "*": [
       ""
     ]
   },
@@ -37131,6 +37229,9 @@
     "rooftop": [
       "",
       "RU"
+    ],
+    "shoulder": [
+      ""
     ],
     "street_side": [
       "",
@@ -37601,6 +37702,16 @@
       "ES",
       "Pl",
       "RU"
+    ]
+  },
+  "payment:app:android": {
+    "*": [
+      ""
+    ]
+  },
+  "payment:app:ios": {
+    "*": [
+      ""
     ]
   },
   "payment:bitcoin": {
@@ -38718,6 +38829,9 @@
       "DE",
       "RU"
     ],
+    "maze": [
+      ""
+    ],
     "playhouse": [
       "",
       "Pl",
@@ -38999,11 +39113,6 @@
       ""
     ]
   },
-  "position:heading": {
-    "*": [
-      ""
-    ]
-  },
   "post_box:design": {
     "*": [
       ""
@@ -39030,6 +39139,12 @@
       "DE",
       "FR",
       "Uk"
+    ],
+    "bureau": [
+      ""
+    ],
+    "post_annex": [
+      ""
     ],
     "post_partner": [
       "",
@@ -40280,6 +40395,10 @@
       "Pt",
       "Zh-hans"
     ],
+    "museum": [
+      "",
+      "Cs"
+    ],
     "narrow_gauge": [
       "",
       "Cs",
@@ -40324,7 +40443,6 @@
     ],
     "preserved": [
       "",
-      "Cs",
       "DE",
       "ES",
       "FR",
@@ -40391,6 +40509,7 @@
     ],
     "signal_box": [
       "",
+      "Cs",
       "DE",
       "ES",
       "Pl",
@@ -40541,7 +40660,8 @@
       "Pl"
     ],
     "workshop": [
-      ""
+      "",
+      "Cs"
     ],
     "yard": [
       "",
@@ -42332,6 +42452,12 @@
       ""
     ]
   },
+  "ref:corine_land_cover": {
+    "*": [
+      "",
+      "IT"
+    ]
+  },
   "ref:crs": {
     "*": [
       ""
@@ -42457,6 +42583,12 @@
   "ref:herbarium": {
     "*": [
       ""
+    ]
+  },
+  "ref:hjartstartarregistret.se": {
+    "*": [
+      "",
+      "Sv"
     ]
   },
   "ref:hmdb": {
@@ -42906,6 +43038,11 @@
     ]
   },
   "ref:temples.ru": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:tiploc": {
     "*": [
       ""
     ]
@@ -43587,6 +43724,9 @@
       "",
       "DE"
     ],
+    "no_exit": [
+      ""
+    ],
     "no_right_turn_on_red": [
       ""
     ],
@@ -43671,6 +43811,11 @@
     "*": [
       "",
       "RU"
+    ]
+  },
+  "rice_noodle": {
+    "*": [
+      ""
     ]
   },
   "right:country": {
@@ -48172,6 +48317,7 @@
     ],
     "gold_buyer": [
       "",
+      "FR",
       "JA",
       "Th"
     ],
@@ -48202,6 +48348,9 @@
       "RU"
     ],
     "grill": [
+      ""
+    ],
+    "grinding_mill": [
       ""
     ],
     "grocery": [
@@ -52699,6 +52848,9 @@
       "DE",
       "ES",
       "FR"
+    ],
+    "ALPR": [
+      ""
     ]
   },
   "surveillance:zone": {
@@ -54235,11 +54387,6 @@
       ""
     ]
   },
-  "toys": {
-    "*": [
-      ""
-    ]
-  },
   "toys:*": {
     "*": [
       ""
@@ -54494,8 +54641,11 @@
     "AT:52.17a-a": [
       ""
     ],
+    "AT:53.26a": [
+      "DE"
+    ],
     "AT:53.9c": [
-      ""
+      "DE"
     ],
     "AT:FKV_1.9": [
       ""
@@ -54795,8 +54945,13 @@
     "DE:453": [
       "DE"
     ],
+    "FR:B22a": [
+      "",
+      "FR"
+    ],
     "FR:C113": [
-      ""
+      "",
+      "FR"
     ],
     "FR:C115": [
       "",
@@ -55689,6 +55844,7 @@
       "Cs",
       "ES",
       "FR",
+      "Fa",
       "JA",
       "Pl"
     ]
@@ -56376,6 +56532,9 @@
       "",
       "DE",
       "RU"
+    ],
+    "honey": [
+      ""
     ],
     "ice_cream": [
       "",
@@ -57210,7 +57369,8 @@
   },
   "water_slide": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "water_source": {
@@ -58341,6 +58501,11 @@
     ]
   },
   "zone:De_Lijn": {
+    "*": [
+      ""
+    ]
+  },
+  "zone:HSL": {
     "*": [
       ""
     ]
