@@ -7,7 +7,7 @@ import cython
 from argon2 import PasswordHasher, Type
 from argon2.exceptions import VerifyMismatchError
 
-from app.config import ENV
+from app.config import ENV, SECRET_32
 from app.models.proto.server_pb2 import UserPassword
 from app.models.proto.shared_pb2 import TransmitUserPassword
 from app.models.types import Password
@@ -84,7 +84,7 @@ def _hash_v1(password_bytes: bytes) -> bytes:
             f'Invalid password length, expected 64, got {len(password_bytes)}'
         )
 
-    hash_string = _HASHER_V1.hash(password_bytes)
+    hash_string = _HASHER_V1.hash(password_bytes + SECRET_32.get_secret_value())
     prefix, salt, hash = hash_string.rsplit('$', 2)
     hash = b64decode(hash + '==')
     salt = b64decode(salt + '==')
@@ -113,7 +113,9 @@ def _verify_v1(password_bytes: bytes, password_pb_v1: UserPassword.V1):
     )
 
     try:
-        _HASHER_V1.verify(password_pb_digest, password_bytes)
+        _HASHER_V1.verify(
+            password_pb_digest, password_bytes + SECRET_32.get_secret_value()
+        )
         return VerifyResult(True, rehash_needed=False)
     except VerifyMismatchError:
         return VerifyResult(False, rehash_needed=False)
