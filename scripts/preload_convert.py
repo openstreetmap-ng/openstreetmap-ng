@@ -84,20 +84,23 @@ def _get_worker_path(base: Path, i: int):
     return base.with_suffix(f'{base.suffix}.{i}')
 
 
-def planet_worker(args: tuple[int, int, int]) -> None:
-    i, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
+def planet_worker(args: tuple[int, int, int, int]) -> None:
+    i, num_tasks, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
     data: list[dict] = []
 
     with PLANET_INPUT_PATH.open('rb') as f_in:
+        parts: list[bytes] = []
         if from_seek > 0:
+            parts.append(b'<osm>')
             f_in.seek(from_seek)
-            input_buffer = b'<osm>\n' + f_in.read(to_seek - from_seek)
-        else:
-            input_buffer = f_in.read(to_seek)
+        parts.append(f_in.read(to_seek - from_seek))
+        if i + 1 < num_tasks:
+            parts.append(b'</osm>')
+        input_buffer = b''.join(parts)
 
     elements: list[tuple[ElementType, dict]]
     elements = XMLToDict.parse(input_buffer, size_limit=None)['osm']  # type: ignore
-    del input_buffer  # free memory
+    del input_buffer, parts  # free memory
 
     type: str
     element: dict
@@ -171,8 +174,13 @@ def run_planet_workers() -> None:
             from_seek += min_find
             from_seeks.append(from_seek)
 
-    args: list[tuple[int, int, int]] = [
-        (i, from_seek, (from_seeks[i + 1] if i + 1 < num_tasks else input_size))
+    args: list[tuple[int, int, int, int]] = [
+        (
+            i,
+            num_tasks,
+            from_seek,
+            (from_seeks[i + 1] if i + 1 < num_tasks else input_size),
+        )
         for i, from_seek in enumerate(from_seeks)
     ]
     with Pool(_NUM_WORKERS) as pool:
@@ -215,20 +223,23 @@ def merge_planet_worker_results() -> None:
         path.unlink()
 
 
-def notes_worker(args: tuple[int, int, int]) -> None:
-    i, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
+def notes_worker(args: tuple[int, int, int, int]) -> None:
+    i, num_tasks, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
     data: list[dict] = []
 
     with NOTES_INPUT_PATH.open('rb') as f_in:
+        parts: list[bytes] = []
         if from_seek > 0:
+            parts.append(b'<osm-notes>')
             f_in.seek(from_seek)
-            input_buffer = b'<osm-notes>\n' + f_in.read(to_seek - from_seek)
-        else:
-            input_buffer = f_in.read(to_seek)
+        parts.append(f_in.read(to_seek - from_seek))
+        if i + 1 < num_tasks:
+            parts.append(b'</osm-notes>')
+        input_buffer = b''.join(parts)
 
     notes: list[dict]
     notes = XMLToDict.parse(input_buffer, size_limit=None)['osm-notes']['note']  # type: ignore
-    del input_buffer  # free memory
+    del input_buffer, parts  # free memory
 
     note: dict
     for note in notes:
@@ -307,8 +318,13 @@ def run_notes_workers() -> None:
                 from_seek += min_find
             from_seeks.append(from_seek)
 
-    args: list[tuple[int, int, int]] = [
-        (i, from_seek, (from_seeks[i + 1] if i + 1 < num_tasks else input_size))
+    args: list[tuple[int, int, int, int]] = [
+        (
+            i,
+            num_tasks,
+            from_seek,
+            (from_seeks[i + 1] if i + 1 < num_tasks else input_size),
+        )
         for i, from_seek in enumerate(from_seeks)
     ]
     with Pool(_NUM_WORKERS) as pool:
