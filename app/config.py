@@ -82,7 +82,7 @@ DUCKDB_MEMORY_LIMIT = '8GB'
 DUCKDB_TMPDIR: str | None = None
 
 # Replication processing
-REPLICATION_CONVERT_ELEMENT_BATCH_SIZE: PositiveInt = 1_000_000_000
+REPLICATION_CONVERT_ELEMENT_BATCH_SIZE: PositiveInt = 500_000_000
 
 # -------------------- API and Services Integration --------------------
 
