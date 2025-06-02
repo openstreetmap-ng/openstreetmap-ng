@@ -180,23 +180,8 @@ async def _load_table(mode: _Mode, table: _Table, tg: TaskGroup) -> None:
                 )
             )
 
-    async def note_comment_postprocess():
-        async with db(True, autocommit=True) as conn:
-            key = 'note_comment_note_id_idx'
-            logging.info('Recreating index %r', key)
-            await conn.execute(indexes.pop(key))
-            logging.info('Updating table statistics')
-            await conn.execute('ANALYZE note, note_comment')
-
-        logging.info('Deleting notes without comments')
-        await MigrationService.delete_notes_without_comments()
-        await index_postprocess()
-
     # Begin postprocessing
-    if mode == 'replication' and table == 'note_comment':
-        tg.create_task(note_comment_postprocess())
-    else:
-        tg.create_task(index_postprocess())
+    tg.create_task(index_postprocess())
 
 
 async def _load_tables(mode: _Mode) -> None:

@@ -232,6 +232,11 @@ def notes_worker(args: tuple[int, int, int]) -> None:
 
     note: dict
     for note in notes:
+        # Skip notes without comments
+        note_comments: list[dict] | None = note.get('comment')
+        if note_comments is None:
+            continue
+
         note_created_at: datetime | None = None
         note_updated_at: datetime | None = None
         note_closed_at: datetime | None = None
@@ -239,7 +244,7 @@ def notes_worker(args: tuple[int, int, int]) -> None:
         comments: list[dict] = []
         comment: dict
 
-        for comment in note.get('comment', ()):
+        for comment in note_comments:
             comment_created_at = comment['@timestamp']
             if note_created_at is None:
                 note_created_at = comment_created_at
