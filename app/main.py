@@ -101,7 +101,6 @@ main = FastAPI(
     lifespan=lifespan,
 )
 
-
 main.add_middleware(ParallelTasksMiddleware)
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
 main.add_middleware(

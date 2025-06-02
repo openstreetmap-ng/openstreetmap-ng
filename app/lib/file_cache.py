@@ -1,17 +1,17 @@
 import fcntl
 import logging
-import time
 from asyncio import get_running_loop, timeout
 from datetime import timedelta
 from io import BufferedWriter
 from pathlib import Path
+from time import time
 from typing import NamedTuple
 
 import cython
 from google.protobuf.message import DecodeError
 from sizestr import sizestr
 
-from app.config import FILE_CACHE_DIR, FILE_CACHE_LOCK_TIMEOUT, FILE_CACHE_SIZE_GB
+from app.config import FILE_CACHE_DIR, FILE_CACHE_LOCK_TIMEOUT, FILE_CACHE_SIZE
 from app.models.proto.server_pb2 import FileCacheMeta
 from app.models.types import StorageKey
 
@@ -75,7 +75,7 @@ class FileCache:
             return None
 
         # If set, check TTL expiration
-        if entry.HasField('expires_at') and entry.expires_at < time.time():
+        if entry.HasField('expires_at') and entry.expires_at < time():
             logging.debug('Cache miss for %r', key)
             path.unlink(missing_ok=True)
             return None
@@ -91,7 +91,7 @@ class FileCache:
     async def set(lock: _FileCacheLock, data: bytes, *, ttl: timedelta | None) -> None:
         """Set a value in the file cache."""
         expires_at = (
-            int(time.time() + ttl.total_seconds())  #
+            int(time() + ttl.total_seconds())  #
             if ttl is not None
             else None
         )
@@ -115,9 +115,8 @@ class FileCache:
     async def cleanup(self):
         """Cleanup the file cache, removing stale entries."""
         infos: list[_CleanupInfo] = []
-        total_size: int = 0
-        limit_size: int = int(FILE_CACHE_SIZE_GB * 1024 * 1024 * 1024)
-        now = time.time()
+        total_size = 0
+        now = time()
 
         for path in self._base_dir.rglob('*'):
             key = path.name
@@ -146,15 +145,15 @@ class FileCache:
         logging.debug(
             'File cache usage is %s of %s',
             sizestr(total_size),
-            sizestr(limit_size),
+            sizestr(FILE_CACHE_SIZE),
         )
-        if total_size <= limit_size:
+        if total_size <= FILE_CACHE_SIZE:
             return
 
         # prioritize cleanup of entries closer to expiration (iterating in reverse)
         infos.sort(key=lambda ci: ci.expires_at, reverse=True)
 
-        while total_size > limit_size:
+        while total_size > FILE_CACHE_SIZE:
             info = infos.pop()
             key = info.path.name
             logging.debug('Cache cleanup for %r (reason: size)', key)

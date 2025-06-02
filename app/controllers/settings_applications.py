@@ -1,12 +1,12 @@
 from asyncio import TaskGroup
 from typing import Annotated
-from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Query
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import (
+    API_DOMAIN,
     API_URL,
     OAUTH_APP_NAME_MAX_LENGTH,
     OAUTH_PAT_LIMIT,
@@ -91,8 +91,8 @@ async def get_tokens(
         {
             'expand_id': expand,
             'tokens': tokens,
-            'API_HOST': urlsplit(API_URL).netloc,
             'API_URL': API_URL,
+            'API_DOMAIN': API_DOMAIN,
             'OAUTH_PAT_NAME_MAX_LENGTH': OAUTH_PAT_NAME_MAX_LENGTH,
         },
     )

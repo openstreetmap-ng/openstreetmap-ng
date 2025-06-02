@@ -9,9 +9,10 @@ from urllib.parse import urlsplit
 from githead import githead
 from pydantic import (
     BeforeValidator,
+    ByteSize,
     ConfigDict,
+    DirectoryPath,
     Field,
-    PositiveInt,
     SecretBytes,
     SecretStr,
 )
@@ -19,18 +20,19 @@ from pydantic import (
 from app.lib.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
 from app.lib.pydantic_settings_integration import pydantic_settings_integration
 
-_KB = 1024
-_MB = 1024 * 1024
+
+def _ByteSize(v: str) -> ByteSize:  # noqa: N802
+    return ByteSize._validate(v, None)  # noqa: SLF001  # type: ignore
 
 
-def _validate_dir(v):
+def _validate_dir(v) -> Path:
     """Resolve directory to an absolute path and ensure it exists."""
     v = Path(v)
     v.mkdir(parents=True, exist_ok=True)
     return v.resolve(strict=True)
 
 
-type _Dir = Annotated[Path, BeforeValidator(_validate_dir)]
+type _MakeDir = Annotated[Path, BeforeValidator(_validate_dir)]
 
 
 def _strip_validator(chars: str, /) -> BeforeValidator:
@@ -42,7 +44,7 @@ def _strip_validator(chars: str, /) -> BeforeValidator:
     return BeforeValidator(validate)
 
 
-type _NoTrailingSlash = Annotated[str, _strip_validator('/')]
+type _StripSlash = Annotated[str, _strip_validator('/')]
 
 
 # Change working directory to the project root
@@ -51,7 +53,7 @@ chdir(Path(__file__).parent.parent)
 # -------------------- Required Configuration --------------------
 
 SECRET: SecretStr = Field()
-APP_URL: _NoTrailingSlash = Field()
+APP_URL: _StripSlash = Field()
 SMTP_HOST: str = Field()
 SMTP_PORT: int = Field(gt=0, lt=1 << 16)
 SMTP_USER: str = Field()
@@ -65,34 +67,38 @@ LOG_LEVEL: Literal['DEBUG', 'INFO', 'WARNING'] | None = None
 LEGACY_HIGH_PRECISION_TIME = False
 
 # Storage paths
-FILE_CACHE_DIR: _Dir = Path('data/cache')
-FILE_CACHE_SIZE_GB: float = 128
-PLANET_DIR: _Dir = Path('data/planet')
-PRELOAD_DIR: _Dir = Path('data/preload')
-REPLICATION_DIR: _Dir = Path('data/replication')
+FILE_CACHE_DIR: _MakeDir = Path('data/cache')
+FILE_CACHE_SIZE = _ByteSize('128 GiB')
+PLANET_DIR: _MakeDir = Path('data/planet')
+PRELOAD_DIR: _MakeDir = Path('data/preload')
+REPLICATION_DIR: _MakeDir = Path('data/replication')
 
-# Storage URIs
-AVATAR_STORAGE_URI = 'db://avatar'
-BACKGROUND_STORAGE_URI = 'db://background'
-TRACE_STORAGE_URI = 'db://trace'
+# Storage URLs
+AVATAR_STORAGE_URL = 'db://avatar'
+BACKGROUND_STORAGE_URL = 'db://background'
+TRACE_STORAGE_URL = 'db://trace'
 
 # Database connections
-POSTGRES_URL = f'postgresql://postgres@/postgres?host={_validate_dir("data/postgres_unix")}&port=49560'
+POSTGRES_URL = (
+    f'postgresql://postgres@/postgres'
+    f'?host={_validate_dir("data/postgres_unix")}'
+    f'&port=49560'
+)
 DUCKDB_MEMORY_LIMIT = '8GB'
-DUCKDB_TMPDIR: str | None = None
+DUCKDB_TMPDIR: DirectoryPath | None = None
 
 # Replication processing
-REPLICATION_CONVERT_ELEMENT_BATCH_SIZE: PositiveInt = 500_000_000
+REPLICATION_CONVERT_ELEMENT_BATCH_SIZE = 500_000_000
 
 # -------------------- API and Services Integration --------------------
 
 # Internal URLs
-API_URL: _NoTrailingSlash = Field(alias='APP_URL')
-ID_URL: _NoTrailingSlash = Field(alias='APP_URL')
-RAPID_URL: _NoTrailingSlash = Field(alias='APP_URL')
+API_URL: _StripSlash = Field(alias='APP_URL')
+ID_URL: _StripSlash = Field(alias='APP_URL')
+RAPID_URL: _StripSlash = Field(alias='APP_URL')
 
 # External services
-GRAPHHOPPER_API_KEY = ''
+GRAPHHOPPER_API_KEY = SecretStr('')
 GRAPHHOPPER_URL = 'https://graphhopper.com'
 NOMINATIM_URL = 'https://nominatim.openstreetmap.org'
 OSM_REPLICATION_URL = 'https://osm-planet-eu-central-1.s3.dualstack.eu-central-1.amazonaws.com/planet/replication'
@@ -103,13 +109,12 @@ VALHALLA_URL = 'https://valhalla1.openstreetmap.de'
 # API and HTTP settings
 HTTP_TIMEOUT = timedelta(seconds=20)
 URLSAFE_BLACKLIST = '/;.,?%#'
-TRACE_FILE_UPLOAD_MAX_SIZE = 50 * _MB
-XML_PARSE_MAX_SIZE = 50 * _MB  # the same as CGImap
-REQUEST_BODY_MAX_SIZE = max(TRACE_FILE_UPLOAD_MAX_SIZE, XML_PARSE_MAX_SIZE) + 5 * _MB
-REQUEST_PATH_QUERY_MAX_LENGTH = 2 * _KB
+TRACE_FILE_UPLOAD_MAX_SIZE = _ByteSize('50 MiB')
+XML_PARSE_MAX_SIZE = _ByteSize('50 MiB')  # the same as CGImap
+REQUEST_PATH_QUERY_MAX_LENGTH = 2000
 
 # Compression settings
-COMPRESS_HTTP_MIN_SIZE = 1 * _KB
+COMPRESS_HTTP_MIN_SIZE = _ByteSize('1 KiB')
 COMPRESS_HTTP_ZSTD_LEVEL = 3
 COMPRESS_HTTP_BROTLI_QUALITY = 3
 COMPRESS_HTTP_GZIP_LEVEL = 3
@@ -138,12 +143,12 @@ USER_PENDING_EXPIRE = timedelta(days=365)  # 1 year
 USER_SCHEDULED_DELETE_DELAY = timedelta(days=7)
 
 # Profile
-AVATAR_MAX_FILE_SIZE = 80 * _KB  # 80 KB
+AVATAR_MAX_FILE_SIZE = _ByteSize('80 KiB')
 AVATAR_MAX_MEGAPIXELS = 384 * 384  # (resolution)
-AVATAR_MAX_RATIO: float = 2
-BACKGROUND_MAX_FILE_SIZE = 320 * _KB  # 320 KB
+AVATAR_MAX_RATIO = 2.0
+BACKGROUND_MAX_FILE_SIZE = _ByteSize('320 KiB')
 BACKGROUND_MAX_MEGAPIXELS = 4096 * 512  # (resolution)
-BACKGROUND_MAX_RATIO: float = 2 * 5.5  # 2 * ratio on website
+BACKGROUND_MAX_RATIO = 2 * 5.5  # 2 * ratio on website
 USER_ACTIVITY_CHART_WEEKS = 26
 USER_BLOCK_BODY_MAX_LENGTH = 20_000  # NOTE: value TBD
 USER_DESCRIPTION_MAX_LENGTH = 20_000  # NOTE: value TBD
@@ -182,18 +187,18 @@ OPENID_DISCOVERY_HTTP_TIMEOUT = timedelta(seconds=10)
 # https://developers.facebook.com/docs/development/create-an-app/facebook-login-use-case
 # https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow/
 FACEBOOK_OAUTH_PUBLIC = ''
-FACEBOOK_OAUTH_SECRET = ''
+FACEBOOK_OAUTH_SECRET = SecretStr('')
 # https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app
 GITHUB_OAUTH_PUBLIC = ''
-GITHUB_OAUTH_SECRET = ''
+GITHUB_OAUTH_SECRET = SecretStr('')
 # https://developers.google.com/identity/openid-connect/openid-connect
 GOOGLE_OAUTH_PUBLIC = ''
-GOOGLE_OAUTH_SECRET = ''
+GOOGLE_OAUTH_SECRET = SecretStr('')
 # https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc
 MICROSOFT_OAUTH_PUBLIC = ''
 # https://api.wikimedia.org/wiki/Special:AppManagement
 WIKIMEDIA_OAUTH_PUBLIC = ''
-WIKIMEDIA_OAUTH_SECRET = ''
+WIKIMEDIA_OAUTH_SECRET = SecretStr('')
 
 # -------------------- Email Communication --------------------
 
@@ -204,7 +209,7 @@ EMAIL_REPLY_USAGE_LIMIT = 10
 
 # Email processing settings
 MAIL_PROCESSING_TIMEOUT = timedelta(minutes=1)
-MAIL_UNPROCESSED_EXPONENT: float = 2  # 1 min, 2 min, 4 min, etc.
+MAIL_UNPROCESSED_EXPONENT = 2.0  # 1 min, 2 min, 4 min, etc.
 MAIL_UNPROCESSED_EXPIRE = timedelta(days=3)
 
 # -------------------- Content and Map Features --------------------
@@ -219,7 +224,7 @@ FEATURE_PREFIX_TAGS_LIMIT = 100
 
 # Tags
 TAGS_LIMIT = 600
-TAGS_MAX_SIZE = 64 * _KB
+TAGS_MAX_SIZE = _ByteSize('64 KiB')
 TAGS_KEY_MAX_LENGTH = 63
 
 # Changesets
@@ -227,7 +232,7 @@ CHANGESET_IDLE_TIMEOUT = timedelta(hours=1)
 CHANGESET_OPEN_TIMEOUT = timedelta(days=1)
 CHANGESET_EMPTY_DELETE_TIMEOUT = timedelta(hours=1)
 CHANGESET_NEW_BBOX_MIN_DISTANCE = 0.5  # degrees
-CHANGESET_NEW_BBOX_MIN_RATIO: float = 3
+CHANGESET_NEW_BBOX_MIN_RATIO = 3.0
 CHANGESET_BBOX_LIMIT = 10
 CHANGESET_QUERY_DEFAULT_LIMIT = 100
 CHANGESET_QUERY_MAX_LIMIT = 100
@@ -238,9 +243,9 @@ OPTIMISTIC_DIFF_RETRY_TIMEOUT = timedelta(seconds=30)
 
 # Notes
 NOTE_FRESHLY_CLOSED_TIMEOUT = timedelta(days=7)
-NOTE_QUERY_AREA_MAX_SIZE: float = 25  # in square degrees
+NOTE_QUERY_AREA_MAX_SIZE = 25.0  # in square degrees
 NOTE_QUERY_DEFAULT_LIMIT = 100
-NOTE_QUERY_DEFAULT_CLOSED: float = 7  # open + max 7 days closed
+NOTE_QUERY_DEFAULT_CLOSED = 7.0  # open + max 7 days closed
 NOTE_QUERY_WEB_LIMIT = 200
 NOTE_QUERY_LEGACY_MAX_LIMIT = 10_000
 NOTE_USER_PAGE_SIZE = 10
@@ -248,24 +253,24 @@ NOTE_COMMENT_BODY_MAX_LENGTH = 2_000
 NOTE_COMMENTS_PAGE_SIZE = 15
 
 # Search and Query
-MAP_QUERY_AREA_MAX_SIZE: float = 0.25  # in square degrees
+MAP_QUERY_AREA_MAX_SIZE = 0.25  # in square degrees
 MAP_QUERY_LEGACY_NODES_LIMIT = 50_000
-SEARCH_LOCAL_AREA_LIMIT: float = 100  # in square degrees
+SEARCH_LOCAL_AREA_LIMIT = 100.0  # in square degrees
 SEARCH_LOCAL_MAX_ITERATIONS = 7
 SEARCH_LOCAL_RATIO = 0.5  # [0 - 1], smaller = more locality
 SEARCH_QUERY_MAX_LENGTH = 255
 SEARCH_RESULTS_LIMIT = 100  # nominatim has hard-coded upper limit of 50
 QUERY_FEATURES_RESULTS_LIMIT = 50
 NEARBY_USERS_LIMIT = 30
-NEARBY_USERS_RADIUS_METERS: float = 50_000
+NEARBY_USERS_RADIUS_METERS = 50_000.0
 
 # Traces
-TRACE_FILE_UNCOMPRESSED_MAX_SIZE = 80 * _MB
+TRACE_FILE_UNCOMPRESSED_MAX_SIZE = _ByteSize('80 MiB')
 TRACE_FILE_ARCHIVE_MAX_FILES = 10
 TRACE_FILE_MAX_LAYERS = 2
 TRACE_FILE_COMPRESS_ZSTD_THREADS = 4
 TRACE_FILE_COMPRESS_ZSTD_LEVEL = 6
-TRACE_POINT_QUERY_AREA_MAX_SIZE: float = 0.25  # in square degrees
+TRACE_POINT_QUERY_AREA_MAX_SIZE = 0.25  # in square degrees
 TRACE_POINT_QUERY_DEFAULT_LIMIT = 5_000
 TRACE_POINT_QUERY_MAX_LIMIT = 5_000
 TRACE_POINT_QUERY_LEGACY_MAX_SKIP = 45_000
@@ -338,12 +343,17 @@ COPYRIGHT = 'OpenStreetMap contributors'
 ATTRIBUTION_URL = 'https://www.openstreetmap.org/copyright'
 LICENSE_URL = 'https://opendatacommons.org/licenses/odbl/1-0/'
 
+SECRET_32 = SecretBytes(sha256(SECRET.get_secret_value().encode()).digest())
+
 APP_DOMAIN = urlsplit(APP_URL).netloc
+API_DOMAIN = urlsplit(API_URL).netloc
+
+REQUEST_BODY_MAX_SIZE = (  #
+    max(TRACE_FILE_UPLOAD_MAX_SIZE, XML_PARSE_MAX_SIZE) + _ByteSize('8 KiB')
+)
 
 TEST_USER_EMAIL_SUFFIX = '@test.test'
 DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'  # SQL index depends on this value
-
-SECRET_32 = SecretBytes(sha256(SECRET.get_secret_value().encode()).digest())
 
 SMTP_NOREPLY_FROM_HOST = (
     SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None

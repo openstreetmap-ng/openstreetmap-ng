@@ -17,7 +17,7 @@ async def wikimedia_authorize(
     action: Annotated[AuthProviderAction, Form()],
     referer: Annotated[str | None, Form()] = None,
 ):
-    if not WIKIMEDIA_OAUTH_PUBLIC or not WIKIMEDIA_OAUTH_SECRET:
+    if not WIKIMEDIA_OAUTH_PUBLIC:
         return Response(
             'Wikimedia OAuth credentials are not configured',
             status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -50,7 +50,7 @@ async def wikimedia_callback(
         'https://meta.wikimedia.org/w/rest.php/oauth2/access_token',
         data={
             'client_id': WIKIMEDIA_OAUTH_PUBLIC,
-            'client_secret': WIKIMEDIA_OAUTH_SECRET,
+            'client_secret': WIKIMEDIA_OAUTH_SECRET.get_secret_value(),
             'grant_type': 'authorization_code',
             'code': code.get_secret_value(),
         },

@@ -17,7 +17,7 @@ async def github_authorize(
     action: Annotated[AuthProviderAction, Form()],
     referer: Annotated[str | None, Form()] = None,
 ):
-    if not GITHUB_OAUTH_PUBLIC or not GITHUB_OAUTH_SECRET:
+    if not GITHUB_OAUTH_PUBLIC:
         return Response(
             'GitHub OAuth credentials are not configured',
             status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -51,7 +51,7 @@ async def github_callback(
         headers={'Accept': 'application/json'},
         data={
             'client_id': GITHUB_OAUTH_PUBLIC,
-            'client_secret': GITHUB_OAUTH_SECRET,
+            'client_secret': GITHUB_OAUTH_SECRET.get_secret_value(),
             'code': code.get_secret_value(),
         },
     )

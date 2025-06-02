@@ -3,6 +3,7 @@ from sys import modules
 from urllib.parse import urlsplit
 
 import sentry_sdk
+from pydantic import Field
 from sentry_sdk.integrations.gnu_backtrace import GnuBacktraceIntegration
 from sentry_sdk.integrations.pure_eval import PureEvalIntegration
 
@@ -11,8 +12,8 @@ from app.lib.pydantic_settings_integration import pydantic_settings_integration
 
 SENTRY_DSN = ''
 
-SENTRY_TRACES_SAMPLE_RATE: float = 1
-SENTRY_PROFILES_SAMPLE_RATE: float = 1
+SENTRY_TRACES_SAMPLE_RATE = Field(1.0, ge=0, le=1)
+SENTRY_PROFILES_SAMPLE_RATE = Field(1.0, ge=0, le=1)
 
 SENTRY_REPLICATION_MONITOR_SLUG = 'osm-ng-replication'
 SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG = 'osm-ng-changeset-management'

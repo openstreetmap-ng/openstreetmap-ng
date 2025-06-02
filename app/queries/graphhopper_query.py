@@ -21,7 +21,7 @@ class GraphHopperQuery:
     async def route(
         start: Point, end: Point, *, profile: GraphHopperProfile
     ) -> RoutingResult:
-        if not GRAPHHOPPER_API_KEY:
+        if not len(GRAPHHOPPER_API_KEY):
             raise HTTPException(
                 status.HTTP_503_SERVICE_UNAVAILABLE,
                 'GraphHopper API key is not configured',
@@ -31,7 +31,7 @@ class GraphHopperQuery:
         end_x, end_y = get_coordinates(end)[0].tolist()
         r = await HTTP.post(
             f'{GRAPHHOPPER_URL}/api/1/route',
-            params={'key': GRAPHHOPPER_API_KEY},
+            params={'key': GRAPHHOPPER_API_KEY.get_secret_value()},
             json={
                 'profile': profile,
                 'points': (

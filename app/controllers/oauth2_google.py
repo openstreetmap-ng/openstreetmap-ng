@@ -22,7 +22,7 @@ async def google_authorize(
     action: Annotated[AuthProviderAction, Form()],
     referer: Annotated[str | None, Form()] = None,
 ):
-    if not GOOGLE_OAUTH_PUBLIC or not GOOGLE_OAUTH_SECRET:
+    if not GOOGLE_OAUTH_PUBLIC:
         return Response(
             'Google OAuth credentials are not configured',
             status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -61,7 +61,7 @@ async def google_callback(
         openid['token_endpoint'],
         data={
             'client_id': GOOGLE_OAUTH_PUBLIC,
-            'client_secret': GOOGLE_OAUTH_SECRET,
+            'client_secret': GOOGLE_OAUTH_SECRET.get_secret_value(),
             'redirect_uri': _REDIRECT_URI,
             'grant_type': 'authorization_code',
             'code': code.get_secret_value(),

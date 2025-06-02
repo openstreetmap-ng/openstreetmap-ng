@@ -21,7 +21,17 @@ class SubdomainMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(
+        self,
+        scope: Scope,
+        receive: Receive,
+        send: Send,
+        *,
+        _app_prefix=APP_URL + '/',
+        _api_prefix=API_URL + '/',
+        _id_prefix=ID_URL + '/',
+        _rapid_prefix=RAPID_URL + '/',
+    ) -> None:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
@@ -30,7 +40,7 @@ class SubdomainMiddleware:
         path: str = request.url.path
 
         # Handle main domain (APP_URL) redirects
-        if url.startswith(APP_URL + '/'):
+        if url.startswith(_app_prefix):
             # Redirect /id* paths to ID_URL if configured
             if path.startswith('/id') and ID_URL != APP_URL:
                 return await Response(
@@ -48,21 +58,21 @@ class SubdomainMiddleware:
                 )(scope, receive, send)
 
         # Handle API domain (API_URL) path restrictions
-        elif url.startswith(API_URL + '/'):
+        elif url.startswith(_api_prefix):
             if not path.startswith('/api/') or path.startswith('/api/web/'):
                 return await Response(None, status.HTTP_404_NOT_FOUND)(
                     scope, receive, send
                 )
 
         # Handle iD domain (ID_URL) path restrictions
-        elif url.startswith(ID_URL + '/'):
+        elif url.startswith(_id_prefix):
             if not path.startswith(('/static', '/id')):
                 return await Response(None, status.HTTP_404_NOT_FOUND)(
                     scope, receive, send
                 )
 
         # Handle Rapid domain (RAPID_URL) path restrictions
-        elif url.startswith(RAPID_URL + '/'):
+        elif url.startswith(_rapid_prefix):
             if not path.startswith(('/static', '/rapid')):
                 return await Response(None, status.HTTP_404_NOT_FOUND)(
                     scope, receive, send

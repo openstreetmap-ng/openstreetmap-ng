@@ -19,7 +19,7 @@ async def facebook_authorize(
     action: Annotated[AuthProviderAction, Form()],
     referer: Annotated[str | None, Form()] = None,
 ):
-    if not FACEBOOK_OAUTH_PUBLIC or not FACEBOOK_OAUTH_SECRET:
+    if not FACEBOOK_OAUTH_PUBLIC:
         return Response(
             'Facebook OAuth credentials are not configured',
             status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -54,7 +54,7 @@ async def facebook_callback(
         'https://graph.facebook.com/v22.0/oauth/access_token',
         params={
             'client_id': FACEBOOK_OAUTH_PUBLIC,
-            'client_secret': FACEBOOK_OAUTH_SECRET,
+            'client_secret': FACEBOOK_OAUTH_SECRET.get_secret_value(),
             'redirect_uri': _REDIRECT_URI,
             'code': code.get_secret_value(),
         },
