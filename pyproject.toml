@@ -231,8 +231,9 @@ max-args = 10
 [tool.pyright]
 disableBytesTypePromotions = true
 exclude = [
-  "**/.*",
   "**/__pycache__",
+  "**/.*",
+  "/nix/store/**",
   "app/models/proto/**/*_pb2.py",
   "build",
   "data",
