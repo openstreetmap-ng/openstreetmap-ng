@@ -233,11 +233,11 @@ disableBytesTypePromotions = true
 exclude = [
   "**/__pycache__",
   "**/.*",
+  "**/node_modules",
   "/nix/store/**",
   "app/models/proto/**/*_pb2.py",
   "build",
   "data",
-  "node_modules",
 ]
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
@@ -272,6 +272,7 @@ useLibraryCodeForTypes = false
 reportPrivateLocalImportUsage = "warning"
 reportInvalidCast = "warning"
 reportImplicitAbstractClass = "information"
+strictGenericNarrowing = true
 
 [tool.pytest.ini_options]
 addopts = "--quiet --import-mode=importlib --strict-markers --strict-config"

@@ -49,11 +49,11 @@
     "**/*.html": true,
     "**/*.so": true,
     "**/build/": true,
+    "**/node_modules/": true,
     "/nix/store/": true,
     "app/static/js/": true,
     "config/locale/download/": true,
-    "dist/": true,
-    "node_modules/": true
+    "dist/": true
   },
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
