@@ -30,7 +30,7 @@ _NEXT_TABLES: dict[_Table, tuple[_Table, ...]] = {
 }
 
 _NUM_WORKERS_COPY = min(calc_num_workers(), 8)
-_INDEX_SEMAPHORE = Semaphore(calc_num_workers(1.5))
+_INDEX_SEMAPHORE = Semaphore(calc_num_workers())
 
 
 def _get_csv_path(table: _Table) -> Path:
