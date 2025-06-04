@@ -254,7 +254,7 @@ def deep_dict_update(d: dict, u: dict) -> None:
             d[k] = uv
         elif isinstance(dv, dict) and isinstance(uv, dict):
             deep_dict_update(dv, uv)
-        elif isinstance(dv, (list, tuple)) and isinstance(uv, (list, tuple)):
+        elif isinstance(dv, (list, tuple)) and isinstance(uv, (list, tuple)):  # noqa: UP038
             d[k] = [*dv, *uv]
         else:
             d[k] = uv
