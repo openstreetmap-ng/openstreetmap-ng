@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Literal, NotRequired, TypedDict, override
 
-from app.models.db.oauth2_application import OAuth2Application
+from app.models.db.oauth2_application import OAuth2Application, OAuth2Uri
 from app.models.db.user import User
 from app.models.scope import PublicScope
-from app.models.types import ApplicationId, OAuth2TokenId, Uri, UserId
+from app.models.types import ApplicationId, OAuth2TokenId, UserId
 
 OAuth2ResponseType = Literal['code']
 OAuth2ResponseMode = Literal['query', 'fragment', 'form_post']
@@ -20,7 +20,7 @@ class OAuth2TokenInit(TypedDict):
     name: str | None  # PATs only
     token_hashed: bytes | None
     token_preview: str | None  # PATs only
-    redirect_uri: Uri | None
+    redirect_uri: OAuth2Uri | None
     scopes: list[PublicScope]
     code_challenge_method: OAuth2CodeChallengeMethod | None
     code_challenge: str | None  # TODO: validate size
@@ -36,7 +36,7 @@ class OAuth2Token(OAuth2TokenInit):
 
 
 def oauth2_token_is_oob(
-    token_or_uri: OAuth2Token | OAuth2TokenInit | Uri | None, /
+    token_or_uri: OAuth2Token | OAuth2TokenInit | OAuth2Uri | None, /
 ) -> bool:
     """Check if the token is an out-of-band token."""
     return (

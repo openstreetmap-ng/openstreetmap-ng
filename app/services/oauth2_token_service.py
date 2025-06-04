@@ -19,6 +19,7 @@ from app.lib.exceptions_context import raise_for
 from app.models.db.oauth2_application import (
     SYSTEM_APP_PAT_CLIENT_ID,
     OAuth2Application,
+    OAuth2Uri,
     oauth2_app_is_system,
 )
 from app.models.db.oauth2_token import (
@@ -29,7 +30,7 @@ from app.models.db.oauth2_token import (
     oauth2_token_is_oob,
 )
 from app.models.scope import PublicScope
-from app.models.types import ApplicationId, ClientId, OAuth2TokenId, Uri, UserId
+from app.models.types import ApplicationId, ClientId, OAuth2TokenId, UserId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
@@ -45,7 +46,7 @@ class OAuth2TokenService:
         *,
         init: Literal[False],
         client_id: ClientId,
-        redirect_uri: Uri,
+        redirect_uri: OAuth2Uri,
         scopes: tuple[PublicScope, ...],
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
@@ -57,7 +58,7 @@ class OAuth2TokenService:
         *,
         init: bool,
         client_id: ClientId,
-        redirect_uri: Uri,
+        redirect_uri: OAuth2Uri,
         scopes: tuple[PublicScope, ...],
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
@@ -68,7 +69,7 @@ class OAuth2TokenService:
         *,
         init: bool,
         client_id: ClientId,
-        redirect_uri: Uri,
+        redirect_uri: OAuth2Uri,
         scopes: tuple[PublicScope, ...],
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
@@ -170,7 +171,7 @@ class OAuth2TokenService:
         client_secret: SecretStr | None,
         authorization_code: str,
         verifier: str | None,
-        redirect_uri: Uri,
+        redirect_uri: OAuth2Uri,
     ) -> dict[str, str | int]:
         """
         Exchange an authorization code for an access token.

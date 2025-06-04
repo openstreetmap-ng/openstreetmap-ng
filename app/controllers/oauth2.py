@@ -11,6 +11,7 @@ from app.config import APP_URL, ENV, OAUTH_CODE_CHALLENGE_MAX_LENGTH
 from app.lib.auth_context import api_user, web_user
 from app.lib.exceptions_context import raise_for
 from app.lib.render_response import render_response
+from app.models.db.oauth2_application import OAuth2Uri
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,
     OAuth2GrantType,
@@ -21,7 +22,7 @@ from app.models.db.oauth2_token import (
 )
 from app.models.db.user import User, user_avatar_url
 from app.models.scope import PUBLIC_SCOPES, scope_from_str
-from app.models.types import ClientId, Uri
+from app.models.types import ClientId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.openid_query import OpenIDDiscovery
@@ -76,7 +77,7 @@ async def authorize(
     request: Request,
     _: Annotated[User, web_user()],
     client_id: Annotated[ClientId, Query(min_length=1)],
-    redirect_uri: Annotated[Uri, Query(min_length=1)],
+    redirect_uri: Annotated[OAuth2Uri, Query(min_length=1)],
     response_type: Annotated[OAuth2ResponseType, Query()],
     response_mode: Annotated[OAuth2ResponseMode, Query()] = 'query',
     scope: Annotated[str, Query()] = '',
@@ -134,7 +135,7 @@ async def authorize(
 @router.post('/oauth2/token')
 async def post_token(
     grant_type: Annotated[OAuth2GrantType, Form()],
-    redirect_uri: Annotated[Uri, Form(min_length=1)],
+    redirect_uri: Annotated[OAuth2Uri, Form(min_length=1)],
     code: Annotated[str, Form(min_length=1)],
     code_verifier: Annotated[
         str | None, Form(min_length=1, max_length=OAUTH_CODE_CHALLENGE_MAX_LENGTH)

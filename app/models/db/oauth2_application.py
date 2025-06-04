@@ -1,10 +1,12 @@
 from datetime import datetime
-from typing import NotRequired, TypedDict
+from typing import NewType, NotRequired, TypedDict
 
 from app.lib.image import DEFAULT_APP_AVATAR_URL, Image
 from app.models.db.user import UserDisplay
 from app.models.scope import PublicScope
-from app.models.types import ApplicationId, ClientId, StorageKey, Uri, UserId
+from app.models.types import ApplicationId, ClientId, StorageKey, UserId
+
+OAuth2Uri = NewType('OAuth2Uri', str)
 
 SYSTEM_APP_WEB_CLIENT_ID = ClientId('SystemApp.web')
 SYSTEM_APP_PAT_CLIENT_ID = ClientId('SystemApp.pat')
@@ -30,7 +32,7 @@ class OAuth2Application(OAuth2ApplicationInit):
     client_secret_hashed: bytes | None
     client_secret_preview: str | None
     confidential: bool
-    redirect_uris: list[Uri]
+    redirect_uris: list[OAuth2Uri]
     scopes: list[PublicScope]
     created_at: datetime
     updated_at: datetime

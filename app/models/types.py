@@ -10,7 +10,6 @@ ClientId = NewType('ClientId', str)
 LocaleCode = NewType('LocaleCode', str)
 Password = NewType('Password', SecretStr)
 StorageKey = NewType('StorageKey', str)
-Uri = NewType('Uri', str)
 
 Longitude = Annotated[float, Interval(ge=-180, le=180)]
 Latitude = Annotated[float, Interval(ge=-90, le=90)]

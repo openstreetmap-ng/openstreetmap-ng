@@ -20,10 +20,11 @@ from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.db.oauth2_application import (
     OAuth2ApplicationInit,
+    OAuth2Uri,
     oauth2_app_avatar_url,
 )
 from app.models.scope import PublicScope
-from app.models.types import ApplicationId, ClientId, StorageKey, Uri
+from app.models.types import ApplicationId, ClientId, StorageKey
 from app.services.image_service import ImageService
 from app.utils import splitlines_trim
 from app.validators.url import UriValidator
@@ -75,7 +76,7 @@ class OAuth2ApplicationService:
         return app_id
 
     @staticmethod
-    def validate_redirect_uris(redirect_uris: str) -> list[Uri]:
+    def validate_redirect_uris(redirect_uris: str) -> list[OAuth2Uri]:
         """Validate redirect URIs."""
         uris = splitlines_trim(redirect_uris)
         if len(uris) > OAUTH_APP_URI_LIMIT:
@@ -118,7 +119,7 @@ class OAuth2ApplicationService:
         app_id: ApplicationId,
         name: str,
         is_confidential: bool,
-        redirect_uris: list[Uri],
+        redirect_uris: list[OAuth2Uri],
         scopes: tuple[PublicScope, ...],
         revoke_all_authorizations: bool,
     ) -> None:

@@ -11,10 +11,10 @@ from app.lib.auth_context import auth_context
 from app.lib.crypto import hash_bytes
 from app.lib.locale import DEFAULT_LOCALE
 from app.lib.testmethod import testmethod
-from app.models.db.oauth2_application import OAuth2ApplicationInit
+from app.models.db.oauth2_application import OAuth2ApplicationInit, OAuth2Uri
 from app.models.db.user import UserInit, UserRole, user_is_test
 from app.models.scope import PUBLIC_SCOPES, PublicScope
-from app.models.types import ClientId, DisplayName, Email, LocaleCode, Uri, UserId
+from app.models.types import ClientId, DisplayName, Email, LocaleCode, UserId
 
 
 class TestService:
@@ -143,9 +143,9 @@ class TestService:
             if client_secret is not None
             else None
         )
-        redirect_uris: list[Uri] = [
-            Uri('http://localhost/callback'),
-            Uri('urn:ietf:wg:oauth:2.0:oob'),
+        redirect_uris: list[OAuth2Uri] = [
+            OAuth2Uri('http://localhost/callback'),
+            OAuth2Uri('urn:ietf:wg:oauth:2.0:oob'),
         ]
 
         async with db(True) as conn:
