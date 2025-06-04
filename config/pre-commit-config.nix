@@ -1,13 +1,14 @@
 { pkgs, makeScript }:
 
-with pkgs; writeText "pre-commit-config.yaml" ''
+with pkgs;
+writeText "pre-commit-config.yaml" ''
   repos:
     - repo: local
       hooks:
-        - id: nixpkgs-fmt
-          name: nixpkgs-fmt
+        - id: nixfmt
+          name: nixfmt
           entry: ${makeScript "entry" ''
-            ${nixpkgs-fmt}/bin/nixpkgs-fmt "$@"
+            ${nixfmt-rfc-style}/bin/nixfmt "$@"
           ''}/bin/entry
           language: system
           types_or: [nix]

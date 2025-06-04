@@ -1,28 +1,39 @@
-{ isDevelopment ? true
-, hostMemoryMb ? 8192
-, hostDiskCoW ? false
-, enablePostgres ? true
-, postgresPort ? 49560
-, postgresCpuThreads ? 8
-, postgresMinWalSizeGb ? 1
-, postgresMaxWalSizeGb ? 10
-, postgresFullPageWrites ? true
-, postgresVerbose ? 2  # 0 = no, 1 = some, 2 = most
-, enableMailpit ? true
-, mailpitHttpPort ? 49566
-, mailpitSmtpPort ? 49565
-, gunicornWorkers ? 1
-, gunicornPort ? 8000
+{
+  isDevelopment ? true,
+  hostMemoryMb ? 8192,
+  hostDiskCoW ? false,
+  enablePostgres ? true,
+  postgresPort ? 49560,
+  postgresCpuThreads ? 8,
+  postgresMinWalSizeGb ? 1,
+  postgresMaxWalSizeGb ? 10,
+  postgresFullPageWrites ? true,
+  postgresVerbose ? 2, # 0 = no, 1 = some, 2 = most
+  enableMailpit ? true,
+  mailpitHttpPort ? 49566,
+  mailpitSmtpPort ? 49565,
+  gunicornWorkers ? 1,
+  gunicornPort ? 8000,
 }:
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/359c442b7d1f6229c1dc978116d32d6c07fe8440.tar.gz") { };
-  pkgsPostgres18 = import (fetchTarball "https://github.com/Zaczero/nixpkgs/archive/9a34d82294533b930bed6fe05873752daabbb91d.tar.gz") { };
+  pkgs =
+    import
+      (fetchTarball "https://github.com/NixOS/nixpkgs/archive/359c442b7d1f6229c1dc978116d32d6c07fe8440.tar.gz")
+      { };
+  pkgsPostgres18 =
+    import
+      (fetchTarball "https://github.com/Zaczero/nixpkgs/archive/9a34d82294533b930bed6fe05873752daabbb91d.tar.gz")
+      { };
 
   projectDir = toString ./.;
-  preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs makeScript; };
-  preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
+  preCommitConf = import ./config/pre-commit-config.nix {
+    inherit pkgs makeScript;
+  };
+  preCommitHook = import ./config/pre-commit-hook.nix {
+    inherit pkgs projectDir preCommitConf;
+  };
   postgresArgs = {
     inherit
       hostMemoryMb
@@ -33,12 +44,12 @@ let
       postgresMaxWalSizeGb
       postgresFullPageWrites
       postgresVerbose
-      pkgs projectDir;
+      pkgs
+      projectDir
+      ;
   };
   postgresConf = import ./config/postgres.nix postgresArgs;
-  postgresFastIngestConf = import ./config/postgres.nix (postgresArgs // {
-    fastIngest = true;
-  });
+  postgresFastIngestConf = import ./config/postgres.nix (postgresArgs // { fastIngest = true; });
   supervisordArgs = {
     inherit
       isDevelopment
@@ -46,13 +57,14 @@ let
       enableMailpit
       mailpitHttpPort
       mailpitSmtpPort
-      pkgs;
+      pkgs
+      ;
     postgresConf = postgresConf;
   };
   supervisordConf = import ./config/supervisord.nix supervisordArgs;
-  supervisordFastIngestConf = import ./config/supervisord.nix (supervisordArgs // {
-    postgresConf = postgresFastIngestConf;
-  });
+  supervisordFastIngestConf = import ./config/supervisord.nix (
+    supervisordArgs // { postgresConf = postgresFastIngestConf; }
+  );
 
   pythonLibs = with pkgs; [
     cairo.out
@@ -63,25 +75,29 @@ let
     zlib.out
     stdenv.cc.cc.lib
   ];
-  python' = with pkgs; symlinkJoin {
-    name = "python";
-    paths = [
-      # Enable compiler optimizations when in production
-      (if isDevelopment then python313 else python313.override { enableOptimizations = true; })
-    ];
-    buildInputs = [ makeWrapper ];
-    postBuild = ''
-      wrapProgram "$out/bin/python3.13" \
-        --prefix ${if stdenv.isDarwin then "DYLD_LIBRARY_PATH" else "LD_LIBRARY_PATH"} : \
-        "${lib.makeLibraryPath pythonLibs}"
-    '';
-  };
+  python' =
+    with pkgs;
+    symlinkJoin {
+      name = "python";
+      paths = [
+        # Enable compiler optimizations when in production
+        (if isDevelopment then python313 else python313.override { enableOptimizations = true; })
+      ];
+      buildInputs = [ makeWrapper ];
+      postBuild = ''
+        wrapProgram "$out/bin/python3.13" \
+          --prefix ${if stdenv.isDarwin then "DYLD_LIBRARY_PATH" else "LD_LIBRARY_PATH"} : \
+          "${lib.makeLibraryPath pythonLibs}"
+      '';
+    };
   watchexec' = makeScript "watchexec" ''
     exec ${pkgs.watchexec}/bin/watchexec --wrap-process=none "$@"
   '';
 
   # https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/build-support/trivial-builders/default.nix
-  makeScript = with pkgs; name: text:
+  makeScript =
+    with pkgs;
+    name: text:
     writeTextFile {
       inherit name;
       executable = true;
@@ -113,7 +129,7 @@ let
     brotli
     zstd
     b3sum
-    nixpkgs-fmt
+    nixfmt-rfc-style
     # Python:
     python'
     uv
@@ -127,7 +143,10 @@ let
     bun
     biome
     # Services:
-    (pkgsPostgres18.postgresql_18_jit.withPackages (ps: [ ps.postgis ps.h3-pg ])) # SOON: ps.timescaledb-apache
+    (pkgsPostgres18.postgresql_18_jit.withPackages (ps: [
+      ps.postgis
+      ps.h3-pg
+    ])) # SOON: ps.timescaledb-apache
     timescaledb-parallel-copy
     mailpit
 
@@ -266,7 +285,7 @@ let
     (makeScript "watch-css" "exec watchexec -o queue -w app/views -e scss css-pipeline")
 
     # -- JavaScript
-    (makeScript "node" "exec bun \"$@\"")
+    (makeScript "node" ''exec bun "$@"'')
     (makeScript "js-pipeline" ''
       src=app/views
       dst=app/static/js
@@ -356,7 +375,7 @@ let
     # -- Locale
     (makeScript "locale-clean" "rm -rf config/locale/*/")
     (makeScript "locale-download" "python scripts/locale_download.py")
-    (makeScript "locale-postprocess" "python scripts/locale_postprocess.py \"$@\"")
+    (makeScript "locale-postprocess" ''python scripts/locale_postprocess.py "$@"'')
     (makeScript "locale-make-i18next" "python scripts/locale_make_i18next.py")
     (makeScript "locale-make-gnu" "python scripts/locale_make_gnu.py")
     (makeScript "locale-pipeline" ''
@@ -548,9 +567,9 @@ let
       preload-load
     '')
     (makeScript "replication-download" "python scripts/replication_download.py")
-    (makeScript "replication-convert" "python scripts/replication_convert.py \"$@\"")
+    (makeScript "replication-convert" ''python scripts/replication_convert.py "$@"'')
     (makeScript "replication-load" "_db-load replication")
-    (makeScript "replication-generate" "python scripts/replication_generate.py \"$@\"")
+    (makeScript "replication-generate" ''python scripts/replication_generate.py "$@"'')
 
     # -- Testing
     (makeScript "run-tests" ''
@@ -595,24 +614,29 @@ let
     (makeScript "watch-tests" "exec watchexec -w app -w tests --exts py run-tests")
 
     # -- Misc
-    (makeScript "run" (if isDevelopment then ''
-      python -m uvicorn app.main:main \
-        --reload \
-        --reload-include "*.mo" \
-        --reload-exclude scripts \
-        --reload-exclude tests \
-        --reload-exclude typings
-    '' else ''
-      python -m gunicorn app.main:main \
-        --bind 127.0.0.1:${toString gunicornPort} \
-        --workers ${toString gunicornWorkers} \
-        --worker-class uvicorn.workers.UvicornWorker \
-        --max-requests 10000 \
-        --max-requests-jitter 1000 \
-        --graceful-timeout 5 \
-        --keep-alive 300 \
-        --access-logfile -
-    ''))
+    (makeScript "run" (
+      if isDevelopment then
+        ''
+          python -m uvicorn app.main:main \
+            --reload \
+            --reload-include "*.mo" \
+            --reload-exclude scripts \
+            --reload-exclude tests \
+            --reload-exclude typings
+        ''
+      else
+        ''
+          python -m gunicorn app.main:main \
+            --bind 127.0.0.1:${toString gunicornPort} \
+            --workers ${toString gunicornWorkers} \
+            --worker-class uvicorn.workers.UvicornWorker \
+            --max-requests 10000 \
+            --max-requests-jitter 1000 \
+            --graceful-timeout 5 \
+            --keep-alive 300 \
+            --access-logfile -
+        ''
+    ))
     (makeScript "format" ''
       set +e
       ruff check . --fix
@@ -670,116 +694,128 @@ let
     '')
   ];
 
-  shell' = with pkgs; ''
-    export TZ=UTC
-    export NIX_ENFORCE_NO_NATIVE=0
-    export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
-    export SSL_CERT_FILE=$NIX_SSL_CERT_FILE
-    export PATH="$PATH:${gitMinimal}/bin"
-    export PYTHONNOUSERSITE=1
-    export PYTHONPATH="${projectDir}"
-    export COVERAGE_CORE=sysmon
+  shell' =
+    with pkgs;
+    ''
+      export TZ=UTC
+      export NIX_ENFORCE_NO_NATIVE=0
+      export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
+      export SSL_CERT_FILE=$NIX_SSL_CERT_FILE
+      export PATH="$PATH:${gitMinimal}/bin"
+      export PYTHONNOUSERSITE=1
+      export PYTHONPATH="${projectDir}"
+      export COVERAGE_CORE=sysmon
 
-    export CFLAGS="$CFLAGS \
-      -pipe -g ${if isDevelopment then "-Og" else "-O3"} \
-      -march=''${CMARCH:-native} \
-      -mtune=''${CMTUNE:-native} \
-      -funsafe-math-optimizations \
-      -fvisibility=hidden \
-      -flto=thin \
-      -fno-plt"
+      export CFLAGS="$CFLAGS \
+        -pipe -g ${if isDevelopment then "-Og" else "-O3"} \
+        -march=''${CMARCH:-native} \
+        -mtune=''${CMTUNE:-native} \
+        -funsafe-math-optimizations \
+        -fvisibility=hidden \
+        -flto=thin \
+        -fno-plt"
 
-    export LDFLAGS="$LDFLAGS \
-      -flto=thin \
-      -fuse-ld=lld \
-      ${if isDevelopment then "" else "-Wl,--strip-all"}"
+      export LDFLAGS="$LDFLAGS \
+        -flto=thin \
+        -fuse-ld=lld \
+        ${if isDevelopment then "" else "-Wl,--strip-all"}"
 
-    en_yaml_path="${projectDir}/config/locale/download/en.yaml"
-    en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
-    current_en_yaml=$(readlink -e "$en_yaml_sym_path" || echo "")
-    if [ "$current_en_yaml" != "$en_yaml_path" ]; then
-      echo "Creating convenience symlink for en.yaml"
-      ln -s "$en_yaml_path" "$en_yaml_sym_path"
-    fi
+      en_yaml_path="${projectDir}/config/locale/download/en.yaml"
+      en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
+      current_en_yaml=$(readlink -e "$en_yaml_sym_path" || echo "")
+      if [ "$current_en_yaml" != "$en_yaml_path" ]; then
+        echo "Creating convenience symlink for en.yaml"
+        ln -s "$en_yaml_path" "$en_yaml_sym_path"
+      fi
 
-    current_python=$(readlink -e .venv/bin/python || echo "")
-    current_python=''${current_python%/bin/*}
-    [ "$current_python" != "${python'}" ] && rm -rf .venv/
+      current_python=$(readlink -e .venv/bin/python || echo "")
+      current_python=''${current_python%/bin/*}
+      [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
-    echo "Installing Python dependencies"
-    export UV_PYTHON="${python'}/bin/python"
-    uv sync --frozen
-    [ -n "$(find speedup -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
-      uv add ./speedup --reinstall-package speedup
+      echo "Installing Python dependencies"
+      export UV_PYTHON="${python'}/bin/python"
+      uv sync --frozen
+      [ -n "$(find speedup -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
+        uv add ./speedup --reinstall-package speedup
 
-    echo "Installing Bun dependencies"
-    export DO_NOT_TRACK=1
-    bun install --frozen-lockfile
+      echo "Installing Bun dependencies"
+      export DO_NOT_TRACK=1
+      bun install --frozen-lockfile
 
-    echo "Activating Python virtual environment"
-    source .venv/bin/activate
-  '' + lib.optionalString stdenv.isDarwin ''
-    patch-venv-bin &
-  '' + ''
+      echo "Activating Python virtual environment"
+      source .venv/bin/activate
+    ''
+    + lib.optionalString stdenv.isDarwin ''
+      patch-venv-bin &
+    ''
+    + ''
 
-    if [ -d .git ]; then
-      echo "Installing pre-commit hooks"
-      pre-commit install -c ${preCommitConf} --overwrite
-      cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
-    fi
+      if [ -d .git ]; then
+        echo "Installing pre-commit hooks"
+        pre-commit install -c ${preCommitConf} --overwrite
+        cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
+      fi
 
-  '' + lib.optionalString isDevelopment ''
-    export ENV=dev
-    export SECRET=development-secret
-    export APP_URL=http://127.0.0.1:8000
-    export NOMINATIM_URL=https://nominatim.monicz.dev
-    export GRAPHHOPPER_API_KEY=e6d61235-3e37-4290-91a7-d7be9e5a8909
-    export FACEBOOK_OAUTH_PUBLIC=1538918736889845
-    export FACEBOOK_OAUTH_SECRET=4090c8e1f08a93af65c6d6cc56350f4b
-    export GITHUB_OAUTH_PUBLIC=Ov23lidLgxluuWuo0PNn
-    export GITHUB_OAUTH_SECRET=4ed29823ee9d975e9f42a14e5c3d4b8293041cda
-    export GOOGLE_OAUTH_PUBLIC=329628600169-6du7d20fo0poong0aqttuikstq97bten.apps.googleusercontent.com
-    export GOOGLE_OAUTH_SECRET=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
-    export MICROSOFT_OAUTH_PUBLIC=db54bdb3-08af-481b-9641-39f49065b640
-    export WIKIMEDIA_OAUTH_PUBLIC=2f7fe9e2825acc816d1e1103d203e8ec
-    export WIKIMEDIA_OAUTH_SECRET=d07aaeabb5f7a5de76e3d667db3dfe0b2a5abf11
-    export LEGACY_HIGH_PRECISION_TIME=1
-  '' + lib.optionalString enableMailpit ''
-    export SMTP_HOST=127.0.0.1
-    export SMTP_PORT=49565
-    export SMTP_USER=mail@openstreetmap.org
-    export SMTP_PASS=anything
-  '' + ''
+    ''
+    + lib.optionalString isDevelopment ''
+      export ENV=dev
+      export SECRET=development-secret
+      export APP_URL=http://127.0.0.1:8000
+      export NOMINATIM_URL=https://nominatim.monicz.dev
+      export GRAPHHOPPER_API_KEY=e6d61235-3e37-4290-91a7-d7be9e5a8909
+      export FACEBOOK_OAUTH_PUBLIC=1538918736889845
+      export FACEBOOK_OAUTH_SECRET=4090c8e1f08a93af65c6d6cc56350f4b
+      export GITHUB_OAUTH_PUBLIC=Ov23lidLgxluuWuo0PNn
+      export GITHUB_OAUTH_SECRET=4ed29823ee9d975e9f42a14e5c3d4b8293041cda
+      export GOOGLE_OAUTH_PUBLIC=329628600169-6du7d20fo0poong0aqttuikstq97bten.apps.googleusercontent.com
+      export GOOGLE_OAUTH_SECRET=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
+      export MICROSOFT_OAUTH_PUBLIC=db54bdb3-08af-481b-9641-39f49065b640
+      export WIKIMEDIA_OAUTH_PUBLIC=2f7fe9e2825acc816d1e1103d203e8ec
+      export WIKIMEDIA_OAUTH_SECRET=d07aaeabb5f7a5de76e3d667db3dfe0b2a5abf11
+      export LEGACY_HIGH_PRECISION_TIME=1
+    ''
+    + lib.optionalString enableMailpit ''
+      export SMTP_HOST=127.0.0.1
+      export SMTP_PORT=49565
+      export SMTP_USER=mail@openstreetmap.org
+      export SMTP_PASS=anything
+    ''
+    + ''
 
-    if [ -f .env ]; then
-      echo "Loading .env file"
-      set -o allexport
-      source .env set
-      set +o allexport
-    else
-      echo "Skipped loading .env file (not found)"
-    fi
+      if [ -f .env ]; then
+        echo "Loading .env file"
+        set -o allexport
+        source .env set
+        set +o allexport
+      else
+        echo "Skipped loading .env file (not found)"
+      fi
 
-    echo "Running [proto-pipeline]"
-    proto-pipeline &
-    echo "Running [locale-pipeline]"
-    locale-pipeline &
-    echo "Running [static-img-pipeline]"
-    static-img-pipeline &
-    wait
+      echo "Running [proto-pipeline]"
+      proto-pipeline &
+      echo "Running [locale-pipeline]"
+      locale-pipeline &
+      echo "Running [static-img-pipeline]"
+      static-img-pipeline &
+      wait
 
-    if [ ! -d app/static/css ]; then
-      echo "Running [css-pipeline]"
-      css-pipeline &
-    fi
-    if [ ! -d app/static/js ]; then
-      echo "Running [js-pipeline]"
-      js-pipeline &
-    fi
-    wait
-  '';
+      if [ ! -d app/static/css ]; then
+        echo "Running [css-pipeline]"
+        css-pipeline &
+      fi
+      if [ ! -d app/static/js ]; then
+        echo "Running [js-pipeline]"
+        js-pipeline &
+      fi
+      wait
+    '';
 in
-with pkgs; mkShell.override { stdenv = (if stdenv.isDarwin then stdenv else llvmPackages_latest.stdenv); } {
-  packages = packages';
-  shellHook = shell';
-}
+with pkgs;
+mkShell.override
+  {
+    stdenv = if stdenv.isDarwin then stdenv else llvmPackages_latest.stdenv;
+  }
+  {
+    packages = packages';
+    shellHook = shell';
+  }
