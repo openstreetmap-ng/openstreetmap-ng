@@ -514,7 +514,7 @@ let
 
       echo "Checking for preload data updates"
       remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.b3"
-      remote_checksums=$(curl --silent --location "$remote_check_url")
+      remote_checksums=$(curl -sSL "$remote_check_url")
       names=$(grep -Po '[^/]+(?=\.csv\.zst)' <<< "$remote_checksums")
 
       mkdir -p "data/preload/$dataset"
@@ -537,7 +537,7 @@ let
         fi
 
         echo "Downloading $name preload data"
-        curl --location "$remote_url" -o "$local_file"
+        curl -L "$remote_url" -o "$local_file"
 
         # recompute checksum
         local_checksum=$(b3sum --no-names "$local_file")
@@ -657,7 +657,7 @@ let
         url="''${style#*+}"
         file="$dir/$name.json"
         echo "Updating $name vector style"
-        curl --silent --location "$url" | jq --sort-keys . > "$file"
+        curl -sSL --compressed "$url" | jq --sort-keys . > "$file"
       done
     '')
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
@@ -685,11 +685,11 @@ let
     '')
     (makeScript "nixpkgs-update" ''
       hash=$(
-        curl --silent --location \
-        https://prometheus.nixos.org/api/v1/query \
-        -d "query=channel_revision{channel=\"nixpkgs-unstable\"}" | \
-        grep -Eo "[0-9a-f]{40}")
-      sed -i -E "s|/nixpkgs/archive/[0-9a-f]{40}\.tar\.gz|/nixpkgs/archive/$hash.tar.gz|" shell.nix
+        curl -sSL \
+          https://prometheus.nixos.org/api/v1/query \
+          -d 'query=channel_revision{channel="nixpkgs-unstable"}' \
+        | jq -r ".data.result[0].metric.revision")
+      sed -i "s|nixpkgs/archive/[0-9a-f]\\{40\\}|nixpkgs/archive/$hash|" shell.nix
       echo "Nixpkgs updated to $hash"
     '')
   ];
