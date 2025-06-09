@@ -29,8 +29,8 @@ _NEXT_TABLES: dict[_Table, tuple[_Table, ...]] = {
     'note': ('note_comment',),
 }
 
-_NUM_WORKERS_COPY = min(calc_num_workers(), 8)
-_INDEX_SEMAPHORE = Semaphore(calc_num_workers())
+_NUM_WORKERS_COPY = calc_num_workers(max=8)
+_INDEX_SEMAPHORE = Semaphore(calc_num_workers(0.5, min=2))
 
 
 def _get_csv_path(table: _Table) -> Path:

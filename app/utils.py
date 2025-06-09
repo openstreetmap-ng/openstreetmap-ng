@@ -1,3 +1,4 @@
+import builtins
 from os import process_cpu_count
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -51,14 +52,22 @@ def splitlines_trim(s: str) -> list[str]:
     return [strip for line in s.splitlines() if (strip := line.strip())]
 
 
-def calc_num_workers(target: int | float = 1.0) -> int:
+def calc_num_workers(
+    target: int | float = 1.0, *, min: int = 1, max: int = 1024
+) -> int:
     """
     Calculate the number of workers to use based on the target value.
     If the target is an integer, it will be used as is.
     If the target is a float, it will multiply the number of available CPUs.
     """
-    return (
-        int(max((process_cpu_count() or 1) * target, 1))
-        if isinstance(target, float)
-        else target
+    return builtins.min(
+        builtins.max(
+            (
+                int((process_cpu_count() or 1) * target)
+                if isinstance(target, float)
+                else target
+            ),
+            min,
+        ),
+        max,
     )
