@@ -103,7 +103,7 @@ in
         RestartSec = "30s";
       }
     ];
-    script = nixShellRun "static-precompress && dev-start";
+    script = nixShellRun "css-pipeline && js-pipeline && static-precompress && dev-start";
     preStop = nixShellRun "dev-stop";
   };
 
