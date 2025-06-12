@@ -255,7 +255,7 @@ let
     (makeScript "css-pipeline" ''
       src=app/views
       dst=app/static/css
-      rm -f "$dst"/*.{css,map}
+      rm -f "$dst"/*.{css,map}{,.br,.zst}
 
       mappings=()
       for f in main id rapid embed; do
@@ -291,7 +291,7 @@ let
       dst=app/static/js
       tmp="$dst/_generated"
       mkdir -p "$tmp"
-      rm -f "$dst"/*.{js,map}
+      rm -f "$dst"/*.{js,map}{,.br,.zst}
 
       bun run babel \
         --extensions ".js,.ts" \
@@ -325,10 +325,10 @@ let
             return
           fi
           if [ ! -f "$dest" ] || [ "$dest" -ot "$file" ]; then
-              tmpfile=$(mktemp -t "$(basename "$dest").XXXXXXXXXX")
-              $compressor "''${args[@]}" "$file" -o "$tmpfile"
-              touch --reference "$file" "$tmpfile"
-              mv -f "$tmpfile" "$dest"
+            tmpfile=$(mktemp -t "$(basename "$dest").XXXXXXXXXX")
+            $compressor "''${args[@]}" "$file" -o "$tmpfile"
+            touch --reference "$file" "$tmpfile"
+            mv -f "$tmpfile" "$dest"
           fi
         }
 
