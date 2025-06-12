@@ -67,10 +67,10 @@ let
       --arg postgresMaxWalSizeGb 50 \
       --arg postgresFullPageWrites false \
       --arg postgresVerbose 1 \
-      --arg gunicornWorkers 8 \
+      --arg gunicornWorkers 6 \
       --run "
         export ENV=test \
-        && export APP_URL=https://openstreetmap.ng \
+        && export APP_URL=https://www.openstreetmap.ng \
         && export API_URL=https://api.openstreetmap.ng \
         && export ID_URL=https://id.openstreetmap.ng \
         && export RAPID_URL=https://rapid.openstreetmap.ng \
@@ -87,7 +87,6 @@ in
   };
 
   systemd.services.osm-ng-dev = {
-    enable = false;
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     unitConfig = {
@@ -109,7 +108,6 @@ in
   };
 
   systemd.services.osm-ng = {
-    enable = false;
     after = [ "osm-ng-dev.service" ];
     bindsTo = [ "osm-ng-dev.service" ];
     wantedBy = [ "default.target" ];
@@ -134,7 +132,6 @@ in
       caddyArgs = "--config config/Caddyfile";
     in
     {
-      enable = false;
       after = [ "osm-ng.service" ];
       bindsTo = [ "osm-ng.service" ];
       wantedBy = [ "default.target" ];
@@ -143,7 +140,10 @@ in
         StartLimitBurst = 30;
       };
       serviceConfig = pkgs.lib.mkMerge [
-        commonServiceConfig
+        (removeAttrs commonServiceConfig [
+          "CapabilityBoundingSet"
+          "PrivateUsers"
+        ])
         {
           Type = "exec";
           Nice = -3;
@@ -152,6 +152,8 @@ in
           RestartSec = "5s";
           ExecStartPre = "${pkgs.toybox}/bin/mkdir -p data/caddy";
           ExecReload = "${pkgs.caddy}/bin/caddy reload --force ${caddyArgs}";
+          CapabilityBoundingSet = "CAP_NET_BIND_SERVICE";
+          AmbientCapabilities = "CAP_NET_BIND_SERVICE";
         }
       ];
       script = "${pkgs.caddy}/bin/caddy run ${caddyArgs}";
