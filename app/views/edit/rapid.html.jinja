@@ -2,9 +2,6 @@
 {% block body_class %}map-body{% endblock %}
 {% block body %}
 <div class="main-map-container">
-    <iframe class="main-map rapid-iframe"
-        sandbox="allow-downloads allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
-        data-url="{{ RAPID_URL }}">
-    </iframe>
+    <iframe class="main-map rapid-iframe" data-url="{{ RAPID_URL }}"></iframe>
 </div>
 {% endblock %}

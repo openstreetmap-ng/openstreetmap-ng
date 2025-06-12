@@ -33,7 +33,7 @@ parentLoadSystemApp((accessToken) => {
 
             const [lon, lat] = map.center()
             const zoom = map.zoom()
-            parent.postMessage(
+            window.parent.postMessage(
                 { type: "mapState", source: "id", state: { lon, lat, zoom } },
                 "*",
             )
