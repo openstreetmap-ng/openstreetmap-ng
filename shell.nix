@@ -20,7 +20,7 @@ let
   # Update packages with `nixpkgs-update` command
   pkgs =
     import
-      (fetchTarball "https://github.com/NixOS/nixpkgs/archive/359c442b7d1f6229c1dc978116d32d6c07fe8440.tar.gz")
+      (fetchTarball "https://github.com/NixOS/nixpkgs/archive/f72be405a10668b8b00937b452f2145244103ebc.tar.gz")
       { };
   pkgsPostgres18 =
     import
@@ -135,7 +135,7 @@ let
     uv
     ruff
     gettext
-    protobuf
+    protobuf_31
     cmake
     libxml2.dev
     openssl.dev
