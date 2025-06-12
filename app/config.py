@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 
 from githead import githead
 from pydantic import (
+    AliasChoices,
     BeforeValidator,
     ByteSize,
     ConfigDict,
@@ -93,9 +94,9 @@ REPLICATION_CONVERT_ELEMENT_BATCH_SIZE = 500_000_000
 # -------------------- API and Services Integration --------------------
 
 # Internal URLs
-API_URL: _StripSlash = Field(alias='APP_URL')
-ID_URL: _StripSlash = Field(alias='APP_URL')
-RAPID_URL: _StripSlash = Field(alias='APP_URL')
+API_URL: _StripSlash = Field(validation_alias=AliasChoices('API_URL', 'APP_URL'))
+ID_URL: _StripSlash = Field(validation_alias=AliasChoices('ID_URL', 'APP_URL'))
+RAPID_URL: _StripSlash = Field(validation_alias=AliasChoices('RAPID_URL', 'APP_URL'))
 
 # External services
 GRAPHHOPPER_API_KEY = SecretStr('')
@@ -203,8 +204,12 @@ WIKIMEDIA_OAUTH_SECRET = SecretStr('')
 # -------------------- Email Communication --------------------
 
 # Email configuration
-SMTP_NOREPLY_FROM: str = Field(alias='SMTP_USER')
-SMTP_MESSAGES_FROM: str = Field(alias='SMTP_USER')
+SMTP_NOREPLY_FROM: str = Field(
+    validation_alias=AliasChoices('SMTP_NOREPLY_FROM', 'SMTP_USER')
+)
+SMTP_MESSAGES_FROM: str = Field(
+    validation_alias=AliasChoices('SMTP_MESSAGES_FROM', 'SMTP_USER')
+)
 EMAIL_REPLY_USAGE_LIMIT = 10
 
 # Email processing settings
