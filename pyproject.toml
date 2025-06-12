@@ -15,6 +15,7 @@ dependencies = [
   "fastapi",
   "feedgen",
   "githead",
+  "gunicorn",
   "h3",
   "htmlmin2",
   "httpx[brotli,zstd]",
