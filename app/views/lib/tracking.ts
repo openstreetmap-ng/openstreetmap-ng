@@ -15,7 +15,7 @@ if (crashReporting) {
     const userConfig = config.userConfig
     const sentryConfig = config.sentryConfig
 
-    const tracePropagationTargets: (string | RegExp)[] = [/^(?!\/static)/]
+    const tracePropagationTargets: (string | RegExp)[] = [/^\/(?!static)/]
     if (config.apiUrl !== window.location.origin) {
         tracePropagationTargets.push(config.apiUrl)
     }
