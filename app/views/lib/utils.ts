@@ -173,10 +173,10 @@ export const wrapMessageEventValidator = <T extends (event: MessageEvent) => any
     isParent = true,
 ): T =>
     ((event: MessageEvent) => {
-        const eventHost = `.${event.origin.replace(/^https?:\/\//, "")}`
+        const eventHost = `.${event.origin.replace(/^https?:\/\/(?:www\.)?/, "")}`
         if (
             isParent ? eventHost.endsWith(currentHost) : currentHost.endsWith(eventHost)
         )
             return fn(event)
     }) as T
-const currentHost = `.${window.location.host}`
+const currentHost = `.${window.location.host.replace(/^www\./, "")}`
