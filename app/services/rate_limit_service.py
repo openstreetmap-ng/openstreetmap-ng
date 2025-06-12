@@ -7,7 +7,6 @@ from datetime import timedelta
 from time import monotonic
 
 from fastapi import HTTPException
-from psycopg import AsyncConnection
 from sentry_sdk import start_transaction
 from starlette import status
 
@@ -108,32 +107,10 @@ class RateLimitService:
 
 @retry(None)
 async def _process_task() -> None:
-    while True:
-        async with db(True, autocommit=True) as conn:
-            # Lock is just a random unique number
-            async with await conn.execute(
-                'SELECT pg_try_advisory_xact_lock(8569304793767999080::bigint)'
-            ) as r:
-                acquired: bool = (await r.fetchone())[0]  # type: ignore
-
-            if acquired:
-                ts = monotonic()
-                with (
-                    SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR,
-                    start_transaction(op='task', name='rate-limit-management'),
-                ):
-                    await _delete_expired(conn)
-                tt = monotonic() - ts
-
-                # on success, sleep ~5min
-                delay = random.uniform(290, 310) - tt
-            else:
-                # on failure, sleep ~1h
-                delay = random.uniform(1800, 5400)
-
+    async def sleep(delay: float) -> None:
         if ENV != 'dev':
             await asyncio.sleep(delay)
-            continue
+            return
 
         # Dev environment supports early wakeup
         _PROCESS_DONE_EVENT.set()
@@ -146,15 +123,40 @@ async def _process_task() -> None:
             else:
                 event_task.cancel()
 
+    while True:
+        async with db(True) as conn:
+            # Lock is just a random unique number
+            async with await conn.execute(
+                'SELECT pg_try_advisory_xact_lock(8569304793767999080::bigint)'
+            ) as r:
+                acquired: bool = (await r.fetchone())[0]  # type: ignore
 
-async def _delete_expired(conn: AsyncConnection) -> None:
-    result = await conn.execute(
-        """
-        DELETE FROM rate_limit
-        WHERE updated_at < statement_timestamp() - %s
-        """,
-        (_QUOTA_WINDOW,),
-    )
+            if acquired:
+                ts = monotonic()
+                with (
+                    SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR,
+                    start_transaction(op='task', name='rate-limit-management'),
+                ):
+                    await _delete_expired()
+                tt = monotonic() - ts
 
-    if result.rowcount:
-        logging.debug('Deleted %d expired rate limit entries', result.rowcount)
+                # on success, sleep ~5min
+                await sleep(random.uniform(290, 310) - tt)
+
+        if not acquired:
+            # on failure, sleep ~1h
+            await sleep(random.uniform(1800, 5400))
+
+
+async def _delete_expired() -> None:
+    async with db(True) as conn:
+        result = await conn.execute(
+            """
+            DELETE FROM rate_limit
+            WHERE updated_at < statement_timestamp() - %s
+            """,
+            (_QUOTA_WINDOW,),
+        )
+
+        if result.rowcount:
+            logging.debug('Deleted %d expired rate limit entries', result.rowcount)

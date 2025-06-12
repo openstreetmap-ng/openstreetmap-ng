@@ -63,7 +63,7 @@ writeText "postgres.conf" (
 
     # disconnect idle clients with open transactions
     # reason: safeguard resource usage
-    idle_in_transaction_session_timeout = 5min
+    idle_in_transaction_session_timeout = 10min
 
     # change toast compression
     # reason: minimal overhead compression

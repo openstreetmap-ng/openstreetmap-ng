@@ -6,7 +6,6 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from time import monotonic
 
-from psycopg import AsyncConnection
 from sentry_sdk.api import start_transaction
 
 from app.config import (
@@ -163,33 +162,10 @@ class ChangesetService:
 
 @retry(None)
 async def _process_task() -> None:
-    while True:
-        async with db(True, autocommit=True) as conn:
-            # Lock is just a random unique number
-            async with await conn.execute(
-                'SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)'
-            ) as r:
-                acquired: bool = (await r.fetchone())[0]  # type: ignore
-
-            if acquired:
-                ts = monotonic()
-                with (
-                    SENTRY_CHANGESET_MANAGEMENT_MONITOR,
-                    start_transaction(op='task', name='changeset-management'),
-                ):
-                    await _close_inactive(conn)
-                    await _delete_empty(conn)
-                tt = monotonic() - ts
-
-                # on success, sleep ~1min
-                delay = random.uniform(50, 70) - tt
-            else:
-                # on failure, sleep ~1h
-                delay = random.uniform(1800, 5400)
-
+    async def sleep(delay: float) -> None:
         if ENV != 'dev':
             await asyncio.sleep(delay)
-            continue
+            return
 
         # Dev environment supports early wakeup
         _PROCESS_DONE_EVENT.set()
@@ -202,29 +178,55 @@ async def _process_task() -> None:
             else:
                 event_task.cancel()
 
+    while True:
+        async with db(True) as conn:
+            # Lock is just a random unique number
+            async with await conn.execute(
+                'SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)'
+            ) as r:
+                acquired: bool = (await r.fetchone())[0]  # type: ignore
 
-async def _close_inactive(conn: AsyncConnection) -> None:
+            if acquired:
+                ts = monotonic()
+                with (
+                    SENTRY_CHANGESET_MANAGEMENT_MONITOR,
+                    start_transaction(op='task', name='changeset-management'),
+                ):
+                    await _close_inactive()
+                    await _delete_empty()
+                tt = monotonic() - ts
+
+                # on success, sleep ~1min
+                await sleep(random.uniform(50, 70) - tt)
+
+        if not acquired:
+            # on failure, sleep ~1h
+            await sleep(random.uniform(1800, 5400))
+
+
+async def _close_inactive() -> None:
     """Close all inactive changesets."""
-    result = await conn.execute(
-        """
-        UPDATE changeset
-        SET closed_at = statement_timestamp(), updated_at = DEFAULT
-        WHERE closed_at IS NULL AND (
-            updated_at < statement_timestamp() - %s OR
-            (updated_at >= statement_timestamp() - %s AND
-             created_at < statement_timestamp() - %s)
+    async with db(True) as conn:
+        result = await conn.execute(
+            """
+            UPDATE changeset
+            SET closed_at = statement_timestamp(), updated_at = DEFAULT
+            WHERE closed_at IS NULL AND (
+                updated_at < statement_timestamp() - %s OR
+                (updated_at >= statement_timestamp() - %s AND
+                created_at < statement_timestamp() - %s)
+            )
+            """,
+            (CHANGESET_IDLE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT),
         )
-        """,
-        (CHANGESET_IDLE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT),
-    )
 
-    if result.rowcount:
-        logging.debug('Closed %d inactive changesets', result.rowcount)
+        if result.rowcount:
+            logging.debug('Closed %d inactive changesets', result.rowcount)
 
 
-async def _delete_empty(conn: AsyncConnection) -> None:
+async def _delete_empty() -> None:
     """Delete empty changesets after a timeout."""
-    async with conn.transaction():
+    async with db(True) as conn:
         # The delete query tends to use a slow seqscan, probably because of skewed statistics.
         # Force disabling seqscan to prefer using our custom index.
         await conn.execute('SET LOCAL enable_seqscan = off')
