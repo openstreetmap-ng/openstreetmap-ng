@@ -5,12 +5,12 @@ import { throttle } from "./lib/utils"
 const container = document.querySelector("div.id-container")
 if (!container) throw new Error("iD container not found")
 
-parentLoadSystemApp((accessToken) => {
+parentLoadSystemApp((accessToken, parentOrigin) => {
     // @ts-ignore
     const ctx = window.iD.coreContext()
     ctx.connection().apiConnections([])
     ctx.preauth({
-        url: parent.location.origin,
+        url: parentOrigin,
         apiUrl: config.apiUrl,
         access_token: accessToken,
     })

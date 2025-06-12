@@ -73,13 +73,13 @@ export const configureIFrameSystemApp = (
 
     /** Handle load system app requests, obtain token and respond back */
     const onWindowMessage = wrapMessageEventValidator(
-        ({ data }: MessageEvent): void => {
+        ({ data, origin }: MessageEvent): void => {
             if (data.type !== "loadSystemApp") return
             // Respond only once
             window.removeEventListener("message", onWindowMessage)
-            console.debug("Received loadSystemApp request")
+            console.debug("Received loadSystemApp request from", origin)
             loadSystemApp(clientId, (accessToken) => {
-                console.debug("Responding to loadSystemApp request")
+                console.debug("Responding to loadSystemApp request to", iframeOrigin)
                 iframe.contentWindow.postMessage(
                     { type: "loadedSystemApp", accessToken },
                     iframeOrigin,
@@ -91,17 +91,19 @@ export const configureIFrameSystemApp = (
 }
 
 /** Communicate with parent window to load system app */
-export const parentLoadSystemApp = (successCallback: (token: string) => void): void => {
+export const parentLoadSystemApp = (
+    successCallback: (token: string, parentOrigin: string) => void,
+): void => {
     console.debug("parentLoadSystemApp")
 
     /** Handle load system app response, call successCallback with access token */
     const onWindowMessage = wrapMessageEventValidator(
-        ({ data }: MessageEvent): void => {
+        ({ data, origin }: MessageEvent): void => {
             if (data.type !== "loadedSystemApp") return
             // Respond only once
             window.removeEventListener("message", onWindowMessage)
-            console.debug("Received loadSystemApp response")
-            successCallback(data.accessToken)
+            console.debug("Received loadSystemApp response from", origin)
+            successCallback(data.accessToken, origin)
         },
         false,
     )

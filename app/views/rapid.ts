@@ -4,11 +4,11 @@ import { parentLoadSystemApp } from "./lib/system-app"
 const container = document.querySelector("div.rapid-container")
 if (!container) throw new Error("Rapid container not found")
 
-parentLoadSystemApp((accessToken) => {
+parentLoadSystemApp((accessToken, parentOrigin) => {
     // @ts-ignore
     const ctx = new window.Rapid.Context()
     ctx.preauth = {
-        url: parent.location.origin,
+        url: parentOrigin,
         apiUrl: config.apiUrl,
         access_token: accessToken,
     }
