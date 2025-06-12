@@ -34,10 +34,10 @@ async def edit(
 
 
 @router.get('/id')
-async def id(_: Annotated[User, web_user()]):
+async def id():
     return await render_response('edit/id-iframe', {'ID_VERSION': ID_VERSION})
 
 
 @router.get('/rapid')
-async def rapid(_: Annotated[User, web_user()]):
+async def rapid():
     return await render_response('edit/rapid-iframe', {'RAPID_VERSION': RAPID_VERSION})
