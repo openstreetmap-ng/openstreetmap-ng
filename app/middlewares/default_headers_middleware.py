@@ -17,6 +17,12 @@ CSP_HEADER = '; '.join(
             f'frame-src {" ".join({ID_URL, RAPID_URL})}',
             f'frame-ancestors {APP_URL}',
             (f'report-uri {SENTRY_DSN}' if SENTRY_DSN else None),
+            (
+                # feedbackIntegration requires unsafe-inline
+                "style-src 'self' 'unsafe-inline'"
+                if SENTRY_DSN and ENV == 'test'
+                else None
+            ),
         ),
     )
 )
