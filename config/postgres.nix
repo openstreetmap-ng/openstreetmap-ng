@@ -55,7 +55,7 @@ writeText "postgres.conf" (
     default_statistics_target = 500
 
     # increase max connections
-    max_connections = 10000
+    max_connections = 500
 
     # detect disconnected clients
     # reason: safeguard resource usage
