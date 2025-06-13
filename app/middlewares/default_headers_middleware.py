@@ -13,7 +13,7 @@ CSP_HEADER = '; '.join(
             "script-src 'self' https://matomo.monicz.dev/matomo.js",
             'child-src blob:',  # TODO: worker-src in CSP 3
             'img-src * data:',
-            'connect-src *',
+            'connect-src * data:',
             f'frame-src {" ".join({ID_URL, RAPID_URL})}',
             f'frame-ancestors {APP_URL}',
             (f'report-uri {SENTRY_DSN}' if SENTRY_DSN else None),
