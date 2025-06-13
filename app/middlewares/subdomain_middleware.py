@@ -1,4 +1,5 @@
 from fastapi import Response
+from fastapi.responses import RedirectResponse
 from starlette import status
 from starlette.types import ASGIApp, Receive, Scope, Send
 
@@ -66,6 +67,10 @@ class SubdomainMiddleware:
 
         # Handle iD domain (ID_URL) path restrictions
         elif url.startswith(_id_prefix):
+            if path == '/':
+                return await RedirectResponse(
+                    APP_URL, status.HTTP_301_MOVED_PERMANENTLY
+                )(scope, receive, send)
             if not path.startswith(('/static', '/id')):
                 return await Response(None, status.HTTP_404_NOT_FOUND)(
                     scope, receive, send
@@ -73,6 +78,10 @@ class SubdomainMiddleware:
 
         # Handle Rapid domain (RAPID_URL) path restrictions
         elif url.startswith(_rapid_prefix):
+            if path == '/':
+                return await RedirectResponse(
+                    APP_URL, status.HTTP_301_MOVED_PERMANENTLY
+                )(scope, receive, send)
             if not path.startswith(('/static', '/rapid')):
                 return await Response(None, status.HTTP_404_NOT_FOUND)(
                     scope, receive, send
