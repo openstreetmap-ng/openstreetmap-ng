@@ -6,6 +6,7 @@ from app.config import ID_URL, RAPID_URL
 from app.lib.auth_context import auth_user, web_user
 from app.lib.bun_packages import ID_VERSION, RAPID_VERSION
 from app.lib.render_response import render_response
+from app.middlewares.default_headers_middleware import CSP_HEADER
 from app.models.db.user import DEFAULT_EDITOR, Editor, User
 
 router = APIRouter()
@@ -38,6 +39,15 @@ async def id():
     return await render_response('edit/id-iframe', {'ID_VERSION': ID_VERSION})
 
 
+# Rapid requires unsafe-eval
+# https://github.com/facebook/Rapid/issues/1718
+_RAPID_CSP_HEADER = CSP_HEADER.replace('script-src', "script-src 'unsafe-eval'", 1)
+
+
 @router.get('/rapid')
 async def rapid():
-    return await render_response('edit/rapid-iframe', {'RAPID_VERSION': RAPID_VERSION})
+    response = await render_response(
+        'edit/rapid-iframe', {'RAPID_VERSION': RAPID_VERSION}
+    )
+    response.headers['Content-Security-Policy'] = _RAPID_CSP_HEADER
+    return response
