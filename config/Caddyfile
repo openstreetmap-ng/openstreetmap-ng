@@ -12,14 +12,25 @@
 	header Alt-Svc "h3=\":443\"; ma=2592000; persist=1"
 }
 
+(common_proxy) {
+	transport http {
+		response_header_timeout 30s
+		compression off
+	}
+}
+
 www.openstreetmap.ng, api.openstreetmap.ng, id.openstreetmap.ng, rapid.openstreetmap.ng {
 	import common
-	reverse_proxy 127.0.0.1:8000
+	reverse_proxy 127.0.0.1:8000 {
+		import common_proxy
+	}
 }
 
 mail.openstreetmap.ng {
 	import common
-	reverse_proxy 127.0.0.1:49566
+	reverse_proxy 127.0.0.1:49566 {
+		import common_proxy
+	}
 }
 
 www.osm.ng, osm.ng {
