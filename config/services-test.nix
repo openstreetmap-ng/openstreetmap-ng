@@ -72,8 +72,6 @@ let
         export ENV=test \
         && export APP_URL=https://www.openstreetmap.ng \
         && export API_URL=https://api.openstreetmap.ng \
-        && export ID_URL=https://id.openstreetmap.ng \
-        && export RAPID_URL=https://rapid.openstreetmap.ng \
         && ${script}"
   '';
 in
