@@ -66,6 +66,7 @@ dev = [
   "cairosvg",
   "coverage",
   "pre-commit",
+  "pyarrow-stubs",
   "pytest",
   "pytest-asyncio",
   "pytest-randomly",
