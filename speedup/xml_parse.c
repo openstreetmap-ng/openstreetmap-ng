@@ -141,9 +141,9 @@ cache_cleanup(StringCacheEntry **cache_ptr) {
 // These arrays MUST be sorted alphabetically for bsearch to work
 static const char *force_items_set[] = {"bounds", "create",   "delete", "modify",
                                         "node",   "relation", "way"};
-static const char *force_list_set[] = {"changeset", "comment", "gpx_file",   "member",
-                                       "nd",        "note",    "preference", "tag",
-                                       "trk",       "trkpt",   "trkseg"};
+static const char *force_list_set[] = {"comment", "gpx_file",   "member", "nd",
+                                       "note",    "preference", "tag",    "trk",
+                                       "trkpt",   "trkseg"};
 
 static int
 in_set_cmp(const void *key, const void *element) {
