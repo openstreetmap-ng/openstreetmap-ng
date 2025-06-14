@@ -494,6 +494,7 @@ let
       rsync \
         --verbose \
         --archive \
+        --checksum \
         --whole-file \
         --delay-updates \
         --human-readable \
