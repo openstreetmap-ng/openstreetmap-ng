@@ -20,12 +20,14 @@ from app.services.migration_service import MigrationService
 from app.utils import calc_num_workers
 
 _Mode = Literal['preload', 'replication']
-_Table = Literal['user', 'changeset', 'element', 'note', 'note_comment']
+_Table = Literal[
+    'user', 'changeset', 'changeset_bounds', 'element', 'note', 'note_comment'
+]
 
 _FIRST_TABLES: tuple[_Table, ...] = ('user',)
 _NEXT_TABLES: dict[_Table, tuple[_Table, ...]] = {
     'user': ('changeset', 'note'),
-    'changeset': ('element',),
+    'changeset': ('changeset_bounds', 'element'),
     'note': ('note_comment',),
 }
 

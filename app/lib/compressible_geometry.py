@@ -54,12 +54,27 @@ def compressible_geometry(
     return geometry
 
 
-_COORDS_STRUCT = struct.Struct('<dd')
+_POINT_STRUCT = struct.Struct('<dd')
+_BBOX_STRUCT = struct.Struct('<dddddddddd')
 
 
 def point_to_compressible_wkb(lon: float, lat: float) -> bytes:
     """Convert a coordinate pair to a compressible WKB hex format."""
-    lon, lat = compressible_geometry(np.array([lon, lat], dtype=np.float64)).tolist()  # type: ignore
+    lon, lat = compressible_geometry(np.array([lon, lat], dtype=np.float64)).tolist()
 
     # (byte order 1 = little endian + geometry type 1 = Point)
-    return b'\x01\x01\x00\x00\x00' + _COORDS_STRUCT.pack(lon, lat)
+    return b'\x01\x01\x00\x00\x00' + _POINT_STRUCT.pack(lon, lat)
+
+
+def bbox_to_compressible_wkb(
+    minlon: float, minlat: float, maxlon: float, maxlat: float
+) -> bytes:
+    """Convert a bounding box to a compressible WKB hex format."""
+    minlon, minlat, maxlon, maxlat = compressible_geometry(
+        np.array([minlon, minlat, maxlon, maxlat], dtype=np.float64)
+    ).tolist()
+
+    # (byte order 1 = little endian + geometry type 1 = Point + 1 ring + 5 points)
+    return b'\x01\x03\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00' + _BBOX_STRUCT.pack(
+        maxlon, minlat, maxlon, maxlat, minlon, maxlat, minlon, minlat, maxlon, minlat
+    )
