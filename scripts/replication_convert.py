@@ -12,7 +12,7 @@ from app.models.element import (
     TYPED_ELEMENT_ID_WAY_MIN,
 )
 from app.services.migration_service import _get_element_typed_id_batches
-from scripts.preload_convert import NOTES_PARQUET_PATH
+from scripts.preload_convert import CHANGESETS_PARQUET_PATH, NOTES_PARQUET_PATH
 
 _PARQUET_PATHS = [
     p.as_posix()
@@ -28,20 +28,78 @@ _PARQUET_PATHS = [
 
 def _process_changeset(header_only: bool) -> None:
     with duckdb_connect(progress=False) as conn:
+        # Utility for escaping text
+        conn.execute("""
+        CREATE MACRO quote(str) AS
+        '"' || replace(replace(str, '\\', '\\\\'), '"', '\\"') || '"'
+        """)
+
+        # Convert map to Postgres-hstore format
+        conn.execute("""
+        CREATE MACRO map_to_hstore(m) AS
+        array_to_string(
+            list_transform(
+                map_entries(m),
+                entry -> quote(entry.key) || '=>' || quote(entry.value)
+            ),
+            ','
+        )
+        """)
+
         query = f"""
+        WITH planet_agg AS (
+            SELECT
+                changeset_id AS id,
+                ARBITRARY(user_id) AS user_id,
+                MIN(created_at) AS created_at,
+                MAX(created_at) AS updated_at,
+                MAX(created_at) AS closed_at,
+                COUNT(*) AS size,
+                COUNT_IF(version = 1) AS num_create,
+                COUNT_IF(version > 1 AND visible) AS num_modify,
+                COUNT_IF(version > 1 AND NOT visible) AS num_delete
+            FROM read_parquet({_PARQUET_PATHS!r})
+            GROUP BY changeset_id
+        )
         SELECT
-            changeset_id AS id,
-            ARBITRARY(user_id) AS user_id,
-            '' AS tags,
-            MIN(created_at) AS created_at,
-            MAX(created_at) AS updated_at,
-            MAX(created_at) AS closed_at,
-            COUNT(*) AS size,
-            COUNT_IF(version = 1) AS num_create,
-            COUNT_IF(version > 1 AND visible) AS num_modify,
-            COUNT_IF(version > 1 AND NOT visible) AS num_delete
-        FROM read_parquet({_PARQUET_PATHS!r})
-        GROUP BY changeset_id
+            id,
+            user_id,
+            IF(
+                tags IS NOT NULL,
+                map_to_hstore(tags),
+                ''
+            ) AS tags,
+            created_at,
+            updated_at,
+            closed_at,
+            size,
+            num_create,
+            num_modify,
+            num_delete,
+            hex(bounds) AS union_bounds
+        FROM planet_agg
+        LEFT JOIN read_parquet({CHANGESETS_PARQUET_PATH.as_posix()!r}) USING (id)
+        """
+
+        if header_only:
+            query += ' LIMIT 0'
+
+        conn.sql(query).write_csv('/dev/stdout')
+
+
+def _process_changeset_bounds(header_only: bool) -> None:
+    with duckdb_connect(progress=False) as conn:
+        query = f"""
+        WITH planet_agg AS (
+            SELECT changeset_id AS id
+            FROM read_parquet({_PARQUET_PATHS!r})
+            GROUP BY changeset_id
+        )
+        SELECT
+            id AS changeset_id,
+            hex(bounds) AS bounds
+        FROM planet_agg
+        INNER JOIN read_parquet({CHANGESETS_PARQUET_PATH.as_posix()!r}) USING (id)
         """
 
         if header_only:
@@ -198,7 +256,7 @@ def _process_user(header_only: bool) -> None:
 
 
 def main() -> None:
-    choices = ['changeset', 'element', 'user']
+    choices = ['changeset', 'changeset_bounds', 'element', 'user']
     parser = ArgumentParser()
     parser.add_argument('--header-only', action='store_true')
     parser.add_argument('mode', choices=choices)
@@ -209,6 +267,8 @@ def main() -> None:
     match args.mode:
         case 'changeset':
             _process_changeset(args.header_only)
+        case 'changeset_bounds':
+            _process_changeset_bounds(args.header_only)
         case 'element':
             _process_element(args.header_only)
         case 'user':
