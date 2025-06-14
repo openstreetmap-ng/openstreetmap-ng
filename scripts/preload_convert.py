@@ -510,7 +510,6 @@ def _write_changeset() -> None:
                     COUNT_IF(version > 1 AND NOT visible) AS num_delete
                 FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
                 GROUP BY changeset_id
-                ORDER BY changeset_id
             )
             SELECT
                 id,
@@ -543,7 +542,6 @@ def _write_changeset_bounds() -> None:
                 SELECT changeset_id AS id
                 FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
                 GROUP BY changeset_id
-                ORDER BY changeset_id
             )
             SELECT
                 id AS changeset_id,
