@@ -45,7 +45,7 @@ class MigrationService:
                     pg_get_serial_sequence(table_name, column_name)
                 FROM information_schema.columns
                 WHERE table_schema = 'public'
-                AND table_name IN ('user', 'changeset', 'element', 'note', 'note_comment')
+                AND table_name IN ('user', 'changeset', 'changeset_bounds', 'element', 'note', 'note_comment')
                 AND identity_generation = 'ALWAYS'
             """) as r:
                 sequences: list[tuple[str, str, str]] = await r.fetchall()
