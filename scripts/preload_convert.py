@@ -510,6 +510,7 @@ def _write_changeset() -> None:
                     COUNT_IF(version > 1 AND NOT visible) AS num_delete
                 FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
                 GROUP BY changeset_id
+                ORDER BY changeset_id
             )
             SELECT
                 id,
@@ -538,16 +539,15 @@ def _write_changeset_bounds() -> None:
     with duckdb_connect() as conn:
         conn.sql(f"""
         COPY (
-            WITH planet_agg AS (
-                SELECT changeset_id AS id
-                FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
-                GROUP BY changeset_id
-            )
             SELECT
                 id AS changeset_id,
                 hex(bounds) AS bounds
-            FROM planet_agg
-            INNER JOIN read_parquet({CHANGESETS_PARQUET_PATH.as_posix()!r}) USING (id)
+            FROM read_parquet({CHANGESETS_PARQUET_PATH.as_posix()!r})
+            WHERE EXISTS (
+                SELECT 1
+                FROM read_parquet({PLANET_PARQUET_PATH.as_posix()!r})
+                WHERE changeset_id = id
+            )
             ORDER BY id
         ) TO {_get_csv_path('changeset_bounds').as_posix()!r}
         """)
