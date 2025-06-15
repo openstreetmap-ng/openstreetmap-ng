@@ -1,6 +1,8 @@
 from asyncio import TaskGroup
+from contextlib import nullcontext
 from typing import Any, Literal
 
+from psycopg import AsyncConnection, IsolationLevel
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
@@ -26,13 +28,15 @@ from speedup.element_type import split_typed_element_id
 
 class ElementQuery:
     @staticmethod
-    async def get_current_sequence_id() -> SequenceId:
+    async def get_current_sequence_id(
+        conn: AsyncConnection | None = None,
+    ) -> SequenceId:
         """
         Get the current sequence id.
         Returns 0 if no elements exist.
         """
         async with (
-            db() as conn,
+            nullcontext(conn) if conn is not None else db() as conn,  # noqa: PLR1704
             await conn.execute(
                 'SELECT COALESCE(MAX(sequence_id), 0) FROM element'
             ) as r,
@@ -121,7 +125,9 @@ class ElementQuery:
                 AND (
                     typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
                     typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
-                ) LIMIT 1
+                )
+                AND latest
+                LIMIT 1
                 """,
                 (after_sequence_id, members),
             ) as r,
@@ -443,6 +449,7 @@ class ElementQuery:
     @staticmethod
     async def get_parents_by_refs(
         members: list[TypedElementId],
+        conn: AsyncConnection | None = None,
         *,
         at_sequence_id: SequenceId | None = None,
         parent_type: ElementType | None = None,
@@ -452,21 +459,46 @@ class ElementQuery:
         if not members or parent_type == 'node':
             return []
 
+        assert at_sequence_id is None or (
+            at_sequence_id is not None and conn is None
+        ), "at_sequence_id shouldn't be used with conn"
+        assert at_sequence_id is None or len(members) <= 1, (
+            "at_sequence_id shouldn't be used with multiple members"
+        )
+
+        if parent_type is None:
+            async with TaskGroup() as tg:
+                tasks = [
+                    tg.create_task(
+                        ElementQuery.get_parents_by_refs(
+                            members,
+                            conn,
+                            at_sequence_id=at_sequence_id,
+                            parent_type=parent_type,
+                            limit=limit,
+                        )
+                    )
+                    for parent_type in ('way', 'relation')
+                ]
+            result = tasks[0].result()
+            for task in tasks[1:]:
+                result.extend(task.result())
+            return (
+                result[:limit]
+                if (limit is not None and len(result) > limit)
+                else result
+            )
+
         conditions: list[Composable] = [SQL('members && %s::bigint[]')]
         params: list[Any] = [members]
 
         if at_sequence_id is not None:
-            conditions.append(SQL('sequence_id <= %s'))
+            conditions.append(SQL('sequence_id <= %s AND (latest OR NOT latest)'))
             params.append(at_sequence_id)
+        else:
+            conditions.append(SQL('latest'))
 
-        if parent_type is None:
-            conditions.append(
-                SQL("""(
-                    typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
-                    typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
-                )""")
-            )
-        elif parent_type == 'way':
+        if parent_type == 'way':
             conditions.append(
                 SQL('typed_id BETWEEN 1152921504606846976 AND 2305843009213693951')
             )
@@ -496,16 +528,16 @@ class ElementQuery:
         )
 
         async with (
-            db() as conn,
+            nullcontext(conn) if conn is not None else db() as conn,  # noqa: PLR1704
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def get_parents_refs_by_refs(
+    async def get_current_parents_refs_by_refs(
         members: list[TypedElementId],
+        conn: AsyncConnection,
         *,
-        at_sequence_id: SequenceId | None = None,
         limit: int | None = None,
     ) -> dict[TypedElementId, set[TypedElementId]]:
         """Get elements refs that reference the given elements."""
@@ -519,13 +551,10 @@ class ElementQuery:
                     typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
                     typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
                 )
+                AND latest
             """)
         ]
         params: list[Any] = [members]
-
-        if at_sequence_id is not None:
-            inner_conditions.append(SQL('sequence_id <= %s'))
-            params.append(at_sequence_id)
 
         outer_conditions: list[Composable] = [SQL('member = ANY(%s)')]
         params.append(members)
@@ -552,10 +581,9 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with db() as conn, await conn.execute(query, params) as r:
-            result: dict[TypedElementId, set[TypedElementId]] = {
-                member: set() for member in members
-            }
+        async with await conn.execute(query, params) as r:
+            result: dict[TypedElementId, set[TypedElementId]]
+            result = {member: set() for member in members}
             for member, parent in await r.fetchall():
                 result[member].add(parent)
             return result
@@ -609,86 +637,80 @@ class ElementQuery:
                 )
             nodes_limit += 1  # to detect limit exceeded
 
-        # Get current max sequence_id to use for all queries
-        at_sequence_id = await ElementQuery.get_current_sequence_id()
-        if not at_sequence_id:
-            return []
+        async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
+            params: list[Any] = [geometry]
 
-        params: list[Any] = [geometry]
+            if nodes_limit is not None:
+                limit_clause = SQL('LIMIT %s')
+                params.append(nodes_limit)
+            else:
+                limit_clause = SQL('')
 
-        if nodes_limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(nodes_limit)
-        else:
-            limit_clause = SQL('')
+            query = SQL("""
+                SELECT * FROM element
+                WHERE ST_Intersects(point, %s) AND latest
+                {limit}
+            """).format(limit=limit_clause)
 
-        query = SQL("""
-            SELECT * FROM element
-            WHERE ST_Intersects(point, %s) AND latest
-            {limit}
-        """).format(limit=limit_clause)
+            # Find all matching nodes within the geometry
+            async with await conn.cursor(row_factory=dict_row).execute(
+                query, params
+            ) as r:
+                nodes: list[Element] = await r.fetchall()  # type: ignore
+                if not nodes:
+                    return []
 
-        # Find all matching nodes within the geometry
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            nodes: list[Element] = await r.fetchall()  # type: ignore
-            if not nodes:
-                return []
+            if legacy_nodes_limit and len(nodes) > MAP_QUERY_LEGACY_NODES_LIMIT:
+                raise_for.map_query_nodes_limit_exceeded()
 
-        if legacy_nodes_limit and len(nodes) > MAP_QUERY_LEGACY_NODES_LIMIT:
-            raise_for.map_query_nodes_limit_exceeded()
+            nodes_typed_ids = [node['typed_id'] for node in nodes]
+            result_sequences: list[list[Element]] = [nodes]
 
-        nodes_typed_ids = [node['typed_id'] for node in nodes]
-        result_sequences: list[list[Element]] = [nodes]
+            async with TaskGroup() as tg:
 
-        async with TaskGroup() as tg:
-
-            async def fetch_parents(
-                typed_ids: list[TypedElementId],
-                parent_type: ElementType,
-            ) -> list[Element]:
-                parents = await ElementQuery.get_parents_by_refs(
-                    typed_ids,
-                    at_sequence_id=at_sequence_id,
-                    parent_type=parent_type,
-                    limit=None,
-                )
-                result_sequences.append(parents)
-                return parents
-
-            async def way_task() -> None:
-                # fetch parent ways
-                ways = await fetch_parents(nodes_typed_ids, 'way')
-                if not ways:
-                    return
-
-                # fetch ways' parent relations
-                if include_relations:
-                    ways_typed_ids = [way['typed_id'] for way in ways]
-                    tg.create_task(fetch_parents(ways_typed_ids, 'relation'))
-
-                # fetch ways' nodes
-                if not partial_ways:
-                    ways_nodes_typed_ids = {
-                        member
-                        for way in ways
-                        if (way_members := way['members'])
-                        for member in way_members
-                    }
-                    ways_nodes_typed_ids.difference_update(nodes_typed_ids)
-                    ways_nodes = await ElementQuery.get_by_refs(
-                        list(ways_nodes_typed_ids),
-                        at_sequence_id=at_sequence_id,
-                        limit=len(ways_nodes_typed_ids),
+                async def fetch_parents(
+                    typed_ids: list[TypedElementId],
+                    parent_type: ElementType,
+                ) -> list[Element]:
+                    parents = await ElementQuery.get_parents_by_refs(
+                        typed_ids, conn, parent_type=parent_type, limit=None
                     )
-                    result_sequences.append(ways_nodes)
+                    result_sequences.append(parents)
+                    return parents
 
-            tg.create_task(way_task())
+                async def way_task() -> None:
+                    # fetch parent ways
+                    ways = await fetch_parents(nodes_typed_ids, 'way')
+                    if not ways:
+                        return
 
-            if include_relations:
-                tg.create_task(fetch_parents(nodes_typed_ids, 'relation'))
+                    # fetch ways' parent relations
+                    if include_relations:
+                        ways_typed_ids = [way['typed_id'] for way in ways]
+                        tg.create_task(fetch_parents(ways_typed_ids, 'relation'))
+
+                    # fetch ways' nodes
+                    if not partial_ways:
+                        ways_nodes_typed_ids = {
+                            member
+                            for way in ways
+                            if (way_members := way['members'])
+                            for member in way_members
+                        }
+                        ways_nodes_typed_ids.difference_update(nodes_typed_ids)
+                        ways_nodes = await ElementQuery.get_by_refs(
+                            list(ways_nodes_typed_ids),
+                            at_sequence_id=(
+                                await ElementQuery.get_current_sequence_id(conn)
+                            ),
+                            limit=len(ways_nodes_typed_ids),
+                        )
+                        result_sequences.append(ways_nodes)
+
+                tg.create_task(way_task())
+
+                if include_relations:
+                    tg.create_task(fetch_parents(nodes_typed_ids, 'relation'))
 
         # Remove duplicates and preserve order
         result_set: set[SequenceId] = set()

@@ -6,8 +6,10 @@ from typing import Final, Literal
 
 import cython
 import numpy as np
+from psycopg import AsyncConnection, IsolationLevel
 from shapely import Point, bounds, box
 
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.changeset_bounds import extend_changeset_bounds
 from app.lib.exceptions_context import raise_for
@@ -109,13 +111,14 @@ class OptimisticDiffPrepare:
         self._bbox_refs = set()
 
     async def prepare(self) -> None:
-        self.at_sequence_id = await ElementQuery.get_current_sequence_id()
-        logging.debug('Optimistic preparing at sequence_id %d', self.at_sequence_id)
+        async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
+            self.at_sequence_id = await ElementQuery.get_current_sequence_id(conn)
+            logging.debug('Optimistic preparing at sequence_id %d', self.at_sequence_id)
 
-        async with TaskGroup() as tg:
-            tg.create_task(self._preload_elements_state())
-            tg.create_task(self._preload_elements_parents())
-            tg.create_task(self._preload_changeset())
+            async with TaskGroup() as tg:
+                tg.create_task(self._preload_elements_state())
+                tg.create_task(self._preload_elements_parents(conn))
+                tg.create_task(self._preload_changeset())
 
         # Use local variables for faster access + explicit type hints
         element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
@@ -233,7 +236,7 @@ class OptimisticDiffPrepare:
             for element in elements
         }
 
-    async def _preload_elements_parents(self) -> None:
+    async def _preload_elements_parents(self, conn: AsyncConnection) -> None:
         """Preload elements parents from the database."""
         # Only preload elements that exist in the database (positive element_id) and will be deleted
         typed_ids = [
@@ -246,10 +249,10 @@ class OptimisticDiffPrepare:
             return
 
         logging.debug('Optimistic preloading parents for %d elements', len(typed_ids))
-        self._elements_parents_refs = await ElementQuery.get_parents_refs_by_refs(
-            typed_ids,
-            at_sequence_id=self.at_sequence_id,
-            limit=None,
+        self._elements_parents_refs = (
+            await ElementQuery.get_current_parents_refs_by_refs(
+                typed_ids, conn, limit=None
+            )
         )
 
     def _check_element_can_delete(self, element: ElementInit) -> bool:
