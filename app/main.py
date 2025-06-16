@@ -43,6 +43,7 @@ from app.middlewares.request_body_middleware import RequestBodyMiddleware
 from app.middlewares.request_context_middleware import RequestContextMiddleware
 from app.middlewares.runtime_middleware import RuntimeMiddleware
 from app.middlewares.subdomain_middleware import SubdomainMiddleware
+from app.middlewares.test_site_middleware import TestSiteMiddleware
 from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
 from app.responses.osm_response import setup_api_router_response
@@ -102,6 +103,10 @@ main = FastAPI(
 )
 
 main.add_middleware(ParallelTasksMiddleware)
+
+if ENV == 'test':
+    main.add_middleware(TestSiteMiddleware)
+
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
 main.add_middleware(
     CompressMiddleware,

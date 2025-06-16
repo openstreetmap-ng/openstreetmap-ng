@@ -133,6 +133,7 @@ TRUSTED_HOSTS_EXTRA = ''
 # Cookie settings
 COOKIE_AUTH_MAX_AGE = timedelta(days=365)
 COOKIE_GENERIC_MAX_AGE = timedelta(days=365)
+TEST_SITE_ACKNOWLEDGED_MAX_AGE = timedelta(days=365)
 
 # Account settings
 EMAIL_MIN_LENGTH = 5

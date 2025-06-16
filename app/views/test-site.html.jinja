@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{{ HASH_AWARE_PATHS['/static/css/main.css'] }}" fetchpriority="high">
+
+    <link rel="icon" sizes="512x512" type="image/webp" href="/static/img/favicon/512.webp">
+    <link rel="icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
+    <link rel="icon" sizes="256x256" type="image/webp" href="/static/img/favicon/256.webp">
+    <link rel="icon" sizes="256x256" type="image/png" href="/static/img/favicon/256.png">
+    <link rel="apple-touch-icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
+    <link rel="apple-touch-icon" sizes="256x256" type="image/png" href="/static/img/favicon/256.png">
+</head>
+
+<body class="test-site container-fluid py-4 py-md-5">
+    <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
+
+        <div class="text-center mb-5">
+            <h1>Welcome to
+                <span class="brand-title">
+                    <img src="/static/img/favicon/512-ng.webp"
+                        alt="{{ t('layouts.logo.alt_text') }}">{{ t('layouts.project_name.title') }}-NG</span>'s
+            </h1>
+            <p class="fs-2 construction-sign striped p-3 my-4">Public Test Site</p>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center pb-3 mb-3 border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle-fill text-green me-2"></i>What is this?
+                    </h5>
+                </div>
+
+                <p class="card-text">
+                    This is a <strong>public testing site</strong> for OpenStreetMap-NG,
+                    <a href="https://github.com/openstreetmap-ng/openstreetmap-ng" target="_blank">
+                        an independent open-source project</a>.
+                </p>
+            </div>
+        </div>
+
+        <div class="row row-cols-md-3 mb-4">
+            <div class="mb-3">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body p-3">
+                        <div class="fs-4 mb-2"><i class="bi bi-gear"></i></div>
+                        <h6 class="card-title fw-semibold text-dark">Development Testing</h6>
+                        <p class="card-text text-muted small">
+                            Here we try new features and improvements in an isolated environment
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body p-3">
+                        <div class="fs-4 mb-2"><i class="bi bi-people"></i></div>
+                        <h6 class="card-title fw-semibold text-dark">Community Effort</h6>
+                        <p class="card-text text-muted small">
+                            Team up with other contributors to catch bugs and help innovate<br>
+                            <a class="d-block stretched-link mt-1-5"
+                                href="https://github.com/openstreetmap-ng/openstreetmap-ng#-join-us-contributing"
+                                target="_blank">
+                                Join us
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body p-3">
+                        <div class="fs-4 mb-2"><i class="bi bi-arrow-clockwise"></i></div>
+                        <h6 class="card-title fw-semibold text-dark">Data Resets</h6>
+                        <p class="card-text text-muted small">
+                            Test data and accounts will be reset during development cycles
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-center align-items-center flex-wrap-reverse gap-3 pt-4 border-top">
+
+            <div>
+                <a href="https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Public-Testing"
+                    class="btn btn-outline-secondary" target="_blank">
+                    <i class="bi bi-book me-2"></i>Testing guide
+                </a>
+            </div>
+
+            <form class="d-inline" method="POST" action="/api/web/test-site/acknowledge?referer={{ referer }}">
+                <button class="btn btn-lg btn-primary fw-semibold px-4 py-2">
+                    Continue to testing site
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+</body>
+
+</html>
