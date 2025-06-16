@@ -1,3 +1,4 @@
+import { config } from "./config"
 import { systemAppAccessTokenStorage } from "./local-storage"
 import { wrapMessageEventValidator } from "./utils"
 
@@ -14,7 +15,7 @@ const loadSystemApp = (
         return
     }
 
-    fetch("/api/0.6/user/details", {
+    fetch(`${config.apiUrl}/api/0.6/user/details`, {
         method: "GET",
         credentials: "omit",
         headers: { authorization: `Bearer ${accessToken}` },
