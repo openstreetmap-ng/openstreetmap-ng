@@ -420,7 +420,7 @@ def _encode_point_json(point: Point) -> dict[str, float]:
     >>> _encode_point_json(Point(1, 2))
     {'lon': 1, 'lat': 2}
     """
-    x, y = get_coordinates(point)[0].tolist()
+    x, y = get_coordinates(point).round(GEO_COORDINATE_PRECISION)[0].tolist()
     return {'lon': x, 'lat': y}
 
 
@@ -430,7 +430,7 @@ def _encode_point_xml(point: Point) -> dict[str, float]:
     >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
-    x, y = get_coordinates(point)[0].tolist()
+    x, y = get_coordinates(point).round(GEO_COORDINATE_PRECISION)[0].tolist()
     return {'@lon': x, '@lat': y}
 
 

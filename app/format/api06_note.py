@@ -1,7 +1,7 @@
 import cython
 from shapely import Point, get_coordinates
 
-from app.config import API_URL, APP_URL
+from app.config import API_URL, APP_URL, GEO_COORDINATE_PRECISION
 from app.lib.date_utils import format_sql_date, legacy_date
 from app.lib.format_style_context import format_style
 from app.lib.render_jinja import render_jinja
@@ -192,7 +192,7 @@ def _encode_point_json(point: Point) -> list[float]:
     >>> _encode_point_json(Point(1, 2))
     [1, 2]
     """
-    return get_coordinates(point)[0].tolist()
+    return get_coordinates(point).round(GEO_COORDINATE_PRECISION)[0].tolist()
 
 
 @cython.cfunc
@@ -201,5 +201,5 @@ def _encode_point_xml(point: Point) -> dict[str, float]:
     >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
-    x, y = get_coordinates(point)[0].tolist()
+    x, y = get_coordinates(point).round(GEO_COORDINATE_PRECISION)[0].tolist()
     return {'@lon': x, '@lat': y}

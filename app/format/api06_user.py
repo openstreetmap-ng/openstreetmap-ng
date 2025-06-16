@@ -3,7 +3,7 @@ from asyncio import TaskGroup
 import cython
 from shapely import Point, get_coordinates
 
-from app.config import APP_URL
+from app.config import APP_URL, GEO_COORDINATE_PRECISION
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
@@ -201,5 +201,5 @@ def _encode_point(point: Point, *, is_json: cython.bint) -> dict:
     >>> _encode_point(Point(1, 2), is_json=False)
     {'@lon': 1, '@lat': 2}
     """
-    x, y = get_coordinates(point)[0].tolist()
+    x, y = get_coordinates(point).round(GEO_COORDINATE_PRECISION)[0].tolist()
     return {'lon': x, 'lat': y} if is_json else {'@lon': x, '@lat': y}
