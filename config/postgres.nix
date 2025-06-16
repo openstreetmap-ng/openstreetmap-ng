@@ -137,7 +137,7 @@ writeText "postgres.conf" (
 
     # automatically explain slow queries
     # reason: useful for troubleshooting
-    auto_explain.log_min_duration = 100ms
+    auto_explain.log_min_duration = 200ms
 
   ''
   + lib.optionalString fastIngest ''
