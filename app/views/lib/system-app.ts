@@ -19,7 +19,6 @@ const loadSystemApp = (
         method: "GET",
         credentials: "omit",
         headers: { authorization: `Bearer ${accessToken}` },
-        mode: "same-origin",
         cache: "no-store",
         priority: "high",
     })
