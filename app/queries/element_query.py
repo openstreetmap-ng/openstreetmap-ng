@@ -539,9 +539,14 @@ class ElementQuery:
 
         async with (
             nullcontext(conn) if conn is not None else db() as conn,  # noqa: PLR1704
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+            conn.cursor(row_factory=dict_row) as cur,
         ):
-            return await r.fetchall()  # type: ignore
+            # The members query tends to use an incorrect index, because of skewed statistics.
+            # Force disabling indexscan to prefer using GIN bitmapscan.
+            await cur.execute('SET LOCAL enable_indexscan = off')
+            result = await (await cur.execute(query, params)).fetchall()
+            await cur.execute('RESET enable_indexscan')
+            return result  # type: ignore
 
     @staticmethod
     async def get_current_parents_refs_by_refs(

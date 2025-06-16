@@ -227,10 +227,6 @@ async def _close_inactive() -> None:
 async def _delete_empty() -> None:
     """Delete empty changesets after a timeout."""
     async with db(True) as conn:
-        # The delete query tends to use a slow seqscan, probably because of skewed statistics.
-        # Force disabling seqscan to prefer using our custom index.
-        await conn.execute('SET LOCAL enable_seqscan = off')
-
         result = await conn.execute(
             """
             DELETE FROM changeset
