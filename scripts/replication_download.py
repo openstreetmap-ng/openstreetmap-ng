@@ -399,7 +399,6 @@ async def _iterate(state: AppState) -> AppState:
     )
 
 
-@cython.cfunc
 def _iterate_dataset(state: AppState) -> AppState:
     next_dataset = _NEXT_DATASET[state.dataset]
     logging.info('Switched dataset %r -> %r', state.dataset, next_dataset)
