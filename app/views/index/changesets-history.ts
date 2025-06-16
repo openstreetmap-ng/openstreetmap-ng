@@ -119,7 +119,12 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         source.setData(data)
 
         // When initial loading for scope/user, focus on the changesets
-        if (!e && !fetchedBounds && changesets.length) {
+        if (
+            !e &&
+            !fetchedBounds &&
+            (loadScope || loadDisplayName) &&
+            changesets.length
+        ) {
             let lngLatBounds: LngLatBounds | null = null
             for (const changeset of changesetsMinimumSize) {
                 if (!changeset.bounds.length) continue
