@@ -156,9 +156,14 @@ WHERE
 
 CREATE INDEX changeset_created_at_idx ON changeset (created_at);
 
-CREATE INDEX changeset_closed_at_idx ON changeset (closed_at, (size = 0))
+CREATE INDEX changeset_closed_at_idx ON changeset (closed_at)
 WHERE
     closed_at IS NOT NULL;
+
+CREATE INDEX changeset_closed_at_empty_idx ON changeset (closed_at)
+WHERE
+    closed_at IS NOT NULL
+    AND size = 0;
 
 CREATE INDEX changeset_open_idx ON changeset (updated_at) INCLUDE (created_at)
 WHERE
