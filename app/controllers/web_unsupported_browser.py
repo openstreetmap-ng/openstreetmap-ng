@@ -1,21 +1,19 @@
-from fastapi import APIRouter, Request
-from starlette import status
+from fastapi import APIRouter
 from starlette.responses import RedirectResponse
 
-from app.config import COOKIE_GENERIC_MAX_AGE, ENV
+from app.config import ENV, UNSUPPORTED_BROWSER_OVERRIDE_MAX_AGE
+from app.lib.referrer import redirect_referrer
 
 router = APIRouter(prefix='/api/web/unsupported-browser')
 
 
 @router.post('/override')
-async def override(request: Request) -> RedirectResponse:
-    response = RedirectResponse(
-        request.headers.get('Referer') or '/', status.HTTP_303_SEE_OTHER
-    )
+async def override() -> RedirectResponse:
+    response = redirect_referrer()
     response.set_cookie(
         key='unsupported_browser_override',
         value='1',
-        max_age=int(COOKIE_GENERIC_MAX_AGE.total_seconds()),
+        max_age=int(UNSUPPORTED_BROWSER_OVERRIDE_MAX_AGE.total_seconds()),
         secure=ENV != 'dev',
         httponly=True,
         samesite='lax',
