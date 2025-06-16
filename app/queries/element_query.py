@@ -517,13 +517,23 @@ class ElementQuery:
 
         # Find elements that reference the member typed_ids
         query = SQL("""
-            SELECT DISTINCT ON (typed_id) *
+            SELECT {distinct} *
             FROM element
             WHERE {conditions}
-            ORDER BY typed_id, sequence_id DESC
+            ORDER BY {order}
             {limit}
         """).format(
+            distinct=(
+                SQL('')  #
+                if at_sequence_id is None
+                else SQL('DISTINCT ON (typed_id)')
+            ),
             conditions=SQL(' AND ').join(conditions),
+            order=(
+                SQL('typed_id')
+                if at_sequence_id is None
+                else SQL('typed_id, sequence_id DESC')
+            ),
             limit=limit_clause,
         )
 
@@ -567,10 +577,9 @@ class ElementQuery:
 
         query = SQL("""
             SELECT member, typed_id FROM (
-                SELECT DISTINCT ON (typed_id) typed_id, members
+                SELECT typed_id, members
                 FROM element
                 WHERE {inner_conditions}
-                ORDER BY typed_id, sequence_id DESC
             )
             CROSS JOIN LATERAL UNNEST(members) member
             WHERE {outer_conditions}
