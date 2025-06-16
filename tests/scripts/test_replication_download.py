@@ -11,6 +11,7 @@ from scripts.replication_download import AppState, ReplicaState, _iterate
 async def test_iterate():
     # Create initial state
     state = AppState(
+        dataset='replication',
         frequency='hour',
         last_replica=ReplicaState.default(),
         last_sequence_id=0,

@@ -102,7 +102,10 @@ RAPID_URL: _StripSlash = Field(validation_alias=AliasChoices('RAPID_URL', 'APP_U
 GRAPHHOPPER_API_KEY = SecretStr('')
 GRAPHHOPPER_URL = 'https://graphhopper.com'
 NOMINATIM_URL = 'https://nominatim.openstreetmap.org'
-OSM_REPLICATION_URL = 'https://osm-planet-eu-central-1.s3.dualstack.eu-central-1.amazonaws.com/planet/replication'
+OSM_REPLICATION_URL = (
+    'https://osm-planet-eu-central-1.s3.dualstack.eu-central-1.amazonaws.com/planet'
+)
+OSM_OLD_REPLICATION_URL = 'https://planet.openstreetmap.org'
 OSRM_URL = 'https://router.project-osrm.org'
 OVERPASS_INTERPRETER_URL = 'https://overpass-api.de/api/interpreter'
 VALHALLA_URL = 'https://valhalla1.openstreetmap.de'

@@ -5,9 +5,10 @@ import logging
 from asyncio import sleep
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
+from itertools import pairwise
 from pathlib import Path
 from time import monotonic
-from typing import Literal
+from typing import Literal, get_args
 
 import cython
 import orjson
@@ -16,7 +17,7 @@ import pyarrow.parquet as pq
 from sentry_sdk import set_context, set_tag, start_transaction
 from starlette import status
 
-from app.config import OSM_REPLICATION_URL, REPLICATION_DIR
+from app.config import OSM_OLD_REPLICATION_URL, OSM_REPLICATION_URL, REPLICATION_DIR
 from app.db import duckdb_connect
 from app.lib.compressible_geometry import point_to_compressible_wkb
 from app.lib.retry import retry
@@ -26,9 +27,14 @@ from app.models.element import ElementType, TypedElementId
 from app.utils import HTTP
 from speedup.element_type import typed_element_id
 
+_Dataset = Literal['replication', 'redaction-period', 'cc-by-sa']
 _Frequency = Literal['minute', 'hour', 'day']
 
 _APP_STATE_PATH = REPLICATION_DIR.joinpath('state.json')
+
+_NEXT_DATASET: dict[_Dataset, _Dataset] = {
+    from_: to for to, from_ in pairwise(get_args(_Dataset))
+}
 
 _FREQUENCY_TIMEDELTA: dict[_Frequency, timedelta] = {
     'minute': timedelta(minutes=1),
@@ -92,6 +98,7 @@ class ReplicaState:
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class AppState:
+    dataset: _Dataset
     frequency: _Frequency
     last_replica: ReplicaState
     last_sequence_id: int
@@ -144,9 +151,15 @@ def _bundle_data_if_needed(state: AppState):
 
 
 @cython.cfunc
-def _get_replication_url(frequency: _Frequency, sequence_number: int | None) -> str:
+def _get_replication_url(
+    dataset: _Dataset, frequency: _Frequency, sequence_number: int | None
+) -> str:
     """Generate the base URL for an OSM replication file."""
-    prefix = f'{OSM_REPLICATION_URL}/{frequency}/'
+    prefix = (
+        f'{OSM_REPLICATION_URL}/{dataset}/{frequency}/'
+        if dataset == 'replication'
+        else f'{OSM_OLD_REPLICATION_URL}/{dataset}/{frequency}-replicate/'
+    )
     if sequence_number is None:
         return prefix
 
@@ -183,6 +196,7 @@ def _load_app_state():
         data = orjson.loads(_APP_STATE_PATH.read_bytes())
     except FileNotFoundError:
         return AppState(
+            dataset='cc-by-sa',
             frequency='day',
             last_replica=ReplicaState.default(),
             last_sequence_id=0,
@@ -301,7 +315,9 @@ async def _iterate(state: AppState) -> AppState:
             state.frequency,
         )
 
-    url = _get_replication_url(state.frequency, next_replica.sequence_number)
+    url = _get_replication_url(
+        state.dataset, state.frequency, next_replica.sequence_number
+    )
 
     # Attempt to fetch the replication data
     while True:
@@ -310,6 +326,14 @@ async def _iterate(state: AppState) -> AppState:
             logging.debug('Minute state not yet available, waiting...')
             await sleep(60)
             continue
+
+        # Detect if we've reached the end of the current dataset
+        if (
+            state.dataset != 'replication'
+            and r.status_code == status.HTTP_404_NOT_FOUND
+        ):
+            return await _iterate(_iterate_dataset(state))
+
         r.raise_for_status()
         remote_replica = _parse_replica_state(r.text)
 
@@ -375,6 +399,17 @@ async def _iterate(state: AppState) -> AppState:
     )
 
 
+@cython.cfunc
+def _iterate_dataset(state: AppState) -> AppState:
+    next_dataset = _NEXT_DATASET[state.dataset]
+    logging.info('Switched dataset %r -> %r', state.dataset, next_dataset)
+    return replace(
+        state,
+        dataset=next_dataset,
+        last_replica=ReplicaState.default(),
+    )
+
+
 async def _increase_frequency(state: AppState) -> AppState:
     """Find an appropriate higher frequency replication state."""
     current_timedelta = _FREQUENCY_TIMEDELTA[state.frequency]
@@ -399,7 +434,7 @@ async def _increase_frequency(state: AppState) -> AppState:
                 f"Couldn't find {new_frequency!r} replica at {current_created_at!r}"
             )
 
-        url = _get_replication_url(new_frequency, new_sequence_number)
+        url = _get_replication_url(state.dataset, new_frequency, new_sequence_number)
         r = await HTTP.get(url + '.state.txt')
 
         if r.status_code == status.HTTP_404_NOT_FOUND:
