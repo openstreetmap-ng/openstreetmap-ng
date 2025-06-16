@@ -29,13 +29,13 @@ class TestSiteMiddleware:
             request.method != 'GET'
             or request.cookies.get('test_site_acknowledged') is not None
             or not str(request.url).startswith(_app_prefix)
-            or request.url.path.startswith(('/test', '/static'))
+            or request.url.path.startswith(('/test-site', '/static', '/api'))
         ):
             return await self.app(scope, receive, send)
 
         return await RedirectResponse(
             extend_query_params(
-                '/test', {'referer': f'{request.url.path}?{request.url.query}'}
+                '/test-site', {'referer': f'{request.url.path}?{request.url.query}'}
             ),
             status.HTTP_303_SEE_OTHER,
         )(scope, receive, send)
