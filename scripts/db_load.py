@@ -31,7 +31,7 @@ _NEXT_TABLES: dict[_Table, tuple[_Table, ...]] = {
     'note': ('note_comment',),
 }
 
-_TABLE_SEMAPHORE = Semaphore(calc_num_workers(0.5, max=2))
+_TABLE_SEMAPHORE = Semaphore(1)
 _NUM_WORKERS_COPY = calc_num_workers(max=8)
 _INDEX_SEMAPHORE = Semaphore(calc_num_workers(0.5, min=2))
 

@@ -28,7 +28,7 @@ writeText "postgres.conf" (
     vacuum_buffer_usage_limit = ${toString (builtins.floor (hostMemoryMb / 32))}MB
 
     # use UTC timezone
-    timezone = 'UTC'
+    timezone = UTC
 
     # disable parallel gather:
     # introduces noticeable overhead and is never useful
@@ -122,12 +122,12 @@ writeText "postgres.conf" (
   + lib.optionalString (postgresVerbose >= 2) ''
     log_connections = on
     log_disconnections = on
-    log_statement = 'all'
+    log_statement = all
     log_lock_waits = on
     log_temp_files = 0 # == log all temp files
   ''
   + lib.optionalString (postgresVerbose == 1) ''
-    log_statement = 'ddl'
+    log_statement = ddl
     log_lock_waits = on
   ''
   + ''
@@ -142,12 +142,17 @@ writeText "postgres.conf" (
   ''
   + lib.optionalString fastIngest ''
     autovacuum = off
-    bgwriter_lru_maxpages = 0
+    bgwriter_delay = 100ms
+    bgwriter_flush_after = 0
+    bgwriter_lru_maxpages = 15000  # ~1.1GB/s
+    bgwriter_lru_multiplier = 4.0
     checkpoint_completion_target = 0
+    checkpoint_flush_after = 0
     fsync = off
     full_page_writes = off
     synchronous_commit = off
     wal_buffers = 262143
+    wal_skip_threshold = 0
     wal_writer_delay = 10s
     wal_writer_flush_after = 131071
   ''
