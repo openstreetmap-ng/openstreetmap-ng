@@ -309,14 +309,13 @@ async def _iterate(state: AppState) -> AppState:
     while True:
         next_replica = state.next_replica
 
-        # Skip known corrupted replication data
         if (
             state.dataset,
             state.frequency,
             next_replica.sequence_number,
         ) in _SKIP_CORRUPTED:
             logging.info(
-                'Skipped corrupted replication %s/%s/%d',
+                'Skipped known corrupted replication %s/%s/%d',
                 state.dataset,
                 state.frequency,
                 next_replica.sequence_number,
