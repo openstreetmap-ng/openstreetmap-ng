@@ -31,6 +31,7 @@ _NEXT_TABLES: dict[_Table, tuple[_Table, ...]] = {
     'note': ('note_comment',),
 }
 
+_TABLE_SEMAPHORE = Semaphore(calc_num_workers(0.5, max=2))
 _NUM_WORKERS_COPY = calc_num_workers(max=8)
 _INDEX_SEMAPHORE = Semaphore(calc_num_workers(0.5, min=2))
 
@@ -136,25 +137,26 @@ async def _load_table(mode: _Mode, table: _Table, tg: TaskGroup) -> None:
     columns = [f'"{c}"' for c in header.split(',')]
     proc: Process | None = None
 
-    try:
-        logging.info('Populating %s table (%d columns)...', table, len(columns))
-        proc = await create_subprocess_shell(
-            f'{program} | timescaledb-parallel-copy'
-            ' --batch-size=50000'
-            f' --columns={quote(",".join(columns))}'
-            f' --connection={quote(POSTGRES_URL)}'
-            f' --skip-header=true'
-            ' --reporting-period=30s'
-            f' --table={quote(table)}'
-            f' --workers={_NUM_WORKERS_COPY}',
-        )
-        exit_code = await proc.wait()
-        if exit_code:
-            raise RuntimeError(f'Subprocess failed with exit code {exit_code}')
+    async with _TABLE_SEMAPHORE:
+        try:
+            logging.info('Populating %s table (%d columns)...', table, len(columns))
+            proc = await create_subprocess_shell(
+                f'{program} | timescaledb-parallel-copy'
+                ' --batch-size=50000'
+                f' --columns={quote(",".join(columns))}'
+                f' --connection={quote(POSTGRES_URL)}'
+                f' --skip-header=true'
+                ' --reporting-period=30s'
+                f' --table={quote(table)}'
+                f' --workers={_NUM_WORKERS_COPY}',
+            )
+            exit_code = await proc.wait()
+            if exit_code:
+                raise RuntimeError(f'Subprocess failed with exit code {exit_code}')
 
-    except KeyboardInterrupt:
-        if proc is not None:
-            proc.terminate()
+        except KeyboardInterrupt:
+            if proc is not None:
+                proc.terminate()
 
     # Recreate indexes and constraints after loading
     async def index_postprocess():
