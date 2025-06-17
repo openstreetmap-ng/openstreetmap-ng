@@ -142,6 +142,7 @@ writeText "postgres.conf" (
   ''
   + lib.optionalString fastIngest ''
     autovacuum = off
+    bgwriter_lru_maxpages = 0
     checkpoint_completion_target = 0
     fsync = off
     full_page_writes = off
