@@ -4,7 +4,9 @@
   hostDiskCoW ? false,
   enablePostgres ? true,
   postgresPort ? 49560,
-  postgresCpuThreads ? 8,
+  postgresWorkers ? 10,
+  postgresParallelWorkers ? 8,
+  postgresParallelMaintenanceWorkers ? 4,
   postgresMinWalSizeGb ? 1,
   postgresMaxWalSizeGb ? 10,
   postgresFullPageWrites ? true,
@@ -39,7 +41,9 @@ let
       hostMemoryMb
       hostDiskCoW
       postgresPort
-      postgresCpuThreads
+      postgresWorkers
+      postgresParallelWorkers
+      postgresParallelMaintenanceWorkers
       postgresMinWalSizeGb
       postgresMaxWalSizeGb
       postgresFullPageWrites
@@ -146,7 +150,7 @@ let
     (pkgsPostgres18.postgresql_18_jit.withPackages (ps: [
       ps.postgis
       ps.h3-pg
-    ])) # SOON: ps.timescaledb-apache
+    ]))
     timescaledb-parallel-copy
     mailpit
 

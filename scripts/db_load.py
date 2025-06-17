@@ -1,8 +1,9 @@
 import asyncio
 import logging
 from argparse import ArgumentParser
-from asyncio import Semaphore, TaskGroup, create_subprocess_shell
+from asyncio import Lock, Semaphore, TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
+from contextlib import nullcontext
 from io import TextIOWrapper
 from pathlib import Path
 from shlex import quote
@@ -31,9 +32,9 @@ _NEXT_TABLES: dict[_Table, tuple[_Table, ...]] = {
     'note': ('note_comment',),
 }
 
-_TABLE_SEMAPHORE = Semaphore(1)
+_TABLE_LOCK = Lock()
 _NUM_WORKERS_COPY = calc_num_workers(max=8)
-_INDEX_SEMAPHORE = Semaphore(calc_num_workers(0.5, min=2))
+_INDEX_SEMAPHORE = Semaphore(2)
 
 
 def _get_csv_path(table: _Table) -> Path:
@@ -93,7 +94,13 @@ async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
         return [(name, SQL(sql)) for name, sql in await cursor.fetchall()]
 
 
-async def _load_table(mode: _Mode, table: _Table, tg: TaskGroup) -> None:
+async def _load_table(
+    mode: _Mode,
+    table: _Table,
+    indexes: dict[str, SQL],
+    constraints: list[tuple[str, SQL]],
+    tg: TaskGroup,
+) -> None:
     if mode == 'preload' or table in {'note', 'note_comment'}:
         path = _get_csv_path(table)
 
@@ -110,34 +117,11 @@ async def _load_table(mode: _Mode, table: _Table, tg: TaskGroup) -> None:
         proc = await create_subprocess_shell(f'{program} --header-only', stdout=PIPE)
         header = (await proc.communicate())[0].decode().strip()
 
-    indexes = await _gather_table_indexes(table)
-    assert indexes, f'No indexes found for {table} table'
-    constraints = await _gather_table_constraints(table)
-
-    # Drop indexes and constraints before loading
-    async with db(True, autocommit=True) as conn:
-        logging.info('Dropping %d indexes: %r', len(indexes), indexes)
-        await conn.execute(
-            SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes)))
-        )
-
-        if constraints:
-            logging.info('Dropping %d constraints: %r', len(constraints), constraints)
-            await conn.execute(
-                SQL('ALTER TABLE {} {}').format(
-                    Identifier(table),
-                    SQL(',').join(
-                        SQL('DROP CONSTRAINT {}').format(Identifier(name))
-                        for name, _ in constraints
-                    ),
-                )
-            )
-
     # Load the data
     columns = [f'"{c}"' for c in header.split(',')]
     proc: Process | None = None
 
-    async with _TABLE_SEMAPHORE:
+    async with _TABLE_LOCK if mode == 'replication' else nullcontext():
         try:
             logging.info('Populating %s table (%d columns)...', table, len(columns))
             proc = await create_subprocess_shell(
@@ -189,18 +173,60 @@ async def _load_table(mode: _Mode, table: _Table, tg: TaskGroup) -> None:
 
 
 async def _load_tables(mode: _Mode) -> None:
-    logging.info('Truncating tables')
+    all_tables = get_args(_Table)
+
+    logging.info('Truncating tables: %r', all_tables)
     async with db(True, autocommit=True) as conn:
         await conn.execute(
             SQL('TRUNCATE {} RESTART IDENTITY CASCADE').format(
-                SQL(',').join(map(Identifier, get_args(_Table)))
+                SQL(',').join(map(Identifier, all_tables))
             )
         )
+
+    logging.info('Gathering indexes and constraints')
+    table_data: dict[_Table, tuple[dict[str, SQL], list[tuple[str, SQL]]]] = {}
+    for table in all_tables:
+        indexes = await _gather_table_indexes(table)
+        assert indexes, f'No indexes found for {table} table'
+        constraints = await _gather_table_constraints(table)
+        table_data[table] = (indexes, constraints)
+
+    async with db(True, autocommit=True) as conn:
+        for table in all_tables:
+            indexes, constraints = table_data[table]
+
+            logging.info(
+                'Dropping %d indexes for %s: %r',
+                len(indexes),
+                table,
+                indexes,
+            )
+            await conn.execute(
+                SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes)))
+            )
+
+            if constraints:
+                logging.info(
+                    'Dropping %d constraints for %s: %r',
+                    len(constraints),
+                    table,
+                    constraints,
+                )
+                await conn.execute(
+                    SQL('ALTER TABLE {} {}').format(
+                        Identifier(table),
+                        SQL(',').join(
+                            SQL('DROP CONSTRAINT {}').format(Identifier(name))
+                            for name, _ in constraints
+                        ),
+                    )
+                )
 
     async with TaskGroup() as tg:
 
         async def task(table: _Table) -> None:
-            await _load_table(mode, table, tg)
+            indexes, constraints = table_data[table]
+            await _load_table(mode, table, indexes, constraints, tg)
             for next_table in _NEXT_TABLES.get(table, ()):
                 tg.create_task(task(next_table))
 

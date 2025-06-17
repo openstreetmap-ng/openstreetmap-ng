@@ -2,7 +2,9 @@
   hostMemoryMb,
   hostDiskCoW,
   postgresPort,
-  postgresCpuThreads,
+  postgresWorkers,
+  postgresParallelWorkers,
+  postgresParallelMaintenanceWorkers,
   postgresMinWalSizeGb,
   postgresMaxWalSizeGb,
   postgresFullPageWrites,
@@ -24,7 +26,7 @@ writeText "postgres.conf" (
     effective_cache_size = ${toString (builtins.floor (hostMemoryMb / 2))}MB
     work_mem = 64MB
     hash_mem_multiplier = 4.0
-    maintenance_work_mem = ${toString (builtins.floor (hostMemoryMb / postgresCpuThreads / 1.5))}MB
+    maintenance_work_mem = ${toString (builtins.floor (hostMemoryMb / postgresParallelWorkers / 1.5))}MB
     vacuum_buffer_usage_limit = ${toString (builtins.floor (hostMemoryMb / 32))}MB
 
     # use UTC timezone
@@ -36,15 +38,10 @@ writeText "postgres.conf" (
     max_parallel_workers_per_gather = 0
 
     # configure number of workers
-    max_worker_processes = ${toString postgresCpuThreads}
-    max_parallel_workers = ${toString postgresCpuThreads}
-    max_parallel_maintenance_workers = ${toString postgresCpuThreads}
-    # SOON: timescaledb.max_background_workers = ${toString postgresCpuThreads}
-    autovacuum_max_workers = ${toString (builtins.floor (postgresCpuThreads / 2))}
-
-    # timescaledb require open-source license and disable telemetry
-    # SOON: timescaledb.license = apache
-    # SOON: timescaledb.telemetry_level = off
+    max_worker_processes = ${toString postgresWorkers}
+    max_parallel_workers = ${toString postgresParallelWorkers}
+    max_parallel_maintenance_workers = ${toString postgresParallelMaintenanceWorkers}
+    autovacuum_max_workers = ${toString postgresParallelMaintenanceWorkers}
 
     # more aggressive autovacuum
     autovacuum_vacuum_scale_factor = 0.1
@@ -133,7 +130,7 @@ writeText "postgres.conf" (
   + ''
 
     # configure additional libraries
-    shared_preload_libraries = 'auto_explain' # SOON: ,timescaledb
+    shared_preload_libraries = 'auto_explain'
 
     # automatically explain slow queries
     # reason: useful for troubleshooting
