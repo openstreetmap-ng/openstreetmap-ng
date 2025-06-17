@@ -315,6 +315,12 @@ async def _iterate(state: AppState) -> AppState:
             state.frequency,
             next_replica.sequence_number,
         ) in _SKIP_CORRUPTED:
+            logging.info(
+                'Skipped corrupted replication %s/%s/%d',
+                state.dataset,
+                state.frequency,
+                next_replica.sequence_number,
+            )
             state = replace(state, last_replica=next_replica)
             continue
 
