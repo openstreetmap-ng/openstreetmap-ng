@@ -48,7 +48,7 @@ _FREQUENCY_MERGE_EVERY: dict[_Frequency, int] = {
     'day': 7,
 }
 
-_SKIP_CORRUPTED: set[tuple[_Dataset, _Frequency, int]] = {
+_KNOWN_CORRUPTED: set[tuple[_Dataset, _Frequency, int]] = {
     ('redaction-period', 'day', 120),
 }
 
@@ -313,7 +313,7 @@ async def _iterate(state: AppState) -> AppState:
             state.dataset,
             state.frequency,
             next_replica.sequence_number,
-        ) in _SKIP_CORRUPTED:
+        ) in _KNOWN_CORRUPTED:
             logging.info(
                 'Skipped known corrupted replication %s/%s/%d',
                 state.dataset,
