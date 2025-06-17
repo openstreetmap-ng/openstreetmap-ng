@@ -48,6 +48,10 @@ _FREQUENCY_MERGE_EVERY: dict[_Frequency, int] = {
     'day': 7,
 }
 
+_SKIP_CORRUPTED: set[tuple[_Dataset, _Frequency, int]] = {
+    ('redaction-period', 'day', 120),
+}
+
 _PARQUET_TMP_SCHEMA = pa.schema([
     pa.field('parse_order', pa.uint64()),
     pa.field('changeset_id', pa.uint64()),
@@ -304,6 +308,16 @@ async def _iterate(state: AppState) -> AppState:
     """Process the next replication sequence."""
     while True:
         next_replica = state.next_replica
+
+        # Skip known corrupted replication data
+        if (
+            state.dataset,
+            state.frequency,
+            next_replica.sequence_number,
+        ) in _SKIP_CORRUPTED:
+            state = replace(state, last_replica=next_replica)
+            continue
+
         if state.frequency == 'minute' or next_replica.created_at <= datetime.now(UTC):
             break
 
