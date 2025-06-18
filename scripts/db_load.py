@@ -141,6 +141,7 @@ async def _load_table(
         except KeyboardInterrupt:
             if proc is not None:
                 proc.terminate()
+            raise
 
     # Recreate indexes and constraints after loading
     async def index_postprocess():
