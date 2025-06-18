@@ -81,9 +81,9 @@ writeText "postgres.conf" (
     # reason: reduced IO usage, higher throughput
     wal_compression = zstd
 
-    # group WAL commits during high load (delay 20ms)
+    # group WAL commits during high load (delay 50ms)
     # reason: higher throughput
-    commit_delay = 20000
+    commit_delay = 50000
     commit_siblings = 5
 
     # reduce checkpoint frequency
