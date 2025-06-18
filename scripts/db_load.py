@@ -34,7 +34,6 @@ _NEXT_TABLES: dict[_Table, tuple[_Table, ...]] = {
 
 _TABLE_LOCK = Lock()
 _NUM_WORKERS_COPY = calc_num_workers(max=8)
-_INDEX_SEMAPHORE = Semaphore(2)
 
 
 def _get_csv_path(table: _Table) -> Path:
@@ -48,10 +47,24 @@ def _get_csv_header(path: Path) -> str:
         return reader.readline().strip()
 
 
+async def _detect_maintenance_parallelism() -> float:
+    async with (
+        db() as conn,
+        await conn.execute(
+            """
+            SELECT
+                current_setting('max_parallel_workers')::float /
+                current_setting('max_parallel_maintenance_workers')::float
+            """,
+        ) as r,
+    ):
+        return (await r.fetchone())[0]  # type: ignore
+
+
 async def _gather_table_indexes(table: _Table) -> dict[str, SQL]:
-    """Gather all non-constraint indexes for a table."""
-    async with db() as conn:
-        cursor = await conn.execute(
+    async with (
+        db() as conn,
+        await conn.execute(
             """
             SELECT pgi.indexname, pgi.indexdef
             FROM pg_indexes pgi
@@ -64,14 +77,15 @@ async def _gather_table_indexes(table: _Table) -> dict[str, SQL]:
             )
             """,
             (table, table),
-        )
-        return {name: SQL(sql) for name, sql in await cursor.fetchall()}
+        ) as r,
+    ):
+        return {name: SQL(sql) for name, sql in await r.fetchall()}
 
 
 async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
-    """Gather all foreign key constraints for a table."""
-    async with db() as conn:
-        cursor = await conn.execute(
+    async with (
+        db() as conn,
+        await conn.execute(
             SQL("""
             SELECT con.conname, pg_get_constraintdef(con.oid)
             FROM pg_constraint con
@@ -90,8 +104,9 @@ async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
                 )
             ),
             (table,),
-        )
-        return [(name, SQL(sql)) for name, sql in await cursor.fetchall()]
+        ) as r,
+    ):
+        return [(name, SQL(sql)) for name, sql in await r.fetchall()]
 
 
 async def _load_table(
@@ -99,6 +114,7 @@ async def _load_table(
     table: _Table,
     indexes: dict[str, SQL],
     constraints: list[tuple[str, SQL]],
+    maintenance_semaphore: Semaphore,
     tg: TaskGroup,
 ) -> None:
     if mode == 'preload' or table in {'note', 'note_comment'}:
@@ -148,7 +164,7 @@ async def _load_table(
         logging.info('Recreating indexes and constraints')
 
         async def execute(sql: Query) -> None:
-            async with _INDEX_SEMAPHORE, db(True, autocommit=True) as conn:
+            async with maintenance_semaphore, db(True, autocommit=True) as conn:
                 ts = monotonic()
                 await conn.execute(sql)
                 logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
@@ -175,6 +191,10 @@ async def _load_table(
 
 async def _load_tables(mode: _Mode) -> None:
     all_tables = get_args(_Table)
+
+    maintenance_parallelism = max(1, int(await _detect_maintenance_parallelism()))
+    maintenance_semaphore = Semaphore(maintenance_parallelism)
+    logging.info('Detected maintenance parallelism: %d', maintenance_parallelism)
 
     logging.info('Truncating tables: %r', all_tables)
     async with db(True, autocommit=True) as conn:
@@ -227,7 +247,9 @@ async def _load_tables(mode: _Mode) -> None:
 
         async def task(table: _Table) -> None:
             indexes, constraints = table_data[table]
-            await _load_table(mode, table, indexes, constraints, tg)
+            await _load_table(
+                mode, table, indexes, constraints, maintenance_semaphore, tg
+            )
             for next_table in _NEXT_TABLES.get(table, ()):
                 tg.create_task(task(next_table))
 
