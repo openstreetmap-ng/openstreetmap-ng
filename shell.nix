@@ -4,6 +4,8 @@
   hostDiskCoW ? false,
   enablePostgres ? true,
   postgresPort ? 49560,
+  postgresSharedBuffersPerc ? 0.25,
+  postgresWorkMemMb ? 64,
   postgresWorkers ? 10,
   postgresParallelWorkers ? 8,
   postgresParallelMaintenanceWorkers ? 4,
@@ -41,6 +43,8 @@ let
       hostMemoryMb
       hostDiskCoW
       postgresPort
+      postgresSharedBuffersPerc
+      postgresWorkMemMb
       postgresWorkers
       postgresParallelWorkers
       postgresParallelMaintenanceWorkers
