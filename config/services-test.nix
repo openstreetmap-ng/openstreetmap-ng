@@ -61,7 +61,7 @@ let
     ${pkgs.nix}/bin/nix-shell \
       --pure \
       --arg isDevelopment false \
-      --arg hostMemoryMb 32768 \
+      --arg hostMemoryMb 29886 \
       --arg hostDiskCoW true \
       --arg postgresMaxWalSizeGb 50 \
       --arg postgresFullPageWrites false \
