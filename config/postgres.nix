@@ -86,6 +86,12 @@ writeText "postgres.conf" (
     commit_delay = 50000
     commit_siblings = 5
 
+    # more responsive bgwriter
+    # reason: avoid backend stalls during high load
+    bgwriter_delay = 100ms
+    bgwriter_lru_maxpages = 1000  # 80MB/s
+    bgwriter_lru_multiplier = 4.0
+
     # reduce checkpoint frequency
     # reason: higher chance of vacuuming in-memory, reduced WAL usage
     checkpoint_timeout = 1h
@@ -145,10 +151,8 @@ writeText "postgres.conf" (
   ''
   + lib.optionalString fastIngest ''
     autovacuum = off
-    bgwriter_delay = 100ms
     bgwriter_flush_after = 0
-    bgwriter_lru_maxpages = 15000  # ~1.1GB/s
-    bgwriter_lru_multiplier = 4.0
+    bgwriter_lru_maxpages = 1073741823
     checkpoint_completion_target = 0
     checkpoint_flush_after = 0
     fsync = off
