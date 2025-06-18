@@ -192,18 +192,8 @@ async def _load_tables(mode: _Mode) -> None:
         table_data[table] = (indexes, constraints)
 
     async with db(True, autocommit=True) as conn:
-        for table in all_tables:
+        for table in all_tables[::-1]:
             indexes, constraints = table_data[table]
-
-            logging.info(
-                'Dropping %d indexes for %s: %r',
-                len(indexes),
-                table,
-                indexes,
-            )
-            await conn.execute(
-                SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes)))
-            )
 
             if constraints:
                 logging.info(
@@ -221,6 +211,16 @@ async def _load_tables(mode: _Mode) -> None:
                         ),
                     )
                 )
+
+            logging.info(
+                'Dropping %d indexes for %s: %r',
+                len(indexes),
+                table,
+                indexes,
+            )
+            await conn.execute(
+                SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes)))
+            )
 
     async with TaskGroup() as tg:
 
