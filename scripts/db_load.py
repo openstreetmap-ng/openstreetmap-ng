@@ -22,13 +22,20 @@ from app.utils import calc_num_workers
 
 _Mode = Literal['preload', 'replication']
 _Table = Literal[
-    'user', 'changeset', 'changeset_bounds', 'element', 'note', 'note_comment'
+    'user',
+    'changeset',
+    'changeset_bounds',
+    'changeset_comment',
+    'element',
+    'note',
+    'note_comment',
 ]
+# _ConstraintType = Literal['f', 'p', 'u', 'c']
 
 _FIRST_TABLES: tuple[_Table, ...] = ('user',)
 _NEXT_TABLES: dict[_Table, tuple[_Table, ...]] = {
     'user': ('changeset', 'note'),
-    'changeset': ('changeset_bounds', 'element'),
+    'changeset': ('changeset_bounds', 'changeset_comment', 'element'),
     'note': ('note_comment',),
 }
 
@@ -49,7 +56,6 @@ def _get_csv_header(path: Path) -> str:
 
 
 async def _gather_table_indexes(table: _Table) -> dict[str, SQL]:
-    """Gather all non-constraint indexes for a table."""
     async with db() as conn:
         cursor = await conn.execute(
             """
@@ -68,39 +74,140 @@ async def _gather_table_indexes(table: _Table) -> dict[str, SQL]:
         return {name: SQL(sql) for name, sql in await cursor.fetchall()}
 
 
-async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
-    """Gather all foreign key constraints for a table."""
+async def _drop_table_indexes(table: _Table, indexes: dict[str, SQL]) -> None:
+    if not indexes:
+        return
+
+    async with db(True, autocommit=True) as conn:
+        logging.info(
+            'Dropping %d indexes for %s: %r',
+            len(indexes),
+            table,
+            indexes,
+        )
+        await conn.execute(
+            SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes)))
+        )
+
+
+async def _gather_table_identity(table: _Table) -> list[str]:
     async with db() as conn:
         cursor = await conn.execute(
-            SQL("""
+            """
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+            AND table_name = %s
+            AND is_identity = 'YES'
+            """,
+            (table,),
+        )
+        return [c for (c,) in await cursor.fetchall()]
+
+
+async def _drop_table_identity(table: _Table, identity: list[str]) -> None:
+    if not identity:
+        return
+
+    async with db(True, autocommit=True) as conn:
+        logging.debug(
+            'Dropping %d identity columns for %s: %r',
+            len(identity),
+            table,
+            identity,
+        )
+        await conn.execute(
+            SQL('ALTER TABLE {} {}').format(
+                Identifier(table),
+                SQL(',').join(
+                    SQL('ALTER COLUMN {} DROP IDENTITY').format(Identifier(name))
+                    for name in identity
+                ),
+            )
+        )
+
+
+async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
+    async with db() as conn:
+        cursor = await conn.execute(
+            """
             SELECT con.conname, pg_get_constraintdef(con.oid)
             FROM pg_constraint con
             JOIN pg_class rel ON rel.oid = con.conrelid
             JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
             WHERE rel.relname = %s
-            AND nsp.nspname = 'public' {}
-            """).format(
-                SQL(
-                    """
-                    AND con.contype != 'p'  -- Exclude primary key constraints
-                    AND con.conname NOT LIKE '%%_id_not_null'
-                    """
-                    if table != 'element'
-                    else ''
-                )
-            ),
+            AND nsp.nspname = 'public'
+            ORDER BY
+                CASE con.contype
+                    WHEN 'f' THEN 1  -- Foreign keys
+                    WHEN 'c' THEN 2  -- Check constraints
+                    WHEN 'u' THEN 3  -- Unique constraints
+                    WHEN 'p' THEN 4  -- Primary keys
+                    ELSE 5
+                END
+            """,
             (table,),
         )
         return [(name, SQL(sql)) for name, sql in await cursor.fetchall()]
 
 
-async def _load_table(
-    mode: _Mode,
-    table: _Table,
-    indexes: dict[str, SQL],
-    constraints: list[tuple[str, SQL]],
-    tg: TaskGroup,
+async def _drop_table_constraints(
+    table: _Table, constraints: list[tuple[str, SQL]]
 ) -> None:
+    if not constraints:
+        return
+
+    async with db(True, autocommit=True) as conn:
+        logging.info(
+            'Dropping %d constraints for %s: %r',
+            len(constraints),
+            table,
+            constraints,
+        )
+        await conn.execute(
+            SQL('ALTER TABLE {} {}').format(
+                Identifier(table),
+                SQL(',').join(
+                    SQL('DROP CONSTRAINT {}').format(Identifier(name))
+                    for name, _ in constraints
+                ),
+            )
+        )
+
+
+async def _create_table_constraints_and_identity(
+    table: _Table, constraints: list[tuple[str, SQL]], identity: list[str]
+) -> None:
+    async with db(True, autocommit=True) as conn:
+        if constraints:
+            await conn.execute(
+                SQL('ALTER TABLE {} {}').format(
+                    Identifier(table),
+                    SQL(',').join(
+                        SQL('ADD CONSTRAINT {} {}').format(Identifier(name), sql)
+                        for name, sql in constraints
+                    ),
+                )
+            )
+
+        if identity:
+            await conn.execute(
+                SQL('ALTER TABLE {} {}').format(
+                    Identifier(table),
+                    SQL(',').join(
+                        SQL('ALTER COLUMN {} ADD GENERATED ALWAYS AS IDENTITY').format(
+                            Identifier(name)
+                        )
+                        for name in identity
+                    ),
+                )
+            )
+
+
+async def _load_table(mode: _Mode, table: _Table) -> None:
+    if table in {'changeset_comment'}:
+        return
+
     if mode == 'preload' or table in {'note', 'note_comment'}:
         path = _get_csv_path(table)
 
@@ -142,35 +249,6 @@ async def _load_table(
             if proc is not None:
                 proc.terminate()
 
-    # Recreate indexes and constraints after loading
-    async def index_postprocess():
-        logging.info('Recreating indexes and constraints')
-
-        async def execute(sql: Query) -> None:
-            async with _INDEX_SEMAPHORE, db(True, autocommit=True) as conn:
-                ts = monotonic()
-                await conn.execute(sql)
-                logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
-
-        for sql in indexes.values():
-            tg.create_task(execute(sql))
-
-        if constraints:
-            tg.create_task(
-                execute(
-                    SQL('ALTER TABLE {} {}').format(
-                        Identifier(table),
-                        SQL(',').join(
-                            SQL('ADD CONSTRAINT {} {}').format(Identifier(name), sql)
-                            for name, sql in constraints
-                        ),
-                    )
-                )
-            )
-
-    # Begin postprocessing
-    tg.create_task(index_postprocess())
-
 
 async def _load_tables(mode: _Mode) -> None:
     all_tables = get_args(_Table)
@@ -184,49 +262,53 @@ async def _load_tables(mode: _Mode) -> None:
         )
 
     logging.info('Gathering indexes and constraints')
-    table_data: dict[_Table, tuple[dict[str, SQL], list[tuple[str, SQL]]]] = {}
+    table_data: dict[
+        _Table,
+        tuple[
+            dict[str, SQL],  # indexes
+            list[str],  # identity
+            list[tuple[str, SQL]],  # constraints
+        ],
+    ]
+    table_data = {}
     for table in all_tables:
         indexes = await _gather_table_indexes(table)
         assert indexes, f'No indexes found for {table} table'
+        identity = await _gather_table_identity(table)
         constraints = await _gather_table_constraints(table)
-        table_data[table] = (indexes, constraints)
+        table_data[table] = (indexes, identity, constraints)
 
     async with db(True, autocommit=True) as conn:
         for table in all_tables[::-1]:
-            indexes, constraints = table_data[table]
-
-            if constraints:
-                logging.info(
-                    'Dropping %d constraints for %s: %r',
-                    len(constraints),
-                    table,
-                    constraints,
-                )
-                await conn.execute(
-                    SQL('ALTER TABLE {} {}').format(
-                        Identifier(table),
-                        SQL(',').join(
-                            SQL('DROP CONSTRAINT {}').format(Identifier(name))
-                            for name, _ in constraints
-                        ),
-                    )
-                )
-
-            logging.info(
-                'Dropping %d indexes for %s: %r',
-                len(indexes),
-                table,
-                indexes,
-            )
-            await conn.execute(
-                SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes)))
-            )
+            indexes, identity, constraints = table_data[table]
+            await _drop_table_identity(table, identity)
+            await _drop_table_constraints(table, constraints)
+            await _drop_table_indexes(table, indexes)
 
     async with TaskGroup() as tg:
 
+        async def create_index(sql: Query) -> None:
+            async with _INDEX_SEMAPHORE, db(True, autocommit=True) as conn:
+                ts = monotonic()
+                await conn.execute(sql)
+                logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
+
         async def task(table: _Table) -> None:
-            indexes, constraints = table_data[table]
-            await _load_table(mode, table, indexes, constraints, tg)
+            await _load_table(mode, table)
+
+            logging.info('Recreating indexes and constraints')
+            indexes, identity, constraints = table_data[table]
+
+            # Create indexes
+            for sql in indexes.values():
+                tg.create_task(create_index(sql))
+
+            # Create constraints and identity
+            tg.create_task(
+                _create_table_constraints_and_identity(table, constraints, identity)
+            )
+
+            # Recurse
             for next_table in _NEXT_TABLES.get(table, ()):
                 tg.create_task(task(next_table))
 
