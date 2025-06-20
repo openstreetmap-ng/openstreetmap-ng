@@ -93,6 +93,7 @@ async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
             JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
             WHERE rel.relname = %s
             AND nsp.nspname = 'public' {}
+            AND con.contype NOT IN ('c', 'n')
             """).format(
                 SQL(
                     """
