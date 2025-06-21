@@ -269,9 +269,9 @@ async def main(mode: _Mode) -> None:
 
     await _load_tables(mode)
 
-    logging.info('Vacuuming and updating statistics')
+    logging.info('Updating statistics')
     async with db(True, autocommit=True) as conn:
-        await conn.execute('VACUUM ANALYZE')
+        await conn.execute('ANALYZE')
 
     logging.info('Fixing sequence counters consistency')
     await MigrationService.fix_sequence_counters()
