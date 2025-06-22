@@ -21,6 +21,7 @@ from app.config import (
 from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
+from app.lib.image import Image
 from app.lib.render_response import render_response
 from app.lib.statistics import user_activity_summary
 from app.lib.user_token_struct_utils import UserTokenStructUtils
@@ -250,6 +251,7 @@ async def index(
             'profile': user,
             'is_self': is_self,
             'is_new_user': is_new_user,
+            'background_url': Image.get_background_url(user['background_id']),
             'changesets_count': changesets_count,
             'changesets_comments_count': changesets_comments_count,
             'changesets': changesets,

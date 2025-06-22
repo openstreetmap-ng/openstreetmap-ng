@@ -6,7 +6,7 @@
 <div class="content-header px-0">
     <form class="background-form" method="POST" action="/api/web/settings/background" enctype="multipart/form-data">
         <input class="visually-hidden" type="file" name="background_file" accept="image/*">
-        <img class="background" {% if profile.background_url %} src="{{ profile.background_url }}" {% endif %}
+        <img class="background" {% if background_url %} src="{{ background_url }}" {% endif %}
             alt="{{ t('alt.background_image') }}">
 
         {% if is_self %}
