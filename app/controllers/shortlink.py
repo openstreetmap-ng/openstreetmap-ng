@@ -23,7 +23,7 @@ async def shortlink(
     try:
         lon, lat, z = shortlink_decode(code)
     except Exception:
-        return Response(None, status.HTTP_404_NOT_FOUND)
+        return Response('Invalid shortlink code', status.HTTP_400_BAD_REQUEST)
 
     fragment = '#' + urlencode(
         {'map': [f'{z}/{lat:.5f}/{lon:.5f}']}, doseq=True, quote_via=quote

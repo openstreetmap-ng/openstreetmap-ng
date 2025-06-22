@@ -9,8 +9,8 @@ import type { LonLatZoom } from "./map/map-utils"
  */
 export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom): string => {
     const z = (zoom | 0) + 8
-    const d = Math.ceil((z + 8) / 3)
-    const r = (z + 8) % 3
+    const d = Math.ceil(z / 3)
+    const r = z % 3
 
     const x = BigInt((mod(lon + 180, 360) * 11930464.711111112) | 0) // (2 ** 32) / 360
     const y = BigInt(((lat + 90) * 23860929.422222223) | 0) // (2 ** 32) / 180
