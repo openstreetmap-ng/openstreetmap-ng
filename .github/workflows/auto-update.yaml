@@ -1,4 +1,4 @@
-name: Auto-update various data files
+name: Update data files
 
 on:
   workflow_dispatch:
