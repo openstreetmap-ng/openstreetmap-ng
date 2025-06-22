@@ -99,8 +99,6 @@ in
         RemainAfterExit = true;
         Restart = "on-failure";
         RestartSec = "30s";
-        CPUSchedulingPolicy = "fifo";
-        CPUSchedulingPriority = 75;
       }
     ];
     script = nixShellRun "css-pipeline && js-pipeline && static-precompress && dev-start";
