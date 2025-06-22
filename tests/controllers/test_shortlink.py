@@ -17,4 +17,4 @@ async def test_shortlink(client: AsyncClient, path, expected_redirect):
 
 async def test_shortlink_not_found(client: AsyncClient):
     r = await client.get('/go/$$$', follow_redirects=False)
-    assert r.status_code == status.HTTP_404_NOT_FOUND, r.text
+    assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
