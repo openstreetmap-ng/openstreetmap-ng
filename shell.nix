@@ -782,6 +782,7 @@ let
       export WIKIMEDIA_OAUTH_PUBLIC=2f7fe9e2825acc816d1e1103d203e8ec
       export WIKIMEDIA_OAUTH_SECRET=d07aaeabb5f7a5de76e3d667db3dfe0b2a5abf11
       export LEGACY_HIGH_PRECISION_TIME=1
+      export LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS=1
     ''
     + lib.optionalString enableMailpit ''
       export SMTP_HOST=127.0.0.1

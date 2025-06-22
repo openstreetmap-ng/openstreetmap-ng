@@ -1,3 +1,4 @@
+import logging
 from asyncio import TaskGroup
 from contextlib import nullcontext
 from typing import Any, Literal
@@ -7,7 +8,10 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
 
-from app.config import MAP_QUERY_LEGACY_NODES_LIMIT
+from app.config import (
+    LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS,
+    MAP_QUERY_LEGACY_NODES_LIMIT,
+)
 from app.db import db
 from app.lib.exceptions_context import raise_for
 from app.models.db.element import Element
@@ -704,22 +708,50 @@ class ElementQuery:
                         tg.create_task(fetch_parents(ways_typed_ids, 'relation'))
 
                     # fetch ways' nodes
-                    if not partial_ways:
-                        ways_nodes_typed_ids = {
-                            member
-                            for way in ways
-                            if (way_members := way['members'])
-                            for member in way_members
-                        }
-                        ways_nodes_typed_ids.difference_update(nodes_typed_ids)
-                        ways_nodes = await ElementQuery.get_by_refs(
-                            list(ways_nodes_typed_ids),
-                            at_sequence_id=(
-                                await ElementQuery.get_current_sequence_id(conn)
-                            ),
-                            limit=len(ways_nodes_typed_ids),
-                        )
-                        result_sequences.append(ways_nodes)
+                    if partial_ways:
+                        return
+
+                    ways_nodes_typed_ids = {
+                        member
+                        for way in ways
+                        if (members := way['members'])
+                        for member in members
+                    }
+                    ways_nodes_typed_ids.difference_update(nodes_typed_ids)
+                    ways_nodes = await ElementQuery.get_by_refs(
+                        list(ways_nodes_typed_ids),
+                        at_sequence_id=(
+                            await ElementQuery.get_current_sequence_id(conn)
+                        ),
+                        limit=len(ways_nodes_typed_ids),
+                    )
+                    result_sequences.append(ways_nodes)
+
+                    # check missing ways' nodes
+                    if len(ways_nodes) == len(ways_nodes_typed_ids):
+                        return
+
+                    missing_ways_nodes_typed_ids = ways_nodes_typed_ids.difference(
+                        node['typed_id'] for node in ways_nodes
+                    )
+                    assert LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS, (
+                        f'Ways have missing nodes: {missing_ways_nodes_typed_ids}'
+                    )
+                    for way in ways:
+                        if (
+                            (members := way['members'])  #
+                            and not missing_ways_nodes_typed_ids.isdisjoint(members)
+                        ):
+                            logging.debug(
+                                '%s/%dv%d has missing members',
+                                *split_typed_element_id(way['typed_id']),
+                                way['version'],
+                            )
+                            way['members'] = [
+                                member
+                                for member in members
+                                if member not in missing_ways_nodes_typed_ids
+                            ]
 
                 tg.create_task(way_task())
 

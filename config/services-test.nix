@@ -71,6 +71,7 @@ let
         export ENV=test \
         && export APP_URL=https://www.openstreetmap.ng \
         && export API_URL=https://api.openstreetmap.ng \
+        && export LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS=1 \
         && ${script}"
   '';
 in
