@@ -22,6 +22,8 @@ writeText "supervisord.conf" (
     command=postgres
       -c config_file=${postgresConf}
       -D data/postgres
+    stopsignal=INT
+    stopwaitsecs=600
     stdout_logfile=data/supervisor/postgres.log
     stderr_logfile=data/supervisor/postgres.log
 
