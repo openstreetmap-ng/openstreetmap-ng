@@ -8,13 +8,27 @@ CREATE EXTENSION IF NOT EXISTS h3;
 
 CREATE EXTENSION IF NOT EXISTS h3_postgis CASCADE;
 
--- Also creates postgis extension
 CREATE FUNCTION h3_points_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
 WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
     -- Base case: cells at finest resolution
     SELECT public.h3_lat_lng_to_cell((dp).geom, resolution), resolution
     FROM public.ST_DumpPoints(geom) AS dp
     GROUP BY 1
+    UNION ALL
+    -- Recursive case: parent cells at coarser resolutions
+    SELECT public.h3_cell_to_parent(cell), res - 1
+    FROM hierarchy
+    WHERE res > 0
+    GROUP BY 1, 2)
+SELECT array_agg(cell)
+FROM hierarchy
+$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE FUNCTION h3_geometry_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
+WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
+    -- Base case: cells at finest resolution
+    SELECT h3_cell, resolution
+    FROM public.h3_polygon_to_cells_experimental(geom, resolution, 'overlapping') AS t(h3_cell)
     UNION ALL
     -- Recursive case: parent cells at coarser resolutions
     SELECT public.h3_cell_to_parent(cell), res - 1
