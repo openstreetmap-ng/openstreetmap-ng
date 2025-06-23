@@ -31,7 +31,7 @@ class NoteCommentQuery:
             conditions.append(SQL('note.hidden_at IS NULL'))
 
         if geometry is not None:
-            conditions.append(SQL('ST_Intersects(note.point, %s)'))
+            conditions.append(SQL('note.point && %s'))
             params.append(geometry)
 
         if limit is not None:

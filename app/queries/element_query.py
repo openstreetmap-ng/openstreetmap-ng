@@ -666,7 +666,7 @@ class ElementQuery:
 
             query = SQL("""
                 SELECT * FROM element
-                WHERE ST_Intersects(point, %s) AND latest
+                WHERE point && %s AND latest
                 {limit}
             """).format(limit=limit_clause)
 

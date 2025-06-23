@@ -233,7 +233,7 @@ class NoteQuery:
                 conditions.append(SQL('closed_at IS NULL'))
 
         if geometry is not None:
-            conditions.append(SQL('ST_Intersects(point, %s)'))
+            conditions.append(SQL('point && %s'))
             params.append(geometry)
 
         if date_from is not None:
