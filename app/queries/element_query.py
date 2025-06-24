@@ -17,8 +17,6 @@ from app.lib.exceptions_context import raise_for
 from app.models.db.element import Element
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
-    TYPED_ELEMENT_ID_NODE_MIN,
-    TYPED_ELEMENT_ID_RELATION_MAX,
     TYPED_ELEMENT_ID_RELATION_MIN,
     TYPED_ELEMENT_ID_WAY_MAX,
     TYPED_ELEMENT_ID_WAY_MIN,
@@ -58,21 +56,19 @@ class ElementQuery:
             await conn.execute(
                 """
                 SELECT MAX(typed_id) FROM element
-                WHERE typed_id BETWEEN %s AND %s
+                WHERE typed_id <= %s
                 UNION ALL
                 SELECT MAX(typed_id) FROM element
                 WHERE typed_id BETWEEN %s AND %s
                 UNION ALL
                 SELECT MAX(typed_id) FROM element
-                WHERE typed_id BETWEEN %s AND %s
+                WHERE typed_id >= %s
                 """,
                 (
-                    TYPED_ELEMENT_ID_NODE_MIN,
                     TYPED_ELEMENT_ID_NODE_MAX,
                     TYPED_ELEMENT_ID_WAY_MIN,
                     TYPED_ELEMENT_ID_WAY_MAX,
                     TYPED_ELEMENT_ID_RELATION_MIN,
-                    TYPED_ELEMENT_ID_RELATION_MAX,
                 ),
             ) as r,
         ):
@@ -126,10 +122,7 @@ class ElementQuery:
                 SELECT 1 FROM element
                 WHERE sequence_id > %s
                 AND members && %s::bigint[]
-                AND (
-                    typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
-                    typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
-                )
+                AND typed_id >= 1152921504606846976
                 AND latest
                 LIMIT 1
                 """,
@@ -470,29 +463,6 @@ class ElementQuery:
             "at_sequence_id shouldn't be used with multiple members"
         )
 
-        if parent_type is None:
-            async with TaskGroup() as tg:
-                tasks = [
-                    tg.create_task(
-                        ElementQuery.get_parents_by_refs(
-                            members,
-                            conn,
-                            at_sequence_id=at_sequence_id,
-                            parent_type=parent_type,
-                            limit=limit,
-                        )
-                    )
-                    for parent_type in ('way', 'relation')
-                ]
-            result = tasks[0].result()
-            for task in tasks[1:]:
-                result.extend(task.result())
-            return (
-                result[:limit]
-                if (limit is not None and len(result) > limit)
-                else result
-            )
-
         conditions: list[Composable] = [SQL('members && %s::bigint[]')]
         params: list[Any] = [members]
 
@@ -502,14 +472,14 @@ class ElementQuery:
         else:
             conditions.append(SQL('latest'))
 
-        if parent_type == 'way':
+        if parent_type is None:
+            conditions.append(SQL('typed_id >= 1152921504606846976'))
+        elif parent_type == 'way':
             conditions.append(
                 SQL('typed_id BETWEEN 1152921504606846976 AND 2305843009213693951')
             )
         elif parent_type == 'relation':
-            conditions.append(
-                SQL('typed_id BETWEEN 2305843009213693952 AND 3458764513820540927')
-            )
+            conditions.append(SQL('typed_id >= 2305843009213693952'))
         else:
             raise NotImplementedError(f'Unsupported parent type {parent_type!r}')
 
@@ -546,10 +516,14 @@ class ElementQuery:
             conn.cursor(row_factory=dict_row) as cur,
         ):
             # The members query tends to use an incorrect index, because of skewed statistics.
-            # Force disabling indexscan to prefer using GIN bitmapscan.
+            # Force disabling indexscan/seqscan to prefer using GIN bitmapscan.
             await cur.execute('SET LOCAL enable_indexscan = off')
+            await cur.execute('SET LOCAL enable_seqscan = off')
+
             result = await (await cur.execute(query, params)).fetchall()
+
             await cur.execute('RESET enable_indexscan')
+            await cur.execute('RESET enable_seqscan')
             return result  # type: ignore
 
     @staticmethod
@@ -566,10 +540,7 @@ class ElementQuery:
         inner_conditions: list[Composable] = [
             SQL("""
                 members && %s::bigint[]
-                AND (
-                    typed_id BETWEEN 1152921504606846976 AND 2305843009213693951 OR
-                    typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
-                )
+                AND typed_id >= 1152921504606846976
                 AND latest
             """)
         ]
@@ -599,11 +570,19 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with await conn.execute(query, params) as r:
+        async with conn.cursor() as cur:
+            # The members query tends to use an incorrect index, because of skewed statistics.
+            # Force disabling indexscan/seqscan to prefer using GIN bitmapscan.
+            await cur.execute('SET LOCAL enable_indexscan = off')
+            await cur.execute('SET LOCAL enable_seqscan = off')
+
             result: dict[TypedElementId, set[TypedElementId]]
             result = {member: set() for member in members}
-            for member, parent in await r.fetchall():
+            for member, parent in await (await cur.execute(query, params)).fetchall():
                 result[member].add(parent)
+
+            await cur.execute('RESET enable_indexscan')
+            await cur.execute('RESET enable_seqscan')
             return result
 
     @staticmethod
@@ -666,7 +645,9 @@ class ElementQuery:
 
             query = SQL("""
                 SELECT * FROM element
-                WHERE point && %s AND latest
+                WHERE typed_id <= 1152921504606846975
+                AND point && %s
+                AND latest
                 {limit}
             """).format(limit=limit_clause)
 

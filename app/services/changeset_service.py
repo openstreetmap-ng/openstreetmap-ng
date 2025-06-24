@@ -227,15 +227,39 @@ async def _close_inactive() -> None:
 async def _delete_empty() -> None:
     """Delete empty changesets after a timeout."""
     async with db(True) as conn:
-        result = await conn.execute(
+        async with await conn.execute(
             """
-            DELETE FROM changeset
+            SELECT id FROM changeset
             WHERE closed_at IS NOT NULL
             AND closed_at < statement_timestamp() - %s
             AND size = 0
             """,
             (CHANGESET_EMPTY_DELETE_TIMEOUT,),
+        ) as r:
+            changeset_ids = [c for (c,) in await r.fetchall()]
+            if not changeset_ids:
+                return
+
+        await conn.execute(
+            """
+            DELETE FROM changeset_comment
+            WHERE changeset_id = ANY(%s)
+            """,
+            (changeset_ids,),
+        )
+        await conn.execute(
+            """
+            DELETE FROM changeset_bounds
+            WHERE changeset_id = ANY(%s)
+            """,
+            (changeset_ids,),
+        )
+        await conn.execute(
+            """
+            DELETE FROM changeset
+            WHERE id = ANY(%s)
+            """,
+            (changeset_ids,),
         )
 
-        if result.rowcount:
-            logging.debug('Deleted %d empty changesets', result.rowcount)
+        logging.debug('Deleted %d empty changesets', len(changeset_ids))

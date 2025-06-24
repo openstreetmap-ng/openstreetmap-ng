@@ -8,6 +8,8 @@ CREATE EXTENSION IF NOT EXISTS h3;
 
 CREATE EXTENSION IF NOT EXISTS h3_postgis CASCADE;
 
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+
 CREATE FUNCTION h3_points_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
 WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
     -- Base case: cells at finest resolution
@@ -147,8 +149,8 @@ WHERE
 CREATE INDEX oauth2_token_user_app_authorized_idx ON oauth2_token (user_id, application_id, id, (authorized_at IS NOT NULL));
 
 CREATE TABLE changeset (
-    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id bigint REFERENCES "user",
+    id bigint GENERATED ALWAYS AS IDENTITY,
+    user_id bigint,
     tags hstore NOT NULL,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     updated_at timestamptz NOT NULL DEFAULT statement_timestamp(),
@@ -158,7 +160,9 @@ CREATE TABLE changeset (
     num_modify integer NOT NULL DEFAULT 0,
     num_delete integer NOT NULL DEFAULT 0,
     union_bounds geometry (Polygon, 4326)
-);
+)
+WITH
+    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '5000000');
 
 CREATE INDEX changeset_user_idx ON changeset (user_id, id)
 WHERE
@@ -187,29 +191,53 @@ CREATE INDEX changeset_union_bounds_idx ON changeset USING gist (union_bounds)
 WHERE
     union_bounds IS NOT NULL;
 
-CREATE TABLE changeset_bounds (
-    changeset_id bigint NOT NULL REFERENCES changeset ON DELETE CASCADE,
-    bounds geometry (Polygon, 4326) NOT NULL
-);
-
-CREATE INDEX changeset_bounds_id_idx ON changeset_bounds (changeset_id);
+CREATE TABLE changeset_bounds (changeset_id bigint NOT NULL, bounds geometry (Polygon, 4326) NOT NULL)
+WITH
+    (
+        tsdb.hypertable,
+        tsdb.partition_column = 'changeset_id',
+        tsdb.chunk_interval = '5000000'
+    );
 
 CREATE INDEX changeset_bounds_bounds_idx ON changeset_bounds USING gist (bounds) INCLUDE (changeset_id);
 
 CREATE TABLE changeset_comment (
-    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id bigint NOT NULL REFERENCES "user",
-    changeset_id bigint NOT NULL REFERENCES changeset ON DELETE CASCADE,
+    id bigint GENERATED ALWAYS AS IDENTITY,
+    user_id bigint NOT NULL,
+    changeset_id bigint NOT NULL,
     body text NOT NULL,
     body_rich_hash bytea,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
-);
+)
+WITH
+    (
+        tsdb.hypertable,
+        tsdb.partition_column = 'changeset_id',
+        tsdb.chunk_interval = '10000000',
+        tsdb.create_default_indexes = FALSE
+    );
 
 CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_id, id);
 
+CREATE INDEX changeset_comment_user_id_idx ON changeset_comment (user_id, id);
+
+CREATE FUNCTION element_partition_func (typed_id bigint) RETURNS bigint AS $$
+SELECT CASE
+    -- Nodes
+    WHEN typed_id <= 1152921504606846975 THEN
+        typed_id / 1000
+    -- Ways
+    WHEN typed_id <= 2305843009213693951 THEN
+        (typed_id - 1152921504606846976) / 100 + 1152921504606846976
+    -- Relations
+    ELSE
+        typed_id
+END
+$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;
+
 CREATE TABLE element (
-    sequence_id bigint PRIMARY KEY,
-    changeset_id bigint NOT NULL REFERENCES changeset,
+    sequence_id bigint,
+    changeset_id bigint NOT NULL,
     typed_id bigint NOT NULL,
     version bigint NOT NULL,
     latest boolean NOT NULL,
@@ -221,43 +249,39 @@ CREATE TABLE element (
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 
+SELECT
+    create_hypertable (
+        'element',
+        by_range ('typed_id', 3000000, partition_func => 'element_partition_func'),
+        create_default_indexes => FALSE
+    );
+
+CREATE INDEX element_sequence_idx ON element (sequence_id);
+
 CREATE INDEX element_changeset_idx ON element (changeset_id);
 
-CREATE INDEX element_version_idx ON element (typed_id, version);
+CREATE INDEX element_id_version_idx ON element (typed_id, version);
 
-CREATE INDEX element_sequence_idx ON element (typed_id, sequence_id);
+CREATE INDEX element_id_sequence_idx ON element (typed_id, sequence_id);
 
 CREATE INDEX element_point_idx ON element USING gist (point)
 WHERE
-    point IS NOT NULL
+    typed_id <= 1152921504606846975
+    AND point IS NOT NULL
     AND latest;
 
-CREATE INDEX element_members_ways_idx ON element USING gin (members)
+CREATE INDEX element_members_idx ON element USING gin (members)
 WITH
     (fastupdate = FALSE)
 WHERE
-    typed_id BETWEEN 1152921504606846976 AND 2305843009213693951
+    typed_id >= 1152921504606846976
     AND latest;
 
-CREATE INDEX element_members_ways_history_idx ON element USING gin (members)
+CREATE INDEX element_members_history_idx ON element USING gin (members)
 WITH
     (fastupdate = FALSE)
 WHERE
-    typed_id BETWEEN 1152921504606846976 AND 2305843009213693951
-    AND NOT latest;
-
-CREATE INDEX element_members_relations_idx ON element USING gin (members)
-WITH
-    (fastupdate = FALSE)
-WHERE
-    typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
-    AND latest;
-
-CREATE INDEX element_members_relations_history_idx ON element USING gin (members)
-WITH
-    (fastupdate = FALSE)
-WHERE
-    typed_id BETWEEN 2305843009213693952 AND 3458764513820540927
+    typed_id >= 1152921504606846976
     AND NOT latest;
 
 CREATE TABLE diary (
@@ -327,13 +351,15 @@ WHERE
     NOT to_user_hidden;
 
 CREATE TABLE note (
-    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id bigint GENERATED ALWAYS AS IDENTITY,
     point geometry (Point, 4326) NOT NULL,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     updated_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     closed_at timestamptz,
     hidden_at timestamptz
-);
+)
+WITH
+    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '1000000');
 
 CREATE INDEX note_point_idx ON note USING gist (point, created_at, updated_at, closed_at);
 
@@ -350,15 +376,24 @@ WHERE
 CREATE TYPE note_event AS enum('opened', 'closed', 'reopened', 'commented', 'hidden');
 
 CREATE TABLE note_comment (
-    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id bigint REFERENCES "user",
+    id bigint GENERATED ALWAYS AS IDENTITY,
+    user_id bigint,
     user_ip inet,
-    note_id bigint NOT NULL REFERENCES note ON DELETE CASCADE,
+    note_id bigint NOT NULL,
     event note_event NOT NULL,
     body text NOT NULL,
     body_rich_hash bytea,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
-);
+)
+WITH
+    (
+        tsdb.hypertable,
+        tsdb.partition_column = 'note_id',
+        tsdb.chunk_interval = '1000000',
+        tsdb.create_default_indexes = FALSE
+    );
+
+CREATE INDEX note_comment_id_idx ON note_comment (id);
 
 CREATE INDEX note_comment_note_id_idx ON note_comment (note_id, id);
 
@@ -371,8 +406,8 @@ WITH
 CREATE TYPE trace_visibility AS enum('identifiable', 'public', 'trackable', 'private');
 
 CREATE TABLE trace (
-    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id bigint NOT NULL REFERENCES "user",
+    id bigint GENERATED ALWAYS AS IDENTITY,
+    user_id bigint NOT NULL,
     name text NOT NULL,
     description text NOT NULL,
     tags TEXT[] NOT NULL,
@@ -383,7 +418,9 @@ CREATE TABLE trace (
     capture_times TIMESTAMPTZ[],
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
-);
+)
+WITH
+    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '1000000');
 
 CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id, id);
 
