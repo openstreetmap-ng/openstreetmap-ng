@@ -287,6 +287,7 @@ class ElementQuery:
         typed_ids: list[TypedElementId] | None,
         *,
         at_sequence_id: SequenceId | None = None,
+        skip_typed_ids: list[TypedElementId] | None = None,
         recurse_ways: bool = False,
         limit: int | None = None,
     ) -> list[Element]:
@@ -300,6 +301,10 @@ class ElementQuery:
         if at_sequence_id is not None:
             conditions.append(SQL('sequence_id <= %s'))
             params.append(at_sequence_id)
+
+        if skip_typed_ids is not None:
+            conditions.append(SQL('typed_id != ALL(%s)'))
+            params.append(skip_typed_ids)
 
         if limit is not None:
             limit_clause = SQL('LIMIT %s')

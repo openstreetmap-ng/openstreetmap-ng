@@ -211,6 +211,7 @@ async def get_full(type: ElementType, id: ElementId):
         members_elements = await ElementQuery.get_by_refs(
             element['members'],
             at_sequence_id=at_sequence_id,
+            skip_typed_ids=[typed_id],
             recurse_ways=True,
             limit=None,
         )

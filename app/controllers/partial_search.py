@@ -131,7 +131,7 @@ async def _get_response(
                 ):
                     continue
 
-                # Recurse_ways
+                # Recurse ways
                 full_data.extend(members_map[mm] for mm in member_members)
 
         render = FormatLeaflet.encode_elements(full_data, detailed=False, areas=False)
