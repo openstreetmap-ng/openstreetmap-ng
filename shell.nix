@@ -24,11 +24,7 @@ let
   # Update packages with `nixpkgs-update` command
   pkgs =
     import
-      (fetchTarball "https://github.com/NixOS/nixpkgs/archive/f72be405a10668b8b00937b452f2145244103ebc.tar.gz")
-      { };
-  pkgsPostgres18 =
-    import
-      (fetchTarball "https://github.com/Zaczero/nixpkgs/archive/9a34d82294533b930bed6fe05873752daabbb91d.tar.gz")
+      (fetchTarball "https://github.com/NixOS/nixpkgs/archive/3078b9a9e75f1790e6d6ef9955fdc6a2d1740cc6.tar.gz")
       { };
 
   projectDir = toString ./.;
@@ -151,7 +147,8 @@ let
     bun
     biome
     # Services:
-    (pkgsPostgres18.postgresql_18_jit.withPackages (ps: [
+    (postgresql_17_jit.withPackages (ps: [
+      ps.timescaledb-apache
       ps.postgis
       ps.h3-pg
     ]))
