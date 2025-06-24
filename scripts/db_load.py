@@ -101,16 +101,16 @@ async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
             FROM pg_constraint con
             JOIN pg_class rel ON rel.oid = con.conrelid
             JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
-            WHERE rel.relname = %s
-            AND nsp.nspname = 'public' {}
-            AND con.contype NOT IN ('c', 'n')
+            WHERE nsp.nspname = 'public'
+            AND rel.relname = %s
+            AND con.contype NOT IN ('c', 'n') {}
             """).format(
                 SQL(
                     """
                     AND con.contype != 'p'  -- Exclude primary key constraints
                     AND con.conname NOT LIKE '%%_id_not_null'
                     """
-                    if table != 'element'
+                    if table == 'user'
                     else ''
                 )
             ),
