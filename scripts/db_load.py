@@ -44,6 +44,9 @@ class _PostgresSettings(NamedTuple):
 _TABLE_LOCK = Lock()
 _NUM_WORKERS_COPY = calc_num_workers(max=8)
 
+# Indexes to create on chunks instead of the main table
+_CHUNK_INDEXES = {'element_members_idx', 'element_members_history_idx'}
+
 
 def _get_csv_path(table: _Table) -> Path:
     return PRELOAD_DIR.joinpath(f'{table}.csv.zst')
@@ -118,6 +121,23 @@ async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
         ) as r,
     ):
         return [(name, SQL(sql)) for name, sql in await r.fetchall()]
+
+
+async def _gather_table_chunks(table: _Table) -> list[str]:
+    async with (
+        db() as conn,
+        await conn.execute(
+            """
+            SELECT ck.table_name
+            FROM _timescaledb_catalog.hypertable ht
+            JOIN _timescaledb_catalog.chunk ck ON ht.id = ck.hypertable_id
+            WHERE ht.schema_name = 'public'
+            AND ht.table_name = %s
+            """,
+            (table,),
+        ) as r,
+    ):
+        return [c for (c,) in await r.fetchall()]
 
 
 async def _load_table(mode: _Mode, table: _Table) -> None:
@@ -227,6 +247,9 @@ async def _load_tables(mode: _Mode) -> None:
             async with _TABLE_LOCK if mode == 'replication' else nullcontext():
                 await _load_table(mode, table)
 
+            chunks = await _gather_table_chunks(table)
+            logging.info('Found %d chunks for %s table', len(chunks), table)
+
             logging.info('Recreating indexes and constraints on %s', table)
             indexes, constraints = table_data[table]
 
@@ -255,8 +278,20 @@ async def _load_tables(mode: _Mode) -> None:
                         await conn.execute('RESET maintenance_work_mem')
 
             # Create indexes in reverse order, as heavy indexes tend to be last
-            for sql in reversed(indexes.values()):
-                tg.create_task(execute(sql))
+            for name, sql in reversed(indexes.items()):
+                # Create index on the main table
+                if name not in _CHUNK_INDEXES:
+                    tg.create_task(execute(sql))
+                    continue
+
+                # Create index on each chunk
+                for chunk in chunks:
+                    chunk_sql = SQL(
+                        sql.as_string()
+                        .replace(name, f'{chunk}_{name}')
+                        .replace(f'public.{table}', f'_timescaledb_internal.{chunk}')  # type: ignore
+                    )
+                    tg.create_task(execute(chunk_sql))
 
             if constraints:
                 tg.create_task(
