@@ -63,6 +63,7 @@ let
       --arg isDevelopment false \
       --arg hostMemoryMb 29886 \
       --arg hostDiskCoW true \
+      --arg postgresParallelWorkers 6 \
       --arg postgresMaxWalSizeGb 50 \
       --arg postgresFullPageWrites false \
       --arg postgresVerbose 1 \
