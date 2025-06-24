@@ -214,10 +214,11 @@ async def get_full(type: ElementType, id: ElementId):
             recurse_ways=True,
             limit=None,
         )
-        elements.extend(members_elements)
         tg.create_task(UserQuery.resolve_elements_users(members_elements))
 
-    return Format06.encode_elements(elements)
+    # Ensure members are before the element
+    members_elements.append(element)
+    return Format06.encode_elements(members_elements)
 
 
 @router.get('/{type:element_type}/{id:int}/relations')
