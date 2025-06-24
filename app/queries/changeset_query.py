@@ -142,7 +142,7 @@ class ChangesetQuery:
 
         if geometry is not None:
             # Add union_bounds condition for both legacy and modern queries
-            conditions.append(SQL('union_bounds IS NOT NULL AND union_bounds && %s'))
+            conditions.append(SQL('union_bounds && %s'))
             params.append(geometry)
 
             # In modern query, add additional filtering on changeset_bounds
