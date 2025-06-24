@@ -240,9 +240,8 @@ async def _load_tables(mode: _Mode) -> None:
                 table,
                 indexes,
             )
-            await conn.execute(
-                SQL('DROP INDEX {}').format(SQL(',').join(map(Identifier, indexes)))
-            )
+            for index in indexes:
+                await conn.execute(SQL('DROP INDEX {}').format(Identifier(index)))
 
     async with TaskGroup() as tg:
 
