@@ -4,11 +4,12 @@
   hostDiskCoW ? false,
   enablePostgres ? true,
   postgresPort ? 49560,
-  postgresSharedBuffersPerc ? 0.25,
+  postgresSharedBuffersPerc ? 0.3,
   postgresWorkMemMb ? 64,
-  postgresWorkers ? 10,
-  postgresParallelWorkers ? 8,
-  postgresParallelMaintenanceWorkers ? 4,
+  postgresWorkers ? postgresParallelWorkers + postgresTimescaleWorkers + 2,
+  postgresParallelWorkers ? postgresParallelMaintenanceWorkers * 4,
+  postgresParallelMaintenanceWorkers ? 2,
+  postgresTimescaleWorkers ? 2,
   postgresMinWalSizeGb ? 1,
   postgresMaxWalSizeGb ? 10,
   postgresFullPageWrites ? true,
@@ -44,6 +45,7 @@ let
       postgresWorkers
       postgresParallelWorkers
       postgresParallelMaintenanceWorkers
+      postgresTimescaleWorkers
       postgresMinWalSizeGb
       postgresMaxWalSizeGb
       postgresFullPageWrites

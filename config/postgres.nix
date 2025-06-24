@@ -7,6 +7,7 @@
   postgresWorkers,
   postgresParallelWorkers,
   postgresParallelMaintenanceWorkers,
+  postgresTimescaleWorkers,
   postgresMinWalSizeGb,
   postgresMaxWalSizeGb,
   postgresFullPageWrites,
@@ -48,6 +49,11 @@ writeText "postgres.conf" (
     max_parallel_workers = ${toString postgresParallelWorkers}
     max_parallel_maintenance_workers = ${toString postgresParallelMaintenanceWorkers}
     autovacuum_max_workers = ${toString postgresParallelMaintenanceWorkers}
+    timescaledb.max_background_workers = ${toString postgresTimescaleWorkers}
+
+    # increase the maximum number of locks
+    # reason: timescaledb requires 1 lock per chunk
+    max_locks_per_transaction = 256
 
     # more aggressive autovacuum
     autovacuum_vacuum_scale_factor = 0.1
@@ -142,11 +148,14 @@ writeText "postgres.conf" (
   + ''
 
     # configure additional libraries
-    shared_preload_libraries = 'auto_explain'
+    shared_preload_libraries = 'auto_explain,timescaledb'
 
     # automatically explain slow queries
     # reason: useful for troubleshooting
     auto_explain.log_min_duration = 200ms
+
+    # disable telemetry
+    timescaledb.telemetry_level = off
 
   ''
   + lib.optionalString fastIngest ''
