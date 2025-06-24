@@ -8,6 +8,7 @@
   postgresWorkMemMb ? 64,
   postgresWorkers ? postgresParallelWorkers + postgresTimescaleWorkers + 2,
   postgresParallelWorkers ? postgresParallelMaintenanceWorkers * 4,
+  postgresParallelWorkersPerGather ? 2,
   postgresParallelMaintenanceWorkers ? 2,
   postgresTimescaleWorkers ? 2,
   postgresMinWalSizeGb ? 1,
@@ -44,6 +45,7 @@ let
       postgresWorkMemMb
       postgresWorkers
       postgresParallelWorkers
+      postgresParallelWorkersPerGather
       postgresParallelMaintenanceWorkers
       postgresTimescaleWorkers
       postgresMinWalSizeGb

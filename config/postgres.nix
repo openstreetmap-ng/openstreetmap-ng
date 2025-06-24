@@ -6,6 +6,7 @@
   postgresWorkMemMb,
   postgresWorkers,
   postgresParallelWorkers,
+  postgresParallelWorkersPerGather,
   postgresParallelMaintenanceWorkers,
   postgresTimescaleWorkers,
   postgresMinWalSizeGb,
@@ -39,14 +40,10 @@ writeText "postgres.conf" (
     # use UTC timezone
     timezone = UTC
 
-    # disable parallel gather:
-    # introduces noticeable overhead and is never useful
-    # we only perform relatively small queries and rely heavily on indexes
-    max_parallel_workers_per_gather = 0
-
     # configure number of workers
     max_worker_processes = ${toString postgresWorkers}
     max_parallel_workers = ${toString postgresParallelWorkers}
+    max_parallel_workers_per_gather = ${toString postgresParallelWorkersPerGather}
     max_parallel_maintenance_workers = ${toString postgresParallelMaintenanceWorkers}
     autovacuum_max_workers = ${toString postgresParallelMaintenanceWorkers}
     timescaledb.max_background_workers = ${toString postgresTimescaleWorkers}
