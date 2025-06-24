@@ -141,27 +141,26 @@ async def _load_table(mode: _Mode, table: _Table) -> None:
     columns = [f'"{c}"' for c in header.split(',')]
     proc: Process | None = None
 
-    async with _TABLE_LOCK if mode == 'replication' else nullcontext():
-        try:
-            logging.info('Populating %s table (%d columns)...', table, len(columns))
-            proc = await create_subprocess_shell(
-                f'{program} | timescaledb-parallel-copy'
-                ' --batch-size=50000'
-                f' --columns={quote(",".join(columns))}'
-                f' --connection={quote(POSTGRES_URL)}'
-                f' --skip-header=true'
-                ' --reporting-period=30s'
-                f' --table={quote(table)}'
-                f' --workers={_NUM_WORKERS_COPY}',
-            )
-            exit_code = await proc.wait()
-            if exit_code:
-                raise RuntimeError(f'Subprocess failed with exit code {exit_code}')
+    try:
+        logging.info('Populating %s table (%d columns)...', table, len(columns))
+        proc = await create_subprocess_shell(
+            f'{program} | timescaledb-parallel-copy'
+            ' --batch-size=50000'
+            f' --columns={quote(",".join(columns))}'
+            f' --connection={quote(POSTGRES_URL)}'
+            f' --skip-header=true'
+            ' --reporting-period=30s'
+            f' --table={quote(table)}'
+            f' --workers={_NUM_WORKERS_COPY}',
+        )
+        exit_code = await proc.wait()
+        if exit_code:
+            raise RuntimeError(f'Subprocess failed with exit code {exit_code}')
 
-        except KeyboardInterrupt:
-            if proc is not None:
-                proc.terminate()
-            raise
+    except KeyboardInterrupt:
+        if proc is not None:
+            proc.terminate()
+        raise
 
 
 async def _load_tables(mode: _Mode) -> None:
@@ -225,7 +224,8 @@ async def _load_tables(mode: _Mode) -> None:
     async with TaskGroup() as tg:
 
         async def task(table: _Table) -> None:
-            await _load_table(mode, table)
+            async with _TABLE_LOCK if mode == 'replication' else nullcontext():
+                await _load_table(mode, table)
 
             logging.info('Recreating indexes and constraints on %s', table)
             indexes, constraints = table_data[table]
