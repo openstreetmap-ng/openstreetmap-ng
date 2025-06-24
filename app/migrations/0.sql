@@ -164,26 +164,26 @@ CREATE TABLE changeset (
 WITH
     (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '5000000');
 
-CREATE INDEX changeset_user_idx ON changeset (user_id, id)
+CREATE INDEX changeset_user_idx ON changeset (user_id DESC, id DESC)
 WHERE
     user_id IS NOT NULL;
 
-CREATE INDEX changeset_user_created_at_idx ON changeset (user_id, created_at)
+CREATE INDEX changeset_user_created_at_idx ON changeset (user_id DESC, created_at DESC)
 WHERE
     user_id IS NOT NULL;
 
-CREATE INDEX changeset_created_at_idx ON changeset (created_at);
+CREATE INDEX changeset_created_at_idx ON changeset (created_at DESC);
 
-CREATE INDEX changeset_closed_at_idx ON changeset (closed_at)
+CREATE INDEX changeset_closed_at_idx ON changeset (closed_at DESC)
 WHERE
     closed_at IS NOT NULL;
 
-CREATE INDEX changeset_closed_at_empty_idx ON changeset (closed_at)
+CREATE INDEX changeset_closed_at_empty_idx ON changeset (closed_at ASC)
 WHERE
     closed_at IS NOT NULL
     AND size = 0;
 
-CREATE INDEX changeset_open_idx ON changeset (updated_at) INCLUDE (created_at)
+CREATE INDEX changeset_open_idx ON changeset (updated_at ASC) INCLUDE (created_at)
 WHERE
     closed_at IS NULL;
 
@@ -217,9 +217,9 @@ WITH
         tsdb.create_default_indexes = FALSE
     );
 
-CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_id, id);
+CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_id DESC, id DESC);
 
-CREATE INDEX changeset_comment_user_id_idx ON changeset_comment (user_id, id);
+CREATE INDEX changeset_comment_user_id_idx ON changeset_comment (user_id DESC, id DESC);
 
 CREATE FUNCTION element_partition_func (typed_id bigint) RETURNS bigint AS $$
 SELECT CASE
@@ -256,13 +256,13 @@ SELECT
         create_default_indexes => FALSE
     );
 
-CREATE INDEX element_sequence_idx ON element (sequence_id);
+CREATE INDEX element_sequence_idx ON element (sequence_id DESC);
 
-CREATE INDEX element_changeset_idx ON element (changeset_id);
+CREATE INDEX element_changeset_idx ON element (changeset_id DESC);
 
-CREATE INDEX element_id_version_idx ON element (typed_id, version);
+CREATE INDEX element_id_version_idx ON element (typed_id DESC, version DESC);
 
-CREATE INDEX element_id_sequence_idx ON element (typed_id, sequence_id);
+CREATE INDEX element_id_sequence_idx ON element (typed_id DESC, sequence_id DESC);
 
 CREATE INDEX element_point_idx ON element USING gist (point)
 WHERE
@@ -363,13 +363,13 @@ WITH
 
 CREATE INDEX note_point_idx ON note USING gist (point, created_at, updated_at, closed_at);
 
-CREATE INDEX note_created_at_idx ON note (created_at);
+CREATE INDEX note_created_at_idx ON note (created_at DESC);
 
-CREATE INDEX note_updated_at_idx ON note (updated_at);
+CREATE INDEX note_updated_at_idx ON note (updated_at DESC);
 
-CREATE INDEX note_closed_at_idx ON note (closed_at);
+CREATE INDEX note_closed_at_idx ON note (closed_at DESC);
 
-CREATE INDEX note_hidden_idx ON note (hidden_at)
+CREATE INDEX note_hidden_idx ON note (hidden_at ASC)
 WHERE
     hidden_at IS NOT NULL;
 
@@ -393,11 +393,11 @@ WITH
         tsdb.create_default_indexes = FALSE
     );
 
-CREATE INDEX note_comment_id_idx ON note_comment (id);
+CREATE INDEX note_comment_id_idx ON note_comment (id DESC);
 
-CREATE INDEX note_comment_note_id_idx ON note_comment (note_id, id);
+CREATE INDEX note_comment_note_id_idx ON note_comment (note_id DESC, id DESC);
 
-CREATE INDEX note_comment_event_user_id_idx ON note_comment (event, user_id, note_id);
+CREATE INDEX note_comment_event_user_id_idx ON note_comment (event, user_id DESC, note_id DESC);
 
 CREATE INDEX note_comment_body_idx ON note_comment USING gin (to_tsvector('simple', body))
 WITH
@@ -422,7 +422,7 @@ CREATE TABLE trace (
 WITH
     (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '1000000');
 
-CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id, id);
+CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id DESC, id DESC);
 
 CREATE INDEX trace_tags_idx ON trace USING gin (tags)
 WITH
