@@ -14,7 +14,6 @@
 
 (common_proxy) {
 	transport http {
-		response_header_timeout 30s
 		compression off
 	}
 }
