@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 from argparse import ArgumentParser
 from asyncio import Lock, Semaphore, TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
@@ -8,10 +9,11 @@ from io import TextIOWrapper
 from pathlib import Path
 from shlex import quote
 from time import monotonic
-from typing import Literal, get_args
+from typing import Literal, NamedTuple, get_args
 
 from psycopg.abc import Query
 from psycopg.sql import SQL, Identifier
+from psycopg.sql import Literal as PgLiteral
 from zstandard import ZstdDecompressor
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
@@ -21,16 +23,23 @@ from app.services.migration_service import MigrationService
 from app.utils import calc_num_workers
 
 _Mode = Literal['preload', 'replication']
+
+# Sorted from heaviest to lightest tables
 _Table = Literal[
-    'user', 'changeset', 'changeset_bounds', 'element', 'note', 'note_comment'
+    'element',
+    'changeset',
+    'changeset_bounds',
+    'note_comment',
+    'note',
+    'user',
 ]
 
-_FIRST_TABLES: tuple[_Table, ...] = ('user',)
-_NEXT_TABLES: dict[_Table, tuple[_Table, ...]] = {
-    'user': ('changeset', 'note'),
-    'changeset': ('changeset_bounds', 'element'),
-    'note': ('note_comment',),
-}
+
+class _PostgresSettings(NamedTuple):
+    max_parallel_workers: int
+    max_parallel_maintenance_workers: int
+    maintenance_work_mem: str
+
 
 _TABLE_LOCK = Lock()
 _NUM_WORKERS_COPY = calc_num_workers(max=8)
@@ -47,18 +56,19 @@ def _get_csv_header(path: Path) -> str:
         return reader.readline().strip()
 
 
-async def _detect_maintenance_parallelism() -> float:
+async def _detect_settings() -> _PostgresSettings:
     async with (
         db() as conn,
         await conn.execute(
             """
             SELECT
-                current_setting('max_parallel_workers')::float /
-                current_setting('max_parallel_maintenance_workers')::float
+                current_setting('max_parallel_workers')::integer,
+                current_setting('max_parallel_maintenance_workers')::integer,
+                current_setting('maintenance_work_mem')
             """,
         ) as r,
     ):
-        return (await r.fetchone())[0]  # type: ignore
+        return _PostgresSettings(*(await r.fetchone()))  # type: ignore
 
 
 async def _gather_table_indexes(table: _Table) -> dict[str, SQL]:
@@ -110,14 +120,7 @@ async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
         return [(name, SQL(sql)) for name, sql in await r.fetchall()]
 
 
-async def _load_table(
-    mode: _Mode,
-    table: _Table,
-    indexes: dict[str, SQL],
-    constraints: list[tuple[str, SQL]],
-    maintenance_semaphore: Semaphore,
-    tg: TaskGroup,
-) -> None:
+async def _load_table(mode: _Mode, table: _Table) -> None:
     if mode == 'preload' or table in {'note', 'note_comment'}:
         path = _get_csv_path(table)
 
@@ -160,41 +163,17 @@ async def _load_table(
                 proc.terminate()
             raise
 
-    # Recreate indexes and constraints after loading
-    async def index_postprocess():
-        logging.info('Recreating indexes and constraints')
-
-        async def execute(sql: Query) -> None:
-            async with maintenance_semaphore, db(True, autocommit=True) as conn:
-                ts = monotonic()
-                await conn.execute(sql)
-                logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
-
-        for sql in indexes.values():
-            tg.create_task(execute(sql))
-
-        if constraints:
-            tg.create_task(
-                execute(
-                    SQL('ALTER TABLE {} {}').format(
-                        Identifier(table),
-                        SQL(',').join(
-                            SQL('ADD CONSTRAINT {} {}').format(Identifier(name), sql)
-                            for name, sql in constraints
-                        ),
-                    )
-                )
-            )
-
-    # Begin postprocessing
-    tg.create_task(index_postprocess())
-
 
 async def _load_tables(mode: _Mode) -> None:
-    all_tables = get_args(_Table)
+    all_tables: tuple[_Table, ...] = get_args(_Table)
 
-    maintenance_parallelism = max(1, int(await _detect_maintenance_parallelism()))
+    settings = await _detect_settings()
+    maintenance_parallelism = max(
+        1,
+        int(settings.max_parallel_workers / settings.max_parallel_maintenance_workers),
+    )
     maintenance_semaphore = Semaphore(maintenance_parallelism)
+    boost_maintenance_work_mem = f'{int(settings.maintenance_work_mem.removesuffix("MB")) * (1 + maintenance_parallelism)}MB'
     logging.info('Detected maintenance parallelism: %d', maintenance_parallelism)
 
     logging.info('Truncating tables: %r', all_tables)
@@ -219,7 +198,7 @@ async def _load_tables(mode: _Mode) -> None:
 
             if constraints:
                 logging.info(
-                    'Dropping %d constraints for %s: %r',
+                    'Dropping %d constraints from %s: %r',
                     len(constraints),
                     table,
                     constraints,
@@ -235,7 +214,7 @@ async def _load_tables(mode: _Mode) -> None:
                 )
 
             logging.info(
-                'Dropping %d indexes for %s: %r',
+                'Dropping %d indexes from %s: %r',
                 len(indexes),
                 table,
                 indexes,
@@ -246,15 +225,55 @@ async def _load_tables(mode: _Mode) -> None:
     async with TaskGroup() as tg:
 
         async def task(table: _Table) -> None:
-            indexes, constraints = table_data[table]
-            await _load_table(
-                mode, table, indexes, constraints, maintenance_semaphore, tg
-            )
-            for next_table in _NEXT_TABLES.get(table, ()):
-                tg.create_task(task(next_table))
+            await _load_table(mode, table)
 
-        for first_table in _FIRST_TABLES:
-            tg.create_task(task(first_table))
+            logging.info('Recreating indexes and constraints on %s', table)
+            indexes, constraints = table_data[table]
+
+            async def execute(sql: Query) -> None:
+                async with maintenance_semaphore, db(True, autocommit=True) as conn:
+                    # Increase maintenance_work_mem on GIN/GiST indexes
+                    # to account for the lack of parallelization
+                    # TODO: remove in postgres 18+ (added parallelization)
+                    boost_mem = re.search(r' USING (gin|gist) ', str(sql))
+                    if boost_mem:
+                        await conn.execute(
+                            SQL('SET SESSION maintenance_work_mem = {}').format(
+                                PgLiteral(boost_maintenance_work_mem)
+                            )
+                        )
+
+                    ts = monotonic()
+                    await conn.execute(sql)
+                    logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
+
+                    if boost_mem:
+                        logging.debug(
+                            '(with maintenance_work_mem = %s)',
+                            boost_maintenance_work_mem,
+                        )
+                        await conn.execute('RESET maintenance_work_mem')
+
+            for sql in indexes.values():
+                tg.create_task(execute(sql))
+
+            if constraints:
+                tg.create_task(
+                    execute(
+                        SQL('ALTER TABLE {} {}').format(
+                            Identifier(table),
+                            SQL(',').join(
+                                SQL('ADD CONSTRAINT {} {}').format(
+                                    Identifier(name), sql
+                                )
+                                for name, sql in constraints
+                            ),
+                        )
+                    )
+                )
+
+        for table in all_tables:
+            tg.create_task(task(table))
 
 
 @psycopg_pool_open_decorator

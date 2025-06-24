@@ -18,6 +18,9 @@
   projectDir,
 }:
 
+let
+  postgresSharedBuffersMb = builtins.floor (hostMemoryMb * postgresSharedBuffersPerc);
+in
 with pkgs;
 writeText "postgres.conf" (
   ''
@@ -26,16 +29,24 @@ writeText "postgres.conf" (
     unix_socket_directories = '${projectDir}/data/postgres_unix'
 
     # increase buffers and memory usage
-    shared_buffers = ${toString (builtins.floor (hostMemoryMb * postgresSharedBuffersPerc))}MB
+    shared_buffers = ${toString postgresSharedBuffersMb}MB
     effective_cache_size = ${
       toString (
-        builtins.floor (hostMemoryMb * (postgresSharedBuffersPerc + (1 - postgresSharedBuffersPerc) / 3))
+        postgresSharedBuffersMb + builtins.floor (hostMemoryMb * (1 - postgresSharedBuffersPerc) / 3)
       )
     }MB
     work_mem = ${toString postgresWorkMemMb}MB
     hash_mem_multiplier = 4.0
-    maintenance_work_mem = ${toString (builtins.floor (hostMemoryMb / postgresParallelWorkers / 1.5))}MB
-    vacuum_buffer_usage_limit = ${toString (builtins.floor (hostMemoryMb / 32))}MB
+    maintenance_work_mem = ${
+      toString (
+        builtins.floor (
+          hostMemoryMb
+          / (postgresParallelWorkers + (postgresParallelWorkers / postgresParallelMaintenanceWorkers))
+          / 1.5
+        )
+      )
+    }MB
+    vacuum_buffer_usage_limit = ${toString (builtins.floor (postgresSharedBuffersMb / 8))}MB
 
     # use UTC timezone
     timezone = UTC
