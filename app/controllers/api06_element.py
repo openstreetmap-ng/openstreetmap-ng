@@ -213,6 +213,7 @@ async def get_full(type: ElementType, id: ElementId):
             at_sequence_id=at_sequence_id,
             skip_typed_ids=[typed_id],
             recurse_ways=True,
+            sort_dir='asc',
             limit=None,
         )
         tg.create_task(UserQuery.resolve_elements_users(members_elements))

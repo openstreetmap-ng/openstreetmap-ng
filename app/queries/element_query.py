@@ -289,6 +289,7 @@ class ElementQuery:
         at_sequence_id: SequenceId | None = None,
         skip_typed_ids: list[TypedElementId] | None = None,
         recurse_ways: bool = False,
+        sort_dir: Literal['asc', 'desc'] | None = None,
         limit: int | None = None,
         TYPED_ELEMENT_ID_WAY_MIN=TYPED_ELEMENT_ID_WAY_MIN,  # noqa: N803
         TYPED_ELEMENT_ID_WAY_MAX=TYPED_ELEMENT_ID_WAY_MAX,  # noqa: N803
@@ -318,10 +319,11 @@ class ElementQuery:
             SELECT DISTINCT ON (typed_id) *
             FROM element
             WHERE {conditions}
-            ORDER BY typed_id, sequence_id DESC
+            ORDER BY typed_id {order_dir}, sequence_id DESC
             {limit}
         """).format(
             conditions=SQL(' AND ').join(conditions),
+            order_dir=SQL(sort_dir or 'DESC'),
             limit=limit_clause,
         )
 

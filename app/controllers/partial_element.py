@@ -182,6 +182,7 @@ async def _get_element_data(
             members,
             at_sequence_id=at_sequence_id,
             recurse_ways=True,
+            sort_dir='asc',
             limit=None,
         )
         return (
