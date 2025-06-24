@@ -69,7 +69,7 @@ def register_admin_task(func: Callable):
         'arguments': arguments,
         'func': func,
     }
-    logging.info('Registered task %r', task_id)
+    logging.debug('Registered admin task %r', task_id)
     return func
 
 
