@@ -153,7 +153,7 @@ class ElementQuery:
                 SELECT DISTINCT ON (typed_id) typed_id, visible
                 FROM element
                 WHERE {conditions}
-                ORDER BY typed_id, sequence_id DESC
+                ORDER BY typed_id DESC, sequence_id DESC
             )
             WHERE visible
         """).format(conditions=SQL(' AND ').join(conditions))
@@ -182,8 +182,14 @@ class ElementQuery:
             SELECT DISTINCT ON (typed_id) typed_id, version
             FROM element
             WHERE {conditions}
-            ORDER BY typed_id, sequence_id DESC
-        """).format(conditions=SQL(' AND ').join(conditions))
+            ORDER BY typed_id DESC, {order_by} DESC
+        """).format(
+            conditions=SQL(' AND ').join(conditions),
+            order_by=(
+                # Allow for index-only scan
+                SQL('version') if at_sequence_id is None else SQL('sequence_id')
+            ),
+        )
 
         async with db() as conn, await conn.execute(query, params) as r:
             return dict(await r.fetchall())
