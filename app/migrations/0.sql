@@ -225,10 +225,10 @@ CREATE FUNCTION element_partition_func (typed_id bigint) RETURNS bigint AS $$
 SELECT CASE
     -- Nodes
     WHEN typed_id <= 1152921504606846975 THEN
-        typed_id / 1000
+        typed_id / 600
     -- Ways
     WHEN typed_id <= 2305843009213693951 THEN
-        (typed_id - 1152921504606846976) / 100 + 1152921504606846976
+        (typed_id - 1152921504606846976) / 60 + 1152921504606846976
     -- Relations
     ELSE
         typed_id
@@ -252,7 +252,7 @@ CREATE TABLE element (
 SELECT
     create_hypertable (
         'element',
-        by_range ('typed_id', 3000000, partition_func => 'element_partition_func'),
+        by_range ('typed_id', 5000000, partition_func => 'element_partition_func'),
         create_default_indexes => FALSE
     );
 
