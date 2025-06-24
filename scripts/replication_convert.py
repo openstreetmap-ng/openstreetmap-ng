@@ -5,8 +5,6 @@ from app.config import REPLICATION_CONVERT_ELEMENT_BATCH_SIZE, REPLICATION_DIR
 from app.db import duckdb_connect
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
-    TYPED_ELEMENT_ID_NODE_MIN,
-    TYPED_ELEMENT_ID_RELATION_MAX,
     TYPED_ELEMENT_ID_RELATION_MIN,
     TYPED_ELEMENT_ID_WAY_MAX,
     TYPED_ELEMENT_ID_WAY_MIN,
@@ -116,14 +114,14 @@ def _process_element(
             conn.execute(f"""
             SELECT
                 -- Nodes
-                MIN(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_NODE_MIN} AND {TYPED_ELEMENT_ID_NODE_MAX}) AS node_min,
-                MAX(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_NODE_MIN} AND {TYPED_ELEMENT_ID_NODE_MAX}) AS node_max,
+                MIN(typed_id) FILTER (typed_id <= {TYPED_ELEMENT_ID_NODE_MAX}) AS node_min,
+                MAX(typed_id) FILTER (typed_id <= {TYPED_ELEMENT_ID_NODE_MAX}) AS node_max,
                 -- Ways
                 MIN(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_WAY_MIN} AND {TYPED_ELEMENT_ID_WAY_MAX}) AS way_min,
                 MAX(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_WAY_MIN} AND {TYPED_ELEMENT_ID_WAY_MAX}) AS way_max,
                 -- Relations
-                MIN(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX}) AS rel_min,
-                MAX(typed_id) FILTER (typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX}) AS rel_max
+                MIN(typed_id) FILTER (typed_id >= {TYPED_ELEMENT_ID_RELATION_MIN}) AS rel_min,
+                MAX(typed_id) FILTER (typed_id >= {TYPED_ELEMENT_ID_RELATION_MIN}) AS rel_max
             FROM read_parquet({_PARQUET_PATHS!r})
             """).fetchone()  # type: ignore
             if not header_only
@@ -186,7 +184,7 @@ def _process_element(
                 ) AS members,
                 IF(
                     members IS NOT NULL
-                    AND e.typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
+                    AND e.typed_id >= {TYPED_ELEMENT_ID_RELATION_MIN},
                     pg_array(list_transform(members, x -> quote(x.role))),
                     NULL
                 ) AS members_roles,

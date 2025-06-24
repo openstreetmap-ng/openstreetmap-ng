@@ -17,7 +17,6 @@ from app.lib.compressible_geometry import (
 )
 from app.lib.xmltodict import XMLToDict
 from app.models.element import (
-    TYPED_ELEMENT_ID_RELATION_MAX,
     TYPED_ELEMENT_ID_RELATION_MIN,
     ElementType,
     TypedElementId,
@@ -601,7 +600,7 @@ def _write_element() -> None:
                 ) AS members,
                 IF(
                     members IS NOT NULL
-                    AND typed_id BETWEEN {TYPED_ELEMENT_ID_RELATION_MIN} AND {TYPED_ELEMENT_ID_RELATION_MAX},
+                    AND typed_id >= {TYPED_ELEMENT_ID_RELATION_MIN},
                     pg_array(list_transform(members, x -> quote(x.role))),
                     NULL
                 ) AS members_roles,
