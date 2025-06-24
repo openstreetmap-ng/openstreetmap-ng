@@ -254,7 +254,8 @@ async def _load_tables(mode: _Mode) -> None:
                         )
                         await conn.execute('RESET maintenance_work_mem')
 
-            for sql in indexes.values():
+            # Create indexes in reverse order, as heavy indexes tend to be last
+            for sql in reversed(indexes.values()):
                 tg.create_task(execute(sql))
 
             if constraints:
