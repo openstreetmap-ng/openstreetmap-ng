@@ -83,6 +83,8 @@ async def _get_response(
     bounds: str | None,
     results: list[SearchResult],
     where_is_this: bool,
+    TYPED_ELEMENT_ID_WAY_MIN: cython.ulonglong = TYPED_ELEMENT_ID_WAY_MIN,  # noqa: N803
+    TYPED_ELEMENT_ID_WAY_MAX: cython.ulonglong = TYPED_ELEMENT_ID_WAY_MAX,  # noqa: N803
 ):
     members: list[TypedElementId] = [
         member
@@ -106,9 +108,6 @@ async def _get_response(
     # prepare data for rendering
     renders: list[RenderElementsData] = [None] * len(results)  # type: ignore
 
-    typed_element_id_way_min: cython.ulonglong = TYPED_ELEMENT_ID_WAY_MIN
-    typed_element_id_way_max: cython.ulonglong = TYPED_ELEMENT_ID_WAY_MAX
-
     i: cython.Py_ssize_t
     for i, result in enumerate(results):
         result_element = result.element
@@ -124,15 +123,13 @@ async def _get_response(
                 if not member_members:
                     continue
 
+                # Recurse ways
                 typed_id: cython.ulonglong = member_element['typed_id']
                 if (
-                    typed_id < typed_element_id_way_min
-                    or typed_id > typed_element_id_way_max
+                    typed_id >= TYPED_ELEMENT_ID_WAY_MIN
+                    and typed_id <= TYPED_ELEMENT_ID_WAY_MAX
                 ):
-                    continue
-
-                # Recurse ways
-                full_data.extend(members_map[mm] for mm in member_members)
+                    full_data.extend(members_map[mm] for mm in member_members)
 
         render = FormatLeaflet.encode_elements(full_data, detailed=False, areas=False)
         renders[i] = render

@@ -461,7 +461,12 @@ class OptimisticDiffPrepare:
             bbox_points.append(point)
 
     def _push_bbox_relation_info(
-        self, prev: ElementInit | None, element: ElementInit
+        self,
+        prev: ElementInit | None,
+        element: ElementInit,
+        *,
+        TYPED_ELEMENT_ID_RELATION_MIN=TYPED_ELEMENT_ID_RELATION_MIN,  # noqa: N803
+        TYPED_ELEMENT_ID_RELATION_MAX=TYPED_ELEMENT_ID_RELATION_MAX,  # noqa: N803
     ) -> None:
         """Push bbox info for a relation. Relation info contains either all members or only changed members."""
         next_members = element['members']
@@ -585,7 +590,12 @@ class OptimisticDiffPrepare:
                 self.changeset['size'] + num_create + num_modify + num_delete
             )
 
-    async def _update_changeset_bounds(self) -> None:
+    async def _update_changeset_bounds(
+        self,
+        *,
+        TYPED_ELEMENT_ID_NODE_MIN: cython.ulonglong = TYPED_ELEMENT_ID_NODE_MIN,  # noqa: N803
+        TYPED_ELEMENT_ID_NODE_MAX: cython.ulonglong = TYPED_ELEMENT_ID_NODE_MAX,  # noqa: N803
+    ) -> None:
         """Update changeset bounds using the collected bbox info."""
         bbox_points = self._bbox_points
         bbox_refs = list(self._bbox_refs)
@@ -599,8 +609,6 @@ class OptimisticDiffPrepare:
                 limit=None,
             )
 
-            typed_element_id_node_min: cython.ulonglong = TYPED_ELEMENT_ID_NODE_MIN
-            typed_element_id_node_max: cython.ulonglong = TYPED_ELEMENT_ID_NODE_MAX
             for element in elements:
                 point = element['point']
                 if point is not None:
@@ -608,7 +616,7 @@ class OptimisticDiffPrepare:
                     continue
 
                 typed_id: cython.ulonglong = element['typed_id']
-                if typed_element_id_node_min <= typed_id <= typed_element_id_node_max:
+                if TYPED_ELEMENT_ID_NODE_MIN <= typed_id <= TYPED_ELEMENT_ID_NODE_MAX:
                     id = split_typed_element_id(element['typed_id'])[1]
                     logging.warning(
                         'Node %d version %d is missing coordinates',

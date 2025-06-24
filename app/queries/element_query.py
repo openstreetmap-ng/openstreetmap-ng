@@ -290,6 +290,8 @@ class ElementQuery:
         skip_typed_ids: list[TypedElementId] | None = None,
         recurse_ways: bool = False,
         limit: int | None = None,
+        TYPED_ELEMENT_ID_WAY_MIN=TYPED_ELEMENT_ID_WAY_MIN,  # noqa: N803
+        TYPED_ELEMENT_ID_WAY_MAX=TYPED_ELEMENT_ID_WAY_MAX,  # noqa: N803
     ) -> list[Element]:
         """Get current elements by their element refs. Optionally recurse ways to get their nodes."""
         if not typed_ids:
@@ -333,13 +335,11 @@ class ElementQuery:
         if not recurse_ways or (limit is not None and len(result) >= limit):
             return result
 
-        typed_element_id_way_min = TYPED_ELEMENT_ID_WAY_MIN
-        typed_element_id_way_max = TYPED_ELEMENT_ID_WAY_MAX
         node_typed_ids = {
             member
             for e in result
             if (members := e.get('members'))
-            and typed_element_id_way_min <= e['typed_id'] <= typed_element_id_way_max
+            and TYPED_ELEMENT_ID_WAY_MIN <= e['typed_id'] <= TYPED_ELEMENT_ID_WAY_MAX
             for member in members
         }
 
