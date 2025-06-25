@@ -6,6 +6,7 @@ from asyncio import Lock, Semaphore, TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
 from contextlib import nullcontext
 from io import TextIOWrapper
+from itertools import product, starmap
 from pathlib import Path
 from shlex import quote
 from time import monotonic
@@ -41,11 +42,15 @@ class _PostgresSettings(NamedTuple):
     maintenance_work_mem: str
 
 
+class _TimescaleChunk(NamedTuple):
+    id: int
+    hypertable_id: int
+    schema_name: str
+    table_name: str
+
+
 _TABLE_LOCK = Lock()
 _NUM_WORKERS_COPY = calc_num_workers(max=8)
-
-# Indexes to create on chunks instead of the main table
-_CHUNK_INDEXES = {'element_members_idx', 'element_members_history_idx'}
 
 
 def _get_csv_path(table: _Table) -> Path:
@@ -123,12 +128,12 @@ async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
         return [(name, SQL(sql)) for name, sql in await r.fetchall()]
 
 
-async def _gather_table_chunks(table: _Table) -> list[str]:
+async def _gather_table_chunks(table: _Table) -> list[_TimescaleChunk]:
     async with (
         db() as conn,
         await conn.execute(
             """
-            SELECT ck.table_name
+            SELECT ck.id, ck.hypertable_id, ck.schema_name, ck.table_name
             FROM _timescaledb_catalog.hypertable ht
             JOIN _timescaledb_catalog.chunk ck ON ht.id = ck.hypertable_id
             WHERE ht.schema_name = 'public'
@@ -137,7 +142,7 @@ async def _gather_table_chunks(table: _Table) -> list[str]:
             (table,),
         ) as r,
     ):
-        return [c for (c,) in await r.fetchall()]
+        return list(starmap(_TimescaleChunk, await r.fetchall()))
 
 
 async def _load_table(mode: _Mode, table: _Table) -> None:
@@ -212,8 +217,22 @@ async def _load_tables(mode: _Mode) -> None:
         table_data[table] = (indexes, constraints)
 
     async with db(True, autocommit=True) as conn:
-        for table in all_tables[::-1]:
+        for table in all_tables:
             indexes, constraints = table_data[table]
+
+            logging.info(
+                'Dropping %d indexes from %s: %r',
+                len(indexes),
+                table,
+                indexes,
+            )
+            await conn.execute(
+                """
+                UPDATE pg_index SET indislive = FALSE
+                WHERE indexrelid = ANY(%s::regclass[])
+                """,
+                (list(indexes),),
+            )
 
             if constraints:
                 logging.info(
@@ -232,84 +251,114 @@ async def _load_tables(mode: _Mode) -> None:
                     )
                 )
 
-            logging.info(
-                'Dropping %d indexes from %s: %r',
-                len(indexes),
-                table,
-                indexes,
-            )
-            for index in indexes:
-                await conn.execute(SQL('DROP INDEX {}').format(Identifier(index)))
+    async def load_task(table: _Table, tg: TaskGroup) -> None:
+        async with _TABLE_LOCK if mode == 'replication' else nullcontext():
+            await _load_table(mode, table)
 
-    async with TaskGroup() as tg:
-
-        async def task(table: _Table) -> None:
-            async with _TABLE_LOCK if mode == 'replication' else nullcontext():
-                await _load_table(mode, table)
-
-            chunks = await _gather_table_chunks(table)
-            logging.info('Found %d chunks for %s table', len(chunks), table)
-
-            logging.info('Recreating indexes and constraints on %s', table)
-            indexes, constraints = table_data[table]
-
-            async def execute(sql: Query) -> None:
-                async with maintenance_semaphore, db(True, autocommit=True) as conn:
-                    # Increase maintenance_work_mem on GIN/GiST indexes
-                    # to account for the lack of parallelization
-                    # TODO: remove in postgres 18+ (added parallelization)
-                    boost_mem = re.search(r' USING (gin|gist) ', str(sql))
-                    if boost_mem:
-                        await conn.execute(
-                            SQL('SET SESSION maintenance_work_mem = {}').format(
-                                PgLiteral(boost_maintenance_work_mem)
-                            )
-                        )
-
-                    ts = monotonic()
-                    await conn.execute(sql)
-                    logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
-
-                    if boost_mem:
-                        logging.debug(
-                            '(with maintenance_work_mem = %s)',
-                            boost_maintenance_work_mem,
-                        )
-                        await conn.execute('RESET maintenance_work_mem')
-
-            # Create indexes in reverse order, as heavy indexes tend to be last
-            for name, sql in reversed(indexes.items()):
-                # Create index on the main table
-                if name not in _CHUNK_INDEXES:
-                    tg.create_task(execute(sql))
-                    continue
-
-                # Create index on each chunk
-                for chunk in chunks:
-                    chunk_sql = SQL(
-                        sql.as_string()
-                        .replace(name, f'{chunk}_{name}')
-                        .replace(f'public.{table}', f'_timescaledb_internal.{chunk}')  # type: ignore
-                    )
-                    tg.create_task(execute(chunk_sql))
-
-            if constraints:
-                tg.create_task(
-                    execute(
-                        SQL('ALTER TABLE {} {}').format(
-                            Identifier(table),
-                            SQL(',').join(
-                                SQL('ADD CONSTRAINT {} {}').format(
-                                    Identifier(name), sql
-                                )
-                                for name, sql in constraints
-                            ),
-                        )
+    async def execute(sql: Query) -> None:
+        async with maintenance_semaphore, db(True, autocommit=True) as conn:
+            # Increase maintenance_work_mem on GIN/GiST indexes
+            # to account for the lack of parallelization
+            # TODO: remove in postgres 18+ (added parallelization)
+            boost_mem = re.search(r' USING (gin|gist) ', str(sql))
+            if boost_mem:
+                await conn.execute(
+                    SQL('SET SESSION maintenance_work_mem = {}').format(
+                        PgLiteral(boost_maintenance_work_mem)
                     )
                 )
 
+            ts = monotonic()
+            await conn.execute(sql)
+            logging.debug(
+                'Executed %r%s in %.1fs',
+                sql,
+                (
+                    f' with maintenance_work_mem={boost_maintenance_work_mem}'
+                    if boost_mem
+                    else ''
+                ),
+                monotonic() - ts,
+            )
+
+            if boost_mem:
+                await conn.execute('RESET maintenance_work_mem')
+
+    async def index_task(table: _Table, tg: TaskGroup) -> None:
+        chunks = await _gather_table_chunks(table)
+        indexes, constraints = table_data[table]
+        logging.info(
+            'Recreating indexes and constraints on %s table (%d chunks)...',
+            table,
+            len(chunks),
+        )
+
+        async with db(True, autocommit=True) as conn:
+            await conn.execute(
+                """
+                UPDATE pg_index SET indislive = TRUE
+                WHERE indexrelid = ANY(%s::regclass[])
+                """,
+                (list(indexes),),
+            )
+
+            # Handle hypertables
+            # Create indexes in reverse order, as heavy indexes tend to be last
+            for (name, sql), chunk in product(reversed(indexes.items()), chunks):
+                chunk_name = f'{chunk.table_name}_{name}'
+                chunk_sql = SQL(
+                    sql.as_string()
+                    .replace(name, chunk_name)
+                    .replace(
+                        f'public.{table}', f'{chunk.schema_name}.{chunk.table_name}'
+                    )  # type: ignore
+                )
+
+                await conn.execute(
+                    """
+                    INSERT INTO _timescaledb_catalog.chunk_index (
+                        chunk_id, index_name, hypertable_id, hypertable_index_name
+                    )
+                    VALUES (%s, %s, %s, %s)
+                    """,
+                    (chunk.id, chunk_name, chunk.hypertable_id, name),
+                )
+                tg.create_task(execute(chunk_sql))
+
+            # Handle normal tables
+            if not chunks:
+                for name, sql in reversed(indexes.items()):
+                    await conn.execute(SQL('DROP INDEX {}').format(Identifier(name)))
+                    tg.create_task(execute(sql))
+
+        if constraints:
+            tg.create_task(
+                execute(
+                    SQL('ALTER TABLE {} {}').format(
+                        Identifier(table),
+                        SQL(',').join(
+                            SQL('ADD CONSTRAINT {} {}').format(Identifier(name), sql)
+                            for name, sql in constraints
+                        ),
+                    )
+                )
+            )
+
+    async with TaskGroup() as tg:
         for table in all_tables:
-            tg.create_task(task(table))
+            tg.create_task(load_task(table, tg))
+
+    async with db(True, autocommit=True) as conn:
+        logging.info('Putting timescaledb into restore mode')
+        await conn.execute('SELECT timescaledb_pre_restore()')
+
+    async with TaskGroup() as tg:
+        for table in all_tables:
+            tg.create_task(index_task(table, tg))
+
+    async with db(True, autocommit=True) as conn:
+        logging.info('Putting timescaledb into operational mode')
+        await conn.execute('SELECT timescaledb_post_restore()')
 
 
 @psycopg_pool_open_decorator

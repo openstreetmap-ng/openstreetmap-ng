@@ -42,7 +42,7 @@ writeText "postgres.conf" (
         builtins.floor (
           hostMemoryMb
           / (postgresParallelWorkers + (postgresParallelWorkers / postgresParallelMaintenanceWorkers))
-          / 1.5
+          / 1.2
         )
       )
     }MB
