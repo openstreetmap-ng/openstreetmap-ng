@@ -6,7 +6,7 @@ from asyncio import Lock, Semaphore, TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
 from contextlib import nullcontext
 from io import TextIOWrapper
-from itertools import product, starmap
+from itertools import starmap
 from pathlib import Path
 from shlex import quote
 from time import monotonic
@@ -19,6 +19,11 @@ from zstandard import ZstdDecompressor
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
 from app.db import db, psycopg_pool_open_decorator
+from app.models.element import (
+    TYPED_ELEMENT_ID_NODE_MAX,
+    TYPED_ELEMENT_ID_RELATION_MAX,
+    TYPED_ELEMENT_ID_WAY_MIN,
+)
 from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
 from app.utils import calc_num_workers
@@ -51,6 +56,16 @@ class _TimescaleChunk(NamedTuple):
 
 _TABLE_LOCK = Lock()
 _NUM_WORKERS_COPY = calc_num_workers(max=8)
+
+# Optimize loading by creating some indexes on subsets of the chunks
+_INDEX_CHUNKS_RANGE: dict[str, tuple[int, int]] = {
+    'element_point_idx': (0, TYPED_ELEMENT_ID_NODE_MAX),
+    'element_members_idx': (TYPED_ELEMENT_ID_WAY_MIN, TYPED_ELEMENT_ID_RELATION_MAX),
+    'element_members_history_idx': (
+        TYPED_ELEMENT_ID_WAY_MIN,
+        TYPED_ELEMENT_ID_RELATION_MAX,
+    ),
+}
 
 
 def _get_csv_path(table: _Table) -> Path:
@@ -143,6 +158,30 @@ async def _gather_table_chunks(table: _Table) -> list[_TimescaleChunk]:
         ) as r,
     ):
         return list(starmap(_TimescaleChunk, await r.fetchall()))
+
+
+async def _filter_index_chunks(
+    name: str, chunks: list[_TimescaleChunk]
+) -> list[_TimescaleChunk]:
+    chunks_range = _INDEX_CHUNKS_RANGE.get(name)
+    if chunks_range is None:
+        return chunks
+
+    async with (
+        db() as conn,
+        await conn.execute(
+            """
+            SELECT chunk_name
+            FROM timescaledb_information.chunks
+            WHERE chunk_name = ANY(%s)
+            AND range_end_integer > %s
+            AND range_start_integer <= %s
+            """,
+            ([c.table_name for c in chunks], *chunks_range),
+        ) as r,
+    ):
+        chunk_names = {c for (c,) in await r.fetchall()}
+        return [c for c in chunks if c.table_name in chunk_names]
 
 
 async def _load_table(mode: _Mode, table: _Table) -> None:
@@ -304,26 +343,27 @@ async def _load_tables(mode: _Mode) -> None:
 
             # Handle hypertables
             # Create indexes in reverse order, as heavy indexes tend to be last
-            for (name, sql), chunk in product(reversed(indexes.items()), chunks):
-                chunk_name = f'{chunk.table_name}_{name}'
-                chunk_sql = SQL(
-                    sql.as_string()
-                    .replace(name, chunk_name)
-                    .replace(
-                        f'public.{table}', f'{chunk.schema_name}.{chunk.table_name}'
-                    )  # type: ignore
-                )
-
-                await conn.execute(
-                    """
-                    INSERT INTO _timescaledb_catalog.chunk_index (
-                        chunk_id, index_name, hypertable_id, hypertable_index_name
+            for name, sql in reversed(indexes.items()):
+                for chunk in await _filter_index_chunks(name, chunks):
+                    chunk_name = f'{chunk.table_name}_{name}'
+                    chunk_sql = SQL(
+                        sql.as_string()
+                        .replace(name, chunk_name)
+                        .replace(
+                            f'public.{table}', f'{chunk.schema_name}.{chunk.table_name}'
+                        )  # type: ignore
                     )
-                    VALUES (%s, %s, %s, %s)
-                    """,
-                    (chunk.id, chunk_name, chunk.hypertable_id, name),
-                )
-                tg.create_task(execute(chunk_sql))
+
+                    await conn.execute(
+                        """
+                        INSERT INTO _timescaledb_catalog.chunk_index (
+                            chunk_id, index_name, hypertable_id, hypertable_index_name
+                        )
+                        VALUES (%s, %s, %s, %s)
+                        """,
+                        (chunk.id, chunk_name, chunk.hypertable_id, name),
+                    )
+                    tg.create_task(execute(chunk_sql))
 
             # Handle normal tables
             if not chunks:
