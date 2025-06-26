@@ -63,11 +63,13 @@ let
       --arg isDevelopment false \
       --arg hostMemoryMb 29886 \
       --arg hostDiskCoW true \
-      --arg postgresParallelWorkers 6 \
+      --arg postgresParallelWorkers 4 \
+      --arg postgresParallelWorkersPerGather 1 \
+      --arg postgresParallelMaintenanceWorkers 1 \
       --arg postgresMaxWalSizeGb 50 \
       --arg postgresFullPageWrites false \
       --arg postgresVerbose 1 \
-      --arg gunicornWorkers 4 \
+      --arg gunicornWorkers 3 \
       --run "
         export ENV=test \
         && export APP_URL=https://www.openstreetmap.ng \
