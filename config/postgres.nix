@@ -11,7 +11,6 @@
   postgresTimescaleWorkers,
   postgresMinWalSizeGb,
   postgresMaxWalSizeGb,
-  postgresFullPageWrites,
   postgresVerbose,
   fastIngest ? false,
   pkgs,
@@ -135,9 +134,9 @@ writeText "postgres.conf" (
     # optimize for Copy-On-Write storage
     wal_init_zero = off
     wal_recycle = off
+    full_page_writes = off
   ''
   + ''
-    full_page_writes = ${if postgresFullPageWrites then "on" else "off"}
 
     # increase logging verbosity
     # reason: useful for troubleshooting

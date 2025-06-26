@@ -67,7 +67,6 @@ let
       --arg postgresParallelWorkersPerGather 1 \
       --arg postgresParallelMaintenanceWorkers 1 \
       --arg postgresMaxWalSizeGb 50 \
-      --arg postgresFullPageWrites false \
       --arg postgresVerbose 1 \
       --arg gunicornWorkers 3 \
       --run "
