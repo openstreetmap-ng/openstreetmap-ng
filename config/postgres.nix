@@ -174,7 +174,7 @@ writeText "postgres.conf" (
     fsync = off
     full_page_writes = off
     synchronous_commit = off
-    wal_buffers = 262143
+    wal_buffers = 32768
     wal_skip_threshold = 0
     wal_writer_delay = 10s
     wal_writer_flush_after = 131071
