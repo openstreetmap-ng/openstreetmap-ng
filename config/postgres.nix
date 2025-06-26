@@ -68,7 +68,7 @@ writeText "postgres.conf" (
 
     # increase statistics target
     # reason: more accurate query plans
-    default_statistics_target = 500
+    default_statistics_target = 200
 
     # increase max connections
     max_connections = 500
