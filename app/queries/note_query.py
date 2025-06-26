@@ -176,7 +176,12 @@ class NoteQuery:
         limit: int | None,
     ) -> list[Note]:
         """Find notes by query."""
-        sort_by_identifier = Identifier(sort_by)
+        sort_by_identifier = Identifier(
+            'id'
+            # Optimize query plan when not filtering by date
+            if sort_by == 'created_at' and date_from is None and date_to is None
+            else sort_by
+        )
         conditions: list[Composable] = []
         params: list[Any] = []
 
