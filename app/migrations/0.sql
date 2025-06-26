@@ -221,6 +221,20 @@ CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_
 
 CREATE INDEX changeset_comment_user_id_idx ON changeset_comment (user_id DESC, id DESC);
 
+CREATE FUNCTION element_partition_func (typed_id bigint) RETURNS bigint AS $$
+SELECT CASE
+    -- Nodes
+    WHEN typed_id <= 1152921504606846975 THEN
+        typed_id / 600
+    -- Ways
+    WHEN typed_id <= 2305843009213693951 THEN
+        (typed_id - 1152921504606846976) / 60 + 1152921504606846976
+    -- Relations
+    ELSE
+        typed_id
+END
+$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;
+
 CREATE TABLE element (
     sequence_id bigint,
     changeset_id bigint NOT NULL,
@@ -233,13 +247,13 @@ CREATE TABLE element (
     members BIGINT[],
     members_roles TEXT[],
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
-)
-WITH
-    (
-        tsdb.hypertable,
-        tsdb.partition_column = 'typed_id',
-        tsdb.chunk_interval = '1152921504606846976',
-        tsdb.create_default_indexes = FALSE
+);
+
+SELECT
+    create_hypertable (
+        'element',
+        by_range ('typed_id', 5000000, partition_func => 'element_partition_func'),
+        create_default_indexes => FALSE
     );
 
 CREATE INDEX element_sequence_idx ON element (sequence_id DESC);
