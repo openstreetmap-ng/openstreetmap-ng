@@ -14,7 +14,6 @@ from typing import Literal, NamedTuple, get_args
 
 from psycopg.abc import Query
 from psycopg.sql import SQL, Identifier
-from psycopg.sql import Literal as PgLiteral
 from zstandard import ZstdDecompressor
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
@@ -235,8 +234,7 @@ async def _load_tables(mode: _Mode) -> None:
         int(settings.max_parallel_workers / settings.max_parallel_maintenance_workers)
         or 1
     )
-    maintenance_semaphore = Semaphore(maintenance_parallelism)
-    boost_maintenance_work_mem = f'{int(settings.maintenance_work_mem.removesuffix("MB")) * (1 + settings.max_parallel_maintenance_workers)}MB'
+    maintenance_semaphore = Semaphore(maintenance_parallelism * 2)
     logging.info('Detected maintenance parallelism: %d', maintenance_parallelism)
 
     logging.info('Truncating tables: %r', all_tables)
@@ -295,33 +293,18 @@ async def _load_tables(mode: _Mode) -> None:
             await _load_table(mode, table)
 
     async def execute(sql: Query) -> None:
-        async with maintenance_semaphore, db(True, autocommit=True) as conn:
-            # Increase maintenance_work_mem on GIN/GiST indexes
-            # to account for the lack of parallelization
-            # TODO: remove in postgres 18+ (added parallelization)
-            boost_mem = re.search(r' USING (gin|gist) ', str(sql))
-            if boost_mem:
-                await conn.execute(
-                    SQL('SET SESSION maintenance_work_mem = {}').format(
-                        PgLiteral(boost_maintenance_work_mem)
-                    )
-                )
+        permits = 1 if re.search(r' USING (gin|gist) ', str(sql)) else 2
 
-            ts = monotonic()
-            await conn.execute(sql)
-            logging.debug(
-                'Executed %r%s in %.1fs',
-                sql,
-                (
-                    f' with maintenance_work_mem={boost_maintenance_work_mem}'
-                    if boost_mem
-                    else ''
-                ),
-                monotonic() - ts,
-            )
-
-            if boost_mem:
-                await conn.execute('RESET maintenance_work_mem')
+        for _ in range(permits):
+            await maintenance_semaphore.acquire()
+        try:
+            async with db(True, autocommit=True) as conn:
+                ts = monotonic()
+                await conn.execute(sql)
+                logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
+        finally:
+            for _ in range(permits):
+                maintenance_semaphore.release()
 
     async def index_task(table: _Table, tg: TaskGroup) -> None:
         chunks = await _gather_table_chunks(table)
