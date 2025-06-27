@@ -290,7 +290,7 @@ async def _load_tables(mode: _Mode) -> None:
                     )
                 )
 
-    async def load_task(table: _Table, tg: TaskGroup) -> None:
+    async def load_task(table: _Table) -> None:
         async with _TABLE_LOCK if mode == 'replication' else nullcontext():
             await _load_table(mode, table)
 
@@ -341,9 +341,18 @@ async def _load_tables(mode: _Mode) -> None:
                 (list(indexes),),
             )
 
-            # Handle hypertables
+            if not chunks:
+                for name in indexes:
+                    await conn.execute(SQL('DROP INDEX {}').format(Identifier(name)))
+
             # Create indexes in reverse order, as heavy indexes tend to be last
             for name, sql in reversed(indexes.items()):
+                # Handle normal tables
+                if not chunks:
+                    tg.create_task(execute(sql))
+                    continue
+
+                # Handle hypertables
                 for chunk in await _filter_index_chunks(name, chunks):
                     chunk_name = f'{chunk.table_name}_{name}'
                     chunk_sql = SQL(
@@ -365,12 +374,6 @@ async def _load_tables(mode: _Mode) -> None:
                     )
                     tg.create_task(execute(chunk_sql))
 
-            # Handle normal tables
-            if not chunks:
-                for name, sql in reversed(indexes.items()):
-                    await conn.execute(SQL('DROP INDEX {}').format(Identifier(name)))
-                    tg.create_task(execute(sql))
-
         if constraints:
             tg.create_task(
                 execute(
@@ -386,7 +389,7 @@ async def _load_tables(mode: _Mode) -> None:
 
     async with TaskGroup() as tg:
         for table in all_tables:
-            tg.create_task(load_task(table, tg))
+            tg.create_task(load_task(table))
 
     async with db(True, autocommit=True) as conn:
         logging.info('Putting timescaledb into restore mode')
@@ -394,7 +397,7 @@ async def _load_tables(mode: _Mode) -> None:
 
     async with TaskGroup() as tg:
         for table in all_tables:
-            tg.create_task(index_task(table, tg))
+            await index_task(table, tg)
 
     async with db(True, autocommit=True) as conn:
         logging.info('Putting timescaledb into operational mode')
