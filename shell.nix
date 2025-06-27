@@ -58,7 +58,13 @@ let
       ;
   };
   postgresConf = import ./config/postgres.nix postgresArgs;
-  postgresFastIngestConf = import ./config/postgres.nix (postgresArgs // { fastIngest = true; });
+  postgresFastIngestConf = import ./config/postgres.nix (
+    postgresArgs
+    // {
+      postgresAutovacuumWorkers = 0;
+      fastIngest = true;
+    }
+  );
   supervisordArgs = {
     inherit
       isDevelopment

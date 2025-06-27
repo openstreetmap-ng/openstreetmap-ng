@@ -41,7 +41,11 @@ writeText "postgres.conf" (
       toString (
         builtins.floor (
           (hostMemoryMb - postgresSharedBuffersMb)
-          / (postgresParallelWorkers + (postgresParallelWorkers / postgresParallelMaintenanceWorkers))
+          / (
+            postgresParallelWorkers
+            + (postgresParallelWorkers / postgresParallelMaintenanceWorkers)
+            + postgresAutovacuumWorkers
+          )
           / 1.2
         )
       )
@@ -56,7 +60,18 @@ writeText "postgres.conf" (
     max_parallel_workers = ${toString postgresParallelWorkers}
     max_parallel_workers_per_gather = ${toString postgresParallelWorkersPerGather}
     max_parallel_maintenance_workers = ${toString postgresParallelMaintenanceWorkers}
-    autovacuum_max_workers = ${toString postgresAutovacuumWorkers}
+  ''
+  + (
+    if postgresAutovacuumWorkers >= 1 then
+      ''
+        autovacuum_max_workers = ${toString postgresAutovacuumWorkers}
+      ''
+    else
+      ''
+        autovacuum = off
+      ''
+  )
+  + ''
     timescaledb.max_background_workers = ${toString postgresTimescaleWorkers}
 
     # increase the maximum number of locks
@@ -130,7 +145,9 @@ writeText "postgres.conf" (
     effective_io_concurrency = 200
     maintenance_io_concurrency = 200
   ''
-  + "\n"
+  + ''
+
+  ''
   + lib.optionalString hostDiskCoW ''
     # optimize for Copy-On-Write storage
     wal_init_zero = off
@@ -167,7 +184,7 @@ writeText "postgres.conf" (
 
   ''
   + lib.optionalString fastIngest ''
-    autovacuum = off
+    # optimize for fast ingest
     bgwriter_flush_after = 0
     bgwriter_lru_maxpages = 1073741823
     checkpoint_completion_target = 0
@@ -175,7 +192,7 @@ writeText "postgres.conf" (
     fsync = off
     full_page_writes = off
     synchronous_commit = off
-    wal_buffers = 32768
+    wal_buffers = 32768  # 256MB
     wal_skip_threshold = 0
     wal_writer_delay = 10s
     wal_writer_flush_after = 131071
