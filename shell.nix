@@ -4,7 +4,7 @@
   hostDiskCoW ? false,
   enablePostgres ? true,
   postgresPort ? 49560,
-  postgresSharedBuffersPerc ? 0.3,
+  postgresSharedBuffersPerc ? 0.25,
   postgresWorkMemMb ? 64,
   postgresWorkers ?
     postgresParallelWorkers + postgresAutovacuumWorkers + postgresTimescaleWorkers + 1,
@@ -13,6 +13,8 @@
   postgresParallelMaintenanceWorkers ? 1,
   postgresAutovacuumWorkers ? 2,
   postgresTimescaleWorkers ? 3,
+  postgresIOConcurrency ? 300,
+  postgresRandomPageCost ? 1.1,
   postgresMinWalSizeGb ? 1,
   postgresMaxWalSizeGb ? 10,
   postgresVerbose ? 2, # 0 = no, 1 = some, 2 = most
@@ -50,6 +52,8 @@ let
       postgresParallelMaintenanceWorkers
       postgresAutovacuumWorkers
       postgresTimescaleWorkers
+      postgresIOConcurrency
+      postgresRandomPageCost
       postgresMinWalSizeGb
       postgresMaxWalSizeGb
       postgresVerbose

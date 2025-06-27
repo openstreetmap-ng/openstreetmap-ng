@@ -10,6 +10,8 @@
   postgresParallelMaintenanceWorkers,
   postgresAutovacuumWorkers,
   postgresTimescaleWorkers,
+  postgresIOConcurrency,
+  postgresRandomPageCost,
   postgresMinWalSizeGb,
   postgresMaxWalSizeGb,
   postgresVerbose,
@@ -139,11 +141,11 @@ writeText "postgres.conf" (
 
     # adjust configuration for SSDs
     # reason: improved performance on expected hardware
-    random_page_cost = 1.1
+    random_page_cost = ${toString postgresRandomPageCost}
   ''
   + lib.optionalString (!stdenv.isDarwin) ''
-    effective_io_concurrency = 200
-    maintenance_io_concurrency = 200
+    effective_io_concurrency = ${toString postgresIOConcurrency}
+    maintenance_io_concurrency = ${toString postgresIOConcurrency}
   ''
   + ''
 
