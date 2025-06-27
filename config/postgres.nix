@@ -112,11 +112,6 @@ writeText "postgres.conf" (
     # reason: reduced IO usage, higher throughput
     wal_compression = zstd
 
-    # group WAL commits during high load (delay 50ms)
-    # reason: higher throughput
-    commit_delay = 50000
-    commit_siblings = 5
-
     # more responsive bgwriter
     # reason: avoid backend stalls during high load
     bgwriter_delay = 100ms
