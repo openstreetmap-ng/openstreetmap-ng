@@ -64,8 +64,6 @@ let
       --arg hostMemoryMb 29886 \
       --arg hostDiskCoW true \
       --arg postgresParallelWorkers 4 \
-      --arg postgresParallelWorkersPerGather 1 \
-      --arg postgresParallelMaintenanceWorkers 1 \
       --arg postgresMaxWalSizeGb 50 \
       --arg postgresVerbose 1 \
       --arg gunicornWorkers 3 \
