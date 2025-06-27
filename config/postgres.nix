@@ -8,6 +8,7 @@
   postgresParallelWorkers,
   postgresParallelWorkersPerGather,
   postgresParallelMaintenanceWorkers,
+  postgresAutovacuumWorkers,
   postgresTimescaleWorkers,
   postgresMinWalSizeGb,
   postgresMaxWalSizeGb,
@@ -55,7 +56,7 @@ writeText "postgres.conf" (
     max_parallel_workers = ${toString postgresParallelWorkers}
     max_parallel_workers_per_gather = ${toString postgresParallelWorkersPerGather}
     max_parallel_maintenance_workers = ${toString postgresParallelMaintenanceWorkers}
-    autovacuum_max_workers = ${toString postgresParallelMaintenanceWorkers}
+    autovacuum_max_workers = ${toString postgresAutovacuumWorkers}
     timescaledb.max_background_workers = ${toString postgresTimescaleWorkers}
 
     # increase the maximum number of locks

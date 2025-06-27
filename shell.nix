@@ -6,10 +6,12 @@
   postgresPort ? 49560,
   postgresSharedBuffersPerc ? 0.3,
   postgresWorkMemMb ? 64,
-  postgresWorkers ? postgresParallelWorkers + postgresTimescaleWorkers + 1,
+  postgresWorkers ?
+    postgresParallelWorkers + postgresAutovacuumWorkers + postgresTimescaleWorkers + 1,
   postgresParallelWorkers ? postgresParallelMaintenanceWorkers * 8,
   postgresParallelWorkersPerGather ? 1,
   postgresParallelMaintenanceWorkers ? 1,
+  postgresAutovacuumWorkers ? 2,
   postgresTimescaleWorkers ? 3,
   postgresMinWalSizeGb ? 1,
   postgresMaxWalSizeGb ? 10,
@@ -46,6 +48,7 @@ let
       postgresParallelWorkers
       postgresParallelWorkersPerGather
       postgresParallelMaintenanceWorkers
+      postgresAutovacuumWorkers
       postgresTimescaleWorkers
       postgresMinWalSizeGb
       postgresMaxWalSizeGb
