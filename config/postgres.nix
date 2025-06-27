@@ -46,7 +46,7 @@ writeText "postgres.conf" (
             + (postgresParallelWorkers / postgresParallelMaintenanceWorkers)
             + postgresAutovacuumWorkers
           )
-          / 1.2
+          / 1.5
         )
       )
     }MB
