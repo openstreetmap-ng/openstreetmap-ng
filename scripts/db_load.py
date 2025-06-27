@@ -2,7 +2,7 @@ import asyncio
 import logging
 import re
 from argparse import ArgumentParser
-from asyncio import Lock, Semaphore, TaskGroup, create_subprocess_shell
+from asyncio import Condition, Lock, TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
 from contextlib import nullcontext
 from io import TextIOWrapper
@@ -38,6 +38,26 @@ _Table = Literal[
     'note',
     'user',
 ]
+
+
+class WeightedSemaphore:
+    def __init__(self, value: int, /):
+        assert value > 0
+        self._value = value
+        self._cond = Condition()
+
+    async def acquire(self, weight: int, /) -> None:
+        assert weight > 0
+        async with self._cond:
+            while self._value < weight:
+                await self._cond.wait()
+            self._value -= weight
+
+    async def release(self, weight: int, /) -> None:
+        assert weight > 0
+        async with self._cond:
+            self._value += weight
+            self._cond.notify_all()
 
 
 class _PostgresSettings(NamedTuple):
@@ -234,7 +254,7 @@ async def _load_tables(mode: _Mode) -> None:
         int(settings.max_parallel_workers / settings.max_parallel_maintenance_workers)
         or 1
     )
-    maintenance_semaphore = Semaphore(maintenance_parallelism * 2)
+    maintenance_semaphore = WeightedSemaphore(maintenance_parallelism * 2)
     logging.info('Detected maintenance parallelism: %d', maintenance_parallelism)
 
     logging.info('Truncating tables: %r', all_tables)
@@ -293,18 +313,18 @@ async def _load_tables(mode: _Mode) -> None:
             await _load_table(mode, table)
 
     async def execute(sql: Query) -> None:
+        # Increase parallelization for GIN/GiST indexes
+        # TODO: remove in postgres 18+ (native parallelization)
         permits = 1 if re.search(r' USING (gin|gist) ', str(sql)) else 2
 
-        for _ in range(permits):
-            await maintenance_semaphore.acquire()
+        await maintenance_semaphore.acquire(permits)
         try:
             async with db(True, autocommit=True) as conn:
                 ts = monotonic()
                 await conn.execute(sql)
                 logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
         finally:
-            for _ in range(permits):
-                maintenance_semaphore.release()
+            await maintenance_semaphore.release(permits)
 
     async def index_task(table: _Table, tg: TaskGroup) -> None:
         chunks = await _gather_table_chunks(table)
