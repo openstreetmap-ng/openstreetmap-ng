@@ -236,7 +236,7 @@ async def _load_tables(mode: _Mode) -> None:
         int(settings.max_parallel_workers / settings.max_parallel_maintenance_workers),
     )
     maintenance_semaphore = Semaphore(maintenance_parallelism)
-    boost_maintenance_work_mem = f'{int(settings.maintenance_work_mem.removesuffix("MB")) * (1 + maintenance_parallelism)}MB'
+    boost_maintenance_work_mem = f'{int(settings.maintenance_work_mem.removesuffix("MB")) * (1 + settings.max_parallel_maintenance_workers)}MB'
     logging.info('Detected maintenance parallelism: %d', maintenance_parallelism)
 
     logging.info('Truncating tables: %r', all_tables)

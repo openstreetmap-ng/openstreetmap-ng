@@ -39,7 +39,7 @@ writeText "postgres.conf" (
     maintenance_work_mem = ${
       toString (
         builtins.floor (
-          hostMemoryMb
+          (hostMemoryMb - postgresSharedBuffersMb)
           / (postgresParallelWorkers + (postgresParallelWorkers / postgresParallelMaintenanceWorkers))
           / 1.2
         )
