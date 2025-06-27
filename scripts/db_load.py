@@ -231,9 +231,9 @@ async def _load_tables(mode: _Mode) -> None:
     all_tables: tuple[_Table, ...] = get_args(_Table)
 
     settings = await _detect_settings()
-    maintenance_parallelism = max(
-        1,
-        int(settings.max_parallel_workers / settings.max_parallel_maintenance_workers),
+    maintenance_parallelism = (
+        int(settings.max_parallel_workers / settings.max_parallel_maintenance_workers)
+        or 1
     )
     maintenance_semaphore = Semaphore(maintenance_parallelism)
     boost_maintenance_work_mem = f'{int(settings.maintenance_work_mem.removesuffix("MB")) * (1 + settings.max_parallel_maintenance_workers)}MB'
