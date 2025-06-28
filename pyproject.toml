@@ -50,7 +50,6 @@ dependencies = [
   "sizestr",
   "speedup",
   "starlette-compress",
-  "supervisor",
   "tqdm",
   "uvicorn[standard]",
   "zid",

@@ -1190,7 +1190,6 @@ dependencies = [
     { name = "sizestr" },
     { name = "speedup" },
     { name = "starlette-compress" },
-    { name = "supervisor" },
     { name = "tqdm" },
     { name = "uvicorn", extra = ["standard"] },
     { name = "zid" },
@@ -1265,7 +1264,6 @@ requires-dist = [
     { name = "sizestr" },
     { name = "speedup", directory = "speedup" },
     { name = "starlette-compress" },
-    { name = "supervisor" },
     { name = "tqdm" },
     { name = "uvicorn", extras = ["standard"] },
     { name = "zid" },
@@ -1995,15 +1993,6 @@ pure-eval = [
 ]
 
 [[package]]
-name = "setuptools"
-version = "80.9.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/18/5d/3bf57dcd21979b887f014ea83c24ae194cfcd12b9e0fda66b957c69d1fca/setuptools-80.9.0.tar.gz", hash = "sha256:f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c", size = 1319958, upload-time = "2025-05-27T00:56:51.443Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl", hash = "sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922", size = 1201486, upload-time = "2025-05-27T00:56:49.664Z" },
-]
-
-[[package]]
 name = "shapely"
 version = "2.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2096,18 +2085,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/4a/7b/e9b8eae86ea0c11d0ff83e903ca8a7bff3ae71c881f48755591bc4ab3164/starlette_compress-1.6.1.tar.gz", hash = "sha256:dd1fa8aba94e255a3f7d4e8281c65ec1d6bd02de1af7500f1db1d611ac54071d", size = 55445, upload-time = "2025-06-07T10:26:05.472Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8a/b5/8af353bb6926b042134f1ac5a63e3f590a578ecb2279787d3178739ae004/starlette_compress-1.6.1-py3-none-any.whl", hash = "sha256:bda2375ba7c871d9d44d0b3d3eb52377311b5a4c16707e422b2abea7f1a9d09c", size = 11523, upload-time = "2025-06-07T10:26:03.84Z" },
-]
-
-[[package]]
-name = "supervisor"
-version = "4.2.5"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "setuptools" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ce/37/517989b05849dd6eaa76c148f24517544704895830a50289cbbf53c7efb9/supervisor-4.2.5.tar.gz", hash = "sha256:34761bae1a23c58192281a5115fb07fbf22c9b0133c08166beffc70fed3ebc12", size = 466073, upload-time = "2022-12-24T01:02:43.705Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2c/7a/0ad3973941590c040475046fef37a2b08a76691e61aa59540828ee235a6e/supervisor-4.2.5-py2.py3-none-any.whl", hash = "sha256:2ecaede32fc25af814696374b79e42644ecaba5c09494c51016ffda9602d0f08", size = 319561, upload-time = "2022-12-24T01:02:40.814Z" },
 ]
 
 [[package]]

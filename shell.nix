@@ -70,7 +70,7 @@ let
       fastIngest = true;
     }
   );
-  supervisordArgs = {
+  processComposeArgs = {
     inherit
       isDevelopment
       enablePostgres
@@ -78,12 +78,12 @@ let
       mailpitHttpPort
       mailpitSmtpPort
       pkgs
+      postgresConf
       ;
-    postgresConf = postgresConf;
   };
-  supervisordConf = import ./config/supervisord.nix supervisordArgs;
-  supervisordFastIngestConf = import ./config/supervisord.nix (
-    supervisordArgs // { postgresConf = postgresFastIngestConf; }
+  processComposeConf = import ./config/process-compose.nix processComposeArgs;
+  processComposeFastIngestConf = import ./config/process-compose.nix (
+    processComposeArgs // { postgresConf = postgresFastIngestConf; }
   );
 
   pythonLibs = with pkgs; [
@@ -144,6 +144,7 @@ let
     parallel
     curl
     jq
+    process-compose
     watchexec'
     pigz
     brotli
@@ -427,11 +428,10 @@ let
     '')
     (makeScript "watch-proto" "exec watchexec -o queue -w app/models/proto --exts proto proto-pipeline")
 
-    # -- Supervisor
+    # -- Services
     (makeScript "dev-start" ''
-      pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
-      if [ -n "$pid" ] && ps -wwp "$pid" -o command= | grep -q "supervisord"; then
-        echo "Supervisor is already running"
+      if [ -S "$PC_SOCKET_PATH" ]; then
+        echo "Services are already running"
         exit 0
       fi
 
@@ -446,33 +446,19 @@ let
           --username=postgres
       fi
 
-      mkdir -p data/mailpit data/postgres_unix data/supervisor
-      supervisord -c "''${1:-${supervisordConf}}"
-      echo "Supervisor started"
-
-      echo "Waiting for Postgres to start..."
-      time_start=$(date +%s)
-      while ! pg_isready -q -h "${projectDir}/data/postgres_unix" -p ${toString postgresPort}; do
-        elapsed=$(($(date +%s) - time_start))
-        if [ "$elapsed" -gt 60 ]; then
-          tail -n 15 data/supervisor/supervisord.log data/supervisor/postgres.log
-          echo "Postgres startup timeout, see above logs for details"
-          exit 1
-        fi
-        sleep 0.1
-      done
-
-      echo "Postgres started"
+      mkdir -p data/mailpit data/postgres_unix data/pcompose
+      echo "Services starting..."
+      process-compose up --use-uds --detached -f "''${1:-${processComposeConf}}" >/dev/null
+      process-compose project is-ready --use-uds --wait
+      echo "Services started"
     '')
     (makeScript "dev-stop" ''
-      pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
-      if [ -n "$pid" ] && ps -wwp "$pid" -o command= | grep -q "supervisord"; then
-        kill -TERM "$pid"
-        echo "Supervisor stopping..."
-        while kill -0 "$pid" 2>/dev/null; do sleep 0.1; done
-        echo "Supervisor stopped"
+      if [ -S "$PC_SOCKET_PATH" ]; then
+        echo "Services stopping..."
+        process-compose down --use-uds
+        echo "Services stopped"
       else
-        echo "Supervisor is not running"
+        echo "Services are not running"
       fi
     '')
     (makeScript "dev-restart" ''
@@ -484,10 +470,8 @@ let
       dev-stop
       rm -rf data/postgres/ data/postgres_unix/
     '')
-    (makeScript "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
-    (makeScript "dev-logs-watch-css" "tail -f data/supervisor/watch-css.log")
-    (makeScript "dev-logs-watch-js" "tail -f data/supervisor/watch-js.log")
-    (makeScript "dev-logs-watch-locale" "tail -f data/supervisor/watch-locale.log")
+    (makeScript "dev-logs-postgres" "tail -f data/pcompose/postgres.log")
+    (makeScript "dev-logs-global" "tail -f data/pcompose/global.log")
 
     # -- Preload
     (makeScript "preload-clean" "rm -rf data/preload/")
@@ -575,7 +559,7 @@ let
       set -x
       : Restarting database in fast-ingest mode :
       dev-stop
-      dev-start "${supervisordFastIngestConf}"
+      dev-start "${processComposeFastIngestConf}"
       python scripts/db_load.py -m "$1"
       : Restarting database in normal mode :
       dev-stop
@@ -594,9 +578,8 @@ let
 
     # -- Testing
     (makeScript "run-tests" ''
-      pid=$(cat data/supervisor/supervisord.pid 2>/dev/null || echo "")
-      if [ -n "$pid" ] && ps -wwp "$pid" -o command= | grep -q "supervisord"; then true; else
-        echo "NOTICE: Supervisor is not running"
+      if [ ! -S "$PC_SOCKET_PATH" ]; then
+        echo "NOTICE: Services are not running"
         echo "NOTICE: Run 'dev-start' before executing tests"
         exit 1
       fi
@@ -722,6 +705,10 @@ let
       export NIX_ENFORCE_NO_NATIVE=0
       export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
       export SSL_CERT_FILE=$NIX_SSL_CERT_FILE
+      export PROC_COMP_CONFIG=data/pcompose
+      export PC_DISABLE_DOTENV=1
+      export PC_LOG_FILE=data/pcompose/internal.log
+      export PC_SOCKET_PATH="${projectDir}/data/pcompose/pcompose.sock"
       export PATH="$PATH:${gitMinimal}/bin"
       export PYTHONNOUSERSITE=1
       export PYTHONPATH="${projectDir}"
