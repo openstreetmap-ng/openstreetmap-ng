@@ -221,14 +221,15 @@ CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_
 
 CREATE INDEX changeset_comment_user_id_idx ON changeset_comment (user_id DESC, id DESC);
 
+-- TODO: repartition in postgres 18+ (faster gin/gist builds)
 CREATE FUNCTION element_partition_func (typed_id bigint) RETURNS bigint AS $$
 SELECT CASE
     -- Nodes
     WHEN typed_id <= 1152921504606846975 THEN
-        typed_id / 600
+        typed_id / 60
     -- Ways
     WHEN typed_id <= 2305843009213693951 THEN
-        (typed_id - 1152921504606846976) / 60 + 1152921504606846976
+        (typed_id - 1152921504606846976) / 6 + 1152921504606846976
     -- Relations
     ELSE
         typed_id
