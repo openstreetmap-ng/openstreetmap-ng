@@ -63,10 +63,10 @@ let
       --arg isDevelopment false \
       --arg hostMemoryMb 29886 \
       --arg hostDiskCoW true \
-      --arg postgresParallelWorkers 4 \
+      --arg postgresParallelWorkers 3 \
       --arg postgresIOConcurrency 500 \
       --arg postgresRandomPageCost 4 \
-      --arg postgresMaxWalSizeGb 50 \
+      --arg postgresMaxWalSizeGb 65 \
       --arg postgresVerbose 1 \
       --arg gunicornWorkers 3 \
       --run "
