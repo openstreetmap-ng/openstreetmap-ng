@@ -65,6 +65,7 @@ let
   postgresFastIngestConf = import ./config/postgres.nix (
     postgresArgs
     // {
+      postgresWorkers = postgresWorkers - postgresAutovacuumWorkers;
       postgresAutovacuumWorkers = 0;
       fastIngest = true;
     }
