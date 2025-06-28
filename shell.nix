@@ -801,22 +801,10 @@ let
         echo "Skipped loading .env file (not found)"
       fi
 
-      echo "Running [proto-pipeline]"
-      proto-pipeline &
-      echo "Running [locale-pipeline]"
-      locale-pipeline &
       echo "Running [static-img-pipeline]"
       static-img-pipeline &
-      wait
-
-      if [ ! -d app/static/css ]; then
-        echo "Running [css-pipeline]"
-        css-pipeline &
-      fi
-      if [ ! -d app/static/js ]; then
-        echo "Running [js-pipeline]"
-        js-pipeline &
-      fi
+      echo "Running [proto-pipeline]"
+      proto-pipeline &
       wait
     '';
 in
