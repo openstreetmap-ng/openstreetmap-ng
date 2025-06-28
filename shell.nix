@@ -802,6 +802,7 @@ let
       export SMTP_PASS=anything
     ''
     + ''
+      export DUCKDB_MEMORY_LIMIT=${toString (hostMemoryMb / 2)}MB
 
       if [ -f .env ]; then
         echo "Loading .env file"

@@ -59,6 +59,7 @@ SMTP_HOST: str = Field()
 SMTP_PORT: int = Field(gt=0, lt=1 << 16)
 SMTP_USER: str = Field()
 SMTP_PASS: SecretStr = Field()
+DUCKDB_MEMORY_LIMIT: str = Field()
 
 # -------------------- System Configuration --------------------
 
@@ -85,7 +86,6 @@ POSTGRES_URL = (
     f'?host={_validate_dir("data/postgres_unix")}'
     f'&port=49560'
 )
-DUCKDB_MEMORY_LIMIT = '8GB'
 DUCKDB_TMPDIR: DirectoryPath | None = None
 
 # Replication processing
