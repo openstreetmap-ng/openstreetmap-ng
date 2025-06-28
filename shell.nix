@@ -4,7 +4,7 @@
   hostDiskCoW ? false,
   enablePostgres ? true,
   postgresPort ? 49560,
-  postgresSharedBuffersPerc ? 0.25,
+  postgresSharedBuffersPerc ? 0.3,
   postgresWorkMemMb ? 64,
   postgresWorkers ?
     postgresParallelWorkers + postgresAutovacuumWorkers + postgresTimescaleWorkers + 1,
