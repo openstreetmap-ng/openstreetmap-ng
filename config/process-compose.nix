@@ -30,7 +30,6 @@ let
     postgres = {
       availability = availability;
       command = ''
-        sleep 10 && \
         postgres \
           -c config_file=${postgresConf} \
           -D data/postgres

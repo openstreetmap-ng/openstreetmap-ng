@@ -448,14 +448,27 @@ let
 
       mkdir -p data/mailpit data/postgres_unix data/pcompose
       echo "Services starting..."
-      process-compose up --use-uds --detached -f "''${1:-${processComposeConf}}" >/dev/null
-      process-compose project is-ready --use-uds --wait
+      process-compose up -U --detached -f "''${1:-${processComposeConf}}" >/dev/null
+
+      process-compose list -U | while read -r name; do
+        if [ -z "$name" ] || [ "$name" = "mailpit" ]; then
+          continue
+        fi
+
+        echo -n "Waiting for $name..."
+        while [ "$(process-compose process get "$name" -U --output json | jq -r '.[0].is_ready')" != "Ready" ]; do
+          sleep 1
+          echo -n "."
+        done
+        echo " ready"
+      done
+
       echo "Services started"
     '')
     (makeScript "dev-stop" ''
       if [ -S "$PC_SOCKET_PATH" ]; then
         echo "Services stopping..."
-        process-compose down --use-uds
+        process-compose down -U
         echo "Services stopped"
       else
         echo "Services are not running"
