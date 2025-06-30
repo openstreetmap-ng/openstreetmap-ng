@@ -449,6 +449,7 @@ let
       mkdir -p data/mailpit data/postgres_unix data/pcompose
       echo "Services starting..."
       process-compose up -U --detached -f "''${1:-${processComposeConf}}" >/dev/null
+      process-compose project is-ready -U --wait
 
       process-compose list -U | while read -r name; do
         if [ -z "$name" ] || [ "$name" = "mailpit" ]; then
