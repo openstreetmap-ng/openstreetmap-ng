@@ -1070,6 +1070,7 @@
   "addr:housenumber": {
     "*": [
       "",
+      "DE",
       "Pt",
       "Uk"
     ]
@@ -7956,7 +7957,8 @@
       "DE",
       "ES",
       "FR",
-      "JA"
+      "JA",
+      "Ko"
     ]
   },
   "branch:type": {
@@ -8470,12 +8472,14 @@
       "",
       "DE",
       "Pl",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "annexe": [
       "",
       "FR",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "apartments": [
       "",
@@ -8540,7 +8544,8 @@
       "DE",
       "ES",
       "Pl",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "brewery": [
       "",
@@ -8970,7 +8975,8 @@
       "DE",
       "FR",
       "Pt",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "guest_house": [
       ""
@@ -9186,7 +9192,8 @@
       "Uk"
     ],
     "pagoda": [
-      ""
+      "",
+      "Uk"
     ],
     "palace": [
       "",
@@ -9247,7 +9254,8 @@
       "Yue"
     ],
     "quonset_hut": [
-      ""
+      "",
+      "Uk"
     ],
     "railway": [
       ""
@@ -9395,7 +9403,8 @@
     "ship": [
       "",
       "FR",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "shower": [
       ""
@@ -9533,7 +9542,8 @@
     "tech_cab": [
       "",
       "DE",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "temple": [
       "",
@@ -9588,6 +9598,9 @@
       "RU",
       "Uk"
     ],
+    "tourism": [
+      ""
+    ],
     "tower": [
       "",
       "DE",
@@ -9636,7 +9649,8 @@
     ],
     "triumphal_arch": [
       "",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "true": [
       "",
@@ -9644,7 +9658,8 @@
     ],
     "trullo": [
       "",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "unclassified": [
       "",
@@ -9710,7 +9725,8 @@
     ],
     "windmill": [
       "",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "wine_cellar": [
       ""
@@ -14003,6 +14019,7 @@
       "",
       "DE",
       "ES",
+      "FR",
       "RU",
       "Uk"
     ],
@@ -14015,6 +14032,9 @@
       "ES",
       "FR",
       "Uk"
+    ],
+    "yes": [
+      ""
     ],
     "zebra": [
       "",
@@ -14153,6 +14173,11 @@
     "*": [
       "",
       "JA"
+    ]
+  },
+  "crossing:signed": {
+    "*": [
+      ""
     ]
   },
   "crossing:supervision": {
@@ -14572,6 +14597,9 @@
     ],
     "ukrainian": [
       "Uk"
+    ],
+    "venezuelan": [
+      ""
     ],
     "vietnamese": [
       "",
@@ -15816,6 +15844,31 @@
       "JA"
     ]
   },
+  "developer": {
+    "*": [
+      ""
+    ]
+  },
+  "developer:type": {
+    "*": [
+      ""
+    ]
+  },
+  "developer:website": {
+    "*": [
+      ""
+    ]
+  },
+  "developer:wikidata": {
+    "*": [
+      ""
+    ]
+  },
+  "developer:wikipedia": {
+    "*": [
+      ""
+    ]
+  },
   "devices": {
     "*": [
       ""
@@ -16497,6 +16550,11 @@
       "RU"
     ]
   },
+  "drink:bubble_tea": {
+    "*": [
+      ""
+    ]
+  },
   "drink:club-mate": {
     "*": [
       ""
@@ -16719,6 +16777,9 @@
       "",
       "RU"
     ],
+    "college": [
+      ""
+    ],
     "cooking_school": [
       ""
     ],
@@ -16726,9 +16787,15 @@
       "",
       "RU"
     ],
+    "kindergarten": [
+      ""
+    ],
     "school": [
       "",
       "RU"
+    ],
+    "university": [
+      ""
     ]
   },
   "education_program": {
@@ -16834,6 +16901,11 @@
     "rail": [
       "",
       "DE"
+    ]
+  },
+  "electrified:contact_line": {
+    "*": [
+      ""
     ]
   },
   "electronics": {
@@ -17163,6 +17235,10 @@
       "RU",
       "Uk"
     ],
+    "fire_hydrant_sign": [
+      "",
+      "DE"
+    ],
     "fire_lookout": [
       "",
       "DE",
@@ -17403,9 +17479,6 @@
       "Pl",
       "RU",
       "Uk"
-    ],
-    "wet_riser": [
-      ""
     ],
     "yes": [
       "",
@@ -17955,6 +18028,11 @@
       ""
     ]
   },
+  "fee:icom_member": {
+    "*": [
+      ""
+    ]
+  },
   "feeding:type": {
     "*": [
       "",
@@ -18305,6 +18383,9 @@
       "RU"
     ],
     "squat": [
+      ""
+    ],
+    "stepper": [
       ""
     ]
   },
@@ -22302,6 +22383,7 @@
       "JA",
       "Ko",
       "Ms",
+      "NL",
       "Pl",
       "Pt",
       "RU",
@@ -22620,11 +22702,6 @@
     ]
   },
   "highway_construction:project": {
-    "*": [
-      ""
-    ]
-  },
-  "highway_construction:work": {
     "*": [
       ""
     ]
@@ -23761,6 +23838,7 @@
       "",
       "Cs",
       "ES",
+      "FR",
       "JA",
       "Pl",
       "RU"
@@ -23986,7 +24064,8 @@
   },
   "infection:hiv": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "info": {
@@ -24873,7 +24952,8 @@
   },
   "landing": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "landmark": {
@@ -25293,6 +25373,7 @@
       "Pt",
       "RU",
       "Uk",
+      "Vi",
       "Zh-hans"
     ],
     "institutional": [
@@ -26980,6 +27061,10 @@
       "Pl",
       "Pt",
       "RU"
+    ],
+    "no": [
+      "",
+      "FR"
     ]
   },
   "lit:mount": {
@@ -27384,6 +27469,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Pl",
@@ -34214,6 +34300,9 @@
       "",
       "Ko"
     ],
+    "MA:A": [
+      ""
+    ],
     "MA:RN": [
       ""
     ],
@@ -37786,6 +37875,7 @@
       ""
     ],
     "crossing": [
+      "",
       "Pl"
     ],
     "desire": [
@@ -39245,7 +39335,8 @@
   },
   "position": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "post_box:design": {
@@ -40377,7 +40468,8 @@
       "Uk"
     ],
     "border": [
-      ""
+      "",
+      "Cs"
     ],
     "buffer_stop": [
       "",
@@ -40550,6 +40642,7 @@
     ],
     "owner_change": [
       "",
+      "Cs",
       "DE"
     ],
     "phone": [
@@ -40664,6 +40757,7 @@
       "ES",
       "FR",
       "JA",
+      "Ko",
       "Pl",
       "Pt",
       "RU",
@@ -40948,7 +41042,9 @@
   "railway:ref": {
     "*": [
       "",
-      "DE"
+      "Cs",
+      "DE",
+      "FR"
     ]
   },
   "railway:scmt": {
@@ -41959,6 +42055,11 @@
       ""
     ]
   },
+  "ref:FR:RESARAIL": {
+    "*": [
+      ""
+    ]
+  },
   "ref:FR:RNA": {
     "*": [
       "",
@@ -42028,6 +42129,11 @@
     "*": [
       "",
       "FR"
+    ]
+  },
+  "ref:FR:SNCF": {
+    "*": [
+      ""
     ]
   },
   "ref:FR:SNCF_Reseau": {
@@ -44098,6 +44204,9 @@
       "Pl",
       "Pt",
       "RU"
+    ],
+    "roof_tiles": [
+      ""
     ]
   },
   "roof:orientation": {
@@ -49773,9 +49882,6 @@
     "weaver": [
       ""
     ],
-    "weighing_scale": [
-      ""
-    ],
     "weighing_scales": [
       "",
       "RU"
@@ -52595,9 +52701,6 @@
       "Uk",
       "Zh-hans"
     ],
-    "Limestone": [
-      ""
-    ],
     "acrylic": [
       "",
       "DE",
@@ -52618,6 +52721,7 @@
       "",
       "DE",
       "ES",
+      "FR",
       "JA",
       "Pl",
       "Sv"
@@ -52962,6 +53066,9 @@
     ],
     "ALPR": [
       ""
+    ],
+    "gunshot_detector": [
+      ""
     ]
   },
   "surveillance:zone": {
@@ -53062,6 +53169,12 @@
     "pole": [
       "",
       "RU"
+    ]
+  },
+  "suspended_food": {
+    "*": [
+      "",
+      "FR"
     ]
   },
   "sustrans_ref": {
@@ -53306,6 +53419,11 @@
       "RU"
     ],
     "Eucalypteae": [
+      ""
+    ]
+  },
+  "taxon:cultivar": {
+    "*": [
       ""
     ]
   },
