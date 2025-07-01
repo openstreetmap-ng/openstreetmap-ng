@@ -1,13 +1,16 @@
 from datetime import date, datetime
 from typing import Literal
 
+from psycopg import IsolationLevel
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
+from psycopg.sql import Literal as PgLiteral
 from shapely.geometry.base import BaseGeometry
 
 from app.db import db
 from app.models.db.changeset import Changeset
 from app.models.types import ChangesetId, UserId
+from app.queries.timescaledb_query import TimescaleDBQuery
 
 
 class ChangesetQuery:
@@ -106,34 +109,36 @@ class ChangesetQuery:
     ) -> list[Changeset]:
         """Find changesets by query."""
         conditions: list[Composable] = []
-        params = []
+        params = {}
 
         if changeset_ids is not None:
-            conditions.append(SQL('id = ANY(%s)'))
-            params.append(changeset_ids)
+            conditions.append(SQL('id = ANY(%(changeset_ids)s)'))
+            params['changeset_ids'] = changeset_ids
 
         if changeset_id_before is not None:
-            conditions.append(SQL('id < %s'))
-            params.append(changeset_id_before)
+            conditions.append(SQL('id < %(changeset_id_before)s'))
+            params['changeset_id_before'] = changeset_id_before
 
         if user_ids is not None:
             if not user_ids:
                 return []
 
-            conditions.append(SQL('user_id = ANY(%s)'))
-            params.append(user_ids)
+            conditions.append(SQL('user_id = ANY(%(user_ids)s)'))
+            params['user_ids'] = user_ids
 
         if created_before is not None:
-            conditions.append(SQL('created_at < %s'))
-            params.append(created_before)
+            conditions.append(SQL('created_at < %(created_before)s'))
+            params['created_before'] = created_before
 
         if created_after is not None:
-            conditions.append(SQL('created_at > %s'))
-            params.append(created_after)
+            conditions.append(SQL('created_at > %(created_after)s'))
+            params['created_after'] = created_after
 
         if closed_after is not None:
-            conditions.append(SQL('closed_at IS NOT NULL AND closed_at >= %s'))
-            params.append(closed_after)
+            conditions.append(
+                SQL('closed_at IS NOT NULL AND closed_at >= %(closed_after)s')
+            )
+            params['closed_after'] = closed_after
 
         if is_open is not None:
             conditions.append(
@@ -141,45 +146,58 @@ class ChangesetQuery:
             )
 
         if geometry is not None:
-            # Add union_bounds condition for both legacy and modern queries
-            conditions.append(SQL('union_bounds && %s'))
-            params.append(geometry)
-
-            # In modern query, add additional filtering on changeset_bounds
-            if not legacy_geometry:
-                conditions.append(
-                    SQL("""
+            conditions.append(
+                SQL(
+                    'union_bounds && %(geometry)s'
+                    if legacy_geometry
+                    else """
                     EXISTS (
                         SELECT 1 FROM changeset_bounds
                         WHERE changeset_id = changeset.id
-                        AND ST_Intersects(bounds, %s)
+                        AND ST_Intersects(bounds, %(geometry)s)
                     )
-                    """)
+                    """
                 )
-                params.append(geometry)
+            )
+            params['geometry'] = geometry
+
+        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        order_clause = SQL(sort)
 
         if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
+            limit_clause = SQL('LIMIT %(limit)s')
+            params['limit'] = limit
         else:
             limit_clause = SQL('')
 
-        query = SQL("""
-            SELECT * FROM changeset
-            WHERE {where}
-            ORDER BY id {order}
-            {limit}
-        """).format(
-            where=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
-            order=SQL(sort),
-            limit=limit_clause,
-        )
+        async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
+            query = SQL("""
+                SELECT * FROM ({query})
+                {limit}
+            """).format(
+                query=SQL(' UNION ALL ').join([
+                    SQL("""(
+                        SELECT * FROM changeset
+                        WHERE {where}
+                        AND id BETWEEN {chunk_start} AND {chunk_end}
+                        ORDER BY id {order}
+                        )""").format(
+                        where=where_clause,
+                        order=order_clause,
+                        chunk_start=PgLiteral(chunk_start),
+                        chunk_end=PgLiteral(chunk_end),
+                    )
+                    for chunk_start, chunk_end in await TimescaleDBQuery.get_chunks_ranges(
+                        'changeset', conn, sort=sort
+                    )
+                ]),
+                limit=limit_clause,
+            )
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+            async with await conn.cursor(row_factory=dict_row).execute(
+                query, params
+            ) as r:
+                return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def count_per_day_by_user_id(
