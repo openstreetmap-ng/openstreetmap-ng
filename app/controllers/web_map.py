@@ -1,7 +1,7 @@
 from typing import Annotated, Literal
 
-from annotated_types import Gt, Le
 from fastapi import APIRouter, Query, Response
+from pydantic import PositiveInt
 
 from app.config import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.format import FormatLeaflet
@@ -16,9 +16,7 @@ router = APIRouter(prefix='/api/web')
 @router.get('/map')
 async def get_map(
     bbox: Annotated[str, Query()],
-    limit: Annotated[
-        Annotated[int, Gt(0), Le(MAP_QUERY_LEGACY_NODES_LIMIT)] | Literal[''], Query()
-    ],
+    limit: Annotated[PositiveInt | Literal[''], Query()],
 ):
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
@@ -28,7 +26,7 @@ async def get_map(
         nodes_limit = MAP_QUERY_LEGACY_NODES_LIMIT
         legacy_nodes_limit = True
     else:
-        nodes_limit = limit + 1
+        nodes_limit = min(limit, MAP_QUERY_LEGACY_NODES_LIMIT) + 1
         legacy_nodes_limit = False
 
     elements = await ElementQuery.find_many_by_geom(
