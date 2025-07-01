@@ -9,7 +9,6 @@
   postgresWorkers ?
     postgresParallelWorkers + postgresAutovacuumWorkers + postgresTimescaleWorkers + 1,
   postgresParallelWorkers ? postgresParallelMaintenanceWorkers * 8,
-  postgresParallelWorkersPerGather ? 1,
   postgresParallelMaintenanceWorkers ? 1,
   postgresAutovacuumWorkers ? 2,
   postgresTimescaleWorkers ? 3,
@@ -48,7 +47,6 @@ let
       postgresWorkMemMb
       postgresWorkers
       postgresParallelWorkers
-      postgresParallelWorkersPerGather
       postgresParallelMaintenanceWorkers
       postgresAutovacuumWorkers
       postgresTimescaleWorkers

@@ -6,7 +6,6 @@
   postgresWorkMemMb,
   postgresWorkers,
   postgresParallelWorkers,
-  postgresParallelWorkersPerGather,
   postgresParallelMaintenanceWorkers,
   postgresAutovacuumWorkers,
   postgresTimescaleWorkers,
@@ -60,7 +59,7 @@ writeText "postgres.conf" (
     # configure number of workers
     max_worker_processes = ${toString postgresWorkers}
     max_parallel_workers = ${toString postgresParallelWorkers}
-    max_parallel_workers_per_gather = ${toString postgresParallelWorkersPerGather}
+    max_parallel_workers_per_gather = 0
     max_parallel_maintenance_workers = ${toString postgresParallelMaintenanceWorkers}
   ''
   + (
