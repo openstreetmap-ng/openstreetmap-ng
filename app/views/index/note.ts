@@ -1,9 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"
-import { configureStandardForm } from "../lib/standard-form"
-import { configureStandardPagination } from "../lib/standard-pagination"
-import { setPageTitle } from "../lib/title"
 import {
     loadMapImage,
     markerClosedImageUrl,
@@ -11,14 +8,17 @@ import {
     markerOpenImageUrl,
 } from "../lib/map/image.ts"
 import {
-    type LayerId,
     addMapLayer,
     emptyFeatureCollection,
+    type LayerId,
     layersConfig,
     removeMapLayer,
 } from "../lib/map/layers/layers.ts"
 import { renderObjects } from "../lib/map/render-objects"
 import { PartialNoteParamsSchema } from "../lib/proto/shared_pb"
+import { configureStandardForm } from "../lib/standard-form"
+import { configureStandardPagination } from "../lib/standard-pagination"
+import { setPageTitle } from "../lib/title"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 

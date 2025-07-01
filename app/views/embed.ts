@@ -7,13 +7,11 @@ import {
     Marker,
     NavigationControl,
 } from "maplibre-gl"
-import { qsParse } from "./lib/qs"
-import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "./lib/utils"
 import {
-    type LayerId,
     addMapLayer,
     addMapLayerSources,
     defaultLayerId,
+    type LayerId,
     resolveLayerCodeOrId,
 } from "./lib/map/layers/layers"
 import type { LonLatZoom } from "./lib/map/map-utils"
@@ -22,6 +20,8 @@ import {
     getMarkerIconElement,
     markerIconAnchor,
 } from "./lib/map/utils"
+import { qsParse } from "./lib/qs"
+import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "./lib/utils"
 
 const mapContainer = document.getElementById("map")
 const attributionControl = new AttributionControl()

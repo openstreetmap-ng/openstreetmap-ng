@@ -4,20 +4,17 @@ import {
     type LngLat,
     LngLatBounds,
     type LngLatLike,
-    MapMouseEvent,
     type Map as MaplibreMap,
+    MapMouseEvent,
     Marker,
     Point,
 } from "maplibre-gl"
 import { formatDistance } from "../lib/format-utils"
-import { decodeLonLat, encodeLonLat } from "../lib/polyline"
-import { qsParse } from "../lib/qs"
-import { range, throttle } from "../lib/utils"
 import {
-    type LayerId,
     addMapLayer,
     emptyFeatureCollection,
     hasMapLayer,
+    type LayerId,
     layersConfig,
     removeMapLayer,
 } from "../lib/map/layers/layers"
@@ -27,6 +24,9 @@ import {
     markerIconAnchor,
     padLngLatBounds,
 } from "../lib/map/utils"
+import { decodeLonLat, encodeLonLat } from "../lib/polyline"
+import { qsParse } from "../lib/qs"
+import { range, throttle } from "../lib/utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 
@@ -295,7 +295,10 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const createNewMarker = ({
         lngLat,
         skipUpdates,
-    }: { lngLat: LngLatLike; skipUpdates?: boolean }): void => {
+    }: {
+        lngLat: LngLatLike
+        skipUpdates?: boolean
+    }): void => {
         // Avoid event handlers after the controller is unloaded
         if (!hasMapLayer(map, layerId)) return
         console.debug("Create distance marker", lngLat, skipUpdates)

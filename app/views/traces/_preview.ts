@@ -6,20 +6,20 @@ import {
     ScaleControl,
 } from "maplibre-gl"
 import { isMetricUnit } from "../lib/intl"
-import { decodeLonLat } from "../lib/polyline"
-import { requestAnimationFramePolyfill } from "../lib/utils"
 import { CustomGeolocateControl } from "../lib/map/controls/geolocate"
+import { CustomZoomControl } from "../lib/map/controls/zoom"
 import {
-    type LayerId,
     addMapLayer,
     addMapLayerSources,
     defaultLayerId,
     emptyFeatureCollection,
+    type LayerId,
     layersConfig,
 } from "../lib/map/layers/layers"
 import { addControlGroup } from "../lib/map/map-utils"
 import { configureDefaultMapBehavior, padLngLatBounds } from "../lib/map/utils"
-import { CustomZoomControl } from "../lib/map/controls/zoom"
+import { decodeLonLat } from "../lib/polyline"
+import { requestAnimationFramePolyfill } from "../lib/utils"
 
 const tracePreviewContainer = document.querySelector("div.trace-preview")
 if (tracePreviewContainer) {

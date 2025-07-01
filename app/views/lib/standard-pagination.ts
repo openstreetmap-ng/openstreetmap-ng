@@ -1,6 +1,6 @@
+import { effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
 import { resolveDatetimeLazy } from "./datetime"
-import { effect, signal } from "@preact/signals-core"
 
 const paginationDistance = 2
 

@@ -1,10 +1,10 @@
 import { Collapse, Dropdown, Tooltip } from "bootstrap"
+import { routerNavigateStrict } from "../index/_router"
+import { encodeMapState, type LonLatZoom, type MapState } from "../lib/map/map-utils"
 import { qsParse } from "../lib/qs"
 import { remoteEdit } from "../lib/remote-edit"
 import type { OSMObject } from "../lib/types"
 import { isHrefCurrentPage, wrapMessageEventValidator } from "../lib/utils"
-import { routerNavigateStrict } from "../index/_router"
-import { type LonLatZoom, type MapState, encodeMapState } from "../lib/map/map-utils"
 
 const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
@@ -28,7 +28,7 @@ const unreadMessagesBadge = navbar.querySelector(".unread-messages-badge")
 /** Update the unread messages badge in the navbar */
 export const changeUnreadMessagesBadge = (change: number): void => {
     const current =
-        Number.parseInt(newUnreadMessagesBadge.textContent.replace(/\D/g, "")) || 0
+        Number.parseInt(newUnreadMessagesBadge.textContent.replace(/\D/g, ""), 10) || 0
     const newCount = current + change
     console.debug("Change unread message badge count", current, "->", newCount)
     newUnreadMessagesBadge.textContent = newCount > 0 ? newCount.toString() : ""

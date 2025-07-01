@@ -1,6 +1,6 @@
+import { getInitialMapState, parseMapState } from "../lib/map/map-utils"
 import { qsEncode, qsParse } from "../lib/qs"
 import { configureIFrameSystemApp } from "../lib/system-app"
-import { getInitialMapState, parseMapState } from "../lib/map/map-utils"
 
 const iframe = document.querySelector("iframe.id-iframe")
 if (iframe) {

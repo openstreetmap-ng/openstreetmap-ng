@@ -5,23 +5,23 @@ import type {
     MapLayerMouseEvent,
     Map as MaplibreMap,
 } from "maplibre-gl"
+import { routerNavigateStrict } from "../../../index/_router"
 import { config } from "../../config"
+import { RenderElementsDataSchema } from "../../proto/shared_pb"
 import { qsEncode } from "../../qs"
 import type { OSMNode, OSMWay } from "../../types"
-import { routerNavigateStrict } from "../../../index/_router"
-import { RenderElementsDataSchema } from "../../proto/shared_pb"
 import { getMapAlert } from "../alert"
 import { clearMapHover, setMapHover } from "../hover"
+import { convertRenderElementsData, renderObjects } from "../render-objects"
+import { getLngLatBoundsSize, padLngLatBounds } from "../utils"
 import {
-    type LayerCode,
-    type LayerId,
     addLayerEventHandler,
     emptyFeatureCollection,
     getExtendedLayerId,
+    type LayerCode,
+    type LayerId,
     layersConfig,
 } from "./layers"
-import { convertRenderElementsData, renderObjects } from "../render-objects"
-import { getLngLatBoundsSize, padLngLatBounds } from "../utils"
 
 const layerId = "data" as LayerId
 const themeColor = "#38f"

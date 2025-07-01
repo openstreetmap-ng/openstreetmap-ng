@@ -1,24 +1,24 @@
 import i18next from "i18next"
 import { type LngLat, type LngLatLike, Map as MaplibreMap, Marker } from "maplibre-gl"
-import { configureStandardForm } from "../lib/standard-form"
-import { isLatitude, isLongitude, throttle, zoomPrecision } from "../lib/utils"
 import { CustomGeolocateControl } from "../lib/map/controls/geolocate"
+import { CustomZoomControl } from "../lib/map/controls/zoom"
 import {
     addMapLayer,
     addMapLayerSources,
     defaultLayerId,
 } from "../lib/map/layers/layers"
 import {
-    type LonLatZoom,
     addControlGroup,
     getInitialMapState,
+    type LonLatZoom,
 } from "../lib/map/map-utils"
 import {
     configureDefaultMapBehavior,
     getMarkerIconElement,
     markerIconAnchor,
 } from "../lib/map/utils"
-import { CustomZoomControl } from "../lib/map/controls/zoom"
+import { configureStandardForm } from "../lib/standard-form"
+import { isLatitude, isLongitude, throttle, zoomPrecision } from "../lib/utils"
 
 const body = document.querySelector("body.diary-compose-body")
 if (body) {

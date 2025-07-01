@@ -6,19 +6,19 @@ import {
     layerOrderStorage,
     overlayOpacityStorage,
 } from "../../lib/local-storage"
-import { staticCache, throttle } from "../../lib/utils"
 import {
-    type LayerId,
     addLayerEventHandler,
     addMapLayer,
     addMapLayerSources,
     hasMapLayer,
+    type LayerId,
     layersConfig,
     removeMapLayer,
 } from "../../lib/map/layers/layers"
 import { getMapBaseLayerId } from "../../lib/map/map-utils"
-import { SidebarToggleControl } from "./_toggle-button"
 import { configureDefaultMapBehavior, getLngLatBoundsSize } from "../../lib/map/utils"
+import { staticCache, throttle } from "../../lib/utils"
+import { SidebarToggleControl } from "./_toggle-button"
 
 const minimapZoomOut = 2
 

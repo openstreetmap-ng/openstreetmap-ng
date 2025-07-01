@@ -9,9 +9,9 @@ import {
 import type { Bounds } from "../../types"
 import { mod, throttle } from "../../utils"
 import {
-    type LayerId,
     addMapLayer,
     emptyFeatureCollection,
+    type LayerId,
     layersConfig,
     removeMapLayer,
 } from "../layers/layers"
@@ -172,7 +172,7 @@ export class LocationFilterControl implements IControl {
 
     public onAdd(_: MaplibreMap): HTMLElement {
         // Do nothing
-        return undefined
+        return
     }
 
     public onRemove(): void {

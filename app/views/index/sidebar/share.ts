@@ -1,22 +1,22 @@
 import i18next from "i18next"
 import { type Map as MaplibreMap, Marker } from "maplibre-gl"
 import { shareExportFormatStorage } from "../../lib/local-storage"
-import { qsParse } from "../../lib/qs"
-import { isLatitude, isLongitude } from "../../lib/utils"
-import { exportMapImage } from "../../lib/map/export-image"
 import { LocationFilterControl } from "../../lib/map/controls/location-filter"
+import { exportMapImage } from "../../lib/map/export-image"
 import {
     getInitialMapState,
     getMapEmbedHtml,
     getMapGeoUri,
     getMapShortlink,
 } from "../../lib/map/map-utils"
-import { SidebarToggleControl } from "./_toggle-button"
 import {
     getMarkerIconElement,
     markerIconAnchor,
     padLngLatBounds,
 } from "../../lib/map/utils"
+import { qsParse } from "../../lib/qs"
+import { isLatitude, isLongitude } from "../../lib/utils"
+import { SidebarToggleControl } from "./_toggle-button"
 
 export class ShareSidebarToggleControl extends SidebarToggleControl {
     public _container: HTMLElement

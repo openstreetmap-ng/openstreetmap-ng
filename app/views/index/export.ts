@@ -1,9 +1,9 @@
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { config } from "../lib/config"
-import { setPageTitle } from "../lib/title"
-import { throttle, zoomPrecision } from "../lib/utils"
 import { LocationFilterControl } from "../lib/map/controls/location-filter"
 import { padLngLatBounds } from "../lib/map/utils"
+import { setPageTitle } from "../lib/title"
+import { throttle, zoomPrecision } from "../lib/utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 

@@ -1,20 +1,19 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
   "files": {
-    "ignore": ["app/views/lib/timezone-bbox.ts", "app/views/lib/vector-styles/*"],
-    "ignoreUnknown": true
-  },
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true,
-    "defaultBranch": "main"
+    "ignoreUnknown": true,
+    "includes": [
+      "**/*.ts",
+      "**/*.json",
+      "!app/views/lib/timezone-bbox.ts",
+      "!app/views/lib/vector-styles/*",
+      "!config/wiki_pages.json"
+    ]
   },
   "formatter": {
-    "enabled": true,
     "formatWithErrors": true,
-    "useEditorconfig": true,
-    "ignore": ["config/wiki_pages.json"]
+    "lineWidth": 88,
+    "useEditorconfig": true
   },
   "javascript": {
     "formatter": {
@@ -22,44 +21,57 @@
     }
   },
   "linter": {
-    "enabled": true,
     "rules": {
       "complexity": {
-        "noUselessStringConcat": "info",
-        "noVoid": "error"
+        "noForEach": "on",
+        "noUselessStringConcat": "on",
+        "noVoid": "on",
+        "useWhile": "on"
       },
       "correctness": {
-        "noConstantMathMinMaxClamp": "warn",
-        "noNodejsModules": "error",
-        "noUndeclaredVariables": "warn",
-        "noUnusedImports": "info",
-        "noUnusedPrivateClassMembers": "info",
-        "noUnusedVariables": "info",
-        "useArrayLiterals": "info"
+        "noNodejsModules": "on"
+      },
+      "nursery": {
+        "noAwaitInLoop": "on",
+        "noConstantBinaryExpression": "on",
+        "noUselessBackrefInRegex": "on",
+        "noUselessEscapeInString": "on",
+        "noUselessUndefined": "on",
+        "useObjectSpread": "on",
+        "useParseIntRadix": "on"
+      },
+      "performance": {
+        "noDelete": "on",
+        "useTopLevelRegex": "on"
       },
       "recommended": true,
       "style": {
-        "noDefaultExport": "warn",
-        "noInferrableTypes": "info",
-        "noNamespace": "error",
-        "noParameterAssign": "off",
-        "noParameterProperties": "error",
-        "useCollapsedElseIf": "warn",
-        "useConsistentArrayType": "warn",
-        "useConsistentBuiltinInstantiation": "warn",
-        "useForOf": "warn",
-        "useShorthandAssign": "warn",
-        "useThrowNewError": "warn",
-        "useThrowOnlyError": "warn"
+        "noCommonJs": "on",
+        "noDefaultExport": "on",
+        "noInferrableTypes": "on",
+        "noNamespace": "on",
+        "noSubstr": "on",
+        "noUnusedTemplateLiteral": "on",
+        "useCollapsedElseIf": "on",
+        "useConsistentArrayType": "on",
+        "useConsistentBuiltinInstantiation": "on",
+        "useForOf": "on",
+        "useNumberNamespace": "on",
+        "useShorthandAssign": "on",
+        "useThrowNewError": "on",
+        "useThrowOnlyError": "on"
       },
       "suspicious": {
-        "noEvolvingTypes": "info",
+        "noEvolvingTypes": "on",
         "noExplicitAny": "off",
-        "useAwait": "warn"
+        "useAwait": "on"
       }
     }
   },
-  "organizeImports": {
-    "enabled": true
+  "vcs": {
+    "clientKind": "git",
+    "defaultBranch": "main",
+    "enabled": true,
+    "useIgnoreFile": true
   }
 }

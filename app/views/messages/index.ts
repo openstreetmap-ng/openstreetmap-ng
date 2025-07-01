@@ -1,7 +1,7 @@
 import { t } from "i18next"
 import { resolveDatetimeLazy } from "../lib/datetime"
-import { changeUnreadMessagesBadge } from "../navbar/navbar"
 import { configureStandardForm } from "../lib/standard-form"
+import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
 const body = document.querySelector("body.messages-index-body")
 if (body) {

@@ -6,8 +6,8 @@ import {
     type Map as MaplibreMap,
     Popup,
 } from "maplibre-gl"
-import { config } from "../../config"
 import { routerNavigateStrict } from "../../../index/_router"
+import { config } from "../../config"
 import { RenderNotesDataSchema } from "../../proto/shared_pb"
 import { clearMapHover, setMapHover } from "../hover"
 import {
@@ -16,15 +16,15 @@ import {
     markerHiddenImageUrl,
     markerOpenImageUrl,
 } from "../image"
-import {
-    type LayerCode,
-    type LayerId,
-    addLayerEventHandler,
-    emptyFeatureCollection,
-    layersConfig,
-} from "./layers"
 import { convertRenderNotesData, renderObjects } from "../render-objects"
 import { getLngLatBoundsIntersection, getLngLatBoundsSize } from "../utils"
+import {
+    addLayerEventHandler,
+    emptyFeatureCollection,
+    type LayerCode,
+    type LayerId,
+    layersConfig,
+} from "./layers"
 
 const layerId = "notes" as LayerId
 layersConfig.set(layerId as LayerId, {

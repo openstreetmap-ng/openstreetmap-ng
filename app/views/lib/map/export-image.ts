@@ -8,9 +8,9 @@ import type {
 import { requestAnimationFramePolyfill } from "../utils"
 import { loadMapImage, markerBlueImageUrl } from "./image"
 import {
-    type LayerId,
     addMapLayer,
     emptyFeatureCollection,
+    type LayerId,
     layersConfig,
     removeMapLayer,
 } from "./layers/layers"

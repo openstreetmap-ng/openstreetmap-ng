@@ -4,6 +4,19 @@ import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
 import { type GeoJSONSource, LngLat, type Map as MaplibreMap } from "maplibre-gl"
 import { prefersReducedMotion } from "../lib/config"
+import { queryFeaturesMinZoom } from "../lib/map/controls/query-features"
+import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
+import {
+    addMapLayer,
+    emptyFeatureCollection,
+    getExtendedLayerId,
+    type LayerId,
+    layersConfig,
+    removeMapLayer,
+} from "../lib/map/layers/layers"
+import type { LonLatZoom } from "../lib/map/map-utils"
+import { convertRenderElementsData } from "../lib/map/render-objects"
+import { PartialQueryFeaturesParamsSchema } from "../lib/proto/shared_pb"
 import { qsEncode, qsParse } from "../lib/qs"
 import { setPageTitle } from "../lib/title"
 import {
@@ -13,19 +26,6 @@ import {
     requestAnimationFramePolyfill,
     staticCache,
 } from "../lib/utils"
-import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
-import {
-    type LayerId,
-    addMapLayer,
-    emptyFeatureCollection,
-    getExtendedLayerId,
-    layersConfig,
-    removeMapLayer,
-} from "../lib/map/layers/layers"
-import type { LonLatZoom } from "../lib/map/map-utils"
-import { queryFeaturesMinZoom } from "../lib/map/controls/query-features"
-import { convertRenderElementsData } from "../lib/map/render-objects"
-import { PartialQueryFeaturesParamsSchema } from "../lib/proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 

@@ -22,9 +22,9 @@ import {
     zoomPrecision,
 } from "../utils"
 import {
+    addMapLayer,
     type LayerCode,
     type LayerId,
-    addMapLayer,
     layersConfig,
     removeMapLayer,
     resolveExtendedLayerId,

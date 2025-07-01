@@ -1,13 +1,13 @@
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { tagsDiffStorage } from "../lib/local-storage"
+import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
+import { convertRenderElementsData } from "../lib/map/render-objects"
 import { qsEncode, qsParse } from "../lib/qs"
 import { setPageTitle } from "../lib/title"
 import { staticCache } from "../lib/utils"
-import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
-import { convertRenderElementsData } from "../lib/map/render-objects"
 import { getBaseFetchController } from "./_base-fetch"
-import { initializeElementContent } from "./element"
 import type { IndexController } from "./_router"
+import { initializeElementContent } from "./element"
 
 const themeColor = "#f60"
 const focusPaint: FocusLayerPaint = Object.freeze({

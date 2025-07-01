@@ -8,15 +8,12 @@ import {
     type Map as MaplibreMap,
 } from "maplibre-gl"
 import { resolveDatetimeLazy } from "../lib/datetime"
-import { qsEncode, qsParse } from "../lib/qs"
-import { setPageTitle } from "../lib/title"
-import type { OSMChangeset } from "../lib/types"
 import { clearMapHover, setMapHover } from "../lib/map/hover"
 import {
-    type LayerId,
     addMapLayer,
     emptyFeatureCollection,
     getExtendedLayerId,
+    type LayerId,
     layersConfig,
     removeMapLayer,
 } from "../lib/map/layers/layers.ts"
@@ -32,9 +29,12 @@ import {
     padLngLatBounds,
 } from "../lib/map/utils"
 import {
-    RenderChangesetsDataSchema,
     type RenderChangesetsData_Changeset,
+    RenderChangesetsDataSchema,
 } from "../lib/proto/shared_pb"
+import { qsEncode, qsParse } from "../lib/qs"
+import { setPageTitle } from "../lib/title"
+import type { OSMChangeset } from "../lib/types"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
@@ -94,10 +94,10 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     // Store changesets to allow loading more
     const changesets: RenderChangesetsData_Changeset[] = []
     let fetchedBounds: LngLatBounds | null = null
-    let fetchedDate: string | undefined = undefined
+    let fetchedDate: string | undefined
     let noMoreChangesets = false
-    let loadScope: string | undefined = undefined
-    let loadDisplayName: string | undefined = undefined
+    let loadScope: string | undefined
+    let loadDisplayName: string | undefined
     const idFirstFeatureIdMap = new Map<string, number>()
     const idSidebarMap = new Map<string, HTMLElement>()
 

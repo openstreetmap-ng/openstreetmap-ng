@@ -18,21 +18,21 @@ import {
     formatTime,
 } from "../lib/format-utils"
 import { routingEngineStorage } from "../lib/local-storage"
-import { decodeLonLat } from "../lib/polyline"
-import { qsParse } from "../lib/qs"
-import { configureStandardForm } from "../lib/standard-form"
-import { setPageTitle } from "../lib/title"
-import { zoomPrecision } from "../lib/utils"
 import { clearMapHover, setMapHover } from "../lib/map/hover"
 import {
-    type LayerId,
     addMapLayer,
     emptyFeatureCollection,
+    type LayerId,
     layersConfig,
     removeMapLayer,
 } from "../lib/map/layers/layers"
 import { getMarkerIconElement, markerIconAnchor } from "../lib/map/utils"
+import { decodeLonLat } from "../lib/polyline"
 import { type RoutingResult, RoutingResultSchema } from "../lib/proto/shared_pb"
+import { qsParse } from "../lib/qs"
+import { configureStandardForm } from "../lib/standard-form"
+import { setPageTitle } from "../lib/title"
+import { zoomPrecision } from "../lib/utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 

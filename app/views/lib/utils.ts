@@ -163,6 +163,9 @@ export const wrapIdleCallbackStatic = <T extends (...args: any[]) => any>(
     }) as T
 }
 
+const eventOriginRegex = /^https?:\/\/(?:www\.)?/
+const currentHost = `.${window.location.host.replace(/^www\./, "")}`
+
 /**
  * Wrap message event handler to accept only messages from trusted sources
  * @param fn - Message event handler
@@ -173,10 +176,9 @@ export const wrapMessageEventValidator = <T extends (event: MessageEvent) => any
     isParent = true,
 ): T =>
     ((event: MessageEvent) => {
-        const eventHost = `.${event.origin.replace(/^https?:\/\/(?:www\.)?/, "")}`
+        const eventHost = `.${event.origin.replace(eventOriginRegex, "")}`
         if (
             isParent ? eventHost.endsWith(currentHost) : currentHost.endsWith(eventHost)
         )
             return fn(event)
     }) as T
-const currentHost = `.${window.location.host.replace(/^www\./, "")}`

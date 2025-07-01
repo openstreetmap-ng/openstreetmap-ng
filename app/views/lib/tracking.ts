@@ -1,8 +1,8 @@
 import {
-    init as SentryInit,
     addIntegration,
     browserTracingIntegration,
     feedbackIntegration,
+    init as SentryInit,
     setUser,
     type User,
 } from "@sentry/browser"

@@ -2,14 +2,14 @@ import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { setPageTitle } from "../lib/title"
 import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "../lib/map/render-objects"
 import {
     type PartialElementParams,
-    PartialElementParamsSchema,
     type PartialElementParams_Entry,
+    PartialElementParamsSchema,
 } from "../lib/proto/shared_pb"
+import { setPageTitle } from "../lib/title"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 

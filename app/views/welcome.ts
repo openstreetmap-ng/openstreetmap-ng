@@ -1,6 +1,6 @@
+import { encodeMapState, type MapState } from "./lib/map/map-utils"
 import { qsEncode, qsParse } from "./lib/qs"
 import { isLatitude, isLongitude, isZoom } from "./lib/utils"
-import { type MapState, encodeMapState } from "./lib/map/map-utils"
 
 const body = document.querySelector("body.welcome-body")
 if (body) {

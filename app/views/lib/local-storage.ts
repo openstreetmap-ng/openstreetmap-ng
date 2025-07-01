@@ -1,4 +1,6 @@
 import type { AppTheme } from "../navbar/_theme"
+import type { LayerId } from "./map/layers/layers"
+import type { MapState } from "./map/map-utils"
 import {
     getDeviceThemePreference,
     getUnixTimestamp,
@@ -7,8 +9,6 @@ import {
     isZoom,
     memoize,
 } from "./utils"
-import type { LayerId } from "./map/layers/layers"
-import type { MapState } from "./map/map-utils"
 
 type StorageConfig<T> = {
     defaultValue?: T

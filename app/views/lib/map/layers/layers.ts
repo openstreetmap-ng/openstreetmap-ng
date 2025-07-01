@@ -9,8 +9,8 @@ import {
     type SourceSpecification,
     type StyleSpecification,
 } from "maplibre-gl"
-import { getActiveTheme, overlayOpacityStorage } from "../../local-storage"
 import { addThemeEventHandler } from "../../../navbar/_theme"
+import { getActiveTheme, overlayOpacityStorage } from "../../local-storage"
 import { staticCache } from "../../utils"
 import libertyStyle from "../../vector-styles/liberty.json"
 

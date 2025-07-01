@@ -1,6 +1,6 @@
+import { encodeMapState } from "./lib/map/map-utils"
 import { qsParse } from "./lib/qs"
 import { isLatitude, isLongitude, isZoom } from "./lib/utils"
-import { encodeMapState } from "./lib/map/map-utils"
 
 const body = document.querySelector("body.fixthemap-body")
 if (body) {

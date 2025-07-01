@@ -6,21 +6,21 @@ import {
     type Map as MaplibreMap,
 } from "maplibre-gl"
 import type { OSMObject } from "../../types"
-import {
-    type AddMapLayerOptions,
-    type LayerId,
-    type LayerType,
-    addMapLayer,
-    emptyFeatureCollection,
-    getExtendedLayerId,
-    layersConfig,
-} from "./layers"
 import { renderObjects } from "../render-objects"
 import {
     getLngLatBoundsIntersection,
     getLngLatBoundsSize,
     padLngLatBounds,
 } from "../utils"
+import {
+    type AddMapLayerOptions,
+    addMapLayer,
+    emptyFeatureCollection,
+    getExtendedLayerId,
+    type LayerId,
+    type LayerType,
+    layersConfig,
+} from "./layers"
 
 export type FocusLayerPaint = AddMapLayerOptions["paint"]
 

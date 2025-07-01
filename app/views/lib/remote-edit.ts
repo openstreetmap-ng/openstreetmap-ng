@@ -1,8 +1,8 @@
 import i18next from "i18next"
 import { config } from "./config"
+import type { LonLatZoom } from "./map/map-utils"
 import { qsEncode } from "./qs"
 import type { Bounds, OSMObject } from "./types"
-import type { LonLatZoom } from "./map/map-utils"
 
 const remoteEditHost = "http://127.0.0.1:8111"
 

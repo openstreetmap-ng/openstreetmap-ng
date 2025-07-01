@@ -4,17 +4,17 @@ import i18next from "i18next"
 
 import type { MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
 import { renderColorPreviews } from "../lib/color-preview"
-import { configureStandardForm } from "../lib/standard-form"
-import { configureStandardPagination } from "../lib/standard-pagination"
-import { setPageTitle } from "../lib/title"
-import type { Bounds, OSMChangeset } from "../lib/types"
 import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer.ts"
 import { makeBoundsMinimumSize } from "../lib/map/utils"
 import {
     type PartialChangesetParams,
-    PartialChangesetParamsSchema,
     type PartialChangesetParams_Element,
+    PartialChangesetParamsSchema,
 } from "../lib/proto/shared_pb"
+import { configureStandardForm } from "../lib/standard-form"
+import { configureStandardPagination } from "../lib/standard-pagination"
+import { setPageTitle } from "../lib/title"
+import type { Bounds, OSMChangeset } from "../lib/types"
 import { getBaseFetchController } from "./_base-fetch.ts"
 import type { IndexController } from "./_router"
 

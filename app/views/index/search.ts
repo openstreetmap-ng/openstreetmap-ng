@@ -3,28 +3,18 @@ import { base64Decode } from "@bufbuild/protobuf/wire"
 import type { Feature } from "geojson"
 import i18next from "i18next"
 import { type GeoJSONSource, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
-import { qsEncode, qsParse } from "../lib/qs"
-import { setPageTitle } from "../lib/title"
-import type { Bounds, OSMObject } from "../lib/types"
-import {
-    beautifyZoom,
-    isLatitude,
-    isLongitude,
-    staticCache,
-    zoomPrecision,
-} from "../lib/utils"
 import { getMapAlert } from "../lib/map/alert"
+import { clearMapHover, setMapHover } from "../lib/map/hover"
+import { loadMapImage, markerRedImageUrl } from "../lib/map/image"
 import {
     type FocusLayerPaint,
     type FocusOptions,
     focusObjects,
 } from "../lib/map/layers/focus-layer"
-import { clearMapHover, setMapHover } from "../lib/map/hover"
-import { loadMapImage, markerRedImageUrl } from "../lib/map/image"
 import {
-    type LayerId,
     addMapLayer,
     emptyFeatureCollection,
+    type LayerId,
     layersConfig,
     removeMapLayer,
 } from "../lib/map/layers/layers"
@@ -35,6 +25,16 @@ import {
     padLngLatBounds,
 } from "../lib/map/utils"
 import { PartialSearchParamsSchema } from "../lib/proto/shared_pb"
+import { qsEncode, qsParse } from "../lib/qs"
+import { setPageTitle } from "../lib/title"
+import type { Bounds, OSMObject } from "../lib/types"
+import {
+    beautifyZoom,
+    isLatitude,
+    isLongitude,
+    staticCache,
+    zoomPrecision,
+} from "../lib/utils"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 import { setSearchFormQuery } from "./search-form"
