@@ -817,6 +817,17 @@ let
       static-img-pipeline &
       echo "Running [proto-pipeline]"
       proto-pipeline &
+    ''
+    + lib.optionalString (!isDevelopment) ''
+      echo "Running [locale-pipeline]"
+      locale-pipeline &
+      echo "Running [css-pipeline]"
+      css-pipeline &
+      wait
+      echo "Running [js-pipeline]"
+      js-pipeline &
+    ''
+    + ''
       wait
     '';
 in
