@@ -26,7 +26,8 @@ async def get_map(
         nodes_limit = MAP_QUERY_LEGACY_NODES_LIMIT
         legacy_nodes_limit = True
     else:
-        nodes_limit = min(limit, MAP_QUERY_LEGACY_NODES_LIMIT) + 1
+        limit = min(limit, MAP_QUERY_LEGACY_NODES_LIMIT)
+        nodes_limit = limit + 1
         legacy_nodes_limit = False
 
     elements = await ElementQuery.find_many_by_geom(
