@@ -42,7 +42,7 @@
         <select class="form-select format-select mt-2" name="language" required>
             {% for locale_code, locale_name in INSTALLED_LOCALES_NAMES_MAP.items() %}
             <option value="{{ locale_code }}" {% if user.language == locale_code %}selected{% endif %}>
-                {{ locale_name.display_name }}
+                {% if locale_name.flag %}{{ locale_name.flag }} {% endif %}{{ locale_name.display_name }}
             </option>
             {% endfor %}
         </select>
