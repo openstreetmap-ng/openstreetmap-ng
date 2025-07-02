@@ -10,6 +10,7 @@
     "@sentry/browser": "^9.28.1",
     "bootstrap": "^5.3.6",
     "bootstrap-icons": "^1.13.1",
+    "caniuse-lite": "^1.0.30001726",
     "i18next": "^25.2.1",
     "iD": "git+https://github.com/openstreetmap/iD.git#release",
     "maplibre-gl": "^5.6.0",
