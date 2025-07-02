@@ -305,7 +305,6 @@ let
     (makeScript "watch-css" "exec watchexec -o queue -w app/views -e scss css-pipeline")
 
     # -- JavaScript
-    (makeScript "node" ''exec bun "$@"'')
     (makeScript "js-pipeline" ''
       src=app/views
       dst=app/static/js
