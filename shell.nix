@@ -161,6 +161,7 @@ let
     # Frontend:
     bun
     biome
+    nodejs-slim
     # Services:
     (postgresql_17_jit.withPackages (ps: [
       ps.timescaledb-apache
