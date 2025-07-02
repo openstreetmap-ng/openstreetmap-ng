@@ -3,8 +3,10 @@ from typing import Any
 import cython
 import numpy as np
 from numpy.typing import NDArray
+from psycopg import IsolationLevel
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
+from psycopg.sql import Literal as PgLiteral
 from shapely import (
     MultiLineString,
     MultiPoint,
@@ -25,6 +27,7 @@ from app.lib.storage import TRACE_STORAGE
 from app.lib.trace_file import TraceFile
 from app.models.db.trace import Trace, trace_is_visible_to
 from app.models.types import StorageKey, TraceId, UserId
+from app.queries.timescaledb_query import TimescaleDBQuery
 
 
 class TraceQuery:
@@ -155,42 +158,52 @@ class TraceQuery:
         legacy_offset: int | None = None,
     ) -> list[Trace]:
         """Find traces by geometry. Returns traces with segments intersecting the provided geometry."""
-        params: list[Any] = [
-            # h3 cells:
-            polygon_to_h3(geometry, max_resolution=11),
-            # visibility:
-            (
+        params: dict[str, Any] = {
+            'h3_cells': polygon_to_h3(geometry, max_resolution=11),
+            'visibility': (
                 ['identifiable', 'trackable']
                 if identifiable_trackable
                 else ['public', 'private']
             ),
-        ]
+            'limit': limit,
+        }
 
         if legacy_offset is not None:
-            offset_clause = SQL('OFFSET %s')
-            params.append(legacy_offset)
+            offset_clause = SQL('OFFSET %(legacy_offset)s')
+            params['legacy_offset'] = legacy_offset
         else:
             offset_clause = SQL('')
 
-        query = SQL("""
-            SELECT * FROM trace
-            WHERE h3_points_to_cells_range(segments, 11) && %s::h3index[]
-            AND visibility = ANY(%s)
-            ORDER BY id DESC
-            {offset}
-            LIMIT %s
-        """).format(
-            offset=offset_clause,
-        )
-        params.append(limit)
+        async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
+            query = SQL("""
+                SELECT * FROM ({query})
+                {offset}
+                LIMIT %(limit)s
+            """).format(
+                query=SQL(' UNION ALL ').join([
+                    SQL("""(
+                        SELECT * FROM trace
+                        WHERE h3_points_to_cells_range(segments, 11) && %(h3_cells)s::h3index[]
+                        AND visibility = ANY(%(visibility)s)
+                        AND id BETWEEN {chunk_start} AND {chunk_end}
+                        ORDER BY id DESC
+                    )""").format(
+                        chunk_start=PgLiteral(chunk_start),
+                        chunk_end=PgLiteral(chunk_end),
+                    )
+                    for chunk_start, chunk_end in await TimescaleDBQuery.get_chunks_ranges(
+                        'trace', conn
+                    )
+                ]),
+                offset=offset_clause,
+            )
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            traces: list[Trace] = await r.fetchall()  # type: ignore
-            if not traces:
-                return []
+            async with await conn.cursor(row_factory=dict_row).execute(
+                query, params
+            ) as r:
+                traces: list[Trace] = await r.fetchall()  # type: ignore
+                if not traces:
+                    return []
 
         prepare(geometry)
         filtered_traces: list[Trace] = []
