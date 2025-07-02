@@ -29,22 +29,37 @@ jobs:
           ssh remote <<\EOF
             set -euxo pipefail
 
-            if [ "${{ inputs.update_server }}" = "true" ]; then
-              : Update the server
-              nixos-rebuild boot --upgrade
-            fi
-
             : Fetch changes
             cd /data/osm-ng
             git fetch origin "${{ github.sha }}"
+
+            : Setup build environment
+            WORKTREE_DIR=$(mktemp -d osm-ng-build.XXXXXXXXXX)
+            cleanup() {
+              if [ -d "$WORKTREE_DIR" ]; then
+                cd /data/osm-ng
+                git worktree remove --force "$WORKTREE_DIR"
+              fi
+            }
+            trap cleanup EXIT ERR
+            git worktree add --detach "$WORKTREE_DIR" "${{ github.sha }}"
+
+            : Build the new system configuration
+            cd "$WORKTREE_DIR"
+            cp config/services-test.nix /etc/nixos/services.nix
+            if [ "${{ inputs.update_server }}" = "true" ]; then
+              RESULT_PATH=$(nixos-rebuild build --no-out-link --upgrade)
+            else
+              RESULT_PATH=$(nixos-rebuild build --no-out-link)
+            fi
 
             : Stop services
             systemctl stop osm-ng-dev
 
             : Reset to the specified commit
+            cd /data/osm-ng
             git reset --hard "${{ github.sha }}"
 
-            : Update and start services
-            cp config/services-test.nix /etc/nixos/services.nix
-            nixos-rebuild switch
+            : Activate the new configuration
+            "$RESULT_PATH/bin/switch-to-configuration" switch
           EOF
