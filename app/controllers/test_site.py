@@ -11,7 +11,7 @@ router = APIRouter()
 if ENV != 'prod':
 
     @router.get('/test-site')
-    async def test_site(referer: Annotated[str | None, Query()] = None):
+    async def test_site(referer: Annotated[str | None, Query()] = None):  # noqa: PT028
         return await render_response(
             'test-site',
             {'referer': referer or '/'},
