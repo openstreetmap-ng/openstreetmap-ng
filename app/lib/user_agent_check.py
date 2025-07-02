@@ -1,8 +1,8 @@
 import logging
-import os
 import re
 import subprocess
 from functools import lru_cache
+from os import environ, utime
 from pathlib import Path
 
 import cython
@@ -53,7 +53,7 @@ def _browserslist_versions() -> dict[str, float]:
     if not cache_path.is_file() or lock_mtime > cache_path.stat().st_mtime:
         stdout = subprocess.check_output(
             ('bunx', 'browserslist'),
-            env={**os.environ, 'NO_COLOR': '1'},
+            env={**environ, 'NO_COLOR': '1'},
         ).decode()
         result: dict[str, float] = {}
 
@@ -66,7 +66,7 @@ def _browserslist_versions() -> dict[str, float]:
                 result[browser] = version
 
         cache_path.write_bytes(orjson.dumps(result))
-        os.utime(cache_path, (lock_mtime, lock_mtime))
+        utime(cache_path, (lock_mtime, lock_mtime))
 
     return orjson.loads(cache_path.read_bytes())
 
