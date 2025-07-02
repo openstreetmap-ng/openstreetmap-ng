@@ -16,19 +16,17 @@ _LOCALE_EXTRA_EN_PATH = Path('config/locale/extra_en.yaml')
 def get_source_mtime(locale: str) -> float:
     source_path = _DOWNLOAD_DIR.joinpath(f'{locale}.yaml')
     source_mtime = source_path.stat().st_mtime
-    return (
-        source_mtime
-        if locale != 'en'
-        else max(source_mtime, _LOCALE_EXTRA_EN_PATH.stat().st_mtime)
-    )
+    if locale == 'en':
+        source_mtime = max(source_mtime, _LOCALE_EXTRA_EN_PATH.stat().st_mtime)
+    return source_mtime
 
 
-def needs_processing(locale: str, source_mtime: float) -> bool:
+def needs_processing(locale: str, effective_mtime: float) -> bool:
     source_path = _DOWNLOAD_DIR.joinpath(f'{locale}.yaml')
     target_path = _POSTPROCESS_DIR.joinpath(f'{locale}.json')
     return (
         source_path.is_file()  #
-        and (not target_path.is_file() or source_mtime > target_path.stat().st_mtime)
+        and (not target_path.is_file() or effective_mtime > target_path.stat().st_mtime)
     )
 
 
@@ -105,6 +103,7 @@ class LocalChaptersExtractor:
 
 
 def main(verbose: bool) -> None:
+    script_mtime = Path(__file__).stat().st_mtime
     lc_extractor = LocalChaptersExtractor()
     discover_counter = 0
     success_counter = 0
@@ -116,7 +115,8 @@ def main(verbose: bool) -> None:
         discover_counter += 1
         locale = source_path.stem
         source_mtime = get_source_mtime(locale)
-        if not needs_processing(locale, source_mtime):
+        effective_mtime = max(source_mtime, script_mtime)
+        if not needs_processing(locale, effective_mtime):
             continue
 
         data: dict = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
@@ -149,7 +149,7 @@ def main(verbose: bool) -> None:
         target_path.write_bytes(buffer)
 
         # preserve mtime
-        utime(target_path, (source_mtime, source_mtime))
+        utime(target_path, (effective_mtime, effective_mtime))
         success_counter += 1
 
     print(

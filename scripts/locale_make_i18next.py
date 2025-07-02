@@ -10,7 +10,7 @@ _I18NEXT_DIR.mkdir(parents=True, exist_ok=True)
 _I18NEXT_MAP_PATH = _I18NEXT_DIR.joinpath('map.json')
 
 
-def find_valid_output(locale: str, source_mtime: float) -> Path | None:
+def find_valid_output(locale: str, effective_mtime: float) -> Path | None:
     target_iter = iter(
         p
         for p in _I18NEXT_DIR.glob(f'{locale}-*.js')
@@ -21,7 +21,7 @@ def find_valid_output(locale: str, source_mtime: float) -> Path | None:
         return None
 
     # cleanup old files
-    if source_mtime > target_path.stat().st_mtime:
+    if effective_mtime > target_path.stat().st_mtime:
         target_path.unlink()
         while (target_path := next(target_iter, None)) is not None:
             target_path.unlink()
@@ -31,13 +31,15 @@ def find_valid_output(locale: str, source_mtime: float) -> Path | None:
 
 
 def main() -> None:
+    script_mtime = Path(__file__).stat().st_mtime
     file_map: dict[str, str] = {}
     success_counter = 0
 
     for source_path in _POSTPROCESS_DIR.glob('*.json'):
         locale = source_path.stem
         source_mtime = source_path.stat().st_mtime
-        target_path = find_valid_output(locale, source_mtime)
+        effective_mtime = max(source_mtime, script_mtime)
+        target_path = find_valid_output(locale, effective_mtime)
         if target_path is not None:
             file_map[locale] = target_path.name
             continue
@@ -57,7 +59,7 @@ def main() -> None:
         target_path.write_bytes(buffer)
 
         # preserve mtime
-        utime(target_path, (source_mtime, source_mtime))
+        utime(target_path, (effective_mtime, effective_mtime))
         file_map[locale] = file_name
         success_counter += 1
 
