@@ -12,7 +12,7 @@ from app.config import (
     VERSION,
 )
 from app.lib.auth_context import auth_user
-from app.lib.locale import map_i18next_files
+from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, map_i18next_files
 from app.lib.render_jinja import render_jinja
 from app.lib.sentry import SENTRY_DSN, SENTRY_TRACES_SAMPLE_RATE
 from app.lib.translation import translation_locales
@@ -50,6 +50,7 @@ async def render_response(
         'request': get_request(),
         'I18NEXT_FILES': map_i18next_files(translation_locales()),
         'DEFAULT_EDITOR': DEFAULT_EDITOR,
+        'INSTALLED_LOCALES_NAMES_MAP': INSTALLED_LOCALES_NAMES_MAP,
         'WEB_CONFIG': _CONFIG_DEFAULT,
     }
 

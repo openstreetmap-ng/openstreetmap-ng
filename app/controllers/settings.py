@@ -13,7 +13,6 @@ from app.config import (
     URLSAFE_BLACKLIST,
 )
 from app.lib.auth_context import web_user
-from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP
 from app.lib.render_response import render_response
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
@@ -28,10 +27,7 @@ router = APIRouter()
 async def settings(_: Annotated[User, web_user()]):
     return await render_response(
         'settings/settings',
-        {
-            'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
-            'INSTALLED_LOCALES_NAMES_MAP': INSTALLED_LOCALES_NAMES_MAP,
-        },
+        {'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST},
     )
 
 

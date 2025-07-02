@@ -164,6 +164,7 @@ settings:
   connected_accounts: Connected accounts
   applications: Applications
   preferred_language: Preferred language
+  choose_language: Choose language
   your_public_username: Your public username.
   you_can_change_it_later_in_the_settings: You can change it later in the settings.
   main_settings: Main settings
@@ -323,6 +324,9 @@ oauth:
   oob_hint: |-
     To continue, please copy the authorization code and provide it to the application.
     You can then safely close this page.
+language_picker:
+  select_your_preferred_language: Select your preferred language
+  search_languages: Search languages
 fixthemap:
   title: Fix the map
 notifications:

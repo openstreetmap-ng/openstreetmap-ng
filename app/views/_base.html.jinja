@@ -44,6 +44,10 @@
 
     {% block body %}{% endblock %}
 
+    {% if user is none %}
+    {% include 'navbar/_language-picker-modal' %}
+    {% endif %}
+
     {% if user is none and self.body_class() != 'login-body' %}
     {% include 'user/login-modal' %}
     {% endif %}

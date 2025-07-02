@@ -1,0 +1,13 @@
+.navbar-language-picker {
+    .btn {
+        border: unset;
+
+        @include media-breakpoint-down(lg) {
+            border: 1px solid $secondary;
+        }
+
+        .bi {
+            opacity: 0.85;
+        }
+    }
+}

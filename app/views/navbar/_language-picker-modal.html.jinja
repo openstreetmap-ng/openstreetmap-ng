@@ -1,0 +1,33 @@
+<div id="languagePickerModal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ t('language_picker.select_your_preferred_language') }}</h5>
+                <button class="btn-close" aria-label="{{ t('javascripts.close') }}" type="button"
+                    data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="text" class="form-control mb-3"
+                    placeholder="{{ t('language_picker.search_languages') }}..." autocomplete="off">
+                <div class="language-list">
+                    {% for locale_code, locale_name in INSTALLED_LOCALES_NAMES_MAP.items() %}
+                    <button type="button" class="btn btn-light btn-bg-initial border" data-lang="{{ locale_code }}"
+                        title="{{ locale_name.display_name }}">
+                        {% if locale_name.flag %}
+                        <span class="flag">{{ locale_name.flag }}</span>
+                        {% endif %}
+                        <span class="name">{{ locale_name.display_name }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    {{ t('javascripts.close') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

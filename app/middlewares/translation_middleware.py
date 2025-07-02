@@ -46,9 +46,9 @@ def _get_request_language():
     # Language preference of anonymous users:
 
     # 1. Check locale cookie
-    locale_cookie = request.cookies.get('locale')
-    if locale_cookie and len(locale_cookie) <= LOCALE_CODE_MAX_LENGTH:
-        normalized_locale = normalize_locale(LocaleCode(locale_cookie))
+    lang_cookie = request.cookies.get('lang')
+    if lang_cookie and len(lang_cookie) <= LOCALE_CODE_MAX_LENGTH:
+        normalized_locale = normalize_locale(LocaleCode(lang_cookie))
         if normalized_locale is not None:
             return normalized_locale
 
