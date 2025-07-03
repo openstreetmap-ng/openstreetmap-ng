@@ -1,0 +1,91 @@
+# OpenStreetMap-NG
+
+OpenStreetMap-NG is a modern, high-performance Python implementation of the OpenStreetMap platform.
+
+## Core Architecture
+
+**Backend:**
+
+- Python 3.13 with async FastAPI and Psycopg3
+- Optional Cython Pure Python Mode compilation support
+- High-performance `speedup` Python C extension for critical code paths
+- PostgreSQL 17 with PostGIS
+
+**Frontend:**
+
+- Server-side rendered HTML with Jinja2 templates
+- TypeScript (ES2023) with MapLibre GL JS
+- SCSS with Bootstrap 5
+- Bootstrap Icons
+
+## Project Structure
+
+```txt
+app/
+├── controllers/        # Request handlers
+├── exceptions/         # Exception definitions
+├── format/             # Parsing and serialization
+├── lib/                # Shared backend library
+├── middlewares/        # Request/response middleware
+├── migrations/         # Database migrations
+├── models/
+│├── models/db/         # Database models
+│├── models/proto/      # Protobuf definitions and generated Python bindings
+│└── ...                # Local models
+├── queries/            # Read-only database queries
+├── services/           # Read-write database operations
+├── static/             # Frontend assets (generated JS/CSS, images, etc.)
+├── validators/         # Input validation
+├── views/              # Frontend templates, TypeScript, and styles
+│├── views/lib/         # Shared frontend library
+││├── views/lib/proto/  # Protobuf generated TypeScript bindings
+││└── ...
+│└── ...
+└── ...
+
+config/
+├── locale/
+│├── extra_en.yaml      # New-style localizable strings (editable)
+│├── en.yaml            # Old-style localizable strings (read-only)
+│└── ...
+└── ...
+
+scripts/                # Utility scripts (used by shell.nix)
+speedup/                # High-performance Python C extension
+tests/                  # Test suite
+
+biome.json              # TypeScript formatting/linting
+package.json            # TypeScript dependencies
+pyproject.toml          # Python dependencies, ruff/pyright/pytest, etc.
+shell.nix               # Reproducible environment definition
+```
+
+## Development Workflow
+
+**Application Server:**
+
+```bash
+run
+# INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+# INFO: Started reloader process [...] using WatchFiles
+```
+
+**Code Quality:**
+
+```bash
+format                # Format and lint all code
+pyright               # Python type checking
+run-tests             # Test suite
+run-tests --extended  # Extended test suite, marked by @pytest.mark.extended (slow)
+```
+
+**Asset Pipelines:**
+
+All pipelines run automatically on changes in the background. Manual execution available for error checking:
+
+```bash
+proto-pipeline   # Compile Protobuf
+locale-pipeline  # Compile locales
+js-pipeline      # Compile TypeScript
+css-pipeline     # Compile SCSS
+```
