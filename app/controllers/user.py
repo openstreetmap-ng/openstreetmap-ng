@@ -81,7 +81,7 @@ async def account_confirm_pending(user: Annotated[User, web_user()]):
     if user['email_verified']:
         return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
 
-    return await render_response('user/account-confirm-pending')
+    return await render_response('user/account-confirm')
 
 
 @router.get('/reset-password')
