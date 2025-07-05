@@ -73,6 +73,11 @@
         ul {
             margin: -0.875rem -1em 0;
             padding: 0.875rem 1em 0;
+
+            // Fix WebKit overlap issue
+            // https://github.com/openstreetmap-ng/openstreetmap-ng/issues/168#issuecomment-3029499779
+            list-style-type: none;
+            overflow-y: hidden;
         }
 
         &.collapsed {
@@ -83,11 +88,6 @@
                     rgba(0, 0, 0, 1) 80%,
                     rgba(0, 0, 0, 0)
                 );
-
-                // Fix WebKit overlap issue
-                // https://github.com/openstreetmap-ng/openstreetmap-ng/issues/168#issuecomment-3029499779
-                list-style-type: none;
-                overflow-y: hidden;
             }
 
             .show-less {
