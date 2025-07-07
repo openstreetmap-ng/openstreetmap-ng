@@ -88,30 +88,24 @@
                 </a>
             </div>
 
-            {% set _links = (
-                ('/traces', t('layouts.gps_traces'), 'title="' + t('layouts.gps_traces_tooltip') + '"'),
-                ('/diary', t('layouts.user_diaries'), 'title="' + t('layouts.user_diaries_tooltip') + '"'),
-                ('/communities', t('site.communities.title'), ''),
-                ('/copyright', t('layouts.copyright'), 'rel="license"'),
-                ('/help', t('layouts.help'), ''),
-                ('/about', t('layouts.about'), ''),
-            ) %}
-            <ul class="navbar-nav d-flex d-lg-none d-xxl-flex my-2 my-lg-0">
-                {% for _href, _text, _extra in _links %}
-                <li class="nav-item"><a class="nav-link" href="{{ _href }}" {{ _extra | safe }}>{{ _text }}</a></li>
-                {% endfor %}
+            <ul class="navbar-nav my-2 my-lg-0">
+                <li class="nav-item"><a class="nav-link" href="/traces"
+                        title="{{ t('layouts.gps_traces_tooltip') }}">{{ t('layouts.gps_traces') }}</a></li>
+                <li class="nav-item"><a class="nav-link" href="/diary"
+                        title="{{ t('layouts.user_diaries_tooltip') }}">{{ t('layouts.user_diaries') }}</a></li>
+                <li class="nav-item"><a class="nav-link" href="/communities">{{ t('site.communities.title') }}</a></li>
+                <li class="nav-item"><a class="nav-link" href="/copyright"
+                        rel="license">{{ t('layouts.copyright') }}</a></li>
+                <li class="nav-item"><a class="nav-link" href="/help">{{ t('layouts.help') }}</a></li>
+                <li class="nav-item"><a class="nav-link" href="/about">{{ t('layouts.about') }}</a></li>
             </ul>
 
-            <div class="btn-group d-none d-lg-block d-xxl-none">
+            <div class="btn-group navbar-nav-more d-none">
                 <button class="btn btn-light btn-bg-initial navbar-color border-0 dropdown-toggle" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false">
                     {{ t('layouts.more') }}
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    {% for _href, _text, _extra in _links %}
-                    <li><a class="dropdown-item" href="{{ _href }}" {{ _extra | safe }}>{{ _text }}</a></li>
-                    {% endfor %}
-                </ul>
+                <ul class="dropdown-menu dropdown-menu-end"></ul>
             </div>
 
             {% include 'navbar/_theme' %}

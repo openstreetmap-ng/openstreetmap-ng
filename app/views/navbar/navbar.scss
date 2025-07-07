@@ -2,6 +2,10 @@
     @extend .bg-body;
     z-index: 1005; // leaflet controls are 1000
 
+    @include media-breakpoint-up(lg) {
+        white-space: nowrap;
+    }
+
     .btn {
         @include media-breakpoint-up(lg) {
             --bs-btn-padding-x: clamp(0.625rem, -0.25rem + 1vw, 0.75rem);
@@ -73,10 +77,6 @@
 .navbar-nav {
     font-size: 0.9em;
 
-    @include media-breakpoint-up(xxl) {
-        font-size: min(0.125em + 0.8vw, 0.9em);
-    }
-
     @include media-breakpoint-down(lg) {
         .nav-item:not(:last-child) {
             border-bottom: 1px solid var(--bs-border-color);
@@ -84,13 +84,15 @@
     }
 
     .nav-link {
-        @include media-breakpoint-up(xxl) {
-            --bs-navbar-nav-link-padding-x: min(-0.5rem + 1vw, 0.5rem);
-        }
-
         &.active {
             transition: none;
         }
+    }
+}
+
+.navbar-nav-more {
+    .btn {
+        --bs-btn-font-size: 0.9em;
     }
 }
 
