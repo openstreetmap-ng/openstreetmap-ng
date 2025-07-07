@@ -60,7 +60,7 @@ export const configureContextMenu = (map: MaplibreMap): void => {
 
     // On map contextmenu, open the popup
     map.on("contextmenu", ({ point, lngLat }: MapMouseEvent) => {
-        console.debug("onMapContextMenu", lngLat)
+        console.debug("onMapContextMenu", lngLat.lng, lngLat.lat)
 
         // Update the geolocation fields
         const zoom = map.getZoom()

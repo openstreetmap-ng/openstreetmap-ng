@@ -69,7 +69,7 @@ if (body) {
 
     /** On map click, update the coordinates and move the marker */
     const onMapClick = ({ lngLat }: { lngLat: LngLat }) => {
-        console.debug("onMapClick", lngLat)
+        console.debug("onMapClick", lngLat.lng, lngLat.lat)
         setMarker(lngLat)
         setInput(lngLat)
     }

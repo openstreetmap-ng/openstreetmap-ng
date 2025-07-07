@@ -273,8 +273,8 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }
 
     // Inserts new marker at specified position and updates connections
-    const insertMarker = (index: number, lngLat: LngLatLike) => {
-        console.debug("Insert distance marker", index, lngLat)
+    const insertMarker = (index: number, lngLat: LngLat) => {
+        console.debug("Insert distance marker", index, lngLat.lng, lngLat.lat)
         // Pop tailing markers
         const tail = markers.splice(index)
         update([])
