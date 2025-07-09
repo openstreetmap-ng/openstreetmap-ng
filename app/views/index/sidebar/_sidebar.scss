@@ -8,7 +8,7 @@
         background: var(--bs-body-bg);
         padding: 1.2em 1em;
 
-        &:not(:last-child) {
+        &:not(:last-child):not(.border-bottom-0) {
             @extend .border-bottom;
         }
     }
