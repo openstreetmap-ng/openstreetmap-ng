@@ -96,6 +96,7 @@ export const shareExportFormatStorage = createStorage<string>("shareExportFormat
 export const tagsDiffStorage = createStorage<boolean>("tagsDiff", {
     defaultValue: true,
 })
+
 export const systemAppAccessTokenStorage = createScopedStorage<string>(
     "systemAppAccessToken",
     {

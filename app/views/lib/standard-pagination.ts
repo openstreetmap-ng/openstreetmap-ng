@@ -4,7 +4,10 @@ import { resolveDatetimeLazy } from "./datetime"
 
 const paginationDistance = 2
 
-export const configureStandardPagination = (container?: HTMLElement): void => {
+export const configureStandardPagination = (
+    container?: HTMLElement,
+    loadCallback?: () => void,
+): (() => void) => {
     if (!container) return
     const renderContainer = container.querySelector("ul.list-unstyled")
     const paginationContainers = container.querySelectorAll("ul.pagination")
@@ -43,7 +46,8 @@ export const configureStandardPagination = (container?: HTMLElement): void => {
     }
 
     // Update collection
-    effect(() => {
+    const disposeCollectionEffect = effect(() => {
+        if (!currentPage.value) return
         console.debug("configureStandardPagination", "updateCollection", currentPage)
 
         const abortController = new AbortController()
@@ -57,13 +61,14 @@ export const configureStandardPagination = (container?: HTMLElement): void => {
             priority: "high",
         })
             .then(async (resp) => {
-                if (resp.ok) console.debug("Form submitted successfully")
+                if (resp.ok) console.debug("Navigated to page", currentPage)
                 renderContainer.innerHTML = await resp.text()
                 resolveDatetimeLazy(renderContainer)
+                loadCallback?.()
             })
             .catch((error: Error) => {
                 if (error.name === "AbortError") return
-                console.error("Failed to submit standard form", error)
+                console.error("Failed to navigate to page", currentPage, error)
                 renderContainer.textContent = error.message
             })
             .finally(() => {
@@ -74,7 +79,7 @@ export const configureStandardPagination = (container?: HTMLElement): void => {
     })
 
     // Update pagination
-    effect(() => {
+    const disposePaginationEffect = effect(() => {
         if (totalPages <= 1) {
             for (const paginationContainer of paginationContainers) {
                 paginationContainer.classList.add("d-none")
@@ -126,4 +131,11 @@ export const configureStandardPagination = (container?: HTMLElement): void => {
             paginationContainer.appendChild(paginationFragment)
         }
     })
+
+    return () => {
+        console.debug("Disposing standard pagination", endpointPattern)
+        currentPage.value = 0
+        disposeCollectionEffect()
+        disposePaginationEffect()
+    }
 }

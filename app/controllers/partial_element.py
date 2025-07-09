@@ -1,9 +1,7 @@
 from asyncio import TaskGroup
 from base64 import urlsafe_b64encode
-from typing import Annotated
 
-from fastapi import APIRouter, Query
-from pydantic import PositiveInt
+from fastapi import APIRouter
 from shapely import get_coordinates
 from starlette import status
 
@@ -13,7 +11,6 @@ from app.format.element_list import FormatElementList
 from app.lib.feature_icon import features_icons
 from app.lib.feature_name import features_names
 from app.lib.render_response import render_response
-from app.lib.tags_diff_mode import tags_diff_mode
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.models.db.element import Element
@@ -48,7 +45,7 @@ async def get_latest(type: ElementType, id: ElementId):
     if last_sequence_id is not None:
         at_sequence_id = last_sequence_id
 
-    data = await _get_element_data(element, at_sequence_id, include_parents=True)
+    data = await get_element_data(element, at_sequence_id, include_parents=True)
     return await render_response('partial/element', data)
 
 
@@ -76,19 +73,14 @@ async def get_version(type: ElementType, id: ElementId, version: int):
     else:
         include_parents = True
 
-    data = await _get_element_data(
+    data = await get_element_data(
         element, at_sequence_id, include_parents=include_parents
     )
     return await render_response('partial/element', data)
 
 
 @router.get('/{type:element_type}/{id:int}/history')
-async def get_history(
-    type: ElementType,
-    id: ElementId,
-    tags_diff: Annotated[bool, Query()],
-    page: Annotated[PositiveInt, Query()] = 1,
-):
+async def get_history(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
     current_version_map = await ElementQuery.get_current_versions_by_refs(
@@ -104,66 +96,19 @@ async def get_history(
 
     page_size = ELEMENT_HISTORY_PAGE_SIZE
     num_pages = (current_version + page_size - 1) // page_size
-    version_max = current_version - page_size * (page - 1)
-    version_min = version_max - page_size + 1
-
-    async with TaskGroup() as tg:
-        previous_task = (
-            tg.create_task(
-                ElementQuery.get_by_versioned_refs(
-                    [(typed_id, version_min - 1)],
-                    at_sequence_id=at_sequence_id,
-                    limit=1,
-                )
-            )
-            if tags_diff
-            else None
-        )
-
-        async def data_task(element: Element):
-            at_sequence_id_ = at_sequence_id
-            include_parents = True
-
-            # if the element was superseded, get data just before
-            last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
-            if last_sequence_id is not None:
-                at_sequence_id_ = last_sequence_id
-                include_parents = False
-
-            return await _get_element_data(
-                element, at_sequence_id_, include_parents=include_parents
-            )
-
-        elements = await ElementQuery.get_versions_by_ref(
-            typed_id,
-            at_sequence_id=at_sequence_id,
-            version_range=(version_min, version_max),
-            sort_dir='desc',
-            limit=page_size,
-        )
-        elements_tasks = [tg.create_task(data_task(element)) for element in elements]
-
-    elements_data = [task.result() for task in elements_tasks]
-
-    if previous_task is not None:
-        previous_element_ = previous_task.result()
-        previous_element = previous_element_[0] if previous_element_ else None
-        tags_diff_mode(previous_element, elements_data)
 
     return await render_response(
         'partial/element-history',
         {
             'type': type,
             'id': id,
-            'page': page,
+            'num_items': current_version,
             'num_pages': num_pages,
-            'elements_data': elements_data,
-            'tags_diff': tags_diff,
         },
     )
 
 
-async def _get_element_data(
+async def get_element_data(
     element: Element, at_sequence_id: SequenceId, *, include_parents: bool
 ) -> dict:
     typed_id = element['typed_id']

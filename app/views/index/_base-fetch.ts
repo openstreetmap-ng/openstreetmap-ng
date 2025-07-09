@@ -13,7 +13,7 @@ let sidebarScrollPosition = 0
 export const getBaseFetchController = (
     map: MaplibreMap,
     className: string,
-    successCallback?: (sidebarContent: HTMLElement) => void,
+    loadCallback?: (sidebarContent: HTMLElement) => void | (() => void),
 ) => {
     const sidebar = getActionSidebar(className)
     const scrollSidebar = sidebar.closest(".sidebar") as HTMLElement
@@ -23,6 +23,7 @@ export const getBaseFetchController = (
     const loadingHtml = dynamicContent.innerHTML
 
     let abortController: AbortController | null = null
+    let loadCallbackDispose: void | (() => void)
 
     const onSidebarLoading = (): void => {
         // On sidebar loading, display loading content
@@ -76,10 +77,7 @@ export const getBaseFetchController = (
                 return
             }
 
-            // Abort any pending request
-            abortController?.abort()
             abortController = new AbortController()
-
             onSidebarLoading()
 
             fetch(url, {
@@ -93,7 +91,7 @@ export const getBaseFetchController = (
                     if (!resp.ok && resp.status !== 404)
                         throw new Error(`${resp.status} ${resp.statusText}`)
                     onSidebarLoaded(await resp.text(), url)
-                    successCallback?.(dynamicContent)
+                    loadCallbackDispose = loadCallback?.(dynamicContent)
                 })
                 .catch((error) => {
                     if (error.name === "AbortError") return
@@ -105,6 +103,10 @@ export const getBaseFetchController = (
         unload: () => {
             abortController?.abort()
             abortController = null
+            if (typeof loadCallbackDispose === "function") {
+                loadCallbackDispose()
+                loadCallbackDispose = undefined
+            }
         },
     }
 }

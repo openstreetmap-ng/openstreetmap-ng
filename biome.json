@@ -62,6 +62,7 @@
         "useThrowOnlyError": "on"
       },
       "suspicious": {
+        "noConfusingVoidType": "off",
         "noEvolvingTypes": "on",
         "noExplicitAny": "off",
         "useAwait": "on"
