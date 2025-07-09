@@ -23,7 +23,7 @@
         <ul class="content-list changesets-list social-list-sm list-unstyled">
             {% for changeset in changesets %}
             {% set comment = changeset.tags.get('comment') %}
-            <li class="social-action social-entry">
+            <li class="social-entry clickable">
                 <p class="header text-muted d-flex justify-content-between">
                     <span>
                         {{ t('browse.created') }}

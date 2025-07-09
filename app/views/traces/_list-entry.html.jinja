@@ -5,7 +5,7 @@
     </div>
     {% endif %}
     <div class="col">
-        <div class="{% if not entry_no_link %}social-action{% endif %} social-entry">
+        <div class="social-entry {% if not entry_no_link %}clickable{% endif %}">
             <div class="header text-muted d-flex justify-content-between">
                 <div>
                     <a href="/user/{{ trace.user.display_name }}">

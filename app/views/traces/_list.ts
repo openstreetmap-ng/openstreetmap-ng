@@ -4,7 +4,7 @@ import { renderAnimatedTrace, renderTrace } from "./_svg"
 for (const tracesList of document.querySelectorAll("ul.traces-list")) {
     const tracesLines = tracesList.dataset.lines.split(";")
     const svgs: NodeListOf<SVGElement> = tracesList.querySelectorAll("svg")
-    const resultActions = tracesList.querySelectorAll(".social-action")
+    const resultActions = tracesList.querySelectorAll(".social-entry.clickable")
 
     console.debug("Rendering", svgs.length, "trace SVGs")
     for (let i = 0; i < svgs.length; i++) {

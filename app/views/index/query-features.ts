@@ -100,7 +100,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
     /** Configure result actions to handle focus and clicks */
     const configureResultActions = (container: HTMLElement): void => {
         const queryList = container.querySelector("ul.search-list")
-        const resultActions = queryList.querySelectorAll("li.social-action")
+        const resultActions = queryList.querySelectorAll("li.social-entry.clickable")
         const params = fromBinary(
             PartialQueryFeaturesParamsSchema,
             base64Decode(queryList.dataset.params),

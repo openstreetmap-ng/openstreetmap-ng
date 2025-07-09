@@ -3,7 +3,7 @@
     {% set element = result.element %}
     {% set _type, _id = split_typed_element_id(element.typed_id) %}
     {% set icon = result.icon %}
-    <li class="social-action social-entry">
+    <li class="social-entry clickable">
         <p class="header text-muted d-flex justify-content-between">
             <span>
                 {% if icon is not none %}

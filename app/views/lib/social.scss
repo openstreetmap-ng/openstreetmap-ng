@@ -54,6 +54,39 @@
         // Allow line wrapping
         white-space: pre-wrap;
     }
+
+    // Style generic result actions (clickable) in the sidebar
+    // (search results, changesets, etc.)
+    &.clickable {
+        @extend .rounded-1;
+        position: relative;
+        cursor: pointer;
+        padding-bottom: 6px;
+
+        &::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: rgba($body-secondary-bg, 0.3);
+            border-bottom-left-radius: $border-radius-sm;
+            border-bottom-right-radius: $border-radius-sm;
+        }
+
+        &:hover,
+        &.hover,
+        &:has(a.stretched-link:focus) /* Improved accessibility */ {
+            background: var(--bs-highlight-bg);
+        }
+
+        a:not(.stretched-link),
+        time {
+            position: relative;
+            z-index: 10;
+        }
+    }
 }
 
 @include color-mode(dark) {
@@ -65,45 +98,8 @@
         .no-comments {
             color: $gray-600;
         }
-    }
-}
 
-// Style generic result actions (clickable) in the sidebar
-// (search results, changesets, etc.)
-.social-action {
-    @extend .rounded-1;
-    position: relative;
-    cursor: pointer;
-    padding-bottom: 6px;
-
-    &::after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 6px;
-        background: rgba($body-secondary-bg, 0.3);
-        border-bottom-left-radius: $border-radius-sm;
-        border-bottom-right-radius: $border-radius-sm;
-    }
-
-    &:hover,
-    &.hover,
-    &:has(a.stretched-link:focus) /* Improved accessibility */ {
-        background: var(--bs-highlight-bg);
-    }
-
-    a:not(.stretched-link),
-    time {
-        position: relative;
-        z-index: 10;
-    }
-}
-
-@include color-mode(dark) {
-    .social-action {
-        &::after {
+        &.clickable::after {
             background: rgba(color.mix($gray-700, $gray-800, 40%), 0.4);
         }
     }
@@ -166,7 +162,7 @@
 }
 
 .diary-list {
-    .social-action {
+    .social-entry.clickable {
         .body {
             padding: 0.375rem 0.3rem;
         }
@@ -294,7 +290,7 @@
 }
 
 .messages-list {
-    .social-action {
+    .social-entry.clickable {
         .unread-badge {
             display: none;
 

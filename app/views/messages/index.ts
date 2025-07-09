@@ -5,7 +5,7 @@ import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
 const body = document.querySelector("body.messages-index-body")
 if (body) {
-    const messages = body.querySelectorAll(".messages-list li.social-action")
+    const messages = body.querySelectorAll(".messages-list li.social-entry.clickable")
     const messagePreview = body.querySelector(".message-preview")
     const messagePreviewContainer = messagePreview.parentElement
     const messageSender = messagePreview.querySelector(".message-sender")

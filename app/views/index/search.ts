@@ -173,7 +173,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
     const base = getBaseFetchController(map, "search", (sidebarContent) => {
         const sidebar = sidebarContent.closest(".sidebar")
         const searchList = sidebarContent.querySelector("ul.search-list")
-        results = searchList.querySelectorAll("li.social-action")
+        results = searchList.querySelectorAll("li.social-entry.clickable")
 
         const params = fromBinary(
             PartialSearchParamsSchema,

@@ -17,7 +17,7 @@
         {% if comments %}
         <ul class="diary-user-comments-list social-list list-unstyled">
             {% for comment in comments %}
-            <li class="social-action social-entry">
+            <li class="social-entry clickable">
                 <p class="header text-muted">
                     <a href="/user/{{ profile.display_name }}">
                         <img class="avatar" src="{{ user_avatar_url(profile) }}" alt="{{ t('alt.profile_picture') }}"
