@@ -96,7 +96,9 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
         addMapLayer(map, layerId)
 
         // On location click, pan the map
-        const locationButton = sidebarContent.querySelector("button.location-btn")
+        const locationButton = sidebarContent.querySelector(
+            ".location-container button",
+        )
         locationButton.addEventListener("click", () => {
             console.debug("onLocationButtonClick", center)
             map.flyTo({ center, zoom: Math.max(map.getZoom(), 15) })

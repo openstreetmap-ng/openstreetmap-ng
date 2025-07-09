@@ -67,7 +67,7 @@ export const initializeElementContent = (
 ): PartialElementParams => {
     console.debug("initializeElementContent")
 
-    const locationButton = container.querySelector("button.location-btn")
+    const locationButton = container.querySelector(".location-container button")
     locationButton?.addEventListener("click", () => {
         // On location click, pan the map
         const dataset = locationButton.dataset

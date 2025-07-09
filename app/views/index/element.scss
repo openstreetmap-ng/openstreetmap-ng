@@ -150,9 +150,10 @@
 
 .action-sidebar.element-history {
     a:not(.stretched-link),
+    button:not(.stretched-link),
     time,
     details,
-    button {
+    .location-container {
         position: relative;
         z-index: 10;
     }

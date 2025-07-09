@@ -51,9 +51,9 @@
 
 {# Location #}
 {% if place %}
-<p class="location-btn-container mb-2">
+<p class="location-container mb-2">
     {{ t('diary_entries.form.location') }}:
-    <button class="location-btn btn btn-link stretched-link" data-lon="{{ element.point.x }}"
+    <button class="btn btn-link stretched-link" data-lon="{{ element.point.x }}"
         data-lat="{{ element.point.y }}">{{ place }}</button>
 </p>
 {% endif %}
