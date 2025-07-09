@@ -7,6 +7,7 @@ from pydantic import PositiveInt
 from app.config import ELEMENT_HISTORY_PAGE_SIZE
 from app.controllers.partial_element import get_element_data
 from app.lib.render_response import render_response
+from app.lib.standard_pagination import standard_pagination_range
 from app.lib.tags_diff_mode import tags_diff_mode
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementType
@@ -27,9 +28,13 @@ async def get_history(
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
-    page_size = ELEMENT_HISTORY_PAGE_SIZE
-    version_max = num_items - page_size * (page - 1)
-    version_min = version_max - page_size + 1
+    stmt_limit, stmt_offset = standard_pagination_range(
+        page,
+        page_size=ELEMENT_HISTORY_PAGE_SIZE,
+        num_items=num_items,
+    )
+    version_max = num_items - stmt_offset
+    version_min = version_max - stmt_limit + 1
 
     async with TaskGroup() as tg:
         previous_task = (
@@ -63,7 +68,7 @@ async def get_history(
             at_sequence_id=at_sequence_id,
             version_range=(version_min, version_max),
             sort_dir='desc',
-            limit=page_size,
+            limit=stmt_limit,
         )
         elements_tasks = [tg.create_task(data_task(element)) for element in elements]
 
