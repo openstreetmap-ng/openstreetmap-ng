@@ -17,6 +17,9 @@ export const configureStandardPagination = (
     const totalPages = Number.parseInt(dataset.pages, 10)
     if (!totalPages) return
 
+    const pageSize = Number.parseInt(dataset.pageSize, 10)
+    const numItems = Number.parseInt(dataset.numItems, 10)
+
     console.debug("Initializing standard pagination", endpointPattern)
     const currentPage = signal(totalPages)
     let firstLoad = true
@@ -112,7 +115,23 @@ export const configureStandardPagination = (
                 const button = document.createElement("button")
                 button.type = "button"
                 button.classList.add("page-link")
-                button.textContent = i.toString()
+
+                if (pageSize && numItems) {
+                    const [limit, offset] = standardPaginationRange(
+                        i,
+                        pageSize,
+                        numItems,
+                    )
+                    const versionMax = numItems - offset
+                    const versionMin = versionMax - limit + 1
+                    button.textContent =
+                        versionMax !== versionMin
+                            ? `${versionMin}...${versionMax}`
+                            : versionMax.toString()
+                } else {
+                    button.textContent = i.toString()
+                }
+
                 li.appendChild(button)
 
                 if (i === currentPageValue) {
@@ -138,4 +157,16 @@ export const configureStandardPagination = (
         disposeCollectionEffect()
         disposePaginationEffect()
     }
+}
+
+/**
+ * Get the range of items for the given page.
+ * The last page returns an offset of 0.
+ * Returns a tuple of (limit, offset).
+ */
+const standardPaginationRange = (page: number, pageSize: number, numItems: number) => {
+    const numPages = Math.ceil(numItems / pageSize)
+    const offset = (numPages - page) * pageSize
+    const limit = Math.min(pageSize, numItems - offset)
+    return [limit, offset]
 }

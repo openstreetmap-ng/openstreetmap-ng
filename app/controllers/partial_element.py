@@ -95,14 +95,16 @@ async def get_history(type: ElementType, id: ElementId):
         )
 
     page_size = ELEMENT_HISTORY_PAGE_SIZE
-    num_pages = (current_version + page_size - 1) // page_size
+    num_items = current_version
+    num_pages = (num_items + page_size - 1) // page_size
 
     return await render_response(
         'partial/element-history',
         {
             'type': type,
             'id': id,
-            'num_items': current_version,
+            'page_size': page_size,
+            'num_items': num_items,
             'num_pages': num_pages,
         },
     )

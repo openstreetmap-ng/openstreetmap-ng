@@ -30,7 +30,8 @@
 
     <div class="section {% if num_pages <= 1 %}d-none{% endif %}">
         <nav aria-label="{{ t('alt.elements_page_navigation') }}">
-            <ul class="pagination pagination-sm justify-content-end mb-0"
+            <ul class="pagination pagination-sm justify-content-end mb-0" data-page-size="{{ page_size }}"
+                data-num-items="{{ num_items }}"
                 data-action-template="/api/web/element/{{ type }}/{{ id }}/history?page={page}&num_items={{ num_items }}&tags_diff={tags_diff}"
                 data-pages="{{ num_pages }}"></ul>
         </nav>

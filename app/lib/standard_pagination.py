@@ -18,6 +18,9 @@ def standard_pagination_range(
     Returns a tuple of (limit, offset).
     """
     num_pages: cython.int = int(ceil(num_items / page_size))  # noqa: RUF046
-    if 1 <= page <= num_pages:
-        return page_size, (num_pages - page) * page_size
-    return 0, 0
+    if not (1 <= page <= num_pages):
+        return 0, 0
+
+    offset: cython.ulonglong = (num_pages - page) * page_size
+    limit: cython.ulonglong = min(page_size, num_items - offset)
+    return limit, offset
