@@ -77,6 +77,14 @@ export const getBaseFetchController = (
                 return
             }
 
+            if (abortController) {
+                console.error(
+                    "Base fetch controller",
+                    className,
+                    "wasn't properly unloaded",
+                )
+            }
+
             abortController = new AbortController()
             onSidebarLoading()
 
