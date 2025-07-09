@@ -47,8 +47,9 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
         })
 
         // Update pagination
+        const paginationContainers = sidebarContent.querySelectorAll("ul.pagination")
         const disposePaginationEffect = effect(() => {
-            for (const pagination of sidebarContent.querySelectorAll("ul.pagination")) {
+            for (const pagination of paginationContainers) {
                 pagination.dataset.action = pagination.dataset.actionTemplate.replace(
                     "{tags_diff}",
                     tagsDiff.toString(),

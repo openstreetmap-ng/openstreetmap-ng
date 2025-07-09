@@ -122,12 +122,12 @@ export const configureStandardPagination = (
                         pageSize,
                         numItems,
                     )
-                    const versionMax = numItems - offset
-                    const versionMin = versionMax - limit + 1
+                    const itemMax = numItems - offset
+                    const itemMin = itemMax - limit + 1
                     button.textContent =
-                        versionMax !== versionMin
-                            ? `${versionMin}...${versionMax}`
-                            : versionMax.toString()
+                        itemMax !== itemMin
+                            ? `${itemMin}...${itemMax}`
+                            : itemMax.toString()
                 } else {
                     button.textContent = i.toString()
                 }
