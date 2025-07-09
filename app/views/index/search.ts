@@ -262,6 +262,16 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
             console.debug("Search focusing on", boundsPadded)
             map.fitBounds(boundsPadded)
         }
+
+        return () => {
+            map.off("moveend", onMapZoomOrMoveEnd)
+            removeMapLayer(map, layerId)
+            source.setData(emptyFeatureCollection)
+            clearMapHover(map, layerId)
+            focusObjects(map)
+            results = null
+            setHover = null
+        }
     })
 
     const controller: IndexController = {
@@ -287,38 +297,33 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
                 const zoom = (
                     Number(options?.zoom ?? searchParams.zoom ?? map.getZoom()) | 0
                 ).toString()
-                const url = `/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`
-                base.load(url)
+                base.load(`/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`)
             } else {
                 setPageTitle(query || searchTitle)
                 setSearchFormQuery(query)
 
                 // Load empty sidebar to ensure proper bbox
                 base.load()
+
                 // Pad the bounds to avoid floating point errors
                 const [[minLon, minLat], [maxLon, maxLat]] = padLngLatBounds(
                     map.getBounds().adjustAntiMeridian(),
                     -0.01,
                 ).toArray()
-                const url = `/partial/search?${qsEncode({
-                    q: query,
-                    bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
-                    local_only: Boolean(options?.localOnly).toString(),
-                })}`
-                base.load(url)
+
+                base.load(
+                    `/partial/search?${qsEncode({
+                        q: query,
+                        bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
+                        local_only: Boolean(options?.localOnly).toString(),
+                    })}`,
+                )
             }
         },
         unload: () => {
-            map.off("moveend", onMapZoomOrMoveEnd)
-            removeMapLayer(map, layerId)
-            source.setData(emptyFeatureCollection)
-            clearMapHover(map, layerId)
-            focusObjects(map)
             // Unstick the search form and reset search alert
             searchForm.classList.remove("sticky-top")
             searchAlert.classList.add("d-none")
-            results = null
-            setHover = null
             base.unload()
         },
     }

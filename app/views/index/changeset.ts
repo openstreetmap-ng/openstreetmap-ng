@@ -79,6 +79,11 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
             reload,
         )
         configureStandardForm(sidebarContent.querySelector("form.comment-form"), reload)
+
+        return () => {
+            map.off("zoomend", refocus)
+            focusObjects(map)
+        }
     })
 
     const refocus = (e?: MapLibreEvent): void => {
@@ -98,11 +103,7 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
         load: ({ id }) => {
             base.load(`/partial/changeset/${id}`)
         },
-        unload: () => {
-            map.off("zoomend", refocus)
-            focusObjects(map)
-            base.unload()
-        },
+        unload: base.unload,
     }
     const reload = () => {
         controller.unload()

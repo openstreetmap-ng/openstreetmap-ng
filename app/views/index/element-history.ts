@@ -78,17 +78,17 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
             return disposePagination
         })
 
-        return disposePaginationEffect
+        return () => {
+            disposePaginationEffect()
+            focusObjects(map)
+        }
     })
 
     const controller: IndexController = {
         load: ({ type, id }) => {
             base.load(`/partial/${type}/${id}/history`)
         },
-        unload: () => {
-            focusObjects(map)
-            base.unload()
-        },
+        unload: base.unload,
     }
     return controller
 }

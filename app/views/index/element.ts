@@ -44,19 +44,21 @@ export const getElementController = (map: MaplibreMap): IndexController => {
         const params = initializeElementContent(map, sidebarContent)
         const elements = convertRenderElementsData(params.render)
         focusObjects(map, elements, focusPaint)
+
+        return () => {
+            focusObjects(map)
+        }
     })
 
     return {
         load: ({ type, id, version }) => {
-            const url = version
-                ? `/partial/${type}/${id}/history/${version}`
-                : `/partial/${type}/${id}`
-            base.load(url)
+            base.load(
+                version
+                    ? `/partial/${type}/${id}/history/${version}`
+                    : `/partial/${type}/${id}`,
+            )
         },
-        unload: () => {
-            focusObjects(map)
-            base.unload()
-        },
+        unload: base.unload,
     }
 }
 

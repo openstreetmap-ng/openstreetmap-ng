@@ -163,18 +163,18 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
                 onCommentInput()
             }
         }
+
+        return () => {
+            removeMapLayer(map, layerId)
+            source.setData(emptyFeatureCollection)
+        }
     })
 
     const controller: IndexController = {
         load: ({ id }) => {
-            const url = `/partial/note/${id}`
-            base.load(url)
+            base.load(`/partial/note/${id}`)
         },
-        unload: () => {
-            removeMapLayer(map, layerId)
-            source.setData(emptyFeatureCollection)
-            base.unload()
-        },
+        unload: base.unload,
     }
     return controller
 }

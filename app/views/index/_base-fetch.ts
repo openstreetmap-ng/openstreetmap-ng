@@ -71,18 +71,18 @@ export const getBaseFetchController = (
 
     return {
         load: (url?: string): void => {
-            switchActionSidebar(map, sidebar)
-            if (!url) {
-                currentUrl = url
-                return
-            }
-
             if (abortController) {
                 console.error(
                     "Base fetch controller",
                     className,
                     "wasn't properly unloaded",
                 )
+            }
+
+            switchActionSidebar(map, sidebar)
+            if (!url) {
+                currentUrl = url
+                return
             }
 
             abortController = new AbortController()
