@@ -59,18 +59,19 @@ export const configureStandardPagination = (
     // Update collection
     const disposeCollectionEffect = effect(() => {
         if (!currentPage.value) return
-        console.debug("configureStandardPagination", "updateCollection", currentPage)
+        const currentPageString = currentPage.toString()
 
         if (options?.customLoader) {
-            console.debug("Navigated to page", currentPage)
             options.customLoader(currentPage.value, renderContainer)
+            console.debug("Navigated to page", currentPageString)
             return
         }
 
         const abortController = new AbortController()
 
+        console.debug("Navigating to page", currentPageString)
         setPendingState(true)
-        fetch(endpointPattern.replace("{page}", currentPage.toString()), {
+        fetch(endpointPattern.replace("{page}", currentPageString), {
             method: "GET",
             mode: "same-origin",
             cache: "no-store",
@@ -78,14 +79,14 @@ export const configureStandardPagination = (
             priority: "high",
         })
             .then(async (resp) => {
-                if (resp.ok) console.debug("Navigated to page", currentPage)
+                if (resp.ok) console.debug("Navigated to page", currentPageString)
                 renderContainer.innerHTML = await resp.text()
                 resolveDatetimeLazy(renderContainer)
                 options?.loadCallback?.()
             })
             .catch((error: Error) => {
                 if (error.name === "AbortError") return
-                console.error("Failed to navigate to page", currentPage, error)
+                console.error("Failed to navigate to page", currentPageString, error)
                 renderContainer.textContent = error.message
             })
             .finally(() => {
@@ -103,7 +104,6 @@ export const configureStandardPagination = (
             }
             return
         }
-        console.debug("configureStandardPagination", "updatePagination", currentPage)
         const currentPageValue = currentPage.value
 
         for (const paginationContainer of paginationContainers) {
