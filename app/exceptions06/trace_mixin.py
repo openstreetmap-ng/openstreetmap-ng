@@ -25,13 +25,6 @@ class TraceExceptions06Mixin(TraceExceptionsMixin):
         )
 
     @override
-    def trace_file_unsupported_format(self, content_type: str) -> NoReturn:
-        raise APIError(
-            status.HTTP_400_BAD_REQUEST,
-            detail=f'Unsupported trace file format {content_type!r}',
-        )
-
-    @override
     def trace_file_archive_too_deep(self) -> NoReturn:
         raise APIError(
             status.HTTP_422_UNPROCESSABLE_ENTITY,

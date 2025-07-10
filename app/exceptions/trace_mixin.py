@@ -1,6 +1,9 @@
 from abc import abstractmethod
 from typing import NoReturn
 
+from fastapi import status
+
+from app.exceptions.api_error import APIError
 from app.models.types import TraceId
 
 
@@ -19,7 +22,10 @@ class TraceExceptionsMixin:
 
     @abstractmethod
     def trace_file_unsupported_format(self, content_type: str) -> NoReturn:
-        raise NotImplementedError
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail=f'Unsupported trace file format {content_type!r}',
+        )
 
     @abstractmethod
     def trace_file_archive_too_deep(self) -> NoReturn:
@@ -35,4 +41,6 @@ class TraceExceptionsMixin:
 
     @abstractmethod
     def bad_trace_file(self, message: str) -> NoReturn:
-        raise NotImplementedError
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST, detail=f'Invalid trace file: {message}'
+        )

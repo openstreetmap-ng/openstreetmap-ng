@@ -54,7 +54,7 @@ async def route(
         result = await ValhallaQuery.route(start_point, end_point, profile=profile)
     else:
         return Response(
-            f'Unsupported engine profile: {engine}_{profile}',
+            f"Unsupported engine profile '{engine}_{profile}'",
             status.HTTP_400_BAD_REQUEST,
         )
 
