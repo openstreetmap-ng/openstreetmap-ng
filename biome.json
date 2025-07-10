@@ -55,6 +55,10 @@
         "useCollapsedElseIf": "on",
         "useConsistentArrayType": "on",
         "useConsistentBuiltinInstantiation": "on",
+        "useConst": {
+          "fix": "unsafe",
+          "level": "on"
+        },
         "useForOf": "on",
         "useNumberNamespace": "on",
         "useShorthandAssign": "on",
