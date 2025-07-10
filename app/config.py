@@ -231,7 +231,7 @@ ELEMENT_HISTORY_PAGE_SIZE = 10
 ELEMENT_WAY_MEMBERS_LIMIT = 2_000
 ELEMENT_RELATION_MEMBERS_LIMIT = 32_000
 FEATURE_PREFIX_TAGS_LIMIT = 100
-LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS = False
+LEGACY_GEOM_SKIP_MISSING_NODES = False
 
 # Tags
 TAGS_LIMIT = 600
@@ -396,7 +396,7 @@ PYDANTIC_CONFIG = ConfigDict(
 )
 
 if LOG_LEVEL is None:
-    LOG_LEVEL = 'INFO' if ENV == 'prod' else 'DEBUG'  # type: ignore
+    LOG_LEVEL = 'INFO' if ENV == 'prod' else 'DEBUG'  # pyright: ignore[reportConstantRedefinition]
 
 # -------------------- Logging configuration --------------------
 

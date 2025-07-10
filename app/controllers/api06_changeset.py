@@ -186,7 +186,7 @@ async def query_changesets(
             return Response(
                 'No changesets were given to search for', status.HTTP_400_BAD_REQUEST
             )
-        changeset_ids = np.unique(ids).tolist()  # type: ignore
+        changeset_ids = np.unique(ids).tolist()
 
     user: User | None = None
     if display_name is not None and user_id is not None:

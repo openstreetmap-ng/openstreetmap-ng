@@ -137,8 +137,8 @@ def _encode_parents(
                 sorted({
                     role
                     for member, role in zip(
-                        parent['members'],  # pyright: ignore [reportArgumentType]
-                        parent['members_roles'],  # pyright: ignore [reportArgumentType]
+                        parent['members'] or (),
+                        parent['members_roles'] or (),
                         strict=True,
                     )
                     if role and member == ref
@@ -176,10 +176,7 @@ def _encode_members(
     result: list[PartialElementParams.Entry] = []
     for member, role in zip(members, members_roles, strict=True):
         data = type_id_map.get(member)
-        if data is None:
-            continue
-
-        name, feature_icon = data
+        name, feature_icon = data or (None, None)
         type, id = split_typed_element_id(member)
         icon = (
             ElementIcon(icon=feature_icon.filename, title=feature_icon.title)

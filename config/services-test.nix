@@ -73,7 +73,7 @@ let
         export ENV=test \
         && export APP_URL=https://www.openstreetmap.ng \
         && export API_URL=https://api.openstreetmap.ng \
-        && export LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS=1 \
+        && export LEGACY_GEOM_SKIP_MISSING_NODES=1 \
         && export MAP_QUERY_LEGACY_NODES_LIMIT=1000 \
         && ${script}"
   '';

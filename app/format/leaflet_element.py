@@ -117,10 +117,9 @@ def _render_ways(
 
             point = node['point']
             if point is None:
-                node_id = split_typed_element_id(node['typed_id'])[1]
                 logging.warning(
                     'Missing point for node %d version %d (part of way %d version %d)',
-                    node_id,
+                    node['typed_id'],
                     node['version'],
                     way_id,
                     way['version'],
@@ -139,7 +138,7 @@ def _render_ways(
             else False
         )
         for segment in segments:
-            geom: list[list[float]] = get_coordinates(segment).tolist()  # type: ignore
+            geom: list[list[float]] = get_coordinates(segment).tolist()
             line = encode_lonlat(geom, 6)
             result.append(RenderElementsData.Way(id=way_id, line=line, area=is_area))
 
@@ -160,13 +159,9 @@ def _render_nodes(
         return []
 
     points = [node['point'] for node in nodes]
-    geoms: list[list[float]] = get_coordinates(points).tolist()  # type: ignore
+    geoms: list[list[float]] = get_coordinates(points).tolist()
     return [
-        RenderElementsData.Node(
-            id=split_typed_element_id(node['typed_id'])[1],
-            lon=geom[0],
-            lat=geom[1],
-        )
+        RenderElementsData.Node(id=node['typed_id'], lon=geom[0], lat=geom[1])
         for node, geom in zip(nodes, geoms, strict=True)
     ]
 

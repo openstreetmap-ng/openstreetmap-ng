@@ -62,6 +62,6 @@ async def get_many_users(
             'No users were given to search for', status.HTTP_400_BAD_REQUEST
         )
 
-    user_ids: list[UserId] = ids.tolist()  # type: ignore
+    user_ids: list[UserId] = ids.tolist()
     users = await UserQuery.find_many_by_ids(user_ids)
     return await Format06.encode_users(users)

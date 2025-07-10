@@ -6,11 +6,7 @@ import cython
 from fastapi import APIRouter, Query
 from shapely import Point, get_coordinates
 
-from app.config import (
-    LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS,
-    SEARCH_QUERY_MAX_LENGTH,
-    SEARCH_RESULTS_LIMIT,
-)
+from app.config import SEARCH_QUERY_MAX_LENGTH, SEARCH_RESULTS_LIMIT
 from app.format import FormatLeaflet
 from app.lib.render_response import render_response
 from app.lib.search import Search, SearchResult
@@ -89,7 +85,6 @@ async def _get_response(
     where_is_this: bool,
     TYPED_ELEMENT_ID_WAY_MIN: cython.ulonglong = TYPED_ELEMENT_ID_WAY_MIN,
     TYPED_ELEMENT_ID_WAY_MAX: cython.ulonglong = TYPED_ELEMENT_ID_WAY_MAX,
-    LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS: cython.bint = LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS,
 ):
     members: list[TypedElementId] = [
         member
@@ -97,15 +92,16 @@ async def _get_response(
         if (result_members := result.element['members'])
         for member in result_members
     ]
-    members_elements = await ElementQuery.get_by_refs(
-        members,
-        at_sequence_id=at_sequence_id,
-        recurse_ways=True,
-        limit=None,
-    )
-
     members_map: dict[TypedElementId, Element]
-    members_map = {member['typed_id']: member for member in members_elements}
+    members_map = {
+        member['typed_id']: member
+        for member in await ElementQuery.get_by_refs(
+            members,
+            at_sequence_id=at_sequence_id,
+            recurse_ways=True,
+            limit=None,
+        )
+    }
     Search.improve_point_accuracy(results, members_map)
     Search.remove_overlapping_points(results)
 
@@ -114,37 +110,24 @@ async def _get_response(
 
     i: cython.Py_ssize_t
     for i, result in enumerate(results):
-        result_element = result.element
-        full_data: list[Element] = [result_element]
-
-        result_members = result_element['members']
-        if not result_members:
-            continue
-
-        for member in result_members:
-            member_element = members_map[member]
-            full_data.append(member_element)
-
-            member_members = member_element['members']
-            if not member_members:
+        full_data: list[Element] = [result.element]
+        for member in result.element['members'] or ():
+            member_element = members_map.get(member)
+            if member_element is None:
                 continue
+            full_data.append(member_element)
 
             # Recurse ways
             typed_id: cython.ulonglong = member_element['typed_id']
             if (
-                typed_id < TYPED_ELEMENT_ID_WAY_MIN
-                or typed_id > TYPED_ELEMENT_ID_WAY_MAX
+                typed_id >= TYPED_ELEMENT_ID_WAY_MIN
+                and typed_id <= TYPED_ELEMENT_ID_WAY_MAX
             ):
-                continue
-
-            if LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS:
                 full_data.extend(
                     e
-                    for mm in member_members  #
+                    for mm in member_element['members'] or ()
                     if (e := members_map.get(mm)) is not None
                 )
-            else:
-                full_data.extend(members_map[mm] for mm in member_members)
 
         render = FormatLeaflet.encode_elements(full_data, detailed=False, areas=False)
         renders[i] = render

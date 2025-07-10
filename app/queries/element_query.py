@@ -10,7 +10,7 @@ from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
 
 from app.config import (
-    LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS,
+    LEGACY_GEOM_SKIP_MISSING_NODES,
     MAP_QUERY_LEGACY_NODES_LIMIT,
 )
 from app.db import db
@@ -629,7 +629,7 @@ class ElementQuery:
         include_relations: bool = True,
         nodes_limit: int | None = None,
         legacy_nodes_limit: bool = False,
-        LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS: cython.bint = LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS,
+        LEGACY_GEOM_SKIP_MISSING_NODES: cython.bint = LEGACY_GEOM_SKIP_MISSING_NODES,
     ) -> list[Element]:
         """
         Find elements within the given geometry.
@@ -731,7 +731,7 @@ class ElementQuery:
                     missing_ways_nodes_typed_ids = ways_nodes_typed_ids.difference(
                         node['typed_id'] for node in ways_nodes
                     )
-                    assert LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS, (
+                    assert LEGACY_GEOM_SKIP_MISSING_NODES, (
                         f'Ways have missing nodes: {missing_ways_nodes_typed_ids}'
                     )
                     for way in ways:

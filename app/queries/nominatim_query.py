@@ -169,10 +169,9 @@ async def _get_search_result(
         # some results are abstract and have no osm_type/osm_id
         osm_type = entry.get('osm_type')
         osm_id = entry.get('osm_id')
-        if osm_type is None or osm_id is None:
-            continue
-        typed_ids.append(typed_element_id(osm_type, osm_id))
-        entries.append(entry)
+        if osm_type is not None and osm_id is not None:
+            typed_ids.append(typed_element_id(osm_type, osm_id))
+            entries.append(entry)
 
     # fetch elements in the order of entries
     type_id_map: dict[TypedElementId, Element] = {

@@ -236,7 +236,7 @@ class TraceQuery:
                 capture_times = trace['capture_times']
                 if capture_times is not None:
                     capture_times_arr = np.array(capture_times, np.object_)
-                    trace['capture_times'] = capture_times_arr[intersect_mask].tolist()  # type: ignore
+                    trace['capture_times'] = capture_times_arr[intersect_mask].tolist()
 
         traces = filtered_traces
         if not traces or identifiable_trackable:

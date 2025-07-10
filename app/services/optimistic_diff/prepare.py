@@ -325,14 +325,14 @@ class OptimisticDiffPrepare:
 
         # Remove old references
         if typed_ids_removed is not None:
-            typed_ids_removed_: list[TypedElementId] = typed_ids_removed.tolist()  # type: ignore
+            typed_ids_removed_: list[TypedElementId] = typed_ids_removed.tolist()
             for ref in typed_ids_removed_:
                 reference_override[ref, True].discard(typed_id)
                 reference_override[ref, False].add(typed_id)
 
         # Add new references
         if typed_ids_added is not None:
-            typed_ids_added_: list[TypedElementId] = typed_ids_added.tolist()  # type: ignore
+            typed_ids_added_: list[TypedElementId] = typed_ids_added.tolist()
             for ref in typed_ids_added_:
                 reference_override[ref, True].add(typed_id)
                 reference_override[ref, False].discard(typed_id)
@@ -444,7 +444,7 @@ class OptimisticDiffPrepare:
             assert prev_members_arr is not None
             typed_ids_arr = np.unique(prev_members_arr)
 
-        typed_ids: list[TypedElementId] = typed_ids_arr.tolist()  # type: ignore
+        typed_ids: list[TypedElementId] = typed_ids_arr.tolist()
 
         element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
         bbox_points: list[Point] = self._bbox_points
@@ -499,7 +499,7 @@ class OptimisticDiffPrepare:
 
         typed_ids_diff: list[TypedElementId] = (
             typed_ids_all if full_diff else typed_ids_changed
-        ).tolist()  # type: ignore
+        ).tolist()
 
         element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
         bbox_points: list[Point] = self._bbox_points

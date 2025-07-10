@@ -63,7 +63,7 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
         today.replace(tzinfo=None) + timedelta(days=1),
         timedelta(days=1),
         'datetime64[D]',
-    ).tolist()  # type: ignore
+    ).tolist()
 
     # Map activity counts to each date
     activity = np.array([activity_per_day.get(d, 0) for d in dates_range], np.uint32)
@@ -94,8 +94,8 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
 
     for day_row, level, value, d in zip(
         cycle(day_rows),
-        activity_levels.tolist(),  # type: ignore
-        activity.tolist(),  # type: ignore
+        activity_levels.tolist(),
+        activity.tolist(),
         dates_range,
     ):
         day_row.append({

@@ -181,7 +181,7 @@ class Search:
         nearby_all = nearby_all[nearby_all[:, 0] < nearby_all[:, 1]]
         nearby_all = np.sort(nearby_all, axis=1)
 
-        for i1, i2 in nearby_all.tolist():  # type: ignore
+        for i1, i2 in nearby_all.tolist():
             if relations[i1].point is not None:
                 relations[i2].point = None
 
@@ -212,7 +212,7 @@ class Search:
         nearby_all = np.sort(nearby_all, axis=1)
 
         mask = [True] * num_geoms
-        for i1, i2 in nearby_all.tolist():  # type: ignore
+        for i1, i2 in nearby_all.tolist():
             if not mask[i1]:
                 continue
             name1 = dedup1[i1].display_name

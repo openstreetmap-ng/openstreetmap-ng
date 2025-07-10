@@ -30,7 +30,7 @@ class FormatGPX:
 
         for segment in force_3d(trace['segments']).geoms:
             segment_coords: list[list[float]]
-            segment_coords = get_coordinates(segment, include_z=True).tolist()  # type: ignore
+            segment_coords = get_coordinates(segment, include_z=True).tolist()
             trkpt: list[dict] = []
 
             for lon, lat, elevation in segment_coords:
