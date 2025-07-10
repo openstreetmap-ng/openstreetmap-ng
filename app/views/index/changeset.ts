@@ -165,10 +165,9 @@ const renderElementType = (
     // Calculate pagination
     const elementsLength = elements.length
     const totalPages = Math.ceil(elementsLength / elementsPerPage)
+    paginationContainer.dataset.pages = totalPages.toString()
 
-    if (totalPages > 1) {
-        paginationContainer.dataset.pages = totalPages.toString()
-    } else {
+    if (totalPages <= 1) {
         paginationContainer.parentElement.classList.add("d-none")
     }
 
