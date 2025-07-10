@@ -104,7 +104,7 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
             map.flyTo({ center, zoom: Math.max(map.getZoom(), 15) })
         })
 
-        configureStandardPagination(
+        const disposePagination = configureStandardPagination(
             sidebarContent.querySelector("div.note-comments-pagination"),
         )
 
@@ -165,6 +165,7 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
         }
 
         return () => {
+            disposePagination()
             removeMapLayer(map, layerId)
             source.setData(emptyFeatureCollection)
         }

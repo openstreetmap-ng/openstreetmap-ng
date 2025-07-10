@@ -5,23 +5,31 @@ import { resolveDatetimeLazy } from "./datetime"
 const paginationDistance = 2
 
 export const configureStandardPagination = (
-    container?: HTMLElement,
-    loadCallback?: () => void,
+    container?: ParentNode,
+    options?: {
+        initialPage?: number
+        customLoader?: (page: number, renderContainer: HTMLElement) => void
+        loadCallback?: () => void
+    },
 ): (() => void) => {
-    if (!container) return
-    const renderContainer = container.querySelector("ul.list-unstyled")
+    if (!container) return () => {}
+    const renderContainer =
+        container.querySelector("ul.list-unstyled") ?? container.querySelector("tbody")
     const paginationContainers = container.querySelectorAll("ul.pagination")
 
     const dataset = paginationContainers[paginationContainers.length - 1].dataset
-    const endpointPattern = dataset.action
     const totalPages = Number.parseInt(dataset.pages, 10)
-    if (!totalPages) return
+    if (!totalPages) return () => {}
 
     const pageSize = Number.parseInt(dataset.pageSize, 10)
     const numItems = Number.parseInt(dataset.numItems, 10)
 
-    console.debug("Initializing standard pagination", endpointPattern)
-    const currentPage = signal(totalPages)
+    const endpointPattern = dataset.action
+    console.debug(
+        "Initializing standard pagination",
+        options?.customLoader ? "<custom loader>" : endpointPattern,
+    )
+    const currentPage = signal(options?.initialPage ?? totalPages)
     let firstLoad = true
 
     const setPendingState = (state: boolean): void => {
@@ -53,6 +61,12 @@ export const configureStandardPagination = (
         if (!currentPage.value) return
         console.debug("configureStandardPagination", "updateCollection", currentPage)
 
+        if (options?.customLoader) {
+            console.debug("Navigated to page", currentPage)
+            options.customLoader(currentPage.value, renderContainer)
+            return
+        }
+
         const abortController = new AbortController()
 
         setPendingState(true)
@@ -67,7 +81,7 @@ export const configureStandardPagination = (
                 if (resp.ok) console.debug("Navigated to page", currentPage)
                 renderContainer.innerHTML = await resp.text()
                 resolveDatetimeLazy(renderContainer)
-                loadCallback?.()
+                options?.loadCallback?.()
             })
             .catch((error: Error) => {
                 if (error.name === "AbortError") return

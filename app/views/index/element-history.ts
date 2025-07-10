@@ -9,6 +9,7 @@ import { staticCache } from "../lib/utils"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 import { initializeElementContent } from "./element"
+import type { RenderElementsData } from "../lib/proto/shared_pb"
 
 const themeColor = "#f60"
 const focusPaint: FocusLayerPaint = Object.freeze({
@@ -56,15 +57,20 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
                 )
             }
 
-            const disposePagination = configureStandardPagination(
-                sidebarContent,
-                () => {
+            let disposeElementContent: () => void | null = null
+
+            const disposePagination = configureStandardPagination(sidebarContent, {
+                loadCallback: () => {
                     const versionSections =
                         sidebarContent.querySelectorAll("div.version-section")
                     for (const versionSection of versionSections) {
-                        const params = initializeElementContent(map, versionSection)
+                        let render: RenderElementsData
+                        ;[render, disposeElementContent] = initializeElementContent(
+                            map,
+                            versionSection,
+                        )
                         const elements = staticCache(() =>
-                            convertRenderElementsData(params.render),
+                            convertRenderElementsData(render),
                         )
                         versionSection.addEventListener("mouseenter", () =>
                             focusObjects(map, elements(), focusPaint),
@@ -74,9 +80,12 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
                         )
                     }
                 },
-            )
+            })
 
-            return disposePagination
+            return () => {
+                disposePagination()
+                disposeElementContent?.()
+            }
         })
 
         return () => {

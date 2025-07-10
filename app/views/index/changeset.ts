@@ -26,7 +26,6 @@ const focusPaint: FocusLayerPaint = Object.freeze({
 })
 
 const elementsPerPage = 20
-const paginationDistance = 2
 
 /** Create a new changeset controller */
 export const getChangesetController = (map: MaplibreMap): IndexController => {
@@ -63,13 +62,13 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
             refocus()
         }
 
-        renderElements(elementsSection, {
+        const disposeElements = renderElements(elementsSection, {
             node: params.nodes,
             way: params.ways,
             relation: params.relations,
         })
 
-        configureStandardPagination(
+        const disposePagination = configureStandardPagination(
             sidebarContent.querySelector("div.changeset-comments-pagination"),
         )
 
@@ -81,6 +80,8 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
         configureStandardForm(sidebarContent.querySelector("form.comment-form"), reload)
 
         return () => {
+            disposeElements()
+            disposePagination()
             map.off("zoomend", refocus)
             focusObjects(map)
         }
@@ -116,18 +117,24 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
 const renderElements = (
     elementsSection: HTMLElement,
     elements: { [key: string]: PartialChangesetParams_Element[] },
-): void => {
+): (() => void) => {
     console.debug("renderElements")
 
     const groupTemplate = elementsSection.querySelector("template.group")
     const entryTemplate = elementsSection.querySelector("template.entry")
     const fragment = document.createDocumentFragment()
+    const disposeList: (() => void)[] = []
 
     for (const [type, elementsType] of Object.entries(elements)) {
         if (!elementsType.length) continue
-        fragment.appendChild(
-            renderElementType(groupTemplate, entryTemplate, type, elementsType),
+        const [renderFragment, disposePagination] = renderElementType(
+            groupTemplate,
+            entryTemplate,
+            type,
+            elementsType,
         )
+        fragment.appendChild(renderFragment)
+        disposeList.push(disposePagination)
     }
 
     if (fragment.children.length) {
@@ -135,6 +142,10 @@ const renderElements = (
         elementsSection.appendChild(fragment)
     } else {
         elementsSection.remove()
+    }
+
+    return () => {
+        for (const dispose of disposeList) dispose()
     }
 }
 
@@ -144,23 +155,28 @@ const renderElementType = (
     entryTemplate: HTMLTemplateElement,
     type: string,
     elements: PartialChangesetParams_Element[],
-): DocumentFragment => {
+): [DocumentFragment, () => void] => {
     console.debug("renderElementType", type, elements)
 
     const groupFragment = groupTemplate.content.cloneNode(true) as DocumentFragment
     const titleElement = groupFragment.querySelector(".title")
-    const tbody = groupFragment.querySelector("tbody")
+    const paginationContainer = groupFragment.querySelector("ul.pagination")
 
     // Calculate pagination
     const elementsLength = elements.length
     const totalPages = Math.ceil(elementsLength / elementsPerPage)
-    let currentPage = 1
 
-    const updateTitle = (): void => {
+    if (totalPages > 1) {
+        paginationContainer.dataset.pages = totalPages.toString()
+    } else {
+        paginationContainer.parentElement.classList.add("d-none")
+    }
+
+    const updateTitle = (page: number): void => {
         let count: string
         if (totalPages > 1) {
-            const from = (currentPage - 1) * elementsPerPage + 1
-            const to = Math.min(currentPage * elementsPerPage, elementsLength)
+            const from = (page - 1) * elementsPerPage + 1
+            const to = Math.min(page * elementsPerPage, elementsLength)
             count = i18next.t("pagination.range", {
                 x: `${from}-${to}`,
                 y: elementsLength,
@@ -184,11 +200,11 @@ const renderElementType = (
         titleElement.textContent = newTitle
     }
 
-    const updateTable = (): void => {
-        const tbodyFragment = document.createDocumentFragment()
+    const updateTable = (page: number, renderContainer: HTMLElement): void => {
+        const renderFragment = document.createDocumentFragment()
 
-        const iStart = (currentPage - 1) * elementsPerPage
-        const iEnd = Math.min(currentPage * elementsPerPage, elementsLength)
+        const iStart = (page - 1) * elementsPerPage
+        const iEnd = Math.min(page * elementsPerPage, elementsLength)
         for (let i = iStart; i < iEnd; i++) {
             const element = elements[i]
 
@@ -223,70 +239,20 @@ const renderElementType = (
             linkLatest.href = `/${type}/${element.id}`
             linkVersion.textContent = `v${element.version}`
             linkVersion.href = `/${type}/${element.id}/history/${element.version}`
-            tbodyFragment.appendChild(entryFragment)
+            renderFragment.appendChild(entryFragment)
         }
 
-        tbody.innerHTML = ""
-        tbody.appendChild(tbodyFragment)
+        renderContainer.innerHTML = ""
+        renderContainer.appendChild(renderFragment)
     }
 
-    // Optionally configure pagination controls
-    if (totalPages > 1) {
-        const paginationContainer = groupFragment.querySelector(".pagination")
+    const disposePagination = configureStandardPagination(groupFragment, {
+        initialPage: 1,
+        customLoader: (page: number, renderContainer: HTMLElement) => {
+            updateTitle(page)
+            updateTable(page, renderContainer)
+        },
+    })
 
-        const updatePagination = (): void => {
-            console.debug("updatePagination", currentPage)
-
-            const paginationFragment = document.createDocumentFragment()
-
-            for (let i = 1; i <= totalPages; i++) {
-                const distance = Math.abs(i - currentPage)
-                if (distance > paginationDistance && i !== 1 && i !== totalPages) {
-                    if (i === 2 || i === totalPages - 1) {
-                        const li = document.createElement("li")
-                        li.classList.add("page-item", "disabled")
-                        li.ariaDisabled = "true"
-                        li.innerHTML = `<span class="page-link">...</span>`
-                        paginationFragment.appendChild(li)
-                    }
-                    continue
-                }
-
-                const li = document.createElement("li")
-                li.classList.add("page-item")
-
-                const button = document.createElement("button")
-                button.type = "button"
-                button.classList.add("page-link")
-                button.textContent = i.toString()
-                li.appendChild(button)
-
-                if (i === currentPage) {
-                    li.classList.add("active")
-                    li.ariaCurrent = "page"
-                } else {
-                    button.addEventListener("click", () => {
-                        currentPage = i
-                        updateTitle()
-                        updateTable()
-                        updatePagination()
-                    })
-                }
-
-                paginationFragment.appendChild(li)
-            }
-
-            paginationContainer.innerHTML = ""
-            paginationContainer.appendChild(paginationFragment)
-        }
-
-        updatePagination()
-    } else {
-        groupFragment.querySelector("nav").remove()
-    }
-
-    // Initial update
-    updateTitle()
-    updateTable()
-    return groupFragment
+    return [groupFragment, disposePagination]
 }

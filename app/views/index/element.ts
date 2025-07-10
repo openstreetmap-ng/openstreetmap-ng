@@ -8,7 +8,9 @@ import {
     type PartialElementParams,
     type PartialElementParams_Entry,
     PartialElementParamsSchema,
+    type RenderElementsData,
 } from "../lib/proto/shared_pb"
+import { configureStandardPagination } from "../lib/standard-pagination"
 import { setPageTitle } from "../lib/title"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
@@ -29,7 +31,6 @@ const focusPaint: FocusLayerPaint = Object.freeze({
 })
 
 const elementsPerPage = 20
-const paginationDistance = 2
 
 /** Create a new element controller */
 export const getElementController = (map: MaplibreMap): IndexController => {
@@ -41,11 +42,15 @@ export const getElementController = (map: MaplibreMap): IndexController => {
         // Handle not found
         if (!sidebarContent.dataset.params) return
 
-        const params = initializeElementContent(map, sidebarContent)
-        const elements = convertRenderElementsData(params.render)
+        const [render, diposeElementContent] = initializeElementContent(
+            map,
+            sidebarContent,
+        )
+        const elements = convertRenderElementsData(render)
         focusObjects(map, elements, focusPaint)
 
         return () => {
+            diposeElementContent()
             focusObjects(map)
         }
     })
@@ -66,7 +71,7 @@ export const getElementController = (map: MaplibreMap): IndexController => {
 export const initializeElementContent = (
     map: MaplibreMap,
     container: HTMLElement,
-): PartialElementParams => {
+): [RenderElementsData, () => void] => {
     console.debug("initializeElementContent")
 
     const locationButton = container.querySelector(".location-container button")
@@ -83,17 +88,30 @@ export const initializeElementContent = (
         PartialElementParamsSchema,
         base64Decode(container.dataset.params),
     )
-    const parentsContainer = container.querySelector("div.parents")
-    if (parentsContainer) {
-        renderElementsComponent(parentsContainer, params.parents, false)
-    }
-    const membersContainer = container.querySelector("div.elements")
-    if (membersContainer) {
-        const isWay = params.type === "way"
-        renderElementsComponent(membersContainer, params.members, isWay)
-    }
+    const disposeList: (() => void)[] = []
 
-    return params
+    const parentsContainer = container.querySelector("div.parents")
+    if (parentsContainer)
+        disposeList.push(
+            renderElementsComponent(parentsContainer, params.parents, false),
+        )
+
+    const membersContainer = container.querySelector("div.elements")
+    if (membersContainer)
+        disposeList.push(
+            renderElementsComponent(
+                membersContainer,
+                params.members,
+                params.type === "way",
+            ),
+        )
+
+    return [
+        params.render,
+        () => {
+            for (const dispose of disposeList) dispose()
+        },
+    ]
 }
 
 /** Render elements component */
@@ -101,23 +119,28 @@ const renderElementsComponent = (
     elementsSection: HTMLElement,
     elements: PartialElementParams_Entry[],
     isWay: boolean,
-): void => {
+): (() => void) => {
     console.debug("renderElementsComponent", elements.length)
 
     const entryTemplate = elementsSection.querySelector("template.entry")
     const titleElement = elementsSection.querySelector(".title")
-    const tbody = elementsSection.querySelector("tbody")
+    const paginationContainer = elementsSection.querySelector("ul.pagination")
 
     // Calculate pagination
     const elementsLength = elements.length
     const totalPages = Math.ceil(elementsLength / elementsPerPage)
-    let currentPage = 1
 
-    const updateTitle = (): void => {
+    if (totalPages > 1) {
+        paginationContainer.dataset.pages = totalPages.toString()
+    } else {
+        paginationContainer.parentElement.classList.add("d-none")
+    }
+
+    const updateTitle = (page: number): void => {
         let count: string
         if (totalPages > 1) {
-            const from = (currentPage - 1) * elementsPerPage + 1
-            const to = Math.min(currentPage * elementsPerPage, elementsLength)
+            const from = (page - 1) * elementsPerPage + 1
+            const to = Math.min(page * elementsPerPage, elementsLength)
             count = i18next.t("pagination.range", {
                 x: `${from}-${to}`,
                 y: elementsLength,
@@ -139,11 +162,11 @@ const renderElementsComponent = (
         titleElement.textContent = newTitle
     }
 
-    const updateTable = (): void => {
-        const tbodyFragment = document.createDocumentFragment()
+    const updateTable = (page: number, renderContainer: HTMLElement): void => {
+        const renderFragment = document.createDocumentFragment()
 
-        const iStart = (currentPage - 1) * elementsPerPage
-        const iEnd = Math.min(currentPage * elementsPerPage, elementsLength)
+        const iStart = (page - 1) * elementsPerPage
+        const iEnd = Math.min(page * elementsPerPage, elementsLength)
         for (let i = iStart; i < iEnd; i++) {
             const element = elements[i]
             const type = element.type
@@ -204,68 +227,20 @@ const renderElementsComponent = (
                 })
             }
 
-            tbodyFragment.appendChild(entryFragment)
+            renderFragment.appendChild(entryFragment)
         }
 
-        tbody.innerHTML = ""
-        tbody.appendChild(tbodyFragment)
+        renderContainer.innerHTML = ""
+        renderContainer.appendChild(renderFragment)
     }
 
-    if (totalPages > 1) {
-        const paginationContainer = elementsSection.querySelector(".pagination")
+    const disposePagination = configureStandardPagination(elementsSection, {
+        initialPage: 1,
+        customLoader: (page: number, renderContainer: HTMLElement) => {
+            updateTitle(page)
+            updateTable(page, renderContainer)
+        },
+    })
 
-        const updatePagination = (): void => {
-            console.debug("updatePagination", currentPage)
-
-            const paginationFragment = document.createDocumentFragment()
-
-            for (let i = 1; i <= totalPages; i++) {
-                const distance = Math.abs(i - currentPage)
-                if (distance > paginationDistance && i !== 1 && i !== totalPages) {
-                    if (i === 2 || i === totalPages - 1) {
-                        const li = document.createElement("li")
-                        li.classList.add("page-item", "disabled")
-                        li.ariaDisabled = "true"
-                        li.innerHTML = `<span class="page-link">...</span>`
-                        paginationFragment.appendChild(li)
-                    }
-                    continue
-                }
-
-                const li = document.createElement("li")
-                li.classList.add("page-item")
-
-                const button = document.createElement("button")
-                button.type = "button"
-                button.classList.add("page-link")
-                button.textContent = i.toString()
-                li.appendChild(button)
-
-                if (i === currentPage) {
-                    li.classList.add("active")
-                    li.ariaCurrent = "page"
-                } else {
-                    button.addEventListener("click", () => {
-                        currentPage = i
-                        updateTitle()
-                        updateTable()
-                        updatePagination()
-                    })
-                }
-
-                paginationFragment.appendChild(li)
-            }
-
-            paginationContainer.innerHTML = ""
-            paginationContainer.appendChild(paginationFragment)
-        }
-
-        updatePagination()
-    } else {
-        elementsSection.querySelector("nav").remove()
-    }
-
-    // Initial update
-    updateTitle()
-    updateTable()
+    return disposePagination
 }
