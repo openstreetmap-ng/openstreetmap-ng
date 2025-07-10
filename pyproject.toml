@@ -110,6 +110,7 @@ ignore = [
   "ISC001", # single-line-implicit-string-concatenation
   "ISC002", # multi-line-implicit-string-concatenation
   "LOG015", # root-logger-call
+  "N803", # invalid-argument-name
   "PLR09", # too-many-*
   "PLR1702", # too-many-nested-blocks
   "PLR2",

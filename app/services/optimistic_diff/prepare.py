@@ -465,8 +465,8 @@ class OptimisticDiffPrepare:
         prev: ElementInit | None,
         element: ElementInit,
         *,
-        TYPED_ELEMENT_ID_RELATION_MIN=TYPED_ELEMENT_ID_RELATION_MIN,  # noqa: N803
-        TYPED_ELEMENT_ID_RELATION_MAX=TYPED_ELEMENT_ID_RELATION_MAX,  # noqa: N803
+        TYPED_ELEMENT_ID_RELATION_MIN=TYPED_ELEMENT_ID_RELATION_MIN,
+        TYPED_ELEMENT_ID_RELATION_MAX=TYPED_ELEMENT_ID_RELATION_MAX,
     ) -> None:
         """Push bbox info for a relation. Relation info contains either all members or only changed members."""
         next_members = element['members']
@@ -593,8 +593,8 @@ class OptimisticDiffPrepare:
     async def _update_changeset_bounds(
         self,
         *,
-        TYPED_ELEMENT_ID_NODE_MIN: cython.ulonglong = TYPED_ELEMENT_ID_NODE_MIN,  # noqa: N803
-        TYPED_ELEMENT_ID_NODE_MAX: cython.ulonglong = TYPED_ELEMENT_ID_NODE_MAX,  # noqa: N803
+        TYPED_ELEMENT_ID_NODE_MIN: cython.ulonglong = TYPED_ELEMENT_ID_NODE_MIN,
+        TYPED_ELEMENT_ID_NODE_MAX: cython.ulonglong = TYPED_ELEMENT_ID_NODE_MAX,
     ) -> None:
         """Update changeset bounds using the collected bbox info."""
         bbox_points = self._bbox_points

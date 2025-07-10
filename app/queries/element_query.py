@@ -3,6 +3,7 @@ from asyncio import TaskGroup
 from contextlib import nullcontext
 from typing import Any, Literal
 
+import cython
 from psycopg import AsyncConnection, IsolationLevel
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
@@ -297,8 +298,8 @@ class ElementQuery:
         recurse_ways: bool = False,
         sort_dir: Literal['asc', 'desc'] = 'desc',
         limit: int | None = None,
-        TYPED_ELEMENT_ID_WAY_MIN=TYPED_ELEMENT_ID_WAY_MIN,  # noqa: N803
-        TYPED_ELEMENT_ID_WAY_MAX=TYPED_ELEMENT_ID_WAY_MAX,  # noqa: N803
+        TYPED_ELEMENT_ID_WAY_MIN=TYPED_ELEMENT_ID_WAY_MIN,
+        TYPED_ELEMENT_ID_WAY_MAX=TYPED_ELEMENT_ID_WAY_MAX,
     ) -> list[Element]:
         """Get current elements by their element refs. Optionally recurse ways to get their nodes."""
         if not typed_ids:
@@ -628,6 +629,7 @@ class ElementQuery:
         include_relations: bool = True,
         nodes_limit: int | None = None,
         legacy_nodes_limit: bool = False,
+        LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS: cython.bint = LEGACY_ALLOW_MISSING_ELEMENT_MEMBERS,
     ) -> list[Element]:
         """
         Find elements within the given geometry.
