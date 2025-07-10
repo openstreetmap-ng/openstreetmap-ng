@@ -111,8 +111,8 @@ def _render_ways(
             if node is None:
                 # split way on gap
                 if current_segment:
-                    current_segment = []
                     segments.append(current_segment)
+                    current_segment = []
                 continue
 
             point = node['point']
