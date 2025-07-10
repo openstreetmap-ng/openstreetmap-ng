@@ -14,7 +14,7 @@ OpenStreetMap-NG is a modern, high-performance Python implementation of the Open
 **Frontend:**
 
 - Server-side rendered HTML with Jinja2 templates
-- TypeScript (ES2023) with MapLibre GL JS
+- TypeScript (ES2023) with typed-query-selector, and MapLibre GL JS
 - SCSS with Bootstrap 5
 - Bootstrap Icons
 
@@ -63,6 +63,8 @@ shell.nix               # Reproducible environment definition
 ## Development Workflow
 
 **Application Server:**
+
+Server should only be run by the human. Test suites execute regardless of server state.
 
 ```bash
 run
