@@ -134,7 +134,7 @@ def _render_ways(
             segments.append(current_segment)
 
         is_area = (
-            _check_way_area(way['tags'], way_members)  # type: ignore
+            _check_way_area(way['tags'], way_members)
             if areas and len(segments) == 1
             else False
         )
@@ -172,10 +172,11 @@ def _render_nodes(
 
 
 @cython.cfunc
-def _check_way_area(tags: dict[str, str], members: list[TypedElementId]):
+def _check_way_area(tags: dict[str, str] | None, members: list[TypedElementId]):
     """Check if the way should be displayed as an area."""
     return (
-        len(members) > 2  # has enough members
+        tags is not None
+        and len(members) > 2  # has enough members
         and members[0] == members[-1]  # is closed
         and (
             bool(_AREA_TAGS.intersection(tags))  # has area tag
