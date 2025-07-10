@@ -1,7 +1,7 @@
 import logging
 from asyncio import TaskGroup
 from contextlib import nullcontext
-from typing import Any, Literal
+from typing import Any, Literal, LiteralString
 
 import cython
 from psycopg import AsyncConnection, IsolationLevel
@@ -480,12 +480,15 @@ class ElementQuery:
 
         conditions: list[Composable] = [SQL('members && %s::bigint[]')]
         params: list[Any] = [members]
+        hint_index: LiteralString
 
         if at_sequence_id is not None:
             conditions.append(SQL('sequence_id <= %s AND (latest OR NOT latest)'))
             params.append(at_sequence_id)
+            hint_index = 'element_members_idx element_members_history_idx'
         else:
             conditions.append(SQL('latest'))
+            hint_index = 'element_members_idx'
 
         if parent_type is None:
             conditions.append(SQL('typed_id >= 1152921504606846976'))
@@ -505,13 +508,14 @@ class ElementQuery:
             limit_clause = SQL('')
 
         # Find elements that reference the member typed_ids
-        query = SQL("""
+        query = SQL("""/*+ BitmapScan(element {hint_index}) */
             SELECT {distinct} *
             FROM element
             WHERE {conditions}
             ORDER BY {order}
             {limit}
         """).format(
+            hint_index=SQL(hint_index),
             distinct=(
                 SQL('')  #
                 if at_sequence_id is None
@@ -528,18 +532,9 @@ class ElementQuery:
 
         async with (
             nullcontext(conn) if conn is not None else db() as conn,  # noqa: PLR1704
-            conn.cursor(row_factory=dict_row) as cur,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
-            # The members query tends to use an incorrect index, because of skewed statistics.
-            # Force disabling indexscan/seqscan to prefer using GIN bitmapscan.
-            await cur.execute('SET LOCAL enable_indexscan = off')
-            await cur.execute('SET LOCAL enable_seqscan = off')
-
-            result = await (await cur.execute(query, params)).fetchall()
-
-            await cur.execute('RESET enable_indexscan')
-            await cur.execute('RESET enable_seqscan')
-            return result  # type: ignore
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def get_current_parents_refs_by_refs(
@@ -553,7 +548,7 @@ class ElementQuery:
             return {}
 
         inner_conditions: list[Composable] = [
-            SQL("""
+            SQL("""/*+ BitmapScan(element element_members_idx) */
                 members && %s::bigint[]
                 AND typed_id >= 1152921504606846976
                 AND latest
@@ -585,19 +580,11 @@ class ElementQuery:
             limit=limit_clause,
         )
 
-        async with conn.cursor() as cur:
-            # The members query tends to use an incorrect index, because of skewed statistics.
-            # Force disabling indexscan/seqscan to prefer using GIN bitmapscan.
-            await cur.execute('SET LOCAL enable_indexscan = off')
-            await cur.execute('SET LOCAL enable_seqscan = off')
-
+        async with await conn.execute(query, params) as r:
             result: dict[TypedElementId, set[TypedElementId]]
             result = {member: set() for member in members}
-            for member, parent in await (await cur.execute(query, params)).fetchall():
+            for member, parent in await r.fetchall():
                 result[member].add(parent)
-
-            await cur.execute('RESET enable_indexscan')
-            await cur.execute('RESET enable_seqscan')
             return result
 
     @staticmethod

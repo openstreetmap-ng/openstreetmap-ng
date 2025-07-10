@@ -169,7 +169,7 @@ writeText "postgres.conf" (
   + ''
 
     # configure additional libraries
-    shared_preload_libraries = 'auto_explain,timescaledb'
+    shared_preload_libraries = 'auto_explain,timescaledb,pg_hint_plan'
 
     # automatically explain slow queries
     # reason: useful for troubleshooting

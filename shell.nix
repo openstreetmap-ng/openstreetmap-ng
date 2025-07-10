@@ -167,6 +167,7 @@ let
       ps.timescaledb-apache
       ps.postgis
       ps.h3-pg
+      ps.pg_hint_plan
     ]))
     timescaledb-parallel-copy
     mailpit
