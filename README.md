@@ -7,7 +7,8 @@
 
 Welcome to OpenStreetMap-NG, an innovative unofficial Python fork of [openstreetmap.org](https://openstreetmap.org). Our mission is to revolutionize the map and provide a better experience for all users. It is simply the Next Generation of OpenStreetMap.
 
-We will provide a demo website **~~at the end of 2024~~**. We are working hard on the final core features — stay tuned!
+🗺️ [**Public Instance** (osm.ng)](https://osm.ng),
+📖 [**Testing Guide**](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Public-Testing)
 
 🛈 This initiative is not affiliated with the OpenStreetMap Foundation.
 
@@ -93,16 +94,6 @@ Public supporters on [Liberapay](https://liberapay.com/Zaczero/) and [GitHub Spo
 [JetBrains](https://www.jetbrains.com) joins our [Contributor Incentives](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Contributor-Incentives) program by providing paid IDE licenses for active code contributors. Their support enhances our ability to craft high-quality solutions for OpenStreetMap-NG, as well as incentivizes new contributors to participate in the project.
 
 [<img src="https://raw.githubusercontent.com/openstreetmap-ng/openstreetmap-ng/refs/heads/main/resources/jetbrains.webp" alt="JetBrains logo on white background" height=56>](https://www.jetbrains.com)
-
-## 🛣️ TODOs: Public Release
-
-The following table outlines the notable features that need to be finished before the first public release of OpenStreetMap-NG. This represents our roadmap to achieving release-ready feature parity with the current OpenStreetMap Ruby implementation.
-
-**Release ETA**: ~~End of 2024~~
-
-| Missing Feature | Status        |
-|-----------------|---------------|
-| Dark Theme      | 100% Complete |
 
 ---
 
