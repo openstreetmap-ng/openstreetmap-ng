@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 from httpx import AsyncClient
 from starlette import status
@@ -14,6 +16,7 @@ from tests.utils.mailpit_helper import MailpitHelper
 
 @pytest.mark.extended
 @pytest.mark.flaky(reruns=5, only_rerun=['TimeoutError'])
+@pytest.mark.skipif(sys.platform == 'darwin', reason="So flaky that it's annoying")
 async def test_diary_comment_notification_and_unsubscribe(client: AsyncClient):
     user1 = await UserQuery.find_one_by_display_name(DisplayName('user1'))
     user2 = await UserQuery.find_one_by_display_name(DisplayName('user2'))
