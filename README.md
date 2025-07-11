@@ -69,7 +69,7 @@ This project is funded entirely through community donations. We are not sponsore
 
 ## 🤝️ Meet The Sponsors
 
-We are deeply grateful to the individuals and organizations who support OpenStreetMap-NG through their generous contributions. Their commitment fuels our mission to revolutionize open-source mapping and helps maintain the project's independence.
+We are incredibly fortunate to have individuals and organizations who support OpenStreetMap-NG through their generous contributions. Their commitment powers our mission to revolutionize open-source mapping and helps maintain the project's independence.
 
 ### Individual Sponsors
 
