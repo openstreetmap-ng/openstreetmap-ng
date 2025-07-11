@@ -13,7 +13,7 @@ from app.lib.pydantic_settings_integration import pydantic_settings_integration
 SENTRY_DSN = ''
 
 SENTRY_TRACES_SAMPLE_RATE = Field(1.0, ge=0, le=1)
-SENTRY_PROFILES_SAMPLE_RATE = Field(1.0, ge=0, le=1)
+SENTRY_PROFILE_SESSION_SAMPLE_RATE = Field(1.0, ge=0, le=1)
 
 SENTRY_REPLICATION_MONITOR_SLUG = 'osm-ng-replication'
 SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG = 'osm-ng-changeset-management'
@@ -36,10 +36,8 @@ if SENTRY_DSN and 'pytest' not in modules:
         keep_alive=True,
         traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
         trace_propagation_targets=None,
-        profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
-        _experiments={
-            'continuous_profiling_auto_start': True,
-        },
+        profile_session_sample_rate=SENTRY_PROFILE_SESSION_SAMPLE_RATE,
+        profile_lifecycle='trace',
     )
     logging.debug('Initialized Sentry SDK')
 
