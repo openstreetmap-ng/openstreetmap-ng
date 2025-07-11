@@ -1,0 +1,91 @@
+from urllib.parse import parse_qs, urlsplit
+
+from httpx import AsyncClient
+from starlette import status
+
+from app.lib.auth_context import auth_context
+from app.models.types import DisplayName, MessageId
+from app.queries.message_query import MessageQuery
+from app.queries.user_query import UserQuery
+from tests.utils.assert_model import assert_model
+
+
+async def test_message_crud(client: AsyncClient):
+    user1 = await UserQuery.find_one_by_display_name(DisplayName('user1'))
+
+    # Authenticate as user1 (sender)
+    client.headers['Authorization'] = 'User user1'
+
+    # CREATE: Send message from user1 to user2
+    r = await client.post(
+        '/api/web/messages/',
+        data={
+            'subject': 'Test Subject',
+            'body': 'Test Body',
+            'recipient': 'user2',
+        },
+    )
+    assert r.is_success, r.text
+
+    # Parse message ID from redirect URL: /messages/outbox?show=123
+    parsed_url = urlsplit(r.json()['redirect_url'])
+    query_params = parse_qs(parsed_url.query, strict_parsing=True)
+    message_id = MessageId(int(query_params['show'][0]))
+
+    # Test sender can read their own sent message
+    r = await client.get(f'/api/web/messages/{message_id}')
+    assert r.is_success, r.text
+
+    sender_read_response = r.json()
+    assert_model(
+        sender_read_response,
+        {
+            'user_display_name': 'user2',
+            'user_avatar_url': str,
+            'time': str,
+            'subject': 'Test Subject',
+            'body_rich': '<p>Test Body</p>\n',
+        },
+    )
+
+    with auth_context(user1, ()):
+        message = await MessageQuery.get_message_by_id(message_id)
+        assert not message['read']
+
+    # Authenticate as user2 (recipient)
+    client.headers['Authorization'] = 'User user2'
+
+    # READ: Get message as recipient
+    r = await client.get(f'/api/web/messages/{message_id}')
+    assert r.is_success, r.text
+
+    read_response = r.json()
+    assert_model(
+        read_response,
+        {
+            'user_display_name': 'user1',
+            'user_avatar_url': str,
+            'time': str,
+            'subject': 'Test Subject',
+            'body_rich': '<p>Test Body</p>\n',
+        },
+    )
+
+    with auth_context(user1, ()):
+        message = await MessageQuery.get_message_by_id(message_id)
+        assert message['read']
+
+        # UPDATE: Mark message as unread
+        r = await client.post(f'/api/web/messages/{message_id}/unread')
+        assert r.status_code == status.HTTP_204_NO_CONTENT
+
+        message = await MessageQuery.get_message_by_id(message_id)
+        assert not message['read']
+
+    # DELETE: Delete message
+    r = await client.post(f'/api/web/messages/{message_id}/delete')
+    assert r.status_code == status.HTTP_204_NO_CONTENT
+
+    # Test accessing deleted message
+    r = await client.get(f'/api/web/messages/{message_id}')
+    assert r.status_code == status.HTTP_404_NOT_FOUND
