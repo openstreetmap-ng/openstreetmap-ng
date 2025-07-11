@@ -12,8 +12,8 @@ from app.lib.pydantic_settings_integration import pydantic_settings_integration
 
 SENTRY_DSN = ''
 
-SENTRY_TRACES_SAMPLE_RATE = Field(1.0, ge=0, le=1)
-SENTRY_PROFILE_SESSION_SAMPLE_RATE = Field(1.0, ge=0, le=1)
+SENTRY_TRACES_SAMPLE_RATE: float = Field(1.0, ge=0, le=1)
+SENTRY_PROFILE_SESSION_SAMPLE_RATE: float = Field(1.0, ge=0, le=1)
 
 SENTRY_REPLICATION_MONITOR_SLUG = 'osm-ng-replication'
 SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG = 'osm-ng-changeset-management'
