@@ -53,10 +53,12 @@ class MessageService:
             await conn.execute(
                 """
                 INSERT INTO message (
-                    from_user_id, to_user_id, subject, body
+                    id, from_user_id, to_user_id,
+                    subject, body
                 )
                 VALUES (
-                    %(from_user_id)s, %(to_user_id)s, %(subject)s, %(body)s
+                    %(id)s, %(from_user_id)s, %(to_user_id)s,
+                    %(subject)s, %(body)s
                 )
                 RETURNING created_at
                 """,
