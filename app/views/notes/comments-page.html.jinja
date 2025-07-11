@@ -1,11 +1,15 @@
 {% for comment in comments %}
 <li class="social-entry">
     <p class="header text-muted">
+        {% if not comment.user %}
+        {{ t('browse.anonymous') }}
+        {% else %}
         <a href="/user/{{ comment.user.display_name }}">
             <img class="avatar" src="{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}"
                 loading="lazy">
             {{- comment.user.display_name -}}
         </a>
+        {% endif %}
         {% if comment.event == 'commented' %}
         {{ t('action.commented') }}
         {% elif comment.event == 'closed' %}

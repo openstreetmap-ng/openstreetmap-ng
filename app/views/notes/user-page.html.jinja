@@ -12,11 +12,15 @@
         <div class="social-entry clickable h-100">
             <div class="header text-muted d-flex justify-content-between">
                 <div>
+                    {% if not comment.user %}
+                    {{ t('browse.anonymous') }}
+                    {% else %}
                     <a href="/user/{{ comment.user.display_name }}" rel="author">
                         <img class="avatar" src="{{ user_avatar_url(comment.user) }}"
                             alt="{{ t('alt.profile_picture') }}">
                         {{- comment.user.display_name -}}
                     </a>
+                    {% endif %}
                     {{ t('browse.created') | lower }}
                     <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
                 </div>
