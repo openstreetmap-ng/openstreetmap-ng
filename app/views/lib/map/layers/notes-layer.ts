@@ -7,6 +7,7 @@ import {
     Popup,
 } from "maplibre-gl"
 import { routerNavigateStrict } from "../../../index/_router"
+import { toggleLayerSpinner } from "../../../index/sidebar/layers"
 import { config } from "../../config"
 import { RenderNotesDataSchema } from "../../proto/shared_pb"
 import { clearMapHover, setMapHover } from "../hover"
@@ -139,6 +140,8 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
             .adjustAntiMeridian()
             .toArray()
+
+        toggleLayerSpinner(layerId, true)
         fetch(`/api/web/note/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
             method: "GET",
             mode: "same-origin",
@@ -147,6 +150,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
             priority: "high",
         })
             .then(async (resp) => {
+                toggleLayerSpinner(layerId, false)
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
                 const buffer = await resp.arrayBuffer()
@@ -159,6 +163,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
             .catch((error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch notes", error)
+                toggleLayerSpinner(layerId, false)
                 source.setData(emptyFeatureCollection)
             })
     }
@@ -181,6 +186,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
         } else {
             abortController?.abort()
             abortController = null
+            toggleLayerSpinner(layerId, false)
             source.setData(emptyFeatureCollection)
             clearMapHover(map, layerId)
             fetchedBounds = null

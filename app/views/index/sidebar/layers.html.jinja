@@ -103,6 +103,9 @@
                     <label class="form-check-label d-block">
                         <input class="form-check-input overlay" type="checkbox" value="notes">
                         {{ t('javascripts.map.layers.notes') }}
+                        <div class="spinner-border text-body-secondary d-none" role="status">
+                            <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>
+                        </div>
                     </label>
                 </div>
 
@@ -110,6 +113,9 @@
                     <label class="form-check-label d-block">
                         <input class="form-check-input overlay" type="checkbox" value="data">
                         {{ t('javascripts.map.layers.data') }}
+                        <div class="spinner-border text-body-secondary d-none" role="status">
+                            <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>
+                        </div>
                     </label>
                 </div>
 

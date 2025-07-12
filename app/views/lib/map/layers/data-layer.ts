@@ -6,6 +6,7 @@ import type {
     Map as MaplibreMap,
 } from "maplibre-gl"
 import { routerNavigateStrict } from "../../../index/_router"
+import { toggleLayerSpinner } from "../../../index/sidebar/layers"
 import { config } from "../../config"
 import { RenderElementsDataSchema } from "../../proto/shared_pb"
 import { qsEncode } from "../../qs"
@@ -201,6 +202,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
             .adjustAntiMeridian()
             .toArray()
 
+        toggleLayerSpinner(layerId, true)
         fetch(
             `/api/web/map?${qsEncode({
                 bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
@@ -215,6 +217,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
             },
         )
             .then(async (resp) => {
+                toggleLayerSpinner(layerId, false)
                 if (!resp.ok) {
                     if (resp.status === 400) {
                         errorDataAlert.classList.remove("d-none")
@@ -224,6 +227,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
                     }
                     throw new Error(`${resp.status} ${resp.statusText}`)
                 }
+
                 const buffer = await resp.arrayBuffer()
                 const render = fromBinary(
                     RenderElementsDataSchema,
@@ -240,6 +244,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
             .catch((error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch map data", error)
+                toggleLayerSpinner(layerId, false)
                 clearData()
             })
     }
@@ -255,6 +260,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
             loadDataAlert.classList.add("d-none")
             abortController?.abort()
             abortController = null
+            toggleLayerSpinner(layerId, false)
             clearData()
         }
     })
