@@ -1,9 +1,13 @@
 from urllib.parse import parse_qs, urlsplit
 
+import pytest
 from httpx import AsyncClient
 from starlette import status
 
+from app.exceptions import Exceptions
+from app.exceptions.api_error import APIError
 from app.lib.auth_context import auth_context
+from app.lib.exceptions_context import exceptions_context
 from app.models.types import DisplayName, MessageId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
@@ -89,3 +93,23 @@ async def test_message_crud(client: AsyncClient):
     # Test accessing deleted message
     r = await client.get(f'/api/web/messages/{message_id}')
     assert r.status_code == status.HTTP_404_NOT_FOUND
+
+    # Authenticate as user1 (sender)
+    client.headers['Authorization'] = 'User user1'
+
+    with exceptions_context(Exceptions()), auth_context(user1, ()):
+        message = await MessageQuery.get_message_by_id(message_id)
+        assert_model(
+            message,
+            {
+                'from_user_hidden': False,
+                'to_user_hidden': True,
+            },
+        )
+
+        # DELETE: Delete message
+        r = await client.post(f'/api/web/messages/{message_id}/delete')
+        assert r.status_code == status.HTTP_204_NO_CONTENT
+
+        with pytest.raises(APIError, match='Message not found'):
+            await MessageQuery.get_message_by_id(message_id)
