@@ -230,7 +230,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
                     resultRect.bottom <= sidebarRect.bottom
                 if (!isVisible)
                     result.scrollIntoView({ behavior: "smooth", block: "center" })
-                focusObjects(map, elements[id](), focusPaint, {
+                focusObjects(map, elements[id](), focusPaint, null, {
                     ...focusOptions,
                     // Focus on hover only during global search
                     fitBounds: globalMode,
@@ -243,7 +243,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
         if (globalMode) {
             // global mode
             if (results.length) {
-                focusObjects(map, elements[0](), focusPaint, focusOptions)
+                focusObjects(map, elements[0](), focusPaint, null, focusOptions)
                 focusObjects(map)
             }
             initialBounds = map.getBounds()

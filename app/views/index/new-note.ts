@@ -86,6 +86,7 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
                         },
                     ],
                     focusPaint,
+                    null,
                     { fitBounds: false },
                 )
             }

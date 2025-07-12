@@ -23,22 +23,23 @@ import {
 } from "./layers"
 
 export type FocusLayerPaint = AddMapLayerOptions["paint"]
+export type FocusLayerLayout = AddMapLayerOptions["layout"]
 
 export interface FocusOptions {
-    /** Fit the map to the focused objects */
+    /** Fit the map to the focused objects @default true */
     fitBounds?: boolean
-    /** Amount of padding to add to the bounds */
+    /** Amount of padding to add to the bounds @default 0.2 */
     padBounds?: number
-    /** Maximum zoom level to focus on */
+    /** Maximum zoom level to focus on @default 18 */
     maxZoom?: number
-    /** Whether to perform intersection check instead of containment */
+    /** Whether to perform intersection check instead of containment @default false */
     intersects?: boolean
-    /** Perform a proportion check when fitting the map */
+    /** Perform a proportion check when fitting the map @default true */
     proportionCheck?: boolean
 }
 
 const layerId = "focus" as LayerId
-const layerTypes = Object.freeze(["fill", "line", "circle"]) as LayerType[]
+const layerTypes = Object.freeze(["fill", "line", "circle", "symbol"]) as LayerType[]
 layersConfig.set(layerId as LayerId, {
     specification: {
         type: "geojson",
@@ -57,40 +58,8 @@ layersConfig.set(layerId as LayerId, {
     priority: 140,
 })
 
-const lastPaintMap = new WeakMap<MaplibreMap, FocusLayerPaint>()
+const lastPropertyMap = new WeakMap<MaplibreMap, [FocusLayerPaint, FocusLayerLayout]>()
 const layerAddedMap = new WeakSet<MaplibreMap>()
-
-// TODO: leaflet leftover
-// note: {
-//     pane: "focus",
-// },
-// noteHalo: {
-//     radius: 20,
-//     color: "#f60",
-//     weight: 2.5,
-//     opacity: 1,
-//     fillOpacity: 0.5,
-//     interactive: false,
-// },
-// export const focusStyles: RenderStyles = {
-//     changeset: {
-//         pane: "focus",
-//         color: "#f90",
-//         weight: 3,
-//         opacity: 1,
-//         fillColor: "#ffffaf",
-//         fillOpacity: 0,
-//         interactive: false,
-//     },
-//     element: {
-//         pane: "focus",
-//         color: "#f60",
-//         weight: 4,
-//         opacity: 1,
-//         fillOpacity: 0.5,
-//         interactive: false,
-//     },
-// }
 
 /**
  * Focus many objects on the map and return their layers.
@@ -100,6 +69,7 @@ export const focusObjects = (
     map: MaplibreMap,
     objects?: OSMObject[],
     paint?: FocusLayerPaint,
+    layout?: FocusLayerLayout,
     options?: FocusOptions,
 ): void => {
     const source = map.getSource(layerId) as GeoJSONSource
@@ -113,25 +83,43 @@ export const focusObjects = (
         addMapLayer(map, layerId)
     }
 
-    if (paint && lastPaintMap.get(map) !== paint) {
-        lastPaintMap.set(map, paint)
+    const [lastPaint, lastLayout] = lastPropertyMap.get(map) ?? [undefined, undefined]
+
+    for (const [last, current, setter] of [
+        [lastPaint, paint, map.setPaintProperty],
+        [lastLayout, layout, map.setLayoutProperty],
+    ] as const) {
+        if (last === current) continue
+
         for (const type of layerTypes) {
             const extendedLayerId = getExtendedLayerId(layerId, type)
-            const layer = map.getLayer(extendedLayerId)
-            if (!layer) continue
+            if (!map.getLayer(extendedLayerId)) continue
 
-            // Apply only supported paint properties
             const validPrefixes = [`${type}-`]
             if (type === "symbol") validPrefixes.push("icon-", "text-")
 
-            for (const [k, v] of Object.entries(paint)) {
-                for (const prefix of validPrefixes) {
-                    if (!k.startsWith(prefix)) continue
-                    map.setPaintProperty(extendedLayerId, k, v)
+            if (last) {
+                for (const k of Object.keys(last)) {
+                    for (const prefix of validPrefixes) {
+                        if (!k.startsWith(prefix) || (current && k in current)) continue
+                        setter.call(map, extendedLayerId, k, null)
+                        break
+                    }
+                }
+            }
+            if (current) {
+                for (const [k, v] of Object.entries(current)) {
+                    for (const prefix of validPrefixes) {
+                        if (!k.startsWith(prefix)) continue
+                        setter.call(map, extendedLayerId, k, v)
+                        break
+                    }
                 }
             }
         }
     }
+
+    lastPropertyMap.set(map, [paint, layout])
 
     const data = renderObjects(objects)
     source.setData(data)
@@ -148,7 +136,7 @@ export const focusObjects = (
 
         const maxZoom = options?.maxZoom ?? 18
         const currentZoom = map.getZoom()
-        const fitMaxZoom = maxZoom >= currentZoom ? maxZoom : map.getMaxZoom()
+        const fitMaxZoom = Math.max(currentZoom, maxZoom)
 
         if (
             options?.intersects

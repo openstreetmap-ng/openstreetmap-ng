@@ -94,7 +94,7 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
             id: params.id,
             bounds: paramsBounds.map((b) => makeBoundsMinimumSize(map, b)),
         }
-        focusObjects(map, [object], focusPaint, {
+        focusObjects(map, [object], focusPaint, null, {
             // Fit the bounds only on the initial update
             fitBounds: !e,
         })

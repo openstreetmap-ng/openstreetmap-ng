@@ -36,7 +36,7 @@ layersConfig.set(layerId as LayerId, {
     layerTypes: ["symbol"],
     layerOptions: {
         layout: {
-            "icon-image": ["concat", "marker-", ["get", "status"]],
+            "icon-image": ["get", "icon"],
             "icon-allow-overlap": true,
             "icon-size": 41 / 128,
             "icon-padding": 0,

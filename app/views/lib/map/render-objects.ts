@@ -115,7 +115,7 @@ export const renderObjects = (
             properties: {
                 type: "note",
                 id: note.id?.toString(),
-                status: note.status,
+                icon: `marker-${note.status}`,
                 text: note.text,
             },
             geometry: {

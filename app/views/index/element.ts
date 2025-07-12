@@ -5,7 +5,6 @@ import type { Map as MaplibreMap } from "maplibre-gl"
 import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "../lib/map/render-objects"
 import {
-    type PartialElementParams,
     type PartialElementParams_Entry,
     PartialElementParamsSchema,
     type RenderElementsData,

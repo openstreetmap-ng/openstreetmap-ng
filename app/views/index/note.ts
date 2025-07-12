@@ -1,6 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"
+import type { Map as MaplibreMap } from "maplibre-gl"
 import {
     loadMapImage,
     markerClosedImageUrl,
@@ -8,13 +8,10 @@ import {
     markerOpenImageUrl,
 } from "../lib/map/image.ts"
 import {
-    addMapLayer,
-    emptyFeatureCollection,
-    type LayerId,
-    layersConfig,
-    removeMapLayer,
-} from "../lib/map/layers/layers.ts"
-import { renderObjects } from "../lib/map/render-objects"
+    type FocusLayerLayout,
+    type FocusLayerPaint,
+    focusObjects,
+} from "../lib/map/layers/focus-layer.ts"
 import { PartialNoteParamsSchema } from "../lib/proto/shared_pb"
 import { configureStandardForm } from "../lib/standard-form"
 import { configureStandardPagination } from "../lib/standard-pagination"
@@ -23,35 +20,22 @@ import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 
 const themeColor = "#f60"
-const layerId = "note" as LayerId
-layersConfig.set(layerId as LayerId, {
-    specification: {
-        type: "geojson",
-        data: emptyFeatureCollection,
-    },
-    layerTypes: ["circle", "symbol"],
-    layerOptions: {
-        layout: {
-            "icon-image": ["concat", "marker-", ["get", "status"]],
-            "icon-size": 41 / 128,
-            "icon-padding": 0,
-            "icon-anchor": "bottom",
-        },
-        paint: {
-            "circle-radius": 20,
-            "circle-color": themeColor,
-            "circle-opacity": 0.5,
-            "circle-stroke-width": 2.5,
-            "circle-stroke-color": themeColor,
-        },
-    },
-    priority: 135,
+const focusPaint: FocusLayerPaint = Object.freeze({
+    "circle-radius": 20,
+    "circle-color": themeColor,
+    "circle-opacity": 0.5,
+    "circle-stroke-width": 2.5,
+    "circle-stroke-color": themeColor,
 })
+const focusLayout: FocusLayerLayout = {
+    "icon-image": ["get", "icon"],
+    "icon-size": 41 / 128,
+    "icon-padding": 0,
+    "icon-anchor": "bottom",
+}
 
 /** Create a new note controller */
 export const getNoteController = (map: MaplibreMap): IndexController => {
-    const source = map.getSource(layerId) as GeoJSONSource
-
     const base = getBaseFetchController(map, "note", (sidebarContent) => {
         const sidebarTitleElement = sidebarContent.querySelector(
             ".sidebar-title",
@@ -84,16 +68,20 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
                 break
         }
 
-        const data = renderObjects([
-            {
-                type: "note",
-                geom: center,
-                status: params.status as "open" | "closed" | "hidden",
-                text: "",
-            },
-        ])
-        source.setData(data)
-        addMapLayer(map, layerId)
+        focusObjects(
+            map,
+            [
+                {
+                    type: "note",
+                    geom: center,
+                    status: params.status as "open" | "closed" | "hidden",
+                    text: "",
+                },
+            ],
+            focusPaint,
+            focusLayout,
+            { padBounds: 0, maxZoom: 15, proportionCheck: false },
+        )
 
         // On location click, pan the map
         const locationButton = sidebarContent.querySelector(
@@ -166,8 +154,7 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
 
         return () => {
             disposePagination()
-            removeMapLayer(map, layerId)
-            source.setData(emptyFeatureCollection)
+            focusObjects(map)
         }
     })
 
