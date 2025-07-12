@@ -16,9 +16,13 @@
     ) | safe }}
     {% else %}
     {% set _changeset_author -%}
+    {% if not changeset.user %}
+    {{ t('browse.anonymous') }}
+    {% else %}
     <a href="{{ APP_URL }}/user-id/{{ changeset.user_id }}" style="text-decoration: none; color: #222">
         {{- changeset.user.display_name -}}
     </a>
+    {% endif %}
     {%- endset %}
     {{ t('user_mailer.changeset_comment_notification.commented.commented_changeset_html',
         commenter=_commenter,

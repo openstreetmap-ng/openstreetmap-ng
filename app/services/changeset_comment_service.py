@@ -15,6 +15,7 @@ from app.models.db.changeset_comment import (
 )
 from app.models.types import ChangesetCommentId, ChangesetId, DisplayName
 from app.queries.changeset_query import ChangesetQuery
+from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
@@ -112,9 +113,15 @@ class ChangesetCommentService:
 async def _send_activity_email(comment: ChangesetComment) -> None:
     changeset_id = comment['changeset_id']
 
+    async def changeset_task():
+        changeset = await ChangesetQuery.find_by_id(changeset_id)
+        assert changeset is not None, f'Parent changeset {changeset_id} must exist'
+        await UserQuery.resolve_users([changeset])
+        return changeset
+
     async with TaskGroup() as tg:
         tg.create_task(changeset_comments_resolve_rich_text([comment]))
-        changeset_t = tg.create_task(ChangesetQuery.find_by_id(changeset_id))
+        changeset_t = tg.create_task(changeset_task())
         users = await UserSubscriptionQuery.get_subscribed_users(
             'changeset', changeset_id
         )
@@ -122,8 +129,6 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
             return
 
     changeset = changeset_t.result()
-    assert changeset is not None, f'Parent changeset {changeset_id} must exist'
-
     changeset_user_id: cython.longlong = changeset['user_id'] or 0
     changeset_comment_str = changeset.get('tags', {}).get('comment')
 
