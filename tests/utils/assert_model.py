@@ -13,10 +13,22 @@ def assert_model(
     strict: bool = False,
 ) -> None:
     """
-    Validate a dictionary structure against a set of validators.
-    :param data: The input dictionary to validate.
-    :param fields: A dictionary mapping field names to Pydantic validators.
-    :param strict: If True, no extra fields are allowed in the input.
+    Assert that a dictionary matches expected field types and values.
+
+    This function provides a unified way to validate data structures using three types of validators:
+    - **Types**: Standard Python types (str, int, datetime) or Pydantic types (PositiveInt)
+    - **Constraints**: Pydantic validators (Gt(5), Len(4, 4), Range(0, 100))
+    - **Literals**: Exact values that must match ('open', True, 42)
+
+    :param data: Dictionary to validate
+    :param fields: Mapping of field names to validators
+    :param strict: If True, forbid extra fields not specified in validators
+
+    >>> assert_model(changeset, {
+    ...     '@id': PositiveInt,           # Type validation
+    ...     '@updated_at': Gt(last_time), # Constraint validation
+    ...     '@open': True,                # Literal validation
+    ... })
     """
     field_definitions = {
         field_name: (
