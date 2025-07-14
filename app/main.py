@@ -15,7 +15,8 @@ from starlette import status
 from starlette.convertors import register_url_convertor
 from starlette_compress import CompressMiddleware
 
-import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
+import app.lib.cython_detect  # DO NOT REMOVE
+import app.lib.sentry  # noqa: F401
 from app.config import (
     COMPRESS_HTTP_BROTLI_QUALITY,
     COMPRESS_HTTP_GZIP_LEVEL,
