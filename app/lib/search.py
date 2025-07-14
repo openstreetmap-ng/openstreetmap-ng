@@ -88,7 +88,7 @@ class Search:
             bounds_miny = bbox_center_y - bounds_height_2
             bounds_maxx = bbox_center_x + bounds_width_2
             bounds_maxy = bbox_center_y + bounds_height_2
-            leaflet_bounds = f'{bounds_minx:.7f},{bounds_miny:.7f},{bounds_maxx:.7f},{bounds_maxy:.7f}'
+            leaflet_bounds = f'{bounds_minx:.5f},{bounds_miny:.5f},{bounds_maxx:.5f},{bounds_maxy:.5f}'
             shapely_bounds = parse_bbox(leaflet_bounds)
             result[i] = (leaflet_bounds, shapely_bounds)
 

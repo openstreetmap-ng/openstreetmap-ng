@@ -2,7 +2,6 @@ import random
 
 from httpx import AsyncClient
 
-from app.config import GEO_COORDINATE_PRECISION
 from app.lib.xmltodict import XMLToDict
 from tests.utils.assert_model import assert_model
 
@@ -25,8 +24,8 @@ async def test_map_read(client: AsyncClient):
     changeset_id = int(r.text)
 
     # Create a node at random coordinates
-    lon = round(random.uniform(-179, 179), GEO_COORDINATE_PRECISION)
-    lat = round(random.uniform(-89, 89), GEO_COORDINATE_PRECISION)
+    lon = round(random.uniform(-179, 179), 7)
+    lat = round(random.uniform(-89, 89), 7)
     r = await client.put(
         '/api/0.6/node/create',
         content=XMLToDict.unparse({

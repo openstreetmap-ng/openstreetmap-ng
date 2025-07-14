@@ -7,8 +7,6 @@ from numpy.typing import NDArray
 from shapely import transform
 from shapely.geometry.base import BaseGeometry
 
-from app.config import GEO_COORDINATE_PRECISION
-
 if cython.compiled:
     from cython.cimports.libc.math import ceil, log2
 else:
@@ -20,7 +18,7 @@ _GeomT = TypeVar('_GeomT', bound=BaseGeometry)
 @cython.cfunc
 def _create_mentissa_mask():
     max_number: cython.double = 180
-    fractional_precision: cython.double = GEO_COORDINATE_PRECISION
+    fractional_precision: cython.double = 7
 
     bits_for_precision: cython.ulonglong = int(  # noqa: RUF046
         ceil(log2(max_number * 10**fractional_precision) + 1)

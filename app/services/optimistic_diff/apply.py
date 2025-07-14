@@ -8,6 +8,7 @@ from psycopg.sql import SQL
 
 from app.db import db
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
+from app.lib.compressible_geometry import compressible_geometry
 from app.lib.date_utils import utcnow
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element, ElementInit
@@ -35,6 +36,10 @@ class OptimisticDiffApply:
         """
         if not prepare.apply_elements:
             return {}
+
+        for element in prepare.apply_elements:
+            if (point := element['point']) is not None:
+                element['point'] = compressible_geometry(point)
 
         async with db(True) as conn:
             # Lock the tables to avoid concurrent updates.
@@ -141,7 +146,7 @@ async def _update_changeset(
                 num_create = %s,
                 num_modify = %s,
                 num_delete = %s,
-                union_bounds = %s,
+                union_bounds = ST_QuantizeCoordinates(%s, 7),
                 closed_at = %s,
                 updated_at = %s
             WHERE id = %s
@@ -174,7 +179,7 @@ async def _update_changeset(
         await conn.execute(
             """
             INSERT INTO changeset_bounds (changeset_id, bounds)
-            SELECT %s, (ST_Dump(%s)).geom
+            SELECT %s, (ST_Dump(ST_QuantizeCoordinates(%s, 7))).geom
             """,
             (changeset_id, bounds),
         )

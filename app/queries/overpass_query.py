@@ -28,7 +28,7 @@ class OverpassQuery:
         timeout = 10
         query = (
             f'[out:json][timeout:{timeout}];'
-            f'nwr(around:{radius_meters},{y:.7f},{x:.7f});'
+            f'nwr(around:{radius_meters},{y:.5f},{x:.5f});'
             'out geom qt;'
         )
 
@@ -65,7 +65,7 @@ class OverpassQuery:
         timeout = 10
         query = (
             f'[out:json][timeout:{timeout}];'
-            f'is_in({y:.7f},{x:.7f})->.a;'  # lat,lon
+            f'is_in({y:.5f},{x:.5f})->.a;'  # lat,lon
             'way(pivot.a);'
             'out geom qt;'
             'rel(pivot.a);'

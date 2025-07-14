@@ -6,7 +6,6 @@ from shapely import MultiPolygon, Point, Polygon, buffer, get_coordinates, set_s
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
-from app.config import GEO_COORDINATE_PRECISION
 from app.lib.exceptions_context import raise_for
 
 _T = TypeVar('_T', bound=BaseGeometry)
@@ -36,7 +35,7 @@ def validate_geometry(value: dict[str, Any] | _T) -> BaseGeometry | _T:
     # Validate the geometry but accept zero-sized polygons
     elif not geom.is_valid:
         if isinstance(geom, Polygon | MultiPolygon) and not geom.length:
-            geom = buffer(geom, 0.1**GEO_COORDINATE_PRECISION / 4, quad_segs=0)
+            geom = buffer(geom, 0.1**7 / 4, quad_segs=0)
         else:
             raise_for.bad_geometry()
 

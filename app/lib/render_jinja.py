@@ -134,6 +134,7 @@ _J2.globals.update(
     nt=nt,
     str=str,
     zip=zip,
+    round=round,
     timeago=timeago,
     format_rfc2822_date=format_rfc2822_date,
     user_is_moderator=user_is_moderator,

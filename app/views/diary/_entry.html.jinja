@@ -50,8 +50,8 @@
             {% if diary.point is not none %}
             <p class="diary-location fw-medium mb-3">
                 <i class="bi bi-compass"></i>{{ t('diary_entries.form.location') }}:
-                {% set _lon = diary.point.x %}
-                {% set _lat = diary.point.y %}
+                {% set _lon = round(diary.point.x, 5) %}
+                {% set _lat = round(diary.point.y, 5) %}
                 {% set _title = _lat ~ ', ' ~ _lon %}
                 <a href="/?mlat={{ _lat }}&mlon={{ _lon }}&zoom=14" target="_blank">
                     {% if diary.location_name %}

@@ -5,7 +5,6 @@ from h3 import compact_cells, geo_to_h3shape, h3shape_to_cells_experimental
 from pyproj import Geod
 from shapely import MultiPolygon, Point, Polygon, box, get_coordinates
 
-from app.config import GEO_COORDINATE_PRECISION
 from app.lib.exceptions_context import raise_for
 from app.validators.geometry import validate_geometry
 
@@ -85,11 +84,10 @@ def parse_bbox(s: str | None, /) -> Polygon | MultiPolygon | None:
 
     parts: list[str] = s.strip().split(',', 3)
     try:
-        precision = GEO_COORDINATE_PRECISION
-        minx: cython.double = round(float(parts[0].strip()), precision)
-        miny: cython.double = round(float(parts[1].strip()), precision)
-        maxx: cython.double = round(float(parts[2].strip()), precision)
-        maxy: cython.double = round(float(parts[3].strip()), precision)
+        minx: cython.double = round(float(parts[0].strip()), 7)
+        miny: cython.double = round(float(parts[1].strip()), 7)
+        maxx: cython.double = round(float(parts[2].strip()), 7)
+        maxy: cython.double = round(float(parts[3].strip()), 7)
     except Exception:
         raise_for.bad_bbox(s)
     if minx > maxx:
@@ -141,8 +139,8 @@ def try_parse_point(lat_lon: str, /) -> Point | None:
     try:
         return validate_geometry(
             Point(
-                round(float(lon.strip()), GEO_COORDINATE_PRECISION),
-                round(float(lat.strip()), GEO_COORDINATE_PRECISION),
+                round(float(lon.strip()), 7),
+                round(float(lat.strip()), 7),
             )
         )
     except Exception:

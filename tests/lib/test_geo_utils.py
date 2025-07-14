@@ -3,7 +3,6 @@ import math
 import pytest
 from shapely import MultiPolygon, Point, Polygon, box
 
-from app.config import GEO_COORDINATE_PRECISION
 from app.lib.geo_utils import (
     degrees_to_meters,
     haversine_distance,
@@ -75,7 +74,7 @@ def test_haversine_distance(p1, p2, expected_meters):
     ],
 )
 def test_parse_bbox(s: str, expected: Polygon | MultiPolygon):
-    assert parse_bbox(s).equals_exact(expected, 0.1**GEO_COORDINATE_PRECISION / 2)
+    assert parse_bbox(s).equals_exact(expected, 0.1**7 / 2)
 
 
 @pytest.mark.parametrize(

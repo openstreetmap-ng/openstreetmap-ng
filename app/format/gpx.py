@@ -32,7 +32,7 @@ class FormatGPX:
                 trace['segments'].geoms,  # type: ignore
                 return_index=True,
             )
-            coordinates: list[list[float]] = coordinates_.tolist()
+            coordinates: list[list[float]] = coordinates_.round(7).tolist()
             segment_nums: list[int] = segment_nums_.tolist()
 
             current_segment_num: int = -1

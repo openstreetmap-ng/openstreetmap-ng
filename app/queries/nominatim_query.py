@@ -3,9 +3,8 @@ from asyncio import TaskGroup
 from typing import NotRequired, TypedDict
 from urllib.parse import urlencode
 
-import numpy as np
 import orjson
-from shapely import MultiPolygon, Point, Polygon, get_coordinates, points
+from shapely import MultiPolygon, Point, Polygon, get_coordinates
 
 from app.config import (
     NOMINATIM_REVERSE_CACHE_EXPIRE,
@@ -210,7 +209,6 @@ async def _get_search_result(
 
         lon = (minx + maxx) / 2
         lat = (miny + maxy) / 2
-        point: Point = points(np.array((lon, lat), np.float64))  # type: ignore
 
         result.append(
             SearchResult(
@@ -220,7 +218,7 @@ async def _get_search_result(
                 icon=icon,
                 prefix=prefix,
                 display_name=entry['display_name'],
-                point=point,
+                point=Point(lon, lat),
                 bounds=bounds,
             )
         )

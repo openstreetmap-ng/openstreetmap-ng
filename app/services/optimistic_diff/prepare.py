@@ -1,6 +1,7 @@
 import logging
 from asyncio import TaskGroup
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Final, Literal
 
@@ -52,7 +53,7 @@ class OptimisticDiffPrepare:
     Processed elements to be applied into the database.
     """
 
-    _elements: list[ElementInit]
+    _elements: Sequence[ElementInit]
     """
     Input elements processed during the preparation step.
     """
@@ -99,7 +100,7 @@ class OptimisticDiffPrepare:
     Changeset bounding box set of element refs.
     """
 
-    def __init__(self, elements: list[ElementInit]) -> None:
+    def __init__(self, elements: Sequence[ElementInit]) -> None:
         self.apply_elements = []
         self._elements = elements
         self.element_state = {}
@@ -133,7 +134,7 @@ class OptimisticDiffPrepare:
 
         for element, (element_type, element_id) in zip(
             self._elements,
-            split_typed_element_ids(self._elements),
+            split_typed_element_ids(self._elements),  # type: ignore
             strict=True,
         ):
             typed_id = element['typed_id']

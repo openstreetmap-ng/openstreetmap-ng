@@ -7,7 +7,6 @@ from httpx import AsyncClient
 from pydantic import PositiveInt
 from starlette import status
 
-from app.config import GEO_COORDINATE_PRECISION
 from app.lib.xmltodict import XMLToDict
 from speedup.buffered_rand import buffered_randbytes
 from tests.utils.assert_model import assert_model
@@ -235,8 +234,8 @@ async def test_note_bad_input(client: AsyncClient, input_data):
 
 async def test_note_query_by_bbox(client: AsyncClient):
     # Create a note at a specific location
-    lon = round(random.uniform(-179, 179), GEO_COORDINATE_PRECISION)
-    lat = round(random.uniform(-89, 89), GEO_COORDINATE_PRECISION)
+    lon = round(random.uniform(-179, 179), 7)
+    lat = round(random.uniform(-89, 89), 7)
     r = await client.post(
         '/api/0.6/notes.json',
         json={'lon': lon, 'lat': lat, 'text': test_note_query_by_bbox.__qualname__},

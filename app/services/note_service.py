@@ -4,13 +4,11 @@ from datetime import datetime
 from typing import Any
 
 import cython
-import numpy as np
 from httpx import HTTPError
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
-from shapely import Point, get_coordinates, points
+from shapely import Point, get_coordinates
 
-from app.config import GEO_COORDINATE_PRECISION
 from app.db import db
 from app.lib.auth_context import auth_user, auth_user_scopes
 from app.lib.exceptions_context import raise_for
@@ -37,10 +35,7 @@ class NoteService:
     @staticmethod
     async def create(lon: float, lat: float, text: str) -> NoteId:
         """Create a note and return its id."""
-        point: Point = points(
-            np.array((lon, lat), np.float64).round(GEO_COORDINATE_PRECISION)
-        )  # type: ignore
-        point = validate_geometry(point)
+        point = validate_geometry(Point(lon, lat))
 
         user, scopes = auth_user_scopes()
         if user is not None:
@@ -64,7 +59,7 @@ class NoteService:
                     point
                 )
                 VALUES (
-                    %(point)s
+                    ST_QuantizeCoordinates(%(point)s, 5)
                 )
                 RETURNING id, created_at
                 """,

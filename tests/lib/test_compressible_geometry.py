@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 from shapely import Point, points
 
-from app.config import GEO_COORDINATE_PRECISION
 from app.lib.compressible_geometry import (
     compressible_geometry,
     point_to_compressible_wkb,
@@ -12,16 +11,14 @@ from app.lib.compressible_geometry import (
 def test_compressible_geometry():
     rng = np.random.default_rng(42)
     coords = rng.random((32, 2), dtype=np.float64) * (360, 170) - (180, 85)
-    coords = coords.round(GEO_COORDINATE_PRECISION)
+    coords = coords.round(7)
 
     geoms: list[Point] = points(coords).tolist()  # type: ignore
     some_different = False
 
     for geom in geoms:
         processed = compressible_geometry(geom)
-        assert processed.equals_exact(
-            geom, tolerance=0.5 * 10**-GEO_COORDINATE_PRECISION
-        )
+        assert processed.equals_exact(geom, tolerance=0.5 * 10**-7)
         if not processed.equals(geom):
             some_different = True
 

@@ -29,7 +29,7 @@ class OptimisticDiff:
 
         while True:
             try:
-                prep = OptimisticDiffPrepare(elements.copy())
+                prep = OptimisticDiffPrepare(elements)
                 await prep.prepare()
                 return await OptimisticDiffApply.apply(prep)
             except* (OptimisticDiffError, OperationalError) as e:

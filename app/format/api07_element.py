@@ -1,7 +1,6 @@
 import cython
 from shapely import Point, get_coordinates
 
-from app.config import GEO_COORDINATE_PRECISION
 from app.models.db.element import Element
 from app.models.element import TypedElementId
 from speedup.element_type import split_typed_element_id, split_typed_element_ids
@@ -84,5 +83,5 @@ def _encode_point(point: Point) -> dict:
     >>> _encode_point(Point(1, 2))
     {'lon': 1, 'lat': 2}
     """
-    x, y = get_coordinates(point).round(GEO_COORDINATE_PRECISION)[0].tolist()
+    x, y = get_coordinates(point).round(7)[0].tolist()
     return {'lon': x, 'lat': y}

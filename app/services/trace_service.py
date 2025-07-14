@@ -85,7 +85,7 @@ class TraceService:
                         file_id, size, segments, elevations, capture_times
                     ) VALUES (
                         %(user_id)s, %(name)s, %(description)s, %(tags)s, %(visibility)s,
-                        %(file_id)s, %(size)s, %(segments)s, %(elevations)s, %(capture_times)s
+                        %(file_id)s, %(size)s, ST_QuantizeCoordinates(%(segments)s, 7), %(elevations)s, %(capture_times)s
                     )
                     RETURNING id
                     """,
