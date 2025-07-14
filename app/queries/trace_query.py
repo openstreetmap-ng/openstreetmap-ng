@@ -214,7 +214,6 @@ class TraceQuery:
         for trace in traces:
             points, segment_indices = get_coordinates(
                 trace['segments'].geoms,  # type: ignore
-                include_z=identifiable_trackable,
                 return_index=True,
             )
 
@@ -232,7 +231,12 @@ class TraceQuery:
 
             if identifiable_trackable:
                 # Reconstruct capture_times to match new segments
-                # Public/private visibility discards capture_times
+                # Public/private visibility discards elevations and capture_times
+                elevations = trace['elevations']
+                if elevations is not None:
+                    elevations_arr = np.array(elevations, np.object_)
+                    trace['elevations'] = elevations_arr[intersect_mask].tolist()
+
                 capture_times = trace['capture_times']
                 if capture_times is not None:
                     capture_times_arr = np.array(capture_times, np.object_)
@@ -259,6 +263,7 @@ class TraceQuery:
             'file_id': StorageKey(''),
             'size': 0,
             'segments': segments,
+            'elevations': None,
             'capture_times': None,
             'created_at': now,
             'updated_at': now,

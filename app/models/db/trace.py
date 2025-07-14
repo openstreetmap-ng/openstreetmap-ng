@@ -51,7 +51,8 @@ class TraceInit(TraceMetaInit):
     user_id: UserId
     file_id: StorageKey
     size: int
-    segments: Annotated[MultiLineString, GeometryValidator]  # TODO: z-dimension
+    segments: Annotated[MultiLineString, GeometryValidator]
+    elevations: list[float | None] | None
     capture_times: list[datetime | None] | None
 
 

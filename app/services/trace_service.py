@@ -62,6 +62,7 @@ class TraceService:
             'file_id': StorageKey(''),
             'size': decoded.size,
             'segments': decoded.segments,
+            'elevations': decoded.elevations,
             'capture_times': decoded.capture_times,
         }
         trace_init = TraceInitValidator.validate_python(trace_init)
@@ -81,10 +82,10 @@ class TraceService:
                     """
                     INSERT INTO trace (
                         user_id, name, description, tags, visibility,
-                        file_id, size, segments, capture_times
+                        file_id, size, segments, elevations, capture_times
                     ) VALUES (
                         %(user_id)s, %(name)s, %(description)s, %(tags)s, %(visibility)s,
-                        %(file_id)s, %(size)s, %(segments)s, %(capture_times)s
+                        %(file_id)s, %(size)s, %(segments)s, %(elevations)s, %(capture_times)s
                     )
                     RETURNING id
                     """,
