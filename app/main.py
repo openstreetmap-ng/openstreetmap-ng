@@ -12,7 +12,12 @@ from time import tzset
 from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
 from fastapi.exception_handlers import http_exception_handler
 from starlette import status
+from starlette.applications import Starlette
 from starlette.convertors import register_url_convertor
+from starlette.middleware import Middleware
+from starlette.middleware.errors import ServerErrorMiddleware
+from starlette.middleware.exceptions import ExceptionMiddleware
+from starlette.types import ASGIApp
 from starlette_compress import CompressMiddleware
 
 import app.lib.cython_detect  # DO NOT REMOVE
@@ -195,6 +200,33 @@ def _make_router(path: pathlib.Path, prefix: str) -> APIRouter:
 
 main.include_router(_make_router(pathlib.Path('app/controllers'), ''))
 user_name_blacklist_routes(main)
+
+
+def _build_middleware_stack(self: Starlette) -> ASGIApp:
+    """Build an alternate middleware stack that runs ExceptionMiddleware before user middleware."""
+    debug = self.debug
+    error_handler = None
+    exception_handlers = {}
+
+    for key, value in self.exception_handlers.items():
+        if key in (500, Exception):
+            error_handler = value
+        else:
+            exception_handlers[key] = value
+
+    middleware = [
+        Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug),  # type: ignore
+        Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug),
+        *self.user_middleware,
+    ]
+
+    app = self.router
+    for cls, args, kwargs in reversed(middleware):
+        app = cls(app, *args, **kwargs)
+    return app
+
+
+main.build_middleware_stack = _build_middleware_stack.__get__(main, Starlette)
 
 
 @main.exception_handler(ExceptionGroup)
