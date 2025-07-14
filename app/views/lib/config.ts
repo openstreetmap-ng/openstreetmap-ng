@@ -1,6 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { WebConfigSchema } from "./proto/shared_pb"
+import { staticCache } from "./utils"
 
 /** Global dataset options that are defined on <html> tag */
 export const config = fromBinary(
@@ -14,11 +15,10 @@ const defaultTracking =
     navigator.doNotTrack !== "1" && !(navigator as any).globalPrivacyControl
 
 /** Whether to enable activity tracking */
-export const activityTracking: boolean =
-    config.userConfig?.activityTracking ?? defaultTracking
+export const activityTracking = config.userConfig?.activityTracking ?? defaultTracking
 
 /** Whether to enable crash reporting */
-export const crashReporting: boolean =
+export const crashReporting =
     config.sentryConfig &&
     (config.env === "test" || (config.userConfig?.crashReporting ?? defaultTracking))
 
@@ -26,9 +26,12 @@ export const crashReporting: boolean =
  * User's primary translation language
  * @example "pl"
  */
-export const primaryLanguage: string = document.documentElement.lang
+export const primaryLanguage = document.documentElement.lang
+
+/** Whether user is on a mobile device */
+export const isMobile = staticCache(() => window.innerWidth <= 1024)
 
 /** Whether user prefers reduced motion */
-export const prefersReducedMotion: boolean = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-).matches
+export const prefersReducedMotion = staticCache(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+)

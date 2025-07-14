@@ -1,6 +1,6 @@
 import { Tooltip } from "bootstrap"
 import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
-import { config } from "../../lib/config"
+import { config, isMobile } from "../../lib/config"
 import {
     globeProjectionStorage,
     layerOrderStorage,
@@ -60,8 +60,17 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
                     continue
                 }
 
-                console.debug("Initializing minimap layer", layerId)
                 const minimapContainer = container.querySelector("div.map-container")
+
+                // On mobile devices, show thumbnail instead of initializing MapLibre
+                // Avoids "Too many active WebGL context even after destroyed"
+                if (container.dataset.thumbnail && isMobile()) {
+                    console.debug("Showing layer thumbnail", layerId)
+                    minimapContainer.innerHTML = `<img src="${container.dataset.thumbnail}" loading="lazy">`
+                    continue
+                }
+
+                console.debug("Initializing minimap layer", layerId)
                 const minimap = new MaplibreMap({
                     container: minimapContainer,
                     attributionControl: false,

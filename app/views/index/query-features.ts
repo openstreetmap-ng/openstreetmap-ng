@@ -138,7 +138,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
             if (currentTime < animationStart) animationStart = currentTime
             const elapsedTime = currentTime - animationStart
             let opacity = 1 - Math.min(elapsedTime / animationDuration, 1)
-            if (prefersReducedMotion) opacity = opacity > 0 ? 1 : 0
+            if (prefersReducedMotion()) opacity = opacity > 0 ? 1 : 0
             map.setPaintProperty(fillLayerId, "fill-opacity", opacity * 0.4)
             map.setPaintProperty(lineLayerId, "line-opacity", opacity)
             if (opacity > 0 && !abortSignal.aborted)
