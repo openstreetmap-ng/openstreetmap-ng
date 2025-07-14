@@ -415,6 +415,8 @@ CREATE TABLE trace (
     visibility trace_visibility NOT NULL,
     file_id text NOT NULL,
     size integer NOT NULL,
+    -- TODO: MultiLineStringZM when shapely supports it
+    -- https://github.com/shapely/shapely/issues/1648
     segments geometry (MultiLineString, 4326) NOT NULL,
     elevations REAL[],
     capture_times TIMESTAMPTZ[],
