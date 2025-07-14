@@ -305,7 +305,7 @@
         }
 
         &.unread {
-            background: functions.tint-color($primary, 94%);
+            background: color.mix($primary, $body-bg, 6%);
 
             &:hover,
             &.hover {
@@ -334,6 +334,19 @@
     .description {
         font-size: 0.875em;
         margin-bottom: unset;
+    }
+}
+
+@include color-mode(dark) {
+    .messages-list {
+        .social-entry.clickable.unread {
+            background: color.mix($primary, $body-bg-dark, 6%);
+
+            &:hover,
+            &.hover {
+                background: var(--bs-highlight-bg);
+            }
+        }
     }
 }
 
