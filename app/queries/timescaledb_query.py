@@ -31,4 +31,4 @@ class TimescaleDBQuery:
                 (table,),
             ) as r,
         ):
-            return await r.fetchall()
+            return await r.fetchall() or [(-2, -1)]
