@@ -291,14 +291,6 @@
 
 .messages-list {
     .social-entry.clickable {
-        .unread-badge {
-            display: none;
-
-            .bi {
-                top: 0;
-            }
-        }
-
         &.active {
             box-shadow: 0 0 0 0.125rem $primary;
             border-left: 0.25rem solid $primary;
@@ -311,10 +303,16 @@
             &.hover {
                 background: var(--bs-highlight-bg);
             }
+        }
 
+        &:not(.unread) {
             .unread-badge {
-                display: inline-block;
+                display: none;
             }
+        }
+
+        .unread-badge {
+            line-height: 0;
         }
     }
 
