@@ -51,7 +51,7 @@ class FormatGPX:
                     elevations_iter is not None
                     and (elevation := next(elevations_iter)) is not None
                 ):
-                    data['ele'] = elevation
+                    data['ele'] = round(elevation, 2)
                 if (
                     capture_times_iter is not None
                     and (capture_time := next(capture_times_iter)) is not None
