@@ -88,7 +88,7 @@ async def get_trace_gpx(
     trace_id: TraceId,
 ):
     trace = await TraceQuery.get_one_by_id(trace_id)
-    data = FormatGPX.encode_track(trace)
+    data = FormatGPX.encode_tracks([trace])
     resp = GPXResponse.serialize(data)
     return Response(
         content=resp.body,

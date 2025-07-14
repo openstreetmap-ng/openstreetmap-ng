@@ -17,76 +17,23 @@ class DecodeTracksResult(NamedTuple):
 
 class FormatGPX:
     @staticmethod
-    def encode_track(trace: Trace) -> dict:
-        """
-        >>> encode_track([
-        ...     TraceSegment(...),
-        ...     TraceSegment(...),
-        ... ])
-        {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}, {'@lon': 3, '@lat': 4}]}]}]}
-        """
-        elevations = trace['elevations']
-        elevations_iter = iter(elevations) if elevations is not None else None
-        capture_times = trace['capture_times']
-        capture_times_iter = iter(capture_times) if capture_times is not None else None
-        trkseg: list[dict] = []
-
-        for segment in trace['segments'].geoms:
-            segment_coords: list[list[float]]
-            segment_coords = get_coordinates(segment).tolist()
-            trkpt: list[dict] = []
-
-            for lon, lat in segment_coords:
-                data: dict[str, Any] = {'@lon': lon, '@lat': lat}
-                if (
-                    elevations_iter is not None
-                    and (elevation := next(elevations_iter)) is not None
-                ):
-                    data['ele'] = elevation
-                if (
-                    capture_times_iter is not None
-                    and (capture_time := next(capture_times_iter)) is not None
-                ):
-                    data['time'] = capture_time
-                trkpt.append(data)
-
-            trkseg.append({'trkpt': trkpt})
-
-        return {
-            'trk': [
-                (
-                    {
-                        'name': trace['name'],
-                        'desc': trace['description'],
-                        'url': f'/trace/{trace["id"]}',
-                        'trkseg': trkseg,
-                    }
-                    if trace_is_timestamps_via_api(trace)
-                    else {
-                        'trkseg': trkseg,
-                    }
-                )
-            ]
-        }
-
-    @staticmethod
     def encode_tracks(traces: list[Trace]) -> dict:
         trk: list[dict] = []
 
         for trace in traces:
-            coordinates_, segment_nums_ = get_coordinates(
-                trace['segments'].geoms,  # type: ignore
-                return_index=True,
-            )
-            coordinates: list[list[float]] = coordinates_.tolist()
-            segment_nums: list[int] = segment_nums_.tolist()
-
             elevations = trace['elevations']
             elevations_iter = iter(elevations) if elevations is not None else None
             capture_times = trace['capture_times']
             capture_times_iter = (
                 iter(capture_times) if capture_times is not None else None
             )
+
+            coordinates_, segment_nums_ = get_coordinates(
+                trace['segments'].geoms,  # type: ignore
+                return_index=True,
+            )
+            coordinates: list[list[float]] = coordinates_.tolist()
+            segment_nums: list[int] = segment_nums_.tolist()
 
             current_segment_num: int = -1
             trkseg: list[dict] = []
