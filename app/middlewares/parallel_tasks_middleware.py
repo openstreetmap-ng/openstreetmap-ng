@@ -49,7 +49,15 @@ class ParallelTasksMiddleware:
 
         async with TaskGroup() as tg:
             with _messages_count_unread(tg):
-                return await self.app(scope, receive, send)
+                try:
+                    return await self.app(scope, receive, send)
+                except Exception as e:
+                    for t in tg._tasks:  # noqa: SLF001
+                        t.cancel()
+                    exception = e
+
+        # Propagate app exception unaltered
+        raise exception
 
     @staticmethod
     async def messages_count_unread() -> int | None:
