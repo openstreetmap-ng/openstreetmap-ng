@@ -9,8 +9,19 @@ from app.lib.xmltodict import XMLToDict
 from tests.utils.assert_model import assert_model
 
 
-async def test_gpx_crud(client: AsyncClient, gpx: dict):
+@pytest.mark.parametrize('has_z', [True, False])
+async def test_gpx_crud(client: AsyncClient, gpx: dict, has_z: bool):
     client.headers['Authorization'] = 'User user1'
+
+    if not has_z:
+        # Delete the z coordinate from the gpx file
+        for trkpt in (
+            trkpt
+            for trk in gpx['gpx']['trk']
+            for trkseg in trk['trkseg']
+            for trkpt in trkseg['trkpt']
+        ):
+            trkpt.pop('ele', None)
 
     original_filename = test_gpx_crud.__qualname__ + '.gpx'
     updated_filename = test_gpx_crud.__qualname__ + '_updated.gpx'

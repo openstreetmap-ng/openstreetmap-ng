@@ -415,7 +415,7 @@ CREATE TABLE trace (
     visibility trace_visibility NOT NULL,
     file_id text NOT NULL,
     size integer NOT NULL,
-    segments geometry (MultiLineStringZ, 4326) NOT NULL,
+    segments geometry NOT NULL,
     capture_times TIMESTAMPTZ[],
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
