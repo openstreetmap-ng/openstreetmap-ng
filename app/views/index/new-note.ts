@@ -90,16 +90,19 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
                     { fitBounds: false },
                 )
             }
-            marker.on("dragstart", () => focusObjects(map)) // hide halo
-            marker.on("dragend", () => {
+
+            const onDragEnd = () => {
                 focusHalo()
                 const lngLat = marker.getLngLat()
                 lonInput.value = lngLat.lng.toString()
                 latInput.value = lngLat.lat.toString()
-            }) // show halo
+            }
+
+            marker.on("dragstart", () => focusObjects(map)) // hide halo
+            marker.on("dragend", onDragEnd) // show halo
 
             // Initial update
-            focusHalo()
+            onDragEnd()
             updateButtonState()
             setNewNoteButtonState(true)
 
