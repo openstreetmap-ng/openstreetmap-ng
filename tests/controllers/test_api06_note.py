@@ -234,8 +234,8 @@ async def test_note_bad_input(client: AsyncClient, input_data):
 
 async def test_note_query_by_bbox(client: AsyncClient):
     # Create a note at a specific location
-    lon = round(random.uniform(-179, 179), 7)
-    lat = round(random.uniform(-89, 89), 7)
+    lon = round(random.uniform(-179, 179), 5)
+    lat = round(random.uniform(-89, 89), 5)
     r = await client.post(
         '/api/0.6/notes.json',
         json={'lon': lon, 'lat': lat, 'text': test_note_query_by_bbox.__qualname__},
