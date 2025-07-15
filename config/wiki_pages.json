@@ -212,11 +212,6 @@
       "FR"
     ]
   },
-  "FR:cycleway:left:oneway": {
-    "-1": [
-      ""
-    ]
-  },
   "GNS:*": {
     "*": [
       ""
@@ -3361,6 +3356,7 @@
     "feeding_place": [
       "",
       "Cs",
+      "DE",
       "ES",
       "FR",
       "JA",
@@ -3401,8 +3397,6 @@
       "",
       "Cs",
       "DE",
-      "FR",
-      "Pl",
       "Pt"
     ],
     "fire_station": [
@@ -7147,6 +7141,9 @@
     ],
     "spa": [
       ""
+    ],
+    "tanning": [
+      ""
     ]
   },
   "beds": {
@@ -8445,6 +8442,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Hu",
       "IT",
@@ -8802,6 +8800,9 @@
       "",
       "RU"
     ],
+    "dog_house": [
+      ""
+    ],
     "dormitory": [
       "",
       "Cs",
@@ -9138,6 +9139,9 @@
       "ES",
       "RU",
       "Uk"
+    ],
+    "mink_shed": [
+      ""
     ],
     "mobile_home": [
       "",
@@ -10386,6 +10390,7 @@
     ],
     "board_game": [
       "",
+      "DE",
       "FR"
     ],
     "time-cafe": [
@@ -10577,6 +10582,11 @@
     ]
   },
   "capacity:*": {
+    "*": [
+      ""
+    ]
+  },
+  "capacity:area": {
     "*": [
       ""
     ]
@@ -11081,6 +11091,7 @@
     "*": [
       "",
       "DE",
+      "FR",
       "RU"
     ]
   },
@@ -11925,11 +11936,6 @@
       ""
     ]
   },
-  "communication:radio:transponder": {
-    "*": [
-      ""
-    ]
-  },
   "communication:satellite": {
     "*": [
       ""
@@ -12555,6 +12561,7 @@
   },
   "contact:webcam": {
     "*": [
+      "",
       "ES"
     ]
   },
@@ -16960,6 +16967,7 @@
       "IT",
       "JA",
       "Pl",
+      "Pt",
       "RU",
       "Uk"
     ]
@@ -17429,9 +17437,6 @@
       "",
       "ES"
     ],
-    "sprinkler": [
-      ""
-    ],
     "sprinkler_connection": [
       "",
       "ES"
@@ -17694,11 +17699,6 @@
     ]
   },
   "entrance:step_count": {
-    "*": [
-      ""
-    ]
-  },
-  "entrance:wheelchair:turning_circle": {
     "*": [
       ""
     ]
@@ -18118,7 +18118,6 @@
     "*": [
       "",
       "DE",
-      "JA",
       "NL",
       "No",
       "Pt"
@@ -18357,11 +18356,6 @@
       "Pl",
       "Pt",
       "RU"
-    ]
-  },
-  "fishing_reserve": {
-    "*": [
-      ""
     ]
   },
   "fishing_technique:fly-fishing": {
@@ -24354,6 +24348,11 @@
       "ES"
     ]
   },
+  "internet_access:captive_portal": {
+    "*": [
+      ""
+    ]
+  },
   "internet_access:fee": {
     "*": [
       "",
@@ -25253,6 +25252,7 @@
       "JA",
       "Pl",
       "RU",
+      "Th",
       "Uk"
     ],
     "forest": [
@@ -29055,6 +29055,9 @@
       "Uk",
       "Zh-hant"
     ],
+    "default": [
+      ""
+    ],
     "implicit": [
       ""
     ]
@@ -29278,6 +29281,7 @@
     "*": [
       "",
       "DE",
+      "FR",
       "Pl",
       "RU"
     ]
@@ -30292,6 +30296,9 @@
       "JA",
       "Pl",
       "Pt"
+    ],
+    "buoy": [
+      ""
     ],
     "commercial": [
       ""
@@ -31896,8 +31903,7 @@
   },
   "name:kn:iso15919": {
     "*": [
-      "",
-      "JA"
+      ""
     ]
   },
   "name:ko": {
@@ -32308,6 +32314,16 @@
     ]
   },
   "name:nl": {
+    "*": [
+      ""
+    ]
+  },
+  "name:nl-BE": {
+    "*": [
+      ""
+    ]
+  },
+  "name:nl-NL": {
     "*": [
       ""
     ]
@@ -35201,6 +35217,11 @@
       ""
     ]
   },
+  "network:long": {
+    "*": [
+      ""
+    ]
+  },
   "network:short": {
     "*": [
       ""
@@ -37451,6 +37472,7 @@
     ],
     "rooftop": [
       "",
+      "DE",
       "RU"
     ],
     "shoulder": [
@@ -37738,6 +37760,7 @@
     ],
     "charging": [
       "",
+      "DE",
       "FR",
       "RU"
     ],
@@ -37946,7 +37969,8 @@
   },
   "payment:cash": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "payment:cash:machine": {
@@ -38701,6 +38725,9 @@
     "*": [
       "",
       "FR"
+    ],
+    "chapel": [
+      ""
     ],
     "holy_well": [
       ""
@@ -40448,6 +40475,7 @@
       "Hu",
       "IT",
       "JA",
+      "Ko",
       "Pl",
       "Pt",
       "RU",
@@ -41009,6 +41037,11 @@
     ]
   },
   "railway:position:exact": {
+    "*": [
+      ""
+    ]
+  },
+  "railway:preferred_direction": {
     "*": [
       ""
     ]
@@ -41792,11 +41825,6 @@
       "FR"
     ]
   },
-  "rednap:latitud": {
-    "*": [
-      ""
-    ]
-  },
   "reef": {
     "*": [
       "",
@@ -41822,11 +41850,6 @@
       "Zh-hans"
     ],
     "SS676": [
-      ""
-    ]
-  },
-  "ref/ref:supercharge_info": {
-    "*": [
       ""
     ]
   },
@@ -43262,6 +43285,11 @@
     ]
   },
   "ref:statistical": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:supercharge_info": {
     "*": [
       ""
     ]
@@ -46978,6 +47006,7 @@
     ],
     "crossover": [
       "",
+      "Cs",
       "DE",
       "ES",
       "JA",
@@ -50437,6 +50466,11 @@
       ""
     ]
   },
+  "smoothness/fényképes_táblázat": {
+    "*": [
+      "Hu"
+    ]
+  },
   "sms": {
     "*": [
       "",
@@ -50672,6 +50706,9 @@
     "Arild_Bjørk": [
       ""
     ],
+    "Bing": [
+      ""
+    ],
     "Bymiljøetaten": [
       ""
     ],
@@ -50705,7 +50742,6 @@
       "DE"
     ],
     "IBGE": [
-      "",
       "Pt"
     ],
     "Isle_of_Man_Government_1:25000_map_(2007)": [
@@ -50715,6 +50751,9 @@
       ""
     ],
     "Kartverket": [
+      ""
+    ],
+    "Mapillary": [
       ""
     ],
     "NAIP": [
@@ -50766,6 +50805,9 @@
       "",
       "JA"
     ],
+    "bing": [
+      ""
+    ],
     "extrapolation": [
       "ES"
     ],
@@ -50780,6 +50822,9 @@
     ],
     "knowledge": [
       "ES"
+    ],
+    "mapillary": [
+      ""
     ],
     "ruian": [
       ""
@@ -50975,6 +51020,9 @@
     "*": [
       "",
       "ES"
+    ],
+    "GNS": [
+      ""
     ]
   },
   "source:name:date": {
@@ -51122,11 +51170,6 @@
       "Cs"
     ]
   },
-  "speech_input:lg": {
-    "*": [
-      ""
-    ]
-  },
   "speech_output": {
     "*": [
       "",
@@ -51134,11 +51177,6 @@
       "DE",
       "IT",
       "JA"
-    ]
-  },
-  "speech_output:lg": {
-    "*": [
-      ""
     ]
   },
   "speed_pedelec": {
@@ -51685,6 +51723,10 @@
       "",
       "ES"
     ],
+    "longbowl": [
+      "",
+      "DE"
+    ],
     "martial_arts": [
       "",
       "ES",
@@ -51879,6 +51921,10 @@
       "NL",
       "RU"
     ],
+    "seatball": [
+      "",
+      "DE"
+    ],
     "shooting": [
       "",
       "DE",
@@ -51999,6 +52045,7 @@
     ],
     "teqball": [
       "",
+      "FR",
       "Pl"
     ],
     "tetherball": [
@@ -52652,11 +52699,6 @@
       "DE"
     ]
   },
-  "sunglasses": {
-    "*": [
-      ""
-    ]
-  },
   "supervised": {
     "*": [
       "",
@@ -52884,9 +52926,6 @@
       "DE",
       "ES",
       "JA"
-    ],
-    "paving_stones:20": [
-      ""
     ],
     "paving_stones:30": [
       ""
@@ -53173,6 +53212,10 @@
   },
   "suspended_food": {
     "*": [
+      "",
+      "FR"
+    ],
+    "coffee": [
       "",
       "FR"
     ]
@@ -54131,7 +54174,6 @@
       "Zh-hans"
     ],
     "bed_and_breakfast": [
-      "",
       "Cs",
       "JA",
       "Pl",
@@ -54239,6 +54281,7 @@
       "ES",
       "FR",
       "JA",
+      "Ko",
       "Pl",
       "Pt",
       "RU",
@@ -54513,6 +54556,10 @@
     "donjon": [
       "",
       "DE"
+    ],
+    "firefighter_training": [
+      "",
+      "Pl"
     ],
     "hose": [
       "",
@@ -55998,6 +56045,7 @@
       "Pl",
       "Pt",
       "RU",
+      "Th",
       "Uk"
     ],
     "associatedStreet": [
@@ -56251,6 +56299,7 @@
     ],
     "main": [
       "",
+      "Cs",
       "ES"
     ],
     "military": [
