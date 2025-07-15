@@ -19,6 +19,16 @@
             margin-right: 0.25rem;
         }
     }
+
+    .modal-body {
+        .form-check-label {
+            cursor: pointer;
+        }
+
+        .form-check-input:checked + .form-check-label {
+            font-weight: 500;
+        }
+    }
 }
 
 .construction-sign {

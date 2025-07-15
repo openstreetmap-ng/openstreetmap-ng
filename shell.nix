@@ -326,7 +326,7 @@ let
         --minify \
         --sourcemap=linked \
         --outdir "$dst" \
-        "$tmp"/{main,main-sync,id,rapid,embed}.js
+        "$tmp"/{main,main-sync,id,rapid,embed,test-site}.js
     '')
     (makeScript "watch-js" "exec watchexec -o queue -w app/views -e ts js-pipeline")
 

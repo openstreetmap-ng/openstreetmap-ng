@@ -5,7 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="{{ HASH_AWARE_PATHS['/static/css/main.css'] }}" fetchpriority="high">
+    <link rel="stylesheet" href="{{ HASH_AWARE_PATHS['/static/css/main.css'] }}">
+    <script src="{{ HASH_AWARE_PATHS['/static/js/test-site.js'] }}" type="module" defer></script>
 
     <link rel="icon" sizes="512x512" type="image/webp" href="/static/img/favicon/512.webp">
     <link rel="icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
@@ -89,20 +90,95 @@
 
             <div>
                 <a href="https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Public-Testing"
-                    class="btn btn-outline-secondary" target="_blank">
+                    class="btn btn-lg btn-outline-secondary" target="_blank">
                     <i class="bi bi-book me-2"></i>Testing guide
                 </a>
             </div>
 
-            <form class="d-inline" method="POST" action="/api/web/test-site/acknowledge?referer={{ referer }}">
-                <button class="btn btn-lg btn-primary fw-semibold px-4 py-2">
-                    Continue to testing site
-                </button>
-            </form>
+            <button class="btn btn-lg btn-primary fw-semibold px-4 py-2" type="button" data-bs-toggle="modal"
+                data-bs-target="#testSiteQuizModal">
+                Continue to testing site
+            </button>
 
         </div>
 
     </div>
+
+    <div id="testSiteQuizModal" class="modal fade" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="POST" action="/api/web/test-site/acknowledge?referer={{ referer }}" autocomplete="off">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Before You Continue</h5>
+                        <button class="btn-close" aria-label="Close" type="button" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted mb-4">
+                            Please answer these quick questions to confirm you're ready to proceed:
+                        </p>
+
+                        <div class="mb-4">
+                            <h6 class="fw-semibold mb-3">1. What is OpenStreetMap-NG?</h6>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="question1" value="correct">
+                                    It is an unofficial community initiative
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="question1">
+                                    It is an official OpenStreetMap Foundation initiative
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="fw-semibold mb-3">
+                                2. What type of data should you input?
+                            </h6>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="question2" value="correct">
+                                    I will only provide fake data
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="question2">
+                                    I will provide real data
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="fw-semibold mb-3">
+                                3. Where will emails be sent?
+                            </h6>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="question3" value="correct">
+                                    Emails will go to mail.openstreetmap.ng
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="question3">
+                                    Emails will go to my personal mailbox
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" disabled>
+                            Continue to testing site
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
