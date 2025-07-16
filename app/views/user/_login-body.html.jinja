@@ -10,7 +10,11 @@
 <form class="login-form" method="POST" action="/api/web/user/login">
     <label class="form-label d-block mb-2">
         {{ t('sessions.new.email or username') | capitalize }}
-        <input type="text" class="form-control mt-2" name="display_name_or_email" autocomplete="username" required>
+        <input type="text" class="form-control mt-2" name="display_name_or_email" autocomplete="username"
+            {% if ENV != 'prod' %} data-bs-toggle="popover" data-bs-trigger="focus" data-bs-placement="top"
+            data-bs-title="Test Site Reminder"
+            data-bs-content="Use fake data only. Do not provide real email addresses. All emails go to mail.openstreetmap.ng"
+            {% endif %} required>
     </label>
 
     <label class="form-label d-block mb-3">
