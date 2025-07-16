@@ -157,7 +157,7 @@ async def get_feed(
     bbox: Annotated[str | None, Query(min_length=1)] = None,
 ):
     if bbox is not None:
-        geometry = parse_bbox(bbox)
+        geometry = parse_bbox(bbox, 5)
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
             raise_for.notes_query_area_too_big()
     else:
@@ -206,7 +206,7 @@ async def query_notes1(
         PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)
     ] = NOTE_QUERY_DEFAULT_LIMIT,
 ):
-    geometry = parse_bbox(bbox)
+    geometry = parse_bbox(bbox, 5)
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
         raise_for.notes_query_area_too_big()
 
@@ -278,7 +278,7 @@ async def query_notes2(
         user = None
 
     if bbox is not None:
-        geometry = parse_bbox(bbox)
+        geometry = parse_bbox(bbox, 5)
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
             raise_for.notes_query_area_too_big()
     else:

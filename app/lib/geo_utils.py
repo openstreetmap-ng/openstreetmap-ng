@@ -65,10 +65,10 @@ def haversine_distance(p1: Point, p2: Point) -> float:
 
 
 @overload
-def parse_bbox(s: str, /) -> Polygon | MultiPolygon: ...
+def parse_bbox(s: str, /, precision: int = 7) -> Polygon | MultiPolygon: ...
 @overload
-def parse_bbox(s: None, /) -> None: ...
-def parse_bbox(s: str | None, /) -> Polygon | MultiPolygon | None:
+def parse_bbox(s: None, /, precision: int = 7) -> None: ...
+def parse_bbox(s: str | None, /, precision: int = 7) -> Polygon | MultiPolygon | None:
     """
     Parse a bbox string or bounds.
 
@@ -84,10 +84,10 @@ def parse_bbox(s: str | None, /) -> Polygon | MultiPolygon | None:
 
     parts: list[str] = s.strip().split(',', 3)
     try:
-        minx: cython.double = round(float(parts[0].strip()), 7)
-        miny: cython.double = round(float(parts[1].strip()), 7)
-        maxx: cython.double = round(float(parts[2].strip()), 7)
-        maxy: cython.double = round(float(parts[3].strip()), 7)
+        minx: cython.double = round(float(parts[0].strip()), precision)
+        miny: cython.double = round(float(parts[1].strip()), precision)
+        maxx: cython.double = round(float(parts[2].strip()), precision)
+        maxy: cython.double = round(float(parts[3].strip()), precision)
     except Exception:
         raise_for.bad_bbox(s)
     if minx > maxx:
