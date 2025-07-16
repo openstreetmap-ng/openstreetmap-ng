@@ -117,7 +117,7 @@
                     <span class="divider-text">{{ t('login.or_continue_with') }}</span>
                 </div>
 
-                <div class="auth-providers d-flex justify-content-center gap-3 gap-sm-4 mb-3">
+                <div class="auth-providers d-flex justify-content-center gap-3 gap-sm-4">
                     {% for service in ('google', 'facebook', 'microsoft', 'github', 'wikimedia') %}
                     <form method="POST" action="/oauth2/{{ service }}/authorize">
                         <button type="submit" class="btn btn-link border"
