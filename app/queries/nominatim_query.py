@@ -55,8 +55,8 @@ class NominatimQuery:
         x, y = get_coordinates(point)[0].tolist()
         path = '/reverse?' + urlencode({
             'format': 'jsonv2',
-            'lon': f'{x:.5f}',
-            'lat': f'{y:.5f}',
+            'lon': f'{x:.7f}',
+            'lat': f'{y:.7f}',
             'zoom': zoom,
             'accept-language': primary_translation_locale(),
         })
@@ -123,7 +123,7 @@ async def _search(
         'limit': limit,
         **(
             {
-                'viewbox': ','.join(f'{x:.5f}' for x in bounds.bounds),
+                'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds),
                 'bounded': 1,
             }
             if bounds is not None

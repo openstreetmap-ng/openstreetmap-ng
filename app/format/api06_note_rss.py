@@ -55,7 +55,7 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
     fe.published(note['created_at'])
     fe.updated(note['updated_at'])
 
-    x, y = get_coordinates(note['point']).round(5)[0].tolist()
+    x, y = get_coordinates(note['point']).round(7)[0].tolist()
     fe.geo.point(f'{y} {x}')
 
     user = comments[0].get('user')
@@ -104,7 +104,7 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
     )
     fe.published(comment['created_at'])
 
-    x, y = get_coordinates(point).round(5)[0].tolist()
+    x, y = get_coordinates(point).round(7)[0].tolist()
     fe.geo.point(f'{y} {x}')
 
     user = comment.get('user')

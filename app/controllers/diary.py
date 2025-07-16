@@ -145,8 +145,8 @@ async def edit(
             'title': diary['title'],
             'body': diary['body'],
             'language': diary['language'],
-            'lon': round(point.x, 5) if (point is not None) else '',
-            'lat': round(point.y, 5) if (point is not None) else '',
+            'lon': round(point.x, 7) if (point is not None) else '',
+            'lat': round(point.y, 7) if (point is not None) else '',
         },
     )
 

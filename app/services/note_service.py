@@ -59,7 +59,7 @@ class NoteService:
                     point
                 )
                 VALUES (
-                    ST_QuantizeCoordinates(%(point)s, 5)
+                    ST_QuantizeCoordinates(%(point)s, 7)
                 )
                 RETURNING id, created_at
                 """,

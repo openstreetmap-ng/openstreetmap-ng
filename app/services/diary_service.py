@@ -44,7 +44,7 @@ class DiaryService:
                     user_id, title, body, language, point
                 )
                 VALUES (
-                    %(user_id)s, %(title)s, %(body)s, %(language)s, ST_QuantizeCoordinates(%(point)s, 5)
+                    %(user_id)s, %(title)s, %(body)s, %(language)s, ST_QuantizeCoordinates(%(point)s, 7)
                 )
                 RETURNING id
                 """,

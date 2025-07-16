@@ -50,7 +50,7 @@ async def create_note_comment(
 
 @router.get('/map')
 async def get_map(bbox: Annotated[str, Query()]):
-    geometry = parse_bbox(bbox, 5)
+    geometry = parse_bbox(bbox)
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
         raise_for.notes_query_area_too_big()
 
