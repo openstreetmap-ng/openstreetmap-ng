@@ -57,6 +57,7 @@ jobs:
             : Reset to the specified commit
             cd /data/osm-ng
             git reset --hard "${{ github.sha }}"
+            chown -R osm-ng:osm-ng .
 
             : Activate the new configuration
             "$WORKTREE_DIR/result/bin/switch-to-configuration" switch
