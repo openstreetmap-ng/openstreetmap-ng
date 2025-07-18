@@ -55,6 +55,13 @@
     {% if unsubscribe_target and unsubscribe_id %}
     {% include '_unsubscribe-discussion' %}
     {% endif %}
+
+    {% if ENV == 'test' %}
+    <div class="test-site-watermark">
+        <p>TEST SITE</p>
+        <p>Not an official product</p>
+    </div>
+    {% endif %}
 </body>
 
 </html>

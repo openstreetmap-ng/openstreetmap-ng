@@ -143,3 +143,35 @@ time[title] {
 summary {
     user-select: none;
 }
+
+.test-site-watermark {
+    position: fixed;
+    bottom: 4rem;
+    right: 3.5rem;
+    rotate: -20deg;
+    pointer-events: none;
+    z-index: 10000;
+    color: rgba($dark-green, 0.2);
+    text-shadow: 0 0 10px rgba($dark-green, 0.2);
+    text-align: center;
+    line-height: 1;
+
+    :first-child {
+        margin-bottom: 0.375rem;
+        font-size: 3rem;
+        font-weight: 900;
+    }
+
+    :last-child {
+        margin-bottom: 0;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+}
+
+@include color-mode(dark) {
+    .test-site-watermark {
+        color: rgba($light-green, 0.2);
+        text-shadow: 0 0 10px rgba($light-green, 0.2);
+    }
+}
