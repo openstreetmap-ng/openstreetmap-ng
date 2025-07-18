@@ -1,6 +1,7 @@
 from asyncio import TaskGroup
 from typing import Annotated
 
+import cython
 from fastapi import APIRouter, Query
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -75,7 +76,8 @@ async def new_message(
             tg.create_task(UserQuery.resolve_users(reply_message['recipients']))
 
         from_user = reply_message['from_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-        other_users = [from_user] if from_user['id'] != user['id'] else []
+        is_sender: cython.bint = from_user['id'] == user['id']
+        other_users = [from_user] if not is_sender else []
         other_users.extend(
             r['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
             for r in reply_message['recipients']
@@ -84,7 +86,7 @@ async def new_message(
 
         recipients = (
             next(iter(u['display_name'] for u in other_users))
-            if reply is not None
+            if reply is not None and not is_sender
             else ','.join(u['display_name'] for u in other_users)
         )
         subject = f'{t("messages.compose.reply.prefix")}: {reply_message["subject"]}'

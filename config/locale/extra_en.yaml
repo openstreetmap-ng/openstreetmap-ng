@@ -144,6 +144,8 @@ messages:
   user_sent_you_a_message_on_platform_subject: "{user} sent you a message on {platform}: {subject}"
   user_sent_you_and_others_a_message_on_platform_subject_one: "{user} sent you and {count} other a message on {platform}: {subject}"
   user_sent_you_and_others_a_message_on_platform_subject_other: "{user} sent you and {count} others a message on {platform}: {subject}"
+  to_prefix: To
+  reply_all: Reply all
   compose:
     description: Send a new private message to another map user.
     recipients: Recipients
@@ -152,7 +154,7 @@ messages:
     subject_placeholder: Enter message subject
     body: Body
     reply:
-      prefix: "Re"
+      prefix: Re
       header: "On {date} {user} wrote"
 multi_input:
   add_new_entries_with_enter_or_comma: Add new entries with Enter or comma.

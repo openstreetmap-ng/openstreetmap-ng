@@ -62,21 +62,19 @@ async def read_message(
             tg.create_task(MessageService.set_state(message_id, read=True))
 
     from_user = message['from_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-    other_users = [from_user] if from_user['id'] != user['id'] else []
-    other_users.extend(
-        r['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-        for r in message['recipients']
-        if r['user_id'] != user['id'] and not r['hidden']
-    )
     time_html = f'<time datetime="{message["created_at"].isoformat()}" data-date="long" data-time="short"></time>'
 
     return {
-        'users': [
+        'sender': {
+            'display_name': from_user['display_name'],
+            'avatar_url': user_avatar_url(from_user),
+        },
+        'recipients': [
             {
-                'display_name': u['display_name'],
-                'avatar_url': user_avatar_url(u),
+                'display_name': r['user']['display_name'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
+                'avatar_url': user_avatar_url(r['user']),  # pyright: ignore [reportTypedDictNotRequiredAccess]
             }
-            for u in other_users
+            for r in message['recipients']
         ],
         'time': time_html,
         'subject': message['subject'],

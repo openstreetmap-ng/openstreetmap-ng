@@ -52,12 +52,20 @@
                                         <div class="message-time"></div>
                                     </div>
                                 </div>
+                                <div>
+                                    <span class="small text-muted me-2">{{ t('messages.to_prefix') }}:</span>
+                                    <div class="message-recipients"></div>
+                                </div>
                                 <div class="btn-group" role="group">
                                     <a class="reply-link btn btn-sm btn-light border">
                                         <i class="bi bi-reply me-2"></i>
                                         {{- t('messages.message_summary.reply_button') }}
                                     </a>
                                     {% if inbox %}
+                                    <a class="reply-all-link btn btn-sm btn-light border">
+                                        <i class="bi bi-reply-all me-2"></i>
+                                        {{- t('messages.reply_all') }}
+                                    </a>
                                     <button class="unread-btn btn btn-sm btn-light border">
                                         <i class="bi bi-envelope me-2"></i>
                                         {{- t('messages.message_summary.unread_button') }}
@@ -91,5 +99,12 @@
         </div>
     </div>
 </div>
+
+<template class="message-recipient-template">
+    <span>
+        <img class="avatar" alt="{{ t('alt.profile_picture') }}" loading="lazy">
+        <a class="user-link"></a>
+    </span>
+</template>
 
 {% endblock %}

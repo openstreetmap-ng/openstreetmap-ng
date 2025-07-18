@@ -6,16 +6,19 @@ import { changeUnreadMessagesBadge } from "../navbar/navbar"
 const body = document.querySelector("body.messages-index-body")
 if (body) {
     const messages = body.querySelectorAll(".messages-list li.social-entry.clickable")
-    const messagePreview = body.querySelector(".message-preview")
+    const messagePreview = body.querySelector(".message-preview") as HTMLElement
     const messagePreviewContainer = messagePreview.parentElement
     const messageSender = messagePreview.querySelector(".message-sender")
     const senderAvatar = messageSender.querySelector("img.avatar")
     const senderLink = messageSender.querySelector("a.sender-link")
     const messageTime = messagePreview.querySelector(".message-time")
+    const messageRecipients = messagePreview.querySelector(".message-recipients")
     const replyLink = messagePreview.querySelector("a.reply-link")
+    const replyAllLink = messagePreview.querySelector("a.reply-all-link")
     const messageTitle = messagePreview.querySelector(".message-title")
     const messageBody = messagePreview.querySelector(".message-body")
     const loadingSpinner = messagePreview.querySelector(".loading")
+    const recipientTemplate = body.querySelector("template.message-recipient-template")
 
     let abortController: AbortController | null = null
     let openTarget: HTMLElement = null
@@ -48,6 +51,10 @@ if (body) {
 
         // Update reply link
         replyLink.href = `/message/new?reply=${openMessageId}`
+        if (replyAllLink) {
+            replyAllLink.classList.add("d-none")
+            replyAllLink.href = `/message/new?reply_all=${openMessageId}`
+        }
 
         // Abort any pending request
         abortController?.abort()
@@ -69,12 +76,35 @@ if (body) {
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
                 console.debug("Fetched message", openMessageId)
-                const { user_display_name, user_avatar_url, time, subject, body_rich } =
+                const { sender, recipients, time, subject, body_rich } =
                     await resp.json()
-                senderAvatar.src = user_avatar_url
-                senderLink.href = `/user/${user_display_name}`
-                senderLink.textContent = user_display_name
+
+                senderAvatar.src = sender.avatar_url
+                senderLink.href = `/user/${sender.display_name}`
+                senderLink.textContent = sender.display_name
                 messageTime.innerHTML = time
+
+                // Add each recipient
+                const messageRecipientsFragment = document.createDocumentFragment()
+                for (const user of recipients) {
+                    const userElement = recipientTemplate.content.cloneNode(
+                        true,
+                    ) as HTMLElement
+                    const avatar = userElement.querySelector("img.avatar")
+                    const link = userElement.querySelector("a.user-link")
+
+                    avatar.src = user.avatar_url
+                    link.href = `/user/${user.display_name}`
+                    link.textContent = user.display_name
+
+                    messageRecipientsFragment.appendChild(userElement)
+                }
+                messageRecipients.innerHTML = ""
+                messageRecipients.appendChild(messageRecipientsFragment)
+                if (replyAllLink && recipients.length > 1) {
+                    replyAllLink.classList.remove("d-none")
+                }
+
                 messageTitle.textContent = subject
                 messageBody.innerHTML = body_rich
                 resolveDatetimeLazy(messageTime)
