@@ -1,7 +1,13 @@
 {% if messages %}
 <ul class="messages-list social-list list-unstyled">
     {% for message in messages %}
-    <li class="social-entry clickable {% if message.id == active_message_id %}active{% endif %} {% if inbox and not message.is_read %}unread{% endif %}"
+    {% if inbox %}
+    {% set _user_recipient = message['recipients'] | selectattr('user_id', 'equalto', user['id']) | first %}
+    {% set _unread = not _user_recipient['read'] %}
+    {% else %}
+    {% set _unread = False %}
+    {% endif %}
+    <li class="social-entry clickable {% if message.id == active_message_id %}active{% endif %} {% if _unread %}unread{% endif %}"
         data-id="{{ message.id }}">
         <p class="header text-muted d-flex justify-content-between">
             {% if inbox %}
