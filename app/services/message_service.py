@@ -6,6 +6,7 @@ from psycopg.sql import SQL
 from psycopg.sql import Literal as PgLiteral
 from zid import zid
 
+from app.config import MESSAGE_RECIPIENTS_LIMIT
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
@@ -26,6 +27,15 @@ class MessageService:
     ) -> MessageId:
         """Send a message to a user."""
         assert recipients, 'Recipients must be set'
+
+        if len(recipients) > MESSAGE_RECIPIENTS_LIMIT:
+            StandardFeedback.raise_error(
+                'recipient',
+                t(
+                    'validation.you_can_send_message_to_at_most_limit_recipients',
+                    limit=MESSAGE_RECIPIENTS_LIMIT,
+                ),
+            )
 
         if isinstance(recipients[0], str):
             to_users = await UserQuery.find_many_by_display_names(recipients)  # type: ignore

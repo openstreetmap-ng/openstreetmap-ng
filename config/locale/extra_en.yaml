@@ -419,6 +419,7 @@ validation:
   insecure_redirect_uri: Insecure redirect URI, use https:// for public endpoints
   cant_send_message_to_self: You can't send a message to yourself
   user_not_found: User {{user}} not found
+  you_can_send_message_to_at_most_limit_recipients: "You can send a message to at most {{limit}} recipients"
   incomplete_location_information: Incomplete location information
 action:
   authorize: Authorize
