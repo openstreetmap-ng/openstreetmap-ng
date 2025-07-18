@@ -39,7 +39,7 @@ mail.openstreetmap.ng {
 	}
 }
 
-test.osm.ng, www.osm.ng, osm.ng {
+test.osm.ng, osm.ng {
 	import common
 	redir https://test.openstreetmap.ng{uri}
 }

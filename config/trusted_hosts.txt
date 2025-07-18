@@ -79,6 +79,8 @@ strava.com
 streetcomplete.app
 streets.gl
 systemed.net
+test.openstreetmap.ng
+test.osm.ng
 thunderforest.com
 tomtom.com
 topografix.com
