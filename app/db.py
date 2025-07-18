@@ -63,7 +63,7 @@ set_json_loads(orjson.loads)
 @asynccontextmanager
 async def psycopg_pool_open():
     """Open and close the psycopg pool."""
-    from app.services.migration_service import MigrationService
+    from app.services.migration_service import MigrationService  # noqa: PLC0415
 
     _init_pool()
     async with _PSYCOPG_POOL:

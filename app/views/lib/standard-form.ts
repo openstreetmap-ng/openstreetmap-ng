@@ -275,10 +275,12 @@ export const configureStandardForm = (
             url = form.action
             body = new FormData(form)
             if (options?.removeEmptyFields) {
-                for (const [key, value] of [...body.entries()]) {
-                    const valueString = value.toString()
-                    if (!valueString) body.delete(key)
+                const newBody = new FormData()
+                for (const [key, value] of body.entries()) {
+                    if (typeof value === "string" && !value) continue
+                    newBody.append(key, value)
                 }
+                body = newBody
             }
         } else if (method === "GET") {
             const params = new URLSearchParams()

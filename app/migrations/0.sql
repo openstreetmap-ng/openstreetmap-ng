@@ -334,9 +334,6 @@ CREATE TABLE message (
     id bigint PRIMARY KEY,
     from_user_id bigint NOT NULL REFERENCES "user",
     from_user_hidden boolean NOT NULL DEFAULT FALSE,
-    to_user_id bigint NOT NULL REFERENCES "user",
-    to_user_hidden boolean NOT NULL DEFAULT FALSE,
-    read boolean NOT NULL DEFAULT FALSE,
     subject text NOT NULL,
     body text NOT NULL,
     body_rich_hash bytea,
@@ -347,9 +344,17 @@ CREATE INDEX message_from_inbox ON message (from_user_id, id)
 WHERE
     NOT from_user_hidden;
 
-CREATE INDEX message_to_inbox ON message (read, to_user_id, id)
+CREATE TABLE message_recipient (
+    message_id bigint NOT NULL REFERENCES message,
+    user_id bigint NOT NULL REFERENCES "user",
+    hidden boolean NOT NULL DEFAULT FALSE,
+    read boolean NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (message_id, user_id)
+);
+
+CREATE INDEX message_recipient_inbox ON message_recipient (read, user_id, message_id)
 WHERE
-    NOT to_user_hidden;
+    NOT hidden;
 
 CREATE TABLE note (
     id bigint GENERATED ALWAYS AS IDENTITY,

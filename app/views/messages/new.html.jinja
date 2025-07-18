@@ -12,19 +12,15 @@
 <div class="content-body">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
         <form class="message-form" method="POST" action="/api/web/messages">
-            <label class="form-label d-block mb-3">
-                {% if recipient is not none %}
-                {{ t('messages.compose.recipient') }}
-                <input type="text" name="recipient" class="form-control bg-body-tertiary mt-2" value="{{ recipient }}"
-                    readonly>
-                {% else %}
-                <span class="required">{{ t('messages.compose.recipient') }}</span>
-                <input type="text" name="recipient" class="form-control mt-2"
-                    placeholder="{{ t('messages.compose.recipient_placeholder') }}" required>
-                {% endif %}
-                {% if recipient_id is not none %}
-                <input type="hidden" name="recipient_id" value="{{ recipient_id }}">
-                {% endif %}
+            <label class="form-label d-block mb-3" for="multi-input-recipient">
+                <span class="required">{{ t('messages.compose.recipients') }}</span>
+                <div class="mt-2">
+                    {% set multi_input_name = 'recipient' %}
+                    {% set multi_input_placeholder = t('messages.compose.recipient_placeholder') %}
+                    {% set multi_input_required = true %}
+                    {% set multi_input_value = recipients %}
+                    {% include 'lib/multi-input' %}
+                </div>
             </label>
 
             <label class="form-label d-block mb-3">

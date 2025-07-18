@@ -7,7 +7,7 @@ from psycopg.sql import SQL, Composable
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.models.db.message import Message
+from app.models.db.message import Message, MessageRecipient
 from app.models.types import MessageId, UserId
 
 
@@ -20,7 +20,7 @@ class _MessageCountByUserResult(NamedTuple):
 class MessageQuery:
     @staticmethod
     async def get_message_by_id(message_id: MessageId) -> Message:
-        """Get a message by id."""
+        """Get a message and its recipients by id."""
         user_id = auth_user(required=True)['id']
 
         async with (
@@ -30,16 +30,23 @@ class MessageQuery:
                 SELECT * FROM message
                 WHERE id = %s AND (
                     (from_user_id = %s AND NOT from_user_hidden)
-                    OR (to_user_id = %s AND NOT to_user_hidden)
+                    OR EXISTS (
+                        SELECT 1 FROM message_recipient
+                        WHERE message_id = id
+                        AND user_id = %s
+                        AND NOT hidden
+                    )
                 )
                 """,
                 (message_id, user_id, user_id),
             ) as r,
         ):
-            message = await r.fetchone()
+            message: Message | None = await r.fetchone()  # type: ignore
             if message is None:
                 raise_for.message_not_found(message_id)
-            return message  # type: ignore
+
+        await MessageQuery.resolve_recipients([message])
+        return message
 
     @staticmethod
     async def get_messages(
@@ -48,6 +55,7 @@ class MessageQuery:
         after: MessageId | None = None,
         before: MessageId | None = None,
         limit: int,
+        resolve_recipients: bool = False,
     ) -> list[Message]:
         """Get user messages."""
         user_id = auth_user(required=True)['id']
@@ -57,7 +65,16 @@ class MessageQuery:
         params: list[object] = []
 
         if inbox:
-            conditions.append(SQL('to_user_id = %s AND NOT to_user_hidden'))
+            conditions.append(
+                SQL("""
+                EXISTS (
+                    SELECT 1 FROM message_recipient
+                    WHERE message_id = id
+                    AND user_id = %s
+                    AND NOT hidden
+                )
+                """)
+            )
             params.append(user_id)
         else:
             conditions.append(SQL('from_user_id = %s AND NOT from_user_hidden'))
@@ -93,7 +110,35 @@ class MessageQuery:
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
-            return await r.fetchall()  # type: ignore
+            rows: list[Message] = await r.fetchall()  # type: ignore
+
+        if resolve_recipients:
+            await MessageQuery.resolve_recipients(rows)
+        return rows
+
+    @staticmethod
+    async def resolve_recipients(items: list[Message]) -> None:
+        """Resolve recipients for a list of messages."""
+        if not items:
+            return
+
+        id_map: dict[MessageId, list[MessageRecipient]] = {}
+        for item in items:
+            item['recipients'] = recipients = []
+            id_map[item['id']] = recipients
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM message_recipient
+                WHERE message_id = ANY(%s)
+                """,
+                (list(id_map),),
+            ) as r,
+        ):
+            for row in await r.fetchall():
+                id_map[row['message_id']].append(row)  # type: ignore
 
     @staticmethod
     async def count_unread() -> int:
@@ -104,10 +149,8 @@ class MessageQuery:
             db() as conn,
             await conn.execute(
                 """
-                SELECT COUNT(*) FROM message
-                WHERE to_user_id = %s
-                AND NOT to_user_hidden
-                AND NOT read
+                SELECT COUNT(*) FROM message_recipient
+                WHERE user_id = %s AND NOT hidden AND NOT read
                 """,
                 (user_id,),
             ) as r,
@@ -121,11 +164,11 @@ class MessageQuery:
             db() as conn,
             await conn.execute(
                 """
-                SELECT COUNT(*) FROM message
-                WHERE to_user_id = %s AND NOT to_user_hidden
+                SELECT COUNT(*) FROM message_recipient
+                WHERE user_id = %s AND NOT hidden
                 UNION ALL
-                SELECT COUNT(*) FROM message
-                WHERE to_user_id = %s AND NOT to_user_hidden AND NOT read
+                SELECT COUNT(*) FROM message_recipient
+                WHERE user_id = %s AND NOT hidden AND NOT read
                 UNION ALL
                 SELECT COUNT(*) FROM message
                 WHERE from_user_id = %s AND NOT from_user_hidden

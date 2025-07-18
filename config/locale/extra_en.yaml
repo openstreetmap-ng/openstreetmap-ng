@@ -141,9 +141,12 @@ messages:
   delete_confirmation: Are you sure you want to delete this message?
   action_sent: sent
   action_delivered: delivered
+  user_sent_you_a_message_on_platform_subject: "{user} sent you a message on {platform}: {subject}"
+  user_sent_you_and_others_a_message_on_platform_subject_one: "{user} sent you and {count} other a message on {platform}: {subject}"
+  user_sent_you_and_others_a_message_on_platform_subject_other: "{user} sent you and {count} others a message on {platform}: {subject}"
   compose:
     description: Send a new private message to another map user.
-    recipient: Recipient
+    recipients: Recipients
     recipient_placeholder: Enter username
     subject: Subject
     subject_placeholder: Enter message subject
@@ -151,6 +154,9 @@ messages:
     reply:
       prefix: "Re"
       header: "On {date} {user} wrote"
+multi_input:
+  add_new_entries_with_enter_or_comma: Add new entries with Enter or comma.
+  use_backspace_to_edit_the_last_item: Use Backspace to edit the last item.
 results:
   we_did_not_find_any_results: We did not find any results for your search.
 rich_text:
@@ -410,7 +416,7 @@ validation:
   invalid_redirect_uri: Invalid redirect URI
   insecure_redirect_uri: Insecure redirect URI, use https:// for public endpoints
   cant_send_message_to_self: You can't send a message to yourself
-  user_not_found: User not found
+  user_not_found: User {{user}} not found
   incomplete_location_information: Incomplete location information
 action:
   authorize: Authorize
@@ -458,6 +464,7 @@ action:
   show_more: Show more
   show_less: Show less
   remove_filter: Remove filter
+  remove: Remove
 state:
   any: Any
   hidden: Hidden

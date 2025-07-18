@@ -316,6 +316,17 @@
         }
     }
 
+    .recipients-group {
+        img.avatar {
+            margin-right: 0;
+
+            &:not(:first-child) {
+                margin-left: -0.7em;
+                box-shadow: -2px 0 2px -1px rgba(var(--bs-body-color-rgb), 0.25);
+            }
+        }
+    }
+
     .body {
         margin-bottom: 0.375rem;
 

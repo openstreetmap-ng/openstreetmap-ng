@@ -15,22 +15,32 @@ from app.models.types import MessageId, UserId
 class MessageInit(TypedDict):
     id: MessageId
     from_user_id: UserId
-    to_user_id: UserId
     subject: str
     body: str  # TODO: validate size
+
+    # runtime
+    to_user_ids: NotRequired[list[UserId]]
 
 
 class Message(MessageInit):
     from_user_hidden: bool
-    to_user_hidden: bool
-    read: bool
     body_rich_hash: bytes | None
     created_at: datetime
 
     # runtime
     from_user: NotRequired[UserDisplay]
-    to_user: NotRequired[UserDisplay]
     body_rich: NotRequired[str]
+    recipients: NotRequired[list['MessageRecipient']]
+
+
+class MessageRecipient(TypedDict):
+    message_id: MessageId
+    user_id: UserId
+    hidden: bool
+    read: bool
+
+    # runtime
+    user: NotRequired[UserDisplay]
 
 
 async def messages_resolve_rich_text(objs: list[Message]) -> None:
@@ -61,7 +71,7 @@ def message_from_email(
     message: MessageInit = {
         'id': message_id,
         'from_user_id': from_user_id,
-        'to_user_id': to_user_id,
+        'to_user_ids': [to_user_id],
         'subject': subject,
         'body': body,  # TODO: body check etc.
     }

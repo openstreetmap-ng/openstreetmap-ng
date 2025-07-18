@@ -40,4 +40,5 @@ import "./lib/map/main-map"
 
 import "./lib/bootstrap"
 import "./lib/copy-group"
+import "./lib/multi-input"
 import "./rich-text/_control"

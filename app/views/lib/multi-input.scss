@@ -1,0 +1,92 @@
+@use "sass:color";
+
+.multi-input-container {
+    > .form-control {
+        cursor: text;
+
+        &:focus-within {
+            color: $input-focus-color;
+            background: $input-focus-bg;
+            border-color: $input-focus-border-color;
+            outline: 0;
+            box-shadow: $input-focus-box-shadow;
+        }
+    }
+
+    // Inner input field
+    input[type="text"] {
+        flex-grow: 1;
+        width: auto;
+        padding: 0;
+        border: 0;
+
+        &:focus {
+            outline: none;
+            box-shadow: unset;
+        }
+    }
+
+    .multi-input-tokens:not(:empty) {
+        margin-right: 0.25rem;
+    }
+
+    // Token styling
+    .multi-input-token {
+        @extend .badge;
+        @extend .text-bg-primary;
+        @extend .rounded-pill;
+
+        --bs-badge-padding-y: 0;
+        --bs-badge-font-size: 0.9em;
+        --bs-badge-font-weight: unset;
+        line-height: 1.7;
+
+        white-space: nowrap;
+        max-width: 12.5rem;
+        animation: tokenAppear 0.2s ease-in-out;
+        transition: $btn-transition;
+
+        &:hover {
+            background: color.mix($primary, black, 90%);
+        }
+
+        span {
+            margin-right: 0.35rem;
+            overflow-x: hidden;
+            text-overflow: ellipsis;
+        }
+
+        button {
+            font-size: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            width: 1rem;
+            height: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 50%;
+            transition: $btn-transition;
+
+            &:hover {
+                background: rgba(0, 0, 0, 0.4);
+            }
+
+            &:focus {
+                outline: $focus-ring-width solid $focus-ring-color;
+                outline-offset: $focus-ring-width;
+            }
+        }
+    }
+}
+
+@keyframes tokenAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

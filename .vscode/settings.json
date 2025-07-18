@@ -29,7 +29,8 @@
     "›": true,
     "»": true,
     "➕": true,
-    "𝕏": true
+    "𝕏": true,
+    "×": true
   },
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.expand": false,

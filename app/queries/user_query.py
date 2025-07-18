@@ -82,6 +82,26 @@ class UserQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
+    async def find_many_by_display_names(
+        display_names: list[DisplayName],
+    ) -> list[User]:
+        """Find users by display names."""
+        if not display_names:
+            return []
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM "user"
+                WHERE display_name = ANY(%s)
+                """,
+                (display_names,),
+            ) as r,
+        ):
+            return await r.fetchall()  # type: ignore
+
+    @staticmethod
     async def find_many_nearby(
         point: Point,
         *,

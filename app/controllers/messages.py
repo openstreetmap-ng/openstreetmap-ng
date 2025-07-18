@@ -1,7 +1,6 @@
 from asyncio import TaskGroup
 from typing import Annotated
 
-import cython
 from fastapi import APIRouter, Query
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -55,37 +54,39 @@ async def new_message(
     to: Annotated[DisplayName | None, Query(min_length=1)] = None,
     to_id: Annotated[UserId | None, Query()] = None,
     reply: Annotated[MessageId | None, Query()] = None,
+    reply_all: Annotated[MessageId | None, Query()] = None,
     reply_diary: Annotated[DiaryId | None, Query()] = None,
     reply_diary_comment: Annotated[DiaryCommentId | None, Query()] = None,
 ):
-    recipient: DisplayName | None = None
-    recipient_id: int | None = None
+    recipients: str | None = None
     subject: str = ''
     body: str = ''
 
-    if reply is not None:
-        reply_message = await MessageQuery.get_message_by_id(reply)
-        is_recipient: cython.bint = reply_message['to_user_id'] == user['id']
+    if reply is not None or reply_all is not None:
+        reply_message = await MessageQuery.get_message_by_id(reply or reply_all)  # type: ignore
+        assert 'recipients' in reply_message, 'Message recipients must be set'
 
         async with TaskGroup() as tg:
-            items = [reply_message]
             tg.create_task(
                 UserQuery.resolve_users(
-                    items, user_id_key='from_user_id', user_key='from_user'
+                    [reply_message], user_id_key='from_user_id', user_key='from_user'
                 )
             )
-            if not is_recipient:
-                tg.create_task(
-                    UserQuery.resolve_users(
-                        items, user_id_key='to_user_id', user_key='to_user'
-                    )
-                )
+            tg.create_task(UserQuery.resolve_users(reply_message['recipients']))
 
         from_user = reply_message['from_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-        other_user = from_user if is_recipient else reply_message['to_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+        other_users = [from_user] if from_user['id'] != user['id'] else []
+        other_users.extend(
+            r['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+            for r in reply_message['recipients']
+            if r['user_id'] != user['id'] and not r['hidden']
+        )
 
-        recipient = other_user['display_name']
-        recipient_id = other_user['id']
+        recipients = (
+            next(iter(u['display_name'] for u in other_users))
+            if reply is not None
+            else ','.join(u['display_name'] for u in other_users)
+        )
         subject = f'{t("messages.compose.reply.prefix")}: {reply_message["subject"]}'
         reply_header_date = format_sql_date(reply_message['created_at'])
         reply_header_user = f'[{from_user["display_name"]}]({APP_URL}/user-id/{reply_message["from_user_id"]})'
@@ -106,8 +107,7 @@ async def new_message(
 
         await UserQuery.resolve_users([diary])
 
-        recipient = diary['user']['display_name']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-        recipient_id = diary['user_id']
+        recipients = diary['user']['display_name']  # pyright: ignore [reportTypedDictNotRequiredAccess]
         subject = f'{t("messages.compose.reply.prefix")}: {diary["title"]}'
 
     elif reply_diary_comment is not None:
@@ -122,29 +122,25 @@ async def new_message(
                 f'Parent diary {diary_comment["diary_id"]!r} must exist'
             )
 
-        recipient = diary_comment['user']['display_name']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-        recipient_id = diary_comment['user_id']
+        recipients = diary_comment['user']['display_name']  # pyright: ignore [reportTypedDictNotRequiredAccess]
         subject = f'{t("messages.compose.reply.prefix")}: {diary["title"]}'
 
     elif to_id is not None:
         recipient_user = await UserQuery.find_one_by_id(to_id)
         if recipient_user is None:
             raise_for.user_not_found(to_id)
-        recipient = recipient_user['display_name']
-        recipient_id = to_id
+        recipients = recipient_user['display_name']
 
     elif to is not None:
         recipient_user = await UserQuery.find_one_by_display_name(to)
         if recipient_user is None:
             raise_for.user_not_found(to)
-        recipient = to
-        recipient_id = recipient_user['id']
+        recipients = to
 
     return await render_response(
         'messages/new',
         {
-            'recipient': recipient,
-            'recipient_id': recipient_id,
+            'recipients': recipients,
             'subject': subject,
             'body': body,
             'MESSAGE_SUBJECT_MAX_LENGTH': MESSAGE_SUBJECT_MAX_LENGTH,
@@ -182,6 +178,7 @@ async def _get_messages_data(
         after=after,
         before=before,
         limit=MESSAGES_INBOX_PAGE_SIZE,
+        resolve_recipients=True,
     )
 
     async def new_after_task():
@@ -204,16 +201,17 @@ async def _get_messages_data(
 
     async with TaskGroup() as tg:
         if inbox:
-            user_id_key = 'from_user_id'
-            user_key = 'from_user'
-        else:
-            user_id_key = 'to_user_id'
-            user_key = 'to_user'
-        tg.create_task(
-            UserQuery.resolve_users(
-                messages, user_id_key=user_id_key, user_key=user_key
+            tg.create_task(
+                UserQuery.resolve_users(
+                    messages, user_id_key='from_user_id', user_key='from_user'
+                )
             )
-        )
+        else:
+            tg.create_task(
+                UserQuery.resolve_users(
+                    [r for m in messages for r in m['recipients']]  # pyright: ignore [reportTypedDictNotRequiredAccess]
+                )
+            )
 
         if messages:
             new_after_t = tg.create_task(new_after_task())

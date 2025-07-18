@@ -14,8 +14,11 @@ OpenStreetMap-NG is a modern, high-performance Python implementation of the Open
 **Frontend:**
 
 - Server-side rendered HTML with Jinja2 templates
-- TypeScript (ES2023) with typed-query-selector, and MapLibre GL JS
-- SCSS with Bootstrap 5
+- TypeScript (ES2023) with typed-query-selector, and MapLibre GL JS:
+  - Avoid using `as HTML...` casts: prefer to rely on typed-query-selector smart detection
+- SCSS with Bootstrap 5:
+  - Inline styles are heavily discouraged
+  - Generally avoid using `px` units: prefer `em`/`rem` where it makes sense
 - Bootstrap Icons
 
 ## Project Structure

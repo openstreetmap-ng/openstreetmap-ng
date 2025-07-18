@@ -16,11 +16,25 @@
             </span>
             {% else %}
             <span>
-                <a href="/user/{{ message.to_user.display_name }}">
-                    <img class="avatar" src="{{ user_avatar_url(message.to_user) }}"
+                {% set _num_recipients = message.recipients|length %}
+                {% if _num_recipients == 1 %}
+                {% set _recipient = message.recipients[0] %}
+                <a href="/user/{{ _recipient.user.display_name }}">
+                    <img class="avatar" src="{{ user_avatar_url(_recipient.user) }}"
                         alt="{{ t('alt.profile_picture') }}" loading="lazy">
-                    {{- message.to_user.display_name -}}
+                    {{- _recipient.user.display_name -}}
                 </a>
+                {% else %}
+                <span class="recipients-group">
+                    {% for _recipient in message.recipients[:3] %}
+                    <img class="avatar avatar" src="{{ user_avatar_url(_recipient.user) }}"
+                        alt="{{ t('alt.profile_picture') }}" loading="lazy" title="{{ _recipient.user.display_name }}">
+                    {% endfor %}
+                    {% if _num_recipients > 3 %}
+                    <span class="fw-medium">+{{ _num_recipients - 3 }}</span>
+                    {% endif %}
+                </span>
+                {% endif %}
                 {{ t('messages.action_delivered') }}
                 <time datetime="{{ message.created_at.isoformat() }}" data-style="long"></time>
             </span>

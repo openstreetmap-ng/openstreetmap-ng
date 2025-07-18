@@ -1,0 +1,13 @@
+<div class="multi-input-container">
+    <div class="form-control d-flex flex-wrap align-items-center">
+        <div class="multi-input-tokens d-flex flex-wrap align-items-center gap-1"></div>
+        <input id="multi-input-{{ multi_input_name }}" type="text" class="form-control" name="{{ multi_input_name }}"
+            placeholder="{{ multi_input_placeholder }}" value="{{ multi_input_value or "" }}" enterkeyhint="done"
+            autocomplete="off" autocapitalize="none" {% if multi_input_required %}required{% endif %}>
+    </div>
+
+    <div class="form-text">
+        {{ t('multi_input.add_new_entries_with_enter_or_comma') }}
+        {{ t('multi_input.use_backspace_to_edit_the_last_item') }}
+    </div>
+</div>

@@ -65,7 +65,7 @@ class UserTokenEmailReplyService:
         assert user is not None, 'Token user must exist'
 
         with auth_context(user, scopes=()):
-            await MessageService.send(token['email_reply_to_user_id'], subject, body)
+            await MessageService.send([token['email_reply_to_user_id']], subject, body)
 
 
 async def _create_token(
