@@ -7,7 +7,7 @@
 
 Welcome to OpenStreetMap-NG, an innovative unofficial Python fork of [openstreetmap.org](https://openstreetmap.org). Our mission is to revolutionize the map and provide a better experience for all users. It is simply the Next Generation of OpenStreetMap.
 
-🗺️ [**Public Instance** (osm.ng)](https://osm.ng),
+🗺️ [**Public Instance** (test.osm.ng)](https://test.osm.ng),
 📖 [**Testing Guide**](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Public-Testing)
 
 🛈 This initiative is not affiliated with the OpenStreetMap Foundation.

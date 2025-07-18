@@ -20,11 +20,16 @@
 	}
 }
 
-www.openstreetmap.ng, api.openstreetmap.ng, id.openstreetmap.ng, rapid.openstreetmap.ng {
+test.openstreetmap.ng, api.openstreetmap.ng, id.openstreetmap.ng, rapid.openstreetmap.ng {
 	import common
 	reverse_proxy 127.0.0.1:8000 {
 		import common_proxy
 	}
+}
+
+www.openstreetmap.ng {
+	import common
+	redir https://test.openstreetmap.ng{uri}
 }
 
 mail.openstreetmap.ng {
@@ -34,7 +39,7 @@ mail.openstreetmap.ng {
 	}
 }
 
-www.osm.ng, osm.ng {
+test.osm.ng, www.osm.ng, osm.ng {
 	import common
-	redir https://www.openstreetmap.ng{uri} permanent
+	redir https://test.openstreetmap.ng{uri}
 }

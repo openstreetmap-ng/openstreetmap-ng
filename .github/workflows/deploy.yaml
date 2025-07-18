@@ -20,7 +20,7 @@ jobs:
           echo "${{ vars.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           echo "Host remote
             User root
-            Hostname www.openstreetmap.ng
+            Hostname test.openstreetmap.ng
             IdentityFile ~/.ssh/id
           " > ~/.ssh/config
 

@@ -71,7 +71,7 @@ let
       --arg gunicornWorkers 3 \
       --run "
         export ENV=test \
-        && export APP_URL=https://www.openstreetmap.ng \
+        && export APP_URL=https://test.openstreetmap.ng \
         && export API_URL=https://api.openstreetmap.ng \
         && export LEGACY_GEOM_SKIP_MISSING_NODES=1 \
         && export MAP_QUERY_LEGACY_NODES_LIMIT=1000 \
