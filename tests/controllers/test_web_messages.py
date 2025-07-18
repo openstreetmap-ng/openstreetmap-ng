@@ -2,6 +2,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from httpx import AsyncClient
+from pydantic import PositiveInt
 from starlette import status
 
 from app.exceptions import Exceptions
@@ -44,8 +45,16 @@ async def test_message_crud(client: AsyncClient):
     assert_model(
         sender_read_response,
         {
-            'user_display_name': 'user2',
-            'user_avatar_url': str,
+            'sender': {
+                'display_name': 'user1',
+                'avatar_url': str,
+            },
+            'recipients': [
+                {
+                    'display_name': 'user2',
+                    'avatar_url': str,
+                }
+            ],
             'time': str,
             'subject': 'Test Subject',
             'body_rich': '<p>Test Body</p>\n',
@@ -54,7 +63,7 @@ async def test_message_crud(client: AsyncClient):
 
     with auth_context(user1, ()):
         message = await MessageQuery.get_message_by_id(message_id)
-        assert not message['read']
+        assert not message['recipients'][0]['read']  # type: ignore
 
     # Authenticate as user2 (recipient)
     client.headers['Authorization'] = 'User user2'
@@ -67,8 +76,16 @@ async def test_message_crud(client: AsyncClient):
     assert_model(
         read_response,
         {
-            'user_display_name': 'user1',
-            'user_avatar_url': str,
+            'sender': {
+                'display_name': 'user1',
+                'avatar_url': str,
+            },
+            'recipients': [
+                {
+                    'display_name': 'user2',
+                    'avatar_url': str,
+                }
+            ],
             'time': str,
             'subject': 'Test Subject',
             'body_rich': '<p>Test Body</p>\n',
@@ -77,14 +94,14 @@ async def test_message_crud(client: AsyncClient):
 
     with auth_context(user1, ()):
         message = await MessageQuery.get_message_by_id(message_id)
-        assert message['read']
+        assert message['recipients'][0]['read']  # type: ignore
 
         # UPDATE: Mark message as unread
         r = await client.post(f'/api/web/messages/{message_id}/unread')
         assert r.status_code == status.HTTP_204_NO_CONTENT
 
         message = await MessageQuery.get_message_by_id(message_id)
-        assert not message['read']
+        assert not message['recipients'][0]['read']  # type: ignore
 
     # DELETE: Delete message
     r = await client.post(f'/api/web/messages/{message_id}/delete')
@@ -103,7 +120,12 @@ async def test_message_crud(client: AsyncClient):
             message,
             {
                 'from_user_hidden': False,
-                'to_user_hidden': True,
+                'recipients': [
+                    {
+                        'hidden': True,
+                        'user_id': PositiveInt,
+                    }
+                ],
             },
         )
 
