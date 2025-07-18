@@ -197,6 +197,7 @@ async def _send_activity_email(message: Message) -> None:
         tg.create_task(UserQuery.resolve_users(message['recipients'], kind=User))
 
     async with TaskGroup() as tg:
+        num_others = len(message['recipients']) - 1
         for recipient in message['recipients']:
             to_user: User = recipient['user']  # type: ignore
 
@@ -213,6 +214,6 @@ async def _send_activity_email(message: Message) -> None:
                     to_user=to_user,
                     subject=subject,
                     template_name='email/message',
-                    template_data={'message': message},
+                    template_data={'message': message, 'num_others': num_others},
                 )
             )
