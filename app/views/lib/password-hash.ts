@@ -105,6 +105,7 @@ const clientHashPassword = async (
         // TODO: check performance on mobile
         // client-side pbkdf2 sha512, 100_000 iters, base64 encoded
         let origin = window.location.origin
+        // TODO: remove during test db reset
         if (origin === "https://test.openstreetmap.ng") {
             origin = "https://www.openstreetmap.ng"
         }
