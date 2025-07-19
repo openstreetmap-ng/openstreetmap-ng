@@ -3,7 +3,7 @@
         <div class="multi-input-tokens d-flex flex-wrap align-items-center gap-1"></div>
         <input id="multi-input-{{ multi_input_name }}" type="text" class="form-control" name="{{ multi_input_name }}"
             placeholder="{{ multi_input_placeholder }}" value="{{ multi_input_value or "" }}" autocomplete="off"
-            autocapitalize="none" {% if multi_input_required %}required{% endif %}>
+            autocapitalize="none" enterkeyhint="enter" {% if multi_input_required %}required{% endif %}>
     </div>
 
     <div class="form-text">

@@ -104,7 +104,6 @@ for (const container of multiInputContainers) {
         if (e.key === "Enter") {
             e.preventDefault()
             addTokenFromInput()
-            input.focus()
         } else if (
             e.key === "Backspace" &&
             !input.value &&
