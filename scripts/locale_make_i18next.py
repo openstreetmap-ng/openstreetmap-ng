@@ -1,5 +1,6 @@
 import re
 from hashlib import sha256
+from operator import itemgetter
 from os import utime
 from pathlib import Path
 
@@ -20,25 +21,23 @@ _INCLUDE_PREFIXES = [
 _INCLUDE_PREFIXES_DOT = [f'{prefix}.' for prefix in _INCLUDE_PREFIXES]
 
 
-def find_used_keys() -> set[str]:
+def find_used_keys() -> tuple[set[str], float]:
     """Extract translation keys used in the source files."""
-    # Regex patterns to match i18next.t() and t() calls with literal strings
-    patterns = [
-        re.compile(
-            r'\bi18next\.t\s*\(\s*(["\'])(?P<key>(?:\\.|(?!\1).)*)\1\s*[,)]', re.DOTALL
-        ),
-        re.compile(
-            r'(?<![.\w])t\s*\(\s*(["\'])(?P<key>(?:\\.|(?!\1).)*)\1\s*[,)]', re.DOTALL
-        ),
-    ]
+    # Regex pattern to match i18next.t() and t() calls with literal strings
+    pattern = re.compile(
+        r'(?:\bi18next\.t|(?<![.\w])t)\s*\(\s*(["\'])((?:\\.|(?!\1).)*)\1\s*[,)]',
+        re.DOTALL,
+    )
 
-    return {
-        match['key']
-        for source in Path('app/views').rglob('*.ts')
-        if (content := source.read_text())
-        for pattern in patterns
-        for match in pattern.finditer(content)
-    }
+    result = set()
+    mtime = 0
+
+    for source in Path('app/views').rglob('*.ts'):
+        if matches := pattern.findall(source.read_text()):
+            result.update(map(itemgetter(1), matches))
+            mtime = max(mtime, source.stat().st_mtime)
+
+    return result, mtime
 
 
 def filter_unused_keys(
@@ -90,7 +89,7 @@ def main() -> None:
     file_map: dict[str, str] = {}
     transform_count = 0
 
-    used_keys = find_used_keys()
+    used_keys, used_keys_mtime = find_used_keys()
     combined_keys = used_keys.copy()
     combined_keys.update(_INCLUDE_PREFIXES)
     original_keys_count = 0
@@ -99,7 +98,7 @@ def main() -> None:
     for source_path in _POSTPROCESS_DIR.glob('*.json'):
         locale = source_path.stem
         source_mtime = source_path.stat().st_mtime
-        effective_mtime = max(source_mtime, script_mtime)
+        effective_mtime = max(source_mtime, script_mtime, used_keys_mtime)
         target_path = find_valid_output(locale, effective_mtime)
         if target_path is not None:
             file_map[locale] = target_path.name
