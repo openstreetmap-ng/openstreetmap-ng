@@ -4,7 +4,7 @@
 @mixin legacy-routing-icon($x, $y) {
     width: 20px;
     height: 20px;
-    background: url("/static/img/routing/sprite.webp") $x $y;
+    background: url("/app/static/img/routing/sprite.webp") $x $y;
 }
 
 // TODO: hover action

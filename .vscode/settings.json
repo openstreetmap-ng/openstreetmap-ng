@@ -36,7 +36,7 @@
   "explorer.fileNesting.expand": false,
   "explorer.fileNesting.patterns": {
     "*.html.jinja": "${capture}.*",
-    "package.json": "bun.lock",
+    "package.json": "pnpm-*.yaml",
     "pyproject.toml": "uv.lock",
     "README.md": "LICENSE"
   },
@@ -53,14 +53,13 @@
     "**/build/": true,
     "**/node_modules/": true,
     "/nix/store/": true,
-    "app/static/js/": true,
+    "app/static/vite/**/*.js": true,
     "config/locale/download/": true,
     "dist/": true
   },
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
-  "npm.packageManager": "bun",
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.packageIndexDepths": [
     {

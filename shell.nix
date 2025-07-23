@@ -21,7 +21,7 @@
   mailpitHttpPort ? 49566,
   mailpitSmtpPort ? 49565,
   gunicornWorkers ? 1,
-  gunicornPort ? 8000,
+  gunicornPort ? (if isDevelopment then 8000 else 49568),
 }:
 
 let
@@ -159,9 +159,9 @@ let
     libxml2.dev
     openssl.dev
     # Frontend:
-    bun
+    nodejs-slim_24
+    pnpm
     biome
-    nodejs-slim
     # Services:
     (postgresql_17_jit.withPackages (ps: [
       ps.timescaledb-apache
@@ -273,63 +273,6 @@ let
     '')
     (makeScript "watch-cython" "exec watchexec -o queue -w app --exts py cython-build-fast")
 
-    # -- CSS
-    (makeScript "css-pipeline" ''
-      src=app/views
-      dst=app/static/css
-      rm -f "$dst"/*.{css,map}{,.br,.zst}
-
-      mappings=()
-      for f in main id rapid embed; do
-        mappings+=("$src/$f.scss:$dst/$f.css")
-      done
-      bun run sass \
-        --quiet-deps \
-        --silence-deprecation=import \
-        --style compressed \
-        --load-path node_modules \
-        --no-source-map \
-        "''${mappings[@]}"
-
-      bun run postcss \
-        "$dst"/*.css \
-        --use autoprefixer \
-        --replace \
-        --no-map
-
-      for file in "$dst"/*.css; do
-        hash=$(b3sum --no-names --length=6 "$file")
-        new_file="''${file%.css}.$hash.css"
-        mv "$file" "$new_file"
-        echo "  $new_file"
-      done
-    '')
-    (makeScript "watch-css" "exec watchexec -o queue -w app/views -e scss css-pipeline")
-
-    # -- JavaScript
-    (makeScript "js-pipeline" ''
-      src=app/views
-      dst=app/static/js
-      tmp="$dst/_generated"
-      mkdir -p "$tmp"
-      rm -f "$dst"/*.{js,map}{,.br,.zst}
-
-      bun run babel \
-        --extensions ".js,.ts" \
-        --copy-files \
-        --no-copy-ignored \
-        --out-dir "$tmp" \
-        "$src"
-
-      bun build \
-        --entry-naming="[dir]/[name].[hash].[ext]" \
-        --minify \
-        --sourcemap=linked \
-        --outdir "$dst" \
-        "$tmp"/{main,main-sync,id,rapid,embed,test-site}.js
-    '')
-    (makeScript "watch-js" "exec watchexec -o queue -w app/views -e ts js-pipeline")
-
     # -- Static
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
     (makeScript "static-img-pipeline" "python scripts/rasterize.py static-img-pipeline")
@@ -368,11 +311,7 @@ let
       find  \
         "app/static" \
         "config/locale/i18next" \
-        "node_modules/iD/dist" \
-        "node_modules/@rapideditor/rapid/dist" \
         -type f \
-        -not -path "app/static/js/_generated/*" \
-        -not -path "node_modules/@rapideditor/rapid/dist/examples/*" \
         -not -name "*.xcf" \
         -not -name "*.gif" \
         -not -name "*.jpg" \
@@ -759,11 +698,11 @@ let
       [ -n "$(find speedup -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
         uv add ./speedup --reinstall-package speedup
 
-      echo "Installing Bun dependencies"
-      export DO_NOT_TRACK=1
-      bun install --frozen-lockfile
+      echo "Installing Node.js dependencies"
+      pnpm install --frozen-lockfile
 
-      echo "Activating Python virtual environment"
+      echo "Activating environment"
+      export PATH="$(pnpm bin):$PATH"
       source .venv/bin/activate
     ''
     + lib.optionalString stdenv.isDarwin ''
@@ -822,11 +761,8 @@ let
     + lib.optionalString (!isDevelopment) ''
       echo "Running [locale-pipeline]"
       locale-pipeline &
-      echo "Running [css-pipeline]"
-      css-pipeline &
-      wait
-      echo "Running [js-pipeline]"
-      js-pipeline &
+      echo "Running [vite build]"
+      vite build &
     ''
     + ''
       wait

@@ -76,24 +76,6 @@ let
       command = "watch-locale";
       ready_log_line = "[Command was successful]";
     };
-    watch-js = {
-      availability = availability;
-      command = "watch-js";
-      ready_log_line = "[Command was successful]";
-      depends_on = {
-        watch-proto = {
-          condition = "process_log_ready";
-        };
-        watch-locale = {
-          condition = "process_log_ready";
-        };
-      };
-    };
-    watch-css = {
-      availability = availability;
-      command = "watch-css";
-      ready_log_line = "[Command was successful]";
-    };
   };
 
 in

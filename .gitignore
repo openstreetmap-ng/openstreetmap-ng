@@ -374,8 +374,7 @@ scripts/**/*.html
 app/**/*.c
 app/**/*.html
 app/views/lib/proto
-app/static/css
-app/static/js
+app/static/vite
 app/models/proto/**/*_pb2.py*
 typings/app
 

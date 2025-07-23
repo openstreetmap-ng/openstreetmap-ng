@@ -1,3 +1,5 @@
+import "./id.scss"
+
 import { config, primaryLanguage } from "./lib/config"
 import { parentLoadSystemApp } from "./lib/system-app"
 import { throttle } from "./lib/utils"

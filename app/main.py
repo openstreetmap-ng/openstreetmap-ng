@@ -156,11 +156,6 @@ main.mount(
     name='static-locale',
 )
 main.mount(
-    '/static-bootstrap-icons',
-    PrecompressedStaticFiles('node_modules/bootstrap-icons/font/fonts'),
-    name='static-bootstrap-icons',
-)
-main.mount(
     f'/static-id/{ID_VERSION}',
     PrecompressedStaticFiles('node_modules/iD/dist'),
     name='static-id',

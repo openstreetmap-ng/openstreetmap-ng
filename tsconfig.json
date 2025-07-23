@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "allowJs": true,
+    "isolatedModules": true,
     "module": "ES2020",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
@@ -14,7 +15,7 @@
     "types": [
       "@types/bootstrap",
       "@types/geojson",
-      "bun-types",
+      "@types/node",
       "typed-query-selector"
     ],
     "verbatimModuleSyntax": true

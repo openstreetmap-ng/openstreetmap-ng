@@ -3,6 +3,7 @@
   "files": {
     "ignoreUnknown": true,
     "includes": [
+      "*.js",
       "**/*.ts",
       "**/*.json",
       "!app/views/lib/timezone-bbox.ts",
@@ -47,7 +48,6 @@
       "recommended": true,
       "style": {
         "noCommonJs": "on",
-        "noDefaultExport": "on",
         "noInferrableTypes": "on",
         "noNamespace": "on",
         "noSubstr": "on",
