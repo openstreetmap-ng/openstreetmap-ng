@@ -43,6 +43,17 @@
   "pnpm": {
     "overrides": {
       "vite": "$vite"
+    },
+    "ignoredBuiltDependencies": [
+      "@parcel/watcher",
+      "core-js",
+      "core-js-bundle",
+      "esbuild"
+    ],
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-jq9w-gjvg-mxr8"
+      ]
     }
   },
   "babel": {

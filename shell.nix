@@ -21,7 +21,7 @@
   mailpitHttpPort ? 49566,
   mailpitSmtpPort ? 49565,
   gunicornWorkers ? 1,
-  gunicornPort ? (if isDevelopment then 8000 else 49568),
+  gunicornPort ? 8000,
 }:
 
 let

@@ -4,17 +4,16 @@ import { defineConfig } from "vite"
 import { browserslist } from "./package.json"
 
 export default defineConfig({
+    appType: "custom",
+    clearScreen: false,
     server: {
-        port: 8000,
+        host: "127.0.0.1",
+        port: 49568,
         strictPort: true,
-        proxy: {
-            "^(?!/(@vite|node_modules)/)": {
-                target: "http://127.0.0.1:49568",
-                changeOrigin: true,
-            },
-        },
+        origin: "http://127.0.0.1:49568",
     },
     build: {
+        manifest: true,
         outDir: "app/static/vite",
         copyPublicDir: false,
         sourcemap: true,
@@ -49,9 +48,6 @@ export default defineConfig({
         postcss: {
             plugins: [autoprefixer()],
         },
-    },
-    optimizeDeps: {
-        noDiscovery: true,
     },
     plugins: [
         legacy({

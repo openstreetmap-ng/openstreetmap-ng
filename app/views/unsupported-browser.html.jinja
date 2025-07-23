@@ -10,7 +10,7 @@
         {{ t('layouts.project_name.title') }}
     </title>
 
-    <link rel="stylesheet" href="{{ HASH_AWARE_PATHS['/static/css/main.css'] }}" fetchpriority="high">
+    {{ vite_render_asset('app/views/main.scss') | safe }}
 
     <link rel="icon" sizes="512x512" type="image/webp" href="/static/img/favicon/512.webp">
     <link rel="icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">

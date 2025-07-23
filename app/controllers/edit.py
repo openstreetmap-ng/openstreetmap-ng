@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 from app.config import ID_URL, RAPID_URL
 from app.lib.auth_context import auth_user, web_user
-from app.lib.bun_packages import ID_VERSION, RAPID_VERSION
+from app.lib.js_packages import ID_VERSION, RAPID_VERSION
 from app.lib.render_response import render_response
 from app.middlewares.default_headers_middleware import CSP_HEADER
 from app.models.db.user import DEFAULT_EDITOR, Editor, User

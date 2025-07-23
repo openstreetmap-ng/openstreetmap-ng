@@ -1,3 +1,1 @@
-auditConfig:
-  ignoreGhsas:
-    - GHSA-jq9w-gjvg-mxr8
+updateNotifier: false

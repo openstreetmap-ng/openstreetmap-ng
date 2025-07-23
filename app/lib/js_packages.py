@@ -1,20 +1,18 @@
 import logging
-import re
 from pathlib import Path
 
 import cython
-import orjson
+import yaml
 
 
 @cython.cfunc
-def _bun_versions(names: tuple[str, ...], /) -> list[str]:
+def _pnpm_versions(names: tuple[str, ...], /) -> list[str]:
     """Get the installed versions of the given JS packages."""
     names_set = set(names)
-    lock_data = Path('bun.lock').read_bytes()
-    lock_data = re.sub(rb',(?=\s*[]}])', b'', lock_data)  # remove trailing commas
     result: dict[str, str] = {}
+    data: dict = yaml.load(Path('pnpm-lock.yaml').read_bytes(), yaml.CSafeLoader)
 
-    for pkg_data in orjson.loads(lock_data)['packages'].values():
+    for pkg_data in data['packages']:
         fq_name: str = pkg_data[0]
         name, _, version = fq_name.rpartition('@')
         if name in names_set:
@@ -23,5 +21,5 @@ def _bun_versions(names: tuple[str, ...], /) -> list[str]:
     return [result[name] for name in names]
 
 
-ID_VERSION, RAPID_VERSION = _bun_versions(('iD', '@rapideditor/rapid'))
+ID_VERSION, RAPID_VERSION = 'abc', 'def'
 logging.info('Packages versions: iD=%s, Rapid=%s', ID_VERSION, RAPID_VERSION)

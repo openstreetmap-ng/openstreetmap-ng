@@ -76,6 +76,22 @@ let
       command = "watch-locale";
       ready_log_line = "[Command was successful]";
     };
+    vite = {
+      availability = availability;
+      command = "vite";
+      ready_log_line = " ready in ";
+      depends_on = {
+        watch-proto = {
+          condition = "process_log_ready";
+        };
+        watch-locale = {
+          condition = "process_log_ready";
+        };
+      };
+      log_configuration = log_configuration // {
+        no_metadata = true;
+      };
+    };
   };
 
 in
