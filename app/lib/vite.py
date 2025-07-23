@@ -1,4 +1,6 @@
+from collections import deque
 from functools import cache
+from itertools import chain
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +21,9 @@ def vite_render_asset(path: str) -> str:
     lines: list[str] = []
 
     if _MANIFEST is None:
+        # Development environment:
+        # Use Vite dev server
+
         if suffix == '.scss':
             lines.append(
                 f'<link rel="stylesheet" href="http://127.0.0.1:49568/{path}">'
@@ -49,20 +54,27 @@ def vite_render_asset(path: str) -> str:
             )
 
     else:
+        # Production and test environments:
+        # Use built assets
+        imports: dict[str, dict[str, Any]] = {}
+
         if suffix == '.scss':
             ts_path = path[:-5] + '.ts'
             data = _MANIFEST[ts_path]
         else:
             data = _MANIFEST[path]
 
+            # Recursively collect all imports
+            stack: deque[str] = deque(data.get('imports', ()))
+            while stack:
+                chunk = stack.popleft()
+                chunk_data = imports[chunk] = _MANIFEST[chunk]
+                stack.extend(chunk_data.get('imports', ()))
+
         lines.extend(
             f'<link rel="stylesheet" href="/static/vite/{css}">'
-            for css in data.get('css', ())
-        )
-        lines.extend(
-            f'<link rel="stylesheet" href="/static/vite/{css}">'
-            for chunk in data.get('imports', ())
-            for css in _MANIFEST[chunk].get('css', ())
+            for chunk in chain((data,), imports.values())
+            for css in chunk.get('css', ())
         )
 
         if path == 'app/views/main.ts':
@@ -74,10 +86,9 @@ def vite_render_asset(path: str) -> str:
             lines.append(
                 f'<script src="/static/vite/{data["file"]}" type="module" defer></script>'
             )
-
-        lines.extend(
-            f'<link rel="modulepreload" href="/static/vite/{chunk["file"]}">'
-            for chunk in data.get('imports', ())
-        )
+            lines.extend(
+                f'<link rel="modulepreload" href="/static/vite/{chunk["file"]}">'
+                for chunk in imports.values()
+            )
 
     return ''.join(lines)
