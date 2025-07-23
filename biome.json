@@ -29,9 +29,6 @@
         "noVoid": "on",
         "useWhile": "on"
       },
-      "correctness": {
-        "noNodejsModules": "on"
-      },
       "nursery": {
         "noAwaitInLoop": "on",
         "noConstantBinaryExpression": "on",

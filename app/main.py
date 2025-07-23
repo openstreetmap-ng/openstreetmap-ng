@@ -31,7 +31,6 @@ from app.config import (
     NAME,
 )
 from app.db import psycopg_pool_open
-from app.lib.js_packages import ID_VERSION, RAPID_VERSION
 from app.lib.starlette_convertor import ElementTypeConvertor
 from app.lib.user_name_blacklist import user_name_blacklist_routes
 from app.middlewares.api_cors_middleware import APICorsMiddleware
@@ -146,24 +145,19 @@ if ENV != 'prod':
 
 # TODO: /static default cache control
 main.mount(
-    '/static',
+    '/static/',
     PrecompressedStaticFiles('app/static'),
     name='static',
 )
 main.mount(
-    '/static-locale',
+    '/static-locale/',
     PrecompressedStaticFiles('config/locale/i18next'),
     name='static-locale',
 )
 main.mount(
-    f'/static-id/{ID_VERSION}',
-    PrecompressedStaticFiles('node_modules/iD/dist'),
-    name='static-id',
-)
-main.mount(
-    f'/static-rapid/{RAPID_VERSION}',
-    PrecompressedStaticFiles('node_modules/@rapideditor/rapid/dist'),
-    name='static-rapid',
+    '/static-node_modules/',
+    PrecompressedStaticFiles('node_modules'),
+    name='static-node_modules',
 )
 
 

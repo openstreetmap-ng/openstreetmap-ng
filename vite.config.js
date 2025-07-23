@@ -1,7 +1,14 @@
+import { dirname } from "node:path"
 import legacy from "@vitejs/plugin-legacy"
 import autoprefixer from "autoprefixer"
 import { defineConfig } from "vite"
 import { browserslist } from "./package.json"
+
+const getPackageDist = (pkgName) => {
+    const absolutePath = dirname(require.resolve(pkgName))
+    const relativePath = `${absolutePath.replace(process.cwd(), "").slice(1)}/`
+    return relativePath
+}
 
 export default defineConfig({
     appType: "custom",
@@ -11,6 +18,12 @@ export default defineConfig({
         port: 49568,
         strictPort: true,
         origin: "http://127.0.0.1:49568",
+    },
+    define: {
+        __ID_PATH__: JSON.stringify(`/static-${getPackageDist("iD")}`),
+        __RAPID_PATH__: JSON.stringify(
+            `/static-${getPackageDist("@rapideditor/rapid")}`,
+        ),
     },
     build: {
         manifest: true,

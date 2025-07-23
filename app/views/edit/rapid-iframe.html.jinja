@@ -6,13 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {{ vite_render_asset('app/views/rapid.ts') | safe }}
-
-    <link rel="stylesheet" href="/static-rapid/{{ RAPID_VERSION }}/rapid.css">
-    <script src="/static-rapid/{{ RAPID_VERSION }}/rapid.min.js" defer></script>
 </head>
 
 <body>
-    <div class="rapid-container" data-version="{{ RAPID_VERSION }}"></div>
+    <div class="rapid-container"></div>
 </body>
 
 </html>

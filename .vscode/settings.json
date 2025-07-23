@@ -28,13 +28,15 @@
   "editor.unicodeHighlight.allowedCharacters": {
     "›": true,
     "»": true,
+    "×": true,
     "➕": true,
-    "𝕏": true,
-    "×": true
+    "𝕏": true
   },
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.expand": false,
   "explorer.fileNesting.patterns": {
+    ".clang-format": ".clang-format-*",
+    ".gitignore": ".gitattributes",
     "*.html.jinja": "${capture}.*",
     "package.json": "pnpm-*.yaml",
     "pyproject.toml": "uv.lock",

@@ -6,13 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {{ vite_render_asset('app/views/id.ts') | safe }}
-
-    <link rel="stylesheet" href="/static-id/{{ ID_VERSION }}/iD.css">
-    <script src="/static-id/{{ ID_VERSION }}/iD.min.js" defer></script>
 </head>
 
 <body>
-    <div class="id-container" data-version="{{ ID_VERSION }}"></div>
+    <div class="id-container"></div>
 </body>
 
 </html>

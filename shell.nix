@@ -311,6 +311,8 @@ let
       find  \
         "app/static" \
         "config/locale/i18next" \
+        node_modules/.pnpm/iD@*/node_modules/iD/dist \
+        node_modules/.pnpm/@rapideditor+rapid@*/node_modules/@rapideditor/rapid/dist \
         -type f \
         -not -name "*.xcf" \
         -not -name "*.gif" \
