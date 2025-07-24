@@ -8,8 +8,8 @@ from app.config import APP_URL, ENV, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
 from app.lib.jinja_loader import OptimizedFileSystemLoader
-from app.lib.static_asset_hash import HASH_AWARE_PATHS
 from app.lib.translation import nt, primary_translation_locale, t
+from app.lib.vite import vite_render_asset
 from app.models.db.oauth2_application import oauth2_app_avatar_url, oauth2_app_is_system
 from app.models.db.user import user_avatar_url, user_is_admin, user_is_moderator
 from speedup.element_type import split_typed_element_id
@@ -129,7 +129,7 @@ def stripspecial(value: str) -> str:
 
 # configure template globals
 _J2.globals.update(
-    HASH_AWARE_PATHS=HASH_AWARE_PATHS,
+    vite_render_asset=vite_render_asset,
     t=t,
     nt=nt,
     str=str,

@@ -1,3 +1,5 @@
+import "./main.scss"
+
 import "./lib/tracking"
 
 import "./lib/datetime"

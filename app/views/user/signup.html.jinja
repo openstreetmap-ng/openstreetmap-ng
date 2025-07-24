@@ -12,8 +12,9 @@
 
                 <div>
                     <h1 class="brand-title fw-bold">
-                        <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo') }}" draggable="false">
-                        {{- t('layouts.project_name.title') }}
+                        <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo', name=t('project_name')) }}"
+                            draggable="false">
+                        {{- t('project_name') }}
                     </h1>
                     <p class="brand-description mb-0">{{ t('signup.brand_description') | safe }}</p>
                 </div>
@@ -29,8 +30,8 @@
                     <div class="text-center">
                         <h1 class="brand-title-sm fw-bold d-xl-none">
                             <img class="d-none d-sm-inline-block" src="/static/img/favicon/256.webp"
-                                alt="{{ t('alt.logo') }}" draggable="false">
-                            {{- t('layouts.project_name.title') }}
+                                alt="{{ t('alt.logo', name=t('project_name')) }}" draggable="false">
+                            {{- t('project_name') }}
                         </h1>
                         <h2 class="brand-subtitle">{{ t('signup.get_started_contributing') }}</h2>
                         <p class="form-text mt-0 mb-4">

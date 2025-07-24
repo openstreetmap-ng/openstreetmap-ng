@@ -7,10 +7,10 @@
 
     <title>
         {{ t('unsupported_browser.title.short') | title }} |
-        {{ t('layouts.project_name.title') }}
+        {{ t('project_name') }}
     </title>
 
-    <link rel="stylesheet" href="{{ HASH_AWARE_PATHS['/static/css/main.css'] }}" fetchpriority="high">
+    {{ vite_render_asset('app/views/main.scss') | safe }}
 
     <link rel="icon" sizes="512x512" type="image/webp" href="/static/img/favicon/512.webp">
     <link rel="icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
@@ -23,7 +23,7 @@
 <body class="unsupported-browser container py-4 py-md-5">
 
     <div class="text-center mb-5">
-        <img class="logo mb-3" src="/static/img/favicon/256.png" alt="{{ t('layouts.logo.alt_text') }}">
+        <img class="logo mb-3" src="/static/img/favicon/256.png" alt="{{ t('alt.logo', name=t('project_name')) }}">
         <h1 class="display-4">{{ t('unsupported_browser.title.long') }}</h1>
         <p class="lead">{{ t('unsupported_browser.description') }}</p>
     </div>
@@ -32,14 +32,14 @@
         <div class="col-xl-4 mb-3">
             <a class="d-block browser-option btn btn-outline-primary fw-semibold py-3"
                 href="https://www.mozilla.org/firefox/new/" rel="noopener">
-                <img src="/static/img/brand/firefox.png" alt="{{ t('alt.logo') }}">
+                <img src="/static/img/brand/firefox.png" alt="{{ t('alt.logo', name='Firefox') }}">
                 Firefox
             </a>
         </div>
         <div class="col-xl-4 mb-3">
             <a class="d-block browser-option btn btn-outline-primary fw-semibold py-3"
                 href="https://www.google.com/chrome/" rel="noopener">
-                <img src="/static/img/brand/google-chrome.png" alt="{{ t('alt.logo') }}">
+                <img src="/static/img/brand/google-chrome.png" alt="{{ t('alt.logo', name='Google Chrome') }}">
                 Google Chrome
             </a>
         </div>

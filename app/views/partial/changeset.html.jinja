@@ -20,7 +20,7 @@
                     {% else %}
                     <a href="/user/{{ changeset.user.display_name }}" rel="author">
                         <img class="avatar" src="{{ user_avatar_url(changeset.user) }}"
-                            alt="{{ t('alt.profile_picture') }}">
+                            alt="{{ t('alt.profile_picture') }}" loading="lazy">
                         {{- changeset.user.display_name -}}
                     </a>
                     {% endif %}
@@ -138,7 +138,7 @@
             </template>
             <template class="entry">
                 <tr>
-                    <td><img></td>
+                    <td><img loading="lazy"></td>
                     <td>
                         <a class="link-latest"></a>,
                         <a class="link-version"></a>

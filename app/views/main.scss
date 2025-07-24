@@ -45,7 +45,8 @@
 @import "bootstrap/scss/utilities/api";
 
 // (Bootstrap Icons)
-$bootstrap-icons-font-dir: "/static-bootstrap-icons";
+$bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
+$bootstrap-icons-font-hash: "";
 @import "bootstrap-icons/font/bootstrap-icons";
 
 // (MapLibre GL)

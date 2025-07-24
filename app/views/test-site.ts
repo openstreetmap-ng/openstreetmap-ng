@@ -1,3 +1,5 @@
+import "./main.scss"
+
 import "bootstrap"
 
 const quizModal = document.querySelector("#testSiteQuizModal")

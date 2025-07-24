@@ -1,3 +1,4 @@
+project_name: OpenStreetMap-NG
 editor:
   rapid:
     name: Rapid
@@ -359,7 +360,7 @@ subscription:
     can_still_participate: You can still view and participate in the discussion
     can_resubscribe: You can resubscribe at any time
 alt:
-  logo: Logo
+  logo: "{{name}} logo"
   country_flag: Country flag
   rss_feed: RSS feed
   marker:

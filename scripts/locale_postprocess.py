@@ -132,11 +132,8 @@ def main(verbose: bool) -> None:
         deep_dict_update(data, lc_extractor.extract(locale))
 
         # merge extra_ data
-        if locale == 'en' and (
-            extra_data := yaml.load(
-                _LOCALE_EXTRA_EN_PATH.read_bytes(), yaml.CSafeLoader
-            )
-        ):
+        if locale == 'en':
+            extra_data = yaml.load(_LOCALE_EXTRA_EN_PATH.read_bytes(), yaml.CSafeLoader)
             deep_dict_update(data, extra_data)
 
         buffer = orjson.dumps(

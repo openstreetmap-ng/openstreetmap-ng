@@ -5,13 +5,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="{{ HASH_AWARE_PATHS['/static/css/embed.css'] }}">
-    {% for file in I18NEXT_FILES %}
+    {%- for file in I18NEXT_FILES -%}
     <script src="/static-locale/{{ file }}" defer></script>
-    {% endfor %}
-    <script src="{{ HASH_AWARE_PATHS['/static/js/embed.js'] }}" type="module" defer></script>
+    {%- endfor -%}
+    {{ vite_render_asset('app/views/embed.ts') | safe }}
 
-    <title>{{ t('layouts.project_name.title') }}</title>
+    <title>{{ t('project_name') }}</title>
 </head>
 
 <body>
