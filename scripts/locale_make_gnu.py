@@ -22,7 +22,7 @@ def transform(
     # transform json to po
     subprocess.run(
         [
-            'bunx',
+            'pnpx',
             'i18next-conv',
             '--quiet',
             '--language',

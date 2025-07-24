@@ -50,7 +50,7 @@ writeText "pre-commit-config.yaml" ''
         - id: prettier
           name: prettier
           entry: ${makeScript "entry" ''
-            ${bun}/bin/bunx prettier --write "$@"
+            ${pnpm}/bin/pnpx prettier --write "$@"
           ''}/bin/entry
           language: system
           types_or: [scss]
