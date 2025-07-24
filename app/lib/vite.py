@@ -1,4 +1,5 @@
 from collections import deque
+from fnmatch import fnmatchcase
 from functools import cache
 from itertools import chain
 from pathlib import Path
@@ -90,5 +91,12 @@ def vite_render_asset(path: str) -> str:
                 f'<link rel="modulepreload" href="/static/vite/{chunk["file"]}">'
                 for chunk in imports.values()
             )
+
+        lines.extend(
+            f'<link rel="preload" href="/static/vite/{asset}" as="font" type="font/woff2" crossorigin>'
+            for chunk in chain((data,), imports.values())
+            for asset in chunk.get('assets', ())
+            if fnmatchcase(asset, 'assets/bootstrap-icons.*.woff2')
+        )
 
     return ''.join(lines)
