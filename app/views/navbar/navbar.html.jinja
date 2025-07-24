@@ -1,8 +1,8 @@
 <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
         <a class="navbar-brand fw-semibold" href="/">
-            <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo') }}">
-            {{ t('layouts.project_name.title') }}
+            <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo', name=t('project_name')) }}">
+            {{ t('project_name') }}
         </a>
 
         <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse"
@@ -24,11 +24,12 @@
                     <a class="btn btn-outline-green map-link edit-link default" href="/edit?editor={{ _editor }}">
                         {{ t('layouts.edit') }}
                         {% if _editor == 'id' %}
-                        <img class="dark-filter-invert" src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}">
+                        <img class="dark-filter-invert" src="/static/img/brand/id.webp"
+                            alt="{{ t('alt.logo', name='iD') }}">
                         {% elif _editor == 'rapid' %}
-                        <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}">
+                        <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo', name='Rapid') }}">
                         {% elif _editor == 'remote' %}
-                        <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}">
+                        <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo', name='JOSM') }}">
                         {% endif %}
                     </a>
 
@@ -39,22 +40,24 @@
                     <div class="dropdown-menu dropdown-menu-green">
                         <a class="dropdown-item map-link edit-link" data-editor="id" href="/edit?editor=id">
                             {% set _editor %}
-                            <img class="dark-filter-invert" src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}"
-                                loading="lazy">
+                            <img class="dark-filter-invert" src="/static/img/brand/id.webp"
+                                alt="{{ t('alt.logo', name='iD') }}" loading="lazy">
                             {{ t('editor.id.description') }}
                             {% endset %}
                             {{ t('layouts.edit_with', editor=_editor) | safe }}
                         </a>
                         <a class="dropdown-item map-link edit-link" data-editor="rapid" href="/edit?editor=rapid">
                             {% set _editor %}
-                            <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                            <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo', name='Rapid') }}"
+                                loading="lazy">
                             {{ t('editor.rapid.name') }}
                             {% endset %}
                             {{ t('layouts.edit_with', editor=_editor) | safe }}
                         </a>
                         <button class="dropdown-item map-link edit-link" data-editor="remote">
                             {% set _editor %}
-                            <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                            <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo', name='JOSM') }}"
+                                loading="lazy">
                             {{ t('editor.remote.description') }}
                             {% endset %}
                             {{ t('layouts.edit_with', editor=_editor) | safe }}
