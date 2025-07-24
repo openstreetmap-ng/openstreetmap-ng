@@ -17,7 +17,7 @@ CSP_HEADER = '; '.join(
             (
                 # vite and sentry feedbackIntegration require unsafe-inline
                 "style-src 'self' 'unsafe-inline' http://127.0.0.1:49568"
-                if ENV != 'prod'
+                if ENV == 'dev' or (SENTRY_DSN and ENV == 'test')
                 else None
             ),
             (
