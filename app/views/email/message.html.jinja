@@ -13,13 +13,13 @@
     {{ nt('messages.user_sent_you_and_others_a_message_on_platform_subject',
         num_others,
         user=_sender,
-        platform=t('layouts.project_name.title'),
+        platform=t('project_name'),
         subject=_subject
     ) | safe }}
     {% else %}
     {{ t('messages.user_sent_you_a_message_on_platform_subject',
         user=_sender,
-        platform=t('layouts.project_name.title'),
+        platform=t('project_name'),
         subject=_subject
     ) | safe }}
     {% endif %}

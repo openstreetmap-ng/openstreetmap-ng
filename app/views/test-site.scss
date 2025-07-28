@@ -1,11 +1,6 @@
 @use "sass:color";
 
 .test-site {
-    .logo {
-        height: 10em;
-        width: 10em;
-    }
-
     .brand-title {
         color: color.adjust($vibrant-green, $saturation: 3%);
         text-wrap: nowrap;

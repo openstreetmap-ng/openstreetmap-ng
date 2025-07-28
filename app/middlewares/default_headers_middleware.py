@@ -10,19 +10,27 @@ CSP_HEADER = '; '.join(
         None,
         (
             "default-src 'self'",
-            "script-src 'self' https://matomo.monicz.dev/matomo.js",
+            (
+                "script-src 'self' https://matomo.monicz.dev/matomo.js"
+                + (' http://127.0.0.1:49568' if ENV == 'dev' else '')
+            ),
+            (
+                # vite and sentry feedbackIntegration require unsafe-inline
+                "style-src 'self' 'unsafe-inline' http://127.0.0.1:49568"
+                if ENV == 'dev' or (SENTRY_DSN and ENV == 'test')
+                else None
+            ),
+            (
+                "font-src 'self' http://127.0.0.1:49568"
+                if ENV == 'dev'  #
+                else None
+            ),
             'child-src blob:',  # TODO: worker-src in CSP 3
             'img-src * data:',
             'connect-src * data:',
             f'frame-src {" ".join({ID_URL, RAPID_URL})}',
             f'frame-ancestors {APP_URL}',
             (f'report-uri {SENTRY_DSN}' if SENTRY_DSN else None),
-            (
-                # feedbackIntegration requires unsafe-inline
-                "style-src 'self' 'unsafe-inline'"
-                if SENTRY_DSN and ENV == 'test'
-                else None
-            ),
         ),
     )
 )

@@ -1,3 +1,7 @@
+import "./rapid.scss"
+import "@rapideditor/rapid/dist/rapid.css"
+import "@rapideditor/rapid"
+
 import { config, primaryLanguage } from "./lib/config"
 import { parentLoadSystemApp } from "./lib/system-app"
 
@@ -14,7 +18,7 @@ parentLoadSystemApp((accessToken, parentOrigin) => {
     }
 
     ctx.containerNode = container
-    ctx.assetPath = `/static-rapid/${container.dataset.version}/`
+    ctx.assetPath = __RAPID_PATH__
     ctx.locale = primaryLanguage
     ctx.embed(true)
 

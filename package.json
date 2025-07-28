@@ -3,40 +3,55 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "@bufbuild/protobuf": "^2.5.2",
-    "@noble/hashes": "^1.8.0",
-    "@preact/signals-core": "^1.10.0",
-    "@rapideditor/rapid": "^2.5.3",
-    "@sentry/browser": "^9.28.1",
-    "bootstrap": "^5.3.6",
-    "bootstrap-icons": "^1.13.1",
-    "caniuse-lite": "^1.0.30001726",
-    "i18next": "^25.2.1",
-    "iD": "git+https://github.com/openstreetmap/iD.git#release",
-    "maplibre-gl": "^5.6.0",
-    "osm-community-index": "^5.9.2"
+    "@bufbuild/protobuf": "latest",
+    "@noble/hashes": "latest",
+    "@preact/signals-core": "latest",
+    "@rapideditor/rapid": "latest",
+    "@sentry/browser": "latest",
+    "bootstrap": "latest",
+    "bootstrap-icons": "latest",
+    "i18next": "latest",
+    "iD": "github:openstreetmap/iD#release",
+    "maplibre-gl": "latest",
+    "osm-community-index": "latest"
   },
   "devDependencies": {
-    "@babel/cli": "^7.27.2",
-    "@babel/core": "^7.27.4",
-    "@babel/preset-env": "^7.27.2",
-    "@babel/preset-typescript": "^7.27.1",
-    "@bufbuild/protoc-gen-es": "^2.5.2",
-    "@types/bootstrap": "^5.2.10",
-    "@types/geojson": "^7946.0.16",
-    "autoprefixer": "^10.4.21",
-    "bun-types": "^1.2.16",
-    "core-js": "3.43.0",
-    "i18next-conv": "^15.1.1",
-    "postcss-cli": "^11.0.1",
-    "prettier": "^3.5.3",
-    "sass": "^1.89.2",
-    "typed-query-selector": "^2.12.0",
-    "typescript": "^5.8.3"
+    "@babel/preset-env": "latest",
+    "@babel/preset-typescript": "latest",
+    "@bufbuild/protoc-gen-es": "latest",
+    "@types/bootstrap": "latest",
+    "@types/geojson": "latest",
+    "@types/node": "latest",
+    "@vitejs/plugin-legacy": "latest",
+    "autoprefixer": "latest",
+    "caniuse-lite": "latest",
+    "core-js": "3.44.0",
+    "i18next-conv": "latest",
+    "prettier": "latest",
+    "sass-embedded": "latest",
+    "terser": "latest",
+    "typed-query-selector": "latest",
+    "typescript": "latest",
+    "vite": "npm:rolldown-vite@^7.0.10"
   },
-  "trustedDependencies": [],
   "scripts": {
     "postinstall": "rm -rf node_modules/bootstrap/dist/css"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite": "$vite"
+    },
+    "ignoredBuiltDependencies": [
+      "@parcel/watcher",
+      "core-js",
+      "core-js-bundle",
+      "esbuild"
+    ],
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-jq9w-gjvg-mxr8"
+      ]
+    }
   },
   "babel": {
     "presets": [
@@ -44,7 +59,7 @@
         "@babel/preset-env",
         {
           "corejs": {
-            "version": "3.43.0"
+            "version": "3.44.0"
           },
           "modules": false,
           "useBuiltIns": "usage"

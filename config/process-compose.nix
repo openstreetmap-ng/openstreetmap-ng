@@ -76,10 +76,10 @@ let
       command = "watch-locale";
       ready_log_line = "[Command was successful]";
     };
-    watch-js = {
+    vite = {
       availability = availability;
-      command = "watch-js";
-      ready_log_line = "[Command was successful]";
+      command = "vite";
+      ready_log_line = " ready in ";
       depends_on = {
         watch-proto = {
           condition = "process_log_ready";
@@ -88,11 +88,9 @@ let
           condition = "process_log_ready";
         };
       };
-    };
-    watch-css = {
-      availability = availability;
-      command = "watch-css";
-      ready_log_line = "[Command was successful]";
+      log_configuration = log_configuration // {
+        no_metadata = true;
+      };
     };
   };
 

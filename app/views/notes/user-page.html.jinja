@@ -17,7 +17,7 @@
                     {% else %}
                     <a href="/user/{{ comment.user.display_name }}" rel="author">
                         <img class="avatar" src="{{ user_avatar_url(comment.user) }}"
-                            alt="{{ t('alt.profile_picture') }}">
+                            alt="{{ t('alt.profile_picture') }}" loading="lazy">
                         {{- comment.user.display_name -}}
                     </a>
                     {% endif %}

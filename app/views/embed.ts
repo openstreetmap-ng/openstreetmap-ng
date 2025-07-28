@@ -1,3 +1,5 @@
+import "./embed.scss"
+
 import "./lib/i18n"
 import i18next from "i18next"
 
