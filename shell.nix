@@ -756,6 +756,9 @@ let
       export SMTP_PASS=anything
     ''
     + ''
+      export POSTGRES_URL="postgresql://postgres@/postgres\
+      ?host=${projectDir}/data/postgres_unix\
+      &port=${toString postgresPort}"
       export DUCKDB_MEMORY_LIMIT=${toString (hostMemoryMb / 2)}MB
 
       if [ -f .env ]; then

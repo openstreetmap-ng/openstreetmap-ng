@@ -59,6 +59,7 @@ SMTP_HOST: str = Field()
 SMTP_PORT: int = Field(gt=0, lt=1 << 16)
 SMTP_USER: str = Field()
 SMTP_PASS: SecretStr = Field()
+POSTGRES_URL: str = Field()
 DUCKDB_MEMORY_LIMIT: str = Field()
 
 # -------------------- System Configuration --------------------
@@ -81,11 +82,6 @@ BACKGROUND_STORAGE_URL = 'db://background'
 TRACE_STORAGE_URL = 'db://trace'
 
 # Database connections
-POSTGRES_URL = (
-    f'postgresql://postgres@/postgres'
-    f'?host={_validate_dir("data/postgres_unix")}'
-    f'&port=49560'
-)
 DUCKDB_TMPDIR: DirectoryPath | None = None
 
 # Replication processing
