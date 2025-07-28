@@ -155,10 +155,11 @@ def main() -> None:
     print(
         f'[i18next] Source analysis found {len(used_keys)} used keys',
     )
-    print(
-        f'[i18next] Filtered {original_keys_count} → {filtered_keys_count} keys '
-        f'({(original_keys_count - filtered_keys_count) / original_keys_count * 100:.1f}% reduction)'
-    )
+    if original_keys_count:
+        print(
+            f'[i18next] Filtered {original_keys_count} → {filtered_keys_count} keys '
+            f'({(original_keys_count - filtered_keys_count) / original_keys_count * 100:.1f}% reduction)'
+        )
 
 
 if __name__ == '__main__':
