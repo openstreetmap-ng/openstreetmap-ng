@@ -12,6 +12,7 @@ const getPackageDist = (pkgName) => {
 
 export default defineConfig({
     appType: "custom",
+    base: "/static/vite/",
     clearScreen: false,
     server: {
         host: "127.0.0.1",
