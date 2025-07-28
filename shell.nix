@@ -28,7 +28,7 @@ let
   # Update packages with `nixpkgs-update` command
   pkgs =
     import
-      (fetchTarball "https://github.com/NixOS/nixpkgs/archive/83e677f31c84212343f4cc553bab85c2efcad60a.tar.gz")
+      (fetchTarball "https://github.com/NixOS/nixpkgs/archive/6027c30c8e9810896b92429f0092f624f7b1aace.tar.gz")
       { };
 
   projectDir = toString ./.;
@@ -168,7 +168,7 @@ let
       ps.postgis
       ps.h3-pg
       ps.pg_hint_plan
-    ]))
+    ])).out
     timescaledb-parallel-copy
     mailpit
 
