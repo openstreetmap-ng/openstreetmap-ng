@@ -93,7 +93,7 @@ def vite_render_asset(path: str) -> str:
             )
 
         lines.extend(
-            f'<link rel="preload" href="/static/vite/{asset}" as="font" type="font/woff2" crossorigin>'
+            f'<link rel="preload" href="/static/vite/{asset}?" as="font" type="font/woff2" crossorigin>'
             for chunk in chain((data,), imports.values())
             for asset in chunk.get('assets', ())
             if fnmatchcase(asset, 'assets/bootstrap-icons.*.woff2')
