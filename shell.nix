@@ -620,7 +620,17 @@ let
     '')
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
-    (makeScript "patch-venv-bin" ''
+    (makeScript "_patch-interpreter" ''
+      set +e
+      interpreter="${stdenv.cc.bintools.dynamicLinker}"
+      find node_modules/.pnpm/sass-embedded* \
+        -name dart \
+        -type f \
+        -executable \
+        -exec \
+        patchelf --set-interpreter "$interpreter" {} \;
+    '')
+    (makeScript "_patch-shebang" ''
       find .venv/bin -maxdepth 1 -type f -executable | while read -r script; do
         if ! head -n 1 "$script" | grep -q "\.venv/bin/python"; then continue; fi
 
@@ -706,9 +716,11 @@ let
       echo "Activating environment"
       export PATH="$(pnpm bin):$PATH"
       source .venv/bin/activate
+
+      _patch-interpreter &
     ''
     + lib.optionalString stdenv.isDarwin ''
-      patch-venv-bin &
+      _patch-shebang &
     ''
     + ''
 
