@@ -1,13 +1,13 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, override
 
 import cython
-from jinja2 import Environment
+from jinja2 import Environment, FileSystemLoader
+from jinja2_htmlmin import minify_loader
 
 from app.config import APP_URL, ENV, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
-from app.lib.jinja_loader import OptimizedFileSystemLoader
 from app.lib.translation import nt, primary_translation_locale, t
 from app.lib.vite import vite_render_asset
 from app.models.db.oauth2_application import oauth2_app_avatar_url, oauth2_app_is_system
@@ -20,8 +20,20 @@ else:
     from math import ceil
 
 
+class _FileSystemLoader(FileSystemLoader):
+    @override
+    def get_source(self, environment, template):
+        return super().get_source(environment, template + '.html.jinja')
+
+
 _J2 = Environment(
-    loader=OptimizedFileSystemLoader('app/views'),
+    loader=minify_loader(
+        _FileSystemLoader('app/views'),
+        remove_comments=True,
+        remove_empty_space=True,
+        remove_all_empty_space=True,
+        reduce_boolean_attributes=True,
+    ),
     autoescape=True,
     cache_size=1024,
     auto_reload=ENV == 'dev',
