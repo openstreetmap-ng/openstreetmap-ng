@@ -352,7 +352,7 @@ WHERE
     NOT from_user_hidden;
 
 CREATE TABLE message_recipient (
-    message_id bigint NOT NULL REFERENCES message,
+    message_id bigint NOT NULL REFERENCES message ON DELETE CASCADE,
     user_id bigint NOT NULL REFERENCES "user",
     hidden boolean NOT NULL DEFAULT FALSE,
     read boolean NOT NULL DEFAULT FALSE,

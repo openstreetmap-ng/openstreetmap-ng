@@ -147,23 +147,38 @@ class MessageService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            # Update sender if user is the sender
-            await conn.execute(
+            # Get sender and lock message
+            async with await conn.execute(
                 """
-                UPDATE message SET from_user_hidden = TRUE
-                WHERE id = %s AND from_user_id = %s AND NOT from_user_hidden
+                SELECT from_user_id FROM message
+                WHERE id = %s
+                FOR UPDATE
                 """,
-                (message_id, user_id),
-            )
+                (message_id,),
+            ) as r:
+                row = await r.fetchone()
+                if row is None:
+                    raise_for.message_not_found(message_id)
+                from_user_id: UserId = row[0]
 
+            # Update sender if user is the sender
+            if from_user_id == user_id:
+                await conn.execute(
+                    """
+                    UPDATE message SET from_user_hidden = TRUE
+                    WHERE id = %s AND NOT from_user_hidden
+                    """,
+                    (message_id,),
+                )
             # Update recipient if user is a recipient
-            await conn.execute(
-                """
-                UPDATE message_recipient SET hidden = TRUE
-                WHERE message_id = %s AND user_id = %s AND NOT hidden
-                """,
-                (message_id, user_id),
-            )
+            else:
+                await conn.execute(
+                    """
+                    UPDATE message_recipient SET hidden = TRUE
+                    WHERE message_id = %s AND user_id = %s AND NOT hidden
+                    """,
+                    (message_id, user_id),
+                )
 
             # Check if anyone still has access to the message
             async with await conn.execute(
@@ -180,13 +195,10 @@ class MessageService:
             # No one has access anymore - delete completely
             if should_delete:
                 await conn.execute(
-                    'DELETE FROM message_recipient WHERE message_id = %s',
-                    (message_id,),
-                )
-                await conn.execute(
                     'DELETE FROM message WHERE id = %s',
                     (message_id,),
                 )
+                # message_recipient is deleted by cascade
 
 
 async def _send_activity_email(message: Message) -> None:
