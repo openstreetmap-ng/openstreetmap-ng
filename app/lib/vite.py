@@ -24,11 +24,10 @@ def vite_render_asset(path: str) -> str:
     if _MANIFEST is None:
         # Development environment:
         # Use Vite dev server
+        base = 'http://127.0.0.1:49568/static/vite/'
 
         if suffix == '.scss':
-            lines.append(
-                f'<link rel="stylesheet" href="http://127.0.0.1:49568/{path}">'
-            )
+            lines.append(f'<link rel="stylesheet" href="{base}{path}">')
 
         if suffix == '.ts':
             if path == 'app/views/test-site.ts':
@@ -36,23 +35,15 @@ def vite_render_asset(path: str) -> str:
             else:
                 scss_path = path[:-3] + '.scss'
 
-            lines.append(
-                f'<link rel="stylesheet" href="http://127.0.0.1:49568/{scss_path}">'
-            )
+            lines.append(f'<link rel="stylesheet" href="{base}{scss_path}">')
 
-        lines.append(
-            '<script src="http://127.0.0.1:49568/@vite/client" type="module"></script>'
-        )
+        lines.append(f'<script src="{base}@vite/client" type="module"></script>')
 
         if path == 'app/views/main.ts':
-            lines.append(
-                '<script src="http://127.0.0.1:49568/app/views/main-sync.ts"></script>'
-            )
+            lines.append(f'<script src="{base}app/views/main-sync.ts"></script>')
 
         if suffix == '.ts':
-            lines.append(
-                f'<script src="http://127.0.0.1:49568/{path}" type="module" defer></script>'
-            )
+            lines.append(f'<script src="{base}{path}" type="module" defer></script>')
 
     else:
         # Production and test environments:
