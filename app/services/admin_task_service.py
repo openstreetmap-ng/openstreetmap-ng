@@ -4,7 +4,7 @@ from collections.abc import Callable
 from functools import cache
 from inspect import Parameter, _empty, signature
 from operator import itemgetter
-from types import UnionType
+from types import NoneType, UnionType
 from typing import (
     Any,
     ForwardRef,
@@ -242,11 +242,11 @@ def _is_numeric(annotation: Any) -> bool:
     if annotation is None:  # None
         return True
     if isinstance(annotation, str):  # string annotations
-        return annotation in {'int', 'float'}
+        return annotation in {'int', 'float', 'None'}
     if isinstance(annotation, ForwardRef):  # forward references
-        return False
+        return _is_numeric(annotation.__forward_arg__)
     if isinstance(annotation, type):  # direct types
-        return annotation in {int, float}
+        return annotation in {int, float, NoneType}
 
     # Unpack origin and args
     origin = get_origin(annotation)
