@@ -242,8 +242,8 @@ async def _delete_empty() -> None:
 
         await conn.execute(
             """
-            DELETE FROM changeset_comment
-            WHERE changeset_id = ANY(%s)
+            DELETE FROM changeset
+            WHERE id = ANY(%s)
             """,
             (changeset_ids,),
         )
@@ -256,8 +256,8 @@ async def _delete_empty() -> None:
         )
         await conn.execute(
             """
-            DELETE FROM changeset
-            WHERE id = ANY(%s)
+            DELETE FROM changeset_comment
+            WHERE changeset_id = ANY(%s)
             """,
             (changeset_ids,),
         )
