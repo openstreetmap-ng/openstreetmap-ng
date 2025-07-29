@@ -1,8 +1,8 @@
-from typing import ForwardRef
+from typing import ForwardRef, Union
 
 import pytest
 
-from app.services.admin_task_service import _format_annotation
+from app.services.admin_task_service import _format_annotation, _is_numeric
 
 
 @pytest.mark.parametrize(
@@ -18,3 +18,15 @@ from app.services.admin_task_service import _format_annotation
 )
 def test_format_annotation(annotation, expected):
     assert _format_annotation(annotation) == expected
+
+
+@pytest.mark.parametrize(
+    ('annotation', 'expected'),
+    [
+        (bool, False),
+        (Union[int, 'float', None], True),
+        ('int | str', False),
+    ],
+)
+def test_is_numeric(annotation, expected):
+    assert _is_numeric(annotation) is expected

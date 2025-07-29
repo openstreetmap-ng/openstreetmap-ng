@@ -30,6 +30,7 @@ class TaskArgument(TypedDict):
     type: str
     required: bool
     default: str
+    numeric: bool
 
 
 class TaskDefinition(TypedDict):
@@ -62,6 +63,7 @@ def register_admin_task(func: Callable):
             'type': _format_annotation(param.annotation),
             'required': default is Parameter.empty,
             'default': str(default) if default is not Parameter.empty else '',
+            'numeric': _is_numeric(param.annotation),
         }
 
     _REGISTRY[task_id] = {
@@ -211,6 +213,8 @@ def _format_annotation(annotation: Any) -> str:
     # Simple cases
     if annotation is _empty:  # missing
         return 'Any'
+    if annotation is None:  # None
+        return 'None'
     if isinstance(annotation, str):  # string annotations
         return annotation
     if isinstance(annotation, ForwardRef):  # forward references
@@ -229,3 +233,28 @@ def _format_annotation(annotation: Any) -> str:
     # Generic types (e.g., list[int], dict[str, float])
     name = getattr(origin, '__name__', None) or str(annotation).removeprefix('typing.')
     return f'{name}[{", ".join(args)}]' if args else name
+
+
+def _is_numeric(annotation: Any) -> bool:
+    # Simple cases
+    if annotation is _empty:  # missing
+        return False
+    if annotation is None:  # None
+        return True
+    if isinstance(annotation, str):  # string annotations
+        return annotation in {'int', 'float'}
+    if isinstance(annotation, ForwardRef):  # forward references
+        return False
+    if isinstance(annotation, type):  # direct types
+        return annotation in {int, float}
+
+    # Unpack origin and args
+    origin = get_origin(annotation)
+    args = get_args(annotation)
+
+    # Union types
+    if origin in {Union, UnionType}:
+        return all(_is_numeric(arg) for arg in args)
+
+    # Generic types
+    return False

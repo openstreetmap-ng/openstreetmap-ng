@@ -19,9 +19,9 @@
                     <div class="mb-3">
                         <label class="form-label d-block">
                             <span {% if arg_info.required %} class="required" {% endif %}>{{ arg_name }}</span>
-                            <input type="text" class="form-control mt-2" name="arg_{{ arg_name }}"
-                                placeholder="{{ arg_info.default }}" autocapitalize="none"
-                                {% if arg_info.required %}required{% endif %}>
+                            <input type="{% if arg_info.numeric %}number{% else %}text{% endif %}"
+                                class="form-control mt-2" name="arg_{{ arg_name }}" placeholder="{{ arg_info.default }}"
+                                autocapitalize="none" {% if arg_info.required %}required{% endif %}>
                         </label>
                         <div class="form-text">Type: {{ arg_info.type }}</div>
                     </div>
