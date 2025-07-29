@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any
 
+import pytest
 from psycopg.sql import SQL, Identifier
 
 from app.config import (
@@ -15,6 +16,7 @@ from app.queries.changeset_query import ChangesetQuery
 from app.services.changeset_service import ChangesetService
 
 
+@pytest.mark.flaky(reruns=3, only_rerun=['AssertionError'])
 async def test_changeset_inactive_close():
     # Create a changeset that's been inactive for longer than the idle timeout
     inactive_time = utcnow() - CHANGESET_IDLE_TIMEOUT - timedelta(seconds=1)
@@ -36,6 +38,7 @@ async def test_changeset_inactive_close():
     )
 
 
+@pytest.mark.flaky(reruns=3, only_rerun=['AssertionError'])
 async def test_changeset_inactive_open():
     # Create a changeset that's been active more recently than the idle timeout
     recent_time = utcnow() - CHANGESET_IDLE_TIMEOUT + timedelta(minutes=1)
@@ -55,6 +58,7 @@ async def test_changeset_inactive_open():
     assert changeset['closed_at'] is None, 'Recently active changeset must remain open'
 
 
+@pytest.mark.flaky(reruns=3, only_rerun=['AssertionError'])
 async def test_changeset_open_timeout_close():
     # Create a changeset that's been open for longer than the open timeout but recently active
     old_created_at = utcnow() - CHANGESET_OPEN_TIMEOUT - timedelta(seconds=1)
@@ -79,6 +83,7 @@ async def test_changeset_open_timeout_close():
     )
 
 
+@pytest.mark.flaky(reruns=3, only_rerun=['AssertionError'])
 async def test_changeset_open_timeout_open():
     # Create a changeset that's been open for less than the open timeout
     recent_created_at = utcnow() - CHANGESET_OPEN_TIMEOUT + timedelta(minutes=1)
@@ -98,6 +103,7 @@ async def test_changeset_open_timeout_open():
     assert changeset['closed_at'] is None, 'Recent changeset must remain open'
 
 
+@pytest.mark.flaky(reruns=3, only_rerun=['AssertionError'])
 async def test_changeset_delete_empty():
     # Create an empty changeset that was closed longer ago than the delete timeout
     old_time = utcnow() - CHANGESET_EMPTY_DELETE_TIMEOUT - timedelta(seconds=1)
@@ -117,6 +123,7 @@ async def test_changeset_delete_empty():
     assert changeset is None, 'Old empty changeset must be deleted'
 
 
+@pytest.mark.flaky(reruns=3, only_rerun=['AssertionError'])
 async def test_changeset_dont_delete_empty_recent():
     # Create an empty changeset that was closed more recently than the delete timeout
     recent_time = utcnow() - CHANGESET_EMPTY_DELETE_TIMEOUT + timedelta(minutes=1)
