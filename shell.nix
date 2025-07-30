@@ -813,9 +813,7 @@ let
     ''
     + lib.optionalString (!isDevelopment) ''
       echo "Running [locale-pipeline]"
-      locale-pipeline &
-      wait
-
+      locale-pipeline
       echo "Running [vite-build]"
       vite-build
     ''
