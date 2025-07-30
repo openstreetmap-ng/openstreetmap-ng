@@ -355,6 +355,15 @@ let
 
     # -- Protobuf
     (makeScript "proto-pipeline" ''
+      reference_file="app/models/proto/shared_pb2.py"
+      if [ ! -f "$reference_file" ]; then
+        echo "No protobuf outputs found, compiling..."
+      elif [ -n "$(find app/models/proto -type f -name "*.proto" -newer "$reference_file" -print -quit)" ]; then
+        echo "Proto files have changed, recompiling..."
+      else
+        exit 0
+      fi
+
       mkdir -p app/views/lib/proto
       protoc \
         -I app/models/proto \
@@ -571,6 +580,33 @@ let
     '')
     (makeScript "watch-tests" "exec watchexec -w app -w tests --exts py run-tests")
 
+    # -- Frontend
+    (makeScript "vite-build" ''
+      manifest_file="app/static/vite/.vite/manifest.json"
+      if [ ! -f "$manifest_file" ]; then
+        echo "No Vite manifest found, building..."
+      elif [ -n "$(find app/views -type f -not -name "*.jinja" -newer "$manifest_file" -print -quit)" ]; then
+        echo "Source files have changed, rebuilding..."
+      else
+        exit 0
+      fi
+      exec vite build
+    '')
+    (makeScript "_pnpm-postinstall" ''
+      rm -rf node_modules/bootstrap/dist/css
+
+      if [ ! data/cache/browserslist_versions.json -nt pnpm-lock.yaml ]; then
+        echo "Browserslist cache stale, regenerating..."
+        mkdir -p data/cache
+        pnpm browserslist | jq -Rnc '
+          [inputs | split(" ") | {browser: .[0], version: (.[1] | split("-") | map(tonumber) | min)}] |
+          group_by(.browser) |
+          map({(.[0].browser): (map(.version) | min)}) |
+          add
+        ' > data/cache/browserslist_versions.json
+      fi
+    '')
+
     # -- Misc
     (makeScript "run" (
       if isDevelopment then
@@ -620,24 +656,12 @@ let
     '')
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
-    (makeScript "_pnpm-postinstall" ''
-      rm -rf node_modules/bootstrap/dist/css
-      if [ ! data/cache/browserslist_versions.json -nt pnpm-lock.yaml ]; then
-        mkdir -p data/cache
-        pnpm browserslist | jq -Rnc '
-          [inputs | split(" ") | {browser: .[0], version: (.[1] | split("-") | map(tonumber) | min)}] |
-          group_by(.browser) |
-          map({(.[0].browser): (map(.version) | min)}) |
-          add
-        ' > data/cache/browserslist_versions.json
-      fi
-    '')
     (makeScript "_patch-interpreter" ''
       set +e
       interpreter="${stdenv.cc.bintools.dynamicLinker}"
       find node_modules/.pnpm/sass-embedded* \
-        -name dart \
         -type f \
+        -name dart \
         -executable \
         -exec \
         patchelf --set-interpreter "$interpreter" {} \;
@@ -719,7 +743,7 @@ let
       echo "Installing Python dependencies"
       export UV_PYTHON="${python'}/bin/python"
       uv sync --frozen
-      [ -n "$(find speedup -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
+      [ -n "$(find speedup -type f -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
         uv add ./speedup --reinstall-package speedup
 
       echo "Installing Node.js dependencies"
@@ -790,8 +814,10 @@ let
     + lib.optionalString (!isDevelopment) ''
       echo "Running [locale-pipeline]"
       locale-pipeline &
-      echo "Running [vite build]"
-      vite build &
+      wait
+
+      echo "Running [vite-build]"
+      vite-build
     ''
     + ''
       wait
