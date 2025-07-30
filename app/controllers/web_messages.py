@@ -8,10 +8,11 @@ from app.config import MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH
 from app.lib.auth_context import web_user
 from app.models.db.message import messages_resolve_rich_text
 from app.models.db.user import User, user_avatar_url
-from app.models.types import DisplayName, MessageId
+from app.models.types import MessageId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
 from app.services.message_service import MessageService
+from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter(prefix='/api/web/messages')
 
@@ -21,7 +22,7 @@ async def send_message(
     _: Annotated[User, web_user()],
     subject: Annotated[str, Form(min_length=1, max_length=MESSAGE_SUBJECT_MAX_LENGTH)],
     body: Annotated[str, Form(min_length=1, max_length=MESSAGE_BODY_MAX_LENGTH)],
-    recipient: Annotated[list[DisplayName], Form(min_length=1)],
+    recipient: Annotated[list[DisplayNameNormalizing], Form(min_length=1)],
 ):
     message_id = await MessageService.send(
         recipients=list(set(recipient)),

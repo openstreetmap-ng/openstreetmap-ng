@@ -14,7 +14,7 @@ from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
-from app.models.types import DisplayName, Email, Password
+from app.models.types import Email, Password
 from app.services.auth_provider_service import AuthProviderService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
@@ -25,7 +25,7 @@ from app.services.user_token_account_confirm_service import (
 )
 from app.services.user_token_email_change_service import UserTokenEmailChangeService
 from app.services.user_token_reset_password_service import UserTokenResetPasswordService
-from app.validators.display_name import DisplayNameValidating
+from app.validators.display_name import DisplayNameNormalizing, DisplayNameValidating
 from app.validators.email import EmailValidating
 
 router = APIRouter(prefix='/api/web/user')
@@ -33,7 +33,9 @@ router = APIRouter(prefix='/api/web/user')
 
 @router.post('/login')
 async def login(
-    display_name_or_email: Annotated[DisplayName | Email, Form(min_length=1)],
+    display_name_or_email: Annotated[
+        DisplayNameNormalizing | Email, Form(min_length=1)
+    ],
     password: Annotated[Password, Form()],
     remember: Annotated[bool, Form()] = False,
 ):

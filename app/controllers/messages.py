@@ -18,11 +18,12 @@ from app.lib.exceptions_context import raise_for
 from app.lib.render_response import render_response
 from app.lib.translation import t
 from app.models.db.user import User
-from app.models.types import DiaryCommentId, DiaryId, DisplayName, MessageId, UserId
+from app.models.types import DiaryCommentId, DiaryId, MessageId, UserId
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
+from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter()
 
@@ -52,7 +53,7 @@ async def get_outbox(
 @router.get('/message/new')
 async def new_message(
     user: Annotated[User, web_user()],
-    to: Annotated[DisplayName | None, Query(min_length=1)] = None,
+    to: Annotated[DisplayNameNormalizing | None, Query(min_length=1)] = None,
     to_id: Annotated[UserId | None, Query()] = None,
     reply: Annotated[MessageId | None, Query()] = None,
     reply_all: Annotated[MessageId | None, Query()] = None,
@@ -152,7 +153,7 @@ async def new_message(
 
 
 @router.get('/message/new/{display_name:str}')
-async def legacy_message_to(display_name: DisplayName):
+async def legacy_message_to(display_name: DisplayNameNormalizing):
     return RedirectResponse(f'/message/new?to={display_name}', status.HTTP_302_FOUND)
 
 

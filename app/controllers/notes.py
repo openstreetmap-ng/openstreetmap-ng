@@ -6,9 +6,9 @@ from fastapi import APIRouter, Path, Query, Request
 from app.config import NOTE_USER_PAGE_SIZE
 from app.lib.exceptions_context import raise_for
 from app.lib.render_response import render_response
-from app.models.types import DisplayName
 from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
+from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get('/user/{display_name:str}/notes/commented')
 async def index(
     request: Request,
-    display_name: Annotated[DisplayName, Path(min_length=1)],
+    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
     status: Annotated[Literal['', 'open', 'closed'], Query()] = '',
 ):
     # active_tab, num_notes, notes_num_pages

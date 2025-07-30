@@ -22,13 +22,14 @@ from app.lib.translation import t
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
 from app.models.db.user import User
-from app.models.types import DisplayName, Latitude, Longitude, NoteId, UserId
+from app.models.types import Latitude, Longitude, NoteId, UserId
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
 from app.responses.osm_response import GPXResponse
 from app.services.note_service import NoteService
 from app.validators.date import DateValidator
+from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter(prefix='/api/0.6')
 
@@ -246,7 +247,7 @@ async def query_notes2(
     request: Request,
     q: Annotated[str | None, Query()] = None,
     closed: Annotated[float, Query()] = NOTE_QUERY_DEFAULT_CLOSED,
-    display_name: Annotated[DisplayName | None, Query(min_length=1)] = None,
+    display_name: Annotated[DisplayNameNormalizing | None, Query(min_length=1)] = None,
     user_id: Annotated[UserId | None, Query(alias='user')] = None,
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     from_: Annotated[datetime | None, DateValidator, Query(alias='from')] = None,

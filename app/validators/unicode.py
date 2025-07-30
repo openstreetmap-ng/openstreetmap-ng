@@ -1,11 +1,12 @@
 import unicodedata
+from urllib.parse import unquote_plus
 
 from pydantic import BeforeValidator
 
 
-def unicode_normalize(text: str) -> str:
-    """Normalize a string to NFC form."""
-    return unicodedata.normalize('NFC', text)
+def unicode_unquote_normalize(text: str) -> str:
+    """Unquote URL-encoded text and normalize to NFC form."""
+    return unicodedata.normalize('NFC', unquote_plus(text))
 
 
-UnicodeValidator = BeforeValidator(unicode_normalize)
+UnicodeValidator = BeforeValidator(unicode_unquote_normalize)

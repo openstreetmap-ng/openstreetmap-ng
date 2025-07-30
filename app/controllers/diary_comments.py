@@ -7,17 +7,18 @@ from starlette import status
 from app.config import DIARY_COMMENTS_PAGE_SIZE
 from app.lib.render_response import render_response
 from app.models.db.diary_comment import diary_comments_resolve_rich_text
-from app.models.types import DiaryCommentId, DisplayName
+from app.models.types import DiaryCommentId
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery
+from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter()
 
 
 @router.get('/user/{display_name:str}/diary/comments')
 async def user_diary_comments(
-    display_name: Annotated[DisplayName, Path(min_length=1)],
+    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
     after: Annotated[DiaryCommentId | None, Query()] = None,
     before: Annotated[DiaryCommentId | None, Query()] = None,
 ):

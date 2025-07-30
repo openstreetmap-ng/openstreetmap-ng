@@ -26,7 +26,7 @@ from app.lib.render_response import render_response
 from app.lib.statistics import user_activity_summary
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.user import User, users_resolve_rich_text
-from app.models.types import DisplayName, UserId
+from app.models.types import UserId
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.diary_comment_query import DiaryCommentQuery
@@ -37,6 +37,7 @@ from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
 from app.services.auth_provider_service import AuthProviderService
+from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter()
 
@@ -144,7 +145,7 @@ async def permalink(
 
 @router.get('/user/{display_name:str}')
 async def index(
-    display_name: Annotated[DisplayName, Path(min_length=1)],
+    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
 ):
     user = await UserQuery.find_one_by_display_name(display_name)
     if user is None:

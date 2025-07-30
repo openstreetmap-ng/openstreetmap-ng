@@ -18,9 +18,10 @@ from app.lib.geo_utils import parse_bbox
 from app.lib.translation import primary_translation_locale, t
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
-from app.models.types import DisplayName, UserId
+from app.models.types import UserId
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
+from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter()
 
@@ -38,7 +39,7 @@ async def history_feed(
 
 @router.get('/user/{display_name:str}/history/feed')
 async def user_history_feed(
-    display_name: Annotated[DisplayName, Path(min_length=1)],
+    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     limit: Annotated[
         PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)

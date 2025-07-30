@@ -204,7 +204,7 @@ def _build_middleware_stack(self: Starlette) -> ASGIApp:
             exception_handlers[key] = value
 
     middleware = [
-        Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug),  # type: ignore
+        Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug),
         Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug),
         *self.user_middleware,
     ]

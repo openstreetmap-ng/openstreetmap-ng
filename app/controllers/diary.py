@@ -26,12 +26,13 @@ from app.lib.translation import primary_translation_locale
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.diary import Diary, diaries_resolve_rich_text
 from app.models.db.user import User, UserDisplay
-from app.models.types import DiaryId, DisplayName, LocaleCode
+from app.models.types import DiaryId, LocaleCode
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.user_token_unsubscribe_service import UserTokenUnsubscribeService
+from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter()
 
@@ -172,7 +173,7 @@ async def language_index(
 
 @router.get('/user/{display_name:str}/diary')
 async def user_index(
-    display_name: Annotated[DisplayName, Path(min_length=1)],
+    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
     after: Annotated[DiaryId | None, Query()] = None,
     before: Annotated[DiaryId | None, Query()] = None,
 ):

@@ -13,12 +13,13 @@ from app.lib.geo_utils import parse_bbox
 from app.lib.render_response import render_response
 from app.models.db.changeset_comment import changeset_comments_resolve_rich_text
 from app.models.db.user import User
-from app.models.types import ChangesetId, DisplayName
+from app.models.types import ChangesetId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.services.changeset_comment_service import ChangesetCommentService
+from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter(prefix='/api/web/changeset')
 
@@ -41,7 +42,7 @@ async def get_map(
     scope: Annotated[
         Literal['nearby', 'friends'] | None, Query()
     ] = None,  # TODO: support scope
-    display_name: Annotated[DisplayName | None, Query(min_length=1)] = None,
+    display_name: Annotated[DisplayNameNormalizing | None, Query(min_length=1)] = None,
     date_: Annotated[date | None, Query(alias='date')] = None,
     before: Annotated[ChangesetId | None, Query()] = None,
 ):

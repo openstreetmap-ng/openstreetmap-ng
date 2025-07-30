@@ -11,9 +11,10 @@ from app.config import TRACES_LIST_PAGE_SIZE
 from app.lib.auth_context import auth_user, web_user
 from app.lib.render_response import render_response
 from app.models.db.user import User
-from app.models.types import DisplayName, TraceId
+from app.models.types import TraceId
 from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
+from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter()
 
@@ -39,7 +40,7 @@ async def tagged(
 
 @router.get('/user/{display_name:str}/traces')
 async def personal(
-    display_name: Annotated[DisplayName, Path(min_length=1)],
+    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
     after: Annotated[TraceId | None, Query()] = None,
     before: Annotated[TraceId | None, Query()] = None,
 ):
@@ -50,7 +51,7 @@ async def personal(
 
 @router.get('/user/{display_name:str}/traces/tag/{tag:str}')
 async def personal_tagged(
-    display_name: Annotated[DisplayName, Path(min_length=1)],
+    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
     tag: Annotated[str, Path(min_length=1)],
     after: Annotated[TraceId | None, Query()] = None,
     before: Annotated[TraceId | None, Query()] = None,
