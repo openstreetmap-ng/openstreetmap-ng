@@ -81,7 +81,7 @@ export const throttle = <T extends any[]>(
 /** Check if the given href is the current page */
 export const isHrefCurrentPage = (href: string): boolean => {
     const hrefPathname = new URL(href).pathname
-    const locationPathname = location.pathname
+    const locationPathname = window.location.pathname
     return hrefPathname === locationPathname || `${hrefPathname}/` === locationPathname
 }
 

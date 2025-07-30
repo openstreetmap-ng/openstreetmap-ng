@@ -92,12 +92,15 @@ export const configureRouter = (
     )
     console.debug("Loaded", routes.length, "application routes")
 
-    currentPath = removeTrailingSlash(location.pathname) + location.search
+    const getCurrentPath = (): string =>
+        removeTrailingSlash(window.location.pathname) + window.location.search
+
+    currentPath = getCurrentPath()
     currentRoute = findRoute(currentPath)
 
     window.addEventListener("popstate", (): void => {
         console.debug("onBrowserNavigation", location)
-        const newPath = removeTrailingSlash(location.pathname) + location.search
+        const newPath = getCurrentPath()
 
         // Skip if the path hasn't changed
         if (newPath === currentPath) return
