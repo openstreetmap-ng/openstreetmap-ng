@@ -24,6 +24,7 @@
     "@types/node": "latest",
     "@vitejs/plugin-legacy": "latest",
     "autoprefixer": "latest",
+    "browserslist": "latest",
     "caniuse-lite": "latest",
     "core-js": "3.44.0",
     "i18next-conv": "latest",
@@ -32,10 +33,10 @@
     "terser": "latest",
     "typed-query-selector": "latest",
     "typescript": "latest",
-    "vite": "npm:rolldown-vite@^7.0.11"
+    "vite": "npm:rolldown-vite@^7.0.12"
   },
   "scripts": {
-    "postinstall": "rm -rf node_modules/bootstrap/dist/css"
+    "postinstall": "_pnpm-postinstall"
   },
   "pnpm": {
     "overrides": {

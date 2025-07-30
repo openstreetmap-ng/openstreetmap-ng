@@ -620,6 +620,18 @@ let
     '')
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
+    (makeScript "_pnpm-postinstall" ''
+      rm -rf node_modules/bootstrap/dist/css
+      if [ ! data/cache/browserslist_versions.json -nt pnpm-lock.yaml ]; then
+        mkdir -p data/cache
+        pnpm browserslist | jq -Rnc '
+          [inputs | split(" ") | {browser: .[0], version: (.[1] | split("-") | map(tonumber) | min)}] |
+          group_by(.browser) |
+          map({(.[0].browser): (map(.version) | min)}) |
+          add
+        ' > data/cache/browserslist_versions.json
+      fi
+    '')
     (makeScript "_patch-interpreter" ''
       set +e
       interpreter="${stdenv.cc.bintools.dynamicLinker}"
