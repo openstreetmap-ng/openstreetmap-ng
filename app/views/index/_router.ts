@@ -1,3 +1,5 @@
+import { unquotePlus } from "../lib/utils"
+
 // Router interfaces
 export interface IndexController {
     load: (matchGroups: { [key: string]: string }) => void
@@ -93,7 +95,9 @@ export const configureRouter = (
     console.debug("Loaded", routes.length, "application routes")
 
     const getCurrentPath = (): string =>
-        removeTrailingSlash(window.location.pathname) + window.location.search
+        unquotePlus(
+            removeTrailingSlash(window.location.pathname) + window.location.search,
+        )
 
     currentPath = getCurrentPath()
     currentRoute = findRoute(currentPath)

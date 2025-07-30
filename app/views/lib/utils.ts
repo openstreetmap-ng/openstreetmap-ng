@@ -182,3 +182,7 @@ export const wrapMessageEventValidator = <T extends (event: MessageEvent) => any
         )
             return fn(event)
     }) as T
+
+/** Decodes a URL-encoded string, converting both %xx sequences and + characters to their original form */
+export const unquotePlus = (str: string): string =>
+    decodeURIComponent(str.replace(/\+/g, " "))
