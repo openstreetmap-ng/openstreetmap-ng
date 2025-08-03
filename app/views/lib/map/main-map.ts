@@ -19,7 +19,6 @@ import { LegendSidebarToggleControl } from "../../index/sidebar/legend"
 import { ShareSidebarToggleControl } from "../../index/sidebar/share"
 import { handleEditRemotePath, updateNavbarAndHash } from "../../navbar/navbar"
 import { config } from "../config"
-import { isMetricUnit } from "../intl"
 import { mapStateStorage } from "../local-storage"
 import { wrapIdleCallbackStatic } from "../utils"
 import { CustomGeolocateControl } from "./controls/geolocate"
@@ -70,11 +69,8 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
     addLayerEventHandler(saveMapStateLazy)
 
     // Add controls to the map
-    map.addControl(
-        new ScaleControl({
-            unit: isMetricUnit() ? "metric" : "imperial",
-        }),
-    )
+    map.addControl(new ScaleControl({ unit: "imperial" }))
+    map.addControl(new ScaleControl({ unit: "metric" }))
     addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
     addControlGroup(map, [
         new LayersSidebarToggleControl(),

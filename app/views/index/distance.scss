@@ -1,5 +1,11 @@
-.action-sidebar.distance .section {
-    border-bottom-right-radius: $border-radius;
+.action-sidebar.distance {
+    .section {
+        border-bottom-right-radius: $border-radius;
+    }
+
+    .unit-toggle-btn {
+        font-size: 0.75rem;
+    }
 }
 
 .maplibregl-marker.distance-label {

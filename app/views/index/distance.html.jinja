@@ -4,14 +4,18 @@
 
             <div class="row g-1">
                 <div class="col">
-                    <div>
-                        <i class="bi bi-signpost-2"></i>
+                    <div class="mb-2">
+                        <i class="bi bi-signpost-2 me-1-5"></i>
                         <span>{{ t('javascripts.directions.distance') }}</span>:
                         <span class="total-distance fw-semibold"></span>
                     </div>
-                    <button class="btn btn-sm btn-primary clear-btn mt-2 d-none">
-                        {{ t('action.clear_markers') }}
-                    </button>
+                    <div>
+                        <button class="btn btn-sm btn-primary clear-btn d-none">
+                            {{ t('action.clear_markers') }}
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary unit-toggle-btn ms-2">
+                        </button>
+                    </div>
                 </div>
                 <div class="col-auto">
                     <button class="sidebar-close-btn btn-close" aria-label="{{ t('javascripts.close') }}"></button>

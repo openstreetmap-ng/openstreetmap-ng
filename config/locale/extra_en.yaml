@@ -360,6 +360,11 @@ subscription:
     no_notifications: You'll no longer receive notifications about updates
     can_still_participate: You can still view and participate in the discussion
     can_resubscribe: You can resubscribe at any time
+distance:
+  feet: "{{distance}}ft"
+  miles: "{{distance}}mi"
+  switch_to_metric: Switch to metric
+  switch_to_imperial: Switch to imperial
 alt:
   logo: "{{name}} logo"
   country_flag: Country flag

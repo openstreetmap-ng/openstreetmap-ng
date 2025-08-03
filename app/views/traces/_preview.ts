@@ -5,7 +5,6 @@ import {
     Map as MaplibreMap,
     ScaleControl,
 } from "maplibre-gl"
-import { isMetricUnit } from "../lib/intl"
 import { CustomGeolocateControl } from "../lib/map/controls/geolocate"
 import { CustomZoomControl } from "../lib/map/controls/zoom"
 import {
@@ -73,11 +72,8 @@ if (tracePreviewContainer) {
 
     const isSmall = tracePreviewContainer.classList.contains("trace-preview-sm")
     if (!isSmall) {
-        map.addControl(
-            new ScaleControl({
-                unit: isMetricUnit() ? "metric" : "imperial",
-            }),
-        )
+        map.addControl(new ScaleControl({ unit: "imperial" }))
+        map.addControl(new ScaleControl({ unit: "metric" }))
         addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
     } else {
         addControlGroup(map, [new CustomZoomControl()])

@@ -110,6 +110,10 @@
     }
 }
 
+.maplibregl-ctrl-scale:not(:last-child) {
+    margin-bottom: 0;
+}
+
 //// Style the distance label from "Measure Distance"
 //.leaflet-marker-icon.distance-label {
 //    display: flex;

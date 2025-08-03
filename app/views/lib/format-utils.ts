@@ -6,16 +6,34 @@ import type { LonLat } from "./map/map-utils"
  * @example
  * formatDistance(1100)
  * // => "1.1km"
+ * formatDistance(1100, "imperial")
+ * // => "3609ft"
  */
-export const formatDistance = (meters: number): string => {
-    const km = meters / 1000
-    if (km < 1)
-        return i18next.t("javascripts.directions.distance_m", {
-            distance: Math.round(meters),
+export const formatDistance = (
+    meters: number,
+    unit: "metric" | "imperial" = "metric",
+): string => {
+    if (unit === "imperial") {
+        const feet = meters * 3.28084
+        if (feet < 1000) {
+            return i18next.t("distance.feet", {
+                distance: Math.round(feet),
+            })
+        }
+        const miles = meters * 0.000621371
+        return i18next.t("distance.miles", {
+            distance: miles.toFixed(miles < 10 ? 1 : 0),
         })
-    return i18next.t("javascripts.directions.distance_km", {
-        distance: km.toFixed(km < 10 ? 1 : 0),
-    })
+    } else {
+        const km = meters / 1000
+        if (km < 1)
+            return i18next.t("javascripts.directions.distance_m", {
+                distance: Math.round(meters),
+            })
+        return i18next.t("javascripts.directions.distance_km", {
+            distance: km.toFixed(km < 10 ? 1 : 0),
+        })
+    }
 }
 
 /**
@@ -24,18 +42,37 @@ export const formatDistance = (meters: number): string => {
  * formatDistanceRounded(232)
  * // => "230m"
  */
-export const formatDistanceRounded = (meters: number): string => {
-    if (meters < 5) return ""
-    if (meters < 1500) {
-        const precision = meters < 200 ? 10 : 100
-        return i18next.t("javascripts.directions.distance_m", {
-            distance: Math.round(meters / precision) * precision,
+export const formatDistanceRounded = (
+    meters: number,
+    unit: "metric" | "imperial" = "metric",
+): string => {
+    if (unit === "imperial") {
+        const feet = meters * 3.28084
+        if (feet < 5) return ""
+        if (feet < 1000) {
+            const precision = feet < 200 ? 10 : feet < 500 ? 25 : 50
+            return i18next.t("distance.feet", {
+                distance: Math.round(feet / precision) * precision,
+            })
+        }
+        const miles = meters * 0.000621371
+        const digits = miles < 5 ? 1 : 0
+        return i18next.t("distance.miles", {
+            distance: miles.toFixed(digits),
+        })
+    } else {
+        if (meters < 5) return ""
+        if (meters < 1500) {
+            const precision = meters < 200 ? 10 : 100
+            return i18next.t("javascripts.directions.distance_m", {
+                distance: Math.round(meters / precision) * precision,
+            })
+        }
+        const digits = meters < 5000 ? 1 : 0
+        return i18next.t("javascripts.directions.distance_km", {
+            distance: (meters / 1000).toFixed(digits),
         })
     }
-    const digits = meters < 5000 ? 1 : 0
-    return i18next.t("javascripts.directions.distance_km", {
-        distance: (meters / 1000).toFixed(digits),
-    })
 }
 
 /**

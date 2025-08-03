@@ -1,4 +1,5 @@
 import type { Feature, LineString } from "geojson"
+import i18next from "i18next"
 import {
     type GeoJSONSource,
     type LngLat,
@@ -10,6 +11,7 @@ import {
     Point,
 } from "maplibre-gl"
 import { formatDistance } from "../lib/format-utils"
+import { isMetricUnit } from "../lib/intl"
 import {
     addMapLayer,
     emptyFeatureCollection,
@@ -57,6 +59,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")
     const clearBtn = sidebar.querySelector("button.clear-btn")
+    const unitToggleBtn = sidebar.querySelector("button.unit-toggle-btn")
 
     const positionsUrl: [number, number][] = []
     const lines: Feature<LineString>[] = []
@@ -64,6 +67,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     const markers: Marker[] = []
     let ghostMarker: Marker | null = null
     let ghostMarkerIndex = -1
+    let currentUnit: "metric" | "imperial" = isMetricUnit() ? "metric" : "imperial"
 
     const markerFactory = (index: number, color: string): Marker => {
         const marker = new Marker({
@@ -219,12 +223,12 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
                 const distance = startPoint.distanceTo(endPoint)
                 ;(label as any).distance = distance
                 label.setRotation((angle * 180) / Math.PI)
-                label.getElement().textContent = formatDistance(distance)
+                label.getElement().textContent = formatDistance(distance, currentUnit)
             }
         }
         let totalDistance = 0
         for (const label of labels) totalDistance += (label as any).distance
-        totalDistanceLabel.textContent = formatDistance(totalDistance)
+        totalDistanceLabel.textContent = formatDistance(totalDistance, currentUnit)
     }
 
     // Schedule updates to all components after marker changes, dirtyIndices must be sorted
@@ -242,6 +246,21 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         update([])
     }
     clearBtn.addEventListener("click", clearMarkers)
+
+    const updateUnitToggleButton = () => {
+        const buttonText =
+            currentUnit === "metric"
+                ? i18next.t("distance.switch_to_imperial")
+                : i18next.t("distance.switch_to_metric")
+        unitToggleBtn.textContent = buttonText
+    }
+
+    unitToggleBtn.addEventListener("click", () => {
+        currentUnit = currentUnit === "metric" ? "imperial" : "metric"
+        console.debug("Toggle distance unit", currentUnit)
+        updateUnitToggleButton()
+        updateLabels(range(0, markers.length))
+    })
 
     // Removes a marker and updates subsequent geometry
     const removeMarker = (index: number): void => {
@@ -412,6 +431,9 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         load: () => {
             switchActionSidebar(map, sidebar)
             addMapLayer(map, layerId)
+
+            // Initialize the unit toggle button text
+            updateUnitToggleButton()
 
             // Load markers from URL
             const searchParams = qsParse(window.location.search)
