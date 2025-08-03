@@ -17,12 +17,19 @@ export const getTimezoneName = staticCache(() => {
     return result
 })
 
-const isImperialLanguage = (): boolean =>
-    navigator.language.startsWith("en-US") || navigator.language.startsWith("my")
+const isImperialLanguage = (): boolean => {
+    const language = navigator.language
+    return (
+        language.startsWith("en-US") ||
+        language.startsWith("en-GB") ||
+        language.startsWith("my")
+    )
+}
 const isImperialRegion = (): boolean => {
     const timezoneName = getTimezoneName()
     return (
         timezoneName.startsWith("America/") || // United States and territories
+        timezoneName === "Europe/London" || // United Kingdom
         timezoneName === "Asia/Yangon" || // Myanmar (Burma)
         timezoneName === "Africa/Monrovia" // Liberia
     )
