@@ -227,6 +227,10 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
                 globeProjectionStorage.set(enabled)
                 const projection = { type: enabled ? "globe" : "mercator" }
                 map.setProjection(projection)
+
+                // Workaround a bug where after switching back to mercator,
+                // the map is not fit to the screen (there is grey padding)
+                if (!enabled) map.resize()
             })
 
             // Initialize checkbox state from local storage
