@@ -127,6 +127,10 @@
         --bs-spinner-height: 0.9em;
         --bs-spinner-border-width: 0.2em;
     }
+
+    .bi-question-circle {
+        cursor: pointer;
+    }
 }
 
 @include color-mode(dark) {

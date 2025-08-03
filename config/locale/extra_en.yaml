@@ -4,7 +4,8 @@ editor:
     name: Rapid
   default: Default editor
 map:
-  enable_3d_projection: Enable 3D Projection
+  globe_view: Globe view
+  zoom_out_to_see_the_world_in_3d: Zoom out to see the world in 3D
   layers:
     esri_world_imagery: Esri World Imagery
     liberty: Liberty
