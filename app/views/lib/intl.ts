@@ -17,16 +17,14 @@ export const getTimezoneName = staticCache(() => {
     return result
 })
 
-const isImperialLanguage = (): boolean => {
-    const language = navigator.language
+const isImperialLanguage = (language: string): boolean => {
     return (
         language.startsWith("en-US") ||
         language.startsWith("en-GB") ||
         language.startsWith("my")
     )
 }
-const isImperialRegion = (): boolean => {
-    const timezoneName = getTimezoneName()
+const isImperialRegion = (timezoneName: string): boolean => {
     return (
         timezoneName.startsWith("America/") || // United States and territories
         timezoneName === "Europe/London" || // United Kingdom
@@ -37,7 +35,16 @@ const isImperialRegion = (): boolean => {
 
 /** User preference for metric units */
 export const isMetricUnit = staticCache(() => {
-    const result = !(isImperialLanguage() && isImperialRegion())
-    console.debug("Using metric units:", result)
+    const language = navigator.language
+    const timezoneName = getTimezoneName()
+    const result = !(isImperialLanguage(language) && isImperialRegion(timezoneName))
+    console.debug(
+        "Using",
+        result ? "metric" : "imperial",
+        "units for",
+        language,
+        "in",
+        timezoneName,
+    )
     return result
 })
