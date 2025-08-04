@@ -41,10 +41,9 @@ import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
 const fadeSpeed = 0.2
-const thicknessSpeed = fadeSpeed * 0.3
+const thicknessSpeed = fadeSpeed * 0.5
 const nonInteractiveMaxOpacity = 0.95
 const lineWidth = 3
-const nonInteractiveLineWidth = lineWidth - 1.5
 
 const layerId = "changesets-history" as LayerId
 const layerIdBorders = "changesets-history-borders" as LayerId
@@ -242,11 +241,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             colorHover = darkenColor(color, 0.15)
             opacity = nonInteractiveOpacity(distance)
             opacityHover = nonInteractiveMaxOpacity
-            width = Math.max(
-                nonInteractiveLineWidth -
-                    distance * thicknessSpeed * nonInteractiveLineWidth,
-                0,
-            )
+            width = Math.max(lineWidth - distance * thicknessSpeed * lineWidth, 0)
             widthHover = Math.max(width, 1) + 1.5
             borderWidth = 0
             borderWidthHover = widthHover + 2
