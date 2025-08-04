@@ -436,10 +436,27 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         resolveDatetimeLazy(entryContainer)
     }
 
-    /** Set the hover state of the changeset features on interactive layers */
-    const setHover = ({ id, numBounds }: GeoJsonProperties, hover: boolean): void => {
+    /** Set the hover state of the changeset features */
+    const setHover = (
+        { id, numBounds }: GeoJsonProperties,
+        hover: boolean,
+        autoScroll = false,
+    ): void => {
         const result = idSidebarMap.get(id)
         result?.classList.toggle("hover", hover)
+
+        if (hover && autoScroll) {
+            // Scroll into view when partially visible
+            const sidebarRect = parentSidebar.getBoundingClientRect()
+            const resultRect = result.getBoundingClientRect()
+            if (
+                (resultRect.top < sidebarRect.top &&
+                    resultRect.bottom >= sidebarRect.top) ||
+                (resultRect.top <= sidebarRect.bottom &&
+                    resultRect.bottom > sidebarRect.bottom)
+            )
+                result.scrollIntoView({ behavior: "smooth", block: "nearest" })
+        }
 
         const firstFeatureId = idFirstFeatureIdMap.get(id)
         if (!firstFeatureId) return
@@ -473,7 +490,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             setMapHover(map, layerId)
         }
         hoveredFeature = feature
-        setHover(hoveredFeature.properties, true)
+        setHover(hoveredFeature.properties, true, true)
     })
 
     const onMapMouseLeave = () => {
