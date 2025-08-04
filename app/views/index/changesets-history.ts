@@ -130,6 +130,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const entryTemplate = sidebar.querySelector("template.entry")
     const entryContainer = entryTemplate.parentElement
     const loadingContainer = sidebar.querySelector(".loading")
+    const scrollIndicators = sidebar.querySelectorAll(".scroll-indicator")
 
     let abortController: AbortController | null = null
 
@@ -598,6 +599,10 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 updateLayersVisibility()
                 fetchedBounds = fetchBounds
                 fetchedDate = fetchDate
+
+                if (changesets.length)
+                    for (const indicator of scrollIndicators)
+                        indicator.classList.remove("d-none")
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
@@ -648,6 +653,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             sidebarTitleElement.innerHTML = sidebarTitleHtml
             setPageTitle(sidebarTitleText)
 
+            // Hide scroll indicators when loading
+            for (const indicator of scrollIndicators) {
+                indicator.classList.add("d-none")
+            }
+
             addMapLayer(map, layerId)
             addMapLayer(map, layerIdBorders)
             map.on("zoomend", updateLayers)
@@ -670,6 +680,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             idFirstFeatureIdMap.clear()
             hiddenBefore = 0
             hiddenAfter = 0
+
+            // Hide scroll indicators when unloading
+            for (const indicator of scrollIndicators) {
+                indicator.classList.add("d-none")
+            }
         },
     }
 }
