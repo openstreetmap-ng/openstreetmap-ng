@@ -309,8 +309,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         const data = renderObjects(changesetsMinimumSize, null, featureIdCounter)
         source.setData(data)
         sourceBorders.setData(data)
-
-        idFirstFeatureIdMap.clear()
         for (const feature of data.features)
             idFirstFeatureIdMap.set(
                 feature.properties.id,
