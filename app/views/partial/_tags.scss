@@ -50,7 +50,7 @@
     &:not(:last-child) {
         &::after {
             content: ";";
-            color: black;
+            color: var(--bs-body-color);
         }
     }
 }

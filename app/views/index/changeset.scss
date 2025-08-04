@@ -1,4 +1,14 @@
 .action-sidebar.changeset {
+    .changesets-list {
+        .tag-value {
+            @extend .fst-italic;
+
+            > p {
+                margin-bottom: 0;
+            }
+        }
+    }
+
     .open-indicator {
         color: $success;
         background: rgba($success, 0.1);

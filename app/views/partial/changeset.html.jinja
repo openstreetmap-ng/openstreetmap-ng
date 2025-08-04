@@ -12,37 +12,52 @@
             </div>
         </div>
 
-        <div class="social-entry">
-            <p class="header text-muted d-flex justify-content-between">
-                <span>
-                    {% if not changeset.user %}
-                    {{ t('browse.anonymous') }}
-                    {% else %}
-                    <a href="/user/{{ changeset.user.display_name }}" rel="author">
-                        <img class="avatar" src="{{ user_avatar_url(changeset.user) }}"
-                            alt="{{ t('alt.profile_picture') }}" loading="lazy">
-                        {{- changeset.user.display_name -}}
-                    </a>
-                    {% endif %}
+        <div class="changesets-list social-list mb-3">
+            <div class="social-entry">
+                <p class="header text-muted d-flex justify-content-between">
+                    <span>
+                        {% if not changeset.user %}
+                        {{ t('browse.anonymous') }}
+                        {% else %}
+                        <a href="/user/{{ changeset.user.display_name }}" rel="author">
+                            <img class="avatar" src="{{ user_avatar_url(changeset.user) }}"
+                                alt="{{ t('alt.profile_picture') }}" loading="lazy">
+                            {{- changeset.user.display_name -}}
+                        </a>
+                        {% endif %}
+                        {% if changeset.closed_at is none %}
+                        {{ t('browse.created') | lower }}
+                        <time datetime="{{ changeset.created_at.isoformat() }}" data-style="long"></time>
+                        {% else %}
+                        {{ t('browse.closed') | lower }}
+                        <time datetime="{{ changeset.closed_at.isoformat() }}" data-style="long"></time>
+                        {% endif %}
+                    </span>
                     {% if changeset.closed_at is none %}
-                    {{ t('browse.created') | lower }}
-                    <time datetime="{{ changeset.created_at.isoformat() }}" data-style="long"></time>
-                    {% else %}
-                    {{ t('browse.closed') | lower }}
-                    <time datetime="{{ changeset.closed_at.isoformat() }}" data-style="long"></time>
+                    <span class="badge open-indicator"
+                        title="{{ t('changeset.this_changeset_is_state', state=t('changeset.open').lower()) }}">
+                        <i class="bi bi-pencil-square me-1"></i>{{ t('changeset.open') }}
+                    </span>
                     {% endif %}
-                </span>
-                {% if changeset.closed_at is none %}
-                <span class="badge open-indicator"
-                    title="{{ t('changeset.this_changeset_is_state', state=t('changeset.open').lower()) }}">
-                    <i class="bi bi-pencil-square me-1"></i>{{ t('changeset.open') }}
-                </span>
-                {% endif %}
-            </p>
-            <div class="body fst-italic">
-                {% for value in comment_tag.values %}
-                {% include 'partial/_tag' %}
-                {% endfor %}
+                </p>
+                <div class="body">
+                    <span>
+                        {% for value in comment_tag.values %}
+                        {% include 'partial/_tag' %}
+                        {% endfor %}
+                    </span>
+                    <div class="changeset-stats">
+                        {% if changeset.num_create %}
+                        <span class="stat-create">{{ changeset.num_create }}</span>
+                        {% endif %}
+                        {% if changeset.num_modify %}
+                        <span class="stat-modify">{{ changeset.num_modify }}</span>
+                        {% endif %}
+                        {% if changeset.num_delete %}
+                        <span class="stat-delete">{{ changeset.num_delete }}</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
 
