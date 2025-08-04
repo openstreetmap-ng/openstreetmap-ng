@@ -39,7 +39,7 @@
         &.top {
             top: 0;
             background: #b814ae;
-            border-bottom-right-radius: $border-radius-sm;
+            border-bottom-left-radius: $border-radius-sm;
             margin-bottom: 2rem;
 
             .indicator-text {
@@ -55,7 +55,6 @@
             margin-top: 2rem;
 
             .indicator-text {
-                right: 0;
                 bottom: 100%;
                 border-radius: 4px 4px 0 0;
                 padding: 0.25rem 0.5rem calc(0.25rem - 2px);
@@ -64,6 +63,7 @@
 
         .indicator-text {
             position: absolute;
+            right: 0;
             font-size: 0.8em;
             line-height: 1.3;
             color: $body-bg;

@@ -144,8 +144,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const idSidebarMap = new Map<string, HTMLElement>()
     let hiddenBefore = 0
     let hiddenAfter = 0
-    let featureIdCounter = 1
-    let featureIdCounterReset = 0
 
     const resetChangesets = (): void => {
         console.debug("resetChangesets")
@@ -294,14 +292,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     const updateLayers = (e?: any) => {
-        // Reset featureIdCounter no more than every 5 seconds
-        // - Resuing featureIdCounter causes state glitches
-        // - Not resetting causes performance issues
-        if (featureIdCounter > 500 && featureIdCounterReset < Date.now() - 5000) {
-            featureIdCounter = 1
-            featureIdCounterReset = Date.now()
-            console.debug("Reset featureIdCounter")
-        }
+        let featureIdCounter = 1
+        for (const changeset of changesets.slice(0, hiddenBefore))
+            featureIdCounter += changeset.bounds.length * 2
 
         const changesetsMinimumSize: OSMChangeset[] = []
         for (const changeset of convertRenderChangesetsData(
@@ -314,9 +307,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         }
 
         const data = renderObjects(changesetsMinimumSize, null, featureIdCounter)
-        featureIdCounter += data.features.length
         source.setData(data)
         sourceBorders.setData(data)
+
         idFirstFeatureIdMap.clear()
         for (const feature of data.features)
             idFirstFeatureIdMap.set(
@@ -357,13 +350,13 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         }
     }
 
+    let hoveredChangeset: RenderChangesetsData_Changeset | null = null
     const updateSidebar = (): void => {
         idSidebarMap.clear()
 
         const fragment = document.createDocumentFragment()
         for (const changeset of changesets) {
             const changesetId = changeset.id.toString()
-            const numBounds = changeset.bounds.length
             const div = (entryTemplate.content.cloneNode(true) as DocumentFragment)
                 .children[0] as HTMLElement
 
@@ -431,12 +424,24 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
             changesetLink.href = `/changeset/${changeset.id}`
             changesetLink.textContent = changesetId
-            changesetLink.addEventListener("mouseenter", () =>
-                setHover({ id: changesetId, numBounds }, true),
-            )
-            changesetLink.addEventListener("mouseleave", () =>
-                setHover({ id: changesetId, numBounds }, false),
-            )
+            changesetLink.addEventListener("mouseenter", () => {
+                if (hoveredChangeset) {
+                    if (hoveredChangeset === changeset) return
+                    setHover(
+                        {
+                            id: hoveredChangeset.id.toString(),
+                            numBounds: hoveredChangeset.bounds.length,
+                        },
+                        false,
+                    )
+                }
+                setHover({ id: changesetId, numBounds: changeset.bounds.length }, true)
+                hoveredChangeset = changeset
+            })
+            changesetLink.addEventListener("mouseleave", () => {
+                setHover({ id: changesetId, numBounds: changeset.bounds.length }, false)
+                if (hoveredChangeset === changeset) hoveredChangeset = null
+            })
             fragment.appendChild(div)
 
             idSidebarMap.set(changesetId, div)
