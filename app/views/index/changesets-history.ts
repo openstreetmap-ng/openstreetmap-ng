@@ -114,7 +114,7 @@ layersConfig.set(layerId, {
     priority: 121,
 })
 
-const loadMoreScrollBuffer = 200
+const loadMoreScrollBuffer = 1000
 const reloadProportionThreshold = 0.9
 
 /** Create a new changesets history controller */
@@ -465,12 +465,10 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             const sidebarRect = parentSidebar.getBoundingClientRect()
             const resultRect = result.getBoundingClientRect()
             if (
-                (resultRect.top < sidebarRect.top &&
-                    resultRect.bottom >= sidebarRect.top) ||
-                (resultRect.top <= sidebarRect.bottom &&
-                    resultRect.bottom > sidebarRect.bottom)
+                resultRect.top < sidebarRect.top ||
+                resultRect.bottom > sidebarRect.bottom
             )
-                result.scrollIntoView({ behavior: "smooth", block: "nearest" })
+                result.scrollIntoView({ behavior: "smooth", block: "center" })
         }
 
         const firstFeatureId = idFirstFeatureIdMap.get(id)
@@ -493,6 +491,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     })
 
     let hoveredFeature: MapGeoJSONFeature | null = null
+    let scrollDelayTimer: ReturnType<typeof setTimeout> | null = null
     map.on("mousemove", layerIdFill, (e) => {
         // Find feature with the smallest bounds area
         const feature = e.features.reduce((a, b) =>
@@ -504,12 +503,20 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         } else {
             setMapHover(map, layerId)
         }
+
+        clearTimeout(scrollDelayTimer)
         hoveredFeature = feature
-        setHover(hoveredFeature.properties, true, true)
+        setHover(hoveredFeature.properties, true)
+
+        // Set delayed scroll timer
+        scrollDelayTimer = setTimeout(() => {
+            setHover(hoveredFeature.properties, true, true)
+        }, 1000)
     })
 
     const onMapMouseLeave = () => {
         if (!hoveredFeature) return
+        clearTimeout(scrollDelayTimer)
         setHover(hoveredFeature.properties, false)
         hoveredFeature = null
         clearMapHover(map, layerId)
