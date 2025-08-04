@@ -42,7 +42,6 @@ import { routerNavigateStrict } from "./_router"
 
 const fadeSpeed = 0.2
 const thicknessSpeed = fadeSpeed * 0.5
-const nonInteractiveMaxOpacity = 0.95
 const lineWidth = 3
 
 const layerId = "changesets-history" as LayerId
@@ -66,7 +65,7 @@ layersConfig.set(layerIdBorders, {
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
                 ["feature-state", "scrollBorderWidthHover"],
-                ["feature-state", "scrollBorderWidth"],
+                ["coalesce", ["feature-state", "scrollBorderWidth"], 0],
             ],
         },
     },
@@ -88,7 +87,7 @@ layersConfig.set(layerId, {
             "fill-opacity": [
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
-                0.3,
+                0.35,
                 0,
             ],
             "fill-color": "#ffc",
@@ -108,7 +107,7 @@ layersConfig.set(layerId, {
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
                 ["feature-state", "scrollWidthHover"],
-                ["feature-state", "scrollWidth"],
+                ["coalesce", ["feature-state", "scrollWidth"], 0],
             ],
         },
     },
@@ -145,6 +144,21 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const idSidebarMap = new Map<string, HTMLElement>()
     let hiddenBefore = 0
     let hiddenAfter = 0
+    let featureIdCounter = 1
+
+    const resetChangesets = (): void => {
+        console.debug("resetChangesets")
+        source.setData(emptyFeatureCollection)
+        sourceBorders.setData(emptyFeatureCollection)
+        changesets.length = 0
+        noMoreChangesets = false
+        idChangesetMap.clear()
+        idSidebarMap.clear()
+        idFirstFeatureIdMap.clear()
+        hiddenBefore = 0
+        hiddenAfter = 0
+        featureIdCounter = 1
+    }
 
     /** Update changeset visibility states */
     const updateLayersVisibility = (): void => {
@@ -155,6 +169,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         let newHiddenBefore = 0
         let newHiddenAfter = 0
         let foundVisible = false
+        const updateFeatureStates: [string, "above" | "visible" | "below", number][] =
+            []
 
         for (let i = changesets.length - 1; i >= 0; i--) {
             const changeset = changesets[i]
@@ -180,7 +196,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             }
 
             if (state !== "visible") {
-                const opacity = nonInteractiveOpacity(distance)
+                const opacity = distanceOpacity(distance)
                 hidden = opacity < 0.05
             }
 
@@ -193,21 +209,25 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 break
             }
 
-            if (!hidden) updateFeatureState(changesetId, state, distance)
+            if (!hidden) updateFeatureStates.push([changesetId, state, distance])
         }
 
-        if (newHiddenBefore !== hiddenBefore || newHiddenAfter !== hiddenAfter) {
+        if (newHiddenBefore === hiddenBefore && newHiddenAfter === hiddenAfter) {
+            for (const [changesetId, state, distance] of updateFeatureStates)
+                updateFeatureState(changesetId, state, distance)
+        } else {
             hiddenBefore = newHiddenBefore
             hiddenAfter = newHiddenAfter
             updateLayers()
+            updateLayersVisibility()
         }
     }
 
-    const throttledUpdateLayersVisibility = throttle(updateLayersVisibility, 33)
+    const throttledUpdateLayersVisibility = throttle(updateLayersVisibility, 100)
 
-    /** Calculate non-interactive opacity based on distance */
-    const nonInteractiveOpacity = (distance: number): number =>
-        Math.max(1 - distance * fadeSpeed, 0) * nonInteractiveMaxOpacity
+    /** Calculate opacity based on distance using fadeSpeed */
+    const distanceOpacity = (distance: number): number =>
+        Math.max(1 - distance * fadeSpeed, 0)
 
     /** Update changeset visibility and calculate consecutive hidden ranges */
     const updateFeatureState = (
@@ -215,6 +235,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         state: "above" | "visible" | "below",
         distance: number,
     ): void => {
+        const firstFeatureId = idFirstFeatureIdMap.get(changesetId)
+        if (!firstFeatureId) return
+        const changeset = idChangesetMap.get(changesetId)
+        const numBounds = changeset.bounds.length
+
         let color: string
         let colorHover: string
         let opacity: number
@@ -230,21 +255,21 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             opacity = 1
             opacityHover = 1
             width = lineWidth
-            widthHover = width + 1.5
-            borderWidth = lineWidth + 1.5
-            borderWidthHover = borderWidth + 2
+            widthHover = width + 2
+            borderWidth = 0
+            borderWidthHover = widthHover + 2.5
         } else {
             color =
                 state === "above"
                     ? "#ed59e4" // ~40% lighten
                     : "#14B8A6"
             colorHover = darkenColor(color, 0.15)
-            opacity = nonInteractiveOpacity(distance)
-            opacityHover = nonInteractiveMaxOpacity
+            opacity = distanceOpacity(distance)
+            opacityHover = 1
             width = Math.max(lineWidth - distance * thicknessSpeed * lineWidth, 0)
-            widthHover = Math.max(width, 1) + 1.5
+            widthHover = Math.max(width, 1) + 2
             borderWidth = 0
-            borderWidthHover = widthHover + 2
+            borderWidthHover = widthHover + 2.5
         }
 
         const featureState = {
@@ -258,9 +283,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             scrollBorderWidthHover: borderWidthHover,
         }
 
-        const firstFeatureId = idFirstFeatureIdMap.get(changesetId)
-        const changeset = idChangesetMap.get(changesetId)
-        const numBounds = changeset.bounds.length
         for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
             map.setFeatureState({ source: layerIdBorders, id: i }, featureState)
             map.setFeatureState({ source: layerId, id: i }, featureState)
@@ -268,10 +290,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     const updateLayers = (e?: any) => {
-        let featureIdCounter = 1
-        for (const changeset of changesets.slice(0, hiddenBefore))
-            featureIdCounter += changeset.bounds.length * 2
-
         const changesetsMinimumSize: OSMChangeset[] = []
         for (const changeset of convertRenderChangesetsData(
             changesets.slice(hiddenBefore, changesets.length - hiddenAfter),
@@ -283,6 +301,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         }
 
         const data = renderObjects(changesetsMinimumSize, null, featureIdCounter)
+        featureIdCounter += data.features.length
         source.setData(data)
         sourceBorders.setData(data)
         idFirstFeatureIdMap.clear()
@@ -291,6 +310,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 feature.properties.id,
                 feature.properties.firstFeatureId,
             )
+
+        // Update layers visibility after map event
+        if (e) updateLayersVisibility()
 
         // When initial loading for scope/user, focus on the changesets
         if (
@@ -417,6 +439,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         result?.classList.toggle("hover", hover)
 
         const firstFeatureId = idFirstFeatureIdMap.get(id)
+        if (!firstFeatureId) return
         for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
             map.setFeatureState({ source: layerIdBorders, id: i }, { hover })
             map.setFeatureState({ source: layerId, id: i }, { hover })
@@ -602,11 +625,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             .catch((error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch map data", error)
-                source.setData(emptyFeatureCollection)
-                sourceBorders.setData(emptyFeatureCollection)
-                changesets.length = 0
-                idChangesetMap.clear()
-                noMoreChangesets = false
+                resetChangesets()
             })
             .finally(() => {
                 if (signal.aborted) return
@@ -666,15 +685,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             parentSidebar.removeEventListener("scroll", onSidebarScroll)
             removeMapLayer(map, layerId)
             removeMapLayer(map, layerIdBorders)
-            source.setData(emptyFeatureCollection)
-            sourceBorders.setData(emptyFeatureCollection)
-            changesets.length = 0
-            idChangesetMap.clear()
+            resetChangesets()
             fetchedBounds = null
-            idSidebarMap.clear()
-            idFirstFeatureIdMap.clear()
-            hiddenBefore = 0
-            hiddenAfter = 0
 
             // Hide scroll indicators when unloading
             for (const indicator of scrollIndicators) {
