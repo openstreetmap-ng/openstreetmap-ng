@@ -157,7 +157,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         idFirstFeatureIdMap.clear()
         hiddenBefore = 0
         hiddenAfter = 0
-        featureIdCounter = 1
         entryContainer.innerHTML = ""
         for (const indicator of scrollIndicators) {
             indicator.classList.add("d-none")
@@ -683,6 +682,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             removeMapLayer(map, layerIdBorders)
             resetChangesets()
             fetchedBounds = null
+            featureIdCounter = 1
         },
     }
 }
