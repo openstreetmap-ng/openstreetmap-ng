@@ -186,3 +186,19 @@ export const wrapMessageEventValidator = <T extends (event: MessageEvent) => any
 /** Decodes a URL-encoded string, converting both %xx sequences and + characters to their original form */
 export const unquotePlus = (str: string): string =>
     decodeURIComponent(str.replace(/\+/g, " "))
+
+/** Darken a hex color by a specified amount */
+export const darkenColor = (hex: string, amount: number): string => {
+    const hexCode = hex.replace("#", "")
+    const isShort = hexCode.length === 3
+
+    const r = Number.parseInt(isShort ? hexCode[0].repeat(2) : hexCode.slice(0, 2), 16)
+    const g = Number.parseInt(isShort ? hexCode[1].repeat(2) : hexCode.slice(2, 4), 16)
+    const b = Number.parseInt(isShort ? hexCode[2].repeat(2) : hexCode.slice(4, 6), 16)
+
+    const darkenedR = Math.round(r * (1 - amount))
+    const darkenedG = Math.round(g * (1 - amount))
+    const darkenedB = Math.round(b * (1 - amount))
+
+    return `#${darkenedR.toString(16).padStart(2, "0")}${darkenedG.toString(16).padStart(2, "0")}${darkenedB.toString(16).padStart(2, "0")}`
+}
