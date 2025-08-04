@@ -35,7 +35,7 @@ import {
 import { qsEncode, qsParse } from "../lib/qs"
 import { setPageTitle } from "../lib/title"
 import type { OSMChangeset } from "../lib/types"
-import { darkenColor, throttle } from "../lib/utils"
+import { darkenColor, requestAnimationFramePolyfill, throttle } from "../lib/utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
@@ -226,7 +226,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         }
     }
 
-    const throttledUpdateLayersVisibility = throttle(updateLayersVisibility, 100)
+    const throttledUpdateLayersVisibility = throttle(updateLayersVisibility, 50)
 
     /** Calculate opacity based on distance using fadeSpeed */
     const distanceOpacity = (distance: number): number =>
@@ -614,7 +614,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 }
                 updateLayers()
                 updateSidebar()
-                updateLayersVisibility()
+                requestAnimationFramePolyfill(updateLayersVisibility)
                 fetchedBounds = fetchBounds
                 fetchedDate = fetchDate
 
