@@ -351,11 +351,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     let hoveredChangeset: RenderChangesetsData_Changeset | null = null
-    const updateSidebar = (): void => {
-        idSidebarMap.clear()
+    const updateSidebar = (appendMode: boolean, newChangesetsLength: number): void => {
+        if (!appendMode) idSidebarMap.clear()
 
         const fragment = document.createDocumentFragment()
-        for (const changeset of changesets) {
+        for (const changeset of changesets.slice(-newChangesetsLength)) {
             const changesetId = changeset.id.toString()
             const div = (entryTemplate.content.cloneNode(true) as DocumentFragment)
                 .children[0] as HTMLElement
@@ -446,7 +446,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
             idSidebarMap.set(changesetId, div)
         }
-        entryContainer.innerHTML = ""
+
+        if (!appendMode) entryContainer.innerHTML = ""
         entryContainer.appendChild(fragment)
         resolveDatetimeLazy(entryContainer)
     }
@@ -628,6 +629,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                     RenderChangesetsDataSchema,
                     new Uint8Array(buffer),
                 ).changesets
+                const appendMode = Boolean(changesets.length)
                 if (newChangesets.length) {
                     changesets.push(...newChangesets)
                     for (const cs of newChangesets) {
@@ -645,7 +647,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                     noMoreChangesets = true
                 }
                 updateLayers()
-                updateSidebar()
+                updateSidebar(appendMode, newChangesets.length)
                 requestAnimationFramePolyfill(updateLayersVisibility)
                 fetchedBounds = fetchBounds
                 fetchedDate = fetchDate
