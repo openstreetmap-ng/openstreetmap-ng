@@ -23,9 +23,9 @@ interface RenderOptions {
 export const renderObjects = (
     objects: OSMObject[],
     options?: Partial<RenderOptions>,
+    featureIdCounter = 1,
 ): FeatureCollection => {
     const features: Feature[] = []
-    let featureIdCounter = 1
 
     const processChangeset = (changeset: OSMChangeset): void => {
         const properties = {

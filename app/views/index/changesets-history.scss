@@ -24,4 +24,50 @@
     .comment {
         font-style: italic;
     }
+
+    .changesets-list {
+        // Ensure scroll-indicator are not touching each other when there are no changesets
+        min-height: 1px;
+    }
+
+    .scroll-indicator {
+        position: sticky;
+        height: 2px;
+        width: 100%;
+        z-index: 20;
+
+        &.top {
+            top: 0;
+            background: #b814ae;
+            border-bottom-right-radius: $border-radius-sm;
+            margin-bottom: 2rem;
+
+            .indicator-text {
+                border-radius: 0 0 4px 4px;
+                padding: 0.25rem 0.5rem;
+            }
+        }
+
+        &.bottom {
+            bottom: 0;
+            background: #14b8a6;
+            border-top-left-radius: $border-radius-sm;
+            margin-top: 2rem;
+
+            .indicator-text {
+                right: 0;
+                bottom: 100%;
+                border-radius: 4px 4px 0 0;
+                padding: 0.25rem 0.5rem calc(0.25rem - 2px);
+            }
+        }
+
+        .indicator-text {
+            position: absolute;
+            font-size: 0.8em;
+            line-height: 1.3;
+            color: $body-bg;
+            background: inherit;
+        }
+    }
 }

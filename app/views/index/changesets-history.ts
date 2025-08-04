@@ -35,12 +35,50 @@ import {
 import { qsEncode, qsParse } from "../lib/qs"
 import { setPageTitle } from "../lib/title"
 import type { OSMChangeset } from "../lib/types"
+import { throttle } from "../lib/utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
+const fadeSpeed = 0.2
+const thicknessSpeed = fadeSpeed * 0.3
+const nonInteractiveMaxOpacity = 0.95
+const lineWidth = 3
+const nonInteractiveLineWidth = lineWidth - 1.5
+
 const layerId = "changesets-history" as LayerId
-layersConfig.set(layerId as LayerId, {
+const layerIdBorders = "changesets-history-borders" as LayerId
+
+layersConfig.set(layerIdBorders, {
+    specification: {
+        type: "geojson",
+        data: emptyFeatureCollection,
+    },
+    layerTypes: ["line"],
+    layerOptions: {
+        layout: {
+            "line-cap": "round",
+            "line-join": "round",
+        },
+        paint: {
+            "line-color": "#fff",
+            "line-opacity": 1,
+            "line-width": [
+                "case",
+                [
+                    "all",
+                    ["!", ["boolean", ["feature-state", "scrollHidden"], true]],
+                    ["boolean", ["feature-state", "hover"], false],
+                ],
+                ["feature-state", "scrollBorderWidthHover"],
+                ["feature-state", "scrollBorderWidth"],
+            ],
+        },
+    },
+    priority: 120,
+})
+
+layersConfig.set(layerId, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -54,33 +92,57 @@ layersConfig.set(layerId as LayerId, {
         paint: {
             "fill-opacity": [
                 "case",
-                ["boolean", ["feature-state", "hover"], false],
-                0.45,
+                [
+                    "all",
+                    ["!", ["boolean", ["feature-state", "scrollHidden"], true]],
+                    ["boolean", ["feature-state", "hover"], false],
+                ],
+                0.3,
                 0,
             ],
             "fill-color": "#ffc",
             "line-color": [
                 "case",
-                ["boolean", ["feature-state", "hover"], false],
-                "#f60",
-                "#f90",
+                [
+                    "all",
+                    ["!", ["boolean", ["feature-state", "scrollHidden"], true]],
+                    ["boolean", ["feature-state", "hover"], false],
+                ],
+                ["feature-state", "scrollColorHover"],
+                ["feature-state", "scrollColor"],
+            ],
+            "line-opacity": [
+                "case",
+                [
+                    "all",
+                    ["!", ["boolean", ["feature-state", "scrollHidden"], true]],
+                    ["boolean", ["feature-state", "hover"], false],
+                ],
+                ["feature-state", "scrollOpacityHover"],
+                ["feature-state", "scrollOpacity"],
             ],
             "line-width": [
                 "case",
-                ["boolean", ["feature-state", "hover"], false],
-                3,
-                2,
+                [
+                    "all",
+                    ["!", ["boolean", ["feature-state", "scrollHidden"], true]],
+                    ["boolean", ["feature-state", "hover"], false],
+                ],
+                ["feature-state", "scrollWidthHover"],
+                ["feature-state", "scrollWidth"],
             ],
         },
     },
-    priority: 120,
+    priority: 121,
 })
 
+const loadMoreScrollBuffer = 200
 const reloadProportionThreshold = 0.9
 
 /** Create a new changesets history controller */
 export const getChangesetsHistoryController = (map: MaplibreMap): IndexController => {
     const source = map.getSource(layerId) as GeoJSONSource
+    const sourceBorders = map.getSource(layerIdBorders) as GeoJSONSource
     const sidebar = getActionSidebar("changesets-history")
     const parentSidebar = sidebar.closest("div.sidebar")
     const sidebarTitleElement = sidebar.querySelector(".sidebar-title")
@@ -98,8 +160,116 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     let noMoreChangesets = false
     let loadScope: string | undefined
     let loadDisplayName: string | undefined
+    const idChangesetMap = new Map<string, RenderChangesetsData_Changeset>()
     const idFirstFeatureIdMap = new Map<string, number>()
     const idSidebarMap = new Map<string, HTMLElement>()
+    const idHiddenMap = new Map<string, boolean>()
+
+    /** Update changeset visibility states based on scroll position */
+    const updateLayersVisibility = (): void => {
+        if (!parentSidebar) return
+
+        const sidebarRect = parentSidebar.getBoundingClientRect()
+        const sidebarTop = sidebarRect.top
+        const sidebarBottom = sidebarRect.bottom
+
+        for (const [changesetId, element] of idSidebarMap) {
+            const elementRect = element.getBoundingClientRect()
+            const elementTop = elementRect.top
+            const elementBottom = elementRect.bottom
+
+            let state: "above" | "visible" | "below"
+            let distance = 0
+
+            if (elementBottom < sidebarTop) {
+                // Element is above the viewport
+                state = "above"
+                distance = (sidebarTop - elementBottom) / sidebarRect.height
+            } else if (elementTop > sidebarBottom) {
+                // Element is below the viewport
+                state = "below"
+                distance = (elementTop - sidebarBottom) / sidebarRect.height
+            } else {
+                // Element is visible in viewport
+                state = "visible"
+                distance = 0
+            }
+
+            updateFeatureState(changesetId, state, distance)
+        }
+    }
+
+    const throttledUpdateLayersVisibility = throttle(updateLayersVisibility, 33)
+
+    /** Update map feature state for the base layer only (distance-based styling) */
+    const updateFeatureState = (
+        changesetId: string,
+        state: "above" | "visible" | "below",
+        distance: number,
+    ): void => {
+        const firstFeatureId = idFirstFeatureIdMap.get(changesetId)
+        if (firstFeatureId === undefined) return
+
+        const changeset = idChangesetMap.get(changesetId)
+        const numBounds = changeset.bounds.length
+
+        let color: string
+        let colorHover: string
+        let opacity: number
+        let opacityHover: number
+        let width: number
+        let widthHover: number
+        let borderWidth: number
+        let borderWidthHover: number
+
+        if (state === "visible") {
+            color = "#f90"
+            colorHover = "#f60"
+            opacity = 1
+            opacityHover = 1
+            width = lineWidth
+            widthHover = width + 1.5
+            borderWidth = lineWidth + 1.5
+            borderWidthHover = borderWidth + 2
+        } else {
+            color =
+                state === "above"
+                    ? "#ed59e4" // ~40% lighten
+                    : "#14B8A6"
+            colorHover = color
+            opacity = Math.max(1 - distance * fadeSpeed, 0) * nonInteractiveMaxOpacity
+            opacityHover = nonInteractiveMaxOpacity
+            width = Math.max(
+                nonInteractiveLineWidth -
+                    distance * thicknessSpeed * nonInteractiveLineWidth,
+                0,
+            )
+            widthHover = Math.max(width, 1) + 1.5
+            borderWidth = 0
+            borderWidthHover = widthHover + 2
+        }
+
+        const hidden = opacity < 0.05 || width < 0.05
+        idHiddenMap.set(changesetId, hidden)
+        if (hidden) width = 0
+
+        const featureState = {
+            scrollColor: color,
+            scrollColorHover: colorHover,
+            scrollOpacity: opacity,
+            scrollOpacityHover: opacityHover,
+            scrollWidth: width,
+            scrollWidthHover: widthHover,
+            scrollBorderWidth: borderWidth,
+            scrollBorderWidthHover: borderWidthHover,
+            scrollHidden: hidden,
+        }
+
+        for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
+            map.setFeatureState({ source: layerIdBorders, id: i }, featureState)
+            map.setFeatureState({ source: layerId, id: i }, featureState)
+        }
+    }
 
     const updateLayers = (e?: any) => {
         const changesetsMinimumSize: OSMChangeset[] = []
@@ -117,6 +287,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             )
         }
         source.setData(data)
+        sourceBorders.setData(data)
 
         // When initial loading for scope/user, focus on the changesets
         if (
@@ -241,27 +412,16 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         resolveDatetimeLazy(entryContainer)
     }
 
-    /** Set the hover state of the changeset features */
+    /** Set the hover state of the changeset features on interactive layers */
     const setHover = (
         { id, firstFeatureId, numBounds }: GeoJsonProperties,
         hover: boolean,
-        autoScroll = false,
     ): void => {
         const result = idSidebarMap.get(id)
         result?.classList.toggle("hover", hover)
 
-        if (hover && autoScroll && result) {
-            // Scroll result into view only when auto-scroll is enabled
-            const sidebarRect = parentSidebar.getBoundingClientRect()
-            const resultRect = result.getBoundingClientRect()
-            const isVisible =
-                resultRect.top >= sidebarRect.top &&
-                resultRect.bottom <= sidebarRect.bottom
-            if (!isVisible)
-                result.scrollIntoView({ behavior: "smooth", block: "center" })
-        }
-
         for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
+            map.setFeatureState({ source: layerIdBorders, id: i }, { hover })
             map.setFeatureState({ source: layerId, id: i }, { hover })
         }
     }
@@ -270,9 +430,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const layerIdFill = getExtendedLayerId(layerId, "fill")
     map.on("click", layerIdFill, (e) => {
         // Find feature with the smallest bounds area
-        const feature = e.features.reduce((a, b) =>
-            a.properties.boundsArea < b.properties.boundsArea ? a : b,
-        )
+        const feature = e.features
+            .filter((f) => !idHiddenMap.get(f.properties.id))
+            .reduce((a, b) =>
+                a.properties.boundsArea < b.properties.boundsArea ? a : b,
+            )
         const changesetId = feature.properties.id
         routerNavigateStrict(`/changeset/${changesetId}`)
     })
@@ -280,9 +442,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     let hoveredFeature: MapGeoJSONFeature | null = null
     map.on("mousemove", layerIdFill, (e) => {
         // Find feature with the smallest bounds area
-        const feature = e.features.reduce((a, b) =>
-            a.properties.boundsArea < b.properties.boundsArea ? a : b,
-        )
+        const feature = e.features
+            .filter((f) => !idHiddenMap.get(f.properties.id))
+            .reduce((a, b) =>
+                a.properties.boundsArea < b.properties.boundsArea ? a : b,
+            )
         if (hoveredFeature) {
             if (hoveredFeature.id === feature.id) return
             setHover(hoveredFeature.properties, false)
@@ -290,19 +454,25 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             setMapHover(map, layerId)
         }
         hoveredFeature = feature
-        setHover(hoveredFeature.properties, true, true)
+        setHover(hoveredFeature.properties, true)
     })
-    map.on("mouseleave", layerIdFill, () => {
+
+    const onMapMouseLeave = () => {
         setHover(hoveredFeature.properties, false)
         hoveredFeature = null
         clearMapHover(map, layerId)
-    })
+    }
+    map.on("mouseleave", layerIdFill, onMapMouseLeave)
 
-    /** On sidebar scroll bottom, load more changesets */
+    /** On sidebar scroll, update changeset visibility and load more if needed */
     const onSidebarScroll = (): void => {
+        // Update changeset visibility based on scroll position
+        throttledUpdateLayersVisibility()
+
+        // Load more changesets if scrolled to bottom
         if (
             parentSidebar.offsetHeight + parentSidebar.scrollTop <
-            parentSidebar.scrollHeight - 10
+            parentSidebar.scrollHeight - loadMoreScrollBuffer
         )
             return
         console.debug("Sidebar scrolled to the bottom")
@@ -372,6 +542,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
             // Clear the changesets if the bbox changed
             changesets.length = 0
+            idChangesetMap.clear()
             noMoreChangesets = false
             entryContainer.innerHTML = ""
         }
@@ -410,6 +581,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 ).changesets
                 if (newChangesets.length) {
                     changesets.push(...newChangesets)
+                    for (const cs of newChangesets) {
+                        idChangesetMap.set(cs.id.toString(), cs)
+                    }
                     console.debug(
                         "Changesets layer showing",
                         changesets.length,
@@ -423,6 +597,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 }
                 updateLayers()
                 updateSidebar()
+                updateLayersVisibility()
                 fetchedBounds = fetchBounds
                 fetchedDate = fetchDate
             })
@@ -430,7 +605,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch map data", error)
                 source.setData(emptyFeatureCollection)
+                sourceBorders.setData(emptyFeatureCollection)
                 changesets.length = 0
+                idChangesetMap.clear()
                 noMoreChangesets = false
             })
             .finally(() => {
@@ -474,21 +651,26 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             setPageTitle(sidebarTitleText)
 
             addMapLayer(map, layerId)
+            addMapLayer(map, layerIdBorders)
             map.on("zoomend", updateLayers)
             map.on("moveend", updateState)
             updateState()
         },
         unload: () => {
+            if (hoveredFeature) onMapMouseLeave()
             map.off("moveend", updateState)
             map.off("zoomend", updateLayers)
             parentSidebar.removeEventListener("scroll", onSidebarScroll)
             removeMapLayer(map, layerId)
+            removeMapLayer(map, layerIdBorders)
             source.setData(emptyFeatureCollection)
-            clearMapHover(map, layerId)
+            sourceBorders.setData(emptyFeatureCollection)
             changesets.length = 0
+            idChangesetMap.clear()
             fetchedBounds = null
             idSidebarMap.clear()
             idFirstFeatureIdMap.clear()
+            idHiddenMap.clear()
         },
     }
 }

@@ -12,6 +12,10 @@
                 </div>
             </div>
 
+            <div class="scroll-indicator top">
+                <span class="indicator-text">{{ t('changesets_history.changesets_above') }}</span>
+            </div>
+
             <ul class="changesets-list social-list list-unstyled mb-0">
                 <template class="entry">
                     <li class="social-entry clickable">
@@ -36,6 +40,10 @@
                     </li>
                 </template>
             </ul>
+
+            <div class="scroll-indicator bottom">
+                <span class="indicator-text">{{ t('changesets_history.changesets_below') }}</span>
+            </div>
 
             <div class="loading text-center mt-4">
                 <div class="spinner-border text-body-secondary" role="status">

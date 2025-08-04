@@ -42,6 +42,9 @@ changeset:
   count_one: "changeset"
   count_other: "changesets"
   viewing_edits_from_date: Viewing edits from {{date}}
+changesets_history:
+  changesets_above: Changesets above
+  changesets_below: Changesets below
 element:
   tags_diff_mode: Tags diff mode
 note:
