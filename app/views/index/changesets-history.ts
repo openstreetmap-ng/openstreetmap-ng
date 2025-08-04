@@ -158,6 +158,10 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         hiddenBefore = 0
         hiddenAfter = 0
         featureIdCounter = 1
+        entryContainer.innerHTML = ""
+        for (const indicator of scrollIndicators) {
+            indicator.classList.add("d-none")
+        }
     }
 
     /** Update changeset visibility states */
@@ -558,10 +562,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             }
 
             // Clear the changesets if the bbox changed
-            changesets.length = 0
-            idChangesetMap.clear()
-            noMoreChangesets = false
-            entryContainer.innerHTML = ""
+            resetChangesets()
         }
         if (fetchBounds) {
             const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
@@ -667,11 +668,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             sidebarTitleElement.innerHTML = sidebarTitleHtml
             setPageTitle(sidebarTitleText)
 
-            // Hide scroll indicators when loading
-            for (const indicator of scrollIndicators) {
-                indicator.classList.add("d-none")
-            }
-
             addMapLayer(map, layerId)
             addMapLayer(map, layerIdBorders)
             map.on("zoomend", updateLayers)
@@ -687,11 +683,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             removeMapLayer(map, layerIdBorders)
             resetChangesets()
             fetchedBounds = null
-
-            // Hide scroll indicators when unloading
-            for (const indicator of scrollIndicators) {
-                indicator.classList.add("d-none")
-            }
         },
     }
 }
