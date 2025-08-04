@@ -41,7 +41,7 @@ import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
 const fadeSpeed = 0.2
-const thicknessSpeed = fadeSpeed * 0.5
+const thicknessSpeed = fadeSpeed * 0.6
 const lineWidth = 3
 
 const layerId = "changesets-history" as LayerId
