@@ -148,15 +148,36 @@
         }
 
         .stat-create {
-            @extend .text-bg-success;
+            background: color.mix($success, $body-bg, 40%);
+            color: var(--bs-body-color);
         }
 
         .stat-modify {
-            @extend .text-bg-warning;
+            background: color.mix($warning, $body-bg, 40%);
+            color: var(--bs-body-color);
         }
 
         .stat-delete {
-            @extend .text-bg-danger;
+            background: color.mix($danger, $body-bg, 40%);
+            color: var(--bs-body-color);
+        }
+    }
+}
+
+@include color-mode(dark) {
+    .changesets-list {
+        .changeset-stats {
+            .stat-create {
+                background: color.mix($success, $body-bg-dark, 35%);
+            }
+
+            .stat-modify {
+                background: color.mix($warning, $body-bg-dark, 35%);
+            }
+
+            .stat-delete {
+                background: color.mix($danger, $body-bg-dark, 35%);
+            }
         }
     }
 }
