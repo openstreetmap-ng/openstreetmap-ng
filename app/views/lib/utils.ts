@@ -188,7 +188,7 @@ export const unquotePlus = (str: string): string =>
     decodeURIComponent(str.replace(/\+/g, " "))
 
 /** Darken a hex color by a specified amount */
-export const darkenColor = (hex: string, amount: number): string => {
+export const darkenColor = memoize((hex: string, amount: number): string => {
     const hexCode = hex.replace("#", "")
     const isShort = hexCode.length === 3
 
@@ -201,4 +201,4 @@ export const darkenColor = (hex: string, amount: number): string => {
     const darkenedB = Math.round(b * (1 - amount))
 
     return `#${darkenedR.toString(16).padStart(2, "0")}${darkenedG.toString(16).padStart(2, "0")}${darkenedB.toString(16).padStart(2, "0")}`
-}
+})
