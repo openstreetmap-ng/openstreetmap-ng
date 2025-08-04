@@ -147,6 +147,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
     const resetChangesets = (): void => {
         console.debug("resetChangesets")
+        onMapMouseLeave()
         source.setData(emptyFeatureCollection)
         sourceBorders.setData(emptyFeatureCollection)
         changesets.length = 0
@@ -459,7 +460,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         const result = idSidebarMap.get(id)
         result?.classList.toggle("hover", hover)
 
-        if (hover && autoScroll) {
+        if (hover && autoScroll && result) {
             // Scroll into view when partially visible
             const sidebarRect = parentSidebar.getBoundingClientRect()
             const resultRect = result.getBoundingClientRect()
@@ -706,7 +707,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             updateState()
         },
         unload: () => {
-            onMapMouseLeave()
             map.off("moveend", updateState)
             map.off("zoomend", updateLayers)
             parentSidebar.removeEventListener("scroll", onSidebarScroll)
