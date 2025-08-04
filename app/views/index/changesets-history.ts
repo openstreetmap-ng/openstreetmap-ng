@@ -148,8 +148,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
     /** Update changeset visibility states */
     const updateLayersVisibility = (): void => {
-        if (!parentSidebar) return
-
         const sidebarRect = parentSidebar.getBoundingClientRect()
         const sidebarTop = sidebarRect.top
         const sidebarBottom = sidebarRect.bottom
@@ -217,12 +215,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         state: "above" | "visible" | "below",
         distance: number,
     ): void => {
-        const firstFeatureId = idFirstFeatureIdMap.get(changesetId)
-        if (firstFeatureId === undefined) return
-
-        const changeset = idChangesetMap.get(changesetId)
-        const numBounds = changeset.bounds.length
-
         let color: string
         let colorHover: string
         let opacity: number
@@ -270,6 +262,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             scrollBorderWidthHover: borderWidthHover,
         }
 
+        const firstFeatureId = idFirstFeatureIdMap.get(changesetId)
+        const changeset = idChangesetMap.get(changesetId)
+        const numBounds = changeset.bounds.length
         for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
             map.setFeatureState({ source: layerIdBorders, id: i }, featureState)
             map.setFeatureState({ source: layerId, id: i }, featureState)
@@ -277,6 +272,10 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     const updateLayers = (e?: any) => {
+        let featureIdCounter = 1
+        for (const changeset of changesets.slice(0, hiddenBefore))
+            featureIdCounter += changeset.bounds.length * 2
+
         const changesetsMinimumSize: OSMChangeset[] = []
         for (const changeset of convertRenderChangesetsData(
             changesets.slice(hiddenBefore, changesets.length - hiddenAfter),
@@ -286,15 +285,16 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             )
             changesetsMinimumSize.push(changeset)
         }
-        const data = renderObjects(changesetsMinimumSize)
-        for (const feature of data.features) {
+
+        const data = renderObjects(changesetsMinimumSize, null, featureIdCounter)
+        source.setData(data)
+        sourceBorders.setData(data)
+        idFirstFeatureIdMap.clear()
+        for (const feature of data.features)
             idFirstFeatureIdMap.set(
                 feature.properties.id,
                 feature.properties.firstFeatureId,
             )
-        }
-        source.setData(data)
-        sourceBorders.setData(data)
 
         // When initial loading for scope/user, focus on the changesets
         if (
@@ -331,12 +331,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
         const fragment = document.createDocumentFragment()
         for (const changeset of changesets) {
-            const changesetIdStr = changeset.id.toString()
-            const changesetProperties: GeoJsonProperties = {
-                id: changesetIdStr,
-                firstFeatureId: idFirstFeatureIdMap.get(changesetIdStr),
-                numBounds: changeset.bounds.length,
-            }
+            const changesetId = changeset.id.toString()
+            const numBounds = changeset.bounds.length
             const div = (entryTemplate.content.cloneNode(true) as DocumentFragment)
                 .children[0] as HTMLElement
 
@@ -403,16 +399,16 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             }
 
             changesetLink.href = `/changeset/${changeset.id}`
-            changesetLink.textContent = changesetIdStr
+            changesetLink.textContent = changesetId
             changesetLink.addEventListener("mouseenter", () =>
-                setHover(changesetProperties, true),
+                setHover({ id: changesetId, numBounds }, true),
             )
             changesetLink.addEventListener("mouseleave", () =>
-                setHover(changesetProperties, false),
+                setHover({ id: changesetId, numBounds }, false),
             )
             fragment.appendChild(div)
 
-            idSidebarMap.set(changesetIdStr, div)
+            idSidebarMap.set(changesetId, div)
         }
         entryContainer.innerHTML = ""
         entryContainer.appendChild(fragment)
@@ -420,13 +416,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     /** Set the hover state of the changeset features on interactive layers */
-    const setHover = (
-        { id, firstFeatureId, numBounds }: GeoJsonProperties,
-        hover: boolean,
-    ): void => {
+    const setHover = ({ id, numBounds }: GeoJsonProperties, hover: boolean): void => {
         const result = idSidebarMap.get(id)
         result?.classList.toggle("hover", hover)
 
+        const firstFeatureId = idFirstFeatureIdMap.get(id)
         for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
             map.setFeatureState({ source: layerIdBorders, id: i }, { hover })
             map.setFeatureState({ source: layerId, id: i }, { hover })
@@ -461,6 +455,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     })
 
     const onMapMouseLeave = () => {
+        if (!hoveredFeature) return
         setHover(hoveredFeature.properties, false)
         hoveredFeature = null
         clearMapHover(map, layerId)
@@ -660,7 +655,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             updateState()
         },
         unload: () => {
-            if (hoveredFeature) onMapMouseLeave()
+            onMapMouseLeave()
             map.off("moveend", updateState)
             map.off("zoomend", updateLayers)
             parentSidebar.removeEventListener("scroll", onSidebarScroll)
