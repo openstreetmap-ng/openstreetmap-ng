@@ -145,6 +145,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     let hiddenBefore = 0
     let hiddenAfter = 0
     let featureIdCounter = 1
+    let featureIdCounterReset = 0
 
     const resetChangesets = (): void => {
         console.debug("resetChangesets")
@@ -293,6 +294,15 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     const updateLayers = (e?: any) => {
+        // Reset featureIdCounter no more than every 5 seconds
+        // - Resuing featureIdCounter causes state glitches
+        // - Not resetting causes performance issues
+        if (featureIdCounter > 500 && featureIdCounterReset < Date.now() - 5000) {
+            featureIdCounter = 1
+            featureIdCounterReset = Date.now()
+            console.debug("Reset featureIdCounter")
+        }
+
         const changesetsMinimumSize: OSMChangeset[] = []
         for (const changeset of convertRenderChangesetsData(
             changesets.slice(hiddenBefore, changesets.length - hiddenAfter),
@@ -699,7 +709,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             removeMapLayer(map, layerIdBorders)
             resetChangesets()
             fetchedBounds = null
-            featureIdCounter = 1
         },
     }
 }
