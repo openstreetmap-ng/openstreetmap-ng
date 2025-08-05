@@ -460,16 +460,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         const result = idSidebarMap.get(id)
         result?.classList.toggle("hover", hover)
 
-        if (hover && autoScroll && result) {
-            // Scroll into view when partially visible
-            const sidebarRect = parentSidebar.getBoundingClientRect()
-            const resultRect = result.getBoundingClientRect()
-            if (
-                resultRect.top < sidebarRect.top ||
-                resultRect.bottom > sidebarRect.bottom
-            )
-                result.scrollIntoView({ behavior: "smooth", block: "center" })
-        }
+        if (hover && autoScroll && result)
+            result.scrollIntoView({ behavior: "smooth", block: "center" })
 
         const firstFeatureId = idFirstFeatureIdMap.get(id)
         if (!firstFeatureId) return
