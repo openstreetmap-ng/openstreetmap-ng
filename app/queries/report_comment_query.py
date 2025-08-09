@@ -7,7 +7,7 @@ from app.lib.auth_context import auth_user
 from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.report import Report
 from app.models.db.report_comment import ReportComment
-from app.models.db.user import user_is_admin
+from app.models.db.user import user_is_admin, user_is_moderator
 from app.models.types import ReportCommentId, ReportId
 from app.queries.user_query import UserQuery
 
@@ -58,7 +58,20 @@ class ReportCommentQuery:
                 (report_id, stmt_offset, stmt_limit),
             ) as r,
         ):
-            return await r.fetchall()  # type: ignore
+            comments: list[ReportComment] = await r.fetchall()  # type: ignore
+
+        user = auth_user()
+        is_moderator: cython.bint = user_is_moderator(user)
+        is_admin: cython.bint = user_is_admin(user)
+
+        for comment in comments:
+            # Mark if comment is restricted from current user
+            comment['has_access'] = (
+                (comment['visible_to'] == 'moderator' and is_moderator)  #
+                or (comment['visible_to'] == 'administrator' and is_admin)
+            )
+
+        return comments
 
     @staticmethod
     async def resolve_comments(
@@ -106,14 +119,16 @@ class ReportCommentQuery:
         # Resolve user information for comments
         await UserQuery.resolve_users(comments)
 
+        is_moderator: cython.bint = user_is_moderator(user)
         is_admin: cython.bint = user_is_admin(user)
         current_report_id: ReportId | None = None
         current_comments: list[ReportComment] = []
 
         for comment in comments:
             # Mark if comment is restricted from current user
-            comment['is_restricted'] = (
-                comment['visible_to'] == 'administrator' and not is_admin
+            comment['has_access'] = (
+                (comment['visible_to'] == 'moderator' and is_moderator)  #
+                or (comment['visible_to'] == 'administrator' and is_admin)
             )
 
             report_id = comment['report_id']

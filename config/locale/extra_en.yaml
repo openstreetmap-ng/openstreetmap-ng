@@ -518,8 +518,10 @@ report:
   email_confirmation:
     your_report_has_been_received: Your report has been received
     thank_you_our_team_will_review: Thank you for submitting your report. Our team will review it and take appropriate action.
-    for_your_reference_you_wrote: For your reference, you wrote
-    preview: preview
+    you_reported_object_with_the_following_message: "You reported {{object}} with the following message"
+    you_reported_object_by_user_with_the_following_message: "You reported {{object}} by {{user}} with the following message"
+    you_reported_user_profile_with_the_following_message: "You reported {{user}}'s profile with the following message"
+    you_reported_account_problem_with_the_following_message: You reported a problem with your account with the following message
 theme:
   toggle_theme: Toggle theme
   light: Light

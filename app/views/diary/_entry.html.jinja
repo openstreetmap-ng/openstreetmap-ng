@@ -148,12 +148,10 @@
                             </a>
                         </li>
                         <li>
-                            <button class="dropdown-item"
-                                data-report-type="user"
-                                data-report-type-id="{{ diary.user_id }}"
-                                data-report-action="user_diary"
+                            <button class="dropdown-item" data-report-type="user"
+                                data-report-type-id="{{ diary.user_id }}" data-report-action="user_diary"
                                 data-report-action-id="{{ diary.id }}">
-                                {{- t('report.report_object', object=t('diary.entry.count_one')) -}}
+                                {{- t('report.report_object', object=nt('diary.entry.count', 1)) -}}
                             </button>
                         </li>
                         {% else %}

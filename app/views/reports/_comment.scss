@@ -16,9 +16,11 @@
                 margin: 0.25rem 0;
             }
 
+            .report-body > p:last-child {
+                margin-bottom: 0.375rem;
+            }
+
             .report-category {
-                position: relative;
-                top: -1px;
                 font-weight: 600;
                 font-size: 0.875em;
                 padding: 0 0.375rem;

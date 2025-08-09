@@ -16,11 +16,11 @@
 {% endset %}
 {% endif %}
 
-{% set _has_body = not comment.is_restricted and comment.body %}
+{% set _has_body = comment.has_access and comment.body_rich %}
 
 {# Show action-specific content #}
 <span class="report-action {% if _has_body and comment.action != 'comment' %}report-action-with-body{% endif %}">
-    {% if comment.is_restricted %}
+    {% if not comment.has_access %}
     <i class="bi bi-lock text-muted me-1-5"></i>{#--#}
     <em class="text-muted">Restricted comment</em>
 
@@ -73,7 +73,7 @@
     {% elif comment.action == 'user_profile' %}
     <i class="bi bi-person-badge text-danger me-1-5"></i>{#--#}
     Reported
-    <a href="/user/{{ report.reported_user.display_name }}" target="_blank">user profile</a>
+    <a href="/user-id/{{ report.type_id }}" target="_blank">user profile</a>
     for {{ _category | safe }}
 
     {% elif comment.action == 'user_trace' %}
@@ -85,4 +85,6 @@
     {% endif %}
 </span>
 
-<p class="mb-1-5">{% if _has_body %}{{ comment.body_rich | safe }}{% endif %}</p>
+<div class="report-body">
+    {%- if _has_body %}{{ comment.body_rich | safe }}{% else %}<p></p>{% endif -%}
+</div>

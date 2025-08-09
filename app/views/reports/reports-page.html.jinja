@@ -18,7 +18,7 @@
             {% else %}
             <strong>Reported {{ report.type | replace('_', ' ') }}</strong>
             {% endif %}
-            • Updated
+            • updated
             <time datetime="{{ report.updated_at.isoformat() }}" data-style="long"></time>
             <a class="stretched-link" href="/reports/{{ report.id }}"></a>
         </span>

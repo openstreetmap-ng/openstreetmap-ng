@@ -60,7 +60,7 @@ class ReportComment(ReportCommentInit):
     # runtime
     user: NotRequired[UserDisplay]
     body_rich: NotRequired[str]
-    is_restricted: NotRequired[bool]
+    has_access: NotRequired[bool]
 
 
 async def report_comments_resolve_rich_text(objs: list[ReportComment]) -> None:

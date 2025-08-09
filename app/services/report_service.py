@@ -1,13 +1,16 @@
 import logging
+from asyncio import TaskGroup
+from typing import Any
 
 import cython
 from psycopg import AsyncConnection, IsolationLevel
 from zid import zid
 
+from app.config import APP_URL
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t
+from app.lib.translation import nt, t
 from app.models.db.report import ReportInit, ReportType, ReportTypeId
 from app.models.db.report_comment import (
     ReportAction,
@@ -19,6 +22,8 @@ from app.models.db.report_comment import (
 from app.models.db.user import UserRole
 from app.models.types import ReportCommentId, ReportId
 from app.queries.report_comment_query import ReportCommentQuery
+from app.queries.report_query import ReportQuery
+from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
 
 
@@ -97,7 +102,69 @@ class ReportService:
         comment = await ReportCommentQuery.find_one_by_id(comment_init['id'])
         assert comment is not None
         comment['user'] = user  # type: ignore
-        await report_comments_resolve_rich_text([comment])
+
+        async with TaskGroup() as tg:
+            tg.create_task(report_comments_resolve_rich_text([comment]))
+
+            report = await ReportQuery.find_one_by_id(report_id)
+            assert report is not None
+
+        # Resolve user info if needed
+        if type == 'user' and action != 'user_account':
+            await UserQuery.resolve_users(
+                [report],
+                user_id_key='type_id',
+                user_key='reported_user',
+            )
+
+        reported_user = report.get('reported_user')
+        reported_content_html: str
+        if action == 'user_profile':
+            assert reported_user is not None
+            reported_content_html = t(
+                'report.email_confirmation.you_reported_user_profile_with_the_following_message',
+                user=f'<a href="{APP_URL}/user-id/{type_id}">{reported_user["display_name"]}</a>',
+            )
+        elif action == 'user_account':
+            assert reported_user is None
+            reported_content_html = t(
+                'report.email_confirmation.you_reported_account_problem_with_the_following_message'
+            )
+        else:
+            object_html: str
+            if action == 'user_changeset':
+                object_html = f'<a href="{APP_URL}/changeset/{action_id}">{nt("changeset.count", 1)} {action_id}</a>'
+            elif action == 'user_diary':
+                object_html = f'<a href="{APP_URL}/diary/{action_id}">{nt("diary.entry.count", 1)} {action_id}</a>'
+            elif action == 'user_message':
+                object_html = f'<a href="{APP_URL}/messages/inbox?show={action_id}">{t("activerecord.models.message")} {action_id}</a>'
+            elif action == 'user_note' or type == 'anonymous_note':
+                note_id = action_id or type_id
+                object_html = f'<a href="{APP_URL}/note/{note_id}">{nt("note.count", 1)} {note_id}</a>'
+            elif action == 'user_trace':
+                object_html = f'<a href="{APP_URL}/trace/{action_id}">GPS {nt("trace.count", 1)} {action_id}</a>'
+            elif action == 'user_oauth2_application':
+                object_html = f'{t("oauth2_authorized_applications.index.application")} {action_id}'
+            else:
+                raise NotImplementedError(f'Unsupported report action: {action}')
+
+            # With user info when available
+            if reported_user is not None:
+                reported_content_html = t(
+                    'report.email_confirmation.you_reported_object_by_user_with_the_following_message',
+                    object=object_html,
+                    user=f'<a href="{APP_URL}/user-id/{type_id}">{reported_user["display_name"]}</a>',
+                )
+            else:
+                reported_content_html = t(
+                    'report.email_confirmation.you_reported_object_with_the_following_message',
+                    object=object_html,
+                )
+
+        template_data: dict[str, Any] = {
+            'comment': comment,
+            'reported_content_html': reported_content_html,
+        }
 
         await EmailService.schedule(
             source=None,
@@ -105,7 +172,7 @@ class ReportService:
             to_user=user,
             subject=f'[{t("project_name")}] {t("report.email_confirmation.your_report_has_been_received")}',
             template_name='email/report-confirm',
-            template_data={'comment': comment},
+            template_data=template_data,
         )
 
         return report_id

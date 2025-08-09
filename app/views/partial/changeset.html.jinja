@@ -89,7 +89,7 @@
                 data-report-type-id="{{ changeset.user_id }}" data-report-action="user_changeset"
                 data-report-action-id="{{ changeset.id }}">
                 <i class="bi bi-flag small me-1-5"></i>
-                {{- t('report.report_object', object=t('changeset.count_one')) -}}
+                {{- t('report.report_object', object=nt('changeset.count', 1)) -}}
             </button>
         </div>
         {% endif %}
