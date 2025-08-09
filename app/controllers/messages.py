@@ -178,6 +178,7 @@ async def _get_messages_data(
 
     messages = await MessageQuery.get_messages(
         inbox=inbox,
+        show=show,
         after=after,
         before=before,
         limit=MESSAGES_INBOX_PAGE_SIZE,

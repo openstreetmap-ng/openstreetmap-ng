@@ -116,7 +116,7 @@ class MessageService:
             'from_user': from_user,  # type: ignore
         }
 
-        await MessageQuery.resolve_recipients([message])
+        await MessageQuery.resolve_recipients(None, [message])
         await _send_activity_email(message)
         return message_id
 

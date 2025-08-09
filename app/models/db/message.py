@@ -31,6 +31,7 @@ class Message(MessageInit):
     from_user: NotRequired[UserDisplay]
     body_rich: NotRequired[str]
     recipients: NotRequired[list['MessageRecipient']]
+    user_recipient: NotRequired['MessageRecipient']
 
 
 class MessageRecipient(TypedDict):

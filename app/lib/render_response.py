@@ -9,6 +9,7 @@ from app.config import (
     ENV,
     MAP_QUERY_AREA_MAX_SIZE,
     NOTE_QUERY_AREA_MAX_SIZE,
+    REPORT_COMMENT_BODY_MAX_LENGTH,
     VERSION,
 )
 from app.lib.auth_context import auth_user
@@ -51,6 +52,7 @@ async def render_response(
         'I18NEXT_FILES': map_i18next_files(translation_locales()),
         'DEFAULT_EDITOR': DEFAULT_EDITOR,
         'INSTALLED_LOCALES_NAMES_MAP': INSTALLED_LOCALES_NAMES_MAP,
+        'REPORT_COMMENT_BODY_MAX_LENGTH': REPORT_COMMENT_BODY_MAX_LENGTH,
         'WEB_CONFIG': _CONFIG_DEFAULT,
     }
 
@@ -74,6 +76,13 @@ async def render_response(
         messages_count_unread = await ParallelTasksMiddleware.messages_count_unread()
         if messages_count_unread is not None:
             data['MESSAGES_COUNT_UNREAD'] = messages_count_unread
+
+        reports_count_attention = (
+            await ParallelTasksMiddleware.reports_count_attention()
+        )
+        if reports_count_attention is not None:
+            data['REPORTS_COUNT_MODERATOR'] = reports_count_attention.moderator
+            data['REPORTS_COUNT_ADMINISTRATOR'] = reports_count_attention.administrator
 
     if template_data is not None:
         data.update(template_data)

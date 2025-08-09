@@ -50,6 +50,10 @@
     {% include 'user/login-modal' %}
     {% endif %}
 
+    {% if user is not none %}
+    {% include 'lib/report-modal' %}
+    {% endif %}
+
     {% if unsubscribe_target and unsubscribe_id %}
     {% include '_unsubscribe-discussion' %}
     {% endif %}

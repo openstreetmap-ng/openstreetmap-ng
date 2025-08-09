@@ -11,6 +11,7 @@ import {
     type PartialChangesetParams_Element,
     PartialChangesetParamsSchema,
 } from "../lib/proto/shared_pb"
+import { configureReportButtonsLazy } from "../lib/report-modal"
 import { configureStandardForm } from "../lib/standard-form"
 import { configureStandardPagination } from "../lib/standard-pagination"
 import { setPageTitle } from "../lib/title"
@@ -34,6 +35,7 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
 
     const base = getBaseFetchController(map, "changeset", (sidebarContent) => {
         renderColorPreviews(sidebarContent)
+        configureReportButtonsLazy(sidebarContent)
 
         const sidebarTitleElement = sidebarContent.querySelector(
             ".sidebar-title",

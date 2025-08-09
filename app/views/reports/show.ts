@@ -1,0 +1,105 @@
+import { configureStandardForm } from "../lib/standard-form"
+import { configureStandardPagination } from "../lib/standard-pagination"
+
+const body = document.querySelector("body.report-show-body")
+if (body) {
+    // Configure pagination for comments
+    configureStandardPagination(
+        document.querySelector("div.report-comments-pagination"),
+    )
+
+    // Configure forms
+    const commentForm = document.querySelector("form.comment-form")
+    const closeForm = document.querySelector("form.close-form")
+    const reopenForm = document.querySelector("form.reopen-form")
+
+    if (commentForm) {
+        const commentTextarea = commentForm.elements.namedItem(
+            "body",
+        ) as HTMLTextAreaElement
+        const commentBtn = commentForm.querySelector("button.comment-btn")
+        const closeBtn = document.querySelector("button.close-btn")
+        const commentCloseBtn = document.querySelector("button.comment-close-btn")
+        const reopenBtn = document.querySelector("button.reopen-btn")
+        const commentReopenBtn = document.querySelector("button.comment-reopen-btn")
+
+        // Handle comment form submission
+        configureStandardForm(commentForm, () => {
+            // Reload page on success
+            window.location.reload()
+        })
+
+        // Handle close/reopen form submission
+        configureStandardForm(closeForm, () => {
+            window.location.reload()
+        })
+        configureStandardForm(reopenForm, () => {
+            window.location.reload()
+        })
+
+        // Toggle buttons based on comment input
+        const updateButtons = () => {
+            const hasComment = commentTextarea.value.trim().length > 0
+
+            if (closeBtn && commentCloseBtn) {
+                if (hasComment) {
+                    closeBtn.classList.add("d-none")
+                    commentCloseBtn.classList.remove("d-none")
+                } else {
+                    closeBtn.classList.remove("d-none")
+                    commentCloseBtn.classList.add("d-none")
+                }
+            }
+
+            if (reopenBtn && commentReopenBtn) {
+                if (hasComment) {
+                    reopenBtn.classList.add("d-none")
+                    commentReopenBtn.classList.remove("d-none")
+                } else {
+                    reopenBtn.classList.remove("d-none")
+                    commentReopenBtn.classList.add("d-none")
+                }
+            }
+
+            // Disable comment button if no text
+            commentBtn.disabled = !hasComment
+        }
+
+        commentTextarea.addEventListener("input", updateButtons)
+
+        // Initial state
+        updateButtons()
+
+        // Handle close button click
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                closeForm.requestSubmit()
+            })
+        }
+        if (commentCloseBtn) {
+            commentCloseBtn.addEventListener("click", () => {
+                const bodyInput = closeForm.elements.namedItem(
+                    "body",
+                ) as HTMLInputElement
+                bodyInput.value = commentTextarea.value
+                closeForm.requestSubmit()
+            })
+        }
+
+        // Handle reopen button click
+        if (reopenBtn) {
+            reopenBtn.addEventListener("click", () => {
+                reopenForm.requestSubmit()
+            })
+        }
+        if (commentReopenBtn) {
+            commentReopenBtn.addEventListener("click", () => {
+                const bodyInput = reopenForm.elements.namedItem(
+                    "body",
+                ) as HTMLInputElement
+                bodyInput.value = commentTextarea.value
+                reopenForm.requestSubmit()
+            })
+        }
+    }
+}

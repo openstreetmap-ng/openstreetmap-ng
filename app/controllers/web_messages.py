@@ -40,6 +40,12 @@ async def read_message(
     message = await MessageQuery.get_message_by_id(message_id)
     assert 'recipients' in message, 'Message recipients must be set'
 
+    user_recipient = (
+        next((r for r in message['recipients'] if r['user_id'] == user['id']), None)
+        if message['from_user_id'] != user['id']
+        else None
+    )
+
     async with TaskGroup() as tg:
         items = [message]
         tg.create_task(messages_resolve_rich_text(items))
@@ -50,16 +56,8 @@ async def read_message(
         )
         tg.create_task(UserQuery.resolve_users(message['recipients']))
 
-        if (
-            message['from_user_id'] != user['id']
-            and not next(
-                iter(
-                    r  #
-                    for r in message['recipients']
-                    if r['user_id'] == user['id']
-                )
-            )['read']
-        ):
+        # Only mark as read if user is recipient and message is unread
+        if user_recipient is not None and not user_recipient['read']:
             tg.create_task(MessageService.set_state(message_id, read=True))
 
     from_user = message['from_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
@@ -67,6 +65,7 @@ async def read_message(
 
     return {
         'sender': {
+            'id': message['from_user_id'],
             'display_name': from_user['display_name'],
             'avatar_url': user_avatar_url(from_user),
         },
@@ -77,6 +76,7 @@ async def read_message(
             }
             for r in message['recipients']
         ],
+        'is_recipient': user_recipient is not None,
         'time': time_html,
         'subject': message['subject'],
         'body_rich': message['body_rich'],  # pyright: ignore [reportTypedDictNotRequiredAccess]

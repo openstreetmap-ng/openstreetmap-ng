@@ -31,5 +31,10 @@
                 margin-right: 0.375rem;
             }
         }
+
+        .btn-group.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
     }
 }

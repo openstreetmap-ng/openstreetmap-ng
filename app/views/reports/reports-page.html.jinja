@@ -1,0 +1,47 @@
+{% set show_user = True %}
+{% for report in reports %}
+<li class="social-entry clickable">
+    <p class="header text-muted d-flex justify-content-between">
+        <span>
+            {% if report.reported_user %}
+            <a href="/user/{{ report.reported_user.display_name }}">
+                <img class="avatar" src="{{ user_avatar_url(report.reported_user) }}"
+                    alt="{{ t('alt.profile_picture') }}" loading="lazy">
+            </a>
+            <strong>Reported</strong>
+            <a class="ms-1" href="/user/{{ report.reported_user.display_name }}">
+                {{- report.reported_user.display_name -}}
+            </a>
+            {% elif report.type == 'anonymous_note' %}
+            <strong>Reported anonymous</strong>
+            <a class="ms-1" href="/note/{{ report.type_id }}">note {{ report.type_id }}</a>
+            {% else %}
+            <strong>Reported {{ report.type | replace('_', ' ') }}</strong>
+            {% endif %}
+            • Updated
+            <time datetime="{{ report.updated_at.isoformat() }}" data-style="long"></time>
+            <a class="stretched-link" href="/reports/{{ report.id }}"></a>
+        </span>
+        {% if not report.closed_at %}
+        <span class="badge bg-primary">Open</span>
+        {% endif %}
+    </p>
+    {% set comment = report.comments[-1] %}
+    <div class="body">
+        <div class="d-flex justify-content-between">
+            <div class="body-preview">
+                {% include 'reports/_comment' %}
+            </div>
+            <div class="num-comments ms-3">
+                {% set last_action = report.comments[-1].action if report.comments else None %}
+                {% set requires_attention = not report.closed_at and last_action not in ('comment', 'close', 'reopen', None) %}
+                <span
+                    class="badge d-flex align-items-center {% if requires_attention %}text-bg-light-green{% else %}text-body{% endif %}">
+                    {{ report.num_comments -}}
+                    <i class="bi bi-chat-left-text"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+</li>
+{% endfor %}

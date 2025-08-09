@@ -148,9 +148,13 @@
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="#TODO">
-                                {{- t('action.report_abuse') -}}
-                            </a>
+                            <button class="dropdown-item"
+                                data-report-type="user"
+                                data-report-type-id="{{ diary.user_id }}"
+                                data-report-action="user_diary"
+                                data-report-action-id="{{ diary.id }}">
+                                {{- t('report.report_diary') -}}
+                            </button>
                         </li>
                         {% else %}
                         <li>

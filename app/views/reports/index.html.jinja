@@ -1,0 +1,54 @@
+{% extends '_base' %}
+{% block title_prefix %}Reports | {% endblock %}
+{% block body_class %}reports-body{% endblock %}
+{% block body %}
+
+<div class="content-header pb-1">
+    <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
+        <h1>Content Reports</h1>
+        <p>Review and manage user-submitted reports about problematic content.</p>
+
+        <nav class="nav">
+            <div class="nav-item ms-auto">
+                <div class="input-group">
+                    <label for="reportStatusFilter" class="input-group-text">Filter</label>
+                    <select id="reportStatusFilter" class="form-select" autocomplete="off">
+                        <option value="" {% if status == '' %}selected{% endif %}>
+                            {{ t('state.any') }}
+                        </option>
+                        <option value="open" {% if status == 'open' %}selected{% endif %}>
+                            Open
+                        </option>
+                        <option value="closed" {% if status == 'closed' %}selected{% endif %}>
+                            Closed
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>
+
+<div class="content-body">
+    <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
+        {% if reports_num_items %}
+        <div class="reports-pagination">
+            <nav aria-label="{{ t('alt.page_navigation') }}">
+                <ul class="pagination pagination-sm justify-content-end mb-2">
+                </ul>
+            </nav>
+            <ul class="social-list reports-list list-unstyled mb-2"></ul>
+            <nav aria-label="{{ t('alt.page_navigation') }}">
+                <ul class="pagination pagination-sm justify-content-end mb-0"
+                    data-action="/api/web/reports?page={page}&num_items={{ reports_num_items }}&status={{ status }}"
+                    data-pages="{{ reports_num_pages }}">
+                </ul>
+            </nav>
+        </div>
+        {% else %}
+        <h3>{{ t('traces.index.empty_title') }}</h3>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

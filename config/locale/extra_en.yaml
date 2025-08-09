@@ -456,7 +456,6 @@ action:
   posted: posted
   reactivated: reactivated
   remember_my_choice: Remember my choice
-  report_abuse: Report abuse
   reset_filters: Reset filters
   resolved: resolved
   revoke_access: Revoke access
@@ -498,6 +497,36 @@ showcase: Showcase
 context_menu:
   suggest_edit: Suggest an edit
   measure_distance: Measure distance
+report:
+  report_content: Report Content
+  category: Category
+  select_a_category: Select a category
+  category_spam: Spam
+  category_vandalism: Vandalism
+  category_harassment: Harassment
+  category_privacy_issue: Privacy Issue
+  category_o_ther: Other
+  description: Description
+  please_describe_the_issue: Please describe the issue...
+  provide_details_to_help_us_understand_the_problem: Provide details to help us understand the problem
+  submit_report: Submit report
+  your_report_has_been_received_and_will_be_reviewed_by_our_team: Your report has been received and will be reviewed by our team.
+  report: Report
+  report_user: Report user
+  report_changeset: Report changeset
+  report_diary: Report diary
+  report_application: Report application
+  report_message: Report message
+  report_note: Report note
+  report_trace: Report trace
+  report_problem: Report a problem
+  account_support: Account support
+  account_support_description: If you're experiencing issues with your account or need to report a privacy concern, you can submit a report for assistance.
+  email_confirmation:
+    your_report_has_been_received: Your report has been received
+    thank_you_our_team_will_review: Thank you for submitting your report. Our team will review it and take appropriate action.
+    for_your_reference_you_wrote: For your reference, you wrote
+    preview: preview
 theme:
   toggle_theme: Toggle theme
   light: Light

@@ -1,0 +1,26 @@
+{% for comment in comments %}
+<li class="social-entry">
+    <p class="header text-muted">
+        {% if comment.user %}
+        <a href="/user/{{ comment.user.display_name }}">
+            <img class="avatar" src="{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}"
+                loading="lazy">
+            {{- comment.user.display_name -}}
+        </a>
+        {% endif %}
+        {% if comment.action == 'comment' %}
+        commented
+        {% elif comment.action == 'close' %}
+        closed
+        {% elif comment.action == 'reopen' %}
+        reopened
+        {% else %}
+        reported
+        {% endif %}
+        <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
+    </p>
+    <div class="body">
+        {% include 'reports/_comment' %}
+    </div>
+</li>
+{% endfor %}

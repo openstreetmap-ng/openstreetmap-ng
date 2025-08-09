@@ -8,7 +8,7 @@ from pydantic import TypeAdapter
 from shapely import MultiLineString
 
 from app.config import PYDANTIC_CONFIG, TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
-from app.models.db.user import User, UserDisplay
+from app.models.db.user import User, UserDisplay, user_is_moderator
 from app.models.scope import Scope
 from app.models.types import StorageKey, TraceId, UserId
 from app.validators.filename import FileNameValidator
@@ -118,8 +118,13 @@ def trace_is_visible_to(
     trace: Trace, user: User | None, scopes: tuple[Scope, ...]
 ) -> bool:
     """Check if the trace is visible to the user."""
-    return trace_is_linked_to_user_on_site(trace) or (
-        user is not None  #
-        and trace['user_id'] == user['id']
-        and 'read_gpx' in scopes
+    return (
+        trace_is_linked_to_user_on_site(trace)
+        or (
+            # user is authorized owner
+            user is not None  #
+            and trace['user_id'] == user['id']
+            and 'read_gpx' in scopes
+        )
+        or user_is_moderator(user)
     )

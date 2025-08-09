@@ -89,4 +89,14 @@
 
 </form>
 
+<hr class="my-4">
+
+<h3 class="mb-3">{{ t('report.account_support') }}</h3>
+<p class="form-text">{{ t('report.account_support_description') }}</p>
+<button class="btn btn-outline-secondary" data-report-type="user" data-report-type-id="{{ user.id }}"
+    data-report-action="user_account">
+    <i class="bi bi-flag me-1"></i>
+    {{ t('report.report_problem') }}
+</button>
+
 {% endblock %}

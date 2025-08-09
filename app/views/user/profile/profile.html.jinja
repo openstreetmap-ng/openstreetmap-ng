@@ -162,12 +162,12 @@
                 <hr>
                 {% include 'user/profile/_groups' %}
 
-                {# TODO: if user is none or user.id != profile.id #}
+                {% if user is not none and not is_self %}
                 <button class="btn btn-light border w-100 mt-4">
                     {{ t('action.follow_user') }}
                     <i class="bi bi-bookmark-plus"></i>
                 </button>
-                <p class="form-text mx-1">
+                <p class="form-text mx-1 mb-4">
                     {# TODO: localize #}
                     Following a user will allow you to quickly access their profile and see their activity.
                     You can always unfollow any user from your follow list.
@@ -175,8 +175,11 @@
 
                 <div class="text-end">
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-danger">{{ t('action.report_abuse') }}</button>
-                        <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split"
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-report-type="user"
+                            data-report-type-id="{{ profile.id }}"
+                            data-report-action="user_profile">{{ t('report.report_user') }}</button>
+                        <button type="button"
+                            class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-expanded="false">
                             <span class="visually-hidden">{{ t('action.show_more') }}</span>
                         </button>
@@ -190,6 +193,7 @@
                         </ul>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>

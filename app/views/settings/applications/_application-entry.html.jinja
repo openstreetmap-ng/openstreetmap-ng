@@ -1,3 +1,4 @@
+{% set _is_system = oauth2_app_is_system(app) %}
 <div class="accordion">
     <div class="accordion-header">
         <button class="accordion-button {% if not expanded %}collapsed{% endif %}"
@@ -33,7 +34,7 @@
                         <i class="bi bi-person-fill text-primary"></i>
                         {{ t('settings.owned_by_you') }}
                         {% else %}
-                        {% if oauth2_app_is_system(app) %}
+                        {% if _is_system %}
                         <i class="bi bi-shield-fill-check text-success"></i>
                         {% set name %}
                         <a href="/">
@@ -99,21 +100,24 @@
                 <div class="col-md-auto align-self-end text-end">
                     {% if app.client_id == 'SystemApp.web' %}
                     {% elif token %}
-                    <form class="revoke-application-form btn-group" method="POST"
+                    <form class="revoke-application-form {% if not _is_system %}btn-group{% endif %}" method="POST"
                         action="/api/web/settings/revoke-application">
                         <button class="btn btn-light border" type="submit">{{ t('action.revoke_access') }}</button>
+                        {% if not _is_system %}
                         <button class="btn btn-light border dropdown-toggle dropdown-toggle-split" type="button"
                             data-bs-toggle="dropdown" aria-expanded="{{ expanded | lower }}">
                             <span class="visually-hidden">{{ t('action.show_more') }}</span>
                         </button>
                         <ul class="dropdown-menu">
                             <li>
-                                <button class="dropdown-item">
-                                    TODO:
-                                    {{ t('action.report_abuse') }}
+                                <button class="dropdown-item" data-report-type="user"
+                                    data-report-type-id="{{ app.user_id }}" data-report-action="user_oauth2_application"
+                                    data-report-action-id="{{ app.id }}">
+                                    {{ t('report.report_application') }}
                                 </button>
                             </li>
                         </ul>
+                        {% endif %}
                         <input type="hidden" name="app_id" value="{{ app.id }}">
                     </form>
                     {% else %}

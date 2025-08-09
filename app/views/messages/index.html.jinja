@@ -93,6 +93,14 @@
                                 <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>
                             </div>
                         </div>
+                        {% if inbox %}
+                        <div class="text-end mt-3">
+                            <button class="report-btn btn btn-link btn-sm text-muted p-0">
+                                <i class="bi bi-flag small me-1-5"></i>
+                                {{- t('report.report_message') -}}
+                            </button>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

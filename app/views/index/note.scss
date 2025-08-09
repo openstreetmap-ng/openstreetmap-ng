@@ -11,4 +11,11 @@
             @extend .text-bg-green;
         }
     }
+
+    .section.small {
+        .btn-sm {
+            position: relative;
+            top: -1px;
+        }
+    }
 }

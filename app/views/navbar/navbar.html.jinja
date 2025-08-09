@@ -114,15 +114,25 @@
             {% include 'navbar/_theme' %}
 
             {% if user is not none %}
-            <div class="dropdown d-flex d-lg-inline-flex">
+            <div class="profile-dropdown dropdown d-flex d-lg-inline-flex">
                 <button
                     class="profile-btn btn btn-light btn-bg-initial border dropdown-toggle d-flex align-items-center flex-grow-1"
                     data-bs-toggle="dropdown" aria-expanded="false">
                     <img class="avatar me-2" src="{{ user_avatar_url(user) }}" alt="{{ t('alt.profile_picture') }}">
                     {{ user.display_name }}
-                    <span class="new-unread-messages-badge badge text-bg-light-green fw-light ms-1-5">
-                        {%- if MESSAGES_COUNT_UNREAD > 0 %}{{ MESSAGES_COUNT_UNREAD }}{% endif -%}
+                    {% if MESSAGES_COUNT_UNREAD or REPORTS_COUNT_MODERATOR or REPORTS_COUNT_ADMINISTRATOR %}
+                    <span class="d-inline-flex gap-1 ms-2">
+                        <span class="new-unread-messages-badge badge text-bg-light-green">
+                            {%- if MESSAGES_COUNT_UNREAD %}{{ MESSAGES_COUNT_UNREAD }}{% endif -%}
+                        </span>
+                        <span class="badge text-bg-primary">
+                            {%- if REPORTS_COUNT_MODERATOR %}{{ REPORTS_COUNT_MODERATOR }}{% endif -%}
+                        </span>
+                        <span class="badge text-bg-danger">
+                            {%- if REPORTS_COUNT_ADMINISTRATOR %}{{ REPORTS_COUNT_ADMINISTRATOR }}{% endif -%}
+                        </span>
                     </span>
+                    {% endif %}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
                     <li>
@@ -133,7 +143,7 @@
                     <li>
                         <a class="dropdown-item d-flex align-items-center" href="/messages/inbox">
                             {{ t('users.show.my messages') }}
-                            <span class="unread-messages-badge badge text-bg-light-green fw-light ms-2">
+                            <span class="unread-messages-badge badge text-bg-light-green ms-2">
                                 {{ MESSAGES_COUNT_UNREAD }}
                             </span>
                         </a>
@@ -148,6 +158,24 @@
                             {{ t('accounts.edit.my settings') }}
                         </a>
                     </li>
+                    {% if user_is_moderator(user) %}
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="/reports">
+                            Reports
+                            <span class="d-inline-flex gap-1 ms-auto">
+                                <span class="badge text-bg-primary">
+                                    {%- if REPORTS_COUNT_MODERATOR %}{{ REPORTS_COUNT_MODERATOR }}{% endif -%}
+                                </span>
+                                <span class="badge text-bg-danger">
+                                    {%- if REPORTS_COUNT_ADMINISTRATOR %}{{ REPORTS_COUNT_ADMINISTRATOR }}{% endif -%}
+                                </span>
+                            </span>
+                        </a>
+                    </li>
+                    {% endif %}
                     <li>
                         <hr class="dropdown-divider">
                     </li>

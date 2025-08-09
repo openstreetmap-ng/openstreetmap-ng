@@ -13,6 +13,7 @@ import {
     focusObjects,
 } from "../lib/map/layers/focus-layer.ts"
 import { PartialNoteParamsSchema } from "../lib/proto/shared_pb"
+import { configureReportButtonsLazy } from "../lib/report-modal"
 import { configureStandardForm } from "../lib/standard-form"
 import { configureStandardPagination } from "../lib/standard-pagination"
 import { setPageTitle } from "../lib/title"
@@ -91,6 +92,9 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
             console.debug("onLocationButtonClick", center)
             map.flyTo({ center, zoom: Math.max(map.getZoom(), 15) })
         })
+
+        // Configure report buttons
+        configureReportButtonsLazy(sidebarContent)
 
         const disposePagination = configureStandardPagination(
             sidebarContent.querySelector("div.note-comments-pagination"),

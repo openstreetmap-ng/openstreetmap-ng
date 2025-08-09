@@ -24,13 +24,15 @@ export const configureStandardForm = (
     ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null,
     errorCallback?: (error: Error) => void,
     options?: {
+        formBody?: Element
         formAppend?: boolean
         abortSignal?: boolean
         removeEmptyFields?: boolean
     },
 ): void => {
     if (!form || form.classList.contains("needs-validation")) return
-    console.debug("Initializing standard form", form.action)
+    const formAction = form.getAttribute("action")
+    console.debug("Initializing standard form", formAction)
 
     // Disable browser validation in favor of bootstrap
     // disables maxlength and other browser checks: form.noValidate = true
@@ -58,7 +60,7 @@ export const configureStandardForm = (
 
     /** Handle feedback for a specific element */
     const handleElementFeedback = (
-        element: HTMLInputElement,
+        element: HTMLInputElement | HTMLTextAreaElement,
         type: "success" | "info" | "error",
         message: string,
     ): void => {
@@ -148,11 +150,13 @@ export const configureStandardForm = (
             closeButton.dataset.bsDismiss = "alert"
             feedback.append(closeButton)
             feedbackAlert = new Alert(feedback)
+
+            const formBody = options?.formBody ?? form
             if (options?.formAppend) {
                 feedback.classList.add("alert-last")
-                form.append(feedback)
+                formBody.append(feedback)
             } else {
-                form.prepend(feedback)
+                formBody.prepend(feedback)
             }
         }
 
@@ -200,7 +204,10 @@ export const configureStandardForm = (
             } of detail) {
                 if (field) {
                     const input = form.elements.namedItem(field)
-                    if (!(input instanceof HTMLInputElement)) {
+                    if (
+                        !(input instanceof HTMLInputElement) &&
+                        !(input instanceof HTMLTextAreaElement)
+                    ) {
                         handleFormFeedback(type, msg)
                     } else if (input.type === "hidden") {
                         if (passwordInputs && input.name === "password_schema") {
@@ -226,7 +233,7 @@ export const configureStandardForm = (
 
     // On form submit, build and submit the request
     form.addEventListener("submit", async (e: SubmitEvent): Promise<void> => {
-        console.debug("configureStandardForm", "onSubmit", form.action)
+        console.debug("configureStandardForm", "onSubmit", formAction)
         e.preventDefault()
 
         // Check form validity
@@ -243,7 +250,7 @@ export const configureStandardForm = (
             abortController?.abort()
             abortController = new AbortController()
         } else if (form.classList.contains("pending")) {
-            console.info("Form already pending", form.action)
+            console.info("Form already pending", formAction)
             return
         }
 
@@ -272,7 +279,7 @@ export const configureStandardForm = (
         let body: BodyInit | null = null
         const method = form.method.toUpperCase()
         if (method === "POST") {
-            url = form.action
+            url = formAction
             body = new FormData(form)
             if (options?.removeEmptyFields) {
                 const newBody = new FormData()
@@ -289,7 +296,7 @@ export const configureStandardForm = (
                 if (options?.removeEmptyFields && !valueString) continue
                 params.append(key, valueString)
             }
-            url = `${form.action}?${params}`
+            url = `${formAction}?${params}`
         } else {
             throw new Error(`Unsupported standard form method ${method}`)
         }

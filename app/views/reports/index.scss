@@ -1,0 +1,15 @@
+.reports-body {
+    .social-entry {
+        .body-preview {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+
+            .avatar {
+                vertical-align: bottom;
+            }
+        }
+    }
+}

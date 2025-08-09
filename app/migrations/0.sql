@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS h3_postgis CASCADE;
 
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 
-CREATE FUNCTION h3_points_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
+CREATE OR REPLACE FUNCTION h3_points_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
 WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
     -- Base case: cells at finest resolution
     SELECT public.h3_lat_lng_to_cell((dp).geom, resolution), resolution
@@ -26,7 +26,7 @@ SELECT array_agg(cell)
 FROM hierarchy
 $$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE FUNCTION h3_geometry_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
+CREATE OR REPLACE FUNCTION h3_geometry_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
 WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
     -- Base case: cells at finest resolution
     SELECT h3_cell, resolution
@@ -421,6 +421,61 @@ CREATE INDEX note_comment_event_user_id_idx ON note_comment (event, user_id DESC
 CREATE INDEX note_comment_body_idx ON note_comment USING gin (to_tsvector('simple', body))
 WITH
     (fastupdate = FALSE);
+
+CREATE TYPE report_type AS enum('anonymous_note', 'user');
+
+CREATE TABLE report (
+    id bigint PRIMARY KEY,
+    type report_type NOT NULL,
+    type_id bigint NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    updated_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    closed_at timestamptz
+);
+
+CREATE UNIQUE INDEX idx_report_type_id ON report (type, type_id DESC);
+
+CREATE INDEX idx_report_open_updated_at ON report (updated_at DESC) INCLUDE (id)
+WHERE
+    closed_at IS NULL;
+
+CREATE INDEX idx_report_closed_updated_at ON report (updated_at DESC)
+WHERE
+    closed_at IS NOT NULL;
+
+CREATE TYPE report_action AS enum(
+    'comment',
+    'close',
+    'reopen',
+    'generic',
+    'user_account',
+    'user_changeset',
+    'user_diary',
+    'user_message',
+    'user_note',
+    'user_oauth2_application',
+    'user_profile',
+    'user_trace'
+);
+
+CREATE TYPE report_category AS enum('spam', 'vandalism', 'harassment', 'privacy', 'other');
+
+CREATE TABLE report_comment (
+    id bigint PRIMARY KEY,
+    report_id bigint NOT NULL REFERENCES report (id),
+    user_id bigint NOT NULL REFERENCES "user" (id) ON DELETE CASCADE,
+    action report_action NOT NULL,
+    action_id bigint,
+    body text NOT NULL,
+    body_rich_hash bytea,
+    category report_category,
+    visible_to user_role NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp()
+);
+
+CREATE INDEX idx_report_comment_report_id_created_at ON report_comment (report_id DESC, created_at DESC) INCLUDE (action, visible_to);
+
+CREATE INDEX idx_report_comment_action_id ON report_comment (action, action_id DESC);
 
 CREATE TYPE trace_visibility AS enum('identifiable', 'public', 'trackable', 'private');
 

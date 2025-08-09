@@ -83,6 +83,17 @@
         </div>
         {% endif %}
 
+        {% if user is not none and changeset.user_id and changeset.user_id != user.id %}
+        <div class="text-end mt-1 me-1">
+            <button class="btn btn-link btn-sm text-muted p-0" data-report-type="user"
+                data-report-type-id="{{ changeset.user_id }}" data-report-action="user_changeset"
+                data-report-action-id="{{ changeset.id }}">
+                <i class="bi bi-flag small me-1-5"></i>
+                {{- t('report.report_changeset') -}}
+            </button>
+        </div>
+        {% endif %}
+
         <div class="mb-4"></div>
 
         <div class="row g-1 mb-1">

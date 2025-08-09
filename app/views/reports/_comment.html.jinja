@@ -1,0 +1,88 @@
+{# Render report comment based on action type #}
+{# Parameters: report, comment, show_user (optional) #}
+
+{# Show user who performed the action if requested #}
+{% if show_user and comment.user %}
+<a href="/user/{{ comment.user.display_name }}">
+    <img class="avatar" src="{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}">
+    {{- comment.user.display_name -}}
+</a><span class="small text-muted">:</span>
+{% endif %}
+
+{# Build category phrase if present #}
+{% if comment.category %}
+{% set _category %}
+<span class="report-category" data-category="{{ comment.category }}">{{ comment.category }}</span>
+{% endset %}
+{% endif %}
+
+{% set _has_body = not comment.is_restricted and comment.body %}
+
+{# Show action-specific content #}
+<span class="report-action {% if _has_body and comment.action != 'comment' %}report-action-with-body{% endif %}">
+    {% if comment.is_restricted %}
+    <i class="bi bi-lock text-muted me-1-5"></i>{#--#}
+    <em class="text-muted">Restricted comment</em>
+
+    {% elif comment.action == 'comment' %}
+
+    {% elif comment.action == 'close' %}
+    <i class="bi bi-check-circle text-success me-1-5"></i>{#--#}
+    Closed report
+
+    {% elif comment.action == 'reopen' %}
+    <i class="bi bi-arrow-counterclockwise text-warning me-1-5"></i>{#--#}
+    Reopened report
+
+    {% elif comment.action == 'generic' %}
+    <i class="bi bi-flag text-danger me-1-5"></i>{#--#}
+    Reported for {{ _category | safe }}
+
+    {% elif comment.action == 'user_account' %}
+    <i class="bi bi-life-preserver text-info me-1-5"></i>{#--#}
+    Reported a problem with {{ _category | safe }}
+
+    {% elif comment.action == 'user_changeset' %}
+    <i class="bi bi-geo-alt text-danger me-1-5"></i>{#--#}
+    Reported
+    <a href="/changeset/{{ comment.action_id }}" target="_blank">changeset {{ comment.action_id }}</a>
+    for {{ _category | safe }}
+
+    {% elif comment.action == 'user_diary' %}
+    <i class="bi bi-journal-x text-danger me-1-5"></i>{#--#}
+    Reported
+    <a href="/diary/{{ comment.action_id }}" target="_blank">diary entry {{ comment.action_id }}</a>
+    for {{ _category | safe }}
+
+    {% elif comment.action == 'user_message' %}
+    <i class="bi bi-envelope-x text-danger me-1-5"></i>{#--#}
+    Reported
+    <a href="/messages/inbox?show={{ comment.action_id }}" target="_blank">message {{ comment.action_id }}</a>
+    for {{ _category | safe }}
+
+    {% elif comment.action == 'user_note' %}
+    <i class="bi bi-pin-angle text-danger me-1-5"></i>{#--#}
+    Reported
+    <a href="/note/{{ comment.action_id }}" target="_blank">note {{ comment.action_id }}</a>
+    for {{ _category | safe }}
+
+    {% elif comment.action == 'user_oauth2_application' %}
+    <i class="bi bi-app-indicator text-danger me-1-5"></i>{#--#}
+    Reported OAuth2 application {{ comment.action_id }} for {{ _category | safe }}
+
+    {% elif comment.action == 'user_profile' %}
+    <i class="bi bi-person-badge text-danger me-1-5"></i>{#--#}
+    Reported
+    <a href="/user/{{ report.reported_user.display_name }}" target="_blank">user profile</a>
+    for {{ _category | safe }}
+
+    {% elif comment.action == 'user_trace' %}
+    <i class="bi bi-geo text-danger me-1-5"></i>{#--#}
+    Reported
+    <a href="/trace/{{ comment.action_id }}" target="_blank">GPS trace {{ comment.action_id }}</a>
+    for {{ _category | safe }}
+
+    {% endif %}
+</span>
+
+<p class="mb-1-5">{% if _has_body %}{{ comment.body_rich | safe }}{% endif %}</p>

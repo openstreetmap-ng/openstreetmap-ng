@@ -21,7 +21,7 @@
         </div>
 
         <div class="text-end me-1">
-            {% if (user is not none) and trace.user_id == user.id %}
+            {% if user is not none and trace.user_id == user.id %}
             <a class="btn btn-light border" href="/trace/{{ trace.id }}/edit">
                 {{ t('layouts.edit') }}
             </a>
@@ -31,6 +31,17 @@
                 {{ t('action.download_as') }} <b>GPX</b>
             </a>
         </div>
+
+        {% if user is not none and trace.user_id != user.id %}
+        <div class="text-end mt-2 me-1">
+            <button class="btn btn-link btn-sm text-muted p-0" data-report-type="user"
+                data-report-type-id="{{ trace.user_id }}" data-report-action="user_trace"
+                data-report-action-id="{{ trace.id }}">
+                <i class="bi bi-flag small me-1-5"></i>
+                {{- t('report.report_trace') -}}
+            </button>
+        </div>
+        {% endif %}
 
     </div>
 </div>

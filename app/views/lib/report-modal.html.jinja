@@ -1,0 +1,50 @@
+<div id="reportModal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ t('report.report_content') }}</h5>
+                <button class="btn-close" type="button" data-bs-dismiss="modal"
+                    aria-label="{{ t('javascripts.close') }}"></button>
+            </div>
+
+            <form method="POST" action="/api/web/reports/">
+                <div class="modal-body">
+                    <input type="hidden" name="type">
+                    <input type="hidden" name="type_id">
+                    <input type="hidden" name="action">
+                    <input type="hidden" name="action_id">
+
+                    <label class="form-label d-block mb-3">
+                        <span class="required">{{ t('report.category') }}</span>
+                        <select name="category" class="form-select mt-2" required>
+                            <option value="">{{ t('report.select_a_category') }}</option>
+                            <option value="vandalism">{{ t('report.category_vandalism') }}</option>
+                            <option value="spam">{{ t('report.category_spam') }}</option>
+                            <option value="harassment">{{ t('report.category_harassment') }}</option>
+                            <option value="privacy">{{ t('report.category_privacy_issue') }}</option>
+                            <option value="other">{{ t('report.category_o_ther') }}</option>
+                        </select>
+                    </label>
+
+                    <label class="form-label d-block">
+                        <span class="required">{{ t('report.description') }}</span>
+                        <textarea name="body" class="form-control mt-2" rows="4"
+                            placeholder="{{ t('report.please_describe_the_issue') }}"
+                            maxlength="{{ REPORT_COMMENT_BODY_MAX_LENGTH }}" required></textarea>
+                    </label>
+                    <div class="form-text">{{ t('report.provide_details_to_help_us_understand_the_problem') }}</div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        {{ t('javascripts.close') }}
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-flag me-2"></i>
+                        {{- t('report.submit_report') -}}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

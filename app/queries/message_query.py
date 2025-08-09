@@ -8,6 +8,7 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.message import Message, MessageRecipient
+from app.models.db.user import user_is_admin, user_is_moderator
 from app.models.types import MessageId, UserId
 
 
@@ -21,7 +22,10 @@ class MessageQuery:
     @staticmethod
     async def get_message_by_id(message_id: MessageId) -> Message:
         """Get a message and its recipients by id."""
-        user_id = auth_user(required=True)['id']
+        user = auth_user(required=True)
+        user_id = user['id']
+        is_moderator = user_is_moderator(user)
+        is_admin = user_is_admin(user)
 
         async with (
             db() as conn,
@@ -36,16 +40,25 @@ class MessageQuery:
                         AND user_id = %s
                         AND NOT hidden
                     )
+                    OR EXISTS (
+                        SELECT 1 FROM report_comment
+                        WHERE action = 'user_message'
+                        AND action_id = %s
+                        AND (
+                            (visible_to = 'moderator' AND %s)
+                            OR (visible_to = 'administrator' AND %s)
+                        )
+                    )
                 )
                 """,
-                (message_id, user_id, user_id),
+                (message_id, user_id, user_id, message_id, is_moderator, is_admin),
             ) as r,
         ):
             message: Message | None = await r.fetchone()  # type: ignore
             if message is None:
                 raise_for.message_not_found(message_id)
 
-        await MessageQuery.resolve_recipients([message])
+        await MessageQuery.resolve_recipients(user_id, [message])
         return message
 
     @staticmethod
@@ -56,9 +69,13 @@ class MessageQuery:
         before: MessageId | None = None,
         limit: int,
         resolve_recipients: bool = False,
+        show: MessageId | None = None,
     ) -> list[Message]:
         """Get user messages."""
-        user_id = auth_user(required=True)['id']
+        user = auth_user(required=True)
+        user_id = user['id']
+        is_moderator = show is not None and user_is_moderator(user)
+        is_admin = show is not None and user_is_admin(user)
 
         order_desc: cython.bint = (after is None) or (before is not None)
         conditions: list[Composable] = []
@@ -67,15 +84,23 @@ class MessageQuery:
         if inbox:
             conditions.append(
                 SQL("""
-                EXISTS (
+                (EXISTS (
                     SELECT 1 FROM message_recipient
                     WHERE message_id = id
                     AND user_id = %s
                     AND NOT hidden
-                )
+                ) OR (id = %s AND EXISTS (
+                    SELECT 1 FROM report_comment
+                    WHERE action = 'user_message'
+                    AND action_id = %s
+                    AND (
+                        (visible_to = 'moderator' AND %s)
+                        OR (visible_to = 'administrator' AND %s)
+                    )
+                )))
                 """)
             )
-            params.append(user_id)
+            params.extend([user_id, show or 0, show or 0, is_moderator, is_admin])
         else:
             conditions.append(SQL('from_user_id = %s AND NOT from_user_hidden'))
             params.append(user_id)
@@ -113,11 +138,13 @@ class MessageQuery:
             rows: list[Message] = await r.fetchall()  # type: ignore
 
         if resolve_recipients:
-            await MessageQuery.resolve_recipients(rows)
+            await MessageQuery.resolve_recipients(user_id, rows)
         return rows
 
     @staticmethod
-    async def resolve_recipients(items: list[Message]) -> None:
+    async def resolve_recipients(
+        current_user_id: UserId | None, items: list[Message]
+    ) -> None:
         """Resolve recipients for a list of messages."""
         if not items:
             return
@@ -139,6 +166,22 @@ class MessageQuery:
         ):
             for row in await r.fetchall():
                 id_map[row['message_id']].append(row)  # type: ignore
+
+        if current_user_id is None:
+            return
+
+        # Resolve user_recipient when the current user is known
+        for item in items:
+            user_recipient = next(
+                (
+                    r
+                    for r in item['recipients']  # pyright: ignore[reportTypedDictNotRequiredAccess]
+                    if r['user_id'] == current_user_id
+                ),
+                None,
+            )
+            if user_recipient is not None:
+                item['user_recipient'] = user_recipient
 
     @staticmethod
     async def count_unread() -> int:

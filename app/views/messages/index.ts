@@ -1,5 +1,6 @@
 import { t } from "i18next"
 import { resolveDatetimeLazy } from "../lib/datetime"
+import { configureReportButton } from "../lib/report-modal"
 import { configureStandardForm } from "../lib/standard-form"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
@@ -13,12 +14,14 @@ if (body) {
     const senderLink = messageSender.querySelector("a.sender-link")
     const messageTime = messagePreview.querySelector(".message-time")
     const messageRecipients = messagePreview.querySelector(".message-recipients")
-    const replyLink = messagePreview.querySelector("a.reply-link")
-    const replyAllLink = messagePreview.querySelector("a.reply-all-link")
+    const btnGroup = messagePreview.querySelector(".btn-group")
+    const replyLink = btnGroup.querySelector("a.reply-link")
+    const replyAllLink = btnGroup.querySelector("a.reply-all-link")
     const messageTitle = messagePreview.querySelector(".message-title")
     const messageBody = messagePreview.querySelector(".message-body")
     const loadingSpinner = messagePreview.querySelector(".loading")
     const recipientTemplate = body.querySelector("template.message-recipient-template")
+    const reportButton = messagePreview.querySelector("button.report-btn")
 
     let abortController: AbortController | null = null
     let openTarget: HTMLElement = null
@@ -75,9 +78,15 @@ if (body) {
         })
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-                console.debug("Fetched message", openMessageId)
-                const { sender, recipients, time, subject, body_rich } =
+                const { sender, recipients, time, subject, body_rich, is_recipient } =
                     await resp.json()
+                console.debug(
+                    "Fetched message",
+                    openMessageId,
+                    sender,
+                    recipients,
+                    is_recipient,
+                )
 
                 senderAvatar.src = sender.avatar_url
                 senderLink.href = `/user/${sender.display_name}`
@@ -105,9 +114,20 @@ if (body) {
                     replyAllLink.classList.remove("d-none")
                 }
 
+                // Hide button group when moderator viewing reported message
+                btnGroup.classList.toggle("disabled", !is_recipient)
+
                 messageTitle.textContent = subject
                 messageBody.innerHTML = body_rich
                 resolveDatetimeLazy(messageTime)
+
+                // Configure report button
+                configureReportButton(reportButton, {
+                    type: "user",
+                    typeId: sender.id,
+                    action: "user_message",
+                    actionId: openMessageId,
+                })
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
