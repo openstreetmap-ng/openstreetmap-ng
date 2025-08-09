@@ -511,14 +511,7 @@ report:
   provide_details_to_help_us_understand_the_problem: Provide details to help us understand the problem
   submit_report: Submit report
   your_report_has_been_received_and_will_be_reviewed_by_our_team: Your report has been received and will be reviewed by our team.
-  report: Report
-  report_user: Report user
-  report_changeset: Report changeset
-  report_diary: Report diary
-  report_application: Report application
-  report_message: Report message
-  report_note: Report note
-  report_trace: Report trace
+  report_object: "Report {{object}}"
   report_problem: Report a problem
   account_support: Account support
   account_support_description: If you're experiencing issues with your account or need to report a privacy concern, you can submit a report for assistance.

@@ -113,7 +113,7 @@
                                 <button class="dropdown-item" data-report-type="user"
                                     data-report-type-id="{{ app.user_id }}" data-report-action="user_oauth2_application"
                                     data-report-action-id="{{ app.id }}">
-                                    {{ t('report.report_application') }}
+                                    {{ t('report.report_object', object=t('oauth2_authorized_applications.index.application')) }}
                                 </button>
                             </li>
                         </ul>

@@ -153,7 +153,7 @@
                                 data-report-type-id="{{ diary.user_id }}"
                                 data-report-action="user_diary"
                                 data-report-action-id="{{ diary.id }}">
-                                {{- t('report.report_diary') -}}
+                                {{- t('report.report_object', object=t('diary.entry.count_one')) -}}
                             </button>
                         </li>
                         {% else %}

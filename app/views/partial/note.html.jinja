@@ -61,7 +61,7 @@
             <button class="btn btn-link btn-sm text-muted p-0" data-report-type="anonymous_note"
                 data-report-type-id="{{ note.id }}" data-report-action="generic">
                 <i class="bi bi-flag small me-1-5"></i>
-                {{- t('report.report_note') -}}
+                {{- t('report.report_object', object=t('note.count_one')) -}}
             </button>
             {% elif header.user_id != user.id %}
             {# User note reporting #}
@@ -69,7 +69,7 @@
                 data-report-type-id="{{ header.user_id }}" data-report-action="user_note"
                 data-report-action-id="{{ note.id }}">
                 <i class="bi bi-flag small me-1-5"></i>
-                {{- t('report.report_note') -}}
+                {{- t('report.report_object', object=t('note.count_one')) -}}
             </button>
             {% endif %}
         </div>

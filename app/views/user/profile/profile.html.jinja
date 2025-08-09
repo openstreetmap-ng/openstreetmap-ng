@@ -177,7 +177,7 @@
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-report-type="user"
                             data-report-type-id="{{ profile.id }}"
-                            data-report-action="user_profile">{{ t('report.report_user') }}</button>
+                            data-report-action="user_profile">{{ t('report.report_object', object=t('activerecord.models.user')) }}</button>
                         <button type="button"
                             class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-expanded="false">
