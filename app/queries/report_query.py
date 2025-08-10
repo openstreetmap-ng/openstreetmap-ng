@@ -6,9 +6,9 @@ from psycopg.sql import SQL, Composable
 from app.config import REPORT_LIST_PAGE_SIZE
 from app.db import db
 from app.lib.standard_pagination import standard_pagination_range
-from app.models.db.report import Report, ReportType
+from app.models.db.report import Report
 from app.models.db.user import UserRole
-from app.models.types import NoteId, ReportId, UserId
+from app.models.types import ReportId
 
 
 class _ReportCountResult(NamedTuple):
@@ -27,25 +27,6 @@ class ReportQuery:
                 WHERE id = %s
                 """,
                 (report_id,),
-            ) as r,
-        ):
-            return await r.fetchone()  # type: ignore
-
-    @staticmethod
-    async def find_by_type_and_target(
-        report_type: ReportType, type_id: NoteId | UserId | None
-    ) -> Report | None:
-        if type_id is None:
-            return None
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM report
-                WHERE type = %s AND type_id = %s
-                """,
-                (report_type, type_id),
             ) as r,
         ):
             return await r.fetchone()  # type: ignore
