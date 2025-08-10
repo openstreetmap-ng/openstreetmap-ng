@@ -54,11 +54,11 @@
     Reported
     <a href="/diary/{{ comment.action_id }}" target="_blank">
         diary entry
-        {% if comment.object is defined %}
+        {% if comment.object is defined -%}
         “{{ comment.object.title }}”
-        {% else %}
+        {%- else -%}
         «Deleted»
-        {% endif %}
+        {%- endif -%}
     </a>
     for {{ _category | safe }}
 
@@ -67,11 +67,11 @@
     Reported
     <a href="/messages/inbox?show={{ comment.action_id }}" target="_blank">
         message
-        {% if comment.object is defined %}
+        {% if comment.object is defined -%}
         “{{ comment.object.subject }}”
-        {% else %}
+        {%- else -%}
         «Deleted»
-        {% endif %}
+        {%- endif -%}
     </a>
     for {{ _category | safe }}
 
@@ -105,11 +105,11 @@
     Reported
     <a href="/trace/{{ comment.action_id }}" target="_blank">
         GPS trace
-        {% if comment.object is defined %}
+        {% if comment.object is defined -%}
         “{{ comment.object.name }}”
-        {% else %}
+        {%- else -%}
         «Deleted»
-        {% endif %}
+        {%- endif -%}
     </a>
     for {{ _category | safe }}
 
