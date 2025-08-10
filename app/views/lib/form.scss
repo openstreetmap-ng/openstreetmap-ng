@@ -5,8 +5,8 @@
 
 .custom-input-group {
     label {
-        @extend .border;
-        @extend .rounded-2;
+        border: $input-border-width solid $input-border-color;
+        border-radius: $input-border-radius;
         position: relative;
         left: 0.5em;
         top: 0.45em;
@@ -14,8 +14,18 @@
         font-size: 0.875em;
         font-weight: 600;
         padding: 0.12em 0.7em;
+        transition: $input-transition;
+
         // .input-group>.form-control:focus, has z-index of 5
         z-index: 6;
+    }
+
+    // Apply focus styles to label when any child input is focused
+    &:focus-within {
+        label {
+            border-color: $input-focus-border-color;
+            box-shadow: $input-focus-box-shadow;
+        }
     }
 }
 
