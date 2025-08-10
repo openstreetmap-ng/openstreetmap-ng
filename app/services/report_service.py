@@ -395,8 +395,8 @@ async def _validate_integrity(
 
     elif action == 'user_oauth2_application':
         assert action_id is not None
-        app = await OAuth2ApplicationQuery.find_one_by_id(action_id)  # pyright: ignore[reportArgumentType]
-        assert app is not None and app['user_id'] == type_id
+        app = await OAuth2ApplicationQuery.find_one_by_id(action_id, user_id=type_id)  # pyright: ignore[reportArgumentType]
+        assert app is not None
 
     elif action == 'user_trace':
         assert action_id is not None
