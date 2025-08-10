@@ -25,7 +25,7 @@ router = APIRouter(prefix='/partial/changeset')
 
 @router.get('/{id:int}')
 async def get_changeset(id: ChangesetId):
-    changeset = await ChangesetQuery.find_by_id(id)
+    changeset = await ChangesetQuery.find_one_by_id(id)
     if changeset is None:
         return await render_response(
             'partial/not-found',

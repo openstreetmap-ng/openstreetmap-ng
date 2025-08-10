@@ -118,7 +118,7 @@ async def get_element_data(
     version = element['version']
 
     async def changeset_task():
-        changeset = await ChangesetQuery.find_by_id(element['changeset_id'])
+        changeset = await ChangesetQuery.find_one_by_id(element['changeset_id'])
         assert changeset is not None, 'Parent changeset must exist'
         await UserQuery.resolve_users([changeset])
         return changeset

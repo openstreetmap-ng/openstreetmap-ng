@@ -78,7 +78,7 @@ class ChangesetQuery:
             return rows[0][0], rows[1][0]
 
     @staticmethod
-    async def find_by_id(changeset_id: ChangesetId) -> Changeset | None:
+    async def find_one_by_id(changeset_id: ChangesetId) -> Changeset | None:
         """Find a changeset by id."""
         async with (
             db() as conn,

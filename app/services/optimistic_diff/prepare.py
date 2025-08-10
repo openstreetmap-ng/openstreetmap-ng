@@ -551,7 +551,7 @@ class OptimisticDiffPrepare:
         changeset_id = next(iter(changeset_ids))
 
         # Get changeset
-        changeset = await ChangesetQuery.find_by_id(changeset_id)
+        changeset = await ChangesetQuery.find_one_by_id(changeset_id)
         if changeset is None:
             raise_for.changeset_not_found(changeset_id)
         self.changeset = changeset

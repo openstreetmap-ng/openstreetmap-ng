@@ -51,7 +51,7 @@ async def get_changeset(
     changeset_id: ChangesetId,
     include_discussion: Annotated[str | None, Query()] = None,
 ):
-    changeset = await ChangesetQuery.find_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
     if changeset is None:
         raise_for.changeset_not_found(changeset_id)
     changesets = [changeset]
@@ -78,7 +78,7 @@ async def get_changeset(
 async def download_changeset(
     changeset_id: ChangesetId,
 ):
-    changeset = await ChangesetQuery.find_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
     if changeset is None:
         raise_for.changeset_not_found(changeset_id)
 
@@ -105,7 +105,7 @@ async def update_changeset(
         raise_for.bad_xml('changeset', str(e))
 
     await ChangesetService.update_tags(changeset_id, tags)
-    changeset = await ChangesetQuery.find_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
     assert changeset is not None, f'Changeset {changeset_id} must exist after update'
 
     async with TaskGroup() as tg:
