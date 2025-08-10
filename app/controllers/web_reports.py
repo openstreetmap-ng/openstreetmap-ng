@@ -1,7 +1,6 @@
 from asyncio import TaskGroup
 from typing import Annotated, Literal
 
-import cython
 from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
 from starlette import status
@@ -39,7 +38,6 @@ async def create_report(
     category: Annotated[ReportCategory, Form()],
     action_id: Annotated[ReportActionId, Form()] = None,
 ):
-    _validate_action_context(action, action_id)
     await ReportService.create_report(
         type=type,
         type_id=type_id,
@@ -180,19 +178,3 @@ async def comments_page(
             'comments': comments,
         },
     )
-
-
-@cython.cfunc
-def _validate_action_context(action: ReportAction, action_id: ReportActionId) -> None:
-    """Validate action_id requirements: user_* actions need it, others must not have it."""
-    if action in {
-        'comment',
-        'close',
-        'reopen',
-        'generic',
-        'user_account',
-        'user_profile',
-    }:
-        assert action_id is None, f'Action {action} must not have action_id'
-    else:
-        assert action_id is not None, f'Action {action} requires action_id'

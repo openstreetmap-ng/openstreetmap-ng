@@ -20,8 +20,14 @@ from app.models.db.report_comment import (
     report_comments_resolve_rich_text,
 )
 from app.models.types import ReportId
+from app.queries.changeset_query import ChangesetQuery
+from app.queries.diary_query import DiaryQuery
+from app.queries.message_query import MessageQuery
+from app.queries.note_query import NoteQuery
+from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.report_comment_query import ReportCommentQuery
 from app.queries.report_query import ReportQuery
+from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
 
@@ -42,6 +48,8 @@ class ReportService:
 
         user = auth_user(required=True)
         user_id = user['id']
+
+        await _validate_integrity(type, type_id, action, action_id)
 
         async with db(True, isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
             report_init: ReportInit = {
@@ -345,6 +353,58 @@ def _category_to_visibility(category: ReportCategory):
 
     # spam, vandalism, harassment, other -> moderator
     return 'moderator'
+
+
+async def _validate_integrity(
+    type: ReportType,
+    type_id: ReportTypeId,
+    action: ReportAction,
+    action_id: ReportActionId,
+) -> None:
+    if type == 'user':
+        assert action.startswith('user_')
+    elif type == 'anonymous_note':
+        assert action == 'generic'
+    else:
+        raise NotImplementedError(f'Unsupported report type {type!r}')
+
+    if action == 'user_changeset':
+        assert action_id is not None
+        changeset = await ChangesetQuery.find_one_by_id(action_id)  # pyright: ignore[reportArgumentType]
+        assert changeset is not None and changeset['user_id'] == type_id
+
+    elif action == 'user_diary':
+        assert action_id is not None
+        diary = await DiaryQuery.find_one_by_id(action_id)  # pyright: ignore[reportArgumentType]
+        assert diary is not None and diary['user_id'] == type_id
+
+    elif action == 'user_message':
+        assert action_id is not None
+        message = await MessageQuery.get_one_by_id(action_id)  # pyright: ignore[reportArgumentType]
+        assert message['from_user_id'] == type_id
+
+    elif action == 'user_note':
+        assert action_id is not None
+        note = await NoteQuery.find_many_by_query(
+            user_id=type_id,  # pyright: ignore[reportArgumentType]
+            event='opened',
+            note_ids=[action_id],  # pyright: ignore[reportArgumentType]
+            limit=1,
+        )
+        assert note
+
+    elif action == 'user_oauth2_application':
+        assert action_id is not None
+        app = await OAuth2ApplicationQuery.find_one_by_id(action_id)  # pyright: ignore[reportArgumentType]
+        assert app is not None and app['user_id'] == type_id
+
+    elif action == 'user_trace':
+        assert action_id is not None
+        trace = await TraceQuery.get_one_by_id(action_id)  # pyright: ignore[reportArgumentType]
+        assert trace['user_id'] == type_id
+
+    else:
+        assert action_id is None, f'Report {type}/{action} must not have action_id'
 
 
 async def _add_report_comment(
