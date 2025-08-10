@@ -36,7 +36,7 @@ class DiaryQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def count_by_user_id(user_id: UserId) -> int:
+    async def count_by_user(user_id: UserId) -> int:
         """Count diaries by user id."""
         async with (
             db() as conn,

@@ -36,7 +36,7 @@ class ChangesetQuery:
             return dict(await r.fetchall())
 
     @staticmethod
-    async def count_by_user_id(user_id: UserId) -> int:
+    async def count_by_user(user_id: UserId) -> int:
         """Count changesets by user id."""
         async with (
             db() as conn,
@@ -200,7 +200,7 @@ class ChangesetQuery:
                 return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def count_per_day_by_user_id(
+    async def count_per_day_by_user(
         user_id: UserId, created_since: datetime
     ) -> dict[date, int]:
         """Count changesets per day by user id since given date."""

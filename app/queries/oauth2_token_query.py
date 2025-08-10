@@ -111,7 +111,7 @@ class OAuth2TokenQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def find_unique_per_app_by_user_id(user_id: UserId) -> list[OAuth2Token]:
+    async def find_unique_per_app_by_user(user_id: UserId) -> list[OAuth2Token]:
         """Find unique OAuth2 tokens per app for the given user."""
         async with (
             db() as conn,

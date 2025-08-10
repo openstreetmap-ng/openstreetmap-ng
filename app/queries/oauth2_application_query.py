@@ -50,7 +50,7 @@ class OAuth2ApplicationQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def get_many_by_user_id(user_id: UserId) -> list[OAuth2Application]:
+    async def find_many_by_user(user_id: UserId) -> list[OAuth2Application]:
         """Get all OAuth2 applications by user id."""
         async with (
             db() as conn,

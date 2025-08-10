@@ -65,7 +65,7 @@ async def new_message(
     body: str = ''
 
     if reply is not None or reply_all is not None:
-        reply_message = await MessageQuery.get_message_by_id(reply or reply_all)  # type: ignore
+        reply_message = await MessageQuery.get_one_by_id(reply or reply_all)  # type: ignore
         assert 'recipients' in reply_message, 'Message recipients must be set'
 
         async with TaskGroup() as tg:
@@ -176,7 +176,7 @@ async def _get_messages_data(
     if (show is not None) and (after is None) and (before is None):
         before = show + 1  # type: ignore
 
-    messages = await MessageQuery.get_messages(
+    messages = await MessageQuery.find_many_by_query(
         inbox=inbox,
         show=show,
         after=after,
@@ -187,7 +187,7 @@ async def _get_messages_data(
 
     async def new_after_task():
         after = messages[0]['id']
-        after_messages = await MessageQuery.get_messages(
+        after_messages = await MessageQuery.find_many_by_query(
             inbox=inbox,
             after=after,
             limit=1,
@@ -196,7 +196,7 @@ async def _get_messages_data(
 
     async def new_before_task():
         before = messages[-1]['id']
-        before_messages = await MessageQuery.get_messages(
+        before_messages = await MessageQuery.find_many_by_query(
             inbox=inbox,
             before=before,
             limit=1,

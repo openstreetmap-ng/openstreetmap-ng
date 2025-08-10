@@ -119,6 +119,7 @@ async def reports_page(
         )
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(report_comments_resolve_rich_text(comments))
+        tg.create_task(ReportCommentQuery.resolve_objects(comments))
 
         # Resolve reported users for user-type reports
         user_reports = [r for r in reports if r['type'] == 'user']
@@ -170,6 +171,7 @@ async def comments_page(
             )
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(report_comments_resolve_rich_text(comments))
+        tg.create_task(ReportCommentQuery.resolve_objects(comments))
 
     return await render_response(
         'reports/comments-page',

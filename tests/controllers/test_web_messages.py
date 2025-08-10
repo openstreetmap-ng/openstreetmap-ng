@@ -62,7 +62,7 @@ async def test_message_crud(client: AsyncClient):
     )
 
     with auth_context(user1, ()):
-        message = await MessageQuery.get_message_by_id(message_id)
+        message = await MessageQuery.get_one_by_id(message_id)
         assert not message['recipients'][0]['read']  # type: ignore
 
     # Authenticate as user2 (recipient)
@@ -93,14 +93,14 @@ async def test_message_crud(client: AsyncClient):
     )
 
     with auth_context(user1, ()):
-        message = await MessageQuery.get_message_by_id(message_id)
+        message = await MessageQuery.get_one_by_id(message_id)
         assert message['recipients'][0]['read']  # type: ignore
 
         # UPDATE: Mark message as unread
         r = await client.post(f'/api/web/messages/{message_id}/unread')
         assert r.status_code == status.HTTP_204_NO_CONTENT
 
-        message = await MessageQuery.get_message_by_id(message_id)
+        message = await MessageQuery.get_one_by_id(message_id)
         assert not message['recipients'][0]['read']  # type: ignore
 
     # DELETE: Delete message
@@ -115,7 +115,7 @@ async def test_message_crud(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
     with exceptions_context(Exceptions()), auth_context(user1, ()):
-        message = await MessageQuery.get_message_by_id(message_id)
+        message = await MessageQuery.get_one_by_id(message_id)
         assert_model(
             message,
             {
@@ -134,4 +134,4 @@ async def test_message_crud(client: AsyncClient):
         assert r.status_code == status.HTTP_204_NO_CONTENT
 
         with pytest.raises(APIError, match='Message not found'):
-            await MessageQuery.get_message_by_id(message_id)
+            await MessageQuery.get_one_by_id(message_id)

@@ -19,7 +19,7 @@ from app.models.types import NoteId, UserId
 
 class NoteQuery:
     @staticmethod
-    async def count_by_user_id(
+    async def count_by_user(
         user_id: UserId,
         *,
         commented_other: bool = False,

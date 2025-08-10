@@ -5,11 +5,25 @@ from app.config import REPORT_COMMENTS_PAGE_SIZE
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.standard_pagination import standard_pagination_range
+from app.models.db.diary import Diary
+from app.models.db.message import Message
+from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.report import Report
 from app.models.db.report_comment import ReportComment
+from app.models.db.trace import Trace
 from app.models.db.user import user_is_admin, user_is_moderator
-from app.models.types import ReportCommentId, ReportId
-from app.queries.user_query import UserQuery
+from app.models.types import (
+    ApplicationId,
+    DiaryId,
+    MessageId,
+    ReportCommentId,
+    ReportId,
+    TraceId,
+)
+from app.queries.diary_query import DiaryQuery
+from app.queries.message_query import MessageQuery
+from app.queries.oauth2_application_query import OAuth2ApplicationQuery
+from app.queries.trace_query import TraceQuery
 
 
 class ReportCommentQuery:
@@ -116,9 +130,6 @@ class ReportCommentQuery:
         ):
             comments: list[ReportComment] = await r.fetchall()  # type: ignore
 
-        # Resolve user information for comments
-        await UserQuery.resolve_users(comments)
-
         is_moderator: cython.bint = user_is_moderator(user)
         is_admin: cython.bint = user_is_admin(user)
         current_report_id: ReportId | None = None
@@ -143,6 +154,87 @@ class ReportCommentQuery:
                 report['num_comments'] = len(report['comments'])  # pyright: ignore [reportTypedDictNotRequiredAccess]
 
         return comments
+
+    @staticmethod
+    async def resolve_objects(comments: list[ReportComment]) -> None:
+        """Resolve objects for report comments based on their action type."""
+        if not comments:
+            return
+
+        # Group comments by action type for batch processing
+        diary_comments: list[ReportComment] = []
+        diary_ids: set[DiaryId] = set()
+        message_comments: list[ReportComment] = []
+        message_ids: set[MessageId] = set()
+        app_comments: list[ReportComment] = []
+        app_ids: set[ApplicationId] = set()
+        trace_comments: list[ReportComment] = []
+        trace_ids: set[TraceId] = set()
+
+        for comment in comments:
+            action = comment['action']
+            action_id = comment['action_id']
+
+            if action == 'user_diary':
+                diary_comments.append(comment)
+                diary_ids.add(action_id)  # type: ignore
+            elif action == 'user_message':
+                message_comments.append(comment)
+                message_ids.add(action_id)  # type: ignore
+            elif action == 'user_oauth2_application':
+                app_comments.append(comment)
+                app_ids.add(action_id)  # type: ignore
+            elif action == 'user_trace':
+                trace_comments.append(comment)
+                trace_ids.add(action_id)  # type: ignore
+
+        # Resolve diaries
+        if diary_ids:
+            diaries = await DiaryQuery.find_many_by_ids(list(diary_ids))
+            diary_map: dict[DiaryId, Diary] = {diary['id']: diary for diary in diaries}
+
+            for comment in diary_comments:
+                action_id = comment['action_id']
+                diary = diary_map.get(action_id)  # type: ignore
+                if diary is not None:
+                    comment['object'] = diary
+
+        # Resolve messages
+        if message_ids:
+            messages = await MessageQuery.find_many_by_ids(list(message_ids))
+            message_map: dict[MessageId, Message] = {
+                message['id']: message for message in messages
+            }
+
+            for comment in message_comments:
+                action_id = comment['action_id']
+                message = message_map.get(action_id)  # type: ignore
+                if message is not None:
+                    comment['object'] = message
+
+        # Resolve OAuth2 applications
+        if app_ids:
+            apps = await OAuth2ApplicationQuery.find_many_by_ids(list(app_ids))
+            app_map: dict[ApplicationId, OAuth2Application] = {
+                app['id']: app for app in apps
+            }
+
+            for comment in app_comments:
+                action_id = comment['action_id']
+                app = app_map.get(action_id)  # type: ignore
+                if app is not None:
+                    comment['object'] = app
+
+        # Resolve traces
+        if trace_ids:
+            traces = await TraceQuery.find_many_by_ids(list(trace_ids))
+            trace_map: dict[TraceId, Trace] = {trace['id']: trace for trace in traces}
+
+            for comment in trace_comments:
+                action_id = comment['action_id']
+                trace = trace_map.get(action_id)  # type: ignore
+                if trace is not None:
+                    comment['object'] = trace
 
     @staticmethod
     async def resolve_num_comments(reports: list[Report]) -> None:

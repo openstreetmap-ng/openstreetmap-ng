@@ -14,7 +14,7 @@ from app.models.types import DiaryCommentId, DiaryId, UserId
 
 class DiaryCommentQuery:
     @staticmethod
-    async def count_by_user_id(user_id: UserId) -> int:
+    async def count_by_user(user_id: UserId) -> int:
         """Count diary comments by user id."""
         async with (
             db() as conn,
@@ -44,7 +44,7 @@ class DiaryCommentQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_many_by_user_id(
+    async def find_many_by_user(
         user_id: UserId,
         *,
         before: DiaryCommentId | None = None,

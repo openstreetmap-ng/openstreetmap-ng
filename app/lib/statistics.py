@@ -53,7 +53,7 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
     created_since = today - timedelta(days=USER_ACTIVITY_CHART_WEEKS * 7 + weekday)
 
     # Fetch user activity data
-    activity_per_day = await ChangesetQuery.count_per_day_by_user_id(
+    activity_per_day = await ChangesetQuery.count_per_day_by_user(
         user_id, created_since
     )
 

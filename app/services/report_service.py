@@ -103,7 +103,9 @@ class ReportService:
         comment['user'] = user  # type: ignore
 
         async with TaskGroup() as tg:
-            tg.create_task(report_comments_resolve_rich_text([comment]))
+            comments = [comment]
+            tg.create_task(report_comments_resolve_rich_text(comments))
+            tg.create_task(ReportCommentQuery.resolve_objects(comments))
 
             report = await ReportQuery.find_one_by_id(report_id)
             assert report is not None
@@ -134,16 +136,40 @@ class ReportService:
             if action == 'user_changeset':
                 object_html = f'<a href="{APP_URL}/changeset/{action_id}">{nt("changeset.count", 1)} {action_id}</a>'
             elif action == 'user_diary':
-                object_html = f'<a href="{APP_URL}/diary/{action_id}">{nt("diary.entry.count", 1)} {action_id}</a>'
+                diary = comment.get('object')
+                diary_title = (
+                    f'“{diary["title"]}”'  # pyright: ignore[reportGeneralTypeIssues]
+                    if diary is not None
+                    else '«Deleted»'
+                )
+                object_html = f'<a href="{APP_URL}/diary/{action_id}">{nt("diary.entry.count", 1)} {diary_title}</a>'
             elif action == 'user_message':
-                object_html = f'<a href="{APP_URL}/messages/inbox?show={action_id}">{t("activerecord.models.message")} {action_id}</a>'
+                message = comment.get('object')
+                message_subject = (
+                    f'“{message["subject"]}”'  # pyright: ignore[reportGeneralTypeIssues]
+                    if message is not None
+                    else '«Deleted»'
+                )
+                object_html = f'<a href="{APP_URL}/messages/inbox?show={action_id}">{t("activerecord.models.message")} {message_subject}</a>'
             elif action == 'user_note' or type == 'anonymous_note':
                 note_id = action_id or type_id
                 object_html = f'<a href="{APP_URL}/note/{note_id}">{nt("note.count", 1)} {note_id}</a>'
             elif action == 'user_trace':
-                object_html = f'<a href="{APP_URL}/trace/{action_id}">GPS {nt("trace.count", 1)} {action_id}</a>'
+                trace = comment.get('object')
+                trace_name = (
+                    f'“{trace["name"]}”'  # pyright: ignore[reportGeneralTypeIssues]
+                    if trace is not None
+                    else '«Deleted»'
+                )
+                object_html = f'<a href="{APP_URL}/trace/{action_id}">{nt("trace.gps_count", 1)} {trace_name}</a>'
             elif action == 'user_oauth2_application':
-                object_html = f'{t("oauth2_authorized_applications.index.application")} {action_id}'
+                app = comment.get('object')
+                app_name = (
+                    f'“{app["name"]}”'  # pyright: ignore[reportGeneralTypeIssues]
+                    if app is not None
+                    else '«Deleted»'
+                )
+                object_html = f'{t("oauth2_authorized_applications.index.application")} {app_name} ({action_id})'
             else:
                 raise NotImplementedError(f'Unsupported report action: {action}')
 

@@ -2,6 +2,10 @@ from datetime import datetime
 from typing import Literal, NotRequired, TypedDict
 
 from app.lib.rich_text import resolve_rich_text
+from app.models.db.diary import Diary
+from app.models.db.message import Message
+from app.models.db.oauth2_application import OAuth2Application
+from app.models.db.trace import Trace
 from app.models.db.user import UserDisplay, UserRole
 from app.models.types import (
     ApplicationId,
@@ -59,6 +63,7 @@ class ReportComment(ReportCommentInit):
 
     # runtime
     user: NotRequired[UserDisplay]
+    object: NotRequired[Diary | Message | OAuth2Application | Trace]
     body_rich: NotRequired[str]
     has_access: NotRequired[bool]
 

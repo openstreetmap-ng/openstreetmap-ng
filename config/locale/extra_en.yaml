@@ -59,6 +59,8 @@ note:
 trace:
   count_one: "trace"
   count_other: "traces"
+  gps_count: "GPS trace"
+  gps_count_other: "GPS traces"
   delete_trace: Delete trace
   delete_confirmation: |-
     Are you sure you want to delete this trace?

@@ -206,19 +206,19 @@ async def index(
         tg.create_task(users_resolve_rich_text([user]))
         activity_t = tg.create_task(user_activity_summary(user_id))
         changesets_t = tg.create_task(changesets_task())
-        changesets_count_t = tg.create_task(ChangesetQuery.count_by_user_id(user_id))
+        changesets_count_t = tg.create_task(ChangesetQuery.count_by_user(user_id))
         # TODO: changesets_comments_count_t = ...
         notes_t = tg.create_task(notes_task(tg))
-        notes_count_t = tg.create_task(NoteQuery.count_by_user_id(user_id))
+        notes_count_t = tg.create_task(NoteQuery.count_by_user(user_id))
         notes_comments_count_t = tg.create_task(
-            NoteQuery.count_by_user_id(user_id, commented_other=True)
+            NoteQuery.count_by_user(user_id, commented_other=True)
         )
         traces_t = tg.create_task(traces_task())
-        traces_count_t = tg.create_task(TraceQuery.count_by_user_id(user_id))
+        traces_count_t = tg.create_task(TraceQuery.count_by_user(user_id))
         diaries_t = tg.create_task(diaries_task())
-        diaries_count_t = tg.create_task(DiaryQuery.count_by_user_id(user_id))
+        diaries_count_t = tg.create_task(DiaryQuery.count_by_user(user_id))
         diaries_comments_count_t = tg.create_task(
-            DiaryCommentQuery.count_by_user_id(user_id)
+            DiaryCommentQuery.count_by_user(user_id)
         )
 
     activity_data = activity_t.result()

@@ -27,7 +27,7 @@ router = APIRouter()
 async def applications_authorizations(
     user: Annotated[User, web_user()],
 ):
-    tokens = await OAuth2TokenQuery.find_unique_per_app_by_user_id(user['id'])
+    tokens = await OAuth2TokenQuery.find_unique_per_app_by_user(user['id'])
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(tokens))
@@ -46,7 +46,7 @@ async def applications_authorizations(
 async def applications_admin(
     user: Annotated[User, web_user()],
 ):
-    apps = await OAuth2ApplicationQuery.get_many_by_user_id(user['id'])
+    apps = await OAuth2ApplicationQuery.find_many_by_user(user['id'])
 
     return await render_response(
         'settings/applications/admin',

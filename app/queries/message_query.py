@@ -20,7 +20,7 @@ class _MessageCountByUserResult(NamedTuple):
 
 class MessageQuery:
     @staticmethod
-    async def get_message_by_id(message_id: MessageId) -> Message:
+    async def get_one_by_id(message_id: MessageId) -> Message:
         """Get a message and its recipients by id."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -62,7 +62,22 @@ class MessageQuery:
         return message
 
     @staticmethod
-    async def get_messages(
+    async def find_many_by_ids(ids: list[MessageId]) -> list[Message]:
+        """Find messages by ids for report context."""
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM message
+                WHERE id = ANY(%s)
+                """,
+                (ids,),
+            ) as r,
+        ):
+            return await r.fetchall()  # type: ignore
+
+    @staticmethod
+    async def find_many_by_query(
         *,
         inbox: bool,
         after: MessageId | None = None,
@@ -201,7 +216,7 @@ class MessageQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def count_by_user_id(user_id: UserId) -> _MessageCountByUserResult:
+    async def count_by_user(user_id: UserId) -> _MessageCountByUserResult:
         """Count received messages by user id."""
         async with (
             db() as conn,

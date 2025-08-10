@@ -106,16 +106,14 @@ async def _encode_user(user: User, *, is_json: cython.bint) -> dict:
     xattr = get_xattr(is_json=is_json)
 
     async with TaskGroup() as tg:
-        changesets_task = tg.create_task(ChangesetQuery.count_by_user_id(user_id))
-        traces_task = tg.create_task(TraceQuery.count_by_user_id(user_id))
+        changesets_task = tg.create_task(ChangesetQuery.count_by_user(user_id))
+        traces_task = tg.create_task(TraceQuery.count_by_user(user_id))
         block_received_task = tg.create_task(
-            UserBlockQuery.count_received_by_user_id(user_id)
+            UserBlockQuery.count_received_by_user(user_id)
         )
-        block_issued_task = tg.create_task(
-            UserBlockQuery.count_given_by_user_id(user_id)
-        )
+        block_issued_task = tg.create_task(UserBlockQuery.count_given_by_user(user_id))
         messages_count_task = (
-            tg.create_task(MessageQuery.count_by_user_id(user_id))
+            tg.create_task(MessageQuery.count_by_user(user_id))
             if access_private
             else None
         )

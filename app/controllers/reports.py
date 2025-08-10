@@ -52,7 +52,6 @@ async def report_show(
 
     # Load comments and count in parallel
     async with TaskGroup() as tg:
-        tg.create_task(ReportCommentQuery.resolve_comments(reports))
         tg.create_task(ReportCommentQuery.resolve_num_comments(reports))
 
         # Resolve reported user for user-type reports

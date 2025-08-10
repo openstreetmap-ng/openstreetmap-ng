@@ -57,6 +57,21 @@ class TraceQuery:
         return trace
 
     @staticmethod
+    async def find_many_by_ids(ids: list[TraceId]) -> list[Trace]:
+        """Find traces by ids for report context."""
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM trace
+                WHERE id = ANY(%s)
+                """,
+                (ids,),
+            ) as r,
+        ):
+            return await r.fetchall()  # type: ignore
+
+    @staticmethod
     async def get_one_data_by_id(trace_id: TraceId) -> bytes:
         """
         Get a trace data file by id.
@@ -69,7 +84,7 @@ class TraceQuery:
         return file_bytes
 
     @staticmethod
-    async def count_by_user_id(user_id: UserId) -> int:
+    async def count_by_user(user_id: UserId) -> int:
         """Count traces by user id."""
         query = SQL("""
             SELECT COUNT(*) FROM trace

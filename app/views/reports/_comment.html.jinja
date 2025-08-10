@@ -52,13 +52,27 @@
     {% elif comment.action == 'user_diary' %}
     <i class="bi bi-journal-x text-danger me-1-5"></i>{#--#}
     Reported
-    <a href="/diary/{{ comment.action_id }}" target="_blank">diary entry {{ comment.action_id }}</a>
+    <a href="/diary/{{ comment.action_id }}" target="_blank">
+        diary entry
+        {% if comment.object is defined %}
+        “{{ comment.object.title }}”
+        {% else %}
+        «Deleted»
+        {% endif %}
+    </a>
     for {{ _category | safe }}
 
     {% elif comment.action == 'user_message' %}
     <i class="bi bi-envelope-x text-danger me-1-5"></i>{#--#}
     Reported
-    <a href="/messages/inbox?show={{ comment.action_id }}" target="_blank">message {{ comment.action_id }}</a>
+    <a href="/messages/inbox?show={{ comment.action_id }}" target="_blank">
+        message
+        {% if comment.object is defined %}
+        “{{ comment.object.subject }}”
+        {% else %}
+        «Deleted»
+        {% endif %}
+    </a>
     for {{ _category | safe }}
 
     {% elif comment.action == 'user_note' %}
@@ -69,7 +83,16 @@
 
     {% elif comment.action == 'user_oauth2_application' %}
     <i class="bi bi-app-indicator text-danger me-1-5"></i>{#--#}
-    Reported OAuth2 application {{ comment.action_id }} for {{ _category | safe }}
+    Reported application
+    {% if comment.object is defined %}
+    “{{ comment.object.name }}” ({{ comment.action_id }})
+    {%- for uri in comment.object.redirect_uris -%}
+    <sup class="text-nowrap">[<a href="{{ uri }}" target="_blank" rel="noopener noreferrer">{{ loop.index }}</a>]</sup>
+    {%- endfor -%}
+    {% else %}
+    «Deleted» ({{ comment.action_id }})
+    {% endif %}
+    for {{ _category | safe }}
 
     {% elif comment.action == 'user_profile' %}
     <i class="bi bi-person-badge text-danger me-1-5"></i>{#--#}
@@ -80,7 +103,14 @@
     {% elif comment.action == 'user_trace' %}
     <i class="bi bi-geo text-danger me-1-5"></i>{#--#}
     Reported
-    <a href="/trace/{{ comment.action_id }}" target="_blank">GPS trace {{ comment.action_id }}</a>
+    <a href="/trace/{{ comment.action_id }}" target="_blank">
+        GPS trace
+        {% if comment.object is defined %}
+        “{{ comment.object.name }}”
+        {% else %}
+        «Deleted»
+        {% endif %}
+    </a>
     for {{ _category | safe }}
 
     {% endif %}
