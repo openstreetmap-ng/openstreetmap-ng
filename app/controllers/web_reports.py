@@ -32,11 +32,11 @@ router = APIRouter(prefix='/api/web/reports')
 async def create_report(
     _: Annotated[User, web_user()],
     type: Annotated[ReportType, Form()],
-    type_id: Annotated[ReportTypeId, Form()],
-    action: Annotated[ReportAction, Form()],
+    type_id: Annotated[ReportTypeId, Form(gt=0)],
     body: Annotated[str, Form(min_length=1, max_length=REPORT_COMMENT_BODY_MAX_LENGTH)],
     category: Annotated[ReportCategory, Form()],
-    action_id: Annotated[ReportActionId, Form()] = None,
+    action: Annotated[ReportAction, Form()],
+    action_id: Annotated[ReportActionId, Form(gt=0)] = None,
 ):
     await ReportService.create_report(
         type=type,
