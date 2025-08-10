@@ -23,6 +23,7 @@ from app.models.types import ReportCommentId, ReportId
 from app.queries.report_comment_query import ReportCommentQuery
 from app.queries.report_query import ReportQuery
 from app.queries.user_query import UserQuery
+from app.services.report_comment_service import ReportCommentService
 from app.services.report_service import ReportService
 
 router = APIRouter(prefix='/api/web/reports')
@@ -82,14 +83,14 @@ async def add_comment(
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 
-@router.post('/{_:int}/comments/{comment_id:int}/visibility')
+@router.post('/{__:int}/comments/{comment_id:int}/visibility')
 async def change_comment_visibility(
     _: Annotated[User, web_user('role_administrator')],
     __: ReportId,
     comment_id: ReportCommentId,
     visible_to: Annotated[UserRole, Form()],
 ):
-    await ReportService.change_comment_visibility(comment_id, visible_to)
+    await ReportCommentService.update_visibility(comment_id, visible_to)
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 

@@ -33,10 +33,14 @@
                 {% include 'reports/_comment' %}
             </div>
             <div class="num-comments ms-3">
-                {% set last_action = report.comments[-1].action if report.comments else None %}
-                {% set requires_attention = not report.closed_at and last_action not in ('comment', 'close', 'reopen', None) %}
+                {% set _last_comment = report.comments[-1] %}
+                {% set _attention =
+                    not report.closed_at
+                    and _last_comment.action not in ('comment', 'close', 'reopen', None)
+                    and _last_comment.has_access
+                %}
                 <span
-                    class="badge d-flex align-items-center {% if requires_attention %}text-bg-light-green{% else %}text-body{% endif %}">
+                    class="badge d-flex align-items-center {% if _attention %}text-bg-light-green{% else %}text-body{% endif %}">
                     {{ report.num_comments -}}
                     <i class="bi bi-chat-left-text"></i>
                 </span>

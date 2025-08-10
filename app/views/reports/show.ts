@@ -3,9 +3,40 @@ import { configureStandardPagination } from "../lib/standard-pagination"
 
 const body = document.querySelector("body.report-show-body")
 if (body) {
-    // Configure pagination for comments
+    const setupVisibilityDropdowns = () => {
+        for (const form of document.querySelectorAll("form.visibility-form")) {
+            const select = form.elements.namedItem("visible_to") as HTMLSelectElement
+
+            // Store the current value for rollback on error
+            let currentValue = select.value
+
+            select.addEventListener("change", () => {
+                select.classList.add("disabled")
+                form.requestSubmit()
+            })
+
+            configureStandardForm(
+                form,
+                () => {
+                    currentValue = select.value
+                    select.classList.remove("disabled")
+                    console.debug("Visibility changed successfully to", currentValue)
+                },
+                null,
+                () => {
+                    select.value = currentValue
+                    select.classList.remove("disabled")
+                    console.error("Visibility change failed, rolling back")
+                },
+            )
+        }
+    }
+
     configureStandardPagination(
         document.querySelector("div.report-comments-pagination"),
+        {
+            loadCallback: setupVisibilityDropdowns,
+        },
     )
 
     // Configure forms

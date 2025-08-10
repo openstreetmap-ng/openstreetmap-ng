@@ -30,8 +30,7 @@
 
     .profile-dropdown {
         .badge {
-            position: static;
-            font-weight: 300;
+            font-weight: 400;
         }
     }
 
@@ -76,7 +75,7 @@
 }
 
 .navbar-nav {
-    font-size: 0.9em;
+    font-size: 0.875em;
 
     @include media-breakpoint-down(lg) {
         .nav-item:not(:last-child) {
@@ -93,7 +92,7 @@
 
 .navbar-nav-more {
     .btn {
-        --bs-btn-font-size: 0.9em;
+        --bs-btn-font-size: 0.875em;
     }
 }
 

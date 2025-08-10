@@ -2,11 +2,12 @@
 {# Parameters: report, comment, show_user (optional) #}
 
 {# Show user who performed the action if requested #}
-{% if show_user and comment.user %}
+{% set _has_user = show_user and comment.user %}
+{% if _has_user %}
 <a href="/user/{{ comment.user.display_name }}">
     <img class="avatar" src="{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}">
     {{- comment.user.display_name -}}
-</a><span class="small text-muted">:</span>
+</a><span class="text-muted">:</span>
 {% endif %}
 
 {# Build category phrase if present #}
@@ -16,10 +17,10 @@
 {% endset %}
 {% endif %}
 
-{% set _has_body = comment.has_access and comment.body_rich %}
-
 {# Show action-specific content #}
-<span class="report-action {% if _has_body and comment.action != 'comment' %}report-action-with-body{% endif %}">
+{% set _has_body = comment.has_access and comment.body %}
+<span
+    class="report-action {% if _has_body and (_has_user or comment.action != 'comment') %}report-action-with-body{% endif %}">
     {% if not comment.has_access %}
     <i class="bi bi-lock text-muted me-1-5"></i>{#--#}
     <em class="text-muted">Restricted comment</em>

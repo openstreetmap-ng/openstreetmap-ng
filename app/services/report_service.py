@@ -19,8 +19,7 @@ from app.models.db.report_comment import (
     ReportCommentInit,
     report_comments_resolve_rich_text,
 )
-from app.models.db.user import UserRole
-from app.models.types import ReportCommentId, ReportId
+from app.models.types import ReportId
 from app.queries.report_comment_query import ReportCommentQuery
 from app.queries.report_query import ReportQuery
 from app.queries.user_query import UserQuery
@@ -311,31 +310,6 @@ class ReportService:
             await _add_report_comment(conn, comment_init)
 
         logging.debug('Reopened report %d by user %d', report_id, user_id)
-
-    @staticmethod
-    async def change_comment_visibility(
-        comment_id: ReportCommentId,
-        new_visibility: UserRole,
-    ) -> None:
-        user = auth_user(required=True)
-        user_id = user['id']
-
-        async with db(True) as conn:
-            result = await conn.execute(
-                """
-                UPDATE report_comment SET visible_to = %s
-                WHERE id = %s AND visible_to != %s
-                """,
-                (new_visibility, comment_id, new_visibility),
-            )
-
-            if result.rowcount:
-                logging.debug(
-                    'Changed visibility of comment %d to %r by user %d',
-                    comment_id,
-                    new_visibility,
-                    user_id,
-                )
 
 
 @cython.cfunc
