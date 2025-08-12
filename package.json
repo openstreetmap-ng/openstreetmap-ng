@@ -26,14 +26,14 @@
     "autoprefixer": "latest",
     "browserslist": "latest",
     "caniuse-lite": "latest",
-    "core-js": "3.44.0",
+    "core-js": "3.45.0",
     "i18next-conv": "latest",
     "prettier": "latest",
     "sass-embedded": "latest",
     "terser": "latest",
     "typed-query-selector": "latest",
     "typescript": "latest",
-    "vite": "npm:rolldown-vite@^7.0.12"
+    "vite": "npm:rolldown-vite@^7.1.2"
   },
   "scripts": {
     "postinstall": "_pnpm-postinstall"
@@ -60,7 +60,7 @@
         "@babel/preset-env",
         {
           "corejs": {
-            "version": "3.44.0"
+            "version": "3.45.0"
           },
           "modules": false,
           "useBuiltIns": "usage"
