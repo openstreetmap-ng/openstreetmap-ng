@@ -46,8 +46,7 @@ class ReportQuery:
         )
 
         async with db() as conn, await conn.execute(query) as r:
-            row = await r.fetchone()
-            return row[0] if row is not None else 0
+            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
     async def get_reports_page(
