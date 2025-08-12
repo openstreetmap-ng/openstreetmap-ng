@@ -19,6 +19,7 @@ class _ReportCountResult(NamedTuple):
 class ReportQuery:
     @staticmethod
     async def find_one_by_id(report_id: ReportId) -> Report | None:
+        """Find a report by id."""
         async with (
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
@@ -55,7 +56,7 @@ class ReportQuery:
         num_items: int,
         open: bool | None = None,
     ) -> list[Report]:
-        """Get a page of reports for the admin list view."""
+        """Get a page of reports for the list view."""
         stmt_limit, stmt_offset = standard_pagination_range(
             page,
             page_size=REPORT_LIST_PAGE_SIZE,
@@ -91,7 +92,7 @@ class ReportQuery:
 
     @staticmethod
     async def count_requiring_attention(visible_to: UserRole) -> _ReportCountResult:
-        """Count reports requiring attention based on visibility level."""
+        """Count reports requiring attention."""
         # Build query dynamically based on visibility level
         if visible_to == 'administrator':
             select_clause = SQL("""

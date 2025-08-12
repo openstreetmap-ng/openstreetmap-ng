@@ -1,3 +1,5 @@
+from asyncio import TaskGroup
+
 import cython
 from psycopg.rows import dict_row
 
@@ -31,6 +33,7 @@ class ReportCommentQuery:
     async def find_one_by_id(
         report_comment_id: ReportCommentId,
     ) -> ReportComment | None:
+        """Find a report comment by id."""
         async with (
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
@@ -50,6 +53,7 @@ class ReportCommentQuery:
         page: int,
         num_items: int,
     ) -> list[ReportComment]:
+        """Get a page of comments for a report."""
         stmt_limit, stmt_offset = standard_pagination_range(
             page,
             page_size=REPORT_COMMENTS_PAGE_SIZE,
@@ -93,7 +97,7 @@ class ReportCommentQuery:
         *,
         per_report_limit: int | None = None,
     ) -> list[ReportComment]:
-        """Resolve comments for reports. Returns the resolved comments."""
+        """Resolve comments for reports."""
         if not reports:
             return []
 
@@ -157,7 +161,7 @@ class ReportCommentQuery:
 
     @staticmethod
     async def resolve_objects(comments: list[ReportComment]) -> None:
-        """Resolve objects for report comments based on their action type."""
+        """Resolve objects for report comments."""
         if not comments:
             return
 
@@ -188,48 +192,64 @@ class ReportCommentQuery:
                 trace_comments.append(comment)
                 trace_ids.add(action_id)  # type: ignore
 
-        # Resolve diaries
-        if diary_ids:
-            diaries = await DiaryQuery.find_many_by_ids(list(diary_ids))
-            diary_map: dict[DiaryId, Diary] = {diary['id']: diary for diary in diaries}
+        # Fetch all object types in parallel
+        async with TaskGroup() as tg:
+            diary_task = (
+                tg.create_task(DiaryQuery.find_many_by_ids(list(diary_ids)))
+                if diary_ids
+                else None
+            )
+            message_task = (
+                tg.create_task(MessageQuery.find_many_by_ids(list(message_ids)))
+                if message_ids
+                else None
+            )
+            app_task = (
+                tg.create_task(OAuth2ApplicationQuery.find_many_by_ids(list(app_ids)))
+                if app_ids
+                else None
+            )
+            trace_task = (
+                tg.create_task(TraceQuery.find_many_by_ids(list(trace_ids)))
+                if trace_ids
+                else None
+            )
 
+        # Map fetched objects back to comments
+        if diary_task is not None:
+            diaries = await diary_task
+            diary_map: dict[DiaryId, Diary] = {diary['id']: diary for diary in diaries}
             for comment in diary_comments:
                 action_id = comment['action_id']
                 diary = diary_map.get(action_id)  # type: ignore
                 if diary is not None:
                     comment['object'] = diary
 
-        # Resolve messages
-        if message_ids:
-            messages = await MessageQuery.find_many_by_ids(list(message_ids))
+        if message_task is not None:
+            messages = await message_task
             message_map: dict[MessageId, Message] = {
                 message['id']: message for message in messages
             }
-
             for comment in message_comments:
                 action_id = comment['action_id']
                 message = message_map.get(action_id)  # type: ignore
                 if message is not None:
                     comment['object'] = message
 
-        # Resolve OAuth2 applications
-        if app_ids:
-            apps = await OAuth2ApplicationQuery.find_many_by_ids(list(app_ids))
+        if app_task is not None:
+            apps = await app_task
             app_map: dict[ApplicationId, OAuth2Application] = {
                 app['id']: app for app in apps
             }
-
             for comment in app_comments:
                 action_id = comment['action_id']
                 app = app_map.get(action_id)  # type: ignore
                 if app is not None:
                     comment['object'] = app
 
-        # Resolve traces
-        if trace_ids:
-            traces = await TraceQuery.find_many_by_ids(list(trace_ids))
+        if trace_task is not None:
+            traces = await trace_task
             trace_map: dict[TraceId, Trace] = {trace['id']: trace for trace in traces}
-
             for comment in trace_comments:
                 action_id = comment['action_id']
                 trace = trace_map.get(action_id)  # type: ignore
@@ -238,7 +258,7 @@ class ReportCommentQuery:
 
     @staticmethod
     async def resolve_num_comments(reports: list[Report]) -> None:
-        """Resolve the number of comments for each report."""
+        """Resolve the number of comments for reports."""
         if not reports:
             return
 

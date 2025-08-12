@@ -11,10 +11,10 @@ from app.models.types import ApplicationId, ClientId, UserId
 class OAuth2ApplicationQuery:
     @staticmethod
     async def find_one_by_id(
-        app_id: ApplicationId, *, user_id: UserId | None = None
+        id: ApplicationId, *, user_id: UserId | None = None
     ) -> OAuth2Application | None:
         """Find an OAuth2 application by id."""
-        apps = await OAuth2ApplicationQuery.find_many_by_ids([app_id])
+        apps = await OAuth2ApplicationQuery.find_many_by_ids([id])
         app = next(iter(apps), None)
         if app is not None and user_id is not None and app['user_id'] != user_id:
             return None
