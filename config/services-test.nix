@@ -30,8 +30,7 @@ let
     ProtectKernelLogs = true;
     ProtectKernelModules = true;
     ProtectKernelTunables = true;
-    ProtectProc = "noaccess";
-    ProcSubset = "pid";
+    ProtectProc = "invisible";
     PrivateUsers = true;
     RestrictAddressFamilies = [
       "AF_UNIX"
