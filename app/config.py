@@ -327,7 +327,9 @@ OVERPASS_CACHE_EXPIRE = timedelta(minutes=10)
 S3_CACHE_EXPIRE = timedelta(days=1)
 
 # Content caches
-GRAVATAR_CACHE_EXPIRE = timedelta(days=1)
+DYNAMIC_AVATAR_CACHE_EXPIRE = timedelta(days=30)
+GRAVATAR_CACHE_EXPIRE = timedelta(days=7)
+INITIALS_CACHE_MAX_AGE = timedelta(days=7)
 RICH_TEXT_CACHE_EXPIRE = timedelta(hours=8)
 STATIC_CACHE_MAX_AGE = timedelta(days=30)
 STATIC_CACHE_STALE = timedelta(days=30)

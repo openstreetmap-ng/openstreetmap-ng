@@ -19,7 +19,7 @@ from app.config import (
     BACKGROUND_MAX_RATIO,
 )
 from app.lib.exceptions_context import raise_for
-from app.models.types import StorageKey
+from app.models.types import NoteId, StorageKey, UserId
 
 if cython.compiled:
     from cython.cimports.libc.math import sqrt
@@ -28,7 +28,7 @@ else:
 
 # TODO: test 200MP file
 
-AvatarType = Literal['gravatar', 'custom'] | None
+AvatarType = Literal['anonymous_note', 'initials', 'gravatar', 'custom'] | None
 
 DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
 DEFAULT_USER_AVATAR = Path('app' + DEFAULT_USER_AVATAR_URL).read_bytes()
@@ -46,8 +46,14 @@ class Image:
     @staticmethod
     @overload
     def get_avatar_url(
-        image_type: Literal['gravatar'],
-        image_id: int,
+        image_type: Literal['anonymous_note'],
+        image_id: NoteId,
+    ) -> str: ...
+    @staticmethod
+    @overload
+    def get_avatar_url(
+        image_type: Literal['initials', 'gravatar'],
+        image_id: UserId,
     ) -> str: ...
     @staticmethod
     @overload
@@ -58,24 +64,16 @@ class Image:
     @staticmethod
     def get_avatar_url(
         image_type: AvatarType,
-        image_id: int | StorageKey = 0,
+        image_id: UserId | NoteId | StorageKey | None = None,
         *,
         app: bool = False,
     ) -> str:
-        """
-        Get the url of the avatar image.
-
-        >>> Image.get_avatar_url('custom', StorageKey('123456'))
-        '/api/web/avatar/123456'
-        """
-        if image_type is None:
-            return DEFAULT_APP_AVATAR_URL if app else DEFAULT_USER_AVATAR_URL
-        if image_type == 'gravatar':
-            return f'/api/web/gravatar/{image_id}'
-        if image_type == 'custom':
-            return f'/api/web/avatar/{image_id}'
-
-        raise NotImplementedError(f'Unsupported avatar type {image_type!r}')
+        """Get the url of the avatar image."""
+        return (
+            f'/api/web/img/avatar/{image_type}/{image_id}'
+            if image_type is not None
+            else (DEFAULT_APP_AVATAR_URL if app else DEFAULT_USER_AVATAR_URL)
+        )
 
     @staticmethod
     async def normalize_avatar(data: bytes) -> bytes:
@@ -90,13 +88,12 @@ class Image:
 
     @staticmethod
     def get_background_url(image_id: StorageKey | None) -> str | None:
-        """
-        Get the url of the background image.
-
-        >>> Image.get_background_url(StorageKey('123456'))
-        '/api/web/background/123456'
-        """
-        return f'/api/web/background/{image_id}' if image_id is not None else None
+        """Get the url of the background image."""
+        return (
+            f'/api/web/img/background/custom/{image_id}'
+            if image_id is not None
+            else None
+        )
 
     @staticmethod
     async def normalize_background(data: bytes) -> bytes:

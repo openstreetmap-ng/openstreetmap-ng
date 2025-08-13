@@ -10,6 +10,7 @@
     "@sentry/browser": "latest",
     "bootstrap": "latest",
     "bootstrap-icons": "latest",
+    "dicebear": "latest",
     "i18next": "latest",
     "iD": "github:openstreetmap/iD#release",
     "maplibre-gl": "latest",

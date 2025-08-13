@@ -6,8 +6,8 @@ from app.lib.image import Image
 @pytest.mark.parametrize(
     ('image_type', 'image_id', 'expected'),
     [
-        ('gravatar', 123, '/api/web/gravatar/123'),
-        ('custom', '123', '/api/web/avatar/123'),
+        ('gravatar', 123, '/api/web/img/avatar/gravatar/123'),
+        ('custom', '123', '/api/web/img/avatar/custom/123'),
     ],
 )
 def test_get_avatar_url(image_type, image_id, expected):

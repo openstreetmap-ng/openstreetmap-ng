@@ -28,7 +28,9 @@
             <p class="header text-muted d-flex justify-content-between">
                 <span>
                     {% if not header.user %}
-                    {{ t('browse.anonymous') }}
+                    <img class="avatar" src="{{ get_avatar_url('anonymous_note', note.id) }}"
+                        alt="{{ t('alt.profile_picture') }}">
+                    {{- t('browse.anonymous') -}}
                     {% else %}
                     <a href="/user/{{ header.user.display_name }}" rel="author">
                         <img class="avatar" src="{{ user_avatar_url(header.user) }}"

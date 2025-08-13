@@ -5,7 +5,7 @@ from typing import Literal, NotRequired, TypedDict
 from shapely import Point
 
 from app.config import DELETED_USER_EMAIL_SUFFIX, TEST_USER_EMAIL_SUFFIX
-from app.lib.image import DEFAULT_USER_AVATAR_URL, AvatarType, Image
+from app.lib.image import AvatarType, Image
 from app.lib.rich_text import resolve_rich_text
 from app.models.scope import Scope
 from app.models.types import DisplayName, Email, LocaleCode, StorageKey, UserId
@@ -100,7 +100,7 @@ def user_avatar_url(user: User | UserDisplay) -> str:
     """Get the relative url for the user's avatar image."""
     avatar_type = user['avatar_type']
     if avatar_type is None:
-        return DEFAULT_USER_AVATAR_URL
+        return Image.get_avatar_url('initials', user['id'])
     if avatar_type == 'gravatar':
         return Image.get_avatar_url('gravatar', user['id'])
     if avatar_type == 'custom':

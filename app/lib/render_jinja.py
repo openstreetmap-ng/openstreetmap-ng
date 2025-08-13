@@ -8,6 +8,7 @@ from jinja2_htmlmin import minify_loader
 from app.config import APP_URL, ENV, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
+from app.lib.image import Image
 from app.lib.translation import nt, primary_translation_locale, t
 from app.lib.vite import vite_render_asset
 from app.models.db.oauth2_application import oauth2_app_avatar_url, oauth2_app_is_system
@@ -149,6 +150,7 @@ _J2.globals.update(
     round=round,
     timeago=timeago,
     format_rfc2822_date=format_rfc2822_date,
+    get_avatar_url=Image.get_avatar_url,
     user_is_moderator=user_is_moderator,
     user_is_admin=user_is_admin,
     user_avatar_url=user_avatar_url,
