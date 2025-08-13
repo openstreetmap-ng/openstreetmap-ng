@@ -38,7 +38,7 @@ from app.lib.dicebear import _extract_initials
         ('XY', 'XY'),
         # Unicode support
         ('北京市', '北京'),
-        ('Москва', 'МО'),
+        ('Москва', 'МО'),  # noqa: RUF001
         ('Αθήνα', 'ΑΘ'),
         ('مدينة', 'مد'),
         # Mixed patterns
