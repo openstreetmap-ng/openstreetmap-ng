@@ -136,7 +136,7 @@ let
   packages' = with pkgs; [
     llvmPackages_latest.clang-tools
     llvmPackages_latest.lld
-    ps
+    procps
     coreutils
     findutils
     parallel
