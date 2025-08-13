@@ -34,7 +34,7 @@ if (body) {
 
         const removeAvatarButton = avatarForm.querySelector("button.remove-btn")
         removeAvatarButton.addEventListener("click", () => {
-            avatarTypeInput.value = "default"
+            avatarTypeInput.value = ""
             avatarFileInput.value = ""
             avatarForm.requestSubmit()
         })

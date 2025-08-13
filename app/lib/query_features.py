@@ -38,7 +38,6 @@ class QueryFeatures:
             for element in overpass_elements
         }
 
-        # noinspection PyTypeChecker
         elements_unfiltered: list[ElementInit] = [
             {
                 'changeset_id': 0,  # type: ignore

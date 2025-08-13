@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, Response, UploadFile
 from starlette import status
@@ -6,7 +6,7 @@ from starlette.responses import RedirectResponse
 
 from app.config import USER_DESCRIPTION_MAX_LENGTH
 from app.lib.auth_context import web_user
-from app.lib.image import AvatarType
+from app.lib.image import UserAvatarType
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.db.connected_account import AuthProvider
@@ -52,10 +52,10 @@ async def settings_editor(
 @router.post('/settings/avatar')
 async def settings_avatar(
     _: Annotated[User, web_user()],
-    avatar_type: Annotated[AvatarType, Form()],
+    avatar_type: Annotated[UserAvatarType | Literal[''], Form()],
     avatar_file: Annotated[UploadFile, Form()],
 ):
-    avatar_url = await UserService.update_avatar(avatar_type, avatar_file)
+    avatar_url = await UserService.update_avatar(avatar_type or None, avatar_file)
     return {'avatar_url': avatar_url}
 
 

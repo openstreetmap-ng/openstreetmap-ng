@@ -212,8 +212,8 @@ async def _update_elements(
 
     # Process elements and prepare data for insert
     for sequence_id, element_init in enumerate(elements_init, current_sequence_id + 1):
-        # noinspection PyTypeChecker
-        element: Element = element_init | {
+        element: Element = {
+            **element_init,
             'sequence_id': sequence_id,  # type: ignore
             'latest': True,
             'created_at': now,

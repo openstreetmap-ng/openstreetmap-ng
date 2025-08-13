@@ -28,7 +28,8 @@ else:
 
 # TODO: test 200MP file
 
-AvatarType = Literal['anonymous_note', 'initials', 'gravatar', 'custom'] | None
+UserAvatarType = Literal['gravatar', 'custom'] | None
+AvatarType = Literal['anonymous_note', 'initials'] | UserAvatarType
 
 DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
 DEFAULT_USER_AVATAR = Path('app' + DEFAULT_USER_AVATAR_URL).read_bytes()

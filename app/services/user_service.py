@@ -7,7 +7,7 @@ from app.config import ENV, USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.lib.image import AvatarType, Image
+from app.lib.image import Image, UserAvatarType
 from app.lib.locale import is_installed_locale
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
@@ -95,7 +95,9 @@ class UserService:
             )
 
     @staticmethod
-    async def update_avatar(avatar_type: AvatarType, avatar_file: UploadFile) -> str:
+    async def update_avatar(
+        avatar_type: UserAvatarType, avatar_file: UploadFile
+    ) -> str:
         """Update user's avatar. Returns the new avatar URL."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -123,7 +125,6 @@ class UserService:
         if old_avatar_id is not None:
             await ImageService.delete_avatar_by_id(old_avatar_id)
 
-        # noinspection PyTypeChecker
         user: User = {
             **user,
             'avatar_type': avatar_type,

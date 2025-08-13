@@ -94,7 +94,7 @@ class AuthProviderService:
     ) -> Response:
         if state.provider not in AUTH_PROVIDERS:
             raise NotImplementedError(f'Unsupported auth provider {state.provider!r}')
-        # noinspection PyTypeChecker
+
         provider: AuthProvider = state.provider
         action: AuthProviderAction = state.action  # type: ignore
         uid = str(uid)

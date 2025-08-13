@@ -5,7 +5,7 @@ from typing import Literal, NotRequired, TypedDict
 from shapely import Point
 
 from app.config import DELETED_USER_EMAIL_SUFFIX, TEST_USER_EMAIL_SUFFIX
-from app.lib.image import AvatarType, Image
+from app.lib.image import Image, UserAvatarType
 from app.lib.rich_text import resolve_rich_text
 from app.models.scope import Scope
 from app.models.types import DisplayName, Email, LocaleCode, StorageKey, UserId
@@ -33,7 +33,7 @@ class User(UserInit):
     timezone: str | None
     editor: Editor | None
     home_point: Point | None
-    avatar_type: AvatarType
+    avatar_type: UserAvatarType
     avatar_id: StorageKey | None
     background_id: StorageKey | None
     description: str
@@ -51,7 +51,7 @@ class UserDisplay(TypedDict):
 
     id: UserId
     display_name: DisplayName
-    avatar_type: AvatarType
+    avatar_type: UserAvatarType
     avatar_id: StorageKey
 
 
