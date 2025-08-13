@@ -1,3 +1,4 @@
+import sys
 from itertools import product
 from typing import get_args
 from urllib.parse import parse_qs, urlsplit
@@ -222,6 +223,10 @@ async def test_authorize_response_form_post(client: AsyncClient):
     assert 'name="state"' in r.text
 
 
+@pytest.mark.skipif(
+    sys.platform == 'darwin',
+    reason='3rd party compatibility issue: https://github.com/photostructure/batch-cluster.js/issues/58',
+)
 async def test_token_introspection_and_userinfo(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
     auth_client = AsyncOAuth2Client(
