@@ -825,6 +825,19 @@ zstd = [
 ]
 
 [[package]]
+name = "httpx-secure"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "httpx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b4/9e/a7bb258823e96927b865b3625bb0e168161212ea70ee845529f5d0be9e58/httpx_secure-1.0.0.tar.gz", hash = "sha256:f9df31d4775bd87ba993b49cd6464a1a0f2ed10699362637dbf47604c484a2de", size = 18309, upload-time = "2025-08-15T16:11:18.73Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ab/ee/980259c770b601ad8642989f17b1134d847b710e6ae14a0c21505d07bce2/httpx_secure-1.0.0-py3-none-any.whl", hash = "sha256:ea75f5ed917a664c265bf68ebc139029a2ca8d39fd18ec2a9e6b8ab45544a1a9", size = 5485, upload-time = "2025-08-15T16:11:17.214Z" },
+]
+
+[[package]]
 name = "identify"
 version = "2.6.13"
 source = { registry = "https://pypi.org/simple" }
@@ -1171,6 +1184,7 @@ dependencies = [
     { name = "gunicorn" },
     { name = "h3" },
     { name = "httpx", extra = ["brotli", "zstd"] },
+    { name = "httpx-secure" },
     { name = "jinja2" },
     { name = "jinja2-htmlmin" },
     { name = "lrucache-rs" },
@@ -1245,6 +1259,7 @@ requires-dist = [
     { name = "gunicorn" },
     { name = "h3" },
     { name = "httpx", extras = ["brotli", "zstd"] },
+    { name = "httpx-secure" },
     { name = "jinja2" },
     { name = "jinja2-htmlmin" },
     { name = "lrucache-rs" },

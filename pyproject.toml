@@ -17,6 +17,7 @@ dependencies = [
   "githead",
   "gunicorn",
   "h3",
+  "httpx-secure",
   "httpx[brotli,zstd]",
   "jinja2",
   "jinja2-htmlmin",

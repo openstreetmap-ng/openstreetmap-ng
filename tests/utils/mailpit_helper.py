@@ -8,7 +8,7 @@ import orjson
 import websockets
 
 from app.models.db.user import User
-from app.utils import HTTP
+from app.utils import HTTP_INTERNAL
 
 
 class MailpitAttachment(TypedDict):
@@ -92,7 +92,7 @@ class MailpitHelper:
 
         async with websockets.connect(_API_WS_URL) as websocket:
             # Process existing messages
-            r = await HTTP.get(f'{_API_URL}/v1/messages')
+            r = await HTTP_INTERNAL.get(f'{_API_URL}/v1/messages')
             r.raise_for_status()
 
             # Sorted from newest to oldest
@@ -121,13 +121,13 @@ class MailpitHelper:
     @staticmethod
     async def get_message(message_id: str) -> MailpitMessageSummary:
         """Get a specific message from Mailpit."""
-        r = await HTTP.get(f'{_API_URL}/v1/message/{message_id}')
+        r = await HTTP_INTERNAL.get(f'{_API_URL}/v1/message/{message_id}')
         r.raise_for_status()
         return r.json()
 
     @staticmethod
     async def get_headers(message_id: str) -> dict[str, list[str]]:
-        r = await HTTP.get(f'{_API_URL}/v1/message/{message_id}/headers')
+        r = await HTTP_INTERNAL.get(f'{_API_URL}/v1/message/{message_id}/headers')
         r.raise_for_status()
         return r.json()
 
