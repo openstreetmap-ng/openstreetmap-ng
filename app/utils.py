@@ -10,7 +10,7 @@ from app.config import HTTP_TIMEOUT, USER_AGENT
 
 
 @cython.cfunc
-def _get_http_client() -> AsyncClient:
+def _get_http_client():
     return AsyncClient(
         headers={'User-Agent': USER_AGENT},
         timeout=HTTP_TIMEOUT.total_seconds(),
