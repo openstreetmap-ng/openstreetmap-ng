@@ -21,14 +21,16 @@ from app.config import (
 
 
 def extend_changeset_bounds(
-    bounds: MultiPolygon | None, points: list[Point]
+    bounds: MultiPolygon | None,
+    points: list[Point],
+    *,
+    CHANGESET_BBOX_LIMIT: cython.Py_ssize_t = CHANGESET_BBOX_LIMIT,
 ) -> MultiPolygon:
-    bbox_limit: cython.Py_ssize_t = CHANGESET_BBOX_LIMIT
     bboxes: list[list[float]]
     bboxes = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
     num_bboxes: cython.Py_ssize_t = len(bboxes)
     num_bounds: cython.Py_ssize_t = num_bboxes
-    dirty_mask: list[bool] = [False] * bbox_limit
+    dirty_mask: list[bool] = [False] * CHANGESET_BBOX_LIMIT
 
     # create index
     index = Index()
@@ -45,7 +47,7 @@ def extend_changeset_bounds(
         # below the limit, find the intersection, otherwise find the nearest
         i = (
             next(index.intersection(_get_buffer_bbox(bbox), False), None)
-            if num_bboxes < bbox_limit
+            if num_bboxes < CHANGESET_BBOX_LIMIT
             else next(index.nearest(_get_buffer_bbox(bbox), 1, False))
         )
 
