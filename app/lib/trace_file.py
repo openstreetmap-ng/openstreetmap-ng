@@ -112,10 +112,10 @@ class _Bzip2Processor(_TraceProcessor):
             result = decompressor.decompress(buffer, TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
         except (OSError, ValueError):
             raise_for.trace_file_archive_corrupted(cls.media_type)
-        if not decompressor.eof or decompressor.unused_data:
-            raise_for.trace_file_archive_corrupted(cls.media_type)
         if not decompressor.needs_input:
             raise_for.input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+        if not decompressor.eof or decompressor.unused_data:
+            raise_for.trace_file_archive_corrupted(cls.media_type)
 
         logging.debug(
             'Trace %r archive uncompressed size is %s',
@@ -136,10 +136,10 @@ class _GzipProcessor(_TraceProcessor):
             result = decompressor.decompress(buffer, TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
         except zlib.error:
             raise_for.trace_file_archive_corrupted(cls.media_type)
-        if not decompressor.eof or decompressor.unused_data:
-            raise_for.trace_file_archive_corrupted(cls.media_type)
         if decompressor.unconsumed_tail:
             raise_for.input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+        if not decompressor.eof or decompressor.unused_data:
+            raise_for.trace_file_archive_corrupted(cls.media_type)
 
         logging.debug(
             'Trace %r archive uncompressed size is %s',

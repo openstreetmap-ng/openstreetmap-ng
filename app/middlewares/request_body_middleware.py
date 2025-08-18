@@ -148,10 +148,10 @@ def _decompress_gzip(buffer: bytes) -> bytes:
     decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
     result = decompressor.decompress(buffer, REQUEST_BODY_MAX_SIZE)
 
-    if not decompressor.eof or decompressor.unused_data:
-        raise ValueError('Gzip stream is corrupted')
     if decompressor.unconsumed_tail:
         raise _TooBigError
+    if not decompressor.eof or decompressor.unused_data:
+        raise ValueError('Gzip stream is corrupted')
 
     return result
 
@@ -161,10 +161,10 @@ def _decompress_zlib(buffer: bytes) -> bytes:
     decompressor = zlib.decompressobj()
     result = decompressor.decompress(buffer, REQUEST_BODY_MAX_SIZE)
 
-    if not decompressor.eof or decompressor.unused_data:
-        raise ValueError('Zlib stream is corrupted')
     if decompressor.unconsumed_tail:
         raise _TooBigError
+    if not decompressor.eof or decompressor.unused_data:
+        raise ValueError('Zlib stream is corrupted')
 
     return result
 
