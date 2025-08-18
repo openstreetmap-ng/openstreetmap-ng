@@ -23,8 +23,8 @@ from app.config import (
     TRACE_FILE_ARCHIVE_MAX_FILES,
     TRACE_FILE_COMPRESS_ZSTD_LEVEL,
     TRACE_FILE_COMPRESS_ZSTD_THREADS,
+    TRACE_FILE_DECOMPRESSED_MAX_SIZE,
     TRACE_FILE_MAX_LAYERS,
-    TRACE_FILE_UNCOMPRESSED_MAX_SIZE,
 )
 from app.lib.exceptions_context import raise_for
 from app.models.types import StorageKey
@@ -34,6 +34,10 @@ class _CompressResult(NamedTuple):
     data: bytes
     suffix: LiteralString
     metadata: dict[str, str]
+
+
+_ZSTD_SUFFIX = '.zst'
+_ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
 
 
 class TraceFile:
@@ -48,6 +52,11 @@ class TraceFile:
         for layer in range(1, TRACE_FILE_MAX_LAYERS + 1):
             content_type = magic.from_buffer(buffer[:2048], mime=True)
             logging.debug('Trace file layer %d is %r', layer, content_type)
+
+            # return if no processing needed
+            if content_type == 'text/xml':
+                _log_decompressed_size(content_type, len(buffer))
+                return [buffer]
 
             # get the appropriate processor
             processor = _TRACE_PROCESSORS.get(content_type)
@@ -109,19 +118,15 @@ class _Bzip2Processor(_TraceProcessor):
     def decompress(cls, buffer: bytes) -> bytes:
         decompressor = BZ2Decompressor()
         try:
-            result = decompressor.decompress(buffer, TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+            result = decompressor.decompress(buffer, TRACE_FILE_DECOMPRESSED_MAX_SIZE)
         except (OSError, ValueError):
             raise_for.trace_file_archive_corrupted(cls.media_type)
         if not decompressor.needs_input:
-            raise_for.input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+            raise_for.input_too_big(TRACE_FILE_DECOMPRESSED_MAX_SIZE)
         if not decompressor.eof or decompressor.unused_data:
             raise_for.trace_file_archive_corrupted(cls.media_type)
 
-        logging.debug(
-            'Trace %r archive uncompressed size is %s',
-            cls.media_type,
-            sizestr(len(result)),
-        )
+        _log_decompressed_size(cls.media_type, len(result))
         return result
 
 
@@ -133,19 +138,15 @@ class _GzipProcessor(_TraceProcessor):
     def decompress(cls, buffer: bytes) -> bytes:
         decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
         try:
-            result = decompressor.decompress(buffer, TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+            result = decompressor.decompress(buffer, TRACE_FILE_DECOMPRESSED_MAX_SIZE)
         except zlib.error:
             raise_for.trace_file_archive_corrupted(cls.media_type)
         if decompressor.unconsumed_tail:
-            raise_for.input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+            raise_for.input_too_big(TRACE_FILE_DECOMPRESSED_MAX_SIZE)
         if not decompressor.eof or decompressor.unused_data:
             raise_for.trace_file_archive_corrupted(cls.media_type)
 
-        logging.debug(
-            'Trace %r archive uncompressed size is %s',
-            cls.media_type,
-            sizestr(len(result)),
-        )
+        _log_decompressed_size(cls.media_type, len(result))
         return result
 
 
@@ -177,20 +178,6 @@ class _TarProcessor(_TraceProcessor):
             raise_for.trace_file_archive_corrupted(cls.media_type)
 
 
-class _XmlProcessor(_TraceProcessor):
-    media_type = 'text/xml'
-
-    @classmethod
-    @override
-    def decompress(cls, buffer: bytes) -> list[bytes]:
-        logging.debug(
-            'Trace %r uncompressed size is %s',
-            cls.media_type,
-            sizestr(len(buffer)),
-        )
-        return [buffer]
-
-
 class _ZipProcessor(_TraceProcessor):
     media_type = 'application/zip'
 
@@ -209,40 +196,23 @@ class _ZipProcessor(_TraceProcessor):
                 if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
                     raise_for.trace_file_archive_too_many_files()
 
-                result: list[bytes] = [None] * len(infos)  # type: ignore
-                remaining_size: cython.Py_ssize_t = TRACE_FILE_UNCOMPRESSED_MAX_SIZE
+                result: list[bytes] = []
+                remaining_size: cython.Py_ssize_t = TRACE_FILE_DECOMPRESSED_MAX_SIZE
 
-                i: cython.Py_ssize_t
-                for i, info in enumerate(infos):
+                for info in infos:
                     with archive.open(info) as f:
-                        chunks: list[bytes] = []
-
-                        while True:
-                            if not remaining_size:
-                                raise_for.input_too_big(
-                                    TRACE_FILE_UNCOMPRESSED_MAX_SIZE
-                                )
-                            chunk = f.read(remaining_size)
-                            if not chunk:
-                                break
-                            chunks.append(chunk)
-                            remaining_size -= len(chunk)
-
-                        result[i] = b''.join(chunks)
+                        file_data = f.read(remaining_size)
+                        remaining_size -= len(file_data)
+                        result.append(file_data)
+                        if not remaining_size and f.read(1):
+                            raise_for.input_too_big(TRACE_FILE_DECOMPRESSED_MAX_SIZE)
 
         except BadZipFile:
             raise_for.trace_file_archive_corrupted(cls.media_type)
 
-        logging.debug(
-            'Trace %r archive uncompressed size is %s',
-            cls.media_type,
-            sizestr(TRACE_FILE_UNCOMPRESSED_MAX_SIZE - remaining_size),
-        )
+        total_size = TRACE_FILE_DECOMPRESSED_MAX_SIZE - remaining_size
+        _log_decompressed_size(cls.media_type, total_size)
         return result
-
-
-_ZSTD_SUFFIX = '.zst'
-_ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
 
 
 class _ZstdProcessor(_TraceProcessor):
@@ -266,20 +236,20 @@ class _ZstdProcessor(_TraceProcessor):
                 chunk = decompressor.decompress(buffer[i : i + chunk_size])
                 chunks.append(chunk)
                 total_size += len(chunk)
-                if total_size > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
-                    raise_for.input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+                if total_size > TRACE_FILE_DECOMPRESSED_MAX_SIZE:
+                    raise_for.input_too_big(TRACE_FILE_DECOMPRESSED_MAX_SIZE)
         except ZstdError:
             raise_for.trace_file_archive_corrupted(cls.media_type)
         if not decompressor.eof or decompressor.unused_data:
             raise_for.trace_file_archive_corrupted(cls.media_type)
 
-        result = b''.join(chunks)
-        logging.debug(
-            'Trace %r archive uncompressed size is %s',
-            cls.media_type,
-            sizestr(total_size),
-        )
-        return result
+        _log_decompressed_size(cls.media_type, total_size)
+        return b''.join(chunks)
+
+
+@cython.cfunc
+def _log_decompressed_size(media_type: str, size: cython.Py_ssize_t):
+    logging.debug('Trace %r decompressed size is %s', media_type, sizestr(size))
 
 
 _TRACE_PROCESSORS: dict[str, type[_TraceProcessor]] = {
@@ -288,7 +258,6 @@ _TRACE_PROCESSORS: dict[str, type[_TraceProcessor]] = {
         _Bzip2Processor,
         _GzipProcessor,
         _TarProcessor,
-        _XmlProcessor,
         _ZipProcessor,
         _ZstdProcessor,
     )
