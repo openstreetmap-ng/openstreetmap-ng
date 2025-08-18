@@ -54,7 +54,7 @@ class TraceFile:
             logging.debug('Trace file layer %d is %r', layer, content_type)
 
             # return if no processing needed
-            if content_type == 'text/xml':
+            if content_type in {'text/xml', 'application/xml', 'application/gpx+xml'}:
                 _log_decompressed_size(content_type, len(buffer))
                 return [buffer]
 
