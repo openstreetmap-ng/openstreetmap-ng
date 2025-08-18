@@ -455,12 +455,12 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const setHover = (
         { id, numBounds }: GeoJsonProperties,
         hover: boolean,
-        autoScroll = false,
+        scrollIntoView = false,
     ): void => {
         const result = idSidebarMap.get(id)
         result?.classList.toggle("hover", hover)
 
-        if (hover && autoScroll && result)
+        if (hover && scrollIntoView && result)
             result.scrollIntoView({ behavior: "smooth", block: "center" })
 
         const firstFeatureId = idFirstFeatureIdMap.get(id)

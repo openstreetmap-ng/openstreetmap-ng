@@ -71,6 +71,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     const source = map.getSource(layerId) as GeoJSONSource
     const mapContainer = map.getContainer()
     const sidebar = getActionSidebar("routing")
+    const parentSidebar = sidebar.closest("div.sidebar")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form.routing-form")
     const startInput = form.elements.namedItem("start") as HTMLInputElement
@@ -178,7 +179,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             setMapHover(map, layerId)
         }
         hoveredFeatureId = featureId as number
-        setHover(hoveredFeatureId, true)
+        setHover(hoveredFeatureId, true, true)
     })
     map.on("mouseleave", layerId, () => {
         setHover(hoveredFeatureId, false)
@@ -187,13 +188,13 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     })
 
     /** Set the hover state of the step features */
-    const setHover = (id: number, hover: boolean): void => {
+    const setHover = (id: number, hover: boolean, scrollIntoView = false): void => {
         const result = stepsTableBody.children[id]
         result?.classList.toggle("hover", hover)
 
-        if (hover && result) {
+        if (hover && scrollIntoView && result) {
             // Scroll result into view
-            const sidebarRect = sidebar.getBoundingClientRect()
+            const sidebarRect = parentSidebar.getBoundingClientRect()
             const resultRect = result.getBoundingClientRect()
             const isVisible =
                 resultRect.top >= sidebarRect.top &&
