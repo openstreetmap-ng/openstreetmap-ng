@@ -69,6 +69,7 @@ dev = [
   "pyarrow-stubs",
   "pytest",
   "pytest-asyncio",
+  "pytest-cov",
   "pytest-randomly",
   "pytest-rerunfailures",
   "types-aioboto3[s3]",
