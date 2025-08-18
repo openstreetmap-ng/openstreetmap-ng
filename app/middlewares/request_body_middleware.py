@@ -1,4 +1,3 @@
-import gzip
 import logging
 import zlib
 from io import BytesIO
@@ -9,12 +8,14 @@ from fastapi import Response
 from sizestr import sizestr
 from starlette import status
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
-from zstandard import ZstdDecompressor
+from zstandard import DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE, ZstdDecompressor
 
 from app.config import REQUEST_BODY_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
 
-_ZSTD_DECOMPRESS = ZstdDecompressor().decompress
+
+class _TooBigError(ValueError):
+    pass
 
 
 class RequestBodyMiddleware:
@@ -55,6 +56,11 @@ class RequestBodyMiddleware:
             if decompressor is not None:
                 try:
                     body = decompressor(body)
+                except _TooBigError:
+                    return await Response(
+                        f'Decompressed request body exceeded {sizestr(REQUEST_BODY_MAX_SIZE)}',
+                        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    )(scope, receive, send)
                 except Exception:
                     return await Response(
                         'Unable to decompress request body',
@@ -67,12 +73,6 @@ class RequestBodyMiddleware:
                     sizestr(len(body)),
                     content_encoding,
                 )
-
-                if len(body) > REQUEST_BODY_MAX_SIZE:
-                    return await Response(
-                        f'Decompressed request body exceeded {sizestr(REQUEST_BODY_MAX_SIZE)}',
-                        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                    )(scope, receive, send)
 
             else:
                 logging.debug(
@@ -96,8 +96,77 @@ class RequestBodyMiddleware:
 
 
 @cython.cfunc
-def _decompress_zstd(buffer: bytes) -> bytes:
-    return _ZSTD_DECOMPRESS(buffer, allow_extra_data=False)
+def _decompress_zstd(
+    buffer: bytes,
+    *,
+    chunk_size: cython.Py_ssize_t = DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE,
+) -> bytes:
+    decompressor = ZstdDecompressor().decompressobj()
+    chunks: list[bytes] = []
+    total_size: cython.Py_ssize_t = 0
+
+    i: cython.Py_ssize_t
+    for i in range(0, len(buffer), chunk_size):
+        chunk = decompressor.decompress(buffer[i : i + chunk_size])
+        chunks.append(chunk)
+        total_size += len(chunk)
+        if total_size > REQUEST_BODY_MAX_SIZE:
+            raise _TooBigError
+
+    if not decompressor.eof or decompressor.unused_data:
+        raise ValueError('Zstd stream is corrupted')
+
+    return b''.join(chunks)
+
+
+@cython.cfunc
+def _decompress_brotli(
+    buffer: bytes,
+    *,
+    chunk_size: cython.Py_ssize_t = (1 << 16) - 1,
+) -> bytes:
+    decompressor = brotli.Decompressor()
+    chunks: list[bytes] = []
+    total_size: cython.Py_ssize_t = 0
+
+    i: cython.Py_ssize_t
+    for i in range(0, len(buffer), chunk_size):
+        chunk = decompressor.process(buffer[i : i + chunk_size])
+        chunks.append(chunk)
+        total_size += len(chunk)
+        if total_size > REQUEST_BODY_MAX_SIZE:
+            raise _TooBigError
+
+    if not decompressor.is_finished():
+        raise ValueError('Brotli stream is corrupted')
+
+    return b''.join(chunks)
+
+
+@cython.cfunc
+def _decompress_gzip(buffer: bytes) -> bytes:
+    decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
+    result = decompressor.decompress(buffer, REQUEST_BODY_MAX_SIZE)
+
+    if not decompressor.eof or decompressor.unused_data:
+        raise ValueError('Gzip stream is corrupted')
+    if decompressor.unconsumed_tail:
+        raise _TooBigError
+
+    return result
+
+
+@cython.cfunc
+def _decompress_zlib(buffer: bytes) -> bytes:
+    decompressor = zlib.decompressobj()
+    result = decompressor.decompress(buffer, REQUEST_BODY_MAX_SIZE)
+
+    if not decompressor.eof or decompressor.unused_data:
+        raise ValueError('Zlib stream is corrupted')
+    if decompressor.unconsumed_tail:
+        raise _TooBigError
+
+    return result
 
 
 @cython.cfunc
@@ -107,9 +176,9 @@ def _get_decompressor(content_encoding: str | None):
     if content_encoding == 'zstd':
         return _decompress_zstd
     if content_encoding == 'br':
-        return brotli.decompress
+        return _decompress_brotli
     if content_encoding == 'gzip':
-        return gzip.decompress
+        return _decompress_gzip
     if content_encoding == 'deflate':
-        return zlib.decompress
+        return _decompress_zlib
     return None

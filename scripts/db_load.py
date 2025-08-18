@@ -92,9 +92,11 @@ def _get_csv_path(table: _Table) -> Path:
 
 
 def _get_csv_header(path: Path) -> str:
-    with path.open('rb') as f:
-        stream_reader = ZstdDecompressor().stream_reader(f)
-        reader = TextIOWrapper(stream_reader)
+    with (
+        path.open('rb') as f,
+        ZstdDecompressor().stream_reader(f) as stream,
+        TextIOWrapper(stream) as reader,
+    ):
         return reader.readline().strip()
 
 
