@@ -95,7 +95,6 @@ class RequestBodyMiddleware:
         return await self.app(scope, wrapper, send)
 
 
-@cython.cfunc
 def _decompress_zstd(
     buffer: bytes,
     *,
@@ -119,7 +118,6 @@ def _decompress_zstd(
     return b''.join(chunks)
 
 
-@cython.cfunc
 def _decompress_brotli(
     buffer: bytes,
     *,
@@ -143,7 +141,6 @@ def _decompress_brotli(
     return b''.join(chunks)
 
 
-@cython.cfunc
 def _decompress_gzip(buffer: bytes) -> bytes:
     decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
     result = decompressor.decompress(buffer, REQUEST_BODY_MAX_SIZE)
@@ -156,7 +153,6 @@ def _decompress_gzip(buffer: bytes) -> bytes:
     return result
 
 
-@cython.cfunc
 def _decompress_zlib(buffer: bytes) -> bytes:
     decompressor = zlib.decompressobj()
     result = decompressor.decompress(buffer, REQUEST_BODY_MAX_SIZE)
