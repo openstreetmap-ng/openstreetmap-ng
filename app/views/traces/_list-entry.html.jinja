@@ -1,8 +1,8 @@
 <li class="row g-2">
     {% if not entry_hide_preview %}
-    <div class="col-auto">
+    <a class="col-auto" href="/trace/{{ trace.id }}">
         <svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="-1 -1 92 92"></svg>
-    </div>
+    </a>
     {% endif %}
     <div class="col">
         <div class="social-entry {% if not entry_no_link %}clickable{% endif %}">

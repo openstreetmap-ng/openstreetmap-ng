@@ -11,9 +11,9 @@
             data-lines="{{ traces_lines | safe }}">
             {% for trace in traces %}
             <li class="row g-2">
-                <div class="col-auto">
+                <a class="col-auto" href="/trace/{{ trace.id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="-1 -1 92 92"></svg>
-                </div>
+                </a>
                 <div class="col">
                     <div class="social-entry clickable h-100">
                         <p class="header text-muted d-flex justify-content-between">
