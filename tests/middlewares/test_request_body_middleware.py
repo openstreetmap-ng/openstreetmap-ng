@@ -194,13 +194,20 @@ async def test_passthrough_unsupported_compression(client: AsyncClient):
 
 
 @pytest.mark.extended
-async def test_size_limit_after_decompression(client: AsyncClient):
+@pytest.mark.parametrize(
+    ('encoding', 'compress'),
+    _ENCODING_COMPRESS,
+)
+async def test_size_limit_after_decompression(
+    client: AsyncClient,
+    encoding: str,
+    compress: Callable[[bytes], bytes],
+):
     client.headers['Authorization'] = 'User user1'
 
     # Create data that's small when compressed but exceeds limits when decompressed
-    content = gzip.compress(
-        orjson.dumps({'lon': 0, 'lat': 0, 'text': 'A' * REQUEST_BODY_MAX_SIZE}),
-        compresslevel=1,
+    content = compress(
+        orjson.dumps({'lon': 0, 'lat': 0, 'text': 'A' * REQUEST_BODY_MAX_SIZE})
     )
     assert len(content) < REQUEST_BODY_MAX_SIZE, (
         'Compressed content must be under size limit'
@@ -211,7 +218,7 @@ async def test_size_limit_after_decompression(client: AsyncClient):
         '/api/0.6/notes.json',
         content=content,
         headers={
-            'Content-Encoding': 'gzip',
+            'Content-Encoding': encoding,
             'Content-Type': 'application/json',
         },
     )
