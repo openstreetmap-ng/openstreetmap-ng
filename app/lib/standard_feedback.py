@@ -16,9 +16,8 @@ class StandardFeedback:
     __slots__ = ('_messages',)
 
     def __init__(self) -> None:
-        self._messages: defaultdict[str | None, list[tuple[MessageSeverity, str]]] = (
-            defaultdict(list)
-        )
+        self._messages: defaultdict[str | None, list[tuple[MessageSeverity, str]]]
+        self._messages = defaultdict(list)
 
     def success(self, field: str | None, message: str) -> None:
         """Collect a success message for a field."""

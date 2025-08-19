@@ -48,7 +48,7 @@
 </button>
 
 <div class="auth-providers d-flex justify-content-center gap-3 gap-sm-4 mb-3">
-    {% for service in ('google', 'facebook', 'microsoft', 'github', 'wikimedia') %}
+    {% for service in CONFIGURED_AUTH_PROVIDERS %}
     <form method="POST" action="/oauth2/{{ service }}/authorize">
         <input type="hidden" name="referer" required>
         <button type="submit" class="btn btn-link border" title="{{ t('service.' ~ service ~ '.title') }}" name="action"

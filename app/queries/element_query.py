@@ -442,7 +442,7 @@ class ElementQuery:
             elements_by_ref[element['typed_id'], element['version']] = element
 
         # Prepare results in the same order as input refs, avoiding duplicates
-        result_set: set[SequenceId] = set()
+        result_set = set[SequenceId]()
         result: list[Element | None] = []
 
         for ref in refs:
@@ -743,7 +743,7 @@ class ElementQuery:
                     tg.create_task(fetch_parents(nodes_typed_ids, 'relation'))
 
         # Remove duplicates and preserve order
-        result_set: set[SequenceId] = set()
+        result_set = set[SequenceId]()
         result: list[Element] = []
 
         for elements in result_sequences:

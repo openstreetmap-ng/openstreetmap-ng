@@ -7,7 +7,7 @@ from app.main import main
 
 
 def test_route_conflicts():
-    capture_paths: defaultdict[str, list[re.Pattern[str]]] = defaultdict(list)
+    capture_paths = defaultdict[str, list[re.Pattern[str]]](list)
 
     for route in main.routes:
         if not isinstance(route, Route) or not (route_methods := route.methods):

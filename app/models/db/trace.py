@@ -87,7 +87,7 @@ def trace_tags_from_str(s: str | None) -> list[str]:
         raise ValueError(f'Too many trace tags, current limit is {TRACE_TAGS_LIMIT}')
 
     # remove duplicates and preserve order
-    result_set: set[str] = set()
+    result_set = set[str]()
     result: list[str] = []
 
     for tag in tags:

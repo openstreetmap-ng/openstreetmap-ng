@@ -31,7 +31,7 @@ class LeafletElementMixin:
             elif type == 'way':
                 ways.append(element)
 
-        member_nodes: set[TypedElementId] = set()
+        member_nodes = set[TypedElementId]()
         render_ways = _render_ways(
             ways=ways, node_id_map=node_id_map, areas=areas, member_nodes=member_nodes
         )
@@ -180,7 +180,7 @@ def _check_way_area(tags: dict[str, str] | None, members: list[TypedElementId]):
     )
 
 
-_AREA_TAGS: frozenset[str] = frozenset((
+_AREA_TAGS = frozenset[str]((
     'amenity',
     'area',
     'building',

@@ -138,7 +138,7 @@ logging.info(
 )
 
 
-def map_i18next_files(locales: tuple[LocaleCode, ...]) -> list[str]:
+def map_i18next_files(locales: tuple[LocaleCode, ...]) -> tuple[str] | tuple[str, str]:
     """
     Map the locales to i18next files.
     Returns at most two files: primary and fallback locale.
@@ -147,9 +147,9 @@ def map_i18next_files(locales: tuple[LocaleCode, ...]) -> list[str]:
     ('pl-e4c39a792074d67c.js', 'en-c39c7633ceb0ce46.js')
     """
     return (
-        [_I18NEXT_MAP[locales[0]]]
+        (_I18NEXT_MAP[locales[0]],)
         if len(locales) == 1
-        else [_I18NEXT_MAP[locales[0]], _I18NEXT_MAP[locales[-1]]]
+        else (_I18NEXT_MAP[locales[0]], _I18NEXT_MAP[locales[-1]])
     )
 
 
@@ -157,7 +157,9 @@ def map_i18next_files(locales: tuple[LocaleCode, ...]) -> list[str]:
 if ENV == 'dev':
     _map_i18next_files_inner = map_i18next_files
 
-    def map_i18next_files(locales: tuple[LocaleCode, ...]) -> list[str]:
+    def map_i18next_files(
+        locales: tuple[LocaleCode, ...],
+    ) -> tuple[str] | tuple[str, str]:
         global _I18NEXT_MAP
         _I18NEXT_MAP = _load_locale()[0]  # pyright: ignore [reportConstantRedefinition]
         return _map_i18next_files_inner(locales)

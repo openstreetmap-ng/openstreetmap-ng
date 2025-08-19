@@ -5,14 +5,21 @@ import cython
 from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
 
-from app.config import APP_URL, ENV, VERSION
+from app.config import APP_URL, ENV, REPORT_COMMENT_BODY_MAX_LENGTH, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
 from app.lib.image import Image
+from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP
 from app.lib.translation import nt, primary_translation_locale, t
 from app.lib.vite import vite_render_asset
+from app.models.db.connected_account import CONFIGURED_AUTH_PROVIDERS
 from app.models.db.oauth2_application import oauth2_app_avatar_url, oauth2_app_is_system
-from app.models.db.user import user_avatar_url, user_is_admin, user_is_moderator
+from app.models.db.user import (
+    DEFAULT_EDITOR,
+    user_avatar_url,
+    user_is_admin,
+    user_is_moderator,
+)
 from speedup.element_type import split_typed_element_id
 
 if cython.compiled:
@@ -142,21 +149,25 @@ def stripspecial(value: str) -> str:
 
 # configure template globals
 _J2.globals.update(
-    vite_render_asset=vite_render_asset,
-    t=t,
-    nt=nt,
-    str=str,
-    zip=zip,
-    round=round,
-    timeago=timeago,
+    CONFIGURED_AUTH_PROVIDERS=CONFIGURED_AUTH_PROVIDERS,
+    DEFAULT_EDITOR=DEFAULT_EDITOR,
+    INSTALLED_LOCALES_NAMES_MAP=INSTALLED_LOCALES_NAMES_MAP,
+    REPORT_COMMENT_BODY_MAX_LENGTH=REPORT_COMMENT_BODY_MAX_LENGTH,
     format_rfc2822_date=format_rfc2822_date,
     get_avatar_url=Image.get_avatar_url,
-    user_is_moderator=user_is_moderator,
-    user_is_admin=user_is_admin,
-    user_avatar_url=user_avatar_url,
+    nt=nt,
     oauth2_app_avatar_url=oauth2_app_avatar_url,
     oauth2_app_is_system=oauth2_app_is_system,
+    round=round,
     split_typed_element_id=split_typed_element_id,
+    str=str,
+    t=t,
+    timeago=timeago,
+    user_avatar_url=user_avatar_url,
+    user_is_admin=user_is_admin,
+    user_is_moderator=user_is_moderator,
+    vite_render_asset=vite_render_asset,
+    zip=zip,
 )
 
 # configure template filters

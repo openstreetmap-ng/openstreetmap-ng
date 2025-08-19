@@ -14,7 +14,7 @@ from app.models.proto.shared_pb2 import RoutingResult
 from app.utils import HTTP
 
 OSRMProfile = Literal['car', 'bike', 'foot']
-OSRMProfiles: frozenset[OSRMProfile] = frozenset(get_args(OSRMProfile))
+OSRMProfiles = frozenset[OSRMProfile](get_args(OSRMProfile))
 
 
 class OSRMQuery:

@@ -32,7 +32,7 @@ from app.utils import extend_query_params
 
 router = APIRouter()
 
-_SCOPES_SUPPORTED: list[str] = list(PUBLIC_SCOPES)
+_SCOPES_SUPPORTED = list[str](PUBLIC_SCOPES)
 _RESPONSE_TYPES_SUPPORTED = list(get_args(OAuth2ResponseType))
 _RESPONSE_MODES_SUPPORTED = list(get_args(OAuth2ResponseMode))
 _GRANT_TYPES_SUPPORTED = list(get_args(OAuth2GrantType))

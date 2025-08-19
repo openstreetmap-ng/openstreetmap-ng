@@ -119,7 +119,7 @@
                 </div>
 
                 <div class="auth-providers d-flex justify-content-center gap-3 gap-sm-4">
-                    {% for service in ('google', 'facebook', 'microsoft', 'github', 'wikimedia') %}
+                    {% for service in CONFIGURED_AUTH_PROVIDERS %}
                     <form method="POST" action="/oauth2/{{ service }}/authorize">
                         <button type="submit" class="btn btn-link border"
                             title="{{ t('service.' ~ service ~ '.title') }}" name="action" value="signup">

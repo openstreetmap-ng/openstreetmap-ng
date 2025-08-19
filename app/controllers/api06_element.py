@@ -124,7 +124,7 @@ async def get_many(
         )
 
     # Remove duplicates and preserve order
-    parsed_query_set: set[str] = set()
+    parsed_query_set = set[str]()
     parsed_query: list[TypedElementId | tuple[TypedElementId, int]] = []
 
     try:

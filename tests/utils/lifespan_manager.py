@@ -16,7 +16,7 @@ class LifespanManager:
     def __init__(self, app: ASGIApp) -> None:
         self._app = app
         self._task: Task | None = None
-        self._message_queue: Queue[Message] = Queue()
+        self._message_queue = Queue[Message]()
         self._startup_finished = Event()
         self._shutdown_finished = Event()
         self._exc: BaseException | None = None

@@ -16,7 +16,7 @@ from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
 from speedup.buffered_rand import buffered_randbytes
 
-_SEND_EMAIL_LATENCY: deque[float] = deque([0.1], maxlen=10)
+_SEND_EMAIL_LATENCY = deque[float]([0.1], maxlen=10)
 
 
 class UserTokenResetPasswordService:

@@ -73,7 +73,7 @@ class OAuth2ApplicationQuery:
         if not tokens:
             return []
 
-        id_map: defaultdict[ApplicationId, list[OAuth2Token]] = defaultdict(list)
+        id_map = defaultdict[ApplicationId, list[OAuth2Token]](list)
         for token in tokens:
             id_map[token['application_id']].append(token)
 

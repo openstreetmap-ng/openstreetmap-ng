@@ -19,7 +19,7 @@ from app.models.scope import Scope
 # TODO: more 0.7 scopes
 
 
-_CTX: ContextVar[tuple[User | None, tuple[Scope, ...]]] = ContextVar('Auth')
+_CTX = ContextVar[tuple[User | None, tuple[Scope, ...]]]('Auth')
 
 
 @contextmanager

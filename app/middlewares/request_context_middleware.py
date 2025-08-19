@@ -4,7 +4,7 @@ from ipaddress import IPv4Address, IPv6Address, ip_address
 from starlette.requests import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-_CTX: ContextVar[Request] = ContextVar('Request')
+_CTX = ContextVar[Request]('Request')
 
 
 def get_request() -> Request:

@@ -11,9 +11,7 @@ from app.models.proto.shared_pb2 import RoutingResult
 from app.utils import HTTP
 
 GraphHopperProfile = Literal['car', 'bike', 'foot']
-GraphHopperProfiles: frozenset[GraphHopperProfile] = frozenset(
-    get_args(GraphHopperProfile)
-)
+GraphHopperProfiles = frozenset[GraphHopperProfile](get_args(GraphHopperProfile))
 
 
 class GraphHopperQuery:

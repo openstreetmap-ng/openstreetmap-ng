@@ -371,7 +371,7 @@ SMTP_MESSAGES_FROM_HOST = (
     SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
 )
 
-TRUSTED_HOSTS: frozenset[str] = frozenset(
+TRUSTED_HOSTS = frozenset[str](
     h.casefold()
     for host in (
         *(

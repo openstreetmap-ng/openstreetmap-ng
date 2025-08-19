@@ -57,7 +57,7 @@ def vite_render_asset(path: str) -> str:
             data = _MANIFEST[path]
 
             # Recursively collect all imports
-            stack: deque[str] = deque(data.get('imports', ()))
+            stack = deque[str](data.get('imports', ()))
             while stack:
                 chunk = stack.popleft()
                 chunk_data = imports[chunk] = _MANIFEST[chunk]

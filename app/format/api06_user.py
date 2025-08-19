@@ -74,7 +74,7 @@ class User06Mixin:
             return []
 
         # Check for duplicate keys
-        seen_keys: set[UserPrefKey] = set()
+        seen_keys = set[UserPrefKey]()
         for pref in prefs:
             key: UserPrefKey = pref['@k']  # type: ignore
             if key in seen_keys:

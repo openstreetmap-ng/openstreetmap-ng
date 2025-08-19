@@ -7,7 +7,7 @@ from starlette.routing import Route
 
 from app.models.types import DisplayName
 
-_BLACKLIST: set[str] = set()
+_BLACKLIST = set[str]()
 
 
 def user_name_blacklist_routes(app: Starlette) -> None:

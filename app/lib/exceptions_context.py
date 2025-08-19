@@ -4,7 +4,7 @@ from typing import Any, cast, override
 
 from app.exceptions import Exceptions
 
-_CTX: ContextVar[Exceptions] = ContextVar('Exceptions')
+_CTX = ContextVar[Exceptions]('Exceptions')
 
 
 @contextmanager

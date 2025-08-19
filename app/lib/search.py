@@ -189,7 +189,7 @@ class Search:
     def deduplicate_similar_results(results: list[SearchResult]) -> list[SearchResult]:
         """Deduplicate similar results."""
         # Deduplicate by type and id
-        seen: set[TypedElementId] = set()
+        seen = set[TypedElementId]()
         dedup1: list[SearchResult] = []
         geoms: list[Point] = []
         for result in results:

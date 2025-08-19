@@ -9,17 +9,15 @@ from app.config import (
     ENV,
     MAP_QUERY_AREA_MAX_SIZE,
     NOTE_QUERY_AREA_MAX_SIZE,
-    REPORT_COMMENT_BODY_MAX_LENGTH,
     VERSION,
 )
 from app.lib.auth_context import auth_user
-from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, map_i18next_files
+from app.lib.locale import map_i18next_files
 from app.lib.render_jinja import render_jinja
 from app.lib.sentry import SENTRY_DSN, SENTRY_TRACES_SAMPLE_RATE
 from app.lib.translation import translation_locales
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.request_context_middleware import get_request
-from app.models.db.user import DEFAULT_EDITOR
 from app.models.proto.shared_pb2 import WebConfig
 
 _CONFIG_BASE = WebConfig(
@@ -50,9 +48,6 @@ async def render_response(
     data = {
         'request': get_request(),
         'I18NEXT_FILES': map_i18next_files(translation_locales()),
-        'DEFAULT_EDITOR': DEFAULT_EDITOR,
-        'INSTALLED_LOCALES_NAMES_MAP': INSTALLED_LOCALES_NAMES_MAP,
-        'REPORT_COMMENT_BODY_MAX_LENGTH': REPORT_COMMENT_BODY_MAX_LENGTH,
         'WEB_CONFIG': _CONFIG_DEFAULT,
     }
 

@@ -11,8 +11,8 @@ from app.models.db.user import user_is_admin, user_is_moderator
 from app.queries.message_query import MessageQuery
 from app.queries.report_query import ReportQuery, _ReportCountResult
 
-_MESSAGES_COUNT_UNREAD_CTX: ContextVar[Task[int]] = ContextVar('MessageCountUnread')
-_REPORTS_COUNT_ATTENTION_CTX: ContextVar[Task[_ReportCountResult]] = ContextVar(
+_MESSAGES_COUNT_UNREAD_CTX = ContextVar[Task[int]]('MessageCountUnread')
+_REPORTS_COUNT_ATTENTION_CTX = ContextVar[Task[_ReportCountResult]](
     'ReportsCountAttention'
 )
 

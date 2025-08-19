@@ -10,7 +10,7 @@
 <div class="table-responsive">
     <table class="table align-middle">
         <tbody>
-            {% for service in ('google', 'facebook', 'microsoft', 'github', 'wikimedia') %}
+            {% for service in CONFIGURED_AUTH_PROVIDERS %}
             <tr>
                 <td class="d-flex align-items-center">
                     <img class="auth-provider-icon border me-3 me-lg-4" src="/static/img/brand/{{ service }}.webp"

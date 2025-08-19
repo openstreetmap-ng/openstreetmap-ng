@@ -8,7 +8,7 @@ from app.middlewares.request_context_middleware import get_request
 
 FormatStyle = Literal['json', 'xml', 'rss', 'gpx']
 
-_CTX: ContextVar[FormatStyle] = ContextVar('FormatStyle')
+_CTX = ContextVar[FormatStyle]('FormatStyle')
 
 
 @contextmanager

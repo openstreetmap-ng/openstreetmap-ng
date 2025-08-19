@@ -280,7 +280,7 @@ class NoteQuery:
         if not comments:
             return
 
-        id_map: defaultdict[NoteId, list[NoteComment]] = defaultdict(list)
+        id_map = defaultdict[NoteId, list[NoteComment]](list)
         for comment in comments:
             id_map[comment['note_id']].append(comment)
 

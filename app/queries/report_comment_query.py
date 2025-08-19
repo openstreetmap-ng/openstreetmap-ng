@@ -167,13 +167,13 @@ class ReportCommentQuery:
 
         # Group comments by action type for batch processing
         diary_comments: list[ReportComment] = []
-        diary_ids: set[DiaryId] = set()
+        diary_ids = set[DiaryId]()
         message_comments: list[ReportComment] = []
-        message_ids: set[MessageId] = set()
+        message_ids = set[MessageId]()
         app_comments: list[ReportComment] = []
-        app_ids: set[ApplicationId] = set()
+        app_ids = set[ApplicationId]()
         trace_comments: list[ReportComment] = []
-        trace_ids: set[TraceId] = set()
+        trace_ids = set[TraceId]()
 
         for comment in comments:
             action = comment['action']

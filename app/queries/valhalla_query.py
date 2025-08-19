@@ -11,7 +11,7 @@ from app.models.valhalla import ValhallaResponse
 from app.utils import HTTP
 
 ValhallaProfile = Literal['auto', 'bicycle', 'pedestrian']
-ValhallaProfiles: frozenset[ValhallaProfile] = frozenset(get_args(ValhallaProfile))
+ValhallaProfiles = frozenset[ValhallaProfile](get_args(ValhallaProfile))
 
 
 class ValhallaQuery:

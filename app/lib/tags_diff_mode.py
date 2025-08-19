@@ -37,7 +37,7 @@ def tags_diff_mode(previous_element: Element | None, elements_data: list[dict]) 
             else:
                 unchanged_tags.append(item)
 
-        new_tags: dict[str, TagFormat] = dict(added_tags)
+        new_tags = dict[str, TagFormat](added_tags)
         new_tags.update(modified_tags)
         new_tags.update(unchanged_tags)
         added_tags.clear()
