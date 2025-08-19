@@ -175,10 +175,20 @@ class MigrationService:
         named with PEP 440 versions (e.g., 0.sql, 1.sql, 2.sql).
         """
         async with db(True) as conn:
-            # Acquire blocking exclusive lock
-            await conn.execute(
-                'SELECT pg_advisory_xact_lock(4708896507819139515::bigint)'
-            )
+            # Try to acquire migration lock
+            async with await conn.execute(
+                'SELECT pg_try_advisory_xact_lock(4708896507819139515::bigint)'
+            ) as r:
+                acquired: bool = (await r.fetchone())[0]  # type: ignore
+
+            if not acquired:
+                # Another process is running migrations; wait for completion
+                await conn.execute(
+                    'SELECT pg_advisory_xact_lock(4708896507819139515::bigint)'
+                )
+                return
+
+            logging.debug('Acquired migration lock')
             await _ensure_db_table(conn)
             current_migration = await _get_current_migration(conn)
 
