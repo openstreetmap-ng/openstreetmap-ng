@@ -26,10 +26,8 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs =
-    import
-      (fetchTarball "https://github.com/NixOS/nixpkgs/archive/372d9eeeafa5b15913201e2b92e8e539ac7c64d1.tar.gz")
-      { };
+  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/372d9eeeafa5b15913201e2b92e8e539ac7c64d1.tar.gz";
+  pkgs = import (fetchTarball pkgsUrl) { };
 
   projectDir = toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix {
@@ -138,6 +136,7 @@ let
     llvmPackages_latest.lld
     procps
     coreutils
+    diffutils
     findutils
     parallel
     curl
@@ -414,6 +413,7 @@ let
       done
 
       echo "Services started"
+      _dev-upgrade
     '')
     (makeScript "dev-stop" ''
       if [ -S "$PC_SOCKET_PATH" ]; then
@@ -435,6 +435,23 @@ let
     '')
     (makeScript "dev-logs-postgres" "tail -f data/pcompose/postgres.log")
     (makeScript "dev-logs-global" "tail -f data/pcompose/global.log")
+    (makeScript "_dev-upgrade" (
+      lib.optionalString enablePostgres ''
+        if cmp -s data/.version <(echo "${pkgsUrl}"); then exit 0; fi
+        echo "Nixpkgs changed, performing services upgrade"
+
+        echo "Upgrading postgres/timescaledb"
+        psql -X "$POSTGRES_URL" -c \
+          "ALTER EXTENSION timescaledb UPDATE"
+
+        echo "Upgrading postgres/postgis"
+        psql -X "$POSTGRES_URL" -c \
+          "SELECT PostGIS_Extensions_Upgrade()"
+
+        echo "${pkgsUrl}" > data/.version
+        echo "Services upgrade completed"
+      ''
+    ))
 
     # -- Preload
     (makeScript "preload-clean" "rm -rf data/preload/")
@@ -498,8 +515,7 @@ let
 
         # compare with remote checksum
         remote_checksum=$(grep -F "$local_file" <<< "$remote_checksums" | cut -d' ' -f1)
-        local_checksum=$(cat "$local_check_file" 2>/dev/null || echo "x")
-        if [ "$remote_checksum" = "$local_checksum" ]; then
+        if cmp -s "$local_check_file" <(echo "$remote_checksum"); then
           echo "File $local_file is up to date"
           continue
         fi
@@ -516,7 +532,7 @@ let
           exit 1
         fi
       done
-      cp --archive --link "data/preload/$dataset/"*.csv.zst data/preload/
+      cp --archive --link --force "data/preload/$dataset/"*.csv.zst data/preload/
     '')
     (makeScript "_db-load" ''
       set -x

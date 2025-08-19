@@ -24,6 +24,7 @@
   "cmake.sourceDirectory": "${workspaceFolder}/speedup",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
   "css.styleSheets": ["node_modules/bootstrap/scss/**/*.scss", "app/views/**/*.scss"],
+  "editor.formatOnSaveMode": "file",
   "editor.rulers": [88],
   "editor.unicodeHighlight.allowedCharacters": {
     "›": true,
