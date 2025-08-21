@@ -680,7 +680,8 @@ let
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
     (makeScript "git-restore-mtimes" ''
       # shellcheck disable=SC2016
-      git ls-files -z ':(exclude)tests/*' | parallel --null \
+      ([ -t 0 ] && git ls-files || cat) | parallel \
+        --no-run-if-empty \
         --halt now,fail=1 '
           timestamp=$(git log -1 --format=%ct -- {})
           touch -d "@$timestamp" {}

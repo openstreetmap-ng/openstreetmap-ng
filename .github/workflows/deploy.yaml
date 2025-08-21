@@ -34,16 +34,16 @@ jobs:
             git fetch origin "${{ github.sha }}"
 
             : Setup build environment
-            WORKTREE_DIR=$(mktemp -d .gh-deploy.XXXXXXXXXX)
+            WORKTREE=$(mktemp -d .gh-deploy.XXXXXXXXXX)
             cleanup() {
               cd /data/osm-ng
-              git worktree remove --force "$WORKTREE_DIR" || true
+              git worktree remove --force "$WORKTREE" || true
             }
             trap cleanup EXIT
-            git worktree add --detach "$WORKTREE_DIR" "${{ github.sha }}"
+            git worktree add --detach "$WORKTREE" "${{ github.sha }}"
 
-            : Build the new system configuration
-            cd "$WORKTREE_DIR"
+            : Build the new configuration
+            cd "$WORKTREE"
             cp config/services-test.nix /etc/nixos/services.nix
             if [ "${{ inputs.update_server }}" = "true" ]; then
               nixos-rebuild build --upgrade
@@ -54,14 +54,15 @@ jobs:
             : Stop services
             systemctl stop osm-ng-dev
 
-            : Reset to the specified commit
+            : Synchronize changes
             cd /data/osm-ng
-            git reset --hard "${{ github.sha }}"
-            chown -R osm-ng:osm-ng .
+            FILES=$(git diff --name-only --diff-filter=ACMR "HEAD..${{ github.sha }}")
             sudo -u osm-ng \
+              git reset --hard "${{ github.sha }}"
+            echo "$FILES" | sudo -u osm-ng \
               nix-shell -p gitMinimal --run \
               'nix-shell --arg shellHook false --run git-restore-mtimes'
 
             : Activate the new configuration
-            "$WORKTREE_DIR/result/bin/switch-to-configuration" switch
+            "$WORKTREE/result/bin/switch-to-configuration" switch
           EOF
