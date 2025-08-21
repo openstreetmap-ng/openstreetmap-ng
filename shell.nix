@@ -438,7 +438,7 @@ let
     (makeScript "dev-logs-global" "tail -f data/pcompose/global.log")
     (makeScript "_dev-upgrade" (
       lib.optionalString enablePostgres ''
-        if cmp -s data/.version <(echo "${pkgsUrl}"); then exit 0; fi
+        if cmp -s data/.dev-version <(echo "${pkgsUrl}"); then exit 0; fi
         echo "Nixpkgs changed, performing services upgrade"
 
         psql() { command psql -X "$POSTGRES_URL" "$@"; }
@@ -450,7 +450,7 @@ let
           psql -c "SELECT postgis_extensions_upgrade()" || true
         fi
 
-        echo "${pkgsUrl}" > data/.version
+        echo "${pkgsUrl}" > data/.dev-version
         echo "Services upgrade completed"
       ''
     ))
