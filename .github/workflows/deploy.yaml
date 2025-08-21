@@ -56,7 +56,7 @@ jobs:
 
             : Synchronize changes
             cd /data/osm-ng
-            FILES=$(git diff --name-only --diff-filter=ACMR "HEAD..${{ github.sha }}")
+            FILES=$(git diff --name-only --diff-filter=d "HEAD..${{ github.sha }}")
             sudo -u osm-ng \
               git reset --hard "${{ github.sha }}"
             echo "$FILES" | sudo -u osm-ng \
