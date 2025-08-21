@@ -46,6 +46,17 @@ def _get_flag(
         if flag_code is None:
             continue
 
+        # Handle subdivision flags (format: CC-SUB, e.g., GB-WLS)
+        code_parts = flag_code.split('-')
+        if len(code_parts) == 2:
+            # Build Unicode subdivision flag:
+            # black flag + country tags + subdivision tags + cancel tag
+            return ''.join((
+                '🏴',
+                *(chr(0xE0000 + ord(c)) for cp in code_parts for c in cp.lower()),
+                '\U000e007f',
+            ))
+
         try:
             emoji = ''.join(chr(0x1F1A5 + ord(c)) for c in flag_code)
             if all(
