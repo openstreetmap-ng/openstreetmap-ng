@@ -110,6 +110,13 @@ let
   watchexec' = makeScript "watchexec" ''
     exec ${pkgs.watchexec}/bin/watchexec --wrap-process=none "$@"
   '';
+  parallel' = makeScript "parallel" ''
+    args=(--will-cite)
+    if [ -t 1 ]; then
+      args+=(--bar --eta)
+    fi
+    exec ${pkgs.parallel}/bin/parallel "''${args[@]}" "$@"
+  '';
 
   # https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/build-support/trivial-builders/default.nix
   makeScript =
@@ -139,7 +146,7 @@ let
     coreutils
     diffutils
     findutils
-    parallel
+    parallel'
     curl
     jq
     process-compose
@@ -248,9 +255,7 @@ let
       }
       export -f process_file
 
-      parallel --will-cite \
-        --bar --eta \
-        process_file ::: "''${files[@]}"
+      parallel process_file ::: "''${files[@]}"
     '')
     (makeScript "cython-build-fast" ''
       CFLAGS="$CFLAGS \
@@ -328,8 +333,7 @@ let
         -printf "%s\t%p\0"  \
       | sort -z --numeric-sort --reverse \
       | cut -z -f2- \
-      | parallel --will-cite --null \
-        --bar --eta \
+      | parallel --null \
         --halt now,fail=1 \
         process_file {} "$@"
     '')
@@ -676,8 +680,7 @@ let
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
     (makeScript "git-restore-mtimes" ''
       # shellcheck disable=SC2016
-      git ls-files -z ':(exclude)tests/*' | parallel --will-cite --null \
-        --bar --eta \
+      git ls-files -z ':(exclude)tests/*' | parallel --null \
         --halt now,fail=1 '
           timestamp=$(git log -1 --format=%ct -- {})
           touch -d "@$timestamp" {}
