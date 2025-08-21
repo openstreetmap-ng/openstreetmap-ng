@@ -446,11 +446,7 @@ let
           psql -c "ALTER EXTENSION timescaledb UPDATE"
 
           echo "Upgrading postgres/postgis"
-          if psql -tAc "SELECT postgis_full_version()" | grep -q "need upgrade"; then
-            psql -c "SELECT postgis_extensions_upgrade()"
-          else
-            echo "postgis extensions are up to date"
-          fi
+          psql -c "SELECT postgis_extensions_upgrade()" || true
         fi
 
         echo "${pkgsUrl}" > data/.version
