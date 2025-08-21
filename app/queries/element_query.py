@@ -83,7 +83,7 @@ class ElementQuery:
 
     @staticmethod
     async def check_is_latest(versioned_refs: list[tuple[TypedElementId, int]]) -> bool:
-        """Check if the given elements are currently up-to-date."""
+        """Check if the given elements are currently up to date."""
         if not versioned_refs:
             return True
 

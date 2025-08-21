@@ -440,16 +440,17 @@ let
         if cmp -s data/.version <(echo "${pkgsUrl}"); then exit 0; fi
         echo "Nixpkgs changed, performing services upgrade"
 
-        if [ -n "$(psql -X "$POSTGRES_URL" -tAc \
-          "SELECT 1 FROM information_schema.tables WHERE table_name = 'migration'")" ]; then
-
+        psql() { command psql -X "$POSTGRES_URL" "$@"; }
+        if [ -n "$(psql -tAc "SELECT 1 FROM information_schema.tables WHERE table_name = 'migration'")" ]; then
           echo "Upgrading postgres/timescaledb"
-          psql -X "$POSTGRES_URL" -c \
-            "ALTER EXTENSION timescaledb UPDATE"
+          psql -c "ALTER EXTENSION timescaledb UPDATE"
 
           echo "Upgrading postgres/postgis"
-          psql -X "$POSTGRES_URL" -c \
-            "SELECT PostGIS_Extensions_Upgrade()"
+          if psql -tAc "SELECT postgis_full_version()" | grep -q "need upgrade"; then
+            psql -c "SELECT postgis_extensions_upgrade()"
+          else
+            echo "postgis extensions are up to date"
+          fi
         fi
 
         echo "${pkgsUrl}" > data/.version

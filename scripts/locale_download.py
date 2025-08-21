@@ -70,7 +70,7 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
         target_path.write_bytes(r.content)
         print(f'[✅] Updated: {locale}')
     else:
-        print(f'[✅] Already up-to-date: {locale}')
+        print(f'[✅] Already up to date: {locale}')
 
     return LocaleName(
         code=locale,
