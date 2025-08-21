@@ -1,5 +1,6 @@
 {
   isDevelopment ? true,
+  shellHook ? true,
   hostMemoryMb ? 8192,
   hostDiskCoW ? false,
   enablePostgres ? true,
@@ -673,6 +674,15 @@ let
     '')
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
+    (makeScript "git-restore-mtimes" ''
+      # shellcheck disable=SC2016
+      git ls-files -z ':(exclude)tests/*' | parallel --will-cite --null \
+        --bar --eta \
+        --halt now,fail=1 '
+          timestamp=$(git log -1 --format=%ct -- {})
+          touch -d "@$timestamp" {}
+        '
+    '')
     (makeScript "_patch-interpreter" ''
       set +e
       interpreter="${stdenv.cc.bintools.dynamicLinker}"
@@ -845,5 +855,5 @@ mkShell.override
   }
   {
     packages = packages';
-    shellHook = shell';
+    shellHook = lib.optionalString shellHook shell';
   }

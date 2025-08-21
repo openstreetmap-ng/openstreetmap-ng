@@ -58,6 +58,9 @@ jobs:
             cd /data/osm-ng
             git reset --hard "${{ github.sha }}"
             chown -R osm-ng:osm-ng .
+            sudo -u osm-ng \
+              nix-shell -p gitMinimal --run \
+              'nix-shell --arg shellHook false --run git-restore-mtimes'
 
             : Activate the new configuration
             "$WORKTREE_DIR/result/bin/switch-to-configuration" switch
