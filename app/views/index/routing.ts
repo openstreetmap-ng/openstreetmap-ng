@@ -494,6 +494,39 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         )
         routeContainer.classList.remove("d-none")
 
+        // Track current mouse position for hover detection
+        let mouseX = 0,
+            mouseY = 0
+        document.addEventListener(
+            "mousemove",
+            (e) => {
+                mouseX = e.clientX
+                mouseY = e.clientY
+            },
+            true,
+        )
+
+        // Re-evaluate hover state when scrolling occurs
+        // This handles the case where mouse doesn't move but content scrolls under it
+        let prevStepRowIndex = -1
+        document.addEventListener(
+            "scroll",
+            () => {
+                const elementUnderMouse = document.elementFromPoint(mouseX, mouseY)
+                const stepRow = elementUnderMouse.closest(".route-step")
+                const stepRowIndex = Array.from(stepsTableBody.children).indexOf(
+                    stepRow,
+                )
+                if (stepRowIndex === prevStepRowIndex) return
+                if (prevStepRowIndex !== -1) {
+                    setHover(prevStepRowIndex, false)
+                }
+                setHover(stepRowIndex, true)
+                prevStepRowIndex = stepRowIndex
+            },
+            true,
+        )
+
         // Update the route layer
         source.setData({ type: "FeatureCollection", features: lines })
         console.debug("Route showing", route.steps.length, "steps")
