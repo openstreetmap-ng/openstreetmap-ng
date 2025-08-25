@@ -309,6 +309,10 @@ MESSAGES_INBOX_PAGE_SIZE = 50
 ADMIN_TASK_HEARTBEAT_INTERVAL = timedelta(minutes=1)
 ADMIN_TASK_TIMEOUT = timedelta(minutes=3)
 
+# User management
+USER_EXPORT_LIMIT = 1_000_000
+USER_LIST_PAGE_SIZE = 100
+
 # -------------------- Caching and Performance --------------------
 
 # General cache settings

@@ -1,15 +1,29 @@
+from datetime import datetime, timedelta
+from ipaddress import (
+    IPv4Address,
+    IPv4Network,
+    IPv6Address,
+    IPv6Network,
+    ip_address,
+    ip_network,
+)
 from typing import Any, Literal
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from shapely import Point
 
-from app.config import DELETED_USER_EMAIL_SUFFIX, NEARBY_USERS_RADIUS_METERS
+from app.config import (
+    DELETED_USER_EMAIL_SUFFIX,
+    NEARBY_USERS_RADIUS_METERS,
+    USER_LIST_PAGE_SIZE,
+)
 from app.db import db
 from app.lib.auth_context import auth_user
+from app.lib.standard_pagination import standard_pagination_range
 from app.lib.user_name_blacklist import is_user_name_blacklisted
 from app.models.db.element import Element
-from app.models.db.user import User, UserDisplay
+from app.models.db.user import User, UserDisplay, UserRole
 from app.models.types import ChangesetId, DisplayName, Email, UserId
 
 _USER_DISPLAY_SELECT = SQL(',').join([
@@ -278,3 +292,149 @@ class UserQuery:
                         element['user_id'] = user_id
 
         await UserQuery.resolve_users(elements)
+
+    @staticmethod
+    async def find_filtered(
+        mode: Literal['count', 'ids', 'page'],
+        /,
+        *,
+        page: int | None = None,
+        num_items: int | None = None,
+        limit: int | None = None,
+        search: str | None = None,
+        unverified: Literal[True] | None = None,
+        roles: list[UserRole] | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
+        sort: Literal[
+            'created_asc', 'created_desc', 'name_asc', 'name_desc', 'ip'
+        ] = 'created_desc',
+    ) -> int | list[User] | list[UserId]:
+        """Find users matching filters in different modes."""
+        conditions: list[Composable] = []
+        params: list[Any] = []
+
+        created_ip: IPv4Address | IPv4Network | IPv6Address | IPv6Network | None = None
+        if search:
+            try:
+                created_ip = ip_address(search)
+            except ValueError:
+                try:
+                    created_ip = ip_network(search, strict=False)
+                except ValueError:
+                    conditions.append(SQL('(email ILIKE %s OR display_name ILIKE %s)'))
+                    pattern = f'%{search}%'
+                    params.extend((pattern, pattern))
+
+        if unverified:
+            conditions.append(SQL('NOT email_verified'))
+
+        if roles:
+            conditions.append(SQL('roles && %s'))
+            params.append(roles)
+
+        if created_after:
+            conditions.append(SQL('created_at >= %s'))
+            params.append(created_after)
+
+        if created_before:
+            conditions.append(SQL('created_at <= %s'))
+            params.append(created_before)
+
+        if created_ip:
+            if isinstance(created_ip, IPv4Network | IPv6Network):
+                conditions.append(SQL('created_ip <<= %s'))
+            else:
+                conditions.append(SQL('created_ip = %s'))
+            params.append(created_ip)
+
+        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+
+        if mode == 'count':
+            query = SQL('SELECT COUNT(*) FROM "user" WHERE {}').format(where_clause)
+            async with db() as conn, await conn.execute(query, params) as r:
+                return (await r.fetchone())[0]  # type: ignore
+
+        if sort == 'created_asc':
+            inner_order = SQL('created_at DESC')
+            outer_order = SQL('created_at')
+        elif sort == 'created_desc':
+            inner_order = SQL('created_at')
+            outer_order = SQL('created_at DESC')
+        elif sort == 'name_asc':
+            inner_order = SQL('display_name DESC')
+            outer_order = SQL('display_name')
+        elif sort == 'name_desc':
+            inner_order = SQL('display_name')
+            outer_order = SQL('display_name DESC')
+        elif sort == 'ip':
+            inner_order = SQL('created_ip DESC, created_at')
+            outer_order = SQL('created_ip, created_at DESC')
+        else:
+            raise NotImplementedError(f'Unsupported sort {sort!r}')
+
+        if mode == 'ids':
+            query = SQL("""
+                SELECT id FROM "user"
+                WHERE {}
+                ORDER BY {}
+                LIMIT %s
+            """).format(where_clause, outer_order)
+            params.append(limit)
+            async with db() as conn, await conn.execute(query, params) as r:
+                return [row[0] for row in await r.fetchall()]
+
+        # if mode == 'page':
+        assert page is not None, "Page number must be provided in 'page' mode"
+        assert num_items is not None, "Number of items must be provided in 'page' mode"
+
+        stmt_limit, stmt_offset = standard_pagination_range(
+            page,
+            page_size=USER_LIST_PAGE_SIZE,
+            num_items=num_items,
+        )
+
+        query = SQL("""
+            SELECT * FROM (
+                SELECT * FROM "user"
+                WHERE {}
+                ORDER BY {}
+                OFFSET %s
+                LIMIT %s
+            ) AS subquery
+            ORDER BY {}
+        """).format(where_clause, inner_order, outer_order)
+        params.extend([stmt_offset, stmt_limit])
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
+            return await r.fetchall()  # type: ignore
+
+    @staticmethod
+    async def count_by_ips(
+        ips: list[IPv4Address | IPv6Address],
+        *,
+        since: timedelta,
+    ) -> dict[IPv4Address | IPv6Address, int]:
+        """Count users created from the given IPs in the given time period."""
+        if not ips:
+            return {}
+
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT created_ip, COUNT(*) FROM "user"
+                WHERE created_ip = ANY(%s)
+                AND created_at >= statement_timestamp() - %s
+                GROUP BY created_ip
+                """,
+                (ips, since),
+            ) as r,
+        ):
+            result = dict.fromkeys(ips, 0)
+            for ip, count in await r.fetchall():
+                result[ip] = count
+            return result

@@ -1,0 +1,20 @@
+.users-body {
+    .filters-form {
+        select[multiple] {
+            height: 2.5rem;
+            overflow-y: auto;
+        }
+    }
+
+    .users-table {
+        .avatar {
+            width: 2rem;
+            height: 2rem;
+            vertical-align: middle;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+        }
+    }
+}

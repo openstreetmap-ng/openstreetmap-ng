@@ -179,7 +179,7 @@ class ReportService:
                 )
                 object_html = f'{t("oauth2_authorized_applications.index.application")} {app_name} ({action_id})'
             else:
-                raise NotImplementedError(f'Unsupported report action: {action}')
+                raise NotImplementedError(f'Unsupported report action {action!r}')
 
             # With user info when available
             if reported_user is not None:

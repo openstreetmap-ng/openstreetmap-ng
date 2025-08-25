@@ -1,0 +1,41 @@
+{% for user in users %}
+<tr data-user-id="{{ user.id }}">
+    <td>
+        <a href="/user-id/{{ user.id }}">
+            <img class="avatar" src="{{ user_avatar_url(user) }}" alt="{{ t('alt.profile_picture') }}" loading="lazy">
+            {{ user.display_name }}
+        </a>
+    </td>
+    <td class="text-muted">{{ user.email }}</td>
+    <td>
+        <time datetime="{{ user.created_at.isoformat() }}" data-style="short"></time>
+    </td>
+    <td>
+        {% if not user.email_verified %}
+        <span class="badge bg-warning">Unverified</span>
+        {% endif %}
+        {% if 'moderator' in user.roles %}
+        <span class="badge bg-info">Moderator</span>
+        {% endif %}
+        {% if 'administrator' in user.roles %}
+        <span class="badge bg-danger">Administrator</span>
+        {% endif %}
+        {% if user.scheduled_delete_at %}
+        <span class="badge bg-secondary">Scheduled deletion</span>
+        {% endif %}
+    </td>
+    <td class="text-muted">
+        {{ user.created_ip }}
+        {% if ip_counts[user.created_ip] > 1 %}
+        <span class="badge bg-warning" title="Multiple registrations from this IP">
+            {{ ip_counts[user.created_ip] }}
+        </span>
+        {% endif %}
+    </td>
+    <td>
+        <a href="/user-id/{{ user.id }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-person"></i>
+        </a>
+    </td>
+</tr>
+{% endfor %}

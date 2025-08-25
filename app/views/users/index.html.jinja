@@ -1,0 +1,123 @@
+{% extends '_base' %}
+{% block title_prefix %}User Management | {% endblock %}
+{% block body_class %}users-body{% endblock %}
+{% block body %}
+
+<div class="content-header pb-1">
+    <div class="container-fluid">
+        <h1>User Management</h1>
+        <p class="text-muted">Manage users efficiently with advanced filtering and search capabilities</p>
+
+        <form method="get" action="/users" class="filters-form">
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-lg-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control" name="search" value="{{ search or '' }}"
+                            placeholder="Search by name, email, IP address or network (e.g., 192.168.1.0/24)"
+                            autocomplete="off">
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="d-flex gap-2">
+                        <div class="form-check form-switch align-self-center">
+                            <input type="checkbox" class="form-check-input" name="unverified" value="1"
+                                id="unverifiedCheck" role="switch" {% if unverified %}checked{% endif %}>
+                            <label class="form-check-label" for="unverifiedCheck">
+                                Unverified
+                            </label>
+                        </div>
+                        <select class="form-select" name="roles" multiple size="1" style="max-width: 200px">
+                            <option value="">All roles</option>
+                            <option value="moderator" {% if 'moderator' in (roles or []) %}selected{% endif %}>Moderator
+                            </option>
+                            <option value="administrator" {% if 'administrator' in (roles or []) %}selected{% endif %}>
+                                Administrator</option>
+                        </select>
+                        <select class="form-select" name="sort" style="max-width: 200px">
+                            <option value="created_desc" {% if sort == 'created_desc' %}selected{% endif %}>
+                                Newest first</option>
+                            <option value="created_asc" {% if sort == 'created_asc' %}selected{% endif %}>Oldest first
+                            </option>
+                            <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                            <option value="name_desc" {% if sort == 'name_desc' %}selected{% endif %}>Name (Z-A)
+                            </option>
+                            <option value="ip" {% if sort == 'ip' %}selected{% endif %}>By IP address</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-md-4 col-lg-3">
+                    <div class="input-group">
+                        <span class="input-group-text">From</span>
+                        <input type="datetime-local" class="form-control" name="created_after"
+                            value="{{ created_after }}">
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 col-lg-3">
+                    <div class="input-group">
+                        <span class="input-group-text">To</span>
+                        <input type="datetime-local" class="form-control" name="created_before"
+                            value="{{ created_before }}">
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 col-lg-3 ms-auto">
+                    <div class="btn-group w-100" role="group">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-funnel"></i> Apply
+                        </button>
+                        <a href="/users" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-counterclockwise"></i> Clear
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div class="text-muted text-end">
+            {{ users_num_items }} users
+        </div>
+    </div>
+</div>
+
+<div class="content-body">
+    <div class="container-fluid">
+        {% if users_num_items %}
+        <nav aria-label="{{ t('alt.page_navigation') }}">
+            <ul class="pagination pagination-sm justify-content-end mb-2">
+            </ul>
+        </nav>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle users-table">
+                <thead>
+                    <tr>
+                        <th scope="col">User</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Registered</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">IP Address</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <nav aria-label="{{ t('alt.page_navigation') }}">
+            <ul class="pagination pagination-sm justify-content-end mb-0"
+                data-action="/api/web/users?page={page}&num_items={{ users_num_items }}&sort={{ sort }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if unverified %}&unverified=1{% endif %}{% for role in (roles or []) %}&roles={{ role }}{% endfor %}{% if created_after %}&created_after={{ created_after|urlencode }}{% endif %}{% if created_before %}&created_before={{ created_before|urlencode }}{% endif %}"
+                data-pages="{{ users_num_pages }}" data-page-size="{{ 100 }}" data-num-items="{{ users_num_items }}">
+            </ul>
+        </nav>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No users found matching your filters.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

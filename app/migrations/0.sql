@@ -8,6 +8,8 @@ CREATE EXTENSION IF NOT EXISTS h3;
 
 CREATE EXTENSION IF NOT EXISTS h3_postgis CASCADE;
 
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 CREATE OR REPLACE FUNCTION h3_points_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
@@ -73,17 +75,24 @@ CREATE TABLE "user" (
 
 CREATE UNIQUE INDEX user_email_idx ON "user" (email);
 
+CREATE INDEX user_email_pattern_idx ON "user" USING gin (email gin_trgm_ops);
+
 CREATE UNIQUE INDEX user_display_name_idx ON "user" (display_name);
 
-CREATE INDEX user_pending_idx ON "user" (created_at)
+CREATE INDEX user_display_name_pattern_idx ON "user" USING gin (display_name gin_trgm_ops);
+
+CREATE INDEX user_created_ip_time_idx ON "user" (created_ip, created_at DESC);
+
+CREATE INDEX user_pending_idx ON "user" (created_at DESC)
 WHERE
     NOT email_verified;
 
-CREATE INDEX user_deleted_idx ON "user" (id)
+CREATE INDEX user_deleted_idx ON "user" (id DESC)
 WHERE
-    email LIKE '%@deleted.invalid';
+    email LIKE '%@deleted.invalid'; -- DELETED_USER_EMAIL_SUFFIX
 
--- DELETED_USER_EMAIL_SUFFIX
+CREATE INDEX user_roles_idx ON "user" USING gin (roles);
+
 CREATE TYPE auth_provider AS enum('google', 'facebook', 'microsoft', 'github', 'wikimedia');
 
 CREATE TABLE connected_account (
