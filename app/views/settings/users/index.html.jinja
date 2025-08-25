@@ -16,8 +16,16 @@
                             <i class="bi bi-search"></i>
                         </span>
                         <input type="text" class="form-control" name="search" value="{{ search or '' }}"
-                            placeholder="Search by name, email, IP address or network (e.g., 192.168.1.0/24)"
+                            placeholder="Search: john, @gmail.com, 192.168.1.1, 10.0.0.0/8"
                             autocomplete="off">
+                        <span class="input-group-text">
+                            <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-html="true"
+                                title="<strong>Search examples:</strong><br>
+                                • <em>john</em> - find users with 'john' in name<br>
+                                • <em>@gmail.com</em> - find Gmail users<br>
+                                • <em>192.168.1.1</em> - exact IP match<br>
+                                • <em>10.0.0.0/8</em> - network range"></i>
+                        </span>
                     </div>
                 </div>
                 <div class="col-12 col-lg-6">
