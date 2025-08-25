@@ -49,6 +49,15 @@
                 Administrative tasks
             </a>
         </li>
+        <li class="nav-item">
+            {% set _href = '/settings/users' %}
+            {% set _active = nav_active_href == _href %}
+            <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
+                {% if _active %}aria-current=page{% endif %}>
+                <i class="bi bi-people"></i>
+                User management
+            </a>
+        </li>
         {% endif %}
         <li>
             <hr>

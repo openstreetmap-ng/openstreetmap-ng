@@ -13,7 +13,7 @@ from app.queries.user_query import UserQuery
 router = APIRouter()
 
 
-@router.get('/users')
+@router.get('/settings/users')
 async def users_index(
     _: Annotated[User, web_user('role_administrator')],
     search: Annotated[str | None, Query()] = None,
@@ -37,7 +37,7 @@ async def users_index(
     users_num_pages = ceil(users_num_items / USER_LIST_PAGE_SIZE)
 
     return await render_response(
-        'users/index',
+        'settings/users/index',
         {
             'users_num_items': users_num_items,
             'users_num_pages': users_num_pages,

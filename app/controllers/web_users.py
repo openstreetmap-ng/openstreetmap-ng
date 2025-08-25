@@ -12,7 +12,7 @@ from app.models.db.user import User, UserRole
 from app.models.types import UserId
 from app.queries.user_query import UserQuery
 
-router = APIRouter(prefix='/api/web/users')
+router = APIRouter(prefix='/api/web/settings/users')
 
 
 @router.get('/')

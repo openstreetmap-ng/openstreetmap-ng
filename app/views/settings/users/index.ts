@@ -1,6 +1,6 @@
-import { configureStandardPagination } from "../lib/standard-pagination"
+import { configureStandardPagination } from "../../lib/standard-pagination"
 
-const body = document.querySelector("body.users-body")
+const body = document.querySelector("body.settings-users-body")
 if (body) {
     configureStandardPagination(body, { reverse: false })
 
@@ -17,7 +17,7 @@ if (body) {
     exportAllBtn.addEventListener("click", () => {
         const a = document.createElement("a")
         const params = new URLSearchParams(window.location.search)
-        a.href = `/api/web/users/export?${params.toString()}`
+        a.href = `/api/web/settings/users/export?${params.toString()}`
         a.download = ""
         document.body.appendChild(a)
         a.click()

@@ -1,6 +1,6 @@
 {% extends '_base' %}
 {% block title_prefix %}User management | {% endblock %}
-{% block body_class %}users-body{% endblock %}
+{% block body_class %}settings-users-body{% endblock %}
 {% block body %}
 
 <div class="content-header pb-1">
@@ -70,7 +70,7 @@
                         <button type="submit" class="btn btn-outline-primary">
                             <i class="bi bi-funnel"></i> Apply
                         </button>
-                        <a href="/users" class="btn btn-outline-secondary">
+                        <a href="/settings/users" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-counterclockwise"></i> Clear
                         </a>
                     </div>
@@ -118,7 +118,7 @@
         </div>
         <nav aria-label="{{ t('alt.page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-0"
-                data-action="/api/web/users?page={page}&num_items={{ users_num_items }}&sort={{ sort }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if unverified %}&unverified=1{% endif %}{% for role in (roles or []) %}&roles={{ role }}{% endfor %}{% if created_after %}&created_after={{ created_after|urlencode }}{% endif %}{% if created_before %}&created_before={{ created_before|urlencode }}{% endif %}"
+                data-action="/api/web/settings/users?page={page}&num_items={{ users_num_items }}&sort={{ sort }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if unverified %}&unverified=1{% endif %}{% for role in (roles or []) %}&roles={{ role }}{% endfor %}{% if created_after %}&created_after={{ created_after|urlencode }}{% endif %}{% if created_before %}&created_before={{ created_before|urlencode }}{% endif %}"
                 data-pages="{{ users_num_pages }}" data-page-size="{{ 100 }}" data-num-items="{{ users_num_items }}">
             </ul>
         </nav>
