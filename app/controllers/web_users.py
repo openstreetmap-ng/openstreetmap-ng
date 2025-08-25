@@ -77,4 +77,5 @@ async def export_ids(
     return Response(
         orjson.dumps(user_ids),
         media_type='application/json',
+        headers={'Content-Disposition': 'attachment; filename="user-ids.json"'},
     )

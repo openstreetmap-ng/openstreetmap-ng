@@ -18,6 +18,7 @@ from app.models.db.user import (
     DEFAULT_EDITOR,
     user_avatar_url,
     user_is_admin,
+    user_is_deleted,
     user_is_moderator,
 )
 from speedup.element_type import split_typed_element_id
@@ -165,6 +166,7 @@ _J2.globals.update(
     timeago=timeago,
     user_avatar_url=user_avatar_url,
     user_is_admin=user_is_admin,
+    user_is_deleted=user_is_deleted,
     user_is_moderator=user_is_moderator,
     vite_render_asset=vite_render_asset,
     zip=zip,

@@ -11,6 +11,13 @@
             width: 2rem;
             height: 2rem;
             vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        .roles {
+            .bi-star-fill {
+                font-size: 0.875rem;
+            }
         }
 
         .badge {

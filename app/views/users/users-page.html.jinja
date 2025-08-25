@@ -1,40 +1,56 @@
 {% for user in users %}
+{% set _is_deleted = user_is_deleted(user) %}
 <tr data-user-id="{{ user.id }}">
     <td>
-        <a href="/user-id/{{ user.id }}">
+        <a href="/user-id/{{ user.id }}" {% if _is_deleted %}class="text-muted" {% endif %} data-bs-toggle="tooltip"
+            data-bs-title="User ID: {{ user.id }}">
             <img class="avatar" src="{{ user_avatar_url(user) }}" alt="{{ t('alt.profile_picture') }}" loading="lazy">
-            {{ user.display_name }}
+            <span {% if _is_deleted %}class="text-muted" {% endif %}>{{ user.display_name }}</span>
         </a>
+        <span class="roles">
+            {% for role in user.roles %}
+            {% if role == 'administrator' %}
+            <i class="bi bi-star-fill text-danger ms-1" data-bs-toggle="tooltip"
+                data-bs-title="{{ t('users.show.role.administrator') }}"></i>
+            {% elif role == 'moderator' %}
+            <i class="bi bi-star-fill text-blue ms-1" data-bs-toggle="tooltip"
+                data-bs-title="{{ t('users.show.role.moderator') }}"></i>
+            {% else %}
+            <i class="bi bi-star-fill text-secondary ms-1" data-bs-toggle="tooltip"
+                data-bs-title="{{ role | title }}"></i>
+            {% endif %}
+            {% endfor %}
+        </span>
     </td>
-    <td class="text-muted">{{ user.email }}</td>
+    <td class="{% if _is_deleted %}text-muted{% else %}text-body-secondary{% endif %}">{{ user.email }}</td>
     <td>
         <time datetime="{{ user.created_at.isoformat() }}" data-style="short"></time>
     </td>
     <td>
         {% if not user.email_verified %}
-        <span class="badge bg-warning">Unverified</span>
-        {% endif %}
-        {% if 'moderator' in user.roles %}
-        <span class="badge bg-info">Moderator</span>
-        {% endif %}
-        {% if 'administrator' in user.roles %}
-        <span class="badge bg-danger">Administrator</span>
+        <span class="badge bg-danger">Unverified</span>
         {% endif %}
         {% if user.scheduled_delete_at %}
-        <span class="badge bg-secondary">Scheduled deletion</span>
+        <span class="badge bg-warning">Scheduled deletion</span>
+        {% endif %}
+        {% if _is_deleted %}
+        <span class="badge bg-secondary">Deleted</span>
         {% endif %}
     </td>
     <td class="text-muted">
-        {{ user.created_ip }}
-        {% if ip_counts[user.created_ip] > 1 %}
-        <span class="badge bg-warning" title="Multiple registrations from this IP">
+        {% if ip_counts[user.created_ip] >= 2 %}
+        <span class="text-warning">{{ user.created_ip }}</span>
+        <span class="badge bg-warning ms-1"
+            title="{{ ip_counts[user.created_ip] }} registrations from this IP in last 24h">
             {{ ip_counts[user.created_ip] }}
         </span>
+        {% else %}
+        {{ user.created_ip }}
         {% endif %}
     </td>
     <td>
-        <a href="/user-id/{{ user.id }}" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-person"></i>
+        <a href="/settings/users/{{ user.id }}" class="btn btn-sm btn-outline-primary">
+            Manage
         </a>
     </td>
 </tr>

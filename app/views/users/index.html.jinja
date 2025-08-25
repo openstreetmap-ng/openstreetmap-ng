@@ -1,14 +1,14 @@
 {% extends '_base' %}
-{% block title_prefix %}User Management | {% endblock %}
+{% block title_prefix %}User management | {% endblock %}
 {% block body_class %}users-body{% endblock %}
 {% block body %}
 
 <div class="content-header pb-1">
     <div class="container-fluid">
-        <h1>User Management</h1>
+        <h1>User management</h1>
         <p class="text-muted">Manage users efficiently with advanced filtering and search capabilities</p>
 
-        <form method="get" action="/users" class="filters-form">
+        <form class="filters-form" method="GET">
             <div class="row g-3 mb-3">
                 <div class="col-12 col-lg-6">
                     <div class="input-group">
@@ -78,8 +78,18 @@
             </div>
         </form>
 
-        <div class="text-muted text-end">
-            {{ users_num_items }} users
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-secondary export-visible-btn">
+                    <i class="bi bi-clipboard"></i> Export Visible
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary export-all-btn">
+                    <i class="bi bi-download"></i> Export All
+                </button>
+            </div>
+            <div class="text-muted">
+                {{ users_num_items }} users
+            </div>
         </div>
     </div>
 </div>

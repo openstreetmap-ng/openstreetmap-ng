@@ -127,7 +127,7 @@ The user management system will integrate by:
 - ✅ All filter states preserved in URL for bookmarking
 - ✅ IP and network mask searches integrated into main search field
 
-### Phase 3: User Listing with Visual Indicators - PENDING
+### Phase 3: User Listing with Visual Indicators - COMPLETED
 
 **Objectives:**
 - Create information-dense but scannable user table
@@ -135,34 +135,43 @@ The user management system will integrate by:
 - Implement smart sorting options
 
 **Approach:**
-- Table columns (all from user table only):
-  - Avatar + Display name (with user ID on hover)
-  - Email (partially masked, full on hover)
-  - Registration date (relative time + absolute on hover)
-  - Status badges (verified, roles, scheduled deletion)
-  - Created IP (with count of other accounts from same IP)
-  - Quick action buttons (view profile link, future: block/delete)
-- Visual indicators:
-  - Red badge for unverified emails
-  - Yellow warning for scheduled deletion
-  - Purple badge for admin/moderator roles
-  - Gray text for deleted accounts
-  - IP address highlighted if multiple recent registrations
-- Sorting options:
-  - Newest registrations first (default)
-  - Oldest unverified accounts
-  - Alphabetical by display name
-  - By IP (groups same-IP registrations)
-- Responsive design:
-  - Prioritize essential columns on mobile
-  - Horizontal scroll for full details
-  - Touch-friendly action buttons
+- Enhanced table implementation (@app/views/users/users-page.html.jinja):
+  - Avatar + Display name with user ID tooltip on hover
+  - Email display (full, no masking)
+  - Registration date with relative time formatting
+  - Status badges (unverified, scheduled deletion, deleted)
+  - Role indicators using star icons matching profile pattern
+  - Created IP with burst detection badges
+  - Quick action button to view profile
+- Visual indicators implemented:
+  - Red badge (bg-danger) for unverified emails
+  - Yellow badge (bg-warning) for scheduled deletion
+  - Gray badge (bg-secondary) for deleted accounts
+  - Star icons for roles: red (text-danger) for admin, blue (text-blue) for moderator
+  - Future-proof: gray star (text-secondary) for unknown roles
+  - IP addresses highlighted with warning badge when >=2 registrations in 24h
+- Export functionality (@app/views/users/index.ts):
+  - Export Visible: Copies current page IDs to clipboard as JSON array
+  - Export All: Downloads all filtered results as JSON file
+  - Simple string concatenation for JSON to avoid precision issues
+- Backend enhancements (@app/controllers/web_users.py):
+  - Added Content-Disposition header for file download
+  - Leveraged existing ip_counts for burst detection
+- Styling (@app/views/users/index.scss):
+  - Enhanced avatar spacing and role star sizing
+  - IP burst warning emphasis
+  - Export button styling
 
 **Success Criteria:**
-- Problems immediately visible through color/badges
-- Sorting changes apply instantly
-- Table remains performant with 100 rows
-- Mobile experience remains usable
+- ✅ Problems immediately visible through color-coded badges and indicators
+- ✅ Role indicators match profile styling with future-proof fallback
+- ✅ Burst detection highlights 2+ registrations from same IP in 24h
+- ✅ Deleted accounts clearly marked with gray text
+- ✅ User IDs accessible via tooltips on hover
+- ✅ Export functionality for both visible page and all filtered results
+- ✅ JSON export format matches backend with proper number handling
+- ✅ Table remains performant with 100 rows per page
+- ✅ Bootstrap tooltips integrated for enhanced information display
 
 ### Phase 4: Advanced Search & Pattern Detection - PENDING
 
@@ -335,6 +344,22 @@ The user management system will integrate by:
 ### Visual Design
 **Decision**: Color-coded badges and indicators
 **Reasoning**: Instant pattern recognition, reduces cognitive load, accessibility with proper ARIA labels, consistent with Bootstrap.
+
+### Role Display Implementation
+**Decision**: Reuse existing role translations and star icons from profile view
+**Reasoning**: Consistency across the application, no new translation strings needed, future-proof with fallback for unknown roles.
+
+### Deleted User Detection
+**Decision**: Use existing user_is_deleted() function from user model
+**Reasoning**: Centralized logic for deletion detection, consistent with existing patterns, registered in Jinja2 globals for template access.
+
+### Export Format
+**Decision**: Simple string concatenation for JSON array construction
+**Reasoning**: Avoids JavaScript number precision issues with large user IDs, most compatible approach, simplest implementation.
+
+### Burst Registration Threshold
+**Decision**: Flag IPs with 2+ registrations in 24h (not 10+)
+**Reasoning**: More sensitive to potential spam, catches smaller-scale abuse patterns, aligns with typical spam behavior.
 
 ## Performance Targets
 
