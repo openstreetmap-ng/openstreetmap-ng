@@ -655,8 +655,9 @@ let
     ))
     (makeScript "format" ''
       set +e
-      ruff check . --fix
       pre-commit run -c ${preCommitConf} --all-files
+      ruff check --fix
+      biome lint --fix
     '')
     (makeScript "pyright" "pnpx basedpyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")

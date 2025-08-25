@@ -80,8 +80,8 @@ run
 **Code Quality:**
 
 ```bash
-format                # Format and lint all code
-pyright               # Python type checking
+format                # Format and check **all code**: Python, TypeScript, JSON, SCSS, HTML, Nix, etc.
+pyright               # Python-only type checking
 run-tests             # Test suite
 run-tests --extended  # Extended test suite, marked by @pytest.mark.extended (slow)
 ```

@@ -11,7 +11,7 @@ class error(Exception): ...
 class Compressor:
     def __init__(
         self,
-        mode: int = ...,
+        mode: int = MODE_GENERIC,
         quality: int = 11,
         lgwin: int = 22,
         lgblock: int = 0,

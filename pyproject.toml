@@ -95,7 +95,7 @@ line-length = 88
 target-version = "py313"
 
 [tool.ruff.lint]
-exclude = ["typings/brotli"]
+exclude = ["typings/brotli/**"]
 # custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 ignore = [
   "ARG001", # unused-function-argument
