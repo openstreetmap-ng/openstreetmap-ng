@@ -356,20 +356,15 @@ class UserQuery:
                 return (await r.fetchone())[0]  # type: ignore
 
         if sort == 'created_asc':
-            inner_order = SQL('created_at DESC')
-            outer_order = SQL('created_at')
+            order_clause = SQL('created_at')
         elif sort == 'created_desc':
-            inner_order = SQL('created_at')
-            outer_order = SQL('created_at DESC')
+            order_clause = SQL('created_at DESC')
         elif sort == 'name_asc':
-            inner_order = SQL('display_name DESC')
-            outer_order = SQL('display_name')
+            order_clause = SQL('display_name')
         elif sort == 'name_desc':
-            inner_order = SQL('display_name')
-            outer_order = SQL('display_name DESC')
+            order_clause = SQL('display_name DESC')
         elif sort == 'ip':
-            inner_order = SQL('created_ip DESC, created_at')
-            outer_order = SQL('created_ip, created_at DESC')
+            order_clause = SQL('created_ip, created_at DESC')
         else:
             raise NotImplementedError(f'Unsupported sort {sort!r}')
 
@@ -379,7 +374,7 @@ class UserQuery:
                 WHERE {}
                 ORDER BY {}
                 LIMIT %s
-            """).format(where_clause, outer_order)
+            """).format(where_clause, order_clause)
             params.append(limit)
             async with db() as conn, await conn.execute(query, params) as r:
                 return [row[0] for row in await r.fetchall()]
@@ -392,18 +387,16 @@ class UserQuery:
             page,
             page_size=USER_LIST_PAGE_SIZE,
             num_items=num_items,
+            reverse=False,  # User management always uses forward pagination
         )
 
         query = SQL("""
-            SELECT * FROM (
-                SELECT * FROM "user"
-                WHERE {}
-                ORDER BY {}
-                OFFSET %s
-                LIMIT %s
-            ) AS subquery
+            SELECT * FROM "user"
+            WHERE {}
             ORDER BY {}
-        """).format(where_clause, inner_order, outer_order)
+            OFFSET %s
+            LIMIT %s
+        """).format(where_clause, order_clause)
         params.extend([stmt_offset, stmt_limit])
 
         async with (

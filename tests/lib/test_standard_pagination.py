@@ -13,10 +13,39 @@ from app.lib.standard_pagination import standard_pagination_range
         (4, (0, 0)),
     ],
 )
-def test_standard_pagination_range(page, expected):
+def test_standard_pagination_range_reverse(page, expected):
     page_size = 10
     num_items = 23
     assert (
-        standard_pagination_range(page, page_size=page_size, num_items=num_items)
+        standard_pagination_range(
+            page,
+            page_size=page_size,
+            num_items=num_items,
+            reverse=True,
+        )
+        == expected
+    )
+
+
+@pytest.mark.parametrize(
+    ('page', 'expected'),
+    [
+        (0, (0, 0)),
+        (1, (10, 0)),
+        (2, (10, 10)),
+        (3, (3, 20)),
+        (4, (0, 0)),
+    ],
+)
+def test_standard_pagination_range_forward(page, expected):
+    page_size = 10
+    num_items = 23
+    assert (
+        standard_pagination_range(
+            page,
+            page_size=page_size,
+            num_items=num_items,
+            reverse=False,
+        )
         == expected
     )

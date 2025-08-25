@@ -8,6 +8,7 @@ export const configureStandardPagination = (
     container?: ParentNode,
     options?: {
         initialPage?: number
+        reverse?: boolean
         customLoader?: (page: number, renderContainer: HTMLElement) => void
         loadCallback?: () => void
     },
@@ -23,13 +24,14 @@ export const configureStandardPagination = (
 
     const pageSize = Number.parseInt(dataset.pageSize, 10)
     const numItems = Number.parseInt(dataset.numItems, 10)
+    const reverse = options?.reverse ?? true
 
     const endpointPattern = dataset.action
     console.debug(
         "Initializing standard pagination",
         options?.customLoader ? "<custom loader>" : endpointPattern,
     )
-    const currentPage = signal(options?.initialPage ?? totalPages)
+    const currentPage = signal(options?.initialPage ?? (reverse ? totalPages : 1))
     let firstLoad = true
 
     const setPendingState = (state: boolean): void => {
@@ -135,6 +137,7 @@ export const configureStandardPagination = (
                         i,
                         pageSize,
                         numItems,
+                        reverse,
                     )
                     const itemMax = numItems - offset
                     const itemMin = itemMax - limit + 1
@@ -175,12 +178,16 @@ export const configureStandardPagination = (
 
 /**
  * Get the range of items for the given page.
- * The last page returns an offset of 0.
  * Returns a tuple of (limit, offset).
  */
-const standardPaginationRange = (page: number, pageSize: number, numItems: number) => {
+const standardPaginationRange = (
+    page: number,
+    pageSize: number,
+    numItems: number,
+    reverse: boolean,
+) => {
     const numPages = Math.ceil(numItems / pageSize)
-    const offset = (numPages - page) * pageSize
+    const offset = reverse ? (numPages - page) * pageSize : (page - 1) * pageSize
     const limit = Math.min(pageSize, numItems - offset)
     return [limit, offset]
 }
