@@ -9,6 +9,7 @@ from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.user import UserInit
 from app.models.types import DisplayName, Email, Password, UserId
 from app.queries.user_query import UserQuery
+from app.services.audit_service import audit
 from app.services.user_token_account_confirm_service import (
     UserTokenAccountConfirmService,
 )
@@ -23,7 +24,7 @@ class UserSignupService:
         email: Email,
         password: Password,
         tracking: bool,
-        email_confirmed: bool,
+        email_verified: bool,
     ) -> UserId:
         """Create a new user. Returns the new user id."""
         if not await UserQuery.check_display_name_available(display_name):
@@ -44,7 +45,7 @@ class UserSignupService:
 
         user_init: UserInit = {
             'email': email,
-            'email_verified': email_confirmed,
+            'email_verified': email_verified,
             'display_name': display_name,
             'password_pb': password_pb,
             'language': primary_translation_locale(),
@@ -72,9 +73,17 @@ class UserSignupService:
         ):
             user_id: UserId = (await r.fetchone())[0]  # type: ignore
 
-        logging.debug('Created user %d with email %r', user_id, email)
+        logging.debug('Created user %d', user_id)
+        audit(
+            'change_display_name',
+            user_id=user_id,
+            display_name=display_name,
+            extra='Signup',
+        )
 
-        if not email_confirmed:
+        if email_verified:
+            audit('change_email', user_id=user_id, email=email, extra='Signup')
+        else:
             user = await UserQuery.find_one_by_id(user_id)
             assert user is not None, 'User must exist after creation'
             with auth_context(user, scopes=()):

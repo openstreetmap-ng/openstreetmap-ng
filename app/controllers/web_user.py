@@ -76,26 +76,26 @@ async def signup(
     auth_provider_verification: Annotated[str | None, Cookie()] = None,
 ):
     verification = AuthProviderService.validate_verification(auth_provider_verification)
-    email_confirmed = verification is not None and verification.email == email
+    email_verified = verification is not None and verification.email == email
 
     user_id = await UserSignupService.signup(
         display_name=display_name,
         email=email,
         password=password,
         tracking=tracking,
-        email_confirmed=email_confirmed,
+        email_verified=email_verified,
     )
 
     response = Response(
         orjson.dumps({
             'redirect_url': '/welcome'
-            if email_confirmed
+            if email_verified
             else '/user/account-confirm/pending'
         }),
         media_type='application/json; charset=utf-8',
     )
 
-    if email_confirmed:
+    if email_verified:
         response.delete_cookie('auth_provider_verification')
 
     access_token = await SystemAppService.create_access_token(
