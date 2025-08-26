@@ -10,18 +10,28 @@
         .avatar {
             width: 2rem;
             height: 2rem;
-            vertical-align: middle;
             margin-right: 0.5rem;
         }
 
+        .display-name {
+            vertical-align: middle;
+        }
+
         .roles {
-            .bi-star-fill {
-                font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-left: 0.25rem;
+
+            .bi {
+                font-size: 0.75em;
             }
         }
 
-        .badge {
-            font-size: 0.75rem;
+        .status {
+            .badge {
+                line-height: inherit;
+            }
         }
     }
 }

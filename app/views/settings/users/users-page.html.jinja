@@ -2,56 +2,60 @@
 {% set _is_deleted = user_is_deleted(user) %}
 <tr data-user-id="{{ user.id }}">
     <td>
-        <a href="/user-id/{{ user.id }}" {% if _is_deleted %}class="text-muted" {% endif %} data-bs-toggle="tooltip"
-            data-bs-title="User ID: {{ user.id }}">
+        <a href="/user-id/{{ user.id }}">
             <img class="avatar" src="{{ user_avatar_url(user) }}" alt="{{ t('alt.profile_picture') }}" loading="lazy">
-            <span {% if _is_deleted %}class="text-muted" {% endif %}>{{ user.display_name }}</span>
+            <span class="display-name {% if _is_deleted %}text-muted{% endif %}">{{ user.display_name }}</span>
         </a>
         <span class="roles">
             {% for role in user.roles %}
             {% if role == 'administrator' %}
-            <i class="bi bi-star-fill text-danger ms-1" data-bs-toggle="tooltip"
+            <i class="bi bi-star-fill text-danger" data-bs-toggle="tooltip"
                 data-bs-title="{{ t('users.show.role.administrator') }}"></i>
             {% elif role == 'moderator' %}
-            <i class="bi bi-star-fill text-blue ms-1" data-bs-toggle="tooltip"
+            <i class="bi bi-star-fill text-blue" data-bs-toggle="tooltip"
                 data-bs-title="{{ t('users.show.role.moderator') }}"></i>
             {% else %}
-            <i class="bi bi-star-fill text-secondary ms-1" data-bs-toggle="tooltip"
-                data-bs-title="{{ role | title }}"></i>
+            <i class="bi bi-star-fill text-secondary" data-bs-toggle="tooltip" data-bs-title="{{ role | title }}"></i>
             {% endif %}
             {% endfor %}
         </span>
     </td>
-    <td class="{% if _is_deleted %}text-muted{% else %}text-body-secondary{% endif %}">{{ user.email }}</td>
+    <td>
+        <span class="{% if _is_deleted %}text-muted{% else %}text-body-secondary{% endif %}">
+            {{- user.email -}}
+        </span>
+    </td>
+    <td class="status">
+        {% if not user.email_verified %}
+        <span class="badge text-bg-danger">Unverified</span>
+        {% set _has_status = True %}
+        {% endif %}
+        {% if user.scheduled_delete_at is not none %}
+        <span class="badge text-bg-warning">Pending deletion</span>
+        {% set _has_status = True %}
+        {% endif %}
+        {% if _is_deleted %}
+        <span class="badge text-bg-secondary">Deleted</span>
+        {% set _has_status = True %}
+        {% endif %}
+        {% if _has_status is undefined %}
+        <span class="text-body-secondary">&mdash;</span>
+        {% endif %}
+    </td>
     <td>
         <time datetime="{{ user.created_at.isoformat() }}" data-style="short"></time>
     </td>
-    <td>
-        {% if not user.email_verified %}
-        <span class="badge bg-danger">Unverified</span>
-        {% endif %}
-        {% if user.scheduled_delete_at %}
-        <span class="badge bg-warning">Scheduled deletion</span>
-        {% endif %}
-        {% if _is_deleted %}
-        <span class="badge bg-secondary">Deleted</span>
-        {% endif %}
-    </td>
-    <td class="text-muted">
-        {% if ip_counts[user.created_ip] >= 2 %}
-        <span class="text-warning">{{ user.created_ip }}</span>
-        <span class="badge bg-warning ms-1"
-            title="{{ ip_counts[user.created_ip] }} registrations from this IP in last 24h">
-            {{ ip_counts[user.created_ip] }}
-        </span>
+    {% set _ip_count = ip_counts[user.created_ip] %}
+    <td title="{{ _ip_count }} registrations from this IP in last 24h">
+        {% if _ip_count >= 2 %}
+        <span class="text-warning me-1">{{ user.created_ip }}</span>
+        <small>x<b>{{ _ip_count }}</b></small>
         {% else %}
-        {{ user.created_ip }}
+        <span class="text-body-secondary">{{ user.created_ip }}</span>
         {% endif %}
     </td>
     <td>
-        <a href="/settings/users/{{ user.id }}" class="btn btn-sm btn-outline-primary">
-            Manage
-        </a>
+        <a href="/settings/users/{{ user.id }}" class="link-primary">Manage</a>
     </td>
 </tr>
 {% endfor %}

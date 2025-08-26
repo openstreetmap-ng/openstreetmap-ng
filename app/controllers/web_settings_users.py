@@ -46,7 +46,7 @@ async def users_page(
     ip_counts = await UserQuery.count_by_ips(unique_ips, since=timedelta(days=1))
 
     return await render_response(
-        'users/users-page',
+        'settings/users/users-page',
         {
             'users': users,
             'ip_counts': ip_counts,
