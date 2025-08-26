@@ -5,12 +5,18 @@ if (body) {
     configureStandardPagination(body, { reverse: false })
 
     const exportVisibleBtn = body.querySelector("button.export-visible-btn")
-    exportVisibleBtn.addEventListener("click", () => {
+    exportVisibleBtn.addEventListener("click", async () => {
         const userIds = Array.from(body.querySelectorAll("tr[data-user-id]")).map(
             (el) => el.dataset.userId,
         )
         const json = `[${userIds.join(",")}]`
-        navigator.clipboard.writeText(json)
+
+        try {
+            await navigator.clipboard.writeText(json)
+        } catch (error) {
+            console.warn("Failed to copy user IDs", error)
+            if (error instanceof Error) alert(error.message)
+        }
     })
 
     const exportAllBtn = body.querySelector("button.export-all-btn")

@@ -102,8 +102,9 @@ export const configureContextMenu = (map: MaplibreMap): void => {
             const value = (target as Element).textContent
             await navigator.clipboard.writeText(value)
             console.debug("Copied geolocation to clipboard", value)
-        } catch (err) {
-            console.warn("Failed to copy geolocation", err)
+        } catch (error) {
+            console.warn("Failed to copy geolocation", error)
+            if (error instanceof Error) alert(error.message)
         }
     }
     geolocationField.addEventListener("click", onGeolocationFieldClick)
