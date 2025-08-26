@@ -38,7 +38,8 @@ $_icon-color: var(--bs-tertiary-color);
             color: $body-bg;
 
             img {
-                height: 1em;
+                height: calc(2rem * 1.2);
+                vertical-align: bottom;
             }
 
             .vibrant {
