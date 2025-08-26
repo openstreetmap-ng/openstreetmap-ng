@@ -89,7 +89,8 @@ WHERE
 
 CREATE INDEX user_deleted_idx ON "user" (id DESC)
 WHERE
-    email LIKE '%@deleted.invalid'; -- DELETED_USER_EMAIL_SUFFIX
+    -- DELETED_USER_EMAIL_SUFFIX
+    email LIKE '%@deleted.invalid';
 
 CREATE INDEX user_roles_idx ON "user" USING gin (roles);
 
@@ -156,6 +157,41 @@ WHERE
     token_hashed IS NOT NULL;
 
 CREATE INDEX oauth2_token_user_app_authorized_idx ON oauth2_token (user_id, application_id, id, (authorized_at IS NOT NULL));
+
+CREATE TABLE audit (
+    id bigint PRIMARY KEY,
+    type text NOT NULL,
+    ip inet NOT NULL,
+    user_agent text,
+    user_id bigint,
+    application_id bigint,
+    email text,
+    display_name text,
+    extra text,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp()
+);
+
+CREATE INDEX audit_type_created_at_idx ON audit (type, created_at DESC);
+
+CREATE INDEX audit_ip_created_at_idx ON audit (ip, created_at DESC);
+
+CREATE INDEX audit_ip_type_created_at_idx ON audit (ip, type, created_at DESC);
+
+CREATE INDEX audit_user_created_at_idx ON audit (user_id DESC, created_at DESC)
+WHERE
+    user_id IS NOT NULL;
+
+CREATE INDEX audit_user_type_created_at_idx ON audit (user_id DESC, type, created_at DESC)
+WHERE
+    user_id IS NOT NULL;
+
+CREATE INDEX audit_application_created_at_idx ON audit (application_id DESC, created_at DESC)
+WHERE
+    application_id IS NOT NULL;
+
+CREATE INDEX audit_application_type_created_at_idx ON audit (application_id DESC, type, created_at DESC)
+WHERE
+    application_id IS NOT NULL;
 
 CREATE TABLE changeset (
     id bigint GENERATED ALWAYS AS IDENTITY,

@@ -18,6 +18,7 @@ from app.models.db.user import Editor, User, user_avatar_url, user_is_test
 from app.models.types import DisplayName, Email, LocaleCode, Password
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
+from app.services.audit_service import audit
 from app.services.image_service import ImageService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
@@ -195,6 +196,9 @@ class UserService:
                 (display_name, language, activity_tracking, crash_reporting, user_id),
             )
 
+        if display_name != user['display_name']:
+            audit('change_display_name', display_name=display_name)
+
     @staticmethod
     async def update_editor(
         editor: Editor | None,
@@ -289,7 +293,7 @@ class UserService:
                 (new_password_pb, user_id),
             )
 
-        logging.debug('Changed password for user %d', user_id)
+        audit('change_password')
 
     @staticmethod
     async def reset_password(
@@ -348,7 +352,7 @@ class UserService:
                     (token_struct.id,),
                 )
 
-        logging.debug('Reset password for user %d', user_id)
+        audit('change_password', user_id=user_id, extra='Reset')
 
     @staticmethod
     async def update_timezone(timezone: str) -> None:

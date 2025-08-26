@@ -11,6 +11,7 @@ from app.models.db.user_token import UserTokenEmailChangeInit
 from app.models.proto.server_pb2 import UserTokenStruct
 from app.models.types import Email, UserId, UserTokenId
 from app.queries.user_token_query import UserTokenQuery
+from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from speedup.buffered_rand import buffered_randbytes
 
@@ -62,7 +63,7 @@ class UserTokenEmailChangeService:
                 await conn.execute(
                     """
                     UPDATE "user"
-                    SET email = %s
+                    SET email = %s AND email_verified = TRUE
                     WHERE id = %s
                     """,
                     (new_email, user_id),
@@ -74,6 +75,8 @@ class UserTokenEmailChangeService:
                     """,
                     (token_struct.id,),
                 )
+
+        audit('change_email', user_id=user_id, email=new_email)
 
 
 async def _create_token(new_email: Email) -> UserTokenStruct:

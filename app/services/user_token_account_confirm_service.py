@@ -9,8 +9,9 @@ from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.user_token import UserTokenInit
 from app.models.proto.server_pb2 import UserTokenStruct
-from app.models.types import UserId, UserTokenId
+from app.models.types import Email, UserId, UserTokenId
 from app.queries.user_token_query import UserTokenQuery
+from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from speedup.buffered_rand import buffered_randbytes
 
@@ -55,22 +56,32 @@ class UserTokenAccountConfirmService:
                     raise_for.bad_user_token_struct()
                 user_id: UserId = row[0]
 
-            async with conn.pipeline():
-                await conn.execute(
-                    """
-                    UPDATE "user"
-                    SET email_verified = TRUE
-                    WHERE id = %s
-                    """,
-                    (user_id,),
-                )
-                await conn.execute(
-                    """
-                    DELETE FROM user_token
-                    WHERE id = %s
-                    """,
-                    (token_struct.id,),
-                )
+            async with await conn.execute(
+                """
+                UPDATE "user"
+                SET email_verified = TRUE
+                WHERE id = %s AND NOT email_verified
+                RETURNING email
+                """,
+                (user_id,),
+            ) as r:
+                email: tuple[Email] | None = await r.fetchone()
+
+            await conn.execute(
+                """
+                DELETE FROM user_token
+                WHERE id = %s
+                """,
+                (token_struct.id,),
+            )
+
+        if email is not None:
+            audit(
+                'change_email',
+                user_id=user_id,
+                email=email[0],
+                extra='Account confirm',
+            )
 
 
 async def _create_token() -> UserTokenStruct:

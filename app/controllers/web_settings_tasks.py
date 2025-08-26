@@ -1,4 +1,3 @@
-import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Form, Request, Response
@@ -24,7 +23,7 @@ async def start_task(
         if key.startswith('arg_') and isinstance(value, str) and value
     }
 
-    asyncio.create_task(AdminTaskService.start_task(id, args))  # noqa: RUF006
+    AdminTaskService.start_task(id, args)
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 
