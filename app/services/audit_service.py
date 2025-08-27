@@ -66,6 +66,10 @@ def audit(
 
     _TG.create_task(_audit_task(event_init, discard_repeated))
 
+    # Skip logging for common cases
+    if type in {'auth_api', 'auth_web'} and extra is None:
+        return
+
     values: list[str] = []
     if user_id is not None:
         values.append(f'uid={user_id}')
@@ -90,21 +94,8 @@ async def _audit_task(
     event_init: AuditEventInit,
     discard_repeated: timedelta | None,
 ) -> None:
-    async with db(True) as conn:
-        if discard_repeated is not None:
-            async with await conn.execute(
-                """
-                SELECT 1 FROM audit
-                WHERE user_id = %s AND type = %s
-                AND created_at > statement_timestamp() - %s
-                LIMIT 1
-                """,
-                (event_init['user_id'], event_init['type'], discard_repeated),
-            ) as r:
-                if await r.fetchone() is not None:
-                    logging.debug('Discarded repeated audit event %s', event_init['id'])
-                    return
-
+    async with (
+        db(True) as conn,
         await conn.execute(
             """
             INSERT INTO audit (
@@ -113,12 +104,22 @@ async def _audit_task(
                 email, display_name,
                 extra
             )
-            VALUES (
+            SELECT
                 %(id)s, %(type)s,
                 %(ip)s, %(user_agent)s, %(user_id)s, %(application_id)s,
                 %(email)s, %(display_name)s,
                 %(extra)s
+            WHERE NOT EXISTS (
+                SELECT 1 FROM audit
+                WHERE %(discard_repeated)s IS NOT NULL
+                AND user_id = %(user_id)s
+                AND type = %(type)s
+                AND created_at > statement_timestamp() - %(discard_repeated)s
+                LIMIT 1
             )
             """,
-            event_init,
-        )
+            {**event_init, 'discard_repeated': discard_repeated},
+        ) as cursor,
+    ):
+        if not cursor.rowcount:
+            logging.debug('Discarded repeated audit event %s', event_init['id'])
