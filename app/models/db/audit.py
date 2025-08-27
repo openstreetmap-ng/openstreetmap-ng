@@ -7,8 +7,8 @@ from app.models.types import ApplicationId, DisplayName, Email, UserId
 AuditId = NewType('AuditId', int)
 AuditType = Literal[
     'admin_task',
-    # TODO: 'auth_api',
-    # TODO: 'auth_web',
+    'auth_api',
+    'auth_web',
     'change_display_name',
     'change_email',
     'change_password',

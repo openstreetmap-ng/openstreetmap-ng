@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
+from random import random
 from typing import Any, Literal, overload
 from urllib.parse import parse_qs, urlencode
 
@@ -9,11 +10,17 @@ from fastapi.security import SecurityScopes
 from sentry_sdk import set_user
 from starlette import status
 
-from app.config import ENV
+from app.config import (
+    AUDIT_AUTH_EVENT_SAMPLE_RATE,
+    AUDIT_DISCARD_REPEATED_AUTH_API,
+    AUDIT_DISCARD_REPEATED_AUTH_WEB,
+    ENV,
+)
 from app.lib.exceptions_context import raise_for
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User, user_is_test
 from app.models.scope import Scope
+from app.services.audit_service import audit
 
 # TODO: ACL
 # TODO: more 0.7 scopes
@@ -36,6 +43,20 @@ def auth_context(user: User | None, scopes: tuple[Scope, ...]):
         if timezone := user['timezone']:
             sentry_user['geo.region'] = timezone
     set_user(sentry_user)
+
+    if user is not None and random() < AUDIT_AUTH_EVENT_SAMPLE_RATE:
+        if 'web_user' in scopes:
+            audit(
+                'auth_web',
+                user_id=user['id'],
+                discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_WEB,
+            )
+        elif scopes:
+            audit(
+                'auth_api',
+                user_id=user['id'],
+                discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_API,
+            )
 
     token = _CTX.set((user, scopes))
     try:

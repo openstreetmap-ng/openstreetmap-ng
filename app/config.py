@@ -306,6 +306,9 @@ MESSAGES_INBOX_PAGE_SIZE = 50
 # -------------------- Administration --------------------
 
 # Audit
+AUDIT_AUTH_EVENT_SAMPLE_RATE = 0.05
+AUDIT_DISCARD_REPEATED_AUTH_API = timedelta(days=1)
+AUDIT_DISCARD_REPEATED_AUTH_WEB = timedelta(days=1)
 AUDIT_USER_AGENT_MAX_LENGTH = 200
 
 # Task management
