@@ -63,7 +63,7 @@ class UserTokenEmailChangeService:
                 await conn.execute(
                     """
                     UPDATE "user"
-                    SET email = %s AND email_verified = TRUE
+                    SET email = %s, email_verified = TRUE
                     WHERE id = %s
                     """,
                     (new_email, user_id),
