@@ -23,6 +23,7 @@ from pydantic import BaseModel, create_model
 from app.config import ADMIN_TASK_HEARTBEAT_INTERVAL, ADMIN_TASK_TIMEOUT, ENV
 from app.db import db
 from app.lib.date_utils import utcnow
+from app.services.audit_service import audit
 
 TaskId = NewType('TaskId', str)
 
@@ -133,6 +134,7 @@ class AdminTaskService:
         validated_args = _func_args_model(definition['func'])(**args).model_dump()
 
         _TG.create_task(_start_task(definition, validated_args))
+        audit('admin_task', extra=f'{task_id}{validated_args}')
 
 
 async def _start_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
