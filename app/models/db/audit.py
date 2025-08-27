@@ -1,6 +1,6 @@
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
-from typing import Literal, NewType, TypedDict
+from typing import Literal, NewType, TypedDict, get_args
 
 from app.models.types import ApplicationId, DisplayName, Email, UserId
 
@@ -16,6 +16,8 @@ AuditType = Literal[
     # TODO: 'schedule_user_delete',
     # TODO: 'view_admin_users',
 ]
+
+AUDIT_TYPE_SET = frozenset[AuditType](get_args(AuditType))
 
 
 class AuditEventInit(TypedDict):

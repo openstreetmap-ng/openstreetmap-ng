@@ -1,8 +1,9 @@
+from collections.abc import Set as AbstractSet
 from datetime import timedelta
 from ipaddress import IPv4Address, IPv6Address
 
 from app.db import db
-from app.models.db.audit import AuditType
+from app.models.db.audit import AUDIT_TYPE_SET, AuditType
 from app.models.types import UserId
 
 
@@ -12,7 +13,7 @@ class AuditQuery:
         user_ids: list[UserId],
         *,
         since: timedelta,
-        ignore: list[AuditType] | None = None,
+        ignore: AbstractSet[AuditType] = {'auth_api', 'rate_limit'},  # type: ignore
     ) -> dict[UserId, list[tuple[IPv4Address | IPv6Address, int]]]:
         """
         Get IP addresses with counts for each user.
@@ -24,39 +25,44 @@ class AuditQuery:
         if not user_ids:
             return {}
 
-        if ignore is None:
-            ignore = ['auth_api', 'rate_limit']  # type: ignore[assignment]
-
-        # Initialize result dict with empty lists for all requested users
-        result = {user_id: [] for user_id in user_ids}
-
         async with (
             db() as conn,
             await conn.execute(
                 """
                 SELECT
-                    user_id, ip,
-                    COUNT(*) OVER (PARTITION BY ip) as shared_count
+                    ui.user_id, ui.ip,
+                    COUNT(DISTINCT a.user_id) as shared_count
                 FROM (
                     SELECT DISTINCT user_id, ip
                     FROM audit
-                    WHERE user_id = ANY(%s)
-                    AND created_at >= statement_timestamp() - %s
-                    AND type != ALL(%s)
-                )
-                ORDER BY user_id, shared_count DESC
+                    WHERE user_id = ANY(%(user_ids)s)
+                    AND created_at >= statement_timestamp() - %(since)s
+                    AND type = ANY(%(types)s)
+                ) ui
+                JOIN audit a ON a.ip = ui.ip
+                WHERE a.created_at >= statement_timestamp() - %(since)s
+                AND a.type = ANY(%(types)s)
+                GROUP BY ui.user_id, ui.ip
+                ORDER BY ui.user_id, shared_count DESC
                 """,
-                (user_ids, since, ignore),
+                {
+                    'user_ids': user_ids,
+                    'since': since,
+                    'types': list(AUDIT_TYPE_SET - ignore),
+                },
             ) as r,
         ):
-            # Build result dict, grouping by user_id
-            current_user: UserId | None = None
-            current_list: list[tuple[IPv4Address | IPv6Address, int]] = []
+            rows: list[tuple[UserId, IPv4Address | IPv6Address, int]]
+            rows = await r.fetchall()
 
-            for user_id, ip, count in await r.fetchall():
-                if current_user != user_id:
-                    current_user = user_id
-                    current_list = result[user_id]
-                current_list.append((ip, count))
+        result = {user_id: [] for user_id in user_ids}
+        current_user: UserId | None = None
+        current_list: list[tuple[IPv4Address | IPv6Address, int]] = []
+
+        for user_id, ip, count in rows:
+            if current_user != user_id:
+                current_user = user_id
+                current_list = result[user_id]
+            current_list.append((ip, count))
 
         return result
