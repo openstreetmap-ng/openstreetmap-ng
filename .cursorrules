@@ -2,6 +2,8 @@
 
 OpenStreetMap-NG is a modern, high-performance Python implementation of the OpenStreetMap platform.
 
+This project is actively being developed, and breaking changes are acceptable.
+
 ## Core Architecture
 
 **Backend:**
@@ -9,14 +11,15 @@ OpenStreetMap-NG is a modern, high-performance Python implementation of the Open
 - Python 3.13 with async FastAPI and Psycopg3
 - Optional Cython Pure Python Mode compilation support
 - High-performance `speedup` Python C extension for critical code paths
-- PostgreSQL 17 with PostGIS
+- PostgreSQL 17 with PostGIS and TimescaleDB
 
 **Frontend:**
 
 - Server-side rendered HTML with Jinja2 templates
 - Node.js with pnpm, and Vite build tool
 - TypeScript (ES2023) with typed-query-selector, and MapLibre GL JS:
-  - Avoid using `as HTML...` casts: prefer to rely on typed-query-selector smart detection
+  - Avoid doing `as HTML...` casts: rely on typed-query-selector's smart type detection on querySelector/querySelectorAll:
+    `document.querySelectorAll('span.badge') // ==> NodeListOf<HTMLSpanElement>`
 - SCSS with Bootstrap 5:
   - Inline styles are heavily discouraged
   - Generally avoid using `px` units: prefer `em`/`rem` where it makes sense
