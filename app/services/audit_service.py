@@ -3,6 +3,7 @@ from asyncio import TaskGroup
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from ipaddress import ip_address
+from random import random
 
 import cython
 from zid import zid
@@ -28,14 +29,21 @@ def audit(
     type: AuditType,
     /,
     *,
+    # Event metadata
     user_id: UserId | None = None,
     application_id: ApplicationId | None = None,
     email: Email | None = None,
     display_name: DisplayName | None = None,
     extra: str | None = None,
+    # Event config
+    sample_rate: float | None = None,
     discard_repeated: timedelta | None = None,
+    # Constants
     AUDIT_USER_AGENT_MAX_LENGTH: cython.Py_ssize_t = AUDIT_USER_AGENT_MAX_LENGTH,
 ) -> None:
+    if sample_rate is not None and random() > sample_rate:
+        return
+
     if user_id is None:
         user = auth_user()
         user_id = user['id'] if user is not None else None

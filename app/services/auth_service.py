@@ -3,7 +3,12 @@ import logging
 from fastapi import Request
 from pydantic import SecretStr
 
-from app.config import ENV
+from app.config import (
+    AUDIT_DISCARD_REPEATED_AUTH_API,
+    AUDIT_DISCARD_REPEATED_AUTH_WEB,
+    AUDIT_SAMPLE_RATE_AUTH,
+    ENV,
+)
 from app.lib.testmethod import testmethod
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
@@ -12,6 +17,7 @@ from app.models.scope import PUBLIC_SCOPES, Scope
 from app.models.types import DisplayName
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
+from app.services.audit_service import audit
 
 # default scopes when using session auth
 _SESSION_AUTH_SCOPES: frozenset[Scope] = PUBLIC_SCOPES | {'web_user'}  # type: ignore
@@ -99,10 +105,18 @@ async def _authenticate_with_oauth2(
     if token is None:
         return None
 
-    user = await UserQuery.find_one_by_id(token['user_id'])
+    user_id = token['user_id']
+    user = await UserQuery.find_one_by_id(user_id)
     if user is None:
         return None
 
+    audit(
+        'auth_api',
+        user_id=user_id,
+        application_id=token['application_id'],
+        sample_rate=AUDIT_SAMPLE_RATE_AUTH,
+        discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_API,
+    )
     scopes = user_extend_scopes(user, frozenset(token['scopes']))
     return user, scopes
 
@@ -121,10 +135,17 @@ async def _authenticate_with_cookie(
     if token is None or token['scopes'] != ['web_user']:
         return None
 
-    user = await UserQuery.find_one_by_id(token['user_id'])
+    user_id = token['user_id']
+    user = await UserQuery.find_one_by_id(user_id)
     if user is None:
         return None
 
+    audit(
+        'auth_web',
+        user_id=user_id,
+        sample_rate=AUDIT_SAMPLE_RATE_AUTH,
+        discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_WEB,
+    )
     scopes = user_extend_scopes(user, _SESSION_AUTH_SCOPES)
     return user, scopes
 
