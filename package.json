@@ -47,7 +47,8 @@
       "@parcel/watcher",
       "core-js",
       "core-js-bundle",
-      "esbuild"
+      "esbuild",
+      "sharp"
     ],
     "auditConfig": {
       "ignoreGhsas": [
