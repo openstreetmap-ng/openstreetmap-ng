@@ -45,13 +45,28 @@
     <td>
         <time datetime="{{ user.created_at.isoformat() }}" data-style="short"></time>
     </td>
-    {% set _ip_count = ip_counts[user.created_ip] %}
-    <td title="{{ _ip_count }} registrations from this IP in last 24h">
-        {% if _ip_count >= 2 %}
-        <span class="text-warning me-1">{{ user.created_ip }}</span>
-        <small>x<b>{{ _ip_count }}</b></small>
+    {% set _user_ips = ip_counts[user.id] %}
+    <td>
+        {% if _user_ips %}
+        {% set _main_ip, _main_count = _user_ips[0] %}
+        {% set _more_ips = _user_ips[1:10] %}
+        {% set _has_more = _user_ips | length > 10 %}
+
+        <span class="{% if _main_count >= 2 %}text-warning{% else %}text-body-secondary{% endif %}">
+            {{ _main_ip }}
+        </span>
+        {% if _main_count > 1 %}
+        <small class="text-muted">×{{ _main_count }}</small>
+        {% endif %}
+
+        {% if _more_ips %}
+        <span class="text-primary ms-1" role="button" data-bs-toggle="tooltip" data-bs-html="true"
+            data-bs-title="{% for ip, count in _more_ips %}{{ ip }} <small>×{{ count }}</small><br>{% endfor %}{% if _has_more %}...{% endif %}">
+            +{{ _more_ips | length }}{% if _has_more %}+{% endif %} more
+        </span>
+        {% endif %}
         {% else %}
-        <span class="text-body-secondary">{{ user.created_ip }}</span>
+        <span class="text-muted">—</span>
         {% endif %}
     </td>
     <td>

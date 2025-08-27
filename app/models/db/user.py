@@ -1,5 +1,4 @@
 from datetime import datetime
-from ipaddress import IPv4Address, IPv6Address
 from typing import Literal, NotRequired, TypedDict
 
 from shapely import Point
@@ -24,7 +23,6 @@ class UserInit(TypedDict):
     language: LocaleCode
     activity_tracking: bool
     crash_reporting: bool
-    created_ip: IPv4Address | IPv6Address
 
 
 class User(UserInit):

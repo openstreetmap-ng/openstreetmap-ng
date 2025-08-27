@@ -10,6 +10,7 @@ from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.models.db.user import User, UserRole
 from app.models.types import UserId
+from app.queries.audit_query import AuditQuery
 from app.queries.user_query import UserQuery
 
 router = APIRouter(prefix='/api/web/settings/users')
@@ -26,7 +27,7 @@ async def users_page(
     created_after: Annotated[datetime | None, Query()] = None,
     created_before: Annotated[datetime | None, Query()] = None,
     sort: Annotated[
-        Literal['created_asc', 'created_desc', 'name_asc', 'name_desc', 'ip'], Query()
+        Literal['created_asc', 'created_desc', 'name_asc', 'name_desc'], Query()
     ] = 'created_desc',
 ):
     """Get a page of users for the management interface."""
@@ -42,8 +43,8 @@ async def users_page(
         sort=sort,
     )
 
-    unique_ips = list({user['created_ip'] for user in users})
-    ip_counts = await UserQuery.count_by_ips(unique_ips, since=timedelta(days=1))
+    user_ids = [user['id'] for user in users]
+    ip_counts = await AuditQuery.count_ip_by_user(user_ids, since=timedelta(days=1))
 
     return await render_response(
         'settings/users/users-page',

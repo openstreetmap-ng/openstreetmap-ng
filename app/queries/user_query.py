@@ -1,12 +1,5 @@
-from datetime import datetime, timedelta
-from ipaddress import (
-    IPv4Address,
-    IPv4Network,
-    IPv6Address,
-    IPv6Network,
-    ip_address,
-    ip_network,
-)
+from datetime import datetime
+from ipaddress import ip_address, ip_network
 from typing import Any, Literal
 
 from psycopg.rows import dict_row
@@ -307,20 +300,37 @@ class UserQuery:
         created_after: datetime | None = None,
         created_before: datetime | None = None,
         sort: Literal[
-            'created_asc', 'created_desc', 'name_asc', 'name_desc', 'ip'
+            'created_asc', 'created_desc', 'name_asc', 'name_desc'
         ] = 'created_desc',
     ) -> int | list[User] | list[UserId]:
         """Find users matching filters in different modes."""
         conditions: list[Composable] = []
         params: list[Any] = []
 
-        created_ip: IPv4Address | IPv4Network | IPv6Address | IPv6Network | None = None
         if search:
             try:
-                created_ip = ip_address(search)
+                search_ip = ip_address(search)
+                conditions.append(
+                    SQL("""
+                        id IN (
+                            SELECT user_id FROM audit
+                            WHERE ip = %s AND user_id IS NOT NULL
+                        )
+                    """)
+                )
+                params.append(search_ip)
             except ValueError:
                 try:
-                    created_ip = ip_network(search, strict=False)
+                    search_ip = ip_network(search, strict=False)
+                    conditions.append(
+                        SQL("""
+                            id IN (
+                                SELECT user_id FROM audit
+                                WHERE ip <<= %s AND user_id IS NOT NULL
+                            )
+                        """)
+                    )
+                    params.append(search_ip)
                 except ValueError:
                     conditions.append(SQL('(email ILIKE %s OR display_name ILIKE %s)'))
                     pattern = f'%{search}%'
@@ -341,13 +351,6 @@ class UserQuery:
             conditions.append(SQL('created_at <= %s'))
             params.append(created_before)
 
-        if created_ip:
-            if isinstance(created_ip, IPv4Network | IPv6Network):
-                conditions.append(SQL('created_ip <<= %s'))
-            else:
-                conditions.append(SQL('created_ip = %s'))
-            params.append(created_ip)
-
         where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
 
         if mode == 'count':
@@ -363,8 +366,6 @@ class UserQuery:
             order_clause = SQL('display_name')
         elif sort == 'name_desc':
             order_clause = SQL('display_name DESC')
-        elif sort == 'ip':
-            order_clause = SQL('created_ip, created_at DESC')
         else:
             raise NotImplementedError(f'Unsupported sort {sort!r}')
 
@@ -404,30 +405,3 @@ class UserQuery:
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
             return await r.fetchall()  # type: ignore
-
-    @staticmethod
-    async def count_by_ips(
-        ips: list[IPv4Address | IPv6Address],
-        *,
-        since: timedelta,
-    ) -> dict[IPv4Address | IPv6Address, int]:
-        """Count users created from the given IPs in the given time period."""
-        if not ips:
-            return {}
-
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT created_ip, COUNT(*) FROM "user"
-                WHERE created_ip = ANY(%s)
-                AND created_at >= statement_timestamp() - %s
-                GROUP BY created_ip
-                """,
-                (ips, since),
-            ) as r,
-        ):
-            result = dict.fromkeys(ips, 0)
-            for ip, count in await r.fetchall():
-                result[ip] = count
-            return result

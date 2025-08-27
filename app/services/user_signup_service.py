@@ -5,7 +5,6 @@ from app.lib.auth_context import auth_context
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import primary_translation_locale, t
-from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.user import UserInit
 from app.models.types import DisplayName, Email, Password, UserId
 from app.queries.user_query import UserQuery
@@ -49,7 +48,6 @@ class UserSignupService:
             'language': primary_translation_locale(),
             'activity_tracking': tracking,
             'crash_reporting': tracking,
-            'created_ip': get_request_ip(),
         }
 
         async with (
@@ -58,11 +56,11 @@ class UserSignupService:
                 """
                 INSERT INTO "user" (
                     email, email_verified, display_name, password_pb,
-                    language, activity_tracking, crash_reporting, created_ip
+                    language, activity_tracking, crash_reporting
                 )
                 VALUES (
                     %(email)s, %(email_verified)s, %(display_name)s, %(password_pb)s,
-                    %(language)s, %(activity_tracking)s, %(crash_reporting)s, %(created_ip)s
+                    %(language)s, %(activity_tracking)s, %(crash_reporting)s
                 )
                 RETURNING id
                 """,

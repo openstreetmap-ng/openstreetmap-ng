@@ -22,7 +22,7 @@ async def users_index(
     created_after: Annotated[datetime | None, Query()] = None,
     created_before: Annotated[datetime | None, Query()] = None,
     sort: Annotated[
-        Literal['created_asc', 'created_desc', 'name_asc', 'name_desc', 'ip'], Query()
+        Literal['created_asc', 'created_desc', 'name_asc', 'name_desc'], Query()
     ] = 'created_desc',
 ):
     users_num_items: int = await UserQuery.find_filtered(  # type: ignore

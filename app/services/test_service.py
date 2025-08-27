@@ -1,7 +1,6 @@
 import logging
 from asyncio import TaskGroup
 from datetime import datetime
-from ipaddress import IPv4Address
 
 from zid import zid
 
@@ -81,7 +80,6 @@ class TestService:
             'language': language,
             'activity_tracking': False,
             'crash_reporting': False,
-            'created_ip': IPv4Address('127.0.0.1'),
         }
         assert user_is_test(user_init), 'Test service must only create test users'
 
@@ -91,12 +89,12 @@ class TestService:
                 INSERT INTO "user" (
                     email, email_verified, display_name, password_pb,
                     language, activity_tracking, crash_reporting,
-                    created_ip, roles, created_at
+                    roles, created_at
                 )
                 VALUES (
                     %(email)s, %(email_verified)s, %(display_name)s, %(password_pb)s,
                     %(language)s, %(activity_tracking)s, %(crash_reporting)s,
-                    %(created_ip)s, %(roles)s, COALESCE(%(created_at)s, statement_timestamp())
+                    %(roles)s, COALESCE(%(created_at)s, statement_timestamp())
                 )
                 ON CONFLICT (display_name) DO UPDATE SET
                     email = EXCLUDED.email,

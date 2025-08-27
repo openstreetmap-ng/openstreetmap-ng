@@ -242,8 +242,7 @@ def _process_user(header_only: bool) -> None:
             '' AS password_pb,
             'en' AS language,
             TRUE AS activity_tracking,
-            TRUE AS crash_reporting,
-            '127.0.0.1' AS created_ip
+            TRUE AS crash_reporting
         FROM ({' UNION ALL '.join(sources)})
         """
 

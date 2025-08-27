@@ -68,7 +68,6 @@ CREATE TABLE "user" (
     background_id text,
     description text NOT NULL DEFAULT '',
     description_rich_hash bytea,
-    created_ip inet NOT NULL,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     scheduled_delete_at timestamptz
 );
@@ -80,8 +79,6 @@ CREATE INDEX user_email_pattern_idx ON "user" USING gin (email gin_trgm_ops);
 CREATE UNIQUE INDEX user_display_name_idx ON "user" (display_name);
 
 CREATE INDEX user_display_name_pattern_idx ON "user" USING gin (display_name gin_trgm_ops);
-
-CREATE INDEX user_created_ip_time_idx ON "user" (created_ip, created_at DESC);
 
 CREATE INDEX user_pending_idx ON "user" (created_at DESC)
 WHERE
