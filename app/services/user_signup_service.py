@@ -10,9 +10,7 @@ from app.models.db.user import UserInit
 from app.models.types import DisplayName, Email, Password, UserId
 from app.queries.user_query import UserQuery
 from app.services.audit_service import audit
-from app.services.user_token_account_confirm_service import (
-    UserTokenAccountConfirmService,
-)
+from app.services.user_token_email_service import UserTokenEmailService
 from app.validators.email import validate_email_deliverability
 
 
@@ -87,6 +85,6 @@ class UserSignupService:
             user = await UserQuery.find_one_by_id(user_id)
             assert user is not None, 'User must exist after creation'
             with auth_context(user, scopes=()):
-                await UserTokenAccountConfirmService.send_email()
+                await UserTokenEmailService.send_email()
 
         return user_id

@@ -38,11 +38,11 @@ class UserToken(UserTokenInit):
     created_at: datetime
 
 
-class UserTokenEmailChangeInit(UserTokenInit):
-    email_change_new: Email
+class UserTokenEmailInit(UserTokenInit):
+    email_change_new: Email | None
 
 
-class UserTokenEmailChange(UserTokenEmailChangeInit, UserToken):
+class UserTokenEmail(UserTokenEmailInit, UserToken):
     pass
 
 

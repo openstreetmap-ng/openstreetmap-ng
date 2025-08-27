@@ -22,7 +22,7 @@ from app.services.audit_service import audit
 from app.services.image_service import ImageService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
-from app.services.user_token_email_change_service import UserTokenEmailChangeService
+from app.services.user_token_email_service import UserTokenEmailService
 from app.validators.email import validate_email, validate_email_deliverability
 
 
@@ -253,7 +253,7 @@ class UserService:
             StandardFeedback.raise_error('email', t('validation.invalid_email_address'))
 
         # TODO: send to old email too for security
-        await UserTokenEmailChangeService.send_email(new_email)
+        await UserTokenEmailService.send_email(new_email)
 
     @staticmethod
     async def update_password(

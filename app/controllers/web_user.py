@@ -20,10 +20,7 @@ from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
-from app.services.user_token_account_confirm_service import (
-    UserTokenAccountConfirmService,
-)
-from app.services.user_token_email_change_service import UserTokenEmailChangeService
+from app.services.user_token_email_service import UserTokenEmailService
 from app.services.user_token_reset_password_service import UserTokenResetPasswordService
 from app.validators.display_name import DisplayNameNormalizing, DisplayNameValidating
 from app.validators.email import EmailValidating
@@ -119,7 +116,7 @@ async def account_confirm(
 ):
     # TODO: check errors
     token_struct = UserTokenStructUtils.from_str(token)
-    await UserTokenAccountConfirmService.confirm(token_struct)
+    await UserTokenEmailService.confirm(token_struct, is_account_confirm=True)
     return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
 
 
@@ -130,7 +127,7 @@ async def account_confirm_resend(
     if user['email_verified']:
         return {'is_active': True}
 
-    await UserTokenAccountConfirmService.send_email()
+    await UserTokenEmailService.send_email()
     return StandardFeedback.success_result(
         None,
         t('confirmations.resend_success_flash.confirmation_sent', email=user['email']),
@@ -143,7 +140,7 @@ async def email_change_confirm(
 ):
     # TODO: check errors
     token_struct = UserTokenStructUtils.from_str(token)
-    await UserTokenEmailChangeService.confirm(token_struct)
+    await UserTokenEmailService.confirm(token_struct, is_account_confirm=False)
     return RedirectResponse('/settings', status.HTTP_303_SEE_OTHER)
 
 

@@ -8,7 +8,7 @@ from app.lib.crypto import hash_compare
 from app.models.db.user_token import (
     USER_TOKEN_EXPIRE,
     UserToken,
-    UserTokenEmailChange,
+    UserTokenEmail,
     UserTokenEmailReply,
     UserTokenType,
 )
@@ -20,7 +20,7 @@ class UserTokenQuery:
     @staticmethod
     @overload
     async def find_one_by_token_struct(
-        token_type: Literal['account_confirm', 'reset_password'],
+        token_type: Literal['reset_password'],
         token_struct: UserTokenStruct,
         *,
         check_email_hash: bool = True,
@@ -28,11 +28,11 @@ class UserTokenQuery:
     @staticmethod
     @overload
     async def find_one_by_token_struct(
-        token_type: Literal['email_change'],
+        token_type: Literal['account_confirm', 'email_change'],
         token_struct: UserTokenStruct,
         *,
         check_email_hash: bool = True,
-    ) -> UserTokenEmailChange | None: ...
+    ) -> UserTokenEmail | None: ...
     @staticmethod
     @overload
     async def find_one_by_token_struct(
