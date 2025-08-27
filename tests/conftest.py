@@ -82,7 +82,7 @@ async def changeset_id(client: AsyncClient):
     user = user_task.result()
     assert user is not None, 'Test user "user1" must exist'
 
-    with exceptions_context(Exceptions06()), auth_context(user, ()):
+    with exceptions_context(Exceptions06()), auth_context(user):
         yield ChangesetId(int(r.text))
 
 

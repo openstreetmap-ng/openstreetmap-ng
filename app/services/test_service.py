@@ -21,7 +21,7 @@ class TestService:
     @testmethod
     async def on_startup():
         """Prepare the test environment."""
-        with auth_context(None, ()):
+        with auth_context(None):
             async with TaskGroup() as tg:
                 tg.create_task(
                     TestService.create_user('admin', roles=['administrator'])
@@ -47,7 +47,7 @@ class TestService:
                         name='TestApp-Minimal',
                         client_id=ClientId('testapp-minimal'),
                         client_secret=None,
-                        scopes=(),
+                        scopes=frozenset(),
                         is_confidential=False,
                     )
                 )
@@ -120,7 +120,7 @@ class TestService:
         name: str,
         client_id: ClientId,
         client_secret: str | None,
-        scopes: tuple[PublicScope, ...],
+        scopes: frozenset[PublicScope],
         is_confidential: bool,
     ) -> None:
         """Create a test OAuth2 application."""

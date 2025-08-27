@@ -76,7 +76,7 @@ def _feature_icon(element: Element | ElementInit):
     if not tags:
         return None
 
-    matched_keys: frozenset[str] = _CONFIG_KEYS.intersection(tags)
+    matched_keys = _CONFIG_KEYS.intersection(tags)
     if not matched_keys:
         return None
 

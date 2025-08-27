@@ -48,7 +48,7 @@ async def test_copyright_user_with_default_locale(client: AsyncClient):
 
 async def test_copyright_user_with_polish_locale(client: AsyncClient):
     # Create a user with Polish locale preference
-    with auth_context(None, ()):
+    with auth_context(None):
         await TestService.create_user(DisplayName('polish'), language=LocaleCode('pl'))
     client.headers['Authorization'] = 'User polish'
 

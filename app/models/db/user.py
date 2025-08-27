@@ -82,16 +82,16 @@ def user_is_admin(user: User | None) -> bool:
     return 'administrator' in user['roles']
 
 
-def user_extend_scopes(user: User, scopes: tuple[Scope, ...]) -> tuple[Scope, ...]:
+def user_extend_scopes(user: User, scopes: frozenset[Scope]) -> frozenset[Scope]:
     """Extend the given scopes with the user-specific scopes."""
     if not user['roles']:
         return scopes
-    extra: list[Scope] = []
+    extra: set[Scope] = set()
     if user_is_moderator(user):
-        extra.append('role_moderator')
+        extra.add('role_moderator')
     if user_is_admin(user):
-        extra.append('role_administrator')
-    return *scopes, *extra
+        extra.add('role_administrator')
+    return scopes | extra
 
 
 def user_avatar_url(user: User | UserDisplay) -> str:

@@ -90,7 +90,7 @@ class EmailService:
     ) -> None:
         """Schedule mail and start async processing."""
         # render in the to_user's language
-        with auth_context(to_user, ()), translation_context(to_user['language']):
+        with auth_context(to_user), translation_context(to_user['language']):
             body = render_jinja(template_name, template_data)
 
         mail_id: MailId = zid()  # type: ignore

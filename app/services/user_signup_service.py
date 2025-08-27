@@ -82,7 +82,7 @@ class UserSignupService:
         else:
             user = await UserQuery.find_one_by_id(user_id)
             assert user is not None, 'User must exist after creation'
-            with auth_context(user, scopes=()):
+            with auth_context(user):
                 await UserTokenEmailService.send_email()
 
         return user_id

@@ -64,7 +64,7 @@ class UserTokenEmailReplyService:
         user = await UserQuery.find_one_by_id(token['user_id'])
         assert user is not None, 'Token user must exist'
 
-        with auth_context(user, scopes=()):
+        with auth_context(user):
             await MessageService.send([token['email_reply_to_user_id']], subject, body)
 
 

@@ -9,7 +9,7 @@ PublicScope = Literal[
     'write_notes',
 ]
 
-PUBLIC_SCOPES: tuple[PublicScope, ...] = get_args(PublicScope)
+PUBLIC_SCOPES = frozenset[PublicScope](get_args(PublicScope))
 
 Scope = (
     PublicScope
@@ -34,12 +34,12 @@ def scope_from_kwargs(
     write_gpx: bool = False,
     write_notes: bool = False,
     **_: bool,
-) -> tuple[PublicScope, ...]:
+) -> frozenset[PublicScope]:
     """
     Return the scopes from the given kwargs. Unsupported keys are ignored.
 
     >>> scope_from_kwargs(read_prefs=True, write_api=True, unknown=True)
-    ('read_prefs', 'write_api')
+    frozenset({'read_prefs', 'write_api'})
     """
     result: list[PublicScope] = []
     if read_prefs:
@@ -54,14 +54,14 @@ def scope_from_kwargs(
         result.append('write_gpx')
     if write_notes:
         result.append('write_notes')
-    return tuple(result)
+    return frozenset(result)
 
 
-def scope_from_str(s: str) -> tuple[PublicScope, ...]:
+def scope_from_str(s: str) -> frozenset[PublicScope]:
     """
     Get scopes from a string, where each scope is separated by a space. Only public scopes are resolved.
 
     >>> scope_from_str('read_prefs write_api skip_authorization')
-    ('read_prefs', 'write_api')
+    frozenset({'read_prefs', 'write_api'})
     """
     return scope_from_kwargs(**{s: True for s in s.split() if s})

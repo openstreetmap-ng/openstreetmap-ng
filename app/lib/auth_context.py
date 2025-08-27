@@ -20,17 +20,16 @@ from app.lib.exceptions_context import raise_for
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User, user_is_test
 from app.models.scope import Scope
-from app.services.audit_service import audit
 
 # TODO: ACL
 # TODO: more 0.7 scopes
 
 
-_CTX = ContextVar[tuple[User | None, tuple[Scope, ...]]]('Auth')
+_CTX = ContextVar[tuple[User | None, frozenset[Scope]]]('Auth')
 
 
 @contextmanager
-def auth_context(user: User | None, scopes: tuple[Scope, ...]):
+def auth_context(user: User | None, scopes=frozenset[Scope](), /):  # pyright: ignore[reportCallInDefaultInitializer]
     """Context manager for authenticating the user."""
     # safety check, prevent test user auth in non-test env
     if user is not None and user_is_test(user) and ENV == 'prod':
@@ -44,14 +43,16 @@ def auth_context(user: User | None, scopes: tuple[Scope, ...]):
             sentry_user['geo.region'] = timezone
     set_user(sentry_user)
 
-    if user is not None and random() < AUDIT_AUTH_EVENT_SAMPLE_RATE:
+    if user is not None and scopes and random() < AUDIT_AUTH_EVENT_SAMPLE_RATE:
+        from app.services.audit_service import audit  # noqa: PLC0415
+
         if 'web_user' in scopes:
             audit(
                 'auth_web',
                 user_id=user['id'],
                 discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_WEB,
             )
-        elif scopes:
+        else:
             audit(
                 'auth_api',
                 user_id=user['id'],
@@ -65,7 +66,7 @@ def auth_context(user: User | None, scopes: tuple[Scope, ...]):
         _CTX.reset(token)
 
 
-def auth_user_scopes() -> tuple[User | None, tuple[Scope, ...]]:
+def auth_user_scopes() -> tuple[User | None, frozenset[Scope]]:
     """Get the authenticated user and scopes."""
     return _CTX.get()
 
@@ -84,7 +85,7 @@ def auth_user(*, required: bool = False) -> User | None:
     return user
 
 
-def auth_scopes() -> tuple[Scope, ...]:
+def auth_scopes() -> frozenset[Scope]:
     """Get the authenticated user's scopes."""
     return _CTX.get()[1]
 
@@ -104,7 +105,7 @@ def _get_user(require_security_scopes: SecurityScopes) -> User:
     Get the authenticated user.
     Raises an exception if the user is not authenticated or does not have the required scopes.
     """
-    require_scopes = require_security_scopes.scopes
+    require_scopes = set(require_security_scopes.scopes)
     user, user_scopes = auth_user_scopes()
 
     # Must be authenticated
@@ -123,8 +124,9 @@ def _get_user(require_security_scopes: SecurityScopes) -> User:
         )
 
     # Must have the required scopes
-    if missing_scopes := set(require_scopes).difference(user_scopes):
-        raise_for.insufficient_scopes(missing_scopes)
+    require_scopes -= user_scopes
+    if require_scopes:
+        raise_for.insufficient_scopes(require_scopes)
 
     return user
 

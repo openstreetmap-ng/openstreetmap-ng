@@ -115,7 +115,7 @@ def trace_is_timestamps_via_api(trace: Trace) -> bool:
 
 
 def trace_is_visible_to(
-    trace: Trace, user: User | None, scopes: tuple[Scope, ...]
+    trace: Trace, user: User | None, scopes: frozenset[Scope]
 ) -> bool:
     """Check if the trace is visible to the user."""
     return (

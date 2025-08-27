@@ -47,7 +47,7 @@ class OAuth2TokenService:
         init: Literal[False],
         client_id: ClientId,
         redirect_uri: OAuth2Uri,
-        scopes: tuple[PublicScope, ...],
+        scopes: frozenset[PublicScope],
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
         state: str | None,
@@ -59,7 +59,7 @@ class OAuth2TokenService:
         init: bool,
         client_id: ClientId,
         redirect_uri: OAuth2Uri,
-        scopes: tuple[PublicScope, ...],
+        scopes: frozenset[PublicScope],
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
         state: str | None,
@@ -70,7 +70,7 @@ class OAuth2TokenService:
         init: bool,
         client_id: ClientId,
         redirect_uri: OAuth2Uri,
-        scopes: tuple[PublicScope, ...],
+        scopes: frozenset[PublicScope],
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
         state: str | None,
@@ -98,8 +98,7 @@ class OAuth2TokenService:
         if redirect_uri not in app['redirect_uris']:
             raise_for.oauth_bad_redirect_uri()
 
-        scopes_set = set(scopes)
-        if not scopes_set.issubset(app['scopes']):
+        if not scopes.issubset(app['scopes']):
             raise_for.oauth_bad_scopes()
 
         if init:
@@ -114,7 +113,7 @@ class OAuth2TokenService:
                 if token['redirect_uri'] != redirect_uri:
                     continue
                 # Ignore different scopes
-                if scopes_set.symmetric_difference(token['scopes']):
+                if scopes.symmetric_difference(token['scopes']):
                     continue
                 # Session found, auto-approve
                 break
@@ -270,9 +269,7 @@ class OAuth2TokenService:
         }
 
     @staticmethod
-    async def create_pat(
-        *, name: str, scopes: tuple[PublicScope, ...]
-    ) -> OAuth2TokenId:
+    async def create_pat(*, name: str, scopes: frozenset[PublicScope]) -> OAuth2TokenId:
         """Create a new Personal Access Token with the given name and scopes. Returns the token id."""
         app_id = SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID]
         user_id = auth_user(required=True)['id']

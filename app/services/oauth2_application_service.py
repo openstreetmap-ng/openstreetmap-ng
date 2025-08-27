@@ -120,7 +120,7 @@ class OAuth2ApplicationService:
         name: str,
         is_confidential: bool,
         redirect_uris: list[OAuth2Uri],
-        scopes: tuple[PublicScope, ...],
+        scopes: frozenset[PublicScope],
         revoke_all_authorizations: bool,
     ) -> None:
         """Update an OAuth2 application."""

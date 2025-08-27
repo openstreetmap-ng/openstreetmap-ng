@@ -14,19 +14,20 @@ from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
 
 # default scopes when using session auth
-_SESSION_AUTH_SCOPES: tuple[Scope, ...] = (*PUBLIC_SCOPES, 'web_user')
+_SESSION_AUTH_SCOPES: frozenset[Scope] = PUBLIC_SCOPES | {'web_user'}  # type: ignore
+_EMPTY_SCOPES = frozenset[Scope]()
 
 
 class AuthService:
     @staticmethod
-    async def authenticate_request() -> tuple[User | None, tuple[Scope, ...]]:
+    async def authenticate_request() -> tuple[User | None, frozenset[Scope]]:
         """Authenticate the request. Returns the authenticated user (if any) and scopes."""
         request = get_request()
         path: str = request.url.path
 
         # Skip authentication for static requests
         if path.startswith('/static'):
-            return None, ()
+            return None, _EMPTY_SCOPES
 
         # Try OAuth2 authentication for API endpoints
         if path.startswith(('/api/0.6/', '/api/0.7/', '/oauth2/')):
@@ -45,7 +46,7 @@ class AuthService:
             if r is not None:
                 return r
 
-        return None, ()
+        return None, _EMPTY_SCOPES
 
     @staticmethod
     async def authenticate_oauth2(access_token: SecretStr | None) -> OAuth2Token | None:
@@ -88,7 +89,7 @@ async def _extract_oauth2_token(request: Request) -> SecretStr | None:
 
 async def _authenticate_with_oauth2(
     request: Request,
-) -> tuple[User, tuple[Scope, ...]] | None:
+) -> tuple[User, frozenset[Scope]] | None:
     access_token = await _extract_oauth2_token(request)
     if access_token is None:
         return None
@@ -102,13 +103,13 @@ async def _authenticate_with_oauth2(
     if user is None:
         return None
 
-    scopes = user_extend_scopes(user, tuple(token['scopes']))
+    scopes = user_extend_scopes(user, frozenset(token['scopes']))
     return user, scopes
 
 
 async def _authenticate_with_cookie(
     request: Request,
-) -> tuple[User, tuple[Scope, ...]] | None:
+) -> tuple[User, frozenset[Scope]] | None:
     auth = request.cookies.get('auth')
     if auth is None:
         return None
@@ -131,7 +132,7 @@ async def _authenticate_with_cookie(
 @testmethod
 async def _authenticate_with_test_user(
     request: Request,
-) -> tuple[User, tuple[Scope, ...]] | None:
+) -> tuple[User, frozenset[Scope]] | None:
     authorization = request.headers.get('Authorization')
     if authorization is None:
         return None

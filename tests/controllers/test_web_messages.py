@@ -61,7 +61,7 @@ async def test_message_crud(client: AsyncClient):
         },
     )
 
-    with auth_context(user1, ()):
+    with auth_context(user1):
         message = await MessageQuery.get_one_by_id(message_id)
         assert not message['recipients'][0]['read']  # type: ignore
 
@@ -92,7 +92,7 @@ async def test_message_crud(client: AsyncClient):
         },
     )
 
-    with auth_context(user1, ()):
+    with auth_context(user1):
         message = await MessageQuery.get_one_by_id(message_id)
         assert message['recipients'][0]['read']  # type: ignore
 
@@ -114,7 +114,7 @@ async def test_message_crud(client: AsyncClient):
     # Authenticate as user1 (sender)
     client.headers['Authorization'] = 'User user1'
 
-    with exceptions_context(Exceptions()), auth_context(user1, ()):
+    with exceptions_context(Exceptions()), auth_context(user1):
         message = await MessageQuery.get_one_by_id(message_id)
         assert_model(
             message,

@@ -13,7 +13,7 @@ from app.services.migration_service import (
 
 @pytest.mark.extended
 async def test_delete_note_without_comments():
-    with auth_context(None, ()):
+    with auth_context(None):
         # Create a note without comments
         note_init: NoteInit = {
             'point': Point(0, 0),

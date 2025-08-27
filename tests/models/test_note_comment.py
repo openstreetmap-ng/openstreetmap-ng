@@ -8,7 +8,7 @@ from app.services.note_service import NoteService
 
 async def test_note_comments_resolve_rich_text():
     user = await UserQuery.find_one_by_display_name(DisplayName('user1'))
-    with auth_context(user, ('web_user',)):
+    with auth_context(user, frozenset(('web_user',))):
         note_id = await NoteService.create(
             0, 0, test_note_comments_resolve_rich_text.__qualname__
         )
