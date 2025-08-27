@@ -16,7 +16,7 @@
       "@types/bootstrap",
       "@types/geojson",
       "@types/node",
-      "typed-query-selector"
+      "typed-query-selector/strict"
     ],
     "verbatimModuleSyntax": true
   },
