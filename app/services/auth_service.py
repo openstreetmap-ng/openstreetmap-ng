@@ -14,7 +14,7 @@ from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User, user_extend_scopes
 from app.models.scope import PUBLIC_SCOPES, Scope
-from app.models.types import DisplayName
+from app.models.types import ApplicationId, DisplayName
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
 from app.services.audit_service import audit
@@ -26,14 +26,16 @@ _EMPTY_SCOPES = frozenset[Scope]()
 
 class AuthService:
     @staticmethod
-    async def authenticate_request() -> tuple[User | None, frozenset[Scope]]:
+    async def authenticate_request() -> tuple[
+        User | None, frozenset[Scope], ApplicationId | None
+    ]:
         """Authenticate the request. Returns the authenticated user (if any) and scopes."""
         request = get_request()
         path: str = request.url.path
 
         # Skip authentication for static requests
         if path.startswith('/static'):
-            return None, _EMPTY_SCOPES
+            return None, _EMPTY_SCOPES, None
 
         # Try OAuth2 authentication for API endpoints
         if path.startswith(('/api/0.6/', '/api/0.7/', '/oauth2/')):
@@ -52,7 +54,7 @@ class AuthService:
             if r is not None:
                 return r
 
-        return None, _EMPTY_SCOPES
+        return None, _EMPTY_SCOPES, None
 
     @staticmethod
     async def authenticate_oauth2(access_token: SecretStr | None) -> OAuth2Token | None:
@@ -95,7 +97,7 @@ async def _extract_oauth2_token(request: Request) -> SecretStr | None:
 
 async def _authenticate_with_oauth2(
     request: Request,
-) -> tuple[User, frozenset[Scope]] | None:
+) -> tuple[User, frozenset[Scope], ApplicationId] | None:
     access_token = await _extract_oauth2_token(request)
     if access_token is None:
         return None
@@ -110,20 +112,21 @@ async def _authenticate_with_oauth2(
     if user is None:
         return None
 
+    application_id = token['application_id']
     audit(
         'auth_api',
         user_id=user_id,
-        application_id=token['application_id'],
+        application_id=application_id,
         sample_rate=AUDIT_SAMPLE_RATE_AUTH,
         discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_API,
     )
     scopes = user_extend_scopes(user, frozenset(token['scopes']))
-    return user, scopes
+    return user, scopes, application_id
 
 
 async def _authenticate_with_cookie(
     request: Request,
-) -> tuple[User, frozenset[Scope]] | None:
+) -> tuple[User, frozenset[Scope], None] | None:
     auth = request.cookies.get('auth')
     if auth is None:
         return None
@@ -143,11 +146,12 @@ async def _authenticate_with_cookie(
     audit(
         'auth_web',
         user_id=user_id,
+        application_id=None,
         sample_rate=AUDIT_SAMPLE_RATE_AUTH,
         discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_WEB,
     )
     scopes = user_extend_scopes(user, _SESSION_AUTH_SCOPES)
-    return user, scopes
+    return user, scopes, None
 
 
 @testmethod

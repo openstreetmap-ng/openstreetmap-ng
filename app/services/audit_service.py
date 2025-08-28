@@ -4,13 +4,14 @@ from contextlib import asynccontextmanager
 from datetime import timedelta
 from ipaddress import ip_address
 from random import random
+from typing import Literal
 
 import cython
 from zid import zid
 
 from app.config import AUDIT_USER_AGENT_MAX_LENGTH
 from app.db import db
-from app.lib.auth_context import auth_user
+from app.lib.auth_context import auth_app, auth_user
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.audit import AuditEventInit, AuditId, AuditType
 from app.models.types import ApplicationId, DisplayName, Email, UserId
@@ -30,8 +31,8 @@ def audit(
     /,
     *,
     # Event metadata
-    user_id: UserId | None = None,
-    application_id: ApplicationId | None = None,
+    user_id: UserId | None | Literal['UNSET'] = 'UNSET',
+    application_id: ApplicationId | None | Literal['UNSET'] = 'UNSET',
     email: Email | None = None,
     display_name: DisplayName | None = None,
     extra: str | None = None,
@@ -44,12 +45,16 @@ def audit(
     if sample_rate is not None and random() > sample_rate:
         return
 
-    if user_id is None:
+    if user_id == 'UNSET':
         user = auth_user()
         user_id = user['id'] if user is not None else None
+
     assert discard_repeated is None or user_id is not None, (
         'discard_repeated requires user_id to be set'
     )
+
+    if application_id == 'UNSET':
+        application_id = auth_app()
 
     req = get_request()
     req_ip = ip_address(req.client.host)  # type: ignore

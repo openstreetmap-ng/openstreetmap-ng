@@ -18,14 +18,14 @@ from shapely import (
 )
 
 from app.db import db
-from app.lib.auth_context import auth_user_scopes
+from app.lib.auth_context import auth_scopes, auth_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import polygon_to_h3
 from app.lib.mercator import mercator
 from app.lib.storage import TRACE_STORAGE
 from app.lib.trace_file import TraceFile
-from app.models.db.trace import Trace, trace_is_visible_to
+from app.models.db.trace import Trace, trace_is_visible
 from app.models.types import StorageKey, TraceId, UserId
 from app.queries.timescaledb_query import TimescaleDBQuery
 
@@ -51,7 +51,7 @@ class TraceQuery:
 
         if trace is None:
             raise_for.trace_not_found(trace_id)
-        if not trace_is_visible_to(trace, *auth_user_scopes()):
+        if not trace_is_visible(trace):
             raise_for.trace_access_denied(trace_id)
 
         return trace
@@ -92,8 +92,8 @@ class TraceQuery:
         """)
 
         # If unauthenticated, count public traces
-        user, scopes = auth_user_scopes()
-        if user is None or user['id'] != user_id or 'read_gpx' not in scopes:
+        user = auth_user()
+        if user is None or user['id'] != user_id or 'read_gpx' not in auth_scopes():
             query = SQL("{} AND visibility IN ('identifiable', 'public')").format(query)
 
         async with db() as conn, await conn.execute(query, (user_id,)) as r:
@@ -114,8 +114,8 @@ class TraceQuery:
         params: list[Any] = []
 
         # If unauthenticated, find public traces
-        user, scopes = auth_user_scopes()
-        if user is None or user['id'] != user_id or 'read_gpx' not in scopes:
+        user = auth_user()
+        if user is None or user['id'] != user_id or 'read_gpx' not in auth_scopes():
             conditions.append(SQL("visibility IN ('identifiable', 'public')"))
 
         if user_id is not None:

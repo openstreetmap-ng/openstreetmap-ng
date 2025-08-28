@@ -10,7 +10,7 @@ from psycopg.sql import SQL, Composable
 from shapely import Point, get_coordinates
 
 from app.db import db
-from app.lib.auth_context import auth_user, auth_user_scopes
+from app.lib.auth_context import auth_scopes, auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
 from app.middlewares.request_context_middleware import get_request_ip
@@ -37,9 +37,10 @@ class NoteService:
         """Create a note and return its id."""
         point = validate_geometry(Point(lon, lat))
 
-        user, scopes = auth_user_scopes()
+        user = auth_user()
         if user is not None:
             # Prevent OAuth to create user-authorized note
+            scopes = auth_scopes()
             if 'web_user' not in scopes and 'write_notes' not in scopes:
                 raise_for.insufficient_scopes(['write_notes'])
             user_id = user['id']
