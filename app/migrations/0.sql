@@ -186,9 +186,19 @@ CREATE INDEX audit_application_created_at_idx ON audit (application_id DESC, cre
 WHERE
     application_id IS NOT NULL;
 
+CREATE INDEX audit_application_user_created_at_idx ON audit (application_id DESC, user_id DESC, created_at DESC)
+WHERE
+    application_id IS NOT NULL
+    AND user_id IS NOT NULL;
+
 CREATE INDEX audit_application_type_created_at_idx ON audit (application_id DESC, type, created_at DESC)
 WHERE
     application_id IS NOT NULL;
+
+CREATE INDEX audit_application_user_type_created_at_idx ON audit (application_id DESC, user_id DESC, type, created_at DESC)
+WHERE
+    application_id IS NOT NULL
+    AND user_id IS NOT NULL;
 
 CREATE TABLE changeset (
     id bigint GENERATED ALWAYS AS IDENTITY,

@@ -1,10 +1,16 @@
 from collections.abc import Set as AbstractSet
 from datetime import timedelta
 from ipaddress import IPv4Address, IPv6Address
+from typing import Literal
 
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable
+
+from app.config import AUDIT_LIST_PAGE_SIZE
 from app.db import db
-from app.models.db.audit import AUDIT_TYPE_SET, AuditType
-from app.models.types import UserId
+from app.lib.standard_pagination import standard_pagination_range
+from app.models.db.audit import AUDIT_TYPE_SET, AuditEvent, AuditType
+from app.models.types import ApplicationId, UserId
 
 
 class AuditQuery:
@@ -66,3 +72,72 @@ class AuditQuery:
             current_list.append((ip, count))
 
         return result
+
+    @staticmethod
+    async def find(
+        mode: Literal['count', 'page'],
+        /,
+        *,
+        page: int | None = None,
+        num_items: int | None = None,
+        ip: IPv4Address | IPv6Address | None = None,
+        user_id: UserId | None = None,
+        application_id: ApplicationId | None = None,
+        type: AuditType | None = None,
+    ) -> int | list[AuditEvent]:
+        """Find audit logs. Results are always sorted by created_at DESC (most recent first)."""
+        assert ip is None or (user_id is None and application_id is None), (
+            'IP filter cannot be used with user_id/application_id filters'
+        )
+
+        conditions: list[Composable] = []
+        params: list = []
+
+        if ip is not None:
+            conditions.append(SQL('ip = %s'))
+            params.append(ip)
+
+        if user_id is not None:
+            conditions.append(SQL('user_id = %s'))
+            params.append(user_id)
+
+        if application_id is not None:
+            conditions.append(SQL('application_id = %s'))
+            params.append(application_id)
+
+        if type is not None:
+            conditions.append(SQL('type = %s'))
+            params.append(type)
+
+        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+
+        if mode == 'count':
+            query = SQL('SELECT COUNT(*) FROM audit WHERE {}').format(where_clause)
+            async with db() as conn, await conn.execute(query, params) as r:
+                return (await r.fetchone())[0]  # type: ignore
+
+        # mode == 'page'
+        assert page is not None, "Page number must be provided in 'page' mode"
+        assert num_items is not None, "Number of items must be provided in 'page' mode"
+
+        stmt_limit, stmt_offset = standard_pagination_range(
+            page,
+            page_size=AUDIT_LIST_PAGE_SIZE,
+            num_items=num_items,
+            reverse=False,  # Page 1 = most recent
+        )
+
+        query = SQL("""
+            SELECT * FROM audit
+            WHERE {}
+            ORDER BY created_at DESC
+            OFFSET %s
+            LIMIT %s
+        """).format(where_clause)
+        params.extend([stmt_offset, stmt_limit])
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
+            return await r.fetchall()  # type: ignore

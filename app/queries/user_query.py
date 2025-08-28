@@ -388,7 +388,7 @@ class UserQuery:
             page,
             page_size=USER_LIST_PAGE_SIZE,
             num_items=num_items,
-            reverse=False,  # User management always uses forward pagination
+            reverse=False,  # Page 1 = most recent
         )
 
         query = SQL("""
