@@ -3,7 +3,8 @@
 <tr data-user-id="{{ user.id }}">
     <td>
         <a href="/user-id/{{ user.id }}">
-            <img class="avatar" src="{{ user_avatar_url(user) }}" alt="{{ t('alt.profile_picture') }}" loading="lazy">
+            <img class="avatar me-1-5" src="{{ user_avatar_url(user) }}" alt="{{ t('alt.profile_picture') }}"
+                loading="lazy">
             <span class="display-name {% if _is_deleted %}text-muted{% endif %}">{{ user.display_name }}</span>
         </a>
         <span class="roles">
@@ -70,7 +71,8 @@
         {% endif %}
     </td>
     <td>
-        <a href="/settings/users/{{ user.id }}" class="link-primary">Manage</a>
+        <a href="/settings/users/{{ user.id }}" class="link-primary me-2">Manage</a>
+        <a href="/settings/audit?user={{ user.id }}">Audit</a>
     </td>
 </tr>
 {% endfor %}

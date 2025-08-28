@@ -41,15 +41,11 @@ async def users_index(
         {
             'users_num_items': users_num_items,
             'users_num_pages': users_num_pages,
-            'search': search,
+            'search': search or '',
             'unverified': unverified,
-            'roles': roles,
-            'created_after': (
-                created_after.isoformat() if created_after is not None else ''
-            ),
-            'created_before': (
-                created_before.isoformat() if created_before is not None else ''
-            ),
+            'roles': roles or (),
+            'created_after': created_after.isoformat() if created_after else '',
+            'created_before': created_before.isoformat() if created_before else '',
             'sort': sort,
         },
     )

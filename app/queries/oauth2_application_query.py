@@ -1,10 +1,7 @@
-from collections import defaultdict
-
 from psycopg.rows import dict_row
 
 from app.db import db
 from app.models.db.oauth2_application import OAuth2Application
-from app.models.db.oauth2_token import OAuth2Token
 from app.models.types import ApplicationId, ClientId, UserId
 
 
@@ -67,19 +64,32 @@ class OAuth2ApplicationQuery:
 
     @staticmethod
     async def resolve_applications(
-        tokens: list[OAuth2Token],
+        items: list,
+        *,
+        application_id_key: str = 'application_id',
+        application_key: str = 'application',
     ) -> list[OAuth2Application]:
-        """Resolve the applications for the given tokens."""
-        if not tokens:
+        """Resolve application fields for the given items."""
+        if not items:
             return []
 
-        id_map = defaultdict[ApplicationId, list[OAuth2Token]](list)
-        for token in tokens:
-            id_map[token['application_id']].append(token)
+        id_map: dict[ApplicationId, list] = {}
+        for item in items:
+            application_id: ApplicationId | None = item.get(application_id_key)
+            if application_id is None:
+                continue
+            list_ = id_map.get(application_id)
+            if list_ is None:
+                id_map[application_id] = [item]
+            else:
+                list_.append(item)
+
+        if not id_map:
+            return []
 
         apps = await OAuth2ApplicationQuery.find_many_by_ids(list(id_map))
         for app in apps:
-            for token in id_map[app['id']]:
-                token['application'] = app
+            for item in id_map[app['id']]:
+                item[application_key] = app
 
         return apps

@@ -1,0 +1,56 @@
+{% for event in events %}
+<tr>
+    <td>
+        <time datetime="{{ event.created_at.isoformat() }}" data-style="short"></time>
+    </td>
+    <td>
+        <code>{{ event.type }}</code>
+    </td>
+    <td>
+        {% if event.user_id %}
+        <a href="/user-id/{{ event.user_id }}">
+            <img class="avatar me-1-5" src="{{ user_avatar_url(event.user) }}" alt="{{ t('alt.profile_picture') }}"
+                loading="lazy">
+            <span class="display-name">{{ event.user.display_name }}</span>
+        </a>
+        {% else %}
+        <span class="text-muted">&mdash;</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if event.user_agent %}
+        <abbr class="text-body-secondary" title="{{ event.user_agent }}">
+            {{ event.ip }}
+        </abbr>
+        {% else %}
+        <span class="text-body-secondary">{{ event.ip }}</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if event.application %}
+        <a href="/settings/applications/admin/{{ event.application_id }}/edit" class="text-truncate">
+            {{ event.application.name }}
+        </a>
+        {% else %}
+        <span class="text-muted">&mdash;</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if event.email %}
+        <span class="badge text-bg-info">{{ event.email }}</span>
+        {% set _has_detail = True %}
+        {% endif %}
+        {% if event.display_name %}
+        <span class="badge text-bg-info">{{ event.display_name }}</span>
+        {% set _has_detail = True %}
+        {% endif %}
+        {% if event.extra %}
+        <span>{{ event.extra }}</span>
+        {% set _has_detail = True %}
+        {% endif %}
+        {% if _has_detail is undefined %}
+        <span class="text-muted">&mdash;</span>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}

@@ -1,7 +1,9 @@
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
-from typing import Literal, NewType, TypedDict, get_args
+from typing import Literal, NewType, NotRequired, TypedDict, get_args
 
+from app.models.db.oauth2_application import OAuth2Application
+from app.models.db.user import UserDisplay
 from app.models.types import ApplicationId, DisplayName, Email, UserId
 
 AuditId = NewType('AuditId', int)
@@ -34,3 +36,7 @@ class AuditEventInit(TypedDict):
 
 class AuditEvent(AuditEventInit):
     created_at: datetime
+
+    # runtime
+    user: NotRequired[UserDisplay]
+    application: NotRequired[OAuth2Application]

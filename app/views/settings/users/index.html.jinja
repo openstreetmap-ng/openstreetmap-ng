@@ -10,63 +10,80 @@
 
         <form class="filters-form" method="GET">
             <div class="row g-3 mb-3">
-                <div class="col-12 col-lg-6">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text" class="form-control" name="search" value="{{ search or '' }}"
-                            placeholder="Search: john, @gmail.com, 192.168.1.1, 10.0.0.0/8" autocomplete="off"
-                            spellcheck="false">
-                    </div>
-                </div>
-                <div class="col-12 col-lg-6">
-                    <div class="d-flex gap-2">
-                        <div class="form-check form-switch align-self-center">
-                            <input type="checkbox" class="form-check-input" name="unverified" value="1"
-                                id="unverifiedCheck" role="switch" {% if unverified %}checked{% endif %}>
-                            <label class="form-check-label" for="unverifiedCheck">
-                                Unverified
-                            </label>
-                        </div>
-                        <select class="form-select" name="roles" multiple size="1" style="max-width: 200px">
-                            <option value="">All roles</option>
-                            <option value="moderator" {% if 'moderator' in (roles or []) %}selected{% endif %}>Moderator
-                            </option>
-                            <option value="administrator" {% if 'administrator' in (roles or []) %}selected{% endif %}>
-                                Administrator</option>
-                        </select>
-                        <select class="form-select" name="sort" style="max-width: 200px">
-                            <option value="created_desc" {% if sort == 'created_desc' %}selected{% endif %}>
-                                Newest first</option>
-                            <option value="created_asc" {% if sort == 'created_asc' %}selected{% endif %}>Oldest first
-                            </option>
-                            <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
-                            <option value="name_desc" {% if sort == 'name_desc' %}selected{% endif %}>Name (Z-A)
-                            </option>
-                            <option value="ip" {% if sort == 'ip' %}selected{% endif %}>By IP address</option>
-                        </select>
-                    </div>
+                <div class="col-12">
+                    <label class="form-label" for="searchInput">Search</label>
+                    <input type="text" class="form-control form-control-lg" id="searchInput" name="search"
+                        value="{{ search }}"
+                        placeholder="Search by user name, email, or IP address (e.g., @gmail.com, 192.168.1.1, 10.0.0.0/8)"
+                        autocomplete="off" spellcheck="false">
                 </div>
             </div>
 
             <div class="row g-3 mb-3">
-                <div class="col-12 col-md-4 col-lg-3">
-                    <div class="input-group">
-                        <span class="input-group-text">From</span>
-                        <input type="datetime-local" class="form-control" name="created_after"
-                            value="{{ created_after }}">
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="sortSelect">Sort</label>
+                    <select class="form-select" id="sortSelect" name="sort">
+                        <option value="created_desc" {% if sort == 'created_desc' %}selected{% endif %}>
+                            Newest first
+                        </option>
+                        <option value="created_asc" {% if sort == 'created_asc' %}selected{% endif %}>
+                            Oldest first
+                        </option>
+                        <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>
+                            Name (A-Z)
+                        </option>
+                        <option value="name_desc" {% if sort == 'name_desc' %}selected{% endif %}>
+                            Name (Z-A)
+                        </option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label" for="rolesSelect">Roles</label>
+                    <select class="form-select" id="rolesSelect" name="roles" multiple size="1">
+                        <option value="">All roles</option>
+                        <option value="moderator" {% if 'moderator' in roles %}selected{% endif %}>
+                            Moderator
+                        </option>
+                        <option value="administrator" {% if 'administrator' in roles %}selected{% endif %}>
+                            Administrator
+                        </option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label" for="createdAfter">Registered from</label>
+                    <input type="datetime-local" class="form-control" id="createdAfter" name="created_after"
+                        value="{{ created_after }}">
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label" for="createdBefore">Registered to</label>
+                    <input type="datetime-local" class="form-control" id="createdBefore" name="created_before"
+                        value="{{ created_before }}">
+                </div>
+                <div class="col-12 col-md-1 d-flex align-items-end">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="unverifiedCheck" name="unverified" value="1"
+                            {% if unverified %}checked{% endif %}>
+                        <label class="form-check-label" for="unverifiedCheck">
+                            Unverified
+                        </label>
                     </div>
                 </div>
-                <div class="col-12 col-md-4 col-lg-3">
-                    <div class="input-group">
-                        <span class="input-group-text">To</span>
-                        <input type="datetime-local" class="form-control" name="created_before"
-                            value="{{ created_before }}">
-                    </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary export-visible-btn">
+                        <i class="bi bi-clipboard"></i> Export Visible
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary export-all-btn">
+                        <i class="bi bi-download"></i> Export All
+                    </button>
                 </div>
-                <div class="col-12 col-md-4 col-lg-3 ms-auto">
-                    <div class="btn-group w-100" role="group">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-muted">
+                        {{ users_num_items }} users
+                    </span>
+                    <div class="btn-group" role="group">
                         <button type="submit" class="btn btn-outline-primary">
                             <i class="bi bi-funnel"></i> Apply
                         </button>
@@ -77,20 +94,6 @@
                 </div>
             </div>
         </form>
-
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm btn-outline-secondary export-visible-btn">
-                    <i class="bi bi-clipboard"></i> Export Visible
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary export-all-btn">
-                    <i class="bi bi-download"></i> Export All
-                </button>
-            </div>
-            <div class="text-muted">
-                {{ users_num_items }} users
-            </div>
-        </div>
     </div>
 </div>
 
@@ -118,8 +121,8 @@
         </div>
         <nav aria-label="{{ t('alt.page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-0"
-                data-action="/api/web/settings/users?page={page}&num_items={{ users_num_items }}&sort={{ sort }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if unverified %}&unverified=1{% endif %}{% for role in (roles or []) %}&roles={{ role }}{% endfor %}{% if created_after %}&created_after={{ created_after|urlencode }}{% endif %}{% if created_before %}&created_before={{ created_before|urlencode }}{% endif %}"
-                data-pages="{{ users_num_pages }}" data-page-size="{{ 100 }}" data-num-items="{{ users_num_items }}">
+                data-action="/api/web/settings/users?page={page}&num_items={{ users_num_items }}&sort={{ sort }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if unverified %}&unverified=1{% endif %}{% for role in roles %}&roles={{ role }}{% endfor %}{% if created_after %}&created_after={{ created_after|urlencode }}{% endif %}{% if created_before %}&created_before={{ created_before|urlencode }}{% endif %}"
+                data-pages="{{ users_num_pages }}">
             </ul>
         </nav>
         {% else %}

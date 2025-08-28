@@ -12,6 +12,7 @@ from app.lib.image import Image
 from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP
 from app.lib.translation import nt, primary_translation_locale, t
 from app.lib.vite import vite_render_asset
+from app.models.db.audit import AUDIT_TYPE_SET
 from app.models.db.connected_account import CONFIGURED_AUTH_PROVIDERS
 from app.models.db.oauth2_application import oauth2_app_avatar_url, oauth2_app_is_system
 from app.models.db.user import (
@@ -150,6 +151,7 @@ def stripspecial(value: str) -> str:
 
 # configure template globals
 _J2.globals.update(
+    AUDIT_TYPE_SET=AUDIT_TYPE_SET,
     CONFIGURED_AUTH_PROVIDERS=CONFIGURED_AUTH_PROVIDERS,
     DEFAULT_EDITOR=DEFAULT_EDITOR,
     INSTALLED_LOCALES_NAMES_MAP=INSTALLED_LOCALES_NAMES_MAP,

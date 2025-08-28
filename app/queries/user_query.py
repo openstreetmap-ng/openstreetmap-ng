@@ -293,7 +293,6 @@ class UserQuery:
         *,
         page: int | None = None,
         num_items: int | None = None,
-        limit: int | None = None,
         search: str | None = None,
         unverified: Literal[True] | None = None,
         roles: list[UserRole] | None = None,
@@ -302,6 +301,7 @@ class UserQuery:
         sort: Literal[
             'created_asc', 'created_desc', 'name_asc', 'name_desc'
         ] = 'created_desc',
+        limit: int | None = None,
     ) -> int | list[User] | list[UserId]:
         """Find users matching filters in different modes."""
         conditions: list[Composable] = []

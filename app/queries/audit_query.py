@@ -1,6 +1,6 @@
 from collections.abc import Set as AbstractSet
 from datetime import timedelta
-from ipaddress import IPv4Address, IPv6Address
+from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from typing import Literal
 
 from psycopg.rows import dict_row
@@ -10,7 +10,8 @@ from app.config import AUDIT_LIST_PAGE_SIZE
 from app.db import db
 from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.audit import AUDIT_TYPE_SET, AuditEvent, AuditType
-from app.models.types import ApplicationId, UserId
+from app.models.types import ApplicationId, DisplayName, UserId
+from app.queries.user_query import UserQuery
 
 
 class AuditQuery:
@@ -80,26 +81,51 @@ class AuditQuery:
         *,
         page: int | None = None,
         num_items: int | None = None,
-        ip: IPv4Address | IPv6Address | None = None,
-        user_id: UserId | None = None,
+        ip: IPv4Address | IPv6Address | IPv4Network | IPv6Network | None = None,
+        user: str | None = None,
         application_id: ApplicationId | None = None,
         type: AuditType | None = None,
     ) -> int | list[AuditEvent]:
         """Find audit logs. Results are always sorted by created_at DESC (most recent first)."""
-        assert ip is None or (user_id is None and application_id is None), (
-            'IP filter cannot be used with user_id/application_id filters'
+        assert ip is None or (user is None and application_id is None), (
+            'IP filter cannot be used with user/application_id filters'
         )
 
         conditions: list[Composable] = []
         params: list = []
 
         if ip is not None:
-            conditions.append(SQL('ip = %s'))
+            conditions.append(
+                SQL(
+                    'ip <<= %s'
+                    if isinstance(ip, IPv4Network | IPv6Network)
+                    else 'ip = %s'
+                )
+            )
             params.append(ip)
 
-        if user_id is not None:
-            conditions.append(SQL('user_id = %s'))
-            params.append(user_id)
+        if user is not None:
+            user_ids: list[UserId] = []
+
+            # Try to parse as user ID
+            try:
+                user_ids.append(UserId(int(user)))
+            except (ValueError, TypeError):
+                pass
+
+            # Try to find by display name
+            user_by_name = await UserQuery.find_one_by_display_name(DisplayName(user))
+            if user_by_name is not None:
+                user_ids.append(user_by_name['id'])
+
+            if not user_ids:
+                # No matching user found, return empty results
+                if mode == 'count':
+                    return 0
+                return []
+
+            conditions.append(SQL('user_id = ANY(%s)'))
+            params.append(user_ids)
 
         if application_id is not None:
             conditions.append(SQL('application_id = %s'))

@@ -318,7 +318,7 @@ ADMIN_TASK_TIMEOUT = timedelta(minutes=3)
 
 # User management
 USER_EXPORT_LIMIT = 1_000_000
-USER_LIST_PAGE_SIZE = 100
+USER_LIST_PAGE_SIZE = 50
 
 # -------------------- Caching and Performance --------------------
 

@@ -67,12 +67,12 @@ async def export_ids(
     """Export user IDs matching the filters."""
     user_ids: list[UserId] = await UserQuery.find_filtered(  # type: ignore
         'ids',
-        limit=USER_EXPORT_LIMIT,
         search=search,
         unverified=True if unverified else None,
         roles=roles,
         created_after=created_after,
         created_before=created_before,
+        limit=USER_EXPORT_LIMIT,
     )
 
     return Response(
