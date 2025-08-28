@@ -9,7 +9,7 @@ class ImageQuery:
     @staticmethod
     async def get_gravatar(user_id: UserId) -> bytes:
         """Get a user's gravatar image.r"""
-        user = await UserQuery.find_one_by_id(user_id)
+        user = await UserQuery.find_by_id(user_id)
         if user is None:
             raise_for.user_not_found(user_id)
         if user['avatar_type'] != 'gravatar':

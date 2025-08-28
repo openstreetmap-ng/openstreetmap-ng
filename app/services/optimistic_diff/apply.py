@@ -127,7 +127,7 @@ async def _update_changeset(
     Raises OptimisticDiffError if the changeset was modified in the meantime.
     """
     changeset_id = changeset['id']
-    updated_at_ = await ChangesetQuery.get_updated_at_by_ids([changeset_id])
+    updated_at_ = await ChangesetQuery.map_ids_to_updated_at([changeset_id])
     updated_at = updated_at_[changeset_id]
     if changeset['updated_at'] != updated_at:
         raise OptimisticDiffError(

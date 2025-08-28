@@ -30,7 +30,7 @@ from app.queries.trace_query import TraceQuery
 
 class ReportCommentQuery:
     @staticmethod
-    async def find_one_by_id(
+    async def find_by_id(
         report_comment_id: ReportCommentId,
     ) -> ReportComment | None:
         """Find a report comment by id."""
@@ -47,7 +47,7 @@ class ReportCommentQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def get_comments_page(
+    async def find_comments_page(
         report_id: ReportId,
         *,
         page: int,
@@ -195,22 +195,22 @@ class ReportCommentQuery:
         # Fetch all object types in parallel
         async with TaskGroup() as tg:
             diary_task = (
-                tg.create_task(DiaryQuery.find_many_by_ids(list(diary_ids)))
+                tg.create_task(DiaryQuery.find_by_ids(list(diary_ids)))
                 if diary_ids
                 else None
             )
             message_task = (
-                tg.create_task(MessageQuery.find_many_by_ids(list(message_ids)))
+                tg.create_task(MessageQuery.find_by_ids(list(message_ids)))
                 if message_ids
                 else None
             )
             app_task = (
-                tg.create_task(OAuth2ApplicationQuery.find_many_by_ids(list(app_ids)))
+                tg.create_task(OAuth2ApplicationQuery.find_by_ids(list(app_ids)))
                 if app_ids
                 else None
             )
             trace_task = (
-                tg.create_task(TraceQuery.find_many_by_ids(list(trace_ids)))
+                tg.create_task(TraceQuery.find_by_ids(list(trace_ids)))
                 if trace_ids
                 else None
             )

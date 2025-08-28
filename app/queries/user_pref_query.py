@@ -8,7 +8,7 @@ from app.models.types import ApplicationId, UserPrefKey
 
 class UserPrefQuery:
     @staticmethod
-    async def find_one_by_app_key(
+    async def find_by_app_key(
         app_id: ApplicationId | None, key: UserPrefKey
     ) -> UserPref | None:
         """Find a user preference by app id and key."""
@@ -29,7 +29,7 @@ class UserPrefQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_many_by_app(app_id: ApplicationId | None) -> list[UserPref]:
+    async def find_by_app(app_id: ApplicationId | None) -> list[UserPref]:
         """Find all user preferences by app id."""
         user_id = auth_user(required=True)['id']
 

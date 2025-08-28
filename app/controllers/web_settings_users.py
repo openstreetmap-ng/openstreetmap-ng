@@ -31,7 +31,7 @@ async def users_page(
     ] = 'created_desc',
 ):
     """Get a page of users for the management interface."""
-    users: list[User] = await UserQuery.find_filtered(  # type: ignore
+    users: list[User] = await UserQuery.find(  # type: ignore
         'page',
         page=page,
         num_items=num_items,
@@ -65,7 +65,7 @@ async def export_ids(
     created_before: Annotated[datetime | None, Query()] = None,
 ):
     """Export user IDs matching the filters."""
-    user_ids: list[UserId] = await UserQuery.find_filtered(  # type: ignore
+    user_ids: list[UserId] = await UserQuery.find(  # type: ignore
         'ids',
         search=search,
         unverified=True if unverified else None,

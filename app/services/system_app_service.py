@@ -88,7 +88,7 @@ class SystemAppService:
         if app_id is None:
             raise_for.oauth_bad_client_id()
 
-        app = await OAuth2ApplicationQuery.find_one_by_id(app_id)
+        app = await OAuth2ApplicationQuery.find_by_id(app_id)
         assert app is not None, f'OAuth2 application {client_id!r} must be initialized'
 
         access_token_ = buffered_rand_urlsafe(32)

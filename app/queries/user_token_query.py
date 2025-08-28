@@ -19,7 +19,7 @@ from app.models.types import Email
 class UserTokenQuery:
     @staticmethod
     @overload
-    async def find_one_by_token_struct(
+    async def find_by_token_struct(
         token_type: Literal['reset_password'],
         token_struct: UserTokenStruct,
         *,
@@ -27,7 +27,7 @@ class UserTokenQuery:
     ) -> UserToken | None: ...
     @staticmethod
     @overload
-    async def find_one_by_token_struct(
+    async def find_by_token_struct(
         token_type: Literal['account_confirm', 'email_change'],
         token_struct: UserTokenStruct,
         *,
@@ -35,14 +35,14 @@ class UserTokenQuery:
     ) -> UserTokenEmail | None: ...
     @staticmethod
     @overload
-    async def find_one_by_token_struct(
+    async def find_by_token_struct(
         token_type: Literal['email_reply'],
         token_struct: UserTokenStruct,
         *,
         check_email_hash: bool = True,
     ) -> UserTokenEmailReply | None: ...
     @staticmethod
-    async def find_one_by_token_struct(
+    async def find_by_token_struct(
         token_type: UserTokenType,
         token_struct: UserTokenStruct,
         *,

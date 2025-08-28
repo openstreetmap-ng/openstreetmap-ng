@@ -15,7 +15,7 @@ from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 
 class OAuth2TokenQuery:
     @staticmethod
-    async def find_one_authorized_by_token(
+    async def find_authorized_by_token(
         access_token: SecretStr,
     ) -> OAuth2Token | None:
         """Find an authorized OAuth2 token by token string."""
@@ -35,7 +35,7 @@ class OAuth2TokenQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_many_authorized_by_user_app_id(
+    async def find_authorized_by_user_app_id(
         user_id: UserId,
         app_id: ApplicationId,
         *,
@@ -66,22 +66,22 @@ class OAuth2TokenQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def find_many_authorized_by_user_client_id(
+    async def find_authorized_by_user_client_id(
         user_id: UserId,
         client_id: ClientId,
         *,
         limit: int | None = None,
     ) -> list[OAuth2Token]:
         """Find all authorized tokens for the given user and client id."""
-        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
+        app = await OAuth2ApplicationQuery.find_by_client_id(client_id)
         if app is None:
             return []
-        return await OAuth2TokenQuery.find_many_authorized_by_user_app_id(
+        return await OAuth2TokenQuery.find_authorized_by_user_app_id(
             user_id, app['id'], limit=limit
         )
 
     @staticmethod
-    async def find_many_pats_by_user(
+    async def find_pats_by_user(
         user_id: UserId,
         *,
         limit: int | None = None,

@@ -17,7 +17,7 @@ from app.models.types import NoteId
 
 class NoteCommentQuery:
     @staticmethod
-    async def legacy_find_many_by_query(
+    async def legacy_find(
         *,
         geometry: BaseGeometry | None = None,
         limit: int | None = None,
@@ -58,7 +58,7 @@ class NoteCommentQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def get_comments_page(
+    async def find_comments_page(
         note_id: NoteId,
         *,
         page: int,

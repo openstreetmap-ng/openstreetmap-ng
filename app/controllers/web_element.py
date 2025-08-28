@@ -39,7 +39,7 @@ async def get_history(
     async with TaskGroup() as tg:
         previous_task = (
             tg.create_task(
-                ElementQuery.get_by_versioned_refs(
+                ElementQuery.find_by_versioned_refs(
                     [(typed_id, version_min - 1)],
                     at_sequence_id=at_sequence_id,
                     limit=1,
@@ -63,7 +63,7 @@ async def get_history(
                 element, at_sequence_id_, include_parents=include_parents
             )
 
-        elements = await ElementQuery.get_versions_by_ref(
+        elements = await ElementQuery.find_versions_by_ref(
             typed_id,
             at_sequence_id=at_sequence_id,
             version_range=(version_min, version_max),

@@ -30,7 +30,7 @@ async def get_map(
         nodes_limit = limit + 1
         legacy_nodes_limit = False
 
-    elements = await ElementQuery.find_many_by_geom(
+    elements = await ElementQuery.find_by_geom(
         geometry,
         partial_ways=True,
         include_relations=False,

@@ -26,7 +26,7 @@ _USER_DISPLAY_SELECT = SQL(',').join([
 
 class UserQuery:
     @staticmethod
-    async def find_one_by_id(user_id: UserId) -> User | None:
+    async def find_by_id(user_id: UserId) -> User | None:
         """Find a user by id."""
         async with (
             db() as conn,
@@ -41,7 +41,7 @@ class UserQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_one_by_display_name(display_name: DisplayName) -> User | None:
+    async def find_by_display_name(display_name: DisplayName) -> User | None:
         """Find a user by display name."""
         async with (
             db() as conn,
@@ -56,7 +56,7 @@ class UserQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_one_by_email(email: Email) -> User | None:
+    async def find_by_email(email: Email) -> User | None:
         """Find a user by email."""
         async with (
             db() as conn,
@@ -71,7 +71,7 @@ class UserQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_many_by_ids(user_ids: list[UserId]) -> list[User]:
+    async def find_by_ids(user_ids: list[UserId]) -> list[User]:
         """Find users by ids."""
         if not user_ids:
             return []
@@ -89,7 +89,7 @@ class UserQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def find_many_by_display_names(
+    async def find_by_display_names(
         display_names: list[DisplayName],
     ) -> list[User]:
         """Find users by display names."""
@@ -109,7 +109,7 @@ class UserQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def find_many_nearby(
+    async def find_nearby(
         point: Point,
         *,
         max_distance: float = NEARBY_USERS_RADIUS_METERS,
@@ -150,7 +150,7 @@ class UserQuery:
             return False
 
         # Check if the name is available
-        other_user = await UserQuery.find_one_by_display_name(display_name)
+        other_user = await UserQuery.find_by_display_name(display_name)
         return (
             other_user is None  #
             or (user is not None and other_user['id'] == user['id'])
@@ -165,21 +165,21 @@ class UserQuery:
             return True
 
         # Check if the email is available
-        other_user = await UserQuery.find_one_by_email(email)
+        other_user = await UserQuery.find_by_email(email)
         return (
             other_user is None  #
             or (user is not None and other_user['id'] == user['id'])
         )
 
     @staticmethod
-    async def get_deleted_ids(
+    async def find_deleted_ids(
         *,
         after: UserId | None = None,
         before: UserId | None = None,
         sort: Literal['asc', 'desc'] = 'asc',
         limit: int | None = None,
     ) -> list[UserId]:
-        """Get the ids of deleted users."""
+        """Find the ids of deleted users."""
         conditions: list[Composable] = [SQL('email LIKE %s')]
         params: list[Any] = [f'%{DELETED_USER_EMAIL_SUFFIX}']
 
@@ -287,7 +287,7 @@ class UserQuery:
         await UserQuery.resolve_users(elements)
 
     @staticmethod
-    async def find_filtered(
+    async def find(
         mode: Literal['count', 'ids', 'page'],
         /,
         *,

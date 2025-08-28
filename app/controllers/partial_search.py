@@ -95,7 +95,7 @@ async def _get_response(
     members_map: dict[TypedElementId, Element]
     members_map = {
         member['typed_id']: member
-        for member in await ElementQuery.get_by_refs(
+        for member in await ElementQuery.find_by_refs(
             members,
             at_sequence_id=at_sequence_id,
             recurse_ways=True,

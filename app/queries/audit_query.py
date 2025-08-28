@@ -114,7 +114,7 @@ class AuditQuery:
                 pass
 
             # Try to find by display name
-            user_by_name = await UserQuery.find_one_by_display_name(DisplayName(user))
+            user_by_name = await UserQuery.find_by_display_name(DisplayName(user))
             if user_by_name is not None:
                 user_ids.append(user_by_name['id'])
 

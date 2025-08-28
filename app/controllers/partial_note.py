@@ -24,7 +24,7 @@ router = APIRouter(prefix='/partial/note')
 # TODO: pagination discussion, note, changeset, diary
 @router.get('/{id:int}')
 async def get_note(id: NoteId):
-    notes = await NoteQuery.find_many_by_query(note_ids=[id], limit=1)
+    notes = await NoteQuery.find(note_ids=[id], limit=1)
     note = next(iter(notes), None)
     if note is None:
         return await render_response(

@@ -15,10 +15,10 @@ from app.queries.timescaledb_query import TimescaleDBQuery
 
 class ChangesetQuery:
     @staticmethod
-    async def get_updated_at_by_ids(
+    async def map_ids_to_updated_at(
         changeset_ids: list[ChangesetId],
     ) -> dict[ChangesetId, datetime]:
-        """Get the updated at timestamp by changeset ids."""
+        """Map changeset ids to their updated_at timestamps."""
         if not changeset_ids:
             return {}
 
@@ -51,10 +51,10 @@ class ChangesetQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def get_user_adjacent_ids(
+    async def find_adjacent_ids(
         changeset_id: ChangesetId, *, user_id: UserId
     ) -> tuple[ChangesetId | None, ChangesetId | None]:
-        """Get the user's previous and next changeset ids."""
+        """Find the user's previous and next changeset ids."""
         async with (
             db() as conn,
             await conn.execute(
@@ -78,7 +78,7 @@ class ChangesetQuery:
             return rows[0][0], rows[1][0]
 
     @staticmethod
-    async def find_one_by_id(changeset_id: ChangesetId) -> Changeset | None:
+    async def find_by_id(changeset_id: ChangesetId) -> Changeset | None:
         """Find a changeset by id."""
         async with (
             db() as conn,
@@ -93,7 +93,7 @@ class ChangesetQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_many_by_query(
+    async def find(
         *,
         changeset_ids: list[ChangesetId] | None = None,
         changeset_id_before: ChangesetId | None = None,

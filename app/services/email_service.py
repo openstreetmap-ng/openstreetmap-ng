@@ -216,9 +216,9 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
     from_user_id = mail['from_user_id']
 
     async with TaskGroup() as tg:
-        to_user_task = tg.create_task(UserQuery.find_one_by_id(to_user_id))
+        to_user_task = tg.create_task(UserQuery.find_by_id(to_user_id))
         from_user_task = (
-            tg.create_task(UserQuery.find_one_by_id(from_user_id))
+            tg.create_task(UserQuery.find_by_id(from_user_id))
             if from_user_id is not None
             else None
         )

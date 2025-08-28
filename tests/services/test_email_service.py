@@ -18,8 +18,8 @@ from tests.utils.mailpit_helper import MailpitHelper
 @pytest.mark.flaky(reruns=5, only_rerun=['TimeoutError'])
 @pytest.mark.skipif(sys.platform == 'darwin', reason="So flaky that it's annoying")
 async def test_diary_comment_notification_and_unsubscribe(client: AsyncClient):
-    user1 = await UserQuery.find_one_by_display_name(DisplayName('user1'))
-    user2 = await UserQuery.find_one_by_display_name(DisplayName('user2'))
+    user1 = await UserQuery.find_by_display_name(DisplayName('user1'))
+    user2 = await UserQuery.find_by_display_name(DisplayName('user2'))
 
     # Create a diary entry as user1
     with auth_context(user1):
@@ -62,7 +62,7 @@ async def test_diary_comment_notification_and_unsubscribe(client: AsyncClient):
 
 
 async def test_diary_unsubscribe_invalid_token(client: AsyncClient):
-    user1 = await UserQuery.find_one_by_display_name(DisplayName('user1'))
+    user1 = await UserQuery.find_by_display_name(DisplayName('user1'))
 
     with auth_context(user1):
         diary_id = await DiaryService.create(

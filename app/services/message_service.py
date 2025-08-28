@@ -38,7 +38,7 @@ class MessageService:
             )
 
         if isinstance(recipients[0], str):
-            to_users = await UserQuery.find_many_by_display_names(recipients)  # type: ignore
+            to_users = await UserQuery.find_by_display_names(recipients)  # type: ignore
             if len(to_users) < len(recipients):
                 not_found = set(recipients)
                 not_found.difference_update(u['display_name'] for u in to_users)

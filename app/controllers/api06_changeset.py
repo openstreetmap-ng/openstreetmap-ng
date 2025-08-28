@@ -51,7 +51,7 @@ async def get_changeset(
     changeset_id: ChangesetId,
     include_discussion: Annotated[str | None, Query()] = None,
 ):
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
         raise_for.changeset_not_found(changeset_id)
     changesets = [changeset]
@@ -78,14 +78,14 @@ async def get_changeset(
 async def download_changeset(
     changeset_id: ChangesetId,
 ):
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
         raise_for.changeset_not_found(changeset_id)
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users([changeset]))
 
-        elements = await ElementQuery.get_by_changeset(
+        elements = await ElementQuery.find_by_changeset(
             changeset_id, sort_by='sequence_id'
         )
         tg.create_task(UserQuery.resolve_elements_users(elements))
@@ -105,7 +105,7 @@ async def update_changeset(
         raise_for.bad_xml('changeset', str(e))
 
     await ChangesetService.update_tags(changeset_id, tags)
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, f'Changeset {changeset_id} must exist after update'
 
     async with TaskGroup() as tg:
@@ -196,11 +196,11 @@ async def query_changesets(
             status.HTTP_400_BAD_REQUEST,
         )
     if display_name is not None:
-        user = await UserQuery.find_one_by_display_name(display_name)
+        user = await UserQuery.find_by_display_name(display_name)
         if user is None:
             raise_for.user_not_found_bad_request(display_name)
     elif user_id is not None:
-        user = await UserQuery.find_one_by_id(user_id)
+        user = await UserQuery.find_by_id(user_id)
         if user is None:
             raise_for.user_not_found_bad_request(user_id)
 
@@ -225,7 +225,7 @@ async def query_changesets(
         closed_after = None
         created_before = None
 
-    changesets = await ChangesetQuery.find_many_by_query(
+    changesets = await ChangesetQuery.find(
         changeset_ids=changeset_ids,
         user_ids=[user['id']] if (user is not None) else None,
         created_before=created_before,

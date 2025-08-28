@@ -111,7 +111,7 @@ async def _send_activity_email(comment: DiaryComment) -> None:
 
     async with TaskGroup() as tg:
         tg.create_task(diary_comments_resolve_rich_text([comment]))
-        diary_t = tg.create_task(DiaryQuery.find_one_by_id(diary_id))
+        diary_t = tg.create_task(DiaryQuery.find_by_id(diary_id))
         users = await UserSubscriptionQuery.get_subscribed_users('diary', diary_id)
         if not users:
             return

@@ -72,9 +72,7 @@ async def changeset_id(client: AsyncClient):
                 }),
             )
         )
-        user_task = tg.create_task(
-            UserQuery.find_one_by_display_name(DisplayName('user1'))
-        )
+        user_task = tg.create_task(UserQuery.find_by_display_name(DisplayName('user1')))
 
     r = create_task.result()
     assert r.is_success, r.text

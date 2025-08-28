@@ -104,7 +104,7 @@ async def new_message(
         ))
 
     elif reply_diary is not None:
-        diary = await DiaryQuery.find_one_by_id(reply_diary)
+        diary = await DiaryQuery.find_by_id(reply_diary)
         if diary is None:
             raise_for.diary_not_found(reply_diary)
 
@@ -114,13 +114,13 @@ async def new_message(
         subject = f'{t("messages.compose.reply.prefix")}: {diary["title"]}'
 
     elif reply_diary_comment is not None:
-        diary_comment = await DiaryCommentQuery.find_one_by_id(reply_diary_comment)
+        diary_comment = await DiaryCommentQuery.find_by_id(reply_diary_comment)
         if diary_comment is None:
             raise_for.diary_comment_not_found(reply_diary_comment)
 
         async with TaskGroup() as tg:
             tg.create_task(UserQuery.resolve_users([diary_comment]))
-            diary = await DiaryQuery.find_one_by_id(diary_comment['diary_id'])
+            diary = await DiaryQuery.find_by_id(diary_comment['diary_id'])
             assert diary is not None, (
                 f'Parent diary {diary_comment["diary_id"]!r} must exist'
             )
@@ -129,13 +129,13 @@ async def new_message(
         subject = f'{t("messages.compose.reply.prefix")}: {diary["title"]}'
 
     elif to_id is not None:
-        recipient_user = await UserQuery.find_one_by_id(to_id)
+        recipient_user = await UserQuery.find_by_id(to_id)
         if recipient_user is None:
             raise_for.user_not_found(to_id)
         recipients = recipient_user['display_name']
 
     elif to is not None:
-        recipient_user = await UserQuery.find_one_by_display_name(to)
+        recipient_user = await UserQuery.find_by_display_name(to)
         if recipient_user is None:
             raise_for.user_not_found(to)
         recipients = to
@@ -176,7 +176,7 @@ async def _get_messages_data(
     if (show is not None) and (after is None) and (before is None):
         before = show + 1  # type: ignore
 
-    messages = await MessageQuery.find_many_by_query(
+    messages = await MessageQuery.find(
         inbox=inbox,
         show=show,
         after=after,
@@ -187,7 +187,7 @@ async def _get_messages_data(
 
     async def new_after_task():
         after = messages[0]['id']
-        after_messages = await MessageQuery.find_many_by_query(
+        after_messages = await MessageQuery.find(
             inbox=inbox,
             after=after,
             limit=1,
@@ -196,7 +196,7 @@ async def _get_messages_data(
 
     async def new_before_task():
         before = messages[-1]['id']
-        before_messages = await MessageQuery.find_many_by_query(
+        before_messages = await MessageQuery.find(
             inbox=inbox,
             before=before,
             limit=1,

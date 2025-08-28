@@ -7,18 +7,18 @@ from app.models.types import ApplicationId, ClientId, UserId
 
 class OAuth2ApplicationQuery:
     @staticmethod
-    async def find_one_by_id(
+    async def find_by_id(
         id: ApplicationId, *, user_id: UserId | None = None
     ) -> OAuth2Application | None:
         """Find an OAuth2 application by id."""
-        apps = await OAuth2ApplicationQuery.find_many_by_ids([id])
+        apps = await OAuth2ApplicationQuery.find_by_ids([id])
         app = next(iter(apps), None)
         if app is not None and user_id is not None and app['user_id'] != user_id:
             return None
         return app
 
     @staticmethod
-    async def find_many_by_ids(ids: list[ApplicationId]) -> list[OAuth2Application]:
+    async def find_by_ids(ids: list[ApplicationId]) -> list[OAuth2Application]:
         async with (
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
@@ -32,7 +32,7 @@ class OAuth2ApplicationQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def find_one_by_client_id(client_id: ClientId) -> OAuth2Application | None:
+    async def find_by_client_id(client_id: ClientId) -> OAuth2Application | None:
         """Find an OAuth2 application by client id."""
         async with (
             db() as conn,
@@ -47,7 +47,7 @@ class OAuth2ApplicationQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_many_by_user(user_id: UserId) -> list[OAuth2Application]:
+    async def find_by_user(user_id: UserId) -> list[OAuth2Application]:
         """Get all OAuth2 applications by user id."""
         async with (
             db() as conn,
@@ -87,7 +87,7 @@ class OAuth2ApplicationQuery:
         if not id_map:
             return []
 
-        apps = await OAuth2ApplicationQuery.find_many_by_ids(list(id_map))
+        apps = await OAuth2ApplicationQuery.find_by_ids(list(id_map))
         for app in apps:
             for item in id_map[app['id']]:
                 item[application_key] = app

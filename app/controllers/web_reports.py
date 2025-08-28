@@ -102,7 +102,7 @@ async def reports_page(
     """Get a page of reports for the moderation interface."""
     # Convert status to boolean for query
     open = None if not status else status == 'open'
-    reports = await ReportQuery.get_reports_page(
+    reports = await ReportQuery.find_reports_page(
         page=page,
         num_items=num_items,
         open=open,
@@ -147,9 +147,9 @@ async def comments_page(
 ):
     """Get a page of comments for a specific report."""
     async with TaskGroup() as tg:
-        report_task = tg.create_task(ReportQuery.find_one_by_id(report_id))
+        report_task = tg.create_task(ReportQuery.find_by_id(report_id))
         comments_task = tg.create_task(
-            ReportCommentQuery.get_comments_page(
+            ReportCommentQuery.find_comments_page(
                 report_id, page=page, num_items=num_items
             )
         )

@@ -21,7 +21,7 @@ async def index(
     status: Annotated[Literal['', 'open', 'closed'], Query()] = '',
 ):
     # active_tab, num_notes, notes_num_pages
-    user = await UserQuery.find_one_by_display_name(display_name)
+    user = await UserQuery.find_by_display_name(display_name)
     if user is None:
         raise_for.user_not_found(display_name)
 

@@ -46,7 +46,7 @@ async def applications_authorizations(
 async def applications_admin(
     user: Annotated[User, web_user()],
 ):
-    apps = await OAuth2ApplicationQuery.find_many_by_user(user['id'])
+    apps = await OAuth2ApplicationQuery.find_by_user(user['id'])
 
     return await render_response(
         'settings/applications/admin',
@@ -62,7 +62,7 @@ async def application_admin(
     id: ApplicationId,
     user: Annotated[User, web_user()],
 ):
-    app = await OAuth2ApplicationQuery.find_one_by_id(id, user_id=user['id'])
+    app = await OAuth2ApplicationQuery.find_by_id(id, user_id=user['id'])
     if app is None:
         return RedirectResponse(
             '/settings/applications/admin', status.HTTP_303_SEE_OTHER
@@ -82,9 +82,7 @@ async def get_tokens(
     user: Annotated[User, web_user()],
     expand: Annotated[OAuth2TokenId | None, Query()] = None,
 ):
-    tokens = await OAuth2TokenQuery.find_many_pats_by_user(
-        user['id'], limit=OAUTH_PAT_LIMIT
-    )
+    tokens = await OAuth2TokenQuery.find_pats_by_user(user['id'], limit=OAUTH_PAT_LIMIT)
 
     return await render_response(
         'settings/applications/tokens',

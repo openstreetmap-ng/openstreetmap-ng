@@ -41,7 +41,7 @@ class UserTokenEmailReplyService:
     @staticmethod
     async def reply(reply_address: Email, subject: str, body: str) -> None:
         """Reply to a user with a message."""
-        token = await UserTokenEmailReplyQuery.find_one_by_reply_address(reply_address)
+        token = await UserTokenEmailReplyQuery.find_by_reply_address(reply_address)
         if token is None:
             raise_for.bad_user_token_struct()
 
@@ -61,7 +61,7 @@ class UserTokenEmailReplyService:
                 )
                 raise_for.bad_user_token_struct()
 
-        user = await UserQuery.find_one_by_id(token['user_id'])
+        user = await UserQuery.find_by_id(token['user_id'])
         assert user is not None, 'Token user must exist'
 
         with auth_context(user):

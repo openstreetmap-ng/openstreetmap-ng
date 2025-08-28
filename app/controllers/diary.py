@@ -126,7 +126,7 @@ async def edit(
     user: Annotated[User, web_user()],
     diary_id: DiaryId,
 ):
-    diary = await DiaryQuery.find_one_by_id(diary_id)
+    diary = await DiaryQuery.find_by_id(diary_id)
     if diary is None or diary['user_id'] != user['id']:
         return render_response(
             'diary/not-found',
@@ -177,7 +177,7 @@ async def user_index(
     after: Annotated[DiaryId | None, Query()] = None,
     before: Annotated[DiaryId | None, Query()] = None,
 ):
-    user = await UserQuery.find_one_by_display_name(display_name)
+    user = await UserQuery.find_by_display_name(display_name)
     data = await _get_data(user=user, language=None, after=after, before=before)
     return await render_response('diary/index', data)
 
@@ -211,7 +211,7 @@ async def _get_data(
     else:
         language_name = None
 
-    diaries = await DiaryQuery.find_many_recent(
+    diaries = await DiaryQuery.find_recent(
         user_id=user_id,
         language=language,
         after=after,
@@ -221,7 +221,7 @@ async def _get_data(
 
     async def new_after_task():
         after = diaries[0]['id']
-        after_diaries = await DiaryQuery.find_many_recent(
+        after_diaries = await DiaryQuery.find_recent(
             user_id=user_id,
             language=language,
             after=after,
@@ -231,7 +231,7 @@ async def _get_data(
 
     async def new_before_task():
         before = diaries[-1]['id']
-        before_diaries = await DiaryQuery.find_many_recent(
+        before_diaries = await DiaryQuery.find_recent(
             user_id=user_id,
             language=language,
             before=before,

@@ -24,7 +24,7 @@ class UserTokenResetPasswordService:
     async def send_email(email: Email) -> None:
         """Send a password reset request to the given email address (if registered)."""
         ts = perf_counter()
-        to_user = await UserQuery.find_one_by_email(email)
+        to_user = await UserQuery.find_by_email(email)
         if to_user is None:
             # Simulate latency to harden against time-based attacks
             delay = median(_SEND_EMAIL_LATENCY) - (perf_counter() - ts)

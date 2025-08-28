@@ -91,7 +91,7 @@ class OAuth2TokenService:
 
         user_id = auth_user(required=True)['id']
 
-        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
+        app = await OAuth2ApplicationQuery.find_by_client_id(client_id)
         if app is None or oauth2_app_is_system(app):
             raise_for.oauth_bad_client_id()
 
@@ -102,7 +102,7 @@ class OAuth2TokenService:
             raise_for.oauth_bad_scopes()
 
         if init:
-            tokens = await OAuth2TokenQuery.find_many_authorized_by_user_app_id(
+            tokens = await OAuth2TokenQuery.find_authorized_by_user_app_id(
                 user_id=user_id,
                 app_id=app['id'],
                 limit=OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
@@ -176,7 +176,7 @@ class OAuth2TokenService:
         Exchange an authorization code for an access token.
         The access token can be used to make requests on behalf of the user.
         """
-        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
+        app = await OAuth2ApplicationQuery.find_by_client_id(client_id)
         if app is None or oauth2_app_is_system(app):
             raise_for.oauth_bad_client_id()
 

@@ -15,9 +15,9 @@ from tests.utils.mailpit_helper import MailpitHelper
 async def test_profile_report(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
-    user1 = await UserQuery.find_one_by_display_name(DisplayName('user1'))
+    user1 = await UserQuery.find_by_display_name(DisplayName('user1'))
     assert user1 is not None
-    user2 = await UserQuery.find_one_by_display_name(DisplayName('user2'))
+    user2 = await UserQuery.find_by_display_name(DisplayName('user2'))
     assert user2 is not None
 
     test_message = f'Test report message {buffered_rand_urlsafe(16)}'

@@ -25,7 +25,7 @@ router = APIRouter(prefix='/api/web/img')
 @router.get('/avatar/anonymous_note/{note_id:int}')
 @cache_control(STATIC_CACHE_MAX_AGE, STATIC_CACHE_STALE)
 async def anonymous_note_avatar(note_id: NoteId) -> Response:
-    comments = await NoteCommentQuery.get_comments_page(
+    comments = await NoteCommentQuery.find_comments_page(
         note_id, page=1, num_items=1, skip_header=False
     )
     comment = next(iter(comments), None)
@@ -46,7 +46,7 @@ async def anonymous_note_avatar(note_id: NoteId) -> Response:
 @router.get('/avatar/initials/{user_id:int}')
 @cache_control(INITIALS_CACHE_MAX_AGE, STATIC_CACHE_STALE)
 async def text_avatar(user_id: UserId) -> Response:
-    user = await UserQuery.find_one_by_id(user_id)
+    user = await UserQuery.find_by_id(user_id)
     if user is None:
         return Response(None, status.HTTP_404_NOT_FOUND)
 

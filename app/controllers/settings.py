@@ -47,7 +47,7 @@ async def settings_security(user: Annotated[User, web_user()]):
     async with TaskGroup() as tg:
         current_t = tg.create_task(AuthService.authenticate_oauth2(None))
         active_t = tg.create_task(
-            OAuth2TokenQuery.find_many_authorized_by_user_client_id(
+            OAuth2TokenQuery.find_authorized_by_user_client_id(
                 user_id=user['id'],
                 client_id=SYSTEM_APP_WEB_CLIENT_ID,
                 limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,

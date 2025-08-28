@@ -80,7 +80,7 @@ class UserSignupService:
         if email_verified:
             audit('change_email', user_id=user_id, email=email, extra='Signup')
         else:
-            user = await UserQuery.find_one_by_id(user_id)
+            user = await UserQuery.find_by_id(user_id)
             assert user is not None, 'User must exist after creation'
             with auth_context(user):
                 await UserTokenEmailService.send_email()

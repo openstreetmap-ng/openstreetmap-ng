@@ -16,7 +16,7 @@ from tests.utils.assert_model import assert_model
 
 
 async def test_message_crud(client: AsyncClient):
-    user1 = await UserQuery.find_one_by_display_name(DisplayName('user1'))
+    user1 = await UserQuery.find_by_display_name(DisplayName('user1'))
 
     # Authenticate as user1 (sender)
     client.headers['Authorization'] = 'User user1'

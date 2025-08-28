@@ -114,7 +114,7 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
     changeset_id = comment['changeset_id']
 
     async def changeset_task():
-        changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+        changeset = await ChangesetQuery.find_by_id(changeset_id)
         assert changeset is not None, f'Parent changeset {changeset_id} must exist'
         await UserQuery.resolve_users([changeset])
         return changeset

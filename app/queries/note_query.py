@@ -80,7 +80,7 @@ class NoteQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def get_user_notes_page(
+    async def find_user_page(
         user_id: UserId,
         *,
         page: int,
@@ -161,7 +161,7 @@ class NoteQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def find_many_by_query(
+    async def find(
         *,
         phrase: str | None = None,
         user_id: UserId | None = None,
@@ -284,9 +284,7 @@ class NoteQuery:
         for comment in comments:
             id_map[comment['note_id']].append(comment)
 
-        notes = await NoteQuery.find_many_by_query(
-            note_ids=list(id_map), limit=len(id_map)
-        )
+        notes = await NoteQuery.find(note_ids=list(id_map), limit=len(id_map))
         for note in notes:
             for comment in id_map[note['id']]:
                 comment['legacy_note'] = note

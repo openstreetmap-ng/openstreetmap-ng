@@ -57,7 +57,7 @@ class UserTokenEmailService:
     ) -> None:
         """Confirm account activation or email change."""
         token_type = 'account_confirm' if is_account_confirm else 'email_change'
-        token = await UserTokenQuery.find_one_by_token_struct(token_type, token_struct)
+        token = await UserTokenQuery.find_by_token_struct(token_type, token_struct)
         if token is None:
             raise_for.bad_user_token_struct()
 

@@ -14,7 +14,7 @@ from app.models.types import ChangesetId
 
 class ChangesetCommentQuery:
     @staticmethod
-    async def get_comments_page(
+    async def find_comments_page(
         changeset_id: ChangesetId,
         *,
         page: int,

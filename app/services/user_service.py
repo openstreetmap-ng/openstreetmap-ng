@@ -42,10 +42,10 @@ class UserService:
             except ValueError:
                 user = None
             else:
-                user = await UserQuery.find_one_by_email(email)
+                user = await UserQuery.find_by_email(email)
         else:
             display_name = DisplayName(display_name_or_email)
-            user = await UserQuery.find_one_by_display_name(display_name)
+            user = await UserQuery.find_by_display_name(display_name)
 
         if user is None:
             logging.debug('User not found %r', display_name_or_email)
@@ -305,7 +305,7 @@ class UserService:
         """Reset the user password."""
         token_struct = UserTokenStructUtils.from_str(token)
 
-        user_token = await UserTokenQuery.find_one_by_token_struct(
+        user_token = await UserTokenQuery.find_by_token_struct(
             'reset_password', token_struct
         )
         if user_token is None:

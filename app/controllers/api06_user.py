@@ -29,7 +29,7 @@ async def get_current_user(
 async def get_user(
     user_id: UserId,
 ):
-    user = await UserQuery.find_one_by_id(user_id)
+    user = await UserQuery.find_by_id(user_id)
     if user is None:
         raise_for.user_not_found(user_id)
     if False:  # TODO: if user deleted
@@ -63,5 +63,5 @@ async def get_many_users(
         )
 
     user_ids: list[UserId] = ids.tolist()
-    users = await UserQuery.find_many_by_ids(user_ids)
+    users = await UserQuery.find_by_ids(user_ids)
     return await Format06.encode_users(users)

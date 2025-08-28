@@ -70,7 +70,7 @@ class AuthService:
             access_token = SecretStr(auth)
             del auth
 
-        token = await OAuth2TokenQuery.find_one_authorized_by_token(access_token)
+        token = await OAuth2TokenQuery.find_authorized_by_token(access_token)
         if token is None or token['authorized_at'] is None:
             return None
 
@@ -108,7 +108,7 @@ async def _authenticate_with_oauth2(
         return None
 
     user_id = token['user_id']
-    user = await UserQuery.find_one_by_id(user_id)
+    user = await UserQuery.find_by_id(user_id)
     if user is None:
         return None
 
@@ -139,7 +139,7 @@ async def _authenticate_with_cookie(
         return None
 
     user_id = token['user_id']
-    user = await UserQuery.find_one_by_id(user_id)
+    user = await UserQuery.find_by_id(user_id)
     if user is None:
         return None
 
@@ -168,7 +168,7 @@ async def _authenticate_with_test_user(
 
     logging.debug('Attempting to authenticate with test user %r', param)
     user_display_name = DisplayName(param)
-    user = await UserQuery.find_one_by_display_name(user_display_name)
+    user = await UserQuery.find_by_display_name(user_display_name)
     assert user is not None
 
     scopes = user_extend_scopes(user, _SESSION_AUTH_SCOPES)

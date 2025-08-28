@@ -33,13 +33,13 @@ async def test_delete_note_without_comments():
             note_id = (await r.fetchone())[0]  # type: ignore
 
         # Verify the note exists before deletion
-        assert await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
+        assert await NoteQuery.find(note_ids=[note_id], limit=1)
 
         # Run the migration service method
         await MigrationService.delete_notes_without_comments()
 
         # Verify the note was deleted
-        assert not await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
+        assert not await NoteQuery.find(note_ids=[note_id], limit=1)
 
 
 @pytest.mark.parametrize(

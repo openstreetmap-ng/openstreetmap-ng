@@ -82,7 +82,7 @@ async def comments_page(
     page: Annotated[PositiveInt, Query()],
     num_items: Annotated[PositiveInt, Query()],
 ):
-    comments = await DiaryCommentQuery.get_diary_page(
+    comments = await DiaryCommentQuery.find_diary_page(
         diary_id, page=page, num_items=num_items
     )
 

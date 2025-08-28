@@ -218,7 +218,7 @@ class OptimisticDiffPrepare:
             return
 
         logging.debug('Optimistic preloading %d elements', num_typed_ids)
-        elements = await ElementQuery.get_by_refs(
+        elements = await ElementQuery.find_by_refs(
             typed_ids,
             at_sequence_id=self.at_sequence_id,
             limit=num_typed_ids,
@@ -250,10 +250,8 @@ class OptimisticDiffPrepare:
             return
 
         logging.debug('Optimistic preloading parents for %d elements', len(typed_ids))
-        self._elements_parents_refs = (
-            await ElementQuery.get_current_parents_refs_by_refs(
-                typed_ids, conn, limit=None
-            )
+        self._elements_parents_refs = await ElementQuery.map_refs_to_parent_refs(
+            typed_ids, conn, limit=None
         )
 
     def _check_element_can_delete(self, element: ElementInit) -> bool:
@@ -551,7 +549,7 @@ class OptimisticDiffPrepare:
         changeset_id = next(iter(changeset_ids))
 
         # Get changeset
-        changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+        changeset = await ChangesetQuery.find_by_id(changeset_id)
         if changeset is None:
             raise_for.changeset_not_found(changeset_id)
         self.changeset = changeset
@@ -603,7 +601,7 @@ class OptimisticDiffPrepare:
 
         if bbox_refs:
             logging.debug('Optimistic loading %d bbox elements', len(bbox_refs))
-            elements = await ElementQuery.get_by_refs(
+            elements = await ElementQuery.find_by_refs(
                 bbox_refs,
                 at_sequence_id=self.at_sequence_id,
                 recurse_ways=True,

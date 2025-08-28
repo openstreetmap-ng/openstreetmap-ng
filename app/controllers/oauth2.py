@@ -178,7 +178,7 @@ async def revoke(token: Annotated[SecretStr, Form(min_length=1)]):
 # In this case it's fine, since we don't expose any sensitive information.
 @router.post('/oauth2/introspect')
 async def introspect(token: Annotated[SecretStr, Form(min_length=1)]):
-    token_ = await OAuth2TokenQuery.find_one_authorized_by_token(token)
+    token_ = await OAuth2TokenQuery.find_authorized_by_token(token)
     if token_ is None:
         raise_for.oauth_bad_user_token()
 

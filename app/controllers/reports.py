@@ -44,7 +44,7 @@ async def report_show(
     _: Annotated[User, web_user('role_moderator')],
     report_id: Annotated[ReportId, Path()],
 ):
-    report = await ReportQuery.find_one_by_id(report_id)
+    report = await ReportQuery.find_by_id(report_id)
     if report is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, 'Report not found')
 

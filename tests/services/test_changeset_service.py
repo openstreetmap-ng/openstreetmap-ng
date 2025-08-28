@@ -23,7 +23,7 @@ async def test_changeset_inactive_close():
     changeset_id = await _create_changeset(updated_at=inactive_time)
 
     # Verify it exists and is open
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must exist'
     assert changeset['closed_at'] is None, 'Changeset must be open initially'
 
@@ -31,7 +31,7 @@ async def test_changeset_inactive_close():
     await ChangesetService.force_process()
 
     # Verify it's been closed
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must still exist'
     assert changeset['closed_at'] is not None, (
         'Changeset must be closed after processing'
@@ -45,7 +45,7 @@ async def test_changeset_inactive_open():
     changeset_id = await _create_changeset(updated_at=recent_time)
 
     # Verify it exists and is open
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must exist'
     assert changeset['closed_at'] is None, 'Changeset must be open initially'
 
@@ -53,7 +53,7 @@ async def test_changeset_inactive_open():
     await ChangesetService.force_process()
 
     # Verify it's still open
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must still exist'
     assert changeset['closed_at'] is None, 'Recently active changeset must remain open'
 
@@ -68,7 +68,7 @@ async def test_changeset_open_timeout_close():
     )
 
     # Verify it exists and is open
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must exist'
     assert changeset['closed_at'] is None, 'Changeset must be open initially'
 
@@ -76,7 +76,7 @@ async def test_changeset_open_timeout_close():
     await ChangesetService.force_process()
 
     # Verify it's been closed despite recent activity
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must still exist'
     assert changeset['closed_at'] is not None, (
         'Old changeset must be closed even if recently active'
@@ -90,7 +90,7 @@ async def test_changeset_open_timeout_open():
     changeset_id = await _create_changeset(created_at=recent_created_at)
 
     # Verify it exists and is open
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must exist'
     assert changeset['closed_at'] is None, 'Changeset must be open initially'
 
@@ -98,7 +98,7 @@ async def test_changeset_open_timeout_open():
     await ChangesetService.force_process()
 
     # Verify it's still open
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must still exist'
     assert changeset['closed_at'] is None, 'Recent changeset must remain open'
 
@@ -112,14 +112,14 @@ async def test_changeset_delete_empty():
     )
 
     # Verify it exists
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must exist initially'
 
     # Force process
     await ChangesetService.force_process()
 
     # Verify it's been deleted
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is None, 'Old empty changeset must be deleted'
 
 
@@ -132,14 +132,14 @@ async def test_changeset_dont_delete_empty_recent():
     )
 
     # Verify it exists
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Changeset must exist initially'
 
     # Force process
     await ChangesetService.force_process()
 
     # Verify it still exists
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None, 'Recent empty changeset must not be deleted'
 
 

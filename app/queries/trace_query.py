@@ -57,7 +57,7 @@ class TraceQuery:
         return trace
 
     @staticmethod
-    async def find_many_by_ids(ids: list[TraceId]) -> list[Trace]:
+    async def find_by_ids(ids: list[TraceId]) -> list[Trace]:
         """Find traces by ids for report context."""
         async with (
             db() as conn,
@@ -100,7 +100,7 @@ class TraceQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def find_many_recent(
+    async def find_recent(
         *,
         user_id: UserId | None = None,
         tag: str | None = None,
@@ -165,7 +165,7 @@ class TraceQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def find_many_by_geom(
+    async def find_by_geom(
         geometry: Polygon | MultiPolygon,
         *,
         identifiable_trackable: cython.bint,

@@ -58,7 +58,7 @@ class UserTokenStructUtils:
             logging.warning('User token is malformed')
             raise_for.bad_user_token_struct()
 
-        user = await UserQuery.find_one_by_id(token.user_id)  # type: ignore
+        user = await UserQuery.find_by_id(token.user_id)  # type: ignore
         if user is None or not hash_compare(user['email'], token.email_hashed):
             logging.info('User token email mismatch')
             raise_for.bad_user_token_struct()
