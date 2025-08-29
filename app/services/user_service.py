@@ -4,6 +4,7 @@ from fastapi import UploadFile
 from pydantic import SecretStr
 
 from app.config import (
+    AUDIT_DISCARD_REPEATED_AUTH_FAIL,
     AUDIT_DISCARD_REPEATED_AUTH_WEB_LOGIN,
     ENV,
     USER_PENDING_EXPIRE,
@@ -66,7 +67,12 @@ class UserService:
         )
 
         if not verification.success:
-            logging.debug('Password mismatch for user %d', user_id)
+            audit(
+                'auth_fail',
+                user_id=user_id,
+                extra='Password mismatch',
+                discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_FAIL,
+            )
             StandardFeedback.raise_error(
                 None, t('users.auth_failure.invalid_credentials')
             )

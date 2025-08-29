@@ -37,12 +37,12 @@ def audit(
     display_name: DisplayName | None = None,
     extra: str | None = None,
     # Event config
-    sample_rate: float | None = None,
+    sample_rate: float = 1,
     discard_repeated: timedelta | None = None,
     # Constants
     AUDIT_USER_AGENT_MAX_LENGTH: cython.Py_ssize_t = AUDIT_USER_AGENT_MAX_LENGTH,
 ) -> None:
-    if sample_rate is not None and random() > sample_rate:
+    if sample_rate < 1 and random() > sample_rate:
         return
 
     if user_id == 'UNSET':

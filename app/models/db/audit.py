@@ -10,6 +10,7 @@ AuditId = NewType('AuditId', int)
 AuditType = Literal[
     'admin_task',
     'auth_api',
+    'auth_fail',
     'auth_web',
     'change_display_name',
     'change_email',
