@@ -8,6 +8,7 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import (
+    AUDIT_DISCARD_REPEATED_AUTH_WEB_LOGIN,
     AUTH_PROVIDER_STATE_MAX_AGE,
     AUTH_PROVIDER_VERIFICATION_MAX_AGE,
     COOKIE_AUTH_MAX_AGE,
@@ -25,6 +26,7 @@ from app.models.db.connected_account import (
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
 from app.queries.connected_account_query import ConnectedAccountQuery
+from app.services.audit_service import audit
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.system_app_service import SystemAppService
 from app.utils import extend_query_params
@@ -108,9 +110,6 @@ class AuthProviderService:
                     'user/auth-provider-not-found', {'provider': provider}
                 )
 
-            logging.debug(
-                'Authenticated user %d using auth provider %r', user_id, provider
-            )
             access_token = await SystemAppService.create_access_token(
                 SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
             )
@@ -126,6 +125,12 @@ class AuthProviderService:
                 secure=ENV != 'dev',
                 httponly=True,
                 samesite='lax',
+            )
+            audit(
+                'auth_web',
+                user_id=user_id,
+                extra=f'Login with {provider}',
+                discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_WEB_LOGIN,
             )
             return response
 

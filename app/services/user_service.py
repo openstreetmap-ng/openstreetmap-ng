@@ -3,7 +3,12 @@ import logging
 from fastapi import UploadFile
 from pydantic import SecretStr
 
-from app.config import ENV, USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
+from app.config import (
+    AUDIT_DISCARD_REPEATED_AUTH_WEB_LOGIN,
+    ENV,
+    USER_PENDING_EXPIRE,
+    USER_SCHEDULED_DELETE_DELAY,
+)
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
@@ -70,10 +75,16 @@ class UserService:
         if verification.schema_needed is not None:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
 
-        logging.debug('Authenticated user %d using credentials', user_id)
-        return await SystemAppService.create_access_token(
+        access_token = await SystemAppService.create_access_token(
             SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
         )
+        audit(
+            'auth_web',
+            user_id=user_id,
+            extra='Login',
+            discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_WEB_LOGIN,
+        )
+        return access_token
 
     @staticmethod
     async def update_description(
