@@ -9,6 +9,7 @@ from app.models.types import ApplicationId, DisplayName, Email, UserId
 AuditId = NewType('AuditId', int)
 AuditType = Literal[
     'admin_task',
+    'anon_note',
     'auth_api',
     'auth_fail',
     'auth_web',

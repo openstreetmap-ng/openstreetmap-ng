@@ -306,11 +306,13 @@ MESSAGES_INBOX_PAGE_SIZE = 50
 # -------------------- Administration --------------------
 
 # Audit
+AUDIT_DISCARD_REPEATED_ANON_NOTE = timedelta(hours=6)
 AUDIT_DISCARD_REPEATED_AUTH_API = timedelta(days=1)
 AUDIT_DISCARD_REPEATED_AUTH_FAIL = timedelta(minutes=1)
 AUDIT_DISCARD_REPEATED_AUTH_WEB = timedelta(days=1)
 AUDIT_LIST_PAGE_SIZE = 50
 AUDIT_RETENTION_ADMIN_TASK = timedelta(days=60)
+AUDIT_RETENTION_ANON_NOTE = timedelta(days=14)
 AUDIT_RETENTION_AUTH_API = timedelta(days=14)
 AUDIT_RETENTION_AUTH_FAIL = timedelta(days=30)
 AUDIT_RETENTION_AUTH_WEB = timedelta(days=14)

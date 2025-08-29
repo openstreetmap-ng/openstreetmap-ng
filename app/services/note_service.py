@@ -9,6 +9,7 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from shapely import Point, get_coordinates
 
+from app.config import AUDIT_DISCARD_REPEATED_ANON_NOTE
 from app.db import db
 from app.lib.auth_context import auth_scopes, auth_user
 from app.lib.exceptions_context import raise_for
@@ -26,6 +27,7 @@ from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
+from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.geometry import validate_geometry
@@ -66,9 +68,8 @@ class NoteService:
                 """,
                 note_init,
             ) as r:
-                note_id: NoteId
-                note_created_at: datetime
-                note_id, note_created_at = await r.fetchone()  # type: ignore
+                row: tuple[NoteId, datetime] = await r.fetchone()  # type: ignore
+                note_id, note_created_at = row
 
             comment_init: NoteCommentInit = {
                 'user_id': user_id,
@@ -86,7 +87,6 @@ class NoteService:
                 VALUES (
                     %(user_id)s, %(user_ip)s, %(note_id)s, %(event)s, %(body)s, %(created_at)s
                 )
-                RETURNING created_at
                 """,
                 {
                     **comment_init,
@@ -98,7 +98,11 @@ class NoteService:
             logging.debug('Created note %d by user %d', note_id, user_id)
             await UserSubscriptionService.subscribe('note', note_id)
         else:
-            logging.debug('Created note %d by anonymous user', note_id)
+            audit(
+                'anon_note',
+                extra=f'note/{note_id}',
+                discard_repeated=AUDIT_DISCARD_REPEATED_ANON_NOTE,
+            )
 
         return note_id
 
