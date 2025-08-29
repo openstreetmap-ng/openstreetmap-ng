@@ -1,9 +1,9 @@
 import asyncio
 import logging
-import random
 from asyncio import Event, TaskGroup
 from contextlib import asynccontextmanager
 from datetime import datetime
+from random import uniform
 from time import monotonic
 
 from sentry_sdk.api import start_transaction
@@ -18,7 +18,10 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
-from app.lib.sentry import SENTRY_CHANGESET_MANAGEMENT_MONITOR
+from app.lib.sentry import (
+    SENTRY_CHANGESET_MANAGEMENT_MONITOR,
+    SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG,
+)
 from app.lib.testmethod import testmethod
 from app.models.db.changeset import ChangesetInit
 from app.models.types import ChangesetId, UserId
@@ -190,18 +193,20 @@ async def _process_task() -> None:
                 ts = monotonic()
                 with (
                     SENTRY_CHANGESET_MANAGEMENT_MONITOR,
-                    start_transaction(op='task', name='changeset-management'),
+                    start_transaction(
+                        op='task', name=SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG
+                    ),
                 ):
                     await _close_inactive()
                     await _delete_empty()
                 tt = monotonic() - ts
 
                 # on success, sleep ~1min
-                await sleep(random.uniform(50, 70) - tt)
+                await sleep(uniform(50, 70) - tt)
 
         if not acquired:
             # on failure, sleep ~1h
-            await sleep(random.uniform(1800, 5400))
+            await sleep(uniform(0.5 * 3600, 1.5 * 3600))
 
 
 async def _close_inactive() -> None:

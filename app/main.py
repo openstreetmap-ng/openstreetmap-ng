@@ -54,7 +54,7 @@ from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMid
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
 from app.services.admin_task_service import AdminTaskService
-from app.services.audit_service import audit_context
+from app.services.audit_service import AuditService
 from app.services.changeset_service import ChangesetService
 from app.services.email_service import EmailService
 from app.services.rate_limit_service import RateLimitService
@@ -84,7 +84,7 @@ if ENV != 'prod':
 
 @asynccontextmanager
 async def lifespan(_):
-    async with psycopg_pool_open(), audit_context():
+    async with psycopg_pool_open(), AuditService.context():
         if ENV != 'prod':
             await TestService.on_startup()
 

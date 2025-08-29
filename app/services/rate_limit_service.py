@@ -1,9 +1,9 @@
 import asyncio
 import logging
-import random
 from asyncio import Event, TaskGroup
 from contextlib import asynccontextmanager
 from datetime import timedelta
+from random import uniform
 from time import monotonic
 
 from fastapi import HTTPException
@@ -13,7 +13,10 @@ from starlette import status
 from app.config import ENV
 from app.db import db
 from app.lib.retry import retry
-from app.lib.sentry import SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR
+from app.lib.sentry import (
+    SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR,
+    SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG,
+)
 from app.lib.testmethod import testmethod
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -135,17 +138,19 @@ async def _process_task() -> None:
                 ts = monotonic()
                 with (
                     SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR,
-                    start_transaction(op='task', name='rate-limit-management'),
+                    start_transaction(
+                        op='task', name=SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG
+                    ),
                 ):
                     await _delete_expired()
                 tt = monotonic() - ts
 
                 # on success, sleep ~5min
-                await sleep(random.uniform(290, 310) - tt)
+                await sleep(uniform(290, 310) - tt)
 
         if not acquired:
             # on failure, sleep ~1h
-            await sleep(random.uniform(1800, 5400))
+            await sleep(uniform(0.5 * 3600, 1.5 * 3600))
 
 
 async def _delete_expired() -> None:

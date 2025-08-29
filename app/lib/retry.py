@@ -1,8 +1,8 @@
 import asyncio
 import logging
-import random
 from datetime import timedelta
 from functools import wraps
+from random import uniform
 from time import monotonic
 
 import cython
@@ -47,7 +47,7 @@ def retry(
                         exc_info=True,
                     )
                     await asyncio.sleep(sleep)
-                    sleep = random.uniform(sleep * 1.5, sleep * 2.5)
+                    sleep = uniform(sleep * 1.5, sleep * 2.5)
                     sleep = min(sleep, sleep_limit)
 
         return wrapper
