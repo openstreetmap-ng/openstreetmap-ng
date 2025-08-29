@@ -31,7 +31,7 @@ export const configureStandardForm = (
     },
 ): void => {
     if (!form || form.classList.contains("needs-validation")) return
-    const formAction = form.getAttribute("action")
+    const formAction = form.getAttribute("action") ?? ""
     console.debug("Initializing standard form", formAction)
 
     // Disable browser validation in favor of bootstrap
