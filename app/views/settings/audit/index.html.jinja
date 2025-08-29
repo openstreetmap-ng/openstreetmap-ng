@@ -79,7 +79,7 @@
         </div>
         <nav aria-label="{{ t('alt.page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-0"
-                data-action="/api/web/audit?page={page}&num_items={{ audit_num_items }}{% if ip %}&ip={{ ip|urlencode }}{% endif %}{% if user_q %}&user={{ user_q|urlencode }}{% endif %}{% if application_id %}&application_id={{ application_id }}{% endif %}{% if type %}&type={{ type }}{% endif %}"
+                data-action="/api/web/audit?page={page}&num_items={{ audit_num_items }}{% if ip %}&ip={{ ip }}{% endif %}{% if user_q %}&user={{ user_q|urlencode }}{% endif %}{% if application_id %}&application_id={{ application_id }}{% endif %}{% if type %}&type={{ type }}{% endif %}"
                 data-pages="{{ audit_num_pages }}">
             </ul>
         </nav>
