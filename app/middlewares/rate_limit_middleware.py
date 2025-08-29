@@ -58,7 +58,7 @@ def rate_limit(*, weight: float = 1):
             request = get_request()
             user = auth_user()
             if user is not None:
-                key: StorageKey = f'uid:{user["id"]}'  # type: ignore
+                key: StorageKey = f'id:{user["id"]}'  # type: ignore
                 quota = UserRoleLimits.get_rate_limit_quota(user['roles'])
             else:
                 key: StorageKey = f'ip:{request.client.host}'  # type: ignore

@@ -10,7 +10,11 @@ from fastapi import HTTPException
 from sentry_sdk import start_transaction
 from starlette import status
 
-from app.config import ENV
+from app.config import (
+    AUDIT_DISCARD_REPEATED_RATE_LIMIT,
+    AUDIT_SAMPLE_RATE_RATE_LIMIT,
+    ENV,
+)
 from app.db import db
 from app.lib.retry import retry
 from app.lib.sentry import (
@@ -18,6 +22,7 @@ from app.lib.sentry import (
     SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG,
 )
 from app.lib.testmethod import testmethod
+from app.services.audit_service import audit
 
 _PROCESS_REQUEST_EVENT = Event()
 _PROCESS_DONE_EVENT = Event()
@@ -41,9 +46,10 @@ class RateLimitService:
         """
         quota_per_second = quota / _QUOTA_WINDOW_SECONDS
 
-        async with db(True) as conn:
-            # Uses a leaky bucket algorithm where the usage decreases over time.
-            async with await conn.execute(
+        # Uses a leaky bucket algorithm where the usage decreases over time.
+        async with (
+            db(True) as conn,
+            await conn.execute(
                 """
                 INSERT INTO rate_limit (
                     key, usage
@@ -65,26 +71,33 @@ class RateLimitService:
                     'change': change,
                     'quota_per_second': quota_per_second,
                 },
-            ) as r:
-                usage: float = (await r.fetchone())[0]  # type: ignore
+            ) as r,
+        ):
+            usage: float = (await r.fetchone())[0]  # type: ignore
 
-            # Prepare headers
-            quota_remaining = max(quota - usage, 0)
-            reset_seconds = usage / quota_per_second
-            headers = {
-                'RateLimit': f'"default";r={quota_remaining:.0f};t={reset_seconds:.0f}',
-                'RateLimit-Policy': f'"default";q={quota:.0f};w={_QUOTA_WINDOW_SECONDS:.0f}',
-            }
+        # Prepare headers
+        quota_remaining = max(quota - usage, 0)
+        reset_seconds = usage / quota_per_second
+        headers = {
+            'RateLimit': f'"default";r={quota_remaining:.0f};t={reset_seconds:.0f}',
+            'RateLimit-Policy': f'"default";q={quota:.0f};w={_QUOTA_WINDOW_SECONDS:.0f}',
+        }
 
-            # Check if the limit is exceeded
-            if usage > quota and raise_on_limit:
+        # Check if the limit is exceeded
+        if usage > quota:
+            audit(
+                'rate_limit',
+                sample_rate=AUDIT_SAMPLE_RATE_RATE_LIMIT,
+                discard_repeated=AUDIT_DISCARD_REPEATED_RATE_LIMIT,
+            )
+            if raise_on_limit:
                 raise HTTPException(
                     status.HTTP_429_TOO_MANY_REQUESTS,
                     detail='Rate limit exceeded',
                     headers=headers,
                 )
 
-            return headers
+        return headers
 
     @staticmethod
     @asynccontextmanager
