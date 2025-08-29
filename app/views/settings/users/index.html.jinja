@@ -12,17 +12,13 @@
             <div class="row g-3 mb-3">
                 <div class="col-12">
                     <label class="form-label" for="searchInput">Search</label>
-                    <input type="text" class="form-control form-control-lg" id="searchInput" name="search"
-                        value="{{ search }}"
-                        placeholder="Search by user name, email, or IP address (e.g., @gmail.com, 192.168.1.1, 10.0.0.0/8)"
+                    <input id="searchInput" type="text" class="form-control" name="search" value="{{ search }}"
+                        placeholder="Search by name, email, or IP address (e.g., @gmail.com, 192.168.1.1, 10.0.0.0/8)"
                         autocomplete="off" spellcheck="false">
                 </div>
-            </div>
-
-            <div class="row g-3 mb-3">
                 <div class="col-6 col-md-2">
                     <label class="form-label" for="sortSelect">Sort</label>
-                    <select class="form-select" id="sortSelect" name="sort">
+                    <select id="sortSelect" class="form-select form-select-sm" name="sort">
                         <option value="created_desc" {% if sort == 'created_desc' %}selected{% endif %}>
                             Newest first
                         </option>
@@ -39,8 +35,7 @@
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label" for="rolesSelect">Roles</label>
-                    <select class="form-select" id="rolesSelect" name="roles" multiple size="1">
-                        <option value="">All roles</option>
+                    <select id="rolesSelect" class="form-select form-select-sm" name="roles" multiple>
                         <option value="moderator" {% if 'moderator' in roles %}selected{% endif %}>
                             Moderator
                         </option>
@@ -51,18 +46,18 @@
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label" for="createdAfter">Registered from</label>
-                    <input type="datetime-local" class="form-control" id="createdAfter" name="created_after"
-                        value="{{ created_after }}">
+                    <input id="createdAfter" type="datetime-local" class="form-control form-control-sm"
+                        name="created_after" value="{{ created_after }}">
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label" for="createdBefore">Registered to</label>
-                    <input type="datetime-local" class="form-control" id="createdBefore" name="created_before"
-                        value="{{ created_before }}">
+                    <input id="createdBefore" type="datetime-local" class="form-control form-control-sm"
+                        name="created_before" value="{{ created_before }}">
                 </div>
-                <div class="col-12 col-md-1 d-flex align-items-end">
+                <div class="col-md-1">
                     <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="unverifiedCheck" name="unverified" value="1"
-                            {% if unverified %}checked{% endif %}>
+                        <input id="unverifiedCheck" type="checkbox" class="form-check-input" name="unverified"
+                            value="True" {% if unverified %}checked{% endif %}>
                         <label class="form-check-label" for="unverifiedCheck">
                             Unverified
                         </label>
@@ -73,21 +68,21 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-sm btn-outline-secondary export-visible-btn">
-                        <i class="bi bi-clipboard"></i> Export Visible
+                        <i class="bi bi-clipboard"></i> Copy page
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-secondary export-all-btn">
-                        <i class="bi bi-download"></i> Export All
+                        <i class="bi bi-download"></i> Export all
                     </button>
                 </div>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="text-muted">
+                <div>
+                    <span class="text-muted me-2">
                         {{ users_num_items }} users
                     </span>
                     <div class="btn-group" role="group">
                         <button type="submit" class="btn btn-outline-primary">
                             <i class="bi bi-funnel"></i> Apply
                         </button>
-                        <a href="" class="btn btn-outline-secondary">
+                        <a class="btn btn-outline-secondary" href="/settings/users">
                             <i class="bi bi-arrow-counterclockwise"></i> Clear
                         </a>
                     </div>
@@ -127,7 +122,7 @@
         </nav>
         {% else %}
         <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> No users found matching your filters.
+            <i class="bi bi-info-circle me-1-5"></i>No users found matching your filters.
         </div>
         {% endif %}
     </div>

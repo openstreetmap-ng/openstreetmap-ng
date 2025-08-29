@@ -2098,8 +2098,8 @@ packages:
   earcut@3.0.2:
     resolution: {integrity: sha512-X7hshQbLyMJ/3RPhyObLARM2sNxxmRALLKx1+NVFFnQ9gKzmCrxm9+uLIAdBcvc8FNLpctqlQ2V6AE92Ol9UDQ==}
 
-  editor-layer-index@https://codeload.github.com/osmlab/editor-layer-index/tar.gz/dd0af98f19e952a1271909a6aaae5ab38b0b71f3:
-    resolution: {tarball: https://codeload.github.com/osmlab/editor-layer-index/tar.gz/dd0af98f19e952a1271909a6aaae5ab38b0b71f3}
+  editor-layer-index@https://codeload.github.com/osmlab/editor-layer-index/tar.gz/fc916e20846ca21210a6674e291747f58aefe16c:
+    resolution: {tarball: https://codeload.github.com/osmlab/editor-layer-index/tar.gz/fc916e20846ca21210a6674e291747f58aefe16c}
     version: 0.0.0
 
   electron-to-chromium@1.5.200:
@@ -4644,7 +4644,7 @@ snapshots:
       '@tmcw/togeojson': 6.0.1(@types/geojson@7946.0.16)(@xmldom/xmldom@0.8.10)
       '@types/chai': 5.2.2
       d3: 7.9.0
-      editor-layer-index: https://codeload.github.com/osmlab/editor-layer-index/tar.gz/dd0af98f19e952a1271909a6aaae5ab38b0b71f3
+      editor-layer-index: https://codeload.github.com/osmlab/editor-layer-index/tar.gz/fc916e20846ca21210a6674e291747f58aefe16c
       fast-deep-equal: 3.1.3
       fast-json-stable-stringify: 2.1.0
       lodash-es: 4.17.21
@@ -5404,7 +5404,7 @@ snapshots:
 
   earcut@3.0.2: {}
 
-  editor-layer-index@https://codeload.github.com/osmlab/editor-layer-index/tar.gz/dd0af98f19e952a1271909a6aaae5ab38b0b71f3: {}
+  editor-layer-index@https://codeload.github.com/osmlab/editor-layer-index/tar.gz/fc916e20846ca21210a6674e291747f58aefe16c: {}
 
   electron-to-chromium@1.5.200: {}
 

@@ -13,14 +13,27 @@ export const configureStandardPagination = (
         loadCallback?: () => void
     },
 ): (() => void) => {
-    if (!container) return () => {}
+    if (!container) {
+        console.debug("Ignored standard pagination: missing container")
+        return () => {}
+    }
+
     const renderContainer =
         container.querySelector("ul.list-unstyled") ?? container.querySelector("tbody")
     const paginationContainers = container.querySelectorAll("ul.pagination")
+    if (!renderContainer || !paginationContainers.length) {
+        console.debug(
+            "Ignored standard pagination: missing renderContainer/paginationContainers",
+        )
+        return () => {}
+    }
 
     const dataset = paginationContainers[paginationContainers.length - 1].dataset
     const totalPages = Number.parseInt(dataset.pages, 10)
-    if (!totalPages) return () => {}
+    if (!totalPages) {
+        console.debug("Ignored standard pagination: missing data-pages")
+        return () => {}
+    }
 
     const pageSize = Number.parseInt(dataset.pageSize, 10)
     const numItems = Number.parseInt(dataset.numItems, 10)

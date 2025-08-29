@@ -87,10 +87,6 @@ class AuditQuery:
         type: AuditType | None = None,
     ) -> int | list[AuditEvent]:
         """Find audit logs. Results are always sorted by created_at DESC (most recent first)."""
-        assert ip is None or (user is None and application_id is None), (
-            'IP filter cannot be used with user/application_id filters'
-        )
-
         conditions: list[Composable] = []
         params: list = []
 

@@ -4,6 +4,15 @@ const body = document.querySelector("body.settings-users-body")
 if (body) {
     configureStandardPagination(body, { reverse: false })
 
+    // Disable empty inputs before form submission to prevent validation errors
+    const filterForm = body.querySelector("form.filters-form")
+    filterForm.addEventListener("submit", () => {
+        const inputs = filterForm.querySelectorAll("input, select")
+        for (const input of inputs) {
+            if (!input.value) input.disabled = true
+        }
+    })
+
     const exportVisibleBtn = body.querySelector("button.export-visible-btn")
     exportVisibleBtn.addEventListener("click", async () => {
         const userIds = Array.from(body.querySelectorAll("tr[data-user-id]")).map(
