@@ -8,7 +8,6 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import (
-    AUDIT_DISCARD_REPEATED_AUTH_WEB_LOGIN,
     AUTH_PROVIDER_STATE_MAX_AGE,
     AUTH_PROVIDER_VERIFICATION_MAX_AGE,
     COOKIE_AUTH_MAX_AGE,
@@ -126,12 +125,7 @@ class AuthProviderService:
                 httponly=True,
                 samesite='lax',
             )
-            audit(
-                'auth_web',
-                user_id=user_id,
-                extra=f'Login with {provider}',
-                discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_WEB_LOGIN,
-            )
+            audit('auth_web', user_id=user_id, extra=f'Login with {provider}')
             return response
 
         elif action == 'settings':

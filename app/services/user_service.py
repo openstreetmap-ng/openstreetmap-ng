@@ -5,7 +5,6 @@ from pydantic import SecretStr
 
 from app.config import (
     AUDIT_DISCARD_REPEATED_AUTH_FAIL,
-    AUDIT_DISCARD_REPEATED_AUTH_WEB_LOGIN,
     ENV,
     USER_PENDING_EXPIRE,
     USER_SCHEDULED_DELETE_DELAY,
@@ -84,12 +83,7 @@ class UserService:
         access_token = await SystemAppService.create_access_token(
             SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
         )
-        audit(
-            'auth_web',
-            user_id=user_id,
-            extra='Login',
-            discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_WEB_LOGIN,
-        )
+        audit('auth_web', user_id=user_id, extra='Login')
         return access_token
 
     @staticmethod
