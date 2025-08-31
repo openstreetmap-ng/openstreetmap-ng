@@ -1,6 +1,6 @@
-import { configureStandardPagination } from "../../lib/standard-pagination"
+import { configureStandardPagination } from "../lib/standard-pagination"
 
-const body = document.querySelector("body.settings-audit-body")
+const body = document.querySelector("body.audit-body")
 if (body) {
     configureStandardPagination(body, { reverse: false })
 

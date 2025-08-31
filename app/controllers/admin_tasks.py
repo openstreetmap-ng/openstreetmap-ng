@@ -10,10 +10,10 @@ from app.services.admin_task_service import AdminTaskService
 router = APIRouter()
 
 
-@router.get('/settings/tasks')
+@router.get('/admin/tasks')
 async def tasks(
     _: Annotated[User, web_user('role_administrator')],
 ):
     tasks = await AdminTaskService.list_tasks()
 
-    return await render_response('settings/tasks', {'tasks': tasks})
+    return await render_response('admin/tasks', {'tasks': tasks})

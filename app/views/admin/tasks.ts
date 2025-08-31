@@ -1,9 +1,9 @@
 import { configureStandardForm } from "../lib/standard-form"
 
-const body = document.querySelector("body.settings-tasks-body")
+const body = document.querySelector("body.admin-tasks-body")
 if (body) {
     const updateStatus = (): void => {
-        fetch("/api/web/settings/tasks/status")
+        fetch("/api/web/admin/tasks/status")
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
                 const data: Array<{ id: string; running: boolean }> = await resp.json()

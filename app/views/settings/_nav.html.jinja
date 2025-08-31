@@ -41,7 +41,7 @@
             <hr>
         </li>
         <li class="nav-item">
-            {% set _href = '/settings/tasks' %}
+            {% set _href = '/admin/tasks' %}
             {% set _active = nav_active_href == _href %}
             <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
                 {% if _active %}aria-current=page{% endif %}>
@@ -50,7 +50,7 @@
             </a>
         </li>
         <li class="nav-item">
-            {% set _href = '/settings/users' %}
+            {% set _href = '/admin/users' %}
             {% set _active = nav_active_href == _href %}
             <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
                 {% if _active %}aria-current=page{% endif %}>
@@ -59,7 +59,7 @@
             </a>
         </li>
         <li class="nav-item">
-            {% set _href = '/settings/audit' %}
+            {% set _href = '/audit' %}
             {% set _active = nav_active_href == _href %}
             <a class="nav-link {% if _active %}active{% endif %}" href="{{ _href }}"
                 {% if _active %}aria-current=page{% endif %}>

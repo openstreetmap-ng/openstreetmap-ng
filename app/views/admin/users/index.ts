@@ -1,6 +1,6 @@
 import { configureStandardPagination } from "../../lib/standard-pagination"
 
-const body = document.querySelector("body.settings-users-body")
+const body = document.querySelector("body.admin-users-body")
 if (body) {
     configureStandardPagination(body, { reverse: false })
 
@@ -32,7 +32,7 @@ if (body) {
     exportAllBtn.addEventListener("click", () => {
         const a = document.createElement("a")
         const params = new URLSearchParams(window.location.search)
-        a.href = `/api/web/settings/users/export?${params.toString()}`
+        a.href = `/api/web/admin/users/export?${params.toString()}`
         a.download = ""
         document.body.appendChild(a)
         a.click()

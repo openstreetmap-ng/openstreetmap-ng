@@ -24,13 +24,13 @@ Implement a comprehensive admin interface for managing individual user accounts,
 ### Patterns Found
 - **Settings Structure**: Settings pages extend `app/views/settings/_base.html.jinja` with consistent navigation (@app/views/settings/security.html.jinja)
 - **Form Handling**: Standard forms use `configureStandardForm` with API endpoints returning JSON feedback (@app/views/lib/standard-form.ts)
-- **Authentication**: Role-based access via `web_user('role_administrator')` decorator (@app/controllers/web_settings_users.py)
-- **User Management**: Existing user list at `/settings/users` with pagination and filtering (@app/controllers/settings_users.py)
+- **Authentication**: Role-based access via `web_user('role_administrator')` decorator (@app/controllers/web_admin_users.py)
+- **User Management**: Existing user list at `/admin/users` with pagination and filtering (@app/controllers/admin_users.py)
 - **Content Headers**: User info displayed with avatar in headers like reports/diary pages (@app/views/reports/show.html.jinja:29-37)
 - **Connected Accounts UI**: Table-based display with service icons (@app/views/settings/connections.html.jinja:10-42)
 
 ### Integration Strategy
-The feature will integrate as a new route `/settings/users/{id}` extending the existing user management system. It will:
+The feature will integrate as a new route `/admin/users/{id}` extending the existing user management system. It will:
 - Follow the settings page layout pattern with navigation sidebar
 - Use standard forms for all data modifications
 - Leverage existing user service methods where possible
@@ -63,8 +63,8 @@ The feature will integrate as a new route `/settings/users/{id}` extending the e
 - Create "login as user" functionality ✓
 
 **Implementation:**
-- Created @app/controllers/settings_user_edit.py - Page controller that fetches user data with parallel TaskGroup queries
-- Created @app/controllers/web_settings_user_edit.py - API endpoints for user updates and login-as functionality
+- Created @app/controllers/admin_user_edit.py - Page controller that fetches user data with parallel TaskGroup queries
+- Created @app/controllers/web_admin_user_edit.py - API endpoints for user updates and login-as functionality
 - Extended @app/services/user_service.py:456-498 - Added `admin_update_user` method using SQL composition
 - Session replacement via SystemAppService for impersonation
 
@@ -76,9 +76,9 @@ The feature will integrate as a new route `/settings/users/{id}` extending the e
 - Audit logging deferred to later phase per project requirements
 
 **Success Criteria Met:**
-- GET `/settings/users/{id}` returns user edit page with all tab data ✓
-- POST `/api/web/settings/users/{id}/update` handles all user modifications ✓
-- POST `/api/web/settings/users/{id}/login-as` creates new session and redirects ✓
+- GET `/admin/users/{id}` returns user edit page with all tab data ✓
+- POST `/api/web/admin/users/{id}/update` handles all user modifications ✓
+- POST `/api/web/admin/users/{id}/login-as` creates new session and redirects ✓
 
 ### Phase 2: Frontend Template and Layout - COMPLETED
 
@@ -89,7 +89,7 @@ The feature will integrate as a new route `/settings/users/{id}` extending the e
 - Add navigation and breadcrumbs ✓
 
 **Implementation:**
-- Created @app/views/settings/users/edit.html.jinja - Comprehensive template with tabbed navigation
+- Created @app/views/admin/users/edit.html.jinja - Comprehensive template with tabbed navigation
 - Extended '_base' template (not 'settings/_base') for admin pages per project conventions
 - Implemented user header with avatar, display name, member since date, and roles badges
 - Added breadcrumb navigation with aria-current="page" for accessibility

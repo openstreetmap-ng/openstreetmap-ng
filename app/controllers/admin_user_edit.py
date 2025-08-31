@@ -17,7 +17,7 @@ from app.queries.user_query import UserQuery
 router = APIRouter()
 
 
-@router.get('/settings/users/{user_id:int}')
+@router.get('/admin/users/{user_id:int}')
 async def user_edit(
     _: Annotated[User, web_user('role_administrator')],
     user_id: UserId,
@@ -36,7 +36,7 @@ async def user_edit(
         tg.create_task(OAuth2ApplicationQuery.resolve_applications(authorizations))
 
     return await render_response(
-        'settings/users/edit',
+        'admin/users/edit',
         {
             'edit_user': edit_user,
             'connected_providers': connected_providers_task.result(),

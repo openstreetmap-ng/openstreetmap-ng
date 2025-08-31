@@ -1,7 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Response
-from pydantic import SecretStr
+from fastapi import APIRouter, Form
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -16,7 +15,7 @@ from app.services.user_service import UserService
 from app.validators.display_name import DisplayNameValidating
 from app.validators.email import EmailValidating
 
-router = APIRouter(prefix='/api/web/settings/users')
+router = APIRouter(prefix='/api/web/admin/users')
 
 
 @router.post('/{user_id:int}/update')
@@ -26,7 +25,7 @@ async def update_user(
     display_name: Annotated[DisplayNameValidating | None, Form()] = None,
     email: Annotated[EmailValidating | None, Form()] = None,
     email_verified: Annotated[bool, Form()] = False,
-    roles: Annotated[list[UserRole], Form()] = [],
+    roles: Annotated[list[UserRole] | None, Form()] = None,
     new_password: Annotated[Password | None, Form()] = None,
 ):
     await UserService.admin_update_user(
@@ -34,7 +33,7 @@ async def update_user(
         display_name=display_name,
         email=email,
         email_verified=email_verified,
-        roles=roles,
+        roles=roles or [],
         new_password=new_password,
     )
     return StandardFeedback.success_result(None, 'User has been updated')

@@ -13,7 +13,7 @@ from app.models.types import UserId
 from app.queries.audit_query import AuditQuery
 from app.queries.user_query import UserQuery
 
-router = APIRouter(prefix='/api/web/settings/users')
+router = APIRouter(prefix='/api/web/admin/users')
 
 
 @router.get('/')
@@ -47,7 +47,7 @@ async def users_page(
     ip_counts = await AuditQuery.count_ip_by_user(user_ids, since=timedelta(days=1))
 
     return await render_response(
-        'settings/users/users-page',
+        'admin/users/users-page',
         {
             'users': users,
             'ip_counts': ip_counts,

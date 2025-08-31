@@ -53,6 +53,7 @@ $bootstrap-icons-font-hash: "";
 @import "maplibre-gl/dist/maplibre-gl";
 
 @import "about/about";
+@import "admin/users/index";
 @import "communities";
 @import "diary/compose";
 @import "diary/entry";
@@ -110,7 +111,6 @@ $bootstrap-icons-font-hash: "";
 @import "settings/connections";
 @import "settings/nav";
 @import "settings/security";
-@import "settings/users/index";
 @import "test-site";
 @import "traces/index";
 @import "traces/preview";

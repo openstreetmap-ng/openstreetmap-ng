@@ -431,28 +431,6 @@ class UserService:
                 (USER_PENDING_EXPIRE,),
             )
 
-
-async def _rehash_user_password(user: User, password: Password) -> None:
-    """Rehash user password if the hashing algorithm or parameters have changed."""
-    user_id = user['id']
-
-    new_password_pb = PasswordHash.hash(password)
-    if new_password_pb is None:
-        return
-
-    async with db(True) as conn:
-        result = await conn.execute(
-            """
-            UPDATE "user"
-            SET password_pb = %s
-            WHERE id = %s AND password_pb = %s
-            """,
-            (new_password_pb, user_id, user['password_pb']),
-        )
-
-        if result.rowcount:
-            logging.debug('Rehashed password for user %d', user_id)
-
     @staticmethod
     async def admin_update_user(
         *,
@@ -496,3 +474,25 @@ async def _rehash_user_password(user: User, password: Password) -> None:
             params.append(user_id)
 
             await conn.execute(query, params)
+
+
+async def _rehash_user_password(user: User, password: Password) -> None:
+    """Rehash user password if the hashing algorithm or parameters have changed."""
+    user_id = user['id']
+
+    new_password_pb = PasswordHash.hash(password)
+    if new_password_pb is None:
+        return
+
+    async with db(True) as conn:
+        result = await conn.execute(
+            """
+            UPDATE "user"
+            SET password_pb = %s
+            WHERE id = %s AND password_pb = %s
+            """,
+            (new_password_pb, user_id, user['password_pb']),
+        )
+
+        if result.rowcount:
+            logging.debug('Rehashed password for user %d', user_id)

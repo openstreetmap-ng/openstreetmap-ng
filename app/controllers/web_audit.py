@@ -44,7 +44,7 @@ async def audit_page(
         tg.create_task(OAuth2ApplicationQuery.resolve_applications(events))
 
     return await render_response(
-        'settings/audit/audit-page',
+        'audit/audit-page',
         {
             'events': events,
         },

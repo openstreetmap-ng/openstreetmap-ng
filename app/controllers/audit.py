@@ -15,7 +15,7 @@ from app.queries.audit_query import AuditQuery
 router = APIRouter()
 
 
-@router.get('/settings/audit')
+@router.get('/audit')
 async def audit_index(
     _: Annotated[User, web_user('role_administrator')],
     ip: Annotated[
@@ -35,7 +35,7 @@ async def audit_index(
     audit_num_pages = ceil(audit_num_items / AUDIT_LIST_PAGE_SIZE)
 
     return await render_response(
-        'settings/audit/index',
+        'audit/index',
         {
             'audit_num_items': audit_num_items,
             'audit_num_pages': audit_num_pages,

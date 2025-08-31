@@ -1,13 +1,13 @@
 {% extends '_base' %}
 {% block title_prefix %}User management - {{ edit_user.display_name }} | {% endblock %}
-{% block body_class %}settings-user-edit-body{% endblock %}
+{% block body_class %}admin-user-edit-body{% endblock %}
 {% block body %}
 
 <div class="content-header pb-0">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-3">
-                <li class="breadcrumb-item"><a href="/settings/users">User management</a></li>
+                <li class="breadcrumb-item"><a href="/admin/users">User management</a></li>
                 <li class="breadcrumb-item active" aria-current="page">{{ edit_user.display_name }}</li>
             </ol>
         </nav>
@@ -37,14 +37,14 @@
                         {% endfor %}
                     </span>
                     {% endif %}
-                    <a href="/settings/audit?user_id={{ edit_user.id }}" class="link-secondary">
+                    <a href="/audit?user_id={{ edit_user.id }}" class="link-secondary">
                         <i class="bi bi-journal-text me-1"></i>
                         View audit logs
                     </a>
                 </div>
             </div>
             <div class="col-auto">
-                <form method="POST" action="/api/web/settings/users/{{ edit_user.id }}/login-as">
+                <form method="POST" action="/api/web/admin/users/{{ edit_user.id }}/login-as">
                     <button class="btn btn-warning" type="submit">
                         <i class="bi bi-box-arrow-in-right me-2"></i>
                         Login as user
@@ -90,7 +90,7 @@
         <div class="tab-content">
             <div class="tab-pane fade show active" id="account">
                 <h3 class="mb-3">Account information</h3>
-                <form class="account-form mb-4" method="POST" action="/api/web/settings/users/{{ edit_user.id }}/update">
+                <form class="account-form mb-4" method="POST" action="/api/web/admin/users/{{ edit_user.id }}/update">
                     <label class="form-label d-block mb-3">
                         <span>{{ t('settings.display_name') }}</span>
                         <input type="text" class="form-control mt-2" name="display_name" 
