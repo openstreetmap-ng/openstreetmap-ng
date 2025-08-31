@@ -1,6 +1,8 @@
 import logging
+from typing import Any
 
 from fastapi import UploadFile
+from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
 
 from app.config import (
@@ -19,8 +21,8 @@ from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
-from app.models.db.user import Editor, User, user_avatar_url, user_is_test
-from app.models.types import DisplayName, Email, LocaleCode, Password
+from app.models.db.user import Editor, User, UserRole, user_avatar_url, user_is_test
+from app.models.types import DisplayName, Email, LocaleCode, Password, UserId
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
 from app.services.audit_service import audit
@@ -450,3 +452,47 @@ async def _rehash_user_password(user: User, password: Password) -> None:
 
         if result.rowcount:
             logging.debug('Rehashed password for user %d', user_id)
+
+    @staticmethod
+    async def admin_update_user(
+        *,
+        user_id: UserId,
+        display_name: DisplayName | None,
+        email: Email | None,
+        email_verified: bool,
+        new_password: Password | None,
+        roles: list[UserRole],
+    ) -> None:
+        user = await UserQuery.find_by_id(user_id)
+        if user is None:
+            StandardFeedback.raise_error(None, 'User not found')
+
+        async with db(True) as conn:
+            assignments: list[Composable] = []
+            params: list[Any] = []
+
+            assignments.append(SQL('email_verified = %s'))
+            params.append(email_verified)
+
+            assignments.append(SQL('roles = %s'))
+            params.append(roles)
+
+            if display_name is not None:
+                assignments.append(SQL('display_name = %s'))
+                params.append(display_name)
+
+            if email is not None:
+                assignments.append(SQL('email = %s'))
+                params.append(email)
+
+            if new_password is not None:
+                assignments.append(SQL('password_pb = %s'))
+                assignments.append(SQL('password_updated_at = statement_timestamp()'))
+                params.append(PasswordHash.hash(new_password))
+
+            query = SQL('UPDATE "user" SET {} WHERE id = %s').format(
+                SQL(', ').join(assignments)
+            )
+            params.append(user_id)
+
+            await conn.execute(query, params)

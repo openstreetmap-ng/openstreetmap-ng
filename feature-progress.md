@@ -7,7 +7,11 @@ Implement a comprehensive admin interface for managing individual user accounts,
 - Admin-only access with role_administrator requirement
 - User loaded by ID in URL (not volatile display name)
 - Editable fields: display name, email (with verification toggle), password, roles
-- Read-only view of connected OAuth accounts
+- Read-only tabbed interface showing:
+  - Connected OAuth accounts (providers)
+  - Authorizations (OAuth apps user has authorized)
+  - Applications (OAuth apps user owns)
+  - Tokens (personal access tokens user created)
 - Link to user-specific audit logs
 - "Login as user" functionality for admin impersonation
 - Standard form submission without page reload
@@ -50,47 +54,60 @@ The feature will integrate as a new route `/settings/users/{id}` extending the e
 
 ## Implementation Plan
 
-### Phase 1: Backend Routes and Core Services - PENDING
+### Phase 1: Backend Routes and Core Services - COMPLETED
 
 **Objectives:**
-- Create API endpoint for fetching user details
-- Implement service methods for admin user modifications
-- Add audit logging for all admin actions
-- Create "login as user" functionality
+- Create API endpoint for fetching user details ✓
+- Implement service methods for admin user modifications ✓
+- Add audit logging for all admin actions (deferred)
+- Create "login as user" functionality ✓
 
-**Approach:**
-- Create `app/controllers/settings_user_edit.py` for page rendering
-- Create `app/controllers/web_settings_user_edit.py` for API endpoints
-- Extend `app/services/user_service.py` with admin modification methods
-- Add new audit event types for admin actions
-- Implement session replacement logic for impersonation
+**Implementation:**
+- Created @app/controllers/settings_user_edit.py - Page controller that fetches user data with parallel TaskGroup queries
+- Created @app/controllers/web_settings_user_edit.py - API endpoints for user updates and login-as functionality
+- Extended @app/services/user_service.py:456-498 - Added `admin_update_user` method using SQL composition
+- Session replacement via SystemAppService for impersonation
 
-**Success Criteria:**
-- GET `/settings/users/{id}` returns user edit page (admin only)
-- API endpoints functional for all user modifications
-- Audit events properly logged for each action
-- "Login as" creates new session and redirects to homepage
+**Key Decisions:**
+- Used TaskGroup for parallel data fetching (connected accounts, authorizations, applications, tokens)
+- Single update endpoint handles all fields with optional parameters
+- Password update includes `password_updated_at = statement_timestamp()`
+- Validating types used in controller, base types in service layer
+- Audit logging deferred to later phase per project requirements
 
-### Phase 2: Frontend Template and Layout - PENDING
+**Success Criteria Met:**
+- GET `/settings/users/{id}` returns user edit page with all tab data ✓
+- POST `/api/web/settings/users/{id}/update` handles all user modifications ✓
+- POST `/api/web/settings/users/{id}/login-as` creates new session and redirects ✓
+
+### Phase 2: Frontend Template and Layout - COMPLETED
 
 **Objectives:**
-- Create user edit page with Bootstrap 5 layout
-- Display user header with avatar and basic info
-- Structure form sections for different user properties
-- Add navigation and breadcrumbs
+- Create user edit page with Bootstrap 5 layout ✓
+- Display user header with avatar and basic info ✓
+- Structure form sections for different user properties ✓
+- Add navigation and breadcrumbs ✓
 
-**Approach:**
-- Create `app/views/settings/users/edit.html.jinja` extending settings base
-- Implement content header similar to reports/diary pages
-- Organize form fields in logical sections
-- Add link to user-specific audit logs
-- Style with Bootstrap classes following existing patterns
+**Implementation:**
+- Created @app/views/settings/users/edit.html.jinja - Comprehensive template with tabbed navigation
+- Extended '_base' template (not 'settings/_base') for admin pages per project conventions
+- Implemented user header with avatar, display name, member since date, and roles badges
+- Added breadcrumb navigation with aria-current="page" for accessibility
+- Created tabbed interface for Account settings, Connected accounts, Authorizations, Applications, and Tokens
 
-**Success Criteria:**
-- Page renders with correct user information
-- Layout matches existing settings pages
-- All form elements properly structured
-- Responsive design works on mobile/desktop
+**Key Decisions:**
+- No new localization strings - reused existing translations and hardcoded English for admin features
+- Used time elements with datetime attributes for automatic browser locale rendering
+- Connected accounts styled to match existing design with service provider icons
+- Form fields include placeholders showing current values
+- Password fields left blank to maintain current password if unchanged
+- Checkboxes for roles and email verification status
+
+**Success Criteria Met:**
+- Page renders with correct user information ✓
+- Layout matches existing admin pages (not settings pages) ✓
+- All form elements properly structured with Bootstrap 5 ✓
+- Responsive design with proper breakpoints ✓
 
 ### Phase 3: Form Implementation with TypeScript - PENDING
 
@@ -113,25 +130,30 @@ The feature will integrate as a new route `/settings/users/{id}` extending the e
 - Role changes show confirmation dialog
 - Success/error messages display correctly
 
-### Phase 4: Connected Accounts Display - PENDING
+### Phase 4: Tabbed Navigation for User Data - PENDING
 
 **Objectives:**
-- Query and display user's connected OAuth accounts
-- Create read-only table matching connections page style
-- Show provider icons and connection status
-- Add relevant metadata (connection date, etc.)
+- Create tabbed navigation for different user data views
+- Query and display connected OAuth accounts
+- Query and display authorized OAuth applications
+- Query and display owned OAuth applications
+- Query and display personal access tokens
 
 **Approach:**
-- Query connected accounts via `ConnectedAccountQuery`
-- Create partial template for account display
-- Reuse styling from connections page
-- Display only connected providers (no action buttons)
+- Implement navigation tabs similar to `app/views/settings/applications/_nav.html.jinja`
+- Query data via existing queries:
+  - `ConnectedAccountQuery` for OAuth providers
+  - `OAuth2TokenQuery` for authorizations
+  - `OAuth2ApplicationQuery` for owned apps
+  - Personal access tokens query
+- Create read-only views for each tab
+- Reuse existing translations and UI components
 
 **Success Criteria:**
-- Connected accounts display correctly
-- Icons and styling match existing connections page
+- Tabbed navigation functions correctly
+- All data displays accurately in read-only format
+- Styling matches existing settings pages
 - No modification actions available (read-only)
-- Displays connection timestamps
 
 ### Phase 5: Login As User Implementation - PENDING
 
