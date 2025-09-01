@@ -1,0 +1,106 @@
+import i18next from "i18next"
+import { type APIDetail, configureStandardForm } from "../../lib/standard-form"
+
+const body = document.querySelector("body.admin-user-edit-body")
+if (body) {
+    const accountForm = body.querySelector("form.account-form")
+    const newPasswordInput = accountForm.querySelector(
+        "input[type=password][data-name=new_password]",
+    )
+    const newPasswordConfirmInput = accountForm.querySelector(
+        "input[type=password][data-name=new_password_confirm]",
+    )
+    const roleCheckboxes = accountForm.querySelectorAll("input.role-checkbox")
+
+    const originalRoles = new Set<string>()
+    for (const checkbox of roleCheckboxes) {
+        if (checkbox.checked) {
+            originalRoles.add(checkbox.value)
+        }
+    }
+
+    accountForm.addEventListener("submit", (e) => {
+        const currentRoles = new Set<string>()
+        for (const checkbox of roleCheckboxes) {
+            if (checkbox.checked) {
+                currentRoles.add(checkbox.value)
+            }
+        }
+
+        const addedRoles: string[] = []
+        const removedRoles: string[] = []
+
+        for (const role of currentRoles) {
+            if (!originalRoles.has(role)) {
+                addedRoles.push(role)
+            }
+        }
+
+        for (const role of originalRoles) {
+            if (!currentRoles.has(role)) {
+                removedRoles.push(role)
+            }
+        }
+
+        for (const role of removedRoles) {
+            const message = `Remove ${role} role from this user?`
+            if (!confirm(message)) {
+                e.preventDefault()
+                return
+            }
+        }
+
+        for (const role of addedRoles) {
+            const message = `Grant ${role} role to this user?`
+            if (!confirm(message)) {
+                e.preventDefault()
+                return
+            }
+        }
+    })
+
+    configureStandardForm(
+        accountForm,
+        () => {
+            console.debug("onAccountFormSuccess")
+            originalRoles.clear()
+            for (const checkbox of roleCheckboxes) {
+                if (checkbox.checked) {
+                    originalRoles.add(checkbox.value)
+                }
+            }
+            newPasswordInput.value = ""
+            newPasswordConfirmInput.value = ""
+        },
+        () => {
+            const result: APIDetail[] = []
+
+            if (newPasswordInput.value || newPasswordConfirmInput.value) {
+                if (newPasswordInput.value !== newPasswordConfirmInput.value) {
+                    const msg = i18next.t("validation.passwords_missmatch")
+                    result.push({ type: "error", loc: ["", "new_password"], msg })
+                    result.push({
+                        type: "error",
+                        loc: ["", "new_password_confirm"],
+                        msg,
+                    })
+                }
+            }
+
+            return result
+        },
+        null,
+        { removeEmptyFields: true },
+    )
+
+    const impersonateForm = body.querySelector("form.impersonate-form")
+    impersonateForm.addEventListener("submit", (e) => {
+        if (
+            !confirm(
+                "Login as this user? You will need to re-authenticate to regain admin access.",
+            )
+        ) {
+            e.preventDefault()
+        }
+    })
+}

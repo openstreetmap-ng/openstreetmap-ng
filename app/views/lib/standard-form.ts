@@ -232,7 +232,7 @@ export const configureStandardForm = (
     }
 
     // On form submit, build and submit the request
-    form.addEventListener("submit", async (e: SubmitEvent): Promise<void> => {
+    form.addEventListener("submit", async (e): Promise<void> => {
         console.debug("configureStandardForm", "onSubmit", formAction)
         e.preventDefault()
 

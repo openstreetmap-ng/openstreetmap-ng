@@ -8,6 +8,7 @@ import "./navbar/_theme"
 
 import "./_unsubscribe-discussion"
 import "./admin/tasks"
+import "./admin/users/edit"
 import "./admin/users/index"
 import "./audit/index"
 import "./diary/compose"

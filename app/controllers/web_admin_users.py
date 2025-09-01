@@ -111,8 +111,8 @@ async def update_user(
     return StandardFeedback.success_result(None, 'User has been updated')
 
 
-@router.post('/{user_id:int}/login-as')
-async def login_as_user(
+@router.post('/{user_id:int}/impersonate')
+async def impersonate_user(
     _: Annotated[User, web_user('role_administrator')],
     user_id: UserId,
 ):

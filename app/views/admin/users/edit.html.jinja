@@ -30,14 +30,6 @@
                         <i class="bi bi-calendar3 me-1"></i>
                         Member since <time datetime="{{ edit_user.created_at.isoformat() }}" data-date="medium"></time>
                     </span>
-                    {% if edit_user.roles %}
-                    <span>
-                        <i class="bi bi-shield-check me-1"></i>
-                        {% for role in edit_user.roles %}
-                        <span class="badge bg-secondary">{{ role | capitalize }}</span>
-                        {% endfor %}
-                    </span>
-                    {% endif %}
                     <a href="/audit?user_id={{ edit_user.id }}" class="link-secondary">
                         <i class="bi bi-journal-text me-1"></i>
                         View audit logs
@@ -45,7 +37,7 @@
                 </div>
             </div>
             <div class="col-auto">
-                <form method="POST" action="/api/web/admin/users/{{ edit_user.id }}/login-as">
+                <form class="impersonate-form" method="POST" action="/api/web/admin/users/{{ edit_user.id }}/impersonate">
                     <button class="btn btn-warning" type="submit">
                         <i class="bi bi-box-arrow-in-right me-2"></i>
                         Login as user
