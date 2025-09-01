@@ -2,6 +2,7 @@
 {% block title_prefix %}User management - {{ edit_user.display_name }} | {% endblock %}
 {% block body_class %}admin-user-edit-body{% endblock %}
 {% block body %}
+{% set _is_deleted = user_is_deleted(edit_user) %}
 
 <div class="content-header pb-0">
     <div class="container">
@@ -35,7 +36,19 @@
                         View audit logs
                     </a>
                 </div>
+                {% if _is_deleted %}
+                <div class="alert alert-secondary mt-3 mb-0" role="alert">
+                    <i class="bi bi-info-circle me-2"></i>
+                    This account has been deleted
+                </div>
+                {% elif edit_user.scheduled_delete_at %}
+                <div class="alert alert-warning mt-3 mb-0" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Scheduled for deletion on <time datetime="{{ edit_user.scheduled_delete_at.isoformat() }}" data-date="long" data-time="short"></time>
+                </div>
+                {% endif %}
             </div>
+            {% if not _is_deleted %}
             <div class="col-auto">
                 <form class="impersonate-form" method="POST" action="/api/web/admin/users/{{ edit_user.id }}/impersonate">
                     <button class="btn btn-warning" type="submit">
@@ -44,8 +57,10 @@
                     </button>
                 </form>
             </div>
+            {% endif %}
         </div>
 
+        {% if not _is_deleted %}
         <nav>
             <ul class="nav nav-underline gap-2 gap-sm-3 justify-content-around justify-content-sm-start mb-4">
                 <li class="nav-item">
@@ -75,11 +90,13 @@
                 </li>
             </ul>
         </nav>
+        {% endif %}
     </div>
 </div>
 
 <div class="content-body">
     <div class="container">
+        {% if not _is_deleted %}
         <div class="tab-content">
             <div class="tab-pane fade show active" id="account">
                 <h3 class="mb-3">Account information</h3>
@@ -265,6 +282,7 @@
                 {% endif %}
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 
