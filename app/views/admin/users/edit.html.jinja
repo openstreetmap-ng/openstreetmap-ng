@@ -15,7 +15,8 @@
         <div class="row mb-4">
             <div class="col-auto">
                 <a href="/user/{{ edit_user.display_name }}">
-                    <img class="avatar avatar-lg" src="{{ user_avatar_url(edit_user) }}" alt="{{ t('alt.profile_picture') }}">
+                    <img class="avatar avatar-lg" src="{{ user_avatar_url(edit_user) }}"
+                        alt="{{ t('alt.profile_picture') }}">
                 </a>
             </div>
             <div class="col">
@@ -93,16 +94,14 @@
                 <form class="account-form mb-4" method="POST" action="/api/web/admin/users/{{ edit_user.id }}/update">
                     <label class="form-label d-block mb-3">
                         <span>{{ t('settings.display_name') }}</span>
-                        <input type="text" class="form-control mt-2" name="display_name" 
-                            placeholder="{{ edit_user.display_name }}"
-                            maxlength="{{ DISPLAY_NAME_MAX_LENGTH }}">
+                        <input type="text" class="form-control mt-2" name="display_name"
+                            placeholder="{{ edit_user.display_name }}" maxlength="{{ DISPLAY_NAME_MAX_LENGTH }}">
                         <small class="form-text">Leave blank to keep current value</small>
                     </label>
 
                     <label class="form-label d-block mb-3">
                         <span>{{ t('settings.email') }}</span>
-                        <input type="email" class="form-control mt-2" name="email"
-                            placeholder="{{ edit_user.email }}">
+                        <input type="email" class="form-control mt-2" name="email" placeholder="{{ edit_user.email }}">
                         <small class="form-text">Leave blank to keep current value</small>
                     </label>
 
@@ -120,15 +119,15 @@
                     <div class="mb-3">
                         <div class="form-check">
                             <label class="form-check-label">
-                                <input class="form-check-input role-checkbox" type="checkbox" name="roles" value="moderator"
-                                    {% if 'moderator' in edit_user.roles %}checked{% endif %}>
+                                <input class="form-check-input role-checkbox" type="checkbox" name="roles"
+                                    value="moderator" {% if 'moderator' in edit_user.roles %}checked{% endif %}>
                                 Moderator
                             </label>
                         </div>
                         <div class="form-check">
                             <label class="form-check-label">
-                                <input class="form-check-input role-checkbox" type="checkbox" name="roles" value="administrator"
-                                    {% if 'administrator' in edit_user.roles %}checked{% endif %}>
+                                <input class="form-check-input role-checkbox" type="checkbox" name="roles"
+                                    value="administrator" {% if 'administrator' in edit_user.roles %}checked{% endif %}>
                                 Administrator
                             </label>
                         </div>
@@ -140,14 +139,14 @@
                     <label class="form-label d-block mb-3">
                         <span>{{ t('settings.new_password') }}</span>
                         <input type="password" class="form-control mt-2" data-name="new_password"
-                            minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password">
+                            minlength="{{ PASSWORD_MIN_LENGTH }}">
                         <small class="form-text">Leave blank to keep current password</small>
                     </label>
 
                     <label class="form-label d-block mb-3">
                         <span>{{ t('settings.new_password_repeat') }}</span>
                         <input type="password" class="form-control mt-2" data-name="new_password_confirm"
-                            minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password">
+                            minlength="{{ PASSWORD_MIN_LENGTH }}">
                     </label>
 
                     <div class="text-end">
@@ -168,8 +167,8 @@
                             {% for provider in connected_providers %}
                             <tr>
                                 <td class="d-flex align-items-center">
-                                    <img class="auth-provider-icon border me-3 me-lg-4" src="/static/img/brand/{{ provider }}.webp"
-                                        alt="{{ t('alt.service_image') }}">
+                                    <img class="auth-provider-icon border me-3 me-lg-4"
+                                        src="/static/img/brand/{{ provider }}.webp" alt="{{ t('alt.service_image') }}">
                                     <div>
                                         <h6 class="mb-0">{{ t('service.' ~ provider ~ '.title') }}</h6>
                                         <p class="form-text mb-0">{{ t('service.' ~ provider ~ '.description') }}</p>
@@ -203,7 +202,8 @@
                             <div class="card-body">
                                 <h5 class="card-title">{{ token.application.name }}</h5>
                                 <p class="card-text text-body-secondary">
-                                    Authorized <time datetime="{{ token.authorized_at.isoformat() }}" data-date="medium"></time>
+                                    Authorized <time datetime="{{ token.authorized_at.isoformat() }}"
+                                        data-date="medium"></time>
                                 </p>
                             </div>
                         </div>
@@ -238,7 +238,8 @@
                     {% endfor %}
                 </ul>
                 {% else %}
-                <p class="text-body-secondary">{{ t('settings.my_applications.you_have_not_registered_any_applications_yet') }}</p>
+                <p class="text-body-secondary">
+                    {{ t('settings.my_applications.you_have_not_registered_any_applications_yet') }}</p>
                 {% endif %}
             </div>
 
@@ -253,11 +254,13 @@
                             <div class="card-body">
                                 <h5 class="card-title">{{ token.name }}</h5>
                                 <p class="card-text text-body-secondary">
-                                    Created <time datetime="{{ token.created_at.isoformat() }}" data-date="medium"></time>
+                                    Created <time datetime="{{ token.created_at.isoformat() }}"
+                                        data-date="medium"></time>
                                 </p>
                                 {% if token.authorized_at %}
                                 <p class="card-text text-body-secondary">
-                                    Last used <time datetime="{{ token.authorized_at.isoformat() }}" data-style="short"></time>
+                                    Last used <time datetime="{{ token.authorized_at.isoformat() }}"
+                                        data-style="short"></time>
                                 </p>
                                 {% endif %}
                             </div>
