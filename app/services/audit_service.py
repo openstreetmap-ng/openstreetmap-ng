@@ -1,13 +1,14 @@
 import asyncio
 import logging
 from asyncio import Event, TaskGroup
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, nullcontext
 from datetime import timedelta
 from ipaddress import ip_address
 from random import random, uniform
 from typing import Literal
 
 import cython
+from psycopg import AsyncConnection
 from psycopg.sql import SQL
 from sentry_sdk.api import start_transaction
 from zid import zid
@@ -81,6 +82,8 @@ class AuditService:
 
 def audit(
     type: AuditType,
+    conn: AsyncConnection | None = None,
+    tg: TaskGroup | None = None,
     /,
     *,
     # Event metadata
@@ -139,7 +142,7 @@ def audit(
         'extra': extra,
     }
 
-    _TG.create_task(_audit_task(event_init, discard_repeated))
+    (tg or _TG).create_task(_audit_task(conn, event_init, discard_repeated))
 
     # Skip logging for common cases
     if type in {'auth_api', 'auth_web'} and extra is None:
@@ -168,6 +171,7 @@ def audit(
 
 
 async def _audit_task(
+    conn: AsyncConnection | None,
     event_init: AuditEventInit,
     discard_repeated: timedelta | None,
 ) -> None:
@@ -198,7 +202,7 @@ async def _audit_task(
     )
 
     async with (
-        db(True) as conn,
+        nullcontext(conn) if conn is not None else db(True) as conn,  # noqa: PLR1704
         await conn.execute(
             query,
             {**event_init, 'discard_repeated': discard_repeated},

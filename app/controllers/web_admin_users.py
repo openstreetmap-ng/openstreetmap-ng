@@ -120,8 +120,6 @@ async def impersonate_user(
     auth: Annotated[SecretStr, Cookie()],
     user_id: UserId,
 ):
-    audit('impersonate', target_user_id=user_id)
-
     async with TaskGroup() as tg:
         tg.create_task(OAuth2TokenService.revoke_by_access_token(auth))
         access_token = await SystemAppService.create_access_token(
@@ -137,4 +135,5 @@ async def impersonate_user(
         httponly=True,
         samesite='lax',
     )
+    audit('impersonate', target_user_id=user_id)
     return response

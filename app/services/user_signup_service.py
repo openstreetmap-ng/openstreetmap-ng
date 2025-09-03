@@ -1,4 +1,4 @@
-import logging
+from asyncio import TaskGroup
 
 from app.db import db
 from app.lib.auth_context import auth_context
@@ -50,9 +50,8 @@ class UserSignupService:
             'crash_reporting': tracking,
         }
 
-        async with (
-            db(True) as conn,
-            await conn.execute(
+        async with db(True) as conn, TaskGroup() as tg:
+            async with await conn.execute(
                 """
                 INSERT INTO "user" (
                     email, email_verified, display_name, password_pb,
@@ -65,21 +64,29 @@ class UserSignupService:
                 RETURNING id
                 """,
                 user_init,
-            ) as r,
-        ):
-            user_id: UserId = (await r.fetchone())[0]  # type: ignore
+            ) as r:
+                user_id: UserId = (await r.fetchone())[0]  # type: ignore
 
-        logging.debug('Created user %d', user_id)
-        audit(
-            'change_display_name',
-            user_id=user_id,
-            display_name=display_name,
-            extra='Signup',
-        )
+            audit(
+                'change_display_name',
+                conn,
+                tg,
+                user_id=user_id,
+                display_name=display_name,
+                extra='Signup',
+            )
 
-        if email_verified:
-            audit('change_email', user_id=user_id, email=email, extra='Signup')
-        else:
+            if email_verified:
+                audit(
+                    'change_email',
+                    conn,
+                    tg,
+                    user_id=user_id,
+                    email=email,
+                    extra='Signup',
+                )
+
+        if not email_verified:
             user = await UserQuery.find_by_id(user_id)
             assert user is not None, 'User must exist after creation'
             with auth_context(user):
