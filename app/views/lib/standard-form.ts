@@ -153,8 +153,37 @@ export const configureStandardForm = (
 
             const formBody = options?.formBody ?? form
             if (options?.formAppend) {
+                const scrollContainer = findScrollableContainer(formBody)
+                const scrollWindow = scrollContainer === document.documentElement
+
+                // Check if user was scrolled to bottom before appending
+                let wasAtBottom: boolean
+                if (scrollWindow) {
+                    wasAtBottom =
+                        window.innerHeight + window.scrollY >=
+                        document.body.offsetHeight - 20
+                } else {
+                    const { scrollTop, scrollHeight, clientHeight } = scrollContainer
+                    wasAtBottom = scrollTop + clientHeight >= scrollHeight - 20
+                }
+
                 feedback.classList.add("alert-last")
                 formBody.append(feedback)
+
+                // Scroll back to bottom if user was previously at the bottom
+                if (wasAtBottom) {
+                    if (scrollWindow) {
+                        window.scrollTo({
+                            top: document.body.scrollHeight,
+                            behavior: "smooth",
+                        })
+                    } else {
+                        scrollContainer.scrollTo({
+                            top: scrollContainer.scrollHeight,
+                            behavior: "smooth",
+                        })
+                    }
+                }
             } else {
                 formBody.prepend(feedback)
             }
@@ -349,4 +378,19 @@ export const configureStandardForm = (
                 setPendingState(false)
             })
     })
+}
+
+/** Find the scrollable container for the form */
+const findScrollableContainer = (element: Element): Element => {
+    let current = element.parentElement
+    while (current && current !== document.body) {
+        const style = window.getComputedStyle(current)
+        const overflowY = style.overflowY
+        if (overflowY === "auto" || overflowY === "scroll") {
+            return current
+        }
+        current = current.parentElement
+    }
+    // Fallback to window/document if no scrollable container found
+    return document.documentElement
 }

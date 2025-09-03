@@ -90,7 +90,7 @@ if (body) {
             return result
         },
         null,
-        { removeEmptyFields: true },
+        { formAppend: true, removeEmptyFields: true },
     )
 
     const impersonateForm = body.querySelector("form.impersonate-form")
