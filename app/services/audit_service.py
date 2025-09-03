@@ -102,6 +102,10 @@ def audit(
     if sample_rate < 1 and random() > sample_rate:
         return
 
+    assert conn is None or tg is not None, (
+        'conn requires tg to be set, else the connection may be closed too early'
+    )
+
     if user_id == 'UNSET':
         user = auth_user()
         user_id = user['id'] if user is not None else None
