@@ -138,10 +138,13 @@ class UserQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def check_display_name_available(display_name: DisplayName) -> bool:
+    async def check_display_name_available(
+        display_name: DisplayName, *, user: User | None = None
+    ) -> bool:
         """Check if a display name is available."""
         # Check if the name is unchanged
-        user = auth_user()
+        if user is None:
+            user = auth_user()
         if user is not None and user['display_name'] == display_name:
             return True
 
@@ -157,10 +160,11 @@ class UserQuery:
         )
 
     @staticmethod
-    async def check_email_available(email: Email) -> bool:
+    async def check_email_available(email: Email, *, user: User | None = None) -> bool:
         """Check if an email is available."""
         # Check if the email is unchanged
-        user = auth_user()
+        if user is None:
+            user = auth_user()
         if user is not None and user['email'] == email:
             return True
 
