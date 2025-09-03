@@ -15,6 +15,7 @@ AuditType = Literal[
     'change_display_name',
     'change_email',
     'change_password',
+    'change_roles',
     'impersonate',
     'rate_limit',
     # TODO: 'schedule_user_delete',

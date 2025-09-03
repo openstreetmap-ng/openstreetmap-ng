@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Callable
 from typing import Any
 
 from fastapi import UploadFile
@@ -450,86 +451,107 @@ class UserService:
         if user is None:
             StandardFeedback.raise_error(None, 'User not found')
 
-        async with db(True) as conn:
-            assignments: list[Composable] = []
-            params: list[Any] = []
+        assignments: list[Composable] = []
+        params: list[Any] = []
+        audits: list[Callable[[], None]] = []
 
-            if user['email_verified'] != email_verified:
-                assignments.append(SQL('email_verified = %s'))
-                params.append(email_verified)
+        if display_name is not None:
+            if not await UserQuery.check_display_name_available(
+                display_name, user=user
+            ):
+                StandardFeedback.raise_error(
+                    'display_name', t('validation.display_name_is_taken')
+                )
+            if (
+                user_is_test(user)
+                and display_name != user['display_name']
+                and ENV != 'dev'
+            ):
+                StandardFeedback.raise_error(
+                    'display_name', 'Changing test user display_name is disabled'
+                )
 
-            if user['roles'] != roles:
-                assignments.append(SQL('roles = %s'))
-                params.append(roles)
-
-            if display_name is not None:
-                if not await UserQuery.check_display_name_available(
-                    display_name, user=user
-                ):
-                    StandardFeedback.raise_error(
-                        'display_name', t('validation.display_name_is_taken')
-                    )
-                if (
-                    user_is_test(user)
-                    and display_name != user['display_name']
-                    and ENV != 'dev'
-                ):
-                    StandardFeedback.raise_error(
-                        'display_name', 'Changing test user display_name is disabled'
-                    )
-
-                assignments.append(SQL('display_name = %s'))
-                params.append(display_name)
-                audit(
+            assignments.append(SQL('display_name = %s'))
+            params.append(display_name)
+            audits.append(
+                lambda: audit(
                     'change_display_name',
                     target_user_id=user_id,
                     display_name=display_name,
                 )
+            )
 
-            if email is not None:
-                if user['email'] == email:
-                    StandardFeedback.raise_error(
-                        'email', t('validation.new_email_is_current')
-                    )
-                if user_is_test(user) and ENV != 'dev':
-                    StandardFeedback.raise_error(
-                        'email', 'Changing test user email is disabled'
-                    )
-                if not await UserQuery.check_email_available(email, user=user):
-                    StandardFeedback.raise_error(
-                        'email', t('validation.email_address_is_taken')
-                    )
-                if not await validate_email_deliverability(email):
-                    StandardFeedback.raise_error(
-                        'email', t('validation.invalid_email_address')
-                    )
+        if email is not None:
+            if user['email'] == email:
+                StandardFeedback.raise_error(
+                    'email', t('validation.new_email_is_current')
+                )
+            if user_is_test(user) and ENV != 'dev':
+                StandardFeedback.raise_error(
+                    'email', 'Changing test user email is disabled'
+                )
+            if not await UserQuery.check_email_available(email, user=user):
+                StandardFeedback.raise_error(
+                    'email', t('validation.email_address_is_taken')
+                )
+            if not await validate_email_deliverability(email):
+                StandardFeedback.raise_error(
+                    'email', t('validation.invalid_email_address')
+                )
 
-                assignments.append(SQL('email = %s'))
-                params.append(email)
-                audit(
+            assignments.append(SQL('email = %s'))
+            params.append(email)
+
+        if user['email_verified'] != email_verified:
+            assignments.append(SQL('email_verified = %s'))
+            params.append(email_verified)
+
+        if user['email_verified'] != email_verified or email is not None:
+            audits.append(
+                lambda: audit(
                     'change_email',
                     target_user_id=user_id,
                     email=email,
+                    extra=f'{email_verified=}',
                 )
+            )
 
-            if new_password is not None:
-                assignments.append(SQL('password_pb = %s'))
-                assignments.append(SQL('password_updated_at = statement_timestamp()'))
-                new_password_pb = PasswordHash.hash(new_password)
-                assert new_password_pb is not None, (
-                    'Provided password schemas cannot be used during admin_update_user'
-                )
-                params.append(new_password_pb)
-                audit(
+        if new_password is not None:
+            assignments.append(SQL('password_pb = %s'))
+            assignments.append(SQL('password_updated_at = statement_timestamp()'))
+            new_password_pb = PasswordHash.hash(new_password)
+            assert new_password_pb is not None, (
+                'Provided password schemas cannot be used during admin_update_user'
+            )
+            params.append(new_password_pb)
+            audits.append(
+                lambda: audit(
                     'change_password',
                     target_user_id=user_id,
                 )
-
-            query = SQL('UPDATE "user" SET {} WHERE id = %s').format(
-                SQL(', ').join(assignments)
             )
-            params.append(user_id)
+
+        if user['roles'] != roles:
+            assignments.append(SQL('roles = %s'))
+            params.append(roles)
+            audits.append(
+                lambda: audit(
+                    'change_roles',
+                    target_user_id=user_id,
+                    extra=str(roles),
+                )
+            )
+
+        query = SQL('UPDATE "user" SET {} WHERE id = %s').format(
+            SQL(', ').join(assignments)
+        )
+        params.append(user_id)
+
+        async with db(True) as conn:
             await conn.execute(query, params)
+
+        for op in audits:
+            op()
 
 
 async def _rehash_user_password(user: User, password: Password) -> None:
