@@ -1,8 +1,18 @@
+import { Tooltip } from "bootstrap"
 import { configureStandardPagination } from "../../lib/standard-pagination"
 
 const body = document.querySelector("body.admin-users-body")
 if (body) {
-    configureStandardPagination(body, { reverse: false })
+    configureStandardPagination(body, {
+        reverse: false,
+        loadCallback: (renderContainer) => {
+            for (const element of renderContainer.querySelectorAll(
+                "[data-bs-toggle=tooltip]",
+            )) {
+                new Tooltip(element)
+            }
+        },
+    })
 
     // Disable empty inputs before form submission to prevent validation errors
     const filterForm = body.querySelector("form.filters-form")

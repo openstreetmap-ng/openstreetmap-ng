@@ -60,9 +60,9 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
             let disposeElementContent: () => void | null = null
 
             const disposePagination = configureStandardPagination(sidebarContent, {
-                loadCallback: () => {
+                loadCallback: (renderContainer) => {
                     const versionSections =
-                        sidebarContent.querySelectorAll("div.version-section")
+                        renderContainer.querySelectorAll("div.version-section")
                     for (const versionSection of versionSections) {
                         let render: RenderElementsData
                         ;[render, disposeElementContent] = initializeElementContent(

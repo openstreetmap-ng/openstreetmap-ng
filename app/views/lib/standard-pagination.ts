@@ -10,7 +10,7 @@ export const configureStandardPagination = (
         initialPage?: number
         reverse?: boolean
         customLoader?: (page: number, renderContainer: HTMLElement) => void
-        loadCallback?: () => void
+        loadCallback?: (renderContainer: HTMLElement) => void
     },
 ): (() => void) => {
     if (!container) {
@@ -97,7 +97,7 @@ export const configureStandardPagination = (
                 if (resp.ok) console.debug("Navigated to page", currentPageString)
                 renderContainer.innerHTML = await resp.text()
                 resolveDatetimeLazy(renderContainer)
-                options?.loadCallback?.()
+                options?.loadCallback?.(renderContainer)
             })
             .catch((error: Error) => {
                 if (error.name === "AbortError") return
