@@ -138,6 +138,7 @@ CREATE TABLE oauth2_token (
     id bigint PRIMARY KEY,
     user_id bigint NOT NULL REFERENCES "user",
     application_id bigint NOT NULL REFERENCES oauth2_application,
+    hidden boolean NOT NULL,
     name text,
     token_hashed bytea,
     token_preview text,

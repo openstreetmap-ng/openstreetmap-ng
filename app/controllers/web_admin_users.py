@@ -1,9 +1,10 @@
+from asyncio import TaskGroup
 from datetime import datetime, timedelta
 from typing import Annotated, Literal
 
 import orjson
-from fastapi import APIRouter, Form, Query, Response
-from pydantic import PositiveInt
+from fastapi import APIRouter, Cookie, Form, Query, Response
+from pydantic import PositiveInt, SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -16,6 +17,7 @@ from app.models.db.user import User, UserRole
 from app.models.types import Password, UserId
 from app.queries.audit_query import AuditQuery
 from app.queries.user_query import UserQuery
+from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_service import UserService
 from app.validators.display_name import DisplayNameValidating
@@ -114,11 +116,14 @@ async def update_user(
 @router.post('/{user_id:int}/impersonate')
 async def impersonate_user(
     _: Annotated[User, web_user('role_administrator')],
+    auth: Annotated[SecretStr, Cookie()],
     user_id: UserId,
 ):
-    access_token = await SystemAppService.create_access_token(
-        SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
-    )
+    async with TaskGroup() as tg:
+        tg.create_task(OAuth2TokenService.revoke_by_access_token(auth))
+        access_token = await SystemAppService.create_access_token(
+            SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id, hidden=True
+        )
 
     response = RedirectResponse('/', status.HTTP_303_SEE_OTHER)
     response.set_cookie(

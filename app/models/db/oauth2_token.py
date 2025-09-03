@@ -17,6 +17,7 @@ class OAuth2TokenInit(TypedDict):
     id: OAuth2TokenId
     user_id: UserId
     application_id: ApplicationId
+    hidden: bool
     name: str | None  # PATs only
     token_hashed: bytes | None
     token_preview: str | None  # PATs only

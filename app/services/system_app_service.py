@@ -78,7 +78,7 @@ class SystemAppService:
 
     @staticmethod
     async def create_access_token(
-        client_id: ClientId, *, user_id: UserId | None = None
+        client_id: ClientId, *, user_id: UserId | None = None, hidden: bool = False
     ) -> SecretStr:
         """Create an OAuth2-based access token for the given system app."""
         if user_id is None:
@@ -100,6 +100,7 @@ class SystemAppService:
             'id': zid(),  # type: ignore
             'user_id': user_id,
             'application_id': app_id,
+            'hidden': hidden,
             'name': None,
             'token_hashed': access_token_hashed,
             'token_preview': None,
@@ -113,13 +114,13 @@ class SystemAppService:
             await conn.execute(
                 """
                 INSERT INTO oauth2_token (
-                    id, user_id, application_id, name,
+                    id, user_id, application_id, hidden, name,
                     token_hashed, token_preview, redirect_uri,
                     scopes, code_challenge_method, code_challenge,
                     authorized_at
                 )
                 VALUES (
-                    %(id)s, %(user_id)s, %(application_id)s, %(name)s,
+                    %(id)s, %(user_id)s, %(application_id)s, %(hidden)s, %(name)s,
                     %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
                     %(scopes)s, %(code_challenge_method)s, %(code_challenge)s,
                     statement_timestamp()

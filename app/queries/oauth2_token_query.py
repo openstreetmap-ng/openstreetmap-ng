@@ -54,6 +54,7 @@ class OAuth2TokenQuery:
             SELECT * FROM oauth2_token
             WHERE user_id = %s
             AND application_id = %s
+            AND NOT hidden
             AND authorized_at IS NOT NULL
             ORDER BY id DESC
             {limit}
@@ -100,6 +101,7 @@ class OAuth2TokenQuery:
             SELECT * FROM oauth2_token
             WHERE user_id = %s
             AND application_id = %s
+            AND NOT hidden
             ORDER BY id DESC
             {limit}
         """).format(limit=limit_clause)
@@ -119,6 +121,7 @@ class OAuth2TokenQuery:
                 """
                 SELECT DISTINCT ON (application_id) * FROM oauth2_token
                 WHERE user_id = %s
+                AND NOT hidden
                 AND authorized_at IS NOT NULL
                 ORDER BY application_id DESC, id DESC
                 """,
