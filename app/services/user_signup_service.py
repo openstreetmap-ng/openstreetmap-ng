@@ -1,5 +1,3 @@
-from asyncio import TaskGroup
-
 from app.db import db
 from app.lib.auth_context import auth_context
 from app.lib.password_hash import PasswordHash
@@ -50,7 +48,7 @@ class UserSignupService:
             'crash_reporting': tracking,
         }
 
-        async with db(True) as conn, TaskGroup() as tg:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 INSERT INTO "user" (
@@ -67,20 +65,18 @@ class UserSignupService:
             ) as r:
                 user_id: UserId = (await r.fetchone())[0]  # type: ignore
 
-            audit(
+            await audit(
                 'change_display_name',
                 conn,
-                tg,
                 user_id=user_id,
                 display_name=display_name,
                 extra='Signup',
             )
 
             if email_verified:
-                audit(
+                await audit(
                     'change_email',
                     conn,
-                    tg,
                     user_id=user_id,
                     email=email,
                     extra='Signup',

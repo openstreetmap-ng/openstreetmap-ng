@@ -135,5 +135,5 @@ async def impersonate_user(
         httponly=True,
         samesite='lax',
     )
-    audit('impersonate', target_user_id=user_id)
+    await audit('impersonate', target_user_id=user_id)
     return response

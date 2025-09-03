@@ -125,7 +125,7 @@ class AuthProviderService:
                 httponly=True,
                 samesite='lax',
             )
-            audit('auth_web', user_id=user_id, extra=f'Login with {provider}')
+            await audit('auth_web', user_id=user_id, extra=f'Login with {provider}')
             return response
 
         elif action == 'settings':

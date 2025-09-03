@@ -1,5 +1,3 @@
-from asyncio import TaskGroup
-
 from zid import zid
 
 from app.config import APP_DOMAIN
@@ -63,7 +61,7 @@ class UserTokenEmailService:
         if token is None:
             raise_for.bad_user_token_struct()
 
-        async with db(True) as conn, TaskGroup() as tg:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 SELECT user_id, email_change_new FROM user_token
@@ -108,10 +106,9 @@ class UserTokenEmailService:
             )
 
             if audit_email is not None:
-                audit(
+                await audit(
                     'change_email',
                     conn,
-                    tg,
                     user_id=user_id,
                     email=audit_email,
                     extra=audit_extra,

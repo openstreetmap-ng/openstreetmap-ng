@@ -80,10 +80,9 @@ class AuditService:
         await _PROCESS_DONE_EVENT.wait()
 
 
-def audit(
+async def audit(
     type: AuditType,
     conn: AsyncConnection | None = None,
-    tg: TaskGroup | None = None,
     /,
     *,
     # Event metadata
@@ -99,12 +98,16 @@ def audit(
     # Constants
     AUDIT_USER_AGENT_MAX_LENGTH: cython.Py_ssize_t = AUDIT_USER_AGENT_MAX_LENGTH,
 ) -> None:
+    """
+    Log audit events for security monitoring and compliance.
+
+    Creates background tasks to record user actions with context like IP, user agent,
+    and metadata. The audit will persist to the database regardless of whether you await it.
+
+    Common usage: `await audit('auth_web')` or fire-and-forget `audit('rate_limit')  # pyright: ignore[reportUnusedCoroutine]`
+    """
     if sample_rate < 1 and random() > sample_rate:
         return
-
-    assert conn is None or tg is not None, (
-        'conn requires tg to be set, else the connection may be closed too early'
-    )
 
     if user_id == 'UNSET':
         user = auth_user()
@@ -146,10 +149,11 @@ def audit(
         'extra': extra,
     }
 
-    (tg or _TG).create_task(_audit_task(conn, event_init, discard_repeated))
+    task = _TG.create_task(_audit_task(conn, event_init, discard_repeated))
 
     # Skip logging for common cases
     if type in {'auth_api', 'auth_web'} and extra is None:
+        await task
         return
 
     values: list[str] = []
@@ -172,6 +176,8 @@ def audit(
         extra,
         event_id,
     )
+
+    await task
 
 
 async def _audit_task(

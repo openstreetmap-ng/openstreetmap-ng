@@ -85,7 +85,7 @@ class RateLimitService:
 
         # Check if the limit is exceeded
         if usage > quota:
-            audit(
+            audit(  # pyright: ignore[reportUnusedCoroutine]
                 'rate_limit',
                 sample_rate=AUDIT_SAMPLE_RATE_RATE_LIMIT,
                 discard_repeated=AUDIT_DISCARD_REPEATED_RATE_LIMIT,

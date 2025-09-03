@@ -113,7 +113,7 @@ async def _authenticate_with_oauth2(
         return None
 
     application_id = token['application_id']
-    audit(
+    audit(  # pyright: ignore[reportUnusedCoroutine]
         'auth_api',
         user_id=user_id,
         application_id=application_id,
@@ -143,7 +143,7 @@ async def _authenticate_with_cookie(
     if user is None:
         return None
 
-    audit(
+    audit(  # pyright: ignore[reportUnusedCoroutine]
         'auth_web',
         user_id=user_id,
         application_id=None,

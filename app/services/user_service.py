@@ -1,6 +1,5 @@
 import logging
-from asyncio import TaskGroup
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from fastapi import UploadFile
@@ -71,7 +70,7 @@ class UserService:
         )
 
         if not verification.success:
-            audit(
+            await audit(
                 'auth_fail',
                 user_id=user_id,
                 extra='Password mismatch',
@@ -88,7 +87,7 @@ class UserService:
         access_token = await SystemAppService.create_access_token(
             SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
         )
-        audit('auth_web', user_id=user_id, extra='Login')
+        await audit('auth_web', user_id=user_id, extra='Login')
         return access_token
 
     @staticmethod
@@ -199,7 +198,7 @@ class UserService:
                 'display_name', 'Changing test user display_name is disabled'
             )
 
-        async with db(True) as conn, TaskGroup() as tg:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE "user"
@@ -212,7 +211,7 @@ class UserService:
                 (display_name, language, activity_tracking, crash_reporting, user_id),
             )
             if display_name != user['display_name']:
-                audit('change_display_name', conn, tg, display_name=display_name)
+                await audit('change_display_name', conn, display_name=display_name)
 
     @staticmethod
     async def update_editor(
@@ -297,7 +296,7 @@ class UserService:
             'Provided password schemas cannot be used during update_password'
         )
 
-        async with db(True) as conn, TaskGroup() as tg:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 UPDATE "user"
@@ -307,7 +306,7 @@ class UserService:
                 """,
                 (new_password_pb, user_id),
             )
-            audit('change_password', conn, tg)
+            await audit('change_password', conn)
 
     @staticmethod
     async def reset_password(
@@ -336,7 +335,7 @@ class UserService:
                 SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
             )
 
-        async with db(True) as conn, TaskGroup() as tg:
+        async with db(True) as conn:
             async with await conn.execute(
                 """
                 SELECT 1 FROM user_token
@@ -366,7 +365,7 @@ class UserService:
                     (token_struct.id,),
                 )
 
-            audit('change_password', conn, tg, user_id=user_id, extra='Reset')
+            await audit('change_password', conn, user_id=user_id, extra='Reset')
 
     @staticmethod
     async def update_timezone(timezone: str) -> None:
@@ -453,7 +452,7 @@ class UserService:
 
         assignments: list[Composable] = []
         params: list[Any] = []
-        audits: list[Callable[[AsyncConnection, TaskGroup], None]] = []
+        audits: list[Callable[[AsyncConnection], Awaitable[None]]] = []
 
         if display_name is not None:
             if not await UserQuery.check_display_name_available(
@@ -474,10 +473,9 @@ class UserService:
             assignments.append(SQL('display_name = %s'))
             params.append(display_name)
             audits.append(
-                lambda conn, tg: audit(
+                lambda conn: audit(
                     'change_display_name',
                     conn,
-                    tg,
                     target_user_id=user_id,
                     display_name=display_name,
                 )
@@ -510,10 +508,9 @@ class UserService:
 
         if user['email_verified'] != email_verified or email is not None:
             audits.append(
-                lambda conn, tg: audit(
+                lambda conn: audit(
                     'change_email',
                     conn,
-                    tg,
                     target_user_id=user_id,
                     email=email,
                     extra=f'{email_verified=}',
@@ -529,10 +526,9 @@ class UserService:
             )
             params.append(new_password_pb)
             audits.append(
-                lambda conn, tg: audit(
+                lambda conn: audit(
                     'change_password',
                     conn,
-                    tg,
                     target_user_id=user_id,
                 )
             )
@@ -541,10 +537,9 @@ class UserService:
             assignments.append(SQL('roles = %s'))
             params.append(roles)
             audits.append(
-                lambda conn, tg: audit(
+                lambda conn: audit(
                     'change_roles',
                     conn,
-                    tg,
                     target_user_id=user_id,
                     extra=str(roles),
                 )
@@ -555,10 +550,10 @@ class UserService:
         )
         params.append(user_id)
 
-        async with db(True) as conn, TaskGroup() as tg:
+        async with db(True) as conn:
             await conn.execute(query, params)
             for op in audits:
-                op(conn, tg)
+                await op(conn)
 
 
 async def _rehash_user_password(user: User, password: Password) -> None:
