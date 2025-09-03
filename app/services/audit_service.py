@@ -171,7 +171,7 @@ async def _audit_task(
                 WHERE %(discard_repeated)s IS NOT NULL
                 AND user_id = %(user_id)s
                 AND type = %(type)s
-                AND created_at > statement_timestamp() - %(discard_repeated)s
+                AND created_at > (statement_timestamp() - %(discard_repeated)s)
                 LIMIT 1
             )
             """,

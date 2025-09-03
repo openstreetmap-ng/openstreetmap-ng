@@ -197,7 +197,7 @@ class OAuth2TokenService:
                 """
                 SELECT * FROM oauth2_token
                 WHERE token_hashed = %s
-                AND created_at > statement_timestamp() - %s
+                AND created_at > (statement_timestamp() - %s)
                 AND authorized_at IS NULL
                 FOR UPDATE
                 """,
