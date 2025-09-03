@@ -1,1 +1,1 @@
-.cursorrules
+AGENTS.md
