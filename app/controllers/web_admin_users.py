@@ -17,6 +17,7 @@ from app.models.db.user import User, UserRole
 from app.models.types import Password, UserId
 from app.queries.audit_query import AuditQuery
 from app.queries.user_query import UserQuery
+from app.services.audit_service import audit
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_service import UserService
@@ -119,6 +120,8 @@ async def impersonate_user(
     auth: Annotated[SecretStr, Cookie()],
     user_id: UserId,
 ):
+    audit('impersonate', target_user_id=user_id)
+
     async with TaskGroup() as tg:
         tg.create_task(OAuth2TokenService.revoke_by_access_token(auth))
         access_token = await SystemAppService.create_access_token(

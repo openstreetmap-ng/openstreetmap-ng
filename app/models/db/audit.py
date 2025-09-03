@@ -15,6 +15,7 @@ AuditType = Literal[
     'change_display_name',
     'change_email',
     'change_password',
+    'impersonate',
     'rate_limit',
     # TODO: 'schedule_user_delete',
     # TODO: 'view_admin_users',
@@ -29,6 +30,7 @@ class AuditEventInit(TypedDict):
     ip: IPv4Address | IPv6Address
     user_agent: str | None
     user_id: UserId | None
+    target_user_id: UserId | None
     application_id: ApplicationId | None
     email: Email | None
     display_name: DisplayName | None
@@ -40,4 +42,5 @@ class AuditEvent(AuditEventInit):
 
     # runtime
     user: NotRequired[UserDisplay]
+    target_user: NotRequired[UserDisplay]
     application: NotRequired[OAuth2Application]

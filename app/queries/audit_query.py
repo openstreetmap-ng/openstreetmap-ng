@@ -120,7 +120,8 @@ class AuditQuery:
                     return 0
                 return []
 
-            conditions.append(SQL('user_id = ANY(%s)'))
+            conditions.append(SQL('(user_id = ANY(%s) OR target_user_id = ANY(%s))'))
+            params.append(user_ids)
             params.append(user_ids)
 
         if application_id is not None:

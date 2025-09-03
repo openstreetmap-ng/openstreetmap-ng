@@ -13,6 +13,14 @@
                 loading="lazy">
             <span class="display-name">{{ event.user.display_name }}</span>
         </a>
+        {% if event.target_user_id %}
+        <i class="bi bi-arrow-right-short me-1"></i>
+        <a href="/user-id/{{ event.target_user_id }}">
+            <img class="avatar me-1-5" src="{{ user_avatar_url(event.target_user) }}"
+                alt="{{ t('alt.profile_picture') }}" loading="lazy">
+            <span class="display-name">{{ event.target_user.display_name }}</span>
+        </a>
+        {% endif %}
         {% else %}
         <span class="text-muted">&mdash;</span>
         {% endif %}

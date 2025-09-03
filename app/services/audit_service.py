@@ -20,6 +20,8 @@ from app.config import (
     AUDIT_RETENTION_CHANGE_DISPLAY_NAME,
     AUDIT_RETENTION_CHANGE_EMAIL,
     AUDIT_RETENTION_CHANGE_PASSWORD,
+    AUDIT_RETENTION_IMPERSONATE,
+    AUDIT_RETENTION_RATE_LIMIT,
     AUDIT_USER_AGENT_MAX_LENGTH,
     ENV,
 )
@@ -47,6 +49,8 @@ _AUDIT_RETENTION: dict[AuditType, timedelta] = {
     'change_display_name': AUDIT_RETENTION_CHANGE_DISPLAY_NAME,
     'change_email': AUDIT_RETENTION_CHANGE_EMAIL,
     'change_password': AUDIT_RETENTION_CHANGE_PASSWORD,
+    'impersonate': AUDIT_RETENTION_IMPERSONATE,
+    'rate_limit': AUDIT_RETENTION_RATE_LIMIT,
 }
 
 
@@ -79,6 +83,7 @@ def audit(
     *,
     # Event metadata
     user_id: UserId | None | Literal['UNSET'] = 'UNSET',
+    target_user_id: UserId | None = None,
     application_id: ApplicationId | None | Literal['UNSET'] = 'UNSET',
     email: Email | None = None,
     display_name: DisplayName | None = None,
@@ -99,6 +104,13 @@ def audit(
     assert discard_repeated is None or user_id is not None, (
         'discard_repeated requires user_id to be set'
     )
+    assert target_user_id is None or user_id is not None, (
+        'target_user_id requires user_id to be set'
+    )
+
+    # Simplify current user targeting himself
+    if target_user_id is not None and target_user_id == user_id:
+        target_user_id = None
 
     if application_id == 'UNSET':
         application_id = auth_app()
@@ -118,6 +130,7 @@ def audit(
             else None
         ),
         'user_id': user_id,
+        'target_user_id': target_user_id,
         'application_id': application_id,
         'email': email,
         'display_name': display_name,
@@ -133,6 +146,8 @@ def audit(
     values: list[str] = []
     if user_id is not None:
         values.append(f'uid={user_id}')
+    if target_user_id is not None:
+        values.append(f'->uid={target_user_id}')
     if application_id is not None:
         values.append(f'aid={application_id}')
     if email is not None:
@@ -157,12 +172,12 @@ async def _audit_task(
     query = SQL("""
         INSERT INTO audit (
             id, type,
-            ip, user_agent, user_id, application_id,
+            ip, user_agent, user_id, target_user_id, application_id,
             email, display_name, extra
         )
         SELECT
             %(id)s, %(type)s,
-            %(ip)s, %(user_agent)s, %(user_id)s, %(application_id)s,
+            %(ip)s, %(user_agent)s, %(user_id)s, %(target_user_id)s, %(application_id)s,
             %(email)s, %(display_name)s, %(extra)s
         {}
     """).format(
