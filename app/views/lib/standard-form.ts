@@ -203,7 +203,10 @@ export const configureStandardForm = (
                 msg,
             } of detail) {
                 if (field) {
-                    const input = form.elements.namedItem(field)
+                    let input = form.elements.namedItem(field)
+                    console.debug("Processing field feedback for", field, input)
+                    if (input instanceof RadioNodeList) input = input[0]
+
                     if (
                         !(input instanceof HTMLInputElement) &&
                         !(input instanceof HTMLTextAreaElement)

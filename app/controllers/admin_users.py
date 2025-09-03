@@ -9,7 +9,7 @@ from starlette import status
 from app.config import DISPLAY_NAME_MAX_LENGTH, PASSWORD_MIN_LENGTH, USER_LIST_PAGE_SIZE
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
-from app.models.db.user import User, UserRole
+from app.models.db.user import USER_ROLES, User, UserRole
 from app.models.types import UserId
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
@@ -85,5 +85,6 @@ async def user_edit(
             'tokens': tokens_task.result(),
             'DISPLAY_NAME_MAX_LENGTH': DISPLAY_NAME_MAX_LENGTH,
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
+            'USER_ROLES': USER_ROLES,
         },
     )

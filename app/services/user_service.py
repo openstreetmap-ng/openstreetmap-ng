@@ -441,6 +441,11 @@ class UserService:
         new_password: Password | None,
         roles: list[UserRole],
     ) -> None:
+        if 'administrator' in roles and 'moderator' in roles:
+            StandardFeedback.raise_error(
+                'roles', 'administrator and moderator roles cannot be used together'
+            )
+
         user = await UserQuery.find_by_id(user_id)
         if user is None:
             StandardFeedback.raise_error(None, 'User not found')

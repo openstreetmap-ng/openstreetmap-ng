@@ -1,23 +1,18 @@
 {% extends '_base' %}
-{% block title_prefix %}User management - {{ edit_user.display_name }} | {% endblock %}
+{% block title_prefix %}User management: {{ edit_user.display_name }} | {% endblock %}
 {% block body_class %}admin-user-edit-body{% endblock %}
 {% block body %}
 {% set _is_deleted = user_is_deleted(edit_user) %}
 
 <div class="content-header pb-0">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-3">
-                <li class="breadcrumb-item"><a href="/admin/users">User management</a></li>
-                <li class="breadcrumb-item active" aria-current="page">{{ edit_user.display_name }}</li>
-            </ol>
-        </nav>
-
-        <div class="row mb-4">
+    <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
+        <a href="/admin/users" class="btn btn-sm btn-light border mb-3">
+            <i class="bi bi-arrow-left me-1-5"></i>Back to users
+        </a>
+        <div class="row mb-3">
             <div class="col-auto">
                 <a href="/user/{{ edit_user.display_name }}">
-                    <img class="avatar avatar-lg" src="{{ user_avatar_url(edit_user) }}"
-                        alt="{{ t('alt.profile_picture') }}">
+                    <img class="avatar" src="{{ user_avatar_url(edit_user) }}" alt="{{ t('alt.profile_picture') }}">
                 </a>
             </div>
             <div class="col">
@@ -29,11 +24,12 @@
                 <div class="d-flex flex-wrap gap-3 text-body-secondary">
                     <span>
                         <i class="bi bi-calendar3 me-1"></i>
-                        Member since <time datetime="{{ edit_user.created_at.isoformat() }}" data-date="medium"></time>
+                        Member since
+                        <time datetime="{{ edit_user.created_at.isoformat() }}" data-date="short"
+                            data-time="short"></time>
                     </span>
-                    <a href="/audit?user_id={{ edit_user.id }}" class="link-secondary">
-                        <i class="bi bi-journal-text me-1"></i>
-                        View audit logs
+                    <a href="/audit?user_id={{ edit_user.id }}">
+                        <i class="bi bi-journal-text me-1-5"></i>Audit logs
                     </a>
                 </div>
                 {% if _is_deleted %}
@@ -44,16 +40,18 @@
                 {% elif edit_user.scheduled_delete_at %}
                 <div class="alert alert-warning mt-3 mb-0" role="alert">
                     <i class="bi bi-exclamation-triangle me-2"></i>
-                    Scheduled for deletion on <time datetime="{{ edit_user.scheduled_delete_at.isoformat() }}" data-date="long" data-time="short"></time>
+                    Scheduled for deletion on <time datetime="{{ edit_user.scheduled_delete_at.isoformat() }}"
+                        data-date="long" data-time="short"></time>
                 </div>
                 {% endif %}
             </div>
             {% if not _is_deleted %}
             <div class="col-auto">
-                <form class="impersonate-form" method="POST" action="/api/web/admin/users/{{ edit_user.id }}/impersonate">
-                    <button class="btn btn-warning" type="submit">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                <form class="impersonate-form" method="POST"
+                    action="/api/web/admin/users/{{ edit_user.id }}/impersonate">
+                    <button class="btn btn-secondary" type="submit">
                         Login as user
+                        <i class="bi bi-box-arrow-in-right ms-1"></i>
                     </button>
                 </form>
             </div>
@@ -95,26 +93,26 @@
 </div>
 
 <div class="content-body">
-    <div class="container">
+    <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
         {% if not _is_deleted %}
         <div class="tab-content">
             <div class="tab-pane fade show active" id="account">
                 <h3 class="mb-3">Account information</h3>
                 <form class="account-form mb-4" method="POST" action="/api/web/admin/users/{{ edit_user.id }}/update">
-                    <label class="form-label d-block mb-3">
-                        <span>{{ t('settings.display_name') }}</span>
+                    <label class="form-label d-block">
+                        <span>{{ t('activerecord.attributes.user.display_name') | capitalize }}</span>
                         <input type="text" class="form-control mt-2" name="display_name"
                             placeholder="{{ edit_user.display_name }}" maxlength="{{ DISPLAY_NAME_MAX_LENGTH }}">
-                        <small class="form-text">Leave blank to keep current value</small>
                     </label>
+                    <p class="form-text">Leave blank to keep current value</p>
 
-                    <label class="form-label d-block mb-3">
-                        <span>{{ t('settings.email') }}</span>
+                    <label class="form-label d-block">
+                        <span>{{ t('passwords.new.email address') | capitalize }}</span>
                         <input type="email" class="form-control mt-2" name="email" placeholder="{{ edit_user.email }}">
-                        <small class="form-text">Leave blank to keep current value</small>
                     </label>
+                    <p class="form-text">Leave blank to keep current value</p>
 
-                    <div class="form-check mb-3">
+                    <div class="form-check">
                         <label class="form-check-label">
                             <input class="form-check-input" type="checkbox" name="email_verified" value="true"
                                 {% if edit_user.email_verified %}checked{% endif %}>
@@ -126,31 +124,33 @@
 
                     <h4 class="mb-3">Roles</h4>
                     <div class="mb-3">
+                        {% for role in USER_ROLES %}
                         <div class="form-check">
                             <label class="form-check-label">
                                 <input class="form-check-input role-checkbox" type="checkbox" name="roles"
-                                    value="moderator" {% if 'moderator' in edit_user.roles %}checked{% endif %}>
-                                Moderator
+                                    value="{{ role }}" {% if role in edit_user.roles %}checked{% endif %}>
+                                {% if role == 'administrator' %}
+                                <i class="bi bi-star-fill text-danger" aria-hidden="true"></i>
+                                {% elif role == 'moderator' %}
+                                <i class="bi bi-star-fill text-blue" aria-hidden="true"></i>
+                                {% else %}
+                                <i class="bi bi-star-fill text-secondary" aria-hidden="true"></i>
+                                {% endif %}
+                                <span>{{ role | title }}</span>
                             </label>
                         </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input class="form-check-input role-checkbox" type="checkbox" name="roles"
-                                    value="administrator" {% if 'administrator' in edit_user.roles %}checked{% endif %}>
-                                Administrator
-                            </label>
-                        </div>
+                        {% endfor %}
                     </div>
 
                     <hr class="my-3">
 
                     <h4 class="mb-3">{{ t('settings.change_password') }}</h4>
-                    <label class="form-label d-block mb-3">
+                    <label class="form-label d-block">
                         <span>{{ t('settings.new_password') }}</span>
                         <input type="password" class="form-control mt-2" data-name="new_password"
                             minlength="{{ PASSWORD_MIN_LENGTH }}">
-                        <small class="form-text">Leave blank to keep current password</small>
                     </label>
+                    <p class="form-text">Leave blank to keep current password</p>
 
                     <label class="form-label d-block mb-3">
                         <span>{{ t('settings.new_password_repeat') }}</span>
@@ -159,7 +159,7 @@
                     </label>
 
                     <div class="text-end">
-                        <button class="btn btn-primary px-4" type="submit">
+                        <button class="btn btn-primary px-3" type="submit">
                             {{ t('action.save_changes') }}
                         </button>
                     </div>
@@ -211,8 +211,8 @@
                             <div class="card-body">
                                 <h5 class="card-title">{{ token.application.name }}</h5>
                                 <p class="card-text text-body-secondary">
-                                    Authorized <time datetime="{{ token.authorized_at.isoformat() }}"
-                                        data-date="medium"></time>
+                                    Authorized <time datetime="{{ token.authorized_at.isoformat() }}" data-date="long"
+                                        data-time="short"></time>
                                 </p>
                             </div>
                         </div>
@@ -239,7 +239,8 @@
                                     Client ID: <code>{{ app.client_id }}</code>
                                 </p>
                                 <p class="card-text text-body-secondary">
-                                    Created <time datetime="{{ app.created_at.isoformat() }}" data-date="medium"></time>
+                                    Created <time datetime="{{ app.created_at.isoformat() }}" data-date="long"
+                                        data-time="short"></time>
                                 </p>
                             </div>
                         </div>
@@ -263,8 +264,8 @@
                             <div class="card-body">
                                 <h5 class="card-title">{{ token.name }}</h5>
                                 <p class="card-text text-body-secondary">
-                                    Created <time datetime="{{ token.created_at.isoformat() }}"
-                                        data-date="medium"></time>
+                                    Created <time datetime="{{ token.created_at.isoformat() }}" data-date="long"
+                                        data-time="short"></time>
                                 </p>
                                 {% if token.authorized_at %}
                                 <p class="card-text text-body-secondary">

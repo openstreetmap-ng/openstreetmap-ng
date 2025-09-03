@@ -8,6 +8,7 @@ from random import random, uniform
 from typing import Literal
 
 import cython
+from psycopg.sql import SQL
 from sentry_sdk.api import start_transaction
 from zid import zid
 
@@ -153,28 +154,36 @@ async def _audit_task(
     event_init: AuditEventInit,
     discard_repeated: timedelta | None,
 ) -> None:
+    query = SQL("""
+        INSERT INTO audit (
+            id, type,
+            ip, user_agent, user_id, application_id,
+            email, display_name, extra
+        )
+        SELECT
+            %(id)s, %(type)s,
+            %(ip)s, %(user_agent)s, %(user_id)s, %(application_id)s,
+            %(email)s, %(display_name)s, %(extra)s
+        {}
+    """).format(
+        SQL(
+            """
+            WHERE NOT EXISTS (
+                SELECT 1 FROM audit
+                WHERE user_id = %(user_id)s
+                AND type = %(type)s
+                AND created_at > statement_timestamp() - %(discard_repeated)s
+                LIMIT 1
+            )"""
+            if discard_repeated is not None
+            else ''
+        )
+    )
+
     async with (
         db(True) as conn,
         await conn.execute(
-            """
-            INSERT INTO audit (
-                id, type,
-                ip, user_agent, user_id, application_id,
-                email, display_name, extra
-            )
-            SELECT
-                %(id)s, %(type)s,
-                %(ip)s, %(user_agent)s, %(user_id)s, %(application_id)s,
-                %(email)s, %(display_name)s, %(extra)s
-            WHERE NOT EXISTS (
-                SELECT 1 FROM audit
-                WHERE %(discard_repeated)s IS NOT NULL
-                AND user_id = %(user_id)s
-                AND type = %(type)s
-                AND created_at > (statement_timestamp() - %(discard_repeated)s)
-                LIMIT 1
-            )
-            """,
+            query,
             {**event_init, 'discard_repeated': discard_repeated},
         ) as cursor,
     ):

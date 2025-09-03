@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal, NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict, get_args
 
 from shapely import Point
 
@@ -12,6 +12,7 @@ from app.models.types import DisplayName, Email, LocaleCode, StorageKey, UserId
 UserRole = Literal['moderator', 'administrator']
 Editor = Literal['id', 'rapid', 'remote']
 
+USER_ROLES = frozenset[UserRole](get_args(UserRole))
 DEFAULT_EDITOR: Editor = 'id'
 
 
