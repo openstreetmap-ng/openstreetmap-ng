@@ -7,6 +7,12 @@ resolution-markers = [
     "(platform_machine != 'aarch64' and sys_platform == 'linux') or (sys_platform != 'darwin' and sys_platform != 'linux')",
 ]
 
+[manifest]
+members = [
+    "openstreetmap-ng",
+    "speedup",
+]
+
 [[package]]
 name = "aioboto3"
 version = "15.0.0"
@@ -1291,7 +1297,7 @@ requires-dist = [
     { name = "sentry-sdk", extras = ["aiohttp", "fastapi", "httpx", "pure-eval"] },
     { name = "shapely" },
     { name = "sizestr" },
-    { name = "speedup", directory = "speedup" },
+    { name = "speedup", editable = "speedup" },
     { name = "starlette-compress" },
     { name = "tqdm" },
     { name = "uvicorn", extras = ["standard"] },
@@ -2096,7 +2102,7 @@ wheels = [
 [[package]]
 name = "speedup"
 version = "0.0.0"
-source = { directory = "speedup" }
+source = { editable = "speedup" }
 
 [[package]]
 name = "starlette"

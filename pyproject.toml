@@ -83,7 +83,10 @@ python-downloads = "never"
 python-preference = "only-system"
 
 [tool.uv.sources]
-speedup = { path = "speedup" }
+speedup = { workspace = true }
+
+[tool.uv.workspace]
+members = ["speedup"]
 
 [build-system]
 requires = ["hatchling"]
