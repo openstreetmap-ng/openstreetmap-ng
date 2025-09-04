@@ -95,6 +95,7 @@ async def audit(
     # Event config
     sample_rate: float = 1,
     discard_repeated: timedelta | None = None,
+    discard_type: Literal['user', 'user_target_user_extra'] = 'user',
     # Constants
     AUDIT_USER_AGENT_MAX_LENGTH: cython.Py_ssize_t = AUDIT_USER_AGENT_MAX_LENGTH,
 ) -> None:
@@ -119,6 +120,11 @@ async def audit(
     assert target_user_id is None or user_id is not None, (
         'target_user_id requires user_id to be set'
     )
+    assert (
+        discard_type != 'user_target_user_extra'
+        or target_user_id is not None
+        or extra is not None
+    ), 'discard_type=user_target_user_extra requires target_user_id or extra to be set'
 
     # Simplify current user targeting himself
     if target_user_id is not None and target_user_id == user_id:
@@ -149,7 +155,9 @@ async def audit(
         'extra': extra,
     }
 
-    task = _TG.create_task(_audit_task(conn, event_init, discard_repeated))
+    task = _TG.create_task(
+        _audit_task(conn, event_init, discard_repeated, discard_type)
+    )
 
     # Skip logging for common cases
     if type in {'auth_api', 'auth_web'} and extra is None:
@@ -184,6 +192,7 @@ async def _audit_task(
     conn: AsyncConnection | None,
     event_init: AuditEventInit,
     discard_repeated: timedelta | None,
+    discard_type: Literal['user', 'user_target_user_extra'],
 ) -> None:
     query = SQL("""
         INSERT INTO audit (
@@ -203,12 +212,23 @@ async def _audit_task(
                 SELECT 1 FROM audit
                 WHERE user_id = %(user_id)s
                 AND type = %(type)s
+                {}
                 AND created_at > statement_timestamp() - %(discard_repeated)s
                 LIMIT 1
-            )"""
-            if discard_repeated is not None
-            else ''
+            )
+            """
+        ).format(
+            SQL(
+                """
+                AND target_user_id IS NOT DISTINCT FROM %(target_user_id)s
+                AND extra IS NOT DISTINCT FROM %(extra)s
+                """
+                if discard_type == 'user_target_user_extra'
+                else ''
+            )
         )
+        if discard_repeated is not None
+        else SQL('')
     )
 
     async with (

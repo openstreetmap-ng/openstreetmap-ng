@@ -18,8 +18,9 @@ AuditType = Literal[
     'change_roles',
     'impersonate',
     'rate_limit',
+    'view_admin_users',
+    'view_audit',
     # TODO: 'schedule_user_delete',
-    # TODO: 'view_admin_users',
 ]
 
 AUDIT_TYPE_SET = frozenset[AuditType](get_args(AuditType))

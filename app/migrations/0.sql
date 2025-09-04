@@ -184,6 +184,14 @@ CREATE INDEX audit_user_type_created_at_idx ON audit (user_id DESC, type, create
 WHERE
     user_id IS NOT NULL;
 
+CREATE INDEX audit_user_target_user_type_extra_created_at_idx ON audit (user_id DESC, target_user_id DESC, type, extra, created_at DESC)
+WHERE
+    user_id IS NOT NULL
+    AND (
+        target_user_id IS NOT NULL
+        OR extra IS NOT NULL
+    );
+
 CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id DESC, created_at DESC)
 WHERE
     target_user_id IS NOT NULL;
