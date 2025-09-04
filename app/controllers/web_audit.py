@@ -17,7 +17,7 @@ from app.queries.user_query import UserQuery
 router = APIRouter(prefix='/api/web/audit')
 
 
-@router.get('/')
+@router.get('')
 async def audit_page(
     _: Annotated[User, web_user('role_administrator')],
     page: Annotated[PositiveInt, Query()],

@@ -24,7 +24,7 @@ async def test_profile_report(client: AsyncClient):
 
     # Create a profile report on user2 by user1
     r = await client.post(
-        '/api/web/reports/',
+        '/api/web/reports',
         data={
             'type': 'user',
             'type_id': user2['id'],
@@ -47,7 +47,7 @@ async def test_profile_report(client: AsyncClient):
 
     # Get the reports page
     r = await client.get(
-        '/api/web/reports/',
+        '/api/web/reports',
         params={
             'page': 1,
             'num_items': 10,

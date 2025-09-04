@@ -27,7 +27,7 @@ from app.validators.email import EmailValidating
 router = APIRouter(prefix='/api/web/admin/users')
 
 
-@router.get('/')
+@router.get('')
 async def users_page(
     _: Annotated[User, web_user('role_administrator')],
     page: Annotated[PositiveInt, Query()],

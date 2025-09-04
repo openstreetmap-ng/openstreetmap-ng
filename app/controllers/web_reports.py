@@ -28,7 +28,7 @@ from app.services.report_service import ReportService
 router = APIRouter(prefix='/api/web/reports')
 
 
-@router.post('/')
+@router.post('')
 async def create_report(
     _: Annotated[User, web_user()],
     type: Annotated[ReportType, Form()],
@@ -92,7 +92,7 @@ async def change_comment_visibility(
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 
-@router.get('/')
+@router.get('')
 async def reports_page(
     _: Annotated[User, web_user('role_moderator')],
     page: Annotated[PositiveInt, Query()],

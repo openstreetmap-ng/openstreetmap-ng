@@ -27,7 +27,7 @@ from app.services.note_service import NoteService
 router = APIRouter(prefix='/api/web/note')
 
 
-@router.post('/')
+@router.post('')
 async def create_note(
     lon: Annotated[Longitude, Form()],
     lat: Annotated[Latitude, Form()],
