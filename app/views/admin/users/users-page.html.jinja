@@ -54,8 +54,8 @@
         {% set _has_more = _user_ips | length > 10 %}
 
         <a href="/audit?ip={{ _main_ip }}"
-            class="{% if _main_count >= 2 %}text-warning{% else %}text-body-secondary{% endif %}">
-            {{ _main_ip }}
+            class="{% if _main_count >= 2 %}text-bg-warning rounded{% else %}text-body-secondary{% endif %}">
+            {{- _main_ip -}}
         </a>
         {% if _main_count > 1 %}
         <small class="text-muted">×{{ _main_count }}</small>

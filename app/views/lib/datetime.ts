@@ -3,6 +3,71 @@ import { dateTimeFormat, relativeTimeFormat } from "./intl"
 
 const resolvedElements: WeakSet<HTMLTimeElement> = new WeakSet()
 
+/**
+ * Convert a UTC datetime string to local time format for datetime-local input
+ * @param utcDateString - ISO datetime string in UTC (from backend)
+ * @returns Local datetime string in 'YYYY-MM-DDTHH:mm' format for datetime-local input
+ */
+const utcStringToLocalString = (utcDateString: string): string => {
+    const utcDate = new Date(utcDateString)
+    if (Number.isNaN(utcDate.getTime())) return ""
+
+    // Convert to local time and format for datetime-local input
+    const year = utcDate.getFullYear()
+    const month = String(utcDate.getMonth() + 1).padStart(2, "0")
+    const day = String(utcDate.getDate()).padStart(2, "0")
+    const hours = String(utcDate.getHours()).padStart(2, "0")
+    const minutes = String(utcDate.getMinutes()).padStart(2, "0")
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+/**
+ * Convert a local datetime string to UTC format for sending to backend
+ * @param localDatetimeString - Local datetime string from datetime-local input
+ * @returns ISO datetime string in UTC format
+ */
+const localStringToUtcString = (localDatetimeString: string): string => {
+    // Create date object treating the input as local time
+    const localDate = new Date(localDatetimeString)
+    if (Number.isNaN(localDate.getTime())) return ""
+
+    // Return as UTC ISO string
+    return localDate.toISOString()
+}
+
+/**
+ * Setup timezone conversion for datetime-local inputs in a form.
+ * This function:
+ * 1. Converts any existing UTC values to local time for display
+ * 2. Converts local input values to UTC on form submission
+ *
+ * @param form - The form element containing datetime-local inputs
+ * @param datetimeInputNames - Array of input names to handle
+ */
+export const configureDatetimeInputs = (
+    form: HTMLFormElement,
+    datetimeInputNames: string[],
+) => {
+    const inputs = datetimeInputNames.map((name) =>
+        form.querySelector(`input[type=datetime-local][name="${name}"]`),
+    )
+    console.debug("configureDatetimeInputs", datetimeInputNames, inputs)
+
+    // Convert existing UTC values to local time for display
+    for (const input of inputs) {
+        if (input.value) input.value = utcStringToLocalString(`${input.value}Z`)
+    }
+
+    // Convert to UTC on form submission
+    form.addEventListener("submit", () => {
+        for (const input of inputs) {
+            if (input.value)
+                input.value = localStringToUtcString(input.value).slice(0, -1)
+        }
+    })
+}
+
 export const resolveDatetimeLazy = (searchElement: Element): void =>
     queueMicrotask(() => {
         let absoluteCounter = 0

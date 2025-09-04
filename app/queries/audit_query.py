@@ -1,5 +1,5 @@
 from collections.abc import Set as AbstractSet
-from datetime import timedelta
+from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from typing import Literal
 
@@ -85,6 +85,8 @@ class AuditQuery:
         user: str | None = None,
         application_id: ApplicationId | None = None,
         type: AuditType | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
     ) -> int | list[AuditEvent]:
         """Find audit logs. Results are always sorted by created_at DESC (most recent first)."""
         conditions: list[Composable] = []
@@ -131,6 +133,14 @@ class AuditQuery:
         if type is not None:
             conditions.append(SQL('type = %s'))
             params.append(type)
+
+        if created_after is not None:
+            conditions.append(SQL('created_at >= %s'))
+            params.append(created_after)
+
+        if created_before is not None:
+            conditions.append(SQL('created_at <= %s'))
+            params.append(created_before)
 
         where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
 

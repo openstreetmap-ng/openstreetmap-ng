@@ -36,6 +36,20 @@
                     <input id="appIdInput" type="number" class="form-control form-control-sm" name="application_id"
                         value="{{ application_id }}" placeholder="ID" autocomplete="off">
                 </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label" for="createdAfter">
+                        Events from <small class="text-body-secondary">(local tz)</small>
+                    </label>
+                    <input id="createdAfter" type="datetime-local" class="form-control form-control-sm"
+                        name="created_after" value="{{ created_after }}">
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label" for="createdBefore">
+                        Events to <small class="text-body-secondary">(local tz)</small>
+                    </label>
+                    <input id="createdBefore" type="datetime-local" class="form-control form-control-sm"
+                        name="created_before" value="{{ created_before }}">
+                </div>
             </div>
 
             <div class="text-end">
@@ -79,8 +93,8 @@
         </div>
         <nav aria-label="{{ t('alt.page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-0"
-                data-action="/api/web/audit?page={page}&num_items={{ audit_num_items }}{% if ip %}&ip={{ ip }}{% endif %}{% if user_q %}&user={{ user_q|urlencode }}{% endif %}{% if application_id %}&application_id={{ application_id }}{% endif %}{% if type %}&type={{ type }}{% endif %}"
-                data-pages="{{ audit_num_pages }}">
+                data-action="/api/web/audit?page={page}&num_items={{ audit_num_items }}{% if ip %}&ip={{ ip }}{% endif %}{% if user_q %}&user={{ user_q|urlencode }}{% endif %}{% if application_id %}&application_id={{ application_id }}{% endif %}{% if type %}&type={{ type }}{% endif %}{% if created_after %}&created_after={{ created_after|urlencode }}{% endif %}{% if created_before %}&created_before={{ created_before|urlencode }}{% endif %}"
+                data-pages="{{ audit_num_pages }}">>
             </ul>
         </nav>
         {% else %}

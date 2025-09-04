@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from datetime import datetime
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from typing import Annotated
 
@@ -28,6 +29,8 @@ async def audit_page(
     user: Annotated[str | None, Query()] = None,
     application_id: Annotated[ApplicationId | None, Query()] = None,
     type: Annotated[AuditType | None, Query()] = None,
+    created_after: Annotated[datetime | None, Query()] = None,
+    created_before: Annotated[datetime | None, Query()] = None,
 ):
     events: list[AuditEvent] = await AuditQuery.find(  # type: ignore
         'page',
@@ -37,6 +40,8 @@ async def audit_page(
         user=user,
         application_id=application_id,
         type=type,
+        created_after=created_after,
+        created_before=created_before,
     )
 
     async with TaskGroup() as tg:

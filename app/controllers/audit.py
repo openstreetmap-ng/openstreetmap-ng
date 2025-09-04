@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from datetime import datetime
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from math import ceil
 from typing import Annotated
@@ -27,6 +28,8 @@ async def audit_index(
     user: Annotated[str | None, Query()] = None,
     application_id: Annotated[ApplicationId | None, Query()] = None,
     type: Annotated[AuditType | None, Query()] = None,
+    created_after: Annotated[datetime | None, Query()] = None,
+    created_before: Annotated[datetime | None, Query()] = None,
 ):
     async with TaskGroup() as tg:
         tg.create_task(
@@ -44,6 +47,8 @@ async def audit_index(
             user=user,
             application_id=application_id,
             type=type,
+            created_after=created_after,
+            created_before=created_before,
         )
         audit_num_pages = ceil(audit_num_items / AUDIT_LIST_PAGE_SIZE)
 
@@ -56,5 +61,7 @@ async def audit_index(
                 'user_q': user or '',
                 'application_id': application_id or '',
                 'type': type,
+                'created_after': created_after.isoformat() if created_after else '',
+                'created_before': created_before.isoformat() if created_before else '',
             },
         )
