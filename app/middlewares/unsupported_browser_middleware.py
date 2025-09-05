@@ -30,15 +30,15 @@ class UnsupportedBrowserMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        request = get_request()
-        user_agent = request.headers.get('User-Agent')
+        req = get_request()
+        user_agent = req.headers.get('User-Agent')
         if (
             user_agent is None
             or is_browser_supported(user_agent)
-            or request.method != 'GET'
-            or request.cookies.get('unsupported_browser_override') is not None
-            or not str(request.url).startswith(_app_prefix)
-        ) and not (ENV != 'prod' and 'unsupported_browser' in request.query_params):
+            or req.method != 'GET'
+            or req.cookies.get('unsupported_browser_override') is not None
+            or not str(req.url).startswith(_app_prefix)
+        ) and not (ENV != 'prod' and 'unsupported_browser' in req.query_params):
             return await self.app(scope, receive, send)
 
         capture: cython.bint = False

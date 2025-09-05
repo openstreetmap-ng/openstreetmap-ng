@@ -30,8 +30,8 @@ class AuthService:
         User | None, frozenset[Scope], ApplicationId | None
     ]:
         """Authenticate the request. Returns the authenticated user (if any) and scopes."""
-        request = get_request()
-        path: str = request.url.path
+        req = get_request()
+        path: str = req.url.path
 
         # Skip authentication for static requests
         if path.startswith('/static'):
@@ -39,18 +39,18 @@ class AuthService:
 
         # Try OAuth2 authentication for API endpoints
         if path.startswith(('/api/0.6/', '/api/0.7/', '/oauth2/')):
-            r = await _authenticate_with_oauth2(request)
+            r = await _authenticate_with_oauth2(req)
             if r is not None:
                 return r
 
         # Try session cookie authentication
-        r = await _authenticate_with_cookie(request)
+        r = await _authenticate_with_cookie(req)
         if r is not None:
             return r
 
         # Try test user authentication if in test environment
         if ENV != 'prod':
-            r = await _authenticate_with_test_user(request)
+            r = await _authenticate_with_test_user(req)
             if r is not None:
                 return r
 

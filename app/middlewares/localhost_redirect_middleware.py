@@ -16,9 +16,9 @@ class LocalhostRedirectMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        request = get_request()
-        if request.url.hostname == 'localhost':
-            return await RedirectResponse(request.url.replace(hostname='127.0.0.1'))(
+        req = get_request()
+        if req.url.hostname == 'localhost':
+            return await RedirectResponse(req.url.replace(hostname='127.0.0.1'))(
                 scope, receive, send
             )
 

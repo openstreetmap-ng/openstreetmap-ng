@@ -23,8 +23,8 @@ class CacheControlMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        request = get_request()
-        if request.method not in {'GET', 'HEAD'}:
+        req = get_request()
+        if req.method not in {'GET', 'HEAD'}:
             return await self.app(scope, receive, send)
 
         async def wrapper(message: Message) -> None:
@@ -32,9 +32,9 @@ class CacheControlMiddleware:
                 status_code: cython.int = message['status']
 
                 if 200 <= status_code < 300 or status_code == 301:
-                    state = request.state._state  # noqa: SLF001
+                    state = req.state._state  # noqa: SLF001
                     header = state.get('cache_control_header')
-                    if header is None and request.url.path.startswith('/static'):
+                    if header is None and req.url.path.startswith('/static'):
                         header = _STATIC_HEADER
                     if header is not None:
                         headers = MutableHeaders(raw=message['headers'])
