@@ -111,7 +111,12 @@ async def update_user(
         roles=roles or [],
         new_password=new_password,
     )
-    return StandardFeedback.success_result(None, 'User has been updated')
+    return StandardFeedback.success_result(
+        None,
+        'User has been updated'
+        if ENV != 'test'
+        else 'User would have been updated. This feature is disabled in the test environment.',
+    )
 
 
 @router.post('/{user_id:int}/impersonate')

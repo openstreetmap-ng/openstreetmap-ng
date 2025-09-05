@@ -551,7 +551,8 @@ class UserService:
         params.append(user_id)
 
         async with db(True) as conn:
-            await conn.execute(query, params)
+            if ENV != 'test':  # Prevent admin user updates on the test instance
+                await conn.execute(query, params)
             for op in audits:
                 await op(conn)
 
