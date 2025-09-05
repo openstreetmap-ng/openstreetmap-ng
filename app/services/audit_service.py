@@ -28,6 +28,7 @@ from app.config import (
     ENV,
 )
 from app.db import db
+from app.lib.anonymizer import anonymize_ip
 from app.lib.auth_context import auth_app, auth_user
 from app.lib.retry import retry
 from app.lib.sentry import (
@@ -136,6 +137,9 @@ async def audit(
     req = get_request()
     req_ip = ip_address(req.client.host)  # type: ignore
     req_ua = req.headers.get('User-Agent')
+
+    if ENV == 'test':
+        req_ip = anonymize_ip(req_ip)
 
     event_id: AuditId = zid()  # type: ignore
     event_init: AuditEventInit = {
