@@ -25,8 +25,13 @@ async def reports_index(
     # Convert status to boolean for query
     open = None if not status else status == 'open'
 
-    # Count total reports for pagination
-    reports_num_items = await ReportQuery.count_all(open=open)
+    # Get cursors and count in parallel
+    async with TaskGroup() as tg:
+        cursors_task = tg.create_task(ReportQuery.generate_report_cursors(open=open))
+        reports_num_items_task = tg.create_task(ReportQuery.count_all(open=open))
+
+    cursors = await cursors_task
+    reports_num_items = await reports_num_items_task
     reports_num_pages = ceil(reports_num_items / REPORT_LIST_PAGE_SIZE)
 
     return await render_response(
@@ -35,6 +40,7 @@ async def reports_index(
             'status': status,
             'reports_num_items': reports_num_items,
             'reports_num_pages': reports_num_pages,
+            'cursors': cursors,
         },
     )
 

@@ -1,11 +1,11 @@
-from typing import NamedTuple
+from typing import NamedTuple, Any
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
 from app.config import REPORT_LIST_PAGE_SIZE
 from app.db import db
-from app.lib.standard_pagination import standard_pagination_range
+from app.lib.standard_pagination import standard_pagination_range, generate_pagination_cursors
 from app.models.db.report import Report
 from app.models.db.user import UserRole
 from app.models.types import ReportId
@@ -91,7 +91,78 @@ class ReportQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def count_requiring_attention(visible_to: UserRole) -> _ReportCountResult:
+    async def find_reports_cursor(
+        *,
+        after: ReportId | None = None,
+        before: ReportId | None = None, 
+        limit: int = REPORT_LIST_PAGE_SIZE,
+        open: bool | None = None,
+    ) -> list[Report]:
+        """Get reports using cursor-based pagination."""
+        conditions: list[Composable] = []
+        params: list[Any] = []
+
+        # Filter by open/closed status
+        if open or open is None:
+            conditions.append(SQL('closed_at IS NULL'))
+        if not open:
+            conditions.append(SQL('closed_at IS NOT NULL'))
+        
+        # Add cursor conditions
+        if after is not None:
+            conditions.append(SQL('id > %s'))
+            params.append(after)
+        
+        if before is not None:
+            conditions.append(SQL('id < %s'))
+            params.append(before)
+
+        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        
+        # Always order by updated_at DESC for most recent first, then by id for consistency
+        query = SQL("""
+            SELECT * FROM report
+            WHERE {}
+            ORDER BY updated_at DESC, id DESC
+            LIMIT %s
+        """).format(where_clause)
+        
+        params.append(limit)
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
+            return await r.fetchall()  # type: ignore
+
+    @staticmethod
+    async def generate_report_cursors(
+        *, 
+        open: bool | None = None,
+        page_size: int = REPORT_LIST_PAGE_SIZE
+    ) -> list[ReportId]:
+        """Generate cursor values for reports pagination."""
+        conditions: list[Composable] = []
+
+        if open or open is None:
+            conditions.append(SQL('closed_at IS NULL'))
+        if not open:
+            conditions.append(SQL('closed_at IS NOT NULL'))
+
+        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        
+        query = SQL("""
+            SELECT id FROM report
+            WHERE {}
+            ORDER BY updated_at DESC, id DESC
+        """).format(where_clause)
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query) as r,
+        ):
+            reports = await r.fetchall()  # type: ignore
+            return generate_pagination_cursors(reports, cursor_field='id', page_size=page_size)
         """Count reports requiring attention."""
         # Build query dynamically based on visibility level
         if visible_to == 'administrator':

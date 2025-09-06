@@ -40,7 +40,8 @@
             <ul class="social-list reports-list list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('alt.page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-0"
-                    data-action="/api/web/reports?page={page}&num_items={{ reports_num_items }}&status={{ status }}"
+                    data-action="/api/web/reports/cursors?status={{ status }}"
+                    data-cursors="{{ cursors | tojson if cursors else '[]' }}"
                     data-pages="{{ reports_num_pages }}">
                 </ul>
             </nav>

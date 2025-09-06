@@ -92,6 +92,61 @@ async def change_comment_visibility(
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 
+@router.get('/cursors')
+async def reports_page_cursors(
+    _: Annotated[User, web_user('role_moderator')],
+    after: Annotated[ReportId | None, Query()] = None,
+    before: Annotated[ReportId | None, Query()] = None,
+    status: Annotated[Literal['', 'open', 'closed'], Query()] = '',
+):
+    """Get a page of reports using cursor-based pagination."""
+    # Convert status to boolean for query
+    open = None if not status else status == 'open'
+    
+    # Get cursors and reports in parallel  
+    async with TaskGroup() as tg:
+        cursors_task = tg.create_task(ReportQuery.generate_report_cursors(open=open))
+        reports_task = tg.create_task(ReportQuery.find_reports_cursor(
+            after=after,
+            before=before,
+            open=open,
+        ))
+
+    cursors = await cursors_task
+    reports = await reports_task
+
+    # Resolve comments and metadata
+    async with TaskGroup() as tg:
+        tg.create_task(ReportCommentQuery.resolve_num_comments(reports))
+        # Get only the last comment for preview
+        comments = await ReportCommentQuery.resolve_comments(
+            reports, per_report_limit=1
+        )
+        tg.create_task(UserQuery.resolve_users(comments))
+        tg.create_task(report_comments_resolve_rich_text(comments))
+        tg.create_task(ReportCommentQuery.resolve_objects(comments))
+
+        # Resolve reported users for user-type reports
+        user_reports = [r for r in reports if r['type'] == 'user']
+        if user_reports:
+            tg.create_task(
+                UserQuery.resolve_users(
+                    user_reports,
+                    user_id_key='type_id',
+                    user_key='reported_user',
+                )
+            )
+
+    return await render_response(
+        'reports/reports-page',
+        {
+            'reports': reports,
+            'cursors': cursors,
+            'current_cursor': after or before,
+        },
+    )
+
+
 @router.get('')
 async def reports_page(
     _: Annotated[User, web_user('role_moderator')],
