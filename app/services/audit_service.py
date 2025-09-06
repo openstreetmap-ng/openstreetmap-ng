@@ -11,7 +11,6 @@ import cython
 from psycopg import AsyncConnection
 from psycopg.sql import SQL
 from sentry_sdk.api import start_transaction
-from zid import zid
 
 from app.config import (
     AUDIT_RETENTION_ADMIN_TASK,
@@ -37,7 +36,7 @@ from app.lib.sentry import (
 )
 from app.lib.testmethod import testmethod
 from app.middlewares.request_context_middleware import get_request
-from app.models.db.audit import AuditEventInit, AuditId, AuditType
+from app.models.db.audit import AuditEventInit, AuditType
 from app.models.types import ApplicationId, DisplayName, Email, UserId
 
 _TG: TaskGroup
@@ -96,7 +95,6 @@ async def audit(
     # Event config
     sample_rate: float = 1,
     discard_repeated: timedelta | None = None,
-    discard_type: Literal['user', 'user_target_user_extra'] = 'user',
     # Constants
     AUDIT_USER_AGENT_MAX_LENGTH: cython.Py_ssize_t = AUDIT_USER_AGENT_MAX_LENGTH,
 ) -> None:
@@ -121,11 +119,6 @@ async def audit(
     assert target_user_id is None or user_id is not None, (
         'target_user_id requires user_id to be set'
     )
-    assert (
-        discard_type != 'user_target_user_extra'
-        or target_user_id is not None
-        or extra is not None
-    ), 'discard_type=user_target_user_extra requires target_user_id or extra to be set'
 
     # Simplify current user targeting himself
     if target_user_id is not None and target_user_id == user_id:
@@ -141,9 +134,7 @@ async def audit(
     if ENV == 'test':
         req_ip = anonymize_ip(req_ip)
 
-    event_id: AuditId = zid()  # type: ignore
     event_init: AuditEventInit = {
-        'id': event_id,
         'type': type,
         'ip': req_ip,
         'user_agent': (
@@ -159,9 +150,7 @@ async def audit(
         'extra': extra,
     }
 
-    task = _TG.create_task(
-        _audit_task(conn, event_init, discard_repeated, discard_type)
-    )
+    task = _TG.create_task(_audit_task(conn, event_init, discard_repeated))
 
     # Skip logging for common cases
     if type in {'auth_api', 'auth_web'} and extra is None:
@@ -180,15 +169,7 @@ async def audit(
     if display_name is not None:
         values.append(f'{display_name=}')
 
-    logging.info(
-        'AUDIT: %s %s "%s": %s [%s]',
-        req_ip,
-        type,
-        ' '.join(values),
-        extra,
-        event_id,
-    )
-
+    logging.info('AUDIT: %s %s "%s": %s', req_ip, type, ' '.join(values), extra)
     await task
 
 
@@ -196,7 +177,6 @@ async def _audit_task(
     conn: AsyncConnection | None,
     event_init: AuditEventInit,
     discard_repeated: timedelta | None,
-    discard_type: Literal['user', 'user_target_user_extra'],
 ) -> None:
     query = SQL("""
         INSERT INTO audit (
@@ -214,36 +194,26 @@ async def _audit_task(
             """
             WHERE NOT EXISTS (
                 SELECT 1 FROM audit
-                WHERE user_id = %(user_id)s
-                AND type = %(type)s
-                {}
+                WHERE type = %(type)s
+                AND user_id = %(user_id)s
+                AND target_user_id IS NOT DISTINCT FROM %(target_user_id)s
+                AND application_id IS NOT DISTINCT FROM %(application_id)s
+                AND hashtext(extra) IS NOT DISTINCT FROM hashtext(%(extra)s)
+                AND extra IS NOT DISTINCT FROM %(extra)s
                 AND created_at > statement_timestamp() - %(discard_repeated)s
                 LIMIT 1
             )
             """
-        ).format(
-            SQL(
-                """
-                AND target_user_id IS NOT DISTINCT FROM %(target_user_id)s
-                AND extra IS NOT DISTINCT FROM %(extra)s
-                """
-                if discard_type == 'user_target_user_extra'
-                else ''
-            )
+            if discard_repeated is not None
+            else ''
         )
-        if discard_repeated is not None
-        else SQL('')
     )
 
-    async with (
-        nullcontext(conn) if conn is not None else db(True) as conn,  # noqa: PLR1704
+    async with nullcontext(conn) if conn is not None else db(True) as conn:  # noqa: PLR1704
         await conn.execute(
             query,
             {**event_init, 'discard_repeated': discard_repeated},
-        ) as cursor,
-    ):
-        if not cursor.rowcount:
-            logging.debug('Discarded repeated audit event %s', event_init['id'])
+        )
 
 
 @retry(None)

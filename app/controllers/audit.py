@@ -37,7 +37,6 @@ async def audit_index(
                 'view_audit',
                 extra=request.url.query,
                 discard_repeated=AUDIT_DISCARD_REPEATED_VIEW_AUDIT,
-                discard_type='user_target_user_extra',
             )
         )
 

@@ -44,7 +44,6 @@ async def users_index(
                 'view_admin_users',
                 extra=request.url.query,
                 discard_repeated=AUDIT_DISCARD_REPEATED_VIEW_ADMIN_USERS,
-                discard_type='user_target_user_extra',
             )
         )
 
@@ -89,7 +88,6 @@ async def user_edit(
                 'view_admin_users',
                 target_user_id=user_id,
                 discard_repeated=AUDIT_DISCARD_REPEATED_VIEW_ADMIN_USERS,
-                discard_type='user_target_user_extra',
             )
         )
         connected_providers_task = tg.create_task(

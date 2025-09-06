@@ -157,7 +157,6 @@ WHERE
 CREATE INDEX oauth2_token_user_app_authorized_idx ON oauth2_token (user_id, application_id, id, (authorized_at IS NOT NULL));
 
 CREATE TABLE audit (
-    id bigint PRIMARY KEY,
     type text NOT NULL,
     ip inet NOT NULL,
     user_agent text,
@@ -168,7 +167,14 @@ CREATE TABLE audit (
     display_name text,
     extra text,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
-);
+)
+WITH
+    (
+        tsdb.hypertable,
+        tsdb.columnstore = FALSE,
+        tsdb.partition_column = 'created_at',
+        tsdb.chunk_interval = '3 days'
+    );
 
 CREATE INDEX audit_type_created_at_idx ON audit (type, created_at DESC);
 
@@ -183,14 +189,6 @@ WHERE
 CREATE INDEX audit_user_type_created_at_idx ON audit (user_id DESC, type, created_at DESC)
 WHERE
     user_id IS NOT NULL;
-
-CREATE INDEX audit_user_target_user_type_extra_created_at_idx ON audit (user_id DESC, target_user_id DESC, type, extra, created_at DESC)
-WHERE
-    user_id IS NOT NULL
-    AND (
-        target_user_id IS NOT NULL
-        OR extra IS NOT NULL
-    );
 
 CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id DESC, created_at DESC)
 WHERE
@@ -227,6 +225,17 @@ CREATE INDEX audit_application_target_user_type_created_at_idx ON audit (applica
 WHERE
     application_id IS NOT NULL
     AND target_user_id IS NOT NULL;
+
+CREATE INDEX audit_discard_repeated_idx ON audit (
+    type,
+    user_id DESC,
+    target_user_id DESC,
+    application_id DESC,
+    hashtext (extra),
+    created_at DESC
+)
+WHERE
+    user_id IS NOT NULL;
 
 CREATE TABLE changeset (
     id bigint GENERATED ALWAYS AS IDENTITY,
