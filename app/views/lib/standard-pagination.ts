@@ -29,11 +29,17 @@ export const configureStandardPagination = (
     }
 
     const dataset = paginationContainers[paginationContainers.length - 1].dataset
-    const totalPages = Number.parseInt(dataset.pages, 10)
-    const cursors = dataset.cursors ? JSON.parse(dataset.cursors) : null
+    const totalPages = Number.parseInt(dataset.pages || "0", 10)
+    let cursors = null
+    try {
+        cursors = dataset.cursors ? JSON.parse(dataset.cursors) : null
+    } catch (e) {
+        console.warn("Failed to parse cursors data:", e)
+        cursors = null
+    }
     
-    // Determine pagination mode
-    const useCursors = cursors && cursors.length > 0
+    // Determine pagination mode based on available data
+    const useCursors = cursors && Array.isArray(cursors) && cursors.length > 0
     
     if (!totalPages && !useCursors) {
         console.debug("Ignored standard pagination: missing data-pages or data-cursors")
@@ -44,7 +50,7 @@ export const configureStandardPagination = (
     const numItems = Number.parseInt(dataset.numItems, 10)
     const reverse = options?.reverse ?? true
 
-    const endpointPattern = dataset.action
+    const endpointPattern = useCursors ? dataset.action : (dataset.fallbackAction || dataset.action)
     console.debug(
         "Initializing standard pagination",
         useCursors ? "cursor-based" : "offset-based",
@@ -100,12 +106,17 @@ export const configureStandardPagination = (
             }
 
             const abortController = new AbortController()
-            const url = new URL(endpointPattern, window.location.origin)
-            url.searchParams.set('after', cursorValue)
+            
+            let url: string
+            if (endpointPattern.includes('?')) {
+                url = `${endpointPattern}&after=${encodeURIComponent(cursorValue)}`
+            } else {
+                url = `${endpointPattern}?after=${encodeURIComponent(cursorValue)}`
+            }
 
             console.debug("Navigating to cursor", cursorValue)
             setPendingState(true)
-            fetch(url.toString(), {
+            fetch(url, {
                 method: "GET",
                 mode: "same-origin",
                 cache: "no-store",

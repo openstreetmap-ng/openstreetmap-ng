@@ -42,7 +42,8 @@
                 <ul class="pagination pagination-sm justify-content-end mb-0"
                     data-action="/api/web/reports/cursors?status={{ status }}"
                     data-cursors="{{ cursors | tojson if cursors else '[]' }}"
-                    data-pages="{{ reports_num_pages }}">
+                    data-pages="{{ reports_num_pages }}"
+                    data-fallback-action="/api/web/reports?page={page}&num_items={{ reports_num_items }}&status={{ status }}">
                 </ul>
             </nav>
         </div>
