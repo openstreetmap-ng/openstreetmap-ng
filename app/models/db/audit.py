@@ -4,7 +4,7 @@ from typing import Literal, NotRequired, TypedDict, get_args
 
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import UserDisplay
-from app.models.types import ApplicationId, DisplayName, Email, UserId
+from app.models.types import ApplicationId, UserId
 
 AuditType = Literal[
     'admin_task',
@@ -32,8 +32,6 @@ class AuditEventInit(TypedDict):
     user_id: UserId | None
     target_user_id: UserId | None
     application_id: ApplicationId | None
-    email: Email | None
-    display_name: DisplayName | None
     extra: str | None
 
 

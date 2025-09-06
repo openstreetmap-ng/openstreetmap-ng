@@ -37,7 +37,7 @@ from app.lib.sentry import (
 from app.lib.testmethod import testmethod
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.audit import AuditEventInit, AuditType
-from app.models.types import ApplicationId, DisplayName, Email, UserId
+from app.models.types import ApplicationId, UserId
 
 _TG: TaskGroup
 _PROCESS_REQUEST_EVENT = Event()
@@ -89,8 +89,6 @@ async def audit(
     user_id: UserId | None | Literal['UNSET'] = 'UNSET',
     target_user_id: UserId | None = None,
     application_id: ApplicationId | None | Literal['UNSET'] = 'UNSET',
-    email: Email | None = None,
-    display_name: DisplayName | None = None,
     extra: str | None = None,
     # Event config
     sample_rate: float = 1,
@@ -145,8 +143,6 @@ async def audit(
         'user_id': user_id,
         'target_user_id': target_user_id,
         'application_id': application_id,
-        'email': email,
-        'display_name': display_name,
         'extra': extra,
     }
 
@@ -164,10 +160,6 @@ async def audit(
         values.append(f'->uid={target_user_id}')
     if application_id is not None:
         values.append(f'aid={application_id}')
-    if email is not None:
-        values.append(f'{email=}')
-    if display_name is not None:
-        values.append(f'{display_name=}')
 
     logging.info('AUDIT: %s %s "%s": %s', req_ip, type, ' '.join(values), extra)
     await task
@@ -181,13 +173,13 @@ async def _audit_task(
     query = SQL("""
         INSERT INTO audit (
             id, type,
-            ip, user_agent, user_id, target_user_id, application_id,
-            email, display_name, extra
+            ip, user_agent, user_id,
+            target_user_id, application_id, extra
         )
         SELECT
             %(id)s, %(type)s,
-            %(ip)s, %(user_agent)s, %(user_id)s, %(target_user_id)s, %(application_id)s,
-            %(email)s, %(display_name)s, %(extra)s
+            %(ip)s, %(user_agent)s, %(user_id)s,
+            %(target_user_id)s, %(application_id)s, %(extra)s
         {}
     """).format(
         SQL(

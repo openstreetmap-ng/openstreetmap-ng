@@ -69,8 +69,7 @@ class UserSignupService:
                 'change_display_name',
                 conn,
                 user_id=user_id,
-                display_name=display_name,
-                extra='Signup',
+                extra=f'{display_name} - Signup',
             )
 
             if email_verified:
@@ -78,8 +77,7 @@ class UserSignupService:
                     'change_email',
                     conn,
                     user_id=user_id,
-                    email=email,
-                    extra='Signup',
+                    extra=f'{email} - Signup',
                 )
 
         if not email_verified:

@@ -44,19 +44,9 @@
         {% endif %}
     </td>
     <td>
-        {% if event.email %}
-        <span class="badge text-bg-info">{{ event.email }}</span>
-        {% set _has_detail = True %}
-        {% endif %}
-        {% if event.display_name %}
-        <span class="badge text-bg-info">{{ event.display_name }}</span>
-        {% set _has_detail = True %}
-        {% endif %}
         {% if event.extra %}
         <span>{{ event.extra }}</span>
-        {% set _has_detail = True %}
-        {% endif %}
-        {% if _has_detail is undefined %}
+        {% else %}
         <span class="text-muted">&mdash;</span>
         {% endif %}
     </td>

@@ -93,14 +93,13 @@ class AuditQuery:
         params: list = []
 
         if ip is not None:
-            conditions.append(
-                SQL(
-                    'ip <<= %s'
-                    if isinstance(ip, IPv4Network | IPv6Network)
-                    else 'ip = %s'
-                )
-            )
-            params.append(ip)
+            if isinstance(ip, IPv4Network | IPv6Network):
+                conditions.append(SQL('ip >= %s AND ip <= %s'))
+                params.append(ip.network_address)
+                params.append(ip.broadcast_address)
+            else:
+                conditions.append(SQL('ip = %s'))
+                params.append(ip)
 
         if user is not None:
             user_ids: list[UserId] = []

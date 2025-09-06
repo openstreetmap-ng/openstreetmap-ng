@@ -84,8 +84,7 @@ class UserTokenEmailService:
                     """,
                     (new_email, user_id),
                 )
-                audit_email = new_email
-                audit_extra = None
+                audit_extra = new_email
             else:
                 async with await conn.execute(
                     """
@@ -97,20 +96,20 @@ class UserTokenEmailService:
                     (user_id,),
                 ) as r:
                     email_row: tuple[Email] | None = await r.fetchone()
-                    audit_email = email_row[0] if email_row else None
-                    audit_extra = 'Account confirm'
+                    audit_extra = (
+                        f'{email_row[0]} - Account confirm' if email_row else None
+                    )
 
             await conn.execute(
                 'DELETE FROM user_token WHERE id = %s',
                 (token_struct.id,),
             )
 
-            if audit_email is not None:
+            if audit_extra is not None:
                 await audit(
                     'change_email',
                     conn,
                     user_id=user_id,
-                    email=audit_email,
                     extra=audit_extra,
                 )
 

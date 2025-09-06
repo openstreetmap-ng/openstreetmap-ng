@@ -156,6 +156,7 @@ WHERE
 
 CREATE INDEX oauth2_token_user_app_authorized_idx ON oauth2_token (user_id, application_id, id, (authorized_at IS NOT NULL));
 
+-- TODO: audit type enum
 CREATE TABLE audit (
     type text NOT NULL,
     ip inet NOT NULL,
@@ -163,30 +164,17 @@ CREATE TABLE audit (
     user_id bigint,
     target_user_id bigint,
     application_id bigint,
-    email text,
-    display_name text,
     extra text,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 )
 WITH
-    (
-        tsdb.hypertable,
-        tsdb.columnstore = FALSE,
-        tsdb.partition_column = 'created_at',
-        tsdb.chunk_interval = '3 days'
-    );
+    (fillfactor = 100);
 
-CREATE INDEX audit_type_created_at_idx ON audit (type, created_at DESC);
+CREATE INDEX audit_created_at_idx ON audit (created_at DESC);
 
 CREATE INDEX audit_ip_created_at_idx ON audit (ip, created_at DESC);
 
-CREATE INDEX audit_ip_type_created_at_idx ON audit (ip, type, created_at DESC);
-
 CREATE INDEX audit_user_created_at_idx ON audit (user_id DESC, created_at DESC)
-WHERE
-    user_id IS NOT NULL;
-
-CREATE INDEX audit_user_type_created_at_idx ON audit (user_id DESC, type, created_at DESC)
 WHERE
     user_id IS NOT NULL;
 
@@ -194,37 +182,9 @@ CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id DESC, cre
 WHERE
     target_user_id IS NOT NULL;
 
-CREATE INDEX audit_target_user_type_created_at_idx ON audit (target_user_id DESC, type, created_at DESC)
-WHERE
-    target_user_id IS NOT NULL;
-
 CREATE INDEX audit_application_created_at_idx ON audit (application_id DESC, created_at DESC)
 WHERE
     application_id IS NOT NULL;
-
-CREATE INDEX audit_application_user_created_at_idx ON audit (application_id DESC, user_id DESC, created_at DESC)
-WHERE
-    application_id IS NOT NULL
-    AND user_id IS NOT NULL;
-
-CREATE INDEX audit_application_target_user_created_at_idx ON audit (application_id DESC, target_user_id DESC, created_at DESC)
-WHERE
-    application_id IS NOT NULL
-    AND target_user_id IS NOT NULL;
-
-CREATE INDEX audit_application_type_created_at_idx ON audit (application_id DESC, type, created_at DESC)
-WHERE
-    application_id IS NOT NULL;
-
-CREATE INDEX audit_application_user_type_created_at_idx ON audit (application_id DESC, user_id DESC, type, created_at DESC)
-WHERE
-    application_id IS NOT NULL
-    AND user_id IS NOT NULL;
-
-CREATE INDEX audit_application_target_user_type_created_at_idx ON audit (application_id DESC, target_user_id DESC, type, created_at DESC)
-WHERE
-    application_id IS NOT NULL
-    AND target_user_id IS NOT NULL;
 
 CREATE INDEX audit_discard_repeated_idx ON audit (
     type,

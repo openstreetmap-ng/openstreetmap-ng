@@ -211,7 +211,7 @@ class UserService:
                 (display_name, language, activity_tracking, crash_reporting, user_id),
             )
             if display_name != user['display_name']:
-                await audit('change_display_name', conn, display_name=display_name)
+                await audit('change_display_name', conn, extra=display_name)
 
     @staticmethod
     async def update_editor(
@@ -477,7 +477,7 @@ class UserService:
                     'change_display_name',
                     conn,
                     target_user_id=user_id,
-                    display_name=display_name,
+                    extra=display_name,
                 )
             )
 
@@ -512,8 +512,7 @@ class UserService:
                     'change_email',
                     conn,
                     target_user_id=user_id,
-                    email=email,
-                    extra=f'{email_verified=}',
+                    extra=f'{email} (verified={email_verified})',
                 )
             )
 
