@@ -146,6 +146,14 @@ time[title] {
     }
 }
 
+time[datetime][data-style],
+time[datetime][data-date],
+time[datetime][data-time] {
+    &:empty::after {
+        content: "…";
+    }
+}
+
 summary {
     user-select: none;
 }
