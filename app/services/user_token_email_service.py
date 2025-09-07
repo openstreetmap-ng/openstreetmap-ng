@@ -106,12 +106,7 @@ class UserTokenEmailService:
             )
 
             if audit_extra is not None:
-                await audit(
-                    'change_email',
-                    conn,
-                    user_id=user_id,
-                    extra=audit_extra,
-                )
+                await audit('change_email', conn, user_id=user_id, extra=audit_extra)
 
 
 async def _create_token(new_email: Email | None) -> UserTokenStruct:
