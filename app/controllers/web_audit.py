@@ -51,7 +51,8 @@ async def audit_page(
                 events, user_id_key='target_user_id', user_key='target_user'
             )
         )
-        tg.create_task(OAuth2ApplicationQuery.resolve_applications(events))
+        apps = await OAuth2ApplicationQuery.resolve_applications(events)
+        tg.create_task(UserQuery.resolve_users(apps))
 
     return await render_response(
         'audit/audit-page',

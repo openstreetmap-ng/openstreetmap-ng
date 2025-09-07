@@ -16,5 +16,19 @@ if (body) {
         }
     })
 
-    configureStandardPagination(body, { reverse: false })
+    configureStandardPagination(body, {
+        reverse: false,
+        loadCallback: (renderContainer) => {
+            for (const button of renderContainer.querySelectorAll(
+                "button[data-app-id]",
+            )) {
+                button.addEventListener("click", (event) => {
+                    event.preventDefault()
+                    filterForm.querySelector("input[name=application_id]").value =
+                        button.dataset.appId
+                    filterForm.requestSubmit()
+                })
+            }
+        },
+    })
 }
