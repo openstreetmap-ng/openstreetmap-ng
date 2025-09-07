@@ -23,7 +23,7 @@ async def test_message_crud(client: AsyncClient):
 
     # CREATE: Send message from user1 to user2
     r = await client.post(
-        '/api/web/messages/',
+        '/api/web/messages',
         data={
             'subject': 'Test Subject',
             'body': 'Test Body',

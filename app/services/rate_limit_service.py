@@ -81,7 +81,7 @@ class RateLimitService:
 
         # Check if the limit is exceeded
         if usage > quota:
-            audit('rate_limit')  # pyright: ignore[reportUnusedCoroutine]
+            audit('rate_limit').close()
             if raise_on_limit:
                 raise HTTPException(
                     status.HTTP_429_TOO_MANY_REQUESTS,

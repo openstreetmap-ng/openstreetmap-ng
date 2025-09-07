@@ -108,7 +108,7 @@ async def _authenticate_with_oauth2(
         return None
 
     application_id = token['application_id']
-    audit('auth_api', user_id=user_id, application_id=application_id)  # pyright: ignore[reportUnusedCoroutine]
+    audit('auth_api', user_id=user_id, application_id=application_id).close()
     scopes = user_extend_scopes(user, frozenset(token['scopes']))
     return user, scopes, application_id
 
@@ -132,7 +132,7 @@ async def _authenticate_with_cookie(
     if user is None:
         return None
 
-    audit('auth_web', user_id=user_id, application_id=None)  # pyright: ignore[reportUnusedCoroutine]
+    audit('auth_web', user_id=user_id, application_id=None).close()
     scopes = user_extend_scopes(user, _SESSION_AUTH_SCOPES)
     return user, scopes, None
 

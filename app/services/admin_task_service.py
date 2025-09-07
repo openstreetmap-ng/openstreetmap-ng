@@ -134,7 +134,7 @@ class AdminTaskService:
         validated_args = _func_args_model(definition['func'])(**args).model_dump()
 
         _TG.create_task(_start_task(definition, validated_args))
-        audit('admin_task', extra=f'{task_id}{validated_args}')  # pyright: ignore[reportUnusedCoroutine]
+        audit('admin_task', extra=f'{task_id}{validated_args}').close()
 
 
 async def _start_task(definition: TaskDefinition, args: dict[str, Any]) -> None:

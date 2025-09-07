@@ -21,16 +21,17 @@ async def test_cleanup_old_audit_logs():
         await conn.execute(
             """
             INSERT INTO audit (
-                id, type, ip, user_agent, user_id, application_id,
-                email, display_name, extra, created_at
+                type, ip, user_agent, user_id,
+                target_user_id, application_id, extra,
+                created_at
             )
             VALUES (
-                %(id)s, 'auth_web', %(ip)s, NULL, NULL, %(application_id)s,
-                NULL, NULL, NULL, statement_timestamp() - %(age)s
+                'auth_web', %(ip)s, NULL, NULL,
+                NULL, %(application_id)s, NULL,
+                statement_timestamp() - %(age)s
             )
             """,
             {
-                'id': zid(),
                 'ip': ip_address('192.168.1.1'),
                 'application_id': app_id,
                 'age': AUDIT_POLICY.auth_web.retention + timedelta(days=1),
@@ -41,16 +42,17 @@ async def test_cleanup_old_audit_logs():
         await conn.execute(
             """
             INSERT INTO audit (
-                id, type, ip, user_agent, user_id, application_id,
-                email, display_name, extra, created_at
+                type, ip, user_agent, user_id,
+                target_user_id, application_id, extra,
+                created_at
             )
             VALUES (
-                %(id)s, 'auth_web', %(ip)s, NULL, NULL, %(application_id)s,
-                NULL, NULL, NULL, statement_timestamp() - %(age)s
+                'auth_web', %(ip)s, NULL, NULL,
+                NULL, %(application_id)s, NULL,
+                statement_timestamp() - %(age)s
             )
             """,
             {
-                'id': zid(),
                 'ip': ip_address('192.168.1.2'),
                 'application_id': app_id,
                 'age': AUDIT_POLICY.auth_web.retention - timedelta(days=1),

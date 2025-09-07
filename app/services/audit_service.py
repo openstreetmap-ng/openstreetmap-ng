@@ -76,7 +76,7 @@ async def audit(
     Creates background tasks to record user actions with context like IP, user agent,
     and metadata. The audit will persist to the database regardless of whether you await it.
 
-    Common usage: `await audit('auth_web')` or fire-and-forget `audit('rate_limit')  # pyright: ignore[reportUnusedCoroutine]`
+    Common usage: `await audit('auth_web')` or fire-and-forget `audit('rate_limit').close()`
     """
     audit_policy = AUDIT_POLICY[type]
 
