@@ -7,7 +7,6 @@ from fastapi import APIRouter, Query, Request, Response
 from starlette import status
 
 from app.config import (
-    AUDIT_DISCARD_REPEATED_VIEW_ADMIN_USERS,
     DISPLAY_NAME_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
     USER_LIST_PAGE_SIZE,
@@ -39,13 +38,7 @@ async def users_index(
     ] = 'created_desc',
 ):
     async with TaskGroup() as tg:
-        tg.create_task(
-            audit(
-                'view_admin_users',
-                extra=request.url.query,
-                discard_repeated=AUDIT_DISCARD_REPEATED_VIEW_ADMIN_USERS,
-            )
-        )
+        tg.create_task(audit('view_admin_users', extra=request.url.query))
 
         users_num_items: int = await UserQuery.find(  # type: ignore
             'count',
@@ -83,13 +76,7 @@ async def user_edit(
         return Response(None, status.HTTP_404_NOT_FOUND)
 
     async with TaskGroup() as tg:
-        tg.create_task(
-            audit(
-                'view_admin_users',
-                target_user_id=user_id,
-                discard_repeated=AUDIT_DISCARD_REPEATED_VIEW_ADMIN_USERS,
-            )
-        )
+        tg.create_task(audit('view_admin_users', target_user_id=user_id))
         connected_providers_task = tg.create_task(
             ConnectedAccountQuery.get_providers_by_user(user_id)
         )

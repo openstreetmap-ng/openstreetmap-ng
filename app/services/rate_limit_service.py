@@ -10,11 +10,7 @@ from fastapi import HTTPException
 from sentry_sdk import start_transaction
 from starlette import status
 
-from app.config import (
-    AUDIT_DISCARD_REPEATED_RATE_LIMIT,
-    AUDIT_SAMPLE_RATE_RATE_LIMIT,
-    ENV,
-)
+from app.config import ENV
 from app.db import db
 from app.lib.retry import retry
 from app.lib.sentry import (
@@ -85,11 +81,7 @@ class RateLimitService:
 
         # Check if the limit is exceeded
         if usage > quota:
-            audit(  # pyright: ignore[reportUnusedCoroutine]
-                'rate_limit',
-                sample_rate=AUDIT_SAMPLE_RATE_RATE_LIMIT,
-                discard_repeated=AUDIT_DISCARD_REPEATED_RATE_LIMIT,
-            )
+            audit('rate_limit')  # pyright: ignore[reportUnusedCoroutine]
             if raise_on_limit:
                 raise HTTPException(
                     status.HTTP_429_TOO_MANY_REQUESTS,

@@ -12,23 +12,7 @@ from psycopg import AsyncConnection
 from psycopg.sql import SQL
 from sentry_sdk.api import start_transaction
 
-from app.config import (
-    AUDIT_RETENTION_ADMIN_TASK,
-    AUDIT_RETENTION_AUTH_API,
-    AUDIT_RETENTION_AUTH_FAIL,
-    AUDIT_RETENTION_AUTH_WEB,
-    AUDIT_RETENTION_CHANGE_DISPLAY_NAME,
-    AUDIT_RETENTION_CHANGE_EMAIL,
-    AUDIT_RETENTION_CHANGE_PASSWORD,
-    AUDIT_RETENTION_CHANGE_ROLES,
-    AUDIT_RETENTION_IMPERSONATE,
-    AUDIT_RETENTION_RATE_LIMIT,
-    AUDIT_RETENTION_SEND_MESSAGE,
-    AUDIT_RETENTION_VIEW_ADMIN_USERS,
-    AUDIT_RETENTION_VIEW_AUDIT,
-    AUDIT_USER_AGENT_MAX_LENGTH,
-    ENV,
-)
+from app.config import AUDIT_POLICY, AUDIT_USER_AGENT_MAX_LENGTH, ENV
 from app.db import db
 from app.lib.anonymizer import anonymize_ip
 from app.lib.auth_context import auth_app, auth_user
@@ -45,25 +29,6 @@ from app.models.types import ApplicationId, UserId
 _TG: TaskGroup
 _PROCESS_REQUEST_EVENT = Event()
 _PROCESS_DONE_EVENT = Event()
-
-_AUDIT_RETENTION: dict[AuditType, timedelta] = {
-    'admin_task': AUDIT_RETENTION_ADMIN_TASK,
-    'auth_api': AUDIT_RETENTION_AUTH_API,
-    'auth_fail': AUDIT_RETENTION_AUTH_FAIL,
-    'auth_web': AUDIT_RETENTION_AUTH_WEB,
-    'change_display_name': AUDIT_RETENTION_CHANGE_DISPLAY_NAME,
-    'change_email': AUDIT_RETENTION_CHANGE_EMAIL,
-    'change_password': AUDIT_RETENTION_CHANGE_PASSWORD,
-    'change_roles': AUDIT_RETENTION_CHANGE_ROLES,
-    'impersonate': AUDIT_RETENTION_IMPERSONATE,
-    'rate_limit': AUDIT_RETENTION_RATE_LIMIT,
-    'send_message': AUDIT_RETENTION_SEND_MESSAGE,
-    'view_admin_users': AUDIT_RETENTION_VIEW_ADMIN_USERS,
-    'view_audit': AUDIT_RETENTION_VIEW_AUDIT,
-}
-assert len(_AUDIT_RETENTION) == len(AUDIT_TYPE_SET), (
-    'Audit retention policies do not cover all types'
-)
 
 
 class AuditService:
@@ -99,9 +64,9 @@ async def audit(
     target_user_id: UserId | None = None,
     application_id: ApplicationId | None | Literal['UNSET'] = 'UNSET',
     extra: str | None = None,
-    # Event config
-    sample_rate: float = 1,
-    discard_repeated: timedelta | None = None,
+    # Event config overrides
+    sample_rate: float | None = None,
+    discard_repeated: timedelta | None | Literal['UNSET'] = 'UNSET',
     # Constants
     AUDIT_USER_AGENT_MAX_LENGTH: cython.Py_ssize_t = AUDIT_USER_AGENT_MAX_LENGTH,
 ) -> None:
@@ -113,12 +78,18 @@ async def audit(
 
     Common usage: `await audit('auth_web')` or fire-and-forget `audit('rate_limit')  # pyright: ignore[reportUnusedCoroutine]`
     """
+    audit_policy = AUDIT_POLICY[type]
+
+    if sample_rate is None:
+        sample_rate = audit_policy.sample_rate
     if sample_rate < 1 and random() > sample_rate:
         return
 
     if user_id == 'UNSET':
         user = auth_user()
         user_id = user['id'] if user is not None else None
+    if discard_repeated == 'UNSET':
+        discard_repeated = audit_policy.discard_repeated
 
     assert discard_repeated is None or user_id is not None, (
         'discard_repeated requires user_id to be set'
@@ -260,14 +231,15 @@ async def _process_task() -> None:
 async def _cleanup_old_audit_logs() -> None:
     """Delete old audit logs based on configured retention periods."""
     async with db(True) as conn:
-        for audit_type, retention in _AUDIT_RETENTION.items():
+        for audit_type in AUDIT_TYPE_SET:
+            audit_policy = AUDIT_POLICY[audit_type]
             result = await conn.execute(
                 """
                 DELETE FROM audit
                 WHERE type = %s
                 AND created_at < statement_timestamp() - %s
                 """,
-                (audit_type, retention),
+                (audit_type, audit_policy.retention),
             )
 
             if result.rowcount:

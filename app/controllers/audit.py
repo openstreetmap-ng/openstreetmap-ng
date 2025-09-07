@@ -6,7 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, Request
 
-from app.config import AUDIT_DISCARD_REPEATED_VIEW_AUDIT, AUDIT_LIST_PAGE_SIZE
+from app.config import AUDIT_LIST_PAGE_SIZE
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.models.db.audit import AuditType
@@ -32,13 +32,7 @@ async def audit_index(
     created_before: Annotated[datetime | None, Query()] = None,
 ):
     async with TaskGroup() as tg:
-        tg.create_task(
-            audit(
-                'view_audit',
-                extra=request.url.query,
-                discard_repeated=AUDIT_DISCARD_REPEATED_VIEW_AUDIT,
-            )
-        )
+        tg.create_task(audit('view_audit', extra=request.url.query))
 
         audit_num_items: int = await AuditQuery.find(  # type: ignore
             'count',

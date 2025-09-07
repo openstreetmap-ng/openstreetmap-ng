@@ -3,12 +3,7 @@ import logging
 from fastapi import Request
 from pydantic import SecretStr
 
-from app.config import (
-    AUDIT_DISCARD_REPEATED_AUTH_API,
-    AUDIT_DISCARD_REPEATED_AUTH_WEB,
-    AUDIT_SAMPLE_RATE_AUTH,
-    ENV,
-)
+from app.config import ENV
 from app.lib.testmethod import testmethod
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
@@ -113,13 +108,7 @@ async def _authenticate_with_oauth2(
         return None
 
     application_id = token['application_id']
-    audit(  # pyright: ignore[reportUnusedCoroutine]
-        'auth_api',
-        user_id=user_id,
-        application_id=application_id,
-        sample_rate=AUDIT_SAMPLE_RATE_AUTH,
-        discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_API,
-    )
+    audit('auth_api', user_id=user_id, application_id=application_id)  # pyright: ignore[reportUnusedCoroutine]
     scopes = user_extend_scopes(user, frozenset(token['scopes']))
     return user, scopes, application_id
 
@@ -143,13 +132,7 @@ async def _authenticate_with_cookie(
     if user is None:
         return None
 
-    audit(  # pyright: ignore[reportUnusedCoroutine]
-        'auth_web',
-        user_id=user_id,
-        application_id=None,
-        sample_rate=AUDIT_SAMPLE_RATE_AUTH,
-        discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_WEB,
-    )
+    audit('auth_web', user_id=user_id, application_id=None)  # pyright: ignore[reportUnusedCoroutine]
     scopes = user_extend_scopes(user, _SESSION_AUTH_SCOPES)
     return user, scopes, None
 

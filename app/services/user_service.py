@@ -7,12 +7,7 @@ from psycopg import AsyncConnection
 from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
 
-from app.config import (
-    AUDIT_DISCARD_REPEATED_AUTH_FAIL,
-    ENV,
-    USER_PENDING_EXPIRE,
-    USER_SCHEDULED_DELETE_DELAY,
-)
+from app.config import ENV, USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
@@ -70,12 +65,7 @@ class UserService:
         )
 
         if not verification.success:
-            await audit(
-                'auth_fail',
-                user_id=user_id,
-                extra='Password mismatch',
-                discard_repeated=AUDIT_DISCARD_REPEATED_AUTH_FAIL,
-            )
+            await audit('auth_fail', user_id=user_id, extra='Password mismatch')
             StandardFeedback.raise_error(
                 None, t('users.auth_failure.invalid_credentials')
             )
@@ -87,7 +77,13 @@ class UserService:
         access_token = await SystemAppService.create_access_token(
             SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
         )
-        await audit('auth_web', user_id=user_id, extra='Login')
+        await audit(
+            'auth_web',
+            user_id=user_id,
+            extra='Login',
+            sample_rate=1,
+            discard_repeated=None,
+        )
         return access_token
 
     @staticmethod

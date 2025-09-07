@@ -4,7 +4,7 @@ from ipaddress import ip_address
 import pytest
 from zid import zid
 
-from app.config import AUDIT_RETENTION_AUTH_WEB
+from app.config import AUDIT_POLICY
 from app.db import db
 from app.models.db.audit import AuditEvent
 from app.models.types import ApplicationId
@@ -33,7 +33,7 @@ async def test_cleanup_old_audit_logs():
                 'id': zid(),
                 'ip': ip_address('192.168.1.1'),
                 'application_id': app_id,
-                'age': AUDIT_RETENTION_AUTH_WEB + timedelta(days=1),
+                'age': AUDIT_POLICY.auth_web.retention + timedelta(days=1),
             },
         )
 
@@ -53,7 +53,7 @@ async def test_cleanup_old_audit_logs():
                 'id': zid(),
                 'ip': ip_address('192.168.1.2'),
                 'application_id': app_id,
-                'age': AUDIT_RETENTION_AUTH_WEB - timedelta(days=1),
+                'age': AUDIT_POLICY.auth_web.retention - timedelta(days=1),
             },
         )
 

@@ -2,6 +2,7 @@ from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 from typing import Literal, NotRequired, TypedDict, get_args
 
+from app.config import AUDIT_POLICY
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import UserDisplay
 from app.models.types import ApplicationId, UserId
@@ -24,6 +25,9 @@ AuditType = Literal[
 ]
 
 AUDIT_TYPE_SET = frozenset[AuditType](get_args(AuditType))
+
+for t in AUDIT_TYPE_SET:
+    assert hasattr(AUDIT_POLICY, t), f'AUDIT_POLICY is missing policy for {t!r}'
 
 
 class AuditEventInit(TypedDict):

@@ -3,12 +3,13 @@ from hashlib import sha256
 from logging.config import dictConfig
 from os import chdir
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 from urllib.parse import urlsplit
 
 from githead import githead
 from pydantic import (
     AliasChoices,
+    BaseModel,
     BeforeValidator,
     ByteSize,
     ConfigDict,
@@ -20,6 +21,9 @@ from pydantic import (
 
 from app.lib.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
 from app.lib.pydantic_settings_integration import pydantic_settings_integration
+
+if TYPE_CHECKING:
+    from app.models.db.audit import AuditType
 
 
 def _ByteSize(v: str) -> ByteSize:  # noqa: N802
@@ -305,29 +309,46 @@ MESSAGES_INBOX_PAGE_SIZE = 50
 
 # -------------------- Administration --------------------
 
+
+class _AuditPolicies(BaseModel):
+    class Policy(BaseModel):
+        retention: timedelta
+        sample_rate: float = 1.0
+        discard_repeated: timedelta | None = None
+
+        def __init__(self, /, retention: timedelta | float, **data) -> None:
+            super().__init__(
+                retention=(
+                    retention
+                    if isinstance(retention, timedelta)
+                    else timedelta(days=retention)
+                ),
+                **data,
+            )
+
+    admin_task: Policy = Policy(60)
+    auth_api: Policy = Policy(14, sample_rate=0.05, discard_repeated=timedelta(days=1))
+    auth_fail: Policy = Policy(30, discard_repeated=timedelta(minutes=10))
+    auth_web: Policy = Policy(14, sample_rate=0.05, discard_repeated=timedelta(days=1))
+    change_display_name: Policy = Policy(30)
+    change_email: Policy = Policy(60)
+    change_password: Policy = Policy(60)
+    change_roles: Policy = Policy(60)
+    impersonate: Policy = Policy(60)
+    rate_limit: Policy = Policy(
+        14, sample_rate=0.05, discard_repeated=timedelta(hours=6)
+    )
+    send_message: Policy = Policy(30)
+    view_admin_users: Policy = Policy(60, discard_repeated=timedelta(hours=6))
+    view_audit: Policy = Policy(60, discard_repeated=timedelta(hours=6))
+
+    def __getitem__(self, item: 'AuditType') -> Policy:
+        return getattr(self, item)
+
+
 # Audit
-AUDIT_DISCARD_REPEATED_AUTH_API = timedelta(days=1)
-AUDIT_DISCARD_REPEATED_AUTH_FAIL = timedelta(minutes=10)
-AUDIT_DISCARD_REPEATED_AUTH_WEB = timedelta(days=1)
-AUDIT_DISCARD_REPEATED_RATE_LIMIT = timedelta(hours=6)
-AUDIT_DISCARD_REPEATED_VIEW_AUDIT = timedelta(hours=6)
-AUDIT_DISCARD_REPEATED_VIEW_ADMIN_USERS = timedelta(hours=6)
+AUDIT_POLICY = _AuditPolicies()
 AUDIT_LIST_PAGE_SIZE = 50
-AUDIT_RETENTION_ADMIN_TASK = timedelta(days=60)
-AUDIT_RETENTION_AUTH_API = timedelta(days=14)
-AUDIT_RETENTION_AUTH_FAIL = timedelta(days=30)
-AUDIT_RETENTION_AUTH_WEB = timedelta(days=14)
-AUDIT_RETENTION_CHANGE_DISPLAY_NAME = timedelta(days=30)
-AUDIT_RETENTION_CHANGE_EMAIL = timedelta(days=60)
-AUDIT_RETENTION_CHANGE_PASSWORD = timedelta(days=60)
-AUDIT_RETENTION_CHANGE_ROLES = timedelta(days=60)
-AUDIT_RETENTION_IMPERSONATE = timedelta(days=60)
-AUDIT_RETENTION_RATE_LIMIT = timedelta(days=14)
-AUDIT_RETENTION_SEND_MESSAGE = timedelta(days=30)
-AUDIT_RETENTION_VIEW_ADMIN_USERS = timedelta(days=60)
-AUDIT_RETENTION_VIEW_AUDIT = timedelta(days=60)
-AUDIT_SAMPLE_RATE_AUTH = 0.05
-AUDIT_SAMPLE_RATE_RATE_LIMIT = 0.05
 AUDIT_USER_AGENT_MAX_LENGTH = 200
 
 # Task management
