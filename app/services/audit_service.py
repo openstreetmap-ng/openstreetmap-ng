@@ -23,6 +23,9 @@ from app.config import (
     AUDIT_RETENTION_CHANGE_ROLES,
     AUDIT_RETENTION_IMPERSONATE,
     AUDIT_RETENTION_RATE_LIMIT,
+    AUDIT_RETENTION_SEND_MESSAGE,
+    AUDIT_RETENTION_VIEW_ADMIN_USERS,
+    AUDIT_RETENTION_VIEW_AUDIT,
     AUDIT_USER_AGENT_MAX_LENGTH,
     ENV,
 )
@@ -36,7 +39,7 @@ from app.lib.sentry import (
 )
 from app.lib.testmethod import testmethod
 from app.middlewares.request_context_middleware import get_request
-from app.models.db.audit import AuditEventInit, AuditType
+from app.models.db.audit import AUDIT_TYPE_SET, AuditEventInit, AuditType
 from app.models.types import ApplicationId, UserId
 
 _TG: TaskGroup
@@ -54,7 +57,13 @@ _AUDIT_RETENTION: dict[AuditType, timedelta] = {
     'change_roles': AUDIT_RETENTION_CHANGE_ROLES,
     'impersonate': AUDIT_RETENTION_IMPERSONATE,
     'rate_limit': AUDIT_RETENTION_RATE_LIMIT,
+    'send_message': AUDIT_RETENTION_SEND_MESSAGE,
+    'view_admin_users': AUDIT_RETENTION_VIEW_ADMIN_USERS,
+    'view_audit': AUDIT_RETENTION_VIEW_AUDIT,
 }
+assert len(_AUDIT_RETENTION) == len(AUDIT_TYPE_SET), (
+    'Audit retention policies do not cover all types'
+)
 
 
 class AuditService:

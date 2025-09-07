@@ -17,6 +17,7 @@ from app.models.db.user import User
 from app.models.types import DisplayName, MessageId, UserId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
+from app.services.audit_service import audit
 from app.services.email_service import EmailService
 
 
@@ -96,6 +97,12 @@ class MessageService:
                 ),
                 to_user_ids,
             )
+
+            async with conn.pipeline():
+                for to_user_id in to_user_ids:
+                    await audit(
+                        'send_message', conn, target_user_id=to_user_id, extra=subject
+                    )
 
         logging.info(
             'Sent message %d from user %d to recipients %r with subject %r',

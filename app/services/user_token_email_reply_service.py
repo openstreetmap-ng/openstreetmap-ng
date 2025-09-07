@@ -38,6 +38,7 @@ class UserTokenEmailReplyService:
         )
         return Email(f'{token}@{SMTP_MESSAGES_FROM_HOST}')
 
+    # TODO: limit size
     @staticmethod
     async def reply(reply_address: Email, subject: str, body: str) -> None:
         """Reply to a user with a message."""
