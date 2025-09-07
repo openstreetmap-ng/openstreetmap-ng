@@ -172,13 +172,11 @@ async def _audit_task(
 ) -> None:
     query = SQL("""
         INSERT INTO audit (
-            id, type,
-            ip, user_agent, user_id,
+            type, ip, user_agent, user_id,
             target_user_id, application_id, extra
         )
         SELECT
-            %(id)s, %(type)s,
-            %(ip)s, %(user_agent)s, %(user_id)s,
+            %(type)s, %(ip)s, %(user_agent)s, %(user_id)s,
             %(target_user_id)s, %(application_id)s, %(extra)s
         {}
     """).format(
