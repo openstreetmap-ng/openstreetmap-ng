@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from asyncio import Event, TaskGroup
+from collections.abc import Coroutine
 from contextlib import asynccontextmanager, nullcontext
 from datetime import timedelta
 from ipaddress import ip_address
@@ -54,7 +55,7 @@ class AuditService:
         await _PROCESS_DONE_EVENT.wait()
 
 
-async def audit(
+def audit(
     type: AuditType,
     conn: AsyncConnection | None = None,
     /,
@@ -69,21 +70,21 @@ async def audit(
     discard_repeated: timedelta | None | Literal['UNSET'] = 'UNSET',
     # Constants
     AUDIT_USER_AGENT_MAX_LENGTH: cython.Py_ssize_t = AUDIT_USER_AGENT_MAX_LENGTH,
-) -> None:
+) -> Coroutine[None, None, None]:
     """
     Log audit events for security monitoring and compliance.
-
-    Creates background tasks to record user actions with context like IP, user agent,
-    and metadata. The audit will persist to the database regardless of whether you await it.
-
-    Common usage: `await audit('auth_web')` or fire-and-forget `audit('rate_limit').close()`
+    Schedules the DB write immediately and returns an awaitable.
     """
     audit_policy = AUDIT_POLICY[type]
 
     if sample_rate is None:
         sample_rate = audit_policy.sample_rate
     if sample_rate < 1 and random() > sample_rate:
-        return
+
+        async def _noop():
+            return None
+
+        return _noop()
 
     if user_id == 'UNSET':
         user = auth_user()
@@ -128,21 +129,20 @@ async def audit(
 
     task = _TG.create_task(_audit_task(conn, event_init, discard_repeated))
 
-    # Skip logging for common cases
-    if type in {'auth_api', 'auth_web'} and extra is None:
+    if type not in {'auth_api', 'auth_web'} or extra is not None:
+        values: list[str] = []
+        if user_id is not None:
+            values.append(f'uid={user_id}')
+        if target_user_id is not None:
+            values.append(f'->uid={target_user_id}')
+        if application_id is not None:
+            values.append(f'aid={application_id}')
+        logging.info('AUDIT: %s %s "%s": %s', req_ip, type, ' '.join(values), extra)
+
+    async def _waiter():
         await task
-        return
 
-    values: list[str] = []
-    if user_id is not None:
-        values.append(f'uid={user_id}')
-    if target_user_id is not None:
-        values.append(f'->uid={target_user_id}')
-    if application_id is not None:
-        values.append(f'aid={application_id}')
-
-    logging.info('AUDIT: %s %s "%s": %s', req_ip, type, ' '.join(values), extra)
-    await task
+    return _waiter()
 
 
 async def _audit_task(
