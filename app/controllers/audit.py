@@ -9,7 +9,7 @@ from fastapi import APIRouter, Query, Request
 from app.config import AUDIT_LIST_PAGE_SIZE
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
-from app.models.db.audit import AuditType
+from app.models.db.audit import AUDIT_TYPE_VALUES, AuditType
 from app.models.db.user import User
 from app.models.types import ApplicationId
 from app.queries.audit_query import AuditQuery
@@ -48,6 +48,7 @@ async def audit_index(
         return await render_response(
             'audit/index',
             {
+                'AUDIT_TYPE_VALUES': AUDIT_TYPE_VALUES,
                 'audit_num_items': audit_num_items,
                 'audit_num_pages': audit_num_pages,
                 'ip': ip or '',
