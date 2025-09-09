@@ -45,6 +45,15 @@ async def audit_index(
         )
         audit_num_pages = ceil(audit_num_items / AUDIT_LIST_PAGE_SIZE)
 
+        page_cursors = await AuditQuery.compute_page_cursors_bin(
+            ip=ip,
+            user=user,
+            application_id=application_id,
+            type=type,
+            created_after=created_after,
+            created_before=created_before,
+        )
+
         return await render_response(
             'audit/index',
             {
@@ -57,5 +66,6 @@ async def audit_index(
                 'type': type,
                 'created_after': created_after.isoformat() if created_after else '',
                 'created_before': created_before.isoformat() if created_before else '',
+                'page_cursors': page_cursors,
             },
         )

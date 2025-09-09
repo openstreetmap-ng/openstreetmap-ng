@@ -1,16 +1,6 @@
 syntax = "proto3";
 
 // =============================================
-// API
-// =============================================
-
-// Cursor tracks pagination state for API data fetching operations
-message Cursor {
-    uint64 id = 1;  // Last fetched object's database identifier
-    optional uint64 timestamp = 2;  // Optional timestamp for point-in-time pagination
-}
-
-// =============================================
 // Caching System
 // =============================================
 

@@ -1,5 +1,8 @@
+import { fromBinary, toBinary } from "@bufbuild/protobuf"
+import { base64Decode, base64Encode } from "@bufbuild/protobuf/wire"
 import { effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
+import { type Cursor, CursorSchema, PageCursorsSchema } from "../lib/proto/shared_pb"
 import { resolveDatetimeLazy } from "./datetime"
 
 const paginationDistance = 2
@@ -29,9 +32,16 @@ export const configureStandardPagination = (
     }
 
     const dataset = paginationContainers[paginationContainers.length - 1].dataset
-    const totalPages = Number.parseInt(dataset.pages, 10)
+    const cursorsBin = dataset.cursors
+    const anchors: Cursor[] | null = cursorsBin
+        ? fromBinary(PageCursorsSchema, base64Decode(cursorsBin)).anchors
+        : null
+    const usingCursors = !!anchors
+    const totalPages = usingCursors
+        ? anchors!.length
+        : Number.parseInt(dataset.pages || "", 10)
     if (!totalPages) {
-        console.debug("Ignored standard pagination: missing data-pages")
+        console.debug("Ignored standard pagination: missing data-cursors/pages")
         return () => {}
     }
 
@@ -86,7 +96,19 @@ export const configureStandardPagination = (
 
         console.debug("Navigating to page", currentPageString)
         setPendingState(true)
-        fetch(endpointPattern.replace("{page}", currentPageString), {
+        const url = usingCursors
+            ? (() => {
+                  const idx = currentPage.value - 1
+                  const start = anchors![idx]
+                  const end = idx > 0 ? anchors![idx - 1] : undefined
+                  const startStr = base64Encode(toBinary(CursorSchema, start))
+                  const endStr = end ? base64Encode(toBinary(CursorSchema, end)) : ""
+                  return endpointPattern
+                      .replace("{start}", startStr)
+                      .replace("{end}", endStr)
+              })()
+            : endpointPattern.replace("{page}", currentPageString)
+        fetch(url, {
             method: "GET",
             mode: "same-origin",
             cache: "no-store",

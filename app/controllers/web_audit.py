@@ -4,7 +4,6 @@ from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from typing import Annotated
 
 from fastapi import APIRouter, Query
-from pydantic import PositiveInt
 
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
@@ -21,8 +20,8 @@ router = APIRouter(prefix='/api/web/audit')
 @router.get('')
 async def audit_page(
     _: Annotated[User, web_user('role_administrator')],
-    page: Annotated[PositiveInt, Query()],
-    num_items: Annotated[PositiveInt, Query()],
+    start: Annotated[str, Query()],
+    end: Annotated[str | None, Query()] = None,
     ip: Annotated[
         IPv4Address | IPv6Address | IPv4Network | IPv6Network | None, Query()
     ] = None,
@@ -33,9 +32,9 @@ async def audit_page(
     created_before: Annotated[datetime | None, Query()] = None,
 ):
     events: list[AuditEvent] = await AuditQuery.find(  # type: ignore
-        'page',
-        page=page,
-        num_items=num_items,
+        'window',
+        start=start,
+        end=end or None,
         ip=ip,
         user=user,
         application_id=application_id,

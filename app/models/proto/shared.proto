@@ -157,6 +157,21 @@ message RoutingResult {
 }
 
 // =============================================
+// Pagination Cursors
+// =============================================
+
+// Cursor tracks pagination state for API data fetching operations
+message Cursor {
+    uint64 id = 1;  // Last fetched object's database identifier
+    optional uint64 timestamp = 2;  // Optional timestamp for point-in-time pagination
+}
+
+// A compact container with anchors for each page boundary
+message PageCursors {
+    repeated Cursor anchors = 1;
+}
+
+// =============================================
 // UI Element Metadata
 // =============================================
 

@@ -7,7 +7,12 @@ from psycopg.sql import SQL, Composable
 
 from app.config import AUDIT_LIST_PAGE_SIZE
 from app.db import db
-from app.lib.standard_pagination import standard_pagination_range
+from app.lib.standard_pagination import (
+    compute_page_cursors_bin as _compute_page_cursors_bin,
+)
+from app.lib.standard_pagination import (
+    where_between_sql,
+)
 from app.models.db.audit import AuditEvent, AuditType
 from app.models.types import ApplicationId, DisplayName, UserId
 from app.queries.user_query import UserQuery
@@ -83,11 +88,11 @@ class AuditQuery:
 
     @staticmethod
     async def find(
-        mode: Literal['count', 'page'],
+        mode: Literal['count', 'window'],
         /,
         *,
-        page: int | None = None,
-        num_items: int | None = None,
+        start: str | None = None,
+        end: str | None = None,
         ip: IPv4Address | IPv6Address | IPv4Network | IPv6Network | None = None,
         user: str | None = None,
         application_id: ApplicationId | None = None,
@@ -96,87 +101,136 @@ class AuditQuery:
         created_before: datetime | None = None,
     ) -> int | list[AuditEvent]:
         """Find audit logs. Results are always sorted by created_at DESC (most recent first)."""
-        conditions: list[Composable] = []
-        params: list = []
-
-        if ip is not None:
-            if isinstance(ip, IPv4Network | IPv6Network):
-                conditions.append(SQL('ip >= %s AND ip <= %s'))
-                params.append(ip.network_address)
-                params.append(ip.broadcast_address)
-            else:
-                conditions.append(SQL('ip = %s'))
-                params.append(ip)
-
-        if user is not None:
-            user_ids: list[UserId] = []
-
-            # Try to parse as user ID
-            try:
-                user_ids.append(UserId(int(user)))
-            except (ValueError, TypeError):
-                pass
-
-            # Try to find by display name
-            user_by_name = await UserQuery.find_by_display_name(DisplayName(user))
-            if user_by_name is not None:
-                user_ids.append(user_by_name['id'])
-
-            if not user_ids:
-                # No matching user found, return empty results
-                if mode == 'count':
-                    return 0
-                return []
-
-            conditions.append(SQL('(user_id = ANY(%s) OR target_user_id = ANY(%s))'))
-            params.append(user_ids)
-            params.append(user_ids)
-
-        if application_id is not None:
-            conditions.append(SQL('application_id = %s'))
-            params.append(application_id)
-
-        if type is not None:
-            conditions.append(SQL('type = %s'))
-            params.append(type)
-
-        if created_after is not None:
-            conditions.append(SQL('created_at >= %s'))
-            params.append(created_after)
-
-        if created_before is not None:
-            conditions.append(SQL('created_at <= %s'))
-            params.append(created_before)
-
-        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        where_clause, params = await _build_filters(
+            ip=ip,
+            user=user,
+            application_id=application_id,
+            type=type,
+            created_after=created_after,
+            created_before=created_before,
+        )
 
         if mode == 'count':
             query = SQL('SELECT COUNT(*) FROM audit WHERE {}').format(where_clause)
             async with db() as conn, await conn.execute(query, params) as r:
                 return (await r.fetchone())[0]  # type: ignore
 
-        # mode == 'page'
-        assert page is not None, "Page number must be provided in 'page' mode"
-        assert num_items is not None, "Number of items must be provided in 'page' mode"
+        # mode == 'window'
+        assert start is not None, "Start cursor must be provided in 'window' mode"
+        # Normalize empty end to None
+        end_val = end or None
 
-        stmt_limit, stmt_offset = standard_pagination_range(
-            page,
-            page_size=AUDIT_LIST_PAGE_SIZE,
-            num_items=num_items,
-            reverse=False,  # Page 1 = most recent
+        window_sql, window_params = where_between_sql(
+            primary_col='created_at',
+            order='desc',
+            time_ordered=True,
+            start=start,
+            end=end_val,
         )
-
-        query = SQL("""
+        query = SQL(
+            """
             SELECT * FROM audit
-            WHERE {}
+            WHERE {} AND {}
             ORDER BY created_at DESC
-            OFFSET %s
-            LIMIT %s
-        """).format(where_clause)
-        params.extend([stmt_offset, stmt_limit])
+            """
+        ).format(where_clause, window_sql)
+        q_params = [*params, *window_params]
 
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+            await conn.cursor(row_factory=dict_row).execute(query, q_params) as r,
         ):
             return await r.fetchall()  # type: ignore
+
+    @staticmethod
+    async def compute_page_cursors_bin(
+        *,
+        ip: IPv4Address | IPv6Address | IPv4Network | IPv6Network | None = None,
+        user: str | None = None,
+        application_id: ApplicationId | None = None,
+        type: AuditType | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
+    ) -> str:
+        where_clause, params = await _build_filters(
+            ip=ip,
+            user=user,
+            application_id=application_id,
+            type=type,
+            created_after=created_after,
+            created_before=created_before,
+        )
+        base_sql = SQL('SELECT created_at FROM audit WHERE {}').format(where_clause)
+        async with db() as conn:
+            return await _compute_page_cursors_bin(
+                conn,
+                base_sql,
+                params,
+                primary_col='created_at',
+                page_size=AUDIT_LIST_PAGE_SIZE,
+                order='desc',
+                time_ordered=True,
+            )
+
+
+async def _build_filters(
+    *,
+    ip: IPv4Address | IPv6Address | IPv4Network | IPv6Network | None = None,
+    user: str | None = None,
+    application_id: ApplicationId | None = None,
+    type: AuditType | None = None,
+    created_after: datetime | None = None,
+    created_before: datetime | None = None,
+) -> tuple[Composable, list]:
+    conditions: list[Composable] = []
+    params: list = []
+
+    if ip is not None:
+        if isinstance(ip, IPv4Network | IPv6Network):
+            conditions.append(SQL('ip >= %s AND ip <= %s'))
+            params.append(ip.network_address)
+            params.append(ip.broadcast_address)
+        else:
+            conditions.append(SQL('ip = %s'))
+            params.append(ip)
+
+    if user is not None:
+        user_ids: list[UserId] = []
+
+        # Try to parse as user ID
+        try:
+            user_ids.append(UserId(int(user)))
+        except (ValueError, TypeError):
+            pass
+
+        # Try to find by display name
+        user_by_name = await UserQuery.find_by_display_name(DisplayName(user))
+        if user_by_name is not None:
+            user_ids.append(user_by_name['id'])
+
+        if not user_ids:
+            # Force no results
+            return SQL('FALSE'), []
+
+        conditions.append(SQL('(user_id = ANY(%s) OR target_user_id = ANY(%s))'))
+        params.append(user_ids)
+        params.append(user_ids)
+
+    if application_id is not None:
+        conditions.append(SQL('application_id = %s'))
+        params.append(application_id)
+
+    if type is not None:
+        conditions.append(SQL('type = %s'))
+        params.append(type)
+
+    if created_after is not None:
+        conditions.append(SQL('created_at >= %s'))
+        params.append(created_after)
+
+    if created_before is not None:
+        conditions.append(SQL('created_at <= %s'))
+        params.append(created_before)
+
+    where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+    return where_clause, params
