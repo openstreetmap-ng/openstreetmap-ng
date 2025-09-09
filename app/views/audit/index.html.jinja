@@ -24,7 +24,7 @@
                     <label class="form-label" for="typeSelect">Event Type</label>
                     <select id="typeSelect" class="form-select form-select-sm" name="type">
                         <option value="">All types</option>
-                        {% for audit_type in AUDIT_TYPE_SET | sort %}
+                        {% for audit_type in AUDIT_TYPE_VALUES %}
                         <option value="{{ audit_type }}" {% if type == audit_type %}selected{% endif %}>
                             {{ audit_type }}
                         </option>

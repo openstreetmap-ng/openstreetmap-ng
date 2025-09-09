@@ -41,7 +41,6 @@ async def users_page(
         Literal['created_asc', 'created_desc', 'name_asc', 'name_desc'], Query()
     ] = 'created_desc',
 ):
-    """Get a page of users for the management interface."""
     users: list[User] = await UserQuery.find(  # type: ignore
         'page',
         page=page,
@@ -54,8 +53,9 @@ async def users_page(
         sort=sort,
     )
 
-    user_ids = [user['id'] for user in users]
-    ip_counts = await AuditQuery.count_ip_by_user(user_ids, since=timedelta(days=1))
+    ip_counts = await AuditQuery.count_ip_by_user(
+        [user['id'] for user in users], since=timedelta(days=1), ignore_app_events=True
+    )
 
     return await render_response(
         'admin/users/users-page',
@@ -75,7 +75,6 @@ async def export_ids(
     created_after: Annotated[datetime | None, Query()] = None,
     created_before: Annotated[datetime | None, Query()] = None,
 ):
-    """Export user IDs matching the filters."""
     user_ids: list[UserId] = await UserQuery.find(  # type: ignore
         'ids',
         search=search,

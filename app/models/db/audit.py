@@ -24,9 +24,9 @@ AuditType = Literal[
     # TODO: 'schedule_user_delete',
 ]
 
-AUDIT_TYPE_SET = frozenset[AuditType](get_args(AuditType))
+AUDIT_TYPE_VALUES = list[AuditType](get_args(AuditType))
 
-for t in AUDIT_TYPE_SET:
+for t in AUDIT_TYPE_VALUES:
     assert hasattr(AUDIT_POLICY, t), f'AUDIT_POLICY is missing policy for {t!r}'
 
 

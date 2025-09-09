@@ -170,19 +170,19 @@ CREATE TABLE audit (
 WITH
     (fillfactor = 100);
 
-CREATE INDEX audit_created_at_idx ON audit (created_at DESC);
+CREATE INDEX audit_created_at_idx ON audit (created_at DESC) INCLUDE (type);
 
-CREATE INDEX audit_ip_created_at_idx ON audit (ip, created_at DESC);
+CREATE INDEX audit_ip_created_at_idx ON audit (ip, created_at DESC) INCLUDE (type, user_id, application_id);
 
-CREATE INDEX audit_user_created_at_idx ON audit (user_id DESC, created_at DESC)
+CREATE INDEX audit_user_created_at_idx ON audit (user_id DESC, created_at DESC) INCLUDE (type, ip, application_id)
 WHERE
     user_id IS NOT NULL;
 
-CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id DESC, created_at DESC)
+CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id DESC, created_at DESC) INCLUDE (type)
 WHERE
     target_user_id IS NOT NULL;
 
-CREATE INDEX audit_application_created_at_idx ON audit (application_id DESC, created_at DESC)
+CREATE INDEX audit_application_created_at_idx ON audit (application_id DESC, created_at DESC) INCLUDE (type)
 WHERE
     application_id IS NOT NULL;
 

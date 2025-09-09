@@ -1,4 +1,3 @@
-from collections.abc import Set as AbstractSet
 from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from typing import Literal
@@ -9,7 +8,7 @@ from psycopg.sql import SQL, Composable
 from app.config import AUDIT_LIST_PAGE_SIZE
 from app.db import db
 from app.lib.standard_pagination import standard_pagination_range
-from app.models.db.audit import AUDIT_TYPE_SET, AuditEvent, AuditType
+from app.models.db.audit import AuditEvent, AuditType
 from app.models.types import ApplicationId, DisplayName, UserId
 from app.queries.user_query import UserQuery
 
@@ -20,42 +19,50 @@ class AuditQuery:
         user_ids: list[UserId],
         *,
         since: timedelta,
-        ignore: AbstractSet[AuditType] = {'auth_api', 'rate_limit'},  # type: ignore
+        ignore_types: list[AuditType] = ['auth_api', 'rate_limit'],  # type: ignore  # noqa: B006
+        ignore_app_events: bool = False,
     ) -> dict[UserId, list[tuple[IPv4Address | IPv6Address, int]]]:
         """
         Get IP addresses with counts for each user.
 
         Returns dict mapping user_id to list of (ip, count) tuples,
         where count is the number of distinct users sharing that IP.
-        Results are sorted by count (descending) then by IP.
+        Results are sorted by count (descending).
         """
         if not user_ids:
             return {}
 
+        ignore_app_sql = SQL('AND application_id IS NULL' if ignore_app_events else '')
+
         async with (
             db() as conn,
             await conn.execute(
-                """
-                SELECT
-                    ui.user_id, ui.ip,
-                    COUNT(DISTINCT a.user_id) as shared_count
-                FROM (
-                    SELECT DISTINCT user_id, ip
-                    FROM audit
-                    WHERE user_id = ANY(%(user_ids)s)
+                SQL(
+                    """
+                    SELECT
+                        ui.user_id, ip,
+                        COUNT(DISTINCT audit.user_id) as shared_count
+                    FROM (
+                        SELECT DISTINCT user_id, ip
+                        FROM audit
+                        WHERE user_id = ANY(%(user_ids)s)
+                        AND created_at >= statement_timestamp() - %(since)s
+                        AND type != ALL(%(ignore_types)s)
+                        {}
+                    ) ui
+                    JOIN audit USING (ip)
+                    WHERE audit.user_id IS NOT NULL
                     AND created_at >= statement_timestamp() - %(since)s
-                    AND type = ANY(%(types)s)
-                ) ui
-                JOIN audit a ON a.ip = ui.ip
-                WHERE a.created_at >= statement_timestamp() - %(since)s
-                AND a.type = ANY(%(types)s)
-                GROUP BY ui.user_id, ui.ip
-                ORDER BY ui.user_id, shared_count DESC
-                """,
+                    AND type != ALL(%(ignore_types)s)
+                    {}
+                    GROUP BY ui.user_id, ip
+                    ORDER BY ui.user_id, shared_count DESC
+                    """
+                ).format(ignore_app_sql, ignore_app_sql),
                 {
                     'user_ids': user_ids,
                     'since': since,
-                    'types': list(AUDIT_TYPE_SET - ignore),
+                    'ignore_types': ignore_types,
                 },
             ) as r,
         ):

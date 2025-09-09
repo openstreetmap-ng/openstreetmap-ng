@@ -23,7 +23,7 @@ from app.lib.sentry import (
 )
 from app.lib.testmethod import testmethod
 from app.middlewares.request_context_middleware import get_request
-from app.models.db.audit import AUDIT_TYPE_SET, AuditEventInit, AuditType
+from app.models.db.audit import AUDIT_TYPE_VALUES, AuditEventInit, AuditType
 from app.models.types import ApplicationId, UserId
 
 _TG: TaskGroup
@@ -231,7 +231,7 @@ async def _process_task() -> None:
 async def _cleanup_old_audit_logs() -> None:
     """Delete old audit logs based on configured retention periods."""
     async with db(True) as conn:
-        for audit_type in AUDIT_TYPE_SET:
+        for audit_type in AUDIT_TYPE_VALUES:
             audit_policy = AUDIT_POLICY[audit_type]
             result = await conn.execute(
                 """
