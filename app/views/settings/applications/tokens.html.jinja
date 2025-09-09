@@ -11,7 +11,7 @@
 <p>{{ t('settings.my_tokens.description') }}</p>
 <ul class="applications-list list-unstyled">
     {% for token in tokens %}
-    {% set expanded = token.id == expand_id %}
+    {% set token_entry_expanded = token.id == expand_id %}
     <li>{% include 'settings/applications/_token-entry' %}</li>
     {% endfor %}
 </ul>

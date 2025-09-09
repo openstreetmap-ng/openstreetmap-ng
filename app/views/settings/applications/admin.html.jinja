@@ -10,7 +10,7 @@
 
 <p>{{ t('settings.my_applications.description') }}</p>
 <ul class="applications-list list-unstyled">
-    {% set expanded = false %}
+    {% set application_entry_expanded = false %}
     {% for app in apps %}
     <li>{% include 'settings/applications/_application-entry' %}</li>
     {% endfor %}

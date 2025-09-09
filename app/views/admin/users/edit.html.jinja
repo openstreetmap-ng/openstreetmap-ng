@@ -169,25 +169,29 @@
             <div class="tab-pane fade" id="connections">
                 <h3 class="mb-3">{{ t('settings.connected_accounts') }}</h3>
                 <p>{{ t('settings.connections.description') }}</p>
-                {% if connected_providers %}
+                {% if connected_accounts %}
                 <div class="table-responsive">
                     <table class="table align-middle">
                         <tbody>
-                            {% for provider in connected_providers %}
+                            {% for account in connected_accounts %}
+                            {% set provider = account.provider %}
                             <tr>
                                 <td class="d-flex align-items-center">
                                     <img class="auth-provider-icon border me-3 me-lg-4"
                                         src="/static/img/brand/{{ provider }}.webp" alt="{{ t('alt.service_image') }}">
                                     <div>
                                         <h6 class="mb-0">{{ t('service.' ~ provider ~ '.title') }}</h6>
-                                        <p class="form-text mb-0">{{ t('service.' ~ provider ~ '.description') }}</p>
+                                        <p class="form-text mb-0">
+                                            UID:
+                                            <code>{{ account.uid }}</code>
+                                            ·
+                                            <time datetime="{{ account.created_at.isoformat() }}" data-date="long"
+                                                data-time="short"></time>
+                                        </p>
                                     </div>
                                 </td>
-                                <td class="text-end">
-                                    <span class="text-success">
-                                        <i class="bi bi-link-45deg me-2"></i>
-                                        {{ t('state.connected') }}
-                                    </span>
+                                <td class="text-end text-success">
+                                    <i class="bi bi-link-45deg me-2"></i>{{ t('state.connected') }}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -203,20 +207,15 @@
                 <h3 class="mb-3">{{ t('settings.authorizations.title') }}</h3>
                 <p>{{ t('settings.authorizations.description') }}</p>
                 {% if authorizations %}
+                {% set application_entry_expanded = false %}
+                {% set application_entry_readonly = true %}
                 <ul class="applications-list list-unstyled">
                     {% for token in authorizations %}
                     {% if token.application %}
-                    <li class="mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ token.application.name }}</h5>
-                                <p class="card-text text-body-secondary">
-                                    Authorized <time datetime="{{ token.authorized_at.isoformat() }}" data-date="long"
-                                        data-time="short"></time>
-                                </p>
-                            </div>
-                        </div>
-                    </li>
+                    {% set app = token.application %}
+                    {% if app.client_id != 'SystemApp.pat' %}
+                    <li>{% include 'settings/applications/_application-entry' %}</li>
+                    {% endif %}
                     {% endif %}
                     {% endfor %}
                 </ul>
@@ -229,22 +228,11 @@
                 <h3 class="mb-3">{{ t('settings.my_applications.title') }}</h3>
                 <p>{{ t('settings.my_applications.description') }}</p>
                 {% if applications %}
+                {% set application_entry_expanded = false %}
+                {% set application_entry_readonly = true %}
                 <ul class="applications-list list-unstyled">
                     {% for app in applications %}
-                    <li class="mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ app.name }}</h5>
-                                <p class="card-text text-body-secondary">
-                                    Client ID: <code>{{ app.client_id }}</code>
-                                </p>
-                                <p class="card-text text-body-secondary">
-                                    Created <time datetime="{{ app.created_at.isoformat() }}" data-date="long"
-                                        data-time="short"></time>
-                                </p>
-                            </div>
-                        </div>
-                    </li>
+                    <li>{% include 'settings/applications/_application-entry' %}</li>
                     {% endfor %}
                 </ul>
                 {% else %}
@@ -257,25 +245,11 @@
                 <h3 class="mb-3">{{ t('settings.my_tokens.title') }}</h3>
                 <p>{{ t('settings.my_tokens.description') }}</p>
                 {% if tokens %}
+                {% set token_entry_expanded = false %}
+                {% set token_entry_readonly = true %}
                 <ul class="applications-list list-unstyled">
                     {% for token in tokens %}
-                    <li class="mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ token.name }}</h5>
-                                <p class="card-text text-body-secondary">
-                                    Created <time datetime="{{ token.created_at.isoformat() }}" data-date="long"
-                                        data-time="short"></time>
-                                </p>
-                                {% if token.authorized_at %}
-                                <p class="card-text text-body-secondary">
-                                    Last used <time datetime="{{ token.authorized_at.isoformat() }}"
-                                        data-style="short"></time>
-                                </p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </li>
+                    <li>{% include 'settings/applications/_token-entry' %}</li>
                     {% endfor %}
                 </ul>
                 {% else %}

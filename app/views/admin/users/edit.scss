@@ -1,7 +1,23 @@
+@use "bootstrap/scss/functions";
+
 .admin-user-edit-body {
     .content-header {
         img.avatar {
             font-size: 3.3rem;
+        }
+    }
+
+    // Connections (mirror settings connections styles; read-only)
+    img.auth-provider-icon {
+        @extend .rounded-2;
+        height: 2.75em;
+    }
+
+    .table {
+        tr:last-child {
+            td {
+                border-bottom: unset;
+            }
         }
     }
 }

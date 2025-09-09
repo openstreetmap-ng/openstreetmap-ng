@@ -10,7 +10,7 @@
 
 <p>{{ t('settings.authorizations.description') }}</p>
 <ul class="applications-list list-unstyled">
-    {% set expanded = false %}
+    {% set application_entry_expanded = false %}
 
     {% for token in tokens %}
     {% set app = token.application %}

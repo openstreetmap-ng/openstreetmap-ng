@@ -77,8 +77,8 @@ async def user_edit(
 
     async with TaskGroup() as tg:
         tg.create_task(audit('view_admin_users', target_user_id=user_id))
-        connected_providers_task = tg.create_task(
-            ConnectedAccountQuery.get_providers_by_user(user_id)
+        connected_accounts_task = tg.create_task(
+            ConnectedAccountQuery.find_by_user(user_id)
         )
         applications_task = tg.create_task(OAuth2ApplicationQuery.find_by_user(user_id))
         tokens_task = tg.create_task(OAuth2TokenQuery.find_pats_by_user(user_id))
@@ -89,7 +89,7 @@ async def user_edit(
         'admin/users/edit',
         {
             'edit_user': edit_user,
-            'connected_providers': connected_providers_task.result(),
+            'connected_accounts': connected_accounts_task.result(),
             'authorizations': authorizations,
             'applications': applications_task.result(),
             'tokens': tokens_task.result(),

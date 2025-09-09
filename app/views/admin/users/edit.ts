@@ -1,8 +1,27 @@
+import { Collapse } from "bootstrap"
 import i18next from "i18next"
 import { type APIDetail, configureStandardForm } from "../../lib/standard-form"
 
 const body = document.querySelector("body.admin-user-edit-body")
 if (body) {
+    // Accordion toggling for application/token previews (read-only)
+    const accordionButtons = body.querySelectorAll("button.accordion-button")
+    for (const button of accordionButtons) {
+        const collapse = document.querySelector(button.dataset.bsTarget)
+        const collapseInstance = Collapse.getOrCreateInstance(collapse, {
+            toggle: false,
+        })
+        // @ts-ignore
+        collapseInstance._triggerArray.push(button)
+
+        // On accordion button click, toggle the collapse if target is not a link
+        button.addEventListener("click", ({ target }: Event) => {
+            const tagName = (target as HTMLElement).tagName
+            if (tagName === "A") return
+            collapseInstance.toggle()
+        })
+    }
+
     const accountForm = body.querySelector("form.account-form")
     const newPasswordInput = accountForm.querySelector(
         "input[type=password][data-name=new_password]",
