@@ -14,6 +14,7 @@ from app.services.audit_service import AuditService
 
 @pytest.mark.flaky(reruns=3, only_rerun=['AssertionError'])
 async def test_cleanup_old_audit_logs():
+    # Arrange: Insert two audit events: one stale and one recent
     app_id: ApplicationId = zid()  # type: ignore
 
     async with db(True) as conn:
@@ -21,13 +22,11 @@ async def test_cleanup_old_audit_logs():
         await conn.execute(
             """
             INSERT INTO audit (
-                type, ip, user_agent, user_id,
-                target_user_id, application_id, extra,
+                type, ip, application_id,
                 created_at
             )
             VALUES (
-                'auth_web', %(ip)s, NULL, NULL,
-                NULL, %(application_id)s, NULL,
+                'auth_web', %(ip)s, %(application_id)s,
                 statement_timestamp() - %(age)s
             )
             """,
@@ -42,13 +41,11 @@ async def test_cleanup_old_audit_logs():
         await conn.execute(
             """
             INSERT INTO audit (
-                type, ip, user_agent, user_id,
-                target_user_id, application_id, extra,
+                type, ip, application_id,
                 created_at
             )
             VALUES (
-                'auth_web', %(ip)s, NULL, NULL,
-                NULL, %(application_id)s, NULL,
+                'auth_web', %(ip)s, %(application_id)s,
                 statement_timestamp() - %(age)s
             )
             """,
@@ -69,10 +66,10 @@ async def test_cleanup_old_audit_logs():
     )
     assert len(events_before) == 2
 
-    # Force the cleanup process
+    # Act: Force the cleanup process
     await AuditService.force_process()
 
-    # Verify only the recent event remains after cleanup
+    # Assert: Verify only the recent event remains after cleanup
     events_after: list[AuditEvent] = await AuditQuery.find(  # type: ignore
         'page',
         page=1,
@@ -81,7 +78,4 @@ async def test_cleanup_old_audit_logs():
         type='auth_web',
     )
     assert len(events_after) == 1
-
-    # Verify it's the recent event that remained
-    remaining_event = events_after[0]
-    assert remaining_event['ip'] == ip_address('192.168.1.2')
+    assert events_after[0]['ip'] == ip_address('192.168.1.2')

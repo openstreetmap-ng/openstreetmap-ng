@@ -138,7 +138,7 @@ CREATE TABLE oauth2_token (
     id bigint PRIMARY KEY,
     user_id bigint NOT NULL REFERENCES "user",
     application_id bigint NOT NULL REFERENCES oauth2_application,
-    hidden boolean NOT NULL,
+    hidden boolean NOT NULL DEFAULT FALSE,
     name text,
     token_hashed bytea,
     token_preview text,
@@ -157,6 +157,10 @@ WHERE
 CREATE INDEX oauth2_token_app_user_idx ON oauth2_token (application_id DESC, user_id DESC) INCLUDE (authorized_at);
 
 CREATE INDEX oauth2_token_user_app_idx ON oauth2_token (user_id DESC, application_id DESC, id DESC) INCLUDE (authorized_at);
+
+CREATE INDEX oauth2_token_stale_unauthorized_idx ON oauth2_token (created_at DESC) INCLUDE (application_id)
+WHERE
+    authorized_at IS NULL;
 
 -- TODO: audit type enum
 CREATE TABLE audit (

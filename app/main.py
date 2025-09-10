@@ -57,6 +57,7 @@ from app.services.admin_task_service import AdminTaskService
 from app.services.audit_service import AuditService
 from app.services.changeset_service import ChangesetService
 from app.services.email_service import EmailService
+from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.rate_limit_service import RateLimitService
 from app.services.system_app_service import SystemAppService
 from app.services.test_service import TestService
@@ -93,6 +94,7 @@ async def lifespan(_):
         async with (
             EmailService.context(),
             ChangesetService.context(),
+            OAuth2TokenService.context(),
             RateLimitService.context(),
             AdminTaskService.context(),
         ):

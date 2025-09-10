@@ -1,13 +1,20 @@
+import asyncio
 import logging
+from asyncio import Event, TaskGroup
+from contextlib import asynccontextmanager
 from datetime import datetime
+from random import uniform
+from time import monotonic
 from typing import Any, Literal, overload
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
+from sentry_sdk.api import start_transaction
 from zid import zid
 
 from app.config import (
+    ENV,
     OAUTH_AUTHORIZATION_CODE_TIMEOUT,
     OAUTH_SECRET_PREVIEW_LENGTH,
     OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
@@ -16,6 +23,12 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.crypto import hash_bytes, hash_compare, hash_s256_code_challenge
 from app.lib.exceptions_context import raise_for
+from app.lib.retry import retry
+from app.lib.sentry import (
+    SENTRY_OAUTH2_TOKEN_MANAGEMENT_MONITOR,
+    SENTRY_OAUTH2_TOKEN_MANAGEMENT_MONITOR_SLUG,
+)
+from app.lib.testmethod import testmethod
 from app.models.db.oauth2_application import (
     SYSTEM_APP_PAT_CLIENT_ID,
     OAuth2Application,
@@ -37,6 +50,9 @@ from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 from speedup.buffered_rand import buffered_rand_urlsafe
 
 # TODO: limit number of access tokens per user+app
+
+_PROCESS_REQUEST_EVENT = Event()
+_PROCESS_DONE_EVENT = Event()
 
 
 class OAuth2TokenService:
@@ -425,4 +441,91 @@ class OAuth2TokenService:
         if app is not None:
             await OAuth2TokenService.revoke_by_app_id(
                 app['id'], user_id=user_id, skip_ids=skip_ids
+            )
+
+    @staticmethod
+    @asynccontextmanager
+    async def context():
+        """Context manager for deleting stale, unauthorized OAuth2 tokens."""
+        async with TaskGroup() as tg:
+            task = tg.create_task(_process_task())
+            yield
+            task.cancel()  # avoid "Task was destroyed" warning during tests
+
+    @staticmethod
+    @testmethod
+    async def force_process():  # pragma: no cover - dev/test utility
+        """
+        Force the OAuth2 token processing loop to wake up early, and wait for it to finish.
+        Only available in dev/test and limited to the current process.
+        """
+        logging.debug('Requesting OAuth2 token processing loop early wakeup')
+        _PROCESS_REQUEST_EVENT.set()
+        _PROCESS_DONE_EVENT.clear()
+        await _PROCESS_DONE_EVENT.wait()
+
+
+@retry(None)
+async def _process_task() -> None:
+    async def sleep(delay: float) -> None:
+        if ENV != 'dev':
+            await asyncio.sleep(delay)
+            return
+
+        # Dev environment supports early wakeup
+        _PROCESS_DONE_EVENT.set()
+        async with TaskGroup() as tg:
+            event_task = tg.create_task(_PROCESS_REQUEST_EVENT.wait())
+            await asyncio.wait((event_task,), timeout=delay)
+            if event_task.done():
+                logging.debug('OAuth2 token processing loop early wakeup')
+                _PROCESS_REQUEST_EVENT.clear()
+            else:
+                event_task.cancel()
+
+    while True:
+        async with db(True) as conn:
+            # Lock is just a random unique number
+            async with await conn.execute(
+                'SELECT pg_try_advisory_xact_lock(851502580352489361::bigint)'
+            ) as r:
+                acquired: bool = (await r.fetchone())[0]  # type: ignore
+
+            if acquired:
+                ts = monotonic()
+
+                with (
+                    SENTRY_OAUTH2_TOKEN_MANAGEMENT_MONITOR,
+                    start_transaction(
+                        op='task', name=SENTRY_OAUTH2_TOKEN_MANAGEMENT_MONITOR_SLUG
+                    ),
+                ):
+                    await _delete_stale_unauthorized_tokens()
+                tt = monotonic() - ts
+
+                # on success, sleep ~5min
+                await sleep(uniform(290, 310) - tt)
+
+        if not acquired:
+            # on failure, sleep ~1h
+            await sleep(uniform(0.5 * 3600, 1.5 * 3600))
+
+
+async def _delete_stale_unauthorized_tokens() -> None:
+    async with db(True) as conn:
+        result = await conn.execute(
+            """
+            DELETE FROM oauth2_token
+            WHERE authorized_at IS NULL
+            AND application_id != %s
+            AND created_at < statement_timestamp() - %s
+            """,
+            (
+                SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID],
+                OAUTH_AUTHORIZATION_CODE_TIMEOUT,
+            ),
+        )
+        if result.rowcount:
+            logging.debug(
+                'Deleted %d stale unauthorized OAuth2 tokens', result.rowcount
             )
