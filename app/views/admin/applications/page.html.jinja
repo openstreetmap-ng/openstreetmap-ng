@@ -2,22 +2,34 @@
 {% set _is_system = oauth2_app_is_system(app) %}
 <tr data-app-id="{{ app.id }}">
     <td>
-        <div class="d-flex align-items-center audit-app-container">
+        <div class="d-flex align-items-center">
             <img class="avatar me-2" src="{{ oauth2_app_avatar_url(app) }}" alt="{{ t('alt.application_image') }}"
                 loading="lazy">
             <div class="small">
                 <div>{{ app.name }}</div>
                 <div class="lh-1">
                     <code>{{ app.id }}</code>
+                    <small class="text-body-secondary">
+                        ·
+                        {% if app.confidential %}{{ t('settings.confidential_client') }}
+                        {% else %}
+                        {{ t('settings.public_client') }}
+                        {% endif %}
+                    </small>
                 </div>
             </div>
         </div>
     </td>
-    <td class="text-body-secondary small">
-        {% if app.confidential %}
-        {{ t('settings.confidential_client') }}
+    <td>
+        {% set _uris = app.redirect_uris %}
+        {% if _uris %}
+        <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="popover" data-bs-html="true"
+            data-bs-container="body"
+            data-bs-content="{% for uri in _uris %}<a href='{{ uri }}' target='_blank' rel='noopener noreferrer'>{{ uri }}</a>{% endfor %}">
+            Redirect URIs ({{ _uris | length }})
+        </button>
         {% else %}
-        {{ t('settings.public_client') }}
+        <small class="text-body-secondary">No redirect URIs</small>
         {% endif %}
     </td>
     <td>
@@ -61,7 +73,7 @@
         </span>
         {% endif %}
         {% else %}
-        <span class="text-muted">—</span>
+        <span class="text-body-secondary">&mdash;</span>
         {% endif %}
     </td>
     <td>

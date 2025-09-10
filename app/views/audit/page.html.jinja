@@ -22,7 +22,7 @@
         </a>
         {% endif %}
         {% else %}
-        <span class="text-muted">&mdash;</span>
+        <span class="text-body-secondary">&mdash;</span>
         {% endif %}
     </td>
     <td>
@@ -38,7 +38,7 @@
         {% if event.application %}
         {% set app = event.application %}
         {% set _is_system = oauth2_app_is_system(app) %}
-        <div class="d-flex align-items-center audit-app-container">
+        <div class="d-flex align-items-center">
             <img class="avatar me-2" src="{{ oauth2_app_avatar_url(app) }}" alt="{{ t('alt.application_image') }}"
                 loading="lazy">
             <div class="small">
@@ -56,14 +56,14 @@
             </div>
         </div>
         {% else %}
-        <span class="text-muted">&mdash;</span>
+        <span class="text-body-secondary">&mdash;</span>
         {% endif %}
     </td>
     <td>
         {% if event.extra %}
         <span>{{ event.extra }}</span>
         {% else %}
-        <span class="text-muted">&mdash;</span>
+        <span class="text-body-secondary">&mdash;</span>
         {% endif %}
     </td>
 </tr>

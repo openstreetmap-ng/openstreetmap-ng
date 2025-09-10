@@ -1,4 +1,4 @@
-import { Tooltip } from "bootstrap"
+import { Popover, Tooltip } from "bootstrap"
 import { configureDatetimeInputs } from "../../lib/datetime"
 import { configureStandardPagination } from "../../lib/standard-pagination"
 
@@ -49,6 +49,12 @@ if (body) {
                 "[data-bs-toggle=tooltip]",
             )) {
                 new Tooltip(element)
+            }
+
+            for (const element of renderContainer.querySelectorAll(
+                "[data-bs-toggle=popover]",
+            )) {
+                new Popover(element)
             }
         },
     })
