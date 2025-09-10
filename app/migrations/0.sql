@@ -130,7 +130,13 @@ CREATE TABLE oauth2_application (
 
 CREATE UNIQUE INDEX oauth2_application_client_id_idx ON oauth2_application (client_id);
 
-CREATE INDEX oauth2_application_user_idx ON oauth2_application (user_id);
+CREATE INDEX oauth2_application_created_at_idx ON oauth2_application (created_at DESC);
+
+CREATE INDEX oauth2_application_user_created_at_idx ON oauth2_application (user_id DESC, created_at DESC)
+WHERE
+    user_id IS NOT NULL;
+
+CREATE INDEX oauth2_application_name_pattern_idx ON oauth2_application USING gin (name gin_trgm_ops);
 
 CREATE TYPE oauth2_code_challenge_method AS enum('plain', 'S256');
 
@@ -138,7 +144,7 @@ CREATE TABLE oauth2_token (
     id bigint PRIMARY KEY,
     user_id bigint NOT NULL REFERENCES "user",
     application_id bigint NOT NULL REFERENCES oauth2_application,
-    hidden boolean NOT NULL DEFAULT FALSE,
+    unlisted boolean NOT NULL DEFAULT FALSE,
     name text,
     token_hashed bytea,
     token_preview text,
@@ -188,7 +194,7 @@ CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id DESC, cre
 WHERE
     target_user_id IS NOT NULL;
 
-CREATE INDEX audit_application_created_at_idx ON audit (application_id DESC, created_at DESC) INCLUDE (type)
+CREATE INDEX audit_application_created_at_idx ON audit (application_id DESC, created_at DESC) INCLUDE (type, ip)
 WHERE
     application_id IS NOT NULL;
 

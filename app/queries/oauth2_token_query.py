@@ -54,7 +54,7 @@ class OAuth2TokenQuery:
             SELECT * FROM oauth2_token
             WHERE user_id = %s
             AND application_id = %s
-            AND NOT hidden
+            AND NOT unlisted
             AND authorized_at IS NOT NULL
             ORDER BY id DESC
             {limit}
@@ -101,7 +101,7 @@ class OAuth2TokenQuery:
             SELECT * FROM oauth2_token
             WHERE user_id = %s
             AND application_id = %s
-            AND NOT hidden
+            AND NOT unlisted
             ORDER BY id DESC
             {limit}
         """).format(limit=limit_clause)
@@ -121,7 +121,7 @@ class OAuth2TokenQuery:
                 """
                 SELECT DISTINCT ON (application_id) * FROM oauth2_token
                 WHERE user_id = %s
-                AND NOT hidden
+                AND NOT unlisted
                 AND authorized_at IS NOT NULL
                 ORDER BY application_id DESC, id DESC
                 """,
@@ -129,3 +129,26 @@ class OAuth2TokenQuery:
             ) as r,
         ):
             return await r.fetchall()  # type: ignore
+
+    @staticmethod
+    async def count_users_by_applications(
+        app_ids: list[ApplicationId],
+    ) -> dict[ApplicationId, int]:
+        """Count distinct authorized users per application."""
+        if not app_ids:
+            return {}
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT application_id, COUNT(DISTINCT user_id)
+                FROM oauth2_token
+                WHERE application_id = ANY(%s)
+                AND authorized_at IS NOT NULL
+                GROUP BY application_id
+                """,
+                (app_ids,),
+            ) as r,
+        ):
+            rows: list[tuple[ApplicationId, int]] = await r.fetchall()
+        return dict(rows)

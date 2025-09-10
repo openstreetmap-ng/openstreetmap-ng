@@ -7,6 +7,7 @@ import "./lib/i18n"
 import "./navbar/_theme"
 
 import "./_unsubscribe-discussion"
+import "./admin/applications/index"
 import "./admin/tasks"
 import "./admin/users/edit"
 import "./admin/users/index"

@@ -7,9 +7,9 @@ from psycopg.sql import SQL, Composable, Identifier
 from shapely import Point
 
 from app.config import (
+    ADMIN_USER_LIST_PAGE_SIZE,
     DELETED_USER_EMAIL_SUFFIX,
     NEARBY_USERS_RADIUS_METERS,
-    USER_LIST_PAGE_SIZE,
 )
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -317,9 +317,9 @@ class UserQuery:
                 search_ip = ip_address(search)
                 conditions.append(
                     SQL("""
-                        id IN (
-                            SELECT user_id FROM audit
-                            WHERE ip = %s AND user_id IS NOT NULL
+                        EXISTS (
+                        SELECT 1 FROM audit
+                        WHERE user_id = "user".id AND ip = %s
                         )
                     """)
                 )
@@ -329,9 +329,9 @@ class UserQuery:
                     search_ip = ip_network(search, strict=False)
                     conditions.append(
                         SQL("""
-                            id IN (
-                                SELECT user_id FROM audit
-                                WHERE ip <<= %s AND user_id IS NOT NULL
+                            EXISTS (
+                                SELECT 1 FROM audit
+                                WHERE user_id = "user".id AND ip <<= %s
                             )
                         """)
                     )
@@ -358,15 +358,14 @@ class UserQuery:
 
         if application_id is not None:
             conditions.append(
-                SQL(
-                    """
-                    id IN (
-                        SELECT user_id FROM oauth2_token
-                        WHERE application_id = %s
+                SQL("""
+                    EXISTS (
+                        SELECT 1 FROM oauth2_token
+                        WHERE user_id = "user".id
+                        AND application_id = %s
                         AND authorized_at IS NOT NULL
                     )
-                    """
-                )
+                """)
             )
             params.append(application_id)
 
@@ -405,7 +404,7 @@ class UserQuery:
 
         stmt_limit, stmt_offset = standard_pagination_range(
             page,
-            page_size=USER_LIST_PAGE_SIZE,
+            page_size=ADMIN_USER_LIST_PAGE_SIZE,
             num_items=num_items,
             reverse=False,  # Page 1 = most recent
         )
@@ -417,7 +416,7 @@ class UserQuery:
             OFFSET %s
             LIMIT %s
         """).format(where_clause, order_clause)
-        params.extend([stmt_offset, stmt_limit])
+        params.extend((stmt_offset, stmt_limit))
 
         async with (
             db() as conn,

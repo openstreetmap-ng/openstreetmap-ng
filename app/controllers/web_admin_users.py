@@ -8,7 +8,7 @@ from pydantic import PositiveInt, SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import ENV, USER_EXPORT_LIMIT
+from app.config import ADMIN_USER_EXPORT_LIMIT, ENV
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.lib.standard_feedback import StandardFeedback
@@ -60,7 +60,7 @@ async def users_page(
     )
 
     return await render_response(
-        'admin/users/users-page',
+        'admin/users/page',
         {
             'users': users,
             'ip_counts': ip_counts,
@@ -86,7 +86,7 @@ async def export_ids(
         created_after=created_after,
         created_before=created_before,
         application_id=application_id,
-        limit=USER_EXPORT_LIMIT,
+        limit=ADMIN_USER_EXPORT_LIMIT,
     )
 
     return Response(

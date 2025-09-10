@@ -55,7 +55,7 @@ async def audit_page(
         tg.create_task(UserQuery.resolve_users(apps))
 
     return await render_response(
-        'audit/audit-page',
+        'audit/page',
         {
             'events': events,
         },

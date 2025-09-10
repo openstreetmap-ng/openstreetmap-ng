@@ -1,0 +1,124 @@
+{% extends '_base' %}
+{% block title_prefix %}Application management | {% endblock %}
+{% block body_class %}admin-applications-body{% endblock %}
+{% block body %}
+
+<div class="content-header pb-1">
+    <div class="container">
+        <h1>Application management</h1>
+        <p>Browse and inspect created applications.</p>
+
+        <form class="filters-form" method="GET">
+            <div class="row g-3 mb-3">
+                <div class="col-12">
+                    <label class="form-label" for="searchInput">Search</label>
+                    <input id="searchInput" type="text" class="form-control" name="search" value="{{ search }}"
+                        placeholder="Search by name or ID" autocomplete="off" spellcheck="false">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="sortSelect">Sort</label>
+                    <select id="sortSelect" class="form-select form-select-sm" name="sort">
+                        <option value="created_desc" {% if sort == 'created_desc' %}selected{% endif %}>
+                            Newest first
+                        </option>
+                        <option value="created_asc" {% if sort == 'created_asc' %}selected{% endif %}>
+                            Oldest first
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="ownerInput">Owner</label>
+                    <input id="ownerInput" type="text" class="form-control form-control-sm" name="owner"
+                        value="{{ owner }}" placeholder="User name or ID" autocomplete="off" spellcheck="false">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="interactedUserInput">Interacted user</label>
+                    <input id="interactedUserInput" type="text" class="form-control form-control-sm"
+                        name="interacted_user" value="{{ interacted_user }}" placeholder="User name or ID"
+                        autocomplete="off" spellcheck="false">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="createdAfter">
+                        Created from <small class="text-body-secondary">(local tz)</small>
+                    </label>
+                    <input id="createdAfter" type="datetime-local" class="form-control form-control-sm"
+                        name="created_after" data-value="{{ created_after }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="createdBefore">
+                        Created to <small class="text-body-secondary">(local tz)</small>
+                    </label>
+                    <input id="createdBefore" type="datetime-local" class="form-control form-control-sm"
+                        name="created_before" data-value="{{ created_before }}">
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary export-visible-btn">
+                        <i class="bi bi-clipboard"></i> Copy page
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary export-all-btn">
+                        <i class="bi bi-download"></i> Export all
+                    </button>
+                </div>
+                <div>
+                    <span class="text-muted me-2">
+                        {{ apps_num_items }} applications
+                    </span>
+                    <div class="btn-group" role="group">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-funnel"></i> Apply
+                        </button>
+                        <a class="btn btn-outline-secondary" href="/admin/applications">
+                            <i class="bi bi-arrow-counterclockwise"></i> Clear
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="content-body">
+    <div class="container">
+        {% if apps_num_items %}
+        <nav aria-label="{{ t('alt.page_navigation') }}">
+            <ul class="pagination pagination-sm justify-content-end mb-2">
+            </ul>
+        </nav>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle apps-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Application</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Owner</th>
+                        <th scope="col">Users</th>
+                        <th scope="col">Created</th>
+                        <th scope="col">IP Address</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <nav aria-label="{{ t('alt.page_navigation') }}">
+            <ul class="pagination pagination-sm justify-content-end mb-0"
+                data-action="/api/web/admin/applications?page={page}&num_items={{ apps_num_items }}&sort={{ sort }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if owner %}&owner={{ owner|urlencode }}{% endif %}{% if interacted_user %}&interacted_user={{ interacted_user|urlencode }}{% endif %}{% if created_after %}&created_after={{ created_after }}{% endif %}{% if created_before %}&created_before={{ created_before }}{% endif %}"
+                data-pages="{{ apps_num_pages }}">
+            </ul>
+        </nav>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-1-5"></i>No applications found matching your filters.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

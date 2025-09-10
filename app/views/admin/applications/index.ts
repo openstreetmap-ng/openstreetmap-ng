@@ -2,7 +2,7 @@ import { Tooltip } from "bootstrap"
 import { configureDatetimeInputs } from "../../lib/datetime"
 import { configureStandardPagination } from "../../lib/standard-pagination"
 
-const body = document.querySelector("body.admin-users-body")
+const body = document.querySelector("body.admin-applications-body")
 if (body) {
     const filterForm = body.querySelector("form.filters-form")
 
@@ -19,15 +19,15 @@ if (body) {
 
     const exportVisibleBtn = body.querySelector("button.export-visible-btn")
     exportVisibleBtn.addEventListener("click", async () => {
-        const userIds = Array.from(body.querySelectorAll("tr[data-user-id]")).map(
-            (el) => el.dataset.userId,
+        const appIds = Array.from(body.querySelectorAll("tr[data-app-id]")).map(
+            (el) => el.dataset.appId,
         )
-        const json = `[${userIds.join(",")}]`
+        const json = `[${appIds.join(",")}]`
 
         try {
             await navigator.clipboard.writeText(json)
         } catch (error) {
-            console.warn("Failed to copy user IDs", error)
+            console.warn("Failed to copy app IDs", error)
             if (error instanceof Error) alert(error.message)
         }
     })
@@ -35,7 +35,7 @@ if (body) {
     const exportAllBtn = body.querySelector("button.export-all-btn")
     exportAllBtn.addEventListener("click", () => {
         const a = document.createElement("a")
-        a.href = `/api/web/admin/users/export${window.location.search}`
+        a.href = `/api/web/admin/applications/export${window.location.search}`
         a.download = ""
         document.body.appendChild(a)
         a.click()

@@ -82,6 +82,64 @@ class AuditQuery:
         return result
 
     @staticmethod
+    async def count_ip_by_application(
+        application_ids: list[ApplicationId],
+        *,
+        since: timedelta,
+    ) -> dict[ApplicationId, list[tuple[IPv4Address | IPv6Address, int]]]:
+        """
+        Get IP addresses with counts for each application.
+
+        Returns dict mapping application_id to list of (ip, count) tuples,
+        where count is the number of distinct applications sharing that IP
+        within the time window. Results sorted by count (descending).
+        """
+        if not application_ids:
+            return {}
+
+        async with (
+            db() as conn,
+            await conn.execute(
+                SQL(
+                    """
+                    SELECT
+                        ai.application_id, ai.ip,
+                        COUNT(DISTINCT audit.application_id) AS shared_count
+                    FROM (
+                        SELECT DISTINCT application_id, ip
+                        FROM audit
+                        WHERE application_id = ANY(%(application_ids)s)
+                        AND created_at >= statement_timestamp() - %(since)s
+                    ) ai
+                    JOIN audit USING (ip)
+                    WHERE audit.application_id IS NOT NULL
+                    AND created_at >= statement_timestamp() - %(since)s
+                    GROUP BY ai.application_id, ai.ip
+                    ORDER BY ai.application_id, shared_count DESC
+                    """
+                ),
+                {
+                    'application_ids': application_ids,
+                    'since': since,
+                },
+            ) as r,
+        ):
+            rows: list[tuple[ApplicationId, IPv4Address | IPv6Address, int]]
+            rows = await r.fetchall()
+
+        result = {app_id: [] for app_id in application_ids}
+        current_app: ApplicationId | None = None
+        current_list: list[tuple[IPv4Address | IPv6Address, int]] = []
+
+        for app_id, ip, count in rows:
+            if current_app != app_id:
+                current_app = app_id
+                current_list = result[app_id]
+            current_list.append((ip, count))
+
+        return result
+
+    @staticmethod
     async def find(
         mode: Literal['count', 'page'],
         /,
@@ -173,7 +231,7 @@ class AuditQuery:
             OFFSET %s
             LIMIT %s
         """).format(where_clause)
-        params.extend([stmt_offset, stmt_limit])
+        params.extend((stmt_offset, stmt_limit))
 
         async with (
             db() as conn,

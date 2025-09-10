@@ -115,7 +115,7 @@ class MessageQuery:
                 )))
                 """)
             )
-            params.extend([user_id, show or 0, show or 0, is_moderator, is_admin])
+            params.extend((user_id, show or 0, show or 0, is_moderator, is_admin))
         else:
             conditions.append(SQL('from_user_id = %s AND NOT from_user_hidden'))
             params.append(user_id)

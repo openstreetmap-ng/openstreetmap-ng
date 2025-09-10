@@ -1,0 +1,8 @@
+.admin-applications-body {
+    .filters-form {
+        select[multiple] {
+            height: 2.5rem;
+            overflow-y: auto;
+        }
+    }
+}

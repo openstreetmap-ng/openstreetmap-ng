@@ -7,9 +7,9 @@ from fastapi import APIRouter, Query, Request, Response
 from starlette import status
 
 from app.config import (
+    ADMIN_USER_LIST_PAGE_SIZE,
     DISPLAY_NAME_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
-    USER_LIST_PAGE_SIZE,
 )
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
@@ -51,7 +51,7 @@ async def users_index(
             application_id=application_id,
             sort=sort,
         )
-        users_num_pages = ceil(users_num_items / USER_LIST_PAGE_SIZE)
+        users_num_pages = ceil(users_num_items / ADMIN_USER_LIST_PAGE_SIZE)
 
         return await render_response(
             'admin/users/index',

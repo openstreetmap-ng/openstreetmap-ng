@@ -340,6 +340,7 @@ class _AuditPolicies(BaseModel):
     )
     send_message: Policy = Policy(30)
     view_admin_users: Policy = Policy(60, discard_repeated=timedelta(hours=6))
+    view_admin_applications: Policy = Policy(60, discard_repeated=timedelta(hours=6))
     view_audit: Policy = Policy(60, discard_repeated=timedelta(hours=6))
 
     def __getitem__(self, item: 'AuditType') -> Policy:
@@ -355,9 +356,11 @@ AUDIT_USER_AGENT_MAX_LENGTH = 200
 ADMIN_TASK_HEARTBEAT_INTERVAL = timedelta(minutes=1)
 ADMIN_TASK_TIMEOUT = timedelta(minutes=3)
 
-# User management
-USER_EXPORT_LIMIT = 1_000_000
-USER_LIST_PAGE_SIZE = 50
+# Admin lists
+ADMIN_USER_EXPORT_LIMIT = 1_000_000
+ADMIN_USER_LIST_PAGE_SIZE = 50
+ADMIN_APPLICATION_EXPORT_LIMIT = 1_000_000
+ADMIN_APPLICATION_LIST_PAGE_SIZE = 50
 
 # -------------------- Caching and Performance --------------------
 
