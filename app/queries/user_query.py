@@ -17,7 +17,7 @@ from app.lib.standard_pagination import standard_pagination_range
 from app.lib.user_name_blacklist import is_user_name_blacklisted
 from app.models.db.element import Element
 from app.models.db.user import User, UserDisplay, UserRole
-from app.models.types import ChangesetId, DisplayName, Email, UserId
+from app.models.types import ApplicationId, ChangesetId, DisplayName, Email, UserId
 
 _USER_DISPLAY_SELECT = SQL(',').join([
     Identifier(k) for k in UserDisplay.__annotations__
@@ -302,6 +302,7 @@ class UserQuery:
         roles: list[UserRole] | None = None,
         created_after: datetime | None = None,
         created_before: datetime | None = None,
+        application_id: ApplicationId | None = None,
         sort: Literal[
             'created_asc', 'created_desc', 'name_asc', 'name_desc'
         ] = 'created_desc',
@@ -354,6 +355,20 @@ class UserQuery:
         if created_before:
             conditions.append(SQL('created_at <= %s'))
             params.append(created_before)
+
+        if application_id is not None:
+            conditions.append(
+                SQL(
+                    """
+                    id IN (
+                        SELECT user_id FROM oauth2_token
+                        WHERE application_id = %s
+                        AND authorized_at IS NOT NULL
+                    )
+                    """
+                )
+            )
+            params.append(application_id)
 
         where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
 

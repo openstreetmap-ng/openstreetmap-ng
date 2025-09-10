@@ -33,7 +33,27 @@
                         </option>
                     </select>
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="applicationIdInput">Application ID</label>
+                    <input id="applicationIdInput" type="number" class="form-control form-control-sm"
+                        name="application_id" value="{{ application_id }}" min="1" step="1" placeholder="ID"
+                        autocomplete="off">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="createdAfter">
+                        Registered from <small class="text-body-secondary">(local tz)</small>
+                    </label>
+                    <input id="createdAfter" type="datetime-local" class="form-control form-control-sm"
+                        name="created_after" data-value="{{ created_after }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="createdBefore">
+                        Registered to <small class="text-body-secondary">(local tz)</small>
+                    </label>
+                    <input id="createdBefore" type="datetime-local" class="form-control form-control-sm"
+                        name="created_before" data-value="{{ created_before }}">
+                </div>
+                <div class="col-6 col-md-2">
                     <label class="form-label" for="rolesSelect">Roles</label>
                     <select id="rolesSelect" class="form-select form-select-sm" name="roles" multiple>
                         <option value="moderator" {% if 'moderator' in roles %}selected{% endif %}>
@@ -43,20 +63,6 @@
                             Administrator
                         </option>
                     </select>
-                </div>
-                <div class="col-6 col-md-3">
-                    <label class="form-label" for="createdAfter">
-                        Registered from <small class="text-body-secondary">(local tz)</small>
-                    </label>
-                    <input id="createdAfter" type="datetime-local" class="form-control form-control-sm"
-                        name="created_after" data-value="{{ created_after }}">
-                </div>
-                <div class="col-6 col-md-3">
-                    <label class="form-label" for="createdBefore">
-                        Registered to <small class="text-body-secondary">(local tz)</small>
-                    </label>
-                    <input id="createdBefore" type="datetime-local" class="form-control form-control-sm"
-                        name="created_before" data-value="{{ created_before }}">
                 </div>
                 <div class="col-md-1">
                     <div class="form-check">
@@ -120,7 +126,7 @@
         </div>
         <nav aria-label="{{ t('alt.page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-0"
-                data-action="/api/web/admin/users?page={page}&num_items={{ users_num_items }}&sort={{ sort }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if unverified %}&unverified=1{% endif %}{% for role in roles %}&roles={{ role }}{% endfor %}{% if created_after %}&created_after={{ created_after }}{% endif %}{% if created_before %}&created_before={{ created_before }}{% endif %}"
+                data-action="/api/web/admin/users?page={page}&num_items={{ users_num_items }}&sort={{ sort }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if unverified %}&unverified=1{% endif %}{% for role in roles %}&roles={{ role }}{% endfor %}{% if created_after %}&created_after={{ created_after }}{% endif %}{% if created_before %}&created_before={{ created_before }}{% endif %}{% if application_id %}&application_id={{ application_id }}{% endif %}"
                 data-pages="{{ users_num_pages }}">
             </ul>
         </nav>

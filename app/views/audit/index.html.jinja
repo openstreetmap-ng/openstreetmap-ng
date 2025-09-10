@@ -20,7 +20,7 @@
                     <input id="ipInput" type="text" class="form-control" name="ip" value="{{ ip }}"
                         placeholder="e.g., 192.168.1.1 or 10.0.0.0/8" autocomplete="off" spellcheck="false">
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-2">
                     <label class="form-label" for="typeSelect">Event Type</label>
                     <select id="typeSelect" class="form-select form-select-sm" name="type">
                         <option value="">All types</option>
@@ -32,18 +32,19 @@
                     </select>
                 </div>
                 <div class="col-6 col-md-2">
-                    <label class="form-label" for="appIdInput">Application ID</label>
-                    <input id="appIdInput" type="number" class="form-control form-control-sm" name="application_id"
-                        value="{{ application_id }}" placeholder="ID" autocomplete="off">
+                    <label class="form-label" for="applicationIdInput">Application ID</label>
+                    <input id="applicationIdInput" type="number" class="form-control form-control-sm"
+                        name="application_id" value="{{ application_id }}" min="1" step="1" placeholder="ID"
+                        autocomplete="off">
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-2">
                     <label class="form-label" for="createdAfter">
                         Events from <small class="text-body-secondary">(local tz)</small>
                     </label>
                     <input id="createdAfter" type="datetime-local" class="form-control form-control-sm"
                         name="created_after" data-value="{{ created_after }}">
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-2">
                     <label class="form-label" for="createdBefore">
                         Events to <small class="text-body-secondary">(local tz)</small>
                     </label>

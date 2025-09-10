@@ -154,7 +154,9 @@ CREATE UNIQUE INDEX oauth2_token_hashed_idx ON oauth2_token (token_hashed)
 WHERE
     token_hashed IS NOT NULL;
 
-CREATE INDEX oauth2_token_user_app_authorized_idx ON oauth2_token (user_id, application_id, id, (authorized_at IS NOT NULL));
+CREATE INDEX oauth2_token_app_user_idx ON oauth2_token (application_id DESC, user_id DESC) INCLUDE (authorized_at);
+
+CREATE INDEX oauth2_token_user_app_idx ON oauth2_token (user_id DESC, application_id DESC, id DESC) INCLUDE (authorized_at);
 
 -- TODO: audit type enum
 CREATE TABLE audit (

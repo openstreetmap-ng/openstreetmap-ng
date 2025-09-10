@@ -14,7 +14,7 @@ from app.lib.render_response import render_response
 from app.lib.standard_feedback import StandardFeedback
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User, UserRole
-from app.models.types import Password, UserId
+from app.models.types import ApplicationId, Password, UserId
 from app.queries.audit_query import AuditQuery
 from app.queries.user_query import UserQuery
 from app.services.audit_service import audit
@@ -37,6 +37,7 @@ async def users_page(
     roles: Annotated[list[UserRole] | None, Query()] = None,
     created_after: Annotated[datetime | None, Query()] = None,
     created_before: Annotated[datetime | None, Query()] = None,
+    application_id: Annotated[ApplicationId | None, Query()] = None,
     sort: Annotated[
         Literal['created_asc', 'created_desc', 'name_asc', 'name_desc'], Query()
     ] = 'created_desc',
@@ -50,6 +51,7 @@ async def users_page(
         roles=roles,
         created_after=created_after,
         created_before=created_before,
+        application_id=application_id,
         sort=sort,
     )
 
@@ -74,6 +76,7 @@ async def export_ids(
     roles: Annotated[list[UserRole] | None, Query()] = None,
     created_after: Annotated[datetime | None, Query()] = None,
     created_before: Annotated[datetime | None, Query()] = None,
+    application_id: Annotated[ApplicationId | None, Query()] = None,
 ):
     user_ids: list[UserId] = await UserQuery.find(  # type: ignore
         'ids',
@@ -82,6 +85,7 @@ async def export_ids(
         roles=roles,
         created_after=created_after,
         created_before=created_before,
+        application_id=application_id,
         limit=USER_EXPORT_LIMIT,
     )
 

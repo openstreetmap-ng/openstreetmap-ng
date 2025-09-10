@@ -14,7 +14,7 @@ from app.config import (
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.models.db.user import USER_ROLES, User, UserRole
-from app.models.types import UserId
+from app.models.types import ApplicationId, UserId
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
@@ -33,6 +33,7 @@ async def users_index(
     roles: Annotated[list[UserRole] | None, Query()] = None,
     created_after: Annotated[datetime | None, Query()] = None,
     created_before: Annotated[datetime | None, Query()] = None,
+    application_id: Annotated[ApplicationId | None, Query()] = None,
     sort: Annotated[
         Literal['created_asc', 'created_desc', 'name_asc', 'name_desc'], Query()
     ] = 'created_desc',
@@ -47,6 +48,7 @@ async def users_index(
             roles=roles,
             created_after=created_after,
             created_before=created_before,
+            application_id=application_id,
             sort=sort,
         )
         users_num_pages = ceil(users_num_items / USER_LIST_PAGE_SIZE)
@@ -61,6 +63,7 @@ async def users_index(
                 'roles': roles or (),
                 'created_after': created_after.isoformat() if created_after else '',
                 'created_before': created_before.isoformat() if created_before else '',
+                'application_id': application_id or '',
                 'sort': sort,
             },
         )
