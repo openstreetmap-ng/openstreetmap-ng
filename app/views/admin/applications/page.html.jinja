@@ -6,7 +6,7 @@
             <img class="avatar me-2" src="{{ oauth2_app_avatar_url(app) }}" alt="{{ t('alt.application_image') }}"
                 loading="lazy">
             <div class="small">
-                <div>{{ app.name }}</div>
+                <abbr class="text-decoration-none" title="{{ app.client_id }}">{{ app.name }}</abbr>
                 <div class="lh-1">
                     <code>{{ app.id }}</code>
                     <small class="text-body-secondary">
