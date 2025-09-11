@@ -23,7 +23,11 @@
   "autoDocstring.docstringFormat": "sphinx-notypes",
   "cmake.sourceDirectory": "${workspaceFolder}/speedup",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
-  "css.styleSheets": ["node_modules/bootstrap/scss/**/*.scss", "app/views/**/*.scss"],
+  "css.styleSheets": [
+    "node_modules/bootstrap-icons/font/bootstrap-icons.css",
+    "app/static/vite/assets/bootstrap.*.css",
+    "app/views/**/*.scss"
+  ],
   "editor.formatOnSaveMode": "file",
   "editor.rulers": [88],
   "editor.unicodeHighlight.allowedCharacters": {
@@ -54,7 +58,6 @@
     "**/*.html": true,
     "**/*.so": true,
     "**/build/": true,
-    "**/node_modules/": true,
     "/nix/store/": true,
     "app/static/vite/**/*.js": true,
     "config/locale/download/": true,
