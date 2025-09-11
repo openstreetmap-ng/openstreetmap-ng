@@ -97,7 +97,9 @@ class UserTokenEmailService:
                 ) as r:
                     email_row: tuple[Email] | None = await r.fetchone()
                     audit_extra = (
-                        f'{email_row[0]} - Account confirm' if email_row else None
+                        f'{email_row[0]} (account_confirm)'
+                        if email_row is not None
+                        else None
                     )
 
             await conn.execute(
@@ -137,6 +139,9 @@ async def _create_token(new_email: Email | None) -> UserTokenStruct:
             )
             """,
             token_init,
+        )
+        await audit(
+            'request_change_email', conn, extra=(new_email or 'account_confirm')
         )
 
     return UserTokenStruct(id=token_id, token=token_bytes)

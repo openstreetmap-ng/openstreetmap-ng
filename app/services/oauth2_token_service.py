@@ -46,6 +46,7 @@ from app.models.scope import PublicScope
 from app.models.types import ApplicationId, ClientId, OAuth2TokenId, UserId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
+from app.services.audit_service import audit
 from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 from speedup.buffered_rand import buffered_rand_urlsafe
 
@@ -149,7 +150,7 @@ class OAuth2TokenService:
             'token_hashed': authorization_code_hashed,
             'token_preview': None,
             'redirect_uri': redirect_uri,
-            'scopes': list(scopes),
+            'scopes': sorted(scopes),
             'code_challenge_method': code_challenge_method,
             'code_challenge': code_challenge,
         }
@@ -277,6 +278,8 @@ class OAuth2TokenService:
             ) as r:
                 authorized_at: datetime = (await r.fetchone())[0]  # type: ignore
 
+            await audit('app_authorize', conn, extra=str(app['id']))
+
         return {
             'access_token': access_token,
             'token_type': 'Bearer',
@@ -301,7 +304,7 @@ class OAuth2TokenService:
             'token_hashed': None,
             'token_preview': None,
             'redirect_uri': None,
-            'scopes': list(scopes),
+            'scopes': sorted(scopes),
             'code_challenge_method': None,
             'code_challenge': None,
         }
@@ -322,6 +325,8 @@ class OAuth2TokenService:
                 """,
                 token_init,
             )
+
+            await audit('create_pat', conn, extra=f'id={token_id} {name=!r} {scopes=}')
 
         return token_id
 
@@ -415,8 +420,7 @@ class OAuth2TokenService:
 
         async with db(True) as conn:
             await conn.execute(query, params)
-
-        logging.debug('Revoked OAuth2 app tokens %d for user %d', app_id, user_id)
+            await audit('app_revoke', conn, extra=str(app_id))
 
     @staticmethod
     async def revoke_by_client_id(

@@ -200,14 +200,13 @@ WHERE
 
 CREATE INDEX audit_discard_repeated_idx ON audit (
     type,
+    ip,
     user_id DESC,
     target_user_id DESC,
     application_id DESC,
     hashtext (extra),
     created_at DESC
-)
-WHERE
-    user_id IS NOT NULL;
+);
 
 CREATE TABLE changeset (
     id bigint GENERATED ALWAYS AS IDENTITY,

@@ -92,9 +92,6 @@ def audit(
     if discard_repeated == 'UNSET':
         discard_repeated = audit_policy.discard_repeated
 
-    assert discard_repeated is None or user_id is not None, (
-        'discard_repeated requires user_id to be set'
-    )
     assert target_user_id is None or user_id is not None, (
         'target_user_id requires user_id to be set'
     )
@@ -165,7 +162,8 @@ async def _audit_task(
             WHERE NOT EXISTS (
                 SELECT 1 FROM audit
                 WHERE type = %(type)s
-                AND user_id = %(user_id)s
+                AND ip = %(ip)s
+                AND user_id IS NOT DISTINCT FROM %(user_id)s
                 AND target_user_id IS NOT DISTINCT FROM %(target_user_id)s
                 AND application_id IS NOT DISTINCT FROM %(application_id)s
                 AND hashtext(extra) IS NOT DISTINCT FROM hashtext(%(extra)s)

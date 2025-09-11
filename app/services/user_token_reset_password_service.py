@@ -9,10 +9,12 @@ from app.db import db
 from app.lib.crypto import hash_bytes
 from app.lib.translation import t, translation_context
 from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.models.db.user import User
 from app.models.db.user_token import UserTokenInit
 from app.models.proto.server_pb2 import UserTokenStruct
 from app.models.types import Email, UserTokenId
 from app.queries.user_query import UserQuery
+from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from speedup.buffered_rand import buffered_randbytes
 
@@ -48,7 +50,7 @@ class UserTokenResetPasswordService:
         _SEND_EMAIL_LATENCY.append(perf_counter() - ts)
 
 
-async def _create_token(user) -> UserTokenStruct:
+async def _create_token(user: User) -> UserTokenStruct:
     """Create a new user reset password token."""
     user_id = user['id']
     user_email_hashed = hash_bytes(user['email'])
@@ -76,5 +78,6 @@ async def _create_token(user) -> UserTokenStruct:
             """,
             token_init,
         )
+        await audit('request_reset_password', conn, extra=f'uid={user_id}')
 
     return UserTokenStruct(id=token_id, token=token_bytes)

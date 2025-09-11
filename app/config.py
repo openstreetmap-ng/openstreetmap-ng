@@ -317,36 +317,51 @@ MESSAGES_INBOX_PAGE_SIZE = 50
 class _AuditPolicies(BaseModel):
     class Policy(BaseModel):
         retention: timedelta
-        sample_rate: float = 1.0
         discard_repeated: timedelta | None = None
+        sample_rate: float = 1
 
-        def __init__(self, /, retention: timedelta | float, **data) -> None:
+        def __init__(
+            self,
+            /,
+            retention: timedelta | float,
+            discard_repeated: timedelta | None = None,
+            **data,
+        ) -> None:
             super().__init__(
                 retention=(
                     retention
                     if isinstance(retention, timedelta)
                     else timedelta(days=retention)
                 ),
+                discard_repeated=discard_repeated,
                 **data,
             )
 
     admin_task: Policy = Policy(60)
-    auth_api: Policy = Policy(14, sample_rate=0.05, discard_repeated=timedelta(days=1))
-    auth_fail: Policy = Policy(30, discard_repeated=timedelta(minutes=10))
-    auth_web: Policy = Policy(14, sample_rate=0.05, discard_repeated=timedelta(days=1))
-    change_display_name: Policy = Policy(30)
+    app_authorize: Policy = Policy(30)
+    app_revoke_all_users: Policy = Policy(30)
+    app_revoke: Policy = Policy(30)
+    auth_api: Policy = Policy(14, timedelta(days=1), sample_rate=0.05)
+    auth_fail: Policy = Policy(30, timedelta(minutes=10))
+    auth_web: Policy = Policy(14, timedelta(days=1), sample_rate=0.05)
+    change_app_settings: Policy = Policy(60)
+    change_display_name: Policy = Policy(60)
     change_email: Policy = Policy(60)
-    change_password: Policy = Policy(60)
+    change_password: Policy = Policy(30)
     change_roles: Policy = Policy(60)
+    connected_account_add: Policy = Policy(30)
+    connected_account_remove: Policy = Policy(30)
+    create_app: Policy = Policy(60)
+    create_pat: Policy = Policy(30)
     impersonate: Policy = Policy(60)
-    nsfw_image: Policy = Policy(30, discard_repeated=timedelta(minutes=10))
-    rate_limit: Policy = Policy(
-        14, sample_rate=0.05, discard_repeated=timedelta(hours=6)
-    )
+    nsfw_image: Policy = Policy(30, timedelta(minutes=10))
+    rate_limit: Policy = Policy(14, timedelta(hours=6), sample_rate=0.05)
+    request_change_email: Policy = Policy(14)
+    request_reset_password: Policy = Policy(14)
     send_message: Policy = Policy(30)
-    view_admin_users: Policy = Policy(60, discard_repeated=timedelta(hours=6))
-    view_admin_applications: Policy = Policy(60, discard_repeated=timedelta(hours=6))
-    view_audit: Policy = Policy(60, discard_repeated=timedelta(hours=6))
+    view_admin_applications: Policy = Policy(60, timedelta(hours=6))
+    view_admin_users: Policy = Policy(60, timedelta(hours=6))
+    view_audit: Policy = Policy(60, timedelta(hours=6))
 
     def __getitem__(self, item: 'AuditType') -> Policy:
         return getattr(self, item)

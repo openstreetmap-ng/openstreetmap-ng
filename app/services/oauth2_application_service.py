@@ -25,6 +25,7 @@ from app.models.db.oauth2_application import (
 )
 from app.models.scope import PublicScope
 from app.models.types import ApplicationId, ClientId, StorageKey
+from app.services.audit_service import audit
 from app.services.image_service import ImageService
 from app.utils import splitlines_trim
 from app.validators.url import UriValidator
@@ -72,6 +73,8 @@ class OAuth2ApplicationService:
                     StandardFeedback.raise_error(
                         None, t('validation.reached_app_limit')
                     )
+
+            await audit('create_app', conn, extra=f'id={app_id} {name=!r}')
 
         return app_id
 
@@ -127,7 +130,21 @@ class OAuth2ApplicationService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            result = await conn.execute(
+            async with await conn.execute(
+                """
+                SELECT name, confidential, scopes
+                FROM oauth2_application
+                WHERE id = %s AND user_id = %s
+                FOR UPDATE
+                """,
+                (app_id, user_id),
+            ) as r:
+                row: tuple[str, bool, list[PublicScope]] | None = await r.fetchone()
+                if row is None:
+                    raise_for.unauthorized()
+                old_name, old_confidential, old_scopes = row
+
+            await conn.execute(
                 """
                 UPDATE oauth2_application
                 SET
@@ -141,8 +158,17 @@ class OAuth2ApplicationService:
                 (name, is_confidential, redirect_uris, list(scopes), app_id, user_id),
             )
 
-            if not result.rowcount:
-                raise_for.unauthorized()
+            extra: list[str] = []
+            if old_name != name:
+                extra.append(f'{name=!r}')
+            if old_confidential != is_confidential:
+                extra.append(f'confidential={is_confidential}')
+            if frozenset(old_scopes) != scopes:
+                extra.append(f'{scopes=}')
+            if extra:
+                await audit(
+                    'change_app_settings', conn, extra=f'id={app_id} {" ".join(extra)}'
+                )
 
             if revoke_all_authorizations:
                 await conn.execute(
@@ -152,6 +178,7 @@ class OAuth2ApplicationService:
                     """,
                     (app_id,),
                 )
+                await audit('app_revoke_all_users', conn, extra=str(app_id))
 
     @staticmethod
     async def update_avatar(app_id: ApplicationId, avatar_file: UploadFile) -> str:

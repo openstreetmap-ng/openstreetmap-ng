@@ -19,7 +19,6 @@ class AuditQuery:
         user_ids: list[UserId],
         *,
         since: timedelta,
-        ignore_types: list[AuditType] = ['auth_api', 'rate_limit'],  # type: ignore  # noqa: B006
         ignore_app_events: bool = False,
     ) -> dict[UserId, list[tuple[IPv4Address | IPv6Address, int]]]:
         """
@@ -47,23 +46,17 @@ class AuditQuery:
                         FROM audit
                         WHERE user_id = ANY(%(user_ids)s)
                         AND created_at >= statement_timestamp() - %(since)s
-                        AND type != ALL(%(ignore_types)s)
                         {}
                     ) ui
                     JOIN audit USING (ip)
                     WHERE audit.user_id IS NOT NULL
                     AND created_at >= statement_timestamp() - %(since)s
-                    AND type != ALL(%(ignore_types)s)
                     {}
                     GROUP BY ui.user_id, ip
                     ORDER BY ui.user_id, shared_count DESC
                     """
                 ).format(ignore_app_sql, ignore_app_sql),
-                {
-                    'user_ids': user_ids,
-                    'since': since,
-                    'ignore_types': ignore_types,
-                },
+                {'user_ids': user_ids, 'since': since},
             ) as r,
         ):
             rows: list[tuple[UserId, IPv4Address | IPv6Address, int]]

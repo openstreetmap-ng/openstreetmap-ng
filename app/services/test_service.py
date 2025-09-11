@@ -173,7 +173,7 @@ class TestService:
                     'client_secret_preview': client_secret_preview,
                     'confidential': is_confidential,
                     'redirect_uris': redirect_uris,
-                    'scopes': list(scopes),
+                    'scopes': sorted(scopes),
                 },
             )
 
