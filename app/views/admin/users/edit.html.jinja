@@ -1,5 +1,5 @@
 {% extends '_base' %}
-{% block title_prefix %}User management | {{ edit_user.display_name }} | {% endblock %}
+{% block title_prefix %}Users | {{ edit_user.display_name }} | {% endblock %}
 {% block body_class %}admin-user-edit-body{% endblock %}
 {% block body %}
 {% set _is_deleted = user_is_deleted(edit_user) %}

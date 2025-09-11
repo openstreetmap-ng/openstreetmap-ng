@@ -352,7 +352,7 @@ AUDIT_POLICY = _AuditPolicies()
 AUDIT_LIST_PAGE_SIZE = 50
 AUDIT_USER_AGENT_MAX_LENGTH = 200
 
-# Task management
+# Admin tasks
 ADMIN_TASK_HEARTBEAT_INTERVAL = timedelta(minutes=1)
 ADMIN_TASK_TIMEOUT = timedelta(minutes=3)
 
