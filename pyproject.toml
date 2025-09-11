@@ -29,6 +29,7 @@ dependencies = [
   "orjson",
   "osm-shortlink",
   "phonenumbers",
+  "pillow",
   "polyline-rs",
   "protobuf==6.31.1",
   "psycopg[binary,pool]",
@@ -51,7 +52,10 @@ dependencies = [
   "sizestr",
   "speedup",
   "starlette-compress",
+  "torch",
+  "torchvision",
   "tqdm",
+  "transformers[timm,vision]",
   "uvicorn[standard]",
   "zid",
   "zstandard",
@@ -82,8 +86,15 @@ package = false
 python-downloads = "never"
 python-preference = "only-system"
 
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
 [tool.uv.sources]
 speedup = { workspace = true }
+torch = { index = "pytorch" }
+torchvision = { index = "pytorch" }
 
 [tool.uv.workspace]
 members = ["speedup"]

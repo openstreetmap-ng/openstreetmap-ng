@@ -17,6 +17,7 @@ AuditType = Literal[
     'change_password',
     'change_roles',
     'impersonate',
+    'nsfw_image',
     'rate_limit',
     'send_message',
     'view_admin_applications',

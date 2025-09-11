@@ -11,7 +11,6 @@ class MapExceptionsMixin:
     def map_query_area_too_big(self) -> NoReturn:
         raise NotImplementedError
 
-    @abstractmethod
     def map_query_nodes_limit_exceeded(self) -> NoReturn:
         raise APIError(
             status.HTTP_400_BAD_REQUEST,

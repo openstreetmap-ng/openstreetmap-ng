@@ -17,7 +17,6 @@ class ElementExceptionsMixin:
     ) -> NoReturn:
         raise NotImplementedError
 
-    @abstractmethod
     def element_redacted(self, versioned_ref: tuple[TypedElementId, int]) -> NoReturn:
         raise APIError(
             status.HTTP_451_UNAVAILABLE_FOR_LEGAL_REASONS,

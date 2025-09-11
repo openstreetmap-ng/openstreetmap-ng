@@ -560,6 +560,9 @@ let
     (makeScript "replication-convert" ''python scripts/replication_convert.py "$@"'')
     (makeScript "replication-load" "_db-load replication")
     (makeScript "replication-generate" ''python scripts/replication_generate.py "$@"'')
+    (makeScript "ai-models-download" ''
+      hf download Freepik/nsfw_image_detector --local-dir data/models/Freepik/nsfw_image_detector
+    '')
 
     # -- Testing
     (makeScript "run-tests" ''

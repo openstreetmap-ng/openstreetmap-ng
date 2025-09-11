@@ -74,6 +74,7 @@ LOG_LEVEL: Literal['DEBUG', 'INFO', 'WARNING'] | None = None
 LEGACY_HIGH_PRECISION_TIME = False
 
 # Storage paths
+AI_MODELS_DIR: _MakeDir = Path('data/models')
 FILE_CACHE_DIR: _MakeDir = Path('data/cache')
 FILE_CACHE_SIZE = _ByteSize('128 GiB')
 PLANET_DIR: _MakeDir = Path('data/planet')
@@ -90,6 +91,9 @@ DUCKDB_TMPDIR: DirectoryPath | None = None
 
 # Replication processing
 REPLICATION_CONVERT_ELEMENT_BATCH_SIZE = 500_000_000
+
+# AI settings
+AI_TRANSFORMERS_DEVICE = -1
 
 # -------------------- API and Services Integration --------------------
 
@@ -335,6 +339,7 @@ class _AuditPolicies(BaseModel):
     change_password: Policy = Policy(60)
     change_roles: Policy = Policy(60)
     impersonate: Policy = Policy(60)
+    nsfw_image: Policy = Policy(30, discard_repeated=timedelta(minutes=10))
     rate_limit: Policy = Policy(
         14, sample_rate=0.05, discard_repeated=timedelta(hours=6)
     )
