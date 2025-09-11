@@ -20,22 +20,37 @@
             </div>
         </div>
     </td>
-    <td>
+    <td class="text-body-secondary lh-sm small">
         {% set _uris = app.redirect_uris %}
-        {% if _uris %}
-        <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="popover" data-bs-html="true"
-            data-bs-container="body"
-            data-bs-content="{% for uri in _uris %}<a href='{{ uri }}' target='_blank' rel='noopener noreferrer'>{{ uri }}</a>{% endfor %}">
-            Redirect URIs ({{ _uris | length }})
-        </button>
-        {% else %}
-        <small class="text-body-secondary">No redirect URIs</small>
-        {% endif %}
+        {% set _scopes = app.scopes %}
+        <div>
+            <i class="bi bi-link-45deg me-1"></i>
+            {% if _uris %}
+            <a class="" role="button" data-bs-toggle="popover" data-bs-html="true" data-bs-container="body"
+                data-bs-content="{% for uri in _uris %}<a href='{{ uri }}' target='_blank' rel='noopener noreferrer'>{{ uri }}</a>{% endfor %}">
+                {{ _uris | length }} redirect URIs
+            </a>
+            {% else %}
+            0 redirect URIs
+            {% endif %}
+        </div>
+
+        <div>
+            <i class="bi bi-key me-1"></i>
+            {% if _scopes %}
+            <a class="" role="button" data-bs-toggle="popover" data-bs-html="true" data-bs-container="body"
+                data-bs-content="<ul class='mb-0 ps-3 font-monospace'>{% for s in _scopes | sort %}<li>{{ s }}</li>{% endfor %}</ul>">
+                {{ _scopes | length }} scopes
+            </a>
+            {% else %}
+            0 scopes
+            {% endif %}
+        </div>
     </td>
     <td>
         {% if _is_system %}
         <span class="text-body-secondary">
-            <i class="bi bi-shield-fill-check text-success me-1-5"></i>System
+            <i class="bi bi-shield-fill-check text-success me-2"></i>System
         </span>
         {% else %}
         <a href="/user-id/{{ app.user_id }}">
