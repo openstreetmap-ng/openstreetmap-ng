@@ -6,9 +6,8 @@
         {% endif %}
 
         {% set _title = t('service.' ~ service ~ '.title') %}
-        {% set _alt = t('alt.logo', name=service) %}
-        <button type="submit" class="btn btn-{{ service }}" title="{{ _title }}" name="action"
-            value="{{ providers_action }}">
+        {% set _alt = t('alt.logo', name=_title) %}
+        <button type="submit" class="btn btn-{{ service }}" name="action" value="{{ providers_action }}">
             {% if service == 'facebook' or service == 'github' %}
             <i class="bi bi-{{ service }}" alt="{{ _alt }}"></i>
             {% else %}
