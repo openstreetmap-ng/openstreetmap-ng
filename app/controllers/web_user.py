@@ -110,6 +110,13 @@ async def signup(
     return response
 
 
+@router.post('/signup/cancel-provider')
+async def signup_cancel_provider():
+    response = RedirectResponse('/signup', status.HTTP_303_SEE_OTHER)
+    response.delete_cookie('auth_provider_verification')
+    return response
+
+
 @router.get('/account-confirm')
 async def account_confirm(
     token: Annotated[SecretStr, Query(min_length=1)],

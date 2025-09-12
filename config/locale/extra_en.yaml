@@ -416,6 +416,7 @@ signup:
   photo_by_author: Photo by {{author}}
   i_agree_to_the_terms_privacy_and_contributor: "I agree to the {{terms}}, {{privacy}}, and {{contributor}}."
   sign_up_with_service: "Sign up with {{service}}"
+  cancel_sign_up: Cancel sign up
 pagination:
   range: "{{x}} of {{y}}"
 time:
