@@ -26,9 +26,13 @@ import {
     layersConfig,
     removeMapLayer,
 } from "../lib/map/layers/layers"
-import { getMarkerIconElement, markerIconAnchor } from "../lib/map/utils"
+import { getMarkerIconElement, markerIconAnchor, tryParsePoint } from "../lib/map/utils"
 import { decodeLonLat } from "../lib/polyline"
-import { type RoutingResult, RoutingResultSchema } from "../lib/proto/shared_pb"
+import {
+    type RoutingResult,
+    type RoutingResult_Endpoint,
+    RoutingResultSchema,
+} from "../lib/proto/shared_pb"
 import { qsParse } from "../lib/qs"
 import { configureStandardForm } from "../lib/standard-form"
 import { setPageTitle } from "../lib/title"
@@ -131,6 +135,26 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             element: getMarkerIconElement(color, true),
             draggable: true,
         })
+
+    const getOrCreateMarker = (dir: "start" | "end"): Marker => {
+        if (dir === "start") {
+            if (!startMarker) {
+                startMarker = markerFactory("green")
+                startMarker.on("dragend", () =>
+                    onMapMarkerDragEnd(startMarker.getLngLat(), true),
+                )
+            }
+            return startMarker
+        } else {
+            if (!endMarker) {
+                endMarker = markerFactory("red")
+                endMarker.on("dragend", () =>
+                    onMapMarkerDragEnd(endMarker.getLngLat(), false),
+                )
+            }
+            return endMarker
+        }
+    }
 
     /** On draggable marker drag start, set data and drag image */
     const onInterfaceMarkerDragStart = (event: DragEvent) => {
@@ -235,25 +259,9 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         console.debug("onMapDrop", dragData)
 
         let marker: Marker
-        if (dragData === "start") {
-            if (!startMarker) {
-                startMarker = markerFactory("green")
-                startMarker.on("dragend", () =>
-                    onMapMarkerDragEnd(startMarker.getLngLat(), true),
-                )
-            }
-            marker = startMarker
-        } else if (dragData === "end") {
-            if (!endMarker) {
-                endMarker = markerFactory("red")
-                endMarker.on("dragend", () =>
-                    onMapMarkerDragEnd(endMarker.getLngLat(), false),
-                )
-            }
-            marker = endMarker
-        } else {
-            return
-        }
+        if (dragData === "start") marker = getOrCreateMarker("start")
+        else if (dragData === "end") marker = getOrCreateMarker("end")
+        else return
 
         const mapRect = mapContainer.getBoundingClientRect()
         const mousePoint = new Point(
@@ -261,6 +269,27 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             event.clientY - mapRect.top,
         )
         marker.setLngLat(map.unproject(mousePoint)).addTo(map).fire("dragend")
+    }
+
+    /** If input looks like coordinates, place or update its marker immediately */
+    const ensureMarkerFromInput = (dir: "start" | "end") => {
+        const input = dir === "start" ? startInput : endInput
+        const coords = tryParsePoint(input.value)
+        if (!coords) return
+        const [lon, lat] = coords
+
+        const marker = getOrCreateMarker(dir)
+        marker.setLngLat([lon, lat]).addTo(map)
+
+        if (dir === "start") {
+            startLoadedInput.value = input.value
+            startLoadedLonInput.value = lon.toFixed(7)
+            startLoadedLatInput.value = lat.toFixed(7)
+        } else {
+            endLoadedInput.value = input.value
+            endLoadedLonInput.value = lon.toFixed(7)
+            endLoadedLatInput.value = lat.toFixed(7)
+        }
     }
 
     /** On map update, update the form's bounding box */
@@ -340,54 +369,50 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     )
 
     const updateEndpoints = (data: RoutingResult): void => {
-        if (data.start) {
-            const entry = data.start
+        const updateEndpoint = (
+            dir: "start" | "end",
+            entry: RoutingResult_Endpoint,
+        ) => {
             const { minLon, minLat, maxLon, maxLat } = entry.bounds
-            startBounds = new LngLatBounds([minLon, minLat, maxLon, maxLat])
-            startInput.value = entry.name
-            startInput.dispatchEvent(new Event("input"))
-            if (!startMarker) {
-                startMarker = markerFactory("green")
-                startMarker.on("dragend", () =>
-                    onMapMarkerDragEnd(startMarker.getLngLat(), true),
-                )
+            const b = new LngLatBounds([minLon, minLat, maxLon, maxLat])
+            if (dir === "start") startBounds = b
+            else endBounds = b
+
+            const input = dir === "start" ? startInput : endInput
+            input.value = entry.name
+            input.dispatchEvent(new Event("input"))
+            getOrCreateMarker(dir).setLngLat([entry.lon, entry.lat]).addTo(map)
+
+            if (dir === "start") {
+                startLoadedInput.value = entry.name
+                startLoadedLonInput.value = entry.lon.toFixed(7)
+                startLoadedLatInput.value = entry.lat.toFixed(7)
+            } else {
+                endLoadedInput.value = entry.name
+                endLoadedLonInput.value = entry.lon.toFixed(7)
+                endLoadedLatInput.value = entry.lat.toFixed(7)
             }
-            startMarker.setLngLat([entry.lon, entry.lat]).addTo(map)
-            startLoadedInput.value = entry.name
-            startLoadedLonInput.value = entry.lon.toFixed(7)
-            startLoadedLatInput.value = entry.lat.toFixed(7)
         }
 
-        if (data.end) {
-            const entry = data.end
-            const { minLon, minLat, maxLon, maxLat } = entry.bounds
-            endBounds = new LngLatBounds([minLon, minLat, maxLon, maxLat])
-            endInput.value = entry.name
-            endInput.dispatchEvent(new Event("input"))
-            if (!endMarker) {
-                endMarker = markerFactory("red")
-                endMarker.on("dragend", () =>
-                    onMapMarkerDragEnd(endMarker.getLngLat(), false),
-                )
-            }
-            endMarker.setLngLat([entry.lon, entry.lat]).addTo(map)
-            endLoadedInput.value = entry.name
-            endLoadedLonInput.value = entry.lon.toFixed(7)
-            endLoadedLatInput.value = entry.lat.toFixed(7)
-        }
+        if (data.start) updateEndpoint("start", data.start)
+        if (data.end) updateEndpoint("end", data.end)
 
-        // Focus on the makers if they're offscreen
-        const mapBounds = map.getBounds()
-        const markerBounds = startBounds.extend(endBounds)
-        if (
-            !mapBounds.contains(markerBounds.getSouthWest()) &&
-            !mapBounds.contains(markerBounds.getNorthEast())
-        ) {
-            map.fitBounds(markerBounds)
+        const markerBounds =
+            startBounds && endBounds
+                ? startBounds.extend(endBounds)
+                : (startBounds ?? endBounds)
+        if (markerBounds) {
+            const mapBounds = map.getBounds()
+            if (
+                !mapBounds.contains(markerBounds.getSouthWest()) &&
+                !mapBounds.contains(markerBounds.getNorthEast())
+            )
+                map.fitBounds(markerBounds)
         }
     }
 
     const updateUrl = (): void => {
+        if (!startMarker || !endMarker) return
         const routingEngineName = engineInput.value
 
         const precision = zoomPrecision(19)
@@ -525,6 +550,11 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
                 endInput.value = searchParams.to
                 endInput.dispatchEvent(new Event("input"))
             }
+
+            // Ensure markers reflect any prefilled inputs (persisted or from params)
+            ensureMarkerFromInput("start")
+            ensureMarkerFromInput("end")
+
             const routingEngine = getInitialRoutingEngine(searchParams.engine)
             if (routingEngine) {
                 if (engineInput.querySelector(`option[value=${routingEngine}]`)) {

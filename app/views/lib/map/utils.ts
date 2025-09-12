@@ -4,7 +4,7 @@ import {
     Point,
     type PositionAnchor,
 } from "maplibre-gl"
-
+import { isLatitude, isLongitude } from "../../lib/utils"
 import type { Bounds } from "../types"
 
 const minBoundsSizePx = 20
@@ -167,4 +167,14 @@ export const configureDefaultMapBehavior = (map: MaplibreMap): void => {
     const zoomRate = 1 / 300
     map.scrollZoom.setWheelZoomRate(zoomRate)
     map.scrollZoom.setZoomRate(zoomRate)
+}
+
+/** Parse a simple "lat, lon" string into [lon, lat]. Returns null if invalid. */
+export const tryParsePoint = (text: string): [number, number] | null => {
+    if (!text) return null
+    const parts = text.split(",")
+    if (parts.length !== 2) return null
+    const lat = Number.parseFloat(parts[0].trim())
+    const lon = Number.parseFloat(parts[1].trim())
+    return isLatitude(lat) && isLongitude(lon) ? [lon, lat] : null
 }
