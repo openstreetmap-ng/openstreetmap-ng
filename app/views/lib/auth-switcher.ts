@@ -13,12 +13,12 @@ for (const root of roots) {
     }
 
     const onResize = (): void => {
-        root.scrollLeft = root.clientWidth + 1
+        root.scrollLeft = 999999
     }
 
     toProviders.addEventListener("click", (): void => {
         root.dataset.state = "providers"
-        root.scrollTo({ left: root.clientWidth + 1, behavior: "smooth" })
+        root.scrollTo({ left: 999999, behavior: "smooth" })
         updateCta()
         window.addEventListener("resize", onResize)
     })

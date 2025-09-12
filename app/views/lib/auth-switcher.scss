@@ -1,6 +1,7 @@
 .auth-switcher {
     overflow: hidden;
     display: flex;
+    gap: 1.5rem;
 
     > div {
         flex: 0 0 100%;
@@ -14,7 +15,17 @@
         @extend .border;
 
         width: 100%;
+    }
+}
 
+@include color-mode(light) {
+    .auth-switcher-cta .btn {
+        @extend .link-primary;
+    }
+}
+
+.signup-body .content-body {
+    .auth-switcher-cta .btn {
         --bs-btn-font-weight: 500;
     }
 }
