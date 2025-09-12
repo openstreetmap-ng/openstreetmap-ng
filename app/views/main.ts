@@ -46,6 +46,7 @@ import "./welcome"
 
 import "./lib/map/main-map"
 
+import "./lib/auth-switcher"
 import "./lib/bootstrap"
 import "./lib/copy-group"
 import "./lib/multi-input"

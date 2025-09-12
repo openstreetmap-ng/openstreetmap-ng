@@ -26,109 +26,125 @@
         </div>
         <div class="signup-content col">
             <div class="col-12 col-xxl-9">
-                <form class="signup-form" method="POST" action="/api/web/user/signup">
-                    <div class="text-center">
-                        <h1 class="brand-title-sm fw-bold d-xl-none">
-                            <img class="d-none d-sm-inline-block" src="/static/img/favicon/256.webp"
-                                alt="{{ t('alt.logo', name=t('project_name')) }}" draggable="false">
-                            {{- t('project_name') }}
-                        </h1>
-                        <h2 class="brand-subtitle">{{ t('signup.get_started_contributing') }}</h2>
-                        <p class="form-text mt-0 mb-4">
-                            {{ t('signup.already_have_an_account') }}
-                            <a class="link-primary" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                {{ t('signup.sign_in_here') }}
-                            </a>
-                        </p>
-                    </div>
-
-                    <label class="form-label d-block">
-                        {{ t('activerecord.attributes.user.display_name') | capitalize }}
-                        <input type="text" class="form-control mt-2" name="display_name"
-                            data-blacklist="{{ URLSAFE_BLACKLIST }}" value="{{ display_name_value }}"
-                            autocomplete="username" autocapitalize="none" required>
-                    </label>
-                    <p class="form-text">
-                        {{ t('settings.your_public_username') }}
-                        {{ t('settings.you_can_change_it_later_in_the_settings') }}
+                <div class="text-center">
+                    <h1 class="brand-title-sm fw-bold d-xl-none">
+                        <img class="d-none d-sm-inline-block" src="/static/img/favicon/256.webp"
+                            alt="{{ t('alt.logo', name=t('project_name')) }}" draggable="false">
+                        {{- t('project_name') }}
+                    </h1>
+                    <h2 class="brand-subtitle">{{ t('signup.get_started_contributing') }}</h2>
+                    <p class="form-text mt-0 mb-4">
+                        {{ t('signup.already_have_an_account') }}
+                        <a class="link-primary" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            {{ t('signup.sign_in_here') }}
+                        </a>
                     </p>
+                </div>
 
-                    <label class="form-label d-block">
-                        {{ t('passwords.new.email address') | capitalize }}
-                        <input type="email" class="form-control mt-2 {% if email_value %}bg-body-tertiary{% endif %}"
-                            name="email" minlength="{{ EMAIL_MIN_LENGTH }}" maxlength="{{ EMAIL_MAX_LENGTH }}"
-                            value="{{ email_value }}" autocomplete="email" {% if email_value %}readonly{% endif %}
-                            {% if ENV != 'prod' %} data-bs-toggle="popover" data-bs-trigger="focus"
-                            data-bs-placement="top" data-bs-title="Test Site Reminder"
-                            data-bs-content="Use fake data only. Do not provide real email addresses. All emails go to mail.openstreetmap.ng"
-                            {% endif %} required>
-                    </label>
-                    <p class="form-text">{{ t('settings.your_email_address_is_not_displayed_publicly') }}</p>
+                <div class="auth-switcher">
+                    <div>
+                        <form class="signup-form" method="POST" action="/api/web/user/signup">
 
-                    <label class="form-label d-block mb-3">
-                        {{ t('sessions.new.password') | capitalize }}
-                        <input type="password" class="form-control mt-2" data-name="password"
-                            minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
-                    </label>
 
-                    <label class="form-label d-block mb-4">
-                        {{ t('activerecord.attributes.user.pass_crypt_confirmation') | capitalize }}
-                        <input type="password" class="form-control mt-2" data-name="password_confirm"
-                            minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
-                    </label>
+                            <label class="form-label d-block">
+                                {{ t('activerecord.attributes.user.display_name') | capitalize }}
+                                <input type="text" class="form-control mt-2" name="display_name"
+                                    data-blacklist="{{ URLSAFE_BLACKLIST }}" value="{{ display_name_value }}"
+                                    autocomplete="username" autocapitalize="none" required>
+                            </label>
+                            <p class="form-text">
+                                {{ t('settings.your_public_username') }}
+                                {{ t('settings.you_can_change_it_later_in_the_settings') }}
+                            </p>
 
-                    <div class="form-check small mx-1 mb-3">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" autocomplete="off" required>
-                            {% set _terms_link %}
-                            <a href="https://osmfoundation.org/wiki/Terms_of_Use" rel="terms-of-service"
-                                target="_blank">
-                                {{- t('layouts.tou') | lower -}}
-                            </a>
-                            {%- endset %}
-                            {% set _privacy_link %}
-                            <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy"
-                                target="_blank">
-                                {{- t('users.new.privacy_policy') -}}
-                            </a>
-                            {%- endset %}
-                            {% set _contributor_link %}
-                            <a href="https://osmfoundation.org/wiki/Licence/Contributor_Terms" target="_blank">
-                                {{- t('accounts.edit.contributor terms.heading') | lower -}}
-                            </a>
-                            {%- endset %}
-                            <span class="required">
-                                {{ t('signup.i_agree_to_the_terms_privacy_and_contributor',
+                            <label class="form-label d-block">
+                                {{ t('passwords.new.email address') | capitalize }}
+                                <input type="email"
+                                    class="form-control mt-2 {% if email_value %}bg-body-tertiary{% endif %}"
+                                    name="email" minlength="{{ EMAIL_MIN_LENGTH }}" maxlength="{{ EMAIL_MAX_LENGTH }}"
+                                    value="{{ email_value }}" autocomplete="email"
+                                    {% if email_value %}readonly{% endif %} {% if ENV != 'prod' %}
+                                    data-bs-toggle="popover" data-bs-trigger="focus" data-bs-placement="top"
+                                    data-bs-title="Test Site Reminder"
+                                    data-bs-content="Use fake data only. Do not provide real email addresses. All emails go to mail.openstreetmap.ng"
+                                    {% endif %} required>
+                            </label>
+                            <p class="form-text">{{ t('settings.your_email_address_is_not_displayed_publicly') }}
+                            </p>
+
+                            <label class="form-label d-block mb-3">
+                                {{ t('sessions.new.password') | capitalize }}
+                                <input type="password" class="form-control mt-2" data-name="password"
+                                    minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
+                            </label>
+
+                            <label class="form-label d-block mb-4">
+                                {{ t('activerecord.attributes.user.pass_crypt_confirmation') | capitalize }}
+                                <input type="password" class="form-control mt-2" data-name="password_confirm"
+                                    minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
+                            </label>
+
+                            <div class="form-check small mx-1 mb-3">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="checkbox" autocomplete="off" required>
+                                    {% set _terms_link %}
+                                    <a href="https://osmfoundation.org/wiki/Terms_of_Use" rel="terms-of-service"
+                                        target="_blank">
+                                        {{- t('layouts.tou') | lower -}}
+                                    </a>
+                                    {%- endset %}
+                                    {% set _privacy_link %}
+                                    <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy"
+                                        target="_blank">
+                                        {{- t('users.new.privacy_policy') -}}
+                                    </a>
+                                    {%- endset %}
+                                    {% set _contributor_link %}
+                                    <a href="https://osmfoundation.org/wiki/Licence/Contributor_Terms" target="_blank">
+                                        {{- t('accounts.edit.contributor terms.heading') | lower -}}
+                                    </a>
+                                    {%- endset %}
+                                    <span class="required">
+                                        {{ t('signup.i_agree_to_the_terms_privacy_and_contributor',
                                     terms=_terms_link,
                                     privacy=_privacy_link,
                                     contributor=_contributor_link
                                 ) | safe -}}
-                            </span>
-                        </label>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <input type="hidden" name="tracking" autocomplete="off" required>
+                            <button
+                                class="btn btn-lg py-2 btn-primary rounded-pill fw-medium col-12 col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-6 offset-lg-3 col-xl-12 offset-xl-0"
+                                type="submit">{{ t('layouts.sign_up') | capitalize }}</button>
+                        </form>
                     </div>
 
-                    <input type="hidden" name="tracking" autocomplete="off" required>
-                    <button
-                        class="btn btn-lg py-2 btn-primary rounded-pill fw-medium col-12 col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-6 offset-lg-3 col-xl-12 offset-xl-0"
-                        type="submit">{{ t('layouts.sign_up') | capitalize }}</button>
-                </form>
+                    {% if not display_name_value and not email_value %}
+                    <div>
+                        {% set providers_action = 'signup' %}
+                        {% set providers_include_referer = false %}
+                        {% include 'user/_providers' %}
+                    </div>
+                    {% endif %}
+                </div>
 
                 {% if not display_name_value and not email_value %}
-                <div class="divider mt-4 mb-3">
-                    <span class="divider-text">{{ t('login.or_continue_with') }}</span>
-                </div>
-
-                <div class="auth-providers d-flex justify-content-center gap-3 gap-sm-4">
-                    {% for service in CONFIGURED_AUTH_PROVIDERS %}
-                    <form method="POST" action="/oauth2/{{ service }}/authorize">
-                        <button type="submit" class="btn btn-link border"
-                            title="{{ t('service.' ~ service ~ '.title') }}" name="action" value="signup">
-                            <img src="/static/img/brand/{{ service }}.webp" draggable="false" loading="lazy">
+                <div
+                    class="col-12 col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-6 offset-lg-3 col-xl-12 offset-xl-0">
+                    <div class="auth-switcher-cta mt-3 px-3">
+                        <button type="button" class="btn btn-link" data-auth-switcher-target="providers">
+                            {{- t('auth_switcher.sign_up_with_a_provider') -}}
                         </button>
-                    </form>
-                    {% endfor %}
+                        <button type="button" class="btn btn-link d-none" data-auth-switcher-target="email">
+                            <i class="bi bi-chevron-left small me-1"></i>
+                            {{- t('action.go_back') -}}
+                        </button>
+                    </div>
                 </div>
                 {% endif %}
+
             </div>
         </div>
     </div>
