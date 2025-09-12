@@ -121,6 +121,8 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     let startMarker: Marker | null = null
     let endBounds: LngLatBounds | null = null
     let endMarker: Marker | null = null
+    let hoverId: number | null = null
+    let lastMouse: [number, number] | null = null
 
     const popup = new Popup({
         closeButton: false,
@@ -193,41 +195,55 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         openPopup(result, feature.geometry.coordinates[0] as LngLatLike)
     })
 
-    let hoveredFeatureId: number | null = null
     map.on("mousemove", layerId, (e) => {
-        const featureId = e.features[0].id
-        if (hoveredFeatureId !== null) {
-            if (hoveredFeatureId === featureId) return
-            setHover(hoveredFeatureId, false)
-        } else {
-            setMapHover(map, layerId)
-        }
-        hoveredFeatureId = featureId as number
-        setHover(hoveredFeatureId, true, true)
+        const id = e.features[0].id as number
+        setMapHover(map, layerId)
+        updateHover(id >= 0 ? id : null, true)
     })
     map.on("mouseleave", layerId, () => {
-        setHover(hoveredFeatureId, false)
-        hoveredFeatureId = null
         clearMapHover(map, layerId)
+        updateHover(null)
     })
 
-    /** Set the hover state of the step features */
-    const setHover = (id: number, hover: boolean, scrollIntoView = false): void => {
-        const result = stepsTableBody.children[id]
-        result?.classList.toggle("hover", hover)
+    /** Update hovered step and map feature atomically */
+    const updateHover = (id: number | null, scrollIntoView = false): void => {
+        if (id === hoverId) return
 
-        if (hover && scrollIntoView && result) {
-            // Scroll result into view
-            const sidebarRect = parentSidebar.getBoundingClientRect()
-            const resultRect = result.getBoundingClientRect()
-            const isVisible =
-                resultRect.top >= sidebarRect.top &&
-                resultRect.bottom <= sidebarRect.bottom
-            if (!isVisible)
-                result.scrollIntoView({ behavior: "smooth", block: "center" })
+        if (hoverId !== null) {
+            const prev = stepsTableBody.children[hoverId]
+            prev?.classList.remove("hover")
+            map.setFeatureState({ source: layerId, id: hoverId }, { hover: false })
         }
 
-        map.setFeatureState({ source: layerId, id: id }, { hover })
+        hoverId = id
+
+        if (id !== null) {
+            const el = stepsTableBody.children[id]
+            el?.classList.add("hover")
+            if (scrollIntoView && el) {
+                const sidebarRect = parentSidebar.getBoundingClientRect()
+                const resultRect = el.getBoundingClientRect()
+                const isVisible =
+                    resultRect.top >= sidebarRect.top &&
+                    resultRect.bottom <= sidebarRect.bottom
+                if (!isVisible)
+                    el.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
+            map.setFeatureState({ source: layerId, id }, { hover: true })
+        }
+    }
+
+    const onSidebarMouseMove = (e: MouseEvent): void => {
+        lastMouse = [e.clientX, e.clientY]
+    }
+
+    const onSidebarScroll = (): void => {
+        if (!lastMouse) return
+        const [x, y] = lastMouse
+        const r = parentSidebar.getBoundingClientRect()
+        if (x < r.left || x > r.right || y < r.top || y > r.bottom) return
+        const row = document.elementFromPoint(x, y)?.closest("tr[data-step-index]")
+        updateHover(row ? Number.parseInt(row.dataset.stepIndex, 10) : null)
     }
 
     /** On marker drag end, update the form's coordinates */
@@ -478,7 +494,8 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             }
 
             const div = (stepTemplate.content.cloneNode(true) as DocumentFragment)
-                .children[0]
+                .children[0] as HTMLElement
+            div.dataset.stepIndex = String(stepIndex)
             div.querySelector(".icon div").classList.add(
                 `icon-${step.iconNum}`,
                 "dark-filter-invert",
@@ -489,8 +506,8 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
                 step.distance,
             )
             div.addEventListener("click", () => openPopup(div, stepCoords[0]))
-            div.addEventListener("mouseenter", () => setHover(stepIndex, true))
-            div.addEventListener("mouseleave", () => setHover(stepIndex, false))
+            div.addEventListener("mouseenter", () => updateHover(stepIndex))
+            div.addEventListener("mouseleave", () => updateHover(null))
             stepsRows.append(div)
         }
 
@@ -572,6 +589,8 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             map.on("moveend", onMapZoomOrMoveEnd)
             mapContainer.addEventListener("dragover", onMapDragOver)
             mapContainer.addEventListener("drop", onMapDrop)
+            parentSidebar.addEventListener("mousemove", onSidebarMouseMove)
+            parentSidebar.addEventListener("scroll", onSidebarScroll)
         },
         unload: () => {
             map.off("moveend", onMapZoomOrMoveEnd)
@@ -580,6 +599,8 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             clearMapHover(map, layerId)
             mapContainer.removeEventListener("dragover", onMapDragOver)
             mapContainer.removeEventListener("drop", onMapDrop)
+            parentSidebar.removeEventListener("mousemove", onSidebarMouseMove)
+            parentSidebar.removeEventListener("scroll", onSidebarScroll)
 
             loadingContainer.classList.add("d-none")
             routeContainer.classList.add("d-none")
