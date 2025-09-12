@@ -144,8 +144,9 @@
                     </div>
                     {% else %}
                     <form method="POST" action="/api/web/user/signup/cancel-provider">
-                        <button class="btn btn-sm btn-outline-secondary w-100"
-                            type="submit">{{ t('signup.cancel_sign_up') }}</button>
+                        <button class="btn btn-sm btn-outline-secondary w-100" type="submit">
+                            {{- t('signup.cancel_sign_up') -}}
+                        </button>
                     </form>
                     {% endif %}
                 </div>
