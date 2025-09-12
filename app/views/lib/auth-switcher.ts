@@ -12,15 +12,21 @@ for (const root of roots) {
         toEmail.classList.toggle("d-none", !providersState)
     }
 
+    const onResize = (): void => {
+        root.scrollLeft = root.clientWidth + 1
+    }
+
     toProviders.addEventListener("click", (): void => {
         root.dataset.state = "providers"
         root.scrollTo({ left: root.clientWidth + 1, behavior: "smooth" })
         updateCta()
+        window.addEventListener("resize", onResize)
     })
 
     toEmail.addEventListener("click", (): void => {
         root.dataset.state = "email"
         root.scrollTo({ left: 0, behavior: "smooth" })
         updateCta()
+        window.removeEventListener("resize", onResize)
     })
 }
