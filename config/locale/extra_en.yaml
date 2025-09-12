@@ -401,6 +401,7 @@ login:
   or_continue_with: or continue with
   sign_in: Sign in
   sign_in_with_a_passkey: Sign in with a passkey
+  sign_in_with_service: "Sign in with {{service}}"
 auth_switcher:
   sign_in_with_a_provider: Sign in with a provider
   sign_up_with_a_provider: Sign up with a provider
@@ -414,6 +415,7 @@ signup:
     free for everyone to use.
   photo_by_author: Photo by {{author}}
   i_agree_to_the_terms_privacy_and_contributor: "I agree to the {{terms}}, {{privacy}}, and {{contributor}}."
+  sign_up_with_service: "Sign up with {{service}}"
 pagination:
   range: "{{x}} of {{y}}"
 time:

@@ -1,12 +1,25 @@
-<div class="auth-providers d-flex justify-content-center gap-3 gap-sm-4">
+<div class="auth-providers d-grid gap-2">
     {% for service in CONFIGURED_AUTH_PROVIDERS %}
     <form method="POST" action="/oauth2/{{ service }}/authorize">
         {% if providers_include_referer %}
         <input type="hidden" name="referer" required>
         {% endif %}
-        <button type="submit" class="btn btn-link border" title="{{ t('service.' ~ service ~ '.title') }}" name="action"
+
+        {% set _title = t('service.' ~ service ~ '.title') %}
+        {% set _alt = t('alt.logo', name=service) %}
+        <button type="submit" class="btn btn-{{ service }}" title="{{ _title }}" name="action"
             value="{{ providers_action }}">
-            <img src="/static/img/brand/{{ service }}.webp" draggable="false" loading="lazy">
+            {% if service == 'facebook' or service == 'github' %}
+            <i class="bi bi-{{ service }}" alt="{{ _alt }}"></i>
+            {% else %}
+            <img src="/static/img/brand/{{ service }}.webp" alt="{{ _alt }}">
+            {% endif %}
+
+            {% if providers_action == 'login' %}
+            {{ t('login.sign_in_with_service', service=_title) }}
+            {% else %}
+            {{ t('signup.sign_up_with_service', service=_title) }}
+            {% endif %}
         </button>
     </form>
     {% endfor %}
