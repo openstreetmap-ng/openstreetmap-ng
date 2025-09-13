@@ -43,6 +43,16 @@ for (const container of multiInputContainers) {
 
         const textSpan = document.createElement("span")
         textSpan.textContent = token
+        textSpan.addEventListener("click", (e) => {
+            e.stopPropagation()
+            addTokenFromInput()
+            input.value = token
+            tokenElement.remove()
+            updateInputState()
+            input.focus()
+            const len = input.value.length
+            input.setSelectionRange(len, len)
+        })
 
         const removeButton = document.createElement("button")
         removeButton.textContent = "×"
