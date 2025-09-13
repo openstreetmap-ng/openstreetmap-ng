@@ -278,7 +278,11 @@ class OAuth2TokenService:
             ) as r:
                 authorized_at: datetime = (await r.fetchone())[0]  # type: ignore
 
-            await audit('app_authorize', conn, extra=str(app['id']))
+            await audit(
+                'authorize_app',
+                conn,
+                extra={'id': app['id'], 'redirect_uri': redirect_uri},
+            )
 
         return {
             'access_token': access_token,
@@ -326,7 +330,11 @@ class OAuth2TokenService:
                 token_init,
             )
 
-            await audit('create_pat', conn, extra=f'id={token_id} {name=!r} {scopes=}')
+            await audit(
+                'create_pat',
+                conn,
+                extra={'id': token_id, 'name': name, 'scopes': token_init['scopes']},
+            )
 
         return token_id
 
@@ -419,8 +427,9 @@ class OAuth2TokenService:
         """).format(conditions=SQL(' AND ').join(conditions))
 
         async with db(True) as conn:
-            await conn.execute(query, params)
-            await audit('app_revoke', conn, extra=str(app_id))
+            result = await conn.execute(query, params)
+            if result.rowcount:
+                await audit('revoke_app', conn, extra={'id': app_id})
 
     @staticmethod
     async def revoke_by_client_id(

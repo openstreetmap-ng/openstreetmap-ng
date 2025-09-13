@@ -1,4 +1,3 @@
-import logging
 from asyncio import TaskGroup
 from datetime import datetime
 from typing import Any
@@ -26,6 +25,7 @@ from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
+from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.geometry import validate_geometry
@@ -93,12 +93,10 @@ class NoteService:
                     'created_at': note_created_at,
                 },
             )
+            await audit('create_note', conn, extra={'id': note_id})
 
         if user_id is not None:
-            logging.debug('Created note %d by user %d', note_id, user_id)
             await UserSubscriptionService.subscribe('note', note_id)
-        else:
-            logging.debug('Created note %d by anonymous user', note_id)
 
         return note_id
 
@@ -194,13 +192,23 @@ class NoteService:
 
             query = SQL("""
                 UPDATE note
-                SET {}
-                WHERE id = %s
+                SET {} WHERE id = %s
             """).format(SQL(',').join(update))
             params.append(note_id)
-            await conn.execute(query, params)
 
-        logging.debug('Created note comment on note %d by user %d', note_id, user_id)
+            await conn.execute(query, params)
+            if text:
+                await audit(
+                    'create_note_comment',
+                    conn,
+                    extra={'id': comment_id, 'note': note_id},
+                )
+            if event != 'commented':
+                await audit(
+                    'update_note_status',
+                    conn,
+                    extra={'id': note_id, 'event': event},
+                )
 
         comment: NoteComment = {
             'id': comment_id,

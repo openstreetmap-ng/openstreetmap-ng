@@ -37,7 +37,9 @@ class ConnectedAccountService:
                 """,
                 connected_account_init,
             )
-            await audit('connected_account_add', conn, extra=f'{provider}={uid}')
+            await audit(
+                'add_connected_account', conn, extra={'provider': provider, 'uid': uid}
+            )
 
     @staticmethod
     async def remove_connection(provider: AuthProvider) -> None:
@@ -52,4 +54,4 @@ class ConnectedAccountService:
                 """,
                 (user_id, provider),
             )
-            await audit('connected_account_remove', conn, extra=provider)
+            await audit('remove_connected_account', conn, extra={'provider': provider})

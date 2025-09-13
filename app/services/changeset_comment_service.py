@@ -17,6 +17,7 @@ from app.models.types import ChangesetCommentId, ChangesetId, DisplayName
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
+from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
 
@@ -62,12 +63,11 @@ class ChangesetCommentService:
                 created_at: datetime
                 comment_id, created_at = await r.fetchone()  # type: ignore
 
-        logging.debug(
-            'Created changeset comment %d on changeset %d by user %d',
-            comment_id,
-            changeset_id,
-            user_id,
-        )
+            await audit(
+                'create_changeset_comment',
+                conn,
+                extra={'id': comment_id, 'changeset': changeset_id},
+            )
 
         comment: ChangesetComment = {
             'id': comment_id,
@@ -83,6 +83,7 @@ class ChangesetCommentService:
             tg.create_task(_send_activity_email(comment))
             tg.create_task(UserSubscriptionService.subscribe('changeset', changeset_id))
 
+    # TODO: hide, audit
     @staticmethod
     async def delete_comment_unsafe(comment_id: ChangesetCommentId) -> ChangesetId:
         """Delete any changeset comment. Returns the parent changeset id."""

@@ -78,6 +78,6 @@ async def _create_token(user: User) -> UserTokenStruct:
             """,
             token_init,
         )
-        await audit('request_reset_password', conn, extra=f'uid={user_id}')
+        await audit('request_reset_password', conn, extra={'uid': user_id})
 
     return UserTokenStruct(id=token_id, token=token_bytes)

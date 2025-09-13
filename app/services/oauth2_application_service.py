@@ -1,5 +1,6 @@
 import logging
 from asyncio import TaskGroup
+from typing import Any
 
 from fastapi import UploadFile
 from pydantic import SecretStr
@@ -74,7 +75,7 @@ class OAuth2ApplicationService:
                         None, t('validation.reached_app_limit')
                     )
 
-            await audit('create_app', conn, extra=f'id={app_id} {name=!r}')
+            await audit('create_app', conn, extra={'id': app_id, 'name': name})
 
         return app_id
 
@@ -144,6 +145,7 @@ class OAuth2ApplicationService:
                     raise_for.unauthorized()
                 old_name, old_confidential, old_scopes = row
 
+            scopes_list = sorted(scopes)
             await conn.execute(
                 """
                 UPDATE oauth2_application
@@ -155,30 +157,29 @@ class OAuth2ApplicationService:
                     updated_at = DEFAULT
                 WHERE id = %s AND user_id = %s
                 """,
-                (name, is_confidential, redirect_uris, list(scopes), app_id, user_id),
+                (name, is_confidential, redirect_uris, scopes_list, app_id, user_id),
             )
 
-            extra: list[str] = []
+            extra: dict[str, Any] = {'id': app_id}
             if old_name != name:
-                extra.append(f'{name=!r}')
+                extra['name'] = name
             if old_confidential != is_confidential:
-                extra.append(f'confidential={is_confidential}')
-            if frozenset(old_scopes) != scopes:
-                extra.append(f'{scopes=}')
-            if extra:
-                await audit(
-                    'change_app_settings', conn, extra=f'id={app_id} {" ".join(extra)}'
-                )
+                extra['confidential'] = is_confidential
+            if scopes.symmetric_difference(old_scopes):
+                extra['scopes'] = scopes_list
+            if len(extra) > 1:
+                await audit('change_app_settings', conn, extra=extra)
 
             if revoke_all_authorizations:
-                await conn.execute(
+                result = await conn.execute(
                     """
                     DELETE FROM oauth2_token
                     WHERE application_id = %s
                     """,
                     (app_id,),
                 )
-                await audit('app_revoke_all_users', conn, extra=str(app_id))
+                if result.rowcount:
+                    await audit('revoke_app_all_users', conn, extra={'id': app_id})
 
     @staticmethod
     async def update_avatar(app_id: ApplicationId, avatar_file: UploadFile) -> str:

@@ -128,7 +128,7 @@ class AuthProviderService:
             await audit(
                 'auth_web',
                 user_id=user_id,
-                extra=f'Login with {provider}',
+                extra={'login': True, 'provider': provider},
                 sample_rate=1,
                 discard_repeated=None,
             )

@@ -68,13 +68,18 @@ class UserSignupService:
                 user_id: UserId = (await r.fetchone())[0]  # type: ignore
 
             tg.create_task(
-                audit('change_display_name', conn, user_id=user_id, extra=display_name)
+                audit(
+                    'change_display_name',
+                    conn,
+                    user_id=user_id,
+                    extra={'name': display_name},
+                )
             )
             tg.create_task(audit('change_password', conn, user_id=user_id))
 
             if email_verified:
                 tg.create_task(
-                    audit('change_email', conn, user_id=user_id, extra=email)
+                    audit('change_email', conn, user_id=user_id, extra={'email': email})
                 )
 
         if not email_verified:

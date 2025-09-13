@@ -101,7 +101,10 @@ class MessageService:
             async with conn.pipeline():
                 for to_user_id in to_user_ids:
                     await audit(
-                        'send_message', conn, target_user_id=to_user_id, extra=subject
+                        'send_message',
+                        conn,
+                        target_user_id=to_user_id,
+                        extra={'subject': subject},
                     )
 
         logging.info(

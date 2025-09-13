@@ -6,11 +6,12 @@ from contextlib import asynccontextmanager, nullcontext
 from datetime import timedelta
 from ipaddress import ip_address
 from random import random, uniform
-from typing import Literal
+from typing import Any, Literal
 
 import cython
 from psycopg import AsyncConnection
 from psycopg.sql import SQL
+from psycopg.types.json import Jsonb
 from sentry_sdk.api import start_transaction
 
 from app.config import AUDIT_POLICY, AUDIT_USER_AGENT_MAX_LENGTH, ENV
@@ -64,7 +65,7 @@ def audit(
     user_id: UserId | None | Literal['UNSET'] = 'UNSET',
     target_user_id: UserId | None = None,
     application_id: ApplicationId | None | Literal['UNSET'] = 'UNSET',
-    extra: str | None = None,
+    extra: dict[str, Any] | None = None,
     # Event config overrides
     sample_rate: float | None = None,
     discard_repeated: timedelta | None | Literal['UNSET'] = 'UNSET',
@@ -166,8 +167,8 @@ async def _audit_task(
                 AND user_id IS NOT DISTINCT FROM %(user_id)s
                 AND target_user_id IS NOT DISTINCT FROM %(target_user_id)s
                 AND application_id IS NOT DISTINCT FROM %(application_id)s
-                AND hashtext(extra) IS NOT DISTINCT FROM hashtext(%(extra)s)
-                AND extra IS NOT DISTINCT FROM %(extra)s
+                AND hashtext(extra::text) IS NOT DISTINCT FROM hashtext(%(extra)s::text)
+                AND extra::jsonb IS NOT DISTINCT FROM %(extra)s::jsonb
                 AND created_at > statement_timestamp() - %(discard_repeated)s
                 LIMIT 1
             )
@@ -180,7 +181,15 @@ async def _audit_task(
     async with nullcontext(conn) if conn is not None else db(True) as conn:  # noqa: PLR1704
         await conn.execute(
             query,
-            {**event_init, 'discard_repeated': discard_repeated},
+            {
+                **event_init,
+                'extra': (
+                    Jsonb(extra)
+                    if (extra := event_init.get('extra')) is not None
+                    else None
+                ),
+                'discard_repeated': discard_repeated,
+            },
         )
 
 

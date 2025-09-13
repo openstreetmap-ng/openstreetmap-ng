@@ -1,4 +1,3 @@
-import logging
 from typing import Any
 
 from psycopg.sql import SQL, Composable
@@ -9,6 +8,7 @@ from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.diary import DiaryInit
 from app.models.types import DiaryId, LocaleCode, UserId
+from app.services.audit_service import audit
 from app.services.user_subscription_service import UserSubscriptionService
 
 
@@ -21,11 +21,7 @@ class DiaryService:
         language: LocaleCode,
         point: Point | None,
     ) -> DiaryId:
-        """
-        Post a new diary entry.
-
-        Returns the diary id.
-        """
+        """Post a new diary entry."""
         user_id = auth_user(required=True)['id']
 
         diary_init: DiaryInit = {
@@ -36,9 +32,8 @@ class DiaryService:
             'point': point,
         }
 
-        async with (
-            db(True) as conn,
-            await conn.execute(
+        async with db(True) as conn:
+            async with await conn.execute(
                 """
                 INSERT INTO diary (
                     user_id, title, body, language, point
@@ -49,11 +44,11 @@ class DiaryService:
                 RETURNING id
                 """,
                 diary_init,
-            ) as r,
-        ):
-            diary_id: DiaryId = (await r.fetchone())[0]  # type: ignore
+            ) as r:
+                diary_id: DiaryId = (await r.fetchone())[0]  # type: ignore
 
-        logging.debug('Created diary %d by user %d', diary_id, user_id)
+            await audit('create_diary', conn, extra={'id': diary_id, 'title': title})
+
         await UserSubscriptionService.subscribe('diary', diary_id)
         return diary_id
 
@@ -99,6 +94,8 @@ class DiaryService:
             if not result.rowcount:
                 raise_for.diary_not_found(diary_id)
 
+            await audit('update_diary', conn, extra={'id': diary_id})
+
     @staticmethod
     async def delete(
         diary_id: DiaryId, *, current_user_id: UserId | None = None
@@ -117,4 +114,7 @@ class DiaryService:
         """).format(conditions=SQL(' AND ').join(conditions))
 
         async with db(True) as conn:
-            await conn.execute(query, params)
+            result = await conn.execute(query, params)
+
+            if result.rowcount:
+                await audit('delete_diary', conn, extra={'id': diary_id})

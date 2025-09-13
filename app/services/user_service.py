@@ -65,7 +65,7 @@ class UserService:
         )
 
         if not verification.success:
-            await audit('auth_fail', user_id=user_id, extra='Password mismatch')
+            await audit('auth_fail', user_id=user_id, extra={'reason': 'password'})
             StandardFeedback.raise_error(
                 None, t('users.auth_failure.invalid_credentials')
             )
@@ -80,7 +80,7 @@ class UserService:
         await audit(
             'auth_web',
             user_id=user_id,
-            extra='Login',
+            extra={'login': True},
             sample_rate=1,
             discard_repeated=None,
         )
@@ -207,7 +207,7 @@ class UserService:
                 (display_name, language, activity_tracking, crash_reporting, user_id),
             )
             if display_name != user['display_name']:
-                await audit('change_display_name', conn, extra=display_name)
+                await audit('change_display_name', conn, extra={'name': display_name})
 
     @staticmethod
     async def update_editor(
@@ -361,7 +361,9 @@ class UserService:
                     (token_struct.id,),
                 )
 
-            await audit('change_password', conn, user_id=user_id, extra='Reset')
+            await audit(
+                'change_password', conn, user_id=user_id, extra={'reason': 'reset'}
+            )
 
     @staticmethod
     async def update_timezone(timezone: str) -> None:
@@ -437,6 +439,7 @@ class UserService:
         new_password: Password | None,
         roles: list[UserRole],
     ) -> None:
+        roles.sort()
         if 'administrator' in roles and 'moderator' in roles:
             StandardFeedback.raise_error(
                 'roles', 'administrator and moderator roles cannot be used together'
@@ -473,9 +476,11 @@ class UserService:
                     'change_display_name',
                     conn,
                     target_user_id=user_id,
-                    extra=display_name,
+                    extra={'name': display_name},
                 )
             )
+
+        audit_email_extra = {}
 
         if email is not None:
             if user['email'] == email:
@@ -497,18 +502,20 @@ class UserService:
 
             assignments.append(SQL('email = %s'))
             params.append(email)
+            audit_email_extra['email'] = email
 
         if user['email_verified'] != email_verified:
             assignments.append(SQL('email_verified = %s'))
             params.append(email_verified)
+            audit_email_extra['verified'] = email_verified
 
-        if user['email_verified'] != email_verified or email is not None:
+        if audit_email_extra:
             audits.append(
                 lambda conn: audit(
                     'change_email',
                     conn,
                     target_user_id=user_id,
-                    extra=f'{email} (verified={email_verified})',
+                    extra=audit_email_extra,
                 )
             )
 
@@ -536,7 +543,7 @@ class UserService:
                     'change_roles',
                     conn,
                     target_user_id=user_id,
-                    extra=str(roles),
+                    extra={'roles': roles},
                 )
             )
 

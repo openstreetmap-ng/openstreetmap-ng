@@ -206,7 +206,7 @@ async def _normalize_image(
             if label in {'medium', 'high'}:
                 from app.services.audit_service import audit  # noqa: PLC0415
 
-                await audit('nsfw_image', extra=f'{label}={score:.3f}')
+                await audit('nsfw_image', extra=top)
                 raise_for.image_inappropriate()
 
     # optimize file size

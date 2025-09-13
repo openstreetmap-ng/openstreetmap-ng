@@ -168,15 +168,59 @@ CREATE INDEX oauth2_token_stale_unauthorized_idx ON oauth2_token (created_at DES
 WHERE
     authorized_at IS NULL;
 
--- TODO: audit type enum
+CREATE TYPE audit_type AS enum(
+    'add_connected_account',
+    'admin_task',
+    'auth_api',
+    'auth_fail',
+    'auth_web',
+    'authorize_app',
+    'change_app_settings',
+    'change_display_name',
+    'change_email',
+    'change_password',
+    'change_roles',
+    'close_changeset',
+    'create_app',
+    'create_changeset_comment',
+    'create_changeset',
+    'create_diary_comment',
+    'create_diary',
+    'create_note_comment',
+    'create_note',
+    'create_pat',
+    'create_trace',
+    'delete_diary',
+    'delete_prefs',
+    'delete_trace',
+    'edit_map',
+    'impersonate',
+    'nsfw_image',
+    'rate_limit',
+    'remove_connected_account',
+    'request_change_email',
+    'request_reset_password',
+    'revoke_app_all_users',
+    'revoke_app',
+    'send_message',
+    'update_changeset',
+    'update_diary',
+    'update_note_status',
+    'update_prefs',
+    'update_trace',
+    'view_admin_applications',
+    'view_admin_users',
+    'view_audit'
+);
+
 CREATE TABLE audit (
-    type text NOT NULL,
+    type audit_type NOT NULL,
     ip inet NOT NULL,
     user_agent text,
     user_id bigint,
     target_user_id bigint,
     application_id bigint,
-    extra text,
+    extra jsonb,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 )
 WITH
@@ -204,7 +248,7 @@ CREATE INDEX audit_discard_repeated_idx ON audit (
     user_id DESC,
     target_user_id DESC,
     application_id DESC,
-    hashtext (extra),
+    hashtext (extra::text),
     created_at DESC
 );
 

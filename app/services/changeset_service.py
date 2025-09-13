@@ -25,6 +25,7 @@ from app.lib.sentry import (
 from app.lib.testmethod import testmethod
 from app.models.db.changeset import ChangesetInit
 from app.models.types import ChangesetId, UserId
+from app.services.audit_service import audit
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -42,9 +43,8 @@ class ChangesetService:
             'tags': tags,
         }
 
-        async with (
-            db(True) as conn,
-            await conn.execute(
+        async with db(True) as conn:
+            async with await conn.execute(
                 """
                 INSERT INTO changeset (
                     user_id, tags
@@ -55,11 +55,11 @@ class ChangesetService:
                 RETURNING id
                 """,
                 changeset_init,
-            ) as r,
-        ):
-            changeset_id: ChangesetId = (await r.fetchone())[0]  # type: ignore
+            ) as r:
+                changeset_id: ChangesetId = (await r.fetchone())[0]  # type: ignore
 
-        logging.debug('Created changeset %d by user %d', changeset_id, user_id)
+            await audit('create_changeset', conn, extra={'id': changeset_id})
+
         await UserSubscriptionService.subscribe('changeset', changeset_id)
         return changeset_id
 
@@ -99,8 +99,7 @@ class ChangesetService:
                 """,
                 (tags, changeset_id),
             )
-
-        logging.debug('Updated changeset tags for %d by user %d', changeset_id, user_id)
+            await audit('update_changeset', conn, extra={'id': changeset_id})
 
     @staticmethod
     async def close(changeset_id: ChangesetId) -> None:
@@ -138,8 +137,7 @@ class ChangesetService:
                 """,
                 (changeset_id,),
             )
-
-        logging.debug('Closed changeset %d by user %d', changeset_id, user_id)
+            await audit('close_changeset', conn, extra={'id': changeset_id})
 
     @staticmethod
     @asynccontextmanager
