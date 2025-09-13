@@ -70,30 +70,26 @@ class Trace(TraceInit):
     coords: NotRequired[NDArray[np.number]]
 
 
-def trace_tags_from_str(s: str | None) -> list[str]:
-    """Convert a string of tags to a list of tags."""
-    if not s:
+def validate_trace_tags(tags: str | list[str] | None) -> list[str]:
+    if not tags:
         return []
 
-    if ',' in s:
-        sep = ','
-    else:
+    if isinstance(tags, str):
         # do as before for backwards compatibility
         # BUG: this produces weird behavior: 'a b, c' -> ['a b', 'c']; 'a b' -> ['a', 'b']
-        sep = None
+        sep = ',' if ',' in tags else None
+        tags = tags.split(sep, TRACE_TAGS_LIMIT)
 
-    tags = s.split(sep, TRACE_TAGS_LIMIT)
     if len(tags) > TRACE_TAGS_LIMIT:
         raise ValueError(f'Too many trace tags, current limit is {TRACE_TAGS_LIMIT}')
 
-    # remove duplicates and preserve order
-    result_set = set[str]()
-    result: list[str] = []
+    seen = set[str]()
+    result = []
 
     for tag in tags:
         tag = tag.strip()[:TRACE_TAG_MAX_LENGTH].strip()
-        if tag and (tag not in result_set):
-            result_set.add(tag)
+        if tag and (tag not in seen):
+            seen.add(tag)
             result.append(tag)
 
     return result

@@ -19,7 +19,7 @@ from app.models.db.trace import (
     TraceMetaInit,
     TraceMetaInitValidator,
     TraceVisibility,
-    trace_tags_from_str,
+    validate_trace_tags,
 )
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
@@ -32,10 +32,12 @@ class TraceService:
         file: UploadFile,
         *,
         description: str,
-        tags: str,
+        tags: str | list[str] | None,
         visibility: TraceVisibility,
     ) -> TraceId:
         """Process upload of a trace file. Returns the created trace id."""
+        tags = validate_trace_tags(tags)
+
         file_size = file.size
         if file_size is None or file_size > TRACE_FILE_UPLOAD_MAX_SIZE:
             raise_for.input_too_big(file_size or -1)
@@ -60,7 +62,7 @@ class TraceService:
             'user_id': auth_user(required=True)['id'],
             'name': _get_file_name(file),
             'description': description,
-            'tags': trace_tags_from_str(tags),
+            'tags': tags,
             'visibility': visibility,
             'file_id': StorageKey(''),
             'size': decoded.size,

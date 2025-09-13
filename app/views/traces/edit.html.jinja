@@ -27,13 +27,15 @@
                     required>
             </label>
 
-            <label class="form-label d-block">
+            <label class="form-label d-block mb-3">
                 {{ t('browse.tag_details.tags') }}
-                <input type="text" class="form-control mt-2" name="tags" value="{{ trace.tag_string }}">
+                <div class="mt-2">
+                    {% set multi_input_name = 'tags' %}
+                    {% set multi_input_placeholder = t('activerecord.help.trace.tagstring') %}
+                    {% set multi_input_value = trace.tags | join(', ') %}
+                    {% include 'lib/multi-input' %}
+                </div>
             </label>
-            <p class="form-text">
-                {{ t('activerecord.help.trace.tagstring') }}
-            </p>
 
             <label class="form-label">
                 <span class="required">{{ t('activerecord.attributes.trace.visibility') }}</span>
