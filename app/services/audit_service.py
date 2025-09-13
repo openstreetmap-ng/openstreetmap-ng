@@ -155,7 +155,7 @@ async def _audit_task(
         )
         SELECT
             %(type)s, %(ip)s, %(user_agent)s, %(user_id)s,
-            %(target_user_id)s, %(application_id)s, %(extra)s
+            %(target_user_id)s, %(application_id)s, %(extra)s::jsonb
         {}
     """).format(
         SQL(
