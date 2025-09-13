@@ -163,7 +163,7 @@ async def _register_app(app: SystemApp) -> None:
             """,
             {
                 **app_init,
-                'scopes': app.scopes,
+                'scopes': sorted(app.scopes),
                 'confidential': True,
                 'redirect_uris': [],
             },
