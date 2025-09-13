@@ -39,7 +39,7 @@ async def users_index(
     ] = 'created_desc',
 ):
     async with TaskGroup() as tg:
-        tg.create_task(audit('view_admin_users', extra=request.url.query))
+        tg.create_task(audit('view_admin_users', extra={'query': request.url.query}))
 
         users_num_items: int = await UserQuery.find(  # type: ignore
             'count',

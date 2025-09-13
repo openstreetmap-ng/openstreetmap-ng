@@ -27,7 +27,9 @@ async def applications_index(
     sort: Annotated[Literal['created_asc', 'created_desc'], Query()] = 'created_desc',
 ):
     async with TaskGroup() as tg:
-        tg.create_task(audit('view_admin_applications', extra=request.url.query))
+        tg.create_task(
+            audit('view_admin_applications', extra={'query': request.url.query})
+        )
 
         apps_num_items: int = await OAuth2ApplicationQuery.find(  # type: ignore
             'count',

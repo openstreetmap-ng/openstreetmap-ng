@@ -32,7 +32,7 @@ async def audit_index(
     created_before: Annotated[datetime | None, Query()] = None,
 ):
     async with TaskGroup() as tg:
-        tg.create_task(audit('view_audit', extra=request.url.query))
+        tg.create_task(audit('view_audit', extra={'query': request.url.query}))
 
         audit_num_items: int = await AuditQuery.find(  # type: ignore
             'count',
