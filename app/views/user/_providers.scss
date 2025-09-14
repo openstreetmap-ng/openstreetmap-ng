@@ -1,3 +1,5 @@
+@use "sass:map";
+
 .auth-providers {
     display: grid;
     gap: 0.5rem;
@@ -91,41 +93,41 @@ $auth-providers: (
 
 @each $name, $modes in $auth-providers {
     .auth-providers .btn-#{$name} {
-        $light: map-get($modes, light);
-        $dark: map-get($modes, dark);
-        @if (map-get($light, variant) == outline) {
+        $light: map.get($modes, light);
+        $dark: map.get($modes, dark);
+        @if (map.get($light, variant) == outline) {
             $base-border: if(
-                map-has-key($light, brand),
-                map-get($light, brand),
-                map-get($light, border)
+                map.has-key($light, brand),
+                map.get($light, brand),
+                map.get($light, border)
             );
             $base-text: if(
-                map-has-key($light, text),
-                map-get($light, text),
+                map.has-key($light, text),
+                map.get($light, text),
                 $base-border
             );
 
             $dark-bg: if(
-                map-has-key($dark, bg),
-                map-get($dark, bg),
-                map-get($light, brand)
+                map.has-key($dark, bg),
+                map.get($dark, bg),
+                map.get($light, brand)
             );
             $hover-bg: if(
-                map-has-key($light, hover-bg),
-                map-get($light, hover-bg),
+                map.has-key($light, hover-bg),
+                map.get($light, hover-bg),
                 if($dark-bg != null, $dark-bg, $base-border)
             );
             $hover-border: if(
-                map-has-key($light, hover-border),
-                map-get($light, hover-border),
-                if(map-has-key($dark, border), map-get($dark, border), $hover-bg)
+                map.has-key($light, hover-border),
+                map.get($light, hover-border),
+                if(map.has-key($dark, border), map.get($dark, border), $hover-bg)
             );
             $hover-color: if(
-                map-has-key($light, hover-color),
-                map-get($light, hover-color),
+                map.has-key($light, hover-color),
+                map.get($light, hover-color),
                 if(
-                    map-has-key($dark, color),
-                    map-get($dark, color),
+                    map.has-key($dark, color),
+                    map.get($dark, color),
                     color-contrast($hover-bg)
                 )
             );
@@ -144,9 +146,9 @@ $auth-providers: (
             }
         } @else {
             @include button-variant(
-                map-get($light, bg),
-                map-get($light, border),
-                map-get($light, color)
+                map.get($light, bg),
+                map.get($light, border),
+                map.get($light, color)
             );
         }
     }
@@ -155,26 +157,26 @@ $auth-providers: (
 @include color-mode(dark) {
     @each $name, $modes in $auth-providers {
         .auth-providers .btn-#{$name} {
-            $light: map-get($modes, light);
-            $dark: map-get($modes, dark);
-            @if (map-get($dark, variant) == outline) {
-                @include button-outline-variant(map-get($light, brand));
+            $light: map.get($modes, light);
+            $dark: map.get($modes, dark);
+            @if (map.get($dark, variant) == outline) {
+                @include button-outline-variant(map.get($light, brand));
             } @else {
                 $bg: if(
-                    map-has-key($dark, bg),
-                    map-get($dark, bg),
-                    map-get($light, brand)
+                    map.has-key($dark, bg),
+                    map.get($dark, bg),
+                    map.get($light, brand)
                 );
-                $border: if(map-has-key($dark, border), map-get($dark, border), $bg);
+                $border: if(map.has-key($dark, border), map.get($dark, border), $bg);
                 $color: if(
-                    map-has-key($dark, color),
-                    map-get($dark, color),
+                    map.has-key($dark, color),
+                    map.get($dark, color),
                     color-contrast($bg)
                 );
 
                 $hover-strategy: if(
-                    map-has-key($dark, hover),
-                    map-get($dark, hover),
+                    map.has-key($dark, hover),
+                    map.get($dark, hover),
                     tint
                 );
                 $default-hover-bg: if(
@@ -188,18 +190,18 @@ $auth-providers: (
                     $default-hover-bg
                 );
                 $hover-bg: if(
-                    map-has-key($dark, hover-bg),
-                    map-get($dark, hover-bg),
+                    map.has-key($dark, hover-bg),
+                    map.get($dark, hover-bg),
                     $default-hover-bg
                 );
                 $hover-border: if(
-                    map-has-key($dark, hover-border),
-                    map-get($dark, hover-border),
+                    map.has-key($dark, hover-border),
+                    map.get($dark, hover-border),
                     $default-hover-border
                 );
                 $hover-color: if(
-                    map-has-key($dark, hover-color),
-                    map-get($dark, hover-color),
+                    map.has-key($dark, hover-color),
+                    map.get($dark, hover-color),
                     color-contrast($hover-bg)
                 );
 
