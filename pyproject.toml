@@ -104,6 +104,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.ruff]
+extend-exclude = ["app/models/proto/**"]
 indent-width = 4
 line-length = 88
 target-version = "py313"
@@ -254,7 +255,7 @@ exclude = [
   "**/.*",
   "**/node_modules",
   "/nix/store/**",
-  "app/models/proto/**/*_pb2.py",
+  "app/models/proto/**",
   "build",
   "data",
 ]
