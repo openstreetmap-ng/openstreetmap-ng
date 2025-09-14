@@ -1,4 +1,4 @@
-import { effect, signal } from "@preact/signals-core"
+import { batch, effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
 import { resolveDatetimeLazy } from "./datetime"
 import { qsEncode, qsParse } from "./qs"
@@ -126,15 +126,17 @@ export const configureStandardPagination = (
 
                 // Sync headers for total items/pages
                 if (numItems.value < 0) {
-                    numItems.value = Number.parseInt(
-                        resp.headers.get("X-SP-NumItems"),
-                        10,
-                    )
-                    totalPages.value = Number.parseInt(
-                        resp.headers.get("X-SP-NumPages"),
-                        10,
-                    )
-                    currentPage.value = reverse ? totalPages.value : 1
+                    batch(() => {
+                        numItems.value = Number.parseInt(
+                            resp.headers.get("X-SP-NumItems"),
+                            10,
+                        )
+                        totalPages.value = Number.parseInt(
+                            resp.headers.get("X-SP-NumPages"),
+                            10,
+                        )
+                        currentPage.value = reverse ? totalPages.value : 1
+                    })
                 }
             })
             .catch((error: Error) => {
