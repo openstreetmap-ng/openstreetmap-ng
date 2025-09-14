@@ -736,6 +736,7 @@ let
   shell' =
     with pkgs;
     ''
+      cd "${projectDir}"
       export TZ=UTC
       export NIX_ENFORCE_NO_NATIVE=0
       export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
