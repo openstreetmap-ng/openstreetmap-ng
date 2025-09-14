@@ -739,7 +739,6 @@ let
       [ "$NIX_SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset NIX_SSL_CERT_FILE
       [ "$SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset SSL_CERT_FILE
 
-      cd "${projectDir}"
       export TZ=UTC
       export NIX_ENFORCE_NO_NATIVE=0
       export PROC_COMP_CONFIG=data/pcompose
