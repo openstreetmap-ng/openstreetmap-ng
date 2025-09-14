@@ -67,8 +67,8 @@ Reported anonymous <a href="/note/{{ report.type_id }}">note {{ report.type_id }
             <ul class="social-list list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('alt.comments_page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2"
-                    data-action="/api/web/reports/{{ report.id }}/comments?page={page}&num_items={{ comments_num_items }}"
-                    data-pages="{{ comments_num_pages }}">
+                    data-action="/api/web/reports/{{ report.id }}/comments" data-pages="{{ comments_num_pages }}"
+                    data-num-items="{{ comments_num_items }}">
                 </ul>
             </nav>
         </div>

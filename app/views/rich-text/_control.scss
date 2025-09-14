@@ -42,7 +42,7 @@
 
     @include media-breakpoint-down(md) {
         // Same default height as the source textarea: better UX when scaling
-        min-height: 494px;
+        min-height: 445.6px;
     }
 }
 
@@ -54,6 +54,6 @@
     }
 
     dd {
-        font-size: 0.875em;
+        font-size: 0.75em;
     }
 }

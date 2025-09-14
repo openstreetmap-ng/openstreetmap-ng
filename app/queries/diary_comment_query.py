@@ -14,6 +14,21 @@ from app.models.types import DiaryCommentId, DiaryId, UserId
 
 class DiaryCommentQuery:
     @staticmethod
+    async def count_by_diary(diary_id: DiaryId) -> int:
+        """Count diary comments by diary id."""
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*) FROM diary_comment
+                WHERE diary_id = %s
+                """,
+                (diary_id,),
+            ) as r,
+        ):
+            return (await r.fetchone())[0]  # type: ignore
+
+    @staticmethod
     async def count_by_user(user_id: UserId) -> int:
         """Count diary comments by user id."""
         async with (

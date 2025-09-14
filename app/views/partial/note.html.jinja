@@ -108,8 +108,8 @@
             <ul class="list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('alt.comments_page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2"
-                    data-action="/api/web/note/{{ note.id }}/comments?page={page}&num_items={{ note_comments_num_items }}"
-                    data-pages="{{ note_comments_num_pages }}">
+                    data-action="/api/web/note/{{ note.id }}/comments" data-pages="{{ note_comments_num_pages }}"
+                    data-num-items="{{ note_comments_num_items }}">
                 </ul>
             </nav>
         </div>

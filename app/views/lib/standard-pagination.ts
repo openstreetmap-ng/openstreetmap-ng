@@ -1,6 +1,7 @@
 import { effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
 import { resolveDatetimeLazy } from "./datetime"
+import { qsEncode, qsParse } from "./qs"
 
 const paginationDistance = 2
 
@@ -29,14 +30,13 @@ export const configureStandardPagination = (
     }
 
     const dataset = paginationContainers[paginationContainers.length - 1].dataset
-    const totalPages = Number.parseInt(dataset.pages, 10)
-    if (!totalPages) {
+    const initialPages = Number.parseInt(dataset.pages, 10)
+    if (!initialPages) {
         console.debug("Ignored standard pagination: missing data-pages")
         return () => {}
     }
 
-    const pageSize = Number.parseInt(dataset.pageSize, 10)
-    const numItems = Number.parseInt(dataset.numItems, 10)
+    const pageSize = Number.parseInt(dataset.pageSize, 10) // optional
     const reverse = options?.reverse ?? true
 
     const endpointPattern = dataset.action
@@ -44,7 +44,10 @@ export const configureStandardPagination = (
         "Initializing standard pagination",
         options?.customLoader ? "<custom loader>" : endpointPattern,
     )
-    const currentPage = signal(options?.initialPage ?? (reverse ? totalPages : 1))
+
+    const numItems = signal(Number.parseInt(dataset.numItems, 10))
+    const totalPages = signal(initialPages)
+    const currentPage = signal(options?.initialPage ?? (reverse ? initialPages : 1))
     let firstLoad = true
 
     const setPendingState = (state: boolean): void => {
@@ -58,7 +61,7 @@ export const configureStandardPagination = (
 
             const spinnerElement = document.createElement("div")
             spinnerElement.className = "spinner-border text-body-secondary"
-            spinnerElement.setAttribute("role", "status")
+            spinnerElement.role = "status"
 
             const srText = document.createElement("span")
             srText.className = "visually-hidden"
@@ -86,7 +89,15 @@ export const configureStandardPagination = (
 
         console.debug("Navigating to page", currentPageString)
         setPendingState(true)
-        fetch(endpointPattern.replace("{page}", currentPageString), {
+
+        // Build the endpoint
+        const [path, q = ""] = endpointPattern.split("?")
+        const params = qsParse(q)
+        params.page = currentPageString
+        params.num_items = String(numItems.peek())
+        const url = `${path}?${qsEncode(params)}`
+
+        fetch(url, {
             method: "GET",
             mode: "same-origin",
             cache: "no-store",
@@ -95,9 +106,23 @@ export const configureStandardPagination = (
         })
             .then(async (resp) => {
                 if (resp.ok) console.debug("Navigated to page", currentPageString)
+
                 renderContainer.innerHTML = await resp.text()
                 resolveDatetimeLazy(renderContainer)
                 options?.loadCallback?.(renderContainer)
+
+                // Sync headers for total items/pages
+                if (numItems.value < 0) {
+                    numItems.value = Number.parseInt(
+                        resp.headers.get("X-SP-NumItems"),
+                        10,
+                    )
+                    totalPages.value = Number.parseInt(
+                        resp.headers.get("X-SP-NumPages"),
+                        10,
+                    )
+                    currentPage.value = reverse ? totalPages.value : 1
+                }
             })
             .catch((error: Error) => {
                 if (error.name === "AbortError") return
@@ -113,22 +138,25 @@ export const configureStandardPagination = (
 
     // Update pagination
     const disposePaginationEffect = effect(() => {
-        if (totalPages <= 1) {
+        const numItemsValue = numItems.value
+        const totalPagesValue = totalPages.value
+        const currentPageValue = currentPage.value
+
+        if (totalPagesValue <= 1) {
             for (const paginationContainer of paginationContainers) {
                 paginationContainer.classList.add("d-none")
             }
             return
         }
-        const currentPageValue = currentPage.value
 
         for (const paginationContainer of paginationContainers) {
             paginationContainer.classList.remove("d-none")
             const paginationFragment = document.createDocumentFragment()
 
-            for (let i = 1; i <= totalPages; i++) {
+            for (let i = 1; i <= totalPagesValue; i++) {
                 const distance = Math.abs(i - currentPageValue)
-                if (distance > paginationDistance && i !== 1 && i !== totalPages) {
-                    if (i === 2 || i === totalPages - 1) {
+                if (distance > paginationDistance && i !== 1 && i !== totalPagesValue) {
+                    if (i === 2 || i === totalPagesValue - 1) {
                         const li = document.createElement("li")
                         li.classList.add("page-item", "disabled")
                         li.ariaDisabled = "true"
@@ -145,14 +173,14 @@ export const configureStandardPagination = (
                 button.type = "button"
                 button.classList.add("page-link")
 
-                if (pageSize && numItems) {
+                if (pageSize && numItemsValue) {
                     const [limit, offset] = standardPaginationRange(
                         i,
                         pageSize,
-                        numItems,
+                        numItemsValue,
                         reverse,
                     )
-                    const itemMax = numItems - offset
+                    const itemMax = numItemsValue - offset
                     const itemMin = itemMax - limit + 1
                     button.textContent =
                         itemMax !== itemMin

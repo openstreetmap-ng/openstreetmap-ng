@@ -1,6 +1,9 @@
-<article id="diary{{ diary.id }}" class="diary">
+<article id="diary{{ diary.id }}" class="diary {% if entry_mode == 'details' %}show{% endif %}"
+    data-diary-id="{{ diary.id }}">
+    {% set _show_header = (entry_mode != 'details') %}
+    {% set _show_side_avatar = (entry_mode != 'details') and (profile is none) %}
     <div class="row">
-        {% if not entry_hide_avatar %}
+        {% if _show_side_avatar %}
         <div class="col-auto d-none d-md-block">
             <a class="d-block" href="/user/{{ diary.user.display_name }}" rel="author">
                 <img class="side-avatar avatar" src="{{ user_avatar_url(diary.user) }}"
@@ -11,7 +14,7 @@
         <div class="col align-content-center">
 
             {# Header #}
-            {% if not entry_hide_header %}
+            {% if _show_header %}
             <h3><a href="/diary/{{ diary.id }}">{{ diary.title }}</a></h3>
             <p class="small mb-2">
                 {% set link_user -%}
@@ -44,7 +47,18 @@
             {% endif %}
 
             {# Body #}
-            <div class="rich-text mx-1 {% if not entry_hide_header %}mt-3{% endif %}">{{ diary.body_rich | safe }}</div>
+            <div class="diary-body">
+                <div class="rich-text mx-1{% if _show_header %} mt-3{% endif %}">{{ diary.body_rich | safe }}
+                </div>
+            </div>
+            {% if entry_mode != 'details' %}
+            <div class="text-center">
+                <button type="button" class="btn btn-link diary-read-more d-none">
+                    {{- t('action.continue_reading') -}}
+                    <i class="bi bi-chevron-down small ms-1-5"></i>
+                </button>
+            </div>
+            {% endif %}
 
             {# Metadata: Location #}
             {% if diary.point is not none %}
@@ -75,6 +89,11 @@
                         {% set _diary_link = APP_URL ~ '/diary/' ~ diary.id %}
                         {% set _diary_title = diary.title %}
                         <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{{ _diary_link }}" data-action="copy-link">
+                                    <i class="bi bi-link-45deg"></i>{{ t('action.copy_link') }}
+                                </a>
+                            </li>
                             <li>
                                 <a class="dropdown-item"
                                     href="mailto:?subject={{ _diary_title | urlencode }}&body={{ _diary_link | urlencode }}"
@@ -127,6 +146,7 @@
                         </ul>
                     </div>
 
+                    {% if entry_mode == 'details' %}
                     <a class="btn btn-light border d-flex align-items-center" href="/diary/{{ diary.id }}#comments">
                         {{ t('diary.comments') }}
                         <span
@@ -134,6 +154,17 @@
                             {{ diary.num_comments }}
                         </span>
                     </a>
+                    {% else %}
+                    <button type="button" class="btn btn-light border d-flex align-items-center diary-comments-toggle"
+                        aria-expanded="false" aria-controls="diary-comments-{{ diary.id }}"
+                        data-target="#diary-comments-{{ diary.id }}">
+                        {{ t('diary.comments') }}
+                        <span
+                            class="badge ms-1-5 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}">
+                            {{ diary.num_comments }}
+                        </span>
+                    </button>
+                    {% endif %}
 
                     {% if user is not none %}
                     <button type="button" class="btn btn-light border dropdown-toggle dropdown-toggle-split"
@@ -169,4 +200,60 @@
 
         </div>
     </div>
+
+    {% set _is_details = entry_mode == 'details' %}
+    {% set _comments_id = 'comments' if _is_details else 'diary-comments-' ~ diary.id %}
+    {% set _comments_classes = '' if _is_details else 'd-none' %}
+    <div id="{{ _comments_id }}" class="diary-comments {{ _comments_classes }}">
+        <div class="row g-1 mb-1">
+            <div class="col">
+                <h4>{{ t('diary.comments') }}</h4>
+            </div>
+            {% if user is not none %}
+            <form class="col-auto subscription-form" method="POST"
+                action="/api/web/user-subscription/diary/{{ diary.id }}{% if diary.is_subscribed %}/unsubscribe{% else %}/subscribe{% endif %}">
+                <button class="btn btn-sm btn-light border" type="submit">
+                    {% if diary.is_subscribed %}
+                    <i class="bi bi-bookmark-check me-1"></i>
+                    {{ t('javascripts.changesets.show.unsubscribe') }}
+                    {% else %}
+                    {{ t('javascripts.changesets.show.subscribe') }}
+                    {% endif %}
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <ul class="social-list-sm list-unstyled mb-2"></ul>
+        <nav aria-label="{{ t('alt.comments_page_navigation') }}">
+            <ul class="pagination pagination-sm justify-content-end mb-0"
+                data-action="/api/web/diary/{{ diary.id }}/comments"
+                data-pages="{{ ceil(diary.num_comments / DIARY_COMMENTS_PAGE_SIZE) }}"
+                data-num-items="{{ diary.num_comments }}">
+            </ul>
+        </nav>
+
+        {% if user is not none %}
+        <form {% if _is_details %} id="newcomment" {% endif %} class="comment-form" method="POST"
+            action="/api/web/diary/{{ diary.id }}/comment">
+            <label class="form-label d-block">{{ t('diary_entries.show.leave_a_comment') }}</label>
+            <div class="mb-3">
+                {% set rich_text_name = 'body' %}
+                {% set rich_text_maxlength = DIARY_COMMENT_BODY_MAX_LENGTH %}
+                {% set rich_text_required = True %}
+                {% include 'rich-text/_control' %}
+            </div>
+            <div class="text-end">
+                <button class="btn btn-primary" type="submit">{{ t('action.comment') }}</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="text-center">
+            <button class="btn btn-link" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
+                {{ t('browse.changeset.join_discussion') }}
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
 </article>

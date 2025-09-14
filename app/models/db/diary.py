@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 from shapely import Point
 
@@ -27,6 +27,7 @@ class Diary(DiaryInit):
     body_rich: NotRequired[str]
     num_comments: NotRequired[int]
     location_name: NotRequired[str]
+    is_subscribed: NotRequired[Literal[True]]
 
 
 async def diaries_resolve_rich_text(objs: list[Diary]) -> None:

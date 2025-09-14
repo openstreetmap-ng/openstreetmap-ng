@@ -1,3 +1,5 @@
+from typing import Any
+
 from psycopg.rows import dict_row
 
 from app.db import db
@@ -12,10 +14,7 @@ class UserSubscriptionQuery:
     async def is_subscribed(
         target: UserSubscriptionTarget, target_id: UserSubscriptionTargetId
     ) -> bool:
-        """
-        Check if the current user is subscribed to the target.
-        If the user is not authenticated, returns False.
-        """
+        """Check if the current user is subscribed to the target."""
         user = auth_user()
         if user is None:
             return False
@@ -32,6 +31,39 @@ class UserSubscriptionQuery:
             ) as r,
         ):
             return await r.fetchone() is not None
+
+    @staticmethod
+    async def resolve_is_subscribed(
+        target: UserSubscriptionTarget,
+        items: list,
+        *,
+        id_key: str = 'id',
+        is_subscribed_key: str = 'is_subscribed',
+    ) -> None:
+        if not items:
+            return
+
+        user = auth_user()
+        if user is None:
+            return
+
+        id_map: dict[UserSubscriptionTargetId, Any] = {
+            item[id_key]: item for item in items
+        }
+
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT target_id FROM user_subscription
+                WHERE target = %s AND target_id = ANY(%s) AND user_id = %s
+                """,
+                (target, list(id_map), user['id']),
+            ) as r,
+        ):
+            rows: list[tuple[UserSubscriptionTargetId]] = await r.fetchall()
+            for (target_id,) in rows:
+                id_map[target_id][is_subscribed_key] = True
 
     @staticmethod
     async def get_subscribed_users(

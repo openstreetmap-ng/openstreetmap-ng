@@ -156,6 +156,7 @@ _J2.globals.update(
     DEFAULT_EDITOR=DEFAULT_EDITOR,
     INSTALLED_LOCALES_NAMES_MAP=INSTALLED_LOCALES_NAMES_MAP,
     REPORT_COMMENT_BODY_MAX_LENGTH=REPORT_COMMENT_BODY_MAX_LENGTH,
+    ceil=ceil,
     format_rfc2822_date=format_rfc2822_date,
     get_avatar_url=Image.get_avatar_url,
     nt=nt,

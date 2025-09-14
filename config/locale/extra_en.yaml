@@ -445,6 +445,7 @@ action:
   block_user: Block user
   cancel: Cancel
   copy: Copy
+  copy_link: Copy link
   click_here: Click here
   end_session: End session
   follow_user: Follow user
@@ -486,6 +487,7 @@ action:
   show_less: Show less
   remove_filter: Remove filter
   remove: Remove
+  continue_reading: Continue reading
 state:
   any: Any
   hidden: Hidden

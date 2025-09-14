@@ -1,5 +1,4 @@
 from asyncio import TaskGroup
-from math import ceil
 from typing import Annotated
 
 import cython
@@ -56,40 +55,28 @@ async def details(
     *,
     unsubscribe: bool = False,
 ):
-    async with TaskGroup() as tg:
-        is_subscribed_t = tg.create_task(
-            UserSubscriptionQuery.is_subscribed('diary', diary_id)
+    data = await _get_data(
+        user=None,
+        language=None,
+        after=diary_id - 1,  # type: ignore
+        before=diary_id + 1,  # type: ignore
+        user_from_diary=True,
+        with_navigation=False,
+    )
+    diaries: list[Diary] = data['diaries']
+    if not diaries:
+        return await render_response(
+            'diary/not-found',
+            {'diary_id': diary_id},
+            status=status.HTTP_404_NOT_FOUND,
         )
-
-        data = await _get_data(
-            user=None,
-            language=None,
-            after=diary_id - 1,  # type: ignore
-            before=diary_id + 1,  # type: ignore
-            user_from_diary=True,
-            with_navigation=False,
-        )
-        diaries: list[Diary] = data['diaries']
-        if not diaries:
-            return await render_response(
-                'diary/not-found',
-                {'diary_id': diary_id},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        diary = diaries[0]
-
-    diary_comments_num_items = diary['num_comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-    diary_comments_num_pages = ceil(diary_comments_num_items / DIARY_COMMENTS_PAGE_SIZE)
+    diary = diaries[0]
 
     return await render_response(
         'diary/details',
         {
             **data,
             'diary': diary,
-            'is_subscribed': is_subscribed_t.result(),
-            'diary_comments_num_items': diary_comments_num_items,
-            'diary_comments_num_pages': diary_comments_num_pages,
-            'DIARY_COMMENT_BODY_MAX_LENGTH': DIARY_COMMENT_BODY_MAX_LENGTH,
             'unsubscribe_target': 'diary' if unsubscribe else None,
             'unsubscribe_id': diary_id if unsubscribe else None,
         },
@@ -248,6 +235,9 @@ async def _get_data(
             tg.create_task(diaries_resolve_rich_text(diaries))
             tg.create_task(DiaryQuery.resolve_location_name(diaries))
             tg.create_task(DiaryCommentQuery.resolve_num_comments(diaries))
+            tg.create_task(
+                UserSubscriptionQuery.resolve_is_subscribed('diary', diaries)
+            )
 
             if with_navigation:
                 new_after_t = tg.create_task(new_after_task())
@@ -278,6 +268,8 @@ async def _get_data(
         'new_before': new_before,
         'diaries': diaries,
         'LOCALES_NAMES_MAP': LOCALES_NAMES_MAP,
+        'DIARY_COMMENTS_PAGE_SIZE': DIARY_COMMENTS_PAGE_SIZE,
+        'DIARY_COMMENT_BODY_MAX_LENGTH': DIARY_COMMENT_BODY_MAX_LENGTH,
     }
 
 
