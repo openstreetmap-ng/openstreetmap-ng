@@ -737,10 +737,10 @@ let
     with pkgs;
     ''
       cd "${projectDir}"
+      [ "$NIX_SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset NIX_SSL_CERT_FILE
+      [ "$SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset SSL_CERT_FILE
       export TZ=UTC
       export NIX_ENFORCE_NO_NATIVE=0
-      export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
-      export SSL_CERT_FILE=$NIX_SSL_CERT_FILE
       export PROC_COMP_CONFIG=data/pcompose
       export PC_DISABLE_DOTENV=1
       export PC_LOG_FILE=data/pcompose/internal.log
@@ -777,6 +777,7 @@ let
       [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
       echo "Installing Python dependencies"
+      export UV_NATIVE_TLS=true
       export UV_PYTHON="${python'}/bin/python"
       uv sync --frozen
       [ -n "$(find speedup -type f -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
