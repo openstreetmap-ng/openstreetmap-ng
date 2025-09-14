@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
+cmake_policy(SET CMP0135 NEW)
 
 if(NOT DEFINED SKBUILD_PROJECT_NAME)
   get_filename_component(SKBUILD_PROJECT_NAME ${CMAKE_SOURCE_DIR} NAME)
@@ -12,9 +13,8 @@ add_compile_options(-Wall -Wextra -pedantic)
 include(FetchContent)
 FetchContent_Declare(
   stb
-  GIT_REPOSITORY https://github.com/nothings/stb.git
-  GIT_TAG f58f558c120e9b32c217290b80bad1a0729fbb2c
-  GIT_SHALLOW TRUE
+  URL https://github.com/nothings/stb/archive/f58f558c120e9b32c217290b80bad1a0729fbb2c.tar.gz
+  URL_HASH SHA256=be1a5dad9ac38f42ef8abf00bd7db776101661b77603f832fcc0bae843d82846
 )
 FetchContent_MakeAvailable(stb)
 add_library(stb INTERFACE)
