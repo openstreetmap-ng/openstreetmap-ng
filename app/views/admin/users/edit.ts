@@ -91,25 +91,27 @@ if (body) {
             newPasswordInput.value = ""
             newPasswordConfirmInput.value = ""
         },
-        () => {
-            const result: APIDetail[] = []
+        {
+            clientValidationCallback: () => {
+                const result: APIDetail[] = []
 
-            if (newPasswordInput.value || newPasswordConfirmInput.value) {
-                if (newPasswordInput.value !== newPasswordConfirmInput.value) {
-                    const msg = i18next.t("validation.passwords_missmatch")
-                    result.push({ type: "error", loc: ["", "new_password"], msg })
-                    result.push({
-                        type: "error",
-                        loc: ["", "new_password_confirm"],
-                        msg,
-                    })
+                if (newPasswordInput.value || newPasswordConfirmInput.value) {
+                    if (newPasswordInput.value !== newPasswordConfirmInput.value) {
+                        const msg = i18next.t("validation.passwords_missmatch")
+                        result.push({ type: "error", loc: ["", "new_password"], msg })
+                        result.push({
+                            type: "error",
+                            loc: ["", "new_password_confirm"],
+                            msg,
+                        })
+                    }
                 }
-            }
 
-            return result
+                return result
+            },
+            formAppend: true,
+            removeEmptyFields: true,
         },
-        null,
-        { formAppend: true, removeEmptyFields: true },
     )
 
     const impersonateForm = body.querySelector("form.impersonate-form")

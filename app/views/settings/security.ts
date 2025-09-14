@@ -19,15 +19,21 @@ if (body) {
             console.debug("onPasswordFormSuccess")
             passwordForm.reset()
         },
-        () => {
-            const result: APIDetail[] = []
-            // Validate passwords equality
-            if (newPasswordInput.value !== newPasswordConfirmInput.value) {
-                const msg = i18next.t("validation.passwords_missmatch")
-                result.push({ type: "error", loc: ["", "new_password"], msg })
-                result.push({ type: "error", loc: ["", "new_password_confirm"], msg })
-            }
-            return result
+        {
+            clientValidationCallback: () => {
+                const result: APIDetail[] = []
+                // Validate passwords equality
+                if (newPasswordInput.value !== newPasswordConfirmInput.value) {
+                    const msg = i18next.t("validation.passwords_missmatch")
+                    result.push({ type: "error", loc: ["", "new_password"], msg })
+                    result.push({
+                        type: "error",
+                        loc: ["", "new_password_confirm"],
+                        msg,
+                    })
+                }
+                return result
+            },
         },
     )
 

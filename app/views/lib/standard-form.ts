@@ -19,15 +19,15 @@ export interface APIDetail {
 export const configureStandardForm = (
     form?: HTMLFormElement,
     successCallback?: (data: any) => void,
-    clientValidationCallback?: (
-        form: HTMLFormElement,
-    ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null,
-    errorCallback?: (error: Error) => void,
     options?: {
         formBody?: Element
         formAppend?: boolean
         abortSignal?: boolean
         removeEmptyFields?: boolean
+        clientValidationCallback?: (
+            form: HTMLFormElement,
+        ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null
+        errorCallback?: (error: Error) => void
     },
 ): void => {
     if (!form || form.classList.contains("needs-validation")) return
@@ -288,8 +288,8 @@ export const configureStandardForm = (
 
         setPendingState(true)
 
-        if (clientValidationCallback) {
-            let clientValidationResult = clientValidationCallback(form)
+        if (options?.clientValidationCallback) {
+            let clientValidationResult = options.clientValidationCallback(form)
             if (clientValidationResult instanceof Promise) {
                 clientValidationResult = await clientValidationResult
             }
@@ -365,14 +365,14 @@ export const configureStandardForm = (
                 if (resp.ok) {
                     successCallback?.(data)
                 } else {
-                    errorCallback?.(new Error(detail ?? ""))
+                    options?.errorCallback?.(new Error(detail ?? ""))
                 }
             })
             .catch((error: Error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to submit standard form", error)
                 handleFormFeedback("error", error.message)
-                errorCallback?.(error)
+                options?.errorCallback?.(error)
             })
             .finally(() => {
                 setPendingState(false)

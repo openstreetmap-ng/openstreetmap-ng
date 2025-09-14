@@ -108,8 +108,6 @@ if (modalElement) {
             console.debug("Report submitted successfully")
             formElement.reset()
         },
-        null,
-        null,
         {
             removeEmptyFields: true,
             formBody: formElement.querySelector(".modal-body"),

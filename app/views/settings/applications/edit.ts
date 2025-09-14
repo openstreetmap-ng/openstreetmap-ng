@@ -55,8 +55,6 @@ if (body) {
             revokeAllAuthorizationsCheckbox.checked = false
             revokeAllAuthorizationsCheckbox.dispatchEvent(new Event("change"))
         },
-        null,
-        null,
         { formAppend: true },
     )
 

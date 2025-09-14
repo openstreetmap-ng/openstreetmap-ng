@@ -38,8 +38,6 @@ if (body) {
                 () => {
                     updateStatus()
                 },
-                null,
-                null,
                 { removeEmptyFields: true },
             )
         }

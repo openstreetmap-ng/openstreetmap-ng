@@ -22,11 +22,12 @@ if (body) {
                     select.classList.remove("disabled")
                     console.debug("Visibility changed successfully to", currentValue)
                 },
-                null,
-                () => {
-                    select.value = currentValue
-                    select.classList.remove("disabled")
-                    console.error("Visibility change failed, rolling back")
+                {
+                    errorCallback: () => {
+                        select.value = currentValue
+                        select.classList.remove("disabled")
+                        console.error("Visibility change failed, rolling back")
+                    },
                 },
             )
         }

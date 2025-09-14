@@ -25,29 +25,33 @@ if (body) {
             console.debug("onSignupFormSuccess", redirect_url)
             window.location.href = redirect_url
         },
-        () => {
-            const result: APIDetail[] = []
+        {
+            clientValidationCallback: () => {
+                const result: APIDetail[] = []
 
-            // Validate name for blacklisted characters
-            const displayNameValue = displayNameInput.value
-            if (
-                displayNameBlacklist.split("").some((c) => displayNameValue.includes(c))
-            ) {
-                const msg = i18next.t("validations.url_characters", {
-                    characters: displayNameBlacklist,
-                    interpolation: { escapeValue: false },
-                })
-                result.push({ type: "error", loc: ["", "display_name"], msg })
-            }
+                // Validate name for blacklisted characters
+                const displayNameValue = displayNameInput.value
+                if (
+                    displayNameBlacklist
+                        .split("")
+                        .some((c) => displayNameValue.includes(c))
+                ) {
+                    const msg = i18next.t("validations.url_characters", {
+                        characters: displayNameBlacklist,
+                        interpolation: { escapeValue: false },
+                    })
+                    result.push({ type: "error", loc: ["", "display_name"], msg })
+                }
 
-            // Validate passwords equality
-            if (passwordInput.value !== passwordConfirmInput.value) {
-                const msg = i18next.t("validation.passwords_missmatch")
-                result.push({ type: "error", loc: ["", "password"], msg })
-                result.push({ type: "error", loc: ["", "password_confirm"], msg })
-            }
+                // Validate passwords equality
+                if (passwordInput.value !== passwordConfirmInput.value) {
+                    const msg = i18next.t("validation.passwords_missmatch")
+                    result.push({ type: "error", loc: ["", "password"], msg })
+                    result.push({ type: "error", loc: ["", "password_confirm"], msg })
+                }
 
-            return result
+                return result
+            },
         },
     )
 }

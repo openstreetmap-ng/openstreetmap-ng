@@ -370,18 +370,20 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             updateUrl()
             updateRoute(data)
         },
-        () => {
-            // On client validation, hide previous route data
-            loadingContainer.classList.remove("d-none")
-            routeContainer.classList.add("d-none")
-            return null
+        {
+            abortSignal: true,
+            clientValidationCallback: () => {
+                // On client validation, hide previous route data
+                loadingContainer.classList.remove("d-none")
+                routeContainer.classList.add("d-none")
+                return null
+            },
+            errorCallback: () => {
+                // Return early if unloaded
+                if (loadingContainer.classList.contains("d-none")) return
+                loadingContainer.classList.add("d-none")
+            },
         },
-        () => {
-            // Return early if unloaded
-            if (loadingContainer.classList.contains("d-none")) return
-            loadingContainer.classList.add("d-none")
-        },
-        { abortSignal: true },
     )
 
     const updateEndpoints = (data: RoutingResult): void => {

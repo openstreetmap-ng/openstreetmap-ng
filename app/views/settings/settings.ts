@@ -16,21 +16,25 @@ if (body) {
             console.debug("onSettingsFormSuccess")
             window.location.reload()
         },
-        () => {
-            const result: APIDetail[] = []
+        {
+            clientValidationCallback: () => {
+                const result: APIDetail[] = []
 
-            const displayNameValue = displayNameInput.value
-            if (
-                displayNameBlacklist.split("").some((c) => displayNameValue.includes(c))
-            ) {
-                const msg = i18next.t("validations.url_characters", {
-                    characters: displayNameBlacklist,
-                    interpolation: { escapeValue: false },
-                })
-                result.push({ type: "error", loc: ["", "display_name"], msg })
-            }
+                const displayNameValue = displayNameInput.value
+                if (
+                    displayNameBlacklist
+                        .split("")
+                        .some((c) => displayNameValue.includes(c))
+                ) {
+                    const msg = i18next.t("validations.url_characters", {
+                        characters: displayNameBlacklist,
+                        interpolation: { escapeValue: false },
+                    })
+                    result.push({ type: "error", loc: ["", "display_name"], msg })
+                }
 
-            return result
+                return result
+            },
         },
     )
 }

@@ -29,8 +29,6 @@ if (body) {
             console.debug("onDiaryFormSuccess", redirect_url)
             window.location.href = redirect_url
         },
-        null,
-        null,
         { removeEmptyFields: true },
     )
 
