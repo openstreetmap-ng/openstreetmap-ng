@@ -48,6 +48,7 @@ export const configureStandardPagination = (
     const numItems = signal(Number.parseInt(dataset.numItems, 10))
     const totalPages = signal(initialPages)
     const currentPage = signal(options?.initialPage ?? (reverse ? initialPages : 1))
+    const fetchCache = new Map<string, string>()
     let firstLoad = true
 
     const setPendingState = (state: boolean): void => {
@@ -74,6 +75,12 @@ export const configureStandardPagination = (
         }
     }
 
+    const onLoad = (html: string): void => {
+        renderContainer.innerHTML = html
+        resolveDatetimeLazy(renderContainer)
+        options?.loadCallback?.(renderContainer)
+    }
+
     // Update collection
     const disposeCollectionEffect = effect(() => {
         if (!currentPage.value) return
@@ -85,17 +92,24 @@ export const configureStandardPagination = (
             return
         }
 
-        const abortController = new AbortController()
-
-        console.debug("Navigating to page", currentPageString)
-        setPendingState(true)
-
         // Build the endpoint
         const [path, q = ""] = endpointPattern.split("?")
         const params = qsParse(q)
         params.page = currentPageString
         params.num_items = String(numItems.peek())
         const url = `${path}?${qsEncode(params)}`
+
+        // Serve from cache when available
+        const cached = fetchCache.get(url)
+        if (cached !== undefined) {
+            console.debug("Loading cached page", currentPageString)
+            onLoad(cached)
+            return () => {}
+        }
+
+        console.debug("Navigating to page", currentPageString)
+        const abortController = new AbortController()
+        setPendingState(true)
 
         fetch(url, {
             method: "GET",
@@ -106,10 +120,9 @@ export const configureStandardPagination = (
         })
             .then(async (resp) => {
                 if (resp.ok) console.debug("Navigated to page", currentPageString)
-
-                renderContainer.innerHTML = await resp.text()
-                resolveDatetimeLazy(renderContainer)
-                options?.loadCallback?.(renderContainer)
+                const text = await resp.text()
+                fetchCache.set(url, text)
+                onLoad(text)
 
                 // Sync headers for total items/pages
                 if (numItems.value < 0) {
@@ -211,7 +224,6 @@ export const configureStandardPagination = (
 
     return () => {
         console.debug("Disposing standard pagination", endpointPattern)
-        currentPage.value = 0
         disposeCollectionEffect()
         disposePaginationEffect()
     }
