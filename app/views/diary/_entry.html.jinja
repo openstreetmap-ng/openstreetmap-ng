@@ -147,21 +147,21 @@
                     </div>
 
                     {% if entry_mode == 'details' %}
-                    <a class="btn btn-light border d-flex align-items-center" href="/diary/{{ diary.id }}#comments">
-                        {{ t('diary.comments') }}
+                    <a class="btn btn-light border diary-comments-btn" href="/diary/{{ diary.id }}#comments">
+                        {{- t('diary.comments') -}}
                         <span
-                            class="badge ms-1-5 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}">
-                            {{ diary.num_comments }}
+                            class="badge ms-2 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}">
+                            {{- diary.num_comments -}}
                         </span>
                     </a>
                     {% else %}
-                    <button type="button" class="btn btn-light border d-flex align-items-center diary-comments-toggle"
-                        aria-expanded="false" aria-controls="diary-comments-{{ diary.id }}"
-                        data-target="#diary-comments-{{ diary.id }}">
-                        {{ t('diary.comments') }}
+                    <button type="button" class="btn btn-light border diary-comments-btn dropdown-toggle collapsed"
+                        aria-expanded="false" aria-controls="diary-comments-{{ diary.id }}" data-bs-toggle="collapse"
+                        data-bs-target="#diary-comments-{{ diary.id }}">
+                        {{- t('diary.comments') -}}
                         <span
-                            class="badge ms-1-5 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}">
-                            {{ diary.num_comments }}
+                            class="badge ms-2 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}">
+                            {{- diary.num_comments -}}
                         </span>
                     </button>
                     {% endif %}
@@ -202,9 +202,8 @@
     </div>
 
     {% set _is_details = entry_mode == 'details' %}
-    {% set _comments_id = 'comments' if _is_details else 'diary-comments-' ~ diary.id %}
-    {% set _comments_classes = '' if _is_details else 'd-none' %}
-    <div id="{{ _comments_id }}" class="diary-comments {{ _comments_classes }}">
+    <div id="{{ 'comments' if _is_details else 'diary-comments-' ~ diary.id }}"
+        class="diary-comments collapse {% if _is_details %}show{% endif %}">
         <div class="row g-1 mb-1">
             <div class="col">
                 <h4>{{ t('diary.comments') }}</h4>

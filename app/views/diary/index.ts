@@ -58,43 +58,34 @@ if (indexBody) {
             }, 50)
         })
 
-        const toggleBtn = article.querySelector("button.diary-comments-toggle")
-        const targetSel = toggleBtn?.dataset.target
-        const container = targetSel ? article.querySelector(targetSel) : null
+        const commentsCont = article.querySelector(".diary-comments")
 
-        if (toggleBtn && container) {
-            const initCommentsIfNeeded = () => {
+        commentsCont.addEventListener(
+            "show.bs.collapse",
+            () => {
                 // Initialize only once on first toggle; reuse DOM thereafter
-                if (toggleBtn.dataset.initialized) return
-                toggleBtn.dataset.initialized = "1"
-                const dispose = configureStandardPagination(container)
-                disposers.set(container, dispose)
+                const dispose = configureStandardPagination(commentsCont)
+                disposers.set(commentsCont, dispose)
 
-                const subForm = container.querySelector("form.subscription-form")
+                const subForm = commentsCont.querySelector("form.subscription-form")
                 // Keep this simple; reloading reflects state everywhere
                 configureStandardForm(subForm, () => {
                     window.location.reload()
                 })
 
-                const commentform = container.querySelector("form.comment-form")
+                const commentform = commentsCont.querySelector("form.comment-form")
                 configureStandardForm(commentform, () => {
                     commentform.reset()
-                    const paginationElement = container.querySelector("ul.pagination")
+                    const paginationElement =
+                        commentsCont.querySelector("ul.pagination")
                     if (paginationElement) paginationElement.dataset.numItems = "-1"
-                    disposers.get(container)?.()
-                    const d2 = configureStandardPagination(container)
-                    disposers.set(container, d2)
+                    disposers.get(commentsCont)?.()
+                    const d2 = configureStandardPagination(commentsCont)
+                    disposers.set(commentsCont, d2)
                 })
-            }
-
-            toggleBtn.addEventListener("click", () => {
-                const isHidden = container.classList.contains("d-none")
-                if (isHidden) initCommentsIfNeeded()
-                container.classList.toggle("d-none")
-                const expanded = !container.classList.contains("d-none")
-                toggleBtn.ariaExpanded = expanded ? "true" : "false"
-            })
-        }
+            },
+            { once: true },
+        )
     }
 }
 

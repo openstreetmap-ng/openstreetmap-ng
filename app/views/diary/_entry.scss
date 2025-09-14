@@ -5,6 +5,13 @@ article.diary {
         will-change: max-height;
     }
 
+    &.show {
+        .diary-body {
+            max-height: 9999px;
+            mask-image: none;
+        }
+    }
+
     &:not(.show) {
         .diary-body {
             max-height: 28rem;
@@ -25,13 +32,6 @@ article.diary {
         }
     }
 
-    &.show {
-        .diary-body {
-            max-height: 9999px;
-            mask-image: none;
-        }
-    }
-
     .diary-read-more {
         width: 100%;
         margin-bottom: 0.5rem;
@@ -44,6 +44,26 @@ article.diary {
 
     .diary-comments {
         margin-top: 1rem;
+    }
+
+    .diary-comments-btn {
+        .badge {
+            position: relative;
+            top: -0.1rem;
+        }
+
+        &.dropdown-toggle {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+
+            // Rotate Bootstrap caret when collapse is expanded
+            &::after {
+                transition: transform 160ms ease;
+            }
+            &:not(.collapsed)::after {
+                transform: rotate(180deg);
+            }
+        }
     }
 
     .share {
