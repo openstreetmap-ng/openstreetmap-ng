@@ -662,7 +662,7 @@ let
       ruff check --fix
       biome lint --fix
     '')
-    (makeScript "pyright" "pnpx basedpyright")
+    (makeScript "pyright" "pnpm exec basedpyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")

@@ -25,6 +25,7 @@
     "@types/node": "latest",
     "@vitejs/plugin-legacy": "latest",
     "autoprefixer": "latest",
+    "basedpyright": "latest",
     "browserslist": "latest",
     "caniuse-lite": "latest",
     "core-js": "3.45.0",
