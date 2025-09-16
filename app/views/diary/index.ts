@@ -1,3 +1,4 @@
+import { Offcanvas } from "bootstrap"
 import { configureStandardForm } from "../lib/standard-form"
 import { configureStandardPagination } from "../lib/standard-pagination"
 
@@ -87,6 +88,17 @@ if (indexBody) {
             { once: true },
         )
     }
+
+    // Hide the diary scroll navigation panel after any link click
+    // (mobile view)
+    const navOffcanvas = document.getElementById("diary-scroll-nav-offcanvas")
+    const navOffcanvasInstance = Offcanvas.getOrCreateInstance(navOffcanvas)
+    navOffcanvas.addEventListener("click", ({ target }) => {
+        if (!(target instanceof Element)) return
+        const link = target.closest("a[href]")
+        if (!(link instanceof HTMLAnchorElement)) return
+        navOffcanvasInstance.hide()
+    })
 }
 
 if (detailsBody || indexBody) {
