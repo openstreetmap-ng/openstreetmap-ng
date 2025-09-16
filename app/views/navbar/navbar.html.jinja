@@ -13,7 +13,7 @@
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
-            <div class="btn-group dropdown d-flex d-lg-inline-flex me-auto" role="group">
+            <div class="map-actions btn-group d-flex flex-wrap me-auto" role="group">
                 <div class="btn-group edit-group flex-grow-1"
                     data-bs-title="{{ t('javascripts.site.edit_disabled_tooltip') }}">
                     {% if user is none %}
@@ -21,8 +21,8 @@
                     {% else %}
                     {% set _editor = user.editor or DEFAULT_EDITOR %}
                     {% endif %}
-                    <a class="btn btn-outline-green map-link edit-link default" href="/edit?editor={{ _editor }}">
-                        {{ t('layouts.edit') }}
+                    <a class="btn map-link edit-link default" href="/edit?editor={{ _editor }}">
+                        {{- t('layouts.edit') -}}
                         {% if _editor == 'id' %}
                         <img class="dark-filter-invert" src="/static/img/brand/id.webp"
                             alt="{{ t('alt.logo', name='iD') }}">
@@ -33,9 +33,8 @@
                         {% endif %}
                     </a>
 
-                    <button class="btn btn-outline-green dropdown-toggle dropdown-toggle-split rounded-0"
-                        data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
-                        aria-label="Toggle editor selection">
+                    <button class="btn dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside" aria-expanded="false" aria-label="Toggle editor selection">
                     </button>
                     <div class="dropdown-menu dropdown-menu-green">
                         <a class="dropdown-item map-link edit-link" data-editor="id" href="/edit?editor=id">
@@ -83,12 +82,8 @@
                     </div>
                 </div>
 
-                <a class="btn btn-outline-green map-link" href="/history">
-                    {{ t('layouts.history') }}
-                </a>
-                <a class="btn btn-outline-green map-link" href="/export">
-                    {{ t('site.export.title') }}
-                </a>
+                <a class="btn map-link" href="/history">{{ t('layouts.history') }}</a>
+                <a class="btn map-link" href="/export">{{ t('site.export.title') }}</a>
             </div>
 
             <ul class="navbar-nav my-2 my-lg-0">
