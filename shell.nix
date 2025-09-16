@@ -405,7 +405,7 @@ let
       process-compose project is-ready -U --wait
 
       process-compose list -U | while read -r name; do
-        if [ -z "$name" ] || [ "$name" = "mailpit" ]; then
+        if [ -z "$name" ]; then
           continue
         fi
 

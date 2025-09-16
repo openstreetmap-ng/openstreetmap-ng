@@ -58,6 +58,7 @@ let
           --smtp-auth-allow-insecure \
           --enable-spamassassin spamassassin.monicz.dev:783
       '';
+      ready_log_line = "[http] accessible via ";
       log_location = "data/pcompose/mailpit.log";
       log_configuration = log_configuration // {
         no_metadata = true;
