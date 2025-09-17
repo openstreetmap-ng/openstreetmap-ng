@@ -306,6 +306,7 @@ password_strength:
     include_digits: Include digits.
     include_symbols: Include symbols.
     avoid_repeated_characters: Avoid repeated characters.
+    use_a_password_not_widely_known: Use a password not widely known.
 permissions:
   no_permissions: No permissions
   read_user_preferences: Read user preferences

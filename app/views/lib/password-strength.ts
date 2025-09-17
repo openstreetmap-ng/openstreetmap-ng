@@ -1,10 +1,33 @@
+import { sha1 } from "@noble/hashes/legacy"
+import { effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
 
 type StrengthLevelKey = "weak" | "fair" | "good" | "strong" | "perfect"
 
+type SuggestionKey =
+    | "min_length"
+    | "add_more_characters"
+    | "add_lowercase"
+    | "add_uppercase"
+    | "add_numbers"
+    | "add_symbols"
+    | "avoid_repeats"
+    | "pwned_password"
+
+interface EvaluateOptions {
+    minLength: number
+    idealLength: number
+}
+
 interface StrengthLevel {
     key: StrengthLevelKey
     minScore: number
+}
+
+interface StrengthResult {
+    score: number
+    level: StrengthLevel
+    suggestions: SuggestionKey[]
 }
 
 const STRENGTH_LEVELS: StrengthLevel[] = [
@@ -22,28 +45,10 @@ const SYMBOL_REGEX = /[^A-Za-z0-9]/
 const STRENGTH_LENGTH_WEIGHT = 0.5
 const STRENGTH_COMPLEXITY_WEIGHT = 0.45
 const STRENGTH_DIVERSITY_WEIGHT = 0.05
-
-type SuggestionKey =
-    | "min_length"
-    | "add_more_characters"
-    | "add_lowercase"
-    | "add_uppercase"
-    | "add_numbers"
-    | "add_symbols"
-    | "avoid_repeats"
+const PWNED_PASSWORD_CHECK_DELAY = 750
+const PWNED_PASSWORD_CACHE = new Map<string, boolean>()
 
 let hintIdCounter = 0
-
-interface EvaluateOptions {
-    minLength: number
-    idealLength: number
-}
-
-interface StrengthResult {
-    score: number
-    level: StrengthLevel
-    suggestions: SuggestionKey[]
-}
 
 const evaluateStrength = (
     password: string,
@@ -54,20 +59,19 @@ const evaluateStrength = (
     const hasUppercase = UPPERCASE_REGEX.test(password)
     const hasNumber = NUMBER_REGEX.test(password)
     const hasSymbol = SYMBOL_REGEX.test(password)
+    const isCompromised = PWNED_PASSWORD_CACHE.get(password)
 
     const categoryCount =
         Number(hasLowercase) +
         Number(hasUppercase) +
         Number(hasNumber) +
-        Number(hasSymbol)
+        Number(hasSymbol) +
+        Number(!isCompromised)
 
-    const cappedLength = Math.min(length, idealLength)
-    let lengthNormalized = idealLength ? cappedLength / idealLength : 0
-    if (length < minLength && minLength > 0) {
-        lengthNormalized *= length / minLength
-    }
+    let lengthNormalized = Math.min(length, idealLength) / idealLength
+    if (length < minLength) lengthNormalized *= length / minLength
+
     const categoryNormalized = categoryCount <= 1 ? 0 : (categoryCount - 1) / 3
-
     const characterSpace =
         (hasLowercase ? 26 : 0) +
         (hasUppercase ? 26 : 0) +
@@ -75,23 +79,32 @@ const evaluateStrength = (
         (hasSymbol ? 33 : 0)
     const poolNormalized =
         Math.log2(Math.max(characterSpace, 2)) / Math.log2(26 + 26 + 10 + 33)
+    const complexityNormalized = (categoryNormalized + poolNormalized) / 2
 
     const uniqueRatio = length ? new Set(password).size / length : 0
     const uniqueNormalized = Math.max(0, Math.min(1, (uniqueRatio - 0.5) / 0.5))
 
-    const complexityNormalized = (categoryNormalized + poolNormalized) / 2
-    const base =
-        lengthNormalized * STRENGTH_LENGTH_WEIGHT +
-        complexityNormalized * STRENGTH_COMPLEXITY_WEIGHT +
-        uniqueNormalized * STRENGTH_DIVERSITY_WEIGHT
-    const clampedScore = Math.round(Math.max(0, Math.min(1, base)) * 100)
+    const score = isCompromised
+        ? 5
+        : Math.round(
+              Math.max(
+                  0,
+                  Math.min(
+                      1,
+                      lengthNormalized * STRENGTH_LENGTH_WEIGHT +
+                          complexityNormalized * STRENGTH_COMPLEXITY_WEIGHT +
+                          uniqueNormalized * STRENGTH_DIVERSITY_WEIGHT,
+                  ),
+              ) * 100,
+          )
 
     let level = STRENGTH_LEVELS[0]
     for (const strengthLevel of STRENGTH_LEVELS) {
-        if (clampedScore >= strengthLevel.minScore) level = strengthLevel
+        if (score >= strengthLevel.minScore) level = strengthLevel
     }
 
     const suggestions = new Set<SuggestionKey>()
+    if (isCompromised) suggestions.add("pwned_password")
     if (length < minLength) suggestions.add("min_length")
     else if (length < idealLength) suggestions.add("add_more_characters")
     if (!hasLowercase) suggestions.add("add_lowercase")
@@ -105,7 +118,7 @@ const evaluateStrength = (
     if (level.key === "perfect" && suggestions.size)
         level = STRENGTH_LEVELS.find((l) => l.key === "strong")
 
-    return { score: clampedScore, level, suggestions: [...suggestions] }
+    return { score, level, suggestions: [...suggestions] }
 }
 
 const inputs = document.querySelectorAll(
@@ -162,6 +175,8 @@ for (const input of inputs) {
         "aria-describedby",
         describedBy ? `${describedBy} ${hintId}` : hintId,
     )
+
+    const passwordToCheck = signal("")
 
     const renderEmptyState = () => {
         container.dataset.level = "empty"
@@ -258,6 +273,12 @@ for (const input of inputs) {
                                 "password_strength.suggestions.avoid_repeated_characters",
                             )
                             break
+                        case "pwned_password":
+                            item.classList.add("text-danger")
+                            item.textContent = i18next.t(
+                                "password_strength.suggestions.use_a_password_not_widely_known",
+                            )
+                            break
                     }
                     return item
                 }),
@@ -271,12 +292,95 @@ for (const input of inputs) {
         }
     }
 
-    input.after(container)
+    let scheduledCheck: number | undefined
+    const requestPwnedCheck = (immediate: boolean) => {
+        window.clearTimeout(scheduledCheck)
+
+        const password = input.value
+        if (!password || immediate) {
+            passwordToCheck.value = password
+            return
+        }
+
+        scheduledCheck = window.setTimeout(() => {
+            passwordToCheck.value = password
+        }, PWNED_PASSWORD_CHECK_DELAY)
+    }
 
     update()
-    input.addEventListener("input", update)
-    input.addEventListener("change", update)
+    input.addEventListener("input", () => {
+        passwordToCheck.value = ""
+        update()
+        requestPwnedCheck(false)
+    })
+    input.addEventListener("blur", () => requestPwnedCheck(true))
     input.form?.addEventListener("reset", () => {
+        window.clearTimeout(scheduledCheck)
+        passwordToCheck.value = ""
         window.setTimeout(update)
     })
+    input.after(container)
+
+    effect(() => {
+        const password = passwordToCheck.value
+        if (password.length < minLength) return
+
+        const abortController = new AbortController()
+        lookupPwnedPassword(password, abortController.signal)
+            .then(update)
+            .catch((error: Error) => {
+                if (error.name === "AbortError") return
+                console.error("Failed to check password safety", error)
+            })
+
+        return () => {
+            abortController.abort()
+        }
+    })
+}
+
+const lookupPwnedPassword = async (
+    password: string,
+    abortSignal: AbortSignal,
+): Promise<void> => {
+    const cached = PWNED_PASSWORD_CACHE.get(password)
+    if (cached !== undefined) return
+
+    const hash = await sha1_hex(password)
+    const prefix = hash.slice(0, 5)
+    const suffix = hash.slice(5)
+
+    const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
+        signal: abortSignal,
+        headers: { "Add-Padding": "true" },
+    })
+    if (!response.ok)
+        throw new Error(`Failed to check password safety (${response.status})`)
+
+    const body = await response.text()
+    for (const line of body.split("\n")) {
+        const [hashSuffix, occurrences] = line.split(":")
+        if (hashSuffix === suffix && occurrences !== "0") {
+            PWNED_PASSWORD_CACHE.set(password, true)
+            return
+        }
+    }
+
+    PWNED_PASSWORD_CACHE.set(password, false)
+}
+
+const sha1_hex = async (value: string): Promise<string> => {
+    const data = new TextEncoder().encode(value)
+    let bytes: Uint8Array
+    try {
+        bytes = new Uint8Array(await crypto.subtle.digest("SHA-1", data))
+    } catch (e: any) {
+        if (e?.name !== "NotSupportedError") throw e
+        console.warn("SubtleCrypto does not support SHA-1, falling back to polyfill")
+        bytes = sha1(data)
+    }
+    return Array.from(bytes)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase()
 }
