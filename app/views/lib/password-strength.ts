@@ -284,6 +284,7 @@ for (const input of inputs) {
                 }),
             )
         } else {
+            hintText.hidden = false
             hintText.textContent = i18next.t(
                 "password_strength.great_password_nice_work",
             )
