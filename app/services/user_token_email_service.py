@@ -13,6 +13,7 @@ from app.models.types import Email, UserId, UserTokenId
 from app.queries.user_token_query import UserTokenQuery
 from app.services.audit_service import audit
 from app.services.email_service import EmailService
+from app.services.user_token_service import UserTokenService
 from speedup.buffered_rand import buffered_randbytes
 
 
@@ -85,6 +86,7 @@ class UserTokenEmailService:
                     (new_email, user_id),
                 )
                 audit_extra = {'email': new_email}
+                await UserTokenService.delete_all_for_user(conn, user_id)
             else:
                 async with await conn.execute(
                     """
@@ -102,10 +104,10 @@ class UserTokenEmailService:
                         else None
                     )
 
-            await conn.execute(
-                'DELETE FROM user_token WHERE id = %s',
-                (token_struct.id,),
-            )
+                await conn.execute(
+                    'DELETE FROM user_token WHERE id = %s',
+                    (token_struct.id,),
+                )
 
             if audit_extra is not None:
                 await audit('change_email', conn, user_id=user_id, extra=audit_extra)

@@ -27,6 +27,7 @@ from app.services.image_service import ImageService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_token_email_service import UserTokenEmailService
+from app.services.user_token_service import UserTokenService
 from app.validators.email import validate_email, validate_email_deliverability
 
 
@@ -354,10 +355,7 @@ class UserService:
                     (new_password_pb, user_id),
                 )
                 await conn.execute(
-                    """
-                    DELETE FROM user_token
-                    WHERE id = %s
-                    """,
+                    'DELETE FROM user_token WHERE id = %s',
                     (token_struct.id,),
                 )
 
@@ -555,6 +553,8 @@ class UserService:
         async with db(True) as conn:
             if ENV != 'test':  # Prevent admin user updates on the test instance
                 await conn.execute(query, params)
+                if email is not None:
+                    await UserTokenService.delete_all_for_user(conn, user_id)
             for op in audits:
                 await op(conn)
 

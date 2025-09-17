@@ -650,6 +650,8 @@ CREATE TABLE user_token (
     email_reply_usage_count smallint
 );
 
+CREATE INDEX user_token_user_idx ON user_token (user_id DESC);
+
 CREATE TABLE file (
     context text NOT NULL,
     key text NOT NULL,
