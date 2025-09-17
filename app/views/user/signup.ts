@@ -1,3 +1,4 @@
+import { Collapse } from "bootstrap"
 import i18next from "i18next"
 import { activityTracking } from "../lib/config"
 import { type APIDetail, configureStandardForm } from "../lib/standard-form"
@@ -54,4 +55,17 @@ if (body) {
             },
         },
     )
+
+    // Collapse/expand password confirmation based on password presence
+    const confirmCollapse = new Collapse(passwordConfirmInput.closest(".collapse"), {
+        toggle: false,
+    })
+
+    const updateConfirmVisibility = () => {
+        if (passwordInput.value.length) confirmCollapse.show()
+        else confirmCollapse.hide()
+    }
+
+    passwordInput.addEventListener("input", updateConfirmVisibility)
+    updateConfirmVisibility()
 }

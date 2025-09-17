@@ -11,6 +11,12 @@
         padding-right: unset;
         flex-grow: 1;
 
+        // On desktop, keep overall page static and
+        // let only the right pane scroll.
+        @include media-breakpoint-up(xl) {
+            overflow: hidden;
+        }
+
         > .row {
             height: 100%;
         }
@@ -90,10 +96,27 @@
         display: flex;
         align-items: center;
         border-top: 2.5rem solid var(--bs-tertiary-bg);
-        padding: 1.5rem 4rem 1rem;
+        padding: 2rem;
 
-        @include media-breakpoint-down(sm) {
-            padding: 1.5rem 2rem 3rem;
+        @include media-breakpoint-up(xl) {
+            border-top: 0;
+            padding: 0 4rem 2rem;
+
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            flex-direction: column;
+            align-items: start;
+
+            &::before {
+                content: "";
+                flex: 0 0 auto;
+                width: calc(100% + 8rem);
+                height: 3rem;
+                margin: 0 -4rem 1.5rem;
+                background: var(--bs-tertiary-bg);
+            }
         }
     }
 

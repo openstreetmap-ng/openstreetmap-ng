@@ -78,11 +78,13 @@
                                     minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
                             </label>
 
-                            <label class="form-label d-block mb-4">
-                                {{ t('activerecord.attributes.user.pass_crypt_confirmation') | capitalize }}
-                                <input type="password" class="form-control mt-2" data-name="password_confirm"
-                                    minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
-                            </label>
+                            <div class="collapse">
+                                <label class="form-label d-block mb-4">
+                                    {{ t('activerecord.attributes.user.pass_crypt_confirmation') | capitalize }}
+                                    <input type="password" class="form-control mt-2" data-name="password_confirm"
+                                        minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
+                                </label>
+                            </div>
 
                             <div class="form-check small mx-1 mb-3">
                                 <label class="form-check-label">

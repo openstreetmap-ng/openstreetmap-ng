@@ -288,6 +288,24 @@ settings:
   delete_this_application_question: |-
     Are you sure you want to delete this application?
     This action cannot be undone.
+password_strength:
+  password_strength: Password strength
+  to_strengthen_it_you_can: To strengthen it, you can
+  great_password_nice_work: Great password. Nice work!
+  levels:
+    weak: Weak
+    fair: Fair
+    good: Good
+    strong: Strong
+    perfect: Perfect
+  suggestions:
+    use_at_least_min_length_characters: Use at least {{min_length}} characters.
+    add_couple_more_characters: Add a couple more characters.
+    include_lowercase_letters: Include lowercase letters.
+    include_uppercase_letters: Include uppercase letters.
+    include_digits: Include digits.
+    include_symbols: Include symbols.
+    avoid_repeated_characters: Avoid repeated characters.
 permissions:
   no_permissions: No permissions
   read_user_preferences: Read user preferences
