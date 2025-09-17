@@ -1,6 +1,5 @@
 import subprocess
-from functools import partial
-from multiprocessing.pool import Pool
+from multiprocessing.pool import AsyncResult, Pool
 from os import utime
 from pathlib import Path
 
@@ -70,7 +69,7 @@ def main() -> None:
 
     with Pool() as pool:
         discover_counter = 0
-        success_counter = 0
+        jobs: list[AsyncResult[None]] = []
 
         for source_path in _POSTPROCESS_DIR.glob('*.json'):
             discover_counter += 1
@@ -85,23 +84,24 @@ def main() -> None:
             ):
                 continue
 
-            pool.apply_async(
-                partial(
+            jobs.append(
+                pool.apply_async(
                     transform,
-                    source_path,
-                    effective_mtime,
-                    target_path_po=target_path_po,
-                    target_path_mo=target_path_mo,
+                    (source_path, effective_mtime),
+                    {
+                        'target_path_po': target_path_po,
+                        'target_path_mo': target_path_mo,
+                    },
                 )
             )
-            success_counter += 1
 
         pool.close()
         pool.join()
+        for job in jobs:
+            job.get()
 
     print(
-        f'[gnu] Discovered {discover_counter} locales, '
-        f'transformed {success_counter} locales',
+        f'[gnu] Discovered {discover_counter} locales, transformed {len(jobs)} locales',
     )
 
 
