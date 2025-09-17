@@ -196,7 +196,7 @@ async def _run_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
             heartbeat_task.cancel()
 
             # Delete the task when finished
-            async with db(write=True, autocommit=True) as conn:
+            async with db(True, autocommit=True) as conn:
                 await conn.execute(
                     """
                     DELETE FROM admin_task
@@ -213,7 +213,7 @@ async def _heartbeat_loop(task_id: TaskId) -> None:
         # Periodically update the heartbeat field
         await sleep(ADMIN_TASK_HEARTBEAT_INTERVAL.total_seconds())
 
-        async with db(write=True, autocommit=True) as conn:
+        async with db(True, autocommit=True) as conn:
             await conn.execute(
                 """
                 UPDATE admin_task
