@@ -354,6 +354,7 @@ const lookupPwnedPassword = async (
     const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
         signal: abortSignal,
         headers: { "Add-Padding": "true" },
+        referrerPolicy: "no-referrer",
     })
     if (!response.ok)
         throw new Error(`Failed to check password safety (${response.status})`)
