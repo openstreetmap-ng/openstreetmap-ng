@@ -136,6 +136,7 @@ async def _register_types():
 @asynccontextmanager
 async def db(
     write: bool = False,
+    /,
     *,
     autocommit: bool = False,
     isolation_level: IsolationLevel | None = None,
