@@ -29,11 +29,17 @@ from app.services.oauth2_application_service import OAuth2ApplicationService
         ('https:', None),
         ('https://', None),
         ('uwu', None),
-        # Insecure URIs
+        # Allow loopback HTTP
+        (
+            'http://localhost:3000/callback\nhttp://127.0.0.1:8000/callback',
+            ['http://localhost:3000/callback', 'http://127.0.0.1:8000/callback'],
+        ),
+        ('http://[::1]:9000/callback', ['http://[::1]:9000/callback']),
         (
             'http://localhost\nhttp://127.0.0.1',
             ['http://localhost', 'http://127.0.0.1'],
         ),
+        # Insecure URIs
         ('http://localhost.example.com', None),
         # Duplicate URIs
         (

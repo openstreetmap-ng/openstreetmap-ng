@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import UploadFile
 from pydantic import SecretStr
-from rfc3986 import uri_reference
+from rfc3986 import URIReference
 from zid import zid
 
 from app.config import (
@@ -98,18 +98,20 @@ class OAuth2ApplicationService:
                 continue
 
             try:
-                UriValidator.validate(uri_reference(uri))
+                parsed_uri = URIReference.from_string(uri)
+                UriValidator.validate(parsed_uri)
             except Exception:
                 logging.debug('Invalid redirect URI %r', uri)
                 StandardFeedback.raise_error(
                     'redirect_uris', t('validation.invalid_redirect_uri')
                 )
 
-            normalized = f'{uri.casefold()}/'
-            if normalized.startswith('http://') and not normalized.startswith((
-                'http://127.0.0.1/',
-                'http://localhost/',
-            )):
+            normalized = parsed_uri.normalize()
+            if normalized.scheme == 'http' and normalized.host not in {
+                '127.0.0.1',
+                'localhost',
+                '[::1]',
+            }:
                 StandardFeedback.raise_error(
                     'redirect_uris', t('validation.insecure_redirect_uri')
                 )
