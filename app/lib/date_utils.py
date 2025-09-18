@@ -2,6 +2,7 @@ from datetime import UTC, date, datetime
 from typing import overload
 
 import arrow
+import cython
 import dateutil.parser
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
@@ -38,44 +39,33 @@ def format_sql_date(dt: datetime | None, /) -> str:
     )
 
 
-def format_rfc2822_date(dt: date | datetime, /) -> str:
-    """Format a datetime object as an RFC2822 date string."""
-    fmt = 'ddd, DD MMM YYYY HH:mm:ss Z'
+@cython.cfunc
+def _format_with_locale(dt: date | datetime, fmt: str, /) -> str:
     date_ = arrow.get(dt)
     try:
         return date_.format(fmt, locale=primary_translation_locale())
     except ValueError:
         return date_.format(fmt)
+
+
+def format_rfc2822_date(dt: date | datetime, /) -> str:
+    """Format a datetime object as an RFC2822 date string."""
+    return _format_with_locale(dt, 'ddd, DD MMM YYYY HH:mm:ss Z')
 
 
 def format_short_date(dt: date | datetime, /) -> str:
     """Format a datetime object as a short date string (MMMM D, YYYY)."""
-    fmt = 'MMMM D, YYYY'
-    date_ = arrow.get(dt)
-    try:
-        return date_.format(fmt, locale=primary_translation_locale())
-    except ValueError:
-        return date_.format(fmt)
+    return _format_with_locale(dt, 'MMMM D, YYYY')
 
 
 def get_month_name(dt: date | datetime, /, *, short: bool) -> str:
     """Get the name of the month of a datetime object."""
-    fmt = 'MMM' if short else 'MMMM'
-    date_ = arrow.get(dt)
-    try:
-        return date_.format(fmt, locale=primary_translation_locale())
-    except ValueError:
-        return date_.format(fmt)
+    return _format_with_locale(dt, 'MMM' if short else 'MMMM')
 
 
 def get_weekday_name(dt: date | datetime, /, *, short: bool) -> str:
     """Get the name of the weekday of a datetime object."""
-    fmt = 'ddd' if short else 'dddd'
-    date_ = arrow.get(dt)
-    try:
-        return date_.format(fmt, locale=primary_translation_locale())
-    except ValueError:
-        return date_.format(fmt)
+    return _format_with_locale(dt, 'ddd' if short else 'dddd')
 
 
 def utcnow() -> datetime:
