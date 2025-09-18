@@ -126,3 +126,5 @@ static-precompress    # Produce .zst/.br for large static assets
 - Localization tooling: `config/locale/extra_en.yaml`, `scripts/locale_postprocess.py`, `scripts/locale_make_i18next.py`
 
 When introducing new code, first search for an existing helper or pattern and extend it. Consistency keeps patches lean, predictable, and easy to review.
+
+**Please treat this guide as living documentation**: if a change in your patch invalidates any section, update the relevant text in the same patch. Likewise, fix anything you notice is incorrect, and add new recurring patterns or contributor-critical guidance as they emerge so newcomers always land on accurate, essential information.
