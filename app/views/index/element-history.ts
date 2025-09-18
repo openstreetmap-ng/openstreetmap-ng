@@ -1,4 +1,5 @@
 import { effect, signal } from "@preact/signals-core"
+import Tooltip from "bootstrap/js/dist/tooltip"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { tagsDiffStorage } from "../lib/local-storage"
 import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
@@ -29,10 +30,15 @@ const focusPaint: FocusLayerPaint = Object.freeze({
 /** Create a new element history controller */
 export const getElementHistoryController = (map: MaplibreMap): IndexController => {
     const base = getBaseFetchController(map, "element-history", (sidebarContent) => {
+        for (const element of sidebarContent.querySelectorAll(
+            "[data-bs-toggle=tooltip]",
+        )) {
+            new Tooltip(element)
+        }
+
         // Get elements
-        const sidebarTitleElement = sidebarContent.querySelector(
-            ".sidebar-title",
-        ) as HTMLElement
+        const sidebarTitleElement =
+            sidebarContent.querySelector<HTMLElement>(".sidebar-title")
         setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found

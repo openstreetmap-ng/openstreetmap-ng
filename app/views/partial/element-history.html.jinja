@@ -14,7 +14,9 @@
                 <div class="form-check ms-1">
                     <label class="form-check-label">
                         <input class="form-check-input tags-diff" type="checkbox" autocomplete="off">
-                        {{ t('element.tags_diff_mode') }}
+                        {{- t('element.tags_diff_mode') -}}
+                        <i class="bi bi-question-circle ms-1-5" data-bs-toggle="tooltip"
+                            data-bs-title="{{ t('element.highlight_changed_tags_between_versions') }}"></i>
                     </label>
                 </div>
             </div>

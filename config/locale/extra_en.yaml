@@ -47,6 +47,7 @@ changesets_history:
   changesets_below: Changesets below
 element:
   tags_diff_mode: Tags diff mode
+  highlight_changed_tags_between_versions: Highlight changed tags between versions
 note:
   title: Note
   count_one: "note"
