@@ -28,7 +28,7 @@ class StandardFeedback:
         cls, field: str | None, message: str
     ) -> dict[Literal['detail'], list[dict[str, Any]]]:
         """Collect a success message for a field. Instantly returns the result."""
-        tmp = StandardFeedback()
+        tmp = cls()
         tmp.success(field, message)
         return tmp.result
 
@@ -41,7 +41,7 @@ class StandardFeedback:
         cls, field: str | None, message: str
     ) -> dict[Literal['detail'], list[dict[str, Any]]]:
         """Collect an info message for a field. Instantly returns the result."""
-        tmp = StandardFeedback()
+        tmp = cls()
         tmp.info(field, message)
         return tmp.result
 
