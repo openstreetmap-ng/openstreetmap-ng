@@ -1,10 +1,89 @@
 .oauth-authorize-body {
-    .card-title {
-        line-height: 1.5;
+    .authorization-avatar {
+        @extend .border;
+
+        width: 3.5rem;
+        height: 3.5rem;
     }
 
-    img.avatar.header-avatar {
-        font-size: 4em;
-        border: 1px solid var(--bs-secondary-bg);
+    .authorization-arrow {
+        @extend .text-primary;
+        @extend .bg-body;
+        @extend .border;
+        @extend .rounded-circle;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 1.5rem;
+
+        i {
+            line-height: 1;
+        }
+    }
+
+    .authorize-scope-list {
+        li {
+            display: flex;
+            gap: 0.75rem;
+
+            &:not(:last-child) {
+                @extend .mb-2;
+            }
+        }
+
+        .bi-check-circle-fill {
+            @extend .text-success;
+        }
+    }
+
+    .authorize-summary {
+        @extend .bg-body-tertiary;
+        @extend .rounded;
+        @extend .p-3;
+    }
+
+    .authorize-summary-list {
+        li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+
+            &:not(:last-child) {
+                @extend .mb-1;
+            }
+        }
+
+        .avatar {
+            position: relative;
+            top: -0.05em;
+            width: 1em;
+            height: 1em;
+        }
+    }
+
+    .authorize-footnote {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+
+        i {
+            @extend .text-primary;
+            @extend .bg-body-tertiary;
+            @extend .rounded-circle;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+        }
+    }
+
+    .content-body .btn {
+        line-height: 1.75;
     }
 }
