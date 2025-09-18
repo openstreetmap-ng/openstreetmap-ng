@@ -76,15 +76,15 @@ def audit(
     Log audit events for security monitoring and compliance.
     Schedules the DB write immediately and returns an awaitable.
     """
+
+    async def _noop():
+        return None
+
     audit_policy = AUDIT_POLICY[type]
 
     if sample_rate is None:
         sample_rate = audit_policy.sample_rate
     if sample_rate < 1 and random() > sample_rate:
-
-        async def _noop():
-            return None
-
         return _noop()
 
     if user_id == 'UNSET':
@@ -101,10 +101,15 @@ def audit(
     if target_user_id is not None and target_user_id == user_id:
         target_user_id = None
 
+    try:
+        req = get_request()
+    except LookupError:
+        logging.info('Audit event %r skipped, missing request context', type)
+        return _noop()
+
     if application_id == 'UNSET':
         application_id = auth_app()
 
-    req = get_request()
     req_ip = ip_address(req.client.host)  # type: ignore
     req_ua = req.headers.get('User-Agent')
 
