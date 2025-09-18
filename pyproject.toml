@@ -92,9 +92,9 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.uv.sources]
-speedup = { workspace = true }
 torch = { index = "pytorch" }
 torchvision = { index = "pytorch" }
+speedup = { workspace = true }
 
 [tool.uv.workspace]
 members = ["speedup"]
