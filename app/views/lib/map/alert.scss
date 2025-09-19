@@ -2,9 +2,7 @@
 .map-alert-container {
     z-index: 1003; // leaflet controls are 1000
     position: absolute;
-    top: 2rem;
-    left: 0;
-    right: 0;
+    inset: 2rem 0 auto;
     display: flex;
     justify-content: center;
     font-size: 1rem;
