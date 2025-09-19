@@ -3,8 +3,6 @@ import { memoize, staticCache } from "./utils"
 
 type LonLat = { lon: number; lat: number }
 
-// -- Internationalization helpers -------------------------------------------------
-
 export const dateTimeFormat = memoize(
     (...args: ConstructorParameters<typeof Intl.DateTimeFormat>) =>
         new Intl.DateTimeFormat(...args),
@@ -46,8 +44,6 @@ export const isMetricUnit = staticCache(() => {
     )
     return result
 })
-
-// -- Distance and measurement formatting -----------------------------------------
 
 export const formatDistance = (
     meters: number,
@@ -120,10 +116,10 @@ export const formatTime = (seconds: number): string => {
     return `${hours}:${minutes.toString().padStart(2, "0")}`
 }
 
-const padDegreesComponent = (value: number): string =>
-    value < 10 ? `0${value}` : `${value}`
+const padDegreesComponent = (value: number): string => value.toString().padStart(2, "0")
 
-export const formatDegrees = (decimalDegree: number): string => {
+const formatDegrees = (decimalDegree: number): string => {
+    decimalDegree = Math.abs(decimalDegree)
     const deg = decimalDegree | 0
     const minSec = (decimalDegree - deg) * 60
     const min = minSec | 0
