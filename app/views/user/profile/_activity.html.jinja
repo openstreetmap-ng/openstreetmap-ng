@@ -12,26 +12,20 @@
 <table class="activity-chart mb-2">
     <tr class="months-row">
         {% for month in activity_months %}
-        {% if month is not none %}
-        <td class="month-cell">{{ month }}</td>
-        {% else %}
-        <td></td>
-        {% endif %}
+        <td class="month-cell" {% if month is not none %} data-date-iso="{{ month }}" {% endif %}></td>
         {% endfor %}
     </tr>
     {% for weekday, row in zip(activity_weekdays, activity_rows) %}
     <tr>
-        <td class="week-cell">{{ weekday }}</td>
+        <td class="week-cell" {% if weekday is not none %} data-date-iso="{{ weekday }}" {% endif %}></td>
         {% for day in row %}
         <td>
             {% if day.value > 0 %}
-            <a href="/user/{{ profile.display_name }}/history?date={{ day.iso_date }}"
-                class="activity activity-{{ day.level }}"
-                data-bs-title="{{ nt('user.activity.details.count', day.value, date=day.date) }}"
-                data-bs-toggle="tooltip"></a>
+            <a href="/user/{{ profile.display_name }}/history?date={{ day.date_iso }}"
+                class="activity activity-{{ day.level }}" data-date-iso="{{ day.date_iso }}"
+                data-activity-value="{{ day.value }}"></a>
             {% else %}
-            <div class="activity activity-0" data-bs-title="{{ t('user.activity.details.no_activity', date=day.date) }}"
-                data-bs-toggle="tooltip"></div>
+            <div class="activity activity-0" data-date-iso="{{ day.date_iso }}"></div>
             {% endif %}
         </td>
         {% endfor %}

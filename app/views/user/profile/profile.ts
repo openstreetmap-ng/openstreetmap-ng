@@ -1,3 +1,6 @@
+import { Tooltip } from "bootstrap"
+import i18next from "i18next"
+import { formatMonthName, formatShortDate, formatWeekdayName } from "../../lib/format"
 import { mount } from "../../lib/mount"
 import { configureStandardForm } from "../../lib/standard-form"
 
@@ -84,5 +87,32 @@ mount("user-profile-body", (body) => {
             console.debug("onDescriptionFormSuccess")
             window.location.reload()
         })
+    }
+
+    const activityChart = body.querySelector(".activity-chart")
+
+    for (const cell of activityChart.querySelectorAll("td[data-date-iso]")) {
+        cell.textContent = formatMonthName(cell.dataset.dateIso, "short")
+    }
+
+    for (const cell of activityChart.querySelectorAll("td[data-date-iso]")) {
+        cell.textContent = formatWeekdayName(cell.dataset.dateIso, "short")
+    }
+
+    for (const element of activityChart.querySelectorAll<HTMLElement>(
+        "[data-date-iso]",
+    )) {
+        const formattedDate = formatShortDate(element.dataset.dateIso)
+        const value = Number(element.dataset.activityValue ?? "0")
+        const tooltipText =
+            value > 0
+                ? i18next.t("user.activity.details.count", {
+                      count: value,
+                      date: formattedDate,
+                  })
+                : i18next.t("user.activity.details.no_activity", {
+                      date: formattedDate,
+                  })
+        new Tooltip(element, { customClass: "activity-tooltip", title: tooltipText })
     }
 })

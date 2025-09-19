@@ -1,4 +1,5 @@
 import i18next from "i18next"
+import { primaryLanguage } from "./config"
 import { memoize, staticCache } from "./utils"
 
 type LonLat = { lon: number; lat: number }
@@ -12,6 +13,32 @@ export const relativeTimeFormat = memoize(
     (...args: ConstructorParameters<typeof Intl.RelativeTimeFormat>) =>
         new Intl.RelativeTimeFormat(...args),
 )
+
+export const formatShortDate = (dateIso: string): string =>
+    dateTimeFormat(primaryLanguage, {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+    }).format(new Date(dateIso))
+
+export const formatMonthName = (
+    dateIso: string,
+    month: Intl.DateTimeFormatOptions["month"],
+): string =>
+    dateTimeFormat(primaryLanguage, {
+        month: month,
+        timeZone: "UTC",
+    }).format(new Date(dateIso))
+
+export const formatWeekdayName = (
+    dateIso: string,
+    weekday: Intl.DateTimeFormatOptions["weekday"],
+): string =>
+    dateTimeFormat(primaryLanguage, {
+        weekday: weekday,
+        timeZone: "UTC",
+    }).format(new Date(dateIso))
 
 export const getTimezoneName = staticCache(() => {
     const result = dateTimeFormat().resolvedOptions().timeZone

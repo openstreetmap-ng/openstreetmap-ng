@@ -53,21 +53,6 @@ def format_rfc2822_date(dt: date | datetime, /) -> str:
     return _format_with_locale(dt, 'ddd, DD MMM YYYY HH:mm:ss Z')
 
 
-def format_short_date(dt: date | datetime, /) -> str:
-    """Format a datetime object as a short date string (MMMM D, YYYY)."""
-    return _format_with_locale(dt, 'MMMM D, YYYY')
-
-
-def get_month_name(dt: date | datetime, /, *, short: bool) -> str:
-    """Get the name of the month of a datetime object."""
-    return _format_with_locale(dt, 'MMM' if short else 'MMMM')
-
-
-def get_weekday_name(dt: date | datetime, /, *, short: bool) -> str:
-    """Get the name of the weekday of a datetime object."""
-    return _format_with_locale(dt, 'ddd' if short else 'dddd')
-
-
 def utcnow() -> datetime:
     """Return a datetime object representing the current time in UTC."""
     return datetime.now(UTC)

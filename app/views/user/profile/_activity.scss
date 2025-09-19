@@ -14,7 +14,7 @@
         height: 1.45em;
     }
 
-    .month-cell {
+    .month-cell[data-date-iso] {
         position: absolute;
         top: 0;
     }
@@ -36,6 +36,10 @@
             box-shadow: 0 0 0 2px var(--bs-emphasis-color);
         }
     }
+}
+
+.activity-tooltip {
+    --bs-tooltip-max-width: $tooltip-max-width * 1.5;
 }
 
 .inline-activity {

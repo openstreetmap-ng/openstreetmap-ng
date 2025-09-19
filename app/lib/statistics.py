@@ -6,12 +6,7 @@ import cython
 import numpy as np
 
 from app.config import USER_ACTIVITY_CHART_WEEKS
-from app.lib.date_utils import (
-    format_short_date,
-    get_month_name,
-    get_weekday_name,
-    utcnow,
-)
+from app.lib.date_utils import utcnow
 from app.models.types import UserId
 from app.queries.changeset_query import ChangesetQuery
 
@@ -21,17 +16,15 @@ class UserActivitySummaryRow(TypedDict):
     """Activity indicator level."""
     value: int
     """Raw activity count."""
-    date: str
-    """Human-readable date."""
-    iso_date: str
-    """ISO-formatted date."""
+    date_iso: str
+    """ISO-formatted date (YYYY-MM-DD, UTC)."""
 
 
 class UserActivitySummaryResult(TypedDict):
     activity_months: list[str | None]
-    """Names of the months (per week, where only the first occurrence has value)."""
-    activity_weekdays: list[str]
-    """Names of the weekdays."""
+    """ISO dates for month labels (first occurrence per week)."""
+    activity_weekdays: list[str | None]
+    """ISO dates for weekday labels (every other row)."""
     activity_rows: list[list[UserActivitySummaryRow]]
     """Activity data in [day_of_week][week_number] format."""
     activity_max: int
@@ -80,7 +73,9 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
     # Create weekday labels (showing every other day)
     i: cython.Py_ssize_t  # noqa: F842
     weekdays = [
-        get_weekday_name(d, short=True) if i % 2 == 1 else ''
+        d.isoformat()  #
+        if i % 2 == 1
+        else None
         for i, d in enumerate(dates_range[:7])
     ]
 
@@ -101,15 +96,14 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
         day_row.append({
             'level': level,
             'value': value,
-            'date': format_short_date(d),
-            'iso_date': d.isoformat(),
+            'date_iso': d.isoformat(),
         })
 
         # Track month changes for month labels
         if d.day == 1:
             # Fill gaps with None for weeks without month labels
             months.extend([None] * (len(day_row) - len(months)))
-            months.append(get_month_name(d, short=True))
+            months.append(d.isoformat())
 
     return {
         'activity_months': months,
