@@ -323,9 +323,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         // When initial loading for scope/user, focus on the changesets
         if (
             !e &&
-            !fetchedBounds &&
             (loadScope || loadDisplayName) &&
-            changesets.length
+            changesets.length &&
+            !idSidebarMap.size
         ) {
             let lngLatBounds: LngLatBounds | null = null
             for (const changeset of changesetsMinimumSize) {
@@ -523,8 +523,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
         // Load more changesets if scrolled to bottom
         if (
+            noMoreChangesets ||
             parentSidebar.offsetHeight + parentSidebar.scrollTop <
-            parentSidebar.scrollHeight - loadMoreScrollBuffer
+                parentSidebar.scrollHeight - loadMoreScrollBuffer
         )
             return
         console.debug("Sidebar scrolled to the bottom")
