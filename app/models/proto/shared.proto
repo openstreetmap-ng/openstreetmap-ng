@@ -166,6 +166,13 @@ message ElementIcon {
     string title = 2;  // Accessible tooltip text
 }
 
+// Encoded user activity heatmap data
+message UserActivityChart {
+    string start_date = 1;  // ISO date (YYYY-MM-DD) of the first cell (UTC)
+    repeated uint32 values = 2;  // Raw activity count per day, chronological
+    bytes levels = 3;  // Intensity levels per day (0-19) aligned with values
+}
+
 // =============================================
 // Partial Response Structures
 // =============================================

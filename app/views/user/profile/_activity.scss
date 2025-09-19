@@ -14,7 +14,7 @@
         height: 1.45em;
     }
 
-    .month-cell[data-date-iso] {
+    .month-cell:not(:empty) {
         position: absolute;
         top: 0;
     }
