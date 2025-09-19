@@ -10,8 +10,7 @@ import {
     Marker,
     Point,
 } from "maplibre-gl"
-import { formatDistance } from "../lib/format-utils"
-import { isMetricUnit } from "../lib/intl"
+import { formatDistance, isMetricUnit } from "../lib/format"
 import {
     addMapLayer,
     emptyFeatureCollection,

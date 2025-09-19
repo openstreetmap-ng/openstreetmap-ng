@@ -1,5 +1,5 @@
 import { config } from "./config"
-import { getTimezoneName } from "./intl"
+import { getTimezoneName } from "./format"
 import { timezoneUpdateTimeStorage } from "./local-storage"
 import { getUnixTimestamp, requestIdleCallbackPolyfill } from "./utils"
 

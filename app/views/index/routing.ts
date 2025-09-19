@@ -16,7 +16,7 @@ import {
     formatDistanceRounded,
     formatHeight,
     formatTime,
-} from "../lib/format-utils"
+} from "../lib/format"
 import { routingEngineStorage } from "../lib/local-storage"
 import { clearMapHover, setMapHover } from "../lib/map/hover"
 import {

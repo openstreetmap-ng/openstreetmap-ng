@@ -1,7 +1,7 @@
 import { Dropdown } from "bootstrap"
 import { type Map as MaplibreMap, type MapMouseEvent, Popup } from "maplibre-gl"
 import { routerNavigateStrict } from "../index/_router"
-import { formatCoordinate } from "../lib/format-utils"
+import { formatCoordinate } from "../lib/format"
 import { newNoteMinZoom } from "../lib/map/controls/new-note"
 import { queryFeaturesMinZoom } from "../lib/map/controls/query-features"
 import { encodeLonLat } from "../lib/polyline"

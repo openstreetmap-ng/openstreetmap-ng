@@ -1,5 +1,5 @@
 import { primaryLanguage } from "./config"
-import { dateTimeFormat, relativeTimeFormat } from "./intl"
+import { dateTimeFormat, relativeTimeFormat } from "./format"
 
 const resolvedElements: WeakSet<HTMLTimeElement> = new WeakSet()
 

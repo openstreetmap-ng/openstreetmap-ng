@@ -7,7 +7,7 @@ import {
     type Map as MaplibreMap,
 } from "maplibre-gl"
 import { config } from "../config"
-import { getTimezoneName } from "../intl"
+import { getTimezoneName } from "../format"
 import { mapStateStorage } from "../local-storage"
 import { qsEncode, qsParse } from "../qs"
 import { shortLinkEncode } from "../shortlink"
