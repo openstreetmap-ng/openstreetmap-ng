@@ -33,6 +33,7 @@
   "editor.unicodeHighlight.allowedCharacters": {
     "›": true,
     "»": true,
+    "′": true,
     "×": true,
     "➕": true,
     "𝕏": true
