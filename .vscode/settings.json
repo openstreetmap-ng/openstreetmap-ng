@@ -79,6 +79,7 @@
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
   "scss.lint.vendorPrefix": "ignore",
+  "somesass.workspace.loadPaths": ["app/views"],
   "SQL-Formatter-VSCode.dataTypeCase": "lower",
   "SQL-Formatter-VSCode.dialect": "postgresql",
   "SQL-Formatter-VSCode.expressionWidth": 80,
