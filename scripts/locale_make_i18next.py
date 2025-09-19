@@ -20,6 +20,8 @@ _INCLUDE_PREFIXES = [
 
 _INCLUDE_PREFIXES_DOT = [f'{prefix}.' for prefix in _INCLUDE_PREFIXES]
 
+_COUNT_SUFFIX_RE = re.compile(r'(?<=\.count)_[^.]+$')
+
 
 def find_used_keys() -> tuple[set[str], float]:
     """Extract translation keys used in the source files."""
@@ -56,8 +58,9 @@ def filter_unused_keys(
             ):
                 filtered[key] = filtered_nested
         # Check if this key should be included
-        elif current_path in used_keys or any(
-            current_path.startswith(prefix) for prefix in _INCLUDE_PREFIXES_DOT
+        elif (
+            _COUNT_SUFFIX_RE.sub('', current_path, 1) in used_keys  #
+            or any(current_path.startswith(prefix) for prefix in _INCLUDE_PREFIXES_DOT)
         ):
             filtered[key] = value
 
