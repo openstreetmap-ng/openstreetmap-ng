@@ -179,6 +179,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             const changeset = changesets[i]
             const changesetId = changeset.id.toString()
             const element = idSidebarMap.get(changesetId)
+            if (!element) continue
             const elementRect = element.getBoundingClientRect()
             const elementTop = elementRect.top
             const elementBottom = elementRect.bottom
