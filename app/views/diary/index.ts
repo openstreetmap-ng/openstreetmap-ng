@@ -1,32 +1,31 @@
 import { Offcanvas } from "bootstrap"
+import { mount } from "../lib/mount"
 import { configureStandardForm } from "../lib/standard-form"
 import { configureStandardPagination } from "../lib/standard-pagination"
 
 // Details page: always expanded; comments live under #comments
-const detailsBody = document.querySelector("body.diary-details-body")
-if (detailsBody) {
-    const comments = document.getElementById("comments")
+mount("diary-details-body", (body) => {
+    const comments = body.querySelector("#comments")
     let disposePagination = configureStandardPagination(comments)
 
     // Subscriptions affect global state; simple, reliable full reload
-    configureStandardForm(detailsBody.querySelector("form.subscription-form"), () => {
+    configureStandardForm(body.querySelector("form.subscription-form"), () => {
         window.location.reload()
     })
 
-    configureStandardForm(detailsBody.querySelector("form.comment-form"), () => {
+    configureStandardForm(body.querySelector("form.comment-form"), () => {
         const paginationElement = comments.querySelector("ul.pagination")
         if (paginationElement) paginationElement.dataset.numItems = "-1"
         disposePagination?.()
         disposePagination = configureStandardPagination(comments)
     })
-}
+})
 
 // Listings page: diaries start collapsed; expand and lazy‑load comments per entry
-const indexBody = document.querySelector("body.diary-index-body")
-if (indexBody) {
+mount("diary-index-body", (body) => {
     const disposers = new WeakMap<Element, () => void>()
 
-    for (const article of indexBody.querySelectorAll("article.diary")) {
+    for (const article of body.querySelectorAll("article.diary")) {
         const diaryBody = article.querySelector(".diary-body")
         const readMore = article.querySelector(".diary-read-more")
 
@@ -99,10 +98,10 @@ if (indexBody) {
         if (!(link instanceof HTMLAnchorElement)) return
         navOffcanvasInstance.hide()
     })
-}
+})
 
-if (detailsBody || indexBody) {
-    for (const link of (detailsBody ?? indexBody).querySelectorAll(
+mount(["diary-details-body", "diary-index-body"], (body) => {
+    for (const link of body.querySelectorAll(
         'article.diary .share a[data-action="copy-link"]',
     )) {
         link.addEventListener("click", (e) => {
@@ -110,4 +109,4 @@ if (detailsBody || indexBody) {
             navigator.clipboard.writeText(link.href)
         })
     }
-}
+})

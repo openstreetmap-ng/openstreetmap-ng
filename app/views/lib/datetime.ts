@@ -151,4 +151,4 @@ const getRelativeFormatValueUnit = (
 }
 
 // Initial update
-resolveDatetimeLazy(window.document.body)
+resolveDatetimeLazy(document.body)

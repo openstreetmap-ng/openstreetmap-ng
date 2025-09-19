@@ -1,8 +1,8 @@
 import i18next from "i18next"
+import { mount } from "../lib/mount"
 import { type APIDetail, configureStandardForm } from "../lib/standard-form"
 
-const body = document.querySelector("body.settings-body")
-if (body) {
+mount("settings-body", (body) => {
     const settingsForm = body.querySelector("form.settings-form")
     const displayNameInput = settingsForm.elements.namedItem(
         "display_name",
@@ -37,4 +37,4 @@ if (body) {
             },
         },
     )
-}
+})

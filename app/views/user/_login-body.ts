@@ -1,3 +1,4 @@
+import { mount } from "../lib/mount"
 import { qsParse } from "../lib/qs"
 import { configureStandardForm } from "../lib/standard-form"
 
@@ -56,8 +57,7 @@ if (loginForm) {
 }
 
 // On /login page, remove modal handling and instead reload the page
-const loginBody = document.querySelector("body.login-body")
-if (loginBody) {
+mount("login-body", () => {
     const navbarLoginButton = document.querySelector(
         "button[data-bs-target='#loginModal']",
     )
@@ -66,4 +66,4 @@ if (loginBody) {
     navbarLoginButton.addEventListener("click", () => {
         window.location.reload()
     })
-}
+})

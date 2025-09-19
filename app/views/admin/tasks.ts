@@ -1,7 +1,7 @@
+import { mount } from "../lib/mount"
 import { configureStandardForm } from "../lib/standard-form"
 
-const body = document.querySelector("body.admin-tasks-body")
-if (body) {
+mount("admin-tasks-body", (body) => {
     const updateStatus = (): void => {
         fetch("/api/web/admin/tasks/status")
             .then(async (resp) => {
@@ -45,4 +45,4 @@ if (body) {
         updateStatus()
         setInterval(updateStatus, 20_000)
     }
-}
+})

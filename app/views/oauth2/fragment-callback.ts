@@ -1,7 +1,7 @@
+import { mount } from "../lib/mount"
 import { qsParse } from "../lib/qs"
 
-const body = document.querySelector("body.oauth-fragment-callback-body")
-if (body) {
+mount("oauth-fragment-callback-body", (body) => {
     console.info("Submitting oauth fragment callback form")
     const form = body.querySelector("form.fragment-callback-form")
     const params = qsParse(window.location.hash)
@@ -13,4 +13,4 @@ if (body) {
         form.append(input)
     }
     form.requestSubmit()
-}
+})

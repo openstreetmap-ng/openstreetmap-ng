@@ -1,10 +1,10 @@
+import { mount } from "../lib/mount"
 import { configureStandardForm } from "../lib/standard-form"
 
-const body = document.querySelector("body.settings-email-body")
-if (body) {
+mount("settings-email-body", (body) => {
     const emailForm = body.querySelector("form.email-form")
     configureStandardForm(emailForm, () => {
         // On success callback, reset the email change form
         emailForm.reset()
     })
-}
+})

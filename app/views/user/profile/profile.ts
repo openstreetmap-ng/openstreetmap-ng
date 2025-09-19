@@ -1,7 +1,7 @@
+import { mount } from "../../lib/mount"
 import { configureStandardForm } from "../../lib/standard-form"
 
-const body = document.querySelector("body.user-profile-body")
-if (body) {
+mount("user-profile-body", (body) => {
     const avatarForm = body.querySelector("form.avatar-form")
     const avatarDropdown = avatarForm.querySelector(".dropdown")
 
@@ -85,4 +85,4 @@ if (body) {
             window.location.reload()
         })
     }
-}
+})

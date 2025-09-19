@@ -1,10 +1,10 @@
 import { Collapse } from "bootstrap"
 import i18next from "i18next"
 import { activityTracking } from "../lib/config"
+import { mount } from "../lib/mount"
 import { type APIDetail, configureStandardForm } from "../lib/standard-form"
 
-const body = document.querySelector("body.signup-body")
-if (body) {
+mount("signup-body", (body) => {
     const signupForm = body.querySelector("form.signup-form")
     const displayNameInput = signupForm.elements.namedItem(
         "display_name",
@@ -68,4 +68,4 @@ if (body) {
 
     passwordInput.addEventListener("input", updateConfirmVisibility)
     updateConfirmVisibility()
-}
+})

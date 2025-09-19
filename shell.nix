@@ -660,7 +660,7 @@ let
       set +e
       pre-commit run -c ${preCommitConf} --all-files
       ruff check --fix
-      biome lint --fix
+      biome check --fix --formatter-enabled=false
     '')
     (makeScript "pyright" "pnpm exec basedpyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")

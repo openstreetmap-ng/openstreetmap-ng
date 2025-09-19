@@ -1,8 +1,8 @@
 import { configureDatetimeInputs } from "../lib/datetime"
+import { mount } from "../lib/mount"
 import { configureStandardPagination } from "../lib/standard-pagination"
 
-const body = document.querySelector("body.audit-body")
-if (body) {
+mount("audit-body", (body) => {
     const filterForm = body.querySelector("form.filters-form")
 
     // Setup datetime input timezone conversion
@@ -31,4 +31,4 @@ if (body) {
             }
         },
     })
-}
+})

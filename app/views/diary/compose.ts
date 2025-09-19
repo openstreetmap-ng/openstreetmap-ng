@@ -17,11 +17,11 @@ import {
     getMarkerIconElement,
     markerIconAnchor,
 } from "../lib/map/utils"
+import { mount } from "../lib/mount"
 import { configureStandardForm } from "../lib/standard-form"
 import { isLatitude, isLongitude, throttle, zoomPrecision } from "../lib/utils"
 
-const body = document.querySelector("body.diary-compose-body")
-if (body) {
+mount("diary-compose-body", (body) => {
     configureStandardForm(
         body.querySelector("form.diary-form"),
         ({ redirect_url }) => {
@@ -171,4 +171,4 @@ if (body) {
             }
         })
     }
-}
+})

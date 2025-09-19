@@ -1,11 +1,11 @@
 import { t } from "i18next"
 import { resolveDatetimeLazy } from "../lib/datetime"
+import { mount } from "../lib/mount"
 import { configureReportButton } from "../lib/report-modal"
 import { configureStandardForm } from "../lib/standard-form"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
-const body = document.querySelector("body.messages-index-body")
-if (body) {
+mount("messages-index-body", (body) => {
     const messages = body.querySelectorAll(".messages-list li.social-entry.clickable")
     const messagePreview = body.querySelector(".message-preview") as HTMLElement
     const messagePreviewContainer = messagePreview.parentElement
@@ -227,4 +227,4 @@ if (body) {
             openMessagePreview(message)
         }
     }
-}
+})

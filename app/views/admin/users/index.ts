@@ -1,9 +1,9 @@
 import { Tooltip } from "bootstrap"
 import { configureDatetimeInputs } from "../../lib/datetime"
+import { mount } from "../../lib/mount"
 import { configureStandardPagination } from "../../lib/standard-pagination"
 
-const body = document.querySelector("body.admin-users-body")
-if (body) {
+mount("admin-users-body", (body) => {
     const filterForm = body.querySelector("form.filters-form")
 
     // Setup datetime input timezone conversion
@@ -52,4 +52,4 @@ if (body) {
             }
         },
     })
-}
+})

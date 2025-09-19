@@ -1,9 +1,9 @@
 import { Collapse } from "bootstrap"
 import i18next from "i18next"
+import { mount } from "../../lib/mount"
 import { type APIDetail, configureStandardForm } from "../../lib/standard-form"
 
-const body = document.querySelector("body.admin-user-edit-body")
-if (body) {
+mount("admin-user-edit-body", (body) => {
     // Accordion toggling for application/token previews (read-only)
     const accordionButtons = body.querySelectorAll("button.accordion-button")
     for (const button of accordionButtons) {
@@ -124,4 +124,4 @@ if (body) {
             e.preventDefault()
         }
     })
-}
+})

@@ -1,9 +1,9 @@
 import i18next from "i18next"
+import { mount } from "../lib/mount"
 import { qsEncode } from "../lib/qs"
 import { type APIDetail, configureStandardForm } from "../lib/standard-form"
 
-const body = document.querySelector("body.settings-security-body")
-if (body) {
+mount("settings-security-body", (body) => {
     const passwordForm = body.querySelector("form.password-form")
     const newPasswordInput = passwordForm.querySelector(
         "input[type=password][data-name=new_password]",
@@ -55,4 +55,4 @@ if (body) {
             }
         })
     }
-}
+})

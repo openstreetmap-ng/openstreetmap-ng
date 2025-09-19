@@ -1,9 +1,9 @@
 import { encodeMapState } from "./lib/map/map-utils"
+import { mount } from "./lib/mount"
 import { qsParse } from "./lib/qs"
 import { isLatitude, isLongitude, isZoom } from "./lib/utils"
 
-const body = document.querySelector("body.fixthemap-body")
-if (body) {
+mount("fixthemap-body", (body) => {
     const params = qsParse(window.location.search)
     let noteHref = "/note/new"
 
@@ -19,4 +19,4 @@ if (body) {
 
     const noteLink = body.querySelector("a.note-link")
     noteLink.href = noteHref
-}
+})

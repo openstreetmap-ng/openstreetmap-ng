@@ -1,9 +1,9 @@
 import { encodeMapState, type MapState } from "./lib/map/map-utils"
+import { mount } from "./lib/mount"
 import { qsEncode, qsParse } from "./lib/qs"
 import { isLatitude, isLongitude, isZoom } from "./lib/utils"
 
-const body = document.querySelector("body.welcome-body")
-if (body) {
+mount("welcome-body", (body) => {
     const noteLink = body.querySelector("a.note-link")
     const startButton = body.querySelector("a.start-btn")
 
@@ -98,4 +98,4 @@ if (body) {
 
         startButton.addEventListener("click", onStartButtonClick, { once: true })
     }
-}
+})

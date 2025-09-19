@@ -1,8 +1,8 @@
 import { t } from "i18next"
+import { mount } from "../../lib/mount"
 import { configureStandardForm } from "../../lib/standard-form"
 
-const body = document.querySelector("body.settings-application-edit-body")
-if (body) {
+mount("settings-application-edit-body", (body) => {
     const avatarForm = body.querySelector("form.avatar-form")
     const avatarImage = avatarForm.querySelector("img.avatar")
     const avatarFileInput = avatarForm.elements.namedItem(
@@ -72,4 +72,4 @@ if (body) {
             event.preventDefault()
         }
     })
-}
+})
