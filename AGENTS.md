@@ -86,6 +86,12 @@ static-precompress    # Produce .zst/.br for large static assets
 - Styling: SCSS with Bootstrap 5. Prefer semantic classes; avoid inline styles; use `rem`/`em` instead of `px` where sensible.
 - Router integration: for map/index pages, implement `IndexController` and register routes via `configureRouter(...)` (`app/views/index/_router.ts`); navigate with `routerNavigateStrict(...)`.
 - Forms: use `app/views/lib/standard-form.ts` for submissions and feedback (see Standard Components); avoid bespoke AJAX.
+- Jinja templates:
+  - General page templates extend `_base` (omit the `.html.jinja` suffix when referring to templates); shared markup lives either next to the feature under a leading-underscore filename (e.g. `traces/_list-entry`) or globally in `app/views/lib/`.
+  - Build reusable fragments as includes and avoid macros entirely.
+  - When an include needs parameters, set them immediately beforehand and prefix each variable with the component name to avoid collisions (e.g. `multi_input_name`, `entry_hide_preview`). Only add fallbacks inside the partial when the component truly benefits from a default; otherwise let missing data fail loudly.
+  - Locals created with `set` should start with an underscore (e.g. `{% set _is_deleted = ... %}`) to avoid clashing with request or component variables.
+  - Keep component contexts lean: pass in presentation-ready values.
 
 ## Standard Components
 
@@ -127,4 +133,4 @@ static-precompress    # Produce .zst/.br for large static assets
 
 When introducing new code, first search for an existing helper or pattern and extend it. Consistency keeps patches lean, predictable, and easy to review.
 
-**Please treat this guide as living documentation**: if a change in your patch invalidates any section, update the relevant text in the same patch. Likewise, fix anything you notice is incorrect, and add new recurring patterns or contributor-critical guidance as they emerge so newcomers always land on accurate, essential information.
+**Please treat the AGENTS.md guide as living documentation**: if a change in your patch invalidates any section, update the relevant text in the same patch. Likewise, fix anything you notice is incorrect, and add new recurring patterns or contributor-critical guidance as they emerge so newcomers always land on accurate, essential information.
