@@ -668,8 +668,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                     RenderChangesetsDataSchema,
                     new Uint8Array(buffer),
                 ).changesets
-                const appendMode = Boolean(changesets.length)
+
                 if (newChangesets.length) {
+                    const appendMode = Boolean(changesets.length)
                     changesets.push(...newChangesets)
                     for (const cs of newChangesets) {
                         idChangesetMap.set(cs.id.toString(), cs)
@@ -681,13 +682,14 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                         newChangesets.length,
                         "new",
                     )
+                    updateLayers()
+                    updateSidebar(appendMode, newChangesets.length)
+                    requestAnimationFramePolyfill(updateLayersVisibility)
                 } else {
                     console.debug("No more changesets")
                     noMoreChangesets = true
                 }
-                updateLayers()
-                updateSidebar(appendMode, newChangesets.length)
-                requestAnimationFramePolyfill(updateLayersVisibility)
+
                 fetchedBounds = fetchBounds
                 fetchedDate = fetchDate
 
