@@ -516,7 +516,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     map.on("click", layerIdFill, (e) => {
         // Find feature with the smallest bounds area
         const feature = e.features.reduce((a, b) =>
-            a.properties.boundsArea < b.properties.boundsArea ? a : b,
+            a.properties.boundsArea <= b.properties.boundsArea ? a : b,
         )
         const changesetId = feature.properties.id
         routerNavigateStrict(`/changeset/${changesetId}`)
@@ -527,7 +527,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     map.on("mousemove", layerIdFill, (e) => {
         // Find feature with the smallest bounds area
         const feature = e.features.reduce((a, b) =>
-            a.properties.boundsArea < b.properties.boundsArea ? a : b,
+            a.properties.boundsArea <= b.properties.boundsArea ? a : b,
         )
         if (hoveredFeature) {
             if (hoveredFeature.id === feature.id) return
