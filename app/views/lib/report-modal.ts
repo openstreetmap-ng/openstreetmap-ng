@@ -37,7 +37,7 @@ export const configureReportButton = (
     if (!data)
         data = {
             type: button.dataset.reportType as ReportType,
-            typeId: Number(button.dataset.reportTypeId),
+            typeId: Number.parseInt(button.dataset.reportTypeId, 10),
             action: button.dataset.reportAction as ReportAction,
             actionId: button.dataset.reportActionId,
         }

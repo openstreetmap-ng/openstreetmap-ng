@@ -113,7 +113,7 @@ const clientHashPassword = async (
         let timer = performance.now()
         const hashBytes = await pbkdf2_sha512(password, salt, 100_000)
         timer = performance.now() - timer
-        console.debug("pbkdf2_sha512 took", Number(timer.toFixed(1)), "ms")
+        console.debug("pbkdf2_sha512 took", Math.round(timer * 10) / 10, "ms")
         transmitUserPassword.v1 = hashBytes
     } else if (passwordSchema === "legacy") {
         // no client-side hashing

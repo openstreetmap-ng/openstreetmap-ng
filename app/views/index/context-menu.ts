@@ -172,7 +172,7 @@ export const configureContextMenu = (map: MaplibreMap): void => {
         console.debug("onMeasureDistanceButtonClick")
         const { lon, lat } = getPopupPosition()
         closePopup()
-        const line = encodeLonLat([[Number(lon), Number(lat)]], 5)
+        const line = encodeLonLat([[Number.parseFloat(lon), Number.parseFloat(lat)]], 5)
         routerNavigateStrict(`/distance?${qsEncode({ line })}`)
     })
 }
