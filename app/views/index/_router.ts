@@ -1,14 +1,16 @@
 import { unquotePlus } from "../lib/utils"
 
 // Router interfaces
+export type RouteLoadReason = "navigation" | "popstate"
+
 export interface IndexController {
-    load: (matchGroups: { [key: string]: string }) => void
+    load: (matchGroups: { [key: string]: string }, reason?: RouteLoadReason) => void
     unload: (newPath?: string) => void
 }
 
 export interface Route {
     match: (path: string) => boolean
-    load: (path: string) => void
+    load: (path: string, reason: RouteLoadReason) => void
     unload: (newPath?: string) => void
 }
 
@@ -30,10 +32,10 @@ export const makeRoute = (pattern: string, controller: IndexController): Route =
         match: (path: string): boolean => re.test(path),
 
         /** Execute load action on this route */
-        load: (path: string): void => {
+        load: (path: string, reason: RouteLoadReason): void => {
             // Extract path parameters
             const matchGroups = re.exec(path).groups
-            controller.load(matchGroups)
+            controller.load(matchGroups, reason)
         },
 
         /** Execute unload action on this route */
@@ -66,7 +68,7 @@ export const routerNavigate = (newPath: string): boolean => {
     history.pushState(null, "", newPath + location.hash)
     currentPath = newPath
     currentRoute = newRoute
-    currentRoute.load(currentPath)
+    currentRoute.load(currentPath, "navigation")
     return true
 }
 
@@ -102,7 +104,7 @@ export const configureRouter = (
         currentRoute?.unload(newPath)
         currentPath = newPath
         currentRoute = findRoute(newPath)
-        currentRoute?.load(currentPath)
+        currentRoute?.load(currentPath, "popstate")
     })
 
     // Intercept same-origin anchor clicks to route internally
@@ -128,5 +130,5 @@ export const configureRouter = (
     // Initial load
     currentPath = getCurrentPath()
     currentRoute = findRoute(currentPath)
-    currentRoute?.load(currentPath)
+    currentRoute?.load(currentPath, "navigation")
 }

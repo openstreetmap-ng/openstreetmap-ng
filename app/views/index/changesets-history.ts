@@ -39,7 +39,7 @@ import { setPageTitle } from "../lib/title"
 import type { Bounds, OSMChangeset } from "../lib/types"
 import { darkenColor, requestAnimationFramePolyfill, throttle } from "../lib/utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./_router"
+import type { IndexController, RouteLoadReason } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
 const fadeSpeed = 0.2
@@ -150,6 +150,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     let hiddenAfter = 0
     let sidebarHoverTimer: ReturnType<typeof setTimeout> | null = null
     let sidebarHoverId: string | null = null
+    let shouldFitOnInitialLoad = false
 
     const cancelSidebarHoverFit = (): void => {
         clearTimeout(sidebarHoverTimer)
@@ -374,7 +375,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         // When initial loading for scope/user, focus on the changesets
         if (
             !e &&
-            (loadScope || loadDisplayName) &&
+            shouldFitOnInitialLoad &&
             visibleChangesetsBounds &&
             !idSidebarMap.size
         ) {
@@ -710,9 +711,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     return {
-        load: ({ scope, displayName }) => {
+        load: ({ scope, displayName }, reason?: RouteLoadReason) => {
             loadScope = scope
             loadDisplayName = displayName
+            shouldFitOnInitialLoad =
+                reason === "navigation" && Boolean(scope || displayName)
 
             switchActionSidebar(map, sidebar)
             // TODO: handle scope
