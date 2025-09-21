@@ -24,7 +24,7 @@ This is the single set of ground rules for this repo. It orients new contributor
 - `scripts/` — Pipelines (locale, proto, raster, replication).
 - `speedup/` — Optional C extension for hot paths.
 - `tests/` — Pytest suite mirroring `app/` layout.
-- Root configs: `vite.config.js`, `tsconfig.json`, `package.json`, `pyproject.toml`, `biome.json`, `shell.nix`.
+- Root configs: `vite.config.ts`, `tsconfig.json`, `package.json`, `pyproject.toml`, `biome.json`, `shell.nix`.
 
 ## Development Workflow
 
@@ -78,11 +78,11 @@ static-precompress    # Produce .zst/.br for large static assets
 - Single‑bundle strategy:
   - JavaScript: `app/views/main.ts` is the single deferred entry that imports feature modules. Each module guards itself with a page/body marker so it only runs where applicable. Prefer adding new behavior here instead of creating new page‑specific entries.
   - CSS: `app/views/main.scss` imports all Bootstrap, shared, and feature styles. Prefer adding partials and importing them into `main.scss` rather than per‑page styles. This improves cache efficiency and compression across the site.
-  - Exceptions: create a separate entry only for hard isolation (e.g., editor iframes like `id.ts`/`rapid.ts`, or `embed.ts`). Declare it in `vite.config.js` and include it via `vite_render_asset` from a dedicated template.
+  - Exceptions: create a separate entry only for hard isolation (e.g., editor iframes like `id.ts`/`rapid.ts`, or `embed.ts`). Declare it in `vite.config.ts` and include it via `vite_render_asset` from a dedicated template.
 - Synchronous bootstrap: `app/views/main-sync.ts` is the only blocking script; keep it import‑free to avoid extra polyfills and ensure theme setup before paint.
 - TypeScript: `tsconfig.json` has `"strict": true` but `"strictNullChecks": false`. This end‑to‑end app prefers fail‑fast crashes over silently continuing with unexpected nullish states. Don’t re‑enable null checks locally.
 - DOM typing: rely on `typed-query-selector` for `querySelector/All` where practical; avoid `as HTML...` casts for those cases. Other APIs (e.g., `elements.namedItem`) may still require assertions.
-- Modern syntax: write ES2023/modern CSS. Polyfills and transforms are injected automatically (Vite legacy plugin in `vite.config.js`, Babel preset‑env + `core-js` and `browserslist` in `package.json`, Autoprefixer in `vite.config.js`).
+- Modern syntax: write ES2023/modern CSS. Polyfills and transforms are injected automatically (Vite legacy plugin in `vite.config.ts`, Babel preset‑env + `core-js` and `browserslist` in `package.json`, Autoprefixer in `vite.config.ts`).
 - Styling: SCSS with Bootstrap 5. Prefer semantic classes; avoid inline styles; use `rem`/`em` instead of `px` where sensible.
 - Router integration: for map/index pages, implement `IndexController` and register routes via `configureRouter(...)` (`app/views/index/_router.ts`); navigate with `routerNavigateStrict(...)`.
 - Forms: use `app/views/lib/standard-form.ts` for submissions and feedback (see Standard Components); avoid bespoke AJAX.
@@ -128,7 +128,7 @@ static-precompress    # Produce .zst/.br for large static assets
 - HTML rendering glue: `app/lib/render_response.py`, `app/lib/render_jinja.py`
 - Frontend config and i18n bootstrap: `app/views/lib/config.ts`, `app/views/lib/i18n.ts`
 - Frontend entry points: `app/views/main.ts`, `app/views/main-sync.ts`
-- Build & polyfills: `vite.config.js`, `package.json:babel`, `package.json:browserslist`, `tsconfig.json`
+- Build & polyfills: `vite.config.ts`, `package.json:babel`, `package.json:browserslist`, `tsconfig.json`
 - Localization tooling: `config/locale/extra_en.yaml`, `scripts/locale_postprocess.py`, `scripts/locale_make_i18next.py`
 
 When introducing new code, first search for an existing helper or pattern and extend it. Consistency keeps patches lean, predictable, and easy to review.

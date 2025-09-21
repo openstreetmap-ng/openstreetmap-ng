@@ -784,7 +784,7 @@ let
         uv add ./speedup --reinstall-package speedup
 
       echo "Installing Node.js dependencies"
-      pnpm install --frozen-lockfile
+      pnpm install --prefer-frozen-lockfile
 
       echo "Activating environment"
       export PATH="$(pnpm bin):$PATH"

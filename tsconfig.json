@@ -8,6 +8,7 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": false,
@@ -21,5 +22,5 @@
     "verbatimModuleSyntax": true
   },
   "exclude": ["app/views/lib/_generated/**/*", "app/views/lib/proto/**/*"],
-  "include": ["app/views/**/**.ts"]
+  "include": ["app/views/**/**.ts", "vite.config.ts"]
 }
