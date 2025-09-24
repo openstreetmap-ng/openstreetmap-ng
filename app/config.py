@@ -404,6 +404,8 @@ ADMIN_APPLICATION_LIST_PAGE_SIZE = 50
 # General cache settings
 CACHE_DEFAULT_EXPIRE = timedelta(days=3)
 FILE_CACHE_LOCK_TIMEOUT = timedelta(seconds=15)
+FILE_CACHE_MEMORY_MAX_ENTRIES = 1024
+FILE_CACHE_MEMORY_MAX_VALUE_SIZE = _ByteSize('256 KiB')
 
 # External service caches
 DNS_CACHE_EXPIRE = timedelta(minutes=10)

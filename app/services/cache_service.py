@@ -20,6 +20,7 @@ class CacheService:
         factory: Callable[[], Awaitable[bytes] | bytes],
         *,
         ttl: timedelta = CACHE_DEFAULT_EXPIRE,
+        volatile: bool = False,
     ) -> bytes:
         """
         Get a value from the cache.
@@ -45,7 +46,7 @@ class CacheService:
             if isawaitable(value):
                 value = await value
 
-            await fc.set(lock, value, ttl=ttl)
+            await fc.set(lock, value, ttl=ttl, volatile=volatile)
             return value
 
     @staticmethod

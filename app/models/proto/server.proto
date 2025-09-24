@@ -18,6 +18,7 @@ message Cursor {
 message FileCacheMeta {
     bytes data = 1;  // Raw binary payload
     optional uint64 expires_at = 2;  // Unix timestamp when this cache entry becomes invalid
+    bool volatile = 3;  // Disable in-process memory caching when true
 }
 
 // =============================================
