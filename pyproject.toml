@@ -33,7 +33,6 @@ dependencies = [
   "protobuf==6.31.1",
   "psycopg[binary,pool]",
   "pyarrow",
-  "pycryptodomex",
   "pydantic",
   "pydantic-settings",
   "pyinstrument",
