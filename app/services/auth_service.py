@@ -98,18 +98,14 @@ async def _authenticate_with_oauth2(
         return None
 
     logging.debug('Attempting to authenticate with OAuth2')
-    token = await AuthService.authenticate_oauth2(access_token)
+    token = await OAuth2TokenQuery.find_authorized_by_token_with_user(access_token)
     if token is None:
         return None
 
-    user_id = token['user_id']
-    user = await UserQuery.find_by_id(user_id)
-    if user is None:
-        return None
-
-    application_id = token['application_id']
-    audit('auth_api', user_id=user_id, application_id=application_id).close()
+    user = token['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     scopes = user_extend_scopes(user, frozenset(token['scopes']))
+    application_id = token['application_id']
+    audit('auth_api', user_id=token['user_id'], application_id=application_id).close()
     return user, scopes, application_id
 
 
@@ -123,17 +119,13 @@ async def _authenticate_with_cookie(
     del auth
 
     logging.debug('Attempting to authenticate with cookies')
-    token = await AuthService.authenticate_oauth2(access_token)
+    token = await OAuth2TokenQuery.find_authorized_by_token_with_user(access_token)
     if token is None or token['scopes'] != ['web_user']:
         return None
 
-    user_id = token['user_id']
-    user = await UserQuery.find_by_id(user_id)
-    if user is None:
-        return None
-
-    audit('auth_web', user_id=user_id, application_id=None).close()
+    user = token['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     scopes = user_extend_scopes(user, _SESSION_AUTH_SCOPES)
+    audit('auth_web', user_id=token['user_id'], application_id=None).close()
     return user, scopes, None
 
 

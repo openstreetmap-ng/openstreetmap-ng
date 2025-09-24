@@ -1,4 +1,3 @@
-from asyncio import TaskGroup
 from base64 import b64decode
 from typing import Annotated, get_args
 
@@ -178,15 +177,11 @@ async def revoke(token: Annotated[SecretStr, Form(min_length=1)]):
 # In this case it's fine, since we don't expose any sensitive information.
 @router.post('/oauth2/introspect')
 async def introspect(token: Annotated[SecretStr, Form(min_length=1)]):
-    token_ = await OAuth2TokenQuery.find_authorized_by_token(token)
+    token_ = await OAuth2TokenQuery.find_authorized_by_token_with_user(token)
     if token_ is None:
         raise_for.oauth_bad_user_token()
 
-    async with TaskGroup() as tg:
-        items = [token_]
-        tg.create_task(UserQuery.resolve_users(items))
-        tg.create_task(OAuth2ApplicationQuery.resolve_applications(items))
-
+    await OAuth2ApplicationQuery.resolve_applications([token_])
     return {
         'active': True,
         'iss': APP_URL,
