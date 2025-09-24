@@ -425,6 +425,7 @@ INITIALS_CACHE_MAX_AGE = timedelta(days=7)
 RICH_TEXT_CACHE_EXPIRE = timedelta(hours=8)
 STATIC_CACHE_MAX_AGE = timedelta(days=30)
 STATIC_CACHE_STALE = timedelta(days=30)
+STATIC_PRECOMPRESSED_CACHE_MAX_ENTRIES = 1024
 
 pydantic_settings_integration(__name__, globals())
 

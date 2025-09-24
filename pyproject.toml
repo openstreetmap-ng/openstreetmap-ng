@@ -21,7 +21,6 @@ dependencies = [
   "httpx[brotli,zstd]",
   "jinja2",
   "jinja2-htmlmin",
-  "lrucache-rs",
   "markdown-it-py[linkify,plugins]",
   "nh3",
   "numpy",

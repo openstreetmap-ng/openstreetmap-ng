@@ -970,21 +970,6 @@ wheels = [
 ]
 
 [[package]]
-name = "lrucache-rs"
-version = "1.4.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e6/8e/a7dbfb51b7dbe82456c0e1b12c399bf2580c6e47af7a2ff8480e4f69ef2a/lrucache_rs-1.4.0.tar.gz", hash = "sha256:573d73fc20fa97222ea817e24c796f3e96bd9513dfcf3f83f8125d4190668d54", size = 16853, upload-time = "2024-12-21T22:18:37.593Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/23/ef/6cefef6ac876b8f5a5c6542cb2f45daee91d0c25756f2f21e5013b3825d6/lrucache_rs-1.4.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:10c212e664ad56eeedc3d95d72fc21e9f20ede02f2af0a54f06a65d7209b84c6", size = 245638, upload-time = "2024-12-21T22:18:23.346Z" },
-    { url = "https://files.pythonhosted.org/packages/5b/66/96753a181f5c6ad0a41506f4b90c9dbccd946cc92748e223590f5d15f6aa/lrucache_rs-1.4.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:2ab969387591d8e652823d38aad37a9a152feafde8fe9f61856c4fa919c48392", size = 238329, upload-time = "2024-12-21T22:18:24.799Z" },
-    { url = "https://files.pythonhosted.org/packages/28/47/176a16b93237efa1bfd050590ffa5dd1b6f218c748a12ba11ef760b144e4/lrucache_rs-1.4.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5e23611dfe533419cd1112102b57fcd8ff5420d9f091eebe3bd3d26c4f2bf840", size = 238083, upload-time = "2024-12-21T22:18:26.214Z" },
-    { url = "https://files.pythonhosted.org/packages/c1/fb/0caa0be1d68115f31ae3848919891683e7c3eb992d9c3edd6ca0752d8a35/lrucache_rs-1.4.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:de81fad1260e51ebe92835771c005f1898ad04ddd91102f84d38ca3594064dd6", size = 249567, upload-time = "2024-12-21T22:18:28.116Z" },
-    { url = "https://files.pythonhosted.org/packages/64/28/35303d152d10f4ca12bbb55b0a8651cae62b4f7d286c13cc3d8a738ac408/lrucache_rs-1.4.0-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:0311f6ceb1354f1f6fbb8b3ad4cd61d870e920f1463da7f44995538659af6944", size = 450531, upload-time = "2024-12-21T22:18:30.842Z" },
-    { url = "https://files.pythonhosted.org/packages/46/ab/12014caeee810ae2546379bd2b46b746cf85f19431cdec37de2d89c62e1f/lrucache_rs-1.4.0-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:1f885cc0865d34338ba96fce466ca1dab0a1b10897faf96adc53871752a1fa7a", size = 444529, upload-time = "2024-12-21T22:18:33.666Z" },
-    { url = "https://files.pythonhosted.org/packages/c8/07/7c0e96378f338a1e1d29e9906b5cf03360c4e9f100df68b26472fedc39ad/lrucache_rs-1.4.0-cp39-abi3-win_amd64.whl", hash = "sha256:8ad1b5c13397aa5477b49cd84fb0138829ba45f83c10211e9ddc0230e398776c", size = 139082, upload-time = "2024-12-21T22:18:36.296Z" },
-]
-
-[[package]]
 name = "lxml"
 version = "6.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1257,7 +1242,6 @@ dependencies = [
     { name = "httpx-secure" },
     { name = "jinja2" },
     { name = "jinja2-htmlmin" },
-    { name = "lrucache-rs" },
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
     { name = "nh3" },
     { name = "numpy" },
@@ -1339,7 +1323,6 @@ requires-dist = [
     { name = "httpx-secure" },
     { name = "jinja2" },
     { name = "jinja2-htmlmin" },
-    { name = "lrucache-rs" },
     { name = "markdown-it-py", extras = ["linkify", "plugins"] },
     { name = "nh3" },
     { name = "numpy" },
