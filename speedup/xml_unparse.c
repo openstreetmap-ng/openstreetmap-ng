@@ -28,15 +28,13 @@ CDATA_new(PyTypeObject *type, PyObject *args, PyObject *) {
   if (UNLIKELY(!self))
     return nullptr;
 
-  Py_INCREF(text);
-  self->text = text;
+  self->text = Py_NewRef(text);
   return (PyObject *)self;
 }
 
 static PyObject *
 CDATA_str(CDATAObject *self) {
-  Py_INCREF(self->text);
-  return self->text;
+  return Py_NewRef(self->text);
 }
 
 static PyObject *
@@ -79,8 +77,7 @@ to_string(PyObject *value) {
   if (value == Py_None)
     return (toStringResult){.str = ""};
   if (PyUnicode_CheckExact(value)) {
-    Py_INCREF(value);
-    return (toStringResult){.obj = value};
+    return (toStringResult){.obj = Py_NewRef(value)};
   }
 
   if (PyDateTime_CheckExact(value)) {
