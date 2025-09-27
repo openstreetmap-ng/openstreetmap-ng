@@ -505,7 +505,7 @@ let
 
       echo "Checking for preload data updates"
       remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.b3"
-      remote_checksums=$(curl -sSL "$remote_check_url")
+      remote_checksums=$(curl -fsSL "$remote_check_url")
       names=$(grep -Po '[^/]+(?=\.csv\.zst)' <<< "$remote_checksums")
 
       mkdir -p "data/preload/$dataset"
@@ -527,7 +527,7 @@ let
         fi
 
         echo "Downloading $name preload data"
-        curl -L "$remote_url" -o "$local_file"
+        curl -fsSL "$remote_url" -o "$local_file"
 
         # recompute checksum
         local_checksum=$(b3sum --no-names "$local_file")
@@ -636,7 +636,7 @@ let
     (makeScript "run" (
       if isDevelopment then
         ''
-          python -m uvicorn app.main:main \
+          exec python -m uvicorn app.main:main \
             --reload \
             --reload-include "*.mo" \
             --reload-exclude scripts \
@@ -645,7 +645,7 @@ let
         ''
       else
         ''
-          python -m gunicorn app.main:main \
+          exec python -m gunicorn app.main:main \
             --bind 127.0.0.1:${toString gunicornPort} \
             --workers ${toString gunicornWorkers} \
             --worker-class uvicorn.workers.UvicornWorker \
@@ -677,7 +677,7 @@ let
         url="''${style#*+}"
         file="$dir/$name.json"
         echo "Updating $name vector style"
-        curl -sSL --compressed "$url" | jq --sort-keys . > "$file"
+        curl -fsSL --compressed "$url" | jq --sort-keys . > "$file"
       done
     '')
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
@@ -724,7 +724,7 @@ let
     '')
     (makeScript "nixpkgs-update" ''
       hash=$(
-        curl -sSL \
+        curl -fsSL \
           https://prometheus.nixos.org/api/v1/query \
           -d 'query=channel_revision{channel="nixpkgs-unstable"}' \
         | jq -r ".data.result[0].metric.revision")
@@ -836,9 +836,7 @@ let
 
       if [ -f .env ]; then
         echo "Loading .env file"
-        set -o allexport
-        source .env set
-        set +o allexport
+        set -a; . .env; set +a
       else
         echo "Skipped loading .env file (not found)"
       fi
