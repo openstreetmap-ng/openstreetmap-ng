@@ -1,6 +1,6 @@
 from base64 import urlsafe_b64encode
+from collections import OrderedDict
 from collections.abc import Callable
-from functools import lru_cache
 from hashlib import sha256
 from hmac import compare_digest
 from typing import TypeVar
@@ -8,15 +8,43 @@ from typing import TypeVar
 import cython
 from blake3 import blake3
 
-from app.config import CRYPTO_HASH_CACHE_MAX_ENTRIES, SECRET_32
+from app.config import (
+    CRYPTO_HASH_CACHE_MAX_ENTRIES,
+    CRYPTO_HASH_CACHE_SIZE_LIMIT,
+    SECRET_32,
+)
 from app.models.types import StorageKey
 
 _T = TypeVar('_T')
 
 
-@lru_cache(CRYPTO_HASH_CACHE_MAX_ENTRIES)
-def _hash(s: str | bytes, key: bytes | None) -> bytes:
-    return blake3(s.encode() if isinstance(s, str) else s, key=key).digest()  # pyright: ignore [reportArgumentType]
+@cython.cfunc
+def _hash(
+    s: str | bytes,
+    key: bytes | None,
+    *,
+    CRYPTO_HASH_CACHE_MAX_ENTRIES: cython.Py_ssize_t = CRYPTO_HASH_CACHE_MAX_ENTRIES,
+    CRYPTO_HASH_CACHE_SIZE_LIMIT: cython.Py_ssize_t = CRYPTO_HASH_CACHE_SIZE_LIMIT,
+    _CACHE=OrderedDict[tuple[str | bytes, bytes | None], bytes](),  # type: ignore  # noqa
+) -> bytes:
+    cache_key = (s, key)
+
+    # Check cache first
+    result = _CACHE.get(cache_key)
+    if result is not None:
+        _CACHE.move_to_end(cache_key)
+        return result
+
+    # Compute hash
+    result = blake3(s.encode() if isinstance(s, str) else s, key=key).digest()  # pyright: ignore[reportArgumentType]
+
+    # Cache if below size limit
+    if len(s) < CRYPTO_HASH_CACHE_SIZE_LIMIT:
+        _CACHE[cache_key] = result
+        if len(_CACHE) > CRYPTO_HASH_CACHE_MAX_ENTRIES:
+            _CACHE.popitem(last=False)
+
+    return result
 
 
 def hash_bytes(s: str | bytes) -> bytes:
@@ -30,7 +58,6 @@ def _hash_urlsafe(s: str | bytes) -> str:
     return urlsafe_b64encode(_hash(s, None)).rstrip(b'=').decode()
 
 
-@lru_cache(maxsize=1024)
 def hash_storage_key(s: str | bytes, suffix: str = '') -> StorageKey:
     """Hash the input and return the storage key."""
     return StorageKey(_hash_urlsafe(s) + suffix)
