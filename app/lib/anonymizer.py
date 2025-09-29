@@ -1,13 +1,16 @@
 from functools import lru_cache
 from ipaddress import IPv4Address, IPv6Address
+from typing import TypeVar
 
 from app.lib.crypto import hmac_bytes
 from app.lib.testmethod import testmethod
 
+_T = TypeVar('_T', bound=IPv4Address | IPv6Address)
+
 
 @testmethod
 @lru_cache(maxsize=512)
-def anonymize_ip[T: IPv4Address | IPv6Address](ip: T) -> T:
+def anonymize_ip(ip: _T) -> _T:
     """
     Deterministically anonymize an IP address using the instance secret.
 
