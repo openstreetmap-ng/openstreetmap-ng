@@ -762,7 +762,9 @@ let
       export LDFLAGS="$LDFLAGS \
         -flto=thin \
         -fuse-ld=lld \
-        ${if isDevelopment then "" else "-Wl,--strip-all"}"
+        -Wl,-z,relro \
+        -Wl,-z,now \
+        ${if isDevelopment then "-Wl,-O0" else "-Wl,-O3"}"
 
       en_yaml_path="${projectDir}/config/locale/download/en.yaml"
       en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
