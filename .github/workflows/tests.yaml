@@ -23,44 +23,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: nixbuild/nix-quick-install-action@v34
-
-      - name: Generate cache key
-        run: |
-          nixpkgs_hash=$(grep -Eom1 'archive/[0-9a-f]{40}\.tar\.gz' shell.nix | cut -d'/' -f2 | cut -d'.' -f1)
-          echo "NIXPKGS_HASH=$nixpkgs_hash" >> $GITHUB_ENV
-          echo "CACHE_KEY=${{ runner.os }}-$nixpkgs_hash" >> $GITHUB_ENV
-
-      - uses: nix-community/cache-nix-action@v6
-        with:
-          primary-key: nix-${{ env.CACHE_KEY }}
-
-      - name: Setup NIX_PATH
-        run: |
-          path=$(nix eval --impure --expr "(import (fetchTarball \"https://github.com/NixOS/nixpkgs/archive/${{ env.NIXPKGS_HASH }}.tar.gz\") {}).path")
-          echo "NIX_PATH=nixpkgs=$path" >> $GITHUB_ENV
-
-      - name: Get cache directories
-        id: cache-dirs
-        run: |
-          nix-shell -p uv pnpm --run "
-            echo \"UV_CACHE=\$(uv cache dir)\"
-            echo \"PNPM_STORE=\$(pnpm store path)\"
-          " | tee -a $GITHUB_OUTPUT
-
-      - name: Cache files and packages
-        uses: actions/cache@v4
-        with:
-          key: pkg-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock', 'pnpm-lock.yaml') }}
-          path: |
-            ${{ steps.cache-dirs.outputs.UV_CACHE }}
-            ${{ steps.cache-dirs.outputs.PNPM_STORE }}
-            .venv
-            node_modules
-            app/static/img/element/_generated
-            config/locale/gnu
-            config/locale/i18next
-            config/locale/postprocess
+      - uses: ./.github/actions/setup
 
       - name: Build Cython modules
         if: matrix.implementation == 'cython'
