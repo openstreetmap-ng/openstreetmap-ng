@@ -67,7 +67,7 @@ def audit(
     application_id: ApplicationId | None | Literal['UNSET'] = 'UNSET',
     extra: dict[str, Any] | None = None,
     # Event config overrides
-    sample_rate: float | None = None,
+    sample_rate: int | float | None = None,
     discard_repeated: timedelta | None | Literal['UNSET'] = 'UNSET',
     # Constants
     AUDIT_USER_AGENT_MAX_LENGTH: cython.Py_ssize_t = AUDIT_USER_AGENT_MAX_LENGTH,
