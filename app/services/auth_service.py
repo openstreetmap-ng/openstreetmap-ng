@@ -132,7 +132,7 @@ async def _authenticate_with_cookie(
 @testmethod
 async def _authenticate_with_test_user(
     request: Request,
-) -> tuple[User, frozenset[Scope]] | None:
+) -> tuple[User, frozenset[Scope], None] | None:
     authorization = request.headers.get('Authorization')
     if authorization is None:
         return None
@@ -147,4 +147,4 @@ async def _authenticate_with_test_user(
     assert user is not None
 
     scopes = user_extend_scopes(user, _SESSION_AUTH_SCOPES)
-    return user, scopes
+    return user, scopes, None
