@@ -266,12 +266,7 @@ CREATE TABLE changeset (
     union_bounds geometry (Polygon, 4326)
 )
 WITH
-    (
-        tsdb.hypertable,
-        tsdb.columnstore = FALSE,
-        tsdb.partition_column = 'id',
-        tsdb.chunk_interval = '5000000'
-    );
+    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '5000000');
 
 CREATE INDEX changeset_user_idx ON changeset (user_id DESC, id DESC)
 WHERE
@@ -304,7 +299,6 @@ CREATE TABLE changeset_bounds (changeset_id bigint NOT NULL, bounds geometry (Po
 WITH
     (
         tsdb.hypertable,
-        tsdb.columnstore = FALSE,
         tsdb.partition_column = 'changeset_id',
         tsdb.chunk_interval = '5000000'
     );
@@ -322,7 +316,6 @@ CREATE TABLE changeset_comment (
 WITH
     (
         tsdb.hypertable,
-        tsdb.columnstore = FALSE,
         tsdb.partition_column = 'changeset_id',
         tsdb.chunk_interval = '10000000',
         tsdb.create_default_indexes = FALSE
@@ -476,12 +469,7 @@ CREATE TABLE note (
     hidden_at timestamptz
 )
 WITH
-    (
-        tsdb.hypertable,
-        tsdb.columnstore = FALSE,
-        tsdb.partition_column = 'id',
-        tsdb.chunk_interval = '1000000'
-    );
+    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '1000000');
 
 CREATE INDEX note_point_idx ON note USING gist (point, created_at, updated_at, closed_at);
 
@@ -510,7 +498,6 @@ CREATE TABLE note_comment (
 WITH
     (
         tsdb.hypertable,
-        tsdb.columnstore = FALSE,
         tsdb.partition_column = 'note_id',
         tsdb.chunk_interval = '1000000',
         tsdb.create_default_indexes = FALSE
@@ -601,12 +588,7 @@ CREATE TABLE trace (
     updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
 )
 WITH
-    (
-        tsdb.hypertable,
-        tsdb.columnstore = FALSE,
-        tsdb.partition_column = 'id',
-        tsdb.chunk_interval = '1000000'
-    );
+    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '1000000');
 
 CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id DESC, id DESC);
 
