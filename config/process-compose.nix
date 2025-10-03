@@ -10,6 +10,10 @@
 
 with pkgs;
 let
+  # Render multiline commands for readability in Nix, but
+  # normalize them to a single-line string for Process Compose.
+  mkMultiline = cmd: lib.replaceStrings [ "\\\n" ] [ " " ] cmd;
+
   availability = {
     restart = "on_failure";
   };
@@ -29,7 +33,7 @@ let
   postgresProcess = {
     postgres = {
       availability = availability;
-      command = ''
+      command = mkMultiline ''
         postgres \
           -c config_file=${postgresConf} \
           -D data/postgres
@@ -49,7 +53,7 @@ let
   mailpitProcess = {
     mailpit = {
       availability = availability;
-      command = ''
+      command = mkMultiline ''
         mailpit \
           -d data/mailpit/mailpit.db \
           -l "127.0.0.1:${toString mailpitHttpPort}" \
