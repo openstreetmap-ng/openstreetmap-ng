@@ -318,7 +318,7 @@ class _AuditPolicies(BaseModel):
     class Policy(BaseModel):
         retention: timedelta
         discard_repeated: timedelta | None = None
-        sample_rate: float = 1
+        sample_rate: float = 1.0
 
         def __init__(
             self,
