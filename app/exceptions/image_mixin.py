@@ -17,5 +17,6 @@ class ImageExceptionsMixin:
 
     def image_inappropriate(self) -> NoReturn:
         raise APIError(
-            status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Image violates content policy'
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail='Image violates content policy',
         )

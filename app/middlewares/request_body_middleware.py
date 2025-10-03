@@ -43,7 +43,7 @@ class RequestBodyMiddleware:
             if input_size > REQUEST_BODY_MAX_SIZE:
                 return await Response(
                     f'Request body exceeded {sizestr(REQUEST_BODY_MAX_SIZE)}',
-                    status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    status.HTTP_413_CONTENT_TOO_LARGE,
                 )(scope, receive, send)
 
             buffer.write(chunk)
@@ -59,7 +59,7 @@ class RequestBodyMiddleware:
                 except _TooBigError:
                     return await Response(
                         f'Decompressed request body exceeded {sizestr(REQUEST_BODY_MAX_SIZE)}',
-                        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                        status.HTTP_413_CONTENT_TOO_LARGE,
                     )(scope, receive, send)
                 except Exception:
                     return await Response(

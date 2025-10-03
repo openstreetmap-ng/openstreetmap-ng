@@ -41,6 +41,6 @@ class RequestExceptions06Mixin(RequestExceptionsMixin):
     @override
     def input_too_big(self, size: int) -> NoReturn:
         raise APIError(
-            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f'Request entity too large: {sizestr(size)}',
         )

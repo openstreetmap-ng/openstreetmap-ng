@@ -11,6 +11,7 @@ from time import tzset
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
 from fastapi.exception_handlers import http_exception_handler
+from fastapi.middleware.asyncexitstack import AsyncExitStackMiddleware
 from starlette import status
 from starlette.applications import Starlette
 from starlette.convertors import register_url_convertor
@@ -212,6 +213,7 @@ def _build_middleware_stack(self: Starlette) -> ASGIApp:
         Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug),
         Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug),
         *self.user_middleware,
+        Middleware(AsyncExitStackMiddleware),
     ]
 
     app = self.router

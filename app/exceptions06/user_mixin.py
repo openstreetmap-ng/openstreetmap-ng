@@ -37,6 +37,6 @@ class UserExceptions06Mixin(UserExceptionsMixin):
     @override
     def pref_bulk_set_limit_exceeded(self) -> NoReturn:
         raise APIError(
-            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f'Too many preferences (limit is {USER_PREF_BULK_SET_LIMIT})',
         )

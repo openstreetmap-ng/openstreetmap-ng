@@ -91,7 +91,7 @@ async def test_get_multiple_users_with_nonexistent(client: AsyncClient):
     ('users', 'expected_status'),
     [
         ('abc,def', status.HTTP_400_BAD_REQUEST),  # Non-numeric values
-        ('', status.HTTP_422_UNPROCESSABLE_ENTITY),  # Empty parameter
+        ('', status.HTTP_422_UNPROCESSABLE_CONTENT),  # Empty parameter
     ],
 )
 async def test_get_multiple_users_invalid_params(

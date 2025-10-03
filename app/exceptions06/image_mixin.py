@@ -13,4 +13,4 @@ class ImageExceptions06Mixin(ImageExceptionsMixin):
 
     @override
     def image_too_big(self) -> NoReturn:
-        raise APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Image is too big')
+        raise APIError(status.HTTP_422_UNPROCESSABLE_CONTENT, detail='Image is too big')
