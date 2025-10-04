@@ -27,7 +27,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/dc704e6102e76aad573f63b74c742cd96f8f1e6c.tar.gz";
+  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/fc3740fdcd01d47e56b8ebec60700a27c9db4a25.tar.gz";
   pkgs = import (fetchTarball pkgsUrl) { };
 
   projectDir = toString ./.;
@@ -738,6 +738,7 @@ let
     ''
       [ "$NIX_SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset NIX_SSL_CERT_FILE
       [ "$SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset SSL_CERT_FILE
+      [ -z "$SSL_CERT_FILE" ] && [ -n "$NIX_SSL_CERT_FILE" ] && export SSL_CERT_FILE="$NIX_SSL_CERT_FILE"
 
       export TZ=UTC
       export NIX_ENFORCE_NO_NATIVE=0
