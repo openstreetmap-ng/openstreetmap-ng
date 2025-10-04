@@ -740,10 +740,8 @@ let
       [ "$SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset SSL_CERT_FILE
     ''
     + lib.optionalString stdenv.isDarwin ''
-      echo "NIX_SSL_CERT_FILE=$NIX_SSL_CERT_FILE SSL_CERT_FILE=$SSL_CERT_FILE"
       [ -z "$NIX_SSL_CERT_FILE" ] && export NIX_SSL_CERT_FILE="${cacert}/etc/ssl/certs/ca-bundle.crt"
       [ -z "$SSL_CERT_FILE" ] && export SSL_CERT_FILE="$NIX_SSL_CERT_FILE"
-      echo "NIX_SSL_CERT_FILE=$NIX_SSL_CERT_FILE SSL_CERT_FILE=$SSL_CERT_FILE"
     ''
     + ''
 
@@ -799,6 +797,8 @@ let
       export PATH="$(pnpm bin):$PATH"
       source .venv/bin/activate
 
+    ''
+    + lib.optionalString stdenv.isLinux ''
       _patch-interpreter &
     ''
     + lib.optionalString stdenv.isDarwin ''
