@@ -738,7 +738,14 @@ let
     ''
       [ "$NIX_SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset NIX_SSL_CERT_FILE
       [ "$SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset SSL_CERT_FILE
-      [ -z "$SSL_CERT_FILE" ] && [ -n "$NIX_SSL_CERT_FILE" ] && export SSL_CERT_FILE="$NIX_SSL_CERT_FILE"
+    ''
+    + lib.optionalString stdenv.isDarwin ''
+      echo "NIX_SSL_CERT_FILE=$NIX_SSL_CERT_FILE SSL_CERT_FILE=$SSL_CERT_FILE"
+      [ -z "$NIX_SSL_CERT_FILE" ] && export NIX_SSL_CERT_FILE="${cacert}/etc/ssl/certs/ca-bundle.crt"
+      [ -z "$SSL_CERT_FILE" ] && export SSL_CERT_FILE="$NIX_SSL_CERT_FILE"
+      echo "NIX_SSL_CERT_FILE=$NIX_SSL_CERT_FILE SSL_CERT_FILE=$SSL_CERT_FILE"
+    ''
+    + ''
 
       export TZ=UTC
       export NIX_ENFORCE_NO_NATIVE=0
