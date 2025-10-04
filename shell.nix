@@ -757,14 +757,13 @@ let
         -funsafe-math-optimizations \
         -fvisibility=hidden \
         -flto=thin \
-        -fno-plt"
+        ${lib.optionalString stdenv.isLinux "-fno-plt"}"
 
       export LDFLAGS="$LDFLAGS \
         -flto=thin \
         -fuse-ld=lld \
-        -Wl,-z,relro \
-        -Wl,-z,now \
-        ${if isDevelopment then "-Wl,-O0" else "-Wl,-O3"}"
+        ${if isDevelopment then "-Wl,-O0" else "-Wl,-O3"}" \
+        ${lib.optionalString stdenv.isLinux "-Wl,-z,relro -Wl,-z,now"}
 
       en_yaml_path="${projectDir}/config/locale/download/en.yaml"
       en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
