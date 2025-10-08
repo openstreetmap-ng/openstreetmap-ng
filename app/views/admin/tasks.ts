@@ -1,9 +1,9 @@
+import { mount } from "../lib/mount"
 import { configureStandardForm } from "../lib/standard-form"
 
-const body = document.querySelector("body.settings-tasks-body")
-if (body) {
+mount("admin-tasks-body", (body) => {
     const updateStatus = (): void => {
-        fetch("/api/web/settings/tasks/status")
+        fetch("/api/web/admin/tasks/status")
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
                 const data: Array<{ id: string; running: boolean }> = await resp.json()
@@ -38,8 +38,6 @@ if (body) {
                 () => {
                     updateStatus()
                 },
-                null,
-                null,
                 { removeEmptyFields: true },
             )
         }
@@ -47,4 +45,4 @@ if (body) {
         updateStatus()
         setInterval(updateStatus, 20_000)
     }
-}
+})

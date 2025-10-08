@@ -7,7 +7,7 @@ import {
     type User,
 } from "@sentry/browser"
 import { activityTracking, config, crashReporting } from "./config"
-import { getTimezoneName } from "./intl"
+import { getTimezoneName } from "./format"
 import { themeStorage } from "./local-storage"
 
 if (crashReporting) {

@@ -24,17 +24,17 @@ def _redirect_url() -> str:
     Get the redirect URL from the request referrer.
     If the referrer is missing or is in a different domain, return '/'.
     """
-    request = get_request()
+    req = get_request()
 
     # referrer as a query parameter
-    referrer = request.query_params.get('referer')
+    referrer = req.query_params.get('referer')
     if referrer is not None:
         processed = _process_referrer(unquote_plus(referrer))
         if processed is not None:
             return processed
 
     # referrer as a header
-    referrer = request.headers.get('Referer')
+    referrer = req.headers.get('Referer')
     if referrer is not None:
         processed = _process_referrer(referrer)
         if processed is not None:

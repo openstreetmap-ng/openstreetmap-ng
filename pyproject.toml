@@ -21,7 +21,6 @@ dependencies = [
   "httpx[brotli,zstd]",
   "jinja2",
   "jinja2-htmlmin",
-  "lrucache-rs",
   "markdown-it-py[linkify,plugins]",
   "nh3",
   "numpy",
@@ -29,11 +28,11 @@ dependencies = [
   "orjson",
   "osm-shortlink",
   "phonenumbers",
+  "pillow",
   "polyline-rs",
   "protobuf==6.31.1",
   "psycopg[binary,pool]",
   "pyarrow",
-  "pycryptodomex",
   "pydantic",
   "pydantic-settings",
   "pyinstrument",
@@ -51,7 +50,10 @@ dependencies = [
   "sizestr",
   "speedup",
   "starlette-compress",
+  "torch",
+  "torchvision",
   "tqdm",
+  "transformers[timm,vision]",
   "uvicorn[standard]",
   "zid",
   "zstandard",
@@ -82,20 +84,31 @@ package = false
 python-downloads = "never"
 python-preference = "only-system"
 
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
 [tool.uv.sources]
-speedup = { path = "speedup" }
+torch = { index = "pytorch" }
+torchvision = { index = "pytorch" }
+speedup = { workspace = true }
+
+[tool.uv.workspace]
+members = ["speedup"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.ruff]
+extend-exclude = ["app/models/proto/**"]
 indent-width = 4
 line-length = 88
 target-version = "py313"
 
 [tool.ruff.lint]
-exclude = ["typings/brotli"]
+exclude = ["typings/brotli/**"]
 # custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 ignore = [
   "ARG001", # unused-function-argument
@@ -240,7 +253,7 @@ exclude = [
   "**/.*",
   "**/node_modules",
   "/nix/store/**",
-  "app/models/proto/**/*_pb2.py",
+  "app/models/proto/**",
   "build",
   "data",
 ]

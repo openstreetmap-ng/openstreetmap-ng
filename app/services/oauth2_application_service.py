@@ -1,9 +1,10 @@
 import logging
 from asyncio import TaskGroup
+from typing import Any
 
 from fastapi import UploadFile
 from pydantic import SecretStr
-from rfc3986 import uri_reference
+from rfc3986 import URIReference
 from zid import zid
 
 from app.config import (
@@ -25,6 +26,7 @@ from app.models.db.oauth2_application import (
 )
 from app.models.scope import PublicScope
 from app.models.types import ApplicationId, ClientId, StorageKey
+from app.services.audit_service import audit
 from app.services.image_service import ImageService
 from app.utils import splitlines_trim
 from app.validators.url import UriValidator
@@ -73,6 +75,8 @@ class OAuth2ApplicationService:
                         None, t('validation.reached_app_limit')
                     )
 
+            await audit('create_app', conn, extra={'id': app_id, 'name': name})
+
         return app_id
 
     @staticmethod
@@ -94,18 +98,20 @@ class OAuth2ApplicationService:
                 continue
 
             try:
-                UriValidator.validate(uri_reference(uri))
+                parsed_uri = URIReference.from_string(uri)
+                UriValidator.validate(parsed_uri)
             except Exception:
                 logging.debug('Invalid redirect URI %r', uri)
                 StandardFeedback.raise_error(
                     'redirect_uris', t('validation.invalid_redirect_uri')
                 )
 
-            normalized = f'{uri.casefold()}/'
-            if normalized.startswith('http://') and not normalized.startswith((
-                'http://127.0.0.1/',
-                'http://localhost/',
-            )):
+            normalized = parsed_uri.normalize()
+            if normalized.scheme == 'http' and normalized.host not in {
+                '127.0.0.1',
+                'localhost',
+                '[::1]',
+            }:
                 StandardFeedback.raise_error(
                     'redirect_uris', t('validation.insecure_redirect_uri')
                 )
@@ -120,14 +126,29 @@ class OAuth2ApplicationService:
         name: str,
         is_confidential: bool,
         redirect_uris: list[OAuth2Uri],
-        scopes: tuple[PublicScope, ...],
+        scopes: frozenset[PublicScope],
         revoke_all_authorizations: bool,
     ) -> None:
         """Update an OAuth2 application."""
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            result = await conn.execute(
+            async with await conn.execute(
+                """
+                SELECT name, confidential, scopes
+                FROM oauth2_application
+                WHERE id = %s AND user_id = %s
+                FOR UPDATE
+                """,
+                (app_id, user_id),
+            ) as r:
+                row: tuple[str, bool, list[PublicScope]] | None = await r.fetchone()
+                if row is None:
+                    raise_for.unauthorized()
+                old_name, old_confidential, old_scopes = row
+
+            scopes_list = sorted(scopes)
+            await conn.execute(
                 """
                 UPDATE oauth2_application
                 SET
@@ -138,20 +159,29 @@ class OAuth2ApplicationService:
                     updated_at = DEFAULT
                 WHERE id = %s AND user_id = %s
                 """,
-                (name, is_confidential, redirect_uris, list(scopes), app_id, user_id),
+                (name, is_confidential, redirect_uris, scopes_list, app_id, user_id),
             )
 
-            if not result.rowcount:
-                raise_for.unauthorized()
+            extra: dict[str, Any] = {'id': app_id}
+            if old_name != name:
+                extra['name'] = name
+            if old_confidential != is_confidential:
+                extra['confidential'] = is_confidential
+            if scopes.symmetric_difference(old_scopes):
+                extra['scopes'] = scopes_list
+            if len(extra) > 1:
+                await audit('change_app_settings', conn, extra=extra)
 
             if revoke_all_authorizations:
-                await conn.execute(
+                result = await conn.execute(
                     """
                     DELETE FROM oauth2_token
                     WHERE application_id = %s
                     """,
                     (app_id,),
                 )
+                if result.rowcount:
+                    await audit('revoke_app_all_users', conn, extra={'id': app_id})
 
     @staticmethod
     async def update_avatar(app_id: ApplicationId, avatar_file: UploadFile) -> str:

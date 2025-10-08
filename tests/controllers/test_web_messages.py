@@ -16,14 +16,14 @@ from tests.utils.assert_model import assert_model
 
 
 async def test_message_crud(client: AsyncClient):
-    user1 = await UserQuery.find_one_by_display_name(DisplayName('user1'))
+    user1 = await UserQuery.find_by_display_name(DisplayName('user1'))
 
     # Authenticate as user1 (sender)
     client.headers['Authorization'] = 'User user1'
 
     # CREATE: Send message from user1 to user2
     r = await client.post(
-        '/api/web/messages/',
+        '/api/web/messages',
         data={
             'subject': 'Test Subject',
             'body': 'Test Body',
@@ -61,7 +61,7 @@ async def test_message_crud(client: AsyncClient):
         },
     )
 
-    with auth_context(user1, ()):
+    with auth_context(user1):
         message = await MessageQuery.get_one_by_id(message_id)
         assert not message['recipients'][0]['read']  # type: ignore
 
@@ -92,7 +92,7 @@ async def test_message_crud(client: AsyncClient):
         },
     )
 
-    with auth_context(user1, ()):
+    with auth_context(user1):
         message = await MessageQuery.get_one_by_id(message_id)
         assert message['recipients'][0]['read']  # type: ignore
 
@@ -114,7 +114,7 @@ async def test_message_crud(client: AsyncClient):
     # Authenticate as user1 (sender)
     client.headers['Authorization'] = 'User user1'
 
-    with exceptions_context(Exceptions()), auth_context(user1, ()):
+    with exceptions_context(Exceptions()), auth_context(user1):
         message = await MessageQuery.get_one_by_id(message_id)
         assert_model(
             message,

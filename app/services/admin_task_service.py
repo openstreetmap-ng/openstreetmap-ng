@@ -1,6 +1,7 @@
 import logging
 from asyncio import TaskGroup, sleep
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from functools import cache
 from inspect import Parameter, _empty, signature
 from operator import itemgetter
@@ -22,6 +23,7 @@ from pydantic import BaseModel, create_model
 from app.config import ADMIN_TASK_HEARTBEAT_INTERVAL, ADMIN_TASK_TIMEOUT, ENV
 from app.db import db
 from app.lib.date_utils import utcnow
+from app.services.audit_service import audit
 
 TaskId = NewType('TaskId', str)
 
@@ -46,6 +48,7 @@ class TaskInfo(TypedDict):
 
 
 _REGISTRY: dict[TaskId, TaskDefinition] = {}
+_TG: TaskGroup
 
 
 def register_admin_task(func: Callable):
@@ -76,6 +79,15 @@ def register_admin_task(func: Callable):
 
 
 class AdminTaskService:
+    @asynccontextmanager
+    @staticmethod
+    async def context():
+        global _TG
+        async with (_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+            yield
+            for t in _TG._tasks:  # noqa: SLF001
+                t.cancel()
+
     @staticmethod
     async def list_tasks() -> list[TaskInfo]:
         """List all registered tasks and their current status."""
@@ -113,7 +125,7 @@ class AdminTaskService:
         return result
 
     @staticmethod
-    async def start_task(task_id: TaskId, args: dict[str, str]) -> None:
+    def start_task(task_id: TaskId, args: dict[str, str]) -> None:
         definition = _REGISTRY.get(task_id)
         if definition is None:
             raise ValueError(f'Task with {task_id=!r} not found')
@@ -121,29 +133,34 @@ class AdminTaskService:
         # Validate and convert arguments
         validated_args = _func_args_model(definition['func'])(**args).model_dump()
 
-        timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
+        _TG.create_task(_start_task(definition, validated_args))
+        audit('admin_task', extra={'id': task_id, 'args': validated_args}).close()
 
-        async with db(True, autocommit=True) as conn, conn.pipeline():
-            # Delete timed out tasks
-            await conn.execute(
-                """
-                DELETE FROM admin_task
-                WHERE heartbeat_at <= %s
-                """,
-                (timeout_at,),
-            )
 
-            # Register the task
-            await conn.execute(
-                """
-                INSERT INTO admin_task (id)
-                VALUES (%s)
-                """,
-                (task_id,),
-            )
+async def _start_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
+    timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
 
-        # Start the task and manage its lifecycle
-        await _run_task(definition, validated_args)
+    async with db(True, autocommit=True) as conn, conn.pipeline():
+        # Delete timed out tasks
+        await conn.execute(
+            """
+            DELETE FROM admin_task
+            WHERE heartbeat_at <= %s
+            """,
+            (timeout_at,),
+        )
+
+        # Register the task
+        await conn.execute(
+            """
+            INSERT INTO admin_task (id)
+            VALUES (%s)
+            """,
+            (definition['id'],),
+        )
+
+    # Start the task and manage its lifecycle
+    await _run_task(definition, args)
 
 
 @cache
@@ -179,7 +196,7 @@ async def _run_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
             heartbeat_task.cancel()
 
             # Delete the task when finished
-            async with db(write=True, autocommit=True) as conn:
+            async with db(True, autocommit=True) as conn:
                 await conn.execute(
                     """
                     DELETE FROM admin_task
@@ -196,7 +213,7 @@ async def _heartbeat_loop(task_id: TaskId) -> None:
         # Periodically update the heartbeat field
         await sleep(ADMIN_TASK_HEARTBEAT_INTERVAL.total_seconds())
 
-        async with db(write=True, autocommit=True) as conn:
+        async with db(True, autocommit=True) as conn:
             await conn.execute(
                 """
                 UPDATE admin_task

@@ -20,8 +20,7 @@ xattr_json(PyObject *, PyObject *const *args, Py_ssize_t nargs, PyObject *) {
     PyErr_BadArgument();
     return nullptr;
   }
-  Py_INCREF(args[0]);
-  return args[0];
+  return Py_NewRef(args[0]);
 }
 
 static PyObject *
@@ -50,8 +49,7 @@ xattr_xml(PyObject *, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames
 
   // Cache hit
   if (LIKELY(cached != nullptr)) {
-    Py_INCREF(cached);
-    return cached;
+    return Py_NewRef(cached);
   }
 
   // Cache miss
@@ -60,8 +58,7 @@ xattr_xml(PyObject *, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames
     return nullptr;
 
   shput(xattr_cache, source_c, result);
-  Py_INCREF(result);
-  return result;
+  return Py_NewRef(result);
 }
 
 static PyMethodDef methods[] = {

@@ -1,0 +1,109 @@
+{% extends '_base' %}
+{% block title_prefix %}Audit logs | {% endblock %}
+{% block body_class %}audit-body{% endblock %}
+{% block body %}
+
+<div class="content-header pb-1">
+    <div class="container">
+        <h1><i class="bi bi-card-checklist me-3"></i>Audit logs</h1>
+        <p>View and filter system audit events.</p>
+
+        <form class="filters-form" method="GET">
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="userInput">User</label>
+                    <input id="userInput" type="text" class="form-control" name="user" value="{{ user_q }}"
+                        placeholder="Search by name or ID" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="ipInput">IP Address</label>
+                    <input id="ipInput" type="text" class="form-control" name="ip" value="{{ ip }}"
+                        placeholder="e.g., 192.168.1.1 or 10.0.0.0/8" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="typeSelect">Event Type</label>
+                    <select id="typeSelect" class="form-select form-select-sm" name="type">
+                        <option value="">All types</option>
+                        {% for audit_type in AUDIT_TYPE_VALUES %}
+                        <option value="{{ audit_type }}" {% if type == audit_type %}selected{% endif %}>
+                            {{ audit_type }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="applicationIdInput">Application ID</label>
+                    <input id="applicationIdInput" type="number" class="form-control form-control-sm"
+                        name="application_id" value="{{ application_id }}" min="1" step="1" placeholder="ID"
+                        autocomplete="off">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="createdAfter">
+                        Events from <small class="text-body-secondary">(local tz)</small>
+                    </label>
+                    <input id="createdAfter" type="datetime-local" class="form-control form-control-sm"
+                        name="created_after" data-value="{{ created_after }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="createdBefore">
+                        Events to <small class="text-body-secondary">(local tz)</small>
+                    </label>
+                    <input id="createdBefore" type="datetime-local" class="form-control form-control-sm"
+                        name="created_before" data-value="{{ created_before }}">
+                </div>
+            </div>
+
+            <div class="text-end">
+                <span class="text-muted me-2">
+                    {{ audit_num_items }} events
+                </span>
+                <div class="btn-group" role="group">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-funnel"></i> Apply
+                    </button>
+                    <a class="btn btn-outline-secondary" href="/audit">
+                        <i class="bi bi-arrow-counterclockwise"></i> Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="content-body">
+    <div class="container">
+        {% if audit_num_items %}
+        <nav aria-label="{{ t('alt.page_navigation') }}">
+            <ul class="pagination pagination-sm justify-content-end mb-2">
+            </ul>
+        </nav>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Time</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">User</th>
+                        <th scope="col">IP Address</th>
+                        <th scope="col">App</th>
+                        <th scope="col">Details</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <nav aria-label="{{ t('alt.page_navigation') }}">
+            <ul class="pagination pagination-sm justify-content-end mb-0"
+                data-action="/api/web/audit?{% if ip %}&ip={{ ip }}{% endif %}{% if user_q %}&user={{ user_q|urlencode }}{% endif %}{% if application_id %}&application_id={{ application_id }}{% endif %}{% if type %}&type={{ type }}{% endif %}{% if created_after %}&created_after={{ created_after|urlencode }}{% endif %}{% if created_before %}&created_before={{ created_before|urlencode }}{% endif %}"
+                data-pages="{{ audit_num_pages }}" data-num-items="{{ audit_num_items }}">
+            </ul>
+        </nav>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-1-5"></i>No audit events found matching your filters.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -13,7 +13,7 @@ async def test_basic_operations():
 
     # Set and verify storage
     async with cache.lock(key) as lock:
-        await FileCache.set(lock, data, ttl=None)
+        await cache.set(lock, data, ttl=None)
 
     result = await cache.get(key)
     assert result == data, f"Expected '{data}', got '{result}'"
@@ -39,7 +39,7 @@ async def test_ttl_expiration(ttl, is_deleted):
 
     # Set cache with specified TTL
     async with cache.lock(key) as lock:
-        await FileCache.set(lock, data, ttl=ttl)
+        await cache.set(lock, data, ttl=ttl)
 
     # Verify result based on TTL
     result = await cache.get(key)
@@ -62,15 +62,32 @@ async def test_value_overwrite():
 
     # Set initial value
     async with cache.lock(key) as lock:
-        await FileCache.set(lock, b'initial', ttl=None)
+        await cache.set(lock, b'initial', ttl=None)
 
     # Verify initial value
     assert await cache.get(key) == b'initial', 'Initial value must be stored correctly'
 
     # Overwrite with new value
     async with cache.lock(key) as lock:
-        await FileCache.set(lock, b'updated', ttl=None)
+        await cache.set(lock, b'updated', ttl=None)
 
     # Verify updated value
     result = await cache.get(key)
     assert result == b'updated', f"Expected 'updated', got '{result}'"
+
+
+async def test_memory_cache_file_bound():
+    key = StorageKey('file_bound_key')
+    cache = FileCache('test')
+
+    async with cache.lock(key) as lock:
+        await cache.set(lock, b'value', ttl=None)
+
+    # First read should populate the memory cache
+    assert await cache.get(key) == b'value'
+
+    path = cache._get_path(key)  # noqa: SLF001
+    path.unlink()
+
+    # Without the backing file, the cache should report a miss
+    assert await cache.get(key) is None

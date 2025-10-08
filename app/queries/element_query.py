@@ -163,12 +163,12 @@ class ElementQuery:
             return [c for (c,) in await r.fetchall()]
 
     @staticmethod
-    async def get_current_versions_by_refs(
+    async def map_refs_to_current_versions(
         typed_ids: list[TypedElementId],
         *,
         at_sequence_id: SequenceId | None = None,
     ) -> dict[TypedElementId, int]:
-        """Get the current version of the element by the given element ref."""
+        """Map element refs to their current versions."""
         if not typed_ids:
             return {}
 
@@ -196,7 +196,7 @@ class ElementQuery:
             return dict(await r.fetchall())
 
     @staticmethod
-    async def get_versions_by_ref(
+    async def find_versions_by_ref(
         typed_id: TypedElementId,
         *,
         at_sequence_id: SequenceId | None = None,
@@ -245,7 +245,7 @@ class ElementQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def get_by_versioned_refs(
+    async def find_by_versioned_refs(
         versioned_refs: list[tuple[TypedElementId, int]],
         *,
         at_sequence_id: SequenceId | None = None,
@@ -290,7 +290,7 @@ class ElementQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def get_by_refs(
+    async def find_by_refs(
         typed_ids: list[TypedElementId] | None,
         *,
         at_sequence_id: SequenceId | None = None,
@@ -390,7 +390,7 @@ class ElementQuery:
             return result
 
     @staticmethod
-    async def find_many_by_any_refs(
+    async def find_by_any_refs(
         refs: list[TypedElementId | tuple[TypedElementId, int]],
         *,
         at_sequence_id: SequenceId | None = None,
@@ -422,14 +422,14 @@ class ElementQuery:
 
         async with TaskGroup() as tg:
             typed_task = tg.create_task(
-                ElementQuery.get_by_refs(
+                ElementQuery.find_by_refs(
                     typed_ids,
                     at_sequence_id=at_sequence_id,
                     limit=limit,
                 )
             )
             versioned_task = tg.create_task(
-                ElementQuery.get_by_versioned_refs(
+                ElementQuery.find_by_versioned_refs(
                     versioned_refs,
                     at_sequence_id=at_sequence_id,
                     limit=limit,
@@ -459,7 +459,7 @@ class ElementQuery:
         return result[:limit] if (limit is not None and len(result) > limit) else result
 
     @staticmethod
-    async def get_parents_by_refs(
+    async def find_parents_by_refs(
         members: list[TypedElementId],
         conn: AsyncConnection | None = None,
         *,
@@ -537,13 +537,13 @@ class ElementQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def get_current_parents_refs_by_refs(
+    async def map_refs_to_parent_refs(
         members: list[TypedElementId],
         conn: AsyncConnection,
         *,
         limit: int | None = None,
     ) -> dict[TypedElementId, set[TypedElementId]]:
-        """Get elements refs that reference the given elements."""
+        """Map element refs to the refs of elements that reference them."""
         if not members:
             return {}
 
@@ -588,7 +588,7 @@ class ElementQuery:
             return result
 
     @staticmethod
-    async def get_by_changeset(
+    async def find_by_changeset(
         changeset_id: ChangesetId,
         *,
         sort_by: Literal['typed_id', 'sequence_id'] = 'typed_id',
@@ -609,7 +609,7 @@ class ElementQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def find_many_by_geom(
+    async def find_by_geom(
         geometry: BaseGeometry,
         *,
         partial_ways: bool = False,
@@ -674,7 +674,7 @@ class ElementQuery:
                     typed_ids: list[TypedElementId],
                     parent_type: ElementType,
                 ) -> list[Element]:
-                    parents = await ElementQuery.get_parents_by_refs(
+                    parents = await ElementQuery.find_parents_by_refs(
                         typed_ids, conn, parent_type=parent_type, limit=None
                     )
                     result_sequences.append(parents)
@@ -702,7 +702,7 @@ class ElementQuery:
                         for member in members
                     }
                     ways_nodes_typed_ids.difference_update(nodes_typed_ids)
-                    ways_nodes = await ElementQuery.get_by_refs(
+                    ways_nodes = await ElementQuery.find_by_refs(
                         list(ways_nodes_typed_ids),
                         at_sequence_id=(
                             await ElementQuery.get_current_sequence_id(conn)

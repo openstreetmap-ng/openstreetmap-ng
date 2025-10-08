@@ -1,19 +1,22 @@
 from asyncio import TaskGroup
+from math import ceil
 from typing import Annotated
 
 from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
 from shapely import Point
 from starlette import status
+from starlette.responses import HTMLResponse
 
 from app.config import (
     DIARY_BODY_MAX_LENGTH,
     DIARY_COMMENT_BODY_MAX_LENGTH,
+    DIARY_COMMENTS_PAGE_SIZE,
     DIARY_TITLE_MAX_LENGTH,
     LOCALE_CODE_MAX_LENGTH,
 )
 from app.lib.auth_context import web_user
-from app.lib.render_response import render_response
+from app.lib.render_jinja import render_jinja
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.db.diary_comment import diary_comments_resolve_rich_text
@@ -80,9 +83,18 @@ async def delete(
 async def comments_page(
     diary_id: DiaryId,
     page: Annotated[PositiveInt, Query()],
-    num_items: Annotated[PositiveInt, Query()],
+    num_items: Annotated[int, Query()],
 ):
-    comments = await DiaryCommentQuery.get_diary_page(
+    if num_items < 0:
+        num_items = await DiaryCommentQuery.count_by_diary(diary_id)
+        headers = {
+            'X-SP-NumItems': str(num_items),
+            'X-SP-NumPages': str(ceil(num_items / DIARY_COMMENTS_PAGE_SIZE)),
+        }
+    else:
+        headers = None
+
+    comments = await DiaryCommentQuery.find_diary_page(
         diary_id, page=page, num_items=num_items
     )
 
@@ -90,7 +102,10 @@ async def comments_page(
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(diary_comments_resolve_rich_text(comments))
 
-    return await render_response('diary/comments-page', {'comments': comments})
+    return HTMLResponse(
+        render_jinja('diary/comments-page', {'comments': comments}),
+        headers=headers,
+    )
 
 
 # TODO: delete comment

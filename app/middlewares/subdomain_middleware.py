@@ -36,9 +36,9 @@ class SubdomainMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        request = get_request()
-        url = str(request.url)
-        path: str = request.url.path
+        req = get_request()
+        url = str(req.url)
+        path: str = req.url.path
 
         # Handle main domain (APP_URL) redirects
         if url.startswith(_app_prefix):
@@ -47,7 +47,7 @@ class SubdomainMiddleware:
                 return await Response(
                     None,
                     status.HTTP_301_MOVED_PERMANENTLY,
-                    headers={'Location': f'{ID_URL}{path}?{request.url.query}'},
+                    headers={'Location': f'{ID_URL}{path}?{req.url.query}'},
                 )(scope, receive, send)
 
             # Redirect /rapid* paths to RAPID_URL if configured
@@ -55,7 +55,7 @@ class SubdomainMiddleware:
                 return await Response(
                     None,
                     status.HTTP_301_MOVED_PERMANENTLY,
-                    headers={'Location': f'{RAPID_URL}{path}?{request.url.query}'},
+                    headers={'Location': f'{RAPID_URL}{path}?{req.url.query}'},
                 )(scope, receive, send)
 
         # Handle API domain (API_URL) path restrictions

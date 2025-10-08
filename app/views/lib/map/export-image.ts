@@ -14,7 +14,7 @@ import {
     layersConfig,
     removeMapLayer,
 } from "./layers/layers"
-import { getLngLatBoundsIntersection } from "./utils"
+import { checkLngLatBoundsIntersection, getLngLatBoundsIntersection } from "./utils"
 
 const layerId = "export-image" as LayerId
 layersConfig.set(layerId as LayerId, {
@@ -169,10 +169,10 @@ const getImageTrim = (
     mapBounds: LngLatBounds,
     filterBounds: LngLatBounds,
 ): { top: number; left: number; bottom: number; right: number } => {
-    filterBounds = getLngLatBoundsIntersection(mapBounds, filterBounds)
-    if (filterBounds.isEmpty()) {
+    if (!checkLngLatBoundsIntersection(mapBounds, filterBounds)) {
         return { top: 0, left: 0, bottom: 0, right: 0 }
     }
+    filterBounds = getLngLatBoundsIntersection(mapBounds, filterBounds)
     const bottomLeft = map.project(filterBounds.getSouthWest())
     const topRight = map.project(filterBounds.getNorthEast())
     const ratio = window.devicePixelRatio

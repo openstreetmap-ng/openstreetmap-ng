@@ -58,12 +58,10 @@
                         <img class="source-icon" src="/static/img/brand/overpass.webp"
                             alt="{{ t('alt.logo', name='Overpass') }}" loading="lazy">
                         <a class="export-overpass-link" href="https://overpass-api.de/api/map" target="_blank">
-                            {{ t('site.export.too_large.overpass.title') }}
+                            {{- t('site.export.too_large.overpass.title') -}}
                         </a>
                     </h6>
-                    <p>
-                        {{ t('site.export.too_large.overpass.description') }}
-                    </p>
+                    <p>{{ t('site.export.too_large.overpass.description') }}</p>
                 </li>
 
                 <li>
@@ -71,12 +69,10 @@
                         <img class="source-icon" src="/static/img/favicon/256.webp"
                             alt="{{ t('alt.logo', name=t('project_name')) }}" loading="lazy">
                         <a href="https://planet.openstreetmap.org">
-                            {{ t('site.export.too_large.planet.title') }}
+                            {{- t('site.export.too_large.planet.title') -}}
                         </a>
                     </h6>
-                    <p>
-                        {{ t('site.export.too_large.planet.description') }}
-                    </p>
+                    <p>{{ t('site.export.too_large.planet.description') }}</p>
                 </li>
 
                 <li>
@@ -84,23 +80,19 @@
                         <img class="source-icon" src="/static/img/brand/geofabrik.webp"
                             alt="{{ t('alt.logo', name='Geofabrik') }}" loading="lazy">
                         <a href="https://download.geofabrik.de">
-                            {{ t('site.export.too_large.geofabrik.title') }}
+                            {{- t('site.export.too_large.geofabrik.title') -}}
                         </a>
                     </h6>
-                    <p>
-                        {{ t('site.export.too_large.geofabrik.description') }}
-                    </p>
+                    <p>{{ t('site.export.too_large.geofabrik.description') }}</p>
                 </li>
 
                 <li>
                     <h6 class="mb-1">
                         <a href="https://wiki.openstreetmap.org/wiki/Downloading_data">
-                            {{ t('site.export.too_large.other.title') }}
+                            {{- t('site.export.too_large.other.title') -}}
                         </a>
                     </h6>
-                    <p class="mb-0">
-                        {{ t('site.export.too_large.other.description') }}
-                    </p>
+                    <p class="mb-0">{{ t('site.export.too_large.other.description') }}</p>
                 </li>
             </ul>
 

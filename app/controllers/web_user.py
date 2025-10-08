@@ -20,10 +20,7 @@ from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
-from app.services.user_token_account_confirm_service import (
-    UserTokenAccountConfirmService,
-)
-from app.services.user_token_email_change_service import UserTokenEmailChangeService
+from app.services.user_token_email_service import UserTokenEmailService
 from app.services.user_token_reset_password_service import UserTokenResetPasswordService
 from app.validators.display_name import DisplayNameNormalizing, DisplayNameValidating
 from app.validators.email import EmailValidating
@@ -76,26 +73,26 @@ async def signup(
     auth_provider_verification: Annotated[str | None, Cookie()] = None,
 ):
     verification = AuthProviderService.validate_verification(auth_provider_verification)
-    email_confirmed = verification is not None and verification.email == email
+    email_verified = verification is not None and verification.email == email
 
     user_id = await UserSignupService.signup(
         display_name=display_name,
         email=email,
         password=password,
         tracking=tracking,
-        email_confirmed=email_confirmed,
+        email_verified=email_verified,
     )
 
     response = Response(
         orjson.dumps({
             'redirect_url': '/welcome'
-            if email_confirmed
+            if email_verified
             else '/user/account-confirm/pending'
         }),
         media_type='application/json; charset=utf-8',
     )
 
-    if email_confirmed:
+    if email_verified:
         response.delete_cookie('auth_provider_verification')
 
     access_token = await SystemAppService.create_access_token(
@@ -113,13 +110,20 @@ async def signup(
     return response
 
 
+@router.post('/signup/cancel-provider')
+async def signup_cancel_provider():
+    response = RedirectResponse('/signup', status.HTTP_303_SEE_OTHER)
+    response.delete_cookie('auth_provider_verification')
+    return response
+
+
 @router.get('/account-confirm')
 async def account_confirm(
     token: Annotated[SecretStr, Query(min_length=1)],
 ):
     # TODO: check errors
     token_struct = UserTokenStructUtils.from_str(token)
-    await UserTokenAccountConfirmService.confirm(token_struct)
+    await UserTokenEmailService.confirm(token_struct, is_account_confirm=True)
     return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
 
 
@@ -130,7 +134,7 @@ async def account_confirm_resend(
     if user['email_verified']:
         return {'is_active': True}
 
-    await UserTokenAccountConfirmService.send_email()
+    await UserTokenEmailService.send_email()
     return StandardFeedback.success_result(
         None,
         t('confirmations.resend_success_flash.confirmation_sent', email=user['email']),
@@ -143,7 +147,7 @@ async def email_change_confirm(
 ):
     # TODO: check errors
     token_struct = UserTokenStructUtils.from_str(token)
-    await UserTokenEmailChangeService.confirm(token_struct)
+    await UserTokenEmailService.confirm(token_struct, is_account_confirm=False)
     return RedirectResponse('/settings', status.HTTP_303_SEE_OTHER)
 
 

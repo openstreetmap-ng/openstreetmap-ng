@@ -53,6 +53,11 @@ const remoteEditButton = editGroup.querySelector(
     "button.dropdown-item.edit-link[data-editor=remote]",
 )
 const rememberChoice = editGroup.querySelector("input[name=remember-choice]")
+const editGroupTooltip = Tooltip.getOrCreateInstance(editGroup, {
+    title: editGroup.dataset.bsTitle,
+    placement: "bottom",
+})
+editGroupTooltip.disable()
 
 // On edit link click, check and handle the remember choice checkbox
 editGroup.addEventListener("click", (event: Event): void => {
@@ -100,13 +105,32 @@ editGroup.addEventListener("hidden.bs.dropdown", () => {
     rememberChoice.dispatchEvent(new Event("change"))
 })
 
-// Map of navbar elements to their base href
-const mapLinkHrefMap = new Map<HTMLAnchorElement | HTMLButtonElement, string>()
-const mapLinks = navbar.querySelectorAll(".map-link") as NodeListOf<
-    HTMLAnchorElement | HTMLButtonElement
->
+// Cache base href on elements to avoid string munging later
+const mapLinks = navbar.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>(
+    ".map-link",
+)
+const editLinks = navbar.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>(
+    ".edit-link",
+)
 for (const link of mapLinks) {
-    mapLinkHrefMap.set(link, link instanceof HTMLAnchorElement ? link.href : "")
+    if (link instanceof HTMLAnchorElement) link.dataset.baseHref = link.href
+}
+
+const setEditControlsDisabled = (disabled: boolean): void => {
+    for (const link of editLinks) {
+        link.classList.toggle("disabled", disabled)
+        if (disabled) link.setAttribute("aria-disabled", "true")
+        else link.removeAttribute("aria-disabled")
+    }
+    editGroup.classList.toggle("disabled", disabled)
+    if (disabled) {
+        editGroup.setAttribute("aria-disabled", "true")
+        editGroupTooltip.enable()
+    } else {
+        editGroup.removeAttribute("aria-disabled")
+        editGroupTooltip.disable()
+        editGroupTooltip.hide()
+    }
 }
 
 // TODO: wth object support?
@@ -115,65 +139,39 @@ export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void =
     const hash = encodeMapState(state)
     const isEditDisabled = state.zoom < minEditZoom
 
-    for (const [link, baseHref] of mapLinkHrefMap) {
+    for (const link of mapLinks) {
         const isEditLink = link.classList.contains("edit-link")
+
         if (!isEditLink) {
-            if (!(link instanceof HTMLAnchorElement)) {
-                console.error(
-                    "Expected .map-link that is not .edit-link to be HTMLAnchorElement",
-                    link,
-                )
-                continue
-            }
-            link.href = baseHref + hash
+            if (link instanceof HTMLAnchorElement)
+                link.href = link.dataset.baseHref + hash
             continue
         }
 
         if (link === remoteEditButton) {
             // Remote edit button stores information in dataset
             link.dataset.remoteEdit = JSON.stringify({ state, object })
-        } else if (!(link instanceof HTMLAnchorElement)) {
+            continue
+        }
+
+        if (link instanceof HTMLAnchorElement) {
+            const baseHref = link.dataset.baseHref
+            if (object) {
+                const url = new URL(baseHref, window.location.origin)
+                url.searchParams.set(object.type, String(object.id))
+                link.href = url.pathname + url.search + hash
+            } else {
+                link.href = baseHref + hash
+            }
+        } else {
             console.error(
                 "Expected .map-link that is .edit-link to be HTMLAnchorElement",
                 link,
             )
-            continue
-        } else if (object) {
-            link.href = `${baseHref}?${object.type}=${object.id}${hash}`
-        } else {
-            link.href = baseHref + hash
-        }
-
-        // Enable/disable edit links based on current zoom level
-        if (isEditDisabled) {
-            if (!link.classList.contains("disabled")) {
-                link.classList.add("disabled")
-                link.ariaDisabled = "true"
-            }
-        } else if (link.classList.contains("disabled")) {
-            link.classList.remove("disabled")
-            link.ariaDisabled = "false"
         }
     }
 
-    // Toggle tooltip on edit group
-    if (isEditDisabled) {
-        if (!editGroup.classList.contains("disabled")) {
-            editGroup.classList.add("disabled")
-            editGroup.ariaDisabled = "true"
-            Tooltip.getOrCreateInstance(editGroup, {
-                title: editGroup.dataset.bsTitle,
-                placement: "bottom",
-            }).enable()
-        }
-    } else if (editGroup.classList.contains("disabled")) {
-        editGroup.classList.remove("disabled")
-        editGroup.ariaDisabled = "false"
-        const tooltip = Tooltip.getInstance(editGroup)
-        tooltip.disable()
-        tooltip.hide()
-    }
-
+    setEditControlsDisabled(isEditDisabled)
     window.history.replaceState(null, "", hash)
 }
 

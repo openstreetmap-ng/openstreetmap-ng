@@ -36,14 +36,15 @@ def pydantic_settings_integration(
         for name, value in filtered_globals.items()
     }
 
-    caller_globals.update(
-        create_model(
-            f'{caller_name}_DynamicSettings',
-            __base__=type(
-                f'{caller_name}_DynamicBaseSettings',
-                (BaseSettings,),
-                {'model_config': config},
-            ),
-            **fields,  # type: ignore
-        )().model_dump()
-    )
+    model_instance = create_model(
+        f'{caller_name}_DynamicSettings',
+        __base__=type(
+            f'{caller_name}_DynamicBaseSettings',
+            (BaseSettings,),
+            {'model_config': config},
+        ),
+        **fields,  # type: ignore
+    )()
+
+    for name in filtered_globals:
+        caller_globals[name] = getattr(model_instance, name)

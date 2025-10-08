@@ -31,8 +31,8 @@
             <ul class="notes-list social-list list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('alt.page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-0"
-                    data-action="/api/web/note/user/{{ profile.id }}?page={page}&num_items={{ notes_num_items }}&commented={{ commented }}&status={{ status }}"
-                    data-pages="{{ notes_num_pages }}">
+                    data-action="/api/web/note/user/{{ profile.id }}?commented={{ commented }}&status={{ status }}"
+                    data-pages="{{ notes_num_pages }}" data-num-items="{{ notes_num_items }}">
                 </ul>
             </nav>
         </div>

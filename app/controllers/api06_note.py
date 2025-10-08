@@ -45,7 +45,7 @@ async def create_note1(
     text: Annotated[str, Query(min_length=1)],
 ):
     note_id = await NoteService.create(lon, lat, text)
-    notes = await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
+    notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
 
@@ -59,7 +59,7 @@ class _CreateNote(BaseModel):
 @router.post('/notes.json')
 async def create_note2(body: _CreateNote):
     note_id = await NoteService.create(body.lon, body.lat, body.text)
-    notes = await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
+    notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
 
@@ -74,7 +74,7 @@ async def create_note_comment(
     _: Annotated[User, api_user('write_notes')],
 ):
     await NoteService.comment(note_id, text, 'commented')
-    notes = await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
+    notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
 
@@ -88,7 +88,7 @@ async def get_note(
     request: Request,
     note_id: NoteId,
 ):
-    notes = await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
+    notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     if not notes:
         raise_for.note_not_found(note_id)
 
@@ -116,7 +116,7 @@ async def close_note(
     text: Annotated[str, Query()] = '',
 ):
     await NoteService.comment(note_id, text, 'closed')
-    notes = await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
+    notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
 
@@ -131,7 +131,7 @@ async def reopen_note(
     text: Annotated[str, Query()] = '',
 ):
     await NoteService.comment(note_id, text, 'reopened')
-    notes = await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
+    notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
 
@@ -146,7 +146,7 @@ async def hide_note(
     text: Annotated[str, Query()] = '',
 ):
     await NoteService.comment(note_id, text, 'hidden')
-    notes = await NoteQuery.find_many_by_query(note_ids=[note_id], limit=1)
+    notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
 
@@ -164,7 +164,7 @@ async def get_feed(
     else:
         geometry = None
 
-    comments = await NoteCommentQuery.legacy_find_many_by_query(
+    comments = await NoteCommentQuery.legacy_find(
         geometry=geometry,
         limit=NOTE_QUERY_DEFAULT_LIMIT,
     )
@@ -211,7 +211,7 @@ async def query_notes1(
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
         raise_for.notes_query_area_too_big()
 
-    notes = await NoteQuery.find_many_by_query(
+    notes = await NoteQuery.find(
         geometry=geometry,
         max_closed_days=closed if closed >= 0 else None,
         limit=limit,
@@ -268,11 +268,11 @@ async def query_notes2(
         return Format06.encode_notes([])
 
     if display_name is not None:
-        user = await UserQuery.find_one_by_display_name(display_name)
+        user = await UserQuery.find_by_display_name(display_name)
         if user is None:
             raise_for.user_not_found_bad_request(display_name)
     elif user_id is not None:
-        user = await UserQuery.find_one_by_id(user_id)
+        user = await UserQuery.find_by_id(user_id)
         if user is None:
             raise_for.user_not_found_bad_request(user_id)
     else:
@@ -285,7 +285,7 @@ async def query_notes2(
     else:
         geometry = None
 
-    notes = await NoteQuery.find_many_by_query(
+    notes = await NoteQuery.find(
         phrase=q,
         user_id=user['id'] if (user is not None) else None,
         max_closed_days=closed if closed >= 0 else None,

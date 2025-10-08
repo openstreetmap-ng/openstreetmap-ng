@@ -72,9 +72,7 @@ async def changeset_id(client: AsyncClient):
                 }),
             )
         )
-        user_task = tg.create_task(
-            UserQuery.find_one_by_display_name(DisplayName('user1'))
-        )
+        user_task = tg.create_task(UserQuery.find_by_display_name(DisplayName('user1')))
 
     r = create_task.result()
     assert r.is_success, r.text
@@ -82,7 +80,7 @@ async def changeset_id(client: AsyncClient):
     user = user_task.result()
     assert user is not None, 'Test user "user1" must exist'
 
-    with exceptions_context(Exceptions06()), auth_context(user, ()):
+    with exceptions_context(Exceptions06()), auth_context(user):
         yield ChangesetId(int(r.text))
 
 

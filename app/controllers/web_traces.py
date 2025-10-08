@@ -5,7 +5,10 @@ from fastapi import APIRouter, Form, UploadFile
 from app.exceptions.api_error import APIError
 from app.lib.auth_context import web_user
 from app.lib.standard_feedback import StandardFeedback
-from app.models.db.trace import TraceVisibility, trace_tags_from_str
+from app.models.db.trace import (
+    TraceVisibility,
+    validate_trace_tags,
+)
 from app.models.db.user import User
 from app.models.types import TraceId
 from app.services.trace_service import TraceService
@@ -19,7 +22,7 @@ async def upload(
     file: Annotated[UploadFile, Form()],
     description: Annotated[str, Form()],
     visibility: Annotated[TraceVisibility, Form()],
-    tags: Annotated[str, Form()] = '',
+    tags: Annotated[list[str] | None, Form()] = None,
 ):
     try:
         trace_id = await TraceService.upload(
@@ -40,14 +43,14 @@ async def update(
     name: Annotated[str, Form()],
     description: Annotated[str, Form()],
     visibility: Annotated[TraceVisibility, Form()],
-    tags: Annotated[str, Form()] = '',
+    tags: Annotated[list[str] | None, Form()] = None,
 ):
     try:
         await TraceService.update(
             trace_id,
             name=name,
             description=description,
-            tags=trace_tags_from_str(tags),
+            tags=validate_trace_tags(tags),
             visibility=visibility,
         )
     except* APIError as e:

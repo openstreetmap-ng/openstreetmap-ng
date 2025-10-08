@@ -53,7 +53,7 @@ async def test_delete_if_unused(changeset_id: ChangesetId):
     typed_id_node = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
     # Verify the created element
-    elements = await ElementQuery.get_by_refs([typed_id_node], limit=1)
+    elements = await ElementQuery.find_by_refs([typed_id_node], limit=1)
     assert_model(elements[0], node | {'typed_id': typed_id_node})
 
 
@@ -117,7 +117,7 @@ async def test_delete_node(changeset_id: ChangesetId):
     typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
     # Verify it was created
-    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([typed_id], limit=1)
     assert_model(elements[0], node | {'typed_id': typed_id})
 
     # Delete the node (mark it invisible)
@@ -136,7 +136,7 @@ async def test_delete_node(changeset_id: ChangesetId):
     await OptimisticDiff.run([node_delete])
 
     # Verify it was deleted
-    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([typed_id], limit=1)
     assert_model(elements[0], node_delete)
 
 
@@ -199,7 +199,7 @@ async def test_delete_way_with_nodes(changeset_id: ChangesetId):
     await OptimisticDiff.run([way_delete])
 
     # Verify it was deleted
-    elements = await ElementQuery.get_by_refs([way_typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([way_typed_id], limit=1)
     assert_model(elements[0], way_delete)
 
 

@@ -1,4 +1,3 @@
-import logging
 from asyncio import TaskGroup
 from datetime import datetime
 from typing import Any
@@ -18,6 +17,7 @@ from app.models.db.diary_comment import (
 from app.models.types import DiaryCommentId, DiaryId, UserId
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
+from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
 
@@ -64,12 +64,11 @@ class DiaryCommentService:
             ) as r:
                 created_at: datetime = (await r.fetchone())[0]  # type: ignore
 
-        logging.debug(
-            'Created diary comment %d on diary %d by user %d',
-            comment_id,
-            diary_id,
-            user_id,
-        )
+            await audit(
+                'create_diary_comment',
+                conn,
+                extra={'id': comment_id, 'diary': diary_id},
+            )
 
         comment: DiaryComment = {
             'id': comment_id,
@@ -85,6 +84,7 @@ class DiaryCommentService:
             tg.create_task(_send_activity_email(comment))
             tg.create_task(UserSubscriptionService.subscribe('diary', diary_id))
 
+    # TODO: hide, audit
     @staticmethod
     async def delete(
         comment_id: DiaryCommentId, *, current_user_id: UserId | None
@@ -111,7 +111,7 @@ async def _send_activity_email(comment: DiaryComment) -> None:
 
     async with TaskGroup() as tg:
         tg.create_task(diary_comments_resolve_rich_text([comment]))
-        diary_t = tg.create_task(DiaryQuery.find_one_by_id(diary_id))
+        diary_t = tg.create_task(DiaryQuery.find_by_id(diary_id))
         users = await UserSubscriptionQuery.get_subscribed_users('diary', diary_id)
         if not users:
             return

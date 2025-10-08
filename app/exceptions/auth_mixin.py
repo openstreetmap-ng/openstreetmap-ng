@@ -11,7 +11,6 @@ if TYPE_CHECKING:
 
 
 class AuthExceptionsMixin:
-    @abstractmethod
     def unauthorized(self, *, request_basic_auth: bool = False) -> NoReturn:
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,

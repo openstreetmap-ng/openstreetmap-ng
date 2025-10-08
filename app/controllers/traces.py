@@ -44,7 +44,7 @@ async def personal(
     after: Annotated[TraceId | None, Query()] = None,
     before: Annotated[TraceId | None, Query()] = None,
 ):
-    user = await UserQuery.find_one_by_display_name(display_name)
+    user = await UserQuery.find_by_display_name(display_name)
     data = await _get_data(user=user, tag=None, after=after, before=before)
     return await render_response('traces/index', data)
 
@@ -56,7 +56,7 @@ async def personal_tagged(
     after: Annotated[TraceId | None, Query()] = None,
     before: Annotated[TraceId | None, Query()] = None,
 ):
-    user = await UserQuery.find_one_by_display_name(display_name)
+    user = await UserQuery.find_by_display_name(display_name)
     data = await _get_data(user=user, tag=tag, after=after, before=before)
     return await render_response('traces/index', data)
 
@@ -90,7 +90,7 @@ async def _get_data(
     before: TraceId | None,
 ) -> dict:
     user_id = user['id'] if user is not None else None
-    traces = await TraceQuery.find_many_recent(
+    traces = await TraceQuery.find_recent(
         user_id=user_id,
         tag=tag,
         after=after,
@@ -100,7 +100,7 @@ async def _get_data(
 
     async def new_after_task():
         after = traces[0]['id']
-        after_traces = await TraceQuery.find_many_recent(
+        after_traces = await TraceQuery.find_recent(
             user_id=user_id,
             tag=tag,
             after=after,
@@ -110,7 +110,7 @@ async def _get_data(
 
     async def new_before_task():
         before = traces[-1]['id']
-        before_traces = await TraceQuery.find_many_recent(
+        before_traces = await TraceQuery.find_recent(
             user_id=user_id,
             tag=tag,
             before=before,

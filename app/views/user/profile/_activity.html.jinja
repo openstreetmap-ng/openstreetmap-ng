@@ -9,34 +9,7 @@
         last_n_months=last_n_months) }}
 </p>
 
-<table class="activity-chart mb-2">
-    <tr class="months-row">
-        {% for month in activity_months %}
-        {% if month is not none %}
-        <td class="month-cell">{{ month }}</td>
-        {% else %}
-        <td></td>
-        {% endif %}
-        {% endfor %}
-    </tr>
-    {% for weekday, row in zip(activity_weekdays, activity_rows) %}
-    <tr>
-        <td class="week-cell">{{ weekday }}</td>
-        {% for day in row %}
-        <td>
-            {% if day.value > 0 %}
-            <a href="/user/{{ profile.display_name }}/history?date={{ day.iso_date }}"
-                class="activity activity-{{ day.level }}"
-                data-bs-title="{{ nt('user.activity.details.count', day.value, date=day.date) }}"
-                data-bs-toggle="tooltip"></a>
-            {% else %}
-            <div class="activity activity-0" data-bs-title="{{ t('user.activity.details.no_activity', date=day.date) }}"
-                data-bs-toggle="tooltip"></div>
-            {% endif %}
-        </td>
-        {% endfor %}
-    </tr>
-    {% endfor %}
+<table class="activity-chart mb-2" data-chart="{{ activity_chart }}" data-display-name="{{ profile.display_name }}">
 </table>
 
 <div class="d-flex justify-content-between small">

@@ -1,7 +1,6 @@
 import logging
 from asyncio import TaskGroup
 from datetime import datetime
-from ipaddress import IPv4Address
 
 from zid import zid
 
@@ -22,7 +21,7 @@ class TestService:
     @testmethod
     async def on_startup():
         """Prepare the test environment."""
-        with auth_context(None, ()):
+        with auth_context(None):
             async with TaskGroup() as tg:
                 tg.create_task(
                     TestService.create_user('admin', roles=['administrator'])
@@ -48,7 +47,7 @@ class TestService:
                         name='TestApp-Minimal',
                         client_id=ClientId('testapp-minimal'),
                         client_secret=None,
-                        scopes=(),
+                        scopes=frozenset(),
                         is_confidential=False,
                     )
                 )
@@ -81,7 +80,6 @@ class TestService:
             'language': language,
             'activity_tracking': False,
             'crash_reporting': False,
-            'created_ip': IPv4Address('127.0.0.1'),
         }
         assert user_is_test(user_init), 'Test service must only create test users'
 
@@ -91,12 +89,12 @@ class TestService:
                 INSERT INTO "user" (
                     email, email_verified, display_name, password_pb,
                     language, activity_tracking, crash_reporting,
-                    created_ip, roles, created_at
+                    roles, created_at
                 )
                 VALUES (
                     %(email)s, %(email_verified)s, %(display_name)s, %(password_pb)s,
                     %(language)s, %(activity_tracking)s, %(crash_reporting)s,
-                    %(created_ip)s, %(roles)s, COALESCE(%(created_at)s, statement_timestamp())
+                    %(roles)s, COALESCE(%(created_at)s, statement_timestamp())
                 )
                 ON CONFLICT (display_name) DO UPDATE SET
                     email = EXCLUDED.email,
@@ -122,7 +120,7 @@ class TestService:
         name: str,
         client_id: ClientId,
         client_secret: str | None,
-        scopes: tuple[PublicScope, ...],
+        scopes: frozenset[PublicScope],
         is_confidential: bool,
     ) -> None:
         """Create a test OAuth2 application."""
@@ -175,7 +173,7 @@ class TestService:
                     'client_secret_preview': client_secret_preview,
                     'confidential': is_confidential,
                     'redirect_uris': redirect_uris,
-                    'scopes': list(scopes),
+                    'scopes': sorted(scopes),
                 },
             )
 

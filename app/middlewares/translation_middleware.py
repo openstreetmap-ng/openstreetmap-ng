@@ -41,19 +41,19 @@ def _get_request_language():
     if user is not None:
         return user['language']
 
-    request = get_request()
+    req = get_request()
 
     # Language preference of anonymous users:
 
     # 1. Check locale cookie
-    lang_cookie = request.cookies.get('lang')
+    lang_cookie = req.cookies.get('lang')
     if lang_cookie and len(lang_cookie) <= LOCALE_CODE_MAX_LENGTH:
         normalized_locale = normalize_locale(LocaleCode(lang_cookie))
         if normalized_locale is not None:
             return normalized_locale
 
     # 2. Check accept language header
-    accept_language = request.headers.get('Accept-Language')
+    accept_language = req.headers.get('Accept-Language')
     if accept_language:
         return _parse_accept_language(accept_language)
 

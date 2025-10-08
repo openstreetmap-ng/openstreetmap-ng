@@ -55,13 +55,13 @@ def rate_limit(*, weight: float = 1):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            request = get_request()
+            req = get_request()
             user = auth_user()
             if user is not None:
-                key: StorageKey = f'uid:{user["id"]}'  # type: ignore
+                key: StorageKey = f'id:{user["id"]}'  # type: ignore
                 quota = UserRoleLimits.get_rate_limit_quota(user['roles'])
             else:
-                key: StorageKey = f'ip:{request.client.host}'  # type: ignore
+                key: StorageKey = f'ip:{req.client.host}'  # type: ignore
                 quota = UserRoleLimits.get_rate_limit_quota(None)
 
             if await _BLACKLIST.get(key) is None:
@@ -98,7 +98,7 @@ def rate_limit(*, weight: float = 1):
                 result = await func(*args, **kwargs)
 
             # Check if the weight was increased
-            state = request.state._state  # noqa: SLF001
+            state = req.state._state  # noqa: SLF001
             weight_change: float = state.get('rate_limit_weight', weight) - weight
             if weight_change > 0:
                 rate_limit_headers = await RateLimitService.update(

@@ -78,7 +78,7 @@ class SystemAppService:
 
     @staticmethod
     async def create_access_token(
-        client_id: ClientId, *, user_id: UserId | None = None
+        client_id: ClientId, *, user_id: UserId | None = None, hidden: bool = False
     ) -> SecretStr:
         """Create an OAuth2-based access token for the given system app."""
         if user_id is None:
@@ -88,7 +88,7 @@ class SystemAppService:
         if app_id is None:
             raise_for.oauth_bad_client_id()
 
-        app = await OAuth2ApplicationQuery.find_one_by_id(app_id)
+        app = await OAuth2ApplicationQuery.find_by_id(app_id)
         assert app is not None, f'OAuth2 application {client_id!r} must be initialized'
 
         access_token_ = buffered_rand_urlsafe(32)
@@ -100,6 +100,7 @@ class SystemAppService:
             'id': zid(),  # type: ignore
             'user_id': user_id,
             'application_id': app_id,
+            'unlisted': hidden,
             'name': None,
             'token_hashed': access_token_hashed,
             'token_preview': None,
@@ -113,13 +114,13 @@ class SystemAppService:
             await conn.execute(
                 """
                 INSERT INTO oauth2_token (
-                    id, user_id, application_id, name,
+                    id, user_id, application_id, unlisted, name,
                     token_hashed, token_preview, redirect_uri,
                     scopes, code_challenge_method, code_challenge,
                     authorized_at
                 )
                 VALUES (
-                    %(id)s, %(user_id)s, %(application_id)s, %(name)s,
+                    %(id)s, %(user_id)s, %(application_id)s, %(unlisted)s, %(name)s,
                     %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
                     %(scopes)s, %(code_challenge_method)s, %(code_challenge)s,
                     statement_timestamp()
@@ -162,7 +163,7 @@ async def _register_app(app: SystemApp) -> None:
             """,
             {
                 **app_init,
-                'scopes': app.scopes,
+                'scopes': sorted(app.scopes),
                 'confidential': True,
                 'redirect_uris': [],
             },

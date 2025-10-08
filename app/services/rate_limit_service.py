@@ -1,9 +1,9 @@
 import asyncio
 import logging
-import random
 from asyncio import Event, TaskGroup
 from contextlib import asynccontextmanager
 from datetime import timedelta
+from random import uniform
 from time import monotonic
 
 from fastapi import HTTPException
@@ -13,8 +13,12 @@ from starlette import status
 from app.config import ENV
 from app.db import db
 from app.lib.retry import retry
-from app.lib.sentry import SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR
+from app.lib.sentry import (
+    SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR,
+    SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG,
+)
 from app.lib.testmethod import testmethod
+from app.services.audit_service import audit
 
 _PROCESS_REQUEST_EVENT = Event()
 _PROCESS_DONE_EVENT = Event()
@@ -38,9 +42,10 @@ class RateLimitService:
         """
         quota_per_second = quota / _QUOTA_WINDOW_SECONDS
 
-        async with db(True) as conn:
-            # Uses a leaky bucket algorithm where the usage decreases over time.
-            async with await conn.execute(
+        # Uses a leaky bucket algorithm where the usage decreases over time.
+        async with (
+            db(True) as conn,
+            await conn.execute(
                 """
                 INSERT INTO rate_limit (
                     key, usage
@@ -62,26 +67,29 @@ class RateLimitService:
                     'change': change,
                     'quota_per_second': quota_per_second,
                 },
-            ) as r:
-                usage: float = (await r.fetchone())[0]  # type: ignore
+            ) as r,
+        ):
+            usage: float = (await r.fetchone())[0]  # type: ignore
 
-            # Prepare headers
-            quota_remaining = max(quota - usage, 0)
-            reset_seconds = usage / quota_per_second
-            headers = {
-                'RateLimit': f'"default";r={quota_remaining:.0f};t={reset_seconds:.0f}',
-                'RateLimit-Policy': f'"default";q={quota:.0f};w={_QUOTA_WINDOW_SECONDS:.0f}',
-            }
+        # Prepare headers
+        quota_remaining = max(quota - usage, 0)
+        reset_seconds = usage / quota_per_second
+        headers = {
+            'RateLimit': f'"default";r={quota_remaining:.0f};t={reset_seconds:.0f}',
+            'RateLimit-Policy': f'"default";q={quota:.0f};w={_QUOTA_WINDOW_SECONDS:.0f}',
+        }
 
-            # Check if the limit is exceeded
-            if usage > quota and raise_on_limit:
+        # Check if the limit is exceeded
+        if usage > quota:
+            audit('rate_limit').close()
+            if raise_on_limit:
                 raise HTTPException(
                     status.HTTP_429_TOO_MANY_REQUESTS,
                     detail='Rate limit exceeded',
                     headers=headers,
                 )
 
-            return headers
+        return headers
 
     @staticmethod
     @asynccontextmanager
@@ -135,17 +143,19 @@ async def _process_task() -> None:
                 ts = monotonic()
                 with (
                     SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR,
-                    start_transaction(op='task', name='rate-limit-management'),
+                    start_transaction(
+                        op='task', name=SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG
+                    ),
                 ):
                     await _delete_expired()
                 tt = monotonic() - ts
 
                 # on success, sleep ~5min
-                await sleep(random.uniform(290, 310) - tt)
+                await sleep(uniform(290, 310) - tt)
 
         if not acquired:
             # on failure, sleep ~1h
-            await sleep(random.uniform(1800, 5400))
+            await sleep(uniform(0.5 * 3600, 1.5 * 3600))
 
 
 async def _delete_expired() -> None:

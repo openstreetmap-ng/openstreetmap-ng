@@ -1,0 +1,15 @@
+.audit-body {
+    .details-col {
+        max-width: 160px;
+
+        > div {
+            @extend .font-monospace;
+            @extend .small;
+
+            max-height: 4em;
+            overflow-y: auto;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+    }
+}

@@ -4,7 +4,7 @@ import {
     Point,
     type PositionAnchor,
 } from "maplibre-gl"
-
+import { isLatitude, isLongitude } from "../../lib/utils"
 import type { Bounds } from "../types"
 
 const minBoundsSizePx = 20
@@ -61,12 +61,32 @@ export const getLngLatBoundsIntersection = (
     const minLon = Math.max(minLon1, minLon2)
     const maxLon = Math.min(maxLon1, maxLon2)
 
-    // Return empty bounds if no intersection
+    // Return zero-sized bounds if no intersection
     if (minLat > maxLat || minLon > maxLon) {
         return new LngLatBounds([minLon1, minLat1, minLon1, minLat1])
     }
 
     return new LngLatBounds([minLon, minLat, maxLon, maxLat])
+}
+
+/** Check if two bounds intersect */
+export const checkLngLatBoundsIntersection = (
+    bounds1: LngLatBounds,
+    bounds2: LngLatBounds,
+): boolean => {
+    const [[minLon1, minLat1], [maxLon1, maxLat1]] = bounds1
+        .adjustAntiMeridian()
+        .toArray()
+    const [[minLon2, minLat2], [maxLon2, maxLat2]] = bounds2
+        .adjustAntiMeridian()
+        .toArray()
+
+    return !(
+        minLat1 > maxLat2 ||
+        maxLat1 < minLat2 ||
+        minLon1 > maxLon2 ||
+        maxLon1 < minLon2
+    )
 }
 
 /** Check if two bounds are equal */
@@ -137,6 +157,17 @@ export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds): Bounds 
     ]
 }
 
+/** Union two bounds, returning a new bounds */
+export const unionBounds = (left: Bounds | null, right: Bounds): Bounds =>
+    left
+        ? [
+              Math.min(left[0], right[0]),
+              Math.min(left[1], right[1]),
+              Math.max(left[2], right[2]),
+              Math.max(left[3], right[3]),
+          ]
+        : right
+
 /** Get the closest point on a segment */
 export const closestPointOnSegment = (test: Point, start: Point, end: Point): Point => {
     const dx = end.x - start.x
@@ -167,4 +198,14 @@ export const configureDefaultMapBehavior = (map: MaplibreMap): void => {
     const zoomRate = 1 / 300
     map.scrollZoom.setWheelZoomRate(zoomRate)
     map.scrollZoom.setZoomRate(zoomRate)
+}
+
+/** Parse a simple "lat, lon" string into [lon, lat]. Returns null if invalid. */
+export const tryParsePoint = (text: string): [number, number] | null => {
+    if (!text) return null
+    const parts = text.split(",")
+    if (parts.length !== 2) return null
+    const lat = Number.parseFloat(parts[0].trim())
+    const lon = Number.parseFloat(parts[1].trim())
+    return isLatitude(lat) && isLongitude(lon) ? [lon, lat] : null
 }

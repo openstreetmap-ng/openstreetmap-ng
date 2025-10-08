@@ -1,7 +1,7 @@
 {% extends 'settings/_base' %}
 {% block title_prefix %}Administrative tasks | {% endblock %}
-{% block body_class %}settings-tasks-body{% endblock %}
-{% block settings_active_href %}/settings/tasks{% endblock %}
+{% block body_class %}admin-tasks-body{% endblock %}
+{% block settings_active_href %}/admin/tasks{% endblock %}
 {% block settings_title %}Administrative tasks{% endblock %}
 {% block settings_body %}
 
@@ -13,7 +13,7 @@
                 <code>{{ task.id }}</code>
             </h5>
             <div class="card-body">
-                <form class="task-form" method="POST" action="/api/web/settings/tasks">
+                <form class="task-form" method="POST" action="/api/web/admin/tasks">
                     <input type="hidden" name="id" value="{{ task.id }}">
                     {% for arg_name, arg_info in task.arguments.items() %}
                     <div class="mb-3">

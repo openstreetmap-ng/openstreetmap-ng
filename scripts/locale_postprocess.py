@@ -122,7 +122,6 @@ def main(verbose: bool) -> None:
         data: dict = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
         data = next(iter(data.values()))  # strip first level of nesting
 
-        trim_values(data)
         convert_placeholder_format(data)
         convert_number_format(data)
         convert_plural_structure(data)
@@ -135,6 +134,8 @@ def main(verbose: bool) -> None:
         if locale == 'en':
             extra_data = yaml.load(_LOCALE_EXTRA_EN_PATH.read_bytes(), yaml.CSafeLoader)
             deep_dict_update(data, extra_data)
+
+        trim_values(data)
 
         buffer = orjson.dumps(
             data,

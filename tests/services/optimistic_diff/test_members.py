@@ -42,9 +42,9 @@ async def test_way_with_single_node_member(changeset_id: ChangesetId):
     way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]
 
     # Verify the created elements
-    elements = await ElementQuery.get_by_refs([node_typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([node_typed_id], limit=1)
     assert_model(elements[0], node | {'typed_id': node_typed_id})
-    elements = await ElementQuery.get_by_refs([way_typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([way_typed_id], limit=1)
     assert_model(
         elements[0],
         way
@@ -115,9 +115,9 @@ async def test_delete_way_then_referenced_node(changeset_id: ChangesetId):
     way_typed_id = way_versions[0]
 
     # Verify both elements are now hidden
-    nodes = await ElementQuery.get_by_refs([node_typed_id], limit=1)
+    nodes = await ElementQuery.find_by_refs([node_typed_id], limit=1)
     assert_model(nodes[0], node_delete | {'typed_id': node_typed_id})
-    ways = await ElementQuery.get_by_refs([way_typed_id], limit=1)
+    ways = await ElementQuery.find_by_refs([way_typed_id], limit=1)
     assert_model(ways[0], way_delete | {'typed_id': way_typed_id})
 
 
@@ -152,7 +152,7 @@ async def test_relation_with_self_reference(changeset_id: ChangesetId):
     relation_typed_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
 
     # Verify the elements
-    elements = await ElementQuery.get_by_versioned_refs([
+    elements = await ElementQuery.find_by_versioned_refs([
         (relation_typed_id, 1),
         (relation_typed_id, 2),
     ])
@@ -330,7 +330,7 @@ async def test_way_with_multiple_nodes(changeset_id: ChangesetId):
     way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]
 
     # Verify the created element
-    elements = await ElementQuery.get_by_refs([way_typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([way_typed_id], limit=1)
     assert_model(
         elements[0],
         way
@@ -389,7 +389,7 @@ async def test_relation_with_mixed_members(changeset_id: ChangesetId):
     relation_typed_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
 
     # Verify the created element
-    elements = await ElementQuery.get_by_refs([relation_typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([relation_typed_id], limit=1)
     assert_model(
         elements[0],
         relation

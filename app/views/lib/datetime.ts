@@ -1,7 +1,88 @@
 import { primaryLanguage } from "./config"
-import { dateTimeFormat, relativeTimeFormat } from "./intl"
+import { dateTimeFormat, relativeTimeFormat } from "./format"
 
 const resolvedElements: WeakSet<HTMLTimeElement> = new WeakSet()
+
+/**
+ * Convert a UTC datetime string to local time format for datetime-local input
+ * @param utcDateString - ISO datetime string in UTC (from backend)
+ * @returns Local datetime string in 'YYYY-MM-DDTHH:mm' format for datetime-local input
+ */
+const utcStringToLocalString = (utcDateString: string): string => {
+    const utcDate = new Date(utcDateString)
+    if (Number.isNaN(utcDate.getTime())) return ""
+
+    // Convert to local time and format for datetime-local input
+    const year = utcDate.getFullYear()
+    const month = String(utcDate.getMonth() + 1).padStart(2, "0")
+    const day = String(utcDate.getDate()).padStart(2, "0")
+    const hours = String(utcDate.getHours()).padStart(2, "0")
+    const minutes = String(utcDate.getMinutes()).padStart(2, "0")
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+/**
+ * Convert a local datetime string to UTC format for sending to backend
+ * @param localDatetimeString - Local datetime string from datetime-local input
+ * @returns ISO datetime string in UTC format
+ */
+const localStringToUtcString = (localDatetimeString: string): string => {
+    // Create date object treating the input as local time
+    const localDate = new Date(localDatetimeString)
+    if (Number.isNaN(localDate.getTime())) return ""
+
+    // Return as UTC ISO string
+    return localDate.toISOString()
+}
+
+/**
+ * Setup timezone conversion for datetime-local inputs in a form.
+ * This function:
+ * 1. Converts any existing UTC values to local time for display
+ * 2. Creates hidden inputs that are automatically updated with UTC values
+ * 3. Removes the name attribute from visible inputs to prevent direct submission
+ *
+ * @param form - The form element containing datetime-local inputs
+ * @param datetimeInputNames - Array of input names to handle
+ */
+export const configureDatetimeInputs = (
+    form: HTMLFormElement,
+    datetimeInputNames: string[],
+) => {
+    console.debug("configureDatetimeInputs", datetimeInputNames)
+
+    for (const inputName of datetimeInputNames) {
+        const input = form.querySelector(
+            `input[type=datetime-local][name="${inputName}"]`,
+        )
+        if (!input) {
+            console.warn("Missing datetime-local input for", inputName)
+            continue
+        }
+
+        // Remove name from visible input so it doesn't get submitted
+        input.removeAttribute("name")
+
+        // Create hidden input that will hold the UTC value for submission
+        const hiddenInput = document.createElement("input")
+        hiddenInput.type = "hidden"
+        hiddenInput.name = inputName
+        input.after(hiddenInput)
+
+        // Update hidden input whenever visible input changes
+        input.addEventListener("input", () => {
+            hiddenInput.value = localStringToUtcString(input.value)
+        })
+
+        // Convert existing UTC value to local time for display
+        input.value = utcStringToLocalString(
+            input.dataset.value ?? input.getAttribute("value"),
+        )
+        input.dispatchEvent(new Event("input"))
+        delete input.dataset.value
+    }
+}
 
 export const resolveDatetimeLazy = (searchElement: Element): void =>
     queueMicrotask(() => {
@@ -70,4 +151,4 @@ const getRelativeFormatValueUnit = (
 }
 
 // Initial update
-resolveDatetimeLazy(window.document.body)
+resolveDatetimeLazy(document.body)

@@ -1,6 +1,7 @@
 @use "bootstrap/scss/functions";
 
-.settings-applications-body {
+.settings-applications-body,
+.admin-user-edit-body {
     .applications-list {
         .accordion-button {
             @include media-breakpoint-down(lg) {
@@ -41,6 +42,7 @@
 
 .settings-applications-body,
 .settings-application-edit-body,
+.admin-user-edit-body,
 .oauth-authorize-body {
     .scope {
         @extend .text-body-tertiary;

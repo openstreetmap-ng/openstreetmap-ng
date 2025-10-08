@@ -1,13 +1,14 @@
-import { dirname } from "node:path"
+import { dirname, relative } from "node:path"
+import { fileURLToPath } from "node:url"
 import legacy from "@vitejs/plugin-legacy"
 import autoprefixer from "autoprefixer"
 import { defineConfig } from "vite"
 import { browserslist } from "./package.json"
 
-const getPackageDist = (pkgName) => {
-    const absolutePath = dirname(require.resolve(pkgName))
-    const relativePath = `${absolutePath.replace(process.cwd(), "").slice(1)}/`
-    return relativePath
+const getPackageDist = (pkgName: string): string => {
+    const absolutePath = dirname(fileURLToPath(import.meta.resolve(pkgName)))
+    const relativePath = relative(process.cwd(), absolutePath).replace(/\\/g, "/")
+    return `${relativePath}/`
 }
 
 export default defineConfig({

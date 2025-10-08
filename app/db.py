@@ -104,6 +104,7 @@ async def _register_types():
             adapters.register_loader(info.oid, text_loader)
             logging.debug('Registered database enum %r', name)
 
+        await register_enum('audit_type')
         await register_enum('auth_provider')
         await register_enum('avatar_type')
         await register_enum('editor')
@@ -135,6 +136,7 @@ async def _register_types():
 @asynccontextmanager
 async def db(
     write: bool = False,
+    /,
     *,
     autocommit: bool = False,
     isolation_level: IsolationLevel | None = None,

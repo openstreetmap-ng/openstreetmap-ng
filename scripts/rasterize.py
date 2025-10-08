@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from contextlib import contextmanager
-from functools import partial
-from multiprocessing.pool import Pool
+from multiprocessing.pool import AsyncResult, Pool
 from os import utime
 from pathlib import Path
 from time import perf_counter
@@ -66,7 +65,7 @@ def file(input: list[Path], size: int, quality: int) -> None:
 
 def static_img_pipeline(verbose: bool) -> None:
     with measure() as time, Pool() as pool:
-        success_counter = 0
+        jobs: list[AsyncResult[None]] = []
 
         root = Path('app/static/img/element')
         for i in root.rglob('*.svg'):
@@ -75,8 +74,9 @@ def static_img_pipeline(verbose: bool) -> None:
                 if verbose:
                     print(f'Skipped {output} (already exists)')
                 continue
-            pool.apply_async(partial(rasterize, i, output, size=128, quality=80))
-            success_counter += 1
+            jobs.append(
+                pool.apply_async(rasterize, (i, output), {'size': 128, 'quality': 80})
+            )
 
         root = Path('app/static/img/leaflet')
         for i in root.rglob('*.svg'):
@@ -85,14 +85,17 @@ def static_img_pipeline(verbose: bool) -> None:
                 if verbose:
                     print(f'Skipped {output} (already exists)')
                 continue
-            pool.apply_async(partial(rasterize, i, output, size=80, quality=101))
-            success_counter += 1
+            jobs.append(
+                pool.apply_async(rasterize, (i, output), {'size': 80, 'quality': 101})
+            )
 
         pool.close()
         pool.join()
+        for job in jobs:
+            job.get()
 
-    if success_counter:
-        print(f'Rasterized {success_counter} SVGs in {time.ms}ms')
+    if jobs:
+        print(f'Rasterized {len(jobs)} SVGs in {time.ms}ms')
 
 
 if __name__ == '__main__':

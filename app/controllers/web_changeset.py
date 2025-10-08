@@ -49,7 +49,7 @@ async def get_map(
     geometry = parse_bbox(bbox)
 
     if display_name is not None:
-        user = await UserQuery.find_one_by_display_name(display_name)
+        user = await UserQuery.find_by_display_name(display_name)
         user_ids = [user['id']] if user is not None else []
     else:
         user_ids = None
@@ -62,7 +62,7 @@ async def get_map(
         created_before = None
         created_after = None
 
-    changesets = await ChangesetQuery.find_many_by_query(
+    changesets = await ChangesetQuery.find(
         changeset_id_before=before,
         user_ids=user_ids,
         created_before=created_before,
@@ -89,7 +89,7 @@ async def comments_page(
     page: Annotated[PositiveInt, Query()],
     num_items: Annotated[PositiveInt, Query()],
 ):
-    comments = await ChangesetCommentQuery.get_comments_page(
+    comments = await ChangesetCommentQuery.find_comments_page(
         changeset_id, page=page, num_items=num_items
     )
 

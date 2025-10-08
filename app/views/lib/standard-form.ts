@@ -19,19 +19,19 @@ export interface APIDetail {
 export const configureStandardForm = (
     form?: HTMLFormElement,
     successCallback?: (data: any) => void,
-    clientValidationCallback?: (
-        form: HTMLFormElement,
-    ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null,
-    errorCallback?: (error: Error) => void,
     options?: {
         formBody?: Element
         formAppend?: boolean
         abortSignal?: boolean
         removeEmptyFields?: boolean
+        clientValidationCallback?: (
+            form: HTMLFormElement,
+        ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null
+        errorCallback?: (error: Error) => void
     },
 ): void => {
     if (!form || form.classList.contains("needs-validation")) return
-    const formAction = form.getAttribute("action")
+    const formAction = form.getAttribute("action") ?? ""
     console.debug("Initializing standard form", formAction)
 
     // Disable browser validation in favor of bootstrap
@@ -153,8 +153,37 @@ export const configureStandardForm = (
 
             const formBody = options?.formBody ?? form
             if (options?.formAppend) {
+                const scrollContainer = findScrollableContainer(formBody)
+                const scrollWindow = scrollContainer === document.documentElement
+
+                // Check if user was scrolled to bottom before appending
+                let wasAtBottom: boolean
+                if (scrollWindow) {
+                    wasAtBottom =
+                        window.innerHeight + window.scrollY >=
+                        document.body.offsetHeight - 20
+                } else {
+                    const { scrollTop, scrollHeight, clientHeight } = scrollContainer
+                    wasAtBottom = scrollTop + clientHeight >= scrollHeight - 20
+                }
+
                 feedback.classList.add("alert-last")
                 formBody.append(feedback)
+
+                // Scroll back to bottom if user was previously at the bottom
+                if (wasAtBottom) {
+                    if (scrollWindow) {
+                        window.scrollTo({
+                            top: document.body.scrollHeight,
+                            behavior: "smooth",
+                        })
+                    } else {
+                        scrollContainer.scrollTo({
+                            top: scrollContainer.scrollHeight,
+                            behavior: "smooth",
+                        })
+                    }
+                }
             } else {
                 formBody.prepend(feedback)
             }
@@ -203,7 +232,10 @@ export const configureStandardForm = (
                 msg,
             } of detail) {
                 if (field) {
-                    const input = form.elements.namedItem(field)
+                    let input = form.elements.namedItem(field)
+                    console.debug("Processing field feedback for", field, input)
+                    if (input instanceof RadioNodeList) input = input[0]
+
                     if (
                         !(input instanceof HTMLInputElement) &&
                         !(input instanceof HTMLTextAreaElement)
@@ -232,7 +264,7 @@ export const configureStandardForm = (
     }
 
     // On form submit, build and submit the request
-    form.addEventListener("submit", async (e: SubmitEvent): Promise<void> => {
+    form.addEventListener("submit", async (e): Promise<void> => {
         console.debug("configureStandardForm", "onSubmit", formAction)
         e.preventDefault()
 
@@ -256,8 +288,8 @@ export const configureStandardForm = (
 
         setPendingState(true)
 
-        if (clientValidationCallback) {
-            let clientValidationResult = clientValidationCallback(form)
+        if (options?.clientValidationCallback) {
+            let clientValidationResult = options.clientValidationCallback(form)
             if (clientValidationResult instanceof Promise) {
                 clientValidationResult = await clientValidationResult
             }
@@ -333,17 +365,32 @@ export const configureStandardForm = (
                 if (resp.ok) {
                     successCallback?.(data)
                 } else {
-                    errorCallback?.(new Error(detail ?? ""))
+                    options?.errorCallback?.(new Error(detail ?? ""))
                 }
             })
             .catch((error: Error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to submit standard form", error)
                 handleFormFeedback("error", error.message)
-                errorCallback?.(error)
+                options?.errorCallback?.(error)
             })
             .finally(() => {
                 setPendingState(false)
             })
     })
+}
+
+/** Find the scrollable container for the form */
+const findScrollableContainer = (element: Element): Element => {
+    let current = element.parentElement
+    while (current && current !== document.body) {
+        const style = window.getComputedStyle(current)
+        const overflowY = style.overflowY
+        if (overflowY === "auto" || overflowY === "scroll") {
+            return current
+        }
+        current = current.parentElement
+    }
+    // Fallback to window/document if no scrollable container found
+    return document.documentElement
 }

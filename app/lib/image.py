@@ -1,5 +1,8 @@
 import logging
-from asyncio import get_running_loop
+import warnings
+from asyncio import Lock, get_running_loop
+from contextlib import asynccontextmanager
+from functools import partial
 from pathlib import Path
 from typing import Literal, overload
 
@@ -8,9 +11,13 @@ import cython
 import numpy as np
 from cv2.typing import MatLike
 from numpy.typing import NDArray
+from PIL import Image as PILImage
 from sizestr import sizestr
+from transformers import ImageClassificationPipeline, pipeline
 
 from app.config import (
+    AI_MODELS_DIR,
+    AI_TRANSFORMERS_DEVICE,
     AVATAR_MAX_FILE_SIZE,
     AVATAR_MAX_MEGAPIXELS,
     AVATAR_MAX_RATIO,
@@ -34,6 +41,9 @@ AvatarType = Literal['anonymous_note', 'initials'] | UserAvatarType
 DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
 DEFAULT_USER_AVATAR = Path('app' + DEFAULT_USER_AVATAR_URL).read_bytes()
 DEFAULT_APP_AVATAR_URL = '/static/img/app.webp'
+
+_PIPE: ImageClassificationPipeline | None = None
+_PIPE_LOCK = Lock()
 
 
 class Image:
@@ -108,6 +118,27 @@ class Image:
         )
 
 
+@asynccontextmanager
+async def _get_pipeline():
+    global _PIPE
+    if _PIPE is None:
+        pipe_dir = AI_MODELS_DIR.joinpath('Freepik/nsfw_image_detector')
+        if not pipe_dir.is_dir():
+            warnings.warn(
+                'Skipping NSFW image detection: model not found (hint run: ai-models-download)',
+                stacklevel=1,
+            )
+            yield None
+            return
+        _PIPE = pipeline(  # pyright: ignore[reportConstantRedefinition]
+            'image-classification',
+            model=str(pipe_dir),
+            device=AI_TRANSFORMERS_DEVICE,
+        )
+    async with _PIPE_LOCK:
+        yield _PIPE
+
+
 async def _normalize_image(
     data: bytes,
     *,
@@ -158,6 +189,25 @@ async def _normalize_image(
             img_width = int(img_width / mp_ratio)
             img_height = int(img_height / mp_ratio)
             img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_AREA)
+
+    async with _get_pipeline() as pipe:
+        if pipe is not None:
+            with PILImage.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)) as img_pil:
+                loop = get_running_loop()
+                preds = await loop.run_in_executor(
+                    None, partial(pipe, img_pil, top_k=1)
+                )
+                # Example preds: [{'label': 'neutral', 'score': 0.92}, ...]
+
+            top = preds[0]
+            label: Literal['neutral', 'low', 'medium', 'high'] = top['label']
+            score: float = top['score']
+            logging.debug('NSFW image scan: %s=%.3f', label, score)
+            if label in {'medium', 'high'}:
+                from app.services.audit_service import audit  # noqa: PLC0415
+
+                await audit('nsfw_image', extra=top)
+                raise_for.image_inappropriate()
 
     # optimize file size
     quality, buffer = await _optimize_quality(img, max_file_size)

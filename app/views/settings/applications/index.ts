@@ -1,9 +1,9 @@
 import { Collapse } from "bootstrap"
+import { mount } from "../../lib/mount"
 import { qsEncode, qsParse } from "../../lib/qs"
 import { configureStandardForm } from "../../lib/standard-form"
 
-const body = document.querySelector("body.settings-applications-body")
-if (body) {
+mount("settings-applications-body", (body) => {
     // Fixup links in buttons
     const accordionButtons = body.querySelectorAll("button.accordion-button")
     for (const button of accordionButtons) {
@@ -17,7 +17,6 @@ if (body) {
         // On accordion button click, toggle the collapse if target is not a link
         button.addEventListener("click", ({ target }: Event) => {
             const tagName = (target as HTMLElement).tagName
-            console.debug("onAccordionButtonClick", tagName)
             if (tagName === "A") return
             collapseInstance.toggle()
         })
@@ -65,4 +64,4 @@ if (body) {
             window.location.href = `${window.location.pathname}?${qsEncode(searchParams)}${window.location.hash}`
         })
     }
-}
+})

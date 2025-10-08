@@ -1,6 +1,10 @@
 import logging
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from fastapi import UploadFile
+from psycopg import AsyncConnection
+from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
 
 from app.config import ENV, USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
@@ -14,14 +18,16 @@ from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
-from app.models.db.user import Editor, User, user_avatar_url, user_is_test
-from app.models.types import DisplayName, Email, LocaleCode, Password
+from app.models.db.user import Editor, User, UserRole, user_avatar_url, user_is_test
+from app.models.types import DisplayName, Email, LocaleCode, Password, UserId
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
+from app.services.audit_service import audit
 from app.services.image_service import ImageService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
-from app.services.user_token_email_change_service import UserTokenEmailChangeService
+from app.services.user_token_email_service import UserTokenEmailService
+from app.services.user_token_service import UserTokenService
 from app.validators.email import validate_email, validate_email_deliverability
 
 
@@ -41,10 +47,10 @@ class UserService:
             except ValueError:
                 user = None
             else:
-                user = await UserQuery.find_one_by_email(email)
+                user = await UserQuery.find_by_email(email)
         else:
             display_name = DisplayName(display_name_or_email)
-            user = await UserQuery.find_one_by_display_name(display_name)
+            user = await UserQuery.find_by_display_name(display_name)
 
         if user is None:
             logging.debug('User not found %r', display_name_or_email)
@@ -60,7 +66,7 @@ class UserService:
         )
 
         if not verification.success:
-            logging.debug('Password mismatch for user %d', user_id)
+            await audit('auth_fail', user_id=user_id, extra={'reason': 'password'})
             StandardFeedback.raise_error(
                 None, t('users.auth_failure.invalid_credentials')
             )
@@ -69,10 +75,17 @@ class UserService:
         if verification.schema_needed is not None:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
 
-        logging.debug('Authenticated user %d using credentials', user_id)
-        return await SystemAppService.create_access_token(
+        access_token = await SystemAppService.create_access_token(
             SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
         )
+        await audit(
+            'auth_web',
+            user_id=user_id,
+            extra={'login': True},
+            sample_rate=1,
+            discard_repeated=None,
+        )
+        return access_token
 
     @staticmethod
     async def update_description(
@@ -194,6 +207,8 @@ class UserService:
                 """,
                 (display_name, language, activity_tracking, crash_reporting, user_id),
             )
+            if display_name != user['display_name']:
+                await audit('change_display_name', conn, extra={'name': display_name})
 
     @staticmethod
     async def update_editor(
@@ -249,7 +264,7 @@ class UserService:
             StandardFeedback.raise_error('email', t('validation.invalid_email_address'))
 
         # TODO: send to old email too for security
-        await UserTokenEmailChangeService.send_email(new_email)
+        await UserTokenEmailService.send_email(new_email)
 
     @staticmethod
     async def update_password(
@@ -288,8 +303,7 @@ class UserService:
                 """,
                 (new_password_pb, user_id),
             )
-
-        logging.debug('Changed password for user %d', user_id)
+            await audit('change_password', conn)
 
     @staticmethod
     async def reset_password(
@@ -301,7 +315,7 @@ class UserService:
         """Reset the user password."""
         token_struct = UserTokenStructUtils.from_str(token)
 
-        user_token = await UserTokenQuery.find_one_by_token_struct(
+        user_token = await UserTokenQuery.find_by_token_struct(
             'reset_password', token_struct
         )
         if user_token is None:
@@ -341,14 +355,13 @@ class UserService:
                     (new_password_pb, user_id),
                 )
                 await conn.execute(
-                    """
-                    DELETE FROM user_token
-                    WHERE id = %s
-                    """,
+                    'DELETE FROM user_token WHERE id = %s',
                     (token_struct.id,),
                 )
 
-        logging.debug('Reset password for user %d', user_id)
+            await audit(
+                'change_password', conn, user_id=user_id, extra={'reason': 'reset'}
+            )
 
     @staticmethod
     async def update_timezone(timezone: str) -> None:
@@ -413,6 +426,137 @@ class UserService:
                 """,
                 (USER_PENDING_EXPIRE,),
             )
+
+    @staticmethod
+    async def admin_update_user(
+        *,
+        user_id: UserId,
+        display_name: DisplayName | None,
+        email: Email | None,
+        email_verified: bool,
+        new_password: Password | None,
+        roles: list[UserRole],
+    ) -> None:
+        roles.sort()
+        if 'administrator' in roles and 'moderator' in roles:
+            StandardFeedback.raise_error(
+                'roles', 'administrator and moderator roles cannot be used together'
+            )
+
+        user = await UserQuery.find_by_id(user_id)
+        if user is None:
+            StandardFeedback.raise_error(None, 'User not found')
+
+        assignments: list[Composable] = []
+        params: list[Any] = []
+        audits: list[Callable[[AsyncConnection], Awaitable[None]]] = []
+
+        if display_name is not None:
+            if not await UserQuery.check_display_name_available(
+                display_name, user=user
+            ):
+                StandardFeedback.raise_error(
+                    'display_name', t('validation.display_name_is_taken')
+                )
+            if (
+                user_is_test(user)
+                and display_name != user['display_name']
+                and ENV != 'dev'
+            ):
+                StandardFeedback.raise_error(
+                    'display_name', 'Changing test user display_name is disabled'
+                )
+
+            assignments.append(SQL('display_name = %s'))
+            params.append(display_name)
+            audits.append(
+                lambda conn: audit(
+                    'change_display_name',
+                    conn,
+                    target_user_id=user_id,
+                    extra={'name': display_name},
+                )
+            )
+
+        audit_email_extra = {}
+
+        if email is not None:
+            if user['email'] == email:
+                StandardFeedback.raise_error(
+                    'email', t('validation.new_email_is_current')
+                )
+            if user_is_test(user) and ENV != 'dev':
+                StandardFeedback.raise_error(
+                    'email', 'Changing test user email is disabled'
+                )
+            if not await UserQuery.check_email_available(email, user=user):
+                StandardFeedback.raise_error(
+                    'email', t('validation.email_address_is_taken')
+                )
+            if not await validate_email_deliverability(email):
+                StandardFeedback.raise_error(
+                    'email', t('validation.invalid_email_address')
+                )
+
+            assignments.append(SQL('email = %s'))
+            params.append(email)
+            audit_email_extra['email'] = email
+
+        if user['email_verified'] != email_verified:
+            assignments.append(SQL('email_verified = %s'))
+            params.append(email_verified)
+            audit_email_extra['verified'] = email_verified
+
+        if audit_email_extra:
+            audits.append(
+                lambda conn: audit(
+                    'change_email',
+                    conn,
+                    target_user_id=user_id,
+                    extra=audit_email_extra,
+                )
+            )
+
+        if new_password is not None:
+            assignments.append(SQL('password_pb = %s'))
+            assignments.append(SQL('password_updated_at = statement_timestamp()'))
+            new_password_pb = PasswordHash.hash(new_password)
+            assert new_password_pb is not None, (
+                'Provided password schemas cannot be used during admin_update_user'
+            )
+            params.append(new_password_pb)
+            audits.append(
+                lambda conn: audit(
+                    'change_password',
+                    conn,
+                    target_user_id=user_id,
+                )
+            )
+
+        if user['roles'] != roles:
+            assignments.append(SQL('roles = %s'))
+            params.append(roles)
+            audits.append(
+                lambda conn: audit(
+                    'change_roles',
+                    conn,
+                    target_user_id=user_id,
+                    extra={'roles': roles},
+                )
+            )
+
+        query = SQL('UPDATE "user" SET {} WHERE id = %s').format(
+            SQL(', ').join(assignments)
+        )
+        params.append(user_id)
+
+        async with db(True) as conn:
+            if ENV != 'test':  # Prevent admin user updates on the test instance
+                await conn.execute(query, params)
+                if email is not None:
+                    await UserTokenService.delete_all_for_user(conn, user_id)
+            for op in audits:
+                await op(conn)
 
 
 async def _rehash_user_password(user: User, password: Password) -> None:

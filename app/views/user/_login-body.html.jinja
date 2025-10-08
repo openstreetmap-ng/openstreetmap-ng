@@ -7,54 +7,65 @@
     </p>
 </div>
 
-<form class="login-form" method="POST" action="/api/web/user/login">
-    <label class="form-label d-block mb-2">
-        {{ t('sessions.new.email or username') | capitalize }}
-        <input type="text" class="form-control mt-2" name="display_name_or_email" autocomplete="username"
-            autocapitalize="none" {% if ENV != 'prod' %} data-bs-toggle="popover" data-bs-trigger="focus"
-            data-bs-placement="top" data-bs-title="Test Site Reminder"
-            data-bs-content="Use fake data only. Do not provide real email addresses. All emails go to mail.openstreetmap.ng"
-            {% endif %} required>
-    </label>
-
-    <label class="form-label d-block mb-3">
-        {{ t('sessions.new.password') }}
-        <input type="password" class="form-control mt-2" data-name="password" autocomplete="current-password" required>
-    </label>
-
-    <div class="d-flex justify-content-between align-items-center mx-1 mb-3">
-        <div class="form-check">
-            <label class="form-check-label">
-                <input class="form-check-input" type="checkbox" name="remember" value="True" autocomplete="off">
-                {{ t('sessions.new.remember') }}
+<div class="auth-switcher mb-2">
+    <div>
+        <form class="login-form" method="POST" action="/api/web/user/login">
+            <label class="form-label d-block mb-2">
+                {{ t('sessions.new.email or username') | capitalize }}
+                <input type="text" class="form-control mt-2" name="display_name_or_email" autocomplete="username"
+                    autocapitalize="none" {% if ENV != 'prod' %} data-bs-toggle="popover" data-bs-trigger="focus"
+                    data-bs-placement="top" data-bs-title="Test Site Reminder"
+                    data-bs-content="Use fake data only. Do not provide real email addresses. All emails go to mail.openstreetmap.ng"
+                    {% endif %} required>
             </label>
+
+            <label class="form-label d-block mb-3">
+                {{ t('sessions.new.password') }}
+                <input type="password" class="form-control mt-2" data-name="password" autocomplete="current-password"
+                    required>
+            </label>
+
+            <div class="d-flex justify-content-between align-items-center mx-1 mb-3">
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" name="remember" value="True" autocomplete="off">
+                        {{ t('sessions.new.remember') }}
+                    </label>
+                </div>
+                <a class="link-primary small" href="/reset-password">
+                    {{ t('sessions.new.lost password link') }}
+                </a>
+            </div>
+
+            <button class="btn btn-primary w-100 fw-medium" type="submit">{{ t('login.sign_in') }}</button>
+        </form>
+
+        <div class="divider my-3">
+            <span class="divider-text">{{ t('login.or_continue_with') }}</span>
         </div>
-        <a class="link-primary small" href="/reset-password">
-            {{ t('sessions.new.lost password link') }}
-        </a>
+
+        <button type="button" class="passkey-btn btn btn-light border w-100">
+            <img class="dark-filter-invert" src="/static/img/brand/passkeys-black.webp"
+                alt="{{ t('alt.passkey_icon') }}" draggable="false" loading="lazy">
+            {{ t('login.sign_in_with_a_passkey') }}
+        </button>
     </div>
 
-    <button class="btn btn-primary w-100 fw-medium" type="submit">{{ t('login.sign_in') }}</button>
-</form>
+    <div>
+        {% set providers_action = 'login' %}
+        {% set providers_include_referer = true %}
+        {% include 'user/_providers' %}
+    </div>
 
-<div class="divider my-3">
-    <span class="divider-text">{{ t('login.or_continue_with') }}</span>
 </div>
 
-<button type="button" class="passkey-btn btn btn-light border w-100 mb-4">
-    <img class="dark-filter-invert" src="/static/img/brand/passkeys-black.webp" alt="{{ t('alt.passkey_icon') }}"
-        draggable="false" loading="lazy">
-    {{ t('login.sign_in_with_a_passkey') }}
-</button>
-
-<div class="auth-providers d-flex justify-content-center gap-3 gap-sm-4 mb-3">
-    {% for service in CONFIGURED_AUTH_PROVIDERS %}
-    <form method="POST" action="/oauth2/{{ service }}/authorize">
-        <input type="hidden" name="referer" required>
-        <button type="submit" class="btn btn-link border" title="{{ t('service.' ~ service ~ '.title') }}" name="action"
-            value="login">
-            <img src="/static/img/brand/{{ service }}.webp" draggable="false" loading="lazy">
-        </button>
-    </form>
-    {% endfor %}
+<div class="auth-switcher-cta">
+    <button type="button" class="btn btn-link" data-auth-switcher-target="providers">
+        <i class="bi bi-list me-1-5"></i>
+        {{- t('auth_switcher.sign_in_with_a_provider') -}}
+    </button>
+    <button type="button" class="btn btn-link d-none" data-auth-switcher-target="email">
+        <i class="bi bi-chevron-left small me-1"></i>
+        {{- t('action.go_back') -}}
+    </button>
 </div>

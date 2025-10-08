@@ -1,3 +1,5 @@
+@use "sass:color";
+
 .navbar {
     @extend .bg-body;
     z-index: 1005; // leaflet controls are 1000
@@ -12,6 +14,46 @@
         }
     }
 
+    .map-actions {
+        $_background: $body-bg;
+        $_border: color.mix($green, $body-bg, 70%);
+        $_color: color.mix($green, $body-color, 70%);
+        .btn {
+            @extend .fw-semibold;
+            @extend .d-inline-flex;
+            @extend .align-items-center;
+            @extend .justify-content-center;
+            @include button-variant(
+                $_background,
+                $_border,
+                $_color,
+                $hover-background: $green,
+                $hover-border: $green,
+                $active-background: shade-color($green, $btn-active-bg-shade-amount),
+                $active-border: shade-color($green, $btn-active-border-shade-amount),
+                $disabled-color: $_color
+            );
+            --bs-btn-border-radius: var(--bs-border-radius-lg);
+            --bs-btn-disabled-opacity: 0.5;
+            --bs-btn-line-height: 1.25;
+            --bs-btn-padding-x: 0.825rem;
+        }
+
+        .edit-group .dropdown-toggle-split {
+            --bs-btn-padding-x: 0.5rem;
+        }
+
+        .edit-group.disabled .edit-link {
+            cursor: not-allowed;
+        }
+
+        .dropdown-menu {
+            @extend .shadow;
+            @extend .rounded-3;
+            border: 1px solid $_border;
+        }
+    }
+
     .edit-link img {
         margin-left: 0.15em;
         position: relative;
@@ -21,8 +63,8 @@
     }
 
     .edit-link.default img {
-        margin-left: 0.2em;
-        top: -2px;
+        margin-left: 0.5rem;
+        top: 0;
         width: 20px;
         height: 20px;
         filter: grayscale(10%);
@@ -54,6 +96,14 @@
 
         &:has(.navbar-collapse.show) {
             border-bottom: 2px solid var(--bs-dark-bg-subtle);
+        }
+
+        .map-actions {
+            width: 100%;
+
+            .btn {
+                flex: 1 1 auto;
+            }
         }
     }
 }
@@ -120,6 +170,27 @@
     }
 
     .navbar {
+        .map-actions {
+            $_background: color.mix($green, $body-bg-dark, 10%);
+            $_border: color.mix($green, $body-bg-dark, 40%);
+            $_color: color.mix($green, $body-color-dark, 40%);
+            $_hover-color: color.mix($green, $body-color-dark, 10%);
+            .btn {
+                @include button-variant(
+                    $_background,
+                    $_border,
+                    $_color,
+                    $hover-color: $_hover-color,
+                    $active-color: $_hover-color,
+                    $disabled-color: $_color
+                );
+            }
+
+            .dropdown-menu {
+                border: 1px solid $_border;
+            }
+        }
+
         .edit-link.default img.dark-filter-invert {
             filter: grayscale(10%) invert(1);
         }

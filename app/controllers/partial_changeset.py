@@ -25,7 +25,7 @@ router = APIRouter(prefix='/partial/changeset')
 
 @router.get('/{id:int}')
 async def get_changeset(id: ChangesetId):
-    changeset = await ChangesetQuery.find_one_by_id(id)
+    changeset = await ChangesetQuery.find_by_id(id)
     if changeset is None:
         return await render_response(
             'partial/not-found',
@@ -35,7 +35,7 @@ async def get_changeset(id: ChangesetId):
 
     async def elements_task():
         return await FormatElementList.changeset_elements(
-            await ElementQuery.get_by_changeset(id, sort_by='typed_id'),
+            await ElementQuery.find_by_changeset(id, sort_by='typed_id'),
         )
 
     async def adjacent_task():
@@ -43,7 +43,7 @@ async def get_changeset(id: ChangesetId):
         changeset_user_id = changeset['user_id']
         if changeset_user_id is None:
             return None, None
-        return await ChangesetQuery.get_user_adjacent_ids(id, user_id=changeset_user_id)
+        return await ChangesetQuery.find_adjacent_ids(id, user_id=changeset_user_id)
 
     async with TaskGroup() as tg:
         items = [changeset]

@@ -1,50 +1,71 @@
 from base64 import urlsafe_b64encode
+from collections import OrderedDict
 from collections.abc import Callable
-from functools import lru_cache
 from hashlib import sha256
 from hmac import compare_digest
 from typing import TypeVar
 
 import cython
 from blake3 import blake3
-from Cryptodome.Cipher import AES
 
-from app.config import SECRET_32
+from app.config import (
+    CRYPTO_HASH_CACHE_MAX_ENTRIES,
+    CRYPTO_HASH_CACHE_SIZE_LIMIT,
+    SECRET_32,
+)
 from app.models.types import StorageKey
-from speedup.buffered_rand import buffered_randbytes
 
 _T = TypeVar('_T')
 
 
 @cython.cfunc
-def _hash(s: str | bytes, key: bytes | None):
-    return blake3(s.encode() if isinstance(s, str) else s, key=key)  # pyright: ignore [reportArgumentType]
+def _hash(
+    s: str | bytes,
+    key: bytes | None,
+    *,
+    CRYPTO_HASH_CACHE_MAX_ENTRIES: cython.Py_ssize_t = CRYPTO_HASH_CACHE_MAX_ENTRIES,
+    CRYPTO_HASH_CACHE_SIZE_LIMIT: cython.Py_ssize_t = CRYPTO_HASH_CACHE_SIZE_LIMIT,
+    _CACHE=OrderedDict[tuple[str | bytes, bytes | None], bytes](),  # type: ignore  # noqa
+) -> bytes:
+    cache_key = (s, key)
+
+    # Check cache first
+    result = _CACHE.get(cache_key)
+    if result is not None:
+        _CACHE.move_to_end(cache_key)
+        return result
+
+    # Compute hash
+    result = blake3(s.encode() if isinstance(s, str) else s, key=key).digest()  # pyright: ignore[reportArgumentType]
+
+    # Cache if below size limit
+    if len(s) < CRYPTO_HASH_CACHE_SIZE_LIMIT:
+        _CACHE[cache_key] = result
+        if len(_CACHE) > CRYPTO_HASH_CACHE_MAX_ENTRIES:
+            _CACHE.popitem(last=False)
+
+    return result
 
 
 def hash_bytes(s: str | bytes) -> bytes:
     """Hash the input and return the bytes digest."""
-    return _hash(s, None).digest()
+    return _hash(s, None)
 
 
-def hash_hex(s: str | bytes) -> str:
-    """Hash the input and return the hex digest."""
-    return _hash(s, None).hexdigest()
-
-
-def hash_urlsafe(s: str | bytes) -> str:
+@cython.cfunc
+def _hash_urlsafe(s: str | bytes) -> str:
     """Hash the input and return the URL-safe digest."""
-    return urlsafe_b64encode(_hash(s, None).digest()).rstrip(b'=').decode()
+    return urlsafe_b64encode(_hash(s, None)).rstrip(b'=').decode()
 
 
-@lru_cache(maxsize=1024)
 def hash_storage_key(s: str | bytes, suffix: str = '') -> StorageKey:
     """Hash the input and return the storage key."""
-    return StorageKey(hash_urlsafe(s) + suffix)
+    return StorageKey(_hash_urlsafe(s) + suffix)
 
 
 def hmac_bytes(s: str | bytes) -> bytes:
     """Compute a keyed hash of the input and return the bytes digest."""
-    return _hash(s, SECRET_32.get_secret_value()).digest()
+    return _hash(s, SECRET_32.get_secret_value())
 
 
 def hash_compare(
@@ -62,29 +83,29 @@ def hash_s256_code_challenge(verifier: str) -> str:
     return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')
 
 
-def encrypt(s: str) -> bytes:
-    """Encrypt a string using AES-CTR."""
-    assert s, 'Empty string must not be encrypted'
-    nonce = buffered_randbytes(15)  # +1 byte for the counter
-    cipher = AES.new(key=SECRET_32.get_secret_value(), mode=AES.MODE_CTR, nonce=nonce)
-    cipher_text_bytes = cipher.encrypt(s.encode())
-    return b''.join((b'\x00', nonce, cipher_text_bytes))
+# def encrypt(s: str) -> bytes:
+#     """Encrypt a string using AES-CTR."""
+#     assert s, 'Empty string must not be encrypted'
+#     nonce = buffered_randbytes(15)  # +1 byte for the counter
+#     cipher = AES.new(key=SECRET_32.get_secret_value(), mode=AES.MODE_CTR, nonce=nonce)
+#     cipher_text_bytes = cipher.encrypt(s.encode())
+#     return b''.join((b'\x00', nonce, cipher_text_bytes))
 
 
-def decrypt(buffer: bytes) -> str:
-    """Decrypt an encrypted buffer."""
-    if not buffer:
-        return ''
+# def decrypt(buffer: bytes) -> str:
+#     """Decrypt an encrypted buffer."""
+#     if not buffer:
+#         return ''
 
-    marker = buffer[0]
-    if marker == 0x00:
-        nonce_bytes = buffer[1:16]
-        cipher_text_bytes = buffer[16:]
-        cipher = AES.new(
-            key=SECRET_32.get_secret_value(),
-            mode=AES.MODE_CTR,
-            nonce=nonce_bytes,
-        )
-        return cipher.decrypt(cipher_text_bytes).decode()
+#     marker = buffer[0]
+#     if marker == 0x00:
+#         nonce_bytes = buffer[1:16]
+#         cipher_text_bytes = buffer[16:]
+#         cipher = AES.new(
+#             key=SECRET_32.get_secret_value(),
+#             mode=AES.MODE_CTR,
+#             nonce=nonce_bytes,
+#         )
+#         return cipher.decrypt(cipher_text_bytes).decode()
 
-    raise NotImplementedError(f'Unsupported encryption marker {marker!r}')
+#     raise NotImplementedError(f'Unsupported encryption marker {marker!r}')

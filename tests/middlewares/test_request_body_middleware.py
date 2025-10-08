@@ -224,4 +224,4 @@ async def test_size_limit_after_decompression(
     )
 
     # Verify response
-    assert r.status_code == status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, r.text
+    assert r.status_code == status.HTTP_413_CONTENT_TOO_LARGE, r.text

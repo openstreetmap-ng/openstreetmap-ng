@@ -8,7 +8,7 @@ import {
 import type { OSMObject } from "../../types"
 import { renderObjects } from "../render-objects"
 import {
-    getLngLatBoundsIntersection,
+    checkLngLatBoundsIntersection,
     getLngLatBoundsSize,
     padLngLatBounds,
 } from "../utils"
@@ -140,7 +140,7 @@ export const focusObjects = (
 
         if (
             options?.intersects
-                ? getLngLatBoundsIntersection(mapBounds, bounds).isEmpty()
+                ? !checkLngLatBoundsIntersection(mapBounds, bounds)
                 : !(
                       mapBounds.contains(bounds.getSouthWest()) &&
                       mapBounds.contains(bounds.getNorthEast())

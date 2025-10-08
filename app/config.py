@@ -3,12 +3,13 @@ from hashlib import sha256
 from logging.config import dictConfig
 from os import chdir
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 from urllib.parse import urlsplit
 
 from githead import githead
 from pydantic import (
     AliasChoices,
+    BaseModel,
     BeforeValidator,
     ByteSize,
     ConfigDict,
@@ -20,6 +21,9 @@ from pydantic import (
 
 from app.lib.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
 from app.lib.pydantic_settings_integration import pydantic_settings_integration
+
+if TYPE_CHECKING:
+    from app.models.db.audit import AuditType
 
 
 def _ByteSize(v: str) -> ByteSize:  # noqa: N802
@@ -70,6 +74,7 @@ LOG_LEVEL: Literal['DEBUG', 'INFO', 'WARNING'] | None = None
 LEGACY_HIGH_PRECISION_TIME = False
 
 # Storage paths
+AI_MODELS_DIR: _MakeDir = Path('data/models')
 FILE_CACHE_DIR: _MakeDir = Path('data/cache')
 FILE_CACHE_SIZE = _ByteSize('128 GiB')
 PLANET_DIR: _MakeDir = Path('data/planet')
@@ -86,6 +91,9 @@ DUCKDB_TMPDIR: DirectoryPath | None = None
 
 # Replication processing
 REPLICATION_CONVERT_ELEMENT_BATCH_SIZE = 500_000_000
+
+# AI settings
+AI_TRANSFORMERS_DEVICE = -1
 
 # -------------------- API and Services Integration --------------------
 
@@ -176,7 +184,7 @@ OAUTH_APP_NAME_MAX_LENGTH = 50
 OAUTH_APP_URI_LIMIT = 10
 OAUTH_APP_URI_MAX_LENGTH = 1000
 OAUTH_AUTH_USER_LIMIT = 500  # TODO: revoke oldest authorizations
-OAUTH_AUTHORIZATION_CODE_TIMEOUT = timedelta(minutes=3)  # TODO: cleanup periodically
+OAUTH_AUTHORIZATION_CODE_TIMEOUT = timedelta(minutes=3)
 OAUTH_CODE_CHALLENGE_MAX_LENGTH = 255
 OAUTH_PAT_LIMIT = 100
 OAUTH_PAT_NAME_MAX_LENGTH = 50
@@ -294,7 +302,7 @@ DIARY_TITLE_MAX_LENGTH = 255
 DIARY_BODY_MAX_LENGTH = 100_000  # Q95: 1745, Q99: 3646, Q99.9: 10864, Q100: 636536
 DIARY_COMMENT_BODY_MAX_LENGTH = 5_000
 DIARY_LIST_PAGE_SIZE = 15
-DIARY_COMMENTS_PAGE_SIZE = 15
+DIARY_COMMENTS_PAGE_SIZE = 10
 LOCALE_CODE_MAX_LENGTH = 15
 
 # Messages
@@ -305,15 +313,101 @@ MESSAGES_INBOX_PAGE_SIZE = 50
 
 # -------------------- Administration --------------------
 
-# Task management
+
+class _AuditPolicies(BaseModel):
+    class Policy(BaseModel):
+        retention: timedelta
+        discard_repeated: timedelta | None = None
+        sample_rate: float = 1.0
+
+        def __init__(
+            self,
+            /,
+            retention: timedelta | float,
+            discard_repeated: timedelta | None = None,
+            **data,
+        ) -> None:
+            super().__init__(
+                retention=(
+                    retention
+                    if isinstance(retention, timedelta)
+                    else timedelta(days=retention)
+                ),
+                discard_repeated=discard_repeated,
+                **data,
+            )
+
+    add_connected_account: Policy = Policy(30)
+    admin_task: Policy = Policy(60)
+    auth_api: Policy = Policy(14, timedelta(days=1), sample_rate=0.05)
+    auth_fail: Policy = Policy(30, timedelta(minutes=10))
+    auth_web: Policy = Policy(14, timedelta(days=1), sample_rate=0.05)
+    authorize_app: Policy = Policy(30)
+    change_app_settings: Policy = Policy(60)
+    change_display_name: Policy = Policy(60)
+    change_email: Policy = Policy(60)
+    change_password: Policy = Policy(30)
+    change_roles: Policy = Policy(60)
+    close_changeset: Policy = Policy(30)
+    create_app: Policy = Policy(60)
+    create_changeset_comment: Policy = Policy(30)
+    create_changeset: Policy = Policy(30)
+    create_diary_comment: Policy = Policy(30)
+    create_diary: Policy = Policy(30)
+    create_note_comment: Policy = Policy(30)
+    create_note: Policy = Policy(30)
+    create_pat: Policy = Policy(30)
+    create_trace: Policy = Policy(14)
+    delete_diary: Policy = Policy(30)
+    delete_prefs: Policy = Policy(30)
+    delete_trace: Policy = Policy(14)
+    edit_map: Policy = Policy(14)
+    impersonate: Policy = Policy(60)
+    nsfw_image: Policy = Policy(30, timedelta(minutes=10))
+    rate_limit: Policy = Policy(14, timedelta(hours=6), sample_rate=0.05)
+    remove_connected_account: Policy = Policy(30)
+    request_change_email: Policy = Policy(14)
+    request_reset_password: Policy = Policy(14)
+    revoke_app_all_users: Policy = Policy(30)
+    revoke_app: Policy = Policy(30)
+    send_message: Policy = Policy(30)
+    update_changeset: Policy = Policy(30)
+    update_diary: Policy = Policy(30)
+    update_note_status: Policy = Policy(30)
+    update_prefs: Policy = Policy(30)
+    update_trace: Policy = Policy(14)
+    view_admin_applications: Policy = Policy(60, timedelta(hours=6))
+    view_admin_users: Policy = Policy(60, timedelta(hours=6))
+    view_audit: Policy = Policy(60, timedelta(hours=6))
+
+    def __getitem__(self, item: 'AuditType') -> Policy:
+        return getattr(self, item)
+
+
+# Audit
+AUDIT_POLICY = _AuditPolicies()
+AUDIT_LIST_PAGE_SIZE = 50
+AUDIT_USER_AGENT_MAX_LENGTH = 200
+
+# Admin tasks
 ADMIN_TASK_HEARTBEAT_INTERVAL = timedelta(minutes=1)
 ADMIN_TASK_TIMEOUT = timedelta(minutes=3)
+
+# Admin lists
+ADMIN_USER_EXPORT_LIMIT = 1_000_000
+ADMIN_USER_LIST_PAGE_SIZE = 50
+ADMIN_APPLICATION_EXPORT_LIMIT = 1_000_000
+ADMIN_APPLICATION_LIST_PAGE_SIZE = 50
 
 # -------------------- Caching and Performance --------------------
 
 # General cache settings
 CACHE_DEFAULT_EXPIRE = timedelta(days=3)
+CRYPTO_HASH_CACHE_MAX_ENTRIES = 2048
+CRYPTO_HASH_CACHE_SIZE_LIMIT = 2048
 FILE_CACHE_LOCK_TIMEOUT = timedelta(seconds=15)
+FILE_CACHE_MEMORY_MAX_ENTRIES = 1024
+FILE_CACHE_MEMORY_MAX_VALUE_SIZE = _ByteSize('256 KiB')
 
 # External service caches
 DNS_CACHE_EXPIRE = timedelta(minutes=10)
@@ -333,6 +427,7 @@ INITIALS_CACHE_MAX_AGE = timedelta(days=7)
 RICH_TEXT_CACHE_EXPIRE = timedelta(hours=8)
 STATIC_CACHE_MAX_AGE = timedelta(days=30)
 STATIC_CACHE_STALE = timedelta(days=30)
+STATIC_PRECOMPRESSED_CACHE_MAX_ENTRIES = 1024
 
 pydantic_settings_integration(__name__, globals())
 

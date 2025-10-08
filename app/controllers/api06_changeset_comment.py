@@ -57,7 +57,7 @@ async def changeset_unsubscribe(
 
 
 async def _get_response(changeset_id: ChangesetId):
-    changeset = await ChangesetQuery.find_one_by_id(changeset_id)
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
     assert changeset is not None
     changesets = [changeset]
 

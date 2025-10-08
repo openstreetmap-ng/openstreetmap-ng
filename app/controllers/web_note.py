@@ -27,7 +27,7 @@ from app.services.note_service import NoteService
 router = APIRouter(prefix='/api/web/note')
 
 
-@router.post('/')
+@router.post('')
 async def create_note(
     lon: Annotated[Longitude, Form()],
     lat: Annotated[Latitude, Form()],
@@ -54,7 +54,7 @@ async def get_map(bbox: Annotated[str, Query()]):
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
         raise_for.notes_query_area_too_big()
 
-    notes = await NoteQuery.find_many_by_query(
+    notes = await NoteQuery.find(
         geometry=geometry,
         max_closed_days=NOTE_QUERY_DEFAULT_CLOSED,
         sort_by='updated_at',
@@ -78,7 +78,7 @@ async def comments_page(
     page: Annotated[PositiveInt, Query()],
     num_items: Annotated[PositiveInt, Query()],
 ):
-    comments = await NoteCommentQuery.get_comments_page(
+    comments = await NoteCommentQuery.find_comments_page(
         note_id, page=page, num_items=num_items
     )
 
@@ -98,7 +98,7 @@ async def user_notes_page(
     status: Annotated[Literal['', 'open', 'closed'], Query()],
 ):
     open = status == 'open' if status else None
-    notes = await NoteQuery.get_user_notes_page(
+    notes = await NoteQuery.find_user_page(
         user_id,
         page=page,
         num_items=num_items,

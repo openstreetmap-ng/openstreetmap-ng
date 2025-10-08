@@ -1,8 +1,8 @@
 import { t } from "i18next"
+import { mount } from "../lib/mount"
 import { configureStandardForm } from "../lib/standard-form"
 
-const body = document.querySelector("body.traces-edit-body")
-if (body) {
+mount("traces-edit-body", (body) => {
     const updateForm = body.querySelector("form.update-form")
     configureStandardForm(updateForm, ({ trace_id }) => {
         // On success callback, navigate to the trace details
@@ -24,4 +24,4 @@ if (body) {
             event.preventDefault()
         }
     })
-}
+})

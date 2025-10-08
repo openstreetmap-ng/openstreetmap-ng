@@ -11,6 +11,12 @@
         padding-right: unset;
         flex-grow: 1;
 
+        // On desktop, keep overall page static and
+        // let only the right pane scroll.
+        @include media-breakpoint-up(xl) {
+            overflow: hidden;
+        }
+
         > .row {
             height: 100%;
         }
@@ -89,11 +95,28 @@
     .signup-content {
         display: flex;
         align-items: center;
-        border-top: 3rem solid var(--bs-tertiary-bg);
-        padding: 1.5rem 4rem 3rem;
+        border-top: 2.5rem solid var(--bs-tertiary-bg);
+        padding: 2rem;
 
-        @include media-breakpoint-down(sm) {
-            padding: 1.5rem 2rem 3rem;
+        @include media-breakpoint-up(xl) {
+            border-top: 0;
+            padding: 0 4rem 2rem;
+
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            flex-direction: column;
+            align-items: start;
+
+            &::before {
+                content: "";
+                flex: 0 0 auto;
+                width: calc(100% + 8rem);
+                height: 3rem;
+                margin: 0 -4rem 1.5rem;
+                background: var(--bs-tertiary-bg);
+            }
         }
     }
 
@@ -118,32 +141,6 @@
             background: $modal-content-bg;
             padding: 0 1rem;
             font-size: 0.875rem;
-        }
-    }
-
-    .auth-providers {
-        .btn {
-            padding: unset;
-            overflow: hidden;
-            transition: box-shadow 0.08s ease-out;
-
-            img {
-                width: 3em;
-                height: 3em;
-                opacity: 0.9;
-                transition:
-                    opacity 0.08s ease-out,
-                    filter 0.08s ease-out;
-            }
-
-            &:hover {
-                box-shadow: 0 0 0 0.25rem rgba($primary, 0.2);
-
-                img {
-                    opacity: 1;
-                    filter: saturate(1.1);
-                }
-            }
         }
     }
 }

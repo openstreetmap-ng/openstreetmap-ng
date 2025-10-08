@@ -27,7 +27,7 @@ class UserTokenInit(TypedDict):
     id: UserTokenId
     type: UserTokenType
     user_id: UserId
-    user_email_hashed: bytes  # TODO: email change expire all tokens
+    user_email_hashed: bytes
     token_hashed: bytes
 
     # runtime
@@ -38,11 +38,11 @@ class UserToken(UserTokenInit):
     created_at: datetime
 
 
-class UserTokenEmailChangeInit(UserTokenInit):
-    email_change_new: Email
+class UserTokenEmailInit(UserTokenInit):
+    email_change_new: Email | None
 
 
-class UserTokenEmailChange(UserTokenEmailChangeInit, UserToken):
+class UserTokenEmail(UserTokenEmailInit, UserToken):
     pass
 
 

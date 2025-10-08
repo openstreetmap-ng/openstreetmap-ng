@@ -1,9 +1,9 @@
 import asyncio
 import logging
-import random
 from asyncio import Event, TaskGroup
 from contextlib import asynccontextmanager
 from datetime import datetime
+from random import uniform
 from time import monotonic
 
 from sentry_sdk.api import start_transaction
@@ -18,10 +18,14 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
-from app.lib.sentry import SENTRY_CHANGESET_MANAGEMENT_MONITOR
+from app.lib.sentry import (
+    SENTRY_CHANGESET_MANAGEMENT_MONITOR,
+    SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG,
+)
 from app.lib.testmethod import testmethod
 from app.models.db.changeset import ChangesetInit
 from app.models.types import ChangesetId, UserId
+from app.services.audit_service import audit
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -39,9 +43,8 @@ class ChangesetService:
             'tags': tags,
         }
 
-        async with (
-            db(True) as conn,
-            await conn.execute(
+        async with db(True) as conn:
+            async with await conn.execute(
                 """
                 INSERT INTO changeset (
                     user_id, tags
@@ -52,11 +55,11 @@ class ChangesetService:
                 RETURNING id
                 """,
                 changeset_init,
-            ) as r,
-        ):
-            changeset_id: ChangesetId = (await r.fetchone())[0]  # type: ignore
+            ) as r:
+                changeset_id: ChangesetId = (await r.fetchone())[0]  # type: ignore
 
-        logging.debug('Created changeset %d by user %d', changeset_id, user_id)
+            await audit('create_changeset', conn, extra={'id': changeset_id})
+
         await UserSubscriptionService.subscribe('changeset', changeset_id)
         return changeset_id
 
@@ -96,8 +99,7 @@ class ChangesetService:
                 """,
                 (tags, changeset_id),
             )
-
-        logging.debug('Updated changeset tags for %d by user %d', changeset_id, user_id)
+            await audit('update_changeset', conn, extra={'id': changeset_id})
 
     @staticmethod
     async def close(changeset_id: ChangesetId) -> None:
@@ -135,8 +137,7 @@ class ChangesetService:
                 """,
                 (changeset_id,),
             )
-
-        logging.debug('Closed changeset %d by user %d', changeset_id, user_id)
+            await audit('close_changeset', conn, extra={'id': changeset_id})
 
     @staticmethod
     @asynccontextmanager
@@ -190,18 +191,20 @@ async def _process_task() -> None:
                 ts = monotonic()
                 with (
                     SENTRY_CHANGESET_MANAGEMENT_MONITOR,
-                    start_transaction(op='task', name='changeset-management'),
+                    start_transaction(
+                        op='task', name=SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG
+                    ),
                 ):
                     await _close_inactive()
                     await _delete_empty()
                 tt = monotonic() - ts
 
                 # on success, sleep ~1min
-                await sleep(random.uniform(50, 70) - tt)
+                await sleep(uniform(50, 70) - tt)
 
         if not acquired:
             # on failure, sleep ~1h
-            await sleep(random.uniform(1800, 5400))
+            await sleep(uniform(0.5 * 3600, 1.5 * 3600))
 
 
 async def _close_inactive() -> None:

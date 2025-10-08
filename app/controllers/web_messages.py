@@ -17,7 +17,7 @@ from app.validators.display_name import DisplayNameNormalizing
 router = APIRouter(prefix='/api/web/messages')
 
 
-@router.post('/')
+@router.post('')
 async def send_message(
     _: Annotated[User, web_user()],
     subject: Annotated[str, Form(min_length=1, max_length=MESSAGE_SUBJECT_MAX_LENGTH)],

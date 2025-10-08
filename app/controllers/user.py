@@ -95,7 +95,7 @@ async def reset_password(
     # TODO: check errors
     token_struct = UserTokenStructUtils.from_str(token)
 
-    user_token = await UserTokenQuery.find_one_by_token_struct(
+    user_token = await UserTokenQuery.find_by_token_struct(
         'reset_password', token_struct, check_email_hash=False
     )
     if user_token is None:
@@ -132,7 +132,7 @@ async def permalink(
     user_id: UserId,
     suffix: str,
 ):
-    user = await UserQuery.find_one_by_id(user_id)
+    user = await UserQuery.find_by_id(user_id)
     if user is None:
         raise_for.user_not_found(user_id)
 
@@ -147,7 +147,7 @@ async def permalink(
 async def index(
     display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
 ):
-    user = await UserQuery.find_one_by_display_name(display_name)
+    user = await UserQuery.find_by_display_name(display_name)
     if user is None:
         return await render_response(
             'user/profile/not-found',
@@ -162,7 +162,7 @@ async def index(
     is_new_user = account_age < timedelta(days=USER_NEW_DAYS)
 
     async def changesets_task():
-        changesets = await ChangesetQuery.find_many_by_query(
+        changesets = await ChangesetQuery.find(
             user_ids=[user_id],
             sort='desc',
             limit=USER_RECENT_ACTIVITY_ENTRIES,
@@ -171,7 +171,7 @@ async def index(
         return changesets
 
     async def notes_task(tg: TaskGroup):
-        notes = await NoteQuery.find_many_by_query(
+        notes = await NoteQuery.find(
             user_id=user_id,
             event='opened',
             sort_by='updated_at',
@@ -187,7 +187,7 @@ async def index(
         return notes
 
     async def traces_task():
-        traces = await TraceQuery.find_many_recent(
+        traces = await TraceQuery.find_recent(
             user_id=user_id,
             limit=USER_RECENT_ACTIVITY_ENTRIES,
         )
@@ -195,7 +195,7 @@ async def index(
         return traces
 
     async def diaries_task():
-        diaries = await DiaryQuery.find_many_recent(
+        diaries = await DiaryQuery.find_recent(
             user_id=user_id,
             limit=USER_RECENT_ACTIVITY_ENTRIES,
         )

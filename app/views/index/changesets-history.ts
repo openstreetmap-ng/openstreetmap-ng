@@ -22,11 +22,13 @@ import {
     renderObjects,
 } from "../lib/map/render-objects.ts"
 import {
+    checkLngLatBoundsIntersection,
     getLngLatBoundsIntersection,
     getLngLatBoundsSize,
     lngLatBoundsEqual,
     makeBoundsMinimumSize,
     padLngLatBounds,
+    unionBounds,
 } from "../lib/map/utils"
 import {
     type RenderChangesetsData_Changeset,
@@ -34,10 +36,10 @@ import {
 } from "../lib/proto/shared_pb"
 import { qsEncode, qsParse } from "../lib/qs"
 import { setPageTitle } from "../lib/title"
-import type { OSMChangeset } from "../lib/types"
+import type { Bounds, OSMChangeset } from "../lib/types"
 import { darkenColor, requestAnimationFramePolyfill, throttle } from "../lib/utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./_router"
+import type { IndexController, RouteLoadReason } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
 const fadeSpeed = 0.2
@@ -114,6 +116,7 @@ layersConfig.set(layerId, {
     priority: 121,
 })
 
+const focusHoverDelay = 1000
 const loadMoreScrollBuffer = 1000
 const reloadProportionThreshold = 0.9
 
@@ -142,8 +145,47 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const idChangesetMap = new Map<string, RenderChangesetsData_Changeset>()
     const idFirstFeatureIdMap = new Map<string, number>()
     const idSidebarMap = new Map<string, HTMLElement>()
+    let visibleChangesetsBounds: LngLatBounds | null = null
     let hiddenBefore = 0
     let hiddenAfter = 0
+    let sidebarHoverTimer: ReturnType<typeof setTimeout> | null = null
+    let sidebarHoverId: string | null = null
+    let shouldFitOnInitialLoad = false
+
+    const cancelSidebarHoverFit = (): void => {
+        clearTimeout(sidebarHoverTimer)
+        sidebarHoverId = null
+    }
+
+    const changesetIsWithinView = (changesetId: string): boolean => {
+        const cs = idChangesetMap.get(changesetId)
+        const mapBounds = map.getBounds()
+        for (const b of cs.bounds) {
+            const csBounds = new LngLatBounds([b.minLon, b.minLat, b.maxLon, b.maxLat])
+            if (checkLngLatBoundsIntersection(mapBounds, csBounds)) return true
+        }
+        return false
+    }
+
+    const scheduleSidebarFit = (changesetId: string): void => {
+        clearTimeout(sidebarHoverTimer)
+        sidebarHoverId = changesetId
+        sidebarHoverTimer = setTimeout(() => {
+            if (
+                // Ensure the item is currently rendered in the map layers
+                !idFirstFeatureIdMap.has(changesetId) ||
+                changesetIsWithinView(changesetId) ||
+                !visibleChangesetsBounds
+            )
+                return
+            console.debug("Fitting map to visible changesets after sidebar hover")
+            map.fitBounds(
+                padLngLatBounds(visibleChangesetsBounds, 0.3),
+                { maxZoom: 16 },
+                { skipUpdateState: true },
+            )
+        }, focusHoverDelay)
+    }
 
     const resetChangesets = (): void => {
         console.debug("resetChangesets")
@@ -155,6 +197,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         idChangesetMap.clear()
         idSidebarMap.clear()
         idFirstFeatureIdMap.clear()
+        visibleChangesetsBounds = null
+        cancelSidebarHoverFit()
         hiddenBefore = 0
         hiddenAfter = 0
         entryContainer.innerHTML = ""
@@ -179,6 +223,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             const changeset = changesets[i]
             const changesetId = changeset.id.toString()
             const element = idSidebarMap.get(changesetId)
+            if (!element) continue
             const elementRect = element.getBoundingClientRect()
             const elementTop = elementRect.top
             const elementBottom = elementRect.bottom
@@ -298,14 +343,22 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             featureIdCounter += changeset.bounds.length * 2
 
         const changesetsMinimumSize: OSMChangeset[] = []
+        let aggregatedBounds: Bounds | null = null
+
         for (const changeset of convertRenderChangesetsData(
             changesets.slice(hiddenBefore, changesets.length - hiddenAfter),
         )) {
-            changeset.bounds = changeset.bounds.map((bounds) =>
-                makeBoundsMinimumSize(map, bounds),
-            )
+            changeset.bounds = changeset.bounds.map((bounds) => {
+                const resized = makeBoundsMinimumSize(map, bounds)
+                aggregatedBounds = unionBounds(aggregatedBounds, resized)
+                return resized
+            })
             changesetsMinimumSize.push(changeset)
         }
+
+        visibleChangesetsBounds = aggregatedBounds
+            ? new LngLatBounds(aggregatedBounds)
+            : null
 
         const data = renderObjects(changesetsMinimumSize, null, featureIdCounter)
         source.setData(data)
@@ -322,30 +375,16 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         // When initial loading for scope/user, focus on the changesets
         if (
             !e &&
-            !fetchedBounds &&
-            (loadScope || loadDisplayName) &&
-            changesets.length
+            shouldFitOnInitialLoad &&
+            visibleChangesetsBounds &&
+            !idSidebarMap.size
         ) {
-            let lngLatBounds: LngLatBounds | null = null
-            for (const changeset of changesetsMinimumSize) {
-                if (!changeset.bounds.length) continue
-                let changesetBounds = new LngLatBounds(changeset.bounds[0])
-                for (const bounds of changeset.bounds.slice(1)) {
-                    changesetBounds = changesetBounds.extend(bounds)
-                }
-                lngLatBounds = lngLatBounds
-                    ? lngLatBounds.extend(changesetBounds)
-                    : changesetBounds
-            }
-            if (lngLatBounds) {
-                console.debug("Fitting map to shown changesets")
-                const lngLatBoundsPadded = padLngLatBounds(lngLatBounds, 0.3)
-                map.fitBounds(
-                    lngLatBoundsPadded,
-                    { maxZoom: 16, animate: false },
-                    { skipUpdateState: true },
-                )
-            }
+            console.debug("Fitting map to shown changesets")
+            map.fitBounds(
+                padLngLatBounds(visibleChangesetsBounds, 0.3),
+                { maxZoom: 16, animate: false },
+                { skipUpdateState: true },
+            )
         }
     }
 
@@ -424,6 +463,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             changesetLink.href = `/changeset/${changeset.id}`
             changesetLink.textContent = changesetId
             changesetLink.addEventListener("mouseenter", () => {
+                scheduleSidebarFit(changesetId)
                 if (hoveredChangeset) {
                     if (hoveredChangeset === changeset) return
                     setHover(
@@ -438,6 +478,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 hoveredChangeset = changeset
             })
             changesetLink.addEventListener("mouseleave", () => {
+                if (sidebarHoverId === changesetId) cancelSidebarHoverFit()
                 setHover({ id: changesetId, numBounds: changeset.bounds.length }, false)
                 if (hoveredChangeset === changeset) hoveredChangeset = null
             })
@@ -476,7 +517,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     map.on("click", layerIdFill, (e) => {
         // Find feature with the smallest bounds area
         const feature = e.features.reduce((a, b) =>
-            a.properties.boundsArea < b.properties.boundsArea ? a : b,
+            a.properties.boundsArea <= b.properties.boundsArea ? a : b,
         )
         const changesetId = feature.properties.id
         routerNavigateStrict(`/changeset/${changesetId}`)
@@ -487,7 +528,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     map.on("mousemove", layerIdFill, (e) => {
         // Find feature with the smallest bounds area
         const feature = e.features.reduce((a, b) =>
-            a.properties.boundsArea < b.properties.boundsArea ? a : b,
+            a.properties.boundsArea <= b.properties.boundsArea ? a : b,
         )
         if (hoveredFeature) {
             if (hoveredFeature.id === feature.id) return
@@ -503,7 +544,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         // Set delayed scroll timer
         scrollDelayTimer = setTimeout(() => {
             setHover(hoveredFeature.properties, true, true)
-        }, 1000)
+        }, focusHoverDelay)
     })
 
     const onMapMouseLeave = () => {
@@ -522,8 +563,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
         // Load more changesets if scrolled to bottom
         if (
+            noMoreChangesets ||
             parentSidebar.offsetHeight + parentSidebar.scrollTop <
-            parentSidebar.scrollHeight - loadMoreScrollBuffer
+                parentSidebar.scrollHeight - loadMoreScrollBuffer
         )
             return
         console.debug("Sidebar scrolled to the bottom")
@@ -627,8 +669,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                     RenderChangesetsDataSchema,
                     new Uint8Array(buffer),
                 ).changesets
-                const appendMode = Boolean(changesets.length)
+
                 if (newChangesets.length) {
+                    const appendMode = Boolean(changesets.length)
                     changesets.push(...newChangesets)
                     for (const cs of newChangesets) {
                         idChangesetMap.set(cs.id.toString(), cs)
@@ -640,13 +683,14 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                         newChangesets.length,
                         "new",
                     )
+                    updateLayers()
+                    updateSidebar(appendMode, newChangesets.length)
+                    requestAnimationFramePolyfill(updateLayersVisibility)
                 } else {
                     console.debug("No more changesets")
                     noMoreChangesets = true
                 }
-                updateLayers()
-                updateSidebar(appendMode, newChangesets.length)
-                requestAnimationFramePolyfill(updateLayersVisibility)
+
                 fetchedBounds = fetchBounds
                 fetchedDate = fetchDate
 
@@ -667,9 +711,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     return {
-        load: ({ scope, displayName }) => {
+        load: ({ scope, displayName }, reason?: RouteLoadReason) => {
             loadScope = scope
             loadDisplayName = displayName
+            shouldFitOnInitialLoad =
+                reason === "navigation" && Boolean(scope || displayName)
 
             switchActionSidebar(map, sidebar)
             // TODO: handle scope

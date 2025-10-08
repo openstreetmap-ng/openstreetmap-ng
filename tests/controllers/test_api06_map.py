@@ -1,4 +1,4 @@
-import random
+from random import uniform
 
 from httpx import AsyncClient
 
@@ -24,8 +24,8 @@ async def test_map_read(client: AsyncClient):
     changeset_id = int(r.text)
 
     # Create a node at random coordinates
-    lon = round(random.uniform(-179, 179), 7)
-    lat = round(random.uniform(-89, 89), 7)
+    lon = round(uniform(-179, 179), 7)
+    lat = round(uniform(-89, 89), 7)
     r = await client.put(
         '/api/0.6/node/create',
         content=XMLToDict.unparse({

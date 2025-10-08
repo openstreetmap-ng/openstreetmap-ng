@@ -22,7 +22,7 @@ async def user_diary_comments(
     after: Annotated[DiaryCommentId | None, Query()] = None,
     before: Annotated[DiaryCommentId | None, Query()] = None,
 ):
-    user = await UserQuery.find_one_by_display_name(display_name)
+    user = await UserQuery.find_by_display_name(display_name)
     if user is None:
         return await render_response(
             'user/profile/not-found',
@@ -31,7 +31,7 @@ async def user_diary_comments(
         )
     user_id = user['id']
 
-    comments = await DiaryCommentQuery.find_many_by_user(
+    comments = await DiaryCommentQuery.find_by_user(
         user_id=user_id,
         after=after,
         before=before,
@@ -40,7 +40,7 @@ async def user_diary_comments(
 
     async def new_after_task():
         after = comments[0]['id']
-        after_comments = await DiaryCommentQuery.find_many_by_user(
+        after_comments = await DiaryCommentQuery.find_by_user(
             user_id=user_id,
             after=after,
             limit=1,
@@ -49,7 +49,7 @@ async def user_diary_comments(
 
     async def new_before_task():
         before = comments[-1]['id']
-        before_comments = await DiaryCommentQuery.find_many_by_user(
+        before_comments = await DiaryCommentQuery.find_by_user(
             user_id=user_id,
             before=before,
             limit=1,

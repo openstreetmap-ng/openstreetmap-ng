@@ -47,7 +47,7 @@ async def settings_security(user: Annotated[User, web_user()]):
     async with TaskGroup() as tg:
         current_t = tg.create_task(AuthService.authenticate_oauth2(None))
         active_t = tg.create_task(
-            OAuth2TokenQuery.find_many_authorized_by_user_client_id(
+            OAuth2TokenQuery.find_authorized_by_user_client_id(
                 user_id=user['id'],
                 client_id=SYSTEM_APP_WEB_CLIENT_ID,
                 limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
@@ -69,10 +69,11 @@ async def settings_security(user: Annotated[User, web_user()]):
 
 
 @router.get('/settings/connections')
-async def settings_connections(user: Annotated[User, web_user()]):
-    provider_id_map = await ConnectedAccountQuery.get_providers_by_user(user['id'])
+async def settings_connections(_: Annotated[User, web_user()]):
+    accounts = await ConnectedAccountQuery.find_by_user(None)
+    provider_id_set = {a['provider'] for a in accounts}
     return await render_response(
-        'settings/connections', {'provider_id_map': provider_id_map}
+        'settings/connections', {'provider_id_set': provider_id_set}
     )
 
 

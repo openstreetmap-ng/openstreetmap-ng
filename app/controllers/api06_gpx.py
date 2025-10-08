@@ -71,7 +71,7 @@ async def get_trace(
 async def get_current_user_traces(
     user: Annotated[User, api_user('read_gpx')],
 ):
-    traces = await TraceQuery.find_many_recent(user_id=user['id'], limit=None)
+    traces = await TraceQuery.find_recent(user_id=user['id'], limit=None)
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(traces))
@@ -155,7 +155,7 @@ async def trackpoints(
         raise_for.trace_points_query_area_too_big()
 
     async def public_task():
-        return await TraceQuery.find_many_by_geom(
+        return await TraceQuery.find_by_geom(
             geometry,
             identifiable_trackable=True,
             limit=TRACE_POINT_QUERY_DEFAULT_LIMIT,
@@ -163,7 +163,7 @@ async def trackpoints(
         )
 
     async def private_task():
-        return await TraceQuery.find_many_by_geom(
+        return await TraceQuery.find_by_geom(
             geometry,
             identifiable_trackable=False,
             limit=TRACE_POINT_QUERY_DEFAULT_LIMIT,

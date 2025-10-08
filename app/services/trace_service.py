@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import cython
 from fastapi import UploadFile
@@ -18,9 +19,11 @@ from app.models.db.trace import (
     TraceMetaInit,
     TraceMetaInitValidator,
     TraceVisibility,
-    trace_tags_from_str,
+    validate_trace_tags,
 )
 from app.models.types import StorageKey, TraceId
+from app.queries.trace_query import TraceQuery
+from app.services.audit_service import audit
 
 
 class TraceService:
@@ -29,10 +32,12 @@ class TraceService:
         file: UploadFile,
         *,
         description: str,
-        tags: str,
+        tags: str | list[str] | None,
         visibility: TraceVisibility,
     ) -> TraceId:
         """Process upload of a trace file. Returns the created trace id."""
+        tags = validate_trace_tags(tags)
+
         file_size = file.size
         if file_size is None or file_size > TRACE_FILE_UPLOAD_MAX_SIZE:
             raise_for.input_too_big(file_size or -1)
@@ -57,7 +62,7 @@ class TraceService:
             'user_id': auth_user(required=True)['id'],
             'name': _get_file_name(file),
             'description': description,
-            'tags': trace_tags_from_str(tags),
+            'tags': tags,
             'visibility': visibility,
             'file_id': StorageKey(''),
             'size': decoded.size,
@@ -76,9 +81,8 @@ class TraceService:
 
         try:
             # Insert into database
-            async with (
-                db(True) as conn,
-                await conn.execute(
+            async with db(True) as conn:
+                async with await conn.execute(
                     """
                     INSERT INTO trace (
                         user_id, name, description, tags, visibility,
@@ -90,9 +94,21 @@ class TraceService:
                     RETURNING id
                     """,
                     trace_init,
-                ) as r,
-            ):
-                return (await r.fetchone())[0]  # type: ignore
+                ) as r:
+                    trace_id: TraceId = (await r.fetchone())[0]  # type: ignore
+
+                await audit(
+                    'create_trace',
+                    conn,
+                    extra={
+                        'id': trace_id,
+                        'name': trace_init['name'],
+                        'description': trace_init['description'],
+                        'tags': trace_init['tags'],
+                        'visibility': trace_init['visibility'],
+                    },
+                )
+                return trace_id
 
         except Exception:
             # Clean up trace file on error
@@ -110,6 +126,17 @@ class TraceService:
     ) -> None:
         """Update a trace."""
         user_id = auth_user(required=True)['id']
+        trace = await TraceQuery.get_one_by_id(trace_id)
+
+        audit_extra: dict[str, Any] = {'id': trace_id}
+        if trace['name'] != name:
+            audit_extra['name'] = name
+        if trace['description'] != description:
+            audit_extra['description'] = description
+        if set(trace['tags']).symmetric_difference(tags):
+            audit_extra['tags'] = tags
+        if trace['visibility'] != visibility:
+            audit_extra['visibility'] = visibility
 
         meta_init: TraceMetaInit = {
             'name': name,
@@ -139,17 +166,10 @@ class TraceService:
             )
 
             if not result.rowcount:
-                async with await conn.execute(
-                    """
-                    SELECT 1 FROM trace
-                    WHERE id = %s
-                    """,
-                    (trace_id,),
-                ) as r:
-                    if await r.fetchone() is None:
-                        raise_for.trace_not_found(trace_id)
-                    else:
-                        raise_for.trace_access_denied(trace_id)
+                raise_for.trace_access_denied(trace_id)
+
+            if len(audit_extra) > 1:
+                await audit('update_trace', conn, extra=audit_extra)
 
     @staticmethod
     async def delete(trace_id: TraceId) -> None:
@@ -178,6 +198,8 @@ class TraceService:
 
             if not result.rowcount:
                 raise_for.trace_access_denied(trace_id)
+
+            await audit('delete_trace', conn, extra={'id': trace_id})
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(row[0])

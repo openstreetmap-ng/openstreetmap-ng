@@ -53,6 +53,10 @@ $bootstrap-icons-font-hash: "";
 @import "maplibre-gl/dist/maplibre-gl";
 
 @import "about/about";
+@import "admin/applications/index";
+@import "admin/users/edit";
+@import "admin/users/index";
+@import "audit/index";
 @import "communities";
 @import "diary/compose";
 @import "diary/entry";
@@ -64,6 +68,7 @@ $bootstrap-icons-font-hash: "";
 @import "index/context-menu";
 @import "index/distance";
 @import "index/element";
+@import "index/element-history";
 @import "index/export";
 @import "index/index";
 @import "index/note";
@@ -74,6 +79,7 @@ $bootstrap-icons-font-hash: "";
 @import "index/sidebar/share";
 @import "index/sidebar/sidebar";
 @import "index/sidebar/toggle-button";
+@import "lib/auth-switcher";
 @import "lib/avatar";
 @import "lib/badge";
 @import "lib/btn";
@@ -90,6 +96,7 @@ $bootstrap-icons-font-hash: "";
 @import "lib/map/marker";
 @import "lib/map/popup";
 @import "lib/multi-input";
+@import "lib/password-strength";
 @import "lib/rss";
 @import "lib/sentry";
 @import "lib/social";
@@ -118,6 +125,7 @@ $bootstrap-icons-font-hash: "";
 @import "user/login-body";
 @import "user/profile/activity";
 @import "user/profile/profile";
+@import "user/providers";
 @import "user/reset-password-token";
 @import "user/signup";
 @import "welcome";
@@ -141,6 +149,14 @@ time[title] {
     &:hover {
         text-decoration: underline dotted $gray-600;
         text-underline-offset: 0.1em;
+    }
+}
+
+time[datetime][data-style],
+time[datetime][data-date],
+time[datetime][data-time] {
+    &:empty::after {
+        content: "…";
     }
 }
 

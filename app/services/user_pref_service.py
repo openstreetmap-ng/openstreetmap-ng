@@ -1,4 +1,3 @@
-import logging
 from typing import Any
 
 import cython
@@ -10,6 +9,7 @@ from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.user_pref import UserPref
 from app.models.types import ApplicationId, UserPrefKey
+from app.services.audit_service import audit
 
 # TODO: make it clear not to store sensitive data or to encrypt it
 # TODO: limit app prefs count
@@ -30,9 +30,6 @@ class UserPrefService:
         values: list[Composable] = [SQL('(%s, %s, %s, %s)')] * num_prefs
         params: list[Any] = []
         for pref in prefs:
-            logging.debug(
-                'Setting user pref %r for app %r', pref['key'], pref['app_id']
-            )
             params.extend((pref['user_id'], pref['app_id'], pref['key'], pref['value']))
 
         query = SQL("""
@@ -46,6 +43,11 @@ class UserPrefService:
 
         async with db(True) as conn:
             await conn.execute(query, params)
+            await audit(
+                'update_prefs',
+                conn,
+                extra={'prefs': [(pref['app_id'], pref['key']) for pref in prefs]},
+            )
 
     @staticmethod
     async def delete_by_app_key(app_id: ApplicationId | None, key: UserPrefKey) -> None:
@@ -53,8 +55,7 @@ class UserPrefService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            logging.debug('Deleting user pref %r for app %r', key, app_id)
-            await conn.execute(
+            result = await conn.execute(
                 """
                 DELETE FROM user_pref
                 WHERE user_id = %s
@@ -63,6 +64,8 @@ class UserPrefService:
                 """,
                 (user_id, app_id, key),
             )
+            if result.rowcount:
+                await audit('delete_prefs', conn, extra={'app': app_id, 'key': key})
 
     @staticmethod
     async def delete_by_app(app_id: ApplicationId | None) -> None:
@@ -70,8 +73,7 @@ class UserPrefService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            logging.debug('Deleting user prefs for app %r', app_id)
-            await conn.execute(
+            result = await conn.execute(
                 """
                 DELETE FROM user_pref
                 WHERE user_id = %s
@@ -79,3 +81,5 @@ class UserPrefService:
                 """,
                 (user_id, app_id),
             )
+            if result.rowcount:
+                await audit('delete_prefs', conn, extra={'app': app_id})

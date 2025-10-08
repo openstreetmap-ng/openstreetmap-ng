@@ -1,3 +1,7 @@
+#loginModal {
+    --bs-modal-width: 450px;
+}
+
 .login-body {
     .brand-img {
         width: 4em;
@@ -35,32 +39,6 @@
             position: relative;
             top: -1px;
             margin-right: 0.25rem;
-        }
-    }
-
-    .auth-providers {
-        .btn {
-            padding: unset;
-            overflow: hidden;
-            transition: box-shadow 0.08s ease-out;
-
-            img {
-                width: 3em;
-                height: 3em;
-                opacity: 0.9;
-                transition:
-                    opacity 0.08s ease-out,
-                    filter 0.08s ease-out;
-            }
-
-            &:hover {
-                box-shadow: 0 0 0 0.25rem rgba($primary, 0.2);
-
-                img {
-                    opacity: 1;
-                    filter: saturate(1.1);
-                }
-            }
         }
     }
 }

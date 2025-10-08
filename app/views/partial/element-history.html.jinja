@@ -14,7 +14,9 @@
                 <div class="form-check ms-1">
                     <label class="form-check-label">
                         <input class="form-check-input tags-diff" type="checkbox" autocomplete="off">
-                        {{ t('element.tags_diff_mode') }}
+                        {{- t('element.tags_diff_mode') -}}
+                        <i class="bi bi-question-circle ms-1-5" data-bs-toggle="tooltip"
+                            data-bs-title="{{ t('element.highlight_changed_tags_between_versions') }}"></i>
                     </label>
                 </div>
             </div>
@@ -32,8 +34,8 @@
         <nav aria-label="{{ t('alt.elements_page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-0" data-page-size="{{ page_size }}"
                 data-num-items="{{ num_items }}"
-                data-action-template="/api/web/element/{{ type }}/{{ id }}/history?page={page}&num_items={{ num_items }}&tags_diff={tags_diff}"
-                data-pages="{{ num_pages }}"></ul>
+                data-action-template="/api/web/element/{{ type }}/{{ id }}/history?tags_diff={tags_diff}"
+                data-pages="{{ num_pages }}" data-num-items="{{ num_items }}"></ul>
         </nav>
     </div>
 </div>

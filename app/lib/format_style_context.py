@@ -8,6 +8,13 @@ from app.middlewares.request_context_middleware import get_request
 
 FormatStyle = Literal['json', 'xml', 'rss', 'gpx']
 
+_LEGACY_EXTENSION_FORMATS: dict[str, FormatStyle] = {
+    'json': 'json',
+    'xml': 'xml',
+    'rss': 'rss',
+    'gpx': 'gpx',
+}
+
 _CTX = ContextVar[FormatStyle]('FormatStyle')
 
 
@@ -15,7 +22,7 @@ _CTX = ContextVar[FormatStyle]('FormatStyle')
 def format_style_context():
     """
     Context manager for setting the format style in ContextVar.
-    Format style is auto-detected from the request.y
+    Format style is auto-detected from the request.
     """
     path: str = get_request().url.path
 
@@ -32,15 +39,7 @@ def format_style_context():
 
     # extension overrides (legacy)
     if not is_modern_api:
-        extension = path.rsplit('.', 1)[-1]
-        if extension == 'json':
-            style = 'json'
-        elif extension == 'xml':
-            style = 'xml'
-        elif extension == 'rss':
-            style = 'rss'
-        elif extension == 'gpx':
-            style = 'gpx'
+        style = _LEGACY_EXTENSION_FORMATS.get(path.rsplit('.', 1)[-1], style)
 
     token = _CTX.set(style)
     try:

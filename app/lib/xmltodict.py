@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Literal, LiteralString, Protocol, overload
 
+from pydantic import ByteSize
 from sizestr import sizestr
 
 from app.config import XML_PARSE_MAX_SIZE
@@ -14,7 +15,7 @@ from speedup.xml_unparse import xml_unparse
 class XMLToDict:
     @staticmethod
     def parse(
-        xml_bytes: bytes, *, size_limit: int | None = XML_PARSE_MAX_SIZE
+        xml_bytes: bytes, *, size_limit: int | ByteSize | None = XML_PARSE_MAX_SIZE
     ) -> dict[str, dict[str, Any] | list[tuple[str, Any]]]:
         """Parse XML string to dict."""
         if size_limit is not None and len(xml_bytes) > size_limit:

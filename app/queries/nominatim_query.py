@@ -175,7 +175,7 @@ async def _get_search_result(
     # fetch elements in the order of entries
     type_id_map: dict[TypedElementId, Element] = {
         e['typed_id']: e
-        for e in await ElementQuery.get_by_refs(
+        for e in await ElementQuery.find_by_refs(
             typed_ids,
             at_sequence_id=at_sequence_id,
             limit=len(typed_ids),

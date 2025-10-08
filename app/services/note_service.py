@@ -1,4 +1,3 @@
-import logging
 from asyncio import TaskGroup
 from datetime import datetime
 from typing import Any
@@ -10,7 +9,7 @@ from psycopg.sql import SQL, Composable
 from shapely import Point, get_coordinates
 
 from app.db import db
-from app.lib.auth_context import auth_user, auth_user_scopes
+from app.lib.auth_context import auth_scopes, auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.translation import t, translation_context
 from app.middlewares.request_context_middleware import get_request_ip
@@ -26,6 +25,7 @@ from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
+from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.geometry import validate_geometry
@@ -37,9 +37,10 @@ class NoteService:
         """Create a note and return its id."""
         point = validate_geometry(Point(lon, lat))
 
-        user, scopes = auth_user_scopes()
+        user = auth_user()
         if user is not None:
             # Prevent OAuth to create user-authorized note
+            scopes = auth_scopes()
             if 'web_user' not in scopes and 'write_notes' not in scopes:
                 raise_for.insufficient_scopes(['write_notes'])
             user_id = user['id']
@@ -92,12 +93,10 @@ class NoteService:
                     'created_at': note_created_at,
                 },
             )
+            await audit('create_note', conn, extra={'id': note_id})
 
         if user_id is not None:
-            logging.debug('Created note %d by user %d', note_id, user_id)
             await UserSubscriptionService.subscribe('note', note_id)
-        else:
-            logging.debug('Created note %d by anonymous user', note_id)
 
         return note_id
 
@@ -193,13 +192,23 @@ class NoteService:
 
             query = SQL("""
                 UPDATE note
-                SET {}
-                WHERE id = %s
+                SET {} WHERE id = %s
             """).format(SQL(',').join(update))
             params.append(note_id)
-            await conn.execute(query, params)
 
-        logging.debug('Created note comment on note %d by user %d', note_id, user_id)
+            await conn.execute(query, params)
+            if text:
+                await audit(
+                    'create_note_comment',
+                    conn,
+                    extra={'id': comment_id, 'note': note_id},
+                )
+            if event != 'commented':
+                await audit(
+                    'update_note_status',
+                    conn,
+                    extra={'id': note_id, 'event': event},
+                )
 
         comment: NoteComment = {
             'id': comment_id,
@@ -238,7 +247,7 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
 
         # Fetch the first comment (which is the opening comment)
         first_comments_t = tg.create_task(
-            NoteCommentQuery.get_comments_page(
+            NoteCommentQuery.find_comments_page(
                 note['id'],
                 page=1,
                 num_items=1,

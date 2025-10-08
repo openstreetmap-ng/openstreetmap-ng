@@ -11,6 +11,7 @@ from time import tzset
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
 from fastapi.exception_handlers import http_exception_handler
+from fastapi.middleware.asyncexitstack import AsyncExitStackMiddleware
 from starlette import status
 from starlette.applications import Starlette
 from starlette.convertors import register_url_convertor
@@ -53,8 +54,11 @@ from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
+from app.services.admin_task_service import AdminTaskService
+from app.services.audit_service import AuditService
 from app.services.changeset_service import ChangesetService
 from app.services.email_service import EmailService
+from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.rate_limit_service import RateLimitService
 from app.services.system_app_service import SystemAppService
 from app.services.test_service import TestService
@@ -82,7 +86,7 @@ if ENV != 'prod':
 
 @asynccontextmanager
 async def lifespan(_):
-    async with psycopg_pool_open():
+    async with psycopg_pool_open(), AuditService.context():
         if ENV != 'prod':
             await TestService.on_startup()
 
@@ -91,7 +95,9 @@ async def lifespan(_):
         async with (
             EmailService.context(),
             ChangesetService.context(),
+            OAuth2TokenService.context(),
             RateLimitService.context(),
+            AdminTaskService.context(),
         ):
             # freeze uncollected gc objects for improved performance
             gc.collect()
@@ -207,6 +213,7 @@ def _build_middleware_stack(self: Starlette) -> ASGIApp:
         Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug),
         Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug),
         *self.user_middleware,
+        Middleware(AsyncExitStackMiddleware),
     ]
 
     app = self.router

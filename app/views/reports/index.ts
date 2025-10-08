@@ -1,7 +1,7 @@
+import { mount } from "../lib/mount"
 import { configureStandardPagination } from "../lib/standard-pagination"
 
-const body = document.querySelector("body.reports-body")
-if (body) {
+mount("reports-body", (body) => {
     const reportStatusFilter = body.querySelector("select#reportStatusFilter")
     reportStatusFilter.addEventListener("change", () => {
         const status = reportStatusFilter.value
@@ -10,4 +10,4 @@ if (body) {
     })
 
     configureStandardPagination(body.querySelector("div.reports-pagination"))
-}
+})

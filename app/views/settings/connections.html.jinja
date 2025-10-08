@@ -21,7 +21,7 @@
                     </div>
                 </td>
                 <td>
-                    {% if service in provider_id_map %}
+                    {% if service in provider_id_set %}
                     <form class="d-flex justify-content-end align-items-center" method="POST"
                         action="/api/web/settings/connections/{{ service }}/disconnect">
                         <i class="bi bi-link-45deg me-2" title="{{ t('state.connected') }}"></i>

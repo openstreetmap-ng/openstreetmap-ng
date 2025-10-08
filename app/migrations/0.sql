@@ -8,6 +8,8 @@ CREATE EXTENSION IF NOT EXISTS h3;
 
 CREATE EXTENSION IF NOT EXISTS h3_postgis CASCADE;
 
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 CREATE OR REPLACE FUNCTION h3_points_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
@@ -66,24 +68,29 @@ CREATE TABLE "user" (
     background_id text,
     description text NOT NULL DEFAULT '',
     description_rich_hash bytea,
-    created_ip inet NOT NULL,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     scheduled_delete_at timestamptz
 );
 
 CREATE UNIQUE INDEX user_email_idx ON "user" (email);
 
+CREATE INDEX user_email_pattern_idx ON "user" USING gin (email gin_trgm_ops);
+
 CREATE UNIQUE INDEX user_display_name_idx ON "user" (display_name);
 
-CREATE INDEX user_pending_idx ON "user" (created_at)
+CREATE INDEX user_display_name_pattern_idx ON "user" USING gin (display_name gin_trgm_ops);
+
+CREATE INDEX user_pending_idx ON "user" (created_at DESC)
 WHERE
     NOT email_verified;
 
-CREATE INDEX user_deleted_idx ON "user" (id)
+CREATE INDEX user_deleted_idx ON "user" (id DESC)
 WHERE
+    -- DELETED_USER_EMAIL_SUFFIX
     email LIKE '%@deleted.invalid';
 
--- DELETED_USER_EMAIL_SUFFIX
+CREATE INDEX user_roles_idx ON "user" USING gin (roles);
+
 CREATE TYPE auth_provider AS enum('google', 'facebook', 'microsoft', 'github', 'wikimedia');
 
 CREATE TABLE connected_account (
@@ -123,7 +130,13 @@ CREATE TABLE oauth2_application (
 
 CREATE UNIQUE INDEX oauth2_application_client_id_idx ON oauth2_application (client_id);
 
-CREATE INDEX oauth2_application_user_idx ON oauth2_application (user_id);
+CREATE INDEX oauth2_application_created_at_idx ON oauth2_application (created_at DESC);
+
+CREATE INDEX oauth2_application_user_created_at_idx ON oauth2_application (user_id DESC, created_at DESC)
+WHERE
+    user_id IS NOT NULL;
+
+CREATE INDEX oauth2_application_name_pattern_idx ON oauth2_application USING gin (name gin_trgm_ops);
 
 CREATE TYPE oauth2_code_challenge_method AS enum('plain', 'S256');
 
@@ -131,6 +144,7 @@ CREATE TABLE oauth2_token (
     id bigint PRIMARY KEY,
     user_id bigint NOT NULL REFERENCES "user",
     application_id bigint NOT NULL REFERENCES oauth2_application,
+    unlisted boolean NOT NULL DEFAULT FALSE,
     name text,
     token_hashed bytea,
     token_preview text,
@@ -146,7 +160,97 @@ CREATE UNIQUE INDEX oauth2_token_hashed_idx ON oauth2_token (token_hashed)
 WHERE
     token_hashed IS NOT NULL;
 
-CREATE INDEX oauth2_token_user_app_authorized_idx ON oauth2_token (user_id, application_id, id, (authorized_at IS NOT NULL));
+CREATE INDEX oauth2_token_app_user_idx ON oauth2_token (application_id DESC, user_id DESC) INCLUDE (authorized_at);
+
+CREATE INDEX oauth2_token_user_app_idx ON oauth2_token (user_id DESC, application_id DESC, id DESC) INCLUDE (authorized_at);
+
+CREATE INDEX oauth2_token_stale_unauthorized_idx ON oauth2_token (created_at DESC) INCLUDE (application_id)
+WHERE
+    authorized_at IS NULL;
+
+CREATE TYPE audit_type AS enum(
+    'add_connected_account',
+    'admin_task',
+    'auth_api',
+    'auth_fail',
+    'auth_web',
+    'authorize_app',
+    'change_app_settings',
+    'change_display_name',
+    'change_email',
+    'change_password',
+    'change_roles',
+    'close_changeset',
+    'create_app',
+    'create_changeset_comment',
+    'create_changeset',
+    'create_diary_comment',
+    'create_diary',
+    'create_note_comment',
+    'create_note',
+    'create_pat',
+    'create_trace',
+    'delete_diary',
+    'delete_prefs',
+    'delete_trace',
+    'edit_map',
+    'impersonate',
+    'nsfw_image',
+    'rate_limit',
+    'remove_connected_account',
+    'request_change_email',
+    'request_reset_password',
+    'revoke_app_all_users',
+    'revoke_app',
+    'send_message',
+    'update_changeset',
+    'update_diary',
+    'update_note_status',
+    'update_prefs',
+    'update_trace',
+    'view_admin_applications',
+    'view_admin_users',
+    'view_audit'
+);
+
+CREATE TABLE audit (
+    type audit_type NOT NULL,
+    ip inet NOT NULL,
+    user_agent text,
+    user_id bigint,
+    target_user_id bigint,
+    application_id bigint,
+    extra jsonb,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp()
+)
+WITH
+    (fillfactor = 100);
+
+CREATE INDEX audit_created_at_idx ON audit (created_at DESC) INCLUDE (type);
+
+CREATE INDEX audit_ip_created_at_idx ON audit (ip, created_at DESC) INCLUDE (type, user_id, application_id);
+
+CREATE INDEX audit_user_created_at_idx ON audit (user_id DESC, created_at DESC) INCLUDE (type, ip, application_id)
+WHERE
+    user_id IS NOT NULL;
+
+CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id DESC, created_at DESC) INCLUDE (type)
+WHERE
+    target_user_id IS NOT NULL;
+
+CREATE INDEX audit_application_created_at_idx ON audit (application_id DESC, created_at DESC) INCLUDE (type, ip)
+WHERE
+    application_id IS NOT NULL;
+
+CREATE INDEX audit_discard_repeated_idx ON audit (
+    type,
+    ip,
+    user_id DESC,
+    target_user_id DESC,
+    application_id DESC,
+    hashtext (extra::text),
+    created_at DESC
+);
 
 CREATE TABLE changeset (
     id bigint GENERATED ALWAYS AS IDENTITY,
@@ -162,12 +266,7 @@ CREATE TABLE changeset (
     union_bounds geometry (Polygon, 4326)
 )
 WITH
-    (
-        tsdb.hypertable,
-        tsdb.columnstore = FALSE,
-        tsdb.partition_column = 'id',
-        tsdb.chunk_interval = '5000000'
-    );
+    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '5000000');
 
 CREATE INDEX changeset_user_idx ON changeset (user_id DESC, id DESC)
 WHERE
@@ -200,7 +299,6 @@ CREATE TABLE changeset_bounds (changeset_id bigint NOT NULL, bounds geometry (Po
 WITH
     (
         tsdb.hypertable,
-        tsdb.columnstore = FALSE,
         tsdb.partition_column = 'changeset_id',
         tsdb.chunk_interval = '5000000'
     );
@@ -218,7 +316,6 @@ CREATE TABLE changeset_comment (
 WITH
     (
         tsdb.hypertable,
-        tsdb.columnstore = FALSE,
         tsdb.partition_column = 'changeset_id',
         tsdb.chunk_interval = '10000000',
         tsdb.create_default_indexes = FALSE
@@ -372,12 +469,7 @@ CREATE TABLE note (
     hidden_at timestamptz
 )
 WITH
-    (
-        tsdb.hypertable,
-        tsdb.columnstore = FALSE,
-        tsdb.partition_column = 'id',
-        tsdb.chunk_interval = '1000000'
-    );
+    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '1000000');
 
 CREATE INDEX note_point_idx ON note USING gist (point, created_at, updated_at, closed_at);
 
@@ -406,7 +498,6 @@ CREATE TABLE note_comment (
 WITH
     (
         tsdb.hypertable,
-        tsdb.columnstore = FALSE,
         tsdb.partition_column = 'note_id',
         tsdb.chunk_interval = '1000000',
         tsdb.create_default_indexes = FALSE
@@ -497,12 +588,7 @@ CREATE TABLE trace (
     updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
 )
 WITH
-    (
-        tsdb.hypertable,
-        tsdb.columnstore = FALSE,
-        tsdb.partition_column = 'id',
-        tsdb.chunk_interval = '1000000'
-    );
+    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '1000000');
 
 CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id DESC, id DESC);
 
@@ -545,6 +631,8 @@ CREATE TABLE user_token (
     email_reply_to_user_id bigint REFERENCES "user",
     email_reply_usage_count smallint
 );
+
+CREATE INDEX user_token_user_idx ON user_token (user_id DESC);
 
 CREATE TABLE file (
     context text NOT NULL,

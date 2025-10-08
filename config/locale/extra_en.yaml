@@ -47,6 +47,7 @@ changesets_history:
   changesets_below: Changesets below
 element:
   tags_diff_mode: Tags diff mode
+  highlight_changed_tags_between_versions: Highlight changed tags between versions
 note:
   title: Note
   count_one: "note"
@@ -288,6 +289,25 @@ settings:
   delete_this_application_question: |-
     Are you sure you want to delete this application?
     This action cannot be undone.
+password_strength:
+  password_strength: Password strength
+  to_strengthen_it_you_can: To strengthen it, you can
+  great_password_nice_work: Great password. Nice work!
+  levels:
+    weak: Weak
+    fair: Fair
+    good: Good
+    strong: Strong
+    perfect: Perfect
+  suggestions:
+    use_at_least_min_length_characters: Use at least {{min_length}} characters.
+    add_couple_more_characters: Add a couple more characters.
+    include_lowercase_letters: Include lowercase letters.
+    include_uppercase_letters: Include uppercase letters.
+    include_digits: Include digits.
+    include_symbols: Include symbols.
+    avoid_repeated_characters: Avoid repeated characters.
+    use_a_password_not_widely_known: Use a password not widely known.
 permissions:
   no_permissions: No permissions
   read_user_preferences: Read user preferences
@@ -401,6 +421,10 @@ login:
   or_continue_with: or continue with
   sign_in: Sign in
   sign_in_with_a_passkey: Sign in with a passkey
+  sign_in_with_service: "Sign in with {{service}}"
+auth_switcher:
+  sign_in_with_a_provider: Sign in with a provider
+  sign_up_with_a_provider: Sign up with a provider
 signup:
   get_started_contributing: Get started contributing
   already_have_an_account: Already have an account?
@@ -411,6 +435,8 @@ signup:
     free for everyone to use.
   photo_by_author: Photo by {{author}}
   i_agree_to_the_terms_privacy_and_contributor: "I agree to the {{terms}}, {{privacy}}, and {{contributor}}."
+  sign_up_with_service: "Sign up with {{service}}"
+  cancel_sign_up: Cancel sign up
 pagination:
   range: "{{x}} of {{y}}"
 time:
@@ -434,10 +460,12 @@ validation:
   you_can_send_message_to_at_most_limit_recipients: "You can send a message to at most {{limit}} recipients"
   incomplete_location_information: Incomplete location information
 action:
+  go_back: Go back
   authorize: Authorize
   block_user: Block user
   cancel: Cancel
   copy: Copy
+  copy_link: Copy link
   click_here: Click here
   end_session: End session
   follow_user: Follow user
@@ -479,6 +507,7 @@ action:
   show_less: Show less
   remove_filter: Remove filter
   remove: Remove
+  continue_reading: Continue reading
 state:
   any: Any
   hidden: Hidden

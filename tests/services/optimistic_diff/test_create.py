@@ -30,7 +30,7 @@ async def test_create_node(changeset_id: ChangesetId):
     typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
     # Verify the created element
-    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([typed_id], limit=1)
     assert_model(elements[0], element | {'typed_id': typed_id})
 
 
@@ -52,7 +52,7 @@ async def test_create_node_with_tags(changeset_id: ChangesetId):
     typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
     # Verify the created element
-    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([typed_id], limit=1)
     assert_model(elements[0], element | {'typed_id': typed_id})
 
 
@@ -240,7 +240,7 @@ async def test_create_multiple_nodes(changeset_id: ChangesetId):
     ]
 
     # Verify the created elements
-    elements = await ElementQuery.get_by_refs(typed_ids)
+    elements = await ElementQuery.find_by_refs(typed_ids)
     name_map = {e['tags']['name']: e for e in elements}  # type: ignore
     assert_model(name_map['Node 1'], nodes[0] | {'typed_id': typed_ids[0]})
     assert_model(name_map['Node 2'], nodes[1] | {'typed_id': typed_ids[1]})

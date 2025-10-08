@@ -1,8 +1,8 @@
+import { mount } from "../lib/mount"
 import { configureStandardForm } from "../lib/standard-form"
 import { configureStandardPagination } from "../lib/standard-pagination"
 
-const body = document.querySelector("body.report-show-body")
-if (body) {
+mount("report-show-body", () => {
     const setupVisibilityDropdowns = () => {
         for (const form of document.querySelectorAll("form.visibility-form")) {
             const select = form.elements.namedItem("visible_to") as HTMLSelectElement
@@ -22,11 +22,12 @@ if (body) {
                     select.classList.remove("disabled")
                     console.debug("Visibility changed successfully to", currentValue)
                 },
-                null,
-                () => {
-                    select.value = currentValue
-                    select.classList.remove("disabled")
-                    console.error("Visibility change failed, rolling back")
+                {
+                    errorCallback: () => {
+                        select.value = currentValue
+                        select.classList.remove("disabled")
+                        console.error("Visibility change failed, rolling back")
+                    },
                 },
             )
         }
@@ -133,4 +134,4 @@ if (body) {
             })
         }
     }
-}
+})

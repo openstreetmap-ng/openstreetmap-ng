@@ -6,8 +6,7 @@ import cython
 import orjson
 from fastapi import APIRouter, Response
 from fastapi.dependencies.utils import get_dependant
-from fastapi.routing import APIRoute
-from starlette.routing import request_response
+from fastapi.routing import APIRoute, request_response
 
 from app.config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
 from app.lib.format_style_context import format_style

@@ -18,11 +18,11 @@ from tests.utils.mailpit_helper import MailpitHelper
 @pytest.mark.flaky(reruns=5, only_rerun=['TimeoutError'])
 @pytest.mark.skipif(sys.platform == 'darwin', reason="So flaky that it's annoying")
 async def test_diary_comment_notification_and_unsubscribe(client: AsyncClient):
-    user1 = await UserQuery.find_one_by_display_name(DisplayName('user1'))
-    user2 = await UserQuery.find_one_by_display_name(DisplayName('user2'))
+    user1 = await UserQuery.find_by_display_name(DisplayName('user1'))
+    user2 = await UserQuery.find_by_display_name(DisplayName('user2'))
 
     # Create a diary entry as user1
-    with auth_context(user1, ()):
+    with auth_context(user1):
         diary_id = await DiaryService.create(
             title='Test Diary',
             body=test_diary_comment_notification_and_unsubscribe.__qualname__,
@@ -34,7 +34,7 @@ async def test_diary_comment_notification_and_unsubscribe(client: AsyncClient):
         assert await UserSubscriptionQuery.is_subscribed('diary', diary_id)
 
     # Add a comment as user2
-    with auth_context(user2, ()):
+    with auth_context(user2):
         comment_body = buffered_rand_urlsafe(16)
         await DiaryCommentService.comment(
             diary_id=diary_id,
@@ -57,14 +57,14 @@ async def test_diary_comment_notification_and_unsubscribe(client: AsyncClient):
     assert r.status_code == status.HTTP_204_NO_CONTENT
 
     # Verify user1 is no longer subscribed
-    with auth_context(user1, ()):
+    with auth_context(user1):
         assert not await UserSubscriptionQuery.is_subscribed('diary', diary_id)
 
 
 async def test_diary_unsubscribe_invalid_token(client: AsyncClient):
-    user1 = await UserQuery.find_one_by_display_name(DisplayName('user1'))
+    user1 = await UserQuery.find_by_display_name(DisplayName('user1'))
 
-    with auth_context(user1, ()):
+    with auth_context(user1):
         diary_id = await DiaryService.create(
             title='Test Diary',
             body=test_diary_unsubscribe_invalid_token.__qualname__,
@@ -80,5 +80,5 @@ async def test_diary_unsubscribe_invalid_token(client: AsyncClient):
     assert r.is_client_error
 
     # Verify user1 is still subscribed
-    with auth_context(user1, ()):
+    with auth_context(user1):
         assert await UserSubscriptionQuery.is_subscribed('diary', diary_id)

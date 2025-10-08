@@ -27,7 +27,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/372d9eeeafa5b15913201e2b92e8e539ac7c64d1.tar.gz";
+  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/fc3740fdcd01d47e56b8ebec60700a27c9db4a25.tar.gz";
   pkgs = import (fetchTarball pkgsUrl) { };
 
   projectDir = toString ./.;
@@ -405,7 +405,7 @@ let
       process-compose project is-ready -U --wait
 
       process-compose list -U | while read -r name; do
-        if [ -z "$name" ] || [ "$name" = "mailpit" ]; then
+        if [ -z "$name" ]; then
           continue
         fi
 
@@ -505,7 +505,7 @@ let
 
       echo "Checking for preload data updates"
       remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.b3"
-      remote_checksums=$(curl -sSL "$remote_check_url")
+      remote_checksums=$(curl -fsSL "$remote_check_url")
       names=$(grep -Po '[^/]+(?=\.csv\.zst)' <<< "$remote_checksums")
 
       mkdir -p "data/preload/$dataset"
@@ -527,7 +527,7 @@ let
         fi
 
         echo "Downloading $name preload data"
-        curl -L "$remote_url" -o "$local_file"
+        curl -fsSL "$remote_url" -o "$local_file"
 
         # recompute checksum
         local_checksum=$(b3sum --no-names "$local_file")
@@ -560,6 +560,9 @@ let
     (makeScript "replication-convert" ''python scripts/replication_convert.py "$@"'')
     (makeScript "replication-load" "_db-load replication")
     (makeScript "replication-generate" ''python scripts/replication_generate.py "$@"'')
+    (makeScript "ai-models-download" ''
+      hf download Freepik/nsfw_image_detector --local-dir data/models/Freepik/nsfw_image_detector
+    '')
 
     # -- Testing
     (makeScript "run-tests" ''
@@ -633,7 +636,7 @@ let
     (makeScript "run" (
       if isDevelopment then
         ''
-          python -m uvicorn app.main:main \
+          exec python -m uvicorn app.main:main \
             --reload \
             --reload-include "*.mo" \
             --reload-exclude scripts \
@@ -642,7 +645,7 @@ let
         ''
       else
         ''
-          python -m gunicorn app.main:main \
+          exec python -m gunicorn app.main:main \
             --bind 127.0.0.1:${toString gunicornPort} \
             --workers ${toString gunicornWorkers} \
             --worker-class uvicorn.workers.UvicornWorker \
@@ -655,10 +658,11 @@ let
     ))
     (makeScript "format" ''
       set +e
-      ruff check . --fix
       pre-commit run -c ${preCommitConf} --all-files
+      ruff check --fix
+      biome check --fix --formatter-enabled=false
     '')
-    (makeScript "pyright" "pnpx basedpyright")
+    (makeScript "pyright" "pnpm exec basedpyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
@@ -673,7 +677,7 @@ let
         url="''${style#*+}"
         file="$dir/$name.json"
         echo "Updating $name vector style"
-        curl -sSL --compressed "$url" | jq --sort-keys . > "$file"
+        curl -fsSL --compressed "$url" | jq --sort-keys . > "$file"
       done
     '')
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
@@ -720,7 +724,7 @@ let
     '')
     (makeScript "nixpkgs-update" ''
       hash=$(
-        curl -sSL \
+        curl -fsSL \
           https://prometheus.nixos.org/api/v1/query \
           -d 'query=channel_revision{channel="nixpkgs-unstable"}' \
         | jq -r ".data.result[0].metric.revision")
@@ -732,10 +736,17 @@ let
   shell' =
     with pkgs;
     ''
+      [ "$NIX_SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset NIX_SSL_CERT_FILE
+      [ "$SSL_CERT_FILE" = "/no-cert-file.crt" ] && unset SSL_CERT_FILE
+    ''
+    + lib.optionalString stdenv.isDarwin ''
+      [ -z "$NIX_SSL_CERT_FILE" ] && export NIX_SSL_CERT_FILE="${cacert}/etc/ssl/certs/ca-bundle.crt"
+      [ -z "$SSL_CERT_FILE" ] && export SSL_CERT_FILE="$NIX_SSL_CERT_FILE"
+    ''
+    + ''
+
       export TZ=UTC
       export NIX_ENFORCE_NO_NATIVE=0
-      export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
-      export SSL_CERT_FILE=$NIX_SSL_CERT_FILE
       export PROC_COMP_CONFIG=data/pcompose
       export PC_DISABLE_DOTENV=1
       export PC_LOG_FILE=data/pcompose/internal.log
@@ -752,12 +763,13 @@ let
         -funsafe-math-optimizations \
         -fvisibility=hidden \
         -flto=thin \
-        -fno-plt"
+        ${lib.optionalString stdenv.isLinux "-fno-plt"}"
 
       export LDFLAGS="$LDFLAGS \
         -flto=thin \
         -fuse-ld=lld \
-        ${if isDevelopment then "" else "-Wl,--strip-all"}"
+        ${if isDevelopment then "-Wl,-O0" else "-Wl,-O3"}" \
+        ${lib.optionalString stdenv.isLinux "-Wl,-z,relro -Wl,-z,now"}
 
       en_yaml_path="${projectDir}/config/locale/download/en.yaml"
       en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
@@ -772,18 +784,21 @@ let
       [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
       echo "Installing Python dependencies"
+      export UV_NATIVE_TLS=true
       export UV_PYTHON="${python'}/bin/python"
       uv sync --frozen
       [ -n "$(find speedup -type f -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
         uv add ./speedup --reinstall-package speedup
 
       echo "Installing Node.js dependencies"
-      pnpm install --frozen-lockfile
+      pnpm install --prefer-frozen-lockfile
 
       echo "Activating environment"
       export PATH="$(pnpm bin):$PATH"
       source .venv/bin/activate
 
+    ''
+    + lib.optionalString stdenv.isLinux ''
       _patch-interpreter &
     ''
     + lib.optionalString stdenv.isDarwin ''
@@ -830,9 +845,7 @@ let
 
       if [ -f .env ]; then
         echo "Loading .env file"
-        set -o allexport
-        source .env set
-        set +o allexport
+        set -a; . .env; set +a
       else
         echo "Skipped loading .env file (not found)"
       fi

@@ -24,18 +24,18 @@ class TestSiteMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        request = get_request()
+        req = get_request()
         if (
-            request.method != 'GET'
-            or request.cookies.get('test_site_acknowledged') is not None
-            or not str(request.url).startswith(_app_prefix)
-            or request.url.path.startswith(('/test-site', '/static', '/api'))
+            req.method != 'GET'
+            or req.cookies.get('test_site_acknowledged') is not None
+            or not str(req.url).startswith(_app_prefix)
+            or req.url.path.startswith(('/test-site', '/static', '/api'))
         ):
             return await self.app(scope, receive, send)
 
         return await RedirectResponse(
             extend_query_params(
-                '/test-site', {'referer': f'{request.url.path}?{request.url.query}'}
+                '/test-site', {'referer': f'{req.url.path}?{req.url.query}'}
             ),
             status.HTTP_303_SEE_OTHER,
         )(scope, receive, send)

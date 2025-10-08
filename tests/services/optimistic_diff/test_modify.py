@@ -41,7 +41,7 @@ async def test_modify_node_tags_and_location(changeset_id: ChangesetId):
     node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
     # Verify the modified element
-    elements = await ElementQuery.get_by_refs([node_typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([node_typed_id], limit=1)
     assert_model(elements[0], node_modify | {'typed_id': node_typed_id})
 
 
@@ -104,7 +104,7 @@ async def test_modify_way_members(changeset_id: ChangesetId):
     way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]
 
     # Verify the modified way
-    elements = await ElementQuery.get_by_refs([way_typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([way_typed_id], limit=1)
     assert_model(
         elements[0],
         way_modify
@@ -179,7 +179,7 @@ async def test_modify_relation_members_and_roles(changeset_id: ChangesetId):
     relation_typed_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
 
     # Verify the modified relation
-    elements = await ElementQuery.get_by_refs([relation_typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([relation_typed_id], limit=1)
     assert_model(
         elements[0],
         relation_modify
@@ -241,6 +241,6 @@ async def test_multiple_consecutive_modifications(changeset_id: ChangesetId):
     node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
 
     # Verify each version
-    elements = await ElementQuery.get_versions_by_ref(node_typed_id, sort_dir='asc')
+    elements = await ElementQuery.find_versions_by_ref(node_typed_id, sort_dir='asc')
     for element, node in zip(elements, nodes, strict=True):
         assert_model(element, node | {'typed_id': node_typed_id})

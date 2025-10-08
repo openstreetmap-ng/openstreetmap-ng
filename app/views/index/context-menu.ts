@@ -1,7 +1,7 @@
 import { Dropdown } from "bootstrap"
 import { type Map as MaplibreMap, type MapMouseEvent, Popup } from "maplibre-gl"
 import { routerNavigateStrict } from "../index/_router"
-import { formatCoordinate } from "../lib/format-utils"
+import { formatCoordinate } from "../lib/format"
 import { newNoteMinZoom } from "../lib/map/controls/new-note"
 import { queryFeaturesMinZoom } from "../lib/map/controls/query-features"
 import { encodeLonLat } from "../lib/polyline"
@@ -102,8 +102,9 @@ export const configureContextMenu = (map: MaplibreMap): void => {
             const value = (target as Element).textContent
             await navigator.clipboard.writeText(value)
             console.debug("Copied geolocation to clipboard", value)
-        } catch (err) {
-            console.warn("Failed to copy geolocation", err)
+        } catch (error) {
+            console.warn("Failed to copy geolocation", error)
+            if (error instanceof Error) alert(error.message)
         }
     }
     geolocationField.addEventListener("click", onGeolocationFieldClick)
@@ -171,7 +172,7 @@ export const configureContextMenu = (map: MaplibreMap): void => {
         console.debug("onMeasureDistanceButtonClick")
         const { lon, lat } = getPopupPosition()
         closePopup()
-        const line = encodeLonLat([[Number(lon), Number(lat)]], 5)
+        const line = encodeLonLat([[Number.parseFloat(lon), Number.parseFloat(lat)]], 5)
         routerNavigateStrict(`/distance?${qsEncode({ line })}`)
     })
 }

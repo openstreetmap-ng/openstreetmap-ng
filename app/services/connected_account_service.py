@@ -1,9 +1,8 @@
-import logging
-
 from app.config import AUTH_PROVIDER_UID_MAX_LENGTH
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.models.db.connected_account import AuthProvider, ConnectedAccountInit
+from app.services.audit_service import audit
 
 
 class ConnectedAccountService:
@@ -26,7 +25,7 @@ class ConnectedAccountService:
             'user_id': user_id,
         }
 
-        async with db(write=True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 INSERT INTO connected_account (
@@ -38,15 +37,16 @@ class ConnectedAccountService:
                 """,
                 connected_account_init,
             )
-
-        logging.debug('Added account connection %r to user %d', provider, user_id)
+            await audit(
+                'add_connected_account', conn, extra={'provider': provider, 'uid': uid}
+            )
 
     @staticmethod
     async def remove_connection(provider: AuthProvider) -> None:
         """Remove an external account connection from the current user."""
         user_id = auth_user(required=True)['id']
 
-        async with db(write=True) as conn:
+        async with db(True) as conn:
             await conn.execute(
                 """
                 DELETE FROM connected_account
@@ -54,5 +54,4 @@ class ConnectedAccountService:
                 """,
                 (user_id, provider),
             )
-
-        logging.debug('Removed account connection %r from user %d', provider, user_id)
+            await audit('remove_connected_account', conn, extra={'provider': provider})

@@ -1,5 +1,8 @@
+from psycopg.rows import dict_row
+
 from app.db import db
-from app.models.db.connected_account import AuthProvider
+from app.lib.auth_context import auth_user
+from app.models.db.connected_account import AuthProvider, ConnectedAccount
 from app.models.types import UserId
 
 
@@ -24,17 +27,20 @@ class ConnectedAccountQuery:
             return row[0] if row is not None else None
 
     @staticmethod
-    async def get_providers_by_user(user_id: UserId) -> list[AuthProvider]:
-        """Get a map of provider ids by user id."""
+    async def find_by_user(user_id: UserId | None = None) -> list[ConnectedAccount]:
+        """Get all connected accounts for a user."""
+        if user_id is None:
+            user_id = auth_user(required=True)['id']
+
         async with (
             db() as conn,
-            await conn.execute(
+            await conn.cursor(row_factory=dict_row).execute(
                 """
-                SELECT provider
+                SELECT *
                 FROM connected_account
                 WHERE user_id = %s
                 """,
                 (user_id,),
             ) as r,
         ):
-            return [c for (c,) in await r.fetchall()]
+            return await r.fetchall()  # type: ignore

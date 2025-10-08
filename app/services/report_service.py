@@ -106,7 +106,7 @@ class ReportService:
             user_id,
         )
 
-        comment = await ReportCommentQuery.find_one_by_id(comment_init['id'])
+        comment = await ReportCommentQuery.find_by_id(comment_init['id'])
         assert comment is not None
         comment['user'] = user  # type: ignore
 
@@ -115,7 +115,7 @@ class ReportService:
             tg.create_task(report_comments_resolve_rich_text(comments))
             tg.create_task(ReportCommentQuery.resolve_objects(comments))
 
-            report = await ReportQuery.find_one_by_id(report_id)
+            report = await ReportQuery.find_by_id(report_id)
             assert report is not None
 
         # Resolve user info if needed
@@ -179,7 +179,7 @@ class ReportService:
                 )
                 object_html = f'{t("oauth2_authorized_applications.index.application")} {app_name} ({action_id})'
             else:
-                raise NotImplementedError(f'Unsupported report action: {action}')
+                raise NotImplementedError(f'Unsupported report action {action!r}')
 
             # With user info when available
             if reported_user is not None:
@@ -370,12 +370,12 @@ async def _validate_integrity(
 
     if action == 'user_changeset':
         assert action_id is not None
-        changeset = await ChangesetQuery.find_one_by_id(action_id)  # pyright: ignore[reportArgumentType]
+        changeset = await ChangesetQuery.find_by_id(action_id)  # pyright: ignore[reportArgumentType]
         assert changeset is not None and changeset['user_id'] == type_id
 
     elif action == 'user_diary':
         assert action_id is not None
-        diary = await DiaryQuery.find_one_by_id(action_id)  # pyright: ignore[reportArgumentType]
+        diary = await DiaryQuery.find_by_id(action_id)  # pyright: ignore[reportArgumentType]
         assert diary is not None and diary['user_id'] == type_id
 
     elif action == 'user_message':
@@ -385,7 +385,7 @@ async def _validate_integrity(
 
     elif action == 'user_note':
         assert action_id is not None
-        note = await NoteQuery.find_many_by_query(
+        note = await NoteQuery.find(
             user_id=type_id,  # pyright: ignore[reportArgumentType]
             event='opened',
             note_ids=[action_id],  # pyright: ignore[reportArgumentType]
@@ -395,7 +395,7 @@ async def _validate_integrity(
 
     elif action == 'user_oauth2_application':
         assert action_id is not None
-        app = await OAuth2ApplicationQuery.find_one_by_id(action_id, user_id=type_id)  # pyright: ignore[reportArgumentType]
+        app = await OAuth2ApplicationQuery.find_by_id(action_id, user_id=type_id)  # pyright: ignore[reportArgumentType]
         assert app is not None
 
     elif action == 'user_trace':

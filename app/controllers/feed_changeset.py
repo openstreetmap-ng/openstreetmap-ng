@@ -45,7 +45,7 @@ async def user_history_feed(
         PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)
     ] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
-    user = await UserQuery.find_one_by_display_name(display_name)
+    user = await UserQuery.find_by_display_name(display_name)
     if user is None:
         return Response(
             None, status.HTTP_404_NOT_FOUND, media_type='application/atom+xml'
@@ -63,7 +63,7 @@ async def user_permalink_history_feed(
         PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)
     ] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
-    user = await UserQuery.find_one_by_id(user_id)
+    user = await UserQuery.find_by_id(user_id)
     if user is None:
         return Response(
             None, status.HTTP_404_NOT_FOUND, media_type='application/atom+xml'
@@ -76,7 +76,7 @@ async def user_permalink_history_feed(
 async def _get_feed(
     user: User | None, geometry: BaseGeometry | None, limit: int
 ) -> str:
-    changesets = await ChangesetQuery.find_many_by_query(
+    changesets = await ChangesetQuery.find(
         user_ids=[user['id']] if (user is not None) else None,
         geometry=geometry,
         legacy_geometry=True,

@@ -6,9 +6,7 @@
     // Overlay the where-is-this button on the input
     .where-is-this {
         position: absolute;
-        top: 0;
-        right: 2.5rem;
-        bottom: 0;
+        inset: 0 2.5rem 0 auto;
         font-size: 0.875em;
         opacity: 0.7;
         z-index: 10;

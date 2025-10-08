@@ -16,6 +16,5 @@ class AuthMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        user, scopes = await AuthService.authenticate_request()
-        with auth_context(user, scopes):
+        with auth_context(*await AuthService.authenticate_request()):
             return await self.app(scope, receive, send)

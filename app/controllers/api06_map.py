@@ -21,7 +21,7 @@ async def get_map(bbox: Annotated[str, Query()]):
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         raise_for.map_query_area_too_big()
 
-    elements = await ElementQuery.find_many_by_geom(
+    elements = await ElementQuery.find_by_geom(
         geometry,
         nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,
         legacy_nodes_limit=True,

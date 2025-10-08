@@ -30,11 +30,11 @@ class RequestBodyMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        request = get_request()
+        req = get_request()
         input_size: cython.Py_ssize_t = 0
         buffer = BytesIO()
 
-        async for chunk in request.stream():
+        async for chunk in req.stream():
             chunk_size: cython.Py_ssize_t = len(chunk)
             if not chunk_size:
                 break
@@ -43,14 +43,14 @@ class RequestBodyMiddleware:
             if input_size > REQUEST_BODY_MAX_SIZE:
                 return await Response(
                     f'Request body exceeded {sizestr(REQUEST_BODY_MAX_SIZE)}',
-                    status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    status.HTTP_413_CONTENT_TOO_LARGE,
                 )(scope, receive, send)
 
             buffer.write(chunk)
 
         if input_size:
             body = buffer.getvalue()
-            content_encoding = request.headers.get('Content-Encoding')
+            content_encoding = req.headers.get('Content-Encoding')
             decompressor = _get_decompressor(content_encoding)
 
             if decompressor is not None:
@@ -59,7 +59,7 @@ class RequestBodyMiddleware:
                 except _TooBigError:
                     return await Response(
                         f'Decompressed request body exceeded {sizestr(REQUEST_BODY_MAX_SIZE)}',
-                        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                        status.HTTP_413_CONTENT_TOO_LARGE,
                     )(scope, receive, send)
                 except Exception:
                     return await Response(
@@ -82,7 +82,7 @@ class RequestBodyMiddleware:
         else:
             body = b''
 
-        request._body = body  # update shared instance # noqa: SLF001
+        req._body = body  # update shared instance # noqa: SLF001
         wrapper_finished: cython.bint = False
 
         async def wrapper() -> Message:

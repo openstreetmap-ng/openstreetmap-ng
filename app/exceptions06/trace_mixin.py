@@ -27,7 +27,7 @@ class TraceExceptions06Mixin(TraceExceptionsMixin):
     @override
     def trace_file_archive_too_deep(self) -> NoReturn:
         raise APIError(
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail='Trace file archive is too deep',
         )
 
@@ -41,7 +41,7 @@ class TraceExceptions06Mixin(TraceExceptionsMixin):
     @override
     def trace_file_archive_too_many_files(self) -> NoReturn:
         raise APIError(
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail='Trace file archive contains too many files',
         )
 

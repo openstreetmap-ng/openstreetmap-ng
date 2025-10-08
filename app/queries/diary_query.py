@@ -16,13 +16,13 @@ from app.queries.nominatim_query import NominatimQuery
 
 class DiaryQuery:
     @staticmethod
-    async def find_one_by_id(diary_id: DiaryId) -> Diary | None:
+    async def find_by_id(diary_id: DiaryId) -> Diary | None:
         """Find a diary by id."""
-        diaries = await DiaryQuery.find_many_by_ids([diary_id])
+        diaries = await DiaryQuery.find_by_ids([diary_id])
         return next(iter(diaries), None)
 
     @staticmethod
-    async def find_many_by_ids(ids: list[DiaryId]) -> list[Diary]:
+    async def find_by_ids(ids: list[DiaryId]) -> list[Diary]:
         async with (
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
@@ -51,7 +51,7 @@ class DiaryQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def find_many_recent(
+    async def find_recent(
         *,
         user_id: UserId | None = None,
         language: LocaleCode | None = None,
@@ -136,7 +136,7 @@ class DiaryQuery:
         for comment in comments:
             id_map[comment['diary_id']].append(comment)
 
-        diaries = await DiaryQuery.find_many_by_ids(list(id_map))
+        diaries = await DiaryQuery.find_by_ids(list(id_map))
         for diary in diaries:
             for comment in id_map[diary['id']]:
                 comment['diary'] = diary

@@ -1,0 +1,70 @@
+{% for event in events %}
+<tr>
+    <td>
+        <time datetime="{{ event.created_at.isoformat() }}" data-style="short"></time>
+    </td>
+    <td>
+        <code>{{ event.type }}</code>
+    </td>
+    <td>
+        {% if event.user_id %}
+        <a href="/user-id/{{ event.user_id }}">
+            <img class="avatar me-1-5" src="{{ user_avatar_url(event.user) }}" alt="{{ t('alt.profile_picture') }}"
+                loading="lazy">
+            <span class="display-name">{{ event.user.display_name }}</span>
+        </a>
+        {% if event.target_user_id %}
+        <i class="bi bi-arrow-right-short me-1"></i>
+        <a href="/user-id/{{ event.target_user_id }}">
+            <img class="avatar me-1-5" src="{{ user_avatar_url(event.target_user) }}"
+                alt="{{ t('alt.profile_picture') }}" loading="lazy">
+            <span class="display-name">{{ event.target_user.display_name }}</span>
+        </a>
+        {% endif %}
+        {% else %}
+        <span class="text-body-secondary">&mdash;</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if event.user_agent %}
+        <abbr class="text-body-secondary" title="{{ event.user_agent }}">
+            {{ event.ip }}
+        </abbr>
+        {% else %}
+        <span class="text-body-secondary">{{ event.ip }}</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if event.application %}
+        {% set app = event.application %}
+        {% set _is_system = oauth2_app_is_system(app) %}
+        <div class="d-flex align-items-center">
+            <img class="avatar me-2" src="{{ oauth2_app_avatar_url(app) }}" alt="{{ t('alt.application_image') }}"
+                loading="lazy">
+            <div class="small">
+                <div>{{ app.name }}</div>
+                <div class="lh-1">
+                    <button type="button" class="btn btn-link btn-sm p-0 text-body-tertiary font-monospace lh-1"
+                        data-app-id="{{ app.id }}">
+                        {{ app.id }}
+                    </button>
+                    {% if not _is_system %}
+                    <span class="text-body-secondary me-1">by</span>
+                    <a href="/user/{{ app.user.display_name }}">{{ app.user.display_name }}</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <span class="text-body-secondary">&mdash;</span>
+        {% endif %}
+    </td>
+    <td class="details-col">
+        {% if event.extra %}
+        <div>{{ event.extra }}</div>
+        {% else %}
+        <span class="text-body-secondary">&mdash;</span>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}

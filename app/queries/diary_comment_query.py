@@ -14,6 +14,21 @@ from app.models.types import DiaryCommentId, DiaryId, UserId
 
 class DiaryCommentQuery:
     @staticmethod
+    async def count_by_diary(diary_id: DiaryId) -> int:
+        """Count diary comments by diary id."""
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*) FROM diary_comment
+                WHERE diary_id = %s
+                """,
+                (diary_id,),
+            ) as r,
+        ):
+            return (await r.fetchone())[0]  # type: ignore
+
+    @staticmethod
     async def count_by_user(user_id: UserId) -> int:
         """Count diary comments by user id."""
         async with (
@@ -29,7 +44,7 @@ class DiaryCommentQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def find_one_by_id(comment_id: DiaryCommentId) -> DiaryComment | None:
+    async def find_by_id(comment_id: DiaryCommentId) -> DiaryComment | None:
         """Find a diary comment by id."""
         async with (
             db() as conn,
@@ -44,7 +59,7 @@ class DiaryCommentQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_many_by_user(
+    async def find_by_user(
         user_id: UserId,
         *,
         before: DiaryCommentId | None = None,
@@ -89,7 +104,7 @@ class DiaryCommentQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def get_diary_page(
+    async def find_diary_page(
         diary_id: DiaryId,
         *,
         page: int,

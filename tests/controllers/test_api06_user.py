@@ -41,7 +41,7 @@ async def test_current_user(client: AsyncClient):
 
 
 async def test_get_user_by_id(client: AsyncClient):
-    user_id = (await UserQuery.find_one_by_display_name('user1'))['id']  # type: ignore
+    user_id = (await UserQuery.find_by_display_name('user1'))['id']  # type: ignore
 
     r = await client.get(f'/api/0.6/user/{user_id}.json')
     assert r.is_success, r.text
@@ -57,8 +57,8 @@ async def test_get_nonexistent_user(client: AsyncClient):
 
 async def test_get_multiple_users(client: AsyncClient):
     async with TaskGroup() as tg:
-        user1_task = tg.create_task(UserQuery.find_one_by_display_name('user1'))  # type: ignore
-        user2_task = tg.create_task(UserQuery.find_one_by_display_name('user2'))  # type: ignore
+        user1_task = tg.create_task(UserQuery.find_by_display_name('user1'))  # type: ignore
+        user2_task = tg.create_task(UserQuery.find_by_display_name('user2'))  # type: ignore
     user1_id = user1_task.result()['id']  # type: ignore
     user2_id = user2_task.result()['id']  # type: ignore
 
@@ -76,7 +76,7 @@ async def test_get_multiple_users(client: AsyncClient):
 
 
 async def test_get_multiple_users_with_nonexistent(client: AsyncClient):
-    user_id = (await UserQuery.find_one_by_display_name('user1'))['id']  # type: ignore
+    user_id = (await UserQuery.find_by_display_name('user1'))['id']  # type: ignore
 
     # Request should succeed but only return the existing user
     r = await client.get(f'/api/0.6/users.json?users={user_id},0')
@@ -91,7 +91,7 @@ async def test_get_multiple_users_with_nonexistent(client: AsyncClient):
     ('users', 'expected_status'),
     [
         ('abc,def', status.HTTP_400_BAD_REQUEST),  # Non-numeric values
-        ('', status.HTTP_422_UNPROCESSABLE_ENTITY),  # Empty parameter
+        ('', status.HTTP_422_UNPROCESSABLE_CONTENT),  # Empty parameter
     ],
 )
 async def test_get_multiple_users_invalid_params(

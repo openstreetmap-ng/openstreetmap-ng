@@ -26,7 +26,10 @@ Reported anonymous <a href="/note/{{ report.type_id }}">note {{ report.type_id }
 
 <div class="content-header">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <div class="row mb-3">
+        <a href="/reports" class="btn btn-sm btn-light border mb-3">
+            <i class="bi bi-arrow-left me-1-5"></i>Back to reports
+        </a>
+        <div class="row">
             {% if report.reported_user %}
             <div class="col-auto">
                 <a href="/user/{{ report.reported_user.display_name }}">
@@ -44,16 +47,13 @@ Reported anonymous <a href="/note/{{ report.type_id }}">note {{ report.type_id }
                         {% if not report.closed_at %}Open{% else %}Closed{% endif %}
                     </span>
                 </h1>
-                <p class="mb-0">
+                <p class="text-body-secondary mb-0">
+                    <i class="bi bi-clock-history me-1"></i>
                     Last updated at
                     <time datetime="{{ report.updated_at.isoformat() }}" data-date="short" data-time="short"></time>
                 </p>
             </div>
         </div>
-        <a href="/reports" class="btn btn-sm btn-light border">
-            <i class="bi bi-arrow-left me-1"></i>
-            Back to reports
-        </a>
     </div>
 </div>
 
@@ -67,8 +67,8 @@ Reported anonymous <a href="/note/{{ report.type_id }}">note {{ report.type_id }
             <ul class="social-list list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('alt.comments_page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2"
-                    data-action="/api/web/reports/{{ report.id }}/comments?page={page}&num_items={{ comments_num_items }}"
-                    data-pages="{{ comments_num_pages }}">
+                    data-action="/api/web/reports/{{ report.id }}/comments" data-pages="{{ comments_num_pages }}"
+                    data-num-items="{{ comments_num_items }}">
                 </ul>
             </nav>
         </div>

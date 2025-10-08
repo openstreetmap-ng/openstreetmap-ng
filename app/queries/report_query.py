@@ -18,7 +18,7 @@ class _ReportCountResult(NamedTuple):
 
 class ReportQuery:
     @staticmethod
-    async def find_one_by_id(report_id: ReportId) -> Report | None:
+    async def find_by_id(report_id: ReportId) -> Report | None:
         """Find a report by id."""
         async with (
             db() as conn,
@@ -50,7 +50,7 @@ class ReportQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def get_reports_page(
+    async def find_reports_page(
         *,
         page: int,
         num_items: int,

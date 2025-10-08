@@ -58,7 +58,7 @@
         }
     }
 
-    [data-tags-diff="True"] .tags {
+    .tags {
         tr[data-status="added"] > td {
             background: color.mix($green, $body-bg, 20%);
         }
@@ -108,7 +108,7 @@
 
 @include color-mode(dark) {
     .action-sidebar.element-history {
-        [data-tags-diff="True"] .tags {
+        .tags {
             tr[data-status="added"] > td {
                 background: color.mix($green, $body-bg-dark, 20%);
             }

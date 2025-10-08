@@ -19,6 +19,8 @@ SENTRY_REPLICATION_MONITOR_SLUG = 'osm-ng-replication'
 SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG = 'osm-ng-changeset-management'
 SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG = 'osm-ng-rate-limit-management'
 SENTRY_USERS_DELETED_TXT_MONITOR_SLUG = 'osm-ng-users-deleted-txt'
+SENTRY_AUDIT_MANAGEMENT_MONITOR_SLUG = 'osm-ng-audit-management'
+SENTRY_OAUTH2_TOKEN_MANAGEMENT_MONITOR_SLUG = 'osm-ng-oauth2-token-management'
 
 pydantic_settings_integration(
     __name__, globals(), name_filter=lambda name: name.startswith('SENTRY_')
@@ -97,6 +99,36 @@ SENTRY_USERS_DELETED_TXT_MONITOR = sentry_sdk.monitor(
         'checkin_margin': 5,
         'max_runtime': 60,
         'failure_issue_threshold': 2,  # 1d
+        'recovery_threshold': 1,
+    },
+)
+
+SENTRY_AUDIT_MANAGEMENT_MONITOR = sentry_sdk.monitor(
+    SENTRY_AUDIT_MANAGEMENT_MONITOR_SLUG,
+    {
+        'schedule': {
+            'type': 'interval',
+            'value': 24,
+            'unit': 'hour',
+        },
+        'checkin_margin': 60,
+        'max_runtime': 60,
+        'failure_issue_threshold': 2,  # 2d
+        'recovery_threshold': 1,
+    },
+)
+
+SENTRY_OAUTH2_TOKEN_MANAGEMENT_MONITOR = sentry_sdk.monitor(
+    SENTRY_OAUTH2_TOKEN_MANAGEMENT_MONITOR_SLUG,
+    {
+        'schedule': {
+            'type': 'interval',
+            'value': 5,
+            'unit': 'minute',
+        },
+        'checkin_margin': 5,
+        'max_runtime': 60,
+        'failure_issue_threshold': 288,  # 1d
         'recovery_threshold': 1,
     },
 )

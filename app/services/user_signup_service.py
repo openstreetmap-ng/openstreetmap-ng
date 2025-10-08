@@ -1,17 +1,15 @@
-import logging
+from asyncio import TaskGroup
 
 from app.db import db
 from app.lib.auth_context import auth_context
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import primary_translation_locale, t
-from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.user import UserInit
 from app.models.types import DisplayName, Email, Password, UserId
 from app.queries.user_query import UserQuery
-from app.services.user_token_account_confirm_service import (
-    UserTokenAccountConfirmService,
-)
+from app.services.audit_service import audit
+from app.services.user_token_email_service import UserTokenEmailService
 from app.validators.email import validate_email_deliverability
 
 
@@ -23,7 +21,7 @@ class UserSignupService:
         email: Email,
         password: Password,
         tracking: bool,
-        email_confirmed: bool,
+        email_verified: bool,
     ) -> UserId:
         """Create a new user. Returns the new user id."""
         if not await UserQuery.check_display_name_available(display_name):
@@ -44,40 +42,50 @@ class UserSignupService:
 
         user_init: UserInit = {
             'email': email,
-            'email_verified': email_confirmed,
+            'email_verified': email_verified,
             'display_name': display_name,
             'password_pb': password_pb,
             'language': primary_translation_locale(),
             'activity_tracking': tracking,
             'crash_reporting': tracking,
-            'created_ip': get_request_ip(),
         }
 
-        async with (
-            db(True) as conn,
-            await conn.execute(
+        async with db(True) as conn, TaskGroup() as tg:
+            async with await conn.execute(
                 """
                 INSERT INTO "user" (
                     email, email_verified, display_name, password_pb,
-                    language, activity_tracking, crash_reporting, created_ip
+                    language, activity_tracking, crash_reporting
                 )
                 VALUES (
                     %(email)s, %(email_verified)s, %(display_name)s, %(password_pb)s,
-                    %(language)s, %(activity_tracking)s, %(crash_reporting)s, %(created_ip)s
+                    %(language)s, %(activity_tracking)s, %(crash_reporting)s
                 )
                 RETURNING id
                 """,
                 user_init,
-            ) as r,
-        ):
-            user_id: UserId = (await r.fetchone())[0]  # type: ignore
+            ) as r:
+                user_id: UserId = (await r.fetchone())[0]  # type: ignore
 
-        logging.debug('Created user %d with email %r', user_id, email)
+            tg.create_task(
+                audit(
+                    'change_display_name',
+                    conn,
+                    user_id=user_id,
+                    extra={'name': display_name},
+                )
+            )
+            tg.create_task(audit('change_password', conn, user_id=user_id))
 
-        if not email_confirmed:
-            user = await UserQuery.find_one_by_id(user_id)
+            if email_verified:
+                tg.create_task(
+                    audit('change_email', conn, user_id=user_id, extra={'email': email})
+                )
+
+        if not email_verified:
+            user = await UserQuery.find_by_id(user_id)
             assert user is not None, 'User must exist after creation'
-            with auth_context(user, scopes=()):
-                await UserTokenAccountConfirmService.send_email()
+            with auth_context(user):
+                await UserTokenEmailService.send_email()
 
         return user_id

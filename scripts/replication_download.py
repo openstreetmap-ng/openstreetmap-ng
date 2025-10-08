@@ -21,7 +21,7 @@ from app.config import OSM_OLD_REPLICATION_URL, OSM_REPLICATION_URL, REPLICATION
 from app.db import duckdb_connect
 from app.lib.compressible_geometry import point_to_compressible_wkb
 from app.lib.retry import retry
-from app.lib.sentry import SENTRY_REPLICATION_MONITOR
+from app.lib.sentry import SENTRY_REPLICATION_MONITOR, SENTRY_REPLICATION_MONITOR_SLUG
 from app.lib.xmltodict import XMLToDict
 from app.models.element import ElementType, TypedElementId
 from app.utils import HTTP
@@ -507,7 +507,7 @@ async def main() -> None:
     while True:
         with (
             SENTRY_REPLICATION_MONITOR,
-            start_transaction(op='task', name='replication'),
+            start_transaction(op='task', name=SENTRY_REPLICATION_MONITOR_SLUG),
         ):
             set_tag('state.frequency', state.frequency)
             set_context(

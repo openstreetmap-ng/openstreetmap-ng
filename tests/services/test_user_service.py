@@ -33,7 +33,7 @@ async def test_delete_old_pending_users(email_verified: bool, should_delete: boo
     await UserService.delete_old_pending_users()
 
     # Check if the user still exists after the service call
-    user = await UserQuery.find_one_by_display_name(display_name)
+    user = await UserQuery.find_by_display_name(display_name)
 
     # Assert the expected outcome based on email verification status
     assert (user is None) == should_delete, (

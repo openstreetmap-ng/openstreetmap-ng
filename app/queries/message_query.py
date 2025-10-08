@@ -62,7 +62,7 @@ class MessageQuery:
         return message
 
     @staticmethod
-    async def find_many_by_ids(ids: list[MessageId]) -> list[Message]:
+    async def find_by_ids(ids: list[MessageId]) -> list[Message]:
         """Find messages by ids for report context."""
         async with (
             db() as conn,
@@ -77,7 +77,7 @@ class MessageQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
-    async def find_many_by_query(
+    async def find(
         *,
         inbox: bool,
         after: MessageId | None = None,
@@ -115,7 +115,7 @@ class MessageQuery:
                 )))
                 """)
             )
-            params.extend([user_id, show or 0, show or 0, is_moderator, is_admin])
+            params.extend((user_id, show or 0, show or 0, is_moderator, is_admin))
         else:
             conditions.append(SQL('from_user_id = %s AND NOT from_user_hidden'))
             params.append(user_id)

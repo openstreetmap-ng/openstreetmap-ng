@@ -1,4 +1,5 @@
 import stat
+from collections import OrderedDict
 from functools import lru_cache
 from mimetypes import guess_type
 from os import PathLike
@@ -7,7 +8,6 @@ from typing import override
 
 import cython
 from fastapi import HTTPException
-from lrucache_rs import LRUCache
 from starlette import status
 from starlette.datastructures import Headers
 from starlette.responses import FileResponse, Response
@@ -15,7 +15,7 @@ from starlette.staticfiles import NotModifiedResponse, StaticFiles
 from starlette.types import Scope
 from starlette_compress._utils import parse_accept_encoding
 
-from app.config import ENV
+from app.config import ENV, STATIC_PRECOMPRESSED_CACHE_MAX_ENTRIES
 
 _CacheKey = tuple[str, str | None]
 _CacheValue = tuple[str, StatResultType, str | None]
@@ -24,7 +24,7 @@ _CacheValue = tuple[str, StatResultType, str | None]
 class PrecompressedStaticFiles(StaticFiles):
     def __init__(self, directory: str | PathLike[str]) -> None:
         super().__init__(directory=directory)
-        self._resolve_cache: LRUCache[_CacheKey, _CacheValue] = LRUCache(maxsize=1024)
+        self._resolve_cache = OrderedDict[_CacheKey, _CacheValue]()
 
     @override
     async def get_response(self, path: str, scope: Scope) -> Response:
@@ -54,8 +54,9 @@ class PrecompressedStaticFiles(StaticFiles):
         cache_key: _CacheKey = (request_path, accept_encoding)
         result = self._resolve_cache.get(cache_key)
 
-        # Support live-reloading in dev environment.
+        # Use cache unless in dev (support live reload)
         if result is not None and ENV != 'dev':
+            self._resolve_cache.move_to_end(cache_key)
             return result
 
         paths = (
@@ -68,8 +69,6 @@ class PrecompressedStaticFiles(StaticFiles):
                 full_path, stat_result = self.lookup_path(path)
             except PermissionError as e:
                 raise HTTPException(status.HTTP_401_UNAUTHORIZED) from e
-            except OSError:
-                raise
 
             if stat_result is None or not stat.S_ISREG(stat_result.st_mode):
                 # skip missing or non-regular files
@@ -77,6 +76,9 @@ class PrecompressedStaticFiles(StaticFiles):
 
             result = (full_path, stat_result, encoding)
             self._resolve_cache[cache_key] = result
+            self._resolve_cache.move_to_end(cache_key)
+            if len(self._resolve_cache) > STATIC_PRECOMPRESSED_CACHE_MAX_ENTRIES:
+                self._resolve_cache.popitem(False)
             return result
 
         raise HTTPException(status.HTTP_404_NOT_FOUND)

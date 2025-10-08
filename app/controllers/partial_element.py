@@ -29,7 +29,7 @@ router = APIRouter(prefix='/partial')
 async def get_latest(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.get_by_refs(
+    elements = await ElementQuery.find_by_refs(
         [typed_id], at_sequence_id=at_sequence_id, limit=1
     )
     element = next(iter(elements), None)
@@ -53,7 +53,7 @@ async def get_latest(type: ElementType, id: ElementId):
 async def get_version(type: ElementType, id: ElementId, version: int):
     versioned_typed_id = (typed_element_id(type, id), version)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.get_by_versioned_refs(
+    elements = await ElementQuery.find_by_versioned_refs(
         [versioned_typed_id], at_sequence_id=at_sequence_id, limit=1
     )
     element = next(iter(elements), None)
@@ -83,7 +83,7 @@ async def get_version(type: ElementType, id: ElementId, version: int):
 async def get_history(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    current_version_map = await ElementQuery.get_current_versions_by_refs(
+    current_version_map = await ElementQuery.map_refs_to_current_versions(
         [typed_id], at_sequence_id=at_sequence_id
     )
     current_version = current_version_map.get(typed_id)
@@ -118,14 +118,14 @@ async def get_element_data(
     version = element['version']
 
     async def changeset_task():
-        changeset = await ChangesetQuery.find_one_by_id(element['changeset_id'])
+        changeset = await ChangesetQuery.find_by_id(element['changeset_id'])
         assert changeset is not None, 'Parent changeset must exist'
         await UserQuery.resolve_users([changeset])
         return changeset
 
     async def data_task():
         members = element['members']
-        members_elements = await ElementQuery.get_by_refs(
+        members_elements = await ElementQuery.find_by_refs(
             members,
             at_sequence_id=at_sequence_id,
             recurse_ways=True,
@@ -142,7 +142,7 @@ async def get_element_data(
     async def parents_task():
         return FormatElementList.element_parents(
             typed_id,
-            await ElementQuery.get_parents_by_refs(
+            await ElementQuery.find_parents_by_refs(
                 [typed_id],
                 at_sequence_id=at_sequence_id,
                 limit=None,

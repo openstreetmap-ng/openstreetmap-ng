@@ -1,6 +1,5 @@
 from datetime import datetime
-from ipaddress import IPv4Address, IPv6Address
-from typing import Literal, NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict, get_args
 
 from shapely import Point
 
@@ -13,6 +12,7 @@ from app.models.types import DisplayName, Email, LocaleCode, StorageKey, UserId
 UserRole = Literal['moderator', 'administrator']
 Editor = Literal['id', 'rapid', 'remote']
 
+USER_ROLES = frozenset[UserRole](get_args(UserRole))
 DEFAULT_EDITOR: Editor = 'id'
 
 
@@ -24,7 +24,6 @@ class UserInit(TypedDict):
     language: LocaleCode
     activity_tracking: bool
     crash_reporting: bool
-    created_ip: IPv4Address | IPv6Address
 
 
 class User(UserInit):
@@ -84,16 +83,16 @@ def user_is_admin(user: User | None) -> bool:
     return 'administrator' in user['roles']
 
 
-def user_extend_scopes(user: User, scopes: tuple[Scope, ...]) -> tuple[Scope, ...]:
+def user_extend_scopes(user: User, scopes: frozenset[Scope]) -> frozenset[Scope]:
     """Extend the given scopes with the user-specific scopes."""
     if not user['roles']:
         return scopes
-    extra: list[Scope] = []
+    extra: set[Scope] = set()
     if user_is_moderator(user):
-        extra.append('role_moderator')
+        extra.add('role_moderator')
     if user_is_admin(user):
-        extra.append('role_administrator')
-    return *scopes, *extra
+        extra.add('role_administrator')
+    return scopes | extra
 
 
 def user_avatar_url(user: User | UserDisplay) -> str:

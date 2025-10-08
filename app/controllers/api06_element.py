@@ -142,7 +142,7 @@ async def get_many(
         # Return not found on parsing errors, why?, IDK
         return Response(None, status.HTTP_404_NOT_FOUND)
 
-    elements = await ElementQuery.find_many_by_any_refs(parsed_query, limit=None)
+    elements = await ElementQuery.find_by_any_refs(parsed_query, limit=None)
     if None in elements:
         return Response(None, status.HTTP_404_NOT_FOUND)
 
@@ -154,7 +154,7 @@ async def get_many(
 @router.get('/{type:element_type}/{id:int}.json')
 async def get_latest(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
-    elements = await ElementQuery.get_by_refs([typed_id], limit=1)
+    elements = await ElementQuery.find_by_refs([typed_id], limit=1)
     element = next(iter(elements), None)
     if element is None:
         raise_for.element_not_found(typed_id)
@@ -170,7 +170,7 @@ async def get_latest(type: ElementType, id: ElementId):
 @router.get('/{type:element_type}/{id:int}/{version:int}.json')
 async def get_version(type: ElementType, id: ElementId, version: int):
     ref = (typed_element_id(type, id), version)
-    elements = await ElementQuery.get_by_versioned_refs([ref], limit=1)
+    elements = await ElementQuery.find_by_versioned_refs([ref], limit=1)
     if not elements:
         raise_for.element_not_found(ref)
 
@@ -182,7 +182,7 @@ async def get_version(type: ElementType, id: ElementId, version: int):
 @router.get('/{type:element_type}/{id:int}/history.json')
 async def get_history(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
-    elements = await ElementQuery.get_versions_by_ref(typed_id, limit=None)
+    elements = await ElementQuery.find_versions_by_ref(typed_id, limit=None)
     if not elements:
         raise_for.element_not_found(typed_id)
 
@@ -195,7 +195,7 @@ async def get_history(type: ElementType, id: ElementId):
 async def get_full(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.get_by_refs(
+    elements = await ElementQuery.find_by_refs(
         [typed_id], at_sequence_id=at_sequence_id, limit=1
     )
     element = next(iter(elements), None)
@@ -208,7 +208,7 @@ async def get_full(type: ElementType, id: ElementId):
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_elements_users(elements))
 
-        members_elements = await ElementQuery.get_by_refs(
+        members_elements = await ElementQuery.find_by_refs(
             element['members'],
             at_sequence_id=at_sequence_id,
             skip_typed_ids=[typed_id],
@@ -228,7 +228,7 @@ async def get_full(type: ElementType, id: ElementId):
 @router.get('/{type:element_type}/{id:int}/relations.json')
 async def get_parent_relations(type: ElementType, id: ElementId):
     typed_id = typed_element_id(type, id)
-    elements = await ElementQuery.get_parents_by_refs(
+    elements = await ElementQuery.find_parents_by_refs(
         [typed_id], parent_type='relation', limit=None
     )
     return await _encode_elements(elements)
@@ -239,7 +239,7 @@ async def get_parent_relations(type: ElementType, id: ElementId):
 @router.get('/node/{id:int}/ways.json')
 async def get_parent_ways(id: ElementId):
     typed_id = typed_element_id('node', id)
-    elements = await ElementQuery.get_parents_by_refs(
+    elements = await ElementQuery.find_parents_by_refs(
         [typed_id], parent_type='way', limit=None
     )
     return await _encode_elements(elements)

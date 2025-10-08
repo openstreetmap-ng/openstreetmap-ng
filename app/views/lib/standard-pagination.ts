@@ -1,6 +1,7 @@
-import { effect, signal } from "@preact/signals-core"
+import { batch, effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
 import { resolveDatetimeLazy } from "./datetime"
+import { qsEncode, qsParse } from "./qs"
 
 const paginationDistance = 2
 
@@ -8,28 +9,46 @@ export const configureStandardPagination = (
     container?: ParentNode,
     options?: {
         initialPage?: number
+        reverse?: boolean
         customLoader?: (page: number, renderContainer: HTMLElement) => void
-        loadCallback?: () => void
+        loadCallback?: (renderContainer: HTMLElement) => void
     },
 ): (() => void) => {
-    if (!container) return () => {}
+    if (!container) {
+        console.debug("Ignored standard pagination: missing container")
+        return () => {}
+    }
+
     const renderContainer =
         container.querySelector("ul.list-unstyled") ?? container.querySelector("tbody")
     const paginationContainers = container.querySelectorAll("ul.pagination")
+    if (!renderContainer || !paginationContainers.length) {
+        console.debug(
+            "Ignored standard pagination: missing renderContainer/paginationContainers",
+        )
+        return () => {}
+    }
 
     const dataset = paginationContainers[paginationContainers.length - 1].dataset
-    const totalPages = Number.parseInt(dataset.pages, 10)
-    if (!totalPages) return () => {}
+    const initialPages = Number.parseInt(dataset.pages, 10)
+    if (!initialPages) {
+        console.debug("Ignored standard pagination: missing data-pages")
+        return () => {}
+    }
 
-    const pageSize = Number.parseInt(dataset.pageSize, 10)
-    const numItems = Number.parseInt(dataset.numItems, 10)
+    const pageSize = Number.parseInt(dataset.pageSize, 10) // optional
+    const reverse = options?.reverse ?? true
 
     const endpointPattern = dataset.action
     console.debug(
         "Initializing standard pagination",
         options?.customLoader ? "<custom loader>" : endpointPattern,
     )
-    const currentPage = signal(options?.initialPage ?? totalPages)
+
+    const numItems = signal(Number.parseInt(dataset.numItems, 10))
+    const totalPages = signal(initialPages)
+    const currentPage = signal(options?.initialPage ?? (reverse ? initialPages : 1))
+    const fetchCache = new Map<string, string>()
     let firstLoad = true
 
     const setPendingState = (state: boolean): void => {
@@ -43,7 +62,7 @@ export const configureStandardPagination = (
 
             const spinnerElement = document.createElement("div")
             spinnerElement.className = "spinner-border text-body-secondary"
-            spinnerElement.setAttribute("role", "status")
+            spinnerElement.role = "status"
 
             const srText = document.createElement("span")
             srText.className = "visually-hidden"
@@ -54,6 +73,12 @@ export const configureStandardPagination = (
             renderContainer.innerHTML = ""
             renderContainer.appendChild(spinner)
         }
+    }
+
+    const onLoad = (html: string): void => {
+        renderContainer.innerHTML = html
+        resolveDatetimeLazy(renderContainer)
+        options?.loadCallback?.(renderContainer)
     }
 
     // Update collection
@@ -67,11 +92,26 @@ export const configureStandardPagination = (
             return
         }
 
-        const abortController = new AbortController()
+        // Build the endpoint
+        const [path, q = ""] = endpointPattern.split("?")
+        const params = qsParse(q)
+        params.page = currentPageString
+        params.num_items = String(numItems.peek())
+        const url = `${path}?${qsEncode(params)}`
+
+        // Serve from cache when available
+        const cached = fetchCache.get(url)
+        if (cached !== undefined) {
+            console.debug("Loading cached page", currentPageString)
+            onLoad(cached)
+            return () => {}
+        }
 
         console.debug("Navigating to page", currentPageString)
+        const abortController = new AbortController()
         setPendingState(true)
-        fetch(endpointPattern.replace("{page}", currentPageString), {
+
+        fetch(url, {
             method: "GET",
             mode: "same-origin",
             cache: "no-store",
@@ -80,9 +120,24 @@ export const configureStandardPagination = (
         })
             .then(async (resp) => {
                 if (resp.ok) console.debug("Navigated to page", currentPageString)
-                renderContainer.innerHTML = await resp.text()
-                resolveDatetimeLazy(renderContainer)
-                options?.loadCallback?.()
+                const text = await resp.text()
+                fetchCache.set(url, text)
+                onLoad(text)
+
+                // Sync headers for total items/pages
+                if (numItems.value < 0) {
+                    batch(() => {
+                        numItems.value = Number.parseInt(
+                            resp.headers.get("X-SP-NumItems"),
+                            10,
+                        )
+                        totalPages.value = Number.parseInt(
+                            resp.headers.get("X-SP-NumPages"),
+                            10,
+                        )
+                        currentPage.value = reverse ? totalPages.value : 1
+                    })
+                }
             })
             .catch((error: Error) => {
                 if (error.name === "AbortError") return
@@ -98,22 +153,25 @@ export const configureStandardPagination = (
 
     // Update pagination
     const disposePaginationEffect = effect(() => {
-        if (totalPages <= 1) {
+        const numItemsValue = numItems.value
+        const totalPagesValue = totalPages.value
+        const currentPageValue = currentPage.value
+
+        if (totalPagesValue <= 1) {
             for (const paginationContainer of paginationContainers) {
                 paginationContainer.classList.add("d-none")
             }
             return
         }
-        const currentPageValue = currentPage.value
 
         for (const paginationContainer of paginationContainers) {
             paginationContainer.classList.remove("d-none")
             const paginationFragment = document.createDocumentFragment()
 
-            for (let i = 1; i <= totalPages; i++) {
+            for (let i = 1; i <= totalPagesValue; i++) {
                 const distance = Math.abs(i - currentPageValue)
-                if (distance > paginationDistance && i !== 1 && i !== totalPages) {
-                    if (i === 2 || i === totalPages - 1) {
+                if (distance > paginationDistance && i !== 1 && i !== totalPagesValue) {
+                    if (i === 2 || i === totalPagesValue - 1) {
                         const li = document.createElement("li")
                         li.classList.add("page-item", "disabled")
                         li.ariaDisabled = "true"
@@ -130,13 +188,14 @@ export const configureStandardPagination = (
                 button.type = "button"
                 button.classList.add("page-link")
 
-                if (pageSize && numItems) {
+                if (pageSize && numItemsValue) {
                     const [limit, offset] = standardPaginationRange(
                         i,
                         pageSize,
-                        numItems,
+                        numItemsValue,
+                        reverse,
                     )
-                    const itemMax = numItems - offset
+                    const itemMax = numItemsValue - offset
                     const itemMin = itemMax - limit + 1
                     button.textContent =
                         itemMax !== itemMin
@@ -167,7 +226,6 @@ export const configureStandardPagination = (
 
     return () => {
         console.debug("Disposing standard pagination", endpointPattern)
-        currentPage.value = 0
         disposeCollectionEffect()
         disposePaginationEffect()
     }
@@ -175,12 +233,16 @@ export const configureStandardPagination = (
 
 /**
  * Get the range of items for the given page.
- * The last page returns an offset of 0.
  * Returns a tuple of (limit, offset).
  */
-const standardPaginationRange = (page: number, pageSize: number, numItems: number) => {
+const standardPaginationRange = (
+    page: number,
+    pageSize: number,
+    numItems: number,
+    reverse: boolean,
+) => {
     const numPages = Math.ceil(numItems / pageSize)
-    const offset = (numPages - page) * pageSize
+    const offset = reverse ? (numPages - page) * pageSize : (page - 1) * pageSize
     const limit = Math.min(pageSize, numItems - offset)
     return [limit, offset]
 }

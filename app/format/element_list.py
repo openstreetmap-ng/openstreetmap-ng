@@ -29,7 +29,7 @@ class FormatElementList:
             for element in elements
             if not element['visible'] and element['version'] > 1
         ]
-        prev_elements = await ElementQuery.get_by_versioned_refs(
+        prev_elements = await ElementQuery.find_by_versioned_refs(
             prev_refs, limit=len(prev_refs)
         )
         prev_type_id_map: dict[TypedElementId, Element]
