@@ -448,7 +448,8 @@ let
         psql() { command psql -X "$POSTGRES_URL" "$@"; }
         if [ -n "$(psql -tAc "SELECT 1 FROM information_schema.tables WHERE table_name = 'migration'")" ]; then
           echo "Upgrading postgres/timescaledb"
-          psql -c "ALTER EXTENSION timescaledb UPDATE"
+          PGOPTIONS='-c timescaledb.disable_load=on' \
+            psql -c "ALTER EXTENSION timescaledb UPDATE"
 
           echo "Upgrading postgres/postgis"
           psql -c "SELECT postgis_extensions_upgrade()" || true
