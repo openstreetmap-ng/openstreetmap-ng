@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Annotated, Literal
 
 import orjson
-from fastapi import APIRouter, Cookie, Form, Query, Response
+from fastapi import APIRouter, Cookie, Form, HTTPException, Query, Response
 from pydantic import PositiveInt, SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -128,6 +128,12 @@ async def impersonate_user(
     auth: Annotated[SecretStr, Cookie()],
     user_id: UserId,
 ):
+    if ENV == 'test':
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            'Impersonation is disabled in the test environment',
+        )
+
     async with TaskGroup() as tg:
         tg.create_task(OAuth2TokenService.revoke_by_access_token(auth))
         access_token = await SystemAppService.create_access_token(
