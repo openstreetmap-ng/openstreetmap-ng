@@ -10,13 +10,15 @@ if (languagePickerModal) {
         ".language-list button",
     )
 
-    // Mark current language as active (lazy)
+    // Move current language to top and mark as active (lazy)
     languagePickerModal.addEventListener(
         "show.bs.modal",
         () => {
+            const languageList = languagePickerModal.querySelector(".language-list")
             for (const btn of languageButtons) {
                 if (btn.dataset.lang === primaryLanguage) {
                     btn.setAttribute("class", "btn btn-primary fw-bold")
+                    languageList.prepend(btn)
                     return
                 }
             }
