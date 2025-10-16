@@ -1,4 +1,4 @@
-import { sha1 } from "@noble/hashes/legacy"
+import { sha1 } from "@noble/hashes/legacy.js"
 import { effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
 

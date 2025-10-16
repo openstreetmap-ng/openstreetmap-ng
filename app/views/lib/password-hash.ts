@@ -1,7 +1,7 @@
 import { create, toBinary } from "@bufbuild/protobuf"
 import { base64Encode } from "@bufbuild/protobuf/wire"
-import { pbkdf2Async } from "@noble/hashes/pbkdf2"
-import { sha512 } from "@noble/hashes/sha2"
+import { pbkdf2Async } from "@noble/hashes/pbkdf2.js"
+import { sha512 } from "@noble/hashes/sha2.js"
 import {
     type TransmitUserPassword,
     TransmitUserPasswordSchema,
