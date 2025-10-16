@@ -445,11 +445,13 @@ let
         if cmp -s data/.dev-version <(echo "${pkgsUrl}"); then exit 0; fi
         echo "Nixpkgs changed, performing services upgrade"
 
-        psql() { command psql -X "$POSTGRES_URL" "$@"; }
+        psql() {
+          PGOPTIONS='-c timescaledb.disable_load=on' \
+            command psql -X "$POSTGRES_URL" "$@"
+        }
         if [ -n "$(psql -tAc "SELECT 1 FROM information_schema.tables WHERE table_name = 'migration'")" ]; then
           echo "Upgrading postgres/timescaledb"
-          PGOPTIONS='-c timescaledb.disable_load=on' \
-            psql -c "ALTER EXTENSION timescaledb UPDATE"
+          psql -c "ALTER EXTENSION timescaledb UPDATE"
 
           echo "Upgrading postgres/postgis"
           psql -c "SELECT postgis_extensions_upgrade()" || true
