@@ -11,11 +11,12 @@ from app.models.types import LocaleCode
 
 def test_locales_names_sorted():
     strings = [
-        locale_name.english.casefold() for locale_name in LOCALES_NAMES_MAP.values()
+        (locale_name.native or locale_name.english).casefold()
+        for locale_name in LOCALES_NAMES_MAP.values()
     ]
     assert sorted(strings) == strings
     strings = [
-        locale_name.english.casefold()
+        (locale_name.native or locale_name.english).casefold()
         for locale_name in INSTALLED_LOCALES_NAMES_MAP.values()
     ]
     assert sorted(strings) == strings
@@ -49,7 +50,7 @@ def test_normalize_locale(locale, expected):
 @pytest.mark.parametrize(
     ('code', 'english', 'native', 'display_name'),
     [
-        ('pl', 'polish', 'polski', 'polish (polski)'),
+        ('pl', 'polish', 'polski', 'polski (polish)'),
         ('en', 'english', 'english', 'english'),
     ],
 )

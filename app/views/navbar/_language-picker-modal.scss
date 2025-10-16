@@ -7,18 +7,29 @@
         .btn {
             display: flex;
             align-items: center;
+            text-align: left;
+            overflow: hidden;
 
             .flag {
                 margin-right: 0.375rem;
                 font-size: 1.2em;
+                flex-shrink: 0;
             }
 
-            .name {
-                text-align: left;
-                display: -webkit-box;
-                -webkit-box-orient: vertical;
-                -webkit-line-clamp: 1;
+            .name-native {
+                font-weight: 500;
+                flex-shrink: 0;
+            }
+
+            .name-english {
+                margin-left: 0.375rem;
+                font-size: 0.875em;
+                padding-top: 0.0625rem;
+                color: var(--bs-secondary-color);
+                font-weight: 400;
                 overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
         }
     }

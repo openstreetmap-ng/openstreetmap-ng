@@ -22,9 +22,9 @@ class LocaleName(NamedTuple):
     @property
     def display_name(self) -> str:
         return (
-            self.english
+            self.native
             if self.english == self.native
-            else f'{self.english} ({self.native})'
+            else f'{self.native} ({self.english})'
         )
 
 
@@ -80,7 +80,7 @@ def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]
 
     raw_names: list[dict[str, str]]
     raw_names = orjson.loads(Path('config/locale/names.json').read_bytes())
-    raw_names.sort(key=lambda v: v['english'].casefold())
+    raw_names.sort(key=lambda v: (v['native'] or v['english']).casefold())
     locale_names_map: dict[LocaleCode, LocaleName] = {}
 
     flags = tomllib.loads(Path('config/locale/flags.toml').read_text())

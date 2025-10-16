@@ -17,7 +17,10 @@
                         {% if locale_name.flag %}
                         <span class="flag">{{ locale_name.flag }}</span>
                         {% endif %}
-                        <span class="name">{{ locale_name.display_name }}</span>
+                        <span class="name-native">{{ locale_name.native }}</span>
+                        {% if locale_name.english != locale_name.native %}
+                        <span class="name-english">{{ locale_name.english }}</span>
+                        {% endif %}
                     </button>
                     {% endfor %}
                 </div>
