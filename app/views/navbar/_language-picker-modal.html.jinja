@@ -10,7 +10,7 @@
             <div class="modal-body">
                 <input type="text" class="form-control mb-3"
                     placeholder="{{ t('language_picker.search_languages') }}..." autocomplete="off">
-                <div class="language-list">
+                <div class="language-list mb-3">
                     {% for locale_code, locale_name in INSTALLED_LOCALES_NAMES_MAP.items() %}
                     <button type="button" class="btn btn-light btn-bg-initial border" data-lang="{{ locale_code }}"
                         title="{{ locale_name.display_name }}">
@@ -24,6 +24,16 @@
                     </button>
                     {% endfor %}
                 </div>
+
+                <p class="form-text mb-0">
+                    {% set _this_guide %}
+                    <a href="https://wiki.openstreetmap.org/wiki/Website_internationalization#How_to_translate"
+                        target="_blank">
+                        {{- t('internalization.this_guide') -}}
+                    </a>
+                    {%- endset %}
+                    {{ t('internalization.get_started', this_guide=_this_guide) | safe }}
+                </p>
             </div>
 
             <div class="modal-footer">
