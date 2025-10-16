@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
   "files": {
     "ignoreUnknown": true,
     "includes": [
@@ -30,15 +30,10 @@
         "useWhile": "on"
       },
       "nursery": {
-        "noAwaitInLoop": "on",
-        "noConstantBinaryExpression": "on",
-        "noUselessBackrefInRegex": "on",
-        "noUselessEscapeInString": "on",
-        "noUselessUndefined": "on",
-        "useObjectSpread": "on",
-        "useParseIntRadix": "on"
+        "noUselessUndefined": "on"
       },
       "performance": {
+        "noAwaitInLoops": "on",
         "noDelete": "on",
         "useTopLevelRegex": "on"
       },
@@ -52,18 +47,16 @@
         "useCollapsedElseIf": "on",
         "useConsistentArrayType": "on",
         "useConsistentBuiltinInstantiation": "on",
-        "useConst": {
-          "fix": "unsafe",
-          "level": "on"
-        },
         "useForOf": "on",
         "useNumberNamespace": "on",
+        "useObjectSpread": "on",
         "useShorthandAssign": "on",
         "useThrowNewError": "on",
         "useThrowOnlyError": "on"
       },
       "suspicious": {
         "noConfusingVoidType": "off",
+        "noConstantBinaryExpressions": "on",
         "noEvolvingTypes": "on",
         "noExplicitAny": "off",
         "useAwait": "on"
