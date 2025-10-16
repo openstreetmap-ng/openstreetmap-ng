@@ -2,6 +2,7 @@ import { dirname, relative } from "node:path"
 import { fileURLToPath } from "node:url"
 import legacy from "@vitejs/plugin-legacy"
 import autoprefixer from "autoprefixer"
+import rtlcss from "rtlcss"
 import { defineConfig } from "vite"
 import { browserslist } from "./package.json"
 
@@ -70,5 +71,55 @@ export default defineConfig({
             modernPolyfills: true,
             renderLegacyChunks: false,
         }),
+        {
+            name: "serve-rtl-css",
+            apply: "serve",
+            configureServer(server) {
+                server.middlewares.use(async (req, res, next) => {
+                    const url = new URL(
+                        `http://${process.env.HOST ?? "localhost"}${req.url}`,
+                    )
+                    if (!url.searchParams.has("rtl")) return next()
+
+                    const modPath = `/${url.pathname.slice(server.config.base.length)}?${url.searchParams.toString()}&inline`
+                    const mod = await server.ssrLoadModule(modPath)
+                    const css =
+                        (typeof mod.default === "string" && mod.default) ||
+                        (typeof mod.css === "string" && mod.css)
+                    if (!css) return next()
+
+                    res.setHeader("Content-Type", "text/css")
+                    res.end(rtlcss.process(css))
+                })
+            },
+        },
+        {
+            name: "build-rtl-css",
+            apply: "build",
+            generateBundle(_options, bundle) {
+                for (const [fileName, chunk] of Object.entries(bundle)) {
+                    if (
+                        !fileName.endsWith(".css") ||
+                        fileName.includes(".rtl.") ||
+                        chunk.type !== "asset"
+                    )
+                        continue
+
+                    const source =
+                        typeof chunk.source === "string"
+                            ? chunk.source
+                            : Buffer.from(chunk.source).toString()
+
+                    const rtlSource = rtlcss.process(source)
+                    const rtlFileName = `${fileName.slice(0, fileName.length - 4)}.rtl.css`
+
+                    this.emitFile({
+                        type: "asset",
+                        fileName: rtlFileName,
+                        source: rtlSource,
+                    })
+                }
+            },
+        },
     ],
 })

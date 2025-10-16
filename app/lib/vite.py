@@ -5,6 +5,7 @@ from itertools import chain
 from pathlib import Path
 from typing import Any
 
+import cython
 import orjson
 
 from app.config import ENV
@@ -17,7 +18,7 @@ _MANIFEST: dict[str, dict[str, Any]] | None = (
 
 
 @cache
-def vite_render_asset(path: str) -> str:
+def vite_render_asset(path: str, *, rtl: bool = False) -> str:
     suffix = Path(path).suffix
     lines: list[str] = []
 
@@ -27,7 +28,8 @@ def vite_render_asset(path: str) -> str:
         base = 'http://127.0.0.1:49568/static/vite/'
 
         if suffix == '.scss':
-            lines.append(f'<link rel="stylesheet" href="{base}{path}">')
+            href = f'{base}{path}{"?rtl" if rtl else ""}'
+            lines.append(f'<link rel="stylesheet" href="{href}">')
 
         if suffix == '.ts':
             if path == 'app/views/test-site.ts':
@@ -35,7 +37,8 @@ def vite_render_asset(path: str) -> str:
             else:
                 scss_path = path[:-3] + '.scss'
 
-            lines.append(f'<link rel="stylesheet" href="{base}{scss_path}">')
+            href = f'{base}{scss_path}{"?rtl" if rtl else ""}'
+            lines.append(f'<link rel="stylesheet" href="{href}">')
 
         lines.append(f'<script src="{base}@vite/client" type="module"></script>')
 
@@ -63,11 +66,10 @@ def vite_render_asset(path: str) -> str:
                 chunk_data = imports[chunk] = _MANIFEST[chunk]
                 stack.extend(chunk_data.get('imports', ()))
 
-        lines.extend(
-            f'<link rel="stylesheet" href="/static/vite/{css}">'
-            for chunk in chain((data,), imports.values())
-            for css in chunk.get('css', ())
-        )
+        for chunk in chain((data,), imports.values()):
+            for css in chunk.get('css', ()):
+                css_path = _choose_css_asset(css, rtl=rtl)
+                lines.append(f'<link rel="stylesheet" href="/static/vite/{css_path}">')
 
         if path == 'app/views/main.ts':
             lines.append(
@@ -91,3 +93,15 @@ def vite_render_asset(path: str) -> str:
         )
 
     return ''.join(lines)
+
+
+@cython.cfunc
+def _choose_css_asset(css: str, *, rtl: bool) -> str:
+    if not rtl:
+        return css
+
+    rtl_candidate = css[:-4] + '.rtl.css'
+    if Path('app/static/vite', rtl_candidate).is_file():
+        return rtl_candidate
+
+    return css

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}" dir="{{ t('html.dir') }}">
+{% set _dir = t('html.dir') %}
+<html lang="{{ lang }}" dir="{{ _dir }}">
 
 <head>
     <meta charset="utf-8">
@@ -10,7 +11,7 @@
         {{ t('project_name') }}
     </title>
 
-    {{ vite_render_asset('app/views/main.scss') | safe }}
+    {{ vite_render_asset('app/views/main.scss', rtl=_dir == 'rtl') | safe }}
 
     <link rel="icon" sizes="512x512" type="image/webp" href="/static/img/favicon/512.webp">
     <link rel="icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
