@@ -132,16 +132,6 @@ $bootstrap-icons-font-hash: "";
 
 // TODO: print style
 
-// Right-to-left support using <html dir="rtl"> tag
-html[dir="rtl"] {
-    text-align: right;
-
-    // Mirror illustrations
-    .illustration {
-        transform: scaleX(-1);
-    }
-}
-
 time[title] {
     cursor: help;
     text-wrap: nowrap;

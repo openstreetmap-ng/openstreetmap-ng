@@ -46,7 +46,8 @@ def vite_render_asset(path: str, *, rtl: bool = False) -> str:
             lines.append(f'<script src="{base}app/views/main-sync.ts"></script>')
 
         if suffix == '.ts':
-            lines.append(f'<script src="{base}{path}" type="module" defer></script>')
+            src = f'{base}{path}{"?rtl=1" if rtl else ""}'
+            lines.append(f'<script src="{src}" type="module" defer></script>')
 
     else:
         # Production and test environments:

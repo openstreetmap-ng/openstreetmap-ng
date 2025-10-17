@@ -1,3 +1,4 @@
+import assert from "node:assert/strict"
 import { dirname, relative } from "node:path"
 import { fileURLToPath } from "node:url"
 import legacy from "@vitejs/plugin-legacy"
@@ -6,10 +7,36 @@ import rtlcss from "rtlcss"
 import { defineConfig } from "vite"
 import { browserslist } from "./package.json"
 
+const CSS_FILE_RE = /\.(?:c|s[ac])ss$/i
+
 const getPackageDist = (pkgName: string): string => {
     const absolutePath = dirname(fileURLToPath(import.meta.resolve(pkgName)))
     const relativePath = relative(process.cwd(), absolutePath).replace(/\\/g, "/")
     return `${relativePath}/`
+}
+
+const trimDevBase = (base: string, path: string): string => {
+    if (!path.startsWith(base)) return path
+    const trimmed = path.slice(base.length)
+    return trimmed.startsWith("/") ? trimmed : `/${trimmed}`
+}
+
+const rewriteCssModule = (code: string, mutate: (css: string) => string): string => {
+    const marker = 'const __vite__css = "'
+    const markerIndex = code.indexOf(marker)
+    assert(markerIndex >= 0)
+
+    const valueStart = markerIndex + marker.length
+    const valueEnd = code.indexOf('"\n__vite__updateStyle', valueStart)
+    assert(valueEnd >= 0)
+
+    const literal = `"${code.slice(valueStart, valueEnd)}"`
+    const original = Function(`"use strict";return (${literal});`)()
+
+    const prefix = code.slice(0, valueStart)
+    const suffix = code.slice(valueEnd)
+
+    return `${prefix}${JSON.stringify(mutate(original)).slice(1, -1)}${suffix}`
 }
 
 export default defineConfig({
@@ -76,17 +103,51 @@ export default defineConfig({
             apply: "serve",
             configureServer(server) {
                 server.middlewares.use(async (req, res, next) => {
-                    const url = new URL(
-                        `http://${process.env.HOST ?? "localhost"}${req.url}`,
-                    )
-                    if (!url.searchParams.has("rtl")) return next()
+                    const rawUrl = req.originalUrl ?? req.url
+                    if (!rawUrl) return next()
 
-                    const modPath = `/${url.pathname.slice(server.config.base.length)}?${url.searchParams.toString()}&inline`
-                    const mod = await server.ssrLoadModule(modPath)
+                    const url = new URL(rawUrl, server.config.server.origin)
+                    if (!CSS_FILE_RE.test(url.pathname)) return next()
+
+                    const referer =
+                        typeof req.headers.referer === "string"
+                            ? req.headers.referer
+                            : ""
+                    const hasRtlParam = url.searchParams.has("rtl")
+                    const scriptRtl =
+                        url.searchParams.get("rtl") === "1" || referer.includes("rtl=1")
+
+                    if (!scriptRtl && !hasRtlParam) return next()
+
+                    const requestPath = `${trimDevBase(server.config.base, url.pathname)}${url.search}`
+
+                    if (scriptRtl) {
+                        const result = await server.transformRequest(requestPath)
+                        assert(result && typeof result.code === "string")
+
+                        const rewritten = rewriteCssModule(result.code, (css) =>
+                            rtlcss.process(css),
+                        )
+
+                        res.setHeader("Content-Type", "application/javascript")
+                        res.end(rewritten)
+                        return
+                    }
+
+                    const params = new URLSearchParams(url.searchParams)
+                    params.delete("rtl")
+                    const inlineParts: string[] = []
+                    for (const [key, value] of params.entries()) {
+                        inlineParts.push(value ? `${key}=${value}` : key)
+                    }
+                    inlineParts.push("inline")
+                    const inlinePath = `${trimDevBase(server.config.base, url.pathname)}?${inlineParts.join("&")}`
+
+                    const mod = await server.ssrLoadModule(inlinePath)
                     const css =
-                        (typeof mod.default === "string" && mod.default) ||
-                        (typeof mod.css === "string" && mod.css)
-                    if (!css) return next()
+                        (mod && typeof mod.default === "string" && mod.default) ||
+                        (mod && typeof mod.css === "string" && mod.css)
+                    assert(typeof css === "string")
 
                     res.setHeader("Content-Type", "text/css")
                     res.end(rtlcss.process(css))
