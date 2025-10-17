@@ -79,6 +79,11 @@ async def render_response(
 
         web_config = WebConfig(user_config=user_config)
         web_config.MergeFrom(_CONFIG_BASE)
+
+        # Optimization: clear locales data for all but settings template
+        if template_name != 'settings/settings':
+            web_config.ClearField('locales')
+
         data['WEB_CONFIG'] = urlsafe_b64encode(web_config.SerializeToString()).decode()
 
         messages_count_unread = await ParallelTasksMiddleware.messages_count_unread()
