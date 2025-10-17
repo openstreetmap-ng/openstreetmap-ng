@@ -21,7 +21,7 @@ const getObjectRequestUrl = (object: OSMObject): string => {
         return `${config.apiUrl}/api/0.6/${type}/${object.id}/full`
     }
 
-    // @ts-ignore
+    // @ts-expect-error
     const version = object.version
     return version
         ? `${config.apiUrl}/api/0.6/${type}/${object.id}/${version}`

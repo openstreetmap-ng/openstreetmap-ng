@@ -103,7 +103,7 @@ layersConfig.set("standard" as LayerId, {
 
 layersConfig.set("liberty" as LayerId, {
     specification: { type: "vector" },
-    // @ts-ignore
+    // @ts-expect-error
     vectorStyle: libertyStyle,
     isBaseLayer: true,
     layerCode: "L" as LayerCode,
@@ -271,7 +271,7 @@ export const addMapLayerSources = (
         if (specType === "raster" || specType === "geojson") {
             if (!watchMap && config.darkTiles) watchMap = true
             if (isDarkTheme && config.darkTiles) {
-                // @ts-ignore
+                // @ts-expect-error
                 map.addSource(layerId, {
                     ...config.specification,
                     tiles: config.darkTiles,
@@ -319,7 +319,7 @@ addThemeEventHandler((theme) => {
                     source.setTiles(config.darkTiles)
                 }
             } else if (config.darkTiles) {
-                // @ts-ignore
+                // @ts-expect-error
                 source.setTiles(config.specification.tiles)
             }
         }
@@ -421,12 +421,12 @@ export const addMapLayer = (
                 ...layer,
                 id: getExtendedLayerId(layerId, layer.id as LayerType),
             }
-            // @ts-ignore
+            // @ts-expect-error
             if (layer.source)
-                // @ts-ignore
+                // @ts-expect-error
                 layerObject.source = getExtendedLayerId(
                     layerId,
-                    // @ts-ignore
+                    // @ts-expect-error
                     layer.source as LayerType,
                 )
             map.addLayer(layerObject, beforeId)
@@ -445,9 +445,9 @@ export const addMapLayer = (
             const layerObject: AddLayerObject = {
                 ...layerOptions,
                 id: layerId,
-                // @ts-ignore
+                // @ts-expect-error
                 type: type as string,
-                // @ts-ignore
+                // @ts-expect-error
                 source: layerId,
             }
             if (layerTypes.length > 1) {
@@ -467,12 +467,12 @@ export const addMapLayer = (
                             newValue[k] = v
                         }
                     }
-                    // @ts-ignore
+                    // @ts-expect-error
                     layerObject[key] = newValue
                 }
             }
             const filter = layerTypeFilters[type]
-            // @ts-ignore
+            // @ts-expect-error
             if (filter) layerObject.filter = filter
             map.addLayer(layerObject, beforeId)
         }

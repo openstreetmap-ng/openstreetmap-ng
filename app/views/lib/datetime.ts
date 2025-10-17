@@ -103,7 +103,6 @@ export const resolveDatetimeLazy = (searchElement: Element): void =>
             const style = dataset.style
             if (dateStyle || timeStyle) {
                 // Absolute date
-                // @ts-ignore
                 element.textContent = dateTimeFormat(primaryLanguage, {
                     dateStyle: dateStyle as any,
                     timeStyle: timeStyle as any,
@@ -117,7 +116,7 @@ export const resolveDatetimeLazy = (searchElement: Element): void =>
                 // Relative date
                 const [diff, unit] = getRelativeFormatValueUnit(date)
                 element.textContent = relativeTimeFormat(primaryLanguage, {
-                    // @ts-ignore
+                    // @ts-expect-error
                     style: style,
                 }).format(diff, unit)
                 element.title = dateTimeFormat(primaryLanguage, {

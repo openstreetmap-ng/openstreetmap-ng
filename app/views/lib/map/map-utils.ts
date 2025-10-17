@@ -504,7 +504,7 @@ export const addControlGroup = (map: MaplibreMap, controls: IControl[]): void =>
     for (const [i, control] of controls.entries()) {
         map.addControl(control)
 
-        // @ts-ignore
+        // @ts-expect-error
         const container: HTMLElement | undefined = control._container
         if (!container) continue
         const classList = container.classList

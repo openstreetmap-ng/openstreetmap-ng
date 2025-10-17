@@ -189,13 +189,13 @@ const renderElementType = (
         // Prefer static translation strings to ease automation
         let newTitle: string
         if (type === "node") {
-            // @ts-ignore
+            // @ts-expect-error
             newTitle = i18next.t("browse.changeset.node", { count })
         } else if (type === "way") {
-            // @ts-ignore
+            // @ts-expect-error
             newTitle = i18next.t("browse.changeset.way", { count })
         } else if (type === "relation") {
-            // @ts-ignore
+            // @ts-expect-error
             newTitle = i18next.t("browse.changeset.relation", { count })
         }
         titleElement.textContent = newTitle

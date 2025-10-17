@@ -10,7 +10,7 @@ const container = document.querySelector("div.id-container")
 if (!container) throw new Error("iD container not found")
 
 parentLoadSystemApp((accessToken, parentOrigin) => {
-    // @ts-ignore
+    // @ts-expect-error
     const ctx = window.iD.coreContext()
     ctx.connection().apiConnections([])
     ctx.preauth({

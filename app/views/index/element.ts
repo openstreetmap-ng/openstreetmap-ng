@@ -150,7 +150,7 @@ const renderElementsComponent = (
         // Prefer static translation strings to ease automation
         let newTitle: string
         if (isWay) {
-            // @ts-ignore
+            // @ts-expect-error
             newTitle = i18next.t("browse.changeset.node", { count })
         } else if (elementsSection.classList.contains("parents")) {
             newTitle = `${i18next.t("browse.part_of")} (${count})`

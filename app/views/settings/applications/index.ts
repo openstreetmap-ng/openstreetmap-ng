@@ -11,7 +11,7 @@ mount("settings-applications-body", (body) => {
         const collapseInstance = Collapse.getOrCreateInstance(collapse, {
             toggle: false,
         })
-        // @ts-ignore
+        // @ts-expect-error
         collapseInstance._triggerArray.push(button)
 
         // On accordion button click, toggle the collapse if target is not a link

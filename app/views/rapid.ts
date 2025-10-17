@@ -9,7 +9,7 @@ const container = document.querySelector("div.rapid-container")
 if (!container) throw new Error("Rapid container not found")
 
 parentLoadSystemApp((accessToken, parentOrigin) => {
-    // @ts-ignore
+    // @ts-expect-error
     const ctx = new window.Rapid.Context()
     ctx.preauth = {
         url: parentOrigin,

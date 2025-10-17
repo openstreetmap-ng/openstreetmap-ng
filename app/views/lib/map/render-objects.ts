@@ -133,7 +133,7 @@ export const renderObjects = (
     }
 
     for (const object of objects) {
-        // @ts-ignore
+        // @ts-expect-error
         const fn = processFnMap[object.type]
         if (fn) fn(object)
         else console.error("Unsupported feature type", object)

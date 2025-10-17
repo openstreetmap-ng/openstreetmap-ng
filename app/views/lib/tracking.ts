@@ -61,7 +61,7 @@ if (crashReporting) {
 
 if (activityTracking) {
     console.debug("Enabling activity tracking")
-    // @ts-ignore
+    // @ts-expect-error
     window._paq = window._paq || []
     const _paq: any[] = (window as any)._paq
 
