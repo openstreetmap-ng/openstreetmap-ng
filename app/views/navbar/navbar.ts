@@ -4,7 +4,11 @@ import { encodeMapState, type LonLatZoom, type MapState } from "../lib/map/map-u
 import { qsParse } from "../lib/qs"
 import { remoteEdit } from "../lib/remote-edit"
 import type { OSMObject } from "../lib/types"
-import { isHrefCurrentPage, wrapMessageEventValidator } from "../lib/utils"
+import {
+    isHrefCurrentPage,
+    requestAnimationFramePolyfill,
+    wrapMessageEventValidator,
+} from "../lib/utils"
 
 const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
@@ -212,20 +216,19 @@ if (navbarLinksList) {
     const expandBuffer = 80
 
     // Check if navbar links overflow and adjust layout
-    const updateNavbarLayout = () => {
+    const _updateNavbarLayoutInner = () => {
         let availableWidth: number
         if (window.innerWidth >= 992) {
-            availableWidth = navbarLinksParent.getBoundingClientRect().width
+            availableWidth = navbarLinksParent.offsetWidth
 
             // Get other elements width
             for (const child of navbarLinksParent.children) {
                 if (child === navbarLinksList || child === moreDropdown) continue
-                availableWidth -= child.getBoundingClientRect().width
+                availableWidth -= (child as HTMLElement).offsetWidth
             }
 
             // Get "More" button width
-            moreButtonWidth =
-                moreDropdown.getBoundingClientRect().width || moreButtonWidth
+            moreButtonWidth = moreDropdown.offsetWidth || moreButtonWidth
             availableWidth -= moreButtonWidth
         } else {
             // Force expand for mobile
@@ -250,7 +253,7 @@ if (navbarLinksList) {
         if (shouldCollapse()) {
             // Get all widths at once to avoid layout thrashing
             const linkWidths = Array.from(navbarLinksList.children).map(
-                (child) => child.getBoundingClientRect().width,
+                (child) => (child as HTMLElement).offsetWidth,
             )
 
             const fragment = document.createDocumentFragment()
@@ -258,7 +261,8 @@ if (navbarLinksList) {
             while (shouldCollapse()) {
                 const linkItem = navbarLinksList.lastElementChild as HTMLLIElement
                 const link = linkItem.firstElementChild as HTMLAnchorElement
-                const linkWidth = linkWidths.pop()
+                const linkWidth =
+                    linkWidths.pop() ?? (linkItem as HTMLElement).offsetWidth
                 currentWidth -= linkWidth
 
                 // Create dropdown item
@@ -298,6 +302,15 @@ if (navbarLinksList) {
 
         // Update more button visibility
         moreDropdown.classList.toggle("d-none", !moreDropdownList.children.length)
+    }
+
+    let navbarLayoutRaf = 0
+    const updateNavbarLayout = () => {
+        if (navbarLayoutRaf) return
+        navbarLayoutRaf = requestAnimationFramePolyfill(() => {
+            navbarLayoutRaf = 0
+            _updateNavbarLayoutInner()
+        })
     }
 
     // Setup resize observer
