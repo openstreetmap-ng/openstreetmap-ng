@@ -130,11 +130,11 @@
                                 <input class="form-check-input role-checkbox" type="checkbox" name="roles"
                                     value="{{ role }}" {% if role in edit_user.roles %}checked{% endif %}>
                                 {% if role == 'administrator' %}
-                                <i class="bi bi-star-fill text-danger" aria-hidden="true"></i>
+                                <i class="bi bi-star-fill text-danger"></i>
                                 {% elif role == 'moderator' %}
-                                <i class="bi bi-star-fill text-blue" aria-hidden="true"></i>
+                                <i class="bi bi-star-fill text-blue"></i>
                                 {% else %}
-                                <i class="bi bi-star-fill text-secondary" aria-hidden="true"></i>
+                                <i class="bi bi-star-fill text-secondary"></i>
                                 {% endif %}
                                 <span>{{ role | title }}</span>
                             </label>
@@ -177,8 +177,8 @@
                             {% set provider = account.provider %}
                             <tr>
                                 <td class="d-flex align-items-center">
-                                    <img class="auth-provider-icon border me-3 me-lg-4"
-                                        src="/static/img/brand/{{ provider }}.webp" alt="{{ t('alt.service_image') }}">
+                                    {% set auth_provider_icon_name = provider %}
+                                    {% include 'settings/_auth-provider-icon' %}
                                     <div>
                                         <h6 class="mb-0">{{ t('service.' ~ provider ~ '.title') }}</h6>
                                         <p class="form-text mb-0">

@@ -1,0 +1,6 @@
+{% if auth_provider_icon_name == 'facebook' or auth_provider_icon_name == 'github' %}
+<i class="auth-provider-icon me-3 me-lg-4 bi bi-{{ auth_provider_icon_name }}"></i>
+{% else %}
+<img class="auth-provider-icon me-3 me-lg-4" src="/static/img/brand/{{ auth_provider_icon_name }}.webp"
+    alt="{{ t('alt.service_image') }}">
+{% endif %}
