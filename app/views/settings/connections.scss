@@ -26,7 +26,7 @@
 
             &::before {
                 background: #fff;
-                border-radius: 100%;
+                clip-path: circle(calc(50% - 1px));
             }
         }
 
