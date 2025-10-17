@@ -1,25 +1,80 @@
 import { Modal } from "bootstrap"
 import { primaryLanguage } from "../lib/config"
-import { staticCache } from "../lib/utils"
+import { getLocaleOptions } from "../lib/locale"
 
 const languagePickerModal = document.querySelector("#languagePickerModal")
 if (languagePickerModal) {
     const modalInstance = new Modal(languagePickerModal)
     const searchInput = languagePickerModal.querySelector("input")
     const languageList = languagePickerModal.querySelector(".language-list")
-    const languageButtons = languageList.querySelectorAll("button")
+    const languageButtons: HTMLButtonElement[] = []
 
-    // Move current language to top and mark as active (lazy)
+    const initializeLanguages = () => {
+        if (languageButtons.length) return
+        console.debug("Initializing language picker")
+        const fragment = document.createDocumentFragment()
+
+        for (const locale of getLocaleOptions()) {
+            const hasEnglishName = locale.nativeName !== locale.englishName
+
+            const listItem = document.createElement("li")
+            const button = document.createElement("button")
+            button.type = "button"
+            button.dataset.search =
+                `${locale.code} ${locale.nativeName}${hasEnglishName ? ` ${locale.englishName}` : ""}`.toLowerCase()
+            button.title = locale.displayName
+
+            if (locale.flag) {
+                const flag = document.createElement("span")
+                flag.className = "flag"
+                flag.textContent = locale.flag
+                button.append(flag)
+            }
+
+            const nativeName = document.createElement("span")
+            nativeName.className = "name-native"
+            nativeName.textContent = locale.nativeName
+            button.append(nativeName)
+
+            if (hasEnglishName) {
+                const englishName = document.createElement("span")
+                englishName.className = "name-english"
+                englishName.textContent = locale.englishName
+                button.append(englishName)
+            }
+
+            button.addEventListener("click", () => {
+                if (locale.code !== primaryLanguage) {
+                    console.info("Changing language to", locale.code)
+                    // biome-ignore lint/suspicious/noDocumentCookie: acceptable
+                    document.cookie = `lang=${locale.code}; path=/; max-age=31536000; samesite=lax`
+                    window.location.reload()
+                    button.disabled = true
+                } else {
+                    modalInstance.hide()
+                }
+            })
+
+            listItem.append(button)
+
+            if (locale.code === primaryLanguage) {
+                // Move current language to top and mark as active (lazy)
+                button.setAttribute("aria-current", "true")
+                fragment.prepend(listItem)
+            } else {
+                fragment.append(listItem)
+            }
+
+            languageButtons.push(button)
+        }
+
+        languageList.append(fragment)
+    }
+
     languagePickerModal.addEventListener(
         "show.bs.modal",
         () => {
-            for (const btn of languageButtons) {
-                if (btn.dataset.lang === primaryLanguage) {
-                    btn.setAttribute("aria-current", "true")
-                    languageList.prepend(btn.parentElement)
-                    return
-                }
-            }
+            initializeLanguages()
         },
         { once: true },
     )
@@ -31,47 +86,22 @@ if (languagePickerModal) {
 
     // Reset modal when closed
     languagePickerModal.addEventListener("hidden.bs.modal", () => {
-        // Reset search input
         searchInput.value = ""
-
-        // Reset visibility of all options
         for (const btn of languageButtons) {
             btn.parentElement.hidden = false
         }
     })
 
     // Search functionality
-    const nonAlphaRegex = /[^a-z\s]/g
-    const getLowercasedTitles = staticCache(() =>
-        Array.from(languageButtons, (btn) => btn.title.toLowerCase()),
-    )
-
     searchInput.addEventListener("input", () => {
         const searchTerm = searchInput.value
             .toLowerCase()
             .trim()
-            .replace(nonAlphaRegex, "")
-        const lowercasedTitles = getLowercasedTitles()
+            .replace(/[^a-z\s]/g, " ")
 
-        languageButtons.forEach((btn, index) => {
+        for (const btn of languageButtons) {
             btn.parentElement.hidden =
-                !!searchTerm && !lowercasedTitles[index].includes(searchTerm)
-        })
+                !!searchTerm && !btn.dataset.search.includes(searchTerm)
+        }
     })
-
-    // Language selection
-    for (const btn of languageButtons) {
-        btn.addEventListener("click", () => {
-            const selectedLang = btn.dataset.lang
-            if (selectedLang && selectedLang !== primaryLanguage) {
-                console.info("Changing language to", selectedLang)
-                // biome-ignore lint/suspicious/noDocumentCookie: acceptable
-                document.cookie = `lang=${selectedLang}; path=/; max-age=31536000; samesite=lax`
-                window.location.reload()
-                btn.disabled = true
-            } else {
-                modalInstance.hide()
-            }
-        })
-    }
 }

@@ -27,6 +27,14 @@ message WebConfig {
         float traces_sample_rate = 2;  // Traces sampling rate
     }
 
+    // Installed language option
+    message Locale {
+        string code = 1;  // Locale code
+        string native_name = 2;  // Native display name
+        optional string english_name = 3;  // English display name when different
+        optional string flag = 4;  // Emoji flag, when available
+    }
+
     optional UserConfig user_config = 1;  // User preferences override
     optional SentryConfig sentry_config = 2;  // Sentry configuration
     string version = 3;  // Application version
@@ -34,6 +42,7 @@ message WebConfig {
     string api_url = 5;  // Base URL for making API requests
     float map_query_area_max_size = 6;  // Max sq km for map data queries
     float note_query_area_max_size = 7;  // Max sq km for note queries
+    repeated Locale locales = 8;  // Language options
 }
 
 // Password transmission container for different schema versions

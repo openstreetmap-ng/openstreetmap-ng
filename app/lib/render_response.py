@@ -12,7 +12,7 @@ from app.config import (
     VERSION,
 )
 from app.lib.auth_context import auth_user
-from app.lib.locale import map_i18next_files
+from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, map_i18next_files
 from app.lib.render_jinja import render_jinja
 from app.lib.sentry import SENTRY_DSN, SENTRY_TRACES_SAMPLE_RATE
 from app.lib.translation import translation_locales
@@ -34,6 +34,19 @@ _CONFIG_BASE = WebConfig(
     api_url=API_URL,
     map_query_area_max_size=MAP_QUERY_AREA_MAX_SIZE,
     note_query_area_max_size=NOTE_QUERY_AREA_MAX_SIZE,
+    locales=[
+        WebConfig.Locale(
+            code=code,
+            native_name=locale_name.native,
+            english_name=(
+                locale_name.english
+                if locale_name.english != locale_name.native
+                else None
+            ),
+            flag=locale_name.flag,
+        )
+        for code, locale_name in INSTALLED_LOCALES_NAMES_MAP.items()
+    ],
 )
 _CONFIG_DEFAULT = urlsafe_b64encode(_CONFIG_BASE.SerializeToString()).decode()
 

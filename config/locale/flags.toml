@@ -17,11 +17,13 @@ CS = "CZ" # Czech -> Czechia
 CY = "GB-WLS" # Welsh
 DA = "DK" # Danish -> Denmark
 DE-CH = "CH" # Swiss High German -> Switzerland
+DSB = "DE" # Lower Sorbian -> Germany
 DV = "MV" # Divehi -> Maldives
 DZ = "BT" # Dzongkha -> Bhutan
 EE = "TG" # Ewe -> Togo
 EL = "GR" # Greek -> Greece
-EN = "GB" # English -> United Kingdom
+EN-GB = "GB" # British English -> United Kingdom
+EO = "UN" # Esperanto -> United Nations
 ET = "EE" # Estonian -> Estonia
 FA = "IR" # Persian -> Iran
 FY = "NL" # Western Frisian -> Netherlands
@@ -29,12 +31,15 @@ GA = "IE" # Irish -> Ireland
 GD = "GB-SCT" # Scottish Gaelic
 GL = "ES" # Galician -> Spain
 GN = "PY" # Guarani -> Paraguay
+GSW = "CH" # Swiss German -> Switzerland
 GV = "IM" # Manx -> Isle of Man
 HE = "IL" # Hebrew -> Israel
 HI = "IN" # Hindi -> India
 HO = "PG" # Hiri Motu -> Papua New Guinea
+HSB = "DE" # Upper Sorbian -> Germany
 HY = "AM" # Armenian -> Armenia
 IG = "NG" # Igbo -> Nigeria
+JA = "JP" # Japanese -> Japan
 JV = "ID" # Javanese -> Indonesia
 KA = "GE" # Georgian -> Georgia
 KI = "KE" # Kikuyu -> Kenya
@@ -100,7 +105,6 @@ XH = "ZA" # Xhosa -> South Africa
 YO = "NG" # Yoruba -> Nigeria
 YUE = "HK" # Cantonese -> Hong Kong
 ZA = "CN" # Zhuang -> China
-ZH = "CN" # Chinese -> China
 ZH-CN = "CN" # Simplified Chinese -> China
 ZH-HK = "HK" # Chinese -> Hong Kong
 ZH-TW = "TW" # Traditional Chinese -> Taiwan
@@ -109,6 +113,7 @@ ZU = "ZA" # Zulu -> South Africa
 passthrough = [
   "AZ",
   "BG",
+  "DE",
   "DK",
   "FI",
   "FJ",

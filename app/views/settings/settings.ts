@@ -1,4 +1,5 @@
 import i18next from "i18next"
+import { getLocaleOptions } from "../lib/locale"
 import { mount } from "../lib/mount"
 import { type APIDetail, configureStandardForm } from "../lib/standard-form"
 
@@ -8,6 +9,19 @@ mount("settings-body", (body) => {
         "display_name",
     ) as HTMLInputElement
     const displayNameBlacklist = displayNameInput.dataset.blacklist
+    const languageSelect = settingsForm.querySelector('select[name="language"]')
+
+    const fragment = document.createDocumentFragment()
+    for (const locale of getLocaleOptions()) {
+        const option = document.createElement("option")
+        option.value = locale.code
+        option.textContent = locale.flag
+            ? `${locale.flag} ${locale.displayName}`
+            : locale.displayName
+        fragment.append(option)
+    }
+    languageSelect.append(fragment)
+    languageSelect.value = languageSelect.getAttribute("value")
 
     configureStandardForm(
         settingsForm,
