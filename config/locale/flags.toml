@@ -25,7 +25,6 @@ EL = "GR" # Greek -> Greece
 EN-GB = "GB" # British English -> United Kingdom
 EO = "UN" # Esperanto -> United Nations
 ET = "EE" # Estonian -> Estonia
-FA = "IR" # Persian -> Iran
 FY = "NL" # Western Frisian -> Netherlands
 GA = "IE" # Irish -> Ireland
 GD = "GB-SCT" # Scottish Gaelic
@@ -94,9 +93,7 @@ TK = "TM" # Turkmen -> Turkmenistan
 TL = "PH" # Tagalog -> Philippines
 TN = "BW" # Tswana -> Botswana
 TT = "RU" # Tatar -> Russia
-UG = "CN" # Uighur -> China
 UK = "UA" # Ukrainian -> Ukraine
-UR = "PK" # Urdu -> Pakistan
 VE = "ZA" # Venda -> South Africa
 VI = "VN" # Vietnamese -> Vietnam
 WO = "SN" # Wolof -> Senegal
@@ -144,6 +141,5 @@ passthrough = [
   "TH",
   "TO",
   "TR",
-  "TW",
   "UZ",
 ]
