@@ -10,20 +10,19 @@
             <div class="modal-body">
                 <input type="text" class="form-control mb-3"
                     placeholder="{{ t('language_picker.search_languages') }}..." autocomplete="off">
-                <div class="language-list mb-3">
+                <ul class="language-list list-unstyled mb-3" aria-live="polite">
                     {% for locale_code, locale_name in INSTALLED_LOCALES_NAMES_MAP.items() %}
-                    <button type="button" class="btn btn-light btn-bg-initial border" data-lang="{{ locale_code }}"
-                        title="{{ locale_name.display_name }}">
-                        {% if locale_name.flag %}
-                        <span class="flag">{{ locale_name.flag }}</span>
-                        {% endif %}
-                        <span class="name-native">{{ locale_name.native }}</span>
-                        {% if locale_name.english != locale_name.native %}
-                        <span class="name-english">{{ locale_name.english }}</span>
-                        {% endif %}
-                    </button>
+                    <li>
+                        <button type="button" data-lang="{{ locale_code }}" title="{{ locale_name.display_name }}">
+                            <span class="flag">{{ locale_name.flag or '' }}</span>
+                            <span class="name-native">{{ locale_name.native }}</span>
+                            {% if locale_name.english != locale_name.native %}
+                            <span class="name-english">{{ locale_name.english }}</span>
+                            {% endif %}
+                        </button>
+                    </li>
                     {% endfor %}
-                </div>
+                </ul>
 
                 <p class="form-text mb-0">
                     {% set _this_guide %}

@@ -4,13 +4,27 @@
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 0.25rem;
 
-        .btn {
+        button {
+            @extend .btn;
+
+            &[aria-current="true"] {
+                @extend .btn-primary;
+                @extend .fw-bold;
+            }
+
+            &:not([aria-current="true"]) {
+                @extend .btn-light;
+                @extend .btn-bg-initial;
+                @extend .border;
+            }
+
             display: flex;
             align-items: center;
             text-align: start;
             overflow: hidden;
+            width: 100%;
 
-            .flag {
+            .flag:not(:empty) {
                 margin-inline-end: 0.375rem;
                 font-size: 1.2em;
                 line-height: 1;

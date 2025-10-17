@@ -6,19 +6,17 @@ const languagePickerModal = document.querySelector("#languagePickerModal")
 if (languagePickerModal) {
     const modalInstance = new Modal(languagePickerModal)
     const searchInput = languagePickerModal.querySelector("input")
-    const languageButtons = languagePickerModal.querySelectorAll(
-        ".language-list button",
-    )
+    const languageList = languagePickerModal.querySelector(".language-list")
+    const languageButtons = languageList.querySelectorAll("button")
 
     // Move current language to top and mark as active (lazy)
     languagePickerModal.addEventListener(
         "show.bs.modal",
         () => {
-            const languageList = languagePickerModal.querySelector(".language-list")
             for (const btn of languageButtons) {
                 if (btn.dataset.lang === primaryLanguage) {
-                    btn.setAttribute("class", "btn btn-primary fw-bold")
-                    languageList.prepend(btn)
+                    btn.setAttribute("aria-current", "true")
+                    languageList.prepend(btn.parentElement)
                     return
                 }
             }
@@ -38,14 +36,14 @@ if (languagePickerModal) {
 
         // Reset visibility of all options
         for (const btn of languageButtons) {
-            btn.classList.remove("d-none")
+            btn.parentElement.hidden = false
         }
     })
 
     // Search functionality
     const nonAlphaRegex = /[^a-z\s]/g
     const getLowercasedTitles = staticCache(() =>
-        Array.from(languageButtons).map((btn) => btn.title.toLowerCase()),
+        Array.from(languageButtons, (btn) => btn.title.toLowerCase()),
     )
 
     searchInput.addEventListener("input", () => {
@@ -56,10 +54,8 @@ if (languagePickerModal) {
         const lowercasedTitles = getLowercasedTitles()
 
         languageButtons.forEach((btn, index) => {
-            btn.classList.toggle(
-                "d-none",
-                !!searchTerm && !lowercasedTitles[index].includes(searchTerm),
-            )
+            btn.parentElement.hidden =
+                !!searchTerm && !lowercasedTitles[index].includes(searchTerm)
         })
     })
 
