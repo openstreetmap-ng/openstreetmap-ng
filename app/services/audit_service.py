@@ -15,7 +15,7 @@ from psycopg.types.json import Jsonb
 from sentry_sdk.api import start_transaction
 
 from app.config import AUDIT_POLICY, AUDIT_USER_AGENT_MAX_LENGTH, ENV
-from app.db import db
+from app.db import db, db_lock
 from app.lib.anonymizer import anonymize_ip
 from app.lib.auth_context import auth_app, auth_user
 from app.lib.retry import retry
@@ -201,30 +201,17 @@ async def _audit_task(
 @retry(None)
 async def _process_task() -> None:
     async def sleep(delay: float) -> None:
-        if ENV != 'dev':
-            await asyncio.sleep(delay)
-            return
-
-        # Dev environment supports early wakeup
-        _PROCESS_DONE_EVENT.set()
-        async with TaskGroup() as tg:
-            event_task = tg.create_task(_PROCESS_REQUEST_EVENT.wait())
-            await asyncio.wait((event_task,), timeout=delay)
-            if event_task.done():
-                logging.debug('Audit processing loop early wakeup')
-                _PROCESS_REQUEST_EVENT.clear()
-            else:
-                event_task.cancel()
+        if delay > 0:
+            try:
+                await asyncio.wait_for(_PROCESS_REQUEST_EVENT.wait(), timeout=delay)
+            except TimeoutError:
+                pass
 
     while True:
-        async with db(True) as conn:
-            # Lock is just a random unique number
-            async with await conn.execute(
-                'SELECT pg_try_advisory_xact_lock(3968087525058357795::bigint)'
-            ) as r:
-                acquired: bool = (await r.fetchone())[0]  # type: ignore
-
+        async with db_lock(3968087525058357795) as acquired:
             if acquired:
+                _PROCESS_REQUEST_EVENT.clear()
+
                 with (
                     SENTRY_AUDIT_MANAGEMENT_MONITOR,
                     start_transaction(
@@ -232,6 +219,9 @@ async def _process_task() -> None:
                     ),
                 ):
                     await _cleanup_old_audit_logs()
+
+                if not _PROCESS_REQUEST_EVENT.is_set():
+                    _PROCESS_DONE_EVENT.set()
 
                 # on success, sleep 5min (handle burst)
                 await sleep(300)

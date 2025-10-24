@@ -12,9 +12,8 @@ from app.config import (
     CHANGESET_EMPTY_DELETE_TIMEOUT,
     CHANGESET_IDLE_TIMEOUT,
     CHANGESET_OPEN_TIMEOUT,
-    ENV,
 )
-from app.db import db
+from app.db import db, db_lock
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
@@ -164,30 +163,17 @@ class ChangesetService:
 @retry(None)
 async def _process_task() -> None:
     async def sleep(delay: float) -> None:
-        if ENV != 'dev':
-            await asyncio.sleep(delay)
-            return
-
-        # Dev environment supports early wakeup
-        _PROCESS_DONE_EVENT.set()
-        async with TaskGroup() as tg:
-            event_task = tg.create_task(_PROCESS_REQUEST_EVENT.wait())
-            await asyncio.wait((event_task,), timeout=delay)
-            if event_task.done():
-                logging.debug('Changeset processing loop early wakeup')
-                _PROCESS_REQUEST_EVENT.clear()
-            else:
-                event_task.cancel()
+        if delay > 0:
+            try:
+                await asyncio.wait_for(_PROCESS_REQUEST_EVENT.wait(), timeout=delay)
+            except TimeoutError:
+                pass
 
     while True:
-        async with db(True) as conn:
-            # Lock is just a random unique number
-            async with await conn.execute(
-                'SELECT pg_try_advisory_xact_lock(6978403057152160935::bigint)'
-            ) as r:
-                acquired: bool = (await r.fetchone())[0]  # type: ignore
-
+        async with db_lock(6978403057152160935) as acquired:
             if acquired:
+                _PROCESS_REQUEST_EVENT.clear()
+
                 ts = monotonic()
                 with (
                     SENTRY_CHANGESET_MANAGEMENT_MONITOR,
@@ -199,12 +185,14 @@ async def _process_task() -> None:
                     await _delete_empty()
                 tt = monotonic() - ts
 
+                if not _PROCESS_REQUEST_EVENT.is_set():
+                    _PROCESS_DONE_EVENT.set()
+
                 # on success, sleep ~1min
                 await sleep(uniform(50, 70) - tt)
-
-        if not acquired:
-            # on failure, sleep ~1h
-            await sleep(uniform(0.5 * 3600, 1.5 * 3600))
+            else:
+                # on failure, sleep ~1h
+                await sleep(uniform(0.5 * 3600, 1.5 * 3600))
 
 
 async def _close_inactive() -> None:

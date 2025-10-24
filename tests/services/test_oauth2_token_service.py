@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-import pytest
 from zid import zid
 
 from app.config import OAUTH_AUTHORIZATION_CODE_TIMEOUT
@@ -11,7 +10,6 @@ from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 
 
-@pytest.mark.flaky(reruns=3, only_rerun=['AssertionError'])
 async def test_oauth2_token_cleanup_deletes_only_stale_unauthorized():
     # Arrange: Insert two unauthorized tokens: one stale and one recent
     old_id: OAuth2TokenId = zid()  # type: ignore

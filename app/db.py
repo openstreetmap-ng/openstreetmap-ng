@@ -1,4 +1,5 @@
 import logging
+from asyncio import TaskGroup, sleep
 from collections.abc import Callable
 from contextlib import asynccontextmanager, contextmanager
 from functools import wraps
@@ -11,6 +12,7 @@ import orjson
 from psycopg import AsyncConnection, IsolationLevel, postgres
 from psycopg.abc import AdaptContext
 from psycopg.pq import Format
+from psycopg.sql import SQL
 from psycopg.types import TypeInfo
 from psycopg.types.enum import EnumInfo
 from psycopg.types.hstore import register_hstore
@@ -155,6 +157,32 @@ async def db(
             await conn.set_isolation_level(isolation_level)
 
         yield conn
+
+
+@asynccontextmanager
+async def db_lock(id: int, /):
+    """Try to acquire a advisory lock on the database. Periodically send a heartbeat to keep the transaction alive."""
+    async with db(True) as conn:
+
+        async def heartbeat():
+            while True:
+                await sleep(60)
+                await conn.execute('SELECT 1')
+
+        async with await conn.execute(
+            SQL('SELECT pg_try_advisory_xact_lock(%s::bigint)'),
+            (id,),
+        ) as r:
+            acquired: cython.bint = (await r.fetchone())[0]  # type: ignore
+
+        if acquired:
+            async with TaskGroup() as tg:
+                heartbeat_task = tg.create_task(heartbeat())
+                yield True
+                heartbeat_task.cancel()
+
+    if not acquired:
+        yield False
 
 
 @contextmanager

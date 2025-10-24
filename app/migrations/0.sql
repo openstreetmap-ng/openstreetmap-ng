@@ -43,6 +43,37 @@ SELECT array_agg(cell)
 FROM hierarchy
 $$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;
 
+CREATE OR REPLACE FUNCTION h3_geometry_to_compact_cells (geom geometry, resolution integer) RETURNS h3index[] AS $$
+WITH parts AS (
+    SELECT (d).geom AS g, public.ST_Dimension((d).geom) AS dim
+    FROM public.ST_Dump(geom) d
+)
+SELECT array_agg(cell)
+FROM public.h3_compact_cells(ARRAY(
+    SELECT DISTINCT h3_cell
+    FROM (
+        SELECT public.h3_polygon_to_cells_experimental(g, resolution, 'overlapping') AS h3_cell
+        FROM parts
+        WHERE dim = 2
+
+        UNION ALL
+
+        SELECT public.h3_grid_path_cells(
+            public.h3_latlng_to_cell(public.ST_PointN(g, i), resolution),
+            public.h3_latlng_to_cell(public.ST_PointN(g, i + 1), resolution)
+        ) AS h3_cell
+        FROM parts, generate_series(1, public.ST_NPoints(g) - 1) i
+        WHERE dim = 1
+
+        UNION ALL
+
+        SELECT public.h3_latlng_to_cell(g, resolution) AS h3_cell
+        FROM parts
+        WHERE dim = 0
+    ) cells
+)) AS cell
+$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;
+
 CREATE TYPE avatar_type AS enum('gravatar', 'custom');
 
 CREATE TYPE editor AS enum('id', 'rapid', 'remote');
@@ -325,21 +356,6 @@ CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_
 
 CREATE INDEX changeset_comment_user_id_idx ON changeset_comment (user_id DESC, id DESC);
 
--- TODO: repartition in postgres 18+ (faster gin/gist builds)
-CREATE FUNCTION element_partition_func (typed_id bigint) RETURNS bigint AS $$
-SELECT CASE
-    -- Nodes
-    WHEN typed_id <= 1152921504606846975 THEN
-        typed_id / 60
-    -- Ways
-    WHEN typed_id <= 2305843009213693951 THEN
-        (typed_id - 1152921504606846976) / 6 + 1152921504606846976
-    -- Relations
-    ELSE
-        typed_id
-END
-$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;
-
 CREATE TABLE element (
     sequence_id bigint,
     changeset_id bigint NOT NULL,
@@ -352,13 +368,13 @@ CREATE TABLE element (
     members BIGINT[],
     members_roles TEXT[],
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
-);
-
-SELECT
-    create_hypertable (
-        'element',
-        by_range ('typed_id', 5000000, partition_func => 'element_partition_func'),
-        create_default_indexes => FALSE
+)
+WITH
+    (
+        tsdb.hypertable,
+        tsdb.partition_column = 'typed_id',
+        tsdb.chunk_interval = '1152921504606846976',
+        tsdb.create_default_indexes = FALSE
     );
 
 CREATE INDEX element_sequence_idx ON element (sequence_id DESC);
@@ -388,6 +404,29 @@ WITH
 WHERE
     typed_id >= 1152921504606846976
     AND NOT latest;
+
+CREATE UNLOGGED TABLE element_spatial_staging (
+    typed_id bigint NOT NULL,
+    sequence_id bigint NOT NULL,
+    updated_sequence_id bigint NOT NULL,
+    geom geometry (Geometry, 4326)
+);
+
+CREATE INDEX element_spatial_staging_id_updated_sequence_idx ON element_spatial_staging (typed_id, updated_sequence_id DESC);
+
+CREATE TABLE element_spatial (
+    typed_id bigint PRIMARY KEY,
+    sequence_id bigint NOT NULL,
+    updated_sequence_id bigint NOT NULL,
+    geom geometry (Geometry, 4326) NOT NULL,
+    bounds_area real GENERATED ALWAYS AS (ST_Area(ST_Envelope(geom))) STORED
+);
+
+CREATE INDEX element_spatial_geom_h3_idx ON element_spatial USING gin (
+    h3_geometry_to_compact_cells(geom, 11)
+)
+WITH
+    (fastupdate = FALSE);
 
 CREATE TABLE diary (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

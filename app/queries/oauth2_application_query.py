@@ -198,8 +198,6 @@ class OAuth2ApplicationQuery:
 
         where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
 
-        print(conditions, params)
-
         if mode == 'count':
             query = SQL('SELECT COUNT(*) FROM oauth2_application WHERE {}').format(
                 where_clause

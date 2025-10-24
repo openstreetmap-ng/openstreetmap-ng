@@ -69,8 +69,6 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const nearbyContainer = sidebar.querySelector("div.nearby-container")
     const nearbyLoadingHtml = nearbyContainer.innerHTML
-    const enclosingContainer = sidebar.querySelector("div.enclosing-container")
-    const enclosingLoadingHtml = enclosingContainer.innerHTML
     const emptyText = i18next.t("javascripts.query.nothing_found")
     const queryFeaturesButton = map
         .getContainer()
@@ -123,7 +121,6 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
         abortSignal: AbortSignal,
     ): void => {
         nearbyContainer.innerHTML = nearbyLoadingHtml
-        enclosingContainer.innerHTML = enclosingLoadingHtml
 
         const radiusMeters = 10 * 1.5 ** (19 - zoom)
         console.debug("Query features radius", radiusMeters, "meters")
@@ -154,15 +151,9 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
     }
 
     /** On sidebar loaded, display content */
-    const onSidebarNearbyLoaded = (html: string): void => {
+    const onSidebarLoaded = (html: string): void => {
         nearbyContainer.innerHTML = html
         configureResultActions(nearbyContainer)
-    }
-
-    /** On sidebar loaded, display content */
-    const onSidebarEnclosingLoaded = (html: string): void => {
-        enclosingContainer.innerHTML = html
-        configureResultActions(enclosingContainer)
     }
 
     return {
@@ -173,7 +164,6 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
             const position = getURLQueryPosition()
             if (!position) {
                 nearbyContainer.textContent = emptyText
-                enclosingContainer.textContent = emptyText
                 return
             }
             const { lon, lat, zoom } = position
@@ -206,41 +196,12 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
                 },
             )
                 .then(async (resp) => {
-                    onSidebarNearbyLoaded(await resp.text())
+                    onSidebarLoaded(await resp.text())
                 })
                 .catch((error) => {
                     if (error.name === "AbortError") return
-                    console.error("Failed to fetch nearby features", error)
-                    // TODO: nicer error html
-                    onSidebarNearbyLoaded(
-                        i18next.t("javascripts.query.error", {
-                            server: window.location.host,
-                            error: error.message,
-                        }),
-                    )
-                })
-
-            // Fetch enclosing features
-            fetch(
-                `/partial/query/enclosing?${qsEncode({
-                    lon: lon.toString(),
-                    lat: lat.toString(),
-                })}`,
-                {
-                    method: "GET",
-                    mode: "same-origin",
-                    cache: "no-store", // request params are too volatile to cache
-                    signal: abortSignal,
-                    priority: "high",
-                },
-            )
-                .then(async (resp) => {
-                    onSidebarEnclosingLoaded(await resp.text())
-                })
-                .catch((error) => {
-                    if (error.name === "AbortError") return
-                    console.error("Failed to fetch enclosing features", error)
-                    onSidebarEnclosingLoaded(
+                    console.error("Failed to fetch query features", error)
+                    onSidebarLoaded(
                         i18next.t("javascripts.query.error", {
                             server: window.location.host,
                             error: error.message,

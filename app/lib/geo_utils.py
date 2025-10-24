@@ -1,7 +1,12 @@
 from typing import overload
 
 import cython
-from h3 import compact_cells, geo_to_h3shape, h3shape_to_cells_experimental
+from h3 import (
+    cell_to_parent,
+    compact_cells,
+    geo_to_h3shape,
+    h3shape_to_cells_experimental,
+)
 from pyproj import Geod
 from shapely import MultiPolygon, Point, Polygon, box, get_coordinates
 
@@ -205,3 +210,15 @@ def _h3_optimal_resolution(
 
     # Round and clamp to valid H3 resolution range
     return round(max(0, min(max_resolution, final_resolution)))
+
+
+def polygon_to_h3_search(area: Polygon | MultiPolygon, resolution: int) -> list[str]:
+    """Return covering H3 cells plus their parents for the given polygon."""
+    cells = set(
+        h3shape_to_cells_experimental(
+            geo_to_h3shape(area), resolution, contain='overlap'
+        )
+    )
+    for cell in tuple(cells):
+        cells.update(cell_to_parent(cell, res) for res in range(resolution))
+    return list(cells)

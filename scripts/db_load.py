@@ -367,16 +367,6 @@ async def _load_tables(mode: _Mode) -> None:
                             f'public.{table}', f'{chunk.schema_name}.{chunk.table_name}'
                         )  # type: ignore
                     )
-
-                    await conn.execute(
-                        """
-                        INSERT INTO _timescaledb_catalog.chunk_index (
-                            chunk_id, index_name, hypertable_id, hypertable_index_name
-                        )
-                        VALUES (%s, %s, %s, %s)
-                        """,
-                        (chunk.id, chunk_name, chunk.hypertable_id, name),
-                    )
                     tg.create_task(execute(chunk_sql))
 
         if constraints:
