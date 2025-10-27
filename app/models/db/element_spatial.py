@@ -10,7 +10,6 @@ class ElementSpatial(TypedDict):
     typed_id: TypedElementId
     sequence_id: SequenceId
     geom: BaseGeometry
-    bounds_area: float
 
     # runtime
     version: int

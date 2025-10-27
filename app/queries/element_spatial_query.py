@@ -1,45 +1,49 @@
 from psycopg.rows import dict_row
-from shapely.geometry.base import BaseGeometry
+from shapely import MultiPolygon, Polygon
 
 from app.config import QUERY_FEATURES_RESULTS_LIMIT
 from app.db import db
+from app.lib.geo_utils import polygon_to_h3_search
 from app.models.db.element_spatial import ElementSpatial
 
 
 class ElementSpatialQuery:
     @staticmethod
     async def query_features(
-        search_area: BaseGeometry, h3_cells: list[str]
+        search_area: Polygon | MultiPolygon,
     ) -> list[ElementSpatial]:
         """Query for elements intersecting the search area."""
+        center = search_area.centroid
+        h3_cells = polygon_to_h3_search(search_area, 11)
+
         async with (
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
-                (
+                SELECT typed_id, sequence_id, geom, version, tags
+                FROM (
                     SELECT
                         es.typed_id,
                         es.sequence_id,
                         es.geom,
-                        es.bounds_area,
                         e.version,
-                        e.tags
+                        e.tags,
+                        es.bounds_area AS sort_key
                     FROM element_spatial es
                     INNER JOIN element e ON e.typed_id = es.typed_id AND e.latest
                     WHERE h3_geometry_to_compact_cells(es.geom, 11) && %(h3_cells)s::h3index[]
                         AND ST_Intersects(es.geom, %(area)s)
-                    ORDER BY es.bounds_area, es.typed_id DESC
-                    LIMIT %(limit)s
-                )
-                UNION ALL
-                (
+
+                    UNION ALL
+
                     SELECT
                         e.typed_id,
                         e.sequence_id,
                         e.point AS geom,
-                        0 AS bounds_area,
                         e.version,
-                        e.tags
+                        e.tags,
+                        (ST_X(e.point) - %(center_x)s) * (ST_X(e.point) - %(center_x)s)
+                        + (ST_Y(e.point) - %(center_y)s) * (ST_Y(e.point) - %(center_y)s) AS sort_key
                     FROM element e
                     WHERE e.typed_id <= 1152921504606846975
                         AND e.latest
@@ -47,14 +51,14 @@ class ElementSpatialQuery:
                         AND e.tags IS NOT NULL
                         AND e.point IS NOT NULL
                         AND ST_Intersects(e.point, %(area)s)
-                    ORDER BY bounds_area, e.typed_id DESC
-                    LIMIT %(limit)s
-                )
-                ORDER BY bounds_area, typed_id DESC
+                ) combined
+                ORDER BY sort_key
                 LIMIT %(limit)s
                 """,
                 {
                     'area': search_area,
+                    'center_x': center.x,
+                    'center_y': center.y,
                     'h3_cells': h3_cells,
                     'limit': QUERY_FEATURES_RESULTS_LIMIT,
                 },
