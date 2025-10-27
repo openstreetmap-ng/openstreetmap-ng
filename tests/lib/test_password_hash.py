@@ -22,7 +22,7 @@ def test_password_hash_v1():
     assert verified.success
 
 
-def test_password_hash_v1_missmatch():
+def test_password_hash_v1_mismatch():
     password_1 = TransmitUserPassword(v1=b'a' * 64)
     password_1 = Password(SecretStr(b64encode(password_1.SerializeToString()).decode()))
     password_2 = TransmitUserPassword(v1=b'b' * 64)
