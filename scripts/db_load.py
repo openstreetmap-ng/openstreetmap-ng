@@ -37,11 +37,13 @@ _Mode = Literal['preload', 'replication']
 # Sorted from heaviest to lightest tables
 _Table = Literal[
     'element',
+    'element_spatial',
     'changeset',
     'changeset_bounds',
     'note_comment',
     'note',
     'user',
+    'element_spatial_watermark',
 ]
 
 
@@ -162,11 +164,16 @@ async def _filter_index_chunks(
 
 
 async def _load_table(mode: _Mode, table: _Table) -> None:
-    if mode == 'preload' or table in {'note', 'note_comment'}:
+    if mode == 'preload' or table in {
+        'note',
+        'note_comment',
+        'element_spatial',
+        'element_spatial_watermark',
+    }:
         path = _get_csv_path(table)
 
-        # Replication supports optional data files
-        if mode == 'replication' and not path.is_file():
+        # Skip optional data files
+        if not path.is_file():
             logging.info('Skipped loading %s table (source file not found)', table)
             return
 
@@ -228,7 +235,6 @@ async def _load_tables(mode: _Mode) -> None:
     async with db() as conn:
         for table in all_tables:
             indexes = await gather_table_indexes(conn, table)
-            assert indexes, f'No indexes found for {table} table'
             constraints = await gather_table_constraints(conn, table)
             table_data[table] = (indexes, constraints)
 
@@ -303,7 +309,7 @@ async def _load_tables(mode: _Mode) -> None:
                 (list(indexes),),
             )
 
-            if not chunks:
+            if not chunks and indexes:
                 await conn.execute(
                     SQL('DROP INDEX {}').format(
                         SQL(', ').join(map(Identifier, indexes))

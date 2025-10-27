@@ -1,3 +1,4 @@
+import asyncio
 import gc
 from argparse import ArgumentParser
 from datetime import datetime
@@ -7,10 +8,12 @@ from pathlib import Path
 import cython
 import pyarrow as pa
 import pyarrow.parquet as pq
+from psycopg.sql import SQL
+from psycopg.sql import Literal as PgLiteral
 from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
-from app.db import duckdb_connect
+from app.db import db, duckdb_connect, psycopg_pool_open_decorator
 from app.lib.compressible_geometry import (
     bbox_to_compressible_wkb,
     point_to_compressible_wkb,
@@ -689,17 +692,61 @@ def _write_user(modes: set[str]) -> None:
         """)
 
 
-def main() -> None:
+@psycopg_pool_open_decorator
+async def _write_element_spatial() -> None:
+    path = _get_csv_path('element_spatial')
+    path_watermark = _get_csv_path('element_spatial_watermark')
+
+    # Check if table has data and get stats
+    async with (
+        db() as conn,
+        await conn.execute(
+            """
+            SELECT COALESCE(COUNT(*), 0)
+            FROM element_spatial
+            """
+        ) as r,
+    ):
+        (row_count,) = await r.fetchone()  # type: ignore
+        assert row_count, 'element_spatial table is empty'
+
+    print(f'Writing element_spatial ({row_count} rows)')
+    async with db() as conn:
+        await conn.execute(
+            SQL("""
+            COPY (
+                SELECT
+                    typed_id,
+                    sequence_id,
+                    encode(ST_AsEWKB(geom), 'hex') AS geom
+                FROM element_spatial
+                ORDER BY typed_id
+            ) TO {} WITH (FORMAT CSV, HEADER TRUE)
+            """).format(PgLiteral(path.as_posix()))
+        )
+        await conn.execute(
+            SQL("""
+            COPY (
+                SELECT
+                    id,
+                    sequence_id
+                FROM element_spatial_watermark
+            ) TO {} WITH (FORMAT CSV, HEADER TRUE)
+            """).format(PgLiteral(path_watermark.as_posix()))
+        )
+
+
+async def main() -> None:
     # Freeze all gc objects before starting for improved performance
     gc.collect()
     gc.freeze()
     gc.disable()
 
-    choices = ['changeset', 'planet', 'notes', 'user']
+    choices = ['changeset', 'planet', 'notes', 'user', 'spatial']
     parser = ArgumentParser()
     parser.add_argument('modes', nargs='*', choices=choices)
     args = parser.parse_args()
-    modes = set(args.modes or choices)
+    modes = set(args.modes) or set(choices).difference(('spatial',))
 
     if 'changeset' in modes:
         if not CHANGESETS_INPUT_PATH.is_file():
@@ -744,8 +791,11 @@ def main() -> None:
         print('Writing user')
         _write_user(modes)
 
+    if 'spatial' in modes:
+        await _write_element_spatial()
+
     print('Done! Done! Done!')
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
