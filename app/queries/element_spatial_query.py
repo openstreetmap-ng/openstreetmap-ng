@@ -1,5 +1,3 @@
-from collections.abc import Sequence
-
 from psycopg.rows import dict_row
 from shapely.geometry.base import BaseGeometry
 
@@ -11,7 +9,7 @@ from app.models.db.element_spatial import ElementSpatial
 class ElementSpatialQuery:
     @staticmethod
     async def query_features(
-        search_area: BaseGeometry, h3_cells: Sequence[str]
+        search_area: BaseGeometry, h3_cells: list[str]
     ) -> list[ElementSpatial]:
         """Query for elements intersecting the search area."""
         async with (
@@ -22,7 +20,6 @@ class ElementSpatialQuery:
                     SELECT
                         es.typed_id,
                         es.sequence_id,
-                        es.updated_sequence_id,
                         es.geom,
                         es.bounds_area,
                         e.version,
@@ -39,7 +36,6 @@ class ElementSpatialQuery:
                     SELECT
                         e.typed_id,
                         e.sequence_id,
-                        e.sequence_id AS updated_sequence_id,
                         e.point AS geom,
                         0 AS bounds_area,
                         e.version,

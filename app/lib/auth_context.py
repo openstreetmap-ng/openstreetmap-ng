@@ -28,7 +28,7 @@ _APP_CTX = ContextVar[ApplicationId | None]('AuthApp')
 @contextmanager
 def auth_context(
     user: User | None,
-    scopes=frozenset[Scope](),  # pyright: ignore[reportCallInDefaultInitializer]
+    scopes=frozenset[Scope](),
     app_id: ApplicationId | None = None,
     /,
 ):

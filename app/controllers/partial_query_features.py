@@ -27,7 +27,7 @@ async def query_nearby_features(
     )  # match with app/views/index/query-features.ts
     origin = validate_geometry(Point(lon, lat))
     search_area = origin.buffer(meters_to_degrees(radius_meters), 4)
-    h3_cells = polygon_to_h3_search(search_area, 11)
+    h3_cells = polygon_to_h3_search(search_area, 10)
 
     spatial_elements = await ElementSpatialQuery.query_features(search_area, h3_cells)
     results = QueryFeatures.wrap_element_spatial(spatial_elements)

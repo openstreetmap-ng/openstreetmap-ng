@@ -25,7 +25,7 @@ def _hash(
     *,
     CRYPTO_HASH_CACHE_MAX_ENTRIES: cython.Py_ssize_t = CRYPTO_HASH_CACHE_MAX_ENTRIES,
     CRYPTO_HASH_CACHE_SIZE_LIMIT: cython.Py_ssize_t = CRYPTO_HASH_CACHE_SIZE_LIMIT,
-    _CACHE=OrderedDict[tuple[str | bytes, bytes | None], bytes](),  # type: ignore  # noqa
+    _CACHE=OrderedDict[tuple[str | bytes, bytes | None], bytes](),
 ) -> bytes:
     cache_key = (s, key)
 

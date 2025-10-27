@@ -116,6 +116,7 @@ VALHALLA_URL = 'https://valhalla1.openstreetmap.de'
 
 # API and HTTP settings
 HTTP_TIMEOUT = timedelta(seconds=20)
+POSTGRES_STATEMENT_TIMEOUT = timedelta(seconds=30)
 URLSAFE_BLACKLIST = '/;.,?%#'
 TRACE_FILE_UPLOAD_MAX_SIZE = _ByteSize('50 MiB')
 XML_PARSE_MAX_SIZE = _ByteSize('50 MiB')  # the same as CGImap

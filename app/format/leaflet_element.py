@@ -217,7 +217,7 @@ def _geometry_to_sequences(geometry: BaseGeometry) -> list[list[list[float]]]:
 def _skip_non_area_polygon(
     result: QueryFeatureResult,
     search_area: BaseGeometry | None,
-) -> bool:
+) -> cython.bint:
     return (
         search_area is not None
         and (
@@ -231,7 +231,10 @@ def _skip_non_area_polygon(
 
 
 @cython.cfunc
-def _check_way_area(tags: dict[str, str] | None, members: list[TypedElementId]):
+def _check_way_area(
+    tags: dict[str, str] | None,
+    members: list[TypedElementId],
+) -> cython.bint:
     """Check if the way should be displayed as an area."""
     return (
         tags is not None
@@ -242,7 +245,7 @@ def _check_way_area(tags: dict[str, str] | None, members: list[TypedElementId]):
 
 
 @cython.cfunc
-def _has_area_tag(tags: dict[str, str] | None) -> bool:
+def _has_area_tag(tags: dict[str, str] | None) -> cython.bint:
     return bool(
         tags
         and (

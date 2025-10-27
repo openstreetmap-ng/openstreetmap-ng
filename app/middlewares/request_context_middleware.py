@@ -10,19 +10,24 @@ from app.lib.anonymizer import anonymize_ip
 _CTX = ContextVar[Request]('Request')
 
 
+def is_request() -> bool:
+    """Check if running in a HTTP request context."""
+    return _CTX.get(None) is not None
+
+
 def get_request() -> Request:
-    """Get the request from the context."""
+    """Get the HTTP request."""
     return _CTX.get()
 
 
 def get_request_ip() -> IPv4Address | IPv6Address:
-    """Get the request IP address."""
+    """Get the HTTP request's IP address."""
     ip = ip_address(_CTX.get().client.host)  # pyright: ignore[reportOptionalMemberAccess]
     return anonymize_ip(ip) if ENV == 'test' else ip
 
 
 class RequestContextMiddleware:
-    """Wrap requests in request context."""
+    """Wrap HTTP requests in request context."""
 
     __slots__ = ('app',)
 
