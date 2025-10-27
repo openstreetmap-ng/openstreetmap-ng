@@ -13,13 +13,17 @@ class ElementSpatialQuery:
         search_area: Polygon | MultiPolygon,
     ) -> list[ElementSpatial]:
         """Query for elements intersecting the search area."""
-        center = search_area.centroid
         h3_cells = polygon_to_h3_search(search_area, 11)
 
         async with (
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
+                WITH area_center AS (
+                    SELECT
+                        ST_X(ST_Centroid(%(area)s)) AS cx,
+                        ST_Y(ST_Centroid(%(area)s)) AS cy
+                )
                 SELECT typed_id, sequence_id, geom, version, tags
                 FROM (
                     SELECT
@@ -42,9 +46,9 @@ class ElementSpatialQuery:
                         e.point AS geom,
                         e.version,
                         e.tags,
-                        (ST_X(e.point) - %(center_x)s) * (ST_X(e.point) - %(center_x)s)
-                        + (ST_Y(e.point) - %(center_y)s) * (ST_Y(e.point) - %(center_y)s) AS sort_key
-                    FROM element e
+                        (ST_X(e.point) - area_center.cx) * (ST_X(e.point) - area_center.cx)
+                        + (ST_Y(e.point) - area_center.cy) * (ST_Y(e.point) - area_center.cy) AS sort_key
+                    FROM element e, area_center
                     WHERE e.typed_id <= 1152921504606846975
                         AND e.latest
                         AND e.visible
@@ -57,8 +61,6 @@ class ElementSpatialQuery:
                 """,
                 {
                     'area': search_area,
-                    'center_x': center.x,
-                    'center_y': center.y,
                     'h3_cells': h3_cells,
                     'limit': QUERY_FEATURES_RESULTS_LIMIT,
                 },
