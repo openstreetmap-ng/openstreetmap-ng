@@ -49,31 +49,28 @@ class OAuth2ApplicationService:
         }
 
         async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO oauth2_application (
-                    id, user_id, name, client_id
-                )
-                VALUES (
-                    %(id)s, %(user_id)s, %(name)s, %(client_id)s
-                )
-                """,
-                app_init,
-            )
-
-            # Check count after insert to prevent race conditions
             async with await conn.execute(
                 """
-                SELECT COUNT(*) FROM oauth2_application
-                WHERE user_id = %s
+                WITH app_count AS (
+                    SELECT
+                        -- Prevent count race conditions
+                        pg_advisory_xact_lock(2847561039482756801::bigint # %(user_id)s),
+                        COUNT(*) as cnt
+                    FROM oauth2_application
+                    WHERE user_id = %(user_id)s
+                )
+                INSERT INTO oauth2_application (id, user_id, name, client_id)
+                SELECT %(id)s, %(user_id)s, %(name)s, %(client_id)s
+                FROM app_count
+                WHERE app_count.cnt < %(limit)s
+                RETURNING id
                 """,
-                (user_id,),
+                {**app_init, 'limit': OAUTH_APP_ADMIN_LIMIT},
             ) as r:
-                count: int = (await r.fetchone())[0]  # type: ignore
-                if count > OAUTH_APP_ADMIN_LIMIT:
-                    StandardFeedback.raise_error(
-                        None, t('validation.reached_app_limit')
-                    )
+                result = await r.fetchone()
+
+            if result is None:
+                StandardFeedback.raise_error(None, t('validation.reached_app_limit'))
 
             await audit('create_app', conn, extra={'id': app_id, 'name': name})
 
