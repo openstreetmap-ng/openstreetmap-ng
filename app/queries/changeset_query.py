@@ -154,7 +154,7 @@ class ChangesetQuery:
                     EXISTS (
                         SELECT 1 FROM changeset_bounds
                         WHERE changeset_id = changeset.id
-                        AND ST_Intersects(bounds, %(geometry)s)
+                        AND bounds && %(geometry)s
                     )
                     """
                 )

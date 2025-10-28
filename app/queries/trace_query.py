@@ -191,6 +191,7 @@ class TraceQuery:
 
         async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
             query = SQL("""
+                /*+ BitmapScan(trace trace_segments_idx) */
                 SELECT * FROM ({query})
                 {offset}
                 LIMIT %(limit)s
