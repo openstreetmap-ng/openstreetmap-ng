@@ -57,9 +57,9 @@ and Windows (WSL2) operating systems.
 
 We also invite you to join our [Discord server](https://discord.gg/GM89hdjSCB) or [Matrix room](https://matrix.to/#/#openstreetmap-ng:matrix.org) to receive support and chat with others — both platforms are bridged together, so you will see the same messages in either one. These are our primary communication channels. They are free to join, and we are always happy to help you get started!
 
-### 💰 Contributor Rewards
+### Contributor Rewards
 
-We value every contribution! Several incentives are available, including a unique profile badge, cash bounties, and free JetBrains IDE subscriptions for active contributors. [Learn more about the program](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Contributor-Incentives).
+Several incentives are available, including a unique profile badge, cash bounties, and free JetBrains IDE subscriptions for active contributors. [Learn more about the program](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Contributor-Incentives).
 
 **Track Your Rewards:** Check your earnings and see all contributor payments on the [**Ledger**](https://github.com/openstreetmap-ng/openstreetmap-ng/wiki/Ledger) wiki page. The ledger provides a transparent, public record of all bounty transactions, so you can always see exactly what you're owed.
 
