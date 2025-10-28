@@ -357,3 +357,296 @@ async def test_create_fails_when_referencing_nonexistent_element(
     # Act & Assert
     with pytest.raises(Exception):
         await OptimisticDiff.run([relation])
+
+
+async def test_circular_reference_two_relations(changeset_id: ChangesetId):
+    # Create both relations without circular reference first
+    relation_a_create: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('relation', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {'name': 'A'},
+        'point': None,
+        'members': [],
+        'members_roles': [],
+    }
+    relation_b_create: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('relation', ElementId(-2)),
+        'version': 1,
+        'visible': True,
+        'tags': {'name': 'B'},
+        'point': None,
+        'members': [],
+        'members_roles': [],
+    }
+    assigned_ref_map = await OptimisticDiff.run([relation_a_create, relation_b_create])
+    relation_a_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
+    relation_b_id = assigned_ref_map[typed_element_id('relation', ElementId(-2))][0]
+
+    # Modify to create A→B, B→A circular reference
+    relation_a_modify: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': relation_a_id,
+        'version': 2,
+        'visible': True,
+        'tags': {'name': 'A'},
+        'point': None,
+        'members': [relation_b_id],
+        'members_roles': ['to_b'],
+    }
+    relation_b_modify: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': relation_b_id,
+        'version': 2,
+        'visible': True,
+        'tags': {'name': 'B'},
+        'point': None,
+        'members': [relation_a_id],
+        'members_roles': ['to_a'],
+    }
+    await OptimisticDiff.run([relation_a_modify, relation_b_modify])
+
+    # Verify circular reference created successfully
+    elements = await ElementQuery.find_by_refs([relation_a_id, relation_b_id])
+    name_map = {e['tags']['name']: e for e in elements}  # type: ignore
+    assert_model(
+        name_map['A'],
+        relation_a_modify | {'typed_id': relation_a_id, 'members': [relation_b_id]},
+    )
+    assert_model(
+        name_map['B'],
+        relation_b_modify | {'typed_id': relation_b_id, 'members': [relation_a_id]},
+    )
+
+
+async def test_circular_reference_deletion_fails(changeset_id: ChangesetId):
+    # Create both relations without circular reference first
+    relation_a_create: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('relation', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {'name': 'A'},
+        'point': None,
+        'members': [],
+        'members_roles': [],
+    }
+    relation_b_create: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('relation', ElementId(-2)),
+        'version': 1,
+        'visible': True,
+        'tags': {'name': 'B'},
+        'point': None,
+        'members': [],
+        'members_roles': [],
+    }
+    assigned_ref_map = await OptimisticDiff.run([relation_a_create, relation_b_create])
+    relation_a_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
+    relation_b_id = assigned_ref_map[typed_element_id('relation', ElementId(-2))][0]
+
+    # Modify to create A→B, B→A circular reference
+    relation_a_modify: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': relation_a_id,
+        'version': 2,
+        'visible': True,
+        'tags': {'name': 'A'},
+        'point': None,
+        'members': [relation_b_id],
+        'members_roles': ['to_b'],
+    }
+    relation_b_modify: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': relation_b_id,
+        'version': 2,
+        'visible': True,
+        'tags': {'name': 'B'},
+        'point': None,
+        'members': [relation_a_id],
+        'members_roles': ['to_a'],
+    }
+    await OptimisticDiff.run([relation_a_modify, relation_b_modify])
+
+    # Attempt to delete A while B still references it
+    relation_a_delete: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': relation_a_id,
+        'version': 3,
+        'visible': False,
+        'tags': None,
+        'point': None,
+        'members': None,
+        'members_roles': None,
+    }
+
+    # Act & Assert - should fail (B still references A)
+    with pytest.raises(Exception):
+        await OptimisticDiff.run([relation_a_delete])
+
+
+async def test_break_circular_reference_then_delete(changeset_id: ChangesetId):
+    # Create both relations without circular reference first
+    relation_a_create: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('relation', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {'name': 'A'},
+        'point': None,
+        'members': [],
+        'members_roles': [],
+    }
+    relation_b_create: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('relation', ElementId(-2)),
+        'version': 1,
+        'visible': True,
+        'tags': {'name': 'B'},
+        'point': None,
+        'members': [],
+        'members_roles': [],
+    }
+    assigned_ref_map = await OptimisticDiff.run([relation_a_create, relation_b_create])
+    relation_a_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
+    relation_b_id = assigned_ref_map[typed_element_id('relation', ElementId(-2))][0]
+
+    # Modify to create A→B, B→A circular reference
+    relation_a_modify: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': relation_a_id,
+        'version': 2,
+        'visible': True,
+        'tags': {'name': 'A'},
+        'point': None,
+        'members': [relation_b_id],
+        'members_roles': ['to_b'],
+    }
+    relation_b_modify: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': relation_b_id,
+        'version': 2,
+        'visible': True,
+        'tags': {'name': 'B'},
+        'point': None,
+        'members': [relation_a_id],
+        'members_roles': ['to_a'],
+    }
+    await OptimisticDiff.run([relation_a_modify, relation_b_modify])
+
+    # Break cycle: modify B to remove reference to A, then delete A
+    relation_b_break_cycle: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': relation_b_id,
+        'version': 3,
+        'visible': True,
+        'tags': {'name': 'B'},
+        'point': None,
+        'members': [],
+        'members_roles': [],
+    }
+    relation_a_delete: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': relation_a_id,
+        'version': 3,
+        'visible': False,
+        'tags': None,
+        'point': None,
+        'members': None,
+        'members_roles': None,
+    }
+    await OptimisticDiff.run([relation_b_break_cycle, relation_a_delete])
+
+    # Verify deletion succeeded
+    elements = await ElementQuery.find_by_refs([relation_a_id], limit=1)
+    assert_model(elements[0], relation_a_delete)
+
+
+async def test_way_with_empty_members(changeset_id: ChangesetId):
+    # Arrange
+    way: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('way', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {'highway': 'road'},
+        'point': None,
+        'members': [],
+        'members_roles': None,
+    }
+
+    # Act
+    assigned_ref_map = await OptimisticDiff.run([way])
+
+    # Assert
+    way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]
+    elements = await ElementQuery.find_by_refs([way_typed_id], limit=1)
+    assert_model(elements[0], way | {'typed_id': way_typed_id})
+
+
+async def test_relation_with_empty_members(changeset_id: ChangesetId):
+    # Arrange
+    relation: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('relation', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {'type': 'multipolygon'},
+        'point': None,
+        'members': [],
+        'members_roles': [],
+    }
+
+    # Act
+    assigned_ref_map = await OptimisticDiff.run([relation])
+
+    # Assert
+    relation_typed_id = assigned_ref_map[typed_element_id('relation', ElementId(-1))][0]
+    elements = await ElementQuery.find_by_refs([relation_typed_id], limit=1)
+    assert_model(elements[0], relation | {'typed_id': relation_typed_id})
+
+
+async def test_way_with_duplicate_node_members(changeset_id: ChangesetId):
+    # Arrange
+    node: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('node', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': Point(0, 0),
+        'members': None,
+        'members_roles': None,
+    }
+    way: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('way', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': None,
+        'members': [
+            typed_element_id('node', ElementId(-1)),
+            typed_element_id('node', ElementId(-1)),
+            typed_element_id('node', ElementId(-1)),
+        ],
+        'members_roles': None,
+    }
+
+    # Act
+    assigned_ref_map = await OptimisticDiff.run([node, way])
+
+    # Assert - duplicates are preserved
+    node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
+    way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]
+    elements = await ElementQuery.find_by_refs([way_typed_id], limit=1)
+    assert_model(
+        elements[0],
+        way
+        | {
+            'typed_id': way_typed_id,
+            'members': [node_typed_id, node_typed_id, node_typed_id],
+        },
+    )

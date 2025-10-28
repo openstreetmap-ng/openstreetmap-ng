@@ -240,6 +240,151 @@ async def test_delete_fails_for_nonexistent_element(changeset_id: ChangesetId):
         await OptimisticDiff.run([node_delete])
 
 
+async def test_delete_if_unused_with_database_parent(changeset_id: ChangesetId):
+    # Create node and way in database
+    node: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('node', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': Point(0, 0),
+        'members': None,
+        'members_roles': None,
+    }
+    way: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('way', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': None,
+        'members': [typed_element_id('node', ElementId(-1))],
+        'members_roles': None,
+    }
+    assigned_ref_map = await OptimisticDiff.run([node, way])
+    node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
+
+    # Attempt to delete node with delete_if_unused
+    node_delete: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': node_typed_id,
+        'version': 2,
+        'visible': False,
+        'tags': None,
+        'point': None,
+        'members': None,
+        'members_roles': None,
+        'delete_if_unused': True,
+    }
+    await OptimisticDiff.run([node_delete])
+
+    # Verify deletion was skipped (node still visible)
+    elements = await ElementQuery.find_by_refs([node_typed_id], limit=1)
+    assert elements[0]['visible'] is True
+    assert elements[0]['version'] == 1
+
+
+async def test_delete_succeeds_when_database_reference_removed_in_batch(
+    changeset_id: ChangesetId,
+):
+    # Create node and way in database
+    node: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('node', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': Point(0, 0),
+        'members': None,
+        'members_roles': None,
+    }
+    way: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('way', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': None,
+        'members': [typed_element_id('node', ElementId(-1))],
+        'members_roles': None,
+    }
+    assigned_ref_map = await OptimisticDiff.run([node, way])
+    node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
+    way_typed_id = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]
+
+    # Remove node reference from way, then delete node
+    way_modify: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': way_typed_id,
+        'version': 2,
+        'visible': True,
+        'tags': {},
+        'point': None,
+        'members': [],
+        'members_roles': None,
+    }
+    node_delete: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': node_typed_id,
+        'version': 2,
+        'visible': False,
+        'tags': None,
+        'point': None,
+        'members': None,
+        'members_roles': None,
+    }
+    await OptimisticDiff.run([way_modify, node_delete])
+
+    # Verify deletion succeeded
+    elements = await ElementQuery.find_by_refs([node_typed_id], limit=1)
+    assert_model(elements[0], node_delete)
+
+
+async def test_delete_fails_when_database_parent_still_references(
+    changeset_id: ChangesetId,
+):
+    # Create node and way in database
+    node: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('node', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': Point(0, 0),
+        'members': None,
+        'members_roles': None,
+    }
+    way: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('way', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': None,
+        'members': [typed_element_id('node', ElementId(-1))],
+        'members_roles': None,
+    }
+    assigned_ref_map = await OptimisticDiff.run([node, way])
+    node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
+
+    # Attempt to delete node while still referenced by database way
+    node_delete: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': node_typed_id,
+        'version': 2,
+        'visible': False,
+        'tags': None,
+        'point': None,
+        'members': None,
+        'members_roles': None,
+    }
+
+    # Act & Assert
+    with pytest.raises(Exception):
+        await OptimisticDiff.run([node_delete])
+
+
 async def test_delete_fails_with_wrong_version(changeset_id: ChangesetId):
     # Create element
     node: ElementInit = {
