@@ -59,17 +59,15 @@ class ChangesetQuery:
             db() as conn,
             await conn.execute(
                 """
-                (
-                    SELECT MAX(id) AS id
-                    FROM changeset
-                    WHERE id < %(changeset_id)s AND user_id = %(user_id)s
-                )
+                SELECT MAX(id) AS id
+                FROM changeset
+                WHERE id < %(changeset_id)s AND user_id = %(user_id)s
+
                 UNION ALL
-                (
-                    SELECT MIN(id) AS id
-                    FROM changeset
-                    WHERE id > %(changeset_id)s AND user_id = %(user_id)s
-                )
+
+                SELECT MIN(id) AS id
+                FROM changeset
+                WHERE id > %(changeset_id)s AND user_id = %(user_id)s
                 """,
                 {'changeset_id': changeset_id, 'user_id': user_id},
             ) as r,
@@ -172,7 +170,7 @@ class ChangesetQuery:
 
         async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
             query = SQL("""
-                SELECT * FROM ({query})
+                {query}
                 {limit}
             """).format(
                 query=SQL(' UNION ALL ').join([
