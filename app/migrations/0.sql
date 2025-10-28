@@ -15,7 +15,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE OR REPLACE FUNCTION h3_points_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
 WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
     -- Base case: cells at finest resolution
-    SELECT h3_lat_lng_to_cell((dp).geom, resolution), resolution
+    SELECT h3_latlng_to_cell((dp).geom, resolution), resolution
     FROM ST_DumpPoints(geom) AS dp
     GROUP BY 1
     UNION ALL
