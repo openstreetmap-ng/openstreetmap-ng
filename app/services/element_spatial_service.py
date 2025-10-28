@@ -20,7 +20,7 @@ from app.lib.sentry import (
 from app.lib.testmethod import testmethod
 from app.utils import calc_num_workers
 
-_MAX_RELATION_NESTING_DEPTH = 10
+_MAX_RELATION_NESTING_DEPTH = 12
 
 _PROCESS_REQUEST_EVENT = Event()
 _PROCESS_DONE_EVENT = Event()
