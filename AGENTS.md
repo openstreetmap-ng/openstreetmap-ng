@@ -119,7 +119,8 @@ static-precompress    # Produce .zst/.br for large static assets
 
 - Tests mirror the app layout (`tests/controllers`, `tests/services`, etc.).
 - Shared fixtures live in `tests/conftest.py` and `tests/data/`; prefer extending these over custom per‑test setups.
-- Tests rely on background services (Postgres, Mailpit). Starting services (`dev-start`) is a human‑only action unless explicitly allowed. If services aren’t running and you don’t have permission to start them, treat tests as temporarily unavailable and continue with other checks.
+- Tests rely on background services (Postgres, Mailpit). Starting services (`dev-start`) is a human‑only action unless explicitly allowed. If services aren't running and you don't have permission to start them, treat tests as temporarily unavailable and continue with other checks.
+- Test patterns: use AAA (Arrange, Act, Assert) for simple tests. Multi-stage tests use stage comments instead of repeated AAA blocks. Test names must be clear and descriptive; only use docstrings when complexity demands it. Uniformity and glance-through readability are paramount.
 
 ## Handy References (copy patterns from these)
 

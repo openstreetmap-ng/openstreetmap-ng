@@ -97,7 +97,7 @@ def _serialize_json(content: Any):
 def _serialize_xml(xml_root: str, content: Any):
     if isinstance(content, dict):
         content = {xml_root: {**_XML_ATTRS, **content}}
-    elif isinstance(content, (list, tuple)):  # noqa: UP038
+    elif isinstance(content, (list, tuple)):
         content = {xml_root: (*_XML_ATTRS.items(), *content)}
     else:
         raise TypeError(f'Invalid xml content type {type(content)}')
@@ -118,7 +118,7 @@ def _serialize_rss(content: Any):
 def _serialize_gpx(xml_root: str, content: Any):
     if isinstance(content, dict):
         content = {xml_root: {**_GPX_ATTRS, **content}}
-    elif isinstance(content, (list, tuple)):  # noqa: UP038
+    elif isinstance(content, (list, tuple)):
         content = {xml_root: (*_GPX_ATTRS.items(), *content)}
     else:
         raise TypeError(f'Invalid xml content type {type(content)}')
