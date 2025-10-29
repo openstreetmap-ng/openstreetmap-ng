@@ -455,6 +455,10 @@ let
 
           echo "Upgrading postgres/postgis"
           psql -c "SELECT postgis_extensions_upgrade()" || true
+
+          echo "Upgrading postgres/h3"
+          psql -c "ALTER EXTENSION h3 UPDATE"
+          psql -c "ALTER EXTENSION h3_postgis UPDATE"
         fi
 
         echo "${pkgsUrl}" > data/.dev-version
