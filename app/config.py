@@ -161,16 +161,6 @@ BACKGROUND_MAX_FILE_SIZE = _ByteSize('320 KiB')
 BACKGROUND_MAX_MEGAPIXELS = 4096 * 512  # (resolution)
 BACKGROUND_MAX_RATIO = 2 * 5.5  # 2 * ratio on website
 USER_ACTIVITY_CHART_WEEKS = 26
-
-# Image proxy
-IMAGE_PROXY_THUMBNAIL_MAX_DIMENSION = 48  # Small thumbnail for LQIP (longest dimension)
-IMAGE_PROXY_MAX_DIMENSION = 2048  # Max dimension for proxied images
-IMAGE_PROXY_MAX_FILE_SIZE = _ByteSize('2 MiB')  # Max file size for proxied images
-IMAGE_PROXY_QUALITY = 80  # WebP quality (1-100)
-IMAGE_PROXY_CACHE_EXPIRE = timedelta(days=7)  # Cache TTL for proxied images
-IMAGE_PROXY_ERROR_CACHE_EXPIRE = timedelta(hours=1)  # Cache TTL for fetch errors
-IMAGE_PROXY_THUMBNAIL_REFRESH = timedelta(days=30)  # When to refresh thumbnails
-IMAGE_PROXY_FETCH_TIMEOUT = timedelta(seconds=10)  # Timeout for fetching original images
 USER_BLOCK_BODY_MAX_LENGTH = 20_000  # NOTE: value TBD
 USER_DESCRIPTION_MAX_LENGTH = 20_000  # NOTE: value TBD
 USER_NEW_DAYS = 21
@@ -315,6 +305,16 @@ DIARY_COMMENT_BODY_MAX_LENGTH = 5_000
 DIARY_LIST_PAGE_SIZE = 15
 DIARY_COMMENTS_PAGE_SIZE = 10
 LOCALE_CODE_MAX_LENGTH = 15
+
+# Image proxy (for diary content)
+IMAGE_PROXY_THUMBNAIL_MAX_DIMENSION = 48
+IMAGE_PROXY_MAX_DIMENSION = 2048
+IMAGE_PROXY_MAX_FILE_SIZE = _ByteSize('2 MiB')
+IMAGE_PROXY_QUALITY = 80
+IMAGE_PROXY_CACHE_EXPIRE = timedelta(days=7)
+IMAGE_PROXY_ERROR_CACHE_EXPIRE = timedelta(hours=1)
+IMAGE_PROXY_THUMBNAIL_REFRESH = timedelta(days=30)
+IMAGE_PROXY_FETCH_TIMEOUT = timedelta(seconds=10)
 
 # Messages
 MESSAGE_RECIPIENTS_LIMIT = 5

@@ -99,9 +99,9 @@ class ImageProxyService:
     @staticmethod
     async def _ensure_thumbnail_exists(proxy: ImageProxy, processed_image_data: bytes) -> None:
         """
-        Ensure thumbnail exists and is fresh. Non-blocking background task.
+        Ensure thumbnail exists and is fresh.
 
-        Uses FOR UPDATE SKIP LOCKED to avoid duplicate work across processes.
+        Uses FOR UPDATE SKIP LOCKED within a single transaction to avoid duplicate work.
         """
         needs_refresh = (
             proxy['thumbnail'] is None
@@ -112,32 +112,54 @@ class ImageProxyService:
         if not needs_refresh:
             return
 
-        # Try to acquire lock for thumbnail generation
-        # SKIP LOCKED means if another process is working on it, we just skip
-        locked_proxy = await ImageProxyQuery.find_by_id(
-            proxy['id'],
-            for_update=True,  # This will use FOR UPDATE in the query
-        )
-
-        if locked_proxy is None:
-            # Another process grabbed it, that's fine
-            return
-
-        # Double-check after lock acquired
-        needs_refresh = (
-            locked_proxy['thumbnail'] is None
-            or locked_proxy['thumbnail_updated_at'] is None
-            or (datetime.now(timezone.utc) - locked_proxy['thumbnail_updated_at']) > IMAGE_PROXY_THUMBNAIL_REFRESH
-        )
-
-        if not needs_refresh:
-            return
-
         try:
-            # Generate thumbnail from processed image
-            thumbnail_data = await Image.create_thumbnail(processed_image_data)
-            await ImageProxyQuery.update_thumbnail(proxy['id'], thumbnail_data)
-            logging.debug('Updated thumbnail for image proxy %d', proxy['id'])
+            # Lock row and check again in single transaction
+            from app.db import db  # noqa: PLC0415
+            from psycopg.rows import dict_row  # noqa: PLC0415
+
+            async with db(write=True) as conn:
+                # Try to acquire lock - SKIP LOCKED means we skip if another process has it
+                async with await conn.cursor(row_factory=dict_row).execute(
+                    """
+                    SELECT * FROM image_proxy
+                    WHERE id = %s
+                    FOR UPDATE SKIP LOCKED
+                    """,
+                    (proxy['id'],),
+                ) as r:
+                    locked_proxy = await r.fetchone()
+
+                if locked_proxy is None:
+                    # Another process has the lock, skip
+                    return
+
+                # Double-check after lock acquired
+                needs_refresh = (
+                    locked_proxy['thumbnail'] is None
+                    or locked_proxy['thumbnail_updated_at'] is None
+                    or (datetime.now(timezone.utc) - locked_proxy['thumbnail_updated_at']) > IMAGE_PROXY_THUMBNAIL_REFRESH
+                )
+
+                if not needs_refresh:
+                    return
+
+                # Generate thumbnail from processed image
+                thumbnail_data = await Image.create_thumbnail(processed_image_data)
+
+                # Update in same transaction
+                await conn.execute(
+                    """
+                    UPDATE image_proxy
+                    SET thumbnail = %s,
+                        thumbnail_updated_at = statement_timestamp(),
+                        error_at = NULL,
+                        updated_at = statement_timestamp()
+                    WHERE id = %s
+                    """,
+                    (thumbnail_data, proxy['id']),
+                )
+                logging.debug('Updated thumbnail for image proxy %d', proxy['id'])
+
         except Exception as e:
             logging.warning('Failed to create thumbnail for proxy %d: %s', proxy['id'], e)
             # Don't raise - thumbnail generation failure shouldn't block image serving

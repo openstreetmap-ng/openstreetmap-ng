@@ -18,10 +18,10 @@ class ImageProxyQuery:
         """Find image proxies by ids."""
         query_parts = ['SELECT * FROM image_proxy WHERE id = ANY(%s)']
         if for_update:
-            query_parts.append('FOR UPDATE')
+            query_parts.append('FOR UPDATE SKIP LOCKED')
 
         async with (
-            db() as conn,
+            db(write=for_update) as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 SQL(' '.join(query_parts)),
                 (ids,),
@@ -65,7 +65,7 @@ class ImageProxyQuery:
             query_parts.append('FOR UPDATE SKIP LOCKED')
 
         async with (
-            db() as conn,
+            db(write=for_update_skip_locked) as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 SQL(' '.join(query_parts)),
                 (url,),
