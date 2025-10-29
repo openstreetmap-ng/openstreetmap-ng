@@ -4,7 +4,7 @@ from asyncio import Lock, get_running_loop
 from contextlib import asynccontextmanager
 from functools import partial
 from pathlib import Path
-from typing import Literal, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import cv2
 import cython
@@ -13,7 +13,6 @@ from cv2.typing import MatLike
 from numpy.typing import NDArray
 from PIL import Image as PILImage
 from sizestr import sizestr
-from transformers import ImageClassificationPipeline, pipeline
 
 from app.config import (
     AI_MODELS_DIR,
@@ -27,6 +26,9 @@ from app.config import (
 )
 from app.lib.exceptions_context import raise_for
 from app.models.types import NoteId, StorageKey, UserId
+
+if TYPE_CHECKING:
+    from transformers import ImageClassificationPipeline
 
 if cython.compiled:
     from cython.cimports.libc.math import sqrt
@@ -42,7 +44,7 @@ DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
 DEFAULT_USER_AVATAR = Path('app' + DEFAULT_USER_AVATAR_URL).read_bytes()
 DEFAULT_APP_AVATAR_URL = '/static/img/app.webp'
 
-_PIPE: ImageClassificationPipeline | None = None
+_PIPE: 'ImageClassificationPipeline | None' = None
 _PIPE_LOCK = Lock()
 
 
@@ -130,6 +132,10 @@ async def _get_pipeline():
             )
             yield None
             return
+
+        # Lazy import for faster startup
+        from transformers import pipeline  # noqa: PLC0415
+
         _PIPE = pipeline(  # pyright: ignore[reportConstantRedefinition]
             'image-classification',
             model=str(pipe_dir),

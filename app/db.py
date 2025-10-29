@@ -1,9 +1,11 @@
 import logging
+from asyncio import TaskGroup, sleep
 from collections.abc import Callable
 from contextlib import asynccontextmanager, contextmanager
 from functools import wraps
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from weakref import WeakSet
 
 import cython
 import duckdb
@@ -11,6 +13,7 @@ import orjson
 from psycopg import AsyncConnection, IsolationLevel, postgres
 from psycopg.abc import AdaptContext
 from psycopg.pq import Format
+from psycopg.sql import SQL, Identifier
 from psycopg.types import TypeInfo
 from psycopg.types.enum import EnumInfo
 from psycopg.types.hstore import register_hstore
@@ -21,8 +24,10 @@ from psycopg_pool import AsyncConnectionPool
 from app.config import (
     DUCKDB_MEMORY_LIMIT,
     DUCKDB_TMPDIR,
+    POSTGRES_STATEMENT_TIMEOUT,
     POSTGRES_URL,
 )
+from app.middlewares.request_context_middleware import is_request
 
 
 async def _configure_connection(conn: AsyncConnection) -> None:
@@ -52,6 +57,7 @@ def _init_pool():
 
 
 _PSYCOPG_POOL: AsyncConnectionPool
+
 
 set_json_dumps(orjson.dumps)
 set_json_loads(orjson.loads)
@@ -140,6 +146,10 @@ async def db(
     *,
     autocommit: bool = False,
     isolation_level: IsolationLevel | None = None,
+    _TIMEOUT_CONNS=WeakSet[AsyncConnection](),
+    _TIMEOUT_SQL=SQL('SET statement_timeout = {}').format(
+        int(POSTGRES_STATEMENT_TIMEOUT.total_seconds() * 1000)
+    ),
 ):
     """Get a database connection."""
     assert write or not autocommit, 'autocommit=True must be used with write=True'
@@ -147,6 +157,21 @@ async def db(
     read_only = not write
 
     async with _PSYCOPG_POOL.connection() as conn:
+        is_request_: cython.bint = is_request()
+        has_timeout: cython.bint = conn in _TIMEOUT_CONNS
+        if (is_request_ and not has_timeout) or (not is_request_ and has_timeout):
+            if conn.read_only:
+                await conn.set_read_only(False)
+            if not conn.autocommit:
+                await conn.set_autocommit(True)
+
+            if is_request_:
+                await conn.execute(_TIMEOUT_SQL)
+                _TIMEOUT_CONNS.add(conn)
+            else:
+                await conn.execute('RESET statement_timeout')
+                _TIMEOUT_CONNS.discard(conn)
+
         if conn.read_only != read_only:
             await conn.set_read_only(read_only)
         if conn.autocommit != autocommit:
@@ -155,6 +180,161 @@ async def db(
             await conn.set_isolation_level(isolation_level)
 
         yield conn
+
+
+@asynccontextmanager
+async def db_lock(id: int, /):
+    """Try to acquire a advisory lock on the database. Periodically send a heartbeat to keep the transaction alive."""
+    async with db(True) as conn:
+
+        async def heartbeat():
+            while True:
+                await sleep(60)
+                await conn.execute('SELECT 1')
+
+        async with await conn.execute(
+            SQL('SELECT pg_try_advisory_xact_lock(%s::bigint)'),
+            (id,),
+        ) as r:
+            acquired: cython.bint = (await r.fetchone())[0]  # type: ignore
+
+        if acquired:
+            async with TaskGroup() as tg:
+                heartbeat_task = tg.create_task(heartbeat())
+                yield True
+                heartbeat_task.cancel()
+
+    if not acquired:
+        yield False
+
+
+async def gather_table_indexes(conn: AsyncConnection, table: str, /) -> dict[str, SQL]:
+    """
+    Gather non-constraint indexes for a table.
+
+    Returns a dict mapping index names to their CREATE INDEX statements.
+    Excludes indexes that are part of constraints (primary keys, unique constraints, etc.).
+    """
+    async with await conn.execute(
+        """
+        SELECT pgi.indexname, pgi.indexdef
+        FROM pg_indexes pgi
+        WHERE pgi.schemaname = 'public'
+        AND pgi.tablename = %s
+        AND pgi.indexname NOT IN (
+            SELECT pgc.conindid::regclass::text
+            FROM pg_constraint pgc
+            WHERE pgc.conrelid = %s::regclass
+        )
+        """,
+        (table, table),
+    ) as r:
+        return {name: SQL(sql) for name, sql in await r.fetchall()}
+
+
+async def gather_table_constraints(
+    conn: AsyncConnection, table: str, /
+) -> list[tuple[str, SQL]]:
+    """
+    Gather droppable constraints for a table.
+
+    Returns a list of (constraint_name, constraint_definition) tuples.
+    Excludes primary keys, check constraints, and not-null constraints.
+    """
+    async with await conn.execute(
+        """
+        SELECT con.conname, pg_get_constraintdef(con.oid)
+        FROM pg_constraint con
+        JOIN pg_class rel ON rel.oid = con.conrelid
+        JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+        WHERE nsp.nspname = 'public'
+        AND rel.relname = %s
+        AND con.contype NOT IN ('p', 'c', 'n')
+        """,
+        (table,),
+    ) as r:
+        return [(name, SQL(sql)) for name, sql in await r.fetchall()]
+
+
+@asynccontextmanager
+async def without_indexes(conn: AsyncConnection, /, *tables: str, analyze: bool = True):
+    """
+    Temporarily drop indexes and constraints on tables for faster bulk operations.
+
+    Gathers all non-constraint indexes and droppable constraints (foreign keys, unique constraints)
+    for the specified tables, drops them, and recreates them on exit.
+    """
+    tables_text = (
+        f'{tables[0]} table' if len(tables) == 1 else f'{", ".join(tables)} tables'
+    )
+
+    # Gather indexes and constraints for all tables
+    all_indexes: dict[str, SQL] = {}
+    table_constraints: dict[str, list[tuple[str, SQL]]] = {}
+
+    for table in tables:
+        indexes = await gather_table_indexes(conn, table)
+        all_indexes.update(indexes)
+        constraints = await gather_table_constraints(conn, table)
+        if constraints:
+            table_constraints[table] = constraints
+
+    # Drop constraints first (they may depend on indexes)
+    for table, constraints in table_constraints.items():
+        await conn.execute(
+            SQL('ALTER TABLE {} {}').format(
+                Identifier(table),
+                SQL(', ').join(
+                    SQL('DROP CONSTRAINT {}').format(Identifier(name))
+                    for name, _ in constraints
+                ),
+            )
+        )
+
+    # Drop indexes
+    if all_indexes:
+        await conn.execute(
+            SQL('DROP INDEX {}').format(SQL(', ').join(map(Identifier, all_indexes)))
+        )
+
+    logging.info(
+        'Dropped %d indexes and %d constraints on %s',
+        len(all_indexes),
+        len(table_constraints),
+        tables_text,
+    )
+
+    yield
+
+    logging.info(
+        'Recreating indexes and constraints on %s (analyze=%s)',
+        tables_text,
+        analyze,
+    )
+
+    # Recreate indexes first
+    for sql in all_indexes.values():
+        await conn.execute(sql)
+
+    # Then recreate constraints
+    for table, constraints in table_constraints.items():
+        await conn.execute(
+            SQL('ALTER TABLE {} {}').format(
+                Identifier(table),
+                SQL(', ').join(
+                    SQL('ADD CONSTRAINT {} {}').format(Identifier(name), sql)
+                    for name, sql in constraints
+                ),
+            )
+        )
+
+    # Update statistics for query planner
+    if analyze:
+        await conn.execute(
+            SQL('ANALYZE {}').format(SQL(', ').join(map(Identifier, tables)))
+        )
+
+    logging.info('Recreated indexes and constraints on %s', tables_text)
 
 
 @contextmanager

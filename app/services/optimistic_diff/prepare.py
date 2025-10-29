@@ -274,6 +274,7 @@ class OptimisticDiffPrepare:
         if parent_typed_ids:
             negative_refs = self._reference_override[typed_id, False]
             used_by = parent_typed_ids - negative_refs
+            used_by.discard(typed_id)  # Allow self-reference deletion
             if used_by:
                 if element.get('delete_if_unused'):
                     return False

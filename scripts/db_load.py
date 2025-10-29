@@ -17,7 +17,12 @@ from psycopg.sql import SQL, Identifier
 from zstandard import ZstdDecompressor
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
-from app.db import db, psycopg_pool_open_decorator
+from app.db import (
+    db,
+    gather_table_constraints,
+    gather_table_indexes,
+    psycopg_pool_open_decorator,
+)
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_RELATION_MAX,
@@ -32,11 +37,13 @@ _Mode = Literal['preload', 'replication']
 # Sorted from heaviest to lightest tables
 _Table = Literal[
     'element',
+    'element_spatial',
     'changeset',
     'changeset_bounds',
     'note_comment',
     'note',
     'user',
+    'element_spatial_watermark',
 ]
 
 
@@ -115,55 +122,6 @@ async def _detect_settings() -> _PostgresSettings:
         return _PostgresSettings(*(await r.fetchone()))  # type: ignore
 
 
-async def _gather_table_indexes(table: _Table) -> dict[str, SQL]:
-    async with (
-        db() as conn,
-        await conn.execute(
-            """
-            SELECT pgi.indexname, pgi.indexdef
-            FROM pg_indexes pgi
-            WHERE pgi.schemaname = 'public'
-            AND pgi.tablename = %s
-            AND pgi.indexname NOT IN (
-                SELECT pgc.conindid::regclass::text
-                FROM pg_constraint pgc
-                WHERE pgc.conrelid = %s::regclass
-            )
-            """,
-            (table, table),
-        ) as r,
-    ):
-        return {name: SQL(sql) for name, sql in await r.fetchall()}
-
-
-async def _gather_table_constraints(table: _Table) -> list[tuple[str, SQL]]:
-    async with (
-        db() as conn,
-        await conn.execute(
-            SQL("""
-            SELECT con.conname, pg_get_constraintdef(con.oid)
-            FROM pg_constraint con
-            JOIN pg_class rel ON rel.oid = con.conrelid
-            JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
-            WHERE nsp.nspname = 'public'
-            AND rel.relname = %s
-            AND con.contype NOT IN ('c', 'n') {}
-            """).format(
-                SQL(
-                    """
-                    AND con.contype != 'p'  -- Exclude primary key constraints
-                    AND con.conname NOT LIKE '%%_id_not_null'
-                    """
-                    if table == 'user'
-                    else ''
-                )
-            ),
-            (table,),
-        ) as r,
-    ):
-        return [(name, SQL(sql)) for name, sql in await r.fetchall()]
-
-
 async def _gather_table_chunks(table: _Table) -> list[_TimescaleChunk]:
     async with (
         db() as conn,
@@ -206,11 +164,16 @@ async def _filter_index_chunks(
 
 
 async def _load_table(mode: _Mode, table: _Table) -> None:
-    if mode == 'preload' or table in {'note', 'note_comment'}:
+    if mode == 'preload' or table in {
+        'note',
+        'note_comment',
+        'element_spatial',
+        'element_spatial_watermark',
+    }:
         path = _get_csv_path(table)
 
-        # Replication supports optional data files
-        if mode == 'replication' and not path.is_file():
+        # Skip optional data files
+        if not path.is_file():
             logging.info('Skipped loading %s table (source file not found)', table)
             return
 
@@ -269,11 +232,11 @@ async def _load_tables(mode: _Mode) -> None:
 
     logging.info('Gathering indexes and constraints')
     table_data: dict[_Table, tuple[dict[str, SQL], list[tuple[str, SQL]]]] = {}
-    for table in all_tables:
-        indexes = await _gather_table_indexes(table)
-        assert indexes, f'No indexes found for {table} table'
-        constraints = await _gather_table_constraints(table)
-        table_data[table] = (indexes, constraints)
+    async with db() as conn:
+        for table in all_tables:
+            indexes = await gather_table_indexes(conn, table)
+            constraints = await gather_table_constraints(conn, table)
+            table_data[table] = (indexes, constraints)
 
     async with db(True, autocommit=True) as conn:
         for table in all_tables:
@@ -346,9 +309,12 @@ async def _load_tables(mode: _Mode) -> None:
                 (list(indexes),),
             )
 
-            if not chunks:
-                for name in indexes:
-                    await conn.execute(SQL('DROP INDEX {}').format(Identifier(name)))
+            if not chunks and indexes:
+                await conn.execute(
+                    SQL('DROP INDEX {}').format(
+                        SQL(', ').join(map(Identifier, indexes))
+                    )
+                )
 
             # Create indexes in reverse order, as heavy indexes tend to be last
             for name, sql in reversed(indexes.items()):
@@ -366,16 +332,6 @@ async def _load_tables(mode: _Mode) -> None:
                         .replace(
                             f'public.{table}', f'{chunk.schema_name}.{chunk.table_name}'
                         )  # type: ignore
-                    )
-
-                    await conn.execute(
-                        """
-                        INSERT INTO _timescaledb_catalog.chunk_index (
-                            chunk_id, index_name, hypertable_id, hypertable_index_name
-                        )
-                        VALUES (%s, %s, %s, %s)
-                        """,
-                        (chunk.id, chunk_name, chunk.hypertable_id, name),
                     )
                     tg.create_task(execute(chunk_sql))
 

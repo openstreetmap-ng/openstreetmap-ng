@@ -59,7 +59,7 @@ static-precompress    # Produce .zst/.br for large static assets
 ## Backend Conventions
 
 - Layering: controller → service → query. Controllers validate and orchestrate; services mutate; queries are side‑effect‑free.
-- Database access: always use `app/db.py:db(write=False|True, ...)`. Default cursors are binary; use `conn.cursor(row_factory=dict_row)` for dict rows.
+- Database access: always use `app/db.py:db(write=False|True, ...)`. Default cursors are binary; use `conn.cursor(row_factory=dict_row)` for dict rows. Direct database access via `psql $POSTGRES_URL` is available for investigation and debugging.
 - SQL safety: never build SQL with f‑strings/concat. Use `psycopg.sql.SQL`/`Identifier` for dynamic pieces and pass parameters (`%s`/`%(name)s`). Examples: `app/services/note_service.py`, `app/queries/note_comment_query.py`.
 - Domain errors: use `app/lib/exceptions_context.raise_for` for business/domain failures (not found, insufficient scopes, etc.). These are localized and map to consistent HTTP semantics.
 - Form feedback: return OpenAPI‑compatible `detail` using `StandardFeedback` (see Standard Components). StandardForm consumes this shape for field/tooltips and form‑level alerts.
@@ -119,7 +119,8 @@ static-precompress    # Produce .zst/.br for large static assets
 
 - Tests mirror the app layout (`tests/controllers`, `tests/services`, etc.).
 - Shared fixtures live in `tests/conftest.py` and `tests/data/`; prefer extending these over custom per‑test setups.
-- Tests rely on background services (Postgres, Mailpit). Starting services (`dev-start`) is a human‑only action unless explicitly allowed. If services aren’t running and you don’t have permission to start them, treat tests as temporarily unavailable and continue with other checks.
+- Tests rely on background services (Postgres, Mailpit). Starting services (`dev-start`) is a human‑only action unless explicitly allowed. If services aren't running and you don't have permission to start them, treat tests as temporarily unavailable and continue with other checks.
+- Test patterns: use AAA (Arrange, Act, Assert) for simple tests. Multi-stage tests use stage comments instead of repeated AAA blocks. Test names must be clear and descriptive; only use docstrings when complexity demands it. Uniformity and glance-through readability are paramount.
 
 ## Handy References (copy patterns from these)
 

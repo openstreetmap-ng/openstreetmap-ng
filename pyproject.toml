@@ -50,8 +50,8 @@ dependencies = [
   "sizestr",
   "speedup",
   "starlette-compress",
-  "torch",
-  "torchvision",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
   "tqdm",
   "transformers[timm,vision]",
   "uvicorn[standard]",
@@ -114,6 +114,8 @@ ignore = [
   "ARG001", # unused-function-argument
   "ARG002", # unused-method-argument
   "ASYNC109", # async-function-with-timeout
+  "B006", # mutable-argument-default
+  "B008", # function-call-in-default-argument
   "B017", # assert-raises-exception
   "COM812", # missing-trailing-comma
   "COM819", # prohibited-trailing-comma
@@ -260,7 +262,6 @@ exclude = [
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
 pythonVersion = "3.13"
-reportCallInDefaultInitializer = "error"
 reportConstantRedefinition = "warning"
 reportDeprecated = "warning"
 reportImplicitOverride = "warning"
@@ -270,7 +271,6 @@ reportMatchNotExhaustive = "error"
 reportMissingModuleSource = "none"
 reportPrivateImportUsage = "none"
 reportPropertyTypeMismatch = "error"
-reportShadowedImports = "warning"
 reportUninitializedInstanceVariable = "error"
 reportUnnecessaryCast = "information"
 reportUnnecessaryComparison = "information"

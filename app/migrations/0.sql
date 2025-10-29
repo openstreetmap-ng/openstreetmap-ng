@@ -15,33 +15,94 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE OR REPLACE FUNCTION h3_points_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
 WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
     -- Base case: cells at finest resolution
-    SELECT public.h3_lat_lng_to_cell((dp).geom, resolution), resolution
-    FROM public.ST_DumpPoints(geom) AS dp
+    SELECT h3_latlng_to_cell((dp).geom, resolution), resolution
+    FROM ST_DumpPoints(geom) AS dp
     GROUP BY 1
     UNION ALL
     -- Recursive case: parent cells at coarser resolutions
-    SELECT public.h3_cell_to_parent(cell), res - 1
+    SELECT h3_cell_to_parent(cell), res - 1
     FROM hierarchy
     WHERE res > 0
     GROUP BY 1, 2)
 SELECT array_agg(cell)
 FROM hierarchy
-$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;
+$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
+SET search_path = public;
 
 CREATE OR REPLACE FUNCTION h3_geometry_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
 WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
     -- Base case: cells at finest resolution
     SELECT h3_cell, resolution
-    FROM public.h3_polygon_to_cells_experimental(geom, resolution, 'overlapping') AS t(h3_cell)
+    FROM h3_polygon_to_cells_experimental(geom, resolution, 'overlapping') AS t(h3_cell)
     UNION ALL
     -- Recursive case: parent cells at coarser resolutions
-    SELECT public.h3_cell_to_parent(cell), res - 1
+    SELECT h3_cell_to_parent(cell), res - 1
     FROM hierarchy
     WHERE res > 0
     GROUP BY 1, 2)
 SELECT array_agg(cell)
 FROM hierarchy
-$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;
+$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
+SET search_path = public;
+
+CREATE OR REPLACE FUNCTION h3_geometry_to_compact_cells (geom geometry, resolution integer) RETURNS h3index[] AS $$
+WITH extent AS (
+    SELECT
+        ST_NumGeometries(geom) > 1 AS is_multi,
+        GREATEST(
+            ST_XMax(geom) - ST_XMin(geom),
+            ST_YMax(geom) - ST_YMin(geom)
+        ) AS size
+),
+parts AS (
+    SELECT
+        (d).geom AS g,
+        ST_Dimension((d).geom) AS dim,
+        GREATEST(
+            3,
+            LEAST(
+                resolution,
+                9 - FLOOR(LN(GREATEST(
+                    CASE WHEN (SELECT is_multi FROM extent)
+                        THEN (SELECT size FROM extent)
+                        ELSE GREATEST(
+                            ST_XMax((d).geom) - ST_XMin((d).geom),
+                            ST_YMax((d).geom) - ST_YMin((d).geom)
+                        )
+                    END,
+                    0.18
+                )) / LN(2))::int
+            )
+        ) AS res
+    FROM extent, ST_Dump(geom) d
+)
+SELECT array_agg(cell)
+FROM h3_compact_cells(ARRAY(
+    SELECT DISTINCT h3_cell
+    FROM (
+        SELECT h3_polygon_to_cells_experimental(g, res, 'overlapping') AS h3_cell
+        FROM parts
+        WHERE dim = 2
+
+        UNION ALL
+
+        SELECT h3_grid_path_cells(
+            h3_latlng_to_cell(ST_PointN(g, i), res),
+            h3_latlng_to_cell(ST_PointN(g, i + 1), res)
+        ) AS h3_cell
+        FROM parts,
+             generate_series(1, ST_NPoints(g) - 1) i
+        WHERE dim = 1
+
+        UNION ALL
+
+        SELECT h3_latlng_to_cell(g, res) AS h3_cell
+        FROM parts
+        WHERE dim = 0
+    ) cells
+)) AS cell
+$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
+SET search_path = public;
 
 CREATE TYPE avatar_type AS enum('gravatar', 'custom');
 
@@ -325,21 +386,6 @@ CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_
 
 CREATE INDEX changeset_comment_user_id_idx ON changeset_comment (user_id DESC, id DESC);
 
--- TODO: repartition in postgres 18+ (faster gin/gist builds)
-CREATE FUNCTION element_partition_func (typed_id bigint) RETURNS bigint AS $$
-SELECT CASE
-    -- Nodes
-    WHEN typed_id <= 1152921504606846975 THEN
-        typed_id / 60
-    -- Ways
-    WHEN typed_id <= 2305843009213693951 THEN
-        (typed_id - 1152921504606846976) / 6 + 1152921504606846976
-    -- Relations
-    ELSE
-        typed_id
-END
-$$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;
-
 CREATE TABLE element (
     sequence_id bigint,
     changeset_id bigint NOT NULL,
@@ -352,13 +398,13 @@ CREATE TABLE element (
     members BIGINT[],
     members_roles TEXT[],
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
-);
-
-SELECT
-    create_hypertable (
-        'element',
-        by_range ('typed_id', 5000000, partition_func => 'element_partition_func'),
-        create_default_indexes => FALSE
+)
+WITH
+    (
+        tsdb.hypertable,
+        tsdb.partition_column = 'typed_id',
+        tsdb.chunk_interval = '1152921504606846976',
+        tsdb.create_default_indexes = FALSE
     );
 
 CREATE INDEX element_sequence_idx ON element (sequence_id DESC);
@@ -388,6 +434,40 @@ WITH
 WHERE
     typed_id >= 1152921504606846976
     AND NOT latest;
+
+CREATE UNLOGGED TABLE element_spatial_staging (
+    typed_id bigint NOT NULL,
+    sequence_id bigint NOT NULL,
+    updated_sequence_id bigint NOT NULL,
+    depth smallint NOT NULL,
+    geom geometry (Geometry, 4326)
+);
+
+CREATE INDEX element_spatial_staging_id_updated_sequence_idx ON element_spatial_staging (typed_id, updated_sequence_id DESC);
+
+CREATE INDEX element_spatial_staging_updated_depth_id_idx ON element_spatial_staging (updated_sequence_id, depth, typed_id);
+
+CREATE UNLOGGED TABLE element_spatial_pending_rels (
+    typed_id bigint PRIMARY KEY
+);
+
+CREATE TABLE element_spatial (
+    typed_id bigint PRIMARY KEY,
+    sequence_id bigint NOT NULL,
+    geom geometry (Geometry, 4326) NOT NULL,
+    bounds_area real GENERATED ALWAYS AS (ST_Area(ST_Envelope(geom))) STORED
+);
+
+CREATE INDEX element_spatial_geom_h3_idx ON element_spatial USING gin (
+    h3_geometry_to_compact_cells(geom, 11)
+)
+WITH
+    (fastupdate = FALSE);
+
+CREATE TABLE element_spatial_watermark (
+    id smallint PRIMARY KEY CHECK (id = 1),
+    sequence_id bigint NOT NULL
+);
 
 CREATE TABLE diary (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

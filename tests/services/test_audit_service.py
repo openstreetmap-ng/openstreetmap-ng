@@ -1,7 +1,6 @@
 from datetime import timedelta
 from ipaddress import ip_address
 
-import pytest
 from zid import zid
 
 from app.config import AUDIT_POLICY
@@ -12,7 +11,6 @@ from app.queries.audit_query import AuditQuery
 from app.services.audit_service import AuditService
 
 
-@pytest.mark.flaky(reruns=3, only_rerun=['AssertionError'])
 async def test_cleanup_old_audit_logs():
     # Arrange: Insert two audit events: one stale and one recent
     app_id: ApplicationId = zid()  # type: ignore

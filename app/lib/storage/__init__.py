@@ -1,8 +1,6 @@
 import cython
 
 from app.config import AVATAR_STORAGE_URL, BACKGROUND_STORAGE_URL, TRACE_STORAGE_URL
-from app.lib.storage.db import DBStorage
-from app.lib.storage.s3 import S3Storage
 
 
 @cython.cfunc
@@ -18,8 +16,14 @@ def _get_storage(url: str):
     path = url[5:].rstrip('/')
 
     if scheme == 'db://':
+        # Lazy import for faster startup
+        from app.lib.storage.db import DBStorage  # noqa: PLC0415
+
         return DBStorage(path)
     if scheme == 's3://':
+        # Lazy import for faster startup
+        from app.lib.storage.s3 import S3Storage  # noqa: PLC0415
+
         return S3Storage(path)
 
     raise ValueError(f'Invalid storage URL: {url}')

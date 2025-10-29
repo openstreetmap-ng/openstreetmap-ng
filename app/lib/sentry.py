@@ -17,6 +17,7 @@ SENTRY_PROFILE_SESSION_SAMPLE_RATE: float = Field(1.0, ge=0, le=1)
 
 SENTRY_REPLICATION_MONITOR_SLUG = 'osm-ng-replication'
 SENTRY_CHANGESET_MANAGEMENT_MONITOR_SLUG = 'osm-ng-changeset-management'
+SENTRY_ELEMENT_SPATIAL_MONITOR_SLUG = 'osm-ng-element-spatial'
 SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG = 'osm-ng-rate-limit-management'
 SENTRY_USERS_DELETED_TXT_MONITOR_SLUG = 'osm-ng-users-deleted-txt'
 SENTRY_AUDIT_MANAGEMENT_MONITOR_SLUG = 'osm-ng-audit-management'
@@ -69,6 +70,21 @@ SENTRY_CHANGESET_MANAGEMENT_MONITOR = sentry_sdk.monitor(
         'checkin_margin': 5,
         'max_runtime': 60,
         'failure_issue_threshold': 60,  # 1h
+        'recovery_threshold': 1,
+    },
+)
+
+SENTRY_ELEMENT_SPATIAL_MONITOR = sentry_sdk.monitor(
+    SENTRY_ELEMENT_SPATIAL_MONITOR_SLUG,
+    {
+        'schedule': {
+            'type': 'interval',
+            'value': 5,
+            'unit': 'minute',
+        },
+        'checkin_margin': 5,
+        'max_runtime': 3600,
+        'failure_issue_threshold': 60,  # 5h
         'recovery_threshold': 1,
     },
 )

@@ -57,6 +57,7 @@ from app.responses.precompressed_static_files import PrecompressedStaticFiles
 from app.services.admin_task_service import AdminTaskService
 from app.services.audit_service import AuditService
 from app.services.changeset_service import ChangesetService
+from app.services.element_spatial_service import ElementSpatialService
 from app.services.email_service import EmailService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.rate_limit_service import RateLimitService
@@ -98,6 +99,7 @@ async def lifespan(_):
             OAuth2TokenService.context(),
             RateLimitService.context(),
             AdminTaskService.context(),
+            ElementSpatialService.context(),
         ):
             # freeze uncollected gc objects for improved performance
             gc.collect()
