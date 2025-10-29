@@ -23,6 +23,7 @@ from app.models.db.diary_comment import diary_comments_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import DiaryId, Latitude, LocaleCode, Longitude
 from app.queries.diary_comment_query import DiaryCommentQuery
+from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery
 from app.services.diary_comment_service import DiaryCommentService
 from app.services.diary_service import DiaryService
@@ -101,6 +102,9 @@ async def comments_page(
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(diary_comments_resolve_rich_text(comments))
+
+    # Inline thumbnails after rich text is resolved
+    await DiaryQuery.inline_image_thumbnails(comments)
 
     return HTMLResponse(
         render_jinja('diary/comments-page', {'comments': comments}),

@@ -23,6 +23,10 @@ from app.config import (
     BACKGROUND_MAX_FILE_SIZE,
     BACKGROUND_MAX_MEGAPIXELS,
     BACKGROUND_MAX_RATIO,
+    IMAGE_PROXY_MAX_DIMENSION,
+    IMAGE_PROXY_MAX_FILE_SIZE,
+    IMAGE_PROXY_QUALITY,
+    IMAGE_PROXY_THUMBNAIL_MAX_DIMENSION,
 )
 from app.lib.exceptions_context import raise_for
 from app.models.types import NoteId, StorageKey, UserId
@@ -117,6 +121,33 @@ class Image:
             max_ratio=BACKGROUND_MAX_RATIO,
             max_megapixels=BACKGROUND_MAX_MEGAPIXELS,
             max_file_size=BACKGROUND_MAX_FILE_SIZE,
+        )
+
+    @staticmethod
+    async def process_proxy_image(data: bytes) -> bytes:
+        """
+        Process image for proxy system.
+
+        Resizes to max dimension and compresses to WebP with configured quality.
+        No aspect ratio constraints or NSFW filtering.
+        """
+        return await _process_proxy_image(
+            data,
+            max_dimension=IMAGE_PROXY_MAX_DIMENSION,
+            max_file_size=IMAGE_PROXY_MAX_FILE_SIZE,
+            quality=IMAGE_PROXY_QUALITY,
+        )
+
+    @staticmethod
+    async def create_thumbnail(data: bytes) -> bytes:
+        """
+        Create a tiny thumbnail from processed image data.
+
+        Used for Low Quality Image Placeholder (LQIP) pattern.
+        """
+        return await _create_thumbnail(
+            data,
+            max_dimension=IMAGE_PROXY_THUMBNAIL_MAX_DIMENSION,
         )
 
 
@@ -289,3 +320,77 @@ async def _optimize_quality(
             best_img = img_
 
     return best_quality, best_img.tobytes()
+
+
+async def _process_proxy_image(
+    data: bytes,
+    *,
+    max_dimension: cython.int,
+    max_file_size: int,
+    quality: cython.int,
+) -> bytes:
+    """
+    Process proxy image: resize and compress to WebP.
+
+    Simpler than _normalize_image - no aspect ratio normalization or NSFW detection.
+    """
+    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+    if img is None:
+        raise_for.bad_image_format()
+
+    img_height: cython.int = img.shape[0]
+    img_width: cython.int = img.shape[1]
+
+    # Resize if larger than max_dimension
+    if max_dimension and (img_width > max_dimension or img_height > max_dimension):
+        if img_width > img_height:
+            new_width: cython.int = max_dimension
+            new_height: cython.int = int(img_height * (max_dimension / img_width))
+        else:
+            new_height = max_dimension
+            new_width = int(img_width * (max_dimension / img_height))
+
+        logging.debug('Resizing proxy image %dx%d -> %dx%d', img_width, img_height, new_width, new_height)
+        img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_AREA)
+
+    # Compress with quality optimization
+    quality_result, buffer = await _optimize_quality(img, max_file_size)
+    logging.debug('Optimized proxy image quality: Q%d', quality_result)
+    return buffer
+
+
+async def _create_thumbnail(
+    data: bytes,
+    *,
+    max_dimension: cython.int,
+) -> bytes:
+    """
+    Create a tiny thumbnail for LQIP (Low Quality Image Placeholder).
+
+    Uses low quality (Q20) for minimal size - will be base64 encoded.
+    """
+    loop = get_running_loop()
+
+    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+    if img is None:
+        raise_for.bad_image_format()
+
+    img_height: cython.int = img.shape[0]
+    img_width: cython.int = img.shape[1]
+
+    # Resize to tiny thumbnail
+    if img_width > img_height:
+        new_width: cython.int = max_dimension
+        new_height: cython.int = max(1, int(img_height * (max_dimension / img_width)))
+    else:
+        new_height = max_dimension
+        new_width = max(1, int(img_width * (max_dimension / img_height)))
+
+    logging.debug('Creating thumbnail %dx%d -> %dx%d', img_width, img_height, new_width, new_height)
+    img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_AREA)
+
+    # Encode with low quality for small file size
+    _, img_ = await loop.run_in_executor(
+        None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, 20)
+    )
+    return img_.tobytes()

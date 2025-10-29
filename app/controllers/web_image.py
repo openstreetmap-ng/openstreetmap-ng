@@ -7,6 +7,7 @@ from starlette import status
 
 from app.config import (
     GRAVATAR_CACHE_EXPIRE,
+    IMAGE_PROXY_CACHE_EXPIRE,
     INITIALS_CACHE_MAX_AGE,
     SECRET,
     STATIC_CACHE_MAX_AGE,
@@ -14,10 +15,11 @@ from app.config import (
 )
 from app.lib.dicebear import generate_avatar
 from app.middlewares.cache_control_middleware import cache_control
-from app.models.types import NoteId, StorageKey, UserId
+from app.models.types import ImageProxyId, NoteId, StorageKey, UserId
 from app.queries.image_query import ImageQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.user_query import UserQuery
+from app.services.image_proxy_service import ImageProxyService
 
 router = APIRouter(prefix='/api/web/img')
 
@@ -78,4 +80,19 @@ async def background(
 ) -> Response:
     file = await ImageQuery.get_background(background_id)
     content_type = magic.from_buffer(file[:2048], mime=True)
+    return Response(file, media_type=content_type)
+
+
+@router.get('/proxy/{proxy_id:int}')
+@cache_control(IMAGE_PROXY_CACHE_EXPIRE, STATIC_CACHE_STALE)
+async def image_proxy(proxy_id: ImageProxyId) -> Response:
+    """
+    Serve proxied external image.
+
+    Images are fetched, processed (resize, recompress), and cached.
+    This endpoint handles the full-size optimized image.
+    """
+    file = await ImageProxyService.get_or_fetch_image(proxy_id)
+    # All proxy images are WebP
+    content_type = 'image/webp'
     return Response(file, media_type=content_type)

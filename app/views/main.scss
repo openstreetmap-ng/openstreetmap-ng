@@ -49,6 +49,9 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 $bootstrap-icons-font-hash: "";
 @import "bootstrap-icons/font/bootstrap-icons";
 
+// Progressive Image Loading
+@import "lib/progressive-image";
+
 // (MapLibre GL)
 @import "maplibre-gl/dist/maplibre-gl";
 

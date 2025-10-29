@@ -3,7 +3,7 @@ from typing import Literal, NotRequired, TypedDict
 
 from shapely import Point
 
-from app.lib.rich_text import resolve_rich_text
+from app.lib.rich_text import resolve_rich_text_with_proxy
 from app.models.db.user import UserDisplay
 from app.models.types import DiaryId, LocaleCode, UserId
 
@@ -19,6 +19,7 @@ class DiaryInit(TypedDict):
 class Diary(DiaryInit):
     id: DiaryId
     body_rich_hash: bytes | None
+    image_proxy_ids: list[int] | None
     created_at: datetime
     updated_at: datetime
 
@@ -31,4 +32,4 @@ class Diary(DiaryInit):
 
 
 async def diaries_resolve_rich_text(objs: list[Diary]) -> None:
-    await resolve_rich_text(objs, 'diary', 'body', 'markdown')
+    await resolve_rich_text_with_proxy(objs, 'diary', 'body', 'markdown')

@@ -243,6 +243,9 @@ async def _get_data(
                 new_after_t = tg.create_task(new_after_task())
                 new_before_t = tg.create_task(new_before_task())  # pyright: ignore [reportGeneralTypeIssues]
 
+        # Inline thumbnails after rich text is resolved
+        await DiaryQuery.inline_image_thumbnails(diaries)
+
         if user_from_diary:
             user = diaries[0]['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
             user_id = user['id']

@@ -48,6 +48,10 @@ import "./lib/map/main-map"
 
 import "./lib/auth-switcher"
 import "./lib/bootstrap"
+import { setupProgressiveImages } from "./lib/progressive-image"
+
+// Initialize progressive image loading for diary content
+setupProgressiveImages()
 import "./lib/copy-group"
 import "./lib/multi-input"
 import "./lib/password-strength"

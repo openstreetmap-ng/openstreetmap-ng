@@ -56,6 +56,47 @@ vite build            # Build TypeScript/SCSS (alternatively: vite-build helper)
 static-precompress    # Produce .zst/.br for large static assets
 ```
 
+## Image Proxy System
+
+The image proxy system provides secure, optimized delivery of external images in diary content with progressive loading for better UX.
+
+### Architecture
+
+**Two-Tier Strategy:**
+- **Thumbnail** (DB-backed): Tiny (~48px) LQIP stored in `image_proxy.thumbnail`, always available, updates asynchronously
+- **Full Image** (Cache-backed): Optimized WebP cached with 7-day TTL, fetched on-demand
+
+**Key Components:**
+- `app/models/db/image_proxy.py` — Image proxy data model
+- `app/queries/image_proxy_query.py` — Database queries with `FOR UPDATE` locking
+- `app/services/image_proxy_service.py` — Fetching, processing, thumbnail generation with concurrency control
+- `app/lib/rich_text.py` — Markdown post-processing to replace image URLs with proxy endpoints
+- `app/controllers/web_image.py` — `/api/web/img/proxy/{id}` endpoint
+- `app/views/lib/progressive-image.ts` — Frontend progressive loading with LQIP fade-in
+
+**Flow:**
+1. Markdown processing detects external images (`http://`, `https://`)
+2. Creates `image_proxy` entries (race-safe via `INSERT ... ON CONFLICT`)
+3. Replaces URLs: `<img src="https://..." />` → `<img src="/api/web/img/proxy/123" data-proxy-id="123" />`
+4. Stores proxy IDs in `diary.image_proxy_ids` / `diary_comment.image_proxy_ids`
+5. On diary load:
+   - Loads cached markdown (with proxy URLs)
+   - Loads thumbnails from DB
+   - Inlines base64 thumbnails for instant LQIP display
+6. Frontend progressively loads full images with smooth fade-in
+7. On diary delete/update: orphaned proxies cleaned up automatically
+
+**Configuration** (`app/config.py`):
+- `IMAGE_PROXY_THUMBNAIL_MAX_DIMENSION = 48` — Thumbnail size (longest dimension)
+- `IMAGE_PROXY_MAX_DIMENSION = 2048` — Full image max dimension
+- `IMAGE_PROXY_MAX_FILE_SIZE = 2 MiB` — Max file size for full image
+- `IMAGE_PROXY_QUALITY = 80` — WebP quality (1-100)
+- `IMAGE_PROXY_CACHE_EXPIRE = 7 days` — Full image cache TTL
+- `IMAGE_PROXY_ERROR_CACHE_EXPIRE = 1 hour` — Error cache TTL
+- `IMAGE_PROXY_THUMBNAIL_REFRESH = 30 days` — Thumbnail refresh interval
+
+**Concurrency:** Uses `SELECT ... FOR UPDATE SKIP LOCKED` for thumbnail generation to prevent duplicate work across processes.
+
 ## Backend Conventions
 
 - Layering: controller → service → query. Controllers validate and orchestrate; services mutate; queries are side‑effect‑free.

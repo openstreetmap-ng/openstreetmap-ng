@@ -1,4 +1,5 @@
 import logging
+import re
 import tomllib
 from asyncio import TaskGroup
 from collections.abc import Iterable, Sequence
@@ -20,6 +21,8 @@ from psycopg.sql import SQL, Identifier
 from app.config import RICH_TEXT_CACHE_EXPIRE, TRUSTED_HOSTS
 from app.db import db
 from app.lib.crypto import hash_bytes
+from app.models.types import ImageProxyId
+from app.queries.image_proxy_query import ImageProxyQuery
 from app.services.cache_service import CacheContext, CacheService
 
 TextFormat = Literal['html', 'markdown', 'plain']
@@ -257,3 +260,156 @@ _LINKIFY.add('//', None)  # disable double-slash links
 _TRUSTED_HOSTS_DOT = tuple(f'.{host}' for host in TRUSTED_HOSTS)
 _TRUSTED_LINK_REL = 'noopener'
 _UNTRUSTED_LINK_REL = 'noopener nofollow'
+
+# Regex to find <img> tags with src attribute
+_IMG_SRC_PATTERN = re.compile(r'<img\s+[^>]*src=["\']([^"\']+)["\'][^>]*>', re.IGNORECASE)
+
+
+async def process_rich_text_with_image_proxy(
+    text: str,
+    text_format: TextFormat,
+) -> tuple[str, list[ImageProxyId]]:
+    """
+    Process rich text and replace external image URLs with proxy endpoints.
+
+    Returns the processed HTML and list of proxy IDs used.
+    """
+    # First, render the markdown normally
+    rendered_html = process_rich_text(text, text_format)
+
+    # Find all image URLs in the rendered HTML
+    image_urls = _IMG_SRC_PATTERN.findall(rendered_html)
+
+    if not image_urls:
+        return rendered_html, []
+
+    # Filter for external URLs (http:// or https://)
+    external_urls = [url for url in image_urls if url.startswith(('http://', 'https://'))]
+
+    if not external_urls:
+        return rendered_html, []
+
+    # Create proxy entries for all external images
+    proxy_ids: list[ImageProxyId] = []
+    url_to_proxy_id: dict[str, ImageProxyId] = {}
+
+    async with TaskGroup() as tg:
+        tasks = [
+            tg.create_task(ImageProxyQuery.find_or_create_by_url(url))
+            for url in external_urls
+        ]
+
+    for url, task in zip(external_urls, tasks, strict=True):
+        proxy_id = task.result()
+        url_to_proxy_id[url] = proxy_id
+        proxy_ids.append(proxy_id)
+
+    # Replace URLs with proxy endpoints in the HTML
+    def replace_image_url(match: re.Match) -> str:
+        original_url = match.group(1)
+        if original_url in url_to_proxy_id:
+            proxy_id = url_to_proxy_id[original_url]
+            # Replace the src attribute but keep other attributes
+            return match.group(0).replace(
+                f'src="{original_url}"',
+                f'src="/api/web/img/proxy/{proxy_id}" data-proxy-id="{proxy_id}"'
+            ).replace(
+                f"src='{original_url}'",
+                f'src="/api/web/img/proxy/{proxy_id}" data-proxy-id="{proxy_id}"'
+            )
+        return match.group(0)
+
+    rendered_html = _IMG_SRC_PATTERN.sub(replace_image_url, rendered_html)
+
+    return rendered_html, proxy_ids
+
+
+async def resolve_rich_text_with_proxy(
+    objs: Iterable[_HasId],
+    table: LiteralString,
+    field: LiteralString,
+    text_format: TextFormat,
+) -> None:
+    """
+    Resolve rich text with image proxy support for diary/diary_comment tables.
+
+    Similar to resolve_rich_text but also handles image proxy replacement and tracking.
+    """
+    rich_field_name = field + '_rich'
+    rich_hash_field_name = field + '_rich_hash'
+    proxy_ids_field_name = 'image_proxy_ids'
+
+    # skip if already resolved
+    mapping: dict[Any, _HasId] = {
+        obj['id']: obj  #
+        for obj in objs
+        if rich_field_name not in obj
+    }
+    if not mapping:
+        return
+
+    # Process each object
+    async with TaskGroup() as tg:
+        tasks = [
+            tg.create_task(
+                process_rich_text_with_image_proxy(obj[field], text_format)  # type: ignore
+            )
+            for obj in mapping.values()
+        ]
+
+    # Build parameters for database update
+    hash_update_params: list[Any] = []
+    proxy_update_params: list[Any] = []
+
+    for task, obj in zip(tasks, mapping.values(), strict=True):
+        processed_html, proxy_ids = task.result()
+        obj[rich_field_name] = processed_html  # type: ignore
+        obj[proxy_ids_field_name] = proxy_ids  # type: ignore
+
+        # Compute cache hash from the processed HTML (which includes proxy URLs)
+        cache_id = hash_bytes(processed_html)
+        current_hash: bytes | None = obj[rich_hash_field_name]  # type: ignore
+
+        if current_hash != cache_id:
+            hash_update_params.extend((obj['id'], current_hash, cache_id))
+
+        # Always update proxy_ids if they changed
+        current_proxy_ids: list[int] | None = obj.get('image_proxy_ids')  # type: ignore
+        if current_proxy_ids != proxy_ids:
+            proxy_update_params.append((obj['id'], proxy_ids))
+
+    # Update database
+    if hash_update_params or proxy_update_params:
+        async with db(True, autocommit=True) as conn:
+            # Update body_rich_hash
+            if hash_update_params:
+                num_rows = len(hash_update_params) // 3
+                await conn.execute(
+                    SQL("""
+                        UPDATE {table} SET {field} = v.new_hash
+                        FROM (VALUES {values}) AS v(id, old_hash, new_hash)
+                        WHERE {table}.id = v.id AND {field} IS NOT DISTINCT FROM v.old_hash
+                    """).format(
+                        table=Identifier(table),
+                        field=Identifier(rich_hash_field_name),
+                        values=SQL(',').join([SQL('(%s, %s, %s)')] * num_rows),
+                    ),
+                    hash_update_params,
+                )
+                logging.debug('Rich text %r hash changed for %d objects', field, num_rows)
+
+            # Update image_proxy_ids
+            if proxy_update_params:
+                num_rows = len(proxy_update_params)
+                await conn.execute(
+                    SQL("""
+                        UPDATE {table} SET image_proxy_ids = v.proxy_ids
+                        FROM (VALUES {values}) AS v(id, proxy_ids)
+                        WHERE {table}.id = v.id
+                    """).format(
+                        table=Identifier(table),
+                        values=SQL(',').join([SQL('(%s, %s)')] * num_rows),
+                    ),
+                    [item for pair in proxy_update_params for item in pair],
+                )
+                logging.debug('Image proxy IDs updated for %d objects', num_rows)

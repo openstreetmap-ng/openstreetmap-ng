@@ -7,8 +7,10 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.diary import DiaryInit
-from app.models.types import DiaryId, LocaleCode, UserId
+from app.models.types import DiaryId, ImageProxyId, LocaleCode, UserId
+from app.queries.diary_query import DiaryQuery
 from app.services.audit_service import audit
+from app.services.image_proxy_service import ImageProxyService
 from app.services.user_subscription_service import UserSubscriptionService
 
 
@@ -64,6 +66,10 @@ class DiaryService:
         """Update a diary entry."""
         user_id = auth_user(required=True)['id']
 
+        # Get old proxy IDs before update for cleanup
+        old_diary = await DiaryQuery.find_by_id(diary_id)
+        old_proxy_ids = old_diary['image_proxy_ids'] if old_diary else None
+
         async with db(True) as conn:
             result = await conn.execute(
                 """
@@ -96,11 +102,21 @@ class DiaryService:
 
             await audit('update_diary', conn, extra={'id': diary_id})
 
+        # Cleanup orphaned image proxies if body changed
+        if old_proxy_ids and body != (old_diary['body'] if old_diary else ''):
+            await ImageProxyService.cleanup_orphaned_proxies(
+                [ImageProxyId(pid) for pid in old_proxy_ids]
+            )
+
     @staticmethod
     async def delete(
         diary_id: DiaryId, *, current_user_id: UserId | None = None
     ) -> None:
         """Delete a diary entry."""
+        # Get proxy IDs before deletion for cleanup
+        diary = await DiaryQuery.find_by_id(diary_id)
+        old_proxy_ids = diary['image_proxy_ids'] if diary else None
+
         conditions: list[Composable] = [SQL('id = %s')]
         params: list[Any] = [diary_id]
 
@@ -118,3 +134,9 @@ class DiaryService:
 
             if result.rowcount:
                 await audit('delete_diary', conn, extra={'id': diary_id})
+
+        # Cleanup orphaned image proxies
+        if old_proxy_ids:
+            await ImageProxyService.cleanup_orphaned_proxies(
+                [ImageProxyId(pid) for pid in old_proxy_ids]
+            )
