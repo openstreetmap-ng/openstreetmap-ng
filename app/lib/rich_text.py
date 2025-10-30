@@ -324,6 +324,56 @@ async def process_rich_text_with_image_proxy(
     return rendered_html, proxy_ids
 
 
+def _extract_proxy_ids_from_html(html: str) -> list[ImageProxyId]:
+    """Extract image proxy IDs from HTML by parsing data-proxy-id attributes."""
+    pattern = re.compile(r'data-proxy-id="(\d+)"')
+    matches = pattern.findall(html)
+    return [ImageProxyId(int(m)) for m in matches]
+
+
+async def rich_text_with_proxy(
+    text: str,
+    cache_id: bytes | None,
+    text_format: TextFormat,
+) -> tuple[str, bytes, list[ImageProxyId]]:
+    """
+    Get rich text with image proxy replacement, using cache.
+
+    Similar to rich_text() but also handles image proxy creation and tracking.
+    Returns: (processed_html, cache_id, proxy_ids)
+    """
+    # We need to capture proxy_ids when factory runs (cache miss)
+    proxy_ids_from_factory: list[ImageProxyId] = []
+
+    async def factory() -> bytes:
+        # Process markdown with image proxy replacement
+        html, proxy_ids = await process_rich_text_with_image_proxy(text, text_format)
+        # Capture proxy_ids for cache miss case
+        proxy_ids_from_factory.clear()
+        proxy_ids_from_factory.extend(proxy_ids)
+        return html.encode()
+
+    if cache_id is None:
+        cache_id = hash_bytes(text)
+
+    processed = (
+        await CacheService.get(
+            cache_id.hex(),
+            CacheContext(f'RichText:{text_format}'),
+            factory,
+            ttl=RICH_TEXT_CACHE_EXPIRE,
+        )
+    ).decode()
+
+    # If cache hit, factory didn't run, extract proxy IDs from cached HTML
+    if proxy_ids_from_factory:
+        proxy_ids = proxy_ids_from_factory
+    else:
+        proxy_ids = _extract_proxy_ids_from_html(processed)
+
+    return processed, cache_id, proxy_ids
+
+
 async def resolve_rich_text_with_proxy(
     objs: Iterable[_HasId],
     table: LiteralString,
@@ -348,11 +398,11 @@ async def resolve_rich_text_with_proxy(
     if not mapping:
         return
 
-    # Process each object
+    # Process each object with caching
     async with TaskGroup() as tg:
         tasks = [
             tg.create_task(
-                process_rich_text_with_image_proxy(obj[field], text_format)  # type: ignore
+                rich_text_with_proxy(obj[field], obj[rich_hash_field_name], text_format)  # type: ignore
             )
             for obj in mapping.values()
         ]
@@ -362,19 +412,16 @@ async def resolve_rich_text_with_proxy(
     proxy_update_params: list[Any] = []
 
     for task, obj in zip(tasks, mapping.values(), strict=True):
-        processed_html, proxy_ids = task.result()
+        processed_html, cache_id, proxy_ids = task.result()
         obj[rich_field_name] = processed_html  # type: ignore
         obj[proxy_ids_field_name] = proxy_ids  # type: ignore
 
-        # Compute cache hash from the processed HTML (which includes proxy URLs)
-        cache_id = hash_bytes(processed_html)
         current_hash: bytes | None = obj[rich_hash_field_name]  # type: ignore
-
         if current_hash != cache_id:
             hash_update_params.extend((obj['id'], current_hash, cache_id))
 
-        # Always update proxy_ids if they changed
-        current_proxy_ids: list[int] | None = obj.get('image_proxy_ids')  # type: ignore
+        # Update proxy_ids if they changed
+        current_proxy_ids: list[int] | None = obj.get(proxy_ids_field_name)  # type: ignore
         if current_proxy_ids != proxy_ids:
             proxy_update_params.append((obj['id'], proxy_ids))
 

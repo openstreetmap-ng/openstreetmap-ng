@@ -81,6 +81,10 @@ class DiaryService:
                         WHEN %(body)s != diary.body THEN NULL
                         ELSE body_rich_hash
                     END,
+                    image_proxy_ids = CASE
+                        WHEN %(body)s != diary.body THEN NULL
+                        ELSE image_proxy_ids
+                    END,
                     language = %(language)s,
                     point = %(point)s,
                     updated_at = DEFAULT

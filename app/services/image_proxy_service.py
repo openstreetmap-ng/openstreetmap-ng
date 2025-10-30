@@ -59,16 +59,8 @@ class ImageProxyService:
 
         except Exception as e:
             logging.warning('Failed to fetch image proxy %d: %s', proxy_id, e)
-            # Mark error in database
+            # Mark error in database (acts as error cache via error_at field)
             await ImageProxyQuery.mark_error(proxy_id)
-            # Cache the error
-            error_cache_key = hash_storage_key(f'error:{proxy_id}')
-            await CacheService.get(
-                error_cache_key,
-                ImageProxyService._CACHE_CONTEXT,
-                lambda: b'',
-                ttl=IMAGE_PROXY_ERROR_CACHE_EXPIRE,
-            )
             raise_for.image_proxy_fetch_failed(proxy['url'])
 
     @staticmethod

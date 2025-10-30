@@ -191,11 +191,14 @@ class DiaryQuery:
 
                 # If we have a thumbnail, create progressive loading markup
                 if proxy and proxy['thumbnail']:
+                    # Remove existing src attribute from before_attrs to avoid duplicate
+                    cleaned_before = re.sub(r'src="[^"]*"\s*', '', before_attrs)
+
                     thumbnail_b64 = base64.b64encode(proxy['thumbnail']).decode('ascii')
                     # Use a wrapper div for progressive loading
                     return (
                         f'<span class="progressive-img" data-proxy-id="{proxy_id}">'
-                        f'<img {before_attrs}class="thumbnail" '
+                        f'<img {cleaned_before}class="thumbnail" '
                         f'src="data:image/webp;base64,{thumbnail_b64}"{after_attrs}>'
                         f'</span>'
                     )
