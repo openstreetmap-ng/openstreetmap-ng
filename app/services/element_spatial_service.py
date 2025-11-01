@@ -20,36 +20,35 @@ from app.lib.sentry import (
 from app.lib.testmethod import testmethod
 from app.utils import calc_num_workers
 
-_MAX_RELATION_NESTING_DEPTH = 12
+_MAX_RELATION_NESTING_DEPTH = 15
 
 _PROCESS_REQUEST_EVENT = Event()
 _PROCESS_DONE_EVENT = Event()
 
 _BATCH_QUERY_WAYS: LiteralString = """
+/*+ NoSeqScan(wc) */
 WITH nodes AS (
-    SELECT typed_id
+    SELECT array_agg(typed_id) AS ids
     FROM element
     WHERE sequence_id BETWEEN %(start_seq)s AND %(end_seq)s
-        AND typed_id <= 1152921504606846975
-        AND latest
+      AND typed_id <= 1152921504606846975
+      AND latest
 ),
 ways AS (
     SELECT w.typed_id, w.sequence_id
-    FROM element w, (SELECT array_agg(typed_id) AS ids FROM nodes) n
+    FROM element w
+    CROSS JOIN nodes n
     WHERE w.typed_id BETWEEN 1152921504606846976 AND 2305843009213693951
-        AND w.latest
-        AND w.members && n.ids
-    UNION
-    SELECT typed_id, sequence_id
-    FROM element
-    WHERE sequence_id BETWEEN %(start_seq)s AND %(end_seq)s
-        AND typed_id BETWEEN 1152921504606846976 AND 2305843009213693951
-        AND latest
+      AND w.latest
+      AND (
+        w.sequence_id BETWEEN %(start_seq)s AND %(end_seq)s
+        OR w.members && n.ids
+      )
 ),
 ways_computed AS (
     SELECT
-        w.typed_id,
-        w.sequence_id,
+        wc.typed_id,
+        wc.sequence_id,
         ST_RemoveRepeatedPoints(
             ST_QuantizeCoordinates(
                 CASE
@@ -60,11 +59,11 @@ ways_computed AS (
                 7
             )
         ) AS geom
-    FROM element w
-    INNER JOIN ways ON ways.sequence_id = w.sequence_id
+    FROM element wc
+    INNER JOIN ways ON ways.sequence_id = wc.sequence_id
     LEFT JOIN LATERAL (
         SELECT ST_MakeLine(node_point.point ORDER BY m.ord) AS line_geom
-        FROM UNNEST(w.members) WITH ORDINALITY AS m(node_id, ord)
+        FROM UNNEST(wc.members) WITH ORDINALITY AS m(node_id, ord)
         LEFT JOIN LATERAL (
             SELECT point
             FROM element n
@@ -72,7 +71,8 @@ ways_computed AS (
             ORDER BY n.sequence_id DESC
             LIMIT 1
         ) node_point ON true
-        WHERE w.visible
+        WHERE wc.visible
+          AND wc.members IS NOT NULL
     ) AS way_geom ON true
 )
 INSERT INTO element_spatial_staging (typed_id, sequence_id, updated_sequence_id, depth, geom)
@@ -85,7 +85,8 @@ rels_batch AS (
     SELECT typed_id
     FROM element_spatial_pending_rels
     ORDER BY typed_id
-    LIMIT %(batch_limit)s OFFSET %(batch_offset)s
+    OFFSET %(batch_offset)s
+    LIMIT %(batch_limit)s
 ),
 rels AS (
     SELECT r.typed_id, r.sequence_id, r.members, r.visible, r.tags
@@ -104,32 +105,24 @@ needed_ids AS (
     WHERE member_id >= 1152921504606846976
 ),
 geom_lookup AS MATERIALIZED (
-    SELECT typed_id, geom
-    FROM (
-        SELECT
-            typed_id,
-            geom,
-            ROW_NUMBER() OVER (PARTITION BY typed_id ORDER BY updated_sequence_id DESC) AS rn
-        FROM (
-            SELECT
-                s.typed_id,
-                s.geom,
-                s.updated_sequence_id
-            FROM element_spatial_staging s
-            INNER JOIN needed_ids n ON n.typed_id = s.typed_id
-            WHERE s.depth < %(depth)s
+    -- Priority 1: Staging (current cycle, most recent)
+    SELECT s.typed_id, s.geom
+    FROM element_spatial_staging s
+    INNER JOIN needed_ids n ON n.typed_id = s.typed_id
+    WHERE s.depth < %(depth)s
 
-            UNION ALL
+    UNION ALL
 
-            SELECT
-                es.typed_id,
-                es.geom,
-                0 AS updated_sequence_id
-            FROM element_spatial es
-            INNER JOIN needed_ids n ON n.typed_id = es.typed_id
-        )
-    ) ranked
-    WHERE rn = 1
+    -- Priority 2: Production table (previous cycles, fallback only)
+    SELECT es.typed_id, es.geom
+    FROM element_spatial es
+    INNER JOIN needed_ids n ON n.typed_id = es.typed_id
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM element_spatial_staging s
+        WHERE s.typed_id = es.typed_id
+          AND s.depth < %(depth)s
+    )
 ),
 rels_ready AS (
     SELECT r.*
@@ -140,16 +133,16 @@ rels_ready AS (
         WHERE cm.parent_id = r.typed_id
           AND cm.member_id >= 2305843009213693952
           AND (
-              EXISTS (
-                  SELECT 1
-                  FROM element_spatial_pending_rels pr
-                  WHERE pr.typed_id = cm.member_id
-              )
-              OR NOT EXISTS (
-                  SELECT 1
-                  FROM geom_lookup gl
-                  WHERE gl.typed_id = cm.member_id
-              )
+            EXISTS (
+                SELECT 1
+                FROM element_spatial_pending_rels pr
+                WHERE pr.typed_id = cm.member_id
+            )
+            OR NOT EXISTS (
+                SELECT 1
+                FROM geom_lookup gl
+                WHERE gl.typed_id = cm.member_id
+            )
           )
     )
 ),
@@ -167,7 +160,7 @@ rels_computed AS (
                 FROM UNNEST(rr.members) AS m(child_rel_id)
                 INNER JOIN geom_lookup gl ON gl.typed_id = m.child_rel_id
                 WHERE m.child_rel_id >= 2305843009213693952
-                    AND gl.geom IS NOT NULL
+                  AND gl.geom IS NOT NULL
 
                 UNION ALL
 
@@ -213,6 +206,7 @@ rels_computed AS (
             )
         ) AS geom
         WHERE rr.visible
+          AND rr.members IS NOT NULL
           AND rr.tags IS NOT NULL
     ) AS rel_geom ON true
 )
@@ -281,8 +275,8 @@ async def _process_task() -> None:
 async def _update(
     *,
     parallelism: int | float = 0.5,
-    parallelism_init: int | float = 1.0,
-    ways_batch_size: int = 50_000,
+    parallelism_init: int | float = 1.5,
+    ways_batch_size: int = 10_000,
     rels_batch_size: int = 1_000,
     _MAX_RELATION_NESTING_DEPTH: cython.Py_ssize_t = _MAX_RELATION_NESTING_DEPTH,
 ) -> None:
@@ -350,7 +344,11 @@ async def _update(
         # Seed pending relations for the next depth
         if depth < _MAX_RELATION_NESTING_DEPTH:
             await _seed_pending_relations(
-                depth=depth, last_sequence=last_sequence, max_sequence=max_sequence
+                depth=depth,
+                last_sequence=last_sequence,
+                max_sequence=max_sequence,
+                parallelism=parallelism,
+                batch_size=ways_batch_size,
             )
 
     await _finalize_staging(max_sequence=max_sequence, last_sequence=last_sequence)
@@ -423,90 +421,158 @@ async def _process_depth(
         async with TaskGroup() as tg:
             if not depth:
                 # Depth 0: Batch by sequence range
-                for end_seq in range(max_sequence, last_sequence, -batch_size):
-                    start_seq = max(end_seq - batch_size + 1, last_sequence + 1)
+                for start_seq in range(last_sequence + 1, max_sequence + 1, batch_size):
+                    end_seq = min(start_seq + batch_size - 1, max_sequence)
                     tg.create_task(process_ways_batch(start_seq, end_seq))
             else:
                 # Depth 1+: Batch by offset into pending_rels
                 for batch_offset in range(0, num_items, batch_size):
                     tg.create_task(process_rels_batch(batch_offset))
 
-    if num_items >= 10_000:
-        async with db(True) as conn:
+    async with db(True) as conn:
+        if num_items >= 10_000:
             await conn.execute('ANALYZE element_spatial_staging')
+
+        if depth == 0:
+            await conn.execute(
+                """
+                DELETE FROM element_spatial_staging t
+                USING (
+                    SELECT typed_id, MAX(updated_sequence_id) as max_seq
+                    FROM element_spatial_staging
+                    GROUP BY typed_id
+                    HAVING COUNT(*) > 1
+                ) dups
+                WHERE t.typed_id = dups.typed_id
+                  AND t.updated_sequence_id < dups.max_seq
+                """
+            )
 
     return True
 
 
 async def _seed_pending_relations(
-    *, depth: int, last_sequence: int, max_sequence: int
+    *,
+    depth: int,
+    last_sequence: int,
+    max_sequence: int,
+    parallelism: int,
+    batch_size: int,
 ) -> None:
-    """Populate pending relations table for the next depth."""
+    """Seed pending relations using parallel batched queries to avoid array_agg overflow."""
     logging.debug('Seeding pending relations after depth %d', depth)
+
     async with db(True) as conn:
-        await conn.execute(
+        if depth == 0:
+            await conn.execute(
+                """
+                INSERT INTO element_spatial_pending_rels (typed_id)
+                SELECT typed_id FROM element
+                WHERE sequence_id BETWEEN %(seq_start)s AND %(seq_end)s
+                  AND typed_id >= 2305843009213693952
+                  AND latest
+                ON CONFLICT DO NOTHING
+                """,
+                {'seq_start': last_sequence + 1, 'seq_end': max_sequence},
+            )
+        else:
+            await conn.execute(
+                """
+                DELETE FROM element_spatial_pending_rels
+                WHERE typed_id IN (
+                    SELECT typed_id
+                    FROM element_spatial_staging
+                    WHERE depth = %(depth)s
+                )
+                """,
+                {'depth': depth},
+            )
+
+        async with await conn.execute(
             """
-            DELETE FROM element_spatial_pending_rels p
-            USING element_spatial_staging s
-            WHERE p.typed_id = s.typed_id
-              AND s.depth = %(depth)s
+            SELECT COUNT(*)
+            FROM element_spatial_staging
+            WHERE %(depth)s = 0 OR depth = %(depth)s
             """,
             {'depth': depth},
-        )
+        ) as r:
+            (num_items,) = await r.fetchone()  # type: ignore
+
+    semaphore = Semaphore(parallelism)
+
+    async with TaskGroup() as tg:
+        if depth == 0:
+            # Nodes from element
+            for seq_start in range(last_sequence + 1, max_sequence + 1, batch_size):
+                seq_end = min(seq_start + batch_size - 1, max_sequence)
+                tg.create_task(_seed_from_element_batch(seq_start, seq_end, semaphore))
+
+        # Ways and relations from staging
+        for offset in range(0, num_items, batch_size):
+            tg.create_task(
+                _seed_from_staging_batch(
+                    depth=depth,
+                    semaphore=semaphore,
+                    offset=offset,
+                    limit=batch_size,
+                )
+            )
+
+    async with db(True) as conn:
+        await conn.execute('ANALYZE element_spatial_pending_rels')
+
+
+async def _seed_from_element_batch(
+    seq_start: int, seq_end: int, semaphore: Semaphore
+) -> None:
+    """Find relations whose members include nodes from given sequence range."""
+    async with semaphore, db(True) as conn:
         await conn.execute(
             """
-            WITH updated_members AS (
-                SELECT typed_id
-                FROM element_spatial_staging
-                WHERE depth = %(depth)s
-
-                UNION
-
-                SELECT typed_id
-                FROM element
-                WHERE sequence_id BETWEEN %(start_seq)s AND %(end_seq)s
+            INSERT INTO element_spatial_pending_rels (typed_id)
+            SELECT typed_id FROM element
+            WHERE members && ARRAY(
+                SELECT typed_id FROM element
+                WHERE sequence_id BETWEEN %(seq_start)s AND %(seq_end)s
                   AND typed_id <= 1152921504606846975
                   AND latest
-                  AND %(depth)s = 0
-            ),
-            candidate_rels AS (
-                -- Relations directly updated in this range (computed only once at depth 0)
-                SELECT r.typed_id
-                FROM element r
-                WHERE r.typed_id >= 2305843009213693952
-                  AND r.latest
-                  AND r.sequence_id BETWEEN %(start_seq)s AND %(end_seq)s
-                  AND %(depth)s = 0
-
-                UNION
-
-                -- Relations whose members (nodes/ways/relations) were updated
-                SELECT DISTINCT r.typed_id
-                FROM element r
-                JOIN LATERAL UNNEST(r.members) AS m(member_id) ON true
-                JOIN updated_members um ON um.typed_id = m.member_id
-                WHERE r.typed_id >= 2305843009213693952
-                  AND r.latest
-                  AND r.visible
-                  AND r.tags IS NOT NULL
-            )
-            INSERT INTO element_spatial_pending_rels (typed_id)
-            SELECT c.typed_id
-            FROM candidate_rels c
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM element_spatial_staging s
-                WHERE s.typed_id = c.typed_id
-            )
+              )
+              AND typed_id >= 2305843009213693952
+              AND latest
+              AND tags IS NOT NULL
             ON CONFLICT DO NOTHING
             """,
-            {
-                'depth': depth,
-                'start_seq': last_sequence + 1,
-                'end_seq': max_sequence,
-            },
+            {'seq_start': seq_start, 'seq_end': seq_end},
         )
-        await conn.execute('ANALYZE element_spatial_pending_rels')
+
+
+async def _seed_from_staging_batch(
+    *,
+    depth: int,
+    semaphore: Semaphore,
+    offset: int,
+    limit: int,
+) -> None:
+    """Find relations whose members include staging ways or relations."""
+    async with semaphore, db(True) as conn:
+        await conn.execute(
+            """
+            INSERT INTO element_spatial_pending_rels (typed_id)
+            SELECT typed_id FROM element
+            WHERE members && ARRAY(
+                SELECT typed_id FROM element_spatial_staging
+                WHERE %(depth)s = 0 OR depth = %(depth)s
+                ORDER BY typed_id
+                OFFSET %(offset)s
+                LIMIT %(limit)s
+              )
+              AND typed_id >= 2305843009213693952
+              AND latest
+              AND tags IS NOT NULL
+            ON CONFLICT DO NOTHING
+            """,
+            {'depth': depth, 'offset': offset, 'limit': limit},
+        )
 
 
 async def _finalize_staging(*, max_sequence: int, last_sequence: int) -> None:
@@ -523,21 +589,12 @@ async def _finalize_staging(*, max_sequence: int, last_sequence: int) -> None:
     ):
         await conn.execute(
             """
-            DELETE FROM element_spatial_staging s1
-            WHERE EXISTS (
-                SELECT 1
-                FROM element_spatial_staging s2
-                WHERE s2.typed_id = s1.typed_id
-                  AND s2.updated_sequence_id > s1.updated_sequence_id
+            DELETE FROM element_spatial
+            WHERE typed_id IN (
+                SELECT typed_id
+                FROM element_spatial_staging
+                WHERE geom IS NULL
             )
-            """
-        )
-        await conn.execute(
-            """
-            DELETE FROM element_spatial e
-            USING element_spatial_staging s
-            WHERE e.typed_id = s.typed_id
-              AND s.geom IS NULL
             """
         )
         await conn.execute(

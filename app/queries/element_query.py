@@ -508,7 +508,8 @@ class ElementQuery:
             limit_clause = SQL('')
 
         # Find elements that reference the member typed_ids
-        query = SQL("""/*+ BitmapScan(element {hint_index}) */
+        query = SQL("""
+            /*+ BitmapScan(element {hint_index}) */
             SELECT {distinct} *
             FROM element
             WHERE {conditions}
@@ -548,7 +549,8 @@ class ElementQuery:
             return {}
 
         inner_conditions: list[Composable] = [
-            SQL("""/*+ BitmapScan(element element_members_idx) */
+            SQL("""
+                /*+ BitmapScan(element element_members_idx) */
                 members && %s::bigint[]
                 AND typed_id >= 1152921504606846976
                 AND latest

@@ -141,11 +141,11 @@ CREATE UNIQUE INDEX user_display_name_idx ON "user" (display_name);
 
 CREATE INDEX user_display_name_pattern_idx ON "user" USING gin (display_name gin_trgm_ops);
 
-CREATE INDEX user_pending_idx ON "user" (created_at DESC)
+CREATE INDEX user_pending_idx ON "user" (created_at)
 WHERE
     NOT email_verified;
 
-CREATE INDEX user_deleted_idx ON "user" (id DESC)
+CREATE INDEX user_deleted_idx ON "user" (id)
 WHERE
     -- DELETED_USER_EMAIL_SUFFIX
     email LIKE '%@deleted.invalid';
@@ -191,9 +191,9 @@ CREATE TABLE oauth2_application (
 
 CREATE UNIQUE INDEX oauth2_application_client_id_idx ON oauth2_application (client_id);
 
-CREATE INDEX oauth2_application_created_at_idx ON oauth2_application (created_at DESC);
+CREATE INDEX oauth2_application_created_at_idx ON oauth2_application (created_at);
 
-CREATE INDEX oauth2_application_user_created_at_idx ON oauth2_application (user_id DESC, created_at DESC)
+CREATE INDEX oauth2_application_user_created_at_idx ON oauth2_application (user_id, created_at)
 WHERE
     user_id IS NOT NULL;
 
@@ -221,11 +221,11 @@ CREATE UNIQUE INDEX oauth2_token_hashed_idx ON oauth2_token (token_hashed)
 WHERE
     token_hashed IS NOT NULL;
 
-CREATE INDEX oauth2_token_app_user_idx ON oauth2_token (application_id DESC, user_id DESC) INCLUDE (authorized_at);
+CREATE INDEX oauth2_token_app_user_idx ON oauth2_token (application_id, user_id) INCLUDE (authorized_at);
 
-CREATE INDEX oauth2_token_user_app_idx ON oauth2_token (user_id DESC, application_id DESC, id DESC) INCLUDE (authorized_at);
+CREATE INDEX oauth2_token_user_app_idx ON oauth2_token (user_id, application_id, id) INCLUDE (authorized_at);
 
-CREATE INDEX oauth2_token_stale_unauthorized_idx ON oauth2_token (created_at DESC) INCLUDE (application_id)
+CREATE INDEX oauth2_token_stale_unauthorized_idx ON oauth2_token (created_at) INCLUDE (application_id)
 WHERE
     authorized_at IS NULL;
 
@@ -287,30 +287,30 @@ CREATE TABLE audit (
 WITH
     (fillfactor = 100);
 
-CREATE INDEX audit_created_at_idx ON audit (created_at DESC) INCLUDE (type);
+CREATE INDEX audit_created_at_idx ON audit (created_at) INCLUDE (type);
 
-CREATE INDEX audit_ip_created_at_idx ON audit (ip, created_at DESC) INCLUDE (type, user_id, application_id);
+CREATE INDEX audit_ip_created_at_idx ON audit (ip, created_at) INCLUDE (type, user_id, application_id);
 
-CREATE INDEX audit_user_created_at_idx ON audit (user_id DESC, created_at DESC) INCLUDE (type, ip, application_id)
+CREATE INDEX audit_user_created_at_idx ON audit (user_id, created_at) INCLUDE (type, ip, application_id)
 WHERE
     user_id IS NOT NULL;
 
-CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id DESC, created_at DESC) INCLUDE (type)
+CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id, created_at) INCLUDE (type)
 WHERE
     target_user_id IS NOT NULL;
 
-CREATE INDEX audit_application_created_at_idx ON audit (application_id DESC, created_at DESC) INCLUDE (type, ip)
+CREATE INDEX audit_application_created_at_idx ON audit (application_id, created_at) INCLUDE (type, ip)
 WHERE
     application_id IS NOT NULL;
 
 CREATE INDEX audit_discard_repeated_idx ON audit (
     type,
     ip,
-    user_id DESC,
-    target_user_id DESC,
-    application_id DESC,
+    user_id,
+    target_user_id,
+    application_id,
     hashtext (extra::text),
-    created_at DESC
+    created_at
 );
 
 CREATE TABLE changeset (
@@ -329,17 +329,17 @@ CREATE TABLE changeset (
 WITH
     (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '5000000');
 
-CREATE INDEX changeset_user_idx ON changeset (user_id DESC, id DESC)
+CREATE INDEX changeset_user_idx ON changeset (user_id, id)
 WHERE
     user_id IS NOT NULL;
 
-CREATE INDEX changeset_user_created_at_idx ON changeset (user_id DESC, created_at DESC)
+CREATE INDEX changeset_user_created_at_idx ON changeset (user_id, created_at)
 WHERE
     user_id IS NOT NULL;
 
-CREATE INDEX changeset_created_at_idx ON changeset (created_at DESC);
+CREATE INDEX changeset_created_at_idx ON changeset (created_at);
 
-CREATE INDEX changeset_closed_at_idx ON changeset (closed_at DESC)
+CREATE INDEX changeset_closed_at_idx ON changeset (closed_at)
 WHERE
     closed_at IS NOT NULL;
 
@@ -382,9 +382,9 @@ WITH
         tsdb.create_default_indexes = FALSE
     );
 
-CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_id DESC, id DESC);
+CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_id, id);
 
-CREATE INDEX changeset_comment_user_id_idx ON changeset_comment (user_id DESC, id DESC);
+CREATE INDEX changeset_comment_user_id_idx ON changeset_comment (user_id, id);
 
 CREATE TABLE element (
     sequence_id bigint,
@@ -407,13 +407,13 @@ WITH
         tsdb.create_default_indexes = FALSE
     );
 
-CREATE INDEX element_sequence_idx ON element (sequence_id DESC);
+CREATE INDEX element_sequence_idx ON element (sequence_id);
 
-CREATE INDEX element_changeset_idx ON element (changeset_id DESC);
+CREATE INDEX element_changeset_idx ON element (changeset_id);
 
-CREATE INDEX element_id_version_idx ON element (typed_id DESC, version DESC);
+CREATE INDEX element_id_version_idx ON element (typed_id, version);
 
-CREATE INDEX element_id_sequence_idx ON element (typed_id DESC, sequence_id DESC);
+CREATE INDEX element_id_sequence_idx ON element (typed_id, sequence_id);
 
 CREATE INDEX element_point_idx ON element USING gist (point)
 WHERE
@@ -443,9 +443,11 @@ CREATE UNLOGGED TABLE element_spatial_staging (
     geom geometry (Geometry, 4326)
 );
 
-CREATE INDEX element_spatial_staging_id_updated_sequence_idx ON element_spatial_staging (typed_id, updated_sequence_id DESC);
+CREATE INDEX element_spatial_staging_id_idx ON element_spatial_staging (typed_id) INCLUDE (updated_sequence_id, depth);
 
-CREATE INDEX element_spatial_staging_updated_depth_id_idx ON element_spatial_staging (updated_sequence_id, depth, typed_id);
+CREATE INDEX element_spatial_staging_depth_idx ON element_spatial_staging (depth, typed_id)
+WHERE
+    depth > 0;
 
 CREATE UNLOGGED TABLE element_spatial_pending_rels (
     typed_id bigint PRIMARY KEY
@@ -553,13 +555,13 @@ WITH
 
 CREATE INDEX note_point_idx ON note USING gist (point, created_at, updated_at, closed_at);
 
-CREATE INDEX note_created_at_idx ON note (created_at DESC);
+CREATE INDEX note_created_at_idx ON note (created_at);
 
-CREATE INDEX note_updated_at_idx ON note (updated_at DESC);
+CREATE INDEX note_updated_at_idx ON note (updated_at);
 
-CREATE INDEX note_closed_at_idx ON note (closed_at DESC);
+CREATE INDEX note_closed_at_idx ON note (closed_at);
 
-CREATE INDEX note_hidden_idx ON note (hidden_at ASC)
+CREATE INDEX note_hidden_idx ON note (hidden_at)
 WHERE
     hidden_at IS NOT NULL;
 
@@ -583,11 +585,11 @@ WITH
         tsdb.create_default_indexes = FALSE
     );
 
-CREATE INDEX note_comment_id_idx ON note_comment (id DESC);
+CREATE INDEX note_comment_id_idx ON note_comment (id);
 
-CREATE INDEX note_comment_note_id_idx ON note_comment (note_id DESC, id DESC);
+CREATE INDEX note_comment_note_id_idx ON note_comment (note_id, id);
 
-CREATE INDEX note_comment_event_user_id_idx ON note_comment (event, user_id DESC, note_id DESC);
+CREATE INDEX note_comment_event_user_id_idx ON note_comment (event, user_id, note_id);
 
 CREATE INDEX note_comment_body_idx ON note_comment USING gin (to_tsvector('simple', body))
 WITH
@@ -604,13 +606,13 @@ CREATE TABLE report (
     closed_at timestamptz
 );
 
-CREATE UNIQUE INDEX idx_report_type_id ON report (type, type_id DESC);
+CREATE UNIQUE INDEX idx_report_type_id ON report (type, type_id);
 
-CREATE INDEX idx_report_open_updated_at ON report (updated_at DESC) INCLUDE (id)
+CREATE INDEX idx_report_open_updated_at ON report (updated_at) INCLUDE (id)
 WHERE
     closed_at IS NULL;
 
-CREATE INDEX idx_report_closed_updated_at ON report (updated_at DESC)
+CREATE INDEX idx_report_closed_updated_at ON report (updated_at)
 WHERE
     closed_at IS NOT NULL;
 
@@ -644,9 +646,9 @@ CREATE TABLE report_comment (
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 
-CREATE INDEX idx_report_comment_report_id_created_at ON report_comment (report_id DESC, created_at DESC) INCLUDE (action, visible_to);
+CREATE INDEX idx_report_comment_report_id_created_at ON report_comment (report_id, created_at) INCLUDE (action, visible_to);
 
-CREATE INDEX idx_report_comment_action_id ON report_comment (action, action_id DESC);
+CREATE INDEX idx_report_comment_action_id ON report_comment (action, action_id);
 
 CREATE TYPE trace_visibility AS enum('identifiable', 'public', 'trackable', 'private');
 
@@ -670,7 +672,7 @@ CREATE TABLE trace (
 WITH
     (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '1000000');
 
-CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id DESC, id DESC);
+CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id, id);
 
 CREATE INDEX trace_tags_idx ON trace USING gin (tags)
 WITH
@@ -712,7 +714,7 @@ CREATE TABLE user_token (
     email_reply_usage_count smallint
 );
 
-CREATE INDEX user_token_user_idx ON user_token (user_id DESC);
+CREATE INDEX user_token_user_idx ON user_token (user_id);
 
 CREATE TABLE file (
     context text NOT NULL,
