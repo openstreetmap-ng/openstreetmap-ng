@@ -27,7 +27,8 @@ WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
 SELECT array_agg(cell)
 FROM hierarchy
 $$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
-SET search_path = public;
+SET
+    search_path = public;
 
 CREATE OR REPLACE FUNCTION h3_geometry_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
 WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
@@ -43,7 +44,8 @@ WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
 SELECT array_agg(cell)
 FROM hierarchy
 $$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
-SET search_path = public;
+SET
+    search_path = public;
 
 CREATE OR REPLACE FUNCTION h3_geometry_to_compact_cells (geom geometry, resolution integer) RETURNS h3index[] AS $$
 WITH extent AS (
@@ -102,7 +104,8 @@ FROM h3_compact_cells(ARRAY(
     ) cells
 )) AS cell
 $$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
-SET search_path = public;
+SET
+    search_path = public;
 
 CREATE TYPE avatar_type AS enum('gravatar', 'custom');
 
@@ -152,7 +155,13 @@ WHERE
 
 CREATE INDEX user_roles_idx ON "user" USING gin (roles);
 
-CREATE TYPE auth_provider AS enum('google', 'facebook', 'microsoft', 'github', 'wikimedia');
+CREATE TYPE auth_provider AS enum(
+    'google',
+    'facebook',
+    'microsoft',
+    'github',
+    'wikimedia'
+);
 
 CREATE TABLE connected_account (
     user_id bigint NOT NULL REFERENCES "user",
@@ -327,7 +336,11 @@ CREATE TABLE changeset (
     union_bounds geometry (Polygon, 4326)
 )
 WITH
-    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '5000000');
+    (
+        tsdb.hypertable,
+        tsdb.partition_column = 'id',
+        tsdb.chunk_interval = '5000000'
+    );
 
 CREATE INDEX changeset_user_idx ON changeset (user_id, id)
 WHERE
@@ -356,7 +369,10 @@ CREATE INDEX changeset_union_bounds_idx ON changeset USING gist (union_bounds)
 WHERE
     union_bounds IS NOT NULL;
 
-CREATE TABLE changeset_bounds (changeset_id bigint NOT NULL, bounds geometry (Polygon, 4326) NOT NULL)
+CREATE TABLE changeset_bounds (
+    changeset_id bigint NOT NULL,
+    bounds geometry (Polygon, 4326) NOT NULL
+)
 WITH
     (
         tsdb.hypertable,
@@ -449,20 +465,16 @@ CREATE INDEX element_spatial_staging_depth_idx ON element_spatial_staging (depth
 WHERE
     depth > 0;
 
-CREATE UNLOGGED TABLE element_spatial_pending_rels (
-    typed_id bigint PRIMARY KEY
-);
+CREATE UNLOGGED TABLE element_spatial_pending_rels (typed_id bigint PRIMARY KEY);
 
 CREATE TABLE element_spatial (
     typed_id bigint PRIMARY KEY,
     sequence_id bigint NOT NULL,
     geom geometry (Geometry, 4326) NOT NULL,
-    bounds_area real GENERATED ALWAYS AS (ST_Area(ST_Envelope(geom))) STORED
+    bounds_area real GENERATED ALWAYS AS (ST_Area (ST_Envelope (geom))) STORED
 );
 
-CREATE INDEX element_spatial_geom_h3_idx ON element_spatial USING gin (
-    h3_geometry_to_compact_cells(geom, 11)
-)
+CREATE INDEX element_spatial_geom_h3_idx ON element_spatial USING gin (h3_geometry_to_compact_cells (geom, 11))
 WITH
     (fastupdate = FALSE);
 
@@ -551,7 +563,11 @@ CREATE TABLE note (
     hidden_at timestamptz
 )
 WITH
-    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '1000000');
+    (
+        tsdb.hypertable,
+        tsdb.partition_column = 'id',
+        tsdb.chunk_interval = '1000000'
+    );
 
 CREATE INDEX note_point_idx ON note USING gist (point, created_at, updated_at, closed_at);
 
@@ -565,7 +581,13 @@ CREATE INDEX note_hidden_idx ON note (hidden_at)
 WHERE
     hidden_at IS NOT NULL;
 
-CREATE TYPE note_event AS enum('opened', 'closed', 'reopened', 'commented', 'hidden');
+CREATE TYPE note_event AS enum(
+    'opened',
+    'closed',
+    'reopened',
+    'commented',
+    'hidden'
+);
 
 CREATE TABLE note_comment (
     id bigint GENERATED ALWAYS AS IDENTITY,
@@ -631,7 +653,13 @@ CREATE TYPE report_action AS enum(
     'user_trace'
 );
 
-CREATE TYPE report_category AS enum('spam', 'vandalism', 'harassment', 'privacy', 'other');
+CREATE TYPE report_category AS enum(
+    'spam',
+    'vandalism',
+    'harassment',
+    'privacy',
+    'other'
+);
 
 CREATE TABLE report_comment (
     id bigint PRIMARY KEY,
@@ -670,7 +698,11 @@ CREATE TABLE trace (
     updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
 )
 WITH
-    (tsdb.hypertable, tsdb.partition_column = 'id', tsdb.chunk_interval = '1000000');
+    (
+        tsdb.hypertable,
+        tsdb.partition_column = 'id',
+        tsdb.chunk_interval = '1000000'
+    );
 
 CREATE INDEX trace_visibility_user_id_idx ON trace (visibility, user_id, id);
 
@@ -699,7 +731,12 @@ CREATE TABLE user_subscription (
     PRIMARY KEY (target, target_id, user_id)
 );
 
-CREATE TYPE user_token_type AS enum('account_confirm', 'email_change', 'email_reply', 'reset_password');
+CREATE TYPE user_token_type AS enum(
+    'account_confirm',
+    'email_change',
+    'email_reply',
+    'reset_password'
+);
 
 CREATE TABLE user_token (
     id bigint PRIMARY KEY,

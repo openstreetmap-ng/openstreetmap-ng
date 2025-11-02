@@ -1,4 +1,7 @@
 [project]
+name = "openstreetmap-ng"
+version = "0.0.0"
+requires-python = "~=3.13.0"
 dependencies = [
   "aioboto3",
   "aiohttp[speedups]",
@@ -58,9 +61,6 @@ dependencies = [
   "zid",
   "zstandard",
 ]
-name = "openstreetmap-ng"
-requires-python = "~=3.13.0"
-version = "0.0.0"
 
 [dependency-groups]
 dev = [
@@ -79,174 +79,12 @@ dev = [
   "websockets",
 ]
 
-[tool.uv]
-package = false
-python-downloads = "never"
-python-preference = "only-system"
-
-[[tool.uv.index]]
-name = "pytorch"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
-
-[tool.uv.sources]
-torch = { index = "pytorch" }
-torchvision = { index = "pytorch" }
-speedup = { workspace = true }
-
-[tool.uv.workspace]
-members = ["speedup"]
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.ruff]
-extend-exclude = ["app/models/proto/**"]
-indent-width = 4
-line-length = 88
-target-version = "py313"
-
-[tool.ruff.lint]
-exclude = ["typings/brotli/**"]
-# custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
-ignore = [
-  "ARG001", # unused-function-argument
-  "ARG002", # unused-method-argument
-  "ASYNC109", # async-function-with-timeout
-  "B006", # mutable-argument-default
-  "B008", # function-call-in-default-argument
-  "B017", # assert-raises-exception
-  "COM812", # missing-trailing-comma
-  "COM819", # prohibited-trailing-comma
-  "D206", # indent-with-spaces
-  "D300", # triple-single-quotes
-  "E111", # indentation-with-invalid-multiple
-  "E114", # indentation-with-invalid-multiple-comment
-  "E117", # over-indented
-  "E501", # line-too-long
-  "ISC001", # single-line-implicit-string-concatenation
-  "ISC002", # multi-line-implicit-string-concatenation
-  "LOG015", # root-logger-call
-  "N803", # invalid-argument-name
-  "PLR09", # too-many-*
-  "PLR1702", # too-many-nested-blocks
-  "PLR2",
-  "PLR6301", # no-self-use
-  "PLW0603", # global-statement
-  "PLW1514", # unspecified-encoding
-  "PLW2901", # redefined-loop-name
-  "PT001", # pytest-fixture-incorrect-parentheses-style
-  "PT006", # pytest-parametrize-names-wrong-type
-  "PT011", # pytest-raises-too-broad
-  "PT018", # pytest-composite-assertion
-  "PT023", # pytest-incorrect-mark-parentheses-style
-  "PYI021", # docstring-in-stub
-  "PYI025", # unaliased-collections-abc-set-import
-  "PYI041", # redundant-numeric-union
-  "UP046", # non-pep695-generic-class
-  "UP047", # non-pep695-generic-function
-  "Q000", # bad-quotes-inline-string
-  "Q001", # bad-quotes-multiline-string
-  "Q002", # bad-quotes-docstring
-  "Q003", # avoidable-escaped-quote
-  "S101", # assert
-  "S105", # hardcoded-password-string
-  "S311", # suspicious-non-cryptographic-random-usage
-  "S404", # suspicious-subprocess-import
-  "S6",
-  "SIM105", # suppressible-exception
-  "SIM108", # if-else-block-instead-of-if-exp
-  "TRY003", # raise-vanilla-args
-  "W191", # tab-indentation
-]
-# see https://docs.astral.sh/ruff/rules/ for rules documentation
-select = [
-  "ARG", # flake8-unused-arguments
-  "ASYNC", # flake8-async
-  "B", # flake8-bugbear
-  "C4", # flake8-comprehensions
-  # "C90", # mccabe
-  "D200", # unnecessary-multiline-docstring
-  "D201", # blank-line-before-function
-  "D202", # blank-line-after-function
-  "D207", # under-indentation
-  "D208", # over-indentation
-  "D209", # new-line-after-last-paragraph
-  "D210", # surrounding-whitespace
-  "D211", # blank-line-before-class
-  "D403", # first-word-uncapitalized
-  "D418", # overload-with-docstring
-  "D419", # empty-docstring
-  "DTZ", # flake8-datetimez
-  "E4", # pycodestyle
-  "E7",
-  "E9",
-  "F", # pyflakes
-  "FAST", # fastapi
-  "FLY", # flynt
-  "FURB", # refurb
-  "G", # flake8-logging-format
-  "I", # isort
-  "ICN", # flake8-import-conventions
-  "INT", # flake8-gettext
-  "ISC", # flake8-implicit-str-concat
-  "LOG", # flake8-logging
-  "N", # pep8-naming
-  "NPY", # numpy
-  "PERF", # perflint
-  "PIE", # flake8-pie
-  "PLC", # pylint
-  "PLE", # pylint
-  "PLR", # pylint
-  "PLW", # pylint
-  "PT", # flake8-pytest-style
-  "PTH", # flake8-use-pathlib
-  "PYI", # flake8-pyi
-  "Q", # flake8-quotes
-  "RSE", # flake8-raise
-  "RUF", # ruff
-  "S", # flake8-bandit
-  "SIM", # flake8-simplify
-  "SLF", # flake8-self
-  "SLOT", # flake8-slots
-  "T10", # flake8-debugger
-  "TD006", # invalid-todo-capitalization
-  "TID", # flake8-tidy-imports
-  "TRY", # tryceratops
-  "UP", # pyupgrade
-  "W6",
-  "YTT", # flake8-2020
-]
-extend-safe-fixes = ["D2"]
-fixable = ["ALL"]
-unfixable = []
-
-[tool.ruff.format]
-indent-style = "space"
-line-ending = "lf"
-quote-style = "single"
-skip-magic-trailing-comma = false
-preview = true
-
-[tool.ruff.lint.flake8-gettext]
-function-names = ["nt", "t"]
-
-[tool.ruff.lint.flake8-quotes]
-docstring-quotes = "double"
-inline-quotes = "single"
-multiline-quotes = "double"
-
-[tool.ruff.lint.flake8-tidy-imports.banned-api]
-"arrow.utcnow".msg = "You were likely intending to import `utcnow` from `app.lib.date_utils`."
-"multiprocessing.cpu_count".msg = "Please use `os.process_cpu_count()` instead."
-"os.cpu_count".msg = "Please use `os.process_cpu_count()` instead."
-
-[tool.ruff.lint.pep8-naming]
-extend-ignore-names = ["ET"]
-
-[tool.ruff.lint.pylint]
-max-args = 10
+[tool.coverage.run]
+source = ["app"]
 
 [tool.pyright]
 disableBytesTypePromotions = true
@@ -285,7 +123,6 @@ strictListInference = true
 strictSetInference = true
 typeCheckingMode = "standard"
 useLibraryCodeForTypes = false
-
 # basedpyright specific:
 reportPrivateLocalImportUsage = "warning"
 reportInvalidCast = "warning"
@@ -294,10 +131,172 @@ strictGenericNarrowing = true
 
 [tool.pytest.ini_options]
 addopts = "--quiet --import-mode=importlib --strict-markers --strict-config"
-asyncio_default_fixture_loop_scope = "session"
-asyncio_mode = "auto"
 minversion = "6.0"
 testpaths = ["tests"]
+asyncio_default_fixture_loop_scope = "session"
+asyncio_mode = "auto"
 
-[tool.coverage.run]
-source = ["app"]
+[tool.ruff]
+extend-exclude = ["app/models/proto/**"]
+indent-width = 4
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+exclude = ["typings/brotli/**"]
+# custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+ignore = [
+  "ARG001",  # unused-function-argument
+  "ARG002",  # unused-method-argument
+  "ASYNC109",  # async-function-with-timeout
+  "B006",  # mutable-argument-default
+  "B008",  # function-call-in-default-argument
+  "B017",  # assert-raises-exception
+  "COM812",  # missing-trailing-comma
+  "COM819",  # prohibited-trailing-comma
+  "D206",  # indent-with-spaces
+  "D300",  # triple-single-quotes
+  "E111",  # indentation-with-invalid-multiple
+  "E114",  # indentation-with-invalid-multiple-comment
+  "E117",  # over-indented
+  "E501",  # line-too-long
+  "ISC001",  # single-line-implicit-string-concatenation
+  "ISC002",  # multi-line-implicit-string-concatenation
+  "LOG015",  # root-logger-call
+  "N803",  # invalid-argument-name
+  "PLR09",  # too-many-*
+  "PLR1702",  # too-many-nested-blocks
+  "PLR2",
+  "PLR6301",  # no-self-use
+  "PLW0603",  # global-statement
+  "PLW1514",  # unspecified-encoding
+  "PLW2901",  # redefined-loop-name
+  "PT001",  # pytest-fixture-incorrect-parentheses-style
+  "PT006",  # pytest-parametrize-names-wrong-type
+  "PT011",  # pytest-raises-too-broad
+  "PT018",  # pytest-composite-assertion
+  "PT023",  # pytest-incorrect-mark-parentheses-style
+  "PYI021",  # docstring-in-stub
+  "PYI025",  # unaliased-collections-abc-set-import
+  "PYI041",  # redundant-numeric-union
+  "UP046",  # non-pep695-generic-class
+  "UP047",  # non-pep695-generic-function
+  "Q000",  # bad-quotes-inline-string
+  "Q001",  # bad-quotes-multiline-string
+  "Q002",  # bad-quotes-docstring
+  "Q003",  # avoidable-escaped-quote
+  "S101",  # assert
+  "S105",  # hardcoded-password-string
+  "S311",  # suspicious-non-cryptographic-random-usage
+  "S404",  # suspicious-subprocess-import
+  "S6",
+  "SIM105",  # suppressible-exception
+  "SIM108",  # if-else-block-instead-of-if-exp
+  "TRY003",  # raise-vanilla-args
+  "W191",  # tab-indentation
+]
+# see https://docs.astral.sh/ruff/rules/ for rules documentation
+select = [
+  "ARG",  # flake8-unused-arguments
+  "ASYNC",  # flake8-async
+  "B",  # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  # "C90", # mccabe
+  "D200",  # unnecessary-multiline-docstring
+  "D201",  # blank-line-before-function
+  "D202",  # blank-line-after-function
+  "D207",  # under-indentation
+  "D208",  # over-indentation
+  "D209",  # new-line-after-last-paragraph
+  "D210",  # surrounding-whitespace
+  "D211",  # blank-line-before-class
+  "D403",  # first-word-uncapitalized
+  "D418",  # overload-with-docstring
+  "D419",  # empty-docstring
+  "DTZ",  # flake8-datetimez
+  "E4",  # pycodestyle
+  "E7",
+  "E9",
+  "F",  # pyflakes
+  "FAST",  # fastapi
+  "FLY",  # flynt
+  "FURB",  # refurb
+  "G",  # flake8-logging-format
+  "I",  # isort
+  "ICN",  # flake8-import-conventions
+  "INT",  # flake8-gettext
+  "ISC",  # flake8-implicit-str-concat
+  "LOG",  # flake8-logging
+  "N",  # pep8-naming
+  "NPY",  # numpy
+  "PERF",  # perflint
+  "PIE",  # flake8-pie
+  "PLC",  # pylint
+  "PLE",  # pylint
+  "PLR",  # pylint
+  "PLW",  # pylint
+  "PT",  # flake8-pytest-style
+  "PTH",  # flake8-use-pathlib
+  "PYI",  # flake8-pyi
+  "Q",  # flake8-quotes
+  "RSE",  # flake8-raise
+  "RUF",  # ruff
+  "S",  # flake8-bandit
+  "SIM",  # flake8-simplify
+  "SLF",  # flake8-self
+  "SLOT",  # flake8-slots
+  "T10",  # flake8-debugger
+  "TD006",  # invalid-todo-capitalization
+  "TID",  # flake8-tidy-imports
+  "TRY",  # tryceratops
+  "UP",  # pyupgrade
+  "W6",
+  "YTT",  # flake8-2020
+]
+extend-safe-fixes = ["D2"]
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.flake8-gettext]
+function-names = ["nt", "t"]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "single"
+multiline-quotes = "double"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"arrow.utcnow".msg = "You were likely intending to import `utcnow` from `app.lib.date_utils`."
+"multiprocessing.cpu_count".msg = "Please use `os.process_cpu_count()` instead."
+"os.cpu_count".msg = "Please use `os.process_cpu_count()` instead."
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["ET"]
+
+[tool.ruff.lint.pylint]
+max-args = 10
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "lf"
+quote-style = "single"
+skip-magic-trailing-comma = false
+preview = true
+
+[tool.uv]
+package = false
+python-downloads = "never"
+python-preference = "only-system"
+
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch" }
+torchvision = { index = "pytorch" }
+speedup = { workspace = true }
+
+[tool.uv.workspace]
+members = ["speedup"]
