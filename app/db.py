@@ -346,7 +346,7 @@ def duckdb_connect(database: str | Path = ':memory:', *, progress: bool = True):
             config={
                 'checkpoint_threshold': '2GB',
                 'memory_limit': DUCKDB_MEMORY_LIMIT,
-                'preserve_insertion_order': False,
+                'preserve_insertion_order': 'false',
                 'temp_directory': tmpdir,
             },
         ) as conn,
