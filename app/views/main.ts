@@ -4,6 +4,7 @@ import "./lib/tracking"
 
 import "./lib/datetime"
 import "./lib/i18n"
+import "./lib/image-proxy"
 import "./navbar/_theme"
 
 import "./_unsubscribe-discussion"

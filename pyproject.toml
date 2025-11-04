@@ -10,6 +10,7 @@ dependencies = [
   "arrow",
   "beautifulsoup4[charset-normalizer,lxml]",
   "blake3",
+  "blurhash-python",
   "brotli",
   "cython",
   "dnspython",
@@ -21,7 +22,7 @@ dependencies = [
   "gunicorn",
   "h3",
   "httpx-secure",
-  "httpx[brotli,zstd]",
+  "httpx[socks,brotli,zstd]",
   "jinja2",
   "jinja2-htmlmin",
   "markdown-it-py[linkify,plugins]",
@@ -187,6 +188,7 @@ ignore = [
   "Q003",  # avoidable-escaped-quote
   "S101",  # assert
   "S105",  # hardcoded-password-string
+  "S110",  # try-except-pass
   "S311",  # suspicious-non-cryptographic-random-usage
   "S404",  # suspicious-subprocess-import
   "S6",

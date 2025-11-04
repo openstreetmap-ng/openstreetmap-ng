@@ -489,6 +489,7 @@ CREATE TABLE diary (
     title text NOT NULL,
     body text NOT NULL,
     body_rich_hash bytea,
+    body_image_proxy_ids BIGINT[],
     language text NOT NULL,
     point geometry (Point, 4326),
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
@@ -498,6 +499,10 @@ CREATE TABLE diary (
 CREATE INDEX diary_user_id_idx ON diary (user_id, id);
 
 CREATE INDEX diary_language_idx ON diary (language, id);
+
+CREATE INDEX diary_body_image_proxy_ids_idx ON diary USING gin (body_image_proxy_ids)
+WITH
+    (fastupdate = FALSE);
 
 CREATE TABLE diary_comment (
     id bigint PRIMARY KEY,
@@ -509,6 +514,17 @@ CREATE TABLE diary_comment (
 );
 
 CREATE INDEX diary_comment_idx ON diary_comment (diary_id, id);
+
+CREATE TABLE image_proxy (
+    id bigint PRIMARY KEY,
+    url text NOT NULL,
+    width smallint,
+    height smallint,
+    thumbnail text,
+    thumbnail_updated_at timestamptz
+);
+
+CREATE UNIQUE INDEX image_proxy_url_idx ON image_proxy (url);
 
 CREATE TYPE mail_source AS enum('message', 'diary_comment');
 

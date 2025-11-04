@@ -1,7 +1,7 @@
 import logging
 import tomllib
 from asyncio import TaskGroup
-from collections.abc import Iterable, Sequence
+from collections.abc import Collection, Generator, Iterable, Sequence
 from html import escape
 from pathlib import Path
 from typing import Any, Literal, LiteralString, TypedDict, cast
@@ -20,66 +20,125 @@ from psycopg.sql import SQL, Identifier
 from app.config import RICH_TEXT_CACHE_EXPIRE, TRUSTED_HOSTS
 from app.db import db
 from app.lib.crypto import hash_bytes
+from app.models.types import ImageProxyId
 from app.services.cache_service import CacheContext, CacheService
+from app.services.image_proxy_service import ImageProxyService
 
 TextFormat = Literal['html', 'markdown', 'plain']
 
 
-def process_rich_text(text: str, text_format: TextFormat) -> str:
-    """
-    Get a rich text string by text and format.
-    This function runs synchronously and does not use cache.
-    """
+async def process_rich_text_markdown(
+    text: str,
+) -> tuple[str, list[ImageProxyId] | None]:
+    """Render markdown text and collect image proxy data."""
     text = text.strip()
+    env: dict[str, Any] = {}
+    tokens = _MD.parse(text, env)
+    proxy_ids = await _prepare_image_proxies(tokens)
+    text = _MD.renderer.render(tokens, _MD.options, env)
+    return nh3.clean(
+        text,
+        tags=_ALLOWED_TAGS,
+        attributes=_ALLOWED_ATTRS,
+        link_rel=None,
+    ), proxy_ids
 
-    if text_format == 'markdown':
-        text = _MD.render(text)
-        return nh3.clean(
-            text,
-            tags=_ALLOWED_TAGS,
-            attributes=_ALLOWED_ATTRS,
-            link_rel=None,
-        )
 
-    elif text_format == 'plain':
-        text = escape(text)
-        text = _process_plain(text)
-        return nh3.clean(
-            text,
-            tags=_PLAIN_ALLOWED_TAGS,
-            attributes=_PLAIN_ALLOWED_ATTRS,
-            link_rel=None,
-        )
-
-    raise NotImplementedError(f'Unsupported rich text format {text_format!r}')
+def process_rich_text_plain(text: str) -> str:
+    """Render plain text with linkification."""
+    text = text.strip()
+    text = escape(text)
+    text = _process_plain(text)
+    return nh3.clean(
+        text,
+        tags=_PLAIN_ALLOWED_TAGS,
+        attributes=_PLAIN_ALLOWED_ATTRS,
+        link_rel=None,
+    )
 
 
 async def rich_text(
     text: str,
     cache_id: bytes | None,
     text_format: TextFormat,
-) -> tuple[str, bytes]:
+) -> tuple[str, bytes, list[ImageProxyId] | None]:
     """
     Get a rich text cache entry by text and format, generating one if not found.
     If cache_id is provided, it will be used to accelerate cache lookup.
     """
+    proxy_result: list[ImageProxyId] | None = None
 
-    def factory() -> bytes:
-        return process_rich_text(text, text_format).encode()
+    async def factory() -> bytes:
+        nonlocal proxy_result
+        if text_format == 'markdown':
+            processed_text, proxy_result = await process_rich_text_markdown(text)
+        elif text_format == 'plain':
+            processed_text = process_rich_text_plain(text)
+        else:
+            raise NotImplementedError(f'Unsupported rich text format {text_format!r}')
+        return processed_text.encode()
 
     if cache_id is None:
         cache_id = hash_bytes(text)
 
-    processed = (
-        await CacheService.get(
-            cache_id.hex(),  # type: ignore
-            CacheContext(f'RichText:{text_format}'),
-            factory,
-            ttl=RICH_TEXT_CACHE_EXPIRE,
-        )
-    ).decode()
+    processed_bytes = await CacheService.get(
+        cache_id.hex(),  # type: ignore
+        CacheContext(f'RichText:{text_format}'),
+        factory,
+        ttl=RICH_TEXT_CACHE_EXPIRE,
+    )
 
-    return processed, cache_id
+    processed = processed_bytes.decode()
+    return processed, cache_id, proxy_result
+
+
+def _iter_image_tokens(tokens: list[Token]) -> Generator[Token]:
+    for token in tokens:
+        if token.type == 'image':
+            yield token
+        children = token.children
+        if children:
+            yield from _iter_image_tokens(children)
+
+
+async def _prepare_image_proxies(tokens: list[Token]) -> list[ImageProxyId] | None:
+    occurrences: list[tuple[Token, str]] = []
+    unique_urls: list[str] = []
+    seen: set[str] = set()
+
+    for token in _iter_image_tokens(tokens):
+        src = token.attrs.get('src')
+        if not isinstance(src, str) or src.startswith('/api/web/img/proxy/'):
+            continue
+
+        parts = urlsplit(src)
+        if parts.scheme.lower() not in {'http', 'https'}:
+            continue
+
+        occurrences.append((token, src))
+        if src not in seen:
+            seen.add(src)
+            unique_urls.append(src)
+
+    if not occurrences:
+        return None
+
+    entries = await ImageProxyService.ensure(unique_urls)
+
+    entry_map = {entry['url']: entry for entry in entries}
+    ids: list[ImageProxyId] = []
+
+    for token, original in occurrences:
+        entry = entry_map.get(original)
+        if entry is None:
+            continue
+
+        proxy_id = ImageProxyId(entry['id'])
+        attrs: dict[str, str | int | float] = token.attrs
+        attrs['src'] = f'/api/web/img/proxy/{proxy_id}'
+        ids.append(proxy_id)
+
+    return ids
 
 
 class _HasId(TypedDict):
@@ -113,33 +172,94 @@ async def resolve_rich_text(
         ]
 
     params: list[Any] = []
+    proxy_results: dict[Any, list[ImageProxyId]] = {}
+
     for task, obj in zip(tasks, mapping.values(), strict=True):
-        processed, cache_id = task.result()
+        processed, cache_id, proxy_result = task.result()
         obj[rich_field_name] = processed  # type: ignore
 
         current_hash: bytes = obj[rich_hash_field_name]  # type: ignore
         if current_hash != cache_id:
             params.extend((obj['id'], current_hash, cache_id))
+        if proxy_result is not None:
+            proxy_results[obj['id']] = proxy_result
+
+    if params:
+        async with db(True, autocommit=True) as conn:
+            num_rows = len(params) // 3
+            await conn.execute(
+                SQL("""
+                    UPDATE {table} SET {field} = v.new_hash
+                    FROM (VALUES {values}) AS v(id, old_hash, new_hash)
+                    WHERE {table}.id = v.id
+                      AND {field} IS NOT DISTINCT FROM v.old_hash
+                """).format(
+                    table=Identifier(table),
+                    field=Identifier(rich_hash_field_name),
+                    values=SQL(',').join([SQL('(%s, %s, %s)')] * num_rows),
+                ),
+                params,
+            )
+
+        logging.debug('Rich text %r hash changed for %d objects', field, num_rows)
+
+    if proxy_results:
+        await _update_image_proxy_ids(mapping.values(), table, field, proxy_results)
+
+
+async def _update_image_proxy_ids(
+    objs: Collection[_HasId],
+    table: LiteralString,
+    field: LiteralString,
+    proxy_results: dict[Any, list[ImageProxyId]],
+) -> None:
+    """Update image proxy ID arrays in database and prune unused entries."""
+    image_proxy_field = field + '_image_proxy_ids'
+
+    # Check if this type supports image proxy persistence
+    # Only tables with the *_image_proxy_ids column will persist to database
+    first_obj = next(iter(objs))
+    if image_proxy_field not in first_obj:
+        return
+
+    params = []
+    removed_ids: set[ImageProxyId] = set()
+
+    for obj in objs:
+        new_ids = proxy_results.get(obj['id'])
+        if new_ids is None:
+            continue
+
+        old_ids: list[ImageProxyId] | None = obj[image_proxy_field]  # type: ignore
+        if new_ids != old_ids:
+            params.extend((obj['id'], old_ids, new_ids))
+            obj[image_proxy_field] = new_ids  # type: ignore[index]
+            if old_ids:
+                removed_ids.update(i for i in old_ids if i not in new_ids)
 
     if not params:
         return
 
     async with db(True, autocommit=True) as conn:
-        num_rows = len(params) // 3
         await conn.execute(
             SQL("""
-                UPDATE {table} SET {field} = v.new_hash
-                FROM (VALUES {values}) AS v(id, old_hash, new_hash)
-                WHERE {table}.id = v.id AND {field} IS NOT DISTINCT FROM v.old_hash
+                UPDATE {table} SET {field} = v.new_ids
+                FROM (VALUES {values}) AS v(id, old_ids, new_ids)
+                WHERE {table}.id = v.id
+                  AND {field} IS NOT DISTINCT FROM v.old_ids
             """).format(
                 table=Identifier(table),
-                field=Identifier(rich_hash_field_name),
-                values=SQL(',').join([SQL('(%s, %s, %s)')] * num_rows),
+                field=Identifier(image_proxy_field),
+                values=SQL(',').join(
+                    [SQL('(%s, %s::bigint[], %s)')] * (len(params) // 3)
+                ),
             ),
             params,
         )
 
-    logging.debug('Rich text %r hash changed for %d objects', field, num_rows)
+    # TODO: Re-enable image proxy pruning via background service (cache issue)
+    # if removed_ids:
+    #     await ImageProxyService.prune_unused(list(removed_ids))
 
 
 def _render_image(

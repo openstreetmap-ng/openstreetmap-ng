@@ -7,6 +7,7 @@ from starlette import status
 
 from app.config import (
     GRAVATAR_CACHE_EXPIRE,
+    IMAGE_PROXY_CACHE_EXPIRE,
     INITIALS_CACHE_MAX_AGE,
     SECRET,
     STATIC_CACHE_MAX_AGE,
@@ -14,10 +15,11 @@ from app.config import (
 )
 from app.lib.dicebear import generate_avatar
 from app.middlewares.cache_control_middleware import cache_control
-from app.models.types import NoteId, StorageKey, UserId
+from app.models.types import ImageProxyId, NoteId, StorageKey, UserId
 from app.queries.image_query import ImageQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.user_query import UserQuery
+from app.services.image_proxy_service import ImageProxyService
 
 router = APIRouter(prefix='/api/web/img')
 
@@ -79,3 +81,10 @@ async def background(
     file = await ImageQuery.get_background(background_id)
     content_type = magic.from_buffer(file[:2048], mime=True)
     return Response(file, media_type=content_type)
+
+
+@router.get('/proxy/{proxy_id:int}')
+@cache_control(IMAGE_PROXY_CACHE_EXPIRE, STATIC_CACHE_STALE)
+async def proxy(proxy_id: Annotated[ImageProxyId, Path()]) -> Response:
+    file, media_type = await ImageProxyService.fetch(proxy_id)
+    return Response(file, media_type=media_type)

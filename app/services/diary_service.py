@@ -7,7 +7,7 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.diary import DiaryInit
-from app.models.types import DiaryId, LocaleCode, UserId
+from app.models.types import DiaryId, ImageProxyId, LocaleCode, UserId
 from app.services.audit_service import audit
 from app.services.user_subscription_service import UserSubscriptionService
 
@@ -111,10 +111,22 @@ class DiaryService:
         query = SQL("""
             DELETE FROM diary
             WHERE {conditions}
+            RETURNING body_image_proxy_ids
         """).format(conditions=SQL(' AND ').join(conditions))
 
-        async with db(True) as conn:
-            result = await conn.execute(query, params)
+        removed: list[ImageProxyId] = []
 
-            if result.rowcount:
+        async with db(True) as conn:
+            async with await conn.execute(query, params) as r:
+                rows: list[tuple[list[ImageProxyId] | None]] = await r.fetchall()
+
+            if rows:
+                for row in rows:
+                    if ids := row[0]:
+                        removed.extend(ids)
+
                 await audit('delete_diary', conn, extra={'id': diary_id})
+
+        # TODO: Re-enable image proxy pruning via background service (cache issue)
+        # if removed:
+        #     await ImageProxyService.prune_unused(removed)

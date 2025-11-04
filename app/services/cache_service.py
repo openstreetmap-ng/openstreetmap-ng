@@ -11,13 +11,15 @@ from app.models.types import StorageKey
 
 CacheContext = NewType('CacheContext', str)
 
+_FactoryReturn = bytes | tuple[bytes, timedelta]
+
 
 class CacheService:
     @staticmethod
     async def get(
         key: StorageKey,
         context: CacheContext,
-        factory: Callable[[], Awaitable[bytes] | bytes],
+        factory: Callable[[], Awaitable[_FactoryReturn] | _FactoryReturn],
         *,
         ttl: timedelta = CACHE_DEFAULT_EXPIRE,
         volatile: bool = False,
@@ -45,6 +47,8 @@ class CacheService:
             value = factory()
             if isawaitable(value):
                 value = await value
+            if isinstance(value, tuple):
+                value, ttl = value
 
             await fc.set(lock, value, ttl=ttl, volatile=volatile)
             return value

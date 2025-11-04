@@ -6,6 +6,7 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, overload
 
+import blurhash
 import cv2
 import cython
 import numpy as np
@@ -23,6 +24,7 @@ from app.config import (
     BACKGROUND_MAX_FILE_SIZE,
     BACKGROUND_MAX_MEGAPIXELS,
     BACKGROUND_MAX_RATIO,
+    IMAGE_PROXY_BLURHASH_MAX_COMPONENTS,
 )
 from app.lib.exceptions_context import raise_for
 from app.models.types import NoteId, StorageKey, UserId
@@ -119,6 +121,63 @@ class Image:
             max_file_size=BACKGROUND_MAX_FILE_SIZE,
         )
 
+    @staticmethod
+    async def normalize_proxy_image(
+        data: bytes,
+        *,
+        max_side: int,
+        quality: int,
+    ) -> tuple[bytes, MatLike]:
+        return await _normalize_image(
+            data,
+            quality=quality,
+            max_side=max_side,
+            return_mat=True,
+        )
+
+    @staticmethod
+    async def create_proxy_thumbnail(
+        img: MatLike,
+        *,
+        max_comp: cython.uint = IMAGE_PROXY_BLURHASH_MAX_COMPONENTS,
+    ) -> str:
+        """Generate a BlurHash string from an image."""
+        h: cython.uint = img.shape[0]
+        w: cython.uint = img.shape[1]
+
+        # Proportional components
+        x_comp: cython.uint
+        y_comp: cython.uint
+        if w >= h:
+            x_comp = max_comp
+            y_comp = max(1, int(max_comp * h / w))
+        else:
+            x_comp = max(1, int(max_comp * w / h))
+            y_comp = max_comp
+
+        # Downscale to 100px
+        ratio: cython.double = max(h, w) / 100
+        if ratio > 1:
+            img = cv2.resize(
+                img,
+                (
+                    max(1, int(w / ratio)),
+                    max(1, int(h / ratio)),
+                ),
+                interpolation=cv2.INTER_AREA,
+            )
+
+        # Encode to BlurHash
+        with PILImage.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)) as pil_img:
+            loop = get_running_loop()
+            return await loop.run_in_executor(
+                None,
+                blurhash.encode,
+                pil_img,
+                x_comp,
+                y_comp,
+            )
+
 
 @asynccontextmanager
 async def _get_pipeline():
@@ -145,14 +204,41 @@ async def _get_pipeline():
         yield _PIPE
 
 
+@overload
 async def _normalize_image(
     data: bytes,
     *,
-    min_ratio: cython.double,
-    max_ratio: cython.double,
-    max_megapixels: cython.int,
-    max_file_size: int | None,
-) -> bytes:
+    quality: cython.int = 0,
+    min_ratio: cython.double = 0,
+    max_ratio: cython.double = 0,
+    max_megapixels: cython.uint = 0,
+    max_side: cython.uint = 0,
+    max_file_size: cython.uint = 0,
+    return_mat: Literal[False] = False,
+) -> bytes: ...
+@overload
+async def _normalize_image(
+    data: bytes,
+    *,
+    quality: cython.int = 0,
+    min_ratio: cython.double = 0,
+    max_ratio: cython.double = 0,
+    max_megapixels: cython.uint = 0,
+    max_side: cython.uint = 0,
+    max_file_size: cython.uint = 0,
+    return_mat: Literal[True] = ...,
+) -> tuple[bytes, MatLike]: ...
+async def _normalize_image(
+    data: bytes,
+    *,
+    quality: cython.int = 0,
+    min_ratio: cython.double = 0,
+    max_ratio: cython.double = 0,
+    max_megapixels: cython.uint = 0,
+    max_side: cython.uint = 0,
+    max_file_size: cython.uint = 0,
+    return_mat: bool = False,
+) -> bytes | tuple[bytes, MatLike]:
     """
     Normalize the avatar image.
 
@@ -164,25 +250,25 @@ async def _normalize_image(
     img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
 
     # normalize shape ratio
-    img_height: cython.int = img.shape[0]
-    img_width: cython.int = img.shape[1]
+    img_height: cython.uint = img.shape[0]
+    img_width: cython.uint = img.shape[1]
     ratio: cython.double = img_width / img_height
 
     # the image is too wide
     if max_ratio and ratio > max_ratio:
         logging.debug('Image is too wide %dx%d', img_width, img_height)
-        new_width: cython.int = int(img_height * max_ratio)
-        x1: cython.int = (img_width - new_width) // 2
-        x2: cython.int = (img_width + new_width) // 2
+        new_width: cython.uint = int(img_height * max_ratio)
+        x1: cython.uint = (img_width - new_width) // 2
+        x2: cython.uint = (img_width + new_width) // 2
         img = img[:, x1:x2]
         img_width = x2 - x1
 
     # the image is too tall
     elif min_ratio and ratio < min_ratio:
         logging.debug('Image is too tall %dx%d', img_width, img_height)
-        new_height: cython.int = int(img_width / min_ratio)
-        y1: cython.int = (img_height - new_height) // 2
-        y2: cython.int = (img_height + new_height) // 2
+        new_height: cython.uint = int(img_width / min_ratio)
+        y1: cython.uint = (img_height - new_height) // 2
+        y2: cython.uint = (img_height + new_height) // 2
         img = img[y1:y2, :]
         img_height = y2 - y1
 
@@ -192,8 +278,15 @@ async def _normalize_image(
         if mp_ratio > 1:
             logging.debug('Image is too big %dx%d', img_width, img_height)
             mp_ratio = sqrt(mp_ratio)
-            img_width = int(img_width / mp_ratio)
-            img_height = int(img_height / mp_ratio)
+            img_width = max(1, int(img_width / mp_ratio))
+            img_height = max(1, int(img_height / mp_ratio))
+            img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_AREA)
+
+    if max_side:
+        side_ratio: cython.double = max(img_width, img_height) / max_side
+        if side_ratio > 1:
+            img_width = max(1, int(img_width / side_ratio))
+            img_height = max(1, int(img_height / side_ratio))
             img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_AREA)
 
     async with _get_pipeline() as pipe:
@@ -216,40 +309,48 @@ async def _normalize_image(
                 raise_for.image_inappropriate()
 
     # optimize file size
-    quality, buffer = await _optimize_quality(img, max_file_size)
-    logging.debug('Optimized avatar quality: Q%d', quality)
-    return buffer
+    quality, buffer = await _optimize_quality(
+        img, quality=quality, max_file_size=max_file_size
+    )
+    logging.debug('Optimized image quality: Q%d', quality)
+    return (buffer, img) if return_mat else buffer
 
 
 async def _optimize_quality(
     img: MatLike,
-    max_file_size: int | None,
+    *,
+    quality: cython.int,
+    max_file_size: cython.uint,
 ) -> tuple[int, bytes]:
     """
     Find the best image quality given the maximum file size.
-
     Returns the quality and the image buffer.
     """
     loop = get_running_loop()
 
+    if quality:
+        _, img_ = await loop.run_in_executor(
+            None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, quality)
+        )
+        return quality, img_.tobytes()
+
     _, img_ = await loop.run_in_executor(
         None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, 101)
     )
-    size = img_.size
+    size: cython.uint = img_.size
     logging.debug('Optimizing avatar quality (lossless): %s', sizestr(size))
 
-    if max_file_size is None or size <= max_file_size:
+    if not max_file_size or size <= max_file_size:
         return -1, img_.tobytes()
 
     high: cython.int = 90
     low: cython.int = 20
-    bs_step: cython.int = 5
+    bs_step: cython.uint = 5
     best_quality: cython.int = -1
     best_img: NDArray[np.uint8] | None = None
 
     # initial quick scan
-    quality: cython.int
-    for quality in range(80, 20 - 1, -20):
+    for quality in range(80, 20 - 1, -20):  # noqa: PLR1704
         _, img_ = await loop.run_in_executor(
             None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, quality)
         )

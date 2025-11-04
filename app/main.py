@@ -59,6 +59,7 @@ from app.services.audit_service import AuditService
 from app.services.changeset_service import ChangesetService
 from app.services.element_spatial_service import ElementSpatialService
 from app.services.email_service import EmailService
+from app.services.image_proxy_service import ImageProxyService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.rate_limit_service import RateLimitService
 from app.services.system_app_service import SystemAppService
@@ -94,11 +95,12 @@ async def lifespan(_):
         await SystemAppService.on_startup()
 
         async with (
-            EmailService.context(),
-            ChangesetService.context(),
-            OAuth2TokenService.context(),
             RateLimitService.context(),
             AdminTaskService.context(),
+            ImageProxyService.context(),
+            OAuth2TokenService.context(),
+            EmailService.context(),
+            ChangesetService.context(),
             ElementSpatialService.context(),
         ):
             # freeze uncollected gc objects for improved performance

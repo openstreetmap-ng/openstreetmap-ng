@@ -139,7 +139,7 @@ async def _process_task() -> None:
     async with _PROCESS_LOCK:
         try:
             await _process_task_inner()
-        except Exception:  # noqa: S110
+        except Exception:
             pass
 
     # Avoids race conditions in which scheduled mail is not processed immediately.

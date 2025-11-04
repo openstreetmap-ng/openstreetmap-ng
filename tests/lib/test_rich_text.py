@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.rich_text import process_rich_text
+from app.lib.rich_text import process_rich_text_markdown, process_rich_text_plain
 
 
 @pytest.mark.parametrize(
@@ -48,7 +48,7 @@ from app.lib.rich_text import process_rich_text
     ],
 )
 def test_plain_formatting(input, output):
-    assert process_rich_text(input, 'plain') == output
+    assert process_rich_text_plain(input) == output
 
 
 @pytest.mark.parametrize(
@@ -75,5 +75,6 @@ def test_plain_formatting(input, output):
         ),
     ],
 )
-def test_markdown_formatting(input, output):
-    assert process_rich_text(input, 'markdown').strip() == output
+async def test_markdown_formatting(input, output):
+    result, _ = await process_rich_text_markdown(input)
+    assert result.strip() == output

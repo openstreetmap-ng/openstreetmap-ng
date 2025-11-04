@@ -21,6 +21,25 @@ message FileCacheMeta {
     bool volatile = 3;  // Disable in-process memory caching when true
 }
 
+// Image proxy cached data with normalization fallback
+message ImageProxyCache {
+    oneof result {
+        bytes normalized = 1;  // Normalized image
+        HttpError error = 2;   // HTTP or processing error
+        RawImage raw = 3;      // Raw passthrough when normalization fails
+    }
+
+    message HttpError {
+        uint32 status_code = 1;
+        string message = 2;
+    }
+
+    message RawImage {
+        bytes data = 1;
+        optional string content_type = 2;  // Preserved from HTTP response
+    }
+}
+
 // =============================================
 // Authentication & Security
 // =============================================

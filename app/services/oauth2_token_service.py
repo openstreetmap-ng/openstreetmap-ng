@@ -466,7 +466,7 @@ class OAuth2TokenService:
 
     @staticmethod
     @testmethod
-    async def force_process():  # pragma: no cover - dev/test utility
+    async def force_process():
         """
         Force the OAuth2 token processing loop to wake up early, and wait for it to finish.
         Only available in dev/test and limited to the current process.

@@ -14,7 +14,7 @@ from phonenumbers import (
     is_valid_number,
 )
 
-from app.lib.rich_text import process_rich_text
+from app.lib.rich_text import process_rich_text_plain
 from app.lib.wiki_pages import tags_format_osm_wiki
 from app.models.tags_format import TagFormat, ValueFormat
 from app.validators.email import validate_email
@@ -90,7 +90,7 @@ def _format_color(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
 @cython.cfunc
 def _format_comment(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
     merged = ';'.join(value.text for value in values)
-    rich_text = process_rich_text(merged, 'plain')
+    rich_text = process_rich_text_plain(merged)
     return [ValueFormat(merged, 'html', rich_text)]
 
 

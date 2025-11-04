@@ -5,7 +5,8 @@ from shapely import Point
 
 from app.lib.rich_text import resolve_rich_text
 from app.models.db.user import UserDisplay
-from app.models.types import DiaryId, LocaleCode, UserId
+from app.models.types import DiaryId, ImageProxyId, LocaleCode, UserId
+from app.services.image_proxy_service import ImageProxyService
 
 
 class DiaryInit(TypedDict):
@@ -19,6 +20,7 @@ class DiaryInit(TypedDict):
 class Diary(DiaryInit):
     id: DiaryId
     body_rich_hash: bytes | None
+    body_image_proxy_ids: list[ImageProxyId] | None
     created_at: datetime
     updated_at: datetime
 
@@ -32,3 +34,4 @@ class Diary(DiaryInit):
 
 async def diaries_resolve_rich_text(objs: list[Diary]) -> None:
     await resolve_rich_text(objs, 'diary', 'body', 'markdown')
+    await ImageProxyService.inline_thumbnails(objs, 'body_rich')  # type: ignore
