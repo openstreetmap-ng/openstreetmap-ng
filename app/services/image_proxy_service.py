@@ -49,6 +49,7 @@ class ImageProxyService:
         if not urls:
             return []
 
+        # Deduplicate URLs while preserving order
         unique_urls: list[str] = []
         seen: set[str] = set()
         for url in urls:
@@ -56,51 +57,39 @@ class ImageProxyService:
                 seen.add(url)
                 unique_urls.append(url)
 
-        rows: dict[str, ImageProxy] = {}
-        async with db(True) as conn:
-            async with await conn.cursor(row_factory=dict_row).execute(
-                """
+        params = []
+        for proxy_id, url in zip(zids(len(unique_urls)), unique_urls, strict=True):
+            params.extend((proxy_id, url))
+
+        query = SQL("""
+            WITH inserted AS (
+                INSERT INTO image_proxy (id, url)
+                VALUES {}
+                ON CONFLICT (url) DO NOTHING
+                RETURNING *
+            ),
+            existing AS (
                 SELECT * FROM image_proxy
                 WHERE url = ANY(%s)
-                """,
-                (unique_urls,),
-            ) as r:
-                for row in await r.fetchall():
-                    rows[row['url']] = row  # type: ignore
-
-            missing = [url for url in unique_urls if url not in rows]
-            if missing:
-                params = []
-                for proxy_id, url in zip(zids(len(missing)), missing, strict=True):
-                    params.extend((proxy_id, url))
-
-                await conn.execute(
-                    SQL(
-                        """
-                        INSERT INTO image_proxy (id, url)
-                        VALUES {}
-                        ON CONFLICT (url) DO NOTHING
-                        """
-                    ).format(SQL(',').join([SQL('(%s, %s)')] * len(missing))),
-                    params,
+                AND NOT EXISTS (
+                    SELECT 1 FROM inserted
+                    WHERE inserted.url = image_proxy.url
                 )
+            )
+            SELECT * FROM inserted
+            UNION ALL
+            SELECT * FROM existing
+        """).format(SQL(',').join([SQL('(%s, %s)')] * len(unique_urls)))
+        params.append(unique_urls)
 
-        if missing:
-            async with (
-                db() as conn,
-                await conn.cursor(row_factory=dict_row).execute(
-                    """
-                    SELECT * FROM image_proxy
-                    WHERE url = ANY(%s)
-                    """,
-                    (missing,),
-                ) as r,
-            ):
-                for row in await r.fetchall():
-                    rows[row['url']] = row  # type: ignore
-            logging.debug('Created %d new image proxies', len(missing))
-
-        result = [rows[url] for url in urls]
+        async with (
+            db(True) as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+        ):
+            rows: dict[str, ImageProxy] = {  # type: ignore
+                row['url']: row for row in await r.fetchall()
+            }
+            result = [rows[url] for url in urls]
 
         # Prefetch
         async def prefetch(proxy_id: ImageProxyId) -> None:
@@ -198,6 +187,9 @@ class ImageProxyService:
 
     @staticmethod
     async def prune_unused(ids: list[ImageProxyId]) -> None:
+        if not ids:
+            return
+
         async with db(True) as conn:
             result = await conn.execute(
                 """
