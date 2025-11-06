@@ -205,7 +205,9 @@
     > article:not(:last-child) {
         @extend .border-bottom;
         padding-bottom: 1rem;
-        margin-bottom: 1rem;
+    }
+    > article:not(:first-child) {
+        padding-top: 1rem;
     }
 
     .diary-location {

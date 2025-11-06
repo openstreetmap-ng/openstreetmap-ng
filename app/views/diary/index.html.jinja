@@ -14,7 +14,6 @@
 {% endblock %}
 {% block title_prefix %}{{ self.heading() | trim }} | {% endblock %}
 {% block body_class %}diary-index-body{% endblock %}
-{% block body_attrs %}data-bs-spy="scroll" data-bs-target="#diary-scroll-nav" data-bs-smooth-scroll="true"{% endblock %}
 {% block body %}
 {% set _avatar_in_header = profile is not none %}
 
@@ -57,7 +56,8 @@
         <div class="col-lg-9 col-xl-8 col-xxl-6">
             {% if diaries %}
             {% set entry_mode = 'listing' %}
-            <div class="diary-list mb-3">
+            <div class="diary-list mb-3" data-bs-spy="scroll" data-bs-target="#diary-scroll-nav"
+                data-bs-smooth-scroll="true">
                 {% for diary in diaries %}
                 {% include 'diary/_entry' %}
                 {% endfor %}

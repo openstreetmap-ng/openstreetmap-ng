@@ -1,4 +1,4 @@
-import { Offcanvas } from "bootstrap"
+import { Offcanvas, ScrollSpy } from "bootstrap"
 import { mount } from "../lib/mount"
 import { configureStandardForm } from "../lib/standard-form"
 import { configureStandardPagination } from "../lib/standard-pagination"
@@ -50,13 +50,17 @@ mount("diary-index-body", (body) => {
         )
 
         // Expand smoothly, then remove the button to avoid layout jitter
-        readMore.addEventListener("click", () => {
-            article.classList.add("show")
-            readMore.classList.add("invisible")
-            setTimeout(() => {
-                readMore.remove()
-            }, 50)
-        })
+        readMore.addEventListener(
+            "click",
+            () => {
+                article.classList.add("show")
+                readMore.classList.add("invisible")
+                setTimeout(() => {
+                    readMore.remove()
+                }, 50)
+            },
+            { once: true },
+        )
 
         const commentsCont = article.querySelector(".diary-comments")
 
@@ -102,7 +106,7 @@ mount("diary-index-body", (body) => {
 
 mount(["diary-details-body", "diary-index-body"], (body) => {
     for (const link of body.querySelectorAll(
-        'article.diary .share a[data-action="copy-link"]',
+        "article.diary .share a[data-action=copy-link]",
     )) {
         link.addEventListener("click", (e) => {
             e.preventDefault()
