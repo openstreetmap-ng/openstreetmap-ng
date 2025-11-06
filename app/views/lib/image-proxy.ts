@@ -4,13 +4,14 @@ const imageProxies = document.querySelectorAll("img[data-thumbnail]")
 console.debug("Initializing", imageProxies.length, "image proxies")
 
 if (imageProxies.length) {
+    const padding = 48 // Account for padding around the image
     const canvas = document.createElement("canvas")
     const ctx = canvas.getContext("2d")
 
     for (const img of imageProxies) {
         const hash = img.dataset.thumbnail
-        const imgWidth = Number.parseInt(img.getAttribute("width"), 10)
-        const imgHeight = Number.parseInt(img.getAttribute("height"), 10)
+        const imgWidth = Number.parseInt(img.getAttribute("width"), 10) - padding
+        const imgHeight = Number.parseInt(img.getAttribute("height"), 10) - padding
 
         const aspectRatio = imgWidth / imgHeight
         const thumbHeight = 24
@@ -35,9 +36,7 @@ if (imageProxies.length) {
             img.classList.remove("image-proxy-loading")
             img.style.backgroundImage = ""
 
-            const specWidth = Number.parseInt(img.getAttribute("width"), 10)
-            const specHeight = Number.parseInt(img.getAttribute("height"), 10)
-            if (img.naturalWidth !== specWidth || img.naturalHeight !== specHeight) {
+            if (img.naturalWidth !== imgWidth || img.naturalHeight !== imgHeight) {
                 img.removeAttribute("width")
                 img.removeAttribute("height")
             }
