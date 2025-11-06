@@ -3,50 +3,57 @@ import { decode } from "blurhash"
 const imageProxies = document.querySelectorAll("img[data-thumbnail]")
 console.debug("Initializing", imageProxies.length, "image proxies")
 
-for (const img of imageProxies) {
-    const hash = img.dataset.thumbnail
-    const width = Number.parseInt(img.getAttribute("width"), 10)
-    const height = Number.parseInt(img.getAttribute("height"), 10)
-
-    // Decode BlurHash to pixel data
-    const pixels = decode(hash, width, height)
-
-    // Render to canvas
+if (imageProxies.length) {
     const canvas = document.createElement("canvas")
-    canvas.width = width
-    canvas.height = height
     const ctx = canvas.getContext("2d")
-    const imageData = ctx.createImageData(width, height)
-    imageData.data.set(pixels)
-    ctx.putImageData(imageData, 0, 0)
 
-    // Set as background
-    img.classList.add("image-proxy-loading")
-    img.style.backgroundImage = `url('${canvas.toDataURL()}')`
-    img.removeAttribute("data-thumbnail")
+    for (const img of imageProxies) {
+        const hash = img.dataset.thumbnail
+        const imgWidth = Number.parseInt(img.getAttribute("width"), 10)
+        const imgHeight = Number.parseInt(img.getAttribute("height"), 10)
 
-    const markLoaded = () => {
-        img.classList.remove("image-proxy-loading")
-        img.style.backgroundImage = ""
+        const aspectRatio = imgWidth / imgHeight
+        const thumbHeight = 24
+        const thumbWidth = Math.round(thumbHeight * aspectRatio)
 
-        const specWidth = Number.parseInt(img.getAttribute("width"), 10)
-        const specHeight = Number.parseInt(img.getAttribute("height"), 10)
-        if (img.naturalWidth !== specWidth || img.naturalHeight !== specHeight) {
-            img.removeAttribute("width")
-            img.removeAttribute("height")
+        // Decode BlurHash to pixel data
+        const pixels = decode(hash, thumbWidth, thumbHeight)
+
+        // Resize canvas and render (resizing clears content)
+        canvas.width = thumbWidth
+        canvas.height = thumbHeight
+        const imageData = ctx.createImageData(thumbWidth, thumbHeight)
+        imageData.data.set(pixels)
+        ctx.putImageData(imageData, 0, 0)
+
+        // Set as background
+        img.classList.add("image-proxy-loading")
+        img.style.backgroundImage = `url('${canvas.toDataURL()}')`
+        img.removeAttribute("data-thumbnail")
+
+        const markLoaded = () => {
+            img.classList.remove("image-proxy-loading")
+            img.style.backgroundImage = ""
+
+            const specWidth = Number.parseInt(img.getAttribute("width"), 10)
+            const specHeight = Number.parseInt(img.getAttribute("height"), 10)
+            if (img.naturalWidth !== specWidth || img.naturalHeight !== specHeight) {
+                img.removeAttribute("width")
+                img.removeAttribute("height")
+            }
         }
-    }
 
-    const markError = () => img.remove()
+        const markError = () => img.remove()
 
-    if (img.complete) {
-        if (img.naturalWidth) {
-            markLoaded()
+        if (img.complete) {
+            if (img.naturalWidth) {
+                markLoaded()
+            } else {
+                markError()
+            }
         } else {
-            markError()
+            img.addEventListener("load", markLoaded, { once: true })
+            img.addEventListener("error", markError, { once: true })
         }
-    } else {
-        img.addEventListener("load", markLoaded, { once: true })
-        img.addEventListener("error", markError, { once: true })
     }
 }
