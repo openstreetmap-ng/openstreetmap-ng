@@ -524,10 +524,11 @@ dictConfig({
             for module in (
                 'botocore',
                 'hpack',
-                'httpx',
                 'httpcore',
+                'httpx',
                 'markdown_it',
                 'multipart',
+                'PIL',
                 'python_multipart',
             )
         },

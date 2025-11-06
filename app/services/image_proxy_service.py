@@ -7,10 +7,11 @@ from datetime import timedelta
 
 import cython
 from fastapi import HTTPException
-from httpx import HTTPStatusError
+from httpx import HTTPError, HTTPStatusError
 from psycopg import AsyncConnection
 from psycopg.rows import dict_row
 from psycopg.sql import SQL
+from starlette import status
 from zid import zids
 
 from app.config import (
@@ -178,7 +179,8 @@ class ImageProxyService:
                 entry = entries.get(int(match[1]))  # type: ignore
                 if not entry or not entry['thumbnail']:
                     return match[0]
-                padding = 48
+
+                padding = 48  # Account for padding around the image
                 width = entry['width'] + padding
                 height = entry['height'] + padding
                 return f'{match[0]} width={width} height={height} data-thumbnail={entry["thumbnail"]}'
@@ -227,13 +229,17 @@ async def _generate(proxy_id: ImageProxyId) -> tuple[bytes, timedelta]:
         try:
             response = await HTTP.get(url)
             response.raise_for_status()
-        except HTTPStatusError as e:
+        except HTTPError as e:
             logging.debug('Image proxy fetch failed for %s', url, exc_info=True)
             await _clear_thumbnail(conn, proxy_id)
             return (
                 ImageProxyCache(
                     error=ImageProxyCache.HttpError(
-                        status_code=e.response.status_code,
+                        status_code=(
+                            e.response.status_code
+                            if isinstance(e, HTTPStatusError)
+                            else status.HTTP_502_BAD_GATEWAY
+                        ),
                         message=str(e),
                     )
                 ).SerializeToString(),
@@ -247,8 +253,7 @@ async def _generate(proxy_id: ImageProxyId) -> tuple[bytes, timedelta]:
                 quality=IMAGE_PROXY_RECOMPRESS_QUALITY,
                 max_side=IMAGE_PROXY_IMAGE_MAX_SIDE,
             )
-            width = int(img.shape[1])
-            height = int(img.shape[0])
+            width, height = img.size
             logging.debug('Processed image proxy %d (%dx%d)', proxy_id, width, height)
         except Exception:
             logging.debug('Image proxy normalization failed for %s', url, exc_info=True)

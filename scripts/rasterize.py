@@ -1,13 +1,15 @@
 from argparse import ArgumentParser
 from contextlib import contextmanager
+from io import BytesIO
 from multiprocessing.pool import AsyncResult, Pool
 from os import utime
 from pathlib import Path
 from time import perf_counter
 
 import cairosvg
-import cv2
-import numpy as np
+from PIL.Image import open as open_image
+
+from app.lib.image import _save
 
 DEFAULT_SIZE = 128
 DEFAULT_QUALITY = 80
@@ -33,18 +35,16 @@ def get_output_path(input: Path, /, *, root: Path) -> Path:
 
 def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
     png_data = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)
-    img = cv2.imdecode(np.frombuffer(png_data, np.uint8), cv2.IMREAD_UNCHANGED)
-    _, img = cv2.imencode(output.suffix, img, (cv2.IMWRITE_WEBP_QUALITY, quality))
+    img = open_image(BytesIO(png_data))
+    img_bytes = _save(img, quality, method=6)
 
     # use lossless encoding if smaller in size
-    if quality <= 100:
-        _, img_lossless = cv2.imencode(
-            output.suffix, img, (cv2.IMWRITE_WEBP_QUALITY, 101)
-        )
-        if img_lossless.size < img.size:
-            img = img_lossless
+    if quality >= 0:
+        img_lossless_bytes = _save(img, -100, method=6)
+        if len(img_lossless_bytes) < len(img_bytes):
+            img_bytes = img_lossless_bytes
 
-    img.tofile(output)
+    output.write_bytes(img_bytes)
 
     # preserve mtime
     mtime = input.stat().st_mtime
@@ -86,7 +86,7 @@ def static_img_pipeline(verbose: bool) -> None:
                     print(f'Skipped {output} (already exists)')
                 continue
             jobs.append(
-                pool.apply_async(rasterize, (i, output), {'size': 80, 'quality': 101})
+                pool.apply_async(rasterize, (i, output), {'size': 80, 'quality': -100})
             )
 
         pool.close()

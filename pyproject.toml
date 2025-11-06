@@ -28,7 +28,6 @@ dependencies = [
   "markdown-it-py[linkify,plugins]",
   "nh3",
   "numpy",
-  "opencv-python-headless",
   "orjson",
   "osm-shortlink",
   "phonenumbers",
