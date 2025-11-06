@@ -199,7 +199,7 @@ layersConfig.set("aerial" as LayerId, {
     },
     layerOptions: {
         paint: {
-            "raster-opacity": overlayOpacityStorage("aerial").get(),
+            "raster-opacity": null, // loaded from storage
         },
     },
     layerCode: "A" as LayerCode,
@@ -441,6 +441,15 @@ export const addMapLayer = (
             beforeId,
         )
         const layerOptions = config.layerOptions ?? {}
+
+        // Override opacity from storage for overlay layers
+        if (
+            !config.isBaseLayer &&
+            layerOptions.paint &&
+            "raster-opacity" in layerOptions.paint
+        )
+            layerOptions.paint["raster-opacity"] = overlayOpacityStorage(layerId).get()
+
         for (const type of layerTypes) {
             const layerObject: AddLayerObject = {
                 ...layerOptions,
