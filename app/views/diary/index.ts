@@ -1,4 +1,4 @@
-import { Offcanvas, ScrollSpy } from "bootstrap"
+import { Offcanvas } from "bootstrap"
 import { mount } from "../lib/mount"
 import { configureStandardForm } from "../lib/standard-form"
 import { configureStandardPagination } from "../lib/standard-pagination"
