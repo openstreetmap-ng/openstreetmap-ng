@@ -279,7 +279,7 @@ let
     (makeScript "watch-cython" "exec watchexec -o queue -w app --exts py cython-build-fast")
 
     # -- Static
-    (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
+    (makeScript "static-img-clean" "rm -rf app/static/img/*/_generated")
     (makeScript "static-img-pipeline" "python scripts/rasterize.py static-img-pipeline")
     (makeScript "static-precompress-clean" "static-precompress clean")
     (makeScript "static-precompress" ''
