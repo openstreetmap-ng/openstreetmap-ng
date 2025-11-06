@@ -21,9 +21,93 @@ mount("diary-details-body", (body) => {
     })
 })
 
+// Custom scrollspy that activates based on which diary is most centered in viewport
+const configureScrollspy = (
+    body: HTMLElement,
+    state?: { updateFn: () => void },
+) => {
+    const navLinks = document.querySelectorAll<HTMLAnchorElement>(
+        "#diary-scroll-nav a.nav-link",
+    )
+    if (!navLinks.length) return
+
+    const articles = body.querySelectorAll<HTMLElement>("article.diary")
+    if (!articles.length) return
+
+    let rafId: number | null = null
+    let currentActiveLink: HTMLAnchorElement | null = null
+
+    const updateActiveLink = () => {
+        const viewportCenter = window.innerHeight / 2
+        let closestArticle: HTMLElement | null = null
+        let closestDistance = Number.POSITIVE_INFINITY
+
+        // Find which article is closest to the center of the viewport
+        for (const article of articles) {
+            const rect = article.getBoundingClientRect()
+            const articleCenter = rect.top + rect.height / 2
+            const distance = Math.abs(articleCenter - viewportCenter)
+
+            if (distance < closestDistance) {
+                closestDistance = distance
+                closestArticle = article
+            }
+        }
+
+        // Update active state only if changed
+        if (closestArticle) {
+            const targetId = closestArticle.id
+            const targetLink = Array.from(navLinks).find(
+                (link) => link.getAttribute("href") === `#${targetId}`,
+            )
+
+            if (targetLink && targetLink !== currentActiveLink) {
+                // Remove active from all links
+                for (const link of navLinks) {
+                    link.classList.remove("active")
+                }
+                // Add active to the target link
+                targetLink.classList.add("active")
+                currentActiveLink = targetLink
+            }
+        }
+    }
+
+    const onScroll = () => {
+        if (rafId !== null) return
+        rafId = requestAnimationFrame(() => {
+            updateActiveLink()
+            rafId = null
+        })
+    }
+
+    // Initial update
+    updateActiveLink()
+
+    // Expose update function to state if provided
+    if (state) {
+        state.updateFn = updateActiveLink
+    }
+
+    // Listen to scroll events
+    window.addEventListener("scroll", onScroll, { passive: true })
+
+    // Return cleanup function
+    return () => {
+        window.removeEventListener("scroll", onScroll)
+        if (rafId !== null) {
+            cancelAnimationFrame(rafId)
+        }
+    }
+}
+
 // Listings page: diaries start collapsed; expand and lazy‑load comments per entry
 mount("diary-index-body", (body) => {
     const disposers = new WeakMap<Element, () => void>()
+
+    // Set up custom scrollspy
+    const scrollspyState = { updateFn: () => {} }
+    const disposeScrollspy = configureScrollspy(body, scrollspyState)
 
     for (const article of body.querySelectorAll("article.diary")) {
         const diaryBody = article.querySelector(".diary-body")
@@ -39,12 +123,20 @@ mount("diary-index-body", (body) => {
 
         updateClamp()
         // Images and rich content may change height; observe and re-evaluate
-        const ro = new ResizeObserver(updateClamp)
+        const ro = new ResizeObserver(() => {
+            updateClamp()
+            // Update scrollspy when content size changes
+            scrollspyState.updateFn()
+        })
         ro.observe(diaryBody)
         article.addEventListener(
             "transitionend",
             () => {
-                if (article.classList.contains("show")) ro.disconnect()
+                if (article.classList.contains("show")) {
+                    ro.disconnect()
+                }
+                // Update scrollspy after expand/collapse animation
+                scrollspyState.updateFn()
             },
             { once: true },
         )
@@ -59,6 +151,14 @@ mount("diary-index-body", (body) => {
         })
 
         const commentsCont = article.querySelector(".diary-comments")
+
+        // Update scrollspy when comments section finishes expanding/collapsing
+        commentsCont.addEventListener("shown.bs.collapse", () => {
+            scrollspyState.updateFn()
+        })
+        commentsCont.addEventListener("hidden.bs.collapse", () => {
+            scrollspyState.updateFn()
+        })
 
         commentsCont.addEventListener(
             "show.bs.collapse",
