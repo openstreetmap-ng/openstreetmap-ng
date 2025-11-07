@@ -5,11 +5,11 @@ from contextlib import asynccontextmanager
 from functools import partial
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, overload
+from typing import TYPE_CHECKING, Literal, NamedTuple, overload
 
 import blurhash
 import cython
-from PIL import ImageOps
+from PIL import ImageOps, ImageSequence
 from PIL.Image import Image as PILImage
 from PIL.Image import Resampling
 from PIL.Image import open as open_image
@@ -24,7 +24,10 @@ from app.config import (
     BACKGROUND_MAX_FILE_SIZE,
     BACKGROUND_MAX_MEGAPIXELS,
     BACKGROUND_MAX_RATIO,
+    IMAGE_MAX_FRAMES,
     IMAGE_PROXY_BLURHASH_MAX_COMPONENTS,
+    IMAGE_PROXY_IMAGE_MAX_SIDE,
+    IMAGE_PROXY_RECOMPRESS_QUALITY,
 )
 from app.lib.exceptions_context import raise_for
 from app.models.types import NoteId, StorageKey, UserId
@@ -38,6 +41,13 @@ else:
     from math import sqrt
 
 # TODO: test 200MP file
+
+
+class _Animation(NamedTuple):
+    frames: list[PILImage]
+    durations: list[int]
+    loop: int
+
 
 UserAvatarType = Literal['gravatar', 'custom'] | None
 AvatarType = Literal['anonymous_note', 'initials'] | UserAvatarType
@@ -122,16 +132,11 @@ class Image:
         )
 
     @staticmethod
-    async def normalize_proxy_image(
-        data: bytes,
-        *,
-        max_side: int,
-        quality: int,
-    ) -> tuple[bytes, PILImage]:
+    async def normalize_proxy_image(data: bytes) -> tuple[bytes, PILImage]:
         return await _normalize_image(
             data,
-            quality=quality,
-            max_side=max_side,
+            quality=IMAGE_PROXY_RECOMPRESS_QUALITY,
+            max_side=IMAGE_PROXY_IMAGE_MAX_SIDE,
             return_img=True,
         )
 
@@ -139,21 +144,21 @@ class Image:
     async def create_proxy_thumbnail(
         img: PILImage,
         *,
-        max_comp: cython.uint = IMAGE_PROXY_BLURHASH_MAX_COMPONENTS,
+        max_comp: cython.size_t = IMAGE_PROXY_BLURHASH_MAX_COMPONENTS,
     ) -> str:
         """Generate a BlurHash string from an image."""
-        w: cython.uint
-        h: cython.uint
+        w: cython.size_t
+        h: cython.size_t
         w, h = img.size
 
         # Proportional components
-        x_comp: cython.uint
-        y_comp: cython.uint
+        x_comp: cython.size_t
+        y_comp: cython.size_t
         if w >= h:
             x_comp = max_comp
-            y_comp = max(1, int(max_comp * h / w))
+            y_comp = max(1, max_comp * h // w)
         else:
-            x_comp = max(1, int(max_comp * w / h))
+            x_comp = max(1, max_comp * w // h)
             y_comp = max_comp
 
         # Downscale to 100px
@@ -207,35 +212,35 @@ async def _get_pipeline():
 async def _normalize_image(
     data: bytes,
     *,
-    quality: cython.int = 0,
-    min_ratio: cython.double = 0,
-    max_ratio: cython.double = 0,
-    max_megapixels: cython.uint = 0,
-    max_side: cython.uint = 0,
-    max_file_size: cython.uint = 0,
+    quality: int | None = None,
+    min_ratio: float | None = None,
+    max_ratio: float | None = None,
+    max_megapixels: int | None = None,
+    max_side: int | None = None,
+    max_file_size: int | None = None,
     return_img: Literal[False] = False,
 ) -> bytes: ...
 @overload
 async def _normalize_image(
     data: bytes,
     *,
-    quality: cython.int = 0,
-    min_ratio: cython.double = 0,
-    max_ratio: cython.double = 0,
-    max_megapixels: cython.uint = 0,
-    max_side: cython.uint = 0,
-    max_file_size: cython.uint = 0,
+    quality: int | None = None,
+    min_ratio: float | None = None,
+    max_ratio: float | None = None,
+    max_megapixels: int | None = None,
+    max_side: int | None = None,
+    max_file_size: int | None = None,
     return_img: Literal[True] = ...,
 ) -> tuple[bytes, PILImage]: ...
 async def _normalize_image(
     data: bytes,
     *,
-    quality: cython.int = 0,
-    min_ratio: cython.double = 0,
-    max_ratio: cython.double = 0,
-    max_megapixels: cython.uint = 0,
-    max_side: cython.uint = 0,
-    max_file_size: cython.uint = 0,
+    quality: int | None = None,
+    min_ratio: float | None = None,
+    max_ratio: float | None = None,
+    max_megapixels: int | None = None,
+    max_side: int | None = None,
+    max_file_size: int | None = None,
     return_img: bool = False,
 ) -> bytes | tuple[bytes, PILImage]:
     """
@@ -250,53 +255,70 @@ async def _normalize_image(
     ImageOps.exif_transpose(img, in_place=True)
 
     # normalize shape ratio
-    img_width: cython.uint
-    img_height: cython.uint
+    img_width: cython.size_t
+    img_height: cython.size_t
     img_width, img_height = img.size
-    ratio: cython.double = img_width / img_height
+
+    crop_box: tuple[int, int, int, int] | None = None
+    resize_to: tuple[int, int] | None = None
 
     # the image is too wide
-    if max_ratio and ratio > max_ratio:
+    if max_ratio is not None and (img_width / img_height) > max_ratio:
         logging.debug('Image is too wide (%dx%d)', img_width, img_height)
-        new_width: cython.uint = int(img_height * max_ratio)
-        x1: cython.uint = (img_width - new_width) // 2
-        x2: cython.uint = (img_width + new_width) // 2
-        img = img.crop((x1, 0, x2, img_height))
+        new_width: cython.size_t = int(img_height * max_ratio)
+        x1 = (img_width - new_width) // 2
+        x2 = (img_width + new_width) // 2
+        crop_box = (x1, 0, x2, img_height)
         img_width = new_width
 
     # the image is too tall
-    elif min_ratio and ratio < min_ratio:
+    elif min_ratio is not None and (img_width / img_height) < min_ratio:
         logging.debug('Image is too tall (%dx%d)', img_width, img_height)
-        new_height: cython.uint = int(img_width / min_ratio)
-        y1: cython.uint = (img_height - new_height) // 2
-        y2: cython.uint = (img_height + new_height) // 2
-        img = img.crop((0, y1, img_width, y2))
+        new_height: cython.size_t = int(img_width / min_ratio)
+        y1 = (img_height - new_height) // 2
+        y2 = (img_height + new_height) // 2
+        crop_box = (0, y1, img_width, y2)
         img_height = new_height
 
-    resize: cython.bint = False
-
     # limit dimensions
-    if max_side:
+    if max_side is not None:
         side_ratio: cython.double = max(img_width, img_height) / max_side
         if side_ratio > 1:
             logging.debug('Image is too big (%dx%d)', img_width, img_height)
             img_width = max(1, int(img_width / side_ratio))
             img_height = max(1, int(img_height / side_ratio))
-            resize = True
+            resize_to = (img_width, img_height)
 
     # limit megapixels
-    if max_megapixels:
+    if max_megapixels is not None:
         mp_ratio: cython.double = (img_width * img_height) / max_megapixels
         if mp_ratio > 1:
             logging.debug('Image is too big (%dx%d)', img_width, img_height)
             mp_ratio = sqrt(mp_ratio)
             img_width = max(1, int(img_width / mp_ratio))
             img_height = max(1, int(img_height / mp_ratio))
-            resize = True
+            resize_to = (img_width, img_height)
 
-    # single resize operation if dimensions changed
-    if resize:
-        img = img.resize((img_width, img_height), Resampling.BOX)
+    animation = _extract_animation(img)
+
+    if resize_to is None and crop_box is None:
+        pass
+    elif animation is not None:
+        frames: list[PILImage] = []
+
+        for frame in animation.frames:
+            if resize_to is not None:
+                frame = frame.resize(resize_to, Resampling.BOX, crop_box)
+            elif crop_box is not None:
+                frame = frame.crop(crop_box)
+            frames.append(frame)
+
+        img = frames[0]
+        animation = animation._replace(frames=frames)
+    elif resize_to is not None:
+        img = img.resize(resize_to, Resampling.BOX, crop_box)
+    elif crop_box is not None:
+        img = img.crop(crop_box)
 
     async with _get_pipeline() as pipe:
         if pipe is not None:
@@ -316,7 +338,11 @@ async def _normalize_image(
 
     # optimize file size
     quality, buffer = await _optimize_quality(
-        img, quality=quality, max_file_size=max_file_size
+        img,
+        animation,
+        input_size=len(data),
+        quality=quality,
+        max_file_size=max_file_size,
     )
     logging.debug('Optimized image quality: Q%d', quality)
     return (buffer, img) if return_img else buffer
@@ -324,9 +350,11 @@ async def _normalize_image(
 
 async def _optimize_quality(
     img: PILImage,
+    animation: _Animation | None,
     *,
-    quality: cython.int,
-    max_file_size: cython.uint,
+    input_size: int,
+    quality: int | None,
+    max_file_size: int | None,
 ) -> tuple[int, bytes]:
     """
     Find the best image quality given the maximum file size.
@@ -334,35 +362,38 @@ async def _optimize_quality(
     """
     loop = get_running_loop()
 
-    if quality:
-        img_bytes = await loop.run_in_executor(None, _save, img, quality)
+    if quality is not None:
+        img_bytes = await loop.run_in_executor(None, _save, img, quality, animation)
+        if len(img_bytes) <= input_size:
+            return quality, img_bytes
+
+        img_bytes_lossless = await loop.run_in_executor(None, _save, img, -1, animation)
+        if len(img_bytes_lossless) <= len(img_bytes):
+            return -1, img_bytes_lossless
+
         return quality, img_bytes
 
-    img_bytes = await loop.run_in_executor(None, _save, img, -1)
-    size: cython.uint = len(img_bytes)
-    logging.debug('Optimizing avatar quality (lossless): %s', sizestr(size))
+    img_bytes = await loop.run_in_executor(None, _save, img, -1, animation)
+    img_size = len(img_bytes)
+    logging.debug('Optimizing avatar quality (lossless): %s', sizestr(img_size))
 
-    if not max_file_size or size <= max_file_size:
+    if max_file_size is None or img_size <= max_file_size:
         return -1, img_bytes
 
-    high: cython.int = 90
-    low: cython.int = 20
-    bs_step: cython.uint = 5
-    best_quality: cython.int = -1
-    best_img: bytes | None = None
+    low, high, step = 20, 90, 5
 
     # initial quick scan
     for quality in range(80, 20 - 1, -20):  # noqa: PLR1704
-        img_bytes = await loop.run_in_executor(None, _save, img, quality)
-        size = len(img_bytes)
+        img_bytes = await loop.run_in_executor(None, _save, img, quality, animation)
+        img_size = len(img_bytes)
         logging.debug(
-            'Optimizing avatar quality (quick): Q%d -> %s', quality, sizestr(size)
+            'Optimizing avatar quality (quick): Q%d -> %s', quality, sizestr(img_size)
         )
 
-        if size > max_file_size:
-            high = quality - bs_step
+        if img_size > max_file_size:
+            high = quality - step
         else:
-            low = quality + bs_step
+            low = quality + step
             best_quality = quality
             best_img = img_bytes
             break
@@ -371,42 +402,92 @@ async def _optimize_quality(
 
     # fine-tune with binary search
     while low <= high:
-        # round down to the nearest bs_step
-        quality = ((low + high) // 2) // bs_step * bs_step
+        # round down to the nearest step
+        quality = ((low + high) // 2) // step * step
 
-        img_bytes = await loop.run_in_executor(None, _save, img, quality)
-        size = len(img_bytes)
+        img_bytes = await loop.run_in_executor(None, _save, img, quality, animation)
+        img_size = len(img_bytes)
         logging.debug(
-            'Optimizing avatar quality (fine): Q%d -> %s', quality, sizestr(size)
+            'Optimizing avatar quality (fine): Q%d -> %s', quality, sizestr(img_size)
         )
 
-        if size > max_file_size:
-            high = quality - bs_step
+        if img_size > max_file_size:
+            high = quality - step
         else:
-            low = quality + bs_step
+            low = quality + step
             best_quality = quality
             best_img = img_bytes
 
     return best_quality, best_img
 
 
-def _save(img: PILImage, quality: int, *, method: int = 4) -> bytes:
+def _save(
+    img: PILImage,
+    quality: int,
+    animation: _Animation | None = None,
+    *,
+    method: int = 0,
+) -> bytes:
     buffer = BytesIO()
-    lossless = False
+
     if quality < 0:
         quality = -quality if quality < -1 else 80
         lossless = True
+    else:
+        lossless = False
 
     # See docs:
     # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#webp
-    img.save(
-        buffer,
-        format='WebP',
-        lossless=lossless,
-        quality=quality,
-        alpha_quality=max(quality, 75),
-        method=method,
-        exif=b'',
-        xmp=b'',
-    )
+    save_kwargs = {
+        'format': 'WebP',
+        'lossless': lossless,
+        'quality': quality,
+        'alpha_quality': min(quality, 75),
+        'method': method or (4 if animation is None else 3),
+        'exif': b'',
+        'xmp': b'',
+    }
+
+    if animation is not None:
+        animation.frames[0].save(
+            buffer,
+            **save_kwargs,
+            append_images=animation.frames[1:],
+            duration=animation.durations,
+            loop=animation.loop,
+            minimize_size=True,
+        )
+    else:
+        img.save(buffer, **save_kwargs)
+
     return buffer.getvalue()
+
+
+@cython.cfunc
+def _extract_animation(
+    img: PILImage,
+    *,
+    IMAGE_MAX_FRAMES: cython.size_t = IMAGE_MAX_FRAMES,
+):
+    n_frames: cython.size_t = getattr(img, 'n_frames', 1)
+    if n_frames <= 1:
+        return None
+
+    limit: cython.size_t = min(n_frames, IMAGE_MAX_FRAMES)
+    frames: list[PILImage] = []
+    durations: list[int] = []
+    default_duration = int(img.info.get('duration') or 100)
+    loop = int(img.info.get('loop') or 0)
+
+    index: cython.size_t
+    for index, frame in enumerate(ImageSequence.Iterator(img)):
+        bucket = min((index * limit) // n_frames, limit - 1)
+        duration = max(int(frame.info.get('duration') or default_duration), 1)
+
+        if bucket == len(frames):
+            frames.append(frame.convert('RGBA'))
+            durations.append(duration)
+        else:
+            durations[bucket] += duration
+
+    return _Animation(frames, durations, loop)

@@ -17,8 +17,6 @@ from zid import zids
 from app.config import (
     IMAGE_PROXY_CACHE_EXPIRE,
     IMAGE_PROXY_ERROR_CACHE_EXPIRE,
-    IMAGE_PROXY_IMAGE_MAX_SIDE,
-    IMAGE_PROXY_RECOMPRESS_QUALITY,
 )
 from app.db import db
 from app.lib.date_utils import utcnow
@@ -248,11 +246,7 @@ async def _generate(proxy_id: ImageProxyId) -> tuple[bytes, timedelta]:
 
         # Try to normalize image
         try:
-            processed, img = await Image.normalize_proxy_image(
-                response.content,
-                quality=IMAGE_PROXY_RECOMPRESS_QUALITY,
-                max_side=IMAGE_PROXY_IMAGE_MAX_SIDE,
-            )
+            processed, img = await Image.normalize_proxy_image(response.content)
             width, height = img.size
             logging.debug('Processed image proxy %d (%dx%d)', proxy_id, width, height)
         except Exception:

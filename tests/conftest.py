@@ -1,6 +1,5 @@
 from asyncio import TaskGroup
 from copy import deepcopy
-from functools import cache
 from pathlib import Path
 
 import pytest
@@ -84,11 +83,6 @@ async def changeset_id(client: AsyncClient):
         yield ChangesetId(int(r.text))
 
 
-@cache
-def _gpx_data():
-    return XMLToDict.parse(Path('tests/data/8473730.gpx').read_bytes())
-
-
 @pytest.fixture
-def gpx():
-    return deepcopy(_gpx_data())
+def gpx(data=XMLToDict.parse(Path('tests/data/8473730.gpx').read_bytes())):
+    return deepcopy(data)

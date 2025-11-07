@@ -3,7 +3,6 @@ from app.exceptions06.auth_mixin import AuthExceptions06Mixin
 from app.exceptions06.changeset_mixin import ChangesetExceptions06Mixin
 from app.exceptions06.diff_mixin import DiffExceptions06Mixin
 from app.exceptions06.element_mixin import ElementExceptions06Mixin
-from app.exceptions06.image_mixin import ImageExceptions06Mixin
 from app.exceptions06.map_mixin import MapExceptions06Mixin
 from app.exceptions06.note_mixin import NoteExceptions06Mixin
 from app.exceptions06.request_mixin import RequestExceptions06Mixin
@@ -17,7 +16,6 @@ class Exceptions06(
     ChangesetExceptions06Mixin,
     DiffExceptions06Mixin,
     ElementExceptions06Mixin,
-    ImageExceptions06Mixin,
     MapExceptions06Mixin,
     NoteExceptions06Mixin,
     RequestExceptions06Mixin,
