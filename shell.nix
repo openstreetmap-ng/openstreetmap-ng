@@ -27,7 +27,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/de69d2ba6c70e747320df9c096523b623d3a4c35.tar.gz";
+  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/ffcdcf99d65c61956d882df249a9be53e5902ea5.tar.gz";
   pkgs = import (fetchTarball pkgsUrl) { };
 
   projectDir = toString ./.;
@@ -161,7 +161,7 @@ let
     uv
     ruff
     gettext
-    protobuf_31
+    protobuf_33
     cmake
     libxml2.dev
     openssl.dev

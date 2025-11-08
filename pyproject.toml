@@ -33,7 +33,7 @@ dependencies = [
   "phonenumbers",
   "pillow",
   "polyline-rs",
-  "protobuf==6.31.1",
+  "protobuf==6.33.0",
   "psycopg[binary,pool]",
   "pyarrow",
   "pydantic",
