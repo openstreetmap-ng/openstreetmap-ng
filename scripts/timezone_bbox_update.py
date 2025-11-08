@@ -1,23 +1,50 @@
 import asyncio
+from contextlib import contextmanager
 from math import isclose
 from pathlib import Path
+from zoneinfo import TZPATH
 
 import orjson
-from pytz import country_timezones
 from shapely.geometry import shape
 from zstandard import ZstdDecompressor
 
 from app.utils import HTTP
 
 
-def get_timezone_country_dict() -> dict[str, str]:
+@contextmanager
+def open_zone_tab():
+    for tz_path in map(Path, TZPATH):
+        for filename in ('zone1970.tab', 'zone.tab'):
+            try:
+                with tz_path.joinpath(filename).open() as f:
+                    yield f
+                    return
+            except OSError:
+                pass
+
+    raise FileNotFoundError('zone.tab not found in TZPATH')
+
+
+def get_timezone_country_dict() -> dict[str, list[str]]:
     result = {}
     print('Processing country timezones')
-    for code, timezones in country_timezones.items():
-        for timezone in timezones:
-            if timezone in result:
-                raise ValueError(f'Duplicate timezone {timezone!r}')
-            result[timezone] = code
+
+    with open_zone_tab() as f:
+        for line in f:
+            line = line.strip()
+            if not line or line[0] == '#':
+                continue
+
+            parts = line.split('\t', 3)
+            if len(parts) < 3:
+                raise ValueError(f'Unexpected zone.tab format: {line!r}')
+
+            countries = parts[0].split(',')
+            timezone = parts[2]
+
+            assert timezone not in result, f'Duplicate timezone {timezone!r}'
+            result[timezone] = countries
+
     return result
 
 
@@ -84,14 +111,23 @@ async def main() -> None:
     result = {}
 
     print('Merging timezones with boundaries')
-    for timezone, country in timezone_country.items():
-        bbox = country_bbox.get(country)
+    for timezone, countries in timezone_country.items():
+        bboxes = [
+            bbox
+            for country in countries
+            if (bbox := country_bbox.get(country)) is not None
+        ]
 
-        if bbox is None:
-            print(f'[❔] {timezone}: missing {country!r} boundary')
+        if not bboxes:
+            print(f'[❔] {timezone}: missing {countries} boundary')
             continue
 
-        result[timezone] = bbox
+        result[timezone] = (
+            min(b[0] for b in bboxes),
+            min(b[1] for b in bboxes),
+            max(b[2] for b in bboxes),
+            max(b[3] for b in bboxes),
+        )
 
     output = generate_typescript_file(result)
     output_path = Path('app/views/lib/timezone-bbox.ts')

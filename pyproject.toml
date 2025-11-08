@@ -43,7 +43,6 @@ dependencies = [
   "python-dateutil",
   "python-magic",
   "python-multipart",
-  "pytz",
   "pyyaml",
   "rfc3986",
   "rtree",
