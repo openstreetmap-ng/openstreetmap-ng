@@ -26,7 +26,7 @@ def open_zone_tab():
 
 
 def get_timezone_country_dict() -> dict[str, list[str]]:
-    result = {}
+    result: dict[str, list[str]] = {}
     print('Processing country timezones')
 
     with open_zone_tab() as f:
@@ -41,9 +41,10 @@ def get_timezone_country_dict() -> dict[str, list[str]]:
 
             countries = parts[0].split(',')
             timezone = parts[2]
-
-            assert timezone not in result, f'Duplicate timezone {timezone!r}'
-            result[timezone] = countries
+            if (v := result.get(timezone)) is not None:
+                v.extend(countries)
+            else:
+                result[timezone] = countries
 
     return result
 
