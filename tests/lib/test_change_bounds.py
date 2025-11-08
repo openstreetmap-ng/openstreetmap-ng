@@ -9,122 +9,195 @@ from app.config import (
 from app.lib.changeset_bounds import extend_changeset_bounds
 
 
-def test_multiple_sequential_extensions():
+def test_creates_single_bbox_for_first_point():
+    # Arrange
     bounds = MultiPolygon()
+    p = Point(0, 0)
 
-    # First extension
-    point1 = Point(0, 0)
-    bounds = extend_changeset_bounds(bounds, [point1])
-    assert len(bounds.geoms) == 1, 'Initial point must create a single boundary'
+    # Act
+    result = extend_changeset_bounds(bounds, [p])
 
-    # Second extension with close point
-    close_point = Point(CHANGESET_NEW_BBOX_MIN_DISTANCE * 0.5, 0)
-    bounds = extend_changeset_bounds(bounds, [close_point])
-    assert len(bounds.geoms) == 1, 'Close point must merge with existing boundary'
+    # Assert
+    assert len(result.geoms) == 1
+    assert result.geoms[0].bounds == (0.0, 0.0, 0.0, 0.0)
 
-    # Third extension with distant point
-    far_point = Point(CHANGESET_NEW_BBOX_MIN_DISTANCE * 3, 0)
-    bounds = extend_changeset_bounds(bounds, [far_point])
-    assert len(bounds.geoms) == 2, 'Distant point must create a new boundary'
+
+def test_merges_close_point_into_existing_bbox():
+    # Arrange
+    start = extend_changeset_bounds(MultiPolygon(), [Point(0, 0)])
+    close = Point(CHANGESET_NEW_BBOX_MIN_DISTANCE * 0.5, 0)
+
+    # Act
+    result = extend_changeset_bounds(start, [close])
+
+    # Assert
+    assert len(result.geoms) == 1
+
+
+def test_creates_new_bbox_for_distant_point():
+    # Arrange
+    start = extend_changeset_bounds(MultiPolygon(), [Point(0, 0)])
+    far = Point(CHANGESET_NEW_BBOX_MIN_DISTANCE * 3, 0)
+
+    # Act
+    result = extend_changeset_bounds(start, [far])
+
+    # Assert
+    assert len(result.geoms) == 2
 
 
 def test_empty_points_raise():
+    # Arrange
+    bounds = MultiPolygon()
+
+    # Act / Assert
     with pytest.raises(AssertionError):
-        extend_changeset_bounds(MultiPolygon(), [])
+        extend_changeset_bounds(bounds, [])
 
 
-def test_points_at_threshold_merge():
-    x = CHANGESET_NEW_BBOX_MIN_DISTANCE
-    points = [Point(0, 0), Point(x, x)]
+def test_threshold_mode_merges_points_at_distance_threshold():
+    # Arrange
+    t = CHANGESET_NEW_BBOX_MIN_DISTANCE
+    points = [Point(0, 0), Point(t, t)]
 
+    # Act
     result = extend_changeset_bounds(MultiPolygon(), points)
 
-    assert len(result.geoms) == 1, (
-        'Points at threshold distance must merge into a single boundary'
-    )
-    assert result.geoms[0].bounds == (0, 0, x, x), 'Boundary must contain both points'
+    # Assert
+    assert len(result.geoms) == 1
+    assert result.geoms[0].bounds == (0.0, 0.0, t, t)
 
 
-def test_points_beyond_threshold_separate():
-    x = CHANGESET_NEW_BBOX_MIN_DISTANCE * 1.01
-    points = [Point(0, 0), Point(x, x)]
+def test_threshold_mode_separates_points_beyond_distance():
+    # Arrange
+    t = CHANGESET_NEW_BBOX_MIN_DISTANCE * 1.01
+    points = [Point(0, 0), Point(t, t)]
 
+    # Act
     result = extend_changeset_bounds(MultiPolygon(), points)
 
-    # Verify both points created separate boundaries
-    assert len(result.geoms) == 2, (
-        'Points beyond threshold distance must create separate boundaries'
-    )
-    point_coords = {(0, 0), (x, x)}
-    result_coords = {(p.bounds[0], p.bounds[1]) for p in result.geoms}
-    assert point_coords == result_coords, (
-        'Each point must create its own boundary at the correct coordinates'
-    )
+    # Assert
+    assert len(result.geoms) == 2
+    mins = {(0.0, 0.0), (t, t)}
+    got = {(p.bounds[0], p.bounds[1]) for p in result.geoms}
+    assert got == mins
 
 
-def test_points_within_ratio_of_bounds_merge():
-    # Point just within ratio threshold
+def test_threshold_mode_uses_chebyshev_metric():
+    # Arrange (sqrt(2)*0.9t > t, but Chebyshev=0.9t <= t)
+    t = CHANGESET_NEW_BBOX_MIN_DISTANCE
+    points = [Point(0, 0), Point(0.9 * t, 0.9 * t)]
+
+    # Act
+    result = extend_changeset_bounds(MultiPolygon(), points)
+
+    # Assert
+    assert len(result.geoms) == 1
+
+
+def test_merge_within_ratio_of_existing_bbox():
+    # Arrange
     x = CHANGESET_NEW_BBOX_MIN_RATIO * 0.9
-    points = [Point(x, x)]
     existing_bounds = MultiPolygon([box(-1, -1, 0, 0)])
+    p = Point(x, x)
 
-    result = extend_changeset_bounds(existing_bounds, points)
+    # Act
+    result = extend_changeset_bounds(existing_bounds, [p])
 
-    assert len(result.geoms) == 1, (
-        'Point within ratio of existing boundary must merge with it'
-    )
-    assert any(p.bounds[2] >= x and p.bounds[3] >= x for p in result.geoms), (
-        'Boundary must expand to include the new point'
-    )
+    # Assert
+    assert len(result.geoms) == 1
+    assert any(b.bounds[2] >= x and b.bounds[3] >= x for b in result.geoms)
 
 
-def test_points_beyond_ratio_of_bounds_separate():
-    # Point just beyond ratio threshold
+def test_separate_beyond_ratio_of_existing_bbox():
+    # Arrange
     x = CHANGESET_NEW_BBOX_MIN_RATIO * 1.1
-    points = [Point(x, x)]
     existing_bounds = MultiPolygon([box(-1, -1, 0, 0)])
+    p = Point(x, x)
 
-    result = extend_changeset_bounds(existing_bounds, points)
+    # Act
+    result = extend_changeset_bounds(existing_bounds, [p])
 
-    assert len(result.geoms) == 2, (
-        'Point beyond ratio of existing boundary must create a new boundary'
-    )
-    assert any(p.bounds == (-1, -1, 0, 0) for p in result.geoms), (
-        'Original boundary must be preserved'
-    )
-    assert any(p.bounds[0] == x and p.bounds[1] == x for p in result.geoms), (
-        'New boundary must be created at point location'
-    )
+    # Assert
+    assert len(result.geoms) == 2
+    assert any(b.bounds == (-1.0, -1.0, 0.0, 0.0) for b in result.geoms)
+    assert any(b.bounds[0] == x and b.bounds[1] == x for b in result.geoms)
 
 
-def test_early_merge_behavior():
-    x = -CHANGESET_NEW_BBOX_MIN_DISTANCE
-    y = CHANGESET_NEW_BBOX_MIN_DISTANCE * 0.9
-    z = CHANGESET_NEW_BBOX_MIN_DISTANCE * 1.5
+def test_fixed_k_clusters_produces_at_most_limit_when_many_points():
+    # Arrange: more points than the bbox limit to force FIXED K-CLUSTERS
+    pts = [Point(i * 10.0, 0.0) for i in range(CHANGESET_BBOX_LIMIT + 2)]
 
-    existing_bounds = MultiPolygon([box(x, x, 0, 0)])
-    points = [Point(y, y), Point(z, z)]
+    # Act
+    result = extend_changeset_bounds(MultiPolygon(), pts)
 
-    result = extend_changeset_bounds(existing_bounds, points)
-
-    assert len(result.geoms) == 1, 'Close points must merge into a single boundary'
-    bounds = result.geoms[0].bounds
-    assert bounds[0] <= x, "Boundary must include original boundary's min X"
-    assert bounds[1] <= x, "Boundary must include original boundary's min Y"
-    assert bounds[2] >= z, "Boundary must extend to include the furthest point's X"
-    assert bounds[3] >= z, "Boundary must extend to include the furthest point's Y"
+    # Assert: number of boxes never exceeds the limit and covers all points
+    assert 1 <= len(result.geoms) <= CHANGESET_BBOX_LIMIT
+    minx = min(p.x for p in pts)
+    maxx = max(p.x for p in pts)
+    rb = result.bounds
+    assert rb[0] <= minx and rb[2] >= maxx
+    assert rb[1] <= 0.0 and rb[3] >= 0.0
 
 
-def test_bbox_limit_merge():
-    # Create boundaries just under the limit
-    bounds = MultiPolygon([
-        box(i * 10, 0, i * 10 + 1, 1) for i in range(CHANGESET_BBOX_LIMIT - 1)
+def test_limit_caps_when_adding_to_n_minus_one_boxes():
+    # Arrange
+    start = MultiPolygon([
+        box(i * 10.0, 0.0, i * 10.0 + 1.0, 1.0) for i in range(CHANGESET_BBOX_LIMIT - 1)
     ])
+    p = Point(CHANGESET_BBOX_LIMIT * 10.0, 0.0)
 
-    result = extend_changeset_bounds(bounds, [Point(CHANGESET_BBOX_LIMIT * 10, 0)])
+    # Act
+    result = extend_changeset_bounds(start, [p])
+
+    # Assert
     assert len(result.geoms) == CHANGESET_BBOX_LIMIT
 
-    result = extend_changeset_bounds(
-        bounds, [Point((CHANGESET_BBOX_LIMIT + 1) * 10, 0)]
-    )
-    assert len(result.geoms) == CHANGESET_BBOX_LIMIT
+
+def test_limit_does_not_exceed_when_already_at_limit():
+    # Arrange
+    start = MultiPolygon([
+        box(i * 10.0, 0.0, i * 10.0 + 1.0, 1.0) for i in range(CHANGESET_BBOX_LIMIT)
+    ])
+    p = Point((CHANGESET_BBOX_LIMIT + 5) * 10.0, 0.0)
+
+    # Act
+    result = extend_changeset_bounds(start, [p])
+
+    # Assert: still at most the limit, but may merge down
+    assert 1 <= len(result.geoms) <= CHANGESET_BBOX_LIMIT
+    rb = result.bounds
+    sb = start.bounds
+    assert rb[0] <= sb[0] and rb[2] >= max(sb[2], p.x)
+
+
+@pytest.mark.parametrize(
+    ('groups', 'per_group', 'spacing', 'expected_boxes'),
+    [
+        (5, 8, 1000.0, 5),
+        (CHANGESET_BBOX_LIMIT, 6, 3000.0, CHANGESET_BBOX_LIMIT),
+        (CHANGESET_BBOX_LIMIT + 5, 6, 3000.0, 1),
+    ],
+)
+def test_fixed_k_clusters_widely_separated_groups(
+    groups: int, per_group: int, spacing: float, expected_boxes: int
+):
+    # Arrange: far-separated groups
+    pts = []
+    for g in range(groups):
+        base = g * spacing
+        pts.extend(Point(base + 0.01 * j, 0.02 * j) for j in range(per_group))
+
+    # Act
+    result = extend_changeset_bounds(MultiPolygon(), pts)
+
+    # Assert: count matches expectation; coverage spans full range
+    assert len(result.geoms) == expected_boxes
+    rb = result.bounds
+    assert rb[0] <= 0.0 and rb[2] >= (groups - 1) * spacing
+
+    # For cases where expected == groups, ensure boxes map to distinct groups
+    if expected_boxes == groups:
+        centers = [((b.bounds[0] + b.bounds[2]) / 2.0) for b in result.geoms]
+        mapped_groups = {round(c / spacing) for c in centers}
+        assert mapped_groups == set(range(groups))

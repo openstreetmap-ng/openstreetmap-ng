@@ -46,7 +46,6 @@ dependencies = [
   "pyyaml",
   "rfc3986",
   "rtree",
-  "scikit-learn",
   "sentry-sdk[aiohttp,fastapi,httpx,pure-eval]",
   "shapely",
   "sizestr",
