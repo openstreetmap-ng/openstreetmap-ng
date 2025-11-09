@@ -158,6 +158,7 @@ ignore = [
   "E114",  # indentation-with-invalid-multiple-comment
   "E117",  # over-indented
   "E501",  # line-too-long
+  "E741",  # ambiguous-variable-name
   "ISC001",  # single-line-implicit-string-concatenation
   "ISC002",  # multi-line-implicit-string-concatenation
   "LOG015",  # root-logger-call
