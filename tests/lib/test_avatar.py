@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.dicebear import _extract_initials
+from app.lib.avatar import _extract_initials
 
 
 @pytest.mark.parametrize(

@@ -13,7 +13,7 @@ from app.config import (
     STATIC_CACHE_MAX_AGE,
     STATIC_CACHE_STALE,
 )
-from app.lib.dicebear import generate_avatar
+from app.lib.avatar import generate_avatar
 from app.middlewares.cache_control_middleware import cache_control
 from app.models.types import ImageProxyId, NoteId, StorageKey, UserId
 from app.queries.image_query import ImageQuery
