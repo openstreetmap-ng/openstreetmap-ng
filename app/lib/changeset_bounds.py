@@ -151,10 +151,14 @@ def _agglomerative_clustering(
     if distance_threshold is not None:
         # THRESHOLD-BASED CLUSTERING
         diff = coords[:, np.newaxis, :] - coords[np.newaxis, :, :]  # (N, N, 2)
-        distances = np.max(np.abs(diff), axis=2)
+        np.abs(diff, out=diff)
+        distances = np.max(diff, axis=2)
+        del diff
 
-        # Find all point pairs with distance <= threshold (upper triangle only)
-        src_idx, dst_idx = np.where(np.triu(distances <= distance_threshold, k=1))
+        # Upper triangle pairs with distance <= threshold
+        np.less_equal(distances, distance_threshold, out=distances)
+        src_idx, dst_idx = np.where(np.triu(distances, k=1))
+        del distances
 
         # Union all close pairs - no sorting needed (single-linkage transitivity)
         for i, j in zip(src_idx, dst_idx, strict=True):
@@ -200,55 +204,58 @@ def _agglomerative_clustering(
             ),
             axis=0,
         )  # (8, N)
-
-        # Coordinates in each order.
-        xo = x[orders_stacked]  # (8, N)
-        yo = y[orders_stacked]  # (8, N)
-
-        # Use all windows for forward orders (0,2,4,6) and only the first
-        # `window` windows for reversed orders (1,3,5,7) to cover the tail
-        # efficiently without materializing all reversed windows.
-        x_win = np.lib.stride_tricks.sliding_window_view(
-            xo, window_shape=window + 1, axis=1
-        )
-        y_win = np.lib.stride_tricks.sliding_window_view(
-            yo, window_shape=window + 1, axis=1
-        )
-        x_win = np.concatenate((x_win[::2], x_win[1::2, :window]), axis=1)
-        y_win = np.concatenate((y_win[::2], y_win[1::2, :window]), axis=1)
-
-        # Chebyshev distance per (src,dst) pair.
-        dx = np.abs(x_win[..., 1:] - x_win[..., :1])
-        dy = np.abs(y_win[..., 1:] - y_win[..., :1])
-        ed = np.maximum(dx, dy).reshape(-1)
-
-        # Kruskal: sort edges by weight; union until n_clusters.
-        order_e = np.argsort(ed)
+        del order_x, order_y, order_xpy, order_xmy
 
         # Sliding windows: per order, take width (window+1). First column is the
         # source; remaining columns are destinations i+1..i+window.
         orders_win = np.lib.stride_tricks.sliding_window_view(
             orders_stacked, window_shape=window + 1, axis=1
-        )
+        )  # (8, N-window, window+1)
         orders_win = np.concatenate(
             (orders_win[::2], orders_win[1::2, :window]), axis=1
-        )
+        )  # (4, N, window+1)
+        del orders_stacked
 
-        src_idx = orders_win[..., 0].reshape(-1)[order_e // window]
+        # Chebyshev distance per (src,dst) pair
+        src_ix = orders_win[..., :1]  # (4, N, 1)
+        dst_ix = orders_win[..., 1:]  # (4, N, window)
+        dx = x[dst_ix]
+        dx -= x[src_ix]
+        np.abs(dx, out=dx)
+        dy = y[dst_ix]
+        dy -= y[src_ix]
+        np.abs(dy, out=dy)
+        np.maximum(dx, dy, out=dx)
+        ed = dx.reshape(-1)
+        del x, y, src_ix, dst_ix, dx, dy
+
+        # Kruskal: sort edges by weight
+        order_e = np.argsort(ed)
         dst_idx = orders_win[..., 1:].reshape(-1)[order_e]
+        order_e //= window
+        src_idx = orders_win[..., 0].reshape(-1)[order_e]
+        del orders_win, ed, order_e
 
-        # Deduplicate exact directed edges across orders
-        keys = np.minimum(src_idx, dst_idx) * num_points + np.maximum(src_idx, dst_idx)
+        # Make edges undirected by sorting (src,dst)
+        keys = np.minimum(src_idx, dst_idx)
+        np.maximum(src_idx, dst_idx, out=dst_idx)
+        src_idx[...] = keys
+
+        # Deduplicate edges
+        keys *= num_points
+        keys += dst_idx
         order = np.argsort(keys)
         keys = keys[order]
         keep_sorted = np.empty(order.size, dtype=bool)
         keep_sorted[0] = True
-        keep_sorted[1:] = keys[1:] != keys[:-1]
+        np.not_equal(keys[1:], keys[:-1], out=keep_sorted[1:])
         keep = np.empty(order.size, dtype=bool)
         keep[order] = keep_sorted
         src_idx = src_idx[keep]
         dst_idx = dst_idx[keep]
+        del keys, order, keep_sorted, keep
 
+        # Union until n_clusters
         for i, j in zip(src_idx, dst_idx, strict=True):
             # Find roots with path halving
             while parent[i] != i:
@@ -264,6 +271,8 @@ def _agglomerative_clustering(
                 num_points -= 1
                 if num_points <= n_clusters:
                     break
+
+    del src_idx, dst_idx
 
     # Vectorized parent-pointer jumping to fully compress paths
     new_parent = parent[parent]
