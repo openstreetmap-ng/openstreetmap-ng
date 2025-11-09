@@ -34,6 +34,7 @@
     "prettier": "latest",
     "rtlcss": "latest",
     "sass-embedded": "latest",
+    "sql-formatter": "latest",
     "terser": "latest",
     "typed-query-selector": "latest",
     "typescript": "latest",

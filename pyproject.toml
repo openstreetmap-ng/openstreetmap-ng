@@ -65,7 +65,6 @@ dev = [
   "authlib",
   "cairosvg",
   "coverage",
-  "pre-commit",
   "pyarrow-stubs",
   "pytest",
   "pytest-asyncio",

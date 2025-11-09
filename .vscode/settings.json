@@ -81,11 +81,6 @@
   "python.testing.unittestEnabled": false,
   "scss.lint.vendorPrefix": "ignore",
   "somesass.workspace.loadPaths": ["app/views"],
-  "SQL-Formatter-VSCode.dataTypeCase": "lower",
-  "SQL-Formatter-VSCode.dialect": "postgresql",
-  "SQL-Formatter-VSCode.functionCase": "lower",
-  "SQL-Formatter-VSCode.keywordCase": "upper",
-  "SQL-Formatter-VSCode.tabSizeOverride": 4,
   "typescript.disableAutomaticTypeAcquisition": true,
   "typescript.tsdk": "node_modules/typescript/lib"
 }

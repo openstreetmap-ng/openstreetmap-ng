@@ -31,12 +31,6 @@ let
   pkgs = import (fetchTarball pkgsUrl) { };
 
   projectDir = toString ./.;
-  preCommitConf = import ./config/pre-commit-config.nix {
-    inherit pkgs makeScript;
-  };
-  preCommitHook = import ./config/pre-commit-hook.nix {
-    inherit pkgs projectDir preCommitConf;
-  };
   postgresArgs = {
     inherit
       hostMemoryMb
@@ -664,10 +658,47 @@ let
         ''
     ))
     (makeScript "format" ''
-      set +e
-      pre-commit run -c ${preCommitConf} --all-files
-      ruff check --fix
-      biome check --fix --formatter-enabled=false
+      if [ "$1" = "--staged" ]; then
+        list_files() { git diff --cached --name-only --diff-filter=ACMR -z -- "$@"; }
+      else
+        list_files() {
+          git ls-files -z "$@" | while IFS= read -r -d ''' file; do
+            test -e "$file" && printf '%s\0' "$file"
+          done
+        }
+      fi
+
+      # format_files <patterns...> -- <command...>
+      format_files() {
+        local patterns=()
+        while [ "$1" != "--" ]; do
+          patterns+=("$1")
+          shift
+        done
+        shift  # Skip the --
+        echo "Formatting ''${patterns[*]} files..."
+        list_files "''${patterns[@]}" | xargs -0 -r "$@"
+      }
+
+      # Run formatters
+      format_files '*.c' '*.h' -- clang-format -i
+      format_files '*.nix' -- nixfmt
+      format_files '*.py' '*.pyi' -- ruff check --select I --fix --force-exclude
+      format_files '*.py' '*.pyi' -- ruff format --force-exclude
+      format_files '*.scss' -- pnpm exec prettier --cache --write
+      format_files '*.sql' -- pnpm exec sql-formatter --fix
+      format_files '*.ts' '*.js' '*.json' -- biome format --write --no-errors-on-unmatched
+
+      if [ "$1" = "--staged" ]; then
+        # Stage changes
+        git diff --name-only -z | xargs -0 -r git add
+      else
+        # Run linters
+        set +e
+        echo "Linting files..."
+        ruff check --fix
+        biome check --fix --formatter-enabled=false
+      fi
     '')
     (makeScript "pyright" "pnpm exec basedpyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
@@ -814,9 +845,8 @@ let
     + ''
 
       if [ -d .git ]; then
-        echo "Installing pre-commit hooks"
-        pre-commit install -c ${preCommitConf} --overwrite
-        cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
+        echo "Installing git hooks"
+        ln -sf ${makeScript "pre-commit" "exec format --staged"}/bin/pre-commit .git/hooks/pre-commit
       fi
 
     ''
