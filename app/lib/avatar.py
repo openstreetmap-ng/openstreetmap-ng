@@ -5,48 +5,21 @@ from random import Random
 from typing import Literal
 
 import cython
-from pydantic import SecretStr
 
-from app.config import DYNAMIC_AVATAR_CACHE_EXPIRE
-from app.lib.crypto import hash_storage_key
-from app.models.types import StorageKey
-from app.services.cache_service import CacheContext, CacheService
+from app.lib.crypto import hmac_bytes
 
 _AvatarStyle = Literal['initials', 'shapes']
 
 
-async def generate_avatar(style: _AvatarStyle, text: str | SecretStr, /) -> bytes:
+def generate_avatar(style: _AvatarStyle, text: str, /) -> bytes:
     """Generate a random avatar SVG."""
-    cache_key = hash_storage_key(
-        f'{style}/{text.get_secret_value() if isinstance(text, SecretStr) else text}',
-        '.svg',
-    )
-
-    def factory() -> bytes:
-        return _generate_avatar_impl(style, text, cache_key)
-
-    return await CacheService.get(
-        cache_key,
-        CacheContext(f'Avatar:{style}'),
-        factory,
-        ttl=DYNAMIC_AVATAR_CACHE_EXPIRE,
-    )
-
-
-@cython.cfunc
-def _generate_avatar_impl(
-    style: _AvatarStyle, text: str | SecretStr, cache_key: StorageKey, /
-) -> bytes:
     if style == 'initials':
-        assert not isinstance(text, SecretStr), (
-            'initials style must not be used with SecretStr'
-        )
-        svg = _generate_initials(text, cache_key)
+        svg = _generate_initials(text)
     else:  # shapes
-        svg = _generate_shapes(cache_key)
+        svg = _generate_shapes(hmac_bytes(text))
 
-    logging.debug('Avatar generated successfully (style=%r)', style)
-    return svg.encode().replace(b'\n', b'')
+    logging.debug('Generated %r avatar', style)
+    return svg.encode()
 
 
 def _hsl_to_rgb(h: cython.double, s: cython.double, l: cython.double) -> str:
@@ -146,9 +119,9 @@ def _generate_accessible_color(rng: Random) -> str:
 
 
 @cython.cfunc
-def _generate_initials(text: str, cache_key: StorageKey) -> str:
+def _generate_initials(text: str) -> str:
     """https://www.dicebear.com/styles/initials/"""
-    rng = Random(cache_key)
+    rng = Random(text)
     font_size = 50
     dy = font_size * 0.356
 
@@ -174,9 +147,9 @@ _SHAPE_DEFS = {
 
 
 @cython.cfunc
-def _generate_shapes(cache_key: StorageKey) -> str:
+def _generate_shapes(seed: int | float | str | bytes | bytearray) -> str:
     """https://www.dicebear.com/styles/shapes/"""
-    rng = Random(cache_key)
+    rng = Random(seed)
 
     # Generate complementary harmony palette
 

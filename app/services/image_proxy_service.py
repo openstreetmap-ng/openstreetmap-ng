@@ -179,8 +179,8 @@ class ImageProxyService:
                     return match[0]
 
                 padding = 48  # Account for padding around the image
-                width = entry['width'] + padding
-                height = entry['height'] + padding
+                width = entry['width'] + padding  # type: ignore
+                height = entry['height'] + padding  # type: ignore
                 return f'{match[0]} width={width} height={height} data-thumbnail={entry["thumbnail"]}'
 
             item[html_field] = _INLINE_RE.sub(repl, html)

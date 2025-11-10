@@ -2,14 +2,12 @@ from typing import Annotated
 
 import magic
 from fastapi import APIRouter, Path, Response
-from pydantic import SecretStr
 from starlette import status
 
 from app.config import (
     GRAVATAR_CACHE_EXPIRE,
     IMAGE_PROXY_CACHE_EXPIRE,
     INITIALS_CACHE_MAX_AGE,
-    SECRET,
     STATIC_CACHE_MAX_AGE,
     STATIC_CACHE_STALE,
 )
@@ -39,8 +37,8 @@ async def anonymous_note_avatar(note_id: NoteId) -> Response:
     ):
         return Response(None, status.HTTP_404_NOT_FOUND)
 
-    text = SecretStr(f'{comment["created_at"].year}/{comment["user_ip"]}/{SECRET}')
-    file = await generate_avatar('shapes', text)
+    text = f'{comment["created_at"].year}/{comment["user_ip"]}'
+    file = generate_avatar('shapes', text)
     content_type = 'image/svg+xml'
     return Response(file, media_type=content_type)
 
@@ -52,7 +50,7 @@ async def text_avatar(user_id: UserId) -> Response:
     if user is None:
         return Response(None, status.HTTP_404_NOT_FOUND)
 
-    file = await generate_avatar('initials', user['display_name'])
+    file = generate_avatar('initials', user['display_name'])
     content_type = 'image/svg+xml'
     return Response(file, media_type=content_type)
 
