@@ -2,17 +2,20 @@ name: Deploy to server
 
 on:
   workflow_dispatch:
-    inputs:
-      update_server:
-        description: "Update the server before deployment"
-        type: boolean
-        default: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          ping: ${{ vars.SSH_HOST }}
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
@@ -20,49 +23,10 @@ jobs:
           echo "${{ vars.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           echo "Host remote
             User root
-            Hostname test.openstreetmap.ng
+            Hostname ${{ vars.SSH_HOST }}
             IdentityFile ~/.ssh/id
           " > ~/.ssh/config
 
       - name: Deploy
         run: |
-          ssh remote <<\EOF
-            set -euxo pipefail
-
-            : Fetch changes
-            cd /data/osm-ng
-            git fetch origin "${{ github.sha }}"
-
-            : Setup build environment
-            WORKTREE=$(mktemp -d .gh-deploy.XXXXXXXXXX)
-            cleanup() {
-              cd /data/osm-ng
-              git worktree remove --force "$WORKTREE" || true
-            }
-            trap cleanup EXIT
-            git worktree add --detach "$WORKTREE" "${{ github.sha }}"
-
-            : Build the new configuration
-            cd "$WORKTREE"
-            cp config/services-test.nix /etc/nixos/services.nix
-            if [ "${{ inputs.update_server }}" = "true" ]; then
-              nixos-rebuild build --upgrade
-            else
-              nixos-rebuild build
-            fi
-
-            : Stop services
-            systemctl stop osm-ng-dev
-
-            : Synchronize changes
-            cd /data/osm-ng
-            FILES=$(git diff --name-only --diff-filter=d "HEAD..${{ github.sha }}")
-            sudo -u osm-ng \
-              git reset --hard "${{ github.sha }}"
-            echo "$FILES" | sudo -u osm-ng \
-              nix-shell -p gitMinimal --run \
-              'nix-shell --arg shellHook false --run git-restore-mtimes'
-
-            : Activate the new configuration
-            "$WORKTREE/result/bin/switch-to-configuration" switch
-          EOF
+          ssh remote "${{ github.sha }}"

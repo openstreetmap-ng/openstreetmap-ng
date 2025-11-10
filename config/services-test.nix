@@ -1,19 +1,16 @@
 { pkgs, ... }:
 
 # Service configuration for OSM-NG testing instance
-# Specs: hmad.large (4T, 32GB RAM, 100GB SSD) + 4000GB SSD
-# https://cloudferro.com/pricing/virtual-machines-vm-2/
 
 let
   commonServiceConfig = {
     User = "osm-ng";
-    WorkingDirectory = "/data/osm-ng";
+    WorkingDirectory = "/media/data/osm-ng";
 
     ProtectSystem = "strict";
     ReadWritePaths = [
       "/home/osm-ng"
-      "/data/osm-ng"
-      "/data/tmp"
+      "/media/data/osm-ng"
       "/nix/var/nix/daemon-socket/socket"
     ];
     NoExecPaths = "/";
@@ -60,12 +57,11 @@ let
     ${pkgs.nix}/bin/nix-shell \
       --pure \
       --arg isDevelopment false \
-      --arg hostMemoryMb 29886 \
+      --arg hostMemoryMb 128721 \
       --arg hostDiskCoW true \
-      --arg postgresParallelWorkers 3 \
-      --arg postgresIOConcurrency 500 \
-      --arg postgresRandomPageCost 4 \
-      --arg postgresMaxWalSizeGb 65 \
+      --arg postgresParallelWorkers 18 \
+      --arg postgresParallelMaintenanceWorkers 6 \
+      --arg postgresMaxWalSizeGb 100 \
       --arg postgresVerbose 1 \
       --arg gunicornWorkers 3 \
       --run "
@@ -91,6 +87,7 @@ in
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     unitConfig = {
+      RequiresMountsFor = "/media/data/osm-ng";
       StartLimitIntervalSec = "infinity";
       StartLimitBurst = 30;
     };
@@ -182,11 +179,11 @@ in
   };
 
   systemd.services.osm-ng-replication-download = {
-    enable = false;
-    after = [ "osm-ng-dev.service" ];
-    bindsTo = [ "osm-ng-dev.service" ];
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
     wantedBy = [ "default.target" ];
     unitConfig = {
+      RequiresMountsFor = "/media/data/osm-ng";
       StartLimitIntervalSec = "infinity";
       StartLimitBurst = 30;
     };
