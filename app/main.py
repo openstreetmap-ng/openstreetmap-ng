@@ -9,9 +9,12 @@ import traceback
 from contextlib import asynccontextmanager
 from time import tzset
 
+import fastapi.dependencies.utils
+import fastapi.routing
 from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.asyncexitstack import AsyncExitStackMiddleware
+from starlette import concurrency as starlette_concurrency
 from starlette import status
 from starlette.applications import Starlette
 from starlette.convertors import register_url_convertor
@@ -64,6 +67,16 @@ from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.rate_limit_service import RateLimitService
 from app.services.system_app_service import SystemAppService
 from app.services.test_service import TestService
+
+
+# HACK: Execute sync functions directly without threadpool
+async def _async_wrapper(func, *args, **kwargs):
+    return func(*args, **kwargs)
+
+
+starlette_concurrency.run_in_threadpool = _async_wrapper
+fastapi.routing.run_in_threadpool = _async_wrapper
+fastapi.dependencies.utils.run_in_threadpool = _async_wrapper
 
 # set the timezone to UTC
 # note that "export TZ=UTC" from shell.nix is unreliable for some users
