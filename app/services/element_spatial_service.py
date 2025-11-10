@@ -381,7 +381,7 @@ async def _process_depth(
         if not num_items:
             logging.debug('Depth %d: No relations to process', depth)
             return 0
-        if prev_num_items == num_items:
+        if depth > 1 and prev_num_items == num_items:
             logging.debug('Depth %d: No more progress is being made', depth)
             return 0
 
