@@ -40,5 +40,5 @@ async def test_normalize_avatar_preserves_animation(animation: bytes):
     normalized = await Image.normalize_proxy_image(animation)
     result = PILImage.open(BytesIO(normalized[0]))
     assert len(normalized[0]) < len(animation)
-    assert result.is_animated
-    assert 1 < result.n_frames <= IMAGE_MAX_FRAMES
+    assert result.is_animated  # type: ignore
+    assert 1 < result.n_frames <= IMAGE_MAX_FRAMES  # type: ignore
