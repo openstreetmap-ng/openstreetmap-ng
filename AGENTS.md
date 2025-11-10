@@ -4,7 +4,7 @@ This is the single set of ground rules for this repo. It orients new contributor
 
 ## Project At A Glance
 
-- Backend: Python 3.13, FastAPI, async Psycopg 3, PostgreSQL 17 (PostGIS, TimescaleDB). Optional acceleration via Cython (pure‑Python mode) and `speedup` C extension.
+- Backend: Python 3.13, FastAPI, async Psycopg 3, PostgreSQL 18 (PostGIS, TimescaleDB). Optional acceleration via Cython (pure‑Python mode) and `speedup` C extension.
 - Frontend: Jinja2 server‑rendered HTML; Vite‑bundled TypeScript (ES2023) and SCSS; Bootstrap 5 + Bootstrap Icons; MapLibre GL.
 - Tooling: Reproducible dev shell (`shell.nix`), Python deps via `uv`, Node via `pnpm`, formatting with Ruff/Biome, type checks with BasedPyright.
 

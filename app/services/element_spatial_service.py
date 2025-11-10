@@ -153,7 +153,8 @@ rels_computed AS (
         rel_geom.geom
     FROM rels_ready rr
     LEFT JOIN LATERAL (
-        WITH member_geoms AS (
+        -- TODO: Remove `NOT MATERIALIZED` after BUG #19106 is fixed
+        WITH member_geoms AS NOT MATERIALIZED (
             SELECT ST_Collect(geom_val) AS geom
             FROM (
                 SELECT gl.geom AS geom_val
@@ -177,14 +178,14 @@ rels_computed AS (
                 WHERE m.member_id <= 2305843009213693951
             )
         ),
-        noded_geoms AS (
+        noded_geoms AS NOT MATERIALIZED (
             SELECT ST_UnaryUnion(ST_Collect(
                 ST_CollectionExtract(member_geoms.geom, 2),
                 ST_Boundary(ST_CollectionExtract(member_geoms.geom, 3))
             )) AS geom
             FROM member_geoms
         ),
-        polygon_geoms AS (
+        polygon_geoms AS NOT MATERIALIZED (
             SELECT ST_UnaryUnion(ST_Collect(
                 ST_CollectionExtract(ST_Polygonize((SELECT geom FROM noded_geoms)), 3),
                 ST_CollectionExtract((SELECT geom FROM member_geoms), 3)
@@ -327,18 +328,20 @@ async def _update(
     )
 
     # Process all depths (0=ways, 1+=relations)
+    num_items = -1
     depth: cython.Py_ssize_t
     for depth in range(_MAX_RELATION_NESTING_DEPTH + 1):
-        processed = await _process_depth(
+        num_items = await _process_depth(
             depth=depth,
             last_sequence=last_sequence,
             max_sequence=max_sequence,
             parallelism=parallelism,
             batch_size=ways_batch_size if not depth else rels_batch_size,
+            prev_num_items=num_items,
         )
 
         # Early exit for relations if nothing processed
-        if depth and not processed:
+        if depth and not num_items:
             break
 
         # Seed pending relations for the next depth
@@ -361,8 +364,9 @@ async def _process_depth(
     max_sequence: int,
     parallelism: int,
     batch_size: int,
-) -> bool:
-    """Process a single depth of element_spatial updates."""
+    prev_num_items: int,
+) -> int:
+    """Process a single depth of element_spatial updates. Returns the count of items processed."""
     # Determine what to process and how many items
     if depth:
         async with (
@@ -373,9 +377,14 @@ async def _process_depth(
             ) as r,
         ):
             (num_items,) = await r.fetchone()  # type: ignore
+
         if not num_items:
             logging.debug('Depth %d: No relations to process', depth)
-            return False
+            return 0
+        if prev_num_items == num_items:
+            logging.debug('Depth %d: No more progress is being made', depth)
+            return 0
+
         logging.debug('Depth %d: Processing %d relations', depth, num_items)
     else:
         num_items = max_sequence - last_sequence
@@ -448,7 +457,7 @@ async def _process_depth(
                 """
             )
 
-    return True
+    return num_items
 
 
 async def _seed_pending_relations(

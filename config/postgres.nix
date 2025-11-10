@@ -138,6 +138,7 @@ writeText "postgres.conf" (
     random_page_cost = ${toString postgresRandomPageCost}
   ''
   + lib.optionalString (!stdenv.isDarwin) ''
+    io_method = io_uring
     effective_io_concurrency = ${toString postgresIOConcurrency}
     maintenance_io_concurrency = ${toString postgresIOConcurrency}
   ''

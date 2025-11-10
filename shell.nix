@@ -9,8 +9,8 @@
   postgresWorkMemMb ? 64,
   postgresWorkers ?
     postgresParallelWorkers + postgresAutovacuumWorkers + postgresTimescaleWorkers + 1,
-  postgresParallelWorkers ? postgresParallelMaintenanceWorkers * 8,
-  postgresParallelMaintenanceWorkers ? 1,
+  postgresParallelWorkers ? postgresParallelMaintenanceWorkers * 2,
+  postgresParallelMaintenanceWorkers ? 4,
   postgresAutovacuumWorkers ? 2,
   postgresTimescaleWorkers ? 3,
   postgresIOConcurrency ? 300,
@@ -164,7 +164,7 @@ let
     pnpm
     biome
     # Services:
-    (postgresql_17_jit.withPackages (ps: [
+    (postgresql_18_jit.withPackages (ps: [
       ps.timescaledb-apache
       ps.postgis
       ps.h3-pg
@@ -691,7 +691,7 @@ let
 
       if [ "$1" = "--staged" ]; then
         # Stage changes
-        git diff --name-only -z | xargs -0 -r git add
+        git diff --cached --name-only --diff-filter=ACMR -z -- | xargs -0 -r git add --
       else
         # Run linters
         set +e

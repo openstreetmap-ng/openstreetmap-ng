@@ -145,6 +145,8 @@ CREATE UNIQUE INDEX user_display_name_idx ON "user" (display_name);
 CREATE INDEX user_display_name_pattern_idx ON "user" USING gin (display_name gin_trgm_ops);
 
 CREATE INDEX user_pending_idx ON "user" (created_at)
+WITH
+    (fillfactor = 100)
 WHERE
     NOT email_verified;
 
@@ -200,7 +202,9 @@ CREATE TABLE oauth2_application (
 
 CREATE UNIQUE INDEX oauth2_application_client_id_idx ON oauth2_application (client_id);
 
-CREATE INDEX oauth2_application_created_at_idx ON oauth2_application (created_at);
+CREATE INDEX oauth2_application_created_at_idx ON oauth2_application (created_at)
+WITH
+    (fillfactor = 100);
 
 CREATE INDEX oauth2_application_user_created_at_idx ON oauth2_application (user_id, created_at)
 WHERE
@@ -235,6 +239,8 @@ CREATE INDEX oauth2_token_app_user_idx ON oauth2_token (application_id, user_id)
 CREATE INDEX oauth2_token_user_app_idx ON oauth2_token (user_id, application_id, id) INCLUDE (authorized_at);
 
 CREATE INDEX oauth2_token_stale_unauthorized_idx ON oauth2_token (created_at) INCLUDE (application_id)
+WITH
+    (fillfactor = 100)
 WHERE
     authorized_at IS NULL;
 
@@ -292,11 +298,11 @@ CREATE TABLE audit (
     application_id bigint,
     extra jsonb,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
-)
+);
+
+CREATE INDEX audit_created_at_idx ON audit (created_at) INCLUDE (type)
 WITH
     (fillfactor = 100);
-
-CREATE INDEX audit_created_at_idx ON audit (created_at) INCLUDE (type);
 
 CREATE INDEX audit_ip_created_at_idx ON audit (ip, created_at) INCLUDE (type, user_id, application_id);
 
@@ -350,18 +356,26 @@ CREATE INDEX changeset_user_created_at_idx ON changeset (user_id, created_at)
 WHERE
     user_id IS NOT NULL;
 
-CREATE INDEX changeset_created_at_idx ON changeset (created_at);
+CREATE INDEX changeset_created_at_idx ON changeset (created_at)
+WITH
+    (fillfactor = 100);
 
 CREATE INDEX changeset_closed_at_idx ON changeset (closed_at)
+WITH
+    (fillfactor = 100)
 WHERE
     closed_at IS NOT NULL;
 
-CREATE INDEX changeset_closed_at_empty_idx ON changeset (closed_at ASC)
+CREATE INDEX changeset_closed_at_empty_idx ON changeset (closed_at)
+WITH
+    (fillfactor = 100)
 WHERE
     closed_at IS NOT NULL
     AND size = 0;
 
-CREATE INDEX changeset_open_idx ON changeset (updated_at ASC) INCLUDE (created_at)
+CREATE INDEX changeset_open_idx ON changeset (updated_at) INCLUDE (created_at)
+WITH
+    (fillfactor = 100)
 WHERE
     closed_at IS NULL;
 
@@ -389,14 +403,7 @@ CREATE TABLE changeset_comment (
     body text NOT NULL,
     body_rich_hash bytea,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
-)
-WITH
-    (
-        tsdb.hypertable,
-        tsdb.partition_column = 'changeset_id',
-        tsdb.chunk_interval = '10000000',
-        tsdb.create_default_indexes = FALSE
-    );
+);
 
 CREATE INDEX changeset_comment_changeset_id_idx ON changeset_comment (changeset_id, id);
 
@@ -423,7 +430,9 @@ WITH
         tsdb.create_default_indexes = FALSE
     );
 
-CREATE INDEX element_sequence_idx ON element (sequence_id);
+CREATE INDEX element_sequence_idx ON element (sequence_id)
+WITH
+    (fillfactor = 100);
 
 CREATE INDEX element_changeset_idx ON element (changeset_id);
 
@@ -542,7 +551,9 @@ CREATE TABLE mail (
     scheduled_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 
-CREATE INDEX mail_scheduled_at_idx ON mail (scheduled_at);
+CREATE INDEX mail_scheduled_at_idx ON mail (scheduled_at)
+WITH
+    (fillfactor = 100);
 
 CREATE TABLE message (
     id bigint PRIMARY KEY,
@@ -587,13 +598,21 @@ WITH
 
 CREATE INDEX note_point_idx ON note USING gist (point, created_at, updated_at, closed_at);
 
-CREATE INDEX note_created_at_idx ON note (created_at);
+CREATE INDEX note_created_at_idx ON note (created_at)
+WITH
+    (fillfactor = 100);
 
-CREATE INDEX note_updated_at_idx ON note (updated_at);
+CREATE INDEX note_updated_at_idx ON note (updated_at)
+WITH
+    (fillfactor = 100);
 
-CREATE INDEX note_closed_at_idx ON note (closed_at);
+CREATE INDEX note_closed_at_idx ON note (closed_at)
+WITH
+    (fillfactor = 100);
 
 CREATE INDEX note_hidden_idx ON note (hidden_at)
+WITH
+    (fillfactor = 100)
 WHERE
     hidden_at IS NOT NULL;
 
@@ -614,16 +633,11 @@ CREATE TABLE note_comment (
     body text NOT NULL,
     body_rich_hash bytea,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
-)
-WITH
-    (
-        tsdb.hypertable,
-        tsdb.partition_column = 'note_id',
-        tsdb.chunk_interval = '1000000',
-        tsdb.create_default_indexes = FALSE
-    );
+);
 
-CREATE INDEX note_comment_id_idx ON note_comment (id);
+CREATE INDEX note_comment_id_idx ON note_comment (id)
+WITH
+    (fillfactor = 100);
 
 CREATE INDEX note_comment_note_id_idx ON note_comment (note_id, id);
 
@@ -647,10 +661,14 @@ CREATE TABLE report (
 CREATE UNIQUE INDEX idx_report_type_id ON report (type, type_id);
 
 CREATE INDEX idx_report_open_updated_at ON report (updated_at) INCLUDE (id)
+WITH
+    (fillfactor = 100)
 WHERE
     closed_at IS NULL;
 
 CREATE INDEX idx_report_closed_updated_at ON report (updated_at)
+WITH
+    (fillfactor = 100)
 WHERE
     closed_at IS NOT NULL;
 
@@ -784,12 +802,18 @@ CREATE TABLE admin_task (
     heartbeat_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 
-CREATE INDEX admin_task_heartbeat_at_idx ON admin_task (heartbeat_at);
+CREATE INDEX admin_task_heartbeat_at_idx ON admin_task (heartbeat_at)
+WITH
+    (fillfactor = 100);
 
 CREATE UNLOGGED TABLE rate_limit (
     key text PRIMARY KEY,
     usage real NOT NULL,
     updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
-);
+)
+WITH
+    (fillfactor = 90);
 
-CREATE INDEX rate_limit_updated_at_idx ON rate_limit (updated_at);
+CREATE INDEX rate_limit_updated_at_idx ON rate_limit (updated_at)
+WITH
+    (fillfactor = 100);
