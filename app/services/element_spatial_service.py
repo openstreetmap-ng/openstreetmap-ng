@@ -328,20 +328,15 @@ async def _update(
     )
 
     # Process all depths (0=ways, 1+=relations)
-    num_items = -1
     depth: cython.Py_ssize_t
     for depth in range(_MAX_RELATION_NESTING_DEPTH + 1):
-        num_items = await _process_depth(
+        if not await _process_depth(
             depth=depth,
             last_sequence=last_sequence,
             max_sequence=max_sequence,
             parallelism=parallelism,
             batch_size=ways_batch_size if not depth else rels_batch_size,
-            prev_num_items=num_items,
-        )
-
-        # Early exit for relations if nothing processed
-        if depth and not num_items:
+        ):
             break
 
         # Seed pending relations for the next depth
@@ -364,9 +359,8 @@ async def _process_depth(
     max_sequence: int,
     parallelism: int,
     batch_size: int,
-    prev_num_items: int,
-) -> int:
-    """Process a single depth of element_spatial updates. Returns the count of items processed."""
+) -> bool:
+    """Process a single depth of element_spatial updates. Returns True if progress was made."""
     # Determine what to process and how many items
     if depth:
         async with (
@@ -380,10 +374,7 @@ async def _process_depth(
 
         if not num_items:
             logging.debug('Depth %d: No relations to process', depth)
-            return 0
-        if depth > 1 and prev_num_items == num_items:
-            logging.debug('Depth %d: No more progress is being made', depth)
-            return 0
+            return False
 
         logging.debug('Depth %d: Processing %d relations', depth, num_items)
     else:
@@ -456,8 +447,21 @@ async def _process_depth(
                   AND t.updated_sequence_id < dups.max_seq
                 """
             )
+        else:
+            async with await conn.execute(
+                """
+                SELECT COUNT(*) FROM element_spatial_staging
+                WHERE depth = %s
+                """,
+                (depth,),
+            ) as r:
+                (rels_inserted,) = await r.fetchone()  # type: ignore
 
-    return num_items
+            if not rels_inserted:
+                logging.debug('Depth %d: No more progress is being made', depth)
+                return False
+
+    return True
 
 
 async def _seed_pending_relations(
