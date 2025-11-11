@@ -30,6 +30,7 @@ from app.models.element import (
 from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
 from app.utils import calc_num_workers
+from scripts.replication_download import replication_lock
 
 _Mode = Literal['preload', 'replication']
 
@@ -345,7 +346,8 @@ async def main(mode: _Mode) -> None:
         logging.error('Aborted')
         return
 
-    await _load_tables(mode)
+    with replication_lock() if mode == 'replication' else nullcontext():
+        await _load_tables(mode)
 
     logging.info('Updating statistics')
     async with db(True, autocommit=True) as conn:

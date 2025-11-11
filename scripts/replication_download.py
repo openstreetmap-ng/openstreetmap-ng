@@ -1,8 +1,10 @@
 import asyncio
+import fcntl
 import gc
 import gzip
 import logging
 from asyncio import sleep
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from itertools import pairwise
@@ -31,6 +33,7 @@ _Dataset = Literal['replication', 'redaction-period', 'cc-by-sa']
 _Frequency = Literal['minute', 'hour', 'day']
 
 _APP_STATE_PATH = REPLICATION_DIR.joinpath('state.json')
+_LOCK_PATH = REPLICATION_DIR.joinpath('.lock')
 
 _NEXT_DATASET: dict[_Dataset, _Dataset] = {
     from_: to for to, from_ in pairwise(get_args(_Dataset))
@@ -115,6 +118,14 @@ class AppState:
                 self.last_replica.created_at + _FREQUENCY_TIMEDELTA[self.frequency]
             ),
         )
+
+
+@contextmanager
+def replication_lock():
+    """Acquire exclusive lock on replication directory."""
+    with _LOCK_PATH.open('wb', buffering=0) as f:
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+        yield
 
 
 @cython.cfunc
@@ -506,6 +517,7 @@ async def main() -> None:
 
     while True:
         with (
+            replication_lock(),
             SENTRY_REPLICATION_MONITOR,
             start_transaction(op='task', name=SENTRY_REPLICATION_MONITOR_SLUG),
         ):
