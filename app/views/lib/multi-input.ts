@@ -14,10 +14,10 @@ for (const container of multiInputContainers) {
     const initiallyRequired = input.required
     const delimiter = ","
 
-    const tokenCount = (): number => tokensContainer.childElementCount
+    const tokens = new Map<string, HTMLElement>()
 
     const updateInputState = (): void => {
-        const count = tokenCount()
+        const count = tokens.size
         input.placeholder = count ? "" : placeholder
         input.required = initiallyRequired && !count
     }
@@ -29,8 +29,12 @@ for (const container of multiInputContainers) {
             e.stopPropagation()
             addTokenFromInput()
             input.value = value
-            tokenElement.remove()
+
+            // tokenElement may have been removed by addTokenFromInput
+            tokens.get(value).remove()
+            tokens.delete(value)
             updateInputState()
+
             input.focus()
             const len = input.value.length
             input.setSelectionRange(len, len)
@@ -48,6 +52,7 @@ for (const container of multiInputContainers) {
             (e) => {
                 e.stopPropagation()
                 tokenElement.remove()
+                tokens.delete(value)
                 updateInputState()
             },
             { once: true },
@@ -55,6 +60,9 @@ for (const container of multiInputContainers) {
 
         tokenElement.appendChild(textSpan)
         tokenElement.appendChild(removeButton)
+
+        tokens.get(value)?.remove()
+        tokens.set(value, tokenElement)
         return tokenElement
     }
 
@@ -62,23 +70,19 @@ for (const container of multiInputContainers) {
         value = value.trim()
         if (!value) return
 
-        // Ensure uniqueness by removing existing occurrence first
-        for (const tokenElement of tokensContainer.children) {
-            if (tokenElement.querySelector("span").textContent === value) {
-                tokenElement.remove()
-                break
-            }
-        }
-
-        tokensContainer.appendChild(createTokenElement(value))
+        const tokenElement = createTokenElement(value)
+        tokensContainer.appendChild(tokenElement)
         updateInputState()
     }
 
     const editLastToken = (): void => {
         const tokenElement = tokensContainer.lastElementChild
         if (!tokenElement) return
-        input.value = tokenElement.querySelector("span").textContent
+
+        const tokenValue = tokenElement.querySelector("span").textContent
+        input.value = tokenValue
         tokenElement.remove()
+        tokens.delete(tokenValue)
         updateInputState()
     }
 
@@ -94,7 +98,7 @@ for (const container of multiInputContainers) {
         if (e.key === "Enter") {
             e.preventDefault()
             addTokenFromInput()
-        } else if (e.key === "Backspace" && !input.value && tokenCount()) {
+        } else if (e.key === "Backspace" && !input.value && tokens.size) {
             e.preventDefault()
             editLastToken()
         }
@@ -124,12 +128,7 @@ for (const container of multiInputContainers) {
 
             // Add hidden input for each token
             const fragment = document.createDocumentFragment()
-            console.debug(
-                "Adding",
-                tokensContainer.children.length,
-                name,
-                "tokens to form",
-            )
+            console.debug("Adding", tokens.size, name, "tokens to form")
             for (const tokenElement of tokensContainer.children) {
                 const hiddenInput = document.createElement("input")
                 hiddenInput.type = "hidden"

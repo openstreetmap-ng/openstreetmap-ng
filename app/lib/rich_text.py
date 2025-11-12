@@ -235,7 +235,9 @@ async def _update_image_proxy_ids(
             params.extend((obj['id'], old_ids, new_ids))
             obj[image_proxy_field] = new_ids  # type: ignore[index]
             if old_ids:
-                removed_ids.update(i for i in old_ids if i not in new_ids)
+                new_removed_ids = set(old_ids)
+                new_removed_ids.difference_update(new_ids)
+                removed_ids |= new_removed_ids
 
     if not params:
         return
