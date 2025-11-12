@@ -57,7 +57,7 @@ let
     ${pkgs.nix}/bin/nix-shell \
       --pure \
       --arg isDevelopment false \
-      --arg hostMemoryMb 128721 \
+      --arg hostMemoryMb 100000 \
       --arg hostDiskCoW true \
       --arg postgresParallelWorkers 18 \
       --arg postgresParallelMaintenanceWorkers 6 \
