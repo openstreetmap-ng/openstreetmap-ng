@@ -11,6 +11,7 @@ let
     ReadWritePaths = [
       "/home/osm-ng"
       "/media/data/osm-ng"
+      "/media/data/tmp"
       "/nix/var/nix/daemon-socket/socket"
     ];
     NoExecPaths = "/";
