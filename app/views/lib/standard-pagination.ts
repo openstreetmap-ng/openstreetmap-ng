@@ -164,19 +164,20 @@ export const configureStandardPagination = (
             return
         }
 
+        const pagesToRender: number[] = []
+        pagesToRender.push(1)
+        for (
+            let i = currentPageValue - paginationDistance;
+            i <= currentPageValue + paginationDistance;
+            i++
+        ) {
+            if (i > 1 && i < totalPagesValue) pagesToRender.push(i)
+        }
+        pagesToRender.push(totalPagesValue)
+
         for (const paginationContainer of paginationContainers) {
             paginationContainer.classList.remove("d-none")
             const paginationFragment = document.createDocumentFragment()
-            const pagesToRender: number[] = []
-            pagesToRender.push(1)
-            for (
-                let i = currentPageValue - paginationDistance;
-                i <= currentPageValue + paginationDistance;
-                i++
-            ) {
-                if (i > 1 && i < totalPagesValue) pagesToRender.push(i)
-            }
-            pagesToRender.push(totalPagesValue)
 
             let previousPage = 0
             for (const pageNumber of pagesToRender) {
