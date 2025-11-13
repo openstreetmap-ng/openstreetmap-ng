@@ -383,7 +383,7 @@ async def _optimize_quality(
     low, high, step = 20, 90, 5
 
     # initial quick scan
-    for quality in range(80, 20 - 1, -20):  # noqa: PLR1704
+    for quality in range(80, 20 - 1, -20):
         img_bytes = await loop.run_in_executor(None, _save, img, quality, animation)
         img_size = len(img_bytes)
         logging.debug(

@@ -39,7 +39,7 @@ class ElementQuery:
         Returns 0 if no elements exist.
         """
         async with (
-            nullcontext(conn) if conn is not None else db() as conn,  # noqa: PLR1704
+            nullcontext(conn) if conn is not None else db() as conn,
             await conn.execute(
                 'SELECT COALESCE(MAX(sequence_id), 0) FROM element'
             ) as r,
@@ -47,13 +47,15 @@ class ElementQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def get_current_ids() -> dict[ElementType, ElementId]:
+    async def get_current_ids(
+        conn: AsyncConnection | None = None,
+    ) -> dict[ElementType, ElementId]:
         """
         Get the last id for each element type.
         Returns 0 if no elements exist with the given type.
         """
         async with (
-            db() as conn,
+            nullcontext(conn) if conn is not None else db() as conn,
             await conn.execute(
                 """
                 SELECT MAX(typed_id) FROM element
@@ -106,6 +108,7 @@ class ElementQuery:
 
     @staticmethod
     async def check_is_unreferenced(
+        conn: AsyncConnection,
         members: list[TypedElementId],
         after_sequence_id: SequenceId,
     ) -> bool:
@@ -116,20 +119,17 @@ class ElementQuery:
         if not members:
             return True
 
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT 1 FROM element
-                WHERE sequence_id > %s
-                AND members && %s::bigint[]
-                AND typed_id >= 1152921504606846976
-                AND latest
-                LIMIT 1
-                """,
-                (after_sequence_id, members),
-            ) as r,
-        ):
+        async with await conn.execute(
+            """
+            SELECT 1 FROM element
+            WHERE sequence_id > %s
+            AND members && %s::bigint[]
+            AND typed_id >= 1152921504606846976
+            AND latest
+            LIMIT 1
+            """,
+            (after_sequence_id, members),
+        ) as r:
             return await r.fetchone() is None
 
     @staticmethod
@@ -532,7 +532,7 @@ class ElementQuery:
         )
 
         async with (
-            nullcontext(conn) if conn is not None else db() as conn,  # noqa: PLR1704
+            nullcontext(conn) if conn is not None else db() as conn,
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
             return await r.fetchall()  # type: ignore

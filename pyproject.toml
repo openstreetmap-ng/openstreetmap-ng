@@ -164,6 +164,7 @@ ignore = [
   "N803",  # invalid-argument-name
   "PLR09",  # too-many-*
   "PLR1702",  # too-many-nested-blocks
+  "PLR1704",  # redefined-argument-from-local
   "PLR2",
   "PLR6301",  # no-self-use
   "PLW0603",  # global-statement

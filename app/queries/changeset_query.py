@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Literal
 
-from psycopg import IsolationLevel
+from psycopg import AsyncConnection, IsolationLevel
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from psycopg.sql import Literal as PgLiteral
@@ -16,23 +16,21 @@ from app.queries.timescaledb_query import TimescaleDBQuery
 class ChangesetQuery:
     @staticmethod
     async def map_ids_to_updated_at(
+        conn: AsyncConnection,
         changeset_ids: list[ChangesetId],
     ) -> dict[ChangesetId, datetime]:
         """Map changeset ids to their updated_at timestamps."""
         if not changeset_ids:
             return {}
 
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT id, updated_at
-                FROM changeset
-                WHERE id = ANY(%s)
-                """,
-                (changeset_ids,),
-            ) as r,
-        ):
+        async with await conn.execute(
+            """
+            SELECT id, updated_at
+            FROM changeset
+            WHERE id = ANY(%s)
+            """,
+            (changeset_ids,),
+        ) as r:
             return dict(await r.fetchall())
 
     @staticmethod

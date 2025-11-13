@@ -183,7 +183,7 @@ async def _audit_task(
         )
     )
 
-    async with nullcontext(conn) if conn is not None else db(True) as conn:  # noqa: PLR1704
+    async with nullcontext(conn) if conn is not None else db(True) as conn:
         await conn.execute(
             query,
             {

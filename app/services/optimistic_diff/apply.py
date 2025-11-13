@@ -63,7 +63,8 @@ class OptimisticDiffApply:
                 if prepare.reference_check_element_refs:
                     tg.create_task(
                         _check_elements_unreferenced(
-                            list(prepare.reference_check_element_refs),
+                            conn,
+                            prepare.reference_check_element_refs,
                             prepare.at_sequence_id,
                         )
                     )
@@ -100,13 +101,17 @@ class OptimisticDiffApply:
 
 
 async def _check_elements_unreferenced(
-    typed_ids: list[TypedElementId], after_sequence_id: SequenceId
+    conn: AsyncConnection,
+    typed_ids: set[TypedElementId],
+    after_sequence_id: SequenceId,
 ) -> None:
     """
     Check if the elements are currently unreferenced.
     Raises OptimisticDiffError if they are.
     """
-    if not await ElementQuery.check_is_unreferenced(list(typed_ids), after_sequence_id):
+    if not await ElementQuery.check_is_unreferenced(
+        conn, list(typed_ids), after_sequence_id
+    ):
         raise OptimisticDiffError(f'Element is referenced after {after_sequence_id}')
 
 
@@ -118,7 +123,7 @@ async def _update_changeset(
     Raises OptimisticDiffError if the changeset was modified in the meantime.
     """
     changeset_id = changeset['id']
-    updated_at_ = await ChangesetQuery.map_ids_to_updated_at([changeset_id])
+    updated_at_ = await ChangesetQuery.map_ids_to_updated_at(conn, [changeset_id])
     updated_at = updated_at_[changeset_id]
     if changeset['updated_at'] != updated_at:
         raise OptimisticDiffError(
@@ -183,12 +188,9 @@ async def _update_elements(
     elements_init: list[ElementInit],
 ) -> dict[TypedElementId, TypedElementId]:
     """Update the element table by creating new revisions."""
-    async with TaskGroup() as tg:
-        current_sequence_task = tg.create_task(ElementQuery.get_current_sequence_id())
-        current_id_task = tg.create_task(ElementQuery.get_current_ids())
-
-    current_sequence_id = current_sequence_task.result()
-    current_id_map: dict[ElementType, ElementId] = current_id_task.result()
+    current_sequence_id = await ElementQuery.get_current_sequence_id(conn)
+    current_id_map: dict[ElementType, ElementId]
+    current_id_map = await ElementQuery.get_current_ids(conn)
 
     elements: list[Element] = []
     prev_map: dict[TypedElementId, Element] = {}
