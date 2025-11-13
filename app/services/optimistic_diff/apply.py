@@ -1,4 +1,4 @@
-from asyncio import Lock, TaskGroup
+from asyncio import TaskGroup
 from datetime import datetime
 from io import BytesIO
 
@@ -22,8 +22,6 @@ from app.services.optimistic_diff.prepare import (
     OptimisticDiffPrepare,
 )
 from speedup.element_type import split_typed_element_id, typed_element_id
-
-_WRITE_LOCK = Lock()
 
 
 class OptimisticDiffApply:
@@ -130,55 +128,54 @@ async def _update_changeset(
             f'Changeset {changeset_id} is outdated ({changeset["updated_at"]} != {updated_at})'
         )
 
-    async with _WRITE_LOCK:
-        # Update the changeset
-        closed_at = now if 'size_limit_reached' in changeset else None
-        updated_at = now
-        await conn.execute(
-            """
-            UPDATE changeset
-            SET
-                size = %s,
-                num_create = %s,
-                num_modify = %s,
-                num_delete = %s,
-                union_bounds = ST_QuantizeCoordinates(%s, 7),
-                closed_at = %s,
-                updated_at = %s
-            WHERE id = %s
-            """,
-            (
-                changeset['size'],
-                changeset['num_create'],
-                changeset['num_modify'],
-                changeset['num_delete'],
-                changeset['union_bounds'],
-                closed_at,
-                updated_at,
-                changeset_id,
-            ),
-        )
+    # Update the changeset
+    closed_at = now if 'size_limit_reached' in changeset else None
+    updated_at = now
+    await conn.execute(
+        """
+        UPDATE changeset
+        SET
+            size = %s,
+            num_create = %s,
+            num_modify = %s,
+            num_delete = %s,
+            union_bounds = ST_QuantizeCoordinates(%s, 7),
+            closed_at = %s,
+            updated_at = %s
+        WHERE id = %s
+        """,
+        (
+            changeset['size'],
+            changeset['num_create'],
+            changeset['num_modify'],
+            changeset['num_delete'],
+            changeset['union_bounds'],
+            closed_at,
+            updated_at,
+            changeset_id,
+        ),
+    )
 
-        # Update the changeset bounds
-        # It's not possible for bounds to switch from MultiPolygon to None.
-        bounds = changeset.get('bounds')
-        if bounds is None:
-            return
+    # Update the changeset bounds
+    # It's not possible for bounds to switch from MultiPolygon to None.
+    bounds = changeset.get('bounds')
+    if bounds is None:
+        return
 
-        await conn.execute(
-            """
-            DELETE FROM changeset_bounds
-            WHERE changeset_id = %s
-            """,
-            (changeset_id,),
-        )
-        await conn.execute(
-            """
-            INSERT INTO changeset_bounds (changeset_id, bounds)
-            SELECT %s, (ST_Dump(ST_QuantizeCoordinates(%s, 7))).geom
-            """,
-            (changeset_id, bounds),
-        )
+    await conn.execute(
+        """
+        DELETE FROM changeset_bounds
+        WHERE changeset_id = %s
+        """,
+        (changeset_id,),
+    )
+    await conn.execute(
+        """
+        INSERT INTO changeset_bounds (changeset_id, bounds)
+        SELECT %s, (ST_Dump(ST_QuantizeCoordinates(%s, 7))).geom
+        """,
+        (changeset_id, bounds),
+    )
 
 
 async def _update_elements(
@@ -246,10 +243,8 @@ async def _update_elements(
                 for member in members
             ]
 
-    async with _WRITE_LOCK:
-        await _update_latest_elements(conn, element_state)
-        await _copy_elements(conn, elements)
-
+    await _update_latest_elements(conn, element_state)
+    await _copy_elements(conn, elements)
     return assigned_id_map
 
 
