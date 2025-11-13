@@ -310,7 +310,7 @@ def _find_migrations(
     # This is useful for quick iteration during development.
     allow_reapply = ENV == 'dev'
 
-    for migration in migrations[::-1]:
+    for migration in reversed(migrations):
         if allow_reapply:
             if migration[0] < current_version:
                 break
@@ -331,7 +331,8 @@ def _find_migrations(
 
         filtered.append(migration)
 
-    return filtered[::-1]
+    filtered.reverse()
+    return filtered
 
 
 async def _apply_migrations(

@@ -130,12 +130,8 @@ async def reports_page(
                 )
             )
 
-    return await render_response(
-        'reports/reports-page',
-        {
-            'reports': reports[::-1],
-        },
-    )
+    reports.reverse()
+    return await render_response('reports/reports-page', {'reports': reports})
 
 
 @router.get('/{report_id:int}/comments')

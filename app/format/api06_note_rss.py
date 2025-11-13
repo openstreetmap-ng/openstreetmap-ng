@@ -77,7 +77,7 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
     if len(comments) == 1:
         fe.title(t('api.notes.rss.opened', place=place))
     else:
-        for comment in comments[::-1]:
+        for comment in reversed(comments):
             comment_event = comment['event']
             if comment_event == 'hidden':
                 continue  # skip hide events

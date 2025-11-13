@@ -114,4 +114,5 @@ async def user_notes_page(
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(note_comments_resolve_rich_text(comments))
 
-    return await render_response('notes/user-page', {'notes': notes[::-1]})
+    notes.reverse()
+    return await render_response('notes/user-page', {'notes': notes})

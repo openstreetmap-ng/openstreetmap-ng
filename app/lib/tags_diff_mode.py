@@ -17,7 +17,7 @@ def tags_diff_mode(previous_element: Element | None, elements_data: list[dict]) 
     modified_tags: list[tuple[str, TagFormat]] = []
     unchanged_tags: list[tuple[str, TagFormat]] = []
 
-    for current in elements_data[::-1]:
+    for current in reversed(elements_data):
         current_element: Element = current['element']
         current_tags: dict[str, TagFormat] = current['tags_map'] or {}
         if current_element['version'] == 1:
