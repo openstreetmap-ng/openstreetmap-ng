@@ -190,7 +190,7 @@ async def _get_pipeline():
         pipe_dir = AI_MODELS_DIR.joinpath('Freepik/nsfw_image_detector')
         if not pipe_dir.is_dir():
             warnings.warn(
-                'Skipping NSFW image detection: model not found (hint: run ai-models-download)',
+                'Skipping NSFW image detection: model not found (hint: `ai-models-download`)',
                 stacklevel=1,
             )
             yield None

@@ -30,6 +30,7 @@ from app.models.element import (
 from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
 from app.utils import calc_num_workers
+from scripts.preload_convert import CHANGESETS_PARQUET_PATH, NOTES_PARQUET_PATH
 from scripts.replication_download import replication_lock
 
 _Mode = Literal['preload', 'replication']
@@ -339,6 +340,25 @@ async def _load_tables(mode: _Mode) -> None:
 
 @psycopg_pool_open_decorator
 async def main(mode: _Mode) -> None:
+    if mode == 'replication':
+        if not (has_changesets := CHANGESETS_PARQUET_PATH.is_file()):
+            logging.error(
+                'Missing changesets file: %s (hint: `preload-convert changeset`)',
+                CHANGESETS_PARQUET_PATH,
+            )
+        if not (has_notes := NOTES_PARQUET_PATH.is_file()):
+            logging.warning(
+                'Missing notes file: %s (hint: `preload-convert notes`)',
+                NOTES_PARQUET_PATH,
+            )
+
+        if not has_changesets or (
+            not has_notes
+            and (input('Continue? (y/N): ').strip().lower() not in {'y', 'yes'})
+        ):
+            logging.error('Aborted')
+            return
+
     exists = await ElementQuery.get_current_sequence_id() > 0
     if exists and input(
         'Database is not empty. Continue? (y/N): '
