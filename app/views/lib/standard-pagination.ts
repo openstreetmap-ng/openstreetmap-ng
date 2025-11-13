@@ -167,18 +167,25 @@ export const configureStandardPagination = (
         for (const paginationContainer of paginationContainers) {
             paginationContainer.classList.remove("d-none")
             const paginationFragment = document.createDocumentFragment()
+            const pagesToRender: number[] = []
+            pagesToRender.push(1)
+            for (
+                let i = currentPageValue - paginationDistance;
+                i <= currentPageValue + paginationDistance;
+                i++
+            ) {
+                if (i > 1 && i < totalPagesValue) pagesToRender.push(i)
+            }
+            pagesToRender.push(totalPagesValue)
 
-            for (let i = 1; i <= totalPagesValue; i++) {
-                const distance = Math.abs(i - currentPageValue)
-                if (distance > paginationDistance && i !== 1 && i !== totalPagesValue) {
-                    if (i === 2 || i === totalPagesValue - 1) {
-                        const li = document.createElement("li")
-                        li.classList.add("page-item", "disabled")
-                        li.ariaDisabled = "true"
-                        li.innerHTML = `<span class="page-link">...</span>`
-                        paginationFragment.appendChild(li)
-                    }
-                    continue
+            let previousPage = 0
+            for (const pageNumber of pagesToRender) {
+                if (previousPage && pageNumber - previousPage > 1) {
+                    const gap = document.createElement("li")
+                    gap.classList.add("page-item", "disabled")
+                    gap.ariaDisabled = "true"
+                    gap.innerHTML = `<span class="page-link">...</span>`
+                    paginationFragment.appendChild(gap)
                 }
 
                 const li = document.createElement("li")
@@ -190,7 +197,7 @@ export const configureStandardPagination = (
 
                 if (pageSize && numItemsValue) {
                     const [limit, offset] = standardPaginationRange(
-                        i,
+                        pageNumber,
                         pageSize,
                         numItemsValue,
                         reverse,
@@ -202,21 +209,22 @@ export const configureStandardPagination = (
                             ? `${itemMin}...${itemMax}`
                             : itemMax.toString()
                 } else {
-                    button.textContent = i.toString()
+                    button.textContent = pageNumber.toString()
                 }
 
                 li.appendChild(button)
 
-                if (i === currentPageValue) {
+                if (pageNumber === currentPageValue) {
                     li.classList.add("active")
                     li.ariaCurrent = "page"
                 } else {
                     button.addEventListener("click", () => {
-                        currentPage.value = i
+                        currentPage.value = pageNumber
                     })
                 }
 
                 paginationFragment.appendChild(li)
+                previousPage = pageNumber
             }
 
             paginationContainer.innerHTML = ""
