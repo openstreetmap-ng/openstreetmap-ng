@@ -59,9 +59,6 @@ class OptimisticDiffApply:
             )
 
             async with TaskGroup() as tg:
-                # Check if the element_state is valid
-                tg.create_task(_check_elements_latest(prepare.element_state))
-
                 # Check if the elements have no new references
                 if prepare.reference_check_element_refs:
                     tg.create_task(
@@ -100,22 +97,6 @@ class OptimisticDiffApply:
                 result[typed_id][1].append(version)
 
         return result
-
-
-async def _check_elements_latest(
-    element_state: dict[TypedElementId, ElementStateEntry],
-) -> None:
-    """
-    Check if the elements are the current version.
-    Raises OptimisticDiffError if they are not.
-    """
-    versioned_refs = [
-        (typed_id, entry.remote['version'])
-        for typed_id, entry in element_state.items()
-        if entry.remote is not None
-    ]
-    if not await ElementQuery.check_is_latest(versioned_refs):
-        raise OptimisticDiffError('Element is outdated')
 
 
 async def _check_elements_unreferenced(
@@ -294,9 +275,8 @@ async def _update_latest_elements(
         """).format(SQL(',').join([SQL('(%s, %s)')] * num_rows)),
         params,
     )
-    assert result.rowcount == num_rows, (
-        f'Failed to properly update the latest flag for changed elements (remote): {result.rowcount=} != {num_rows=}'
-    )
+    if result.rowcount != num_rows:
+        raise OptimisticDiffError('Element is outdated')
 
 
 async def _copy_elements(conn: AsyncConnection, elements: list[Element]) -> None:
