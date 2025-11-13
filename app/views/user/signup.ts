@@ -31,11 +31,9 @@ mount("signup-body", (body) => {
                 const result: APIDetail[] = []
 
                 // Validate name for blacklisted characters
-                const displayNameValue = displayNameInput.value
+                const displayNameChars = new Set(displayNameInput.value)
                 if (
-                    displayNameBlacklist
-                        .split("")
-                        .some((c) => displayNameValue.includes(c))
+                    displayNameBlacklist.split("").some((c) => displayNameChars.has(c))
                 ) {
                     const msg = i18next.t("validations.url_characters", {
                         characters: displayNameBlacklist,
