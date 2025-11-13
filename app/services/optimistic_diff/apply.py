@@ -130,7 +130,7 @@ async def _update_changeset(
             f'Changeset {changeset_id} is outdated ({changeset["updated_at"]} != {updated_at})'
         )
 
-    async with _WRITE_LOCK, conn.pipeline():
+    async with _WRITE_LOCK:
         # Update the changeset
         closed_at = now if 'size_limit_reached' in changeset else None
         updated_at = now
