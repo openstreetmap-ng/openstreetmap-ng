@@ -1,4 +1,3 @@
-from asyncio import TaskGroup
 from datetime import datetime
 from io import BytesIO
 
@@ -56,30 +55,23 @@ class OptimisticDiffApply:
                 'LOCK TABLE changeset, changeset_bounds, element IN EXCLUSIVE MODE'
             )
 
-            async with TaskGroup() as tg:
-                # Check if the elements have no new references
-                if prepare.reference_check_element_refs:
-                    tg.create_task(
-                        _check_elements_unreferenced(
-                            conn,
-                            prepare.reference_check_element_refs,
-                            prepare.at_sequence_id,
-                        )
-                    )
-
-                # Process elements and changeset updates in parallel
-                now = utcnow()
-                tg.create_task(_update_changeset(conn, now, prepare.changeset))
-                update_elements_t = tg.create_task(
-                    _update_elements(
-                        conn, now, prepare.element_state, prepare.apply_elements
-                    )
+            # Check if the elements have no new references
+            if prepare.reference_check_element_refs:
+                await _check_elements_unreferenced(
+                    conn,
+                    prepare.reference_check_element_refs,
+                    prepare.at_sequence_id,
                 )
 
+            # Process elements and changeset updates
+            now = utcnow()
+            await _update_changeset(conn, now, prepare.changeset)
+            assigned_id_map: dict[TypedElementId, TypedElementId]
+            assigned_id_map = await _update_elements(
+                conn, now, prepare.element_state, prepare.apply_elements
+            )
+
         # Build result mapping
-        assigned_id_map: dict[TypedElementId, TypedElementId] = (
-            update_elements_t.result()
-        )
         result: dict[TypedElementId, tuple[TypedElementId, list[int]]] = {}
 
         for element in prepare.apply_elements:
