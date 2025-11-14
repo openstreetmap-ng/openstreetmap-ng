@@ -1,6 +1,5 @@
 import logging
 from asyncio import TaskGroup
-from contextlib import nullcontext
 from typing import Any, Literal, LiteralString
 
 import cython
@@ -39,7 +38,7 @@ class ElementQuery:
         Returns 0 if no elements exist.
         """
         async with (
-            nullcontext(conn) if conn is not None else db() as conn,
+            db(conn) as conn,
             await conn.execute(
                 'SELECT COALESCE(MAX(sequence_id), 0) FROM element'
             ) as r,
@@ -55,7 +54,7 @@ class ElementQuery:
         Returns 0 if no elements exist with the given type.
         """
         async with (
-            nullcontext(conn) if conn is not None else db() as conn,
+            db(conn) as conn,
             await conn.execute(
                 """
                 SELECT MAX(typed_id) FROM element
@@ -532,7 +531,7 @@ class ElementQuery:
         )
 
         async with (
-            nullcontext(conn) if conn is not None else db() as conn,
+            db(conn) as conn,
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
             return await r.fetchall()  # type: ignore

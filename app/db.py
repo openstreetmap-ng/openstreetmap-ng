@@ -141,8 +141,9 @@ async def _register_types():
 
 @asynccontextmanager
 async def db(
-    write: bool = False,
+    write: bool | AsyncConnection | None = False,
     /,
+    conn: AsyncConnection | None = None,
     *,
     autocommit: bool = False,
     isolation_level: IsolationLevel | None = None,
@@ -152,9 +153,20 @@ async def db(
     ),
 ):
     """Get a database connection."""
-    assert write or not autocommit, 'autocommit=True must be used with write=True'
+    if not isinstance(write, bool):
+        assert conn is None
+        conn = write
+        write = False
 
+    assert write or not autocommit, 'autocommit=True must be used with write=True'
     read_only = not write
+
+    if conn is not None:
+        assert read_only or not conn.read_only, (
+            'Provided connection is read-only but write access is requested'
+        )
+        yield conn
+        return
 
     async with _PSYCOPG_POOL.connection() as conn:
         is_request_: cython.bint = is_request()

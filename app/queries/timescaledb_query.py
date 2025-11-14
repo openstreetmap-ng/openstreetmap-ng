@@ -1,4 +1,3 @@
-from contextlib import nullcontext
 from typing import Literal
 
 from psycopg import AsyncConnection
@@ -17,7 +16,7 @@ class TimescaleDBQuery:
         sort: Literal['asc', 'desc'] = 'desc',
     ) -> list[tuple[int, int]]:
         async with (
-            nullcontext(conn) if conn is not None else db() as conn,
+            db(conn) as conn,
             await conn.execute(
                 SQL("""
                 SELECT range_start_integer, range_end_integer {inclusive}

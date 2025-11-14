@@ -2,7 +2,7 @@ import asyncio
 import logging
 from asyncio import Event, TaskGroup
 from collections.abc import Coroutine
-from contextlib import asynccontextmanager, nullcontext
+from contextlib import asynccontextmanager
 from datetime import timedelta
 from ipaddress import ip_address
 from random import random, uniform
@@ -183,7 +183,7 @@ async def _audit_task(
         )
     )
 
-    async with nullcontext(conn) if conn is not None else db(True) as conn:
+    async with db(True, conn) as conn:
         await conn.execute(
             query,
             {
