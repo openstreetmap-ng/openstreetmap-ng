@@ -18,6 +18,7 @@ from app.lib.sentry import (
     SENTRY_ELEMENT_SPATIAL_MONITOR_SLUG,
 )
 from app.lib.testmethod import testmethod
+from app.models.types import SequenceId
 from app.utils import calc_num_workers
 
 _MAX_RELATION_NESTING_DEPTH = 15
@@ -301,13 +302,17 @@ async def _update(
     """
     async with (
         db() as conn,
-        await conn.execute("""
-            SELECT COALESCE(MAX(sequence_id), 0) FROM element
-            UNION ALL
-            SELECT COALESCE((SELECT sequence_id FROM element_spatial_watermark LIMIT 1), 0)
-        """) as r,
+        await conn.execute(
+            """
+            SELECT
+            (   SELECT COALESCE(MAX(sequence_id), 0) FROM element),
+            (   SELECT COALESCE((SELECT sequence_id FROM element_spatial_watermark LIMIT 1), 0))
+            """
+        ) as r,
     ):
-        (max_sequence,), (last_sequence,) = await r.fetchall()
+        max_sequence: SequenceId
+        last_sequence: SequenceId
+        max_sequence, last_sequence = await r.fetchone()  # type: ignore
 
     num_items = max_sequence - last_sequence
     if not num_items:

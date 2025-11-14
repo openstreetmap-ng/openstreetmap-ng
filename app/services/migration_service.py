@@ -17,6 +17,7 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
     TYPED_ELEMENT_ID_WAY_MIN,
 )
+from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
 from app.services.admin_task_service import register_admin_task
 from app.utils import calc_num_workers
@@ -166,6 +167,47 @@ class MigrationService:
             for start_id in range(1, max_id + 1, batch_size):
                 end_id = min(start_id + batch_size - 1, max_id)
                 tg.create_task(process_chunk(start_id, end_id))
+
+    @staticmethod
+    async def cleanup_orphan_changesets_and_elements() -> None:
+        async with db(True) as conn:
+            async with await conn.execute(
+                """
+                SELECT
+                (   SELECT COALESCE(MAX(changeset_id), 0) FROM element),
+                (   SELECT COALESCE(MAX(id), 0) FROM changeset)
+                """
+            ) as r:
+                element_max: ChangesetId
+                changeset_max: ChangesetId
+                element_max, changeset_max = await r.fetchone()  # type: ignore
+
+            if element_max > changeset_max:
+                logging.warning(
+                    'Deleting elements that reference missing changesets '
+                    '(element_max=%d, changeset_max=%d)',
+                    element_max,
+                    changeset_max,
+                )
+                await conn.execute(
+                    'DELETE FROM element WHERE changeset_id > %s',
+                    (changeset_max,),
+                )
+            elif element_max < changeset_max:
+                logging.warning(
+                    'Deleting changesets that reference missing elements '
+                    '(element_max=%d, changeset_max=%d)',
+                    element_max,
+                    changeset_max,
+                )
+                await conn.execute(
+                    'DELETE FROM changeset WHERE id > %s',
+                    (element_max,),
+                )
+                await conn.execute(
+                    'DELETE FROM changeset_bounds WHERE changeset_id > %s',
+                    (element_max,),
+                )
 
     @staticmethod
     async def migrate_database() -> None:

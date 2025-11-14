@@ -373,6 +373,10 @@ async def main(mode: _Mode) -> None:
     async with db(True, autocommit=True) as conn:
         await conn.execute('ANALYZE')
 
+    if mode == 'replication':
+        logging.info('Reconciling element/changeset tables')
+        await MigrationService.cleanup_orphan_changesets_and_elements()
+
     logging.info('Fixing sequence counters consistency')
     await MigrationService.fix_sequence_counters()
 

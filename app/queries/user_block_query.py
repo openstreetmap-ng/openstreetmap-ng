@@ -18,16 +18,16 @@ class UserBlockQuery:
             db() as conn,
             await conn.execute(
                 """
-                SELECT COUNT(*) FROM user_block
-                WHERE to_user_id = %s
-                UNION ALL
-                SELECT COUNT(*) FROM user_block
-                WHERE to_user_id = %s AND NOT expired
+                SELECT
+                (   SELECT COUNT(*) FROM user_block
+                    WHERE to_user_id = %s),
+                (   SELECT COUNT(*) FROM user_block
+                    WHERE to_user_id = %s AND NOT expired)
                 """,
                 (user_id, user_id),
             ) as r,
         ):
-            (total,), (active,) = await r.fetchall()
+            total, active = await r.fetchone()  # type: ignore
             return _UserBlockCountByUserResult(total, active)
 
     @staticmethod
@@ -38,14 +38,14 @@ class UserBlockQuery:
             db() as conn,
             await conn.execute(
                 """
-                SELECT COUNT(*) FROM user_block
-                WHERE from_user_id = %s
-                UNION ALL
-                SELECT COUNT(*) FROM user_block
-                WHERE from_user_id = %s AND NOT expired
+                SELECT
+                (   SELECT COUNT(*) FROM user_block
+                    WHERE from_user_id = %s),
+                (   SELECT COUNT(*) FROM user_block
+                    WHERE from_user_id = %s AND NOT expired)
                 """,
                 (user_id, user_id),
             ) as r,
         ):
-            (total,), (active,) = await r.fetchall()
+            total, active = await r.fetchone()  # type: ignore
             return _UserBlockCountByUserResult(total, active)

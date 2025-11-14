@@ -222,17 +222,16 @@ class MessageQuery:
             db() as conn,
             await conn.execute(
                 """
-                SELECT COUNT(*) FROM message_recipient
-                WHERE user_id = %s AND NOT hidden
-                UNION ALL
-                SELECT COUNT(*) FROM message_recipient
-                WHERE user_id = %s AND NOT hidden AND NOT read
-                UNION ALL
-                SELECT COUNT(*) FROM message
-                WHERE from_user_id = %s AND NOT from_user_hidden
+                SELECT
+                (   SELECT COUNT(*) FROM message_recipient
+                    WHERE user_id = %s AND NOT hidden),
+                (   SELECT COUNT(*) FROM message_recipient
+                    WHERE user_id = %s AND NOT hidden AND NOT read),
+                (   SELECT COUNT(*) FROM message
+                    WHERE from_user_id = %s AND NOT from_user_hidden)
                 """,
                 (user_id, user_id, user_id),
             ) as r,
         ):
-            (total,), (unread,), (sent,) = await r.fetchall()
+            total, unread, sent = await r.fetchone()  # type: ignore
             return _MessageCountByUserResult(total, unread, sent)

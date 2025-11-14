@@ -57,21 +57,16 @@ class ChangesetQuery:
             db() as conn,
             await conn.execute(
                 """
-                SELECT MAX(id) AS id
-                FROM changeset
-                WHERE id < %(changeset_id)s AND user_id = %(user_id)s
-
-                UNION ALL
-
-                SELECT MIN(id) AS id
-                FROM changeset
-                WHERE id > %(changeset_id)s AND user_id = %(user_id)s
+                SELECT
+                (   SELECT MAX(id) FROM changeset
+                    WHERE id < %(changeset_id)s AND user_id = %(user_id)s),
+                (   SELECT MIN(id) FROM changeset
+                    WHERE id > %(changeset_id)s AND user_id = %(user_id)s)
                 """,
                 {'changeset_id': changeset_id, 'user_id': user_id},
             ) as r,
         ):
-            rows: list[tuple[ChangesetId | None]] = await r.fetchall()
-            return rows[0][0], rows[1][0]
+            return await r.fetchone()  # type: ignore
 
     @staticmethod
     async def find_by_id(changeset_id: ChangesetId) -> Changeset | None:
