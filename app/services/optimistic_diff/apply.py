@@ -13,7 +13,6 @@ from app.models.db.changeset import Changeset
 from app.models.db.element import Element, ElementInit
 from app.models.element import ElementId, ElementType, TypedElementId
 from app.models.types import SequenceId
-from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.services.audit_service import audit
 from app.services.optimistic_diff.prepare import (
@@ -113,17 +112,10 @@ async def _update_changeset(
     Raises OptimisticDiffError if the changeset was modified in the meantime.
     """
     changeset_id = changeset['id']
-    updated_at_ = await ChangesetQuery.map_ids_to_updated_at(conn, [changeset_id])
-    updated_at = updated_at_[changeset_id]
-    if changeset['updated_at'] != updated_at:
-        raise OptimisticDiffError(
-            f'Changeset {changeset_id} is outdated ({changeset["updated_at"]} != {updated_at})'
-        )
-
-    # Update the changeset
     closed_at = now if 'size_limit_reached' in changeset else None
     updated_at = now
-    await conn.execute(
+
+    result = await conn.execute(
         """
         UPDATE changeset
         SET
@@ -134,7 +126,7 @@ async def _update_changeset(
             union_bounds = ST_QuantizeCoordinates(%s, 7),
             closed_at = %s,
             updated_at = %s
-        WHERE id = %s
+        WHERE id = %s AND updated_at = %s
         """,
         (
             changeset['size'],
@@ -145,8 +137,12 @@ async def _update_changeset(
             closed_at,
             updated_at,
             changeset_id,
+            changeset['updated_at'],
         ),
     )
+
+    if not result.rowcount:
+        raise OptimisticDiffError(f'Changeset {changeset_id} is outdated')
 
     # Update the changeset bounds
     # It's not possible for bounds to switch from MultiPolygon to None.
