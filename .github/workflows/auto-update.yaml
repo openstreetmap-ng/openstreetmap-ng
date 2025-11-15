@@ -15,19 +15,19 @@ jobs:
 
       - name: Run update scripts
         run: |
-          nix-shell --pure --run '(
-               feature-icons-popular-update
-            && timezone-bbox-update
-            && vector-styles-update
+          nix-shell --pure --run '
+               feature-icons-popular-update \
+            && timezone-bbox-update \
+            && vector-styles-update \
             && wiki-pages-update
-          )'
+          '
 
       - name: Commit changes
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           nix-shell --run '(
-               git commit -am "Auto-update"
-            && git pull --rebase
-            && git push
+               git commit -am "Auto-update" \
+            && git pull --rebase \
+            && git push \
           ) || true'
