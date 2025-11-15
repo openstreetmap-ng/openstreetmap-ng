@@ -163,19 +163,23 @@
                 {% include 'user/profile/_groups' %}
 
                 {% if user is not none and not is_self %}
-                <form class="follow-form" method="POST" action="/api/web/user-follow/{{ profile.id }}/{% if is_following %}unfollow{% else %}follow{% endif %}">
+                <form class="follow-form" method="POST"
+                    action="/api/web/follows/{{ profile.id }}/{% if is_following %}unfollow{% else %}follow{% endif %}">
                     <button type="submit" class="btn btn-light border w-100 mt-4">
                         {% if is_following %}
-                        {{ t('action.unfollow_user') }}
-                        <i class="bi bi-bookmark-dash"></i>
+                        {{ t('action.unfollow_user') -}}
+                        <i class="bi bi-bookmark-dash ms-1-5"></i>
+                        {% elif is_followed_by %}
+                        {{ t('follows.follow_back') -}}
+                        <i class="bi bi-bookmark-plus ms-1-5"></i>
                         {% else %}
-                        {{ t('action.follow_user') }}
-                        <i class="bi bi-bookmark-plus"></i>
+                        {{ t('action.follow_user') -}}
+                        <i class="bi bi-bookmark-plus ms-1-5"></i>
                         {% endif %}
                     </button>
                 </form>
                 <p class="form-text mx-1 mb-4">
-                    {{ t('user.follow_description') }}
+                    {{ t('follows.description') }}
                 </p>
 
                 <div class="text-end">

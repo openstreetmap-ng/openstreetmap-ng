@@ -8,10 +8,10 @@ const paginationDistance = 2
 export const configureStandardPagination = (
     container?: ParentNode,
     options?: {
-        initialPage?: number
         reverse?: boolean
-        customLoader?: (page: number, renderContainer: HTMLElement) => void
-        loadCallback?: (renderContainer: HTMLElement) => void
+        initialPage?: number
+        customLoader?: (renderContainer: HTMLElement, page: number) => void
+        loadCallback?: (renderContainer: HTMLElement, page: number) => void
     },
 ): (() => void) => {
     if (!container) {
@@ -78,7 +78,7 @@ export const configureStandardPagination = (
     const onLoad = (html: string): void => {
         renderContainer.innerHTML = html
         resolveDatetimeLazy(renderContainer)
-        options?.loadCallback?.(renderContainer)
+        options?.loadCallback?.(renderContainer, currentPage.peek())
     }
 
     // Update collection
@@ -87,7 +87,7 @@ export const configureStandardPagination = (
         const currentPageString = currentPage.toString()
 
         if (options?.customLoader) {
-            options.customLoader(currentPage.value, renderContainer)
+            options.customLoader(renderContainer, currentPage.value)
             console.debug("Navigated to page", currentPageString)
             return
         }

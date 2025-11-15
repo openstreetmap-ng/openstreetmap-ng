@@ -44,7 +44,7 @@
     {% set _click_here %}
     <a href="{{ APP_URL }}/messages/inbox?show={{ message.id }}">{{ t('action.click_here') }}</a>
     {%- endset %}
-    {{ t('notifications.click_here_to_open_this_message_in_your_browser',
+    › {{ t('notifications.click_here_to_open_this_message_in_your_browser',
         click_here=_click_here
     ) | safe }}
 </p>

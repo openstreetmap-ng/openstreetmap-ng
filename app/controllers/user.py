@@ -222,6 +222,13 @@ async def index(
             DiaryCommentQuery.count_by_user(user_id)
         )
 
+        # Check follow status if viewing another user's profile
+        follow_status_t = (
+            tg.create_task(UserFollowQuery.get_follow_status(user_id))
+            if (not is_self and current_user is not None)
+            else None
+        )
+
     activity_data = activity_t.result()
 
     changesets = changesets_t.result()
@@ -247,10 +254,14 @@ async def index(
     groups_count = 0
     groups = ()
 
-    # Check if current user is following this profile
-    is_following = False
-    if not is_self and current_user is not None:
-        is_following = await UserFollowQuery.is_following(user_id)
+    # Get follow status results
+    if follow_status_t is not None:
+        follow_status = follow_status_t.result()
+        is_following = follow_status.is_following
+        is_followed_by = follow_status.is_followed_by
+    else:
+        is_following = False
+        is_followed_by = False
 
     return await render_response(
         'user/profile/profile',
@@ -259,6 +270,7 @@ async def index(
             'is_self': is_self,
             'is_new_user': is_new_user,
             'is_following': is_following,
+            'is_followed_by': is_followed_by,
             'background_url': Image.get_background_url(user['background_id']),
             'changesets_count': changesets_count,
             'changesets_comments_count': changesets_comments_count,

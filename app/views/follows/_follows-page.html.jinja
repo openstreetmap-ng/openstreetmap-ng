@@ -1,0 +1,52 @@
+{% for user in follows %}
+<li class="list-group-item">
+    <div class="d-flex align-items-center">
+        <a href="/user/{{ user.display_name }}" class="text-decoration-none">
+            <img src="{{ user_avatar_url(user) }}"
+                alt="{{ t('alt.profile_picture') }}" class="rounded-circle me-3"
+                width="48" height="48">
+        </a>
+        <div class="flex-grow-1">
+            <div>
+                <a href="/user/{{ user.display_name }}"
+                    class="text-decoration-none fw-bold">
+                    {{ user.display_name }}
+                </a>
+            </div>
+            <small class="text-muted">
+                {% if user.is_following is defined %}
+                {{ t('follows.follower_since') }}
+                {% else %}
+                {{ t('follows.following_since') }}
+                {% endif %}
+                <time datetime="{{ user.created_at.isoformat() }}"
+                    data-date="long"></time>
+            </small>
+        </div>
+        {% if user.is_following is defined %}
+        {% if user.is_following %}
+        <form class="follow-form" method="POST"
+            action="/api/web/follows/{{ user.id }}/unfollow">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                {{ t('action.unfollow') }}
+            </button>
+        </form>
+        {% else %}
+        <form class="follow-form" method="POST"
+            action="/api/web/follows/{{ user.id }}/follow">
+            <button type="submit" class="btn btn-sm btn-primary">
+                {{ t('follows.follow_back') }}
+            </button>
+        </form>
+        {% endif %}
+        {% else %}
+        <form class="follow-form" method="POST"
+            action="/api/web/follows/{{ user.id }}/unfollow">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                {{ t('action.unfollow') }}
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</li>
+{% endfor %}

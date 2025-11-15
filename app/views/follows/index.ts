@@ -1,14 +1,25 @@
 import { mount } from "../lib/mount"
 import { configureStandardForm } from "../lib/standard-form"
+import { configureStandardPagination } from "../lib/standard-pagination"
 
 mount("follows-body", (body) => {
-    // Handle follow/unfollow/follow-back forms
-    const forms = body.querySelectorAll("form.unfollow-form, form.follow-back-form")
-    for (const form of forms) {
-        configureStandardForm(form, () => {
-            // On success, reload the page to update the lists
-            console.debug("onFollowActionSuccess")
-            window.location.reload()
-        })
+    const paginationContainer = body.querySelector(".follows-pagination")
+
+    const setupFollowForms = (container: HTMLElement, page: number) => {
+        for (const form of container.querySelectorAll("form.follow-form")) {
+            configureStandardForm(form, () => {
+                disposePagination?.()
+                disposePagination = configureStandardPagination(paginationContainer, {
+                    reverse: false,
+                    initialPage: page,
+                    loadCallback: setupFollowForms,
+                })
+            })
+        }
     }
+
+    let disposePagination = configureStandardPagination(paginationContainer, {
+        reverse: false,
+        loadCallback: setupFollowForms,
+    })
 })

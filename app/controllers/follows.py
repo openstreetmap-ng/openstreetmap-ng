@@ -1,41 +1,56 @@
 from asyncio import TaskGroup
+from math import ceil
 from typing import Annotated
 
 from fastapi import APIRouter
 
+from app.config import FOLLOWS_LIST_PAGE_SIZE
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.models.db.user import User
+from app.models.types import UserId
 from app.queries.user_follow_query import UserFollowQuery
 
 router = APIRouter()
 
 
-@router.get('/follows')
-async def index(user: Annotated[User, web_user()]):
-    """Display the user's following and followers lists."""
-    user_id = user['id']
-
-    async def following_task():
-        return await UserFollowQuery.list_following(user_id, limit=100)
-
-    async def followers_task():
-        return await UserFollowQuery.list_followers(user_id, limit=100)
-
+async def _get_follows_page(user_id: UserId, *, followers: bool):
+    """Helper to render follows page for both followers and following."""
     async with TaskGroup() as tg:
-        following_future = tg.create_task(following_task())
-        followers_future = tg.create_task(followers_task())
+        following_count_t = tg.create_task(
+            UserFollowQuery.count_user_follows(user_id, followers=False)
+        )
+        followers_count_t = tg.create_task(
+            UserFollowQuery.count_user_follows(user_id, followers=True)
+        )
 
-    following = following_future.result()
-    followers = followers_future.result()
+    following_count = following_count_t.result()
+    followers_count = followers_count_t.result()
 
-    # Resolve is_following status for followers list so we can show "Follow back" vs "Unfollow"
-    await UserFollowQuery.resolve_is_following(followers)
+    # Calculate pagination for the active tab
+    active_count = followers_count if followers else following_count
+    num_pages = ceil(active_count / FOLLOWS_LIST_PAGE_SIZE)
 
     return await render_response(
         'follows/index',
         {
-            'following': following,
-            'followers': followers,
+            'active_tab': 'followers' if followers else 'following',
+            'following_count': following_count,
+            'followers_count': followers_count,
+            'follows_num_pages': num_pages,
+            'follows_num_items': active_count,
+            'FOLLOWS_LIST_PAGE_SIZE': FOLLOWS_LIST_PAGE_SIZE,
         },
     )
+
+
+@router.get('/follows/followers')
+async def followers(user: Annotated[User, web_user()]):
+    """Display the user's followers list."""
+    return await _get_follows_page(user['id'], followers=True)
+
+
+@router.get('/follows/following')
+async def following(user: Annotated[User, web_user()]):
+    """Display the user's following list."""
+    return await _get_follows_page(user['id'], followers=False)

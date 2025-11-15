@@ -316,6 +316,9 @@ MESSAGE_SUBJECT_MAX_LENGTH = 100
 MESSAGE_BODY_MAX_LENGTH = 50_000
 MESSAGES_INBOX_PAGE_SIZE = 50
 
+# Follows
+FOLLOWS_LIST_PAGE_SIZE = 30
+
 # -------------------- Administration --------------------
 
 

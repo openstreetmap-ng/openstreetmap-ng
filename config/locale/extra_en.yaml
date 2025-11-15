@@ -114,7 +114,6 @@ user:
   edit_description: Edit description
   you_have_not_provided_a_description: You have not provided a description.
   your_profile_description_is_displayed_publicly: Your profile description is displayed publicly.
-  follow_description: Following a user will allow you to quickly access their profile and see their activity. You can always unfollow any user from your follow list.
   contributions: Contributions
   activity:
     recent: Recent activity
@@ -145,13 +144,14 @@ privacy:
       We will use this information to fix bugs and improve your experience.
 follows:
   title: Follows
+  description: See who you're following and who's following you.
   following: Following
   followers: Followers
   following_since: Following since
   follower_since: Follower since
   follow_back: Follow back
-  not_following_anyone: You are not following anyone yet. Visit user profiles to start following other mappers.
-  no_followers_yet: You don't have any followers yet. Keep mapping and engaging with the community!
+  not_following_anyone: You are not following anyone yet. Visit user profiles to start.
+  no_followers_yet: You don't have any followers yet.
 messages:
   description: Your private messages with other map users.
   newer_messages: Newer messages
@@ -564,15 +564,6 @@ report:
     you_reported_object_by_user_with_the_following_message: "You reported {{object}} by {{user}} with the following message"
     you_reported_user_profile_with_the_following_message: "You reported {{user}}'s profile with the following message"
     you_reported_account_problem_with_the_following_message: You reported a problem with your account with the following message
-user_mailer:
-  follow_notification:
-    subject: "[OpenStreetMap] {{user}} followed you"
-    hi: "Hi {{user}},"
-    had_followed_you: "{{user}} has followed you on OpenStreetMap."
-    see_their_profile: See their profile
-    see_their_profile_html: "{{link}} to learn more about them."
-    follow_back: Follow back
-    follow_back_html: "You can {{link}} to follow them too."
 theme:
   toggle_theme: Toggle theme
   light: Light

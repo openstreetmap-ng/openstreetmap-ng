@@ -249,7 +249,7 @@ const renderElementType = (
 
     const disposePagination = configureStandardPagination(groupFragment, {
         initialPage: 1,
-        customLoader: (page: number, renderContainer: HTMLElement) => {
+        customLoader: (renderContainer: HTMLElement, page: number) => {
             updateTitle(page)
             updateTable(page, renderContainer)
         },
