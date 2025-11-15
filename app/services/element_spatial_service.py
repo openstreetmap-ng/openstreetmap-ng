@@ -280,7 +280,7 @@ async def _update(
     parallelism_init: int | float = 1.5,
     ways_batch_size: int = 10_000,
     rels_batch_size: int = 1_000,
-    _MAX_RELATION_NESTING_DEPTH: cython.Py_ssize_t = _MAX_RELATION_NESTING_DEPTH,
+    _MAX_RELATION_NESTING_DEPTH: cython.size_t = _MAX_RELATION_NESTING_DEPTH,
 ) -> None:
     """
     Update the element_spatial table with geometries and spatial indices for ways and relations.
@@ -333,7 +333,7 @@ async def _update(
     )
 
     # Process all depths (0=ways, 1+=relations)
-    depth: cython.Py_ssize_t
+    depth: cython.size_t
     for depth in range(_MAX_RELATION_NESTING_DEPTH + 1):
         if not await _process_depth(
             depth=depth,

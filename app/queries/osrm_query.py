@@ -46,7 +46,7 @@ class OSRMQuery:
         points: list[tuple[float, float]] = []
         routing_steps: list[RoutingResult.Step] = [None] * len(leg['steps'])  # type: ignore
 
-        i: cython.Py_ssize_t
+        i: cython.size_t
         for i, step in enumerate(leg['steps']):
             step_points = decode_latlon(step['geometry'], 6)
             # extend points without overlap

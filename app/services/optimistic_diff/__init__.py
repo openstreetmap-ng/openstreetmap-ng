@@ -25,7 +25,7 @@ class OptimisticDiff:
             return {}
 
         ts = monotonic()
-        attempt: cython.int = 0
+        attempt: cython.size_t = 0
 
         while True:
             try:

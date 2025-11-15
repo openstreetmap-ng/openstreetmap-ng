@@ -48,7 +48,7 @@ class Search:
         Returns a list of (leaflet, shapely) bounds.
         """
         search_local_area_limit: cython.double = SEARCH_LOCAL_AREA_LIMIT
-        search_local_max_iterations: cython.int = (
+        search_local_max_iterations: cython.size_t = (
             local_max_iterations
             if local_max_iterations is not None
             else SEARCH_LOCAL_MAX_ITERATIONS
@@ -69,10 +69,10 @@ class Search:
         bbox_center_x = minx + bbox_width_2
         bbox_center_y = miny + bbox_height_2
 
-        local_iterations: cython.int = (
+        local_iterations: cython.ssize_t = (
             1 if local_only else int(ceil(log2(search_local_area_limit / bbox_area)))  # noqa: RUF046
         )
-        local_iterations = min(local_iterations, search_local_max_iterations)
+        local_iterations = max(1, min(local_iterations, search_local_max_iterations))
 
         logging.debug(
             'Searching area of %d with %d local iterations', bbox_area, local_iterations
@@ -80,7 +80,7 @@ class Search:
         result: list[tuple[str, Polygon | MultiPolygon] | tuple[None, None]]
         result = [None] * local_iterations  # type: ignore
 
-        i: cython.Py_ssize_t
+        i: cython.size_t
         for i in range(local_iterations):
             bounds_width_2 = bbox_width_2 * (2**i)
             bounds_height_2 = bbox_height_2 * (2**i)
@@ -111,7 +111,7 @@ class Search:
             return -1
 
         logging.debug('Search performed using local mode')
-        max_local_results: cython.Py_ssize_t = len(task_results[-2])
+        max_local_results: cython.size_t = len(task_results[-2])
         search_local_ratio: cython.double = SEARCH_LOCAL_RATIO
         threshold = max_local_results * search_local_ratio
 
@@ -199,7 +199,7 @@ class Search:
                 dedup1.append(result)
                 geoms.append(result.point)
 
-        num_geoms: cython.Py_ssize_t = len(geoms)
+        num_geoms: cython.size_t = len(geoms)
         if num_geoms <= 1:
             return dedup1
 

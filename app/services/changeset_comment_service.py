@@ -130,17 +130,17 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
             return
 
     changeset = changeset_t.result()
-    changeset_user_id: cython.longlong = changeset['user_id'] or 0
+    changeset_user_id: cython.size_t = changeset['user_id'] or 0
     changeset_comment_str = changeset.get('tags', {}).get('comment')
 
     comment_user = comment['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-    comment_user_id: cython.longlong = comment_user['id']
+    comment_user_id: cython.size_t = comment_user['id']
     comment_user_name = comment_user['display_name']
     ref = f'changeset-{changeset["id"]}'
 
     async with TaskGroup() as tg:
         for subscribed_user in users:
-            subscribed_user_id: cython.longlong = subscribed_user['id']
+            subscribed_user_id: cython.size_t = subscribed_user['id']
             if subscribed_user_id == comment_user_id:
                 continue
 

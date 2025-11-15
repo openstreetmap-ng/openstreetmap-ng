@@ -29,7 +29,7 @@ class CacheControlMiddleware:
 
         async def wrapper(message: Message) -> None:
             if message['type'] == 'http.response.start':
-                status_code: cython.int = message['status']
+                status_code: cython.size_t = message['status']
 
                 if 200 <= status_code < 300 or status_code == 301:
                     state = req.state._state  # noqa: SLF001

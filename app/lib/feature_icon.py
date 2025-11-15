@@ -41,7 +41,7 @@ def _get_popular_stats() -> dict[str, dict[str, int]]:
 @cython.cfunc
 def _check_config():
     # ensure all icons are present
-    total_icons: cython.Py_ssize_t = 0
+    total_icons: cython.size_t = 0
     for key_config in _CONFIG.values():
         for icon in key_config.values():
             with Path('app/static/img/element', icon).open('rb'):

@@ -20,12 +20,12 @@ def _create_mentissa_mask():
     max_number: cython.double = 180
     fractional_precision: cython.double = 7
 
-    bits_for_precision: cython.ulonglong = int(  # noqa: RUF046
+    bits_for_precision: cython.size_t = int(  # noqa: RUF046
         ceil(log2(max_number * 10**fractional_precision) + 1)
     )
 
-    full_mask: cython.ulonglong = (1 << 64) - 1
-    zeros_mask: cython.ulonglong = (1 << (52 - bits_for_precision)) - 1
+    full_mask: cython.size_t = (1 << 64) - 1
+    zeros_mask: cython.size_t = (1 << (52 - bits_for_precision)) - 1
 
     return np.uint64(full_mask - zeros_mask)
 

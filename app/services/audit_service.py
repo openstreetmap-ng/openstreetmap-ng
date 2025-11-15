@@ -70,7 +70,7 @@ def audit(
     sample_rate: float | None = None,
     discard_repeated: timedelta | None | Literal['UNSET'] = 'UNSET',
     # Constants
-    AUDIT_USER_AGENT_MAX_LENGTH: cython.Py_ssize_t = AUDIT_USER_AGENT_MAX_LENGTH,
+    AUDIT_USER_AGENT_MAX_LENGTH: cython.size_t = AUDIT_USER_AGENT_MAX_LENGTH,
 ) -> Coroutine[None, None, None]:
     """
     Log audit events for security monitoring and compliance.

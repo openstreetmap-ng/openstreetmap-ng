@@ -78,6 +78,6 @@ class UserTokenStructUtils:
 
 @cython.cfunc
 def _add_b32_padding(s: str) -> str:
-    s_len: cython.Py_ssize_t = len(s)
-    pad_len: cython.int = int(ceil(s_len / 8) * 8 - s_len)
+    s_len: cython.size_t = len(s)
+    pad_len: cython.size_t = int(ceil(s_len / 8) * 8 - s_len)
     return s + ('=' * pad_len)

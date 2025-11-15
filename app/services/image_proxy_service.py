@@ -97,7 +97,7 @@ class ImageProxyService:
             except Exception:
                 pass
 
-        prefetch_count: cython.uint = 0
+        prefetch_count: cython.size_t = 0
 
         for row in result:
             if row['thumbnail'] is None:

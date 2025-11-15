@@ -222,16 +222,16 @@ async def _find_sequence_range_for_timespan(
 
 async def _binary_search_boundary(
     conn: AsyncConnection,
-    low: cython.ulonglong,
-    high: cython.ulonglong,
+    low: cython.size_t,
+    high: cython.size_t,
     timestamp: datetime,
 ) -> int | None:
     """Binary search helper that finds boundary sequence_id based on timestamp comparison."""
     assert low > 0
-    result: cython.ulonglong = 0
+    result: cython.size_t = 0
 
     while low <= high:
-        mid: cython.ulonglong = (low + high) // 2
+        mid: cython.size_t = (low + high) // 2
 
         # Find an existing sequence_id at or after mid
         async with await conn.execute(
@@ -249,7 +249,7 @@ async def _binary_search_boundary(
             high = mid - 1  # No sequence_ids from mid to high, search lower half
             continue
 
-        existing_seq: cython.ulonglong
+        existing_seq: cython.size_t
         mid_time: datetime
         existing_seq, mid_time = row
 
@@ -270,8 +270,8 @@ async def _fetch_changes(
     if seq_range is None:
         return
 
-    num_elements: cython.Py_ssize_t = 0
-    num_chunks: cython.ulonglong = 0
+    num_elements: cython.size_t = 0
+    num_chunks: cython.size_t = 0
 
     async with (
         db() as conn,
@@ -289,7 +289,7 @@ async def _fetch_changes(
             if not rows:
                 break
 
-            num_rows: cython.Py_ssize_t = len(rows)
+            num_rows: cython.size_t = len(rows)
             num_elements += num_rows
             num_chunks += 1
             logging.debug('Fetched chunk %d: %d elements', num_chunks, num_rows)
@@ -344,12 +344,12 @@ async def _generate_diff(
             )
 
             # Extract osmChange content (avoid duplication)
-            slice_start: cython.Py_ssize_t = (
+            slice_start: cython.size_t = (
                 0
                 if not has_data
                 else content.index(b'>', content.index(b'<osmChange')) + 1
             )
-            slice_end: cython.Py_ssize_t = content.rindex(b'</osmChange>')
+            slice_end: cython.size_t = content.rindex(b'</osmChange>')
             content = content[slice_start:slice_end]
 
             pigz_stdin.write(content)

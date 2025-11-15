@@ -124,9 +124,9 @@ class OptimisticDiffPrepare:
         # Use local variables for faster access + explicit type hints
         element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
         apply_elements: list[ElementInit] = self.apply_elements
-        num_create: cython.int = 0
-        num_modify: cython.int = 0
-        num_delete: cython.int = 0
+        num_create: cython.size_t = 0
+        num_modify: cython.size_t = 0
+        num_delete: cython.size_t = 0
 
         action: OSMChangeAction
         entry: ElementStateEntry | None
@@ -213,7 +213,7 @@ class OptimisticDiffPrepare:
             for element in self._elements
             if not (typed_id := element['typed_id']) & 1 << 59  #
         ]
-        num_typed_ids: cython.Py_ssize_t = len(typed_ids)
+        num_typed_ids: cython.size_t = len(typed_ids)
         if not num_typed_ids:
             return
 
@@ -593,8 +593,8 @@ class OptimisticDiffPrepare:
     async def _update_changeset_bounds(
         self,
         *,
-        TYPED_ELEMENT_ID_NODE_MIN: cython.ulonglong = TYPED_ELEMENT_ID_NODE_MIN,
-        TYPED_ELEMENT_ID_NODE_MAX: cython.ulonglong = TYPED_ELEMENT_ID_NODE_MAX,
+        TYPED_ELEMENT_ID_NODE_MIN: cython.size_t = TYPED_ELEMENT_ID_NODE_MIN,
+        TYPED_ELEMENT_ID_NODE_MAX: cython.size_t = TYPED_ELEMENT_ID_NODE_MAX,
     ) -> None:
         """Update changeset bounds using the collected bbox info."""
         bbox_points = self._bbox_points
@@ -615,7 +615,7 @@ class OptimisticDiffPrepare:
                     bbox_points.append(point)
                     continue
 
-                typed_id: cython.ulonglong = element['typed_id']
+                typed_id: cython.size_t = element['typed_id']
                 if TYPED_ELEMENT_ID_NODE_MIN <= typed_id <= TYPED_ELEMENT_ID_NODE_MAX:
                     id = split_typed_element_id(element['typed_id'])[1]
                     logging.warning(

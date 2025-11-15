@@ -239,7 +239,7 @@ def _parse_actions(
     actions: list[tuple[str, list[tuple[ElementType, dict]]]],
 ) -> int:
     """Parse OSM change actions and write them to parquet."""
-    parse_order: cython.Py_ssize_t = -1
+    parse_order: cython.ssize_t = -1
     data: list[dict] = []
 
     def flush():
@@ -450,11 +450,11 @@ async def _increase_frequency(state: AppState) -> AppState:
         current_timedelta.total_seconds() / new_timedelta.total_seconds()
     )
 
-    step: cython.int = 2 << 4
-    new_sequence_number: cython.longlong = int(
+    step: cython.size_t = 2 << 4
+    new_sequence_number: cython.ssize_t = int(
         state.last_replica.sequence_number * frequency_downscale
     )
-    direction_forward: bool | None = None
+    direction: cython.ssize_t = 0  # -1 = backward, 1 = forward, 0 = unset
 
     # Binary search for closest replica at new frequency
     while True:
@@ -467,9 +467,9 @@ async def _increase_frequency(state: AppState) -> AppState:
         r = await HTTP.get(url + '.state.txt')
 
         if r.status_code == status.HTTP_404_NOT_FOUND:
-            if direction_forward is None:
-                direction_forward = False
-            elif direction_forward:
+            if direction == 0:
+                direction = -1
+            elif direction == 1:
                 step >>= 1
             new_sequence_number -= step
             continue
@@ -488,16 +488,16 @@ async def _increase_frequency(state: AppState) -> AppState:
 
         if new_replica.created_at > current_created_at:
             # Too late, move backward
-            if direction_forward is None:
-                direction_forward = False
-            elif direction_forward:
+            if direction == 0:
+                direction = -1
+            elif direction == 1:
                 step >>= 1
             new_sequence_number -= step
         else:
             # Too early, move forward
-            if direction_forward is None:
-                direction_forward = True
-            elif not direction_forward:
+            if direction == 0:
+                direction = 1
+            elif direction == -1:
                 step >>= 1
             new_sequence_number += step
 

@@ -87,7 +87,7 @@ class Element06Mixin:
         result = [None] * len(elements)  # type: ignore
         action: OSMChangeAction
 
-        i: cython.Py_ssize_t
+        i: cython.size_t
         for i, (element, type_id) in enumerate(
             zip(
                 elements,

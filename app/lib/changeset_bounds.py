@@ -23,12 +23,12 @@ def extend_changeset_bounds(
     bounds: MultiPolygon | None,
     points: list[Point],
     *,
-    CHANGESET_BBOX_LIMIT: cython.ssize_t = CHANGESET_BBOX_LIMIT,
+    CHANGESET_BBOX_LIMIT: cython.size_t = CHANGESET_BBOX_LIMIT,
 ) -> MultiPolygon:
     bboxes: list[list[float]]
     bboxes = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
-    num_bboxes: cython.ssize_t = len(bboxes)
-    num_bounds: cython.ssize_t = num_bboxes
+    num_bboxes: cython.size_t = len(bboxes)
+    num_bounds: cython.size_t = num_bboxes
     dirty_mask: list[bool] = [False] * CHANGESET_BBOX_LIMIT
 
     # create index
@@ -109,7 +109,7 @@ def extend_changeset_bounds(
 
 @cython.cfunc
 def _cluster_points(points: list[Point]) -> list[NDArray[np.float64]]:
-    num_points: cython.ssize_t = len(points)
+    num_points: cython.size_t = len(points)
     assert num_points > 0, 'Clustering requires at least one point'
     coords = get_coordinates(points)
 
@@ -145,7 +145,7 @@ def _agglomerative_clustering(
     distance_threshold: float | None,
 ) -> NDArray[np.int64]:
     """Agglomerative clustering with single linkage and Chebyshev distance."""
-    num_points: cython.ssize_t = len(coords)
+    num_points: cython.size_t = len(coords)
     parent = np.arange(num_points)
 
     if distance_threshold is not None:

@@ -22,7 +22,7 @@ def retry(
         async def wrapper(*args, **kwargs):
             ts: cython.double = monotonic()
             sleep: cython.double = sleep_init
-            attempt: cython.int = 0
+            attempt: cython.size_t = 0
 
             while True:
                 try:

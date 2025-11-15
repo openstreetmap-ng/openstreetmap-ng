@@ -264,20 +264,20 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
     place = place_t.result()
     first_comments = first_comments_t.result()
     assert first_comments, 'Note must have at least one comment'
-    first_comment_user_id: cython.longlong = first_comments[0]['user_id'] or 0
+    first_comment_user_id: cython.size_t = first_comments[0]['user_id'] or 0
 
     assert comment['user_id'] is not None, (
         'Anonymous note comments are no longer supported'
     )
     comment_user = comment['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-    comment_user_id: cython.longlong = comment_user['id']
+    comment_user_id: cython.size_t = comment_user['id']
     comment_user_name = comment_user['display_name']
     comment_event = comment['event']
     ref = f'note-{note["id"]}'
 
     async with TaskGroup() as tg:
         for subscribed_user in users:
-            subscribed_user_id: cython.longlong = subscribed_user['id']
+            subscribed_user_id: cython.size_t = subscribed_user['id']
             if subscribed_user_id == comment_user_id:
                 continue
 

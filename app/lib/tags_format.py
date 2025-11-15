@@ -127,7 +127,7 @@ def _format_phone(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
     result: list[ValueFormat] = values.copy()
     num_format = PhoneNumberFormat.E164
 
-    i: cython.Py_ssize_t
+    i: cython.size_t
     for i, value in enumerate(values):
         if value.format is not None:
             continue
@@ -158,7 +158,7 @@ def _format_url(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
 
 @cython.cfunc
 def _is_wiki_id(s: str) -> cython.bint:
-    s_len: cython.Py_ssize_t = len(s)
+    s_len: cython.size_t = len(s)
     return (
         s_len >= 2
         and s[0] in 'Qq'

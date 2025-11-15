@@ -181,7 +181,7 @@ def polygon_to_h3(
 def _h3_optimal_resolution(
     area_km2: cython.double,
     balance_factor: cython.double,
-    max_resolution: cython.int,
+    max_resolution: cython.size_t,
 ) -> int:
     """Calculate H3 resolution directly based on area and balance factor."""
     # Target cells - scaled by area logarithmically

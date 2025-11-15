@@ -31,11 +31,11 @@ class RequestBodyMiddleware:
             return await self.app(scope, receive, send)
 
         req = get_request()
-        input_size: cython.Py_ssize_t = 0
+        input_size: cython.size_t = 0
         buffer = BytesIO()
 
         async for chunk in req.stream():
-            chunk_size: cython.Py_ssize_t = len(chunk)
+            chunk_size: cython.size_t = len(chunk)
             if not chunk_size:
                 break
 
@@ -98,13 +98,13 @@ class RequestBodyMiddleware:
 def _decompress_zstd(
     buffer: bytes,
     *,
-    chunk_size: cython.Py_ssize_t = DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE,
+    chunk_size: cython.size_t = DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE,
 ) -> bytes:
     decompressor = ZstdDecompressor().decompressobj()
     chunks: list[bytes] = []
-    total_size: cython.Py_ssize_t = 0
+    total_size: cython.size_t = 0
 
-    i: cython.Py_ssize_t
+    i: cython.size_t
     for i in range(0, len(buffer), chunk_size):
         chunk = decompressor.decompress(buffer[i : i + chunk_size])
         chunks.append(chunk)
@@ -121,13 +121,13 @@ def _decompress_zstd(
 def _decompress_brotli(
     buffer: bytes,
     *,
-    chunk_size: cython.Py_ssize_t = (1 << 16) - 1,
+    chunk_size: cython.size_t = (1 << 16) - 1,
 ) -> bytes:
     decompressor = brotli.Decompressor()
     chunks: list[bytes] = []
-    total_size: cython.Py_ssize_t = 0
+    total_size: cython.size_t = 0
 
-    i: cython.Py_ssize_t
+    i: cython.size_t
     for i in range(0, len(buffer), chunk_size):
         chunk = decompressor.process(buffer[i : i + chunk_size])
         chunks.append(chunk)

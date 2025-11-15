@@ -197,7 +197,7 @@ class _ZipProcessor(_TraceProcessor):
                     raise_for.trace_file_archive_too_many_files()
 
                 result: list[bytes] = []
-                remaining_size: cython.Py_ssize_t = TRACE_FILE_DECOMPRESSED_MAX_SIZE
+                remaining_size: cython.size_t = TRACE_FILE_DECOMPRESSED_MAX_SIZE
 
                 for info in infos:
                     with archive.open(info) as f:
@@ -224,14 +224,14 @@ class _ZstdProcessor(_TraceProcessor):
         cls,
         buffer: bytes,
         *,
-        chunk_size: cython.Py_ssize_t = DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE,
+        chunk_size: cython.size_t = DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE,
     ) -> bytes:
         decompressor = ZstdDecompressor().decompressobj()
         chunks: list[bytes] = []
-        total_size: cython.Py_ssize_t = 0
+        total_size: cython.size_t = 0
 
         try:
-            i: cython.Py_ssize_t
+            i: cython.size_t
             for i in range(0, len(buffer), chunk_size):
                 chunk = decompressor.decompress(buffer[i : i + chunk_size])
                 chunks.append(chunk)
@@ -248,7 +248,7 @@ class _ZstdProcessor(_TraceProcessor):
 
 
 @cython.cfunc
-def _log_decompressed_size(media_type: str, size: cython.Py_ssize_t):
+def _log_decompressed_size(media_type: str, size: cython.size_t):
     logging.debug('Trace %r decompressed size is %s', media_type, sizestr(size))
 
 

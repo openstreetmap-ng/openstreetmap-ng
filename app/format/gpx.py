@@ -78,7 +78,7 @@ class FormatGPX:
 
     @staticmethod
     def decode_tracks(tracks: list[dict]) -> DecodeTracksResult:
-        size: cython.Py_ssize_t = 0
+        size: cython.size_t = 0
         segments: list[list[tuple[float, float]]] = []
         elevations: list[float | None] = []
         capture_times: list[datetime | None] = []
@@ -112,7 +112,7 @@ class FormatGPX:
                     capture_times.append(time)
 
                 # Finish the segment if non-empty
-                segment_size: cython.Py_ssize_t = len(points)
+                segment_size: cython.size_t = len(points)
                 if segment_size:
                     if segment_size < 2:
                         raise_for.bad_trace_file(

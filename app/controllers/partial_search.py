@@ -83,8 +83,8 @@ async def _get_response(
     bounds: str | None,
     results: list[SearchResult],
     where_is_this: bool,
-    TYPED_ELEMENT_ID_WAY_MIN: cython.ulonglong = TYPED_ELEMENT_ID_WAY_MIN,
-    TYPED_ELEMENT_ID_WAY_MAX: cython.ulonglong = TYPED_ELEMENT_ID_WAY_MAX,
+    TYPED_ELEMENT_ID_WAY_MIN: cython.size_t = TYPED_ELEMENT_ID_WAY_MIN,
+    TYPED_ELEMENT_ID_WAY_MAX: cython.size_t = TYPED_ELEMENT_ID_WAY_MAX,
 ):
     members: list[TypedElementId] = [
         member
@@ -108,7 +108,7 @@ async def _get_response(
     # prepare data for rendering
     renders: list[RenderElementsData] = [None] * len(results)  # type: ignore
 
-    i: cython.Py_ssize_t
+    i: cython.size_t
     for i, result in enumerate(results):
         full_data: list[Element] = [result.element]
         for member in result.element['members'] or ():
@@ -118,7 +118,7 @@ async def _get_response(
             full_data.append(member_element)
 
             # Recurse ways
-            typed_id: cython.ulonglong = member_element['typed_id']
+            typed_id: cython.size_t = member_element['typed_id']
             if (
                 typed_id >= TYPED_ELEMENT_ID_WAY_MIN
                 and typed_id <= TYPED_ELEMENT_ID_WAY_MAX

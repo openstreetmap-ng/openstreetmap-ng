@@ -9,21 +9,26 @@ from app.config import PYDANTIC_CONFIG, TAGS_KEY_MAX_LENGTH, TAGS_LIMIT, TAGS_MA
 from app.validators.unicode import UnicodeValidator
 from app.validators.xml import XMLSafeValidator
 
-_MIN_TAGS_LEN_TO_EXCEED_SIZE = TAGS_MAX_SIZE / (TAGS_KEY_MAX_LENGTH + 255)
 
-
-def _validate_tags(v: dict[str, str]) -> dict[str, str]:
-    num_tags: int = len(v)
+def _validate_tags(
+    v: dict[str, str],
+    *,
+    TAGS_LIMIT: cython.size_t = TAGS_LIMIT,
+    TAGS_MAX_SIZE: cython.size_t = TAGS_MAX_SIZE,
+    TAGS_MAX_LEN_SAFE_SIZE: cython.size_t = (
+        TAGS_MAX_SIZE // (TAGS_KEY_MAX_LENGTH + 255)
+    ),
+) -> dict[str, str]:
+    num_tags: cython.size_t = len(v)
 
     if num_tags > TAGS_LIMIT:
         raise ValueError(f'Cannot have more than {TAGS_LIMIT} tags')
 
-    if num_tags > _MIN_TAGS_LEN_TO_EXCEED_SIZE:
-        size: cython.Py_ssize_t = 0
-        limit: cython.Py_ssize_t = TAGS_MAX_SIZE
+    if num_tags > TAGS_MAX_LEN_SAFE_SIZE:
+        size: cython.size_t = 0
         for key, value in v.items():
             size += len(key) + len(value)
-            if size > limit:
+            if size > TAGS_MAX_SIZE:
                 raise ValueError(f'Tags size cannot exceed {sizestr(TAGS_MAX_SIZE)}')
 
     return v
