@@ -152,17 +152,30 @@ async def _update_changeset(
 
     await conn.execute(
         """
-        DELETE FROM changeset_bounds
-        WHERE changeset_id = %s
-        """,
-        (changeset_id,),
-    )
-    await conn.execute(
-        """
+        WITH new_bounds AS (
+            -- Extract individual polygons from the MultiPolygon
+            SELECT (ST_Dump(ST_QuantizeCoordinates(%(bounds)s, 7))).geom AS bounds
+        ),
+        to_delete AS (
+            -- Delete bounds that no longer exist in new set
+            DELETE FROM changeset_bounds cb
+            WHERE changeset_id = %(changeset_id)s
+              AND NOT EXISTS (
+                SELECT 1 FROM new_bounds nb
+                WHERE cb.bounds ~= nb.bounds
+              )
+        )
+        -- Insert bounds that don't exist yet
         INSERT INTO changeset_bounds (changeset_id, bounds)
-        SELECT %s, (ST_Dump(ST_QuantizeCoordinates(%s, 7))).geom
+        SELECT %(changeset_id)s, bounds
+        FROM new_bounds nb
+        WHERE NOT EXISTS (
+            SELECT 1 FROM changeset_bounds cb
+            WHERE cb.changeset_id = %(changeset_id)s
+              AND cb.bounds ~= nb.bounds
+        )
         """,
-        (changeset_id, bounds),
+        {'changeset_id': changeset_id, 'bounds': bounds},
     )
 
 
