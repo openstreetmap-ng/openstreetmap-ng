@@ -92,6 +92,16 @@ mount("user-profile-body", (body) => {
         })
     }
 
+    // Follow/unfollow form handler
+    const followForm = body.querySelector("form.follow-form")
+    if (followForm) {
+        configureStandardForm(followForm, () => {
+            // On follow/unfollow success, reload the page
+            console.debug("onFollowFormSuccess")
+            window.location.reload()
+        })
+    }
+
     const chartTable = body.querySelector("table.activity-chart[data-chart]")
     const chartBody = document.createElement("tbody")
     const chart = fromBinary(

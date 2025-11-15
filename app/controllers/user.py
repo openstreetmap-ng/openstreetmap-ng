@@ -34,6 +34,7 @@ from app.queries.diary_query import DiaryQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.trace_query import TraceQuery
+from app.queries.user_follow_query import UserFollowQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
 from app.services.auth_provider_service import AuthProviderService
@@ -246,12 +247,18 @@ async def index(
     groups_count = 0
     groups = ()
 
+    # Check if current user is following this profile
+    is_following = False
+    if not is_self and current_user is not None:
+        is_following = await UserFollowQuery.is_following(user_id)
+
     return await render_response(
         'user/profile/profile',
         {
             'profile': user,
             'is_self': is_self,
             'is_new_user': is_new_user,
+            'is_following': is_following,
             'background_url': Image.get_background_url(user['background_id']),
             'changesets_count': changesets_count,
             'changesets_comments_count': changesets_comments_count,

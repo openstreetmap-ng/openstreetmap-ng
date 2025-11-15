@@ -1,0 +1,41 @@
+{% extends 'email/_base' %}
+{% block body %}
+<p>{{ t('user_mailer.follow_notification.hi', user=followee.display_name) }}</p>
+<p>
+    {% set _follower_link -%}
+    <a href="{{ follower_profile_url }}" style="text-decoration: none; color: #222"><b>{{ follower.display_name }}</b></a>
+    {%- endset %}
+    {{ t('user_mailer.follow_notification.had_followed_you', user=_follower_link) | safe }}
+</p>
+<table style="width: 100%; margin: 1em 0">
+    <tr>
+        <td style="width: 50px; vertical-align: top">
+            <div style="margin: 1em">
+                <a href="{{ follower_profile_url }}">
+                    <img src="{{ APP_URL }}{{ user_avatar_url(follower) }}" alt="{{ t('alt.profile_picture') }}"
+                        width="50" height="50" style="background: #fff; border-radius: 50%">
+                </a>
+            </div>
+        </td>
+        <td style="vertical-align: middle; padding-left: 1em">
+            <div>
+                <a href="{{ follower_profile_url }}" style="text-decoration: none; color: #222; font-weight: bold">
+                    {{ follower.display_name }}
+                </a>
+            </div>
+        </td>
+    </tr>
+</table>
+<p>
+    {% set _see_profile_link -%}
+    <a href="{{ follower_profile_url }}">{{ t('user_mailer.follow_notification.see_their_profile') }}</a>
+    {%- endset %}
+    {{ t('user_mailer.follow_notification.see_their_profile_html', link=_see_profile_link) | safe }}
+</p>
+<p>
+    {% set _follow_back_link -%}
+    <a href="{{ follow_back_url }}">{{ t('user_mailer.follow_notification.follow_back') }}</a>
+    {%- endset %}
+    {{ t('user_mailer.follow_notification.follow_back_html', link=_follow_back_link) | safe }}
+</p>
+{% endblock %}

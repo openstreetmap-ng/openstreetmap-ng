@@ -163,14 +163,19 @@
                 {% include 'user/profile/_groups' %}
 
                 {% if user is not none and not is_self %}
-                <button class="btn btn-light border w-100 mt-4">
-                    {{ t('action.follow_user') }}
-                    <i class="bi bi-bookmark-plus"></i>
-                </button>
+                <form class="follow-form" method="POST" action="/api/web/user-follow/{{ profile.id }}/{% if is_following %}unfollow{% else %}follow{% endif %}">
+                    <button type="submit" class="btn btn-light border w-100 mt-4">
+                        {% if is_following %}
+                        {{ t('action.unfollow_user') }}
+                        <i class="bi bi-bookmark-dash"></i>
+                        {% else %}
+                        {{ t('action.follow_user') }}
+                        <i class="bi bi-bookmark-plus"></i>
+                        {% endif %}
+                    </button>
+                </form>
                 <p class="form-text mx-1 mb-4">
-                    {# TODO: localize #}
-                    Following a user will allow you to quickly access their profile and see their activity.
-                    You can always unfollow any user from your follow list.
+                    {{ t('user.follow_description') }}
                 </p>
 
                 <div class="text-end">

@@ -765,6 +765,18 @@ CREATE TABLE user_subscription (
     PRIMARY KEY (target, target_id, user_id)
 );
 
+CREATE TABLE user_follow (
+    follower_id bigint NOT NULL REFERENCES "user",
+    followee_id bigint NOT NULL REFERENCES "user",
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    PRIMARY KEY (follower_id, followee_id),
+    CHECK (follower_id <> followee_id)
+);
+
+CREATE INDEX user_follow_follower_id_created_at_idx ON user_follow (follower_id DESC, created_at DESC);
+
+CREATE INDEX user_follow_followee_id_created_at_idx ON user_follow (followee_id DESC, created_at DESC);
+
 CREATE TYPE user_token_type AS enum(
     'account_confirm',
     'email_change',

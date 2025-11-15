@@ -1,0 +1,128 @@
+{% extends '_base' %}
+{% block title_prefix %}{{ t('follows.title') }} | {% endblock %}
+{% block body_class %}follows-body{% endblock %}
+{% block body %}
+
+<div class="content-body">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
+                <h1 class="mb-4">{{ t('follows.title') }}</h1>
+
+                <ul class="nav nav-tabs mb-4" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="following-tab" data-bs-toggle="tab"
+                            data-bs-target="#following-panel" type="button" role="tab">
+                            {{ t('follows.following') }}
+                            <span class="badge rounded-pill text-bg-secondary ms-2">{{ following | length }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="followers-tab" data-bs-toggle="tab"
+                            data-bs-target="#followers-panel" type="button" role="tab">
+                            {{ t('follows.followers') }}
+                            <span class="badge rounded-pill text-bg-secondary ms-2">{{ followers | length }}</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="following-panel" role="tabpanel">
+                        {% if following %}
+                        <div class="list-group">
+                            {% for followed_user in following %}
+                            <div class="list-group-item">
+                                <div class="d-flex align-items-center">
+                                    <a href="/user/{{ followed_user.display_name }}" class="text-decoration-none">
+                                        <img src="{{ user_avatar_url(followed_user) }}"
+                                            alt="{{ t('alt.profile_picture') }}" class="rounded-circle me-3"
+                                            width="48" height="48">
+                                    </a>
+                                    <div class="flex-grow-1">
+                                        <div>
+                                            <a href="/user/{{ followed_user.display_name }}"
+                                                class="text-decoration-none fw-bold">
+                                                {{ followed_user.display_name }}
+                                            </a>
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ t('follows.following_since') }}
+                                            <time datetime="{{ followed_user.created_at.isoformat() }}"
+                                                data-date="long"></time>
+                                        </small>
+                                    </div>
+                                    <form class="unfollow-form" method="POST"
+                                        action="/api/web/user-follow/{{ followed_user.id }}/unfollow">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                            {{ t('action.unfollow') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-bookmark display-1 d-block mb-3"></i>
+                            <p>{{ t('follows.not_following_anyone') }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="tab-pane fade" id="followers-panel" role="tabpanel">
+                        {% if followers %}
+                        <div class="list-group">
+                            {% for follower_user in followers %}
+                            <div class="list-group-item">
+                                <div class="d-flex align-items-center">
+                                    <a href="/user/{{ follower_user.display_name }}" class="text-decoration-none">
+                                        <img src="{{ user_avatar_url(follower_user) }}"
+                                            alt="{{ t('alt.profile_picture') }}" class="rounded-circle me-3"
+                                            width="48" height="48">
+                                    </a>
+                                    <div class="flex-grow-1">
+                                        <div>
+                                            <a href="/user/{{ follower_user.display_name }}"
+                                                class="text-decoration-none fw-bold">
+                                                {{ follower_user.display_name }}
+                                            </a>
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ t('follows.follower_since') }}
+                                            <time datetime="{{ follower_user.created_at.isoformat() }}"
+                                                data-date="long"></time>
+                                        </small>
+                                    </div>
+                                    {% if follower_user.is_following %}
+                                    <form class="unfollow-form" method="POST"
+                                        action="/api/web/user-follow/{{ follower_user.id }}/unfollow">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                            {{ t('action.unfollow') }}
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <form class="follow-back-form" method="POST"
+                                        action="/api/web/user-follow/{{ follower_user.id }}/follow">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            {{ t('follows.follow_back') }}
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-people display-1 d-block mb-3"></i>
+                            <p>{{ t('follows.no_followers_yet') }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
