@@ -54,7 +54,9 @@
             letter-spacing: 0;
 
             // Smooth transitions
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            transition:
+                border-color 0.15s ease-in-out,
+                box-shadow 0.15s ease-in-out;
 
             // Enhanced focus state
             &:focus {

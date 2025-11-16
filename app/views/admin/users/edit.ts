@@ -136,7 +136,11 @@ mount("admin-user-edit-body", (body) => {
             },
             {
                 submitCallback: (e) => {
-                    if (!confirm("Forcefully remove two-factor authentication from this user?")) {
+                    if (
+                        !confirm(
+                            "Forcefully remove two-factor authentication from this user?",
+                        )
+                    ) {
                         e.preventDefault()
                     }
                 },

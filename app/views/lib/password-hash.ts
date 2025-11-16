@@ -15,7 +15,7 @@ const formUsePasswordSchemasMap = new WeakMap<
     (PasswordSchema | string)[]
 >()
 
-export const initPasswordsForm = (
+export const configurePasswordsForm = (
     form: HTMLFormElement,
     passwordInputs: NodeListOf<HTMLInputElement>,
 ): void => {

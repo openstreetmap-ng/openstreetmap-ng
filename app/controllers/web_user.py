@@ -15,7 +15,6 @@ from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.models.types import Email, Password
-from app.queries.user_totp_query import UserTOTPQuery
 from app.services.auth_provider_service import AuthProviderService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
@@ -23,7 +22,6 @@ from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_email_service import UserTokenEmailService
 from app.services.user_token_reset_password_service import UserTokenResetPasswordService
-from app.services.user_totp_service import UserTOTPService
 from app.validators.display_name import DisplayNameNormalizing, DisplayNameValidating
 from app.validators.email import EmailValidating
 
@@ -36,30 +34,18 @@ async def login(
         DisplayNameNormalizing | Email, Form(min_length=1)
     ],
     password: Annotated[Password, Form()],
-    totp_code: Annotated[int | None, Form(ge=0, le=999999)] = None,
+    totp_code: Annotated[str | None, Form(pattern=r'^\d{6}$')] = None,
     remember: Annotated[bool, Form()] = False,
 ):
-    # Get user_id after password verification
-    user_id, access_token = await UserService.login(
+    access_token = await UserService.login(
         display_name_or_email=display_name_or_email,
         password=password,
-        check_totp=False,  # We'll check TOTP separately
+        totp_code=totp_code,
     )
 
-    # Check if user has TOTP enabled
-    has_totp = await UserTOTPQuery.has_totp(user_id)
+    if access_token == 'totp_required':
+        return {'totp_required': True}
 
-    if has_totp:
-        if not totp_code:
-            # Password valid but TOTP code needed
-            return {'requires_totp': True}
-
-        # Verify TOTP code
-        code_valid = await UserTOTPService.verify_totp(user_id=user_id, code=totp_code)
-        if not code_valid:
-            StandardFeedback.raise_error('totp_code', t('two_fa.error_invalid_or_expired_code'))
-
-    # Login successful (either no TOTP or TOTP code verified)
     response = Response(None, status.HTTP_204_NO_CONTENT)
     response.set_cookie(
         key='auth',

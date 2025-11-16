@@ -3,7 +3,6 @@ import qrcode from "qrcode-generator"
 import { mount } from "../lib/mount"
 import { qsEncode } from "../lib/qs"
 import { type APIDetail, configureStandardForm } from "../lib/standard-form"
-import { getPageTitle } from "../lib/utils"
 
 // Base32 encoding for TOTP secrets (RFC 4648)
 const base32Encode = (buffer: Uint8Array): string => {
@@ -53,17 +52,12 @@ const generateQRCode = (text: string): string => {
 
 mount("settings-security-body", (body) => {
     const passwordForm = body.querySelector("form.password-form")
-    if (!passwordForm) throw new Error("passwordForm not found on security page")
-
-    const newPasswordInput = passwordForm.querySelector<HTMLInputElement>(
+    const newPasswordInput = passwordForm.querySelector(
         "input[type=password][data-name=new_password]",
     )
-    if (!newPasswordInput) throw new Error("newPasswordInput not found")
-
-    const newPasswordConfirmInput = passwordForm.querySelector<HTMLInputElement>(
+    const newPasswordConfirmInput = passwordForm.querySelector(
         "input[type=password][data-name=new_password_confirm]",
     )
-    if (!newPasswordConfirmInput) throw new Error("newPasswordConfirmInput not found")
 
     configureStandardForm(
         passwordForm,
@@ -113,7 +107,7 @@ mount("settings-security-body", (body) => {
     const setupTOTPForm = body.querySelector("form.setup-totp-form")
     if (setupTOTPForm) {
         // Get user's email or display name for QR code
-        const accountName = getPageTitle().split("|")[0].trim()
+        const accountName = "TODO"
 
         // Generate secret on modal show
         const setupModal = document.getElementById("setupTotpModal")
@@ -122,7 +116,7 @@ mount("settings-security-body", (body) => {
             const uri = generateTOTPUri(secret, accountName)
 
             // Store secret in hidden input
-            const secretInput = setupTOTPForm.querySelector(".totp-secret-input")
+            const secretInput = setupTOTPForm.querySelector("input[name=secret]")
             secretInput.value = secret
 
             // Display secret for manual entry
@@ -134,16 +128,16 @@ mount("settings-security-body", (body) => {
             qrContainer.innerHTML = generateQRCode(uri)
 
             // Focus on code input
-            const codeInput = setupTOTPForm.querySelector<HTMLInputElement>(".totp-code-input")
+            const codeInput = setupTOTPForm.querySelector("input[name=code]")
             setTimeout(() => codeInput.focus(), 100)
         })
 
         // Clear sensitive data on modal close (security measure)
         setupModal?.addEventListener("hide.bs.modal", () => {
-            const secretInput = setupTOTPForm.querySelector<HTMLInputElement>(".totp-secret-input")
+            const secretInput = setupTOTPForm.querySelector("input[name=secret]")
             const secretDisplay = setupTOTPForm.querySelector(".totp-secret-display")
             const qrContainer = setupTOTPForm.querySelector(".qr-code-container")
-            const codeInput = setupTOTPForm.querySelector<HTMLInputElement>(".totp-code-input")
+            const codeInput = setupTOTPForm.querySelector("input[name=code]")
 
             secretInput.value = ""
             secretDisplay.textContent = ""

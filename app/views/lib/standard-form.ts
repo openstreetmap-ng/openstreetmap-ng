@@ -1,7 +1,7 @@
 import { Alert } from "bootstrap"
 import i18next from "i18next"
 import {
-    initPasswordsForm as configurePasswordsForm,
+    configurePasswordsForm,
     handlePasswordSchemaFeedback,
     updatePasswordsFormHashes,
 } from "./password-hash"

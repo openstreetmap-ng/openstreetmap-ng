@@ -1,81 +1,51 @@
-import logging
+from pydantic import SecretStr
 
-from psycopg import AsyncConnection
-
+from app.config import TOTP_MAX_ATTEMPTS_PER_WINDOW
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.crypto import decrypt, encrypt
-from app.lib.exceptions_context import raise_for
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
-from app.lib.totp import get_time_window, verify_totp_code
+from app.lib.totp import totp_time_window, verify_totp_code
 from app.lib.translation import t
-from app.models.db.user import user_is_admin, user_is_test
-from app.models.db.user_totp import UserTOTP
 from app.models.types import Password, UserId
-from app.queries.user_query import UserQuery
 from app.queries.user_totp_query import UserTOTPQuery
 from app.services.audit_service import audit
 
 
 class UserTOTPService:
-    """User TOTP service for two-factor authentication."""
-
-    # Maximum TOTP verification attempts per time window (30 seconds)
-    MAX_ATTEMPTS_PER_WINDOW = 3
-
     @staticmethod
-    async def setup_totp(
-        *,
-        secret: str,
-        code: int,
-    ) -> None:
+    async def setup_totp(secret: SecretStr, code: str) -> None:
         """
         Set up TOTP for the current user.
 
         Verifies the provided code against the secret, then stores
         the encrypted secret in the database.
-
-        Args:
-            secret: Base32-encoded TOTP secret (generated client-side)
-            code: 6-digit TOTP code from authenticator app (0-999999)
-
-        Raises:
-            ValueError: If code verification fails
         """
         user = auth_user(required=True)
         user_id = user['id']
 
-        # Verify the code before storing (convert to zero-padded string for TOTP verification)
-        if not verify_totp_code(secret, f'{code:06d}'):
-            StandardFeedback.raise_error('code', t('two_fa.error_invalid_or_expired_code'))
+        if not verify_totp_code(secret, code):
+            StandardFeedback.raise_error(
+                'code', t('two_fa.error_invalid_or_expired_code')
+            )
 
-        # Encrypt the secret for storage
         secret_encrypted = encrypt(secret)
 
         async with db(True) as conn:
-            # Check if user already has TOTP enabled
-            existing = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
-            if existing:
-                StandardFeedback.raise_error(None, t('two_fa.error_already_enabled'))
-
-            # Store the encrypted secret
-            await conn.execute(
-                "INSERT INTO user_totp (user_id, secret_encrypted) VALUES (%s, %s)",
+            result = await conn.execute(
+                """
+                INSERT INTO user_totp (user_id, secret_encrypted)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+                """,
                 (user_id, secret_encrypted),
             )
-
-            await audit('add_totp', conn)
-
-        logging.info('User %d enabled TOTP', user_id)
+            if result.rowcount:
+                await audit('add_totp', conn)
 
     @staticmethod
-    async def verify_totp(
-        *,
-        user_id: UserId,
-        code: int,
-        conn: AsyncConnection | None = None,
-    ) -> bool:
+    async def verify_totp(user_id: UserId, code: str) -> bool:
         """
         Verify a TOTP code for a user with replay prevention.
 
@@ -94,36 +64,48 @@ class UserTOTPService:
         Returns:
             True if code is valid and not replayed, False otherwise
         """
-        async with db(True, conn=conn) as conn:
+        async with db(True) as conn:
             # Get the user's TOTP credentials
             totp = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
             if not totp:
                 return False
 
             # Rate limiting: check total attempts in current time window
-            time_window = get_time_window()
+            time_window = totp_time_window()
             async with await conn.execute(
-                "SELECT COUNT(*) FROM user_totp_used_code WHERE user_id = %s AND time_window = %s",
+                'SELECT COUNT(*) FROM user_totp_used_code WHERE user_id = %s AND time_window = %s',
                 (user_id, time_window),
             ) as r:
                 (attempts_count,) = await r.fetchone()
 
-            if attempts_count >= UserTOTPService.MAX_ATTEMPTS_PER_WINDOW:
-                await audit('auth_fail', user_id=user_id, extra={'reason': 'rate_limited'}, conn=conn)
-                StandardFeedback.raise_error('code', t('two_fa.error_too_many_attempts'))
+            if attempts_count >= TOTP_MAX_ATTEMPTS_PER_WINDOW:
+                await audit(
+                    'auth_fail',
+                    user_id=user_id,
+                    extra={'reason': 'rate_limited'},
+                    conn=conn,
+                )
+                StandardFeedback.raise_error(
+                    'code', t('two_fa.error_too_many_attempts')
+                )
 
             # Decrypt the secret
             secret = decrypt(totp['secret_encrypted'])
 
             # Verify the code (convert to zero-padded string for TOTP verification)
-            if not verify_totp_code(secret, f'{code:06d}'):
+            if not verify_totp_code(secret, code):
                 # Record failed attempt (store actual attempted code for rate limiting)
                 await conn.execute(
-                    "INSERT INTO user_totp_used_code (user_id, code, time_window) VALUES (%s, %s, %s) ON CONFLICT (user_id, time_window, code) DO NOTHING",
+                    'INSERT INTO user_totp_used_code (user_id, code, time_window) VALUES (%s, %s, %s) ON CONFLICT (user_id, time_window, code) DO NOTHING',
                     (user_id, code, time_window),
                 )
 
-                await audit('auth_fail', user_id=user_id, extra={'reason': 'invalid_code'}, conn=conn)
+                await audit(
+                    'auth_fail',
+                    conn,
+                    user_id=user_id,
+                    extra={'reason': 'invalid_code'},
+                )
                 return False
 
             # Prevent replay: check if this code was already used in any of the valid time windows
@@ -140,27 +122,38 @@ class UserTOTPService:
                 SELECT COUNT(*) FROM insert_attempts
                 """,
                 (
-                    user_id, code, time_window - 1,
-                    user_id, code, time_window,
-                    user_id, code, time_window + 1,
+                    user_id,
+                    code,
+                    time_window - 1,
+                    user_id,
+                    code,
+                    time_window,
+                    user_id,
+                    code,
+                    time_window + 1,
                 ),
             ) as r:
                 (rows_inserted,) = await r.fetchone()
 
             # If fewer than 3 rows were inserted, at least one window already had this code (replay attack)
             if rows_inserted != 3:
-                await audit('auth_fail', user_id=user_id, extra={'reason': 'code_reused'}, conn=conn)
+                await audit(
+                    'auth_fail',
+                    conn,
+                    user_id=user_id,
+                    extra={'reason': 'code_reused'},
+                )
                 return False
 
             # Update last_used_at
             await conn.execute(
-                "UPDATE user_totp SET last_used_at = statement_timestamp() WHERE user_id = %s",
+                'UPDATE user_totp SET last_used_at = statement_timestamp() WHERE user_id = %s',
                 (user_id,),
             )
 
             # Clean up old used codes (keep only last 3 time windows = 90 seconds)
             await conn.execute(
-                "DELETE FROM user_totp_used_code WHERE user_id = %s AND time_window < %s",
+                'DELETE FROM user_totp_used_code WHERE user_id = %s AND time_window < %s',
                 (user_id, time_window - 2),
             )
 
@@ -169,75 +162,44 @@ class UserTOTPService:
     @staticmethod
     async def remove_totp(
         *,
-        password: Password,
-        target_user_id: UserId | None = None,
+        password: Password | None,
+        user_id: UserId | None = None,
     ) -> None:
-        """
-        Remove TOTP for a user.
-
-        If target_user_id is provided, this is an admin action.
-        Otherwise, it's the current user removing their own TOTP.
-
-        Args:
-            password: Current user's password for verification (ignored for admin)
-            target_user_id: User ID to remove TOTP from (admin only)
-        """
-        user = auth_user(required=True)
-        user_id = user['id']
-
-        # Determine if this is an admin action
-        is_admin_action = target_user_id is not None and target_user_id != user_id
-
-        if is_admin_action:
-            # Admin removing another user's TOTP
-            if not user_is_admin(user):
-                raise_for().insufficient_scopes()
-
-            target_id = target_user_id
+        if password is None:
+            assert user_id is not None
         else:
-            # User removing their own TOTP - verify password
-            target_id = user_id
+            assert user_id is None
+            user = auth_user(required=True)
+            user_id = user['id']
 
-            # Verify password
-            current_user = await UserQuery.find_one_by_id(user_id)
-            if not current_user:
-                raise_for().user_not_found(user_id)
-
-            verification = PasswordHash.verify(
-                password_pb=current_user['password_pb'],
-                password=password,
-                is_test_user=user_is_test(current_user),
-            )
+            verification = PasswordHash.verify(user, password)
 
             if not verification.success:
-                StandardFeedback.raise_error('password', t('two_fa.error_password_incorrect'))
+                await audit('auth_fail', extra={'reason': 'remove_totp_password'})
+                StandardFeedback.raise_error(
+                    None, t('users.auth_failure.invalid_credentials')
+                )
+            if verification.rehash_needed:
+                from app.services.user_service import UserService  # noqa: PLC0415
+
+                await UserService.rehash_user_password(user, password)
+            if verification.schema_needed is not None:
+                StandardFeedback.raise_error(
+                    'password_schema', verification.schema_needed
+                )
 
         async with db(True) as conn:
-            # Check if user has TOTP enabled
-            totp = await UserTOTPQuery.find_one_by_user_id(target_id, conn=conn)
-            if not totp:
-                StandardFeedback.raise_error(None, t('two_fa.error_not_enabled'))
-
-            # Delete TOTP credentials
-            await conn.execute(
-                "DELETE FROM user_totp WHERE user_id = %s",
-                (target_id,),
+            result = await conn.execute(
+                'DELETE FROM user_totp WHERE user_id = %s',
+                (user_id,),
             )
-
-            # Delete all used codes for this user
-            await conn.execute(
-                "DELETE FROM user_totp_used_code WHERE user_id = %s",
-                (target_id,),
-            )
-
-            # Audit the removal
-            if is_admin_action:
-                await audit('remove_totp', target_user_id=target_id, conn=conn)
-            else:
-                await audit('remove_totp', conn=conn)
-
-        logging.info(
-            'User %d removed TOTP%s',
-            target_id,
-            f' by admin {user_id}' if is_admin_action else '',
-        )
+            if result.rowcount:
+                await conn.execute(
+                    'DELETE FROM user_totp_used_code WHERE user_id = %s',
+                    (user_id,),
+                )
+                await audit(
+                    'remove_totp',
+                    conn,
+                    target_user_id=(user_id if password is None else None),
+                )

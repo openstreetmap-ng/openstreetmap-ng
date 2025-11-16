@@ -8,6 +8,7 @@ from argon2 import PasswordHasher, Type
 from argon2.exceptions import VerifyMismatchError
 
 from app.config import ENV, SECRET_32
+from app.models.db.user import User, user_is_test
 from app.models.proto.server_pb2 import UserPassword
 from app.models.proto.shared_pb2 import TransmitUserPassword
 from app.models.types import Password
@@ -47,24 +48,19 @@ class PasswordHash:
         return None
 
     @staticmethod
-    def verify(
-        *,
-        password_pb: bytes,
-        password: Password,
-        is_test_user: bool,
-    ):
+    def verify(user: User, password: Password):
         """Verify a password against a hash and optional extra data."""
         # test user accepts any password in test environment
-        if is_test_user:
+        if user_is_test(user):
             return VerifyResult(success=ENV != 'prod', rehash_needed=False)
         # preload users contain no password
-        if not password_pb:
+        if not user['password_pb']:
             return VerifyResult(False, rehash_needed=False)
 
         transmit_password = TransmitUserPassword.FromString(
             b64decode(password.get_secret_value())
         )
-        password_pb_ = UserPassword.FromString(password_pb)
+        password_pb_ = UserPassword.FromString(user['password_pb'])
         password_pb_schema: PasswordSchema = password_pb_.WhichOneof('schema')
 
         if password_pb_schema == 'v1':

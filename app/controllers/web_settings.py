@@ -1,6 +1,7 @@
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, Response, UploadFile
+from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -111,11 +112,10 @@ async def settings_password(
 @router.post('/settings/totp/setup')
 async def settings_totp_setup(
     _: Annotated[User, web_user()],
-    secret: Annotated[str, Form()],
-    code: Annotated[int, Form(ge=0, le=999999)],
+    secret: Annotated[SecretStr, Form()],
+    code: Annotated[str, Form(pattern=r'^\d{6}$')],
 ):
-    """Set up TOTP for the current user."""
-    await UserTOTPService.setup_totp(secret=secret, code=code)
+    await UserTOTPService.setup_totp(secret, code)
     return StandardFeedback.success_result(
         None, t('two_fa.two_factor_authentication_is_enabled')
     )
@@ -126,7 +126,6 @@ async def settings_totp_remove(
     _: Annotated[User, web_user()],
     password: Annotated[Password, Form()],
 ):
-    """Remove TOTP for the current user."""
     await UserTOTPService.remove_totp(password=password)
     return StandardFeedback.success_result(
         None, t('two_fa.two_factor_authentication_has_been_disabled')

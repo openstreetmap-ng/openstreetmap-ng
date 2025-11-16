@@ -8,6 +8,7 @@ from typing import TypeVar
 import cython
 from blake3 import blake3
 from Crypto.Cipher import AES
+from pydantic import SecretStr
 
 from app.config import (
     CRYPTO_HASH_CACHE_MAX_ENTRIES,
@@ -85,19 +86,19 @@ def hash_s256_code_challenge(verifier: str) -> str:
     return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')
 
 
-def encrypt(s: str) -> bytes:
+def encrypt(s: SecretStr) -> bytes:
     """Encrypt a string using AES-CTR."""
     assert s, 'Empty string must not be encrypted'
     nonce = buffered_randbytes(15)  # +1 byte for the counter
     cipher = AES.new(key=SECRET_32.get_secret_value(), mode=AES.MODE_CTR, nonce=nonce)
-    cipher_text_bytes = cipher.encrypt(s.encode())
+    cipher_text_bytes = cipher.encrypt(s.get_secret_value().encode())
     return b''.join((b'\x00', nonce, cipher_text_bytes))
 
 
-def decrypt(buffer: bytes) -> str:
+def decrypt(buffer: bytes) -> SecretStr:
     """Decrypt an encrypted buffer."""
     if not buffer:
-        return ''
+        return SecretStr('')
 
     marker = buffer[0]
     if marker == 0x00:
@@ -108,6 +109,6 @@ def decrypt(buffer: bytes) -> str:
             mode=AES.MODE_CTR,
             nonce=nonce_bytes,
         )
-        return cipher.decrypt(cipher_text_bytes).decode()
+        return SecretStr(cipher.decrypt(cipher_text_bytes).decode())
 
     raise NotImplementedError(f'Unsupported encryption marker {marker!r}')

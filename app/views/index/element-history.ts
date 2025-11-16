@@ -37,8 +37,7 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
         }
 
         // Get elements
-        const sidebarTitleElement =
-            sidebarContent.querySelector<HTMLElement>(".sidebar-title")
+        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found

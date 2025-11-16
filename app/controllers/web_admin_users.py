@@ -2,8 +2,8 @@ from asyncio import TaskGroup
 from datetime import datetime, timedelta
 from typing import Annotated, Literal
 
+import orjson
 from fastapi import APIRouter, Cookie, Form, HTTPException, Query, Response
-from fastapi.responses import JSONResponse
 from pydantic import PositiveInt, SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -90,9 +90,11 @@ async def export_ids(
         limit=ADMIN_USER_EXPORT_LIMIT,
     )
 
-    response = JSONResponse(content=user_ids)
-    response.headers['Content-Disposition'] = 'attachment; filename="user-ids.json"'
-    return response
+    return Response(
+        orjson.dumps(user_ids),
+        media_type='application/json',
+        headers={'Content-Disposition': 'attachment; filename="user-ids.json"'},
+    )
 
 
 @router.post('/{user_id:int}/update')
@@ -119,6 +121,15 @@ async def update_user(
         if ENV != 'test'
         else 'User would have been updated. This feature is disabled in the test environment.',
     )
+
+
+@router.post('/{user_id:int}/remove-totp')
+async def remove_user_totp(
+    _: Annotated[User, web_user('role_administrator')],
+    user_id: UserId,
+):
+    await UserTOTPService.remove_totp(password=None, target_user_id=user_id)
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/{user_id:int}/impersonate')
@@ -150,18 +161,3 @@ async def impersonate_user(
     )
     await audit('impersonate', target_user_id=user_id)
     return response
-
-
-@router.post('/{user_id:int}/remove-totp')
-async def remove_user_totp(
-    _: Annotated[User, web_user('role_administrator')],
-    user_id: UserId,
-):
-    """Forcefully remove TOTP for a user (admin action)."""
-    # Admin removal doesn't require password - use empty password
-    # The service will recognize this as an admin action
-    await UserTOTPService.remove_totp(
-        password=Password(SecretStr('')),  # Dummy password for admin
-        target_user_id=user_id,
-    )
-    return Response(None, status.HTTP_204_NO_CONTENT)

@@ -455,9 +455,7 @@ two_fa:
   two_factor_enter_code_to_sign_in: Enter the 6-digit code from your authenticator app to complete sign in.
   enter_two_factor_code: Enter authentication code
   error_invalid_or_expired_code: Invalid or expired authentication code
-  error_already_enabled: Two-factor authentication is already enabled for your account
   error_not_enabled: Two-factor authentication is not enabled for this account
-  error_password_incorrect: Password is incorrect
   error_too_many_attempts: Too many failed attempts. Please try again in 30 seconds.
 auth_switcher:
   sign_in_with_a_provider: Sign in with a provider

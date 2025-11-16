@@ -81,12 +81,12 @@ async def user_edit(
 
     async with TaskGroup() as tg:
         tg.create_task(audit('view_admin_users', target_user_id=user_id))
-        connected_accounts_task = tg.create_task(
+        totp_t = tg.create_task(UserTOTPQuery.find_one_by_user_id(user_id))
+        connected_accounts_t = tg.create_task(
             ConnectedAccountQuery.find_by_user(user_id)
         )
-        applications_task = tg.create_task(OAuth2ApplicationQuery.find_by_user(user_id))
-        tokens_task = tg.create_task(OAuth2TokenQuery.find_pats_by_user(user_id))
-        totp_task = tg.create_task(UserTOTPQuery.has_totp(user_id))
+        applications_t = tg.create_task(OAuth2ApplicationQuery.find_by_user(user_id))
+        tokens_t = tg.create_task(OAuth2TokenQuery.find_pats_by_user(user_id))
         authorizations = await OAuth2TokenQuery.find_unique_per_app_by_user(user_id)
         tg.create_task(OAuth2ApplicationQuery.resolve_applications(authorizations))
 
@@ -94,11 +94,11 @@ async def user_edit(
         'admin/users/edit',
         {
             'edit_user': edit_user,
-            'connected_accounts': connected_accounts_task.result(),
+            'has_totp': totp_t.result() is not None,
+            'connected_accounts': connected_accounts_t.result(),
             'authorizations': authorizations,
-            'applications': applications_task.result(),
-            'tokens': tokens_task.result(),
-            'has_totp': totp_task.result(),
+            'applications': applications_t.result(),
+            'tokens': tokens_t.result(),
             'DISPLAY_NAME_MAX_LENGTH': DISPLAY_NAME_MAX_LENGTH,
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
             'USER_ROLES': USER_ROLES,

@@ -25,7 +25,6 @@
                     required>
             </label>
 
-            {# 2FA code input - hidden by default, shown when needed #}
             <div class="totp-code-section d-none mb-3">
                 <div class="alert alert-info small py-2">
                     <i class="bi bi-shield-lock me-1"></i>
@@ -34,14 +33,19 @@
                 <label class="form-label d-block">
                     {{ t('two_fa.enter_two_factor_code') }}
                     <div class="totp-input-group d-flex gap-2 justify-content-center mt-2">
-                        <input type="text" class="form-control totp-digit" data-index="0" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code" required>
-                        <input type="text" class="form-control totp-digit" data-index="1" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" required>
-                        <input type="text" class="form-control totp-digit" data-index="2" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" required>
-                        <input type="text" class="form-control totp-digit" data-index="3" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" required>
-                        <input type="text" class="form-control totp-digit" data-index="4" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" required>
-                        <input type="text" class="form-control totp-digit" data-index="5" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" required>
+                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
+                            pattern="[0-9]" autocomplete="one-time-code">
+                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
+                            pattern="[0-9]" autocomplete="off">
+                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
+                            pattern="[0-9]" autocomplete="off">
+                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
+                            pattern="[0-9]" autocomplete="off">
+                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
+                            pattern="[0-9]" autocomplete="off">
+                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
+                            pattern="[0-9]" autocomplete="off">
                     </div>
-                    {# Hidden input to store the combined code for form submission #}
                     <input type="hidden" name="totp_code">
                 </label>
                 <p class="form-text small mb-0">{{ t('two_fa.two_factor_enter_code_to_sign_in') }}</p>

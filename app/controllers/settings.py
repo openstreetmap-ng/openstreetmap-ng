@@ -46,6 +46,7 @@ async def settings_email(_: Annotated[User, web_user()]):
 @router.get('/settings/security')
 async def settings_security(user: Annotated[User, web_user()]):
     async with TaskGroup() as tg:
+        totp_t = tg.create_task(UserTOTPQuery.find_one_by_user_id(user['id']))
         current_t = tg.create_task(AuthService.authenticate_oauth2(None))
         active_t = tg.create_task(
             OAuth2TokenQuery.find_authorized_by_user_client_id(
@@ -54,19 +55,13 @@ async def settings_security(user: Annotated[User, web_user()]):
                 limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
             )
         )
-        totp_t = tg.create_task(UserTOTPQuery.has_totp(user['id']))
-
-    current_session = current_t.result()
-    assert current_session is not None
-    active_sessions = active_t.result()
-    has_totp = totp_t.result()
 
     return await render_response(
         'settings/security',
         {
-            'current_session_id': current_session['id'],
-            'active_sessions': active_sessions,
-            'has_totp': has_totp,
+            'has_totp': totp_t.result() is not None,
+            'current_session_id': current_t.result()['id'],  # type: ignore
+            'active_sessions': active_t.result(),
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
         },
     )

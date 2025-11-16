@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import UploadFile
 from psycopg import AsyncConnection
@@ -22,12 +22,14 @@ from app.models.db.user import Editor, User, UserRole, user_avatar_url, user_is_
 from app.models.types import DisplayName, Email, LocaleCode, Password, UserId
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
+from app.queries.user_totp_query import UserTOTPQuery
 from app.services.audit_service import audit
 from app.services.image_service import ImageService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_token_email_service import UserTokenEmailService
 from app.services.user_token_service import UserTokenService
+from app.services.user_totp_service import UserTOTPService
 from app.validators.email import validate_email, validate_email_deliverability
 
 
@@ -37,8 +39,8 @@ class UserService:
         *,
         display_name_or_email: DisplayName | Email,
         password: Password,
-        check_totp: bool = True,
-    ) -> tuple[UserId, SecretStr]:
+        totp_code: str | None,
+    ) -> SecretStr | Literal['totp_required']:
         """Attempt to login as a user. Returns (user_id, access_token)."""
         # TODO: normalize unicode & strip
         # (dot) indicates email format, display_name blacklists it
@@ -60,11 +62,7 @@ class UserService:
             )
 
         user_id = user['id']
-        verification = PasswordHash.verify(
-            password_pb=user['password_pb'],
-            password=password,
-            is_test_user=user_is_test(user),
-        )
+        verification = PasswordHash.verify(user, password)
 
         if not verification.success:
             await audit('auth_fail', user_id=user_id, extra={'reason': 'password'})
@@ -72,9 +70,20 @@ class UserService:
                 None, t('users.auth_failure.invalid_credentials')
             )
         if verification.rehash_needed:
-            await _rehash_user_password(user, password)
+            await UserService.rehash_user_password(user, password)
         if verification.schema_needed is not None:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
+
+        # Verify TOTP
+        totp = await UserTOTPQuery.find_one_by_user_id(user_id)
+        if totp is not None:
+            if totp_code is None:
+                return 'totp_required'
+
+            if not await UserTOTPService.verify_totp(user_id, totp_code):
+                StandardFeedback.raise_error(
+                    'totp_code', t('two_fa.error_invalid_or_expired_code')
+                )
 
         access_token = await SystemAppService.create_access_token(
             SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
@@ -86,7 +95,7 @@ class UserService:
             sample_rate=1,
             discard_repeated=None,
         )
-        return user_id, access_token
+        return access_token
 
     @staticmethod
     async def update_description(
@@ -243,18 +252,14 @@ class UserService:
                 'email', 'Changing test user email is disabled'
             )
 
-        verification = PasswordHash.verify(
-            password_pb=user['password_pb'],
-            password=password,
-            is_test_user=user_is_test(user),
-        )
+        verification = PasswordHash.verify(user, password)
 
         if not verification.success:
             StandardFeedback.raise_error(
                 'password', t('validation.password_is_incorrect')
             )
         if verification.rehash_needed:
-            await _rehash_user_password(user, password)
+            await UserService.rehash_user_password(user, password)
         if verification.schema_needed is not None:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
         if not await UserQuery.check_email_available(new_email):
@@ -276,11 +281,7 @@ class UserService:
         """Update user password."""
         user = auth_user(required=True)
         user_id = user['id']
-        verification = PasswordHash.verify(
-            password_pb=user['password_pb'],
-            password=old_password,
-            is_test_user=user_is_test(user),
-        )
+        verification = PasswordHash.verify(user, old_password)
 
         if not verification.success:
             StandardFeedback.raise_error(
@@ -363,6 +364,28 @@ class UserService:
             await audit(
                 'change_password', conn, user_id=user_id, extra={'reason': 'reset'}
             )
+
+    @staticmethod
+    async def rehash_user_password(user: User, password: Password) -> None:
+        """Rehash user password if the hashing algorithm or parameters have changed."""
+        user_id = user['id']
+
+        new_password_pb = PasswordHash.hash(password)
+        if new_password_pb is None:
+            return
+
+        async with db(True) as conn:
+            result = await conn.execute(
+                """
+                UPDATE "user"
+                SET password_pb = %s
+                WHERE id = %s AND password_pb = %s
+                """,
+                (new_password_pb, user_id, user['password_pb']),
+            )
+
+            if result.rowcount:
+                logging.debug('Rehashed password for user %d', user_id)
 
     @staticmethod
     async def update_timezone(timezone: str) -> None:
@@ -558,25 +581,3 @@ class UserService:
                     await UserTokenService.delete_all_for_user(conn, user_id)
             for op in audits:
                 await op(conn)
-
-
-async def _rehash_user_password(user: User, password: Password) -> None:
-    """Rehash user password if the hashing algorithm or parameters have changed."""
-    user_id = user['id']
-
-    new_password_pb = PasswordHash.hash(password)
-    if new_password_pb is None:
-        return
-
-    async with db(True) as conn:
-        result = await conn.execute(
-            """
-            UPDATE "user"
-            SET password_pb = %s
-            WHERE id = %s AND password_pb = %s
-            """,
-            (new_password_pb, user_id, user['password_pb']),
-        )
-
-        if result.rowcount:
-            logging.debug('Rehashed password for user %d', user_id)

@@ -11,140 +11,102 @@ if (loginForm) {
     if (!referrer.startsWith("/")) referrer = defaultReferrer
 
     const totpCodeSection = loginForm.querySelector(".totp-code-section")
-    const totpDigitInputs = loginForm.querySelectorAll(
-        ".totp-digit",
-    ) as NodeListOf<HTMLInputElement>
-    const totpCodeInput = loginForm.querySelector(
-        "input[name=totp_code]",
-    ) as HTMLInputElement
+    const totpDigitInputs = totpCodeSection.querySelectorAll("input.totp-digit")
+    const totpCodeInput = totpCodeSection.querySelector("input[name=totp_code]")
+    const totpInputRegex = /^\d$/
 
-    // Configure 6-input TOTP field with auto-focus, auto-paste, and auto-submit
-    const configureTOTPInputs = (): void => {
-        if (totpDigitInputs.length !== 6) return
-
-        // Helper to get all digit values as a string
-        const getTOTPCode = (): string => {
-            return Array.from(totpDigitInputs)
-                .map((input) => input.value)
-                .join("")
+    /**
+     * Tries to submit the TOTP code.
+     * @returns Whether the submission was successful.
+     */
+    const tryTOTPSubmit = (): boolean => {
+        const code = Array.from(totpDigitInputs)
+            .map((input) => input.value)
+            .join("")
+        if (code.length !== 6) {
+            return false
         }
 
-        // Helper to update hidden input and check if complete
-        const updateHiddenInput = (): void => {
-            const code = getTOTPCode()
-            totpCodeInput.value = code
-
-            // Auto-submit when all 6 digits are filled
-            if (code.length === 6 && /^\d{6}$/.test(code)) {
-                loginForm.requestSubmit()
-            }
-        }
-
-        totpDigitInputs.forEach((input, index) => {
-            // Handle input - auto-focus next
-            input.addEventListener("input", (e) => {
-                const target = e.target as HTMLInputElement
-                const value = target.value
-
-                // Only allow digits
-                if (value && !/^\d$/.test(value)) {
-                    target.value = ""
-                    return
-                }
-
-                // Update hidden input
-                updateHiddenInput()
-
-                // Auto-focus next input if digit was entered
-                if (value && index < totpDigitInputs.length - 1) {
-                    totpDigitInputs[index + 1].focus()
-                    totpDigitInputs[index + 1].select()
-                }
-            })
-
-            // Handle backspace - focus previous
-            input.addEventListener("keydown", (e) => {
-                const target = e.target as HTMLInputElement
-
-                if (e.key === "Backspace" && !target.value && index > 0) {
-                    totpDigitInputs[index - 1].focus()
-                    totpDigitInputs[index - 1].select()
-                }
-
-                // Also allow arrow keys for navigation
-                if (e.key === "ArrowLeft" && index > 0) {
-                    e.preventDefault()
-                    totpDigitInputs[index - 1].focus()
-                    totpDigitInputs[index - 1].select()
-                }
-                if (e.key === "ArrowRight" && index < totpDigitInputs.length - 1) {
-                    e.preventDefault()
-                    totpDigitInputs[index + 1].focus()
-                    totpDigitInputs[index + 1].select()
-                }
-            })
-
-            // Handle paste - distribute digits across inputs
-            input.addEventListener("paste", (e) => {
-                e.preventDefault()
-                const pastedData = e.clipboardData?.getData("text") || ""
-                const digits = pastedData.replace(/\D/g, "").slice(0, 6)
-
-                if (digits.length > 0) {
-                    // Distribute digits starting from current input
-                    for (let i = 0; i < digits.length && index + i < totpDigitInputs.length; i++) {
-                        totpDigitInputs[index + i].value = digits[i]
-                    }
-
-                    // Focus the next empty input or last input
-                    const nextEmptyIndex = index + digits.length
-                    if (nextEmptyIndex < totpDigitInputs.length) {
-                        totpDigitInputs[nextEmptyIndex].focus()
-                    } else {
-                        totpDigitInputs[totpDigitInputs.length - 1].focus()
-                    }
-
-                    updateHiddenInput()
-                }
-            })
-
-            // Select all on focus for easy replacement
-            input.addEventListener("focus", () => {
-                input.select()
-            })
-        })
+        totpCodeInput.value = code
+        loginForm.requestSubmit()
+        return true
     }
 
-    // Initialize TOTP inputs when section becomes visible
-    const observer = new MutationObserver(() => {
-        if (totpCodeSection && !totpCodeSection.classList.contains("d-none")) {
-            configureTOTPInputs()
-            // Focus first input when section shows
-            totpDigitInputs[0]?.focus()
-            observer.disconnect()
-        }
-    })
+    totpDigitInputs.forEach((input, index) => {
+        input.addEventListener("input", () => {
+            const value = input.value
 
-    if (totpCodeSection) {
-        observer.observe(totpCodeSection, { attributes: true, attributeFilter: ["class"] })
-    }
-
-    // On successful login (or TOTP required), handle appropriately
-    configureStandardForm(
-        loginForm,
-        (data) => {
-            // Check if TOTP is required
-            if (data && typeof data === "object" && "requires_totp" in data && data.requires_totp) {
-                console.debug("TOTP required, showing code input")
-                // Show TOTP code section
-                totpCodeSection?.classList.remove("d-none")
-                // Focus on TOTP input
-                totpCodeInput?.focus()
-                // Don't redirect - let user enter TOTP code
+            // Validate
+            if (!totpInputRegex.test(value)) {
+                input.value = ""
                 return
             }
 
-            // Normal login success - redirect
+            // Submit or focus next
+            if (!tryTOTPSubmit() && index < totpDigitInputs.length - 1) {
+                totpDigitInputs[index + 1].focus()
+                totpDigitInputs[index + 1].select()
+            }
+        })
+
+        // Improve keyboard navigation
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace" && !input.value && index) {
+                totpDigitInputs[index - 1].focus()
+                totpDigitInputs[index - 1].select()
+            } else if (e.key === "ArrowLeft" && index) {
+                e.preventDefault()
+                totpDigitInputs[index - 1].focus()
+                totpDigitInputs[index - 1].select()
+            } else if (e.key === "ArrowRight" && index < totpDigitInputs.length - 1) {
+                e.preventDefault()
+                totpDigitInputs[index + 1].focus()
+                totpDigitInputs[index + 1].select()
+            }
+        })
+
+        // Select all on focus for easy replacement
+        input.addEventListener("focus", () => {
+            input.select()
+        })
+
+        // Handle paste - distribute digits across inputs
+        input.addEventListener("paste", (e) => {
+            e.preventDefault()
+            const pastedData = e.clipboardData?.getData("text") || ""
+            const digits = pastedData.replace(/\D/g, "")
+            if (!digits.length) return
+
+            // Distribute digits starting from current input
+            for (
+                let i = 0;
+                i < digits.length && index + i < totpDigitInputs.length;
+                i++
+            ) {
+                totpDigitInputs[index + i].value = digits[i]
+            }
+
+            const focusIndex = Math.min(
+                index + digits.length,
+                totpDigitInputs.length - 1,
+            )
+            totpDigitInputs[focusIndex].focus()
+            tryTOTPSubmit()
+        })
+    })
+
+    // Configure login form
+    configureStandardForm(
+        loginForm,
+        (data) => {
+            if (data.totp_required) {
+                console.info("onLoginFormTOTPRequired")
+                totpCodeSection.classList.remove("d-none")
+                for (const input of totpDigitInputs) input.required = true
+                totpDigitInputs[0].focus()
+                return
+            }
+
             console.debug("onLoginFormSuccess", referrer)
             if (referrer !== defaultReferrer) {
                 window.location.href = `${window.location.origin}${referrer}`
@@ -152,12 +114,15 @@ if (loginForm) {
                 window.location.reload()
             }
         },
+        {
+            removeEmptyFields: true,
+        },
     )
 
     // Propagate referer to auth providers forms
     const authProvidersForms = document.querySelectorAll(".auth-providers form")
     for (const form of authProvidersForms) {
-        const referrerInput = form.elements.namedItem("referer") as HTMLInputElement
+        const referrerInput = form.querySelector("input[name=referer]")
         if (referrerInput) referrerInput.value = referrer
     }
 
@@ -166,19 +131,13 @@ if (loginForm) {
         const dataset = (target as HTMLButtonElement).dataset
         console.debug("onAutofillButtonClick", dataset)
 
-        const loginInput = loginForm.elements.namedItem(
-            "display_name_or_email",
-        ) as HTMLInputElement
+        const loginInput = loginForm.querySelector("input[name=display_name_or_email]")
         loginInput.value = dataset.login
 
-        const passwordInput = loginForm.querySelector(
-            "input[type=password][data-name=password]",
-        ) as HTMLInputElement
+        const passwordInput = loginForm.querySelector("input[data-name=password]")
         passwordInput.value = dataset.password
 
-        const rememberInput = loginForm.elements.namedItem(
-            "remember",
-        ) as HTMLInputElement
+        const rememberInput = loginForm.querySelector("input[name=remember]")
         rememberInput.checked = true
 
         loginForm.requestSubmit()
