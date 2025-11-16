@@ -1,0 +1,261 @@
+"""User TOTP service for two-factor authentication."""
+
+import logging
+
+from asyncpg import Connection, UniqueViolationError
+
+from app.db import db
+from app.lib.auth_context import auth_user
+from app.lib.crypto import decrypt, encrypt, hash_bytes
+from app.lib.exceptions_context import raise_for
+from app.lib.totp import get_time_window, verify_totp_code
+from app.models.db.user_totp import UserTOTP
+from app.models.types import Password, UserId
+from app.queries.user_totp_query import UserTOTPQuery
+from app.services.audit_service import audit
+
+
+class UserTOTPService:
+    """User TOTP service for two-factor authentication."""
+
+    @staticmethod
+    async def setup_totp(
+        *,
+        secret: str,
+        code: str,
+    ) -> None:
+        """
+        Set up TOTP for the current user.
+
+        Verifies the provided code against the secret, then stores
+        the encrypted secret in the database.
+
+        Args:
+            secret: Base32-encoded TOTP secret (generated client-side)
+            code: 6-digit TOTP code from authenticator app
+
+        Raises:
+            ValueError: If code verification fails
+        """
+        user = auth_user(required=True)
+        user_id = user['id']
+
+        # Verify the code before storing
+        if not verify_totp_code(secret, code):
+            raise_for().totp_invalid_code()
+
+        # Encrypt the secret for storage
+        secret_encrypted = encrypt(secret)
+
+        async with db(write=True) as conn:
+            # Check if user already has TOTP enabled
+            existing = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
+            if existing:
+                raise_for().totp_already_enabled()
+
+            # Store the encrypted secret
+            await conn.execute(
+                """
+                INSERT INTO user_totp (user_id, secret_encrypted)
+                VALUES ($1, $2)
+                """,
+                user_id,
+                secret_encrypted,
+            )
+
+            await audit('add_2fa', conn)
+
+        logging.info('User %d enabled 2FA', user_id)
+
+    @staticmethod
+    async def verify_totp(
+        *,
+        user_id: UserId,
+        code: str,
+        conn: Connection | None = None,
+    ) -> bool:
+        """
+        Verify a TOTP code for a user with replay prevention.
+
+        This method:
+        1. Retrieves the user's encrypted secret
+        2. Decrypts it
+        3. Verifies the code against the secret
+        4. Prevents code reuse within the same time window (30s)
+        5. Updates last_used_at on success
+
+        Args:
+            user_id: User ID to verify
+            code: 6-digit TOTP code
+            conn: Optional database connection
+
+        Returns:
+            True if code is valid and not replayed, False otherwise
+        """
+        async with db(write=True, conn=conn) as conn:
+            # Get the user's TOTP credentials
+            totp = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
+            if not totp:
+                return False
+
+            # Decrypt the secret
+            secret = decrypt(totp['secret_encrypted'])
+
+            # Verify the code
+            if not verify_totp_code(secret, code):
+                await audit('auth_2fa_fail', user_id=user_id, extra={'reason': 'invalid_code'})
+                return False
+
+            # Prevent replay: check if this code was already used in any of the valid time windows
+            time_window = get_time_window()
+            code_hash = hash_bytes(code)
+
+            # Try to insert the used code for t-1, t, and t+1 windows
+            # This prevents the same code from being used multiple times
+            for offset in [-1, 0, 1]:
+                window = time_window + offset
+                try:
+                    await conn.execute(
+                        """
+                        INSERT INTO user_totp_used_code (user_id, code_hash, time_window)
+                        VALUES ($1, $2, $3)
+                        ON CONFLICT (user_id, time_window, code_hash) DO NOTHING
+                        """,
+                        user_id,
+                        code_hash,
+                        window,
+                    )
+                except UniqueViolationError:
+                    # Code was already used in this time window
+                    await audit('auth_2fa_fail', user_id=user_id, extra={'reason': 'code_reused'})
+                    return False
+
+            # Check if the insert was successful (at least one row inserted)
+            # If all three windows already had this code, it's a replay
+            result = await conn.fetchval(
+                """
+                SELECT COUNT(*) FROM user_totp_used_code
+                WHERE user_id = $1 AND code_hash = $2 AND time_window = ANY($3::bigint[])
+                """,
+                user_id,
+                code_hash,
+                [time_window - 1, time_window, time_window + 1],
+            )
+
+            if result < 1:
+                # Code was already used (shouldn't happen due to the inserts above)
+                await audit('auth_2fa_fail', user_id=user_id, extra={'reason': 'code_reused'})
+                return False
+
+            # Update last_used_at
+            await conn.execute(
+                """
+                UPDATE user_totp
+                SET last_used_at = statement_timestamp()
+                WHERE user_id = $1
+                """,
+                user_id,
+            )
+
+            # Clean up old used codes (keep only last 3 time windows = 90 seconds)
+            await conn.execute(
+                """
+                DELETE FROM user_totp_used_code
+                WHERE user_id = $1 AND time_window < $2
+                """,
+                user_id,
+                time_window - 2,
+            )
+
+            return True
+
+    @staticmethod
+    async def remove_totp(
+        *,
+        password: Password,
+        target_user_id: UserId | None = None,
+    ) -> None:
+        """
+        Remove TOTP for a user.
+
+        If target_user_id is provided, this is an admin action.
+        Otherwise, it's the current user removing their own 2FA.
+
+        Args:
+            password: Current user's password for verification (ignored for admin)
+            target_user_id: User ID to remove 2FA from (admin only)
+        """
+        user = auth_user(required=True)
+        user_id = user['id']
+
+        # Determine if this is an admin action
+        is_admin_action = target_user_id is not None and target_user_id != user_id
+
+        if is_admin_action:
+            # Admin removing another user's 2FA
+            from app.lib.exceptions_context import raise_for
+            from app.models.db.user import user_is_admin
+
+            if not user_is_admin(user):
+                raise_for().insufficient_scopes()
+
+            target_id = target_user_id
+        else:
+            # User removing their own 2FA - verify password
+            from app.lib.password_hash import PasswordHash
+            from app.models.db.user import user_is_test
+            from app.queries.user_query import UserQuery
+
+            target_id = user_id
+
+            # Verify password
+            current_user = await UserQuery.find_one_by_id(user_id)
+            if not current_user:
+                raise_for().user_not_found(user_id)
+
+            verification = PasswordHash.verify(
+                password_pb=current_user['password_pb'],
+                password=password,
+                is_test_user=user_is_test(current_user),
+            )
+
+            if not verification.success:
+                from app.lib.standard_feedback import StandardFeedback
+
+                StandardFeedback.raise_error('password', 'Password is incorrect')
+
+        async with db(write=True) as conn:
+            # Check if user has TOTP enabled
+            totp = await UserTOTPQuery.find_one_by_user_id(target_id, conn=conn)
+            if not totp:
+                raise_for().totp_not_enabled()
+
+            # Delete TOTP credentials
+            await conn.execute(
+                """
+                DELETE FROM user_totp
+                WHERE user_id = $1
+                """,
+                target_id,
+            )
+
+            # Delete all used codes for this user
+            await conn.execute(
+                """
+                DELETE FROM user_totp_used_code
+                WHERE user_id = $1
+                """,
+                target_id,
+            )
+
+            # Audit the removal
+            if is_admin_action:
+                await audit('remove_2fa', target_user_id=target_id, conn=conn)
+            else:
+                await audit('remove_2fa', conn=conn)
+
+        logging.info(
+            'User %d removed 2FA%s',
+            target_id,
+            f' by admin {user_id}' if is_admin_action else '',
+        )

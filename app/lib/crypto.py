@@ -7,6 +7,7 @@ from typing import TypeVar
 
 import cython
 from blake3 import blake3
+from Crypto.Cipher import AES
 
 from app.config import (
     CRYPTO_HASH_CACHE_MAX_ENTRIES,
@@ -14,6 +15,7 @@ from app.config import (
     SECRET_32,
 )
 from app.models.types import StorageKey
+from speedup.buffered_rand import buffered_randbytes
 
 _T = TypeVar('_T')
 
@@ -83,29 +85,29 @@ def hash_s256_code_challenge(verifier: str) -> str:
     return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')
 
 
-# def encrypt(s: str) -> bytes:
-#     """Encrypt a string using AES-CTR."""
-#     assert s, 'Empty string must not be encrypted'
-#     nonce = buffered_randbytes(15)  # +1 byte for the counter
-#     cipher = AES.new(key=SECRET_32.get_secret_value(), mode=AES.MODE_CTR, nonce=nonce)
-#     cipher_text_bytes = cipher.encrypt(s.encode())
-#     return b''.join((b'\x00', nonce, cipher_text_bytes))
+def encrypt(s: str) -> bytes:
+    """Encrypt a string using AES-CTR."""
+    assert s, 'Empty string must not be encrypted'
+    nonce = buffered_randbytes(15)  # +1 byte for the counter
+    cipher = AES.new(key=SECRET_32.get_secret_value(), mode=AES.MODE_CTR, nonce=nonce)
+    cipher_text_bytes = cipher.encrypt(s.encode())
+    return b''.join((b'\x00', nonce, cipher_text_bytes))
 
 
-# def decrypt(buffer: bytes) -> str:
-#     """Decrypt an encrypted buffer."""
-#     if not buffer:
-#         return ''
+def decrypt(buffer: bytes) -> str:
+    """Decrypt an encrypted buffer."""
+    if not buffer:
+        return ''
 
-#     marker = buffer[0]
-#     if marker == 0x00:
-#         nonce_bytes = buffer[1:16]
-#         cipher_text_bytes = buffer[16:]
-#         cipher = AES.new(
-#             key=SECRET_32.get_secret_value(),
-#             mode=AES.MODE_CTR,
-#             nonce=nonce_bytes,
-#         )
-#         return cipher.decrypt(cipher_text_bytes).decode()
+    marker = buffer[0]
+    if marker == 0x00:
+        nonce_bytes = buffer[1:16]
+        cipher_text_bytes = buffer[16:]
+        cipher = AES.new(
+            key=SECRET_32.get_secret_value(),
+            mode=AES.MODE_CTR,
+            nonce=nonce_bytes,
+        )
+        return cipher.decrypt(cipher_text_bytes).decode()
 
-#     raise NotImplementedError(f'Unsupported encryption marker {marker!r}')
+    raise NotImplementedError(f'Unsupported encryption marker {marker!r}')

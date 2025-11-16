@@ -175,6 +175,25 @@ CREATE TABLE connected_account (
 
 CREATE UNIQUE INDEX connected_account_provider_uid_idx ON connected_account (provider, uid);
 
+CREATE TABLE user_totp (
+    user_id bigint PRIMARY KEY REFERENCES "user" ON DELETE CASCADE,
+    secret_encrypted bytea NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    last_used_at timestamptz
+);
+
+CREATE TABLE user_totp_used_code (
+    user_id bigint NOT NULL REFERENCES "user" ON DELETE CASCADE,
+    code_hash bytea NOT NULL,
+    time_window bigint NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    PRIMARY KEY (user_id, time_window, code_hash)
+);
+
+CREATE INDEX user_totp_used_code_cleanup_idx ON user_totp_used_code (created_at)
+WITH
+    (fillfactor = 100);
+
 CREATE TYPE scope AS enum(
     'web_user',
     'read_prefs',
@@ -245,8 +264,10 @@ WHERE
     authorized_at IS NULL;
 
 CREATE TYPE audit_type AS enum(
+    'add_2fa',
     'add_connected_account',
     'admin_task',
+    'auth_2fa_fail',
     'auth_api',
     'auth_fail',
     'auth_web',
@@ -273,6 +294,7 @@ CREATE TYPE audit_type AS enum(
     'impersonate',
     'nsfw_image',
     'rate_limit',
+    'remove_2fa',
     'remove_connected_account',
     'request_change_email',
     'request_reset_password',

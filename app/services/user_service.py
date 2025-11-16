@@ -37,8 +37,9 @@ class UserService:
         *,
         display_name_or_email: DisplayName | Email,
         password: Password,
-    ) -> SecretStr:
-        """Attempt to login as a user. Returns a new user session token."""
+        check_totp: bool = True,
+    ) -> tuple[UserId, SecretStr]:
+        """Attempt to login as a user. Returns (user_id, access_token)."""
         # TODO: normalize unicode & strip
         # (dot) indicates email format, display_name blacklists it
         if '.' in display_name_or_email:
@@ -85,7 +86,7 @@ class UserService:
             sample_rate=1,
             discard_repeated=None,
         )
-        return access_token
+        return user_id, access_token
 
     @staticmethod
     async def update_description(

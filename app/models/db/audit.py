@@ -8,8 +8,10 @@ from app.models.db.user import UserDisplay
 from app.models.types import ApplicationId, UserId
 
 AuditType = Literal[
+    'add_2fa',
     'add_connected_account',
     'admin_task',
+    'auth_2fa_fail',
     'auth_api',
     'auth_fail',
     'auth_web',
@@ -36,6 +38,7 @@ AuditType = Literal[
     'impersonate',
     'nsfw_image',
     'rate_limit',
+    'remove_2fa',
     'remove_connected_account',
     'request_change_email',
     'request_reset_password',

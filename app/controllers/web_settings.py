@@ -17,6 +17,7 @@ from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
+from app.services.user_totp_service import UserTOTPService
 from app.validators.display_name import DisplayNameValidating
 from app.validators.email import EmailValidating
 
@@ -104,6 +105,31 @@ async def settings_password(
 
     return StandardFeedback.success_result(
         None, t('settings.password_has_been_changed')
+    )
+
+
+@router.post('/settings/totp/setup')
+async def settings_totp_setup(
+    _: Annotated[User, web_user()],
+    secret: Annotated[str, Form()],
+    code: Annotated[str, Form()],
+):
+    """Set up TOTP 2FA for the current user."""
+    await UserTOTPService.setup_totp(secret=secret, code=code)
+    return StandardFeedback.success_result(
+        None, t('settings.two_factor_enabled')
+    )
+
+
+@router.post('/settings/totp/remove')
+async def settings_totp_remove(
+    _: Annotated[User, web_user()],
+    password: Annotated[Password, Form()],
+):
+    """Remove TOTP 2FA for the current user."""
+    await UserTOTPService.remove_totp(password=password)
+    return StandardFeedback.success_result(
+        None, t('settings.two_factor_disabled')
     )
 
 

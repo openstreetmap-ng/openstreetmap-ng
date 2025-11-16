@@ -21,6 +21,7 @@ from app.services.audit_service import audit
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_service import UserService
+from app.services.user_totp_service import UserTOTPService
 from app.validators.display_name import DisplayNameValidating
 from app.validators.email import EmailValidating
 
@@ -151,3 +152,18 @@ async def impersonate_user(
     )
     await audit('impersonate', target_user_id=user_id)
     return response
+
+
+@router.post('/{user_id:int}/remove-totp')
+async def remove_user_totp(
+    _: Annotated[User, web_user('role_administrator')],
+    user_id: UserId,
+):
+    """Forcefully remove TOTP 2FA for a user (admin action)."""
+    # Admin removal doesn't require password - use empty password
+    # The service will recognize this as an admin action
+    await UserTOTPService.remove_totp(
+        password=Password(SecretStr('')),  # Dummy password for admin
+        target_user_id=user_id,
+    )
+    return Response(None, status.HTTP_204_NO_CONTENT)

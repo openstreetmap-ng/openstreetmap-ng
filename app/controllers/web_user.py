@@ -15,6 +15,7 @@ from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.models.types import Email, Password
+from app.queries.user_totp_query import UserTOTPQuery
 from app.services.auth_provider_service import AuthProviderService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
@@ -22,6 +23,7 @@ from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_email_service import UserTokenEmailService
 from app.services.user_token_reset_password_service import UserTokenResetPasswordService
+from app.services.user_totp_service import UserTOTPService
 from app.validators.display_name import DisplayNameNormalizing, DisplayNameValidating
 from app.validators.email import EmailValidating
 
@@ -34,13 +36,34 @@ async def login(
         DisplayNameNormalizing | Email, Form(min_length=1)
     ],
     password: Annotated[Password, Form()],
+    totp_code: Annotated[str | None, Form()] = None,
     remember: Annotated[bool, Form()] = False,
 ):
-    access_token = await UserService.login(
+    # Get user_id after password verification
+    user_id, access_token = await UserService.login(
         display_name_or_email=display_name_or_email,
         password=password,
+        check_totp=False,  # We'll check TOTP separately
     )
 
+    # Check if user has 2FA enabled
+    has_totp = await UserTOTPQuery.has_totp(user_id)
+
+    if has_totp:
+        if not totp_code:
+            # Password valid but 2FA code needed
+            return Response(
+                orjson.dumps({'requires_2fa': True}),
+                media_type='application/json; charset=utf-8',
+            )
+
+        # Verify TOTP code
+        code_valid = await UserTOTPService.verify_totp(user_id=user_id, code=totp_code)
+        if not code_valid:
+            from app.lib.exceptions_context import raise_for
+            raise_for().totp_invalid_code()
+
+    # Login successful (either no 2FA or 2FA code verified)
     response = Response(None, status.HTTP_204_NO_CONTENT)
     response.set_cookie(
         key='auth',
