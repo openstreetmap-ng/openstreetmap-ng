@@ -24,7 +24,7 @@ class UserTOTPService:
     # Maximum failed TOTP verification attempts per time window (30 seconds)
     MAX_FAILED_ATTEMPTS = 3
     # Sentinel value for marking failed attempts in user_totp_used_code table
-    _FAILED_ATTEMPT_MARKER = 'FAILED'
+    _FAILED_ATTEMPT_MARKER = -1
 
     @staticmethod
     async def setup_totp(
@@ -132,6 +132,7 @@ class UserTOTPService:
             # Prevent replay: check if this code was already used in any of the valid time windows
             # Try to insert the used code for t-1, t, and t+1 windows
             # Using ON CONFLICT DO NOTHING and checking rows inserted
+            code_int = int(code)
             async with await conn.cursor() as cursor:
                 await cursor.execute(
                     """
@@ -144,9 +145,9 @@ class UserTOTPService:
                     SELECT COUNT(*) FROM insert_attempts
                     """,
                     (
-                        user_id, code, time_window - 1,
-                        user_id, code, time_window,
-                        user_id, code, time_window + 1,
+                        user_id, code_int, time_window - 1,
+                        user_id, code_int, time_window,
+                        user_id, code_int, time_window + 1,
                     ),
                 )
                 (rows_inserted,) = await cursor.fetchone()

@@ -184,7 +184,7 @@ CREATE TABLE user_totp (
 
 CREATE TABLE user_totp_used_code (
     user_id bigint NOT NULL REFERENCES "user" ON DELETE CASCADE,
-    code char(6) NOT NULL,
+    code integer NOT NULL,
     time_window bigint NOT NULL,
     PRIMARY KEY (user_id, time_window, code)
 );
