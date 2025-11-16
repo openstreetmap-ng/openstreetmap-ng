@@ -55,7 +55,7 @@ class UserTOTPService:
         # Encrypt the secret for storage
         secret_encrypted = encrypt(secret)
 
-        async with db(write=True) as conn:
+        async with db(True) as conn:
             # Check if user already has TOTP enabled
             existing = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
             if existing:
@@ -96,7 +96,7 @@ class UserTOTPService:
         Returns:
             True if code is valid and not replayed, False otherwise
         """
-        async with db(write=True, conn=conn) as conn:
+        async with db(True, conn=conn) as conn:
             # Get the user's TOTP credentials
             totp = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
             if not totp:
@@ -214,7 +214,7 @@ class UserTOTPService:
             if not verification.success:
                 StandardFeedback.raise_error('password', t('two_fa.error_password_incorrect'))
 
-        async with db(write=True) as conn:
+        async with db(True) as conn:
             # Check if user has TOTP enabled
             totp = await UserTOTPQuery.find_one_by_user_id(target_id, conn=conn)
             if not totp:
