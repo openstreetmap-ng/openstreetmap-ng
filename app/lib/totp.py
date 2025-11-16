@@ -6,7 +6,6 @@ import time
 from base64 import b32decode, b32encode
 from hashlib import sha1
 from hmac import HMAC
-from urllib.parse import quote
 
 
 def generate_secret() -> str:
@@ -18,25 +17,6 @@ def generate_secret() -> str:
     """
     secret_bytes = secrets.token_bytes(32)
     return b32encode(secret_bytes).decode('ascii').rstrip('=')
-
-
-def generate_totp_uri(secret: str, account_name: str, issuer: str = 'OpenStreetMap') -> str:
-    """
-    Generate otpauth:// URI for QR code generation.
-
-    Format: otpauth://totp/ISSUER:ACCOUNT?secret=SECRET&issuer=ISSUER&algorithm=SHA1&digits=6&period=30
-
-    Args:
-        secret: Base32-encoded secret key
-        account_name: User's account identifier (email or display name)
-        issuer: Service name (default: OpenStreetMap)
-
-    Returns:
-        Complete otpauth:// URI string
-    """
-    label = f'{issuer}:{account_name}'
-    params = f'secret={secret}&issuer={quote(issuer)}&algorithm=SHA1&digits=6&period=30'
-    return f'otpauth://totp/{quote(label)}?{params}'
 
 
 def generate_totp_code(secret: str, timestamp: int | None = None) -> str:

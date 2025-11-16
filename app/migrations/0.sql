@@ -267,7 +267,6 @@ CREATE TYPE audit_type AS enum(
     'add_2fa',
     'add_connected_account',
     'admin_task',
-    'auth_2fa_fail',
     'auth_api',
     'auth_fail',
     'auth_web',

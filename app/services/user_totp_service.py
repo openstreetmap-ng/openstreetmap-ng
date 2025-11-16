@@ -8,9 +8,13 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.crypto import decrypt, encrypt, hash_bytes
 from app.lib.exceptions_context import raise_for
+from app.lib.password_hash import PasswordHash
+from app.lib.standard_feedback import StandardFeedback
 from app.lib.totp import get_time_window, verify_totp_code
+from app.models.db.user import user_is_admin, user_is_test
 from app.models.db.user_totp import UserTOTP
 from app.models.types import Password, UserId
+from app.queries.user_query import UserQuery
 from app.queries.user_totp_query import UserTOTPQuery
 from app.services.audit_service import audit
 
@@ -42,7 +46,7 @@ class UserTOTPService:
 
         # Verify the code before storing
         if not verify_totp_code(secret, code):
-            raise_for().totp_invalid_code()
+            StandardFeedback.raise_error('code', 'The authentication code is incorrect. Please try again.')
 
         # Encrypt the secret for storage
         secret_encrypted = encrypt(secret)
@@ -51,7 +55,7 @@ class UserTOTPService:
             # Check if user already has TOTP enabled
             existing = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
             if existing:
-                raise_for().totp_already_enabled()
+                StandardFeedback.raise_error('', 'Two-factor authentication is already enabled for your account.')
 
             # Store the encrypted secret
             await conn.execute(
@@ -103,7 +107,7 @@ class UserTOTPService:
 
             # Verify the code
             if not verify_totp_code(secret, code):
-                await audit('auth_2fa_fail', user_id=user_id, extra={'reason': 'invalid_code'})
+                await audit('auth_fail', user_id=user_id, extra={'reason': 'invalid_code'}, conn=conn)
                 return False
 
             # Prevent replay: check if this code was already used in any of the valid time windows
@@ -127,7 +131,7 @@ class UserTOTPService:
                     )
                 except UniqueViolationError:
                     # Code was already used in this time window
-                    await audit('auth_2fa_fail', user_id=user_id, extra={'reason': 'code_reused'})
+                    await audit('auth_fail', user_id=user_id, extra={'reason': 'code_reused'}, conn=conn)
                     return False
 
             # Check if the insert was successful (at least one row inserted)
@@ -144,7 +148,7 @@ class UserTOTPService:
 
             if result < 1:
                 # Code was already used (shouldn't happen due to the inserts above)
-                await audit('auth_2fa_fail', user_id=user_id, extra={'reason': 'code_reused'})
+                await audit('auth_fail', user_id=user_id, extra={'reason': 'code_reused'}, conn=conn)
                 return False
 
             # Update last_used_at
@@ -193,19 +197,12 @@ class UserTOTPService:
 
         if is_admin_action:
             # Admin removing another user's 2FA
-            from app.lib.exceptions_context import raise_for
-            from app.models.db.user import user_is_admin
-
             if not user_is_admin(user):
                 raise_for().insufficient_scopes()
 
             target_id = target_user_id
         else:
             # User removing their own 2FA - verify password
-            from app.lib.password_hash import PasswordHash
-            from app.models.db.user import user_is_test
-            from app.queries.user_query import UserQuery
-
             target_id = user_id
 
             # Verify password
@@ -220,15 +217,13 @@ class UserTOTPService:
             )
 
             if not verification.success:
-                from app.lib.standard_feedback import StandardFeedback
-
                 StandardFeedback.raise_error('password', 'Password is incorrect')
 
         async with db(write=True) as conn:
             # Check if user has TOTP enabled
             totp = await UserTOTPQuery.find_one_by_user_id(target_id, conn=conn)
             if not totp:
-                raise_for().totp_not_enabled()
+                StandardFeedback.raise_error('', 'Two-factor authentication is not enabled for this account.')
 
             # Delete TOTP credentials
             await conn.execute(

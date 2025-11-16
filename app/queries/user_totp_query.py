@@ -21,7 +21,7 @@ class UserTOTPQuery:
         async with db(read_only=True, conn=conn) as conn:
             row = await conn.fetchrow(
                 """
-                SELECT user_id, secret_encrypted, created_at, last_used_at
+                SELECT *
                 FROM user_totp
                 WHERE user_id = $1
                 """,

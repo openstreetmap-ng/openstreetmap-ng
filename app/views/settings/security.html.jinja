@@ -48,20 +48,20 @@
 
 <hr class="my-4">
 
-<h3 class="mb-3">{{ t('settings.two_factor_auth') }}</h3>
-<p class="text-muted mb-3">{{ t('settings.two_factor_auth_description') }}</p>
+<h3 class="mb-3">{{ t('two_fa.title') }}</h3>
+<p class="text-muted mb-3">{{ t('two_fa.description') }}</p>
 
 {% if has_totp %}
 {# 2FA is enabled - show status and disable button #}
 <div class="two-factor-status mb-3">
     <span class="badge bg-success">
         <i class="bi bi-shield-check"></i>
-        {{ t('settings.two_factor_status_enabled') }}
+        {{ t('two_fa.status_enabled') }}
     </span>
 </div>
 
 <button class="btn btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#disable2FAModal">
-    {{ t('settings.disable_two_factor') }}
+    {{ t('two_fa.disable') }}
 </button>
 
 {# Disable 2FA Modal #}
@@ -69,21 +69,21 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="disable2FAModalLabel">{{ t('settings.disable_two_factor') }}</h5>
+                <h5 class="modal-title" id="disable2FAModalLabel">{{ t('two_fa.disable') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form class="disable-totp-form" method="POST" action="/api/web/settings/totp/remove">
                 <div class="modal-body">
-                    <p>{{ t('settings.two_factor_remove_confirmation') }}</p>
+                    <p>{{ t('two_fa.remove_confirmation') }}</p>
                     <label class="form-label d-block">
-                        <span class="required">{{ t('settings.two_factor_remove_password_required') }}</span>
+                        <span class="required">{{ t('two_fa.remove_password_required') }}</span>
                         <input type="password" class="form-control mt-2" name="password" autocomplete="current-password"
                             required>
                     </label>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action.cancel') }}</button>
-                    <button type="submit" class="btn btn-danger">{{ t('settings.disable_two_factor') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ t('two_fa.disable') }}</button>
                 </div>
             </form>
         </div>
@@ -93,7 +93,7 @@
 {% else %}
 {# 2FA is not enabled - show setup button #}
 <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#setup2FAModal">
-    {{ t('settings.enable_two_factor') }}
+    {{ t('two_fa.enable') }}
 </button>
 
 {# Setup 2FA Modal #}
@@ -101,7 +101,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="setup2FAModalLabel">{{ t('settings.two_factor_setup_title') }}</h5>
+                <h5 class="modal-title" id="setup2FAModalLabel">{{ t('two_fa.setup_title') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form class="setup-totp-form" method="POST" action="/api/web/settings/totp/setup">
@@ -109,33 +109,33 @@
                     <input type="hidden" name="secret" class="totp-secret-input">
 
                     <div class="mb-4">
-                        <h6>{{ t('settings.two_factor_setup_step_1') }}</h6>
-                        <p class="text-muted mb-3">{{ t('settings.two_factor_setup_step_1_description') }}</p>
+                        <h6>{{ t('two_fa.setup_step_1') }}</h6>
+                        <p class="text-muted mb-3">{{ t('two_fa.setup_step_1_description') }}</p>
                         <div class="qr-code-container text-center mb-3"></div>
                     </div>
 
                     <div class="mb-4">
-                        <p class="text-muted mb-2">{{ t('settings.two_factor_setup_or_manual') }}</p>
+                        <p class="text-muted mb-2">{{ t('two_fa.setup_or_manual') }}</p>
                         <div class="secret-display p-3 bg-light rounded">
-                            <small class="text-muted d-block mb-1">{{ t('settings.two_factor_setup_secret_label') }}</small>
+                            <small class="text-muted d-block mb-1">{{ t('two_fa.setup_secret_label') }}</small>
                             <code class="totp-secret-display fs-6 user-select-all"></code>
                         </div>
                     </div>
 
                     <div>
-                        <h6>{{ t('settings.two_factor_setup_step_2') }}</h6>
-                        <p class="text-muted mb-3">{{ t('settings.two_factor_setup_step_2_description') }}</p>
+                        <h6>{{ t('two_fa.setup_step_2') }}</h6>
+                        <p class="text-muted mb-3">{{ t('two_fa.setup_step_2_description') }}</p>
                         <label class="form-label d-block">
-                            <span class="required">{{ t('settings.two_factor_code_label') }}</span>
+                            <span class="required">{{ t('two_fa.code_label') }}</span>
                             <input type="text" class="form-control mt-2 totp-code-input" name="code"
-                                placeholder="{{ t('settings.two_factor_code_placeholder') }}"
+                                placeholder="{{ t('two_fa.code_placeholder') }}"
                                 pattern="[0-9]{6}" maxlength="6" inputmode="numeric" autocomplete="off" required>
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action.cancel') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ t('settings.two_factor_verify_and_enable') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('two_fa.verify_and_enable') }}</button>
                 </div>
             </form>
         </div>

@@ -348,7 +348,6 @@ class _AuditPolicies(BaseModel):
     add_2fa: Policy = Policy(60)
     add_connected_account: Policy = Policy(30)
     admin_task: Policy = Policy(60)
-    auth_2fa_fail: Policy = Policy(30, timedelta(minutes=10))
     auth_api: Policy = Policy(14, timedelta(days=1), sample_rate=0.05)
     auth_fail: Policy = Policy(30, timedelta(minutes=10))
     auth_web: Policy = Policy(14, timedelta(days=1), sample_rate=0.05)
