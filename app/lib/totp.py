@@ -1,5 +1,3 @@
-"""TOTP (Time-based One-Time Password) implementation following RFC 6238."""
-
 import secrets
 import struct
 import time

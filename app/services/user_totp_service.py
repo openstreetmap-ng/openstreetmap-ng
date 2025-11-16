@@ -1,12 +1,10 @@
-"""User TOTP service for two-factor authentication."""
-
 import logging
 
 from psycopg import AsyncConnection
 
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.crypto import decrypt, encrypt, hash_bytes
+from app.lib.crypto import decrypt, encrypt
 from app.lib.exceptions_context import raise_for
 from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
@@ -26,7 +24,7 @@ class UserTOTPService:
     # Maximum failed TOTP verification attempts per time window (30 seconds)
     MAX_FAILED_ATTEMPTS = 3
     # Sentinel value for marking failed attempts in user_totp_used_code table
-    _FAILED_ATTEMPT_MARKER = hash_bytes(b'__TOTP_FAILED__')
+    _FAILED_ATTEMPT_MARKER = 'FAILED'
 
     @staticmethod
     async def setup_totp(
@@ -65,10 +63,7 @@ class UserTOTPService:
 
             # Store the encrypted secret
             await conn.execute(
-                """
-                INSERT INTO user_totp (user_id, secret_encrypted)
-                VALUES (%s, %s)
-                """,
+                "INSERT INTO user_totp (user_id, secret_encrypted) VALUES (%s, %s)",
                 (user_id, secret_encrypted),
             )
 
@@ -111,10 +106,7 @@ class UserTOTPService:
             time_window = get_time_window()
             async with await conn.cursor() as cursor:
                 await cursor.execute(
-                    """
-                    SELECT COUNT(*) FROM user_totp_used_code
-                    WHERE user_id = %s AND time_window = %s AND code_hash = %s
-                    """,
+                    "SELECT COUNT(*) FROM user_totp_used_code WHERE user_id = %s AND time_window = %s AND code = %s",
                     (user_id, time_window, UserTOTPService._FAILED_ATTEMPT_MARKER),
                 )
                 (failed_attempts,) = await cursor.fetchone()
@@ -130,11 +122,7 @@ class UserTOTPService:
             if not verify_totp_code(secret, code):
                 # Record failed attempt for rate limiting
                 await conn.execute(
-                    """
-                    INSERT INTO user_totp_used_code (user_id, code_hash, time_window)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (user_id, time_window, code_hash) DO NOTHING
-                    """,
+                    "INSERT INTO user_totp_used_code (user_id, code, time_window) VALUES (%s, %s, %s) ON CONFLICT (user_id, time_window, code) DO NOTHING",
                     (user_id, UserTOTPService._FAILED_ATTEMPT_MARKER, time_window),
                 )
 
@@ -142,28 +130,23 @@ class UserTOTPService:
                 return False
 
             # Prevent replay: check if this code was already used in any of the valid time windows
-            code_hash = hash_bytes(code)
-
             # Try to insert the used code for t-1, t, and t+1 windows
             # Using ON CONFLICT DO NOTHING and checking rows inserted
             async with await conn.cursor() as cursor:
                 await cursor.execute(
                     """
                     WITH insert_attempts AS (
-                        INSERT INTO user_totp_used_code (user_id, code_hash, time_window)
-                        VALUES
-                            (%s, %s, %s),
-                            (%s, %s, %s),
-                            (%s, %s, %s)
-                        ON CONFLICT (user_id, time_window, code_hash) DO NOTHING
+                        INSERT INTO user_totp_used_code (user_id, code, time_window)
+                        VALUES (%s, %s, %s), (%s, %s, %s), (%s, %s, %s)
+                        ON CONFLICT (user_id, time_window, code) DO NOTHING
                         RETURNING 1
                     )
                     SELECT COUNT(*) FROM insert_attempts
                     """,
                     (
-                        user_id, code_hash, time_window - 1,
-                        user_id, code_hash, time_window,
-                        user_id, code_hash, time_window + 1,
+                        user_id, code, time_window - 1,
+                        user_id, code, time_window,
+                        user_id, code, time_window + 1,
                     ),
                 )
                 (rows_inserted,) = await cursor.fetchone()
@@ -175,20 +158,13 @@ class UserTOTPService:
 
             # Update last_used_at
             await conn.execute(
-                """
-                UPDATE user_totp
-                SET last_used_at = statement_timestamp()
-                WHERE user_id = %s
-                """,
+                "UPDATE user_totp SET last_used_at = statement_timestamp() WHERE user_id = %s",
                 (user_id,),
             )
 
             # Clean up old used codes (keep only last 3 time windows = 90 seconds)
             await conn.execute(
-                """
-                DELETE FROM user_totp_used_code
-                WHERE user_id = %s AND time_window < %s
-                """,
+                "DELETE FROM user_totp_used_code WHERE user_id = %s AND time_window < %s",
                 (user_id, time_window - 2),
             )
 
@@ -248,19 +224,13 @@ class UserTOTPService:
 
             # Delete TOTP credentials
             await conn.execute(
-                """
-                DELETE FROM user_totp
-                WHERE user_id = %s
-                """,
+                "DELETE FROM user_totp WHERE user_id = %s",
                 (target_id,),
             )
 
             # Delete all used codes for this user
             await conn.execute(
-                """
-                DELETE FROM user_totp_used_code
-                WHERE user_id = %s
-                """,
+                "DELETE FROM user_totp_used_code WHERE user_id = %s",
                 (target_id,),
             )
 

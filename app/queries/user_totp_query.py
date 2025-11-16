@@ -1,5 +1,3 @@
-"""User TOTP query operations."""
-
 from psycopg import AsyncConnection
 from psycopg.rows import dict_row
 
@@ -21,11 +19,7 @@ class UserTOTPQuery:
         """Find TOTP credentials for a user."""
         async with db(conn=conn) as conn:
             async with await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT *
-                FROM user_totp
-                WHERE user_id = %s
-                """,
+                "SELECT * FROM user_totp WHERE user_id = %s",
                 (user_id,),
             ) as r:
                 return await r.fetchone()  # type: ignore
@@ -44,11 +38,7 @@ class UserTOTPQuery:
         """Check if a user has TOTP enabled."""
         async with db(conn=conn) as conn:
             async with await conn.execute(
-                """
-                SELECT EXISTS(
-                    SELECT 1 FROM user_totp WHERE user_id = %s
-                )
-                """,
+                "SELECT EXISTS(SELECT 1 FROM user_totp WHERE user_id = %s)",
                 (user_id,),
             ) as r:
                 return (await r.fetchone())[0]

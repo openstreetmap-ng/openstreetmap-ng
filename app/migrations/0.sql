@@ -184,15 +184,10 @@ CREATE TABLE user_totp (
 
 CREATE TABLE user_totp_used_code (
     user_id bigint NOT NULL REFERENCES "user" ON DELETE CASCADE,
-    code_hash bytea NOT NULL,
+    code char(6) NOT NULL,
     time_window bigint NOT NULL,
-    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
-    PRIMARY KEY (user_id, time_window, code_hash)
+    PRIMARY KEY (user_id, time_window, code)
 );
-
-CREATE INDEX user_totp_used_code_cleanup_idx ON user_totp_used_code (created_at)
-WITH
-    (fillfactor = 100);
 
 CREATE TYPE scope AS enum(
     'web_user',
