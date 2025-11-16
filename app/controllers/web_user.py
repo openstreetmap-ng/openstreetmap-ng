@@ -1,7 +1,7 @@
 from typing import Annotated
 
+import orjson
 from fastapi import APIRouter, Cookie, Form, Query, Response
-from fastapi.responses import JSONResponse
 from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -87,17 +87,20 @@ async def signup(
         tracking=tracking,
         email_verified=email_verified,
     )
+    response = Response(
+        orjson.dumps({
+            'redirect_url': (
+                '/welcome' if email_verified else '/user/account-confirm/pending'
+            )
+        }),
+        media_type='application/json; charset=utf-8',
+    )
+
+    if email_verified:
+        response.delete_cookie('auth_provider_verification')
 
     access_token = await SystemAppService.create_access_token(
         SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
-    )
-
-    response = JSONResponse(
-        content={
-            'redirect_url': '/welcome'
-            if email_verified
-            else '/user/account-confirm/pending'
-        },
     )
     response.set_cookie(
         key='auth',
@@ -107,9 +110,6 @@ async def signup(
         httponly=True,
         samesite='lax',
     )
-
-    if email_verified:
-        response.delete_cookie('auth_provider_verification')
 
     return response
 
