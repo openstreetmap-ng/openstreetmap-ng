@@ -51,5 +51,4 @@ class UserTOTPQuery:
                 """,
                 (user_id,),
             ) as r:
-                result = await r.fetchone()
-                return bool(result[0]) if result else False
+                return (await r.fetchone())[0]

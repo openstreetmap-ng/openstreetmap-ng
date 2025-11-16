@@ -53,12 +53,17 @@ const generateQRCode = (text: string): string => {
 
 mount("settings-security-body", (body) => {
     const passwordForm = body.querySelector("form.password-form")
-    const newPasswordInput = passwordForm.querySelector(
+    if (!passwordForm) throw new Error("passwordForm not found on security page")
+
+    const newPasswordInput = passwordForm.querySelector<HTMLInputElement>(
         "input[type=password][data-name=new_password]",
     )
-    const newPasswordConfirmInput = passwordForm.querySelector(
+    if (!newPasswordInput) throw new Error("newPasswordInput not found")
+
+    const newPasswordConfirmInput = passwordForm.querySelector<HTMLInputElement>(
         "input[type=password][data-name=new_password_confirm]",
     )
+    if (!newPasswordConfirmInput) throw new Error("newPasswordConfirmInput not found")
 
     configureStandardForm(
         passwordForm,
@@ -129,21 +134,21 @@ mount("settings-security-body", (body) => {
             qrContainer.innerHTML = generateQRCode(uri)
 
             // Focus on code input
-            const codeInput = setupTOTPForm.querySelector(".totp-code-input")
-            setTimeout(() => codeInput?.focus(), 100)
+            const codeInput = setupTOTPForm.querySelector<HTMLInputElement>(".totp-code-input")
+            setTimeout(() => codeInput.focus(), 100)
         })
 
         // Clear sensitive data on modal close (security measure)
         setupModal?.addEventListener("hide.bs.modal", () => {
-            const secretInput = setupTOTPForm.querySelector(".totp-secret-input")
+            const secretInput = setupTOTPForm.querySelector<HTMLInputElement>(".totp-secret-input")
             const secretDisplay = setupTOTPForm.querySelector(".totp-secret-display")
             const qrContainer = setupTOTPForm.querySelector(".qr-code-container")
-            const codeInput = setupTOTPForm.querySelector(".totp-code-input")
+            const codeInput = setupTOTPForm.querySelector<HTMLInputElement>(".totp-code-input")
 
-            if (secretInput) secretInput.value = ""
-            if (secretDisplay) secretDisplay.textContent = ""
-            if (qrContainer) qrContainer.innerHTML = ""
-            if (codeInput) codeInput.value = ""
+            secretInput.value = ""
+            secretDisplay.textContent = ""
+            qrContainer.innerHTML = ""
+            codeInput.value = ""
         })
 
         // Configure form submission

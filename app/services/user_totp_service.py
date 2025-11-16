@@ -117,8 +117,7 @@ class UserTOTPService:
                     """,
                     (user_id, time_window, UserTOTPService._FAILED_ATTEMPT_MARKER),
                 )
-                result = await cursor.fetchone()
-                failed_attempts = result[0] if result else 0
+                (failed_attempts,) = await cursor.fetchone()
 
             if failed_attempts >= UserTOTPService.MAX_FAILED_ATTEMPTS:
                 await audit('auth_fail', user_id=user_id, extra={'reason': 'rate_limited'}, conn=conn)
@@ -130,17 +129,14 @@ class UserTOTPService:
             # Verify the code
             if not verify_totp_code(secret, code):
                 # Record failed attempt for rate limiting
-                try:
-                    await conn.execute(
-                        """
-                        INSERT INTO user_totp_used_code (user_id, code_hash, time_window)
-                        VALUES (%s, %s, %s)
-                        ON CONFLICT (user_id, time_window, code_hash) DO NOTHING
-                        """,
-                        (user_id, UserTOTPService._FAILED_ATTEMPT_MARKER, time_window),
-                    )
-                except Exception:
-                    pass  # Don't fail verification if we can't record the attempt
+                await conn.execute(
+                    """
+                    INSERT INTO user_totp_used_code (user_id, code_hash, time_window)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (user_id, time_window, code_hash) DO NOTHING
+                    """,
+                    (user_id, UserTOTPService._FAILED_ATTEMPT_MARKER, time_window),
+                )
 
                 await audit('auth_fail', user_id=user_id, extra={'reason': 'invalid_code'}, conn=conn)
                 return False
@@ -170,8 +166,7 @@ class UserTOTPService:
                         user_id, code_hash, time_window + 1,
                     ),
                 )
-                result = await cursor.fetchone()
-                rows_inserted = result[0] if result else 0
+                (rows_inserted,) = await cursor.fetchone()
 
             # If no rows were inserted, all three windows already had this code (replay attack)
             if rows_inserted == 0:
