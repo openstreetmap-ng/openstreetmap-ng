@@ -116,7 +116,7 @@ mount("settings-security-body", (body) => {
         const accountName = getPageTitle().split("|")[0].trim()
 
         // Generate secret on modal show
-        const setupModal = document.getElementById("setup2FAModal")
+        const setupModal = document.getElementById("setupTotpModal")
         setupModal?.addEventListener("show.bs.modal", () => {
             const secret = generateTOTPSecret()
             const uri = generateTOTPUri(secret, accountName)

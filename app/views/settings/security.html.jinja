@@ -60,16 +60,16 @@
     </span>
 </div>
 
-<button class="btn btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#disable2FAModal">
+<button class="btn btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#disableTotpModal">
     {{ t('two_fa.disable_two_factor_authentication') }}
 </button>
 
 {# Disable 2FA Modal #}
-<div class="modal fade" id="disable2FAModal" tabindex="-1" aria-labelledby="disable2FAModalLabel" aria-hidden="true">
+<div class="modal fade" id="disableTotpModal" tabindex="-1" aria-labelledby="disableTotpModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="disable2FAModalLabel">{{ t('two_fa.disable_two_factor_authentication') }}</h5>
+                <h5 class="modal-title" id="disableTotpModalLabel">{{ t('two_fa.disable_two_factor_authentication') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form class="disable-totp-form" method="POST" action="/api/web/settings/totp/remove">
@@ -92,16 +92,16 @@
 
 {% else %}
 {# 2FA is not enabled - show setup button #}
-<button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#setup2FAModal">
+<button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#setupTotpModal">
     {{ t('two_fa.enable_two_factor_authentication') }}
 </button>
 
 {# Setup 2FA Modal #}
-<div class="modal fade" id="setup2FAModal" tabindex="-1" aria-labelledby="setup2FAModalLabel" aria-hidden="true">
+<div class="modal fade" id="setupTotpModal" tabindex="-1" aria-labelledby="setupTotpModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="setup2FAModalLabel">{{ t('two_fa.two_factor_setup_heading') }}</h5>
+                <h5 class="modal-title" id="setupTotpModalLabel">{{ t('two_fa.two_factor_setup_heading') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form class="setup-totp-form" method="POST" action="/api/web/settings/totp/setup">

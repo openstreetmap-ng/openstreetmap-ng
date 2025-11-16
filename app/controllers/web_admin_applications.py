@@ -2,10 +2,9 @@ from asyncio import TaskGroup
 from datetime import datetime, timedelta
 from typing import Annotated, Literal
 
-import orjson
 from fastapi import APIRouter, Query
+from fastapi.responses import JSONResponse
 from pydantic import PositiveInt
-from starlette.responses import Response
 
 from app.config import ADMIN_APPLICATION_EXPORT_LIMIT
 from app.lib.auth_context import web_user
@@ -84,8 +83,6 @@ async def export_ids(
         limit=ADMIN_APPLICATION_EXPORT_LIMIT,
     )
 
-    return Response(
-        orjson.dumps(app_ids),
-        media_type='application/json',
-        headers={'Content-Disposition': 'attachment; filename="app-ids.json"'},
-    )
+    response = JSONResponse(content=app_ids)
+    response.headers['Content-Disposition'] = 'attachment; filename="app-ids.json"'
+    return response

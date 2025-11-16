@@ -1,7 +1,7 @@
 from typing import Annotated
 
-import orjson
 from fastapi import APIRouter, Cookie, Form, Query, Response
+from fastapi.responses import JSONResponse
 from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -52,10 +52,7 @@ async def login(
     if has_totp:
         if not totp_code:
             # Password valid but TOTP code needed
-            return Response(
-                orjson.dumps({'requires_2fa': True}),
-                media_type='application/json; charset=utf-8',
-            )
+            return {'requires_totp': True}
 
         # Verify TOTP code
         code_valid = await UserTOTPService.verify_totp(user_id=user_id, code=totp_code)
@@ -105,20 +102,16 @@ async def signup(
         email_verified=email_verified,
     )
 
-    response = Response(
-        orjson.dumps({
+    access_token = await SystemAppService.create_access_token(
+        SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
+    )
+
+    response = JSONResponse(
+        content={
             'redirect_url': '/welcome'
             if email_verified
             else '/user/account-confirm/pending'
-        }),
-        media_type='application/json; charset=utf-8',
-    )
-
-    if email_verified:
-        response.delete_cookie('auth_provider_verification')
-
-    access_token = await SystemAppService.create_access_token(
-        SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
+        },
     )
     response.set_cookie(
         key='auth',
@@ -128,6 +121,9 @@ async def signup(
         httponly=True,
         samesite='lax',
     )
+
+    if email_verified:
+        response.delete_cookie('auth_provider_verification')
 
     return response
 

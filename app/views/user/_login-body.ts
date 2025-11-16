@@ -129,18 +129,18 @@ if (loginForm) {
         observer.observe(totpCodeSection, { attributes: true, attributeFilter: ["class"] })
     }
 
-    // On successful login (or 2FA required), handle appropriately
+    // On successful login (or TOTP required), handle appropriately
     configureStandardForm(
         loginForm,
         (data) => {
-            // Check if 2FA is required
-            if (data && typeof data === "object" && "requires_2fa" in data && data.requires_2fa) {
-                console.debug("2FA required, showing code input")
+            // Check if TOTP is required
+            if (data && typeof data === "object" && "requires_totp" in data && data.requires_totp) {
+                console.debug("TOTP required, showing code input")
                 // Show TOTP code section
                 totpCodeSection?.classList.remove("d-none")
                 // Focus on TOTP input
                 totpCodeInput?.focus()
-                // Don't redirect - let user enter 2FA code
+                // Don't redirect - let user enter TOTP code
                 return
             }
 

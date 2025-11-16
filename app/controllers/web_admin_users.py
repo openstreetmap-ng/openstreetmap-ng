@@ -2,8 +2,8 @@ from asyncio import TaskGroup
 from datetime import datetime, timedelta
 from typing import Annotated, Literal
 
-import orjson
 from fastapi import APIRouter, Cookie, Form, HTTPException, Query, Response
+from fastapi.responses import JSONResponse
 from pydantic import PositiveInt, SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -90,11 +90,9 @@ async def export_ids(
         limit=ADMIN_USER_EXPORT_LIMIT,
     )
 
-    return Response(
-        orjson.dumps(user_ids),
-        media_type='application/json',
-        headers={'Content-Disposition': 'attachment; filename="user-ids.json"'},
-    )
+    response = JSONResponse(content=user_ids)
+    response.headers['Content-Disposition'] = 'attachment; filename="user-ids.json"'
+    return response
 
 
 @router.post('/{user_id:int}/update')
