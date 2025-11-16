@@ -27,10 +27,15 @@ class UserTOTPService:
     _FAILED_ATTEMPT_MARKER = -1
 
     @staticmethod
+    def _format_code(code: int) -> str:
+        """Convert integer TOTP code (0-999999) to zero-padded 6-digit string."""
+        return f'{code:06d}'
+
+    @staticmethod
     async def setup_totp(
         *,
         secret: str,
-        code: str,
+        code: int,
     ) -> None:
         """
         Set up TOTP for the current user.
@@ -40,7 +45,7 @@ class UserTOTPService:
 
         Args:
             secret: Base32-encoded TOTP secret (generated client-side)
-            code: 6-digit TOTP code from authenticator app
+            code: 6-digit TOTP code from authenticator app (0-999999)
 
         Raises:
             ValueError: If code verification fails
@@ -48,8 +53,8 @@ class UserTOTPService:
         user = auth_user(required=True)
         user_id = user['id']
 
-        # Verify the code before storing
-        if not verify_totp_code(secret, code):
+        # Verify the code before storing (convert to zero-padded string for TOTP verification)
+        if not verify_totp_code(secret, UserTOTPService._format_code(code)):
             StandardFeedback.raise_error('code', t('two_fa.error_invalid_or_expired_code'))
 
         # Encrypt the secret for storage
@@ -75,7 +80,7 @@ class UserTOTPService:
     async def verify_totp(
         *,
         user_id: UserId,
-        code: str,
+        code: int,
         conn: AsyncConnection | None = None,
     ) -> bool:
         """
@@ -90,7 +95,7 @@ class UserTOTPService:
 
         Args:
             user_id: User ID to verify
-            code: 6-digit TOTP code
+            code: 6-digit TOTP code (0-999999)
             conn: Optional database connection
 
         Returns:
@@ -117,8 +122,8 @@ class UserTOTPService:
             # Decrypt the secret
             secret = decrypt(totp['secret_encrypted'])
 
-            # Verify the code
-            if not verify_totp_code(secret, code):
+            # Verify the code (convert to zero-padded string for TOTP verification)
+            if not verify_totp_code(secret, UserTOTPService._format_code(code)):
                 # Record failed attempt for rate limiting
                 await conn.execute(
                     "INSERT INTO user_totp_used_code (user_id, code, time_window) VALUES (%s, %s, %s) ON CONFLICT (user_id, time_window, code) DO NOTHING",
@@ -130,7 +135,7 @@ class UserTOTPService:
 
             # Prevent replay: check if this code was already used in any of the valid time windows
             # Try to insert the used code for t-1, t, and t+1 windows
-            # Using ON CONFLICT DO NOTHING and checking rows inserted
+            # If any window already has this code, rows_inserted will be less than 3
             async with await conn.execute(
                 """
                 WITH insert_attempts AS (
@@ -142,15 +147,15 @@ class UserTOTPService:
                 SELECT COUNT(*) FROM insert_attempts
                 """,
                 (
-                    user_id, int(code), time_window - 1,
-                    user_id, int(code), time_window,
-                    user_id, int(code), time_window + 1,
+                    user_id, code, time_window - 1,
+                    user_id, code, time_window,
+                    user_id, code, time_window + 1,
                 ),
             ) as r:
                 (rows_inserted,) = await r.fetchone()
 
-            # If no rows were inserted, all three windows already had this code (replay attack)
-            if rows_inserted == 0:
+            # If fewer than 3 rows were inserted, at least one window already had this code (replay attack)
+            if rows_inserted != 3:
                 await audit('auth_fail', user_id=user_id, extra={'reason': 'code_reused'}, conn=conn)
                 return False
 

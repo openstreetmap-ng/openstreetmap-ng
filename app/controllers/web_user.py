@@ -26,7 +26,6 @@ from app.services.user_token_reset_password_service import UserTokenResetPasswor
 from app.services.user_totp_service import UserTOTPService
 from app.validators.display_name import DisplayNameNormalizing, DisplayNameValidating
 from app.validators.email import EmailValidating
-from app.validators.totp_code import TOTPCodeValidating
 
 router = APIRouter(prefix='/api/web/user')
 
@@ -37,7 +36,7 @@ async def login(
         DisplayNameNormalizing | Email, Form(min_length=1)
     ],
     password: Annotated[Password, Form()],
-    totp_code: Annotated[TOTPCodeValidating | None, Form()] = None,
+    totp_code: Annotated[int | None, Form(ge=0, le=999999)] = None,
     remember: Annotated[bool, Form()] = False,
 ):
     # Get user_id after password verification
