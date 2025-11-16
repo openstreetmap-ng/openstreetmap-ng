@@ -159,7 +159,7 @@ async def remove_user_totp(
     _: Annotated[User, web_user('role_administrator')],
     user_id: UserId,
 ):
-    """Forcefully remove TOTP 2FA for a user (admin action)."""
+    """Forcefully remove TOTP for a user (admin action)."""
     # Admin removal doesn't require password - use empty password
     # The service will recognize this as an admin action
     await UserTOTPService.remove_totp(

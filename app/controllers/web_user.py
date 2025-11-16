@@ -46,12 +46,12 @@ async def login(
         check_totp=False,  # We'll check TOTP separately
     )
 
-    # Check if user has 2FA enabled
+    # Check if user has TOTP enabled
     has_totp = await UserTOTPQuery.has_totp(user_id)
 
     if has_totp:
         if not totp_code:
-            # Password valid but 2FA code needed
+            # Password valid but TOTP code needed
             return Response(
                 orjson.dumps({'requires_2fa': True}),
                 media_type='application/json; charset=utf-8',
@@ -62,7 +62,7 @@ async def login(
         if not code_valid:
             StandardFeedback.raise_error('totp_code', t('two_fa.error_invalid_or_expired_code'))
 
-    # Login successful (either no 2FA or 2FA code verified)
+    # Login successful (either no TOTP or TOTP code verified)
     response = Response(None, status.HTTP_204_NO_CONTENT)
     response.set_cookie(
         key='auth',

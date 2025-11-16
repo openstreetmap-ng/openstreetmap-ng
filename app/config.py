@@ -345,7 +345,7 @@ class _AuditPolicies(BaseModel):
                 **data,
             )
 
-    add_2fa: Policy = Policy(60)
+    add_totp: Policy = Policy(60)
     add_connected_account: Policy = Policy(30)
     admin_task: Policy = Policy(60)
     auth_api: Policy = Policy(14, timedelta(days=1), sample_rate=0.05)
@@ -374,7 +374,7 @@ class _AuditPolicies(BaseModel):
     impersonate: Policy = Policy(60)
     nsfw_image: Policy = Policy(30, timedelta(minutes=10))
     rate_limit: Policy = Policy(14, timedelta(hours=6), sample_rate=0.05)
-    remove_2fa: Policy = Policy(60)
+    remove_totp: Policy = Policy(60)
     remove_connected_account: Policy = Policy(30)
     request_change_email: Policy = Policy(14)
     request_reset_password: Policy = Policy(14)

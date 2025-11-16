@@ -114,7 +114,7 @@ async def settings_totp_setup(
     secret: Annotated[str, Form()],
     code: Annotated[int, Form(ge=0, le=999999)],
 ):
-    """Set up TOTP 2FA for the current user."""
+    """Set up TOTP for the current user."""
     await UserTOTPService.setup_totp(secret=secret, code=code)
     return StandardFeedback.success_result(
         None, t('two_fa.two_factor_authentication_is_enabled')
@@ -126,7 +126,7 @@ async def settings_totp_remove(
     _: Annotated[User, web_user()],
     password: Annotated[Password, Form()],
 ):
-    """Remove TOTP 2FA for the current user."""
+    """Remove TOTP for the current user."""
     await UserTOTPService.remove_totp(password=password)
     return StandardFeedback.success_result(
         None, t('two_fa.two_factor_authentication_has_been_disabled')

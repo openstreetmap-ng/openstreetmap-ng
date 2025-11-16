@@ -21,10 +21,8 @@ from app.services.audit_service import audit
 class UserTOTPService:
     """User TOTP service for two-factor authentication."""
 
-    # Maximum failed TOTP verification attempts per time window (30 seconds)
-    MAX_FAILED_ATTEMPTS = 3
-    # Sentinel value for marking failed attempts in user_totp_used_code table
-    _FAILED_ATTEMPT_MARKER = -1
+    # Maximum TOTP verification attempts per time window (30 seconds)
+    MAX_ATTEMPTS_PER_WINDOW = 3
 
     @staticmethod
     async def setup_totp(
@@ -67,9 +65,9 @@ class UserTOTPService:
                 (user_id, secret_encrypted),
             )
 
-            await audit('add_2fa', conn)
+            await audit('add_totp', conn)
 
-        logging.info('User %d enabled 2FA', user_id)
+        logging.info('User %d enabled TOTP', user_id)
 
     @staticmethod
     async def verify_totp(
@@ -102,15 +100,15 @@ class UserTOTPService:
             if not totp:
                 return False
 
-            # Rate limiting: check failed attempts in current time window
+            # Rate limiting: check total attempts in current time window
             time_window = get_time_window()
             async with await conn.execute(
-                "SELECT COUNT(*) FROM user_totp_used_code WHERE user_id = %s AND time_window = %s AND code = %s",
-                (user_id, time_window, UserTOTPService._FAILED_ATTEMPT_MARKER),
+                "SELECT COUNT(*) FROM user_totp_used_code WHERE user_id = %s AND time_window = %s",
+                (user_id, time_window),
             ) as r:
-                (failed_attempts,) = await r.fetchone()
+                (attempts_count,) = await r.fetchone()
 
-            if failed_attempts >= UserTOTPService.MAX_FAILED_ATTEMPTS:
+            if attempts_count >= UserTOTPService.MAX_ATTEMPTS_PER_WINDOW:
                 await audit('auth_fail', user_id=user_id, extra={'reason': 'rate_limited'}, conn=conn)
                 StandardFeedback.raise_error('code', t('two_fa.error_too_many_attempts'))
 
@@ -119,10 +117,10 @@ class UserTOTPService:
 
             # Verify the code (convert to zero-padded string for TOTP verification)
             if not verify_totp_code(secret, f'{code:06d}'):
-                # Record failed attempt for rate limiting
+                # Record failed attempt (store actual attempted code for rate limiting)
                 await conn.execute(
                     "INSERT INTO user_totp_used_code (user_id, code, time_window) VALUES (%s, %s, %s) ON CONFLICT (user_id, time_window, code) DO NOTHING",
-                    (user_id, UserTOTPService._FAILED_ATTEMPT_MARKER, time_window),
+                    (user_id, code, time_window),
                 )
 
                 await audit('auth_fail', user_id=user_id, extra={'reason': 'invalid_code'}, conn=conn)
@@ -178,11 +176,11 @@ class UserTOTPService:
         Remove TOTP for a user.
 
         If target_user_id is provided, this is an admin action.
-        Otherwise, it's the current user removing their own 2FA.
+        Otherwise, it's the current user removing their own TOTP.
 
         Args:
             password: Current user's password for verification (ignored for admin)
-            target_user_id: User ID to remove 2FA from (admin only)
+            target_user_id: User ID to remove TOTP from (admin only)
         """
         user = auth_user(required=True)
         user_id = user['id']
@@ -191,13 +189,13 @@ class UserTOTPService:
         is_admin_action = target_user_id is not None and target_user_id != user_id
 
         if is_admin_action:
-            # Admin removing another user's 2FA
+            # Admin removing another user's TOTP
             if not user_is_admin(user):
                 raise_for().insufficient_scopes()
 
             target_id = target_user_id
         else:
-            # User removing their own 2FA - verify password
+            # User removing their own TOTP - verify password
             target_id = user_id
 
             # Verify password
@@ -234,12 +232,12 @@ class UserTOTPService:
 
             # Audit the removal
             if is_admin_action:
-                await audit('remove_2fa', target_user_id=target_id, conn=conn)
+                await audit('remove_totp', target_user_id=target_id, conn=conn)
             else:
-                await audit('remove_2fa', conn=conn)
+                await audit('remove_totp', conn=conn)
 
         logging.info(
-            'User %d removed 2FA%s',
+            'User %d removed TOTP%s',
             target_id,
             f' by admin {user_id}' if is_admin_action else '',
         )

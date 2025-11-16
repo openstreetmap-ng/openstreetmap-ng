@@ -261,7 +261,7 @@ WHERE
     authorized_at IS NULL;
 
 CREATE TYPE audit_type AS enum(
-    'add_2fa',
+    'add_totp',
     'add_connected_account',
     'admin_task',
     'auth_api',
@@ -290,7 +290,7 @@ CREATE TYPE audit_type AS enum(
     'impersonate',
     'nsfw_image',
     'rate_limit',
-    'remove_2fa',
+    'remove_totp',
     'remove_connected_account',
     'request_change_email',
     'request_reset_password',
