@@ -25,6 +25,21 @@
                     required>
             </label>
 
+            {# 2FA code input - hidden by default, shown when needed #}
+            <div class="totp-code-section d-none mb-3">
+                <div class="alert alert-info small py-2">
+                    <i class="bi bi-shield-lock me-1"></i>
+                    {{ t('login.two_factor_required') }}
+                </div>
+                <label class="form-label d-block">
+                    {{ t('login.enter_authentication_code') }}
+                    <input type="text" class="form-control mt-2" name="totp_code"
+                        placeholder="{{ t('settings.two_factor_code_placeholder') }}"
+                        pattern="[0-9]{6}" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                </label>
+                <p class="form-text small mb-0">{{ t('login.two_factor_description') }}</p>
+            </div>
+
             <div class="d-flex justify-content-between align-items-center mx-1 mb-3">
                 <div class="form-check">
                     <label class="form-check-label">

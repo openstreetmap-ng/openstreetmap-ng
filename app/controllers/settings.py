@@ -18,6 +18,7 @@ from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
+from app.queries.user_totp_query import UserTOTPQuery
 from app.services.auth_service import AuthService
 
 router = APIRouter()
@@ -53,16 +54,19 @@ async def settings_security(user: Annotated[User, web_user()]):
                 limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
             )
         )
+        totp_t = tg.create_task(UserTOTPQuery.has_totp(user['id']))
 
     current_session = current_t.result()
     assert current_session is not None
     active_sessions = active_t.result()
+    has_totp = totp_t.result()
 
     return await render_response(
         'settings/security',
         {
             'current_session_id': current_session['id'],
             'active_sessions': active_sessions,
+            'has_totp': has_totp,
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
         },
     )

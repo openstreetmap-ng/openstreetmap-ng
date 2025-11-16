@@ -115,7 +115,7 @@ mount("admin-user-edit-body", (body) => {
     )
 
     const impersonateForm = body.querySelector("form.impersonate-form")
-    impersonateForm.addEventListener("submit", (e) => {
+    impersonateForm?.addEventListener("submit", (e) => {
         if (
             !confirm(
                 "Login as this user? You will need to re-authenticate to regain admin access.",
@@ -124,4 +124,23 @@ mount("admin-user-edit-body", (body) => {
             e.preventDefault()
         }
     })
+
+    const removeTOTPForm = body.querySelector("form.remove-totp-form")
+    if (removeTOTPForm) {
+        configureStandardForm(
+            removeTOTPForm,
+            () => {
+                console.debug("onRemoveTOTPFormSuccess")
+                // Reload page to show updated 2FA status
+                window.location.reload()
+            },
+            {
+                submitCallback: (e) => {
+                    if (!confirm("Forcefully remove two-factor authentication from this user?")) {
+                        e.preventDefault()
+                    }
+                },
+            },
+        )
+    }
 })

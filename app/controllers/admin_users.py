@@ -19,6 +19,7 @@ from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
+from app.queries.user_totp_query import UserTOTPQuery
 from app.services.audit_service import audit
 
 router = APIRouter()
@@ -85,6 +86,7 @@ async def user_edit(
         )
         applications_task = tg.create_task(OAuth2ApplicationQuery.find_by_user(user_id))
         tokens_task = tg.create_task(OAuth2TokenQuery.find_pats_by_user(user_id))
+        totp_task = tg.create_task(UserTOTPQuery.has_totp(user_id))
         authorizations = await OAuth2TokenQuery.find_unique_per_app_by_user(user_id)
         tg.create_task(OAuth2ApplicationQuery.resolve_applications(authorizations))
 
@@ -96,6 +98,7 @@ async def user_edit(
             'authorizations': authorizations,
             'applications': applications_task.result(),
             'tokens': tokens_task.result(),
+            'has_totp': totp_task.result(),
             'DISPLAY_NAME_MAX_LENGTH': DISPLAY_NAME_MAX_LENGTH,
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
             'USER_ROLES': USER_ROLES,

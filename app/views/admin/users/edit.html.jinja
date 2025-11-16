@@ -158,6 +158,27 @@
                             minlength="{{ PASSWORD_MIN_LENGTH }}">
                     </label>
 
+                    <hr class="my-3">
+
+                    <h4 class="mb-3">{{ t('settings.two_factor_auth') }}</h4>
+                    {% if has_totp %}
+                    <div class="mb-3">
+                        <span class="badge bg-success me-2">
+                            <i class="bi bi-shield-check"></i>
+                            {{ t('settings.two_factor_status_enabled') }}
+                        </span>
+                    </div>
+                    <form class="remove-totp-form d-inline" method="POST" action="/api/web/admin/users/{{ edit_user.id }}/remove-totp">
+                        <button class="btn btn-sm btn-outline-danger" type="submit">
+                            <i class="bi bi-x-circle me-1"></i>Force remove 2FA
+                        </button>
+                    </form>
+                    {% else %}
+                    <p class="text-muted mb-0">Two-factor authentication is not enabled for this user.</p>
+                    {% endif %}
+
+                    <hr class="my-3">
+
                     <div class="text-end">
                         <button class="btn btn-primary px-3" type="submit">
                             {{ t('action.save_changes') }}

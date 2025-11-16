@@ -10,15 +10,35 @@ if (loginForm) {
     // Referrer must start with '/' to avoid open redirect
     if (!referrer.startsWith("/")) referrer = defaultReferrer
 
-    // On successful login, redirect to refer
-    configureStandardForm(loginForm, () => {
-        console.debug("onLoginFormSuccess", referrer)
-        if (referrer !== defaultReferrer) {
-            window.location.href = `${window.location.origin}${referrer}`
-        } else {
-            window.location.reload()
-        }
-    })
+    const totpCodeSection = loginForm.querySelector(".totp-code-section")
+    const totpCodeInput = loginForm.querySelector(
+        "input[name=totp_code]",
+    ) as HTMLInputElement
+
+    // On successful login (or 2FA required), handle appropriately
+    configureStandardForm(
+        loginForm,
+        (data) => {
+            // Check if 2FA is required
+            if (data && typeof data === "object" && "requires_2fa" in data && data.requires_2fa) {
+                console.debug("2FA required, showing code input")
+                // Show TOTP code section
+                totpCodeSection?.classList.remove("d-none")
+                // Focus on TOTP input
+                totpCodeInput?.focus()
+                // Don't redirect - let user enter 2FA code
+                return
+            }
+
+            // Normal login success - redirect
+            console.debug("onLoginFormSuccess", referrer)
+            if (referrer !== defaultReferrer) {
+                window.location.href = `${window.location.origin}${referrer}`
+            } else {
+                window.location.reload()
+            }
+        },
+    )
 
     // Propagate referer to auth providers forms
     const authProvidersForms = document.querySelectorAll(".auth-providers form")
