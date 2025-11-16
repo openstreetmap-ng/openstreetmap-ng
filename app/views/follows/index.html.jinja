@@ -14,14 +14,14 @@
                 <li class="nav-item">
                     <a href="/follows/following" {% if active_tab == 'following' %} class="nav-link active"
                         aria-current="page" {% else %} class="nav-link" {% endif %}>
-                        {{ t('follows.following') }}
+                        {{ t('follows.following') -}}
                         <span class="badge text-bg-secondary ms-2">{{ following_count }}</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="/follows/followers" {% if active_tab == 'followers' %} class="nav-link active"
                         aria-current="page" {% else %} class="nav-link" {% endif %}>
-                        {{ t('follows.followers') }}
+                        {{ t('follows.followers') -}}
                         <span class="badge text-bg-secondary ms-2">{{ followers_count }}</span>
                     </a>
                 </li>
