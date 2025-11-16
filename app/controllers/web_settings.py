@@ -9,6 +9,7 @@ from app.lib.auth_context import web_user
 from app.lib.image import UserAvatarType
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
+from app.middlewares.rate_limit_middleware import rate_limit
 from app.models.db.connected_account import AuthProvider
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import Editor, User
@@ -109,6 +110,7 @@ async def settings_password(
 
 
 @router.post('/settings/totp/setup')
+@rate_limit(weight=5)
 async def settings_totp_setup(
     _: Annotated[User, web_user()],
     secret: Annotated[str, Form()],
@@ -122,6 +124,7 @@ async def settings_totp_setup(
 
 
 @router.post('/settings/totp/remove')
+@rate_limit(weight=3)
 async def settings_totp_remove(
     _: Annotated[User, web_user()],
     password: Annotated[Password, Form()],

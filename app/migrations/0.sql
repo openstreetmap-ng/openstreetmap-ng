@@ -189,6 +189,8 @@ CREATE TABLE user_totp_used_code (
     PRIMARY KEY (user_id, time_window, code)
 );
 
+CREATE INDEX user_totp_used_code_cleanup_idx ON user_totp_used_code (user_id, time_window);
+
 CREATE TYPE scope AS enum(
     'web_user',
     'read_prefs',

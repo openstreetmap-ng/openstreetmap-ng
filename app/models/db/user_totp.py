@@ -1,5 +1,3 @@
-"""User TOTP (Two-Factor Authentication) model."""
-
 from datetime import datetime
 from typing import TypedDict
 

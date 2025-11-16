@@ -59,7 +59,7 @@ class UserTOTPService:
             # Check if user already has TOTP enabled
             existing = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
             if existing:
-                StandardFeedback.raise_error('', t('two_fa.error_already_enabled'))
+                StandardFeedback.raise_error(None, t('two_fa.error_already_enabled'))
 
             # Store the encrypted secret
             await conn.execute(
@@ -218,7 +218,7 @@ class UserTOTPService:
             # Check if user has TOTP enabled
             totp = await UserTOTPQuery.find_one_by_user_id(target_id, conn=conn)
             if not totp:
-                StandardFeedback.raise_error('', t('two_fa.error_not_enabled'))
+                StandardFeedback.raise_error(None, t('two_fa.error_not_enabled'))
 
             # Delete TOTP credentials
             await conn.execute(

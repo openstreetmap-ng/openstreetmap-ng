@@ -11,9 +11,123 @@ if (loginForm) {
     if (!referrer.startsWith("/")) referrer = defaultReferrer
 
     const totpCodeSection = loginForm.querySelector(".totp-code-section")
+    const totpDigitInputs = loginForm.querySelectorAll(
+        ".totp-digit",
+    ) as NodeListOf<HTMLInputElement>
     const totpCodeInput = loginForm.querySelector(
         "input[name=totp_code]",
     ) as HTMLInputElement
+
+    // Configure 6-input TOTP field with auto-focus, auto-paste, and auto-submit
+    const configureTOTPInputs = (): void => {
+        if (totpDigitInputs.length !== 6) return
+
+        // Helper to get all digit values as a string
+        const getTOTPCode = (): string => {
+            return Array.from(totpDigitInputs)
+                .map((input) => input.value)
+                .join("")
+        }
+
+        // Helper to update hidden input and check if complete
+        const updateHiddenInput = (): void => {
+            const code = getTOTPCode()
+            totpCodeInput.value = code
+
+            // Auto-submit when all 6 digits are filled
+            if (code.length === 6 && /^\d{6}$/.test(code)) {
+                loginForm.requestSubmit()
+            }
+        }
+
+        totpDigitInputs.forEach((input, index) => {
+            // Handle input - auto-focus next
+            input.addEventListener("input", (e) => {
+                const target = e.target as HTMLInputElement
+                const value = target.value
+
+                // Only allow digits
+                if (value && !/^\d$/.test(value)) {
+                    target.value = ""
+                    return
+                }
+
+                // Update hidden input
+                updateHiddenInput()
+
+                // Auto-focus next input if digit was entered
+                if (value && index < totpDigitInputs.length - 1) {
+                    totpDigitInputs[index + 1].focus()
+                    totpDigitInputs[index + 1].select()
+                }
+            })
+
+            // Handle backspace - focus previous
+            input.addEventListener("keydown", (e) => {
+                const target = e.target as HTMLInputElement
+
+                if (e.key === "Backspace" && !target.value && index > 0) {
+                    totpDigitInputs[index - 1].focus()
+                    totpDigitInputs[index - 1].select()
+                }
+
+                // Also allow arrow keys for navigation
+                if (e.key === "ArrowLeft" && index > 0) {
+                    e.preventDefault()
+                    totpDigitInputs[index - 1].focus()
+                    totpDigitInputs[index - 1].select()
+                }
+                if (e.key === "ArrowRight" && index < totpDigitInputs.length - 1) {
+                    e.preventDefault()
+                    totpDigitInputs[index + 1].focus()
+                    totpDigitInputs[index + 1].select()
+                }
+            })
+
+            // Handle paste - distribute digits across inputs
+            input.addEventListener("paste", (e) => {
+                e.preventDefault()
+                const pastedData = e.clipboardData?.getData("text") || ""
+                const digits = pastedData.replace(/\D/g, "").slice(0, 6)
+
+                if (digits.length > 0) {
+                    // Distribute digits starting from current input
+                    for (let i = 0; i < digits.length && index + i < totpDigitInputs.length; i++) {
+                        totpDigitInputs[index + i].value = digits[i]
+                    }
+
+                    // Focus the next empty input or last input
+                    const nextEmptyIndex = index + digits.length
+                    if (nextEmptyIndex < totpDigitInputs.length) {
+                        totpDigitInputs[nextEmptyIndex].focus()
+                    } else {
+                        totpDigitInputs[totpDigitInputs.length - 1].focus()
+                    }
+
+                    updateHiddenInput()
+                }
+            })
+
+            // Select all on focus for easy replacement
+            input.addEventListener("focus", () => {
+                input.select()
+            })
+        })
+    }
+
+    // Initialize TOTP inputs when section becomes visible
+    const observer = new MutationObserver(() => {
+        if (totpCodeSection && !totpCodeSection.classList.contains("d-none")) {
+            configureTOTPInputs()
+            // Focus first input when section shows
+            totpDigitInputs[0]?.focus()
+            observer.disconnect()
+        }
+    })
+
+    if (totpCodeSection) {
+        observer.observe(totpCodeSection, { attributes: true, attributeFilter: ["class"] })
+    }
 
     // On successful login (or 2FA required), handle appropriately
     configureStandardForm(

@@ -41,4 +41,44 @@
             margin-right: 0.25rem;
         }
     }
+
+    // Polished 6-input TOTP field
+    .totp-input-group {
+        .totp-digit {
+            width: 3rem;
+            height: 3rem;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 0;
+            letter-spacing: 0;
+
+            // Smooth transitions
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+            // Enhanced focus state
+            &:focus {
+                border-color: var(--bs-primary);
+                box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+            }
+
+            // Remove spinner arrows for number inputs
+            &::-webkit-outer-spin-button,
+            &::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+        }
+
+        // Responsive sizing for mobile
+        @media (max-width: 480px) {
+            gap: 0.5rem !important;
+
+            .totp-digit {
+                width: 2.5rem;
+                height: 2.5rem;
+                font-size: 1.25rem;
+            }
+        }
+    }
 }
