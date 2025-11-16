@@ -14,7 +14,8 @@
     "i18next": "latest",
     "iD": "github:openstreetmap/iD#release",
     "maplibre-gl": "latest",
-    "osm-community-index": "latest"
+    "osm-community-index": "latest",
+    "qrcode-generator": "^2.0.4"
   },
   "devDependencies": {
     "@babel/preset-env": "latest",

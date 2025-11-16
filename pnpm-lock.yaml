@@ -47,6 +47,9 @@ importers:
       osm-community-index:
         specifier: latest
         version: 6.0.0
+      qrcode-generator:
+        specifier: ^2.0.4
+        version: 2.0.4
     devDependencies:
       '@babel/preset-env':
         specifier: latest
@@ -1643,8 +1646,8 @@ packages:
   earcut@3.0.2:
     resolution: {integrity: sha512-X7hshQbLyMJ/3RPhyObLARM2sNxxmRALLKx1+NVFFnQ9gKzmCrxm9+uLIAdBcvc8FNLpctqlQ2V6AE92Ol9UDQ==}
 
-  editor-layer-index@https://codeload.github.com/osmlab/editor-layer-index/tar.gz/5e0db84a31e43b91573469604bfca468b2b247af:
-    resolution: {tarball: https://codeload.github.com/osmlab/editor-layer-index/tar.gz/5e0db84a31e43b91573469604bfca468b2b247af}
+  editor-layer-index@https://codeload.github.com/osmlab/editor-layer-index/tar.gz/1403917b95721e58cb313ac80bb995f5e0b73162:
+    resolution: {tarball: https://codeload.github.com/osmlab/editor-layer-index/tar.gz/1403917b95721e58cb313ac80bb995f5e0b73162}
     version: 0.0.0
 
   electron-to-chromium@1.5.249:
@@ -2183,6 +2186,9 @@ packages:
 
   protocol-buffers-schema@3.6.0:
     resolution: {integrity: sha512-TdDRD+/QNdrCGCE7v8340QyuXd4kIWIgapsE2+n/SaGiSSbomYl4TjHlvIoCWRpE7wFt02EpB35VVA2ImcBVqw==}
+
+  qrcode-generator@2.0.4:
+    resolution: {integrity: sha512-mZSiP6RnbHl4xL2Ap5HfkjLnmxfKcPWpWe/c+5XxCuetEenqmNFf1FH/ftXPCtFG5/TDobjsjz6sSNL0Sr8Z9g==}
 
   quickselect@1.1.1:
     resolution: {integrity: sha512-qN0Gqdw4c4KGPsBOQafj6yj/PA6c/L63f6CaZ/DCF/xF4Esu3jVmKLUDYxghFx8Kb/O7y9tI7x2RjTSXwdK1iQ==}
@@ -3751,7 +3757,7 @@ snapshots:
       '@tmcw/togeojson': 6.0.1(@types/geojson@7946.0.16)(@xmldom/xmldom@0.8.11)
       '@types/chai': 5.2.3
       d3: 7.9.0
-      editor-layer-index: https://codeload.github.com/osmlab/editor-layer-index/tar.gz/5e0db84a31e43b91573469604bfca468b2b247af
+      editor-layer-index: https://codeload.github.com/osmlab/editor-layer-index/tar.gz/1403917b95721e58cb313ac80bb995f5e0b73162
       fast-deep-equal: 3.1.3
       fast-json-stable-stringify: 2.1.0
       lodash-es: 4.17.21
@@ -4369,7 +4375,7 @@ snapshots:
 
   earcut@3.0.2: {}
 
-  editor-layer-index@https://codeload.github.com/osmlab/editor-layer-index/tar.gz/5e0db84a31e43b91573469604bfca468b2b247af: {}
+  editor-layer-index@https://codeload.github.com/osmlab/editor-layer-index/tar.gz/1403917b95721e58cb313ac80bb995f5e0b73162: {}
 
   electron-to-chromium@1.5.249: {}
 
@@ -4950,6 +4956,8 @@ snapshots:
       react-is: 16.13.1
 
   protocol-buffers-schema@3.6.0: {}
+
+  qrcode-generator@2.0.4: {}
 
   quickselect@1.1.1: {}
 

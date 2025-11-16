@@ -214,6 +214,24 @@ settings:
   logout_from_browsers: Automatically logout from all other browsers
   password_has_been_changed: Your password has been changed
   two_factor_auth: Two-factor authentication
+  two_factor_auth_description: Add an extra layer of security to your account by requiring a code from your mobile authenticator app in addition to your password.
+  two_factor_enabled: Two-factor authentication is enabled
+  two_factor_disabled: Two-factor authentication has been disabled
+  enable_two_factor: Enable two-factor authentication
+  disable_two_factor: Disable two-factor authentication
+  two_factor_setup_title: Set up two-factor authentication
+  two_factor_setup_step_1: Step 1 - Scan QR code
+  two_factor_setup_step_1_description: Scan this QR code with your authenticator app (Google Authenticator, Aegis, Authy, or similar).
+  two_factor_setup_step_2: Step 2 - Enter code
+  two_factor_setup_step_2_description: Enter the 6-digit code from your authenticator app to verify the setup.
+  two_factor_setup_or_manual: Or enter the secret manually in your authenticator app
+  two_factor_setup_secret_label: "Secret key:"
+  two_factor_code_label: Authentication code
+  two_factor_code_placeholder: "000000"
+  two_factor_verify_and_enable: Verify and enable
+  two_factor_status_enabled: Enabled
+  two_factor_remove_confirmation: Are you sure you want to disable two-factor authentication? Your account will be less secure.
+  two_factor_remove_password_required: Enter your password to confirm
   active_sessions: Active sessions
   session_colon_id: "Session ID: {{id}}"
   this_is_your_current_session: This is your current session
@@ -433,6 +451,9 @@ login:
   sign_in: Sign in
   sign_in_with_a_passkey: Sign in with a passkey
   sign_in_with_service: "Sign in with {{service}}"
+  two_factor_required: Two-factor authentication required
+  two_factor_description: Enter the 6-digit code from your authenticator app to complete sign in.
+  enter_authentication_code: Enter authentication code
 auth_switcher:
   sign_in_with_a_provider: Sign in with a provider
   sign_up_with_a_provider: Sign up with a provider
