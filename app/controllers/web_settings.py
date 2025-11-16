@@ -20,6 +20,7 @@ from app.services.user_service import UserService
 from app.services.user_totp_service import UserTOTPService
 from app.validators.display_name import DisplayNameValidating
 from app.validators.email import EmailValidating
+from app.validators.totp_code import TOTPCodeValidating
 
 router = APIRouter(prefix='/api/web')
 
@@ -112,7 +113,7 @@ async def settings_password(
 async def settings_totp_setup(
     _: Annotated[User, web_user()],
     secret: Annotated[str, Form()],
-    code: Annotated[str, Form()],
+    code: Annotated[TOTPCodeValidating, Form()],
 ):
     """Set up TOTP 2FA for the current user."""
     await UserTOTPService.setup_totp(secret=secret, code=code)

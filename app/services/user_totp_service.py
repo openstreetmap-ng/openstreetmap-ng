@@ -104,12 +104,11 @@ class UserTOTPService:
 
             # Rate limiting: check failed attempts in current time window
             time_window = get_time_window()
-            async with await conn.cursor() as cursor:
-                await cursor.execute(
-                    "SELECT COUNT(*) FROM user_totp_used_code WHERE user_id = %s AND time_window = %s AND code = %s",
-                    (user_id, time_window, UserTOTPService._FAILED_ATTEMPT_MARKER),
-                )
-                (failed_attempts,) = await cursor.fetchone()
+            async with await conn.execute(
+                "SELECT COUNT(*) FROM user_totp_used_code WHERE user_id = %s AND time_window = %s AND code = %s",
+                (user_id, time_window, UserTOTPService._FAILED_ATTEMPT_MARKER),
+            ) as r:
+                (failed_attempts,) = await r.fetchone()
 
             if failed_attempts >= UserTOTPService.MAX_FAILED_ATTEMPTS:
                 await audit('auth_fail', user_id=user_id, extra={'reason': 'rate_limited'}, conn=conn)
@@ -132,25 +131,23 @@ class UserTOTPService:
             # Prevent replay: check if this code was already used in any of the valid time windows
             # Try to insert the used code for t-1, t, and t+1 windows
             # Using ON CONFLICT DO NOTHING and checking rows inserted
-            code_int = int(code)
-            async with await conn.cursor() as cursor:
-                await cursor.execute(
-                    """
-                    WITH insert_attempts AS (
-                        INSERT INTO user_totp_used_code (user_id, code, time_window)
-                        VALUES (%s, %s, %s), (%s, %s, %s), (%s, %s, %s)
-                        ON CONFLICT (user_id, time_window, code) DO NOTHING
-                        RETURNING 1
-                    )
-                    SELECT COUNT(*) FROM insert_attempts
-                    """,
-                    (
-                        user_id, code_int, time_window - 1,
-                        user_id, code_int, time_window,
-                        user_id, code_int, time_window + 1,
-                    ),
+            async with await conn.execute(
+                """
+                WITH insert_attempts AS (
+                    INSERT INTO user_totp_used_code (user_id, code, time_window)
+                    VALUES (%s, %s, %s), (%s, %s, %s), (%s, %s, %s)
+                    ON CONFLICT (user_id, time_window, code) DO NOTHING
+                    RETURNING 1
                 )
-                (rows_inserted,) = await cursor.fetchone()
+                SELECT COUNT(*) FROM insert_attempts
+                """,
+                (
+                    user_id, int(code), time_window - 1,
+                    user_id, int(code), time_window,
+                    user_id, int(code), time_window + 1,
+                ),
+            ) as r:
+                (rows_inserted,) = await r.fetchone()
 
             # If no rows were inserted, all three windows already had this code (replay attack)
             if rows_inserted == 0:
