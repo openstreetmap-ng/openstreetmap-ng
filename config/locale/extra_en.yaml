@@ -213,25 +213,6 @@ settings:
   new_password_repeat: Repeat new password
   logout_from_browsers: Automatically logout from all other browsers
   password_has_been_changed: Your password has been changed
-  two_factor_authentication: Two-factor authentication
-  two_factor_auth_add_extra_security: Add an extra layer of security to your account by requiring a code from your mobile authenticator app in addition to your password.
-  two_factor_authentication_is_enabled: Two-factor authentication is enabled
-  two_factor_authentication_has_been_disabled: Two-factor authentication has been disabled
-  enable_two_factor_authentication: Enable two-factor authentication
-  disable_two_factor_authentication: Disable two-factor authentication
-  two_factor_setup_heading: Set up two-factor authentication
-  two_factor_setup_scan_qr_code: Step 1 - Scan QR code
-  two_factor_setup_scan_with_app: Scan this QR code with your authenticator app (Google Authenticator, Aegis, Authy, or similar).
-  two_factor_setup_enter_code: Step 2 - Enter code
-  two_factor_setup_verify_code: Enter the 6-digit code from your authenticator app to verify the setup.
-  two_factor_or_enter_secret_manually: Or enter the secret manually in your authenticator app
-  two_factor_secret_key_colon: "Secret key:"
-  two_factor_authentication_code: Authentication code
-  two_factor_code_placeholder: "000000"
-  two_factor_verify_and_enable: Verify and enable
-  two_factor_enabled_badge: Enabled
-  two_factor_disable_confirmation: Are you sure you want to disable two-factor authentication? Your account will be less secure.
-  two_factor_remove_enter_password: Enter your password to confirm
   active_sessions: Active sessions
   session_colon_id: "Session ID: {{id}}"
   this_is_your_current_session: This is your current session
@@ -451,9 +432,32 @@ login:
   sign_in: Sign in
   sign_in_with_a_passkey: Sign in with a passkey
   sign_in_with_service: "Sign in with {{service}}"
+two_fa:
+  two_factor_authentication: Two-factor authentication
+  two_factor_auth_add_extra_security: Add an extra layer of security to your account by requiring a code from your mobile authenticator app in addition to your password.
+  two_factor_authentication_is_enabled: Two-factor authentication is enabled
+  two_factor_authentication_has_been_disabled: Two-factor authentication has been disabled
+  enable_two_factor_authentication: Enable two-factor authentication
+  disable_two_factor_authentication: Disable two-factor authentication
+  two_factor_setup_heading: Set up two-factor authentication
+  two_factor_setup_scan_qr_code: Step 1 - Scan QR code
+  two_factor_setup_scan_with_app: Scan this QR code with your authenticator app (Google Authenticator, Aegis, Authy, or similar).
+  two_factor_setup_enter_code: Step 2 - Enter code
+  two_factor_setup_verify_code: Enter the 6-digit code from your authenticator app to verify the setup.
+  two_factor_or_enter_secret_manually: Or enter the secret manually in your authenticator app
+  two_factor_secret_key: Secret key
+  two_factor_authentication_code: Authentication code
+  two_factor_verify_and_enable: Verify and enable
+  two_factor_enabled_badge: Enabled
+  two_factor_disable_confirmation: Are you sure you want to disable two-factor authentication? Your account will be less secure.
+  two_factor_remove_enter_password: Enter your password to confirm
   two_factor_authentication_required: Two-factor authentication required
   two_factor_enter_code_to_sign_in: Enter the 6-digit code from your authenticator app to complete sign in.
   enter_two_factor_code: Enter authentication code
+  error_invalid_or_expired_code: Invalid or expired authentication code
+  error_already_enabled: Two-factor authentication is already enabled for your account
+  error_not_enabled: Two-factor authentication is not enabled for this account
+  error_password_incorrect: Password is incorrect
 auth_switcher:
   sign_in_with_a_provider: Sign in with a provider
   sign_up_with_a_provider: Sign up with a provider

@@ -60,7 +60,7 @@ async def login(
         # Verify TOTP code
         code_valid = await UserTOTPService.verify_totp(user_id=user_id, code=totp_code)
         if not code_valid:
-            StandardFeedback.raise_error('totp_code', 'Invalid or expired authentication code')
+            StandardFeedback.raise_error('totp_code', t('two_fa.error_invalid_or_expired_code'))
 
     # Login successful (either no 2FA or 2FA code verified)
     response = Response(None, status.HTTP_204_NO_CONTENT)

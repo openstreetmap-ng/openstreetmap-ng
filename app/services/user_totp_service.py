@@ -46,7 +46,9 @@ class UserTOTPService:
 
         # Verify the code before storing
         if not verify_totp_code(secret, code):
-            StandardFeedback.raise_error('code', 'The authentication code is incorrect. Please try again.')
+            from app.lib.translation import t
+
+            StandardFeedback.raise_error('code', t('two_fa.error_invalid_or_expired_code'))
 
         # Encrypt the secret for storage
         secret_encrypted = encrypt(secret)
@@ -55,7 +57,9 @@ class UserTOTPService:
             # Check if user already has TOTP enabled
             existing = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
             if existing:
-                StandardFeedback.raise_error('', 'Two-factor authentication is already enabled for your account.')
+                from app.lib.translation import t
+
+                StandardFeedback.raise_error('', t('two_fa.error_already_enabled'))
 
             # Store the encrypted secret
             await conn.execute(
@@ -217,13 +221,17 @@ class UserTOTPService:
             )
 
             if not verification.success:
-                StandardFeedback.raise_error('password', 'Password is incorrect')
+                from app.lib.translation import t
+
+                StandardFeedback.raise_error('password', t('two_fa.error_password_incorrect'))
 
         async with db(write=True) as conn:
             # Check if user has TOTP enabled
             totp = await UserTOTPQuery.find_one_by_user_id(target_id, conn=conn)
             if not totp:
-                StandardFeedback.raise_error('', 'Two-factor authentication is not enabled for this account.')
+                from app.lib.translation import t
+
+                StandardFeedback.raise_error('', t('two_fa.error_not_enabled'))
 
             # Delete TOTP credentials
             await conn.execute(

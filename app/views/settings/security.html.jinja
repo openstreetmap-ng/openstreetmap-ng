@@ -48,15 +48,15 @@
 
 <hr class="my-4">
 
-<h3 class="mb-3">{{ t('settings.two_factor_authentication') }}</h3>
-<p class="text-muted mb-3">{{ t('settings.two_factor_auth_add_extra_security') }}</p>
+<h3 class="mb-3">{{ t('two_fa.two_factor_authentication') }}</h3>
+<p class="text-muted mb-3">{{ t('two_fa.two_factor_auth_add_extra_security') }}</p>
 
 {% if has_totp %}
 {# 2FA is enabled - show status and disable button #}
 <div class="two-factor-status mb-3">
     <span class="badge bg-success">
         <i class="bi bi-shield-check"></i>
-        {{ t('settings.two_factor_enabled_badge') }}
+        {{ t('two_fa.two_factor_enabled_badge') }}
     </span>
 </div>
 
@@ -74,9 +74,9 @@
             </div>
             <form class="disable-totp-form" method="POST" action="/api/web/settings/totp/remove">
                 <div class="modal-body">
-                    <p>{{ t('settings.two_factor_disable_confirmation') }}</p>
+                    <p>{{ t('two_fa.two_factor_disable_confirmation') }}</p>
                     <label class="form-label d-block">
-                        <span class="required">{{ t('settings.two_factor_remove_enter_password') }}</span>
+                        <span class="required">{{ t('two_fa.two_factor_remove_enter_password') }}</span>
                         <input type="password" class="form-control mt-2" name="password" autocomplete="current-password"
                             required>
                     </label>
@@ -101,7 +101,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="setup2FAModalLabel">{{ t('settings.two_factor_setup_heading') }}</h5>
+                <h5 class="modal-title" id="setup2FAModalLabel">{{ t('two_fa.two_factor_setup_heading') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form class="setup-totp-form" method="POST" action="/api/web/settings/totp/setup">
@@ -109,33 +109,33 @@
                     <input type="hidden" name="secret" class="totp-secret-input">
 
                     <div class="mb-4">
-                        <h6>{{ t('settings.two_factor_setup_scan_qr_code') }}</h6>
-                        <p class="text-muted mb-3">{{ t('settings.two_factor_setup_scan_with_app') }}</p>
+                        <h6>{{ t('two_fa.two_factor_setup_scan_qr_code') }}</h6>
+                        <p class="text-muted mb-3">{{ t('two_fa.two_factor_setup_scan_with_app') }}</p>
                         <div class="qr-code-container text-center mb-3"></div>
                     </div>
 
                     <div class="mb-4">
-                        <p class="text-muted mb-2">{{ t('settings.two_factor_or_enter_secret_manually') }}</p>
+                        <p class="text-muted mb-2">{{ t('two_fa.two_factor_or_enter_secret_manually') }}</p>
                         <div class="secret-display p-3 bg-light rounded">
-                            <small class="text-muted d-block mb-1">{{ t('settings.two_factor_secret_key_colon') }}</small>
+                            <small class="text-muted d-block mb-1">{{ t('two_fa.two_factor_secret_key') }}:</small>
                             <code class="totp-secret-display fs-6 user-select-all"></code>
                         </div>
                     </div>
 
                     <div>
-                        <h6>{{ t('settings.two_factor_setup_enter_code') }}</h6>
-                        <p class="text-muted mb-3">{{ t('settings.two_factor_setup_verify_code') }}</p>
+                        <h6>{{ t('two_fa.two_factor_setup_enter_code') }}</h6>
+                        <p class="text-muted mb-3">{{ t('two_fa.two_factor_setup_verify_code') }}</p>
                         <label class="form-label d-block">
-                            <span class="required">{{ t('settings.two_factor_authentication_code') }}</span>
+                            <span class="required">{{ t('two_fa.two_factor_authentication_code') }}</span>
                             <input type="text" class="form-control mt-2 totp-code-input" name="code"
-                                placeholder="{{ t('settings.two_factor_code_placeholder') }}"
+                                placeholder="000000"
                                 pattern="[0-9]{6}" maxlength="6" inputmode="numeric" autocomplete="off" required>
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action.cancel') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ t('settings.two_factor_verify_and_enable') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('two_fa.two_factor_verify_and_enable') }}</button>
                 </div>
             </form>
         </div>
@@ -165,7 +165,7 @@
                         {{ str(session.id)[-7:] }}
                     </span>
                     {% endset %}
-                    {{ t('settings.session_colon_id', id=id) | safe }}
+                    {{ t('settings.session_id', id=id) | safe }}
                 </h6>
                 <p class="form-text mb-0">
                     {% set date %}

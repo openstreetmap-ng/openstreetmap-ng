@@ -117,7 +117,7 @@ async def settings_totp_setup(
     """Set up TOTP 2FA for the current user."""
     await UserTOTPService.setup_totp(secret=secret, code=code)
     return StandardFeedback.success_result(
-        None, t('settings.two_factor_authentication_is_enabled')
+        None, t('two_fa.two_factor_authentication_is_enabled')
     )
 
 
@@ -129,7 +129,7 @@ async def settings_totp_remove(
     """Remove TOTP 2FA for the current user."""
     await UserTOTPService.remove_totp(password=password)
     return StandardFeedback.success_result(
-        None, t('settings.two_factor_authentication_has_been_disabled')
+        None, t('two_fa.two_factor_authentication_has_been_disabled')
     )
 
 

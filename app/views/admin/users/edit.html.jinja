@@ -160,12 +160,12 @@
 
                     <hr class="my-3">
 
-                    <h4 class="mb-3">{{ t('settings.two_factor_authentication') }}</h4>
+                    <h4 class="mb-3">{{ t('two_fa.two_factor_authentication') }}</h4>
                     {% if has_totp %}
                     <div class="mb-3">
                         <span class="badge bg-success me-2">
                             <i class="bi bi-shield-check"></i>
-                            {{ t('settings.two_factor_enabled_badge') }}
+                            {{ t('two_fa.two_factor_enabled_badge') }}
                         </span>
                     </div>
                     <form class="remove-totp-form d-inline" method="POST" action="/api/web/admin/users/{{ edit_user.id }}/remove-totp">
