@@ -1,6 +1,7 @@
 """User TOTP query operations."""
 
 from asyncpg import Connection
+from psycopg.rows import dict_row
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -19,15 +20,15 @@ class UserTOTPQuery:
     ) -> UserTOTP | None:
         """Find TOTP credentials for a user."""
         async with db(read_only=True, conn=conn) as conn:
-            row = await conn.fetchrow(
+            async with await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT *
                 FROM user_totp
-                WHERE user_id = $1
+                WHERE user_id = %s
                 """,
-                user_id,
-            )
-            return dict(row) if row else None
+                (user_id,),
+            ) as r:
+                return await r.fetchone()  # type: ignore
 
     @staticmethod
     async def find_one_by_current_user(
@@ -42,12 +43,13 @@ class UserTOTPQuery:
     async def has_totp(user_id: UserId, *, conn: Connection | None = None) -> bool:
         """Check if a user has TOTP enabled."""
         async with db(read_only=True, conn=conn) as conn:
-            result = await conn.fetchval(
+            async with await conn.execute(
                 """
                 SELECT EXISTS(
-                    SELECT 1 FROM user_totp WHERE user_id = $1
+                    SELECT 1 FROM user_totp WHERE user_id = %s
                 )
                 """,
-                user_id,
-            )
-            return bool(result)
+                (user_id,),
+            ) as r:
+                result = await r.fetchone()
+                return bool(result[0]) if result else False

@@ -8,7 +8,6 @@ from app.exceptions.map_mixin import MapExceptionsMixin
 from app.exceptions.message_mixin import MessageExceptionsMixin
 from app.exceptions.note_mixin import NoteExceptionsMixin
 from app.exceptions.request_mixin import RequestExceptionsMixin
-from app.exceptions.totp_mixin import TOTPExceptionsMixin
 from app.exceptions.trace_mixin import TraceExceptionsMixin
 from app.exceptions.user_mixin import UserExceptionsMixin
 
@@ -24,7 +23,6 @@ class Exceptions(
     MessageExceptionsMixin,
     NoteExceptionsMixin,
     RequestExceptionsMixin,
-    TOTPExceptionsMixin,
     TraceExceptionsMixin,
     UserExceptionsMixin,
 ): ...
