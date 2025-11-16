@@ -47,7 +47,8 @@
             {% else %}
             <div class="text-center text-muted py-5">
                 <i class="bi bi-bookmark display-1 d-block mb-3"></i>
-                <p>{{ t('follows.not_following_anyone') }}</p>
+                <p class="mb-2">{{ t('follows.you_are_not_following_anyone_yet') }}</p>
+                <p class="small">{{ t('follows.visit_user_profiles_to_start') }}</p>
             </div>
             {% endif %}
         </div>
@@ -69,7 +70,7 @@
             {% else %}
             <div class="text-center text-muted py-5">
                 <i class="bi bi-people display-1 d-block mb-3"></i>
-                <p>{{ t('follows.no_followers_yet') }}</p>
+                <p>{{ t('follows.you_dont_have_any_followers_yet') }}</p>
             </div>
             {% endif %}
         </div>

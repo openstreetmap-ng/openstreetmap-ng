@@ -150,8 +150,9 @@ follows:
   following_since: Following since
   follower_since: Follower since
   follow_back: Follow back
-  not_following_anyone: You are not following anyone yet. Visit user profiles to start.
-  no_followers_yet: You don't have any followers yet.
+  you_are_not_following_anyone_yet: You are not following anyone yet.
+  visit_user_profiles_to_start: Visit user profiles to start.
+  you_dont_have_any_followers_yet: You don't have any followers yet.
 messages:
   description: Your private messages with other map users.
   newer_messages: Newer messages
