@@ -35,7 +35,7 @@
                     {{ t('two_fa.enter_two_factor_code') }}
                     <input type="text" class="form-control mt-2" name="totp_code"
                         placeholder="000000"
-                        pattern="[0-9]{6}" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                        pattern="[0-9]{6}" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required>
                 </label>
                 <p class="form-text small mb-0">{{ t('two_fa.two_factor_enter_code_to_sign_in') }}</p>
             </div>

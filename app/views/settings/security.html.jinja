@@ -61,7 +61,7 @@
 </div>
 
 <button class="btn btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#disable2FAModal">
-    {{ t('settings.disable_two_factor_authentication') }}
+    {{ t('two_fa.disable_two_factor_authentication') }}
 </button>
 
 {# Disable 2FA Modal #}
@@ -69,7 +69,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="disable2FAModalLabel">{{ t('settings.disable_two_factor_authentication') }}</h5>
+                <h5 class="modal-title" id="disable2FAModalLabel">{{ t('two_fa.disable_two_factor_authentication') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form class="disable-totp-form" method="POST" action="/api/web/settings/totp/remove">
@@ -83,7 +83,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action.cancel') }}</button>
-                    <button type="submit" class="btn btn-danger">{{ t('settings.disable_two_factor_authentication') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ t('two_fa.disable_two_factor_authentication') }}</button>
                 </div>
             </form>
         </div>
@@ -93,7 +93,7 @@
 {% else %}
 {# 2FA is not enabled - show setup button #}
 <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#setup2FAModal">
-    {{ t('settings.enable_two_factor_authentication') }}
+    {{ t('two_fa.enable_two_factor_authentication') }}
 </button>
 
 {# Setup 2FA Modal #}

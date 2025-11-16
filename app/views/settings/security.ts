@@ -133,6 +133,19 @@ mount("settings-security-body", (body) => {
             setTimeout(() => codeInput?.focus(), 100)
         })
 
+        // Clear sensitive data on modal close (security measure)
+        setupModal?.addEventListener("hide.bs.modal", () => {
+            const secretInput = setupTOTPForm.querySelector(".totp-secret-input")
+            const secretDisplay = setupTOTPForm.querySelector(".totp-secret-display")
+            const qrContainer = setupTOTPForm.querySelector(".qr-code-container")
+            const codeInput = setupTOTPForm.querySelector(".totp-code-input")
+
+            if (secretInput) secretInput.value = ""
+            if (secretDisplay) secretDisplay.textContent = ""
+            if (qrContainer) qrContainer.innerHTML = ""
+            if (codeInput) codeInput.value = ""
+        })
+
         // Configure form submission
         configureStandardForm(setupTOTPForm, () => {
             console.debug("onSetupTOTPFormSuccess")

@@ -85,7 +85,7 @@ def verify_totp_code(secret: str, code: str, timestamp: int | None = None) -> bo
     for offset in [-1, 0, 1]:
         window_timestamp = timestamp + (offset * 30)
         expected_code = generate_totp_code(secret, window_timestamp)
-        if code == expected_code:
+        if secrets.compare_digest(code, expected_code):
             return True
 
     return False

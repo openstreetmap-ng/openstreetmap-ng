@@ -1,6 +1,6 @@
 """User TOTP query operations."""
 
-from asyncpg import Connection
+from psycopg import AsyncConnection
 from psycopg.rows import dict_row
 
 from app.db import db
@@ -16,10 +16,10 @@ class UserTOTPQuery:
     async def find_one_by_user_id(
         user_id: UserId,
         *,
-        conn: Connection | None = None,
+        conn: AsyncConnection | None = None,
     ) -> UserTOTP | None:
         """Find TOTP credentials for a user."""
-        async with db(read_only=True, conn=conn) as conn:
+        async with db(conn=conn) as conn:
             async with await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT *
@@ -33,16 +33,16 @@ class UserTOTPQuery:
     @staticmethod
     async def find_one_by_current_user(
         *,
-        conn: Connection | None = None,
+        conn: AsyncConnection | None = None,
     ) -> UserTOTP | None:
         """Find TOTP credentials for the current authenticated user."""
         user = auth_user(required=True)
         return await UserTOTPQuery.find_one_by_user_id(user['id'], conn=conn)
 
     @staticmethod
-    async def has_totp(user_id: UserId, *, conn: Connection | None = None) -> bool:
+    async def has_totp(user_id: UserId, *, conn: AsyncConnection | None = None) -> bool:
         """Check if a user has TOTP enabled."""
-        async with db(read_only=True, conn=conn) as conn:
+        async with db(conn=conn) as conn:
             async with await conn.execute(
                 """
                 SELECT EXISTS(
