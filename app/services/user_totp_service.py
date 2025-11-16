@@ -27,11 +27,6 @@ class UserTOTPService:
     _FAILED_ATTEMPT_MARKER = -1
 
     @staticmethod
-    def _format_code(code: int) -> str:
-        """Convert integer TOTP code (0-999999) to zero-padded 6-digit string."""
-        return f'{code:06d}'
-
-    @staticmethod
     async def setup_totp(
         *,
         secret: str,
@@ -54,7 +49,7 @@ class UserTOTPService:
         user_id = user['id']
 
         # Verify the code before storing (convert to zero-padded string for TOTP verification)
-        if not verify_totp_code(secret, UserTOTPService._format_code(code)):
+        if not verify_totp_code(secret, f'{code:06d}'):
             StandardFeedback.raise_error('code', t('two_fa.error_invalid_or_expired_code'))
 
         # Encrypt the secret for storage
@@ -123,7 +118,7 @@ class UserTOTPService:
             secret = decrypt(totp['secret_encrypted'])
 
             # Verify the code (convert to zero-padded string for TOTP verification)
-            if not verify_totp_code(secret, UserTOTPService._format_code(code)):
+            if not verify_totp_code(secret, f'{code:06d}'):
                 # Record failed attempt for rate limiting
                 await conn.execute(
                     "INSERT INTO user_totp_used_code (user_id, code, time_window) VALUES (%s, %s, %s) ON CONFLICT (user_id, time_window, code) DO NOTHING",
