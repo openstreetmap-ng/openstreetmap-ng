@@ -62,17 +62,12 @@ class UserService:
             )
 
         user_id = user['id']
-        verification = PasswordHash.verify(user, password)
-
-        if not verification.success:
-            await audit('auth_fail', user_id=user_id, extra={'reason': 'password'})
-            StandardFeedback.raise_error(
-                None, t('users.auth_failure.invalid_credentials')
-            )
-        if verification.rehash_needed:
-            await UserService.rehash_user_password(user, password)
-        if verification.schema_needed is not None:
-            StandardFeedback.raise_error('password_schema', verification.schema_needed)
+        await UserService.verify_user_password(
+            user,
+            password,
+            field_name=None,
+            audit_failure='password',
+        )
 
         # Verify TOTP
         totp = await UserTOTPQuery.find_one_by_user_id(user_id)
@@ -252,16 +247,13 @@ class UserService:
                 'email', 'Changing test user email is disabled'
             )
 
-        verification = PasswordHash.verify(user, password)
+        await UserService.verify_user_password(
+            user,
+            password,
+            field_name='password',
+            error_message=t('validation.password_is_incorrect'),
+        )
 
-        if not verification.success:
-            StandardFeedback.raise_error(
-                'password', t('validation.password_is_incorrect')
-            )
-        if verification.rehash_needed:
-            await UserService.rehash_user_password(user, password)
-        if verification.schema_needed is not None:
-            StandardFeedback.raise_error('password_schema', verification.schema_needed)
         if not await UserQuery.check_email_available(new_email):
             StandardFeedback.raise_error(
                 'email', t('validation.email_address_is_taken')
@@ -281,14 +273,14 @@ class UserService:
         """Update user password."""
         user = auth_user(required=True)
         user_id = user['id']
-        verification = PasswordHash.verify(user, old_password)
 
-        if not verification.success:
-            StandardFeedback.raise_error(
-                'old_password', t('validation.password_is_incorrect')
-            )
-        if verification.schema_needed is not None:
-            StandardFeedback.raise_error('password_schema', verification.schema_needed)
+        await UserService.verify_user_password(
+            user,
+            old_password,
+            field_name='old_password',
+            error_message=t('validation.password_is_incorrect'),
+            skip_rehash=True,
+        )
 
         new_password_pb = PasswordHash.hash(new_password)
         assert new_password_pb is not None, (
@@ -366,26 +358,33 @@ class UserService:
             )
 
     @staticmethod
-    async def rehash_user_password(user: User, password: Password) -> None:
-        """Rehash user password if the hashing algorithm or parameters have changed."""
-        user_id = user['id']
+    async def verify_user_password(
+        user: User,
+        password: Password,
+        *,
+        field_name: str | None,
+        error_message: str | None = None,
+        audit_failure: str | None = None,
+        skip_rehash: bool = False,
+    ) -> None:
+        verification = PasswordHash.verify(user, password)
 
-        new_password_pb = PasswordHash.hash(password)
-        if new_password_pb is None:
-            return
+        if not verification.success:
+            if audit_failure is not None:
+                await audit(
+                    'auth_fail', user_id=user['id'], extra={'reason': audit_failure}
+                )
 
-        async with db(True) as conn:
-            result = await conn.execute(
-                """
-                UPDATE "user"
-                SET password_pb = %s
-                WHERE id = %s AND password_pb = %s
-                """,
-                (new_password_pb, user_id, user['password_pb']),
-            )
+            if error_message is None:
+                error_message = t('users.auth_failure.invalid_credentials')
 
-            if result.rowcount:
-                logging.debug('Rehashed password for user %d', user_id)
+            StandardFeedback.raise_error(field_name, error_message)
+
+        if not skip_rehash and verification.rehash_needed:
+            await _rehash_user_password(user, password)
+
+        if verification.schema_needed is not None:
+            StandardFeedback.raise_error('password_schema', verification.schema_needed)
 
     @staticmethod
     async def update_timezone(timezone: str) -> None:
@@ -581,3 +580,25 @@ class UserService:
                     await UserTokenService.delete_all_for_user(conn, user_id)
             for op in audits:
                 await op(conn)
+
+
+async def _rehash_user_password(user: User, password: Password) -> None:
+    """Rehash user password if the hashing algorithm or parameters have changed."""
+    user_id = user['id']
+
+    new_password_pb = PasswordHash.hash(password)
+    if new_password_pb is None:
+        return
+
+    async with db(True) as conn:
+        result = await conn.execute(
+            """
+            UPDATE "user"
+            SET password_pb = %s
+            WHERE id = %s AND password_pb = %s
+            """,
+            (new_password_pb, user_id, user['password_pb']),
+        )
+
+        if result.rowcount:
+            logging.debug('Rehashed password for user %d', user_id)

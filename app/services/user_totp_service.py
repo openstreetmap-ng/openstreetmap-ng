@@ -4,7 +4,6 @@ from app.config import TOTP_MAX_ATTEMPTS_PER_WINDOW
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.crypto import decrypt, encrypt
-from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.totp import totp_time_window, verify_totp_code
 from app.lib.translation import t
@@ -172,21 +171,14 @@ class UserTOTPService:
             user = auth_user(required=True)
             user_id = user['id']
 
-            verification = PasswordHash.verify(user, password)
+            from app.services.user_service import UserService  # noqa: PLC0415
 
-            if not verification.success:
-                await audit('auth_fail', extra={'reason': 'remove_totp_password'})
-                StandardFeedback.raise_error(
-                    None, t('users.auth_failure.invalid_credentials')
-                )
-            if verification.rehash_needed:
-                from app.services.user_service import UserService  # noqa: PLC0415
-
-                await UserService.rehash_user_password(user, password)
-            if verification.schema_needed is not None:
-                StandardFeedback.raise_error(
-                    'password_schema', verification.schema_needed
-                )
+            await UserService.verify_user_password(
+                user,
+                password,
+                field_name=None,
+                audit_failure='remove_totp_password',
+            )
 
         async with db(True) as conn:
             result = await conn.execute(
