@@ -45,117 +45,73 @@ class UserTOTPService:
 
     @staticmethod
     async def verify_totp(user_id: UserId, code: str) -> bool:
-        """
-        Verify a TOTP code for a user with replay prevention.
-
-        This method:
-        1. Retrieves the user's encrypted secret
-        2. Decrypts it
-        3. Verifies the code against the secret
-        4. Prevents code reuse within the same time window (30s)
-        5. Updates last_used_at on success
-
-        Args:
-            user_id: User ID to verify
-            code: 6-digit TOTP code (0-999999)
-            conn: Optional database connection
-
-        Returns:
-            True if code is valid and not replayed, False otherwise
-        """
+        """Verify a TOTP code for a user."""
         async with db(True) as conn:
-            # Get the user's TOTP credentials
             totp = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
-            if not totp:
+            if totp is None:
                 return False
 
-            # Rate limiting: check total attempts in current time window
+            # Rate limit attempts in current time window
             time_window = totp_time_window()
             async with await conn.execute(
-                'SELECT COUNT(*) FROM user_totp_used_code WHERE user_id = %s AND time_window = %s',
+                """
+                SELECT COUNT(*) FROM user_totp_used_code
+                WHERE user_id = %s AND time_window = %s
+                """,
                 (user_id, time_window),
             ) as r:
-                (attempts_count,) = await r.fetchone()
+                (attempts_count,) = await r.fetchone()  # type: ignore
 
             if attempts_count >= TOTP_MAX_ATTEMPTS_PER_WINDOW:
                 await audit(
                     'auth_fail',
-                    user_id=user_id,
-                    extra={'reason': 'rate_limited'},
-                    conn=conn,
-                )
-                StandardFeedback.raise_error(
-                    'code', t('two_fa.error_too_many_attempts')
-                )
-
-            # Decrypt the secret
-            secret = decrypt(totp['secret_encrypted'])
-
-            # Verify the code (convert to zero-padded string for TOTP verification)
-            if not verify_totp_code(secret, code):
-                # Record failed attempt (store actual attempted code for rate limiting)
-                await conn.execute(
-                    'INSERT INTO user_totp_used_code (user_id, code, time_window) VALUES (%s, %s, %s) ON CONFLICT (user_id, time_window, code) DO NOTHING',
-                    (user_id, code, time_window),
-                )
-
-                await audit(
-                    'auth_fail',
                     conn,
                     user_id=user_id,
-                    extra={'reason': 'invalid_code'},
+                    extra={'reason': 'totp_rate_limited'},
                 )
-                return False
+                StandardFeedback.raise_error(
+                    'totp_code', t('two_fa.error_too_many_attempts')
+                )
 
             # Prevent replay: check if this code was already used in any of the valid time windows
             # Try to insert the used code for t-1, t, and t+1 windows
             # If any window already has this code, rows_inserted will be less than 3
-            async with await conn.execute(
+            result = await conn.execute(
                 """
-                WITH insert_attempts AS (
-                    INSERT INTO user_totp_used_code (user_id, code, time_window)
-                    VALUES (%s, %s, %s), (%s, %s, %s), (%s, %s, %s)
-                    ON CONFLICT (user_id, time_window, code) DO NOTHING
-                    RETURNING 1
-                )
-                SELECT COUNT(*) FROM insert_attempts
+                INSERT INTO user_totp_used_code (user_id, code, time_window)
+                VALUES (%(user_id)s, %(code)s, %(time_window)s - 1),
+                       (%(user_id)s, %(code)s, %(time_window)s),
+                       (%(user_id)s, %(code)s, %(time_window)s + 1)
+                ON CONFLICT (user_id, time_window, code) DO NOTHING
                 """,
-                (
-                    user_id,
-                    code,
-                    time_window - 1,
-                    user_id,
-                    code,
-                    time_window,
-                    user_id,
-                    code,
-                    time_window + 1,
-                ),
-            ) as r:
-                (rows_inserted,) = await r.fetchone()
-
-            # If fewer than 3 rows were inserted, at least one window already had this code (replay attack)
-            if rows_inserted != 3:
+                {'user_id': user_id, 'code': code, 'time_window': time_window},
+            )
+            if result.rowcount != 3:
                 await audit(
                     'auth_fail',
                     conn,
                     user_id=user_id,
-                    extra={'reason': 'code_reused'},
+                    extra={'reason': 'totp_reused'},
                 )
                 return False
 
-            # Update last_used_at
-            await conn.execute(
-                'UPDATE user_totp SET last_used_at = statement_timestamp() WHERE user_id = %s',
-                (user_id,),
-            )
+            if not verify_totp_code(decrypt(totp['secret_encrypted']), code):
+                await audit(
+                    'auth_fail',
+                    conn,
+                    user_id=user_id,
+                    extra={'reason': 'totp_invalid'},
+                )
+                return False
 
-            # Clean up old used codes (keep only last 3 time windows = 90 seconds)
+            # Cleanup old used codes
             await conn.execute(
-                'DELETE FROM user_totp_used_code WHERE user_id = %s AND time_window < %s',
-                (user_id, time_window - 2),
+                """
+                DELETE FROM user_totp_used_code
+                WHERE user_id = %s AND time_window < %s - 1
+                """,
+                (user_id, time_window),
             )
-
             return True
 
     @staticmethod
@@ -181,17 +137,20 @@ class UserTOTPService:
             )
 
         async with db(True) as conn:
-            result = await conn.execute(
+            totp = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
+            if totp is None:
+                return
+
+            await conn.execute(
                 'DELETE FROM user_totp WHERE user_id = %s',
                 (user_id,),
             )
-            if result.rowcount:
-                await conn.execute(
-                    'DELETE FROM user_totp_used_code WHERE user_id = %s',
-                    (user_id,),
-                )
-                await audit(
-                    'remove_totp',
-                    conn,
-                    target_user_id=(user_id if password is None else None),
-                )
+            await conn.execute(
+                'DELETE FROM user_totp_used_code WHERE user_id = %s',
+                (user_id,),
+            )
+            await audit(
+                'remove_totp',
+                conn,
+                target_user_id=(user_id if password is None else None),
+            )

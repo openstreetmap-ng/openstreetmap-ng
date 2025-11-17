@@ -13,13 +13,14 @@ class UserTOTPQuery:
         *,
         conn: AsyncConnection | None = None,
     ) -> UserTOTP | None:
-        """Find TOTP credentials for a user."""
+        """Find TOTP credentials for a user, for update."""
         async with (
             db(conn) as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
                 SELECT * FROM user_totp
                 WHERE user_id = %s
+                FOR UPDATE
                 """,
                 (user_id,),
             ) as r,

@@ -178,8 +178,7 @@ CREATE UNIQUE INDEX connected_account_provider_uid_idx ON connected_account (pro
 CREATE TABLE user_totp (
     user_id bigint PRIMARY KEY REFERENCES "user" ON DELETE CASCADE,
     secret_encrypted bytea NOT NULL,
-    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
-    last_used_at timestamptz
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 
 CREATE TABLE user_totp_used_code (
@@ -188,8 +187,6 @@ CREATE TABLE user_totp_used_code (
     time_window bigint NOT NULL,
     PRIMARY KEY (user_id, time_window, code)
 );
-
-CREATE INDEX user_totp_used_code_cleanup_idx ON user_totp_used_code (user_id, time_window);
 
 CREATE TYPE scope AS enum(
     'web_user',

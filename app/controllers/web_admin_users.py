@@ -128,7 +128,7 @@ async def remove_user_totp(
     _: Annotated[User, web_user('role_administrator')],
     user_id: UserId,
 ):
-    await UserTOTPService.remove_totp(password=None, target_user_id=user_id)
+    await UserTOTPService.remove_totp(password=None, user_id=user_id)
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 

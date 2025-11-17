@@ -456,7 +456,7 @@ two_fa:
   enter_two_factor_code: Enter authentication code
   error_invalid_or_expired_code: Invalid or expired authentication code
   error_not_enabled: Two-factor authentication is not enabled for this account
-  error_too_many_attempts: Too many failed attempts. Please try again in 30 seconds.
+  error_too_many_attempts: Too many failed attempts. Please try again in 1 minute.
 auth_switcher:
   sign_in_with_a_provider: Sign in with a provider
   sign_up_with_a_provider: Sign up with a provider
