@@ -1,6 +1,14 @@
 @use "bootstrap/scss/functions";
 
 .settings-security-body {
+    .table {
+        tr:last-child {
+            td {
+                border-bottom: unset;
+            }
+        }
+    }
+
     .active-sessions li {
         padding: 0.875rem 0;
 

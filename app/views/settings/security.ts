@@ -4,50 +4,38 @@ import { mount } from "../lib/mount"
 import { qsEncode } from "../lib/qs"
 import { type APIDetail, configureStandardForm } from "../lib/standard-form"
 
-// Base32 encoding for TOTP secrets (RFC 4648)
-const base32Encode = (buffer: Uint8Array): string => {
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
-    let bits = 0
-    let value = 0
-    let output = ""
+const generateTOTPSecret = (): string => {
+    const buffer = new Uint8Array(16) // 128 bits
+    crypto.getRandomValues(buffer)
 
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+    let value = 0
+    let bits = 0
+
+    const output: string[] = []
     for (const byte of buffer) {
         value = (value << 8) | byte
         bits += 8
-
         while (bits >= 5) {
-            output += alphabet[(value >>> (bits - 5)) & 31]
+            output.push(alphabet[(value >>> (bits - 5)) & 31])
             bits -= 5
         }
     }
-
     if (bits > 0) {
-        output += alphabet[(value << (5 - bits)) & 31]
+        output.push(alphabet[(value << (5 - bits)) & 31])
     }
-
-    return output
+    return output.join("")
 }
 
-// Generate a cryptographically secure TOTP secret
-const generateTOTPSecret = (): string => {
-    const buffer = new Uint8Array(32) // 256 bits
-    crypto.getRandomValues(buffer)
-    return base32Encode(buffer)
-}
-
-// Generate otpauth:// URI for QR code
-const generateTOTPUri = (secret: string, accountName: string): string => {
-    const issuer = "OpenStreetMap"
+const generateTOTPQRCode = (secret: string, accountName: string): string => {
+    const issuer = i18next.t("project_name")
     const label = `${issuer}:${accountName}`
-    return `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`
-}
+    const uri = `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`
 
-// Generate QR code as SVG
-const generateQRCode = (text: string): string => {
-    const qr = qrcode(0, "M")
-    qr.addData(text)
+    const qr = qrcode(0, "L")
+    qr.addData(uri)
     qr.make()
-    return qr.createSvgTag(4, 0)
+    return qr.createSvgTag(3)
 }
 
 mount("settings-security-body", (body) => {
@@ -84,6 +72,39 @@ mount("settings-security-body", (body) => {
         },
     )
 
+    const setupTOTPForm = body.querySelector("form.setup-totp-form")
+    if (setupTOTPForm) {
+        const secretInput = setupTOTPForm.querySelector("input[name=secret]")
+        const qrContainer = setupTOTPForm.querySelector(".qr-code-container")
+        const codeInput = setupTOTPForm.querySelector("input[name=totp_code]")
+        const setupModal = document.getElementById("setupTotpModal")
+
+        setupModal.addEventListener("show.bs.modal", () => {
+            const secret = generateTOTPSecret()
+            const accountName = setupTOTPForm.dataset.accountName
+            secretInput.value = secret
+            qrContainer.innerHTML = generateTOTPQRCode(secret, accountName)
+        })
+
+        // Clear sensitive data on modal close
+        setupModal.addEventListener("hidden.bs.modal", () => {
+            secretInput.value = ""
+            qrContainer.innerHTML = ""
+            codeInput.value = ""
+        })
+
+        configureStandardForm(setupTOTPForm, () => {
+            console.debug("onSetupTOTPFormSuccess")
+            window.location.reload()
+        })
+    }
+
+    const disableTOTPForm = body.querySelector("form.disable-totp-form")
+    configureStandardForm(disableTOTPForm, () => {
+        console.debug("onDisableTOTPFormSuccess")
+        window.location.reload()
+    })
+
     const revokeTokenForms = body.querySelectorAll("form.revoke-token-form")
     for (const form of revokeTokenForms) {
         configureStandardForm(form, () => {
@@ -100,66 +121,6 @@ mount("settings-security-body", (body) => {
             } else {
                 row.remove()
             }
-        })
-    }
-
-    // === 2FA Setup Form ===
-    const setupTOTPForm = body.querySelector("form.setup-totp-form")
-    if (setupTOTPForm) {
-        // Get user's email or display name for QR code
-        const accountName = "TODO"
-
-        // Generate secret on modal show
-        const setupModal = document.getElementById("setupTotpModal")
-        setupModal?.addEventListener("show.bs.modal", () => {
-            const secret = generateTOTPSecret()
-            const uri = generateTOTPUri(secret, accountName)
-
-            // Store secret in hidden input
-            const secretInput = setupTOTPForm.querySelector("input[name=secret]")
-            secretInput.value = secret
-
-            // Display secret for manual entry
-            const secretDisplay = setupTOTPForm.querySelector(".totp-secret-display")
-            secretDisplay.textContent = secret
-
-            // Generate and display QR code
-            const qrContainer = setupTOTPForm.querySelector(".qr-code-container")
-            qrContainer.innerHTML = generateQRCode(uri)
-
-            // Focus on code input
-            const codeInput = setupTOTPForm.querySelector("input[name=code]")
-            setTimeout(() => codeInput.focus(), 100)
-        })
-
-        // Clear sensitive data on modal close (security measure)
-        setupModal?.addEventListener("hide.bs.modal", () => {
-            const secretInput = setupTOTPForm.querySelector("input[name=secret]")
-            const secretDisplay = setupTOTPForm.querySelector(".totp-secret-display")
-            const qrContainer = setupTOTPForm.querySelector(".qr-code-container")
-            const codeInput = setupTOTPForm.querySelector("input[name=code]")
-
-            secretInput.value = ""
-            secretDisplay.textContent = ""
-            qrContainer.innerHTML = ""
-            codeInput.value = ""
-        })
-
-        // Configure form submission
-        configureStandardForm(setupTOTPForm, () => {
-            console.debug("onSetupTOTPFormSuccess")
-            // Reload page to show updated 2FA status
-            window.location.reload()
-        })
-    }
-
-    // === 2FA Disable Form ===
-    const disableTOTPForm = body.querySelector("form.disable-totp-form")
-    if (disableTOTPForm) {
-        configureStandardForm(disableTOTPForm, () => {
-            console.debug("onDisableTOTPFormSuccess")
-            // Reload page to show updated 2FA status
-            window.location.reload()
         })
     }
 })

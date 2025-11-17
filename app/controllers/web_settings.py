@@ -113,12 +113,10 @@ async def settings_password(
 async def settings_totp_setup(
     _: Annotated[User, web_user()],
     secret: Annotated[SecretStr, Form()],
-    code: Annotated[str, Form(pattern=r'^\d{6}$')],
+    totp_code: Annotated[str, Form(pattern=r'^\d{6}$')],
 ):
-    await UserTOTPService.setup_totp(secret, code)
-    return StandardFeedback.success_result(
-        None, t('two_fa.two_factor_authentication_is_enabled')
-    )
+    await UserTOTPService.setup_totp(secret, totp_code)
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/settings/totp/remove')
@@ -127,9 +125,7 @@ async def settings_totp_remove(
     password: Annotated[Password, Form()],
 ):
     await UserTOTPService.remove_totp(password=password)
-    return StandardFeedback.success_result(
-        None, t('two_fa.two_factor_authentication_has_been_disabled')
-    )
+    return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/settings/description')

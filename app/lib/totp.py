@@ -3,9 +3,11 @@ from hashlib import sha1
 from hmac import HMAC, compare_digest
 from time import time
 
+import cython
 from pydantic import SecretStr
 
 
+@cython.cfunc
 def _generate_totp_code(secret: SecretStr, time_window: int) -> str:
     """
     Generate a 6-digit TOTP code for the given secret and timestamp.
@@ -21,7 +23,7 @@ def _generate_totp_code(secret: SecretStr, time_window: int) -> str:
     hmac_hash = HMAC(secret_bytes, time_window.to_bytes(8), sha1).digest()
     del secret_value, secret_bytes
 
-    # Dynamic truncation (RFC 4226 Section 5.3)
+    # Dynamic truncation
     offset = hmac_hash[-1] & 0x0F
     truncated = int.from_bytes(hmac_hash[offset : offset + 4]) & 0x7FFFFFFF
 

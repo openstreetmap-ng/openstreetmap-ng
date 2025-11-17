@@ -1,5 +1,6 @@
 from psycopg import AsyncConnection
 from psycopg.rows import dict_row
+from psycopg.sql import SQL
 
 from app.db import db
 from app.models.db.user_totp import UserTOTP
@@ -17,11 +18,11 @@ class UserTOTPQuery:
         async with (
             db(conn) as conn,
             await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM user_totp
-                WHERE user_id = %s
-                FOR UPDATE
-                """,
+                SQL("""
+                    SELECT * FROM user_totp
+                    WHERE user_id = %s
+                    {}
+                """).format(SQL('FOR UPDATE' if not conn.read_only else '')),
                 (user_id,),
             ) as r,
         ):
