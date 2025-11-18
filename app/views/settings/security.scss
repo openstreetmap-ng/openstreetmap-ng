@@ -9,6 +9,10 @@
         }
     }
 
+    .qr-code-container > svg {
+        @extend .rounded;
+    }
+
     .active-sessions li {
         padding: 0.875rem 0;
 
@@ -43,6 +47,14 @@
             100% {
                 box-shadow: 0 0 0 0.35em transparent;
             }
+        }
+    }
+}
+
+@include color-mode(light) {
+    .settings-security-body {
+        .qr-code-container > svg {
+            @extend .border;
         }
     }
 }
