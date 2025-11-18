@@ -18,6 +18,7 @@
   postgresMinWalSizeGb ? 1,
   postgresMaxWalSizeGb ? 10,
   postgresVerbose ? 2, # 0 = no, 1 = some, 2 = most
+  duckdbMemoryLimitPerc ? 0.8 - (if enablePostgres then postgresSharedBuffersPerc else 0),
   enableMailpit ? true,
   mailpitHttpPort ? 49566,
   mailpitSmtpPort ? 49565,
@@ -878,7 +879,7 @@ let
       export POSTGRES_URL="postgresql://postgres@/postgres\
       ?host=${projectDir}/data/postgres_unix\
       &port=${toString postgresPort}"
-      export DUCKDB_MEMORY_LIMIT=${toString (hostMemoryMb / 2)}MB
+      export DUCKDB_MEMORY_LIMIT=${toString (builtins.floor (hostMemoryMb * duckdbMemoryLimitPerc))}MB
 
       if [ -f .env ]; then
         echo "Loading .env file"
