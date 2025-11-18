@@ -378,7 +378,7 @@ let
 
     # -- Services
     (makeScript "dev-start" ''
-      if [ -S "$PC_SOCKET_PATH" ]; then
+      if process-compose list -U >/dev/null 2>&1; then
         echo "Services are already running"
         exit 0
       fi
