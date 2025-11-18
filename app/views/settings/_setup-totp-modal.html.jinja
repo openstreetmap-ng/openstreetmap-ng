@@ -1,0 +1,33 @@
+<div class="modal fade" id="setupTotpModal" tabindex="-1" aria-labelledby="setupTotpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="setupTotpModalLabel">{{ t('two_fa.configure_authenticator_app') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="{{ t('javascripts.close') }}"></button>
+            </div>
+            <form class="setup-totp-form" method="POST" action="/api/web/settings/totp/setup"
+                data-account-name="{{ user.display_name }} ({{ user.email }})">
+                <div class="modal-body">
+                    <h6>{{ t('two_fa.step_1_scan_qr_code') }}</h6>
+                    <p class="text-muted">
+                        {{ t('two_fa.scan_this_qr_code_with_your_preferred_authenticator_app') }}</p>
+                    <div class="qr-code-container text-center mb-4"></div>
+
+                    <p class="text-muted mb-2">{{ t('two_fa.alternatively_enter_secret_key_manually') }}</p>
+                    <input type="text" class="form-control mb-4" name="secret" readonly>
+
+                    <h6>{{ t('two_fa.step_2_enter_code') }}</h6>
+                    <p class="text-muted mb-2">{{ t('two_fa.enter_the_6digit_code_from_your_app_to_finish_setup') }}</p>
+                    <input type="text" class="form-control" name="totp_code" placeholder="000000" pattern="[0-9]{6}"
+                        maxlength="6" inputmode="numeric" autocomplete="off" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">{{ t('action.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('action.verify_and_enable') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

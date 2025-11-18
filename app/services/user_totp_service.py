@@ -26,7 +26,7 @@ class UserTOTPService:
 
         if not verify_totp_code(secret, code):
             StandardFeedback.raise_error(
-                'code', t('two_fa.error_invalid_or_expired_code')
+                'totp_code', t('two_fa.invalid_or_expired_authentication_code')
             )
 
         secret_encrypted = encrypt(secret)

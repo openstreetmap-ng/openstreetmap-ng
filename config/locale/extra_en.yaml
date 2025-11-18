@@ -213,6 +213,8 @@ settings:
   new_password_repeat: Repeat new password
   logout_from_browsers: Automatically logout from all other browsers
   password_has_been_changed: Your password has been changed
+  disable_authentication_method: Disable authentication method
+  are_you_sure_you_want_to_disable_method: Are you sure you want to disable {method}?
   active_sessions: Active sessions
   review_and_manage_your_active_login_sessions: Review and manage your active login sessions.
   session_colon_id: "Session ID: {{id}}"
@@ -444,13 +446,13 @@ two_fa:
   alternatively_enter_secret_key_manually: Alternatively, enter the secret key manually.
   step_2_enter_code: "Step 2: Enter code"
   enter_the_6digit_code_from_your_app_to_finish_setup: Enter the 6-digit code from your app to finish setup.
+  invalid_or_expired_authentication_code: Invalid or expired authentication code
 
   two_factor_disable_confirmation: Are you sure you want to disable two-factor authentication? Your account will be less secure.
   two_factor_remove_enter_password: Enter your password to confirm
   two_factor_authentication_required: Two-factor authentication required
   two_factor_enter_code_to_sign_in: Enter the 6-digit code from your authenticator app to complete sign in.
   enter_two_factor_code: Enter authentication code
-  error_invalid_or_expired_code: Invalid or expired authentication code=
   error_too_many_attempts: Too many failed attempts. Please try again in 1 minute.
 auth_switcher:
   sign_in_with_a_provider: Sign in with a provider

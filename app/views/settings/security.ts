@@ -99,9 +99,30 @@ mount("settings-security-body", (body) => {
         })
     }
 
-    const disableTOTPForm = body.querySelector("form.disable-totp-form")
-    configureStandardForm(disableTOTPForm, () => {
-        console.debug("onDisableTOTPFormSuccess")
+    // Generic authentication method disable handling
+    const disableAuthMethodModal = document.getElementById("disableAuthMethodModal")
+    const disableAuthMethodForm = disableAuthMethodModal.querySelector("form")
+
+    disableAuthMethodModal.addEventListener("show.bs.modal", (event: Event) => {
+        const button = (event as any).relatedTarget as HTMLButtonElement
+        const action = button.dataset.authAction
+        const method = button
+            .closest("tr")
+            .querySelector("h6")
+            .textContent.toLocaleLowerCase()
+        disableAuthMethodForm.action = action
+        disableAuthMethodForm.querySelector("p").textContent = i18next.t(
+            "settings.are_you_sure_you_want_to_disable_method",
+            { method },
+        )
+    })
+
+    disableAuthMethodModal.addEventListener("hidden.bs.modal", () => {
+        disableAuthMethodForm.querySelector("input[data-name=password]").value = ""
+    })
+
+    configureStandardForm(disableAuthMethodForm, () => {
+        console.debug("onDisableAuthMethodSuccess")
         window.location.reload()
     })
 

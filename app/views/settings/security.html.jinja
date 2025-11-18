@@ -62,8 +62,8 @@
                 <td class="text-end">
                     {% if has_totp %}
                     <i class="bi bi-file-lock me-2" title="{{ t('state.configured') }}"></i>
-                    <button class="btn btn-light border" type="button" data-bs-toggle="modal"
-                        data-bs-target="#disableTotpModal">
+                    <button class="btn btn-light border" type="button" data-auth-action="/api/web/settings/totp/remove"
+                        data-bs-toggle="modal" data-bs-target="#disableAuthMethodModal">
                         {{ t('action.disable') }}
                     </button>
                     {% else %}
@@ -77,70 +77,6 @@
         </tbody>
     </table>
 </div>
-
-{% if has_totp %}
-<div class="modal fade" id="disableTotpModal" tabindex="-1" aria-labelledby="disableTotpModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="disableTotpModalLabel">{{ t('two_fa.disable_two_factor_authentication') }}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form class="disable-totp-form" method="POST" action="/api/web/settings/totp/remove">
-                <div class="modal-body">
-                    <p>{{ t('two_fa.two_factor_disable_confirmation') }}</p>
-                    <label class="form-label d-block">
-                        <span class="required">{{ t('two_fa.two_factor_remove_enter_password') }}</span>
-                        <input type="password" class="form-control mt-2" name="password" autocomplete="current-password"
-                            required>
-                    </label>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary"
-                        data-bs-dismiss="modal">{{ t('action.cancel') }}</button>
-                    <button type="submit"
-                        class="btn btn-danger">{{ t('two_fa.disable_two_factor_authentication') }}</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-{% else %}
-<div class="modal fade" id="setupTotpModal" tabindex="-1" aria-labelledby="setupTotpModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="setupTotpModalLabel">{{ t('two_fa.configure_authenticator_app') }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form class="setup-totp-form" method="POST" action="/api/web/settings/totp/setup"
-                data-account-name="{{ user.display_name }} ({{ user.email }})">
-                <div class="modal-body">
-                    <h6>{{ t('two_fa.step_1_scan_qr_code') }}</h6>
-                    <p class="text-muted">
-                        {{ t('two_fa.scan_this_qr_code_with_your_preferred_authenticator_app') }}</p>
-                    <div class="qr-code-container text-center mb-4"></div>
-
-                    <p class="text-muted mb-2">{{ t('two_fa.alternatively_enter_secret_key_manually') }}</p>
-                    <input type="text" class="form-control mb-4" name="secret" readonly>
-
-                    <h6>{{ t('two_fa.step_2_enter_code') }}</h6>
-                    <p class="text-muted mb-2">{{ t('two_fa.enter_the_6digit_code_from_your_app_to_finish_setup') }}</p>
-                    <input type="text" class="form-control" name="totp_code" placeholder="000000" pattern="[0-9]{6}"
-                        maxlength="6" inputmode="numeric" autocomplete="off" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary"
-                        data-bs-dismiss="modal">{{ t('action.cancel') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ t('action.verify_and_enable') }}</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-{% endif %}
 
 <hr class="my-4">
 
@@ -187,5 +123,10 @@
     </li>
     {% endfor %}
 </ul>
+
+{% if not has_totp %}
+{% include 'settings/_setup-totp-modal' %}
+{% endif %}
+{% include 'settings/_disable-auth-method-modal' %}
 
 {% endblock %}

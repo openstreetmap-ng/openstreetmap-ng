@@ -77,7 +77,7 @@ class UserService:
 
             if not await UserTOTPService.verify_totp(user_id, totp_code):
                 StandardFeedback.raise_error(
-                    'totp_code', t('two_fa.error_invalid_or_expired_code')
+                    'totp_code', t('two_fa.invalid_or_expired_authentication_code')
                 )
 
         access_token = await SystemAppService.create_access_token(
