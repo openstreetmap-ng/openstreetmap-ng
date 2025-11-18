@@ -31,7 +31,7 @@ export const configureStandardForm = (
     },
 ): void => {
     if (!form || form.classList.contains("needs-validation")) return
-    const formAction = form.getAttribute("action") ?? ""
+    let formAction = form.getAttribute("action") ?? ""
     console.debug("Initializing standard form", formAction)
 
     // Disable browser validation in favor of bootstrap
@@ -127,6 +127,7 @@ export const configureStandardForm = (
     const handleFormFeedback = (
         type: "success" | "info" | "error",
         message: string,
+        after?: HTMLElement,
     ): void => {
         let feedback = form.querySelector(".form-feedback")
         let feedbackAlert: Alert | null = null
@@ -152,7 +153,11 @@ export const configureStandardForm = (
             feedbackAlert = new Alert(feedback)
 
             const formBody = options?.formBody ?? form
-            if (options?.formAppend) {
+
+            if (after) {
+                feedback.classList.add("alert-inner")
+                after.after(feedback)
+            } else if (options?.formAppend) {
                 const scrollContainer = findScrollableContainer(formBody)
                 const scrollWindow = scrollContainer === document.documentElement
 
@@ -248,7 +253,7 @@ export const configureStandardForm = (
                                 form.requestSubmit()
                             }
                         } else {
-                            handleFormFeedback(type, msg)
+                            handleFormFeedback(type, msg, input)
                         }
                     } else {
                         handleElementFeedback(input, type, msg)
@@ -307,9 +312,11 @@ export const configureStandardForm = (
 
         if (passwordInputs.length) await updatePasswordsFormHashes(form, passwordInputs)
 
+        formAction = form.getAttribute("action") ?? ""
+        const method = form.method.toUpperCase()
         let url: string
         let body: BodyInit | null = null
-        const method = form.method.toUpperCase()
+
         if (method === "POST") {
             url = formAction
             body = new FormData(form)

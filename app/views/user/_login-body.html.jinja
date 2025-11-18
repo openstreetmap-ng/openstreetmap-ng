@@ -9,30 +9,42 @@
 
 <div class="auth-switcher mb-2">
     <div>
-        <form class="login-form" method="POST" action="/api/web/user/login">
-            <label class="form-label d-block mb-2">
-                {{ t('sessions.new.email or username') | capitalize }}
-                <input type="text" class="form-control mt-2" name="display_name_or_email" autocomplete="username"
-                    autocapitalize="none" {% if ENV != 'prod' %} data-bs-toggle="popover" data-bs-trigger="focus"
-                    data-bs-placement="top" data-bs-title="Test Site Reminder"
-                    data-bs-content="Use fake data only. Do not provide real email addresses. All emails go to mail.openstreetmap.ng"
-                    {% endif %} required>
-            </label>
+        <form class="login-form" method="POST" action="/api/web/user/login" data-login-state="login">
+            <div data-section="login">
+                <label class="form-label d-block mb-2">
+                    {{ t('sessions.new.email or username') | capitalize }}
+                    <input type="text" class="form-control mt-2" name="display_name_or_email" autocomplete="username"
+                        autocapitalize="none" {% if ENV != 'prod' %} data-bs-toggle="popover" data-bs-trigger="focus"
+                        data-bs-placement="top" data-bs-title="Test Site Reminder"
+                        data-bs-content="Use fake data only. Do not provide real email addresses. All emails go to mail.openstreetmap.ng"
+                        {% endif %} required>
+                </label>
 
-            <label class="form-label d-block mb-3">
-                {{ t('sessions.new.password') }}
-                <input type="password" class="form-control mt-2" data-name="password" autocomplete="current-password"
-                    required>
-            </label>
+                <label class="form-label d-block mb-3">
+                    {{ t('sessions.new.password') }}
+                    <input type="password" class="form-control mt-2" data-name="password"
+                        autocomplete="current-password" required>
+                </label>
 
-            <div class="totp-code-section d-none mb-3">
-                <div class="alert alert-info small py-2">
-                    <i class="bi bi-shield-lock me-1"></i>
-                    {{ t('two_fa.two_factor_authentication_required') }}
+                <div class="d-flex justify-content-between align-items-center mx-1 mb-3">
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="checkbox" name="remember" value="True"
+                                autocomplete="off">
+                            {{ t('sessions.new.remember') }}
+                        </label>
+                    </div>
+                    <a class="link-primary small" href="/reset-password">
+                        {{ t('sessions.new.lost password link') }}
+                    </a>
                 </div>
-                <label class="form-label d-block">
+            </div>
+
+            <div data-section="totp">
+                <label class="form-label d-block mb-2">
                     {{ t('two_fa.enter_two_factor_code') }}
-                    <div class="totp-input-group d-flex gap-2 justify-content-center mt-2">
+                    <p class="form-text">{{ t('two_fa.enter_the_6digit_code_from_your_app') }}</p>
+                    <div class="totp-input-group d-flex justify-content-center gap-1 gap-sm-2">
                         <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
                             pattern="[0-9]" autocomplete="one-time-code">
                         <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
@@ -48,29 +60,49 @@
                     </div>
                     <input type="hidden" name="totp_code">
                 </label>
-                <p class="form-text small mb-0">{{ t('two_fa.two_factor_enter_code_to_sign_in') }}</p>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center mx-1 mb-3">
-                <div class="form-check">
-                    <label class="form-check-label">
-                        <input class="form-check-input" type="checkbox" name="remember" value="True" autocomplete="off">
-                        {{ t('sessions.new.remember') }}
-                    </label>
+                <div class="text-center">
+                    <button class="toggle-recovery-btn btn btn-link btn-sm p-0" type="button">
+                        {{ t('two_fa.use_recovery_code_instead') }}
+                    </button>
                 </div>
-                <a class="link-primary small" href="/reset-password">
-                    {{ t('sessions.new.lost password link') }}
-                </a>
             </div>
 
-            <button class="btn btn-primary w-100 fw-medium" type="submit">{{ t('login.sign_in') }}</button>
+            <div data-section="recovery">
+                <label class="form-label d-block mb-2">
+                    {{ t('two_fa.enter_recovery_code') }}
+                    <p class="form-text">{{ t('two_fa.enter_one_of_your_recovery_codes') }}</p>
+                    <input type="text" class="form-control form-control-lg" name="recovery_code" autocomplete="off"
+                        autocapitalize="none" inputmode="text" maxlength="16">
+                </label>
+                <div class="text-center">
+                    <button class="toggle-totp-btn btn btn-link btn-sm p-0" type="button">
+                        {{ t('two_fa.use_authenticator_instead') }}
+                    </button>
+                </div>
+            </div>
+
+            <div data-section="totp recovery">
+                <div class="d-flex gap-2 mt-3">
+                    <button class="cancel-auth-btn btn btn-light border" type="button">
+                        {{ t('action.cancel') }}
+                    </button>
+                    <button class="btn btn-primary fw-medium flex-grow-1" type="submit">
+                        {{ t('login.sign_in') }}
+                    </button>
+                </div>
+            </div>
+            <div data-section="login">
+                <button class="btn btn-primary w-100 fw-medium" type="submit">
+                    {{ t('login.sign_in') }}
+                </button>
+            </div>
         </form>
 
         <div class="divider my-3">
             <span class="divider-text">{{ t('login.or_continue_with') }}</span>
         </div>
 
-        <button type="button" class="passkey-btn btn btn-light border w-100">
+        <button class="passkey-btn btn btn-light border w-100" type="button">
             <img class="dark-filter-invert" src="/static/img/brand/passkeys-black.webp"
                 alt="{{ t('alt.passkey_icon') }}" draggable="false" loading="lazy">
             {{ t('login.sign_in_with_a_passkey') }}

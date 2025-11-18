@@ -70,7 +70,8 @@ class UserTOTPService:
                     extra={'reason': 'totp_rate_limited'},
                 )
                 StandardFeedback.raise_error(
-                    'totp_code', t('two_fa.error_too_many_attempts')
+                    'totp_code',
+                    t('two_fa.too_many_failed_attempts_please_try_again_in_one_minute'),
                 )
 
             # Prevent replay: check if this code was already used in any of the valid time windows

@@ -1,3 +1,8 @@
+.alert.alert-inner {
+    margin-top: calc($alert-margin-bottom / 2);
+    margin-bottom: calc($alert-margin-bottom / 2);
+}
+
 .alert.alert-last {
     margin-top: $alert-margin-bottom;
     margin-bottom: 0;

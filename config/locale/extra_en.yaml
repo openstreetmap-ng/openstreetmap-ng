@@ -213,7 +213,7 @@ settings:
   new_password_repeat: Repeat new password
   logout_from_browsers: Automatically logout from all other browsers
   password_has_been_changed: Your password has been changed
-  disable_method: Disable {{method}}
+  enter_your_password_to_confirm: Enter your password to confirm
   active_sessions: Active sessions
   review_and_manage_your_active_login_sessions: Review and manage your active login sessions.
   session_colon_id: "Session ID: {{id}}"
@@ -440,19 +440,20 @@ two_fa:
   authenticator_app: Authenticator app
   require_code_from_your_mobile_authenticator_app_when_signing_in: Require a code from your mobile authenticator app when signing in
   configure_authenticator_app: Configure authenticator app
+  disable_authenticator_app: Disable authenticator app
   step_1_scan_qr_code: "Step 1: Scan QR code"
   scan_this_qr_code_with_your_preferred_authenticator_app: Scan this QR code with your preferred authenticator app.
   alternatively_enter_secret_key_manually: Alternatively, enter the secret key manually.
   step_2_enter_code: "Step 2: Enter code"
   enter_the_6digit_code_from_your_app_to_finish_setup: Enter the 6-digit code from your app to finish setup.
   invalid_or_expired_authentication_code: Invalid or expired authentication code
-
-  two_factor_disable_confirmation: Are you sure you want to disable two-factor authentication? Your account will be less secure.
-  two_factor_remove_enter_password: Enter your password to confirm
-  two_factor_authentication_required: Two-factor authentication required
-  two_factor_enter_code_to_sign_in: Enter the 6-digit code from your authenticator app to complete sign in.
   enter_two_factor_code: Enter authentication code
-  error_too_many_attempts: Too many failed attempts. Please try again in 1 minute.
+  enter_recovery_code: Enter recovery code
+  use_recovery_code_instead: Use a recovery code instead
+  use_authenticator_instead: Use authenticator app instead
+  enter_the_6digit_code_from_your_app: Enter the 6-digit code from your authenticator app
+  enter_one_of_your_recovery_codes: Enter one of your recovery codes
+  too_many_failed_attempts_please_try_again_in_one_minute: Too many failed attempts. Please try again in one minute.
 auth_switcher:
   sign_in_with_a_provider: Sign in with a provider
   sign_up_with_a_provider: Sign up with a provider

@@ -79,11 +79,20 @@ mount("settings-security-body", (body) => {
         const codeInput = setupTOTPForm.querySelector("input[name=totp_code]")
         const setupModal = document.getElementById("setupTotpModal")
 
+        // Select secret on click for easy copying
+        secretInput.addEventListener("click", () => {
+            secretInput.select()
+        })
+
         setupModal.addEventListener("show.bs.modal", () => {
             const secret = generateTOTPSecret()
             const accountName = setupTOTPForm.dataset.accountName
             secretInput.value = secret
             qrContainer.innerHTML = generateTOTPQRCode(secret, accountName)
+        })
+
+        setupModal.addEventListener("shown.bs.modal", () => {
+            codeInput.focus()
         })
 
         // Clear sensitive data on modal close
@@ -105,16 +114,9 @@ mount("settings-security-body", (body) => {
 
     disableAuthMethodModal.addEventListener("show.bs.modal", (event: Event) => {
         const button = (event as any).relatedTarget as HTMLButtonElement
-        const action = button.dataset.authAction
-        const method = button
-            .closest("tr")
-            .querySelector("h6")
-            .textContent.toLocaleLowerCase()
-        disableAuthMethodForm.action = action
-        disableAuthMethodModal.querySelector(".modal-title").textContent = i18next.t(
-            "settings.disable_method",
-            { method },
-        )
+        disableAuthMethodForm.action = button.dataset.authAction
+        disableAuthMethodModal.querySelector(".modal-title").textContent =
+            button.dataset.title
     })
 
     configureStandardForm(disableAuthMethodForm, () => {

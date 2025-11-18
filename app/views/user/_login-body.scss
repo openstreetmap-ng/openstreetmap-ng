@@ -42,7 +42,22 @@
         }
     }
 
-    // Polished 6-input TOTP field
+    // State-based visibility for login flow sections
+    .login-form {
+        [data-section] {
+            display: none;
+        }
+        &[data-login-state="login"] [data-section="login"] {
+            display: block;
+        }
+        &[data-login-state="totp"] [data-section~="totp"] {
+            display: block;
+        }
+        &[data-login-state="recovery"] [data-section~="recovery"] {
+            display: block;
+        }
+    }
+
     .totp-input-group {
         .totp-digit {
             width: 3rem;
@@ -51,36 +66,17 @@
             font-size: 1.5rem;
             font-weight: 600;
             padding: 0;
-            letter-spacing: 0;
 
-            // Smooth transitions
-            transition:
-                border-color 0.15s ease-in-out,
-                box-shadow 0.15s ease-in-out;
-
-            // Enhanced focus state
-            &:focus {
-                border-color: var(--bs-primary);
-                box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
-            }
-
-            // Remove spinner arrows for number inputs
-            &::-webkit-outer-spin-button,
-            &::-webkit-inner-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }
-        }
-
-        // Responsive sizing for mobile
-        @media (max-width: 480px) {
-            gap: 0.5rem !important;
-
-            .totp-digit {
+            @include media-breakpoint-down(sm) {
                 width: 2.5rem;
-                height: 2.5rem;
-                font-size: 1.25rem;
             }
         }
+    }
+
+    // Recovery code input styling
+    input[name="recovery_code"] {
+        text-align: center;
+        font-weight: 600;
+        letter-spacing: 0.05em;
     }
 }

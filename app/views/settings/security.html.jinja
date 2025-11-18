@@ -67,7 +67,8 @@
                 <td class="text-end">
                     {% if has_totp %}
                     <button class="btn btn-light border" type="button" data-auth-action="/api/web/settings/totp/remove"
-                        data-bs-toggle="modal" data-bs-target="#disableAuthMethodModal">
+                        data-title="{{ t('two_fa.disable_authenticator_app') }}" data-bs-toggle="modal"
+                        data-bs-target="#disableAuthMethodModal">
                         {{ t('action.disable') }}
                     </button>
                     {% else %}

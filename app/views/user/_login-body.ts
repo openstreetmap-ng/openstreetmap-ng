@@ -2,6 +2,8 @@ import { mount } from "../lib/mount"
 import { qsParse } from "../lib/qs"
 import { configureStandardForm } from "../lib/standard-form"
 
+type LoginState = "login" | "totp" | "recovery"
+
 const loginForm = document.querySelector("form.login-form")
 if (loginForm) {
     const defaultReferrer = `${window.location.pathname}${window.location.search}`
@@ -10,10 +12,34 @@ if (loginForm) {
     // Referrer must start with '/' to avoid open redirect
     if (!referrer.startsWith("/")) referrer = defaultReferrer
 
-    const totpCodeSection = loginForm.querySelector(".totp-code-section")
-    const totpDigitInputs = totpCodeSection.querySelectorAll("input.totp-digit")
-    const totpCodeInput = totpCodeSection.querySelector("input[name=totp_code]")
+    const totpDigitInputs = loginForm.querySelectorAll("input.totp-digit")
+    const totpCodeInput = loginForm.querySelector("input[name=totp_code]")
+    const recoveryCodeInput = loginForm.querySelector("input[name=recovery_code]")
+    const cancelBtn = loginForm.querySelector(".cancel-auth-btn")
+    const toggleRecoveryBtn = loginForm.querySelector(".toggle-recovery-btn")
+    const toggleTotpBtn = loginForm.querySelector(".toggle-totp-btn")
     const totpInputRegex = /^\d$/
+
+    // Set the login form state and focus the appropriate input.
+    const setState = (state: LoginState): void => {
+        console.debug("setLoginState", state)
+        loginForm.setAttribute("data-login-state", state)
+
+        totpCodeInput.value = ""
+        recoveryCodeInput.value = ""
+
+        if (state === "totp") {
+            for (const input of totpDigitInputs) input.value = ""
+            totpDigitInputs[0].focus()
+        } else if (state === "recovery") {
+            recoveryCodeInput.focus()
+        }
+    }
+
+    // State transition handlers
+    cancelBtn.addEventListener("click", () => setState("login"))
+    toggleRecoveryBtn.addEventListener("click", () => setState("recovery"))
+    toggleTotpBtn.addEventListener("click", () => setState("totp"))
 
     /**
      * Tries to submit the TOTP code.
@@ -23,9 +49,7 @@ if (loginForm) {
         const code = Array.from(totpDigitInputs)
             .map((input) => input.value)
             .join("")
-        if (code.length !== 6) {
-            return false
-        }
+        if (code.length !== 6) return false
 
         totpCodeInput.value = code
         loginForm.requestSubmit()
@@ -34,18 +58,18 @@ if (loginForm) {
 
     totpDigitInputs.forEach((input, index) => {
         input.addEventListener("input", () => {
-            const value = input.value
-
-            // Validate
-            if (!totpInputRegex.test(value)) {
+            // Validate digit input
+            if (!totpInputRegex.test(input.value)) {
                 input.value = ""
                 return
             }
 
             // Submit or focus next
-            if (!tryTOTPSubmit() && index < totpDigitInputs.length - 1) {
+            if (index < totpDigitInputs.length - 1) {
                 totpDigitInputs[index + 1].focus()
                 totpDigitInputs[index + 1].select()
+            } else {
+                tryTOTPSubmit()
             }
         })
 
@@ -66,9 +90,7 @@ if (loginForm) {
         })
 
         // Select all on focus for easy replacement
-        input.addEventListener("focus", () => {
-            input.select()
-        })
+        input.addEventListener("focus", () => input.select())
 
         // Handle paste - distribute digits across inputs
         input.addEventListener("paste", (e) => {
@@ -101,9 +123,7 @@ if (loginForm) {
         (data) => {
             if (data.totp_required) {
                 console.info("onLoginFormTOTPRequired")
-                totpCodeSection.classList.remove("d-none")
-                for (const input of totpDigitInputs) input.required = true
-                totpDigitInputs[0].focus()
+                setState("totp")
                 return
             }
 
