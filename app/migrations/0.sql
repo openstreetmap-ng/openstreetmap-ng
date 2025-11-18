@@ -188,6 +188,20 @@ CREATE TABLE user_totp_used_code (
     PRIMARY KEY (user_id, time_window, code)
 );
 
+CREATE TABLE user_recovery_code (
+    user_id bigint PRIMARY KEY REFERENCES "user" ON DELETE CASCADE,
+    secret_encrypted bytea NOT NULL,
+    base_index integer NOT NULL DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp()
+);
+
+CREATE TABLE user_recovery_code_used (
+    user_id bigint NOT NULL REFERENCES "user" ON DELETE CASCADE,
+    code_offset smallint NOT NULL,
+    used_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    PRIMARY KEY (user_id, code_offset)
+);
+
 CREATE TYPE scope AS enum(
     'web_user',
     'read_prefs',
@@ -284,6 +298,7 @@ CREATE TYPE audit_type AS enum(
     'delete_prefs',
     'delete_trace',
     'edit_map',
+    'generate_recovery_codes',
     'impersonate',
     'nsfw_image',
     'rate_limit',
@@ -299,6 +314,7 @@ CREATE TYPE audit_type AS enum(
     'update_note_status',
     'update_prefs',
     'update_trace',
+    'use_recovery_code',
     'view_admin_applications',
     'view_admin_users',
     'view_audit'

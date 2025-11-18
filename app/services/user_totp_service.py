@@ -1,4 +1,6 @@
-from pydantic import SecretStr
+from base64 import b32decode
+
+from pydantic import SecretBytes, SecretStr
 
 from app.config import TOTP_MAX_ATTEMPTS_PER_WINDOW
 from app.db import db
@@ -24,12 +26,21 @@ class UserTOTPService:
         user = auth_user(required=True)
         user_id = user['id']
 
-        if not verify_totp_code(secret, code):
+        try:
+            secret_value = secret.get_secret_value()
+            secret_bytes = SecretBytes(
+                b32decode(secret_value.upper() + '=' * (-len(secret_value) % 8))
+            )
+            del secret_value
+        except Exception as e:
+            raise ValueError('Invalid secret format') from e
+
+        if not verify_totp_code(secret_bytes, code):
             StandardFeedback.raise_error(
                 'totp_code', t('two_fa.invalid_or_expired_authentication_code')
             )
 
-        secret_encrypted = encrypt(secret)
+        secret_encrypted = encrypt(secret_bytes)
 
         async with db(True) as conn:
             result = await conn.execute(

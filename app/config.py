@@ -218,6 +218,10 @@ WIKIMEDIA_OAUTH_SECRET = SecretStr('')
 # TOTP
 TOTP_MAX_ATTEMPTS_PER_WINDOW = 3
 
+# Recovery Codes
+RECOVERY_CODE_MAX_ATTEMPTS = 3
+RECOVERY_CODE_RATE_LIMIT_WINDOW = timedelta(minutes=5)
+
 # -------------------- Email Communication --------------------
 
 # Email configuration
@@ -374,6 +378,7 @@ class _AuditPolicies(BaseModel):
     delete_prefs: Policy = Policy(30)
     delete_trace: Policy = Policy(14)
     edit_map: Policy = Policy(14)
+    generate_recovery_codes: Policy = Policy(60)
     impersonate: Policy = Policy(60)
     nsfw_image: Policy = Policy(30, timedelta(minutes=10))
     rate_limit: Policy = Policy(14, timedelta(hours=6), sample_rate=0.05)
@@ -389,6 +394,7 @@ class _AuditPolicies(BaseModel):
     update_note_status: Policy = Policy(30)
     update_prefs: Policy = Policy(30)
     update_trace: Policy = Policy(14)
+    use_recovery_code: Policy = Policy(30)
     view_admin_applications: Policy = Policy(60, timedelta(hours=6))
     view_admin_users: Policy = Policy(60, timedelta(hours=6))
     view_audit: Policy = Policy(60, timedelta(hours=6))

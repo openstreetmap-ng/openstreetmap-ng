@@ -22,8 +22,7 @@ from app.services.audit_service import audit
 _PROCESS_REQUEST_EVENT = Event()
 _PROCESS_DONE_EVENT = Event()
 
-_QUOTA_WINDOW = timedelta(hours=1)
-_QUOTA_WINDOW_SECONDS = _QUOTA_WINDOW.total_seconds()
+_DEFAULT_QUOTA_WINDOW = timedelta(hours=1)
 
 
 class RateLimitService:
@@ -33,13 +32,16 @@ class RateLimitService:
         change: float,
         quota: float,
         *,
+        window: timedelta = _DEFAULT_QUOTA_WINDOW,
         raise_on_limit: bool = True,
     ) -> dict[str, str]:
         """
         Update the rate limit counter and check if the limit is exceeded.
         Returns the response headers or raises a HTTPException.
         """
-        quota_per_second = quota / _QUOTA_WINDOW_SECONDS
+        assert window is _DEFAULT_QUOTA_WINDOW or window <= _DEFAULT_QUOTA_WINDOW
+        quota_window_seconds = window.total_seconds()
+        quota_per_second = quota / quota_window_seconds
 
         # Uses a leaky bucket algorithm where the usage decreases over time.
         async with (
@@ -75,7 +77,7 @@ class RateLimitService:
         reset_seconds = usage / quota_per_second
         headers = {
             'RateLimit': f'"default";r={quota_remaining:.0f};t={reset_seconds:.0f}',
-            'RateLimit-Policy': f'"default";q={quota:.0f};w={_QUOTA_WINDOW_SECONDS:.0f}',
+            'RateLimit-Policy': f'"default";q={quota:.0f};w={quota_window_seconds:.0f}',
         }
 
         # Check if the limit is exceeded
@@ -153,7 +155,7 @@ async def _delete_expired() -> None:
             DELETE FROM rate_limit
             WHERE updated_at < statement_timestamp() - %s
             """,
-            (_QUOTA_WINDOW,),
+            (_DEFAULT_QUOTA_WINDOW,),
         )
 
         if result.rowcount:

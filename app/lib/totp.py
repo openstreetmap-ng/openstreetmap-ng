@@ -1,27 +1,19 @@
-from base64 import b32decode
 from hashlib import sha1
 from hmac import HMAC, compare_digest
 from time import time
 
 import cython
-from pydantic import SecretStr
+from pydantic import SecretBytes
 
 
 @cython.cfunc
-def _generate_totp_code(secret: SecretStr, time_window: int) -> str:
+def _generate_totp_code(secret: SecretBytes, time_window: int) -> str:
     """
     Generate a 6-digit TOTP code for the given secret and timestamp.
     Implements RFC 6238 TOTP algorithm.
     """
-    try:
-        secret_value = secret.get_secret_value()
-        secret_bytes = b32decode(secret_value.upper() + '=' * (-len(secret_value) % 8))
-    except Exception as e:
-        raise ValueError('Invalid Base32 secret') from e
-
     # Generate HMAC-SHA1 hash
-    hmac_hash = HMAC(secret_bytes, time_window.to_bytes(8), sha1).digest()
-    del secret_value, secret_bytes
+    hmac_hash = HMAC(secret.get_secret_value(), time_window.to_bytes(8), sha1).digest()
 
     # Dynamic truncation
     offset = hmac_hash[-1] & 0x0F
@@ -32,7 +24,7 @@ def _generate_totp_code(secret: SecretStr, time_window: int) -> str:
     return f'{code:06d}'
 
 
-def verify_totp_code(secret: SecretStr, code: str) -> bool:
+def verify_totp_code(secret: SecretBytes, code: str) -> bool:
     """
     Verify a TOTP code against the secret.
 
