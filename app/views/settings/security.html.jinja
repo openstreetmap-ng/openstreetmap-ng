@@ -55,13 +55,17 @@
         <tbody>
             <tr>
                 <td>
-                    <h6 class="mb-0">{{ t('two_fa.authenticator_app') }}</h6>
+                    <h6 class="mb-0">
+                        {{ t('two_fa.authenticator_app') }}
+                        {% if has_totp %}
+                        <span class="badge text-bg-light-green ms-2">{{ t('state.enabled') }}</span>
+                        {% endif %}
+                    </h6>
                     <p class="form-text mb-0">
                         {{ t('two_fa.require_code_from_your_mobile_authenticator_app_when_signing_in') }}</p>
                 </td>
                 <td class="text-end">
                     {% if has_totp %}
-                    <i class="bi bi-file-lock me-2" title="{{ t('state.configured') }}"></i>
                     <button class="btn btn-light border" type="button" data-auth-action="/api/web/settings/totp/remove"
                         data-bs-toggle="modal" data-bs-target="#disableAuthMethodModal">
                         {{ t('action.disable') }}

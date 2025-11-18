@@ -3,15 +3,12 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="disableAuthMethodModalLabel">
-                    {{ t('settings.disable_authentication_method') }}
-                </h5>
+                <h5 class="modal-title" id="disableAuthMethodModalLabel"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                     aria-label="{{ t('javascripts.close') }}"></button>
             </div>
             <form method="POST">
                 <div class="modal-body">
-                    <p></p>
                     <label class="form-label d-block">
                         <span class="required">{{ t('two_fa.two_factor_remove_enter_password') }}</span>
                         <input type="password" class="form-control mt-2" data-name="password"

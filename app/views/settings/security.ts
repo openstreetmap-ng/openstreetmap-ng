@@ -111,14 +111,10 @@ mount("settings-security-body", (body) => {
             .querySelector("h6")
             .textContent.toLocaleLowerCase()
         disableAuthMethodForm.action = action
-        disableAuthMethodForm.querySelector("p").textContent = i18next.t(
-            "settings.are_you_sure_you_want_to_disable_method",
+        disableAuthMethodModal.querySelector(".modal-title").textContent = i18next.t(
+            "settings.disable_method",
             { method },
         )
-    })
-
-    disableAuthMethodModal.addEventListener("hidden.bs.modal", () => {
-        disableAuthMethodForm.querySelector("input[data-name=password]").value = ""
     })
 
     configureStandardForm(disableAuthMethodForm, () => {

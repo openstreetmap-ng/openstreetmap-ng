@@ -213,8 +213,7 @@ settings:
   new_password_repeat: Repeat new password
   logout_from_browsers: Automatically logout from all other browsers
   password_has_been_changed: Your password has been changed
-  disable_authentication_method: Disable authentication method
-  are_you_sure_you_want_to_disable_method: Are you sure you want to disable {method}?
+  disable_method: Disable {{method}}
   active_sessions: Active sessions
   review_and_manage_your_active_login_sessions: Review and manage your active login sessions.
   session_colon_id: "Session ID: {{id}}"
@@ -554,7 +553,7 @@ state:
   unresolved: Unresolved
   connected: Connected
   not_connected: Not connected
-  configured: Configured
+  enabled: Enabled
 unsupported_browser:
   title:
     short: Unsupported browser
