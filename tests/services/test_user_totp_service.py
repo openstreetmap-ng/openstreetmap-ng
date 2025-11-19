@@ -27,9 +27,10 @@ async def test_totp_flow():
     secret_str = 'JBSWY3DPEHPK3PXP'
     secret = SecretStr(secret_str)
 
-    with translation_context(DEFAULT_LOCALE), auth_context(user):
-        await UserTOTPService.remove_totp(password=password)
+    # Ensure clean state
+    await UserTOTPService.remove_totp(password=None, user_id=user_id)
 
+    with translation_context(DEFAULT_LOCALE), auth_context(user):
         # Setup TOTP
         code = generate_code(secret_str)
         await UserTOTPService.setup_totp(secret, code)
