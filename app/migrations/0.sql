@@ -190,16 +190,8 @@ CREATE TABLE user_totp_used_code (
 
 CREATE TABLE user_recovery_code (
     user_id bigint PRIMARY KEY REFERENCES "user" ON DELETE CASCADE,
-    secret_encrypted bytea NOT NULL,
-    base_index integer NOT NULL DEFAULT 0,
+    codes_hashed bytea[] NOT NULL,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
-);
-
-CREATE TABLE user_recovery_code_used (
-    user_id bigint NOT NULL REFERENCES "user" ON DELETE CASCADE,
-    code_offset smallint NOT NULL,
-    used_at timestamptz NOT NULL DEFAULT statement_timestamp(),
-    PRIMARY KEY (user_id, code_offset)
 );
 
 CREATE TYPE scope AS enum(

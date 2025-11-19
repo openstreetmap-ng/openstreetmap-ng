@@ -220,7 +220,7 @@ TOTP_MAX_ATTEMPTS_PER_WINDOW = 3
 
 # Recovery Codes
 RECOVERY_CODE_MAX_ATTEMPTS = 3
-RECOVERY_CODE_RATE_LIMIT_WINDOW = timedelta(minutes=5)
+RECOVERY_CODE_RATE_LIMIT_WINDOW = timedelta(minutes=1)
 
 # -------------------- Email Communication --------------------
 

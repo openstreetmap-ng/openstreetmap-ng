@@ -1,13 +1,12 @@
 from hmac import compare_digest
 
 import cython
-from blake3 import blake3
-from pydantic import SecretBytes
 
-# Base58 alphabet (Bitcoin style)
+from app.lib.crypto import hash_bytes
+from speedup.buffered_rand import buffered_randbytes
+
+# Base58 alphabet
 _ENC = b'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-
-# Maps ASCII (0-255) directly to values 0-57
 _DEC: list[int | None] = [None] * 256
 
 for i, char in enumerate(_ENC):
@@ -34,31 +33,39 @@ def _decode_code(code: str) -> int:
     return value
 
 
-def generate_recovery_codes(secret: SecretBytes, base_index: int) -> list[str]:
-    """Generate all 8 recovery codes for a given base index."""
-    hasher = blake3(secret.get_secret_value(), derive_key_context=str(base_index))
-    stream = hasher.digest(56)
-    return [
-        _encode_code(
-            (offset << 55) | (int.from_bytes(stream[i : i + 7]) & ((1 << 55) - 1))
-        )
-        for offset, i in enumerate(range(0, 56, 7))
-    ]
+def generate_recovery_codes() -> tuple[list[str], list[bytes]]:
+    """
+    Generate 8 new recovery codes.
+    Returns (list of display codes, list of hashes for storage).
+    """
+    stream = buffered_randbytes(7 * 8)
+    display_codes = []
+    codes_hashed = []
+
+    for i in range(8):
+        offset = i * 7
+        rand_int = int.from_bytes(stream[offset : offset + 7]) & ((1 << 55) - 1)
+        display_codes.append(_encode_code((i << 55) | rand_int))
+        codes_hashed.append(hash_bytes(rand_int.to_bytes(7), size=8))
+
+    return display_codes, codes_hashed
 
 
-def verify_recovery_code(secret: SecretBytes, base_index: int, code: str) -> int | None:
-    """Verify a recovery code and return its offset if valid."""
-    code_bits = _decode_code(code)
+def verify_recovery_code(code: str, codes_hashed: list[bytes | None]) -> int | None:
+    """
+    Verify a recovery code.
+    Returns the index if valid, or None.
+    """
+    val = _decode_code(code)
 
-    # Check if offset is in valid range (0-7)
-    offset = code_bits >> 55
-    if offset > 7:
+    index = val >> 55
+    if index > 7:
         return None
 
-    input_bytes = (code_bits & ((1 << 55) - 1)).to_bytes(7)
+    stored_hash = codes_hashed[index]
+    if stored_hash is None:
+        return None
 
-    hasher = blake3(secret.get_secret_value(), derive_key_context=str(base_index))
-    expected_bytes = bytearray(hasher.digest(7, seek=offset * 7))
-    expected_bytes[0] &= 0x7F
-
-    return offset if compare_digest(input_bytes, expected_bytes) else None
+    rand_int = val & ((1 << 55) - 1)
+    expected_hash = hash_bytes(rand_int.to_bytes(7), size=8)
+    return index if compare_digest(expected_hash, stored_hash) else None

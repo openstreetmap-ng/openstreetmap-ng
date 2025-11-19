@@ -6,6 +6,5 @@ from app.models.types import UserId
 
 class UserRecoveryCode(TypedDict):
     user_id: UserId
-    secret_encrypted: bytes
-    base_index: int
+    codes_hashed: list[bytes | None]
     created_at: datetime

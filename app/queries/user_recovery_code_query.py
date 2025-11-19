@@ -11,16 +11,17 @@ class UserRecoveryCodeQuery:
         *,
         conn: AsyncConnection | None = None,
     ) -> int:
-        """Count unused recovery codes for a user in the current batch."""
+        """Count unused recovery codes for a user."""
         async with (
             db(conn) as conn,
             await conn.execute(
                 """
-                SELECT 8 - COUNT(*)
-                FROM user_recovery_code_used
+                SELECT cardinality(array_remove(codes_hashed, NULL))
+                FROM user_recovery_code
                 WHERE user_id = %s
                 """,
                 (user_id,),
             ) as r,
         ):
-            return (await r.fetchone())[0]  # type: ignore
+            row = await r.fetchone()
+            return row[0] if row is not None else 0

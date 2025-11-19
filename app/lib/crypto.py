@@ -25,40 +25,43 @@ _T = TypeVar('_T')
 def _hash(
     s: str | bytes,
     key: bytes | None,
+    size: int,
     *,
     CRYPTO_HASH_CACHE_MAX_ENTRIES: cython.size_t = CRYPTO_HASH_CACHE_MAX_ENTRIES,
     CRYPTO_HASH_CACHE_SIZE_LIMIT: cython.size_t = CRYPTO_HASH_CACHE_SIZE_LIMIT,
-    _CACHE=OrderedDict[tuple[str | bytes, bytes | None], bytes](),
+    _CACHE=OrderedDict[tuple[str | bytes, bytes | None, int], bytes](),
 ) -> bytes:
-    cache_key = (s, key)
+    use_cache: cython.bint = len(s) < CRYPTO_HASH_CACHE_SIZE_LIMIT
 
     # Check cache first
-    result = _CACHE.get(cache_key)
-    if result is not None:
-        _CACHE.move_to_end(cache_key)
-        return result
+    if use_cache:
+        cache_key = (s, key, size)
+        result = _CACHE.get(cache_key)
+        if result is not None:
+            _CACHE.move_to_end(cache_key)
+            return result
 
     # Compute hash
-    result = blake3(s.encode() if isinstance(s, str) else s, key=key).digest()  # pyright: ignore[reportArgumentType]
+    result = blake3(s.encode() if isinstance(s, str) else s, key=key).digest(size)  # pyright: ignore[reportArgumentType]
 
     # Cache if below size limit
-    if len(s) < CRYPTO_HASH_CACHE_SIZE_LIMIT:
-        _CACHE[cache_key] = result
+    if use_cache:
+        _CACHE[cache_key] = result  # pyright: ignore[reportPossiblyUnboundVariable]
         if len(_CACHE) > CRYPTO_HASH_CACHE_MAX_ENTRIES:
             _CACHE.popitem(last=False)
 
     return result
 
 
-def hash_bytes(s: str | bytes) -> bytes:
+def hash_bytes(s: str | bytes, size: int = 32) -> bytes:
     """Hash the input and return the bytes digest."""
-    return _hash(s, None)
+    return _hash(s, None, size)
 
 
 @cython.cfunc
 def _hash_urlsafe(s: str | bytes) -> str:
     """Hash the input and return the URL-safe digest."""
-    return urlsafe_b64encode(_hash(s, None)).rstrip(b'=').decode()
+    return urlsafe_b64encode(_hash(s, None, 32)).rstrip(b'=').decode()
 
 
 def hash_storage_key(s: str | bytes, suffix: str = '') -> StorageKey:
@@ -66,9 +69,9 @@ def hash_storage_key(s: str | bytes, suffix: str = '') -> StorageKey:
     return StorageKey(_hash_urlsafe(s) + suffix)
 
 
-def hmac_bytes(s: str | bytes) -> bytes:
+def hmac_bytes(s: str | bytes, size: int = 32) -> bytes:
     """Compute a keyed hash of the input and return the bytes digest."""
-    return _hash(s, SECRET_32.get_secret_value())
+    return _hash(s, SECRET_32.get_secret_value(), size)
 
 
 def hash_compare(
