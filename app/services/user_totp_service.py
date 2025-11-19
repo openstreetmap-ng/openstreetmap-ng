@@ -144,8 +144,8 @@ class UserTOTPService:
             await UserService.verify_user_password(
                 user,
                 password,
-                field_name=None,
-                audit_failure='remove_totp_password',
+                field_name='password',
+                error_message=t('validation.password_is_incorrect'),
             )
 
         async with db(True) as conn:

@@ -16,7 +16,9 @@ class UserRecoveryCodeQuery:
             db(conn) as conn,
             await conn.execute(
                 """
-                SELECT 8 - COUNT(*) FROM user_recovery_code_used WHERE user_id = %s
+                SELECT 8 - COUNT(*)
+                FROM user_recovery_code_used
+                WHERE user_id = %s
                 """,
                 (user_id,),
             ) as r,

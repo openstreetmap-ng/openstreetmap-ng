@@ -66,6 +66,7 @@ class UserService:
             user,
             password,
             field_name=None,
+            error_message=t('users.auth_failure.invalid_credentials'),
             audit_failure='password',
         )
 

@@ -1,5 +1,3 @@
-from secrets import token_bytes
-
 from fastapi import HTTPException
 from psycopg.rows import dict_row
 from pydantic import SecretBytes
@@ -10,31 +8,33 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.crypto import decrypt, encrypt
 from app.lib.recovery_code import generate_recovery_codes, verify_recovery_code
+from app.lib.translation import t
+from app.models.db.user_recovery_code import UserRecoveryCode
 from app.models.types import Password, UserId
 from app.services.audit_service import audit
 from app.services.rate_limit_service import RateLimitService
 from app.services.user_service import UserService
-
-# Implementation constant (not configurable)
-_RECOVERY_CODE_COUNT = 8
+from speedup.buffered_rand import buffered_randbytes
 
 
 class UserRecoveryCodeService:
     @staticmethod
-    async def generate_recovery_codes(
-        user_id: UserId, *, password: Password | None = None
-    ) -> list[str]:
+    async def generate_recovery_codes(*, password: Password | None = None) -> list[str]:
         """
         Generate or rotate recovery codes for a user.
 
-        If password is None: initial generation (creates new secret, INSERT only).
-        If password provided: rotation (verifies password, increments base_index by 8, UPDATE only).
+        If password is None: initial generation (creates new secret).
+        If password provided: rotation (verifies password, increments base_index).
 
         Returns the set of 8 recovery codes for one-time display.
         """
+        user = auth_user(required=True)
+        user_id = user['id']
+
         if password is None:
-            # Initial generation - create new secret
-            secret_encrypted = encrypt(SecretBytes(token_bytes(16)))
+            # Initial generation
+            secret = SecretBytes(buffered_randbytes(16))
+            secret_encrypted = encrypt(secret)
 
             async with db(True) as conn:
                 await conn.execute(
@@ -46,58 +46,43 @@ class UserRecoveryCodeService:
                 )
                 await audit('generate_recovery_codes', conn)
 
-            return generate_recovery_codes(decrypt(secret_encrypted), 0)
+            return generate_recovery_codes(secret, 0)
 
-        else:
-            # Rotation - verify password and increment base_index
-            user = auth_user(required=True)
-            if user['id'] != user_id:
-                raise ValueError('User ID mismatch')
+        # Rotation
+        await UserService.verify_user_password(
+            user,
+            password,
+            field_name='password',
+            error_message=t('validation.password_is_incorrect'),
+        )
 
-            await UserService.verify_user_password(
-                user,
-                password,
-                field_name=None,
-                audit_failure='rotate_recovery_codes_password',
-            )
-
-            async with db(True) as conn:
-                async with await conn.execute(
-                    """
+        async with db(True) as conn:
+            async with await conn.execute(
+                """
+                WITH rotated AS (
                     UPDATE user_recovery_code
-                    SET base_index = base_index + %s,
-                        created_at = statement_timestamp()
-                    WHERE user_id = %s
+                    SET base_index = base_index + 8,
+                        created_at = DEFAULT
+                    WHERE user_id = %(user_id)s
                     RETURNING secret_encrypted, base_index
-                    """,
-                    (_RECOVERY_CODE_COUNT, user_id),
-                ) as r:
-                    row = await r.fetchone()
-                    if row is None:
-                        raise ValueError('No recovery codes found')
-                    secret_encrypted, base_index = row
-
-                # Delete old used codes (cleanup)
-                await conn.execute(
-                    """
+                ),
+                cleanup AS (
                     DELETE FROM user_recovery_code_used
-                    WHERE user_id = %s
-                    """,
-                    (user_id,),
+                    WHERE user_id = %(user_id)s
                 )
+                SELECT * FROM rotated
+                """,
+                {'user_id': user_id},
+            ) as r:
+                secret_encrypted, base_index = await r.fetchone()  # type: ignore
 
-                await audit('generate_recovery_codes', conn)
+            await audit('generate_recovery_codes', conn)
 
-            return generate_recovery_codes(decrypt(secret_encrypted), base_index)
+        return generate_recovery_codes(decrypt(secret_encrypted), base_index)
 
     @staticmethod
     async def verify_recovery_code(user_id: UserId, code: str) -> bool:
-        """
-        Verify a recovery code for a user.
-
-        Rate limits attempts, verifies the code using embedded index hint,
-        and marks it as used if valid.
-        """
+        """Verify a recovery code for a user."""
         # Rate limit recovery code attempts
         try:
             await RateLimitService.update(
@@ -123,31 +108,30 @@ class UserRecoveryCodeService:
             async with (
                 await conn.cursor(row_factory=dict_row).execute(
                     """
-                        SELECT * FROM user_recovery_code
-                        WHERE user_id = %s
-                        FOR UPDATE
+                    SELECT * FROM user_recovery_code
+                    WHERE user_id = %s
+                    FOR UPDATE
                     """,
                     (user_id,),
                 ) as r,
             ):
+                recovery: UserRecoveryCode | None
                 recovery = await r.fetchone()  # type: ignore
+                if recovery is None:
+                    await audit(
+                        'auth_fail',
+                        conn,
+                        user_id=user_id,
+                        extra={'reason': 'recovery_invalid'},
+                    )
+                    return False
 
-            if recovery is None:
-                await audit(
-                    'auth_fail',
-                    conn,
-                    user_id=user_id,
-                    extra={'reason': 'recovery_invalid'},
-                )
-                return False
-
-            # Verify code with O(1) lookup using embedded index
+            # Verify code
             code_offset = verify_recovery_code(
                 decrypt(recovery['secret_encrypted']),
                 recovery['base_index'],
                 code,
             )
-
             if code_offset is None:
                 await audit(
                     'auth_fail',
@@ -157,7 +141,7 @@ class UserRecoveryCodeService:
                 )
                 return False
 
-            # Mark code as used (ON CONFLICT prevents replay)
+            # Mark code as used
             result = await conn.execute(
                 """
                 INSERT INTO user_recovery_code_used (user_id, code_offset)
@@ -166,9 +150,7 @@ class UserRecoveryCodeService:
                 """,
                 (user_id, code_offset),
             )
-
-            if result.rowcount == 0:
-                # Code was already used (replay attack)
+            if not result.rowcount:
                 await audit(
                     'auth_fail',
                     conn,
@@ -177,10 +159,10 @@ class UserRecoveryCodeService:
                 )
                 return False
 
-            # Success
             await audit(
                 'use_recovery_code',
                 conn,
-                extra={'code_offset': code_offset},
+                user_id=user_id,
+                extra={'index': code_offset},
             )
             return True
