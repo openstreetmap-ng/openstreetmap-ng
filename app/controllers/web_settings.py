@@ -8,6 +8,7 @@ from starlette.responses import RedirectResponse
 from app.config import USER_DESCRIPTION_MAX_LENGTH
 from app.lib.auth_context import web_user
 from app.lib.image import UserAvatarType
+from app.lib.render_response import render_response
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.db.connected_account import AuthProvider
@@ -17,6 +18,7 @@ from app.models.types import LocaleCode, Password
 from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.oauth2_token_service import OAuth2TokenService
+from app.services.user_recovery_code_service import UserRecoveryCodeService
 from app.services.user_service import UserService
 from app.services.user_totp_service import UserTOTPService
 from app.validators.display_name import DisplayNameValidating
@@ -126,6 +128,18 @@ async def settings_totp_remove(
 ):
     await UserTOTPService.remove_totp(password=password)
     return Response(None, status.HTTP_204_NO_CONTENT)
+
+
+@router.post('/settings/recovery-codes/generate')
+async def settings_recovery_codes_generate(
+    _: Annotated[User, web_user()],
+    password: Annotated[Password, Form()],
+):
+    codes = await UserRecoveryCodeService.generate_recovery_codes(password=password)
+    return await render_response(
+        'settings/_recovery_codes',
+        {'codes': codes},
+    )
 
 
 @router.post('/settings/description')

@@ -102,7 +102,7 @@ def rate_limit(*, weight: float = 1):
             weight_change: float = state.get('rate_limit_weight', weight) - weight
             if weight_change > 0:
                 rate_limit_headers = await RateLimitService.update(
-                    key, weight_change, quota, raise_on_limit=False
+                    key, weight_change, quota, raise_on_limit=None
                 )
 
             # Save the headers to the request state

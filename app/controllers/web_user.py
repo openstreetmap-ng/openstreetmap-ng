@@ -35,12 +35,14 @@ async def login(
     ],
     password: Annotated[Password, Form()],
     totp_code: Annotated[str | None, Form(pattern=r'^\d{6}$')] = None,
+    recovery_code: Annotated[str | None, Form()] = None,
     remember: Annotated[bool, Form()] = False,
 ):
     access_token = await UserService.login(
         display_name_or_email=display_name_or_email,
         password=password,
         totp_code=totp_code,
+        recovery_code=recovery_code,
     )
 
     if access_token == 'totp_required':

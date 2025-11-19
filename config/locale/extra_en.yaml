@@ -454,6 +454,18 @@ two_fa:
   enter_the_6digit_code_from_your_app: Enter the 6-digit code from your authenticator app
   enter_one_of_your_recovery_codes: Enter one of your recovery codes
   too_many_failed_attempts_please_try_again_in_one_minute: Too many failed attempts. Please try again in one minute.
+  recovery_codes: Recovery codes
+  access_your_account_if_you_lose_your_two_factor_authenticator: |-
+    Access your account if you lose your two-factor device
+  generate_recovery_codes: Generate recovery codes
+  recovery_codes_description: |-
+    Recovery codes can be used to access your account if you lose access to your two-factor device.
+  each_code_can_be_used_once: Each code can be used once.
+  save_recovery_codes_warning: |-
+    Make sure to save these codes in a safe place. We will not show them again.
+    If you lose access to your two-factor device and your recovery codes, you will lose access to your account.
+  unused_codes_count_one: "{{count}} unused code"
+  unused_codes_count_other: "{{count}} unused codes"
 auth_switcher:
   sign_in_with_a_provider: Sign in with a provider
   sign_up_with_a_provider: Sign up with a provider
@@ -544,6 +556,7 @@ action:
   configure: Configure
   disable: Disable
   verify_and_enable: Verify and enable
+  regenerate: Regenerate
 state:
   any: Any
   hidden: Hidden

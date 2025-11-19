@@ -18,6 +18,7 @@ from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
+from app.queries.user_recovery_code_query import UserRecoveryCodeQuery
 from app.queries.user_totp_query import UserTOTPQuery
 from app.services.auth_service import AuthService
 
@@ -47,6 +48,9 @@ async def settings_email(_: Annotated[User, web_user()]):
 async def settings_security(user: Annotated[User, web_user()]):
     async with TaskGroup() as tg:
         totp_t = tg.create_task(UserTOTPQuery.find_one_by_user_id(user['id']))
+        recovery_codes_count_t = tg.create_task(
+            UserRecoveryCodeQuery.count_remaining_codes(user['id'])
+        )
         current_t = tg.create_task(AuthService.authenticate_oauth2(None))
         active_t = tg.create_task(
             OAuth2TokenQuery.find_authorized_by_user_client_id(
@@ -60,6 +64,7 @@ async def settings_security(user: Annotated[User, web_user()]):
         'settings/security',
         {
             'has_totp': totp_t.result() is not None,
+            'recovery_codes_count': recovery_codes_count_t.result(),
             'current_session_id': current_t.result()['id'],  # type: ignore
             'active_sessions': active_t.result(),
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,

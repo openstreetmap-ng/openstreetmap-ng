@@ -1,0 +1,35 @@
+<div class="modal fade" id="generateRecoveryCodesModal" data-bs-backdrop="static" tabindex="-1"
+    aria-labelledby="generateRecoveryCodesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="generateRecoveryCodesModalLabel">
+                    {{ t('two_fa.generate_recovery_codes') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="{{ t('javascripts.close') }}"></button>
+            </div>
+            <div>
+                <form method="POST" action="/api/web/settings/recovery-codes/generate"
+                    class="generate-recovery-codes-form">
+                    <div class="modal-body">
+                        <p>
+                            {{ t('two_fa.recovery_codes_description') }}
+                            {{ t('two_fa.each_code_can_be_used_once') }}
+                        </p>
+                        <label class="form-label d-block">
+                            <span class="required">{{ t('settings.enter_your_password_to_confirm') }}</span>
+                            <input type="password" class="form-control mt-2" data-name="password"
+                                autocomplete="current-password" required>
+                        </label>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">{{ t('action.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ t('action.submit') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

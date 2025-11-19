@@ -27,6 +27,7 @@ from app.services.audit_service import audit
 from app.services.image_service import ImageService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
+from app.services.user_recovery_code_service import UserRecoveryCodeService
 from app.services.user_token_email_service import UserTokenEmailService
 from app.services.user_token_service import UserTokenService
 from app.services.user_totp_service import UserTOTPService
@@ -40,6 +41,7 @@ class UserService:
         display_name_or_email: DisplayName | Email,
         password: Password,
         totp_code: str | None,
+        recovery_code: str | None,
     ) -> SecretStr | Literal['totp_required']:
         """Attempt to login as a user. Returns (user_id, access_token)."""
         # TODO: normalize unicode & strip
@@ -73,10 +75,19 @@ class UserService:
         # Verify TOTP
         totp = await UserTOTPQuery.find_one_by_user_id(user_id)
         if totp is not None:
-            if totp_code is None:
+            if totp_code is None and recovery_code is None:
                 return 'totp_required'
 
-            if not await UserTOTPService.verify_totp(user_id, totp_code):
+            if recovery_code is not None:
+                if not await UserRecoveryCodeService.verify_recovery_code(
+                    user_id, recovery_code
+                ):
+                    StandardFeedback.raise_error(
+                        'recovery_code',
+                        t('two_fa.invalid_or_expired_authentication_code'),
+                    )
+
+            elif not await UserTOTPService.verify_totp(user_id, totp_code):  # type: ignore
                 StandardFeedback.raise_error(
                     'totp_code', t('two_fa.invalid_or_expired_authentication_code')
                 )

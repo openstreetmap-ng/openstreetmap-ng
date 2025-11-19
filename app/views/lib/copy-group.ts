@@ -1,39 +1,55 @@
-const copyGroups = document.querySelectorAll(".copy-group")
-console.debug("Initializing", copyGroups.length, "copy groups")
-for (const copyGroup of copyGroups) {
-    const copyInput = copyGroup.querySelector("input.form-control")
-    const copyButton = copyGroup.querySelector("i.bi-copy").parentElement
-    let timeout: ReturnType<typeof setTimeout> | null = null
+export const configureCopyGroups = (root: ParentNode): void => {
+    const elements = root.querySelectorAll(".copy-group")
+    console.debug("Initializing", elements.length, "copy groups")
 
-    // On copy group input focus, select all text
-    copyInput.addEventListener("focus", () => copyInput.select())
+    for (const element of elements) {
+        let button: HTMLElement | null = null
+        let input: HTMLInputElement | null = null
+        let timeout: ReturnType<typeof setTimeout> | null = null
 
-    // On copy group button click, copy input and change tooltip text
-    copyButton.addEventListener("click", async () => {
-        console.debug("onCopyGroupButtonClick")
-        const copyIcon = copyButton.querySelector("i")
-
-        // Visual feedback
-        copyInput.select()
-
-        try {
-            // Write to clipboard
-            const text = copyInput.value
-            await navigator.clipboard.writeText(text)
-            console.debug("Copied to clipboard")
-        } catch (error) {
-            console.warn("Failed to write to clipboard", error)
-            if (error instanceof Error) alert(error.message)
-            return
+        if (element.tagName === "BUTTON") {
+            button = element as HTMLButtonElement
+        } else {
+            button = element.querySelector("i.bi-copy").parentElement
+            input = element.querySelector("input.form-control")
         }
 
-        copyIcon.classList.remove("bi-copy")
-        copyIcon.classList.add("bi-check2")
+        // On copy group input focus, select all text
+        input?.addEventListener("focus", () => input.select())
 
-        clearTimeout(timeout)
-        timeout = setTimeout(() => {
-            copyIcon.classList.remove("bi-check2")
-            copyIcon.classList.add("bi-copy")
-        }, 1500)
-    })
+        // On copy group button click, copy input and change tooltip text
+        button.addEventListener("click", async () => {
+            console.debug("onCopyButtonClick")
+
+            // Visual feedback
+            input?.select()
+
+            const text = input
+                ? input.value
+                : root.querySelector(button.dataset.copyTarget).textContent.trim()
+
+            try {
+                // Write to clipboard
+                await navigator.clipboard.writeText(text)
+                console.debug("Copied to clipboard")
+            } catch (error) {
+                console.warn("Failed to write to clipboard", error)
+                if (error instanceof Error) alert(error.message)
+                return
+            }
+
+            const icon = button.querySelector("i")
+            icon.classList.remove("bi-copy")
+            icon.classList.add("bi-check2")
+
+            clearTimeout(timeout)
+            timeout = setTimeout(() => {
+                icon.classList.remove("bi-check2")
+                icon.classList.add("bi-copy")
+            }, 1500)
+        })
+    }
 }
+
+// Initialize on load
+configureCopyGroups(document.body)

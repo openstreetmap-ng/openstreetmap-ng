@@ -7,6 +7,18 @@
                 border-bottom: unset;
             }
         }
+
+        td:first-child {
+            @extend .fs-3;
+            @extend .text-body-secondary;
+            @extend .text-center;
+
+            width: 1%;
+        }
+    }
+
+    .table > :not(caption) > * > * {
+        padding: 1rem 0.5rem;
     }
 
     .qr-code-container > svg {
@@ -47,6 +59,29 @@
             100% {
                 box-shadow: 0 0 0 0.35em transparent;
             }
+        }
+    }
+
+    .recovery-codes-container {
+        @extend .font-monospace;
+        @extend .fs-5;
+        @extend .fw-semibold;
+        @extend .text-center;
+        @extend .border;
+        @extend .rounded-2;
+
+        letter-spacing: 0.05em;
+
+        .col {
+            @extend .py-3;
+            border-bottom: 1px solid $table-border-color;
+            border-right: 1px solid $table-border-color;
+        }
+        .col:nth-last-child(-n + 2) {
+            border-bottom: 0;
+        }
+        .col:nth-child(even) {
+            border-right: 0;
         }
     }
 }

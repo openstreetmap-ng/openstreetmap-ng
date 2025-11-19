@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from asyncio import Event, TaskGroup
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from random import uniform
@@ -33,7 +34,7 @@ class RateLimitService:
         quota: float,
         *,
         window: timedelta = _DEFAULT_QUOTA_WINDOW,
-        raise_on_limit: bool = True,
+        raise_on_limit: str | Callable[[], str] | None = 'Rate limit exceeded',
     ) -> dict[str, str]:
         """
         Update the rate limit counter and check if the limit is exceeded.
@@ -48,26 +49,18 @@ class RateLimitService:
             db(True) as conn,
             await conn.execute(
                 """
-                INSERT INTO rate_limit (
-                    key, usage
-                )
-                VALUES (
-                    %(key)s, %(change)s
-                )
+                INSERT INTO rate_limit (key, usage)
+                VALUES (%(key)s, %(change)s)
                 ON CONFLICT (key) DO UPDATE SET
                     usage = GREATEST(
                         rate_limit.usage -
-                        EXTRACT(EPOCH FROM (statement_timestamp() - updated_at)) * %(quota_per_second)s,
+                        EXTRACT(EPOCH FROM (statement_timestamp() - rate_limit.updated_at)) * %(quota_per_second)s,
                         0
                     ) + EXCLUDED.usage,
                     updated_at = DEFAULT
                 RETURNING usage
                 """,
-                {
-                    'key': key,
-                    'change': change,
-                    'quota_per_second': quota_per_second,
-                },
+                {'key': key, 'change': change, 'quota_per_second': quota_per_second},
             ) as r,
         ):
             usage: float = (await r.fetchone())[0]  # type: ignore
@@ -83,10 +76,12 @@ class RateLimitService:
         # Check if the limit is exceeded
         if usage > quota:
             audit('rate_limit').close()
-            if raise_on_limit:
+            if raise_on_limit is not None:
+                if not isinstance(raise_on_limit, str):
+                    raise_on_limit = raise_on_limit()
                 raise HTTPException(
                     status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail='Rate limit exceeded',
+                    detail=raise_on_limit,
                     headers=headers,
                 )
 

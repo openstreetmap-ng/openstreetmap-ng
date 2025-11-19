@@ -1,5 +1,6 @@
 import i18next from "i18next"
 import qrcode from "qrcode-generator"
+import { configureCopyGroups } from "../lib/copy-group"
 import { mount } from "../lib/mount"
 import { qsEncode } from "../lib/qs"
 import { type APIDetail, configureStandardForm } from "../lib/standard-form"
@@ -122,6 +123,27 @@ mount("settings-security-body", (body) => {
     configureStandardForm(disableAuthMethodForm, () => {
         console.debug("onDisableAuthMethodSuccess")
         window.location.reload()
+    })
+
+    // Recovery codes generation
+    const generateRecoveryCodesModal = document.getElementById(
+        "generateRecoveryCodesModal",
+    )
+    const generateRecoveryCodesForm = generateRecoveryCodesModal.querySelector("form")
+    const generateRecoveryCodesBody = generateRecoveryCodesForm.parentElement
+
+    generateRecoveryCodesModal.addEventListener("hide.bs.modal", () => {
+        if (!generateRecoveryCodesModal.querySelector("form")) {
+            window.location.reload()
+        } else {
+            generateRecoveryCodesForm.reset()
+        }
+    })
+
+    configureStandardForm(generateRecoveryCodesForm, (data) => {
+        console.debug("onGenerateRecoveryCodesSuccess")
+        generateRecoveryCodesBody.innerHTML = data.detail
+        configureCopyGroups(generateRecoveryCodesBody)
     })
 
     const revokeTokenForms = body.querySelectorAll("form.revoke-token-form")

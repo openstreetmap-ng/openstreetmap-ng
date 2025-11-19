@@ -9,7 +9,6 @@ from app.models.db.user_recovery_code import UserRecoveryCode
 from app.models.types import Password, UserId
 from app.services.audit_service import audit
 from app.services.rate_limit_service import RateLimitService
-from app.services.user_service import UserService
 
 
 class UserRecoveryCodeService:
@@ -25,6 +24,8 @@ class UserRecoveryCodeService:
         """
         user = auth_user(required=True)
         user_id = user['id']
+
+        from app.services.user_service import UserService  # noqa: PLC0415
 
         await UserService.verify_user_password(
             user,
@@ -59,6 +60,9 @@ class UserRecoveryCodeService:
             change=1,
             quota=RECOVERY_CODE_MAX_ATTEMPTS,
             window=RECOVERY_CODE_RATE_LIMIT_WINDOW,
+            raise_on_limit=lambda: t(
+                'two_fa.too_many_failed_attempts_please_try_again_in_one_minute'
+            ),
         )
 
         async with db(True) as conn:

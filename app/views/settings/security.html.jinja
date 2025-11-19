@@ -55,6 +55,9 @@
         <tbody>
             <tr>
                 <td>
+                    <i class="bi bi-phone"></i>
+                </td>
+                <td>
                     <h6 class="mb-0">
                         {{ t('two_fa.authenticator_app') }}
                         {% if has_totp %}
@@ -77,6 +80,34 @@
                         {{ t('action.configure') }}
                     </button>
                     {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <i class="bi bi-key"></i>
+                </td>
+                <td>
+                    <h6 class="mb-0">
+                        {{ t('two_fa.recovery_codes') }}
+                        {% if recovery_codes_count %}
+                        <span class="badge text-bg-light-green ms-2">
+                            {{ nt('two_fa.unused_codes_count', recovery_codes_count) }}
+                        </span>
+                        {% endif %}
+                    </h6>
+                    <p class="form-text mb-0">
+                        {{ t('two_fa.access_your_account_if_you_lose_your_two_factor_authenticator') }}
+                    </p>
+                </td>
+                <td class="text-end">
+                    <button class="btn btn-light border" type="button" data-bs-toggle="modal"
+                        data-bs-target="#generateRecoveryCodesModal">
+                        {% if recovery_codes_count %}
+                        {{ t('action.regenerate') }}
+                        {% else %}
+                        {{ t('action.configure') }}
+                        {% endif %}
+                    </button>
                 </td>
             </tr>
         </tbody>
@@ -133,5 +164,6 @@
 {% include 'settings/_setup-totp-modal' %}
 {% endif %}
 {% include 'settings/_disable-auth-method-modal' %}
+{% include 'settings/_generate-recovery-codes-modal' %}
 
 {% endblock %}
