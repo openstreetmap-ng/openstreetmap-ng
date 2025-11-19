@@ -2,11 +2,9 @@ from hashlib import sha1
 from hmac import HMAC, compare_digest
 from time import time
 
-import cython
 from pydantic import SecretBytes
 
 
-@cython.cfunc
 def _generate_totp_code(secret: SecretBytes, time_window: int) -> str:
     """
     Generate a 6-digit TOTP code for the given secret and timestamp.
