@@ -2,6 +2,7 @@ import logging
 from asyncio import TaskGroup
 from datetime import datetime
 
+from psycopg.errors import UniqueViolation
 from zid import zid
 
 from app.config import OAUTH_SECRET_PREVIEW_LENGTH, TEST_USER_EMAIL_SUFFIX
@@ -83,33 +84,36 @@ class TestService:
         }
         assert user_is_test(user_init), 'Test service must only create test users'
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO "user" (
-                    email, email_verified, display_name, password_pb,
-                    language, activity_tracking, crash_reporting,
-                    roles, created_at
+        try:
+            async with db(True) as conn:
+                await conn.execute(
+                    """
+                    INSERT INTO "user" (
+                        email, email_verified, display_name, password_pb,
+                        language, activity_tracking, crash_reporting,
+                        roles, created_at
+                    )
+                    VALUES (
+                        %(email)s, %(email_verified)s, %(display_name)s, %(password_pb)s,
+                        %(language)s, %(activity_tracking)s, %(crash_reporting)s,
+                        %(roles)s, COALESCE(%(created_at)s, statement_timestamp())
+                    )
+                    ON CONFLICT (display_name) DO UPDATE SET
+                        email = EXCLUDED.email,
+                        email_verified = EXCLUDED.email_verified,
+                        password_pb = EXCLUDED.password_pb,
+                        language = EXCLUDED.language,
+                        roles = EXCLUDED.roles,
+                        created_at = COALESCE(%(created_at)s, "user".created_at)
+                    """,
+                    {
+                        **user_init,
+                        'roles': roles or [],
+                        'created_at': created_at,
+                    },
                 )
-                VALUES (
-                    %(email)s, %(email_verified)s, %(display_name)s, %(password_pb)s,
-                    %(language)s, %(activity_tracking)s, %(crash_reporting)s,
-                    %(roles)s, COALESCE(%(created_at)s, statement_timestamp())
-                )
-                ON CONFLICT (display_name) DO UPDATE SET
-                    email = EXCLUDED.email,
-                    email_verified = EXCLUDED.email_verified,
-                    password_pb = EXCLUDED.password_pb,
-                    language = EXCLUDED.language,
-                    roles = EXCLUDED.roles,
-                    created_at = COALESCE(%(created_at)s, "user".created_at)
-                """,
-                {
-                    **user_init,
-                    'roles': roles or [],
-                    'created_at': created_at,
-                },
-            )
+        except UniqueViolation:
+            pass
 
         logging.info('Upserted test user %r', name)
 
