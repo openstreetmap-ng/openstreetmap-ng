@@ -27,9 +27,9 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
     const sidebar = getActionSidebar("new-note")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
-    const lonInput = form.elements.namedItem("lon") as HTMLInputElement
-    const latInput = form.elements.namedItem("lat") as HTMLInputElement
-    const commentInput = form.elements.namedItem("text") as HTMLInputElement
+    const lonInput = form.querySelector("input[name=lon]")
+    const latInput = form.querySelector("input[name=lat]")
+    const commentInput = form.querySelector("input[name=text]")
     const submitButton = form.querySelector("button[type=submit]")
 
     let marker: Marker | null = null

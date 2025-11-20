@@ -11,7 +11,7 @@ mount("admin-tasks-body", (body) => {
                 console.debug("Updating tasks status", data)
 
                 for (const form of forms) {
-                    const taskId = form.elements.namedItem("id") as HTMLInputElement
+                    const taskId = form.querySelector("input[name=id]")
                     const taskInfo = infoMap.get(taskId.value)
                     if (!taskInfo) {
                         console.warn("Task not found", taskId.value)

@@ -52,9 +52,7 @@ export const updatePasswordsFormHashes = async (
     const tasks: Promise<void>[] = []
     for (const input of passwordInputs) {
         const inputName = input.dataset.name
-        const passwordInput = form.elements.namedItem(
-            input.dataset.name,
-        ) as HTMLInputElement
+        const passwordInput = form.querySelector(`input[name="${input.dataset.name}"]`)
         if (!inputName.endsWith("_confirm")) {
             tasks.push(
                 wrappedClientHashPassword(passwordSchemas, input.value).then(

@@ -49,15 +49,11 @@ export const configureReportButton = (
 }
 
 export const showReportModal = (data: ReportData) => {
-    const typeInput = formElement.elements.namedItem("type") as HTMLInputElement
-    const typeIdInput = formElement.elements.namedItem("type_id") as HTMLInputElement
-    const actionInput = formElement.elements.namedItem("action") as HTMLInputElement
-    const actionIdInput = formElement.elements.namedItem(
-        "action_id",
-    ) as HTMLInputElement
-    const categorySelect = formElement.elements.namedItem(
-        "category",
-    ) as HTMLSelectElement
+    const typeInput = formElement.querySelector("input[name=type]")
+    const typeIdInput = formElement.querySelector("input[name=type_id]")
+    const actionInput = formElement.querySelector("input[name=action]")
+    const actionIdInput = formElement.querySelector("input[name=action_id]")
+    const categorySelect = formElement.querySelector("select[name=category]")
 
     // Special handling for certain actions - limit categories
     if (data.action === "user_account") {

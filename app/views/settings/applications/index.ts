@@ -41,9 +41,7 @@ mount("settings-applications-body", (body) => {
             console.debug("onCreateNewApplicationClick")
             createApplicationButton.classList.add("d-none")
             createApplicationForm.classList.remove("d-none")
-            const nameInput = createApplicationForm.elements.namedItem(
-                "name",
-            ) as HTMLInputElement
+            const nameInput = createApplicationForm.querySelector("input[name=name]")
             nameInput.focus()
         })
 

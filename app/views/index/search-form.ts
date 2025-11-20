@@ -4,9 +4,7 @@ import { beautifyZoom, zoomPrecision } from "../lib/utils"
 import { routerNavigateStrict } from "./_router"
 
 const searchForm = document.querySelector("form.search-form")
-const searchQueryInput = searchForm
-    ? (searchForm.elements.namedItem("q") as HTMLInputElement)
-    : null
+const searchQueryInput = searchForm?.querySelector("input[name=q]")
 
 /** Configure the search form */
 export const configureSearchForm = (map: MaplibreMap): void => {

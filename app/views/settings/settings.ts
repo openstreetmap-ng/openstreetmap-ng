@@ -5,9 +5,7 @@ import { type APIDetail, configureStandardForm } from "../lib/standard-form"
 
 mount("settings-body", (body) => {
     const settingsForm = body.querySelector("form.settings-form")
-    const displayNameInput = settingsForm.elements.namedItem(
-        "display_name",
-    ) as HTMLInputElement
+    const displayNameInput = settingsForm.querySelector("input[name=display_name]")
     const displayNameBlacklist = displayNameInput.dataset.blacklist
     const languageSelect = settingsForm.querySelector('select[name="language"]')
 

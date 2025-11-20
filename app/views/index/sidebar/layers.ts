@@ -219,7 +219,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
         // Setup globe perspective checkbox
         const globeProjectionCheckbox = this.sidebar.querySelector(
             "input.globe-projection",
-        ) as HTMLInputElement
+        )
         if (globeProjectionCheckbox) {
             // Handle checkbox changes
             globeProjectionCheckbox.addEventListener("change", () => {

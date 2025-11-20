@@ -78,31 +78,23 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     const parentSidebar = sidebar.closest("div.sidebar")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form.routing-form")
-    const startInput = form.elements.namedItem("start") as HTMLInputElement
-    const startLoadedInput = form.elements.namedItem("start_loaded") as HTMLInputElement
-    const startLoadedLonInput = form.elements.namedItem(
-        "start_loaded_lon",
-    ) as HTMLInputElement
-    const startLoadedLatInput = form.elements.namedItem(
-        "start_loaded_lat",
-    ) as HTMLInputElement
+    const startInput = form.querySelector("input[name=start]")
+    const startLoadedInput = form.querySelector("input[name=start_loaded]")
+    const startLoadedLonInput = form.querySelector("input[name=start_loaded_lon]")
+    const startLoadedLatInput = form.querySelector("input[name=start_loaded_lat]")
     const startDraggableMarker = form.querySelector(
         "img.draggable-marker[data-direction=start]",
     )
-    const endInput = form.elements.namedItem("end") as HTMLInputElement
-    const endLoadedInput = form.elements.namedItem("end_loaded") as HTMLInputElement
-    const endLoadedLonInput = form.elements.namedItem(
-        "end_loaded_lon",
-    ) as HTMLInputElement
-    const endLoadedLatInput = form.elements.namedItem(
-        "end_loaded_lat",
-    ) as HTMLInputElement
+    const endInput = form.querySelector("input[name=end]")
+    const endLoadedInput = form.querySelector("input[name=end_loaded]")
+    const endLoadedLonInput = form.querySelector("input[name=end_loaded_lon]")
+    const endLoadedLatInput = form.querySelector("input[name=end_loaded_lat]")
     const endDraggableMarker = form.querySelector(
         "img.draggable-marker[data-direction=end]",
     )
     const reverseButton = form.querySelector("button.reverse-btn")
-    const engineInput = form.elements.namedItem("engine") as HTMLInputElement
-    const bboxInput = form.elements.namedItem("bbox") as HTMLInputElement
+    const engineInput = form.querySelector("input[name=engine]")
+    const bboxInput = form.querySelector("input[name=bbox]")
     const loadingContainer = sidebar.querySelector(".loading")
     const routeContainer = sidebar.querySelector(".route")
     const routeDistance = routeContainer.querySelector(".route-info .distance")

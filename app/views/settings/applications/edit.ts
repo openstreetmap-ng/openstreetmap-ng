@@ -5,9 +5,7 @@ import { configureStandardForm } from "../../lib/standard-form"
 mount("settings-application-edit-body", (body) => {
     const avatarForm = body.querySelector("form.avatar-form")
     const avatarImage = avatarForm.querySelector("img.avatar")
-    const avatarFileInput = avatarForm.elements.namedItem(
-        "avatar_file",
-    ) as HTMLInputElement
+    const avatarFileInput = avatarForm.querySelector("input[name=avatar_file]")
 
     avatarFileInput.addEventListener("change", () => {
         avatarForm.requestSubmit()
@@ -32,12 +30,12 @@ mount("settings-application-edit-body", (body) => {
 
     const editForm = body.querySelector("form.edit-form")
     const resetSecretControl = editForm.querySelector(".reset-secret-control")
-    const isConfidentialRadios = editForm.elements.namedItem(
-        "is_confidential",
-    ) as RadioNodeList
-    const revokeAllAuthorizationsCheckbox = editForm.elements.namedItem(
-        "revoke_all_authorizations",
-    ) as HTMLInputElement
+    const isConfidentialRadios = editForm.querySelectorAll(
+        "input[name=is_confidential]",
+    )
+    const revokeAllAuthorizationsCheckbox = editForm.querySelector(
+        "input[name=revoke_all_authorizations]",
+    )
 
     const onIsConfidentialChange = ({ target }: Event) => {
         const radio = target as HTMLInputElement

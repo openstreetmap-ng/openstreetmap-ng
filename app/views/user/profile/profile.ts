@@ -14,12 +14,8 @@ mount("user-profile-body", (body) => {
     // Check if editing features available
     if (avatarDropdown) {
         const avatars = document.querySelectorAll("img.avatar")
-        const avatarTypeInput = avatarForm.elements.namedItem(
-            "avatar_type",
-        ) as HTMLInputElement
-        const avatarFileInput = avatarForm.elements.namedItem(
-            "avatar_file",
-        ) as HTMLInputElement
+        const avatarTypeInput = avatarForm.querySelector("input[name=avatar_type]")
+        const avatarFileInput = avatarForm.querySelector("input[name=avatar_file]")
 
         avatarFileInput.addEventListener("change", () => {
             avatarTypeInput.value = "custom"
@@ -55,9 +51,9 @@ mount("user-profile-body", (body) => {
 
         const backgroundForm = body.querySelector("form.background-form")
         const backgroundImage = backgroundForm.querySelector("img.background")
-        const backgroundFileInput = backgroundForm.elements.namedItem(
-            "background_file",
-        ) as HTMLInputElement
+        const backgroundFileInput = backgroundForm.querySelector(
+            "input[name=background_file]",
+        )
 
         backgroundFileInput.addEventListener("change", () => {
             backgroundForm.requestSubmit()

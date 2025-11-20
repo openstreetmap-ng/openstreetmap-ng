@@ -8,7 +8,7 @@ mount("messages-new-body", (body) => {
         window.location.href = redirect_url
     })
 
-    const messageBody = messageForm.elements.namedItem("body") as HTMLTextAreaElement
+    const messageBody = messageForm.querySelector("textarea[name=body]")
     if (messageBody.value) {
         // When body is present, autofocus at the beginning
         messageBody.focus()

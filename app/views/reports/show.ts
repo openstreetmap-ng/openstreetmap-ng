@@ -5,7 +5,7 @@ import { configureStandardPagination } from "../lib/standard-pagination"
 mount("report-show-body", () => {
     const setupVisibilityDropdowns = () => {
         for (const form of document.querySelectorAll("form.visibility-form")) {
-            const select = form.elements.namedItem("visible_to") as HTMLSelectElement
+            const select = form.querySelector("select[name=visible_to]")
 
             // Store the current value for rollback on error
             let currentValue = select.value
@@ -46,9 +46,7 @@ mount("report-show-body", () => {
     const reopenForm = document.querySelector("form.reopen-form")
 
     if (commentForm) {
-        const commentTextarea = commentForm.elements.namedItem(
-            "body",
-        ) as HTMLTextAreaElement
+        const commentTextarea = commentForm.querySelector("textarea[name=body]")
         const commentBtn = commentForm.querySelector("button.comment-btn")
         const closeBtn = document.querySelector("button.close-btn")
         const commentCloseBtn = document.querySelector("button.comment-close-btn")
@@ -110,9 +108,7 @@ mount("report-show-body", () => {
         }
         if (commentCloseBtn) {
             commentCloseBtn.addEventListener("click", () => {
-                const bodyInput = closeForm.elements.namedItem(
-                    "body",
-                ) as HTMLInputElement
+                const bodyInput = closeForm.querySelector("input[name=body]")
                 bodyInput.value = commentTextarea.value
                 closeForm.requestSubmit()
             })
@@ -126,9 +122,7 @@ mount("report-show-body", () => {
         }
         if (commentReopenBtn) {
             commentReopenBtn.addEventListener("click", () => {
-                const bodyInput = reopenForm.elements.namedItem(
-                    "body",
-                ) as HTMLInputElement
+                const bodyInput = reopenForm.querySelector("input[name=body]")
                 bodyInput.value = commentTextarea.value
                 reopenForm.requestSubmit()
             })

@@ -6,9 +6,7 @@ import { type APIDetail, configureStandardForm } from "../lib/standard-form"
 
 mount("signup-body", (body) => {
     const signupForm = body.querySelector("form.signup-form")
-    const displayNameInput = signupForm.elements.namedItem(
-        "display_name",
-    ) as HTMLInputElement
+    const displayNameInput = signupForm.querySelector("input[name=display_name]")
     const displayNameBlacklist = displayNameInput.dataset.blacklist
     const passwordInput = signupForm.querySelector(
         "input[type=password][data-name=password]",
@@ -17,7 +15,7 @@ mount("signup-body", (body) => {
         "input[type=password][data-name=password_confirm]",
     )
 
-    const trackingInput = signupForm.elements.namedItem("tracking") as HTMLInputElement
+    const trackingInput = signupForm.querySelector("input[name=tracking]")
     trackingInput.value = activityTracking.toString()
 
     configureStandardForm(
