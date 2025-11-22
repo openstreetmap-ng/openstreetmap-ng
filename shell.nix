@@ -731,14 +731,12 @@ let
         '
     '')
     (makeScript "_patch-interpreter" ''
-      set +e
       interpreter="${stdenv.cc.bintools.dynamicLinker}"
-      find node_modules/.pnpm/sass-embedded* \
-        -type f \
-        -name dart \
-        -executable \
-        -exec \
-        patchelf --set-interpreter "$interpreter" {} \;
+      find node_modules/.pnpm/sass-embedded* -type f -name dart -executable -print0 |
+        while IFS= read -r -d "" bin; do
+          curr=$(patchelf --print-interpreter "$bin" 2>/dev/null || true)
+          [ "$curr" = "$interpreter" ] || patchelf --set-interpreter "$interpreter" "$bin"
+        done
     '')
     (makeScript "_patch-shebang" ''
       find .venv/bin -maxdepth 1 -type f -executable | while read -r script; do
