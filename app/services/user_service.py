@@ -105,26 +105,6 @@ class UserService:
         return access_token
 
     @staticmethod
-    async def update_description(
-        *,
-        description: str,
-    ) -> None:
-        """Update user's profile description."""
-        user = auth_user(required=True)
-        user_id = user['id']
-
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                UPDATE "user"
-                SET description = %s,
-                    description_rich_hash = NULL
-                WHERE id = %s AND description != %s
-                """,
-                (description, user_id, description),
-            )
-
-    @staticmethod
     async def update_avatar(
         avatar_type: UserAvatarType, avatar_file: UploadFile
     ) -> str:

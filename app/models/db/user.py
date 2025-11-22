@@ -1,11 +1,10 @@
 from datetime import datetime
-from typing import Literal, NotRequired, TypedDict, get_args
+from typing import Literal, TypedDict, get_args
 
 from shapely import Point
 
 from app.config import DELETED_USER_EMAIL_SUFFIX, TEST_USER_EMAIL_SUFFIX
 from app.lib.image import Image, UserAvatarType
-from app.lib.rich_text import resolve_rich_text
 from app.models.scope import Scope
 from app.models.types import DisplayName, Email, LocaleCode, StorageKey, UserId
 
@@ -35,14 +34,9 @@ class User(UserInit):
     avatar_type: UserAvatarType
     avatar_id: StorageKey | None
     background_id: StorageKey | None
-    description: str
-    description_rich_hash: bytes | None
     created_at: datetime
     password_updated_at: datetime | None
     scheduled_delete_at: datetime | None
-
-    # runtime
-    description_rich: NotRequired[str]
 
 
 class UserDisplay(TypedDict):
@@ -52,10 +46,6 @@ class UserDisplay(TypedDict):
     display_name: DisplayName
     avatar_type: UserAvatarType
     avatar_id: StorageKey
-
-
-async def users_resolve_rich_text(objs: list[User]) -> None:
-    await resolve_rich_text(objs, 'user', 'description', 'markdown')
 
 
 def user_is_test(user: User | UserInit) -> bool:

@@ -25,7 +25,7 @@ from app.lib.image import Image
 from app.lib.render_response import render_response
 from app.lib.statistics import user_activity_summary
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.models.db.user import User, users_resolve_rich_text
+from app.models.db.user import User
 from app.models.types import UserId
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -35,6 +35,7 @@ from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.user_follow_query import UserFollowQuery
+from app.queries.user_profile_query import UserProfileQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
 from app.services.auth_provider_service import AuthProviderService
@@ -204,7 +205,7 @@ async def index(
         return diaries
 
     async with TaskGroup() as tg:
-        tg.create_task(users_resolve_rich_text([user]))
+        user_profile_t = tg.create_task(UserProfileQuery.get_by_user_id(user_id))
         activity_t = tg.create_task(user_activity_summary(user_id))
         changesets_t = tg.create_task(changesets_task())
         changesets_count_t = tg.create_task(ChangesetQuery.count_by_user(user_id))
@@ -229,26 +230,13 @@ async def index(
             else None
         )
 
-    activity_data = activity_t.result()
-
-    changesets = changesets_t.result()
-    changesets_count = changesets_count_t.result()
     changesets_comments_count = 0  # TODO: changesets_comments_count_t.result()
-
-    notes = notes_t.result()
-    notes_count = notes_count_t.result()
-    notes_comments_count = notes_comments_count_t.result()
 
     traces = traces_t.result()
     traces_lines = ';'.join(
         encode_lonlat(trace['coords'].tolist(), 0)  # type: ignore
         for trace in traces
     )
-    traces_count = traces_count_t.result()
-
-    diaries = diaries_t.result()
-    diaries_count = diaries_count_t.result()
-    diaries_comments_count = diaries_comments_count_t.result()
 
     # TODO: groups
     groups_count = 0
@@ -267,27 +255,28 @@ async def index(
         'user/profile/profile',
         {
             'profile': user,
+            'user_profile': user_profile_t.result(),
             'is_self': is_self,
             'is_new_user': is_new_user,
             'is_following': is_following,
             'is_followed_by': is_followed_by,
             'background_url': Image.get_background_url(user['background_id']),
-            'changesets_count': changesets_count,
+            'changesets_count': changesets_count_t.result(),
             'changesets_comments_count': changesets_comments_count,
-            'changesets': changesets,
-            'notes_count': notes_count,
-            'notes_comments_count': notes_comments_count,
-            'notes': notes,
-            'traces_count': traces_count,
+            'changesets': changesets_t.result(),
+            'notes_count': notes_count_t.result(),
+            'notes_comments_count': notes_comments_count_t.result(),
+            'notes': notes_t.result(),
+            'traces_count': traces_count_t.result(),
             'traces': traces,
             'traces_lines': traces_lines,
-            'diaries_count': diaries_count,
-            'diaries_comments_count': diaries_comments_count,
-            'diaries': diaries,
+            'diaries_count': diaries_count_t.result(),
+            'diaries_comments_count': diaries_comments_count_t.result(),
+            'diaries': diaries_t.result(),
             'groups_count': groups_count,
             'groups': groups,
             'USER_DESCRIPTION_MAX_LENGTH': USER_DESCRIPTION_MAX_LENGTH,
             'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
-            **activity_data,
+            **activity_t.result(),
         },
     )

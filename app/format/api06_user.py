@@ -15,6 +15,7 @@ from app.queries.changeset_query import ChangesetQuery
 from app.queries.message_query import MessageQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.user_block_query import UserBlockQuery
+from app.queries.user_profile_query import UserProfileQuery
 
 
 class User06Mixin:
@@ -106,26 +107,27 @@ async def _encode_user(user: User, *, is_json: cython.bint) -> dict:
     xattr = get_xattr(is_json=is_json)
 
     async with TaskGroup() as tg:
-        changesets_task = tg.create_task(ChangesetQuery.count_by_user(user_id))
-        traces_task = tg.create_task(TraceQuery.count_by_user(user_id))
-        block_received_task = tg.create_task(
+        user_profile_t = tg.create_task(
+            UserProfileQuery.get_by_user_id(user_id, resolve_rich_text=False)
+        )
+        changesets_t = tg.create_task(ChangesetQuery.count_by_user(user_id))
+        traces_t = tg.create_task(TraceQuery.count_by_user(user_id))
+        block_received_t = tg.create_task(
             UserBlockQuery.count_received_by_user(user_id)
         )
-        block_issued_task = tg.create_task(UserBlockQuery.count_given_by_user(user_id))
-        messages_count_task = (
+        block_issued_t = tg.create_task(UserBlockQuery.count_given_by_user(user_id))
+        messages_count_t = (
             tg.create_task(MessageQuery.count_by_user(user_id))
             if access_private
             else None
         )
 
-    changesets_num = changesets_task.result()
-    traces_num = traces_task.result()
-    block_received_num, block_received_active_num = block_received_task.result()
-    block_issued_num, block_issued_active_num = block_issued_task.result()
+    block_received_num, block_received_active_num = block_received_t.result()
+    block_issued_num, block_issued_active_num = block_issued_t.result()
 
-    if messages_count_task is not None:
+    if messages_count_t is not None:
         messages_received_num, messages_unread_num, messages_sent_num = (
-            messages_count_task.result()
+            messages_count_t.result()
         )
     else:
         messages_received_num = messages_unread_num = messages_sent_num = 0
@@ -137,14 +139,14 @@ async def _encode_user(user: User, *, is_json: cython.bint) -> dict:
         xattr('id'): user_id,
         xattr('display_name'): user['display_name'],
         xattr('account_created'): user['created_at'],
-        'description': user['description'],
+        'description': user_profile_t.result()['description'],
         contributor_terms_key: {
             xattr('agreed'): True,
         },
         'img': {xattr('href'): f'{APP_URL}{user_avatar_url(user)}'},
         'roles': user['roles'],
-        'changesets': {xattr('count'): changesets_num},
-        'traces': {xattr('count'): traces_num},
+        'changesets': {xattr('count'): changesets_t.result()},
+        'traces': {xattr('count'): traces_t.result()},
         'blocks': {
             'received': {
                 xattr('count'): block_received_num,

@@ -18,6 +18,7 @@ from app.models.types import LocaleCode, Password
 from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.oauth2_token_service import OAuth2TokenService
+from app.services.user_profile_service import UserProfileService
 from app.services.user_recovery_code_service import UserRecoveryCodeService
 from app.services.user_service import UserService
 from app.services.user_totp_service import UserTOTPService
@@ -147,7 +148,7 @@ async def settings_description(
     _: Annotated[User, web_user()],
     description: Annotated[str, Form(max_length=USER_DESCRIPTION_MAX_LENGTH)],
 ):
-    await UserService.update_description(description=description)
+    await UserProfileService.update_description(description=description)
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 

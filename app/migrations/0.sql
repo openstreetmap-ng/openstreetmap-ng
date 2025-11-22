@@ -130,8 +130,6 @@ CREATE TABLE "user" (
     avatar_type avatar_type,
     avatar_id text,
     background_id text,
-    description text NOT NULL DEFAULT '',
-    description_rich_hash bytea,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     scheduled_delete_at timestamptz
 );
@@ -788,6 +786,12 @@ CREATE TABLE user_pref (
     key text NOT NULL,
     value text NOT NULL,
     PRIMARY KEY (user_id, app_id, key)
+);
+
+CREATE TABLE user_profile (
+    user_id bigint PRIMARY KEY REFERENCES "user" ON DELETE CASCADE,
+    description text NOT NULL,
+    description_rich_hash bytea
 );
 
 CREATE TYPE user_subscription_target AS enum('changeset', 'diary', 'note', 'user');

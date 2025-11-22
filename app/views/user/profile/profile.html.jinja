@@ -131,7 +131,7 @@
     <div class="container">
         <div class="row g-4 g-xl-5">
             <div class="col-lg-7">
-                {% if profile.description or is_self %}
+                {% if user_profile.description or is_self %}
                 <h3 class="ms-1 mb-3 d-flex align-items-center">
                     {{ t('user.about_me' ) }}
                     {% if is_self %}
@@ -142,8 +142,8 @@
                     </button>
                     {% endif %}
                 </h3>
-                {% if profile.description %}
-                <div class="mb-4 ms-1 rich-text">{{ profile.description_rich | safe }}</div>
+                {% if user_profile.description %}
+                <div class="mb-4 ms-1 rich-text">{{ user_profile.description_rich | safe }}</div>
                 {% else %}
                 <div class="mb-4 ms-1 form-text">{{ t('user.you_have_not_provided_a_description') }}</div>
                 {% endif %}
