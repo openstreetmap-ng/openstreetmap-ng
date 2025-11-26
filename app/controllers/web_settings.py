@@ -5,15 +5,17 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import USER_DESCRIPTION_MAX_LENGTH
+from app.config import USER_DESCRIPTION_MAX_LENGTH, USER_MAX_SOCIALS
 from app.lib.auth_context import web_user
 from app.lib.image import UserAvatarType
 from app.lib.render_response import render_response
+from app.lib.socials import SOCIALS_CONFIG
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.db.connected_account import AuthProvider
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import Editor, User
+from app.models.db.user_profile import UserSocial, UserSocialType
 from app.models.types import LocaleCode, Password
 from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService
@@ -149,6 +151,36 @@ async def settings_description(
     description: Annotated[str, Form(max_length=USER_DESCRIPTION_MAX_LENGTH)],
 ):
     await UserProfileService.update_description(description=description)
+    return Response(None, status.HTTP_204_NO_CONTENT)
+
+
+@router.post('/settings/socials')
+async def settings_socials(
+    _: Annotated[User, web_user()],
+    service: Annotated[
+        list[UserSocialType], Form(default_factory=list, max_length=USER_MAX_SOCIALS)
+    ],
+    value: Annotated[
+        list[str], Form(default_factory=list, max_length=USER_MAX_SOCIALS)
+    ],
+):
+    socials: list[UserSocial] = []
+
+    for s, v in zip(service, value, strict=True):
+        config = SOCIALS_CONFIG.get(s)
+        if config is None:
+            continue
+
+        v = v.strip()
+        if not v:
+            continue
+
+        if 'template' not in config and not v.lower().startswith('https://'):
+            v = 'https://' + v.split('://', 1)[-1]
+
+        socials.append(UserSocial(s, v))
+
+    await UserProfileService.update_socials(socials=socials)
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 

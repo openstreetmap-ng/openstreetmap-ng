@@ -1,10 +1,10 @@
 import logging
 import tomllib
 from asyncio import TaskGroup
-from collections.abc import Collection, Generator, Iterable, Sequence
+from collections.abc import Collection, Generator, Iterable, Mapping, Sequence
 from html import escape
 from pathlib import Path
-from typing import Any, Literal, LiteralString, TypedDict, cast
+from typing import Any, Literal, LiteralString, cast
 from urllib.parse import urlsplit, urlunsplit
 
 import cython
@@ -141,24 +141,23 @@ async def _prepare_image_proxies(tokens: list[Token]) -> list[ImageProxyId] | No
     return ids
 
 
-class _HasId(TypedDict):
-    id: Any
-
-
 async def resolve_rich_text(
-    objs: Iterable[_HasId],
+    objs: Iterable[Mapping],
     table: LiteralString,
     field: LiteralString,
     text_format: TextFormat,
+    *,
+    pk_field: LiteralString = 'id',
 ) -> None:
     rich_field_name = field + '_rich'
     rich_hash_field_name = field + '_rich_hash'
 
     # skip if already resolved
-    mapping: dict[Any, _HasId] = {
-        obj['id']: obj  #
+    mapping = {
+        obj[pk_field]: obj
         for obj in objs
-        if rich_field_name not in obj
+        if rich_field_name not in obj  #
+        and obj[field] is not None
     }
     if not mapping:
         return
@@ -166,7 +165,7 @@ async def resolve_rich_text(
     async with TaskGroup() as tg:
         tasks = [
             tg.create_task(
-                rich_text(obj[field], obj[rich_hash_field_name], text_format)  # type: ignore
+                rich_text(obj[field], obj[rich_hash_field_name], text_format)
             )
             for obj in mapping.values()
         ]
@@ -178,11 +177,12 @@ async def resolve_rich_text(
         processed, cache_id, proxy_result = task.result()
         obj[rich_field_name] = processed  # type: ignore
 
-        current_hash: bytes = obj[rich_hash_field_name]  # type: ignore
+        current_hash = obj[rich_hash_field_name]
         if current_hash != cache_id:
-            params.extend((obj['id'], current_hash, cache_id))
+            obj[rich_hash_field_name] = cache_id  # type: ignore
+            params.extend((obj[pk_field], current_hash, cache_id))
         if proxy_result is not None:
-            proxy_results[obj['id']] = proxy_result
+            proxy_results[obj[pk_field]] = proxy_result
 
     if params:
         async with db(True, autocommit=True) as conn:
@@ -191,11 +191,12 @@ async def resolve_rich_text(
                 SQL("""
                     UPDATE {table} SET {field} = v.new_hash
                     FROM (VALUES {values}) AS v(id, old_hash, new_hash)
-                    WHERE {table}.id = v.id
+                    WHERE {table}.{pk_field} = v.id
                       AND {field} IS NOT DISTINCT FROM v.old_hash
                 """).format(
                     table=Identifier(table),
                     field=Identifier(rich_hash_field_name),
+                    pk_field=Identifier(pk_field),
                     values=SQL(',').join([SQL('(%s, %s, %s)')] * num_rows),
                 ),
                 params,
@@ -204,14 +205,18 @@ async def resolve_rich_text(
         logging.debug('Rich text %r hash changed for %d objects', field, num_rows)
 
     if proxy_results:
-        await _update_image_proxy_ids(mapping.values(), table, field, proxy_results)
+        await _update_image_proxy_ids(
+            mapping.values(), table, field, proxy_results, pk_field=pk_field
+        )
 
 
 async def _update_image_proxy_ids(
-    objs: Collection[_HasId],
+    objs: Collection[Mapping],
     table: LiteralString,
     field: LiteralString,
     proxy_results: dict[Any, list[ImageProxyId]],
+    *,
+    pk_field: LiteralString = 'id',
 ) -> None:
     """Update image proxy ID arrays in database and prune unused entries."""
     image_proxy_field = field + '_image_proxy_ids'
@@ -226,13 +231,13 @@ async def _update_image_proxy_ids(
     removed_ids: set[ImageProxyId] = set()
 
     for obj in objs:
-        new_ids = proxy_results.get(obj['id'])
+        new_ids = proxy_results.get(obj[pk_field])
         if new_ids is None:
             continue
 
-        old_ids: list[ImageProxyId] | None = obj[image_proxy_field]  # type: ignore
+        old_ids: list[ImageProxyId] | None = obj[image_proxy_field]
         if new_ids != old_ids:
-            params.extend((obj['id'], old_ids, new_ids))
+            params.extend((obj[pk_field], old_ids, new_ids))
             obj[image_proxy_field] = new_ids  # type: ignore[index]
             if old_ids:
                 new_removed_ids = set(old_ids)

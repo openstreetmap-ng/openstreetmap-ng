@@ -1,0 +1,122 @@
+[bluesky]
+label = "handle"
+placeholder = "username.bsky.social"
+template = "https://bsky.app/profile/{}"
+
+[discord]
+label = "username"
+placeholder = "username"
+template = ""
+
+[facebook]
+label = "username"
+placeholder = "username"
+template = "https://www.facebook.com/{}"
+
+[github]
+label = "username"
+placeholder = "username"
+template = "https://github.com/{}"
+
+[instagram]
+label = "username"
+placeholder = "username"
+template = "https://www.instagram.com/{}/"
+
+[line]
+label = "add_friend_link"
+placeholder = "https://line.me/ti/p/example"
+
+[linkedin]
+label = "profile_url"
+placeholder = "https://www.linkedin.com/in/username"
+
+[mastodon]
+label = "profile_url"
+placeholder = "https://mastodon.social/@username"
+
+[medium]
+label = "username"
+placeholder = "username"
+template = "https://medium.com/@{}"
+
+[pinterest]
+label = "username"
+placeholder = "username"
+template = "https://www.pinterest.com/{}/"
+
+[reddit]
+label = "username"
+placeholder = "username"
+template = "https://www.reddit.com/user/{}/"
+
+[signal]
+label = "link"
+placeholder = "https://signal.group/#CjQ..."
+
+[sina-weibo]
+label = "profile_url"
+placeholder = "https://weibo.com/u/12345678"
+
+[snapchat]
+label = "username"
+placeholder = "username"
+template = "https://www.snapchat.com/add/{}"
+
+[spotify]
+label = "profile_artist_url"
+placeholder = "https://open.spotify.com/artist/..."
+
+[steam]
+label = "profile_url"
+placeholder = "https://steamcommunity.com/id/username"
+
+[telegram]
+label = "username"
+placeholder = "username"
+template = "https://t.me/{}"
+
+[threads]
+label = "username"
+placeholder = "username"
+template = "https://www.threads.net/@{}"
+
+[tiktok]
+label = "username"
+placeholder = "username"
+template = "https://www.tiktok.com/@{}"
+
+[twitch]
+label = "username"
+placeholder = "username"
+template = "https://www.twitch.tv/{}"
+
+[wechat]
+label = "wechat_id"
+placeholder = "wxid_example123"
+template = ""
+
+[whatsapp]
+label = "whatsapp_number"
+placeholder = "15551234567"
+template = "https://wa.me/{}"
+
+[wordpress]
+label = "wordpress_url"
+placeholder = "https://yourname.wordpress.com"
+
+[x]
+icon = "twitter-x"
+label = "username"
+placeholder = "username"
+template = "https://x.com/{}"
+
+[youtube]
+label = "handle"
+placeholder = "@username"
+template = "https://www.youtube.com/{}"
+
+[other]
+icon = "globe2"
+label = "website_url"
+placeholder = "https://example.com"

@@ -26,9 +26,10 @@ class UserProfileQuery:
         if profile is None:
             return {
                 'user_id': user_id,
-                'description': '',
+                'description': None,
                 'description_rich_hash': None,
                 'description_rich': '<p></p>',
+                'socials': [],
             }
 
         if resolve_rich_text:

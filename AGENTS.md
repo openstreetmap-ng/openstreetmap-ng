@@ -81,7 +81,7 @@ static-precompress    # Produce .zst/.br for large static assets
   - Exceptions: create a separate entry only for hard isolation (e.g., editor iframes like `id.ts`/`rapid.ts`, or `embed.ts`). Declare it in `vite.config.ts` and include it via `vite_render_asset` from a dedicated template.
 - Synchronous bootstrap: `app/views/main-sync.ts` is the only blocking script; keep it import‑free to avoid extra polyfills and ensure theme setup before paint.
 - TypeScript: `tsconfig.json` has `"strict": true` but `"strictNullChecks": false`. This end‑to‑end app prefers fail‑fast crashes over silently continuing with unexpected nullish states. Don’t re‑enable null checks locally.
-- DOM typing: rely on `typed-query-selector` for `querySelector/All` where practical; avoid `as HTML...` casts for those cases. Other APIs (e.g., `elements.namedItem`) may still require assertions.
+- DOM typing: rely on `typed-query-selector` inference for `querySelector/All`; avoid `as HTML...` casts and non-null assertions. Required elements are guaranteed by the template contract; let missing ones crash loudly.
 - Modern syntax: write ES2023/modern CSS. Polyfills and transforms are injected automatically (Vite legacy plugin in `vite.config.ts`, Babel preset‑env + `core-js` and `browserslist` in `package.json`, Autoprefixer in `vite.config.ts`).
 - Styling: SCSS with Bootstrap 5. Prefer semantic classes; avoid inline styles; use `rem`/`em` instead of `px` where sensible.
 - Router integration: for map/index pages, implement `IndexController` and register routes via `configureRouter(...)` (`app/views/index/_router.ts`); navigate with `routerNavigateStrict(...)`.
@@ -108,6 +108,7 @@ static-precompress    # Produce .zst/.br for large static assets
 - Pipeline: `locale-pipeline` runs post‑processing and emits both i18next hashed bundles (`config/locale/i18next`) and GNU gettext catalogs. Files are injected by `map_i18next_files(...)` and bootstrapped in the browser by `app/views/lib/i18n.ts`.
 - Backend translation: use `t()/nt()` inside the active translation context; templates get the locale via `render_jinja`/`render_response`.
 - Internal admin/moderation UIs: page‑specific admin text is intentionally not localized to speed up iteration and reduce maintenance. Where identical phrasing already exists elsewhere, prefer reusing those locale keys instead of duplicating strings. If an internal string becomes user‑facing later, migrate it to a locale key in the same change.
+- Locales hygiene: only add strings that are actually rendered; prefer reusing existing namespaces/keys over introducing near-duplicates.
 
 ## Code Generation & Assets
 

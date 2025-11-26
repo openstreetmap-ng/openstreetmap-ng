@@ -139,7 +139,7 @@ async def _encode_user(user: User, *, is_json: cython.bint) -> dict:
         xattr('id'): user_id,
         xattr('display_name'): user['display_name'],
         xattr('account_created'): user['created_at'],
-        'description': user_profile_t.result()['description'],
+        'description': user_profile_t.result()['description'] or '',
         contributor_terms_key: {
             xattr('agreed'): True,
         },

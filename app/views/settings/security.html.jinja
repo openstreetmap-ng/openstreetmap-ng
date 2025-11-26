@@ -58,17 +58,26 @@
                     <i class="bi bi-phone"></i>
                 </td>
                 <td>
-                    <h6 class="mb-0">
+                    <h6 class="d-flex align-items-center mb-0">
                         {{ t('two_fa.authenticator_app') }}
-                        {% if has_totp %}
-                        <span class="badge text-bg-light-green ms-2">{{ t('state.enabled') }}</span>
+                        {% if totp_created_at %}
+                        <span class="enabled-badge">{{ t('state.enabled') }}</span>
                         {% endif %}
                     </h6>
                     <p class="form-text mb-0">
                         {{ t('two_fa.require_code_from_your_mobile_authenticator_app_when_signing_in') }}</p>
+                    {% if totp_created_at %}
+                    <span class="metadata">
+                        {% set _date %}
+                        <time datetime="{{ totp_created_at.isoformat() }}" data-date="medium" data-time="short"></time>
+                        {% endset %}
+                        <i class="bi bi-clock-history me-1-5"></i>
+                        {{- t('two_fa.configured_on_date', date=_date) | safe -}}
+                    </span>
+                    {% endif %}
                 </td>
                 <td class="text-end">
-                    {% if has_totp %}
+                    {% if totp_created_at %}
                     <button class="btn btn-light border" type="button" data-auth-action="/api/web/settings/totp/remove"
                         data-title="{{ t('two_fa.disable_authenticator_app') }}" data-bs-toggle="modal"
                         data-bs-target="#disableAuthMethodModal">
@@ -87,22 +96,32 @@
                     <i class="bi bi-key"></i>
                 </td>
                 <td>
-                    <h6 class="mb-0">
+                    <h6 class="d-flex align-items-center mb-0">
                         {{ t('two_fa.recovery_codes') }}
-                        {% if recovery_codes_count %}
-                        <span class="badge text-bg-light-green ms-2">
-                            {{ nt('two_fa.unused_codes_count', recovery_codes_count) }}
+                        {% if recovery_codes_status.num_remaining %}
+                        <span class="enabled-badge">
+                            {{ nt('two_fa.unused_codes_count', recovery_codes_status.num_remaining) }}
                         </span>
                         {% endif %}
                     </h6>
                     <p class="form-text mb-0">
                         {{ t('two_fa.access_your_account_if_you_lose_your_two_factor_authenticator') }}
                     </p>
+                    {% if recovery_codes_status.num_remaining %}
+                    <span class="metadata">
+                        {% set _date %}
+                        <time datetime="{{ recovery_codes_status.created_at.isoformat() }}" data-date="medium"
+                            data-time="short"></time>
+                        {% endset %}
+                        <i class="bi bi-clock-history me-1-5"></i>
+                        {{- t('two_fa.generated_on_date', date=_date) | safe -}}
+                    </span>
+                    {% endif %}
                 </td>
                 <td class="text-end">
                     <button class="btn btn-light border" type="button" data-bs-toggle="modal"
                         data-bs-target="#generateRecoveryCodesModal">
-                        {% if recovery_codes_count %}
+                        {% if recovery_codes_status.num_remaining %}
                         {{ t('action.regenerate') }}
                         {% else %}
                         {{ t('action.configure') }}
@@ -160,7 +179,7 @@
     {% endfor %}
 </ul>
 
-{% if not has_totp %}
+{% if not totp_created_at %}
 {% include 'settings/_setup-totp-modal' %}
 {% endif %}
 {% include 'settings/_disable-auth-method-modal' %}

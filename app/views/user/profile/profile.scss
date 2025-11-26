@@ -150,3 +150,18 @@
         margin-left: 0.25rem;
     }
 }
+
+#profileSocialsModal {
+    .social-row {
+        @extend .mb-3;
+
+        &:not(:last-child) {
+            @extend .pb-3;
+            @extend .border-bottom;
+        }
+
+        .btn-group .btn:disabled {
+            @extend .btn-outline-secondary;
+        }
+    }
+}

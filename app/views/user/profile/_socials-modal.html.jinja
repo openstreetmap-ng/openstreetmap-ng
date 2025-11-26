@@ -1,0 +1,41 @@
+<div class="modal fade" id="profileSocialsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" method="POST" action="/api/web/settings/socials">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ t('user.edit_socials') }}</h5>
+                <button class="btn-close" aria-label="{{ t('javascripts.close') }}" type="button"
+                    data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="socials-container" data-max-items="{{ USER_MAX_SOCIALS }}">
+                    {% set social_row_service = 'other' %}
+                    {% set social_row_value = '' %}
+                    {% set social_row_config = SOCIALS_CONFIG['other'] %}
+                    <template>
+                        {% include 'user/profile/_social-row' %}
+                    </template>
+
+                    {% for social in user_profile.socials %}
+                    {% set social_row_service = social.service %}
+                    {% set social_row_value = social.value %}
+                    {% set social_row_config = SOCIALS_CONFIG[social.service] %}
+                    {% include 'user/profile/_social-row' %}
+                    {% endfor %}
+                </div>
+
+                <button type="button" class="btn btn-sm btn-link add-btn">
+                    <i class="bi bi-plus-lg me-1-5"></i>
+                    {{- t('user.add_social_link') }}
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">
+                    {{ t('javascripts.close') }}
+                </button>
+                <button class="btn btn-primary" type="submit">
+                    {{ t('action.save_changes') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -48,8 +48,8 @@ async def settings_email(_: Annotated[User, web_user()]):
 async def settings_security(user: Annotated[User, web_user()]):
     async with TaskGroup() as tg:
         totp_t = tg.create_task(UserTOTPQuery.find_one_by_user_id(user['id']))
-        recovery_codes_count_t = tg.create_task(
-            UserRecoveryCodeQuery.count_remaining_codes(user['id'])
+        recovery_codes_status_t = tg.create_task(
+            UserRecoveryCodeQuery.get_status(user['id'])
         )
         current_t = tg.create_task(AuthService.authenticate_oauth2(None))
         active_t = tg.create_task(
@@ -60,11 +60,13 @@ async def settings_security(user: Annotated[User, web_user()]):
             )
         )
 
+    totp = totp_t.result()
+
     return await render_response(
         'settings/security',
         {
-            'has_totp': totp_t.result() is not None,
-            'recovery_codes_count': recovery_codes_count_t.result(),
+            'totp_created_at': totp['created_at'] if totp is not None else None,
+            'recovery_codes_status': recovery_codes_status_t.result(),
             'current_session_id': current_t.result()['id'],  # type: ignore
             'active_sessions': active_t.result(),
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,

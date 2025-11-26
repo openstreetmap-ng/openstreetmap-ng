@@ -1,0 +1,31 @@
+<div class="social-row">
+    <div class="d-flex align-items-center mb-1">
+        <div class="btn-group btn-group-sm me-2">
+            <button type="button" class="btn btn-secondary move-up-btn" title="{{ t('socials.move_up') }}">
+                <i class="bi bi-chevron-up"></i>
+            </button>
+            <button type="button" class="btn btn-secondary move-down-btn" title="{{ t('socials.move_down') }}">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+        <select class="form-select form-select-sm w-auto" name="service">
+            {% for key, config in SOCIALS_CONFIG.items() %}
+            {% set _key = key.replace('-', '_') %}
+            <option value="{{ key }}" data-label="{{ t('socials.label.' + config.label) }}"
+                data-placeholder="{{ config.placeholder }}" {% if config.template is defined %}data-has-template="1"
+                {% endif %} {% if key == social_row_service %}selected{% endif %}>
+                {{ t('service.' + _key + '.title') }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="button" class="btn btn-link link-danger p-1 ms-auto remove-btn" title="{{ t('action.remove') }}">
+            <i class="bi bi-trash"></i>
+        </button>
+    </div>
+    <div class="custom-input-group">
+        <label>{{ t('socials.label.' + social_row_config.label) }}</label>
+        <input type="{{ 'text' if social_row_config.template is defined else 'url' }}" class="form-control" name="value"
+            placeholder="{{ social_row_config.placeholder }}" {% if social_row_value %}value="{{ social_row_value }}"
+            {% endif %}required>
+    </div>
+</div>

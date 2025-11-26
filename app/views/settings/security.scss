@@ -21,6 +21,28 @@
         padding: 1rem 0.5rem;
     }
 
+    .enabled-badge {
+        @extend .badge;
+        @extend .text-body;
+        @extend .border;
+        @extend .border-green;
+
+        margin-left: 0.625rem;
+    }
+
+    .metadata {
+        @extend .d-inline-block;
+        @extend .fw-medium;
+        @extend .text-body;
+        @extend .mt-1;
+
+        font-size: 0.875em;
+
+        i {
+            font-size: 0.875em;
+        }
+    }
+
     .qr-code-container > svg {
         @extend .rounded;
     }

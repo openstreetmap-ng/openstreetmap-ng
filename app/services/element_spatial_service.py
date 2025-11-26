@@ -107,22 +107,27 @@ needed_ids AS (
 ),
 geom_lookup AS MATERIALIZED (
     -- Priority 1: Staging (current cycle, most recent)
-    SELECT s.typed_id, s.geom
-    FROM element_spatial_staging s
-    INNER JOIN needed_ids n ON n.typed_id = s.typed_id
-    WHERE s.depth < %(depth)s
+    (
+        SELECT DISTINCT ON (s.typed_id) s.typed_id, s.geom
+        FROM element_spatial_staging s
+        INNER JOIN needed_ids n ON n.typed_id = s.typed_id
+        WHERE s.depth < %(depth)s
+        ORDER BY s.typed_id, s.updated_sequence_id DESC
+    )
 
     UNION ALL
 
     -- Priority 2: Production table (previous cycles, fallback only)
-    SELECT es.typed_id, es.geom
-    FROM element_spatial es
-    INNER JOIN needed_ids n ON n.typed_id = es.typed_id
-    WHERE NOT EXISTS (
-        SELECT 1
-        FROM element_spatial_staging s
-        WHERE s.typed_id = es.typed_id
-          AND s.depth < %(depth)s
+    (
+        SELECT es.typed_id, es.geom
+        FROM element_spatial es
+        INNER JOIN needed_ids n ON n.typed_id = es.typed_id
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM element_spatial_staging s
+            WHERE s.typed_id = es.typed_id
+              AND s.depth < %(depth)s
+        )
     )
 ),
 rels_ready AS (
@@ -438,21 +443,7 @@ async def _process_depth(
         if num_items >= 10_000:
             await conn.execute('ANALYZE element_spatial_staging')
 
-        if depth == 0:
-            await conn.execute(
-                """
-                DELETE FROM element_spatial_staging t
-                USING (
-                    SELECT typed_id, MAX(updated_sequence_id) as max_seq
-                    FROM element_spatial_staging
-                    GROUP BY typed_id
-                    HAVING COUNT(*) > 1
-                ) dups
-                WHERE t.typed_id = dups.typed_id
-                  AND t.updated_sequence_id < dups.max_seq
-                """
-            )
-        else:
+        if depth:
             async with await conn.execute(
                 """
                 SELECT COUNT(*) FROM element_spatial_staging
@@ -610,7 +601,11 @@ async def _finalize_staging(*, max_sequence: int, last_sequence: int) -> None:
             DELETE FROM element_spatial
             WHERE typed_id IN (
                 SELECT typed_id
-                FROM element_spatial_staging
+                FROM (
+                    SELECT DISTINCT ON (typed_id) typed_id, geom
+                    FROM element_spatial_staging
+                    ORDER BY typed_id, updated_sequence_id DESC
+                ) latest
                 WHERE geom IS NULL
             )
             """
@@ -619,7 +614,11 @@ async def _finalize_staging(*, max_sequence: int, last_sequence: int) -> None:
             """
             INSERT INTO element_spatial (typed_id, sequence_id, geom)
             SELECT typed_id, sequence_id, geom
-            FROM element_spatial_staging
+            FROM (
+                SELECT DISTINCT ON (typed_id) typed_id, sequence_id, geom
+                FROM element_spatial_staging
+                ORDER BY typed_id, updated_sequence_id DESC
+            ) latest
             WHERE geom IS NOT NULL
             ON CONFLICT (typed_id) DO UPDATE SET
                 sequence_id = EXCLUDED.sequence_id,

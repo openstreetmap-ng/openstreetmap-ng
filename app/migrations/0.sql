@@ -489,9 +489,9 @@ CREATE UNLOGGED TABLE element_spatial_staging (
     geom geometry (Geometry, 4326)
 );
 
-CREATE INDEX element_spatial_staging_id_idx ON element_spatial_staging (typed_id) INCLUDE (updated_sequence_id, depth);
+CREATE INDEX element_spatial_staging_id_updated_idx ON element_spatial_staging (typed_id, updated_sequence_id DESC) INCLUDE (depth);
 
-CREATE INDEX element_spatial_staging_depth_idx ON element_spatial_staging (depth, typed_id)
+CREATE INDEX element_spatial_staging_depth_id_idx ON element_spatial_staging (depth, typed_id)
 WHERE
     depth > 0;
 
@@ -788,10 +788,42 @@ CREATE TABLE user_pref (
     PRIMARY KEY (user_id, app_id, key)
 );
 
+CREATE TYPE user_social_type AS enum(
+    'bluesky',
+    'discord',
+    'facebook',
+    'github',
+    'instagram',
+    'line',
+    'linkedin',
+    'mastodon',
+    'medium',
+    'pinterest',
+    'reddit',
+    'signal',
+    'sina-weibo',
+    'snapchat',
+    'spotify',
+    'steam',
+    'telegram',
+    'threads',
+    'tiktok',
+    'twitch',
+    'wechat',
+    'whatsapp',
+    'wordpress',
+    'x',
+    'youtube',
+    'other'
+);
+
+CREATE TYPE user_social AS (service user_social_type, value text);
+
 CREATE TABLE user_profile (
     user_id bigint PRIMARY KEY REFERENCES "user" ON DELETE CASCADE,
-    description text NOT NULL,
-    description_rich_hash bytea
+    description text,
+    description_rich_hash bytea,
+    socials user_social[] NOT NULL DEFAULT '{}'
 );
 
 CREATE TYPE user_subscription_target AS enum('changeset', 'diary', 'note', 'user');

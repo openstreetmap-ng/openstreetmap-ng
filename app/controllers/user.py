@@ -15,6 +15,7 @@ from app.config import (
     PASSWORD_MIN_LENGTH,
     URLSAFE_BLACKLIST,
     USER_DESCRIPTION_MAX_LENGTH,
+    USER_MAX_SOCIALS,
     USER_NEW_DAYS,
     USER_RECENT_ACTIVITY_ENTRIES,
 )
@@ -23,6 +24,7 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.image import Image
 from app.lib.render_response import render_response
+from app.lib.socials import SOCIALS_CONFIG
 from app.lib.statistics import user_activity_summary
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.user import User
@@ -146,9 +148,7 @@ async def permalink(
 
 
 @router.get('/user/{display_name:str}')
-async def index(
-    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
-):
+async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)]):
     user = await UserQuery.find_by_display_name(display_name)
     if user is None:
         return await render_response(
@@ -275,6 +275,8 @@ async def index(
             'diaries': diaries_t.result(),
             'groups_count': groups_count,
             'groups': groups,
+            'SOCIALS_CONFIG': SOCIALS_CONFIG,
+            'USER_MAX_SOCIALS': USER_MAX_SOCIALS,
             'USER_DESCRIPTION_MAX_LENGTH': USER_DESCRIPTION_MAX_LENGTH,
             'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
             **activity_t.result(),

@@ -15,6 +15,7 @@ from psycopg.abc import AdaptContext
 from psycopg.pq import Format
 from psycopg.sql import SQL, Identifier
 from psycopg.types import TypeInfo
+from psycopg.types.composite import CompositeInfo, register_composite
 from psycopg.types.enum import EnumInfo
 from psycopg.types.hstore import register_hstore
 from psycopg.types.json import set_json_dumps, set_json_loads
@@ -125,6 +126,7 @@ async def _register_types():
         await register_enum('user_role')
         await register_enum('user_subscription_target')
         await register_enum('user_token_type')
+        await register_enum('user_social_type')
 
         async def register_type(
             name: str,
@@ -137,6 +139,14 @@ async def _register_types():
 
         await register_type('hstore', register_hstore)
         await register_type('geometry', register_shapely)
+
+        async def register_composite_type(name: str) -> None:
+            info = await CompositeInfo.fetch(conn, name)
+            assert info is not None, f'{name} type not found'
+            register_composite(info, None)
+            logging.debug('Registered database composite type %r', name)
+
+        await register_composite_type('user_social')
 
 
 @asynccontextmanager

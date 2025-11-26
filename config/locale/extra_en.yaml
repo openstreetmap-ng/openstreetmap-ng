@@ -112,6 +112,8 @@ user:
   edit_background: Edit background
   about_me: About me
   edit_description: Edit description
+  edit_socials: Edit socials
+  add_social_link: Add social link
   you_have_not_provided_a_description: You have not provided a description.
   your_profile_description_is_displayed_publicly: Your profile description is displayed publicly.
   contributions: Contributions
@@ -353,6 +355,60 @@ service:
     title: LinkedIn
   telegram:
     title: Telegram
+  discord:
+    title: Discord
+  instagram:
+    title: Instagram
+  line:
+    title: LINE
+  medium:
+    title: Medium
+  pinterest:
+    title: Pinterest
+  reddit:
+    title: Reddit
+  signal:
+    title: Signal
+  sina_weibo:
+    title: Sina Weibo
+  snapchat:
+    title: Snapchat
+  spotify:
+    title: Spotify
+  steam:
+    title: Steam
+  threads:
+    title: Threads
+  tiktok:
+    title: TikTok
+  twitch:
+    title: Twitch
+  wechat:
+    title: WeChat
+  whatsapp:
+    title: WhatsApp
+  wordpress:
+    title: WordPress
+  x:
+    title: 𝕏
+  youtube:
+    title: YouTube
+  other:
+    title: Other
+socials:
+  move_up: Move up
+  move_down: Move down
+  label:
+    add_friend_link: Add Friend Link
+    handle: Handle
+    link: Link
+    profile_artist_url: Profile/Artist URL
+    profile_url: Profile URL
+    username: Username
+    website_url: Website URL
+    wechat_id: WeChat ID
+    whatsapp_number: WhatsApp Number
+    wordpress_url: WordPress URL
 oauth:
   account_not_found: Account not found
   we_couldnt_find_account: "We couldn't find an account linked to your {{provider}} login."
@@ -441,6 +497,7 @@ two_fa:
   require_code_from_your_mobile_authenticator_app_when_signing_in: Require a code from your mobile authenticator app when signing in
   configure_authenticator_app: Configure authenticator app
   disable_authenticator_app: Disable authenticator app
+  configured_on_date: "Configured on {{date}}"
   step_1_scan_qr_code: "Step 1: Scan QR code"
   scan_this_qr_code_with_your_preferred_authenticator_app: Scan this QR code with your preferred authenticator app.
   alternatively_enter_secret_key_manually: Alternatively, enter the secret key manually.
@@ -461,6 +518,7 @@ two_fa:
   recovery_codes_description: |-
     Recovery codes can be used to access your account if you lose access to your two-factor device.
   each_code_can_be_used_once: Each code can be used once.
+  generated_on_date: "Generated on {{date}}"
   save_recovery_codes_warning: |-
     Make sure to save these codes in a safe place. We will not show them again.
     If you lose access to your two-factor device and your recovery codes, you will lose access to your account.
