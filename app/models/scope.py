@@ -64,4 +64,4 @@ def scope_from_str(s: str) -> frozenset[PublicScope]:
     >>> scope_from_str('read_prefs write_api skip_authorization')
     frozenset({'read_prefs', 'write_api'})
     """
-    return scope_from_kwargs(**{s: True for s in s.split() if s})
+    return scope_from_kwargs(**dict.fromkeys((s for s in s.split() if s), True))
