@@ -263,7 +263,7 @@ def _is_numeric(annotation: Any) -> bool:
     if isinstance(annotation, ForwardRef):  # forward references
         return _is_numeric(annotation.__forward_arg__)
     if isinstance(annotation, type):  # direct types
-        return annotation in {int, float, NoneType}
+        return annotation is int or annotation is float or annotation is NoneType
 
     # Unpack origin and args
     origin = get_origin(annotation)
