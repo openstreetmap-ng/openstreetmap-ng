@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Literal
 
-from psycopg import IsolationLevel
+from psycopg import AsyncConnection, IsolationLevel
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from psycopg.sql import Literal as PgLiteral
@@ -50,15 +50,20 @@ class ChangesetQuery:
             return await r.fetchone()  # type: ignore
 
     @staticmethod
-    async def find_by_id(changeset_id: ChangesetId) -> Changeset | None:
+    async def find_by_id(
+        changeset_id: ChangesetId,
+        *,
+        conn: AsyncConnection | None = None,
+    ) -> Changeset | None:
         """Find a changeset by id."""
         async with (
-            db() as conn,
+            db(conn) as conn,
             await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM changeset
-                WHERE id = %s
-                """,
+                SQL("""
+                    SELECT * FROM changeset
+                    WHERE id = %s
+                    {}
+                """).format(SQL('FOR UPDATE' if not conn.read_only else '')),
                 (changeset_id,),
             ) as r,
         ):

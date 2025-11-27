@@ -3,16 +3,11 @@ from io import BytesIO
 
 import cython
 from psycopg import AsyncConnection
-from psycopg.sql import SQL
 
-from app.db import db
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.compressible_geometry import compressible_geometry
-from app.lib.date_utils import utcnow
-from app.models.db.changeset import Changeset
 from app.models.db.element import Element, ElementInit
 from app.models.element import ElementId, ElementType, TypedElementId
-from app.models.types import SequenceId
 from app.queries.element_query import ElementQuery
 from app.services.audit_service import audit
 from app.services.optimistic_diff.prepare import (
@@ -38,84 +33,75 @@ class OptimisticDiffApply:
             if (point := element['point']) is not None:
                 element['point'] = compressible_geometry(point)
 
-        async with db(True) as conn:
-            await audit(
-                'edit_map',
-                conn,
-                extra={
-                    'changeset': prepare.changeset['id'],
-                    'size': len(prepare.apply_elements),
-                },
-            )
+        conn = prepare.conn
 
-            # Lock the tables to avoid concurrent updates.
-            # Then perform all the updates at once.
-            await conn.execute(
-                'LOCK TABLE changeset, changeset_bounds, element IN EXCLUSIVE MODE'
-            )
+        await audit(
+            'edit_map',
+            conn,
+            extra={
+                'changeset': prepare.changeset['id'],
+                'size': len(prepare.apply_elements),
+            },
+        )
 
-            # Check if the elements have no new references
-            if prepare.reference_check_element_refs:
-                await _check_elements_unreferenced(
-                    conn,
-                    prepare.reference_check_element_refs,
-                    prepare.at_sequence_id,
-                )
+        # Lock the tables to avoid concurrent updates.
+        # Then perform all the updates at once.
+        await conn.execute(
+            'LOCK TABLE changeset, changeset_bounds, element IN EXCLUSIVE MODE'
+        )
 
-            # Process elements and changeset updates
-            now = utcnow()
-            await _update_changeset(conn, now, prepare.changeset)
-            assigned_id_map: dict[TypedElementId, TypedElementId]
-            assigned_id_map = await _update_elements(
-                conn, now, prepare.element_state, prepare.apply_elements
-            )
+        # Check if the elements have no new references
+        await _check_elements_unreferenced(conn, prepare)
+
+        # Process elements and changeset updates
+        created_at = await _update_elements(conn, prepare)
+        await _update_changeset(conn, prepare, created_at)
 
         # Build result mapping
         result: dict[TypedElementId, tuple[TypedElementId, list[int]]] = {}
 
         for element in prepare.apply_elements:
-            typed_id = element['typed_id']
+            assigned_tid = element['typed_id']
+            unassigned_tid = element.get('unassigned_typed_id', assigned_tid)
             version = element['version']
 
-            if typed_id not in result:
-                result[typed_id] = (
-                    # Lookup negative ids in the assigned map.
-                    assigned_id_map[typed_id] if typed_id & 1 << 59 else typed_id,
-                    [version],
-                )
-            else:
-                result[typed_id][1].append(version)
+            r = result.get(unassigned_tid)
+            if r is not None:
+                r[1].append(version)
+                continue
+
+            # Lookup negative ids in the assigned map.
+            result[unassigned_tid] = (assigned_tid, [version])
 
         return result
 
 
 async def _check_elements_unreferenced(
     conn: AsyncConnection,
-    typed_ids: set[TypedElementId],
-    after_sequence_id: SequenceId,
+    prepare: OptimisticDiffPrepare,
 ) -> None:
-    """
-    Check if the elements are currently unreferenced.
-    Raises OptimisticDiffError if they are.
-    """
+    """Check if the elements are currently unreferenced."""
+    if not prepare.reference_check_element_refs:
+        return
+
     if not await ElementQuery.check_is_unreferenced(
-        conn, list(typed_ids), after_sequence_id
+        conn,
+        list(prepare.reference_check_element_refs),
+        prepare.at_sequence_id,
     ):
-        raise OptimisticDiffError(f'Element is referenced after {after_sequence_id}')
+        raise OptimisticDiffError('Element is referenced')
 
 
 async def _update_changeset(
-    conn: AsyncConnection, now: datetime, changeset: Changeset
+    conn: AsyncConnection, prepare: OptimisticDiffPrepare, now: datetime
 ) -> None:
-    """
-    Update the changeset table.
-    Raises OptimisticDiffError if the changeset was modified in the meantime.
-    """
+    """Update the changeset table."""
+    changeset = prepare.changeset
     changeset_id = changeset['id']
     closed_at = now if 'size_limit_reached' in changeset else None
     updated_at = now
 
-    result = await conn.execute(
+    await conn.execute(
         """
         UPDATE changeset
         SET
@@ -126,7 +112,7 @@ async def _update_changeset(
             union_bounds = ST_QuantizeCoordinates(%s, 7),
             closed_at = %s,
             updated_at = %s
-        WHERE id = %s AND updated_at = %s
+        WHERE id = %s
         """,
         (
             changeset['size'],
@@ -137,12 +123,8 @@ async def _update_changeset(
             closed_at,
             updated_at,
             changeset_id,
-            changeset['updated_at'],
         ),
     )
-
-    if not result.rowcount:
-        raise OptimisticDiffError(f'Changeset {changeset_id} is outdated')
 
     # Update the changeset bounds
     # It's not possible for bounds to switch from MultiPolygon to None.
@@ -181,107 +163,125 @@ async def _update_changeset(
 
 async def _update_elements(
     conn: AsyncConnection,
-    now: datetime,
-    element_state: dict[TypedElementId, ElementStateEntry],
-    elements_init: list[ElementInit],
-) -> dict[TypedElementId, TypedElementId]:
+    prepare: OptimisticDiffPrepare,
+) -> datetime:
     """Update the element table by creating new revisions."""
-    current_sequence_id = await ElementQuery.get_current_sequence_id(conn)
-    current_id_map: dict[ElementType, ElementId]
-    current_id_map = await ElementQuery.get_current_ids(conn)
+    (
+        current_sequence_id,
+        current_node_id,
+        current_way_id,
+        current_relation_id,
+    ) = await ElementQuery.get_current_ids(conn)
+
+    first_sequence_id = current_sequence_id + 1
+    current_id_map: dict[ElementType, ElementId] = {
+        'node': current_node_id,
+        'way': current_way_id,
+        'relation': current_relation_id,
+    }
 
     elements: list[Element] = []
     prev_map: dict[TypedElementId, Element] = {}
-    assigned_id_map: dict[TypedElementId, TypedElementId] = {}
+    assigned_tid_map: dict[TypedElementId, TypedElementId] = {}
 
     # This compiled check is slightly misleading.
     # Cython will always use the first declaration.
     if cython.compiled:
+        element: dict  # type: ignore
         element_init: dict  # type: ignore
     else:
+        element: Element
         element_init: ElementInit
 
     # Process elements and prepare data for insert
-    for sequence_id, element_init in enumerate(elements_init, current_sequence_id + 1):
-        element: Element = {
-            **element_init,
-            'sequence_id': sequence_id,  # type: ignore
-            'latest': True,
-            'created_at': now,
-        }
+    for sequence_id, element_init in enumerate(
+        prepare.apply_elements, first_sequence_id
+    ):
+        element = element_init  # type: ignore
+        element['sequence_id'] = sequence_id  # type: ignore
+        element['latest'] = True
         elements.append(element)
-        typed_id = element['typed_id']
+        tid = element['typed_id']
 
         # Assign ids for new elements
-        if typed_id & 1 << 59:
-            original_typed_id = typed_id
-            if original_typed_id in assigned_id_map:
-                # Reuse already assigned id
-                typed_id = assigned_id_map[original_typed_id]
+        if 'unassigned_typed_id' in element:
+            assigned_tid = assigned_tid_map.get(tid)
+            if assigned_tid is not None:
+                tid = assigned_tid
             else:
                 # Assign a new id
-                type = split_typed_element_id(typed_id)[0]
-                new_id: ElementId = current_id_map[type] + 1  # type: ignore
-                current_id_map[type] = new_id
-                typed_id = typed_element_id(type, new_id)
-                assigned_id_map[original_typed_id] = typed_id
-            element['typed_id'] = typed_id
+                element_type = split_typed_element_id(tid)[0]
+                new_id: ElementId = current_id_map[element_type] + 1  # type: ignore
+                current_id_map[element_type] = new_id
+                original_tid = tid
+                tid = typed_element_id(element_type, new_id)
+                assigned_tid_map[original_tid] = tid
+            element['typed_id'] = tid
 
         # Update the latest flag for changed elements (local)
-        prev = prev_map.get(typed_id)
+        prev = prev_map.get(tid)
         if prev is not None:
             prev['latest'] = False
-        prev_map[typed_id] = element
+        prev_map[tid] = element
 
     # Update members with assigned ids
     for element in elements:
-        # TODO: tainted members check in the prepare phase
-        if members := element['members']:
-            element['members'] = [
-                assigned_id_map[member]  #
-                if member & 1 << 59
-                else member
-                for member in members
-            ]
+        if (indices := element.get('unassigned_member_indices')) is not None:
+            members: list[TypedElementId] = element['members'].copy()  # type: ignore
+            for i in indices:
+                members[i] = assigned_tid_map[members[i]]
+            element['members'] = members
 
-    await _update_latest_elements(conn, element_state)
+    await _update_latest_elements(conn, prepare.element_state)
     await _copy_elements(conn, elements)
-    return assigned_id_map
+
+    # Get the timestamp from an inserted element
+    async with await conn.execute(
+        """
+        SELECT created_at FROM element
+        WHERE sequence_id = %s
+        """,
+        (first_sequence_id,),
+    ) as r:
+        (created_at,) = await r.fetchone()  # type: ignore
+
+    return created_at
 
 
 async def _update_latest_elements(
     conn: AsyncConnection, element_state: dict[TypedElementId, ElementStateEntry]
 ) -> None:
     """Update the latest flag for changed elements (remote)."""
-    params = [
-        v
-        for typed_id, entry in element_state.items()
-        if entry.remote is not None
-        for v in (typed_id, entry.remote['version'])
-    ]
-    if not params:
+    typed_ids: list[TypedElementId] = []
+    versions: list[int] = []
+
+    for typed_id, entry in element_state.items():
+        if entry.remote is not None:
+            typed_ids.append(typed_id)
+            versions.append(entry.remote['version'])
+
+    if not typed_ids:
         return
 
-    num_rows = len(params) // 2
     result = await conn.execute(
-        SQL("""
-            UPDATE element e SET latest = FALSE
-            FROM (VALUES {}) AS v(typed_id, version)
-            WHERE e.typed_id = v.typed_id
-            AND e.version = v.version
-            AND e.latest
-        """).format(SQL(',').join([SQL('(%s, %s)')] * num_rows)),
-        params,
+        """
+        UPDATE element e SET latest = FALSE
+        FROM UNNEST(%s::bigint[], %s::bigint[]) AS v(typed_id, version)
+        WHERE e.typed_id = v.typed_id
+          AND e.version = v.version
+          AND e.latest
+        """,
+        (typed_ids, versions),
     )
-    if result.rowcount != num_rows:
+    if result.rowcount != len(typed_ids):
         raise OptimisticDiffError('Element is outdated')
 
 
 async def _copy_elements(conn: AsyncConnection, elements: list[Element]) -> None:
     async with conn.cursor().copy("""
         COPY element (
-            sequence_id, created_at,
-            changeset_id, typed_id, version, latest,
+            sequence_id, changeset_id,
+            typed_id, version, latest,
             visible, tags, point, members, members_roles
         ) FROM STDIN
     """) as copy:
@@ -298,7 +298,6 @@ async def _copy_elements(conn: AsyncConnection, elements: list[Element]) -> None
             for element in elements:
                 data = write_row((
                     element['sequence_id'],
-                    element['created_at'],
                     element['changeset_id'],
                     element['typed_id'],
                     element['version'],

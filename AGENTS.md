@@ -59,7 +59,7 @@ static-precompress    # Produce .zst/.br for large static assets
 ## Backend Conventions
 
 - Layering: controller → service → query. Controllers validate and orchestrate; services mutate; queries are side‑effect‑free.
-- Database access: always use `app/db.py:db(write=False|True, ...)`. Default cursors are binary; use `conn.cursor(row_factory=dict_row)` for dict rows. Direct database access via `psql $POSTGRES_URL` is available for investigation and debugging.
+- Database access: always use `app/db.py:db(write=False|True, ...)`. Default cursors are binary; use `conn.cursor(row_factory=dict_row)` for dict rows. Direct database access via `psql "$POSTGRES_URL"` is available for investigation and debugging.
 - SQL safety: never build SQL with f‑strings/concat. Use `psycopg.sql.SQL`/`Identifier` for dynamic pieces and pass parameters (`%s`/`%(name)s`). Examples: `app/services/note_service.py`, `app/queries/note_comment_query.py`.
 - Domain errors: use `app/lib/exceptions_context.raise_for` for business/domain failures (not found, insufficient scopes, etc.). These are localized and map to consistent HTTP semantics.
 - Form feedback: return OpenAPI‑compatible `detail` using `StandardFeedback` (see Standard Components). StandardForm consumes this shape for field/tooltips and form‑level alerts.

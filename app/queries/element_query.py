@@ -48,23 +48,20 @@ class ElementQuery:
     @staticmethod
     async def get_current_ids(
         conn: AsyncConnection | None = None,
-    ) -> dict[ElementType, ElementId]:
+    ) -> tuple[SequenceId, ElementId, ElementId, ElementId]:
         """
-        Get the last id for each element type.
-        Returns 0 if no elements exist with the given type.
+        Get current sequence_id and max element IDs in a single query.
+        Returns (sequence_id, node_id, way_id, relation_id). Returns 0 for missing types.
         """
         async with (
             db(conn) as conn,
             await conn.execute(
                 """
-                SELECT MAX(typed_id) FROM element
-                WHERE typed_id <= %s
-                UNION ALL
-                SELECT MAX(typed_id) FROM element
-                WHERE typed_id BETWEEN %s AND %s
-                UNION ALL
-                SELECT MAX(typed_id) FROM element
-                WHERE typed_id >= %s
+                SELECT
+                    (SELECT COALESCE(MAX(sequence_id), 0) FROM element),
+                    (SELECT COALESCE(MAX(typed_id), 0) FROM element WHERE typed_id <= %s),
+                    (SELECT COALESCE(MAX(typed_id), 0) FROM element WHERE typed_id BETWEEN %s AND %s),
+                    (SELECT COALESCE(MAX(typed_id), 0) FROM element WHERE typed_id >= %s)
                 """,
                 (
                     TYPED_ELEMENT_ID_NODE_MAX,
@@ -74,13 +71,13 @@ class ElementQuery:
                 ),
             ) as r,
         ):
-            result: dict[ElementType, int] = {'node': 0, 'way': 0, 'relation': 0}
-            typed_id: TypedElementId | None
-            for (typed_id,) in await r.fetchall():
-                if typed_id is not None:
-                    type, id = split_typed_element_id(typed_id)
-                    result[type] = id
-            return result  # type: ignore
+            seq_id, node_typed, way_typed, rel_typed = await r.fetchone()  # type: ignore
+            return (
+                seq_id,
+                split_typed_element_id(node_typed)[1],
+                split_typed_element_id(way_typed)[1],
+                split_typed_element_id(rel_typed)[1],
+            )
 
     @staticmethod
     async def check_is_latest(versioned_refs: list[tuple[TypedElementId, int]]) -> bool:
@@ -91,16 +88,20 @@ class ElementQuery:
         async with (
             db() as conn,
             await conn.execute(
-                SQL("""
-                    SELECT 1 FROM (VALUES {}) AS v(typed_id, version)
-                    WHERE EXISTS (
-                        SELECT 1 FROM element
-                        WHERE typed_id = v.typed_id
-                        AND version > v.version
-                    )
-                    LIMIT 1
-                """).format(SQL(',').join([SQL('(%s, %s)')] * len(versioned_refs))),
-                [v for ref in versioned_refs for v in ref],
+                """
+                SELECT 1
+                FROM UNNEST(%s::bigint[], %s::bigint[]) AS v(typed_id, version)
+                WHERE EXISTS (
+                    SELECT 1 FROM element
+                    WHERE typed_id = v.typed_id
+                      AND version > v.version
+                )
+                LIMIT 1
+                """,
+                (
+                    [ref[0] for ref in versioned_refs],
+                    [ref[1] for ref in versioned_refs],
+                ),
             ) as r,
         ):
             return await r.fetchone() is None
@@ -111,10 +112,7 @@ class ElementQuery:
         members: list[TypedElementId],
         after_sequence_id: SequenceId,
     ) -> bool:
-        """
-        Check if the given elements are currently unreferenced.
-        after_sequence_id is used as an optimization.
-        """
+        """Check if the given elements are currently unreferenced."""
         if not members:
             return True
 
@@ -132,16 +130,16 @@ class ElementQuery:
             return await r.fetchone() is None
 
     @staticmethod
-    async def filter_visible_refs(
+    async def filter_hidden_refs(
         typed_ids: list[TypedElementId],
         *,
         at_sequence_id: SequenceId | None = None,
     ) -> list[TypedElementId]:
-        """Filter the given element refs to only include the visible elements."""
+        """Filter the given element refs to only include hidden elements."""
         if not typed_ids:
             return []
 
-        conditions: list[Composable] = [SQL('typed_id = ANY(%s)')]
+        conditions: list[Composable] = [SQL('typed_id = v.typed_id')]
         params: list[Any] = [typed_ids]
 
         if at_sequence_id is not None:
@@ -149,13 +147,17 @@ class ElementQuery:
             params.append(at_sequence_id)
 
         query = SQL("""
-            SELECT typed_id FROM (
-                SELECT DISTINCT ON (typed_id) typed_id, visible
-                FROM element
-                WHERE {conditions}
-                ORDER BY typed_id DESC, sequence_id DESC
+            SELECT typed_id
+            FROM UNNEST(%s::bigint[]) AS v(typed_id)
+            WHERE NOT EXISTS (
+                SELECT 1 FROM (
+                    SELECT visible FROM element
+                    WHERE {conditions}
+                    ORDER BY sequence_id DESC
+                    LIMIT 1
+                )
+                WHERE visible
             )
-            WHERE visible
         """).format(conditions=SQL(' AND ').join(conditions))
 
         async with db() as conn, await conn.execute(query, params) as r:
@@ -255,16 +257,13 @@ class ElementQuery:
             return []
 
         conditions: list[Composable] = []
-        params: list[Any] = []
-
-        for ref in versioned_refs:
-            conditions.append(SQL('(typed_id = %s AND version = %s)'))
-            params.extend(ref)
-
-        conditions = [SQL('({})').format(SQL(' OR ').join(conditions))]
+        params: list[Any] = [
+            [ref[0] for ref in versioned_refs],
+            [ref[1] for ref in versioned_refs],
+        ]
 
         if at_sequence_id is not None:
-            conditions.append(SQL('sequence_id <= %s'))
+            conditions.append(SQL('e.sequence_id <= %s'))
             params.append(at_sequence_id)
 
         if limit is not None:
@@ -273,12 +272,20 @@ class ElementQuery:
         else:
             limit_clause = SQL('')
 
+        where_clause = (
+            SQL('WHERE {}').format(SQL(' AND ').join(conditions))
+            if conditions
+            else SQL('')
+        )
+
         query = SQL("""
-            SELECT * FROM element
-            WHERE {conditions}
+            SELECT e.* FROM element e
+            JOIN UNNEST(%s::bigint[], %s::bigint[]) AS v(typed_id, version)
+              ON e.typed_id = v.typed_id AND e.version = v.version
+            {where}
             {limit}
         """).format(
-            conditions=SQL(' AND ').join(conditions),
+            where=where_clause,
             limit=limit_clause,
         )
 

@@ -1,10 +1,13 @@
+import asyncio
 import logging
+from random import uniform
 from time import monotonic
 
 import cython
 from psycopg import OperationalError
 
 from app.config import OPTIMISTIC_DIFF_RETRY_TIMEOUT
+from app.db import db
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.models.db.element import ElementInit
 from app.models.element import TypedElementId
@@ -24,19 +27,23 @@ class OptimisticDiff:
         if not elements:
             return {}
 
-        ts = monotonic()
+        ts: cython.double = monotonic()
+        sleep: cython.double = 0.05
+        sleep_limit: cython.double = 5
         attempt: cython.size_t = 0
 
         while True:
             try:
-                prep = OptimisticDiffPrepare(elements)
-                await prep.prepare()
-                return await OptimisticDiffApply.apply(prep)
+                async with db(True) as conn:
+                    prep = OptimisticDiffPrepare(conn, elements)
+                    await prep.prepare()
+                    return await OptimisticDiffApply.apply(prep)
             except* (OptimisticDiffError, OperationalError) as e:
                 attempt += 1
 
                 # retry is not possible, re-raise the exception
-                timeout_seconds = monotonic() - ts
+                now: cython.double = monotonic()
+                timeout_seconds: cython.double = now - ts
                 if timeout_seconds >= OPTIMISTIC_DIFF_RETRY_TIMEOUT.total_seconds():
                     raise TimeoutError(
                         f'OptimisticDiff failed and timed out after {attempt} attempts'
@@ -55,3 +62,6 @@ class OptimisticDiff:
                     attempt,
                     exc_info=True,
                 )
+                await asyncio.sleep(sleep)
+                sleep = uniform(sleep * 1.5, sleep * 2.5)
+                sleep = min(sleep, sleep_limit)

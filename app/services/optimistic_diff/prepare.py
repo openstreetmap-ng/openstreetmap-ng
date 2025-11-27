@@ -1,16 +1,14 @@
 import logging
 from asyncio import TaskGroup
 from collections import defaultdict
-from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Final, Literal
 
 import cython
 import numpy as np
-from psycopg import AsyncConnection, IsolationLevel
+from psycopg import AsyncConnection
 from shapely import Point, bounds, box
 
-from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.changeset_bounds import extend_changeset_bounds
 from app.lib.exceptions_context import raise_for
@@ -28,7 +26,6 @@ from app.models.types import SequenceId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
-from app.queries.user_query import UserQuery
 from speedup.element_type import split_typed_element_id, split_typed_element_ids
 
 OSMChangeAction = Literal['create', 'modify', 'delete']
@@ -36,13 +33,17 @@ OSMChangeAction = Literal['create', 'modify', 'delete']
 
 @dataclass(kw_only=True, slots=True)
 class ElementStateEntry:
-    # noinspection PyFinal
     remote: Final[Element | None]
     current: ElementInit
 
 
 @dataclass(slots=True)
 class OptimisticDiffPrepare:
+    conn: AsyncConnection
+    """
+    Shared connection for the entire operation.
+    """
+
     at_sequence_id: SequenceId
     """
     sequence_id at which the optimistic diff is performed.
@@ -53,7 +54,7 @@ class OptimisticDiffPrepare:
     Processed elements to be applied into the database.
     """
 
-    _elements: Sequence[ElementInit]
+    _elements: list[ElementInit]
     """
     Input elements processed during the preparation step.
     """
@@ -68,9 +69,9 @@ class OptimisticDiffPrepare:
     Local element parents cache, mapping from element ref to the set of parent element refs.
     """
 
-    _elements_check_members_remote: list[tuple[TypedElementId, set[TypedElementId]]]
+    _elements_check_members_remote: dict[TypedElementId, TypedElementId]
     """
-    List of element refs and their member refs to be checked remotely.
+    Mapping from member ref to parent ref, for members to be checked remotely.
     """
 
     reference_check_element_refs: set[TypedElementId]
@@ -100,26 +101,33 @@ class OptimisticDiffPrepare:
     Changeset bounding box set of element refs.
     """
 
-    def __init__(self, elements: Sequence[ElementInit]) -> None:
+    def __init__(self, conn: AsyncConnection, elements: list[ElementInit], /) -> None:
+        self.conn = conn
         self.apply_elements = []
-        self._elements = elements
+        self._elements = list(map(dict.copy, elements))  # type: ignore
         self.element_state = {}
         self._elements_parents_refs = {}
-        self._elements_check_members_remote = []
+        self._elements_check_members_remote = {}
         self.reference_check_element_refs = set()
         self._reference_override = defaultdict(set)
         self._bbox_points = []
         self._bbox_refs = set()
 
     async def prepare(self) -> None:
-        async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
-            self.at_sequence_id = await ElementQuery.get_current_sequence_id(conn)
-            logging.debug('Optimistic preparing at sequence_id %d', self.at_sequence_id)
+        await self._preload_changeset()
 
-            async with TaskGroup() as tg:
-                tg.create_task(self._preload_elements_state())
-                tg.create_task(self._preload_elements_parents(conn))
-                tg.create_task(self._preload_changeset())
+        # Mark unassigned typed_ids
+        for element in self._elements:
+            if (tid := element['typed_id']) & (1 << 59):
+                element['unassigned_typed_id'] = tid
+
+        self.at_sequence_id = await ElementQuery.get_current_sequence_id()
+        logging.debug('Optimistic preparing at sequence_id %d', self.at_sequence_id)
+
+        async with TaskGroup() as tg:
+            tg.create_task(self._preload_elements_state())
+            tg.create_task(self._preload_elements_parents())
+            tg.create_task(ChangesetBoundsQuery.resolve_bounds([self.changeset]))
 
         # Use local variables for faster access + explicit type hints
         element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
@@ -134,7 +142,7 @@ class OptimisticDiffPrepare:
 
         for element, (element_type, element_id) in zip(
             self._elements,
-            split_typed_element_ids(self._elements),  # type: ignore
+            split_typed_element_ids(self._elements),
             strict=True,
         ):
             typed_id = element['typed_id']
@@ -171,8 +179,11 @@ class OptimisticDiffPrepare:
                 if action == 'delete' and not prev['visible']:
                     raise_for.element_already_deleted(typed_id)
 
-            # Update references and check if all newly added members are valid
             if element_type != 'node':
+                if (members := element['members']) is not None:
+                    element['members_arr'] = np.array(members, np.uint64)
+
+                # Update references and check if all newly added members are valid
                 added_members_refs = self._update_reference_override(
                     prev, element, typed_id
                 )
@@ -183,6 +194,12 @@ class OptimisticDiffPrepare:
             if action == 'delete' and not self._check_element_can_delete(element):
                 logging.debug('Optimistic skipping delete for %s (is used)', typed_id)
                 continue
+
+            # Mark unassigned members
+            if (members_arr := element.get('members_arr')) is not None:
+                indices = np.nonzero(members_arr & (1 << 59))[0]
+                if len(indices):
+                    element['unassigned_member_indices'] = indices.tolist()
 
             self._push_bbox_info(prev, element, element_type)
             apply_elements.append(element)
@@ -207,11 +224,11 @@ class OptimisticDiffPrepare:
 
     async def _preload_elements_state(self) -> None:
         """Preload elements state from the database."""
-        # Only preload elements that exist in the database (positive element_id)
+        # Only preload elements that exist in the database
         typed_ids = [
-            typed_id
+            element['typed_id']
             for element in self._elements
-            if not (typed_id := element['typed_id']) & 1 << 59  #
+            if 'unassigned_typed_id' not in element
         ]
         num_typed_ids: cython.size_t = len(typed_ids)
         if not num_typed_ids:
@@ -226,24 +243,28 @@ class OptimisticDiffPrepare:
 
         # Check if all elements exist
         if len(elements) != num_typed_ids:
-            found_typed_ids = {element['typed_id'] for element in elements}
-            missing_typed_ids = [tid for tid in typed_ids if tid not in found_typed_ids]
-            missing_typed_id = (missing_typed_ids or typed_ids)[0]
-            raise_for.element_not_found(missing_typed_id)
+            found_tids = {element['typed_id'] for element in elements}
+            missing_tid = next(tid for tid in typed_ids if tid not in found_tids)
+            raise_for.element_not_found(missing_tid)
 
-        # If they do, push them to the element state
+        # Precompute members_arr for reference tracking
+        for element in elements:
+            if (members := element['members']) is not None:
+                element['members_arr'] = np.array(members, np.uint64)
+
+        # Push them to the element state
         self.element_state = {
             element['typed_id']: ElementStateEntry(remote=element, current=element)
             for element in elements
         }
 
-    async def _preload_elements_parents(self, conn: AsyncConnection) -> None:
+    async def _preload_elements_parents(self) -> None:
         """Preload elements parents from the database."""
-        # Only preload elements that exist in the database (positive element_id) and will be deleted
+        # Only preload elements that exist in the database and will be deleted
         typed_ids = [
-            typed_id
+            element['typed_id']
             for element in self._elements
-            if not (typed_id := element['typed_id']) & 1 << 59  #
+            if 'unassigned_typed_id' not in element  #
             and not element['visible']
         ]
         if not typed_ids:
@@ -251,7 +272,7 @@ class OptimisticDiffPrepare:
 
         logging.debug('Optimistic preloading parents for %d elements', len(typed_ids))
         self._elements_parents_refs = await ElementQuery.map_refs_to_parent_refs(
-            typed_ids, conn, limit=None
+            typed_ids, self.conn, limit=None
         )
 
     def _check_element_can_delete(self, element: ElementInit) -> bool:
@@ -266,8 +287,8 @@ class OptimisticDiffPrepare:
             raise_for.element_in_use(typed_id, list(positive_refs))
 
         # Check if not referenced by database elements
-        # Logical optimization: skip new elements (negative element_id)
-        if typed_id & 1 << 59:
+        # Logical optimization: skip new elements
+        if 'unassigned_typed_id' in element:
             return True
 
         parent_typed_ids = self._elements_parents_refs[typed_id]
@@ -291,34 +312,28 @@ class OptimisticDiffPrepare:
         typed_id: TypedElementId,
     ) -> list[TypedElementId] | None:
         """Update the local reference overrides. Returns the newly added references if any."""
-        next_members = element['members']
-        prev_members = prev['members'] if prev is not None else None
-        next_members_arr = (
-            np.unique(np.array(next_members, np.uint64))
-            if next_members is not None
-            else None
+        next_members_arr = element.get('members_arr')
+        prev_members_arr = prev.get('members_arr') if prev is not None else None
+        next_unique = (
+            np.unique(next_members_arr) if next_members_arr is not None else None
         )
-        prev_members_arr = (
-            np.unique(np.array(prev_members, np.uint64))
-            if prev_members is not None
-            else None
+        prev_unique = (
+            np.unique(prev_members_arr) if prev_members_arr is not None else None
         )
-        if next_members_arr is None and prev_members_arr is None:
+        if next_unique is None and prev_unique is None:
             return None
 
-        if next_members_arr is not None and prev_members_arr is not None:
+        if next_unique is not None and prev_unique is not None:
             typed_ids_removed = np.setdiff1d(
-                prev_members_arr, next_members_arr, assume_unique=True
+                prev_unique, next_unique, assume_unique=True
             )
-            typed_ids_added = np.setdiff1d(
-                next_members_arr, prev_members_arr, assume_unique=True
-            )
-        elif next_members_arr is not None:
+            typed_ids_added = np.setdiff1d(next_unique, prev_unique, assume_unique=True)
+        elif next_unique is not None:
             typed_ids_removed = None
-            typed_ids_added = next_members_arr
+            typed_ids_added = next_unique
         else:
-            assert prev_members_arr is not None
-            typed_ids_removed = prev_members_arr
+            assert prev_unique is not None
+            typed_ids_removed = prev_unique
             typed_ids_added = None
 
         reference_override = self._reference_override
@@ -347,56 +362,29 @@ class OptimisticDiffPrepare:
         Check if the members exist and are visible using element state.
         Stores not found member refs for remote check.
         """
-        parent_typed_id = parent['typed_id']
-        not_found: list[TypedElementId] = []
-
+        element_state: dict[TypedElementId, ElementStateEntry]
         element_state = self.element_state
+        parent_tid = parent['typed_id']
+        not_found: list[TypedElementId] = []
 
         for member in members:
             entry = element_state.get(member)
 
             if entry is None:
                 # Prevent self-reference during creation
-                if member == parent_typed_id:
+                if member == parent_tid:
                     if not parent['visible']:
-                        raise_for.element_member_not_found(parent_typed_id, member)
+                        raise_for.element_member_not_found(parent_tid, member)
                     continue
 
                 not_found.append(member)
                 continue
 
             if not entry.current['visible']:
-                raise_for.element_member_not_found(parent_typed_id, member)
+                raise_for.element_member_not_found(parent_tid, member)
 
         if not_found:
-            self._elements_check_members_remote.append((
-                parent_typed_id,
-                set(not_found),
-            ))
-
-    async def _check_members_remote(self) -> None:
-        """Check if the members exist and are visible using the database."""
-        remote_refs = {
-            member
-            for _, members in self._elements_check_members_remote
-            for member in members
-        }
-        if not remote_refs:
-            return
-
-        visible_refs = await ElementQuery.filter_visible_refs(
-            list(remote_refs),
-            at_sequence_id=self.at_sequence_id,
-        )
-        hidden_refs = remote_refs.difference(visible_refs)
-        if not hidden_refs:
-            return
-
-        # Find the parent that references this hidden member
-        hidden_ref = next(iter(hidden_refs))
-        for parent_typed_id, members in self._elements_check_members_remote:
-            if hidden_ref in members:
-                raise_for.element_member_not_found(parent_typed_id, hidden_ref)
+            self._elements_check_members_remote |= dict.fromkeys(not_found, parent_tid)
 
     def _push_bbox_info(
         self, prev: ElementInit | None, element: ElementInit, element_type: ElementType
@@ -429,10 +417,8 @@ class OptimisticDiffPrepare:
         self, prev: ElementInit | None, element: ElementInit
     ) -> None:
         """Push bbox info for a way. Way info contains all nodes."""
-        next_members = element['members']
-        prev_members = prev['members'] if prev is not None else None
-        next_members_arr = np.array(next_members, np.uint64) if next_members else None
-        prev_members_arr = np.array(prev_members, np.uint64) if prev_members else None
+        next_members_arr = element.get('members_arr')
+        prev_members_arr = prev.get('members_arr') if prev is not None else None
         if next_members_arr is None and prev_members_arr is None:
             return
 
@@ -469,10 +455,8 @@ class OptimisticDiffPrepare:
         TYPED_ELEMENT_ID_RELATION_MAX=TYPED_ELEMENT_ID_RELATION_MAX,
     ) -> None:
         """Push bbox info for a relation. Relation info contains either all members or only changed members."""
-        next_members = element['members']
-        prev_members = prev['members'] if prev is not None else None
-        next_members_arr = np.array(next_members, np.uint64) if next_members else None
-        prev_members_arr = np.array(prev_members, np.uint64) if prev_members else None
+        next_members_arr = element.get('members_arr')
+        prev_members_arr = prev.get('members_arr') if prev is not None else None
         if next_members_arr is None and prev_members_arr is None:
             return
 
@@ -542,18 +526,17 @@ class OptimisticDiffPrepare:
                     bbox_points.append(point)
 
     async def _preload_changeset(self) -> None:
-        """Preload changeset state from the database."""
-        # Currently enforce single changeset updates
+        """Lock and load changeset state from the database."""
+        # Enforce single changeset updates
         changeset_ids = {element['changeset_id'] for element in self._elements}
         if len(changeset_ids) > 1:
             raise_for.diff_multiple_changesets()
         changeset_id = next(iter(changeset_ids))
 
-        # Get changeset
-        changeset = await ChangesetQuery.find_by_id(changeset_id)
+        # Lock and get changeset
+        changeset = await ChangesetQuery.find_by_id(changeset_id, conn=self.conn)
         if changeset is None:
             raise_for.changeset_not_found(changeset_id)
-        self.changeset = changeset
 
         # Check permissions
         current_user_id = auth_user(required=True)['id']
@@ -564,10 +547,7 @@ class OptimisticDiffPrepare:
         if changeset['closed_at'] is not None:
             raise_for.changeset_already_closed(changeset_id, changeset['closed_at'])
 
-        async with TaskGroup() as tg:
-            items = [changeset]
-            tg.create_task(UserQuery.resolve_users(items))
-            tg.create_task(ChangesetBoundsQuery.resolve_bounds(items))
+        self.changeset = changeset
 
     def _update_changeset_size(
         self, *, num_create: int, num_modify: int, num_delete: int
@@ -643,3 +623,21 @@ class OptimisticDiffPrepare:
                 bounds_arr[:, 2].max(),
                 bounds_arr[:, 3].max(),
             )
+
+    async def _check_members_remote(self) -> None:
+        """Check if the members exist and are visible using the database."""
+        elements_check_members_remote = self._elements_check_members_remote
+        if not elements_check_members_remote:
+            return
+
+        hidden_refs = await ElementQuery.filter_hidden_refs(
+            list(elements_check_members_remote),
+            at_sequence_id=self.at_sequence_id,
+        )
+        if not hidden_refs:
+            return
+
+        # Find the parent that references this hidden member
+        hidden_ref = next(iter(hidden_refs))
+        parent_typed_id = elements_check_members_remote[hidden_ref]
+        raise_for.element_member_not_found(parent_typed_id, hidden_ref)

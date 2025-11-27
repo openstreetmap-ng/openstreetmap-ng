@@ -45,6 +45,9 @@ class ElementInit(TypedDict):
     )
 
     # runtime
+    unassigned_typed_id: NotRequired[TypedElementId]
+    members_arr: NotRequired[np.ndarray]
+    unassigned_member_indices: NotRequired[list[int]]
     delete_if_unused: NotRequired[Literal[True]]
 
 
