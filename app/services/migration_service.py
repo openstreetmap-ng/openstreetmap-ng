@@ -12,16 +12,9 @@ from psycopg.sql import SQL, Identifier
 from app.config import ENV
 from app.db import db
 from app.lib.crypto import hash_bytes
-from app.models.element import (
-    TYPED_ELEMENT_ID_NODE_MIN,
-    TYPED_ELEMENT_ID_RELATION_MIN,
-    TYPED_ELEMENT_ID_WAY_MIN,
-)
 from app.models.types import ChangesetId
-from app.queries.element_query import ElementQuery
 from app.services.admin_task_service import register_admin_task
 from app.utils import calc_num_workers
-from speedup.element_type import typed_element_id
 
 
 class _MigrationInfo(NamedTuple):
@@ -250,23 +243,23 @@ class MigrationService:
             )
 
 
-async def _get_element_typed_id_ranges() -> list[tuple[int, int]]:
-    # Define actual data ranges
-    current_ids = await ElementQuery.get_current_ids()
-    return [
-        (
-            TYPED_ELEMENT_ID_NODE_MIN,
-            typed_element_id('node', current_ids['node']),
-        ),
-        (
-            TYPED_ELEMENT_ID_WAY_MIN,
-            typed_element_id('way', current_ids['way']),
-        ),
-        (
-            TYPED_ELEMENT_ID_RELATION_MIN,
-            typed_element_id('relation', current_ids['relation']),
-        ),
-    ]
+# async def _get_element_typed_id_ranges() -> list[tuple[int, int]]:
+#     # Define actual data ranges
+#     current_ids = await ElementQuery.get_current_ids()
+#     return [
+#         (
+#             TYPED_ELEMENT_ID_NODE_MIN,
+#             typed_element_id('node', current_ids['node']),
+#         ),
+#         (
+#             TYPED_ELEMENT_ID_WAY_MIN,
+#             typed_element_id('way', current_ids['way']),
+#         ),
+#         (
+#             TYPED_ELEMENT_ID_RELATION_MIN,
+#             typed_element_id('relation', current_ids['relation']),
+#         ),
+#     ]
 
 
 def _get_element_typed_id_batches(
