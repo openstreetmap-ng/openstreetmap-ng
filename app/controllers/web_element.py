@@ -1,4 +1,4 @@
-from asyncio import TaskGroup
+from asyncio import Task, TaskGroup
 from typing import Annotated
 
 from fastapi import APIRouter, Query
@@ -72,7 +72,7 @@ async def get_history(
         )
         elements_tasks = [tg.create_task(data_task(element)) for element in elements]
 
-    elements_data = [task.result() for task in elements_tasks]
+    elements_data = list(map(Task.result, elements_tasks))
 
     if previous_task is not None:
         previous_element_ = previous_task.result()

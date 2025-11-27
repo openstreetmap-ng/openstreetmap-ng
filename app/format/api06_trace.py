@@ -21,7 +21,7 @@ class Trace06Mixin:
         ... ])
         {'gpx_file': [{'@id': 1, '@uid': 1234, ...}, {'@id': 2, '@uid': 1234, ...}]}
         """
-        return {'gpx_file': [_encode_gpx_file(trace) for trace in traces]}
+        return {'gpx_file': list(map(_encode_gpx_file, traces))}
 
     @staticmethod
     def decode_gpx_file(gpx_file: dict) -> TraceMetaInit:

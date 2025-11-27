@@ -228,7 +228,7 @@ def merge_planet_worker_results() -> None:
                 created_at,
                 user_id,
                 display_name
-            FROM read_parquet({[path.as_posix() for path in paths]!r})
+            FROM read_parquet({list(map(Path.as_posix, paths))!r})
         ) TO {PLANET_PARQUET_PATH.as_posix()!r}
         (COMPRESSION ZSTD, COMPRESSION_LEVEL 3, ROW_GROUP_SIZE_BYTES '128MB')
         """)
@@ -335,7 +335,7 @@ def merge_changesets_worker_results() -> None:
                 id,
                 tags,
                 bounds
-            FROM read_parquet({[path.as_posix() for path in paths]!r})
+            FROM read_parquet({list(map(Path.as_posix, paths))!r})
             ORDER BY id
         ) TO {CHANGESETS_PARQUET_PATH.as_posix()!r}
         (COMPRESSION ZSTD, COMPRESSION_LEVEL 3, ROW_GROUP_SIZE_BYTES '128MB')
@@ -468,7 +468,7 @@ def merge_notes_worker_results() -> None:
         conn.sql(f"""
         COPY (
             SELECT *
-            FROM read_parquet({[path.as_posix() for path in paths]!r})
+            FROM read_parquet({list(map(Path.as_posix, paths))!r})
         ) TO {NOTES_PARQUET_PATH.as_posix()!r}
         (COMPRESSION ZSTD, COMPRESSION_LEVEL 3, ROW_GROUP_SIZE_BYTES '128MB')
         """)

@@ -1,4 +1,4 @@
-from asyncio import TaskGroup
+from asyncio import Task, TaskGroup
 from base64 import urlsafe_b64encode
 from typing import Annotated
 
@@ -48,7 +48,7 @@ async def get_search(
             for search_bound in search_bounds
         ]
 
-    results = [task.result() for task in tasks]
+    results = list(map(Task.result, tasks))
     best_index = Search.best_results_index(results)
     bounds = search_bounds[best_index][0]
     results = Search.deduplicate_similar_results(results[best_index])

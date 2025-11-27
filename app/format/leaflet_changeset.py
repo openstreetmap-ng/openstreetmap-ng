@@ -10,9 +10,7 @@ class LeafletChangesetMixin:
     @staticmethod
     def encode_changesets(changesets: list[Changeset]) -> RenderChangesetsData:
         """Format changesets into a minimal structure, suitable for map rendering."""
-        return RenderChangesetsData(
-            changesets=[_encode_changeset(changeset) for changeset in changesets]
-        )
+        return RenderChangesetsData(changesets=list(map(_encode_changeset, changesets)))
 
 
 @cython.cfunc

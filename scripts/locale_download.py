@@ -116,9 +116,8 @@ async def main():
     add_extra_locales_names(locales_names)
 
     locales_names.sort(key=lambda v: v.code)
-    locales_names_dict = [ln._asdict() for ln in locales_names]
     buffer = orjson.dumps(
-        locales_names_dict,
+        list(map(LocaleName._asdict, locales_names)),
         option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE,
     )
     _names_path.write_bytes(buffer)

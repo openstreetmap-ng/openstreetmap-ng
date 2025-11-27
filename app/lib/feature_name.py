@@ -8,7 +8,7 @@ from app.models.db.element import Element, ElementInit
 
 def features_names(elements: Iterable[Element | ElementInit]) -> list[str | None]:
     """Returns human-readable names for features."""
-    return [_feature_name(e) for e in elements]
+    return list(map(_feature_name, elements))
 
 
 @cython.cfunc

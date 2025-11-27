@@ -13,7 +13,7 @@ class Element07Mixin:
 
     @staticmethod
     def encode_elements(elements: list[Element]) -> list[dict]:
-        return [_encode_element(element) for element in elements]
+        return list(map(_encode_element, elements))
 
 
 @cython.cfunc

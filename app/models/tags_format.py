@@ -29,4 +29,4 @@ class TagFormat:
 
     def __init__(self, key: str, value: str):
         self.key = ValueFormat(key)
-        self.values = [ValueFormat(v) for v in value.split(';', maxsplit=8)]
+        self.values = list(map(ValueFormat, value.split(';', maxsplit=8)))

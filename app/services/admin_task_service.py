@@ -241,10 +241,10 @@ def _format_annotation(annotation: Any) -> str:
 
     # Unpack origin and args
     origin = get_origin(annotation)
-    args = [_format_annotation(arg) for arg in get_args(annotation)]
+    args = list(map(_format_annotation, get_args(annotation)))
 
     # Union types
-    if origin in {Union, UnionType}:
+    if origin is Union or origin is UnionType:
         return ' | '.join(args)
 
     # Generic types (e.g., list[int], dict[str, float])
@@ -270,7 +270,7 @@ def _is_numeric(annotation: Any) -> bool:
     args = get_args(annotation)
 
     # Union types
-    if origin in {Union, UnionType}:
+    if origin is Union or origin is UnionType:
         return all(_is_numeric(arg) for arg in args)
 
     # Generic types

@@ -9,7 +9,7 @@ class LeafletNoteMixin:
     @staticmethod
     def encode_notes(notes: list[Note]) -> RenderNotesData:
         """Format notes into a minimal structure, suitable for map rendering."""
-        return RenderNotesData(notes=[_encode_note(note) for note in notes])
+        return RenderNotesData(notes=list(map(_encode_note, notes)))
 
 
 @cython.cfunc

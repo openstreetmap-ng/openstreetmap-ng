@@ -1,4 +1,4 @@
-from asyncio import TaskGroup
+from asyncio import Task, TaskGroup
 
 import cython
 from shapely import Point, get_coordinates
@@ -43,7 +43,7 @@ class User06Mixin:
                 tg.create_task(_encode_user(user, is_json=is_json)) for user in users
             ]
 
-        return {('users' if is_json else 'user'): [task.result() for task in tasks]}
+        return {('users' if is_json else 'user'): list(map(Task.result, tasks))}
 
     @staticmethod
     def encode_user_preferences(prefs: list[UserPref]) -> dict:

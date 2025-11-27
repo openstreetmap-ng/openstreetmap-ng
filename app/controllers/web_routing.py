@@ -1,4 +1,4 @@
-from asyncio import TaskGroup
+from asyncio import Task, TaskGroup
 from typing import Annotated
 
 from fastapi import APIRouter, Form, Response
@@ -118,7 +118,7 @@ async def _resolve_name(
             for search_bound in search_bounds
         ]
 
-    task_results = [task.result() for task in tasks]
+    task_results = list(map(Task.result, tasks))
     task_index = Search.best_results_index(task_results)
     results = task_results[task_index]
     result = next(iter(results), None)
