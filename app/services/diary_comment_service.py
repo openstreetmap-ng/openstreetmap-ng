@@ -42,7 +42,7 @@ class DiaryCommentService:
                 """
                 SELECT id FROM diary
                 WHERE id = %s
-                FOR UPDATE
+                FOR SHARE
                 """,
                 (diary_id,),
             ) as r:

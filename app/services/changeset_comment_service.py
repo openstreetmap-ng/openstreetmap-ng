@@ -40,7 +40,7 @@ class ChangesetCommentService:
                 """
                 SELECT 1 FROM changeset
                 WHERE id = %s
-                FOR UPDATE
+                FOR SHARE
                 """,
                 (changeset_id,),
             ) as r:
