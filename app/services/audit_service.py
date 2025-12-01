@@ -239,11 +239,10 @@ async def _cleanup_old_audit_logs() -> None:
                 """
                 DELETE FROM audit
                 WHERE type = %s
-                AND created_at < statement_timestamp() - %s
+                  AND created_at < statement_timestamp() - %s
                 """,
                 (audit_type, audit_policy.retention),
             )
-
             if result.rowcount:
                 logging.debug(
                     'Deleted %d old %r audit logs', result.rowcount, audit_type

@@ -78,7 +78,7 @@
         <label class="form-label d-block">
             {{ t('settings.redirect_uris') }}
             <textarea class="form-control mt-2" name="redirect_uris" rows="4"
-                placeholder="http://127.0.0.1/callback">{{ '\n'.join(app.redirect_uris) }}</textarea>
+                placeholder="http://localhost/callback">{{ '\n'.join(app.redirect_uris) }}</textarea>
         </label>
         <p class="form-text mb-3">
             {{ t('settings.redirect_uris_description') }}

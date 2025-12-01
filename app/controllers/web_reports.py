@@ -110,15 +110,6 @@ async def reports_page(
 
     # Resolve comments and metadata
     async with TaskGroup() as tg:
-        tg.create_task(ReportCommentQuery.resolve_num_comments(reports))
-        # Get only the last comment for preview
-        comments = await ReportCommentQuery.resolve_comments(
-            reports, per_report_limit=1
-        )
-        tg.create_task(UserQuery.resolve_users(comments))
-        tg.create_task(report_comments_resolve_rich_text(comments))
-        tg.create_task(ReportCommentQuery.resolve_objects(comments))
-
         # Resolve reported users for user-type reports
         user_reports = [r for r in reports if r['type'] == 'user']
         if user_reports:
@@ -129,6 +120,15 @@ async def reports_page(
                     user_key='reported_user',
                 )
             )
+
+        tg.create_task(ReportCommentQuery.resolve_num_comments(reports))
+        # Get only the last comment for preview
+        comments = await ReportCommentQuery.resolve_comments(
+            reports, per_report_limit=1
+        )
+        tg.create_task(UserQuery.resolve_users(comments))
+        tg.create_task(report_comments_resolve_rich_text(comments))
+        tg.create_task(ReportCommentQuery.resolve_objects(comments))
 
     reports.reverse()
     return await render_response('reports/reports-page', {'reports': reports})

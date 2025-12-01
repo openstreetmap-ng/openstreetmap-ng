@@ -222,8 +222,8 @@ async def _delete_empty() -> None:
             """
             SELECT id FROM changeset
             WHERE closed_at IS NOT NULL
-            AND closed_at < statement_timestamp() - %s
-            AND size = 0
+              AND closed_at < statement_timestamp() - %s
+              AND size = 0
             """,
             (CHANGESET_EMPTY_DELETE_TIMEOUT,),
         ) as r:

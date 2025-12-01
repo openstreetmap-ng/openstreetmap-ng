@@ -143,9 +143,6 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
 
         toggleLayerSpinner(layerId, true)
         fetch(`/api/web/note/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
-            method: "GET",
-            mode: "same-origin",
-            cache: "no-store", // request params are too volatile to cache
             signal: abortController.signal,
             priority: "high",
         })

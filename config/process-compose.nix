@@ -56,8 +56,8 @@ let
       command = mkMultiline ''
         mailpit \
           -d data/mailpit/mailpit.db \
-          -l "127.0.0.1:${toString mailpitHttpPort}" \
-          -s "127.0.0.1:${toString mailpitSmtpPort}" \
+          -l "localhost:${toString mailpitHttpPort}" \
+          -s "localhost:${toString mailpitSmtpPort}" \
           --smtp-auth-accept-any \
           --smtp-auth-allow-insecure \
           --enable-spamassassin spamassassin.monicz.dev:783

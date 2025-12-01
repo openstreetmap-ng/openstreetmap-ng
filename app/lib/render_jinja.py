@@ -1,3 +1,4 @@
+from base64 import urlsafe_b64encode
 from datetime import datetime
 from typing import Any, override
 
@@ -143,6 +144,11 @@ def timeago(date: datetime | None, *, html: bool = False) -> str:
     return ago
 
 
+def b64(value: bytes) -> str:
+    """Encode bytes to base64url without padding."""
+    return urlsafe_b64encode(value).rstrip(b'=').decode()
+
+
 # TODO: ideally we should fix translation
 def stripspecial(value: str) -> str:
     """Strip special characters from the given string."""
@@ -177,5 +183,6 @@ _J2.globals.update(
 
 # configure template filters
 _J2.filters.update(
+    b64=b64,
     stripspecial=stripspecial,
 )

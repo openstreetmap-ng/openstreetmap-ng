@@ -44,10 +44,10 @@ export default defineConfig({
     base: "/static/vite/",
     clearScreen: false,
     server: {
-        host: "127.0.0.1",
+        host: "localhost",
         port: 49568,
         strictPort: true,
-        origin: "http://127.0.0.1:49568",
+        origin: "http://localhost:49568",
     },
     define: {
         __ID_PATH__: JSON.stringify(`/static-${getPackageDist("iD")}`),

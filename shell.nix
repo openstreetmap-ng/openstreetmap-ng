@@ -648,7 +648,7 @@ let
       else
         ''
           exec python -m gunicorn app.main:main \
-            --bind 127.0.0.1:${toString gunicornPort} \
+            --bind localhost:${toString gunicornPort} \
             --workers ${toString gunicornWorkers} \
             --worker-class uvicorn.workers.UvicornWorker \
             --max-requests 10000 \
@@ -699,6 +699,7 @@ let
         echo "Linting files..."
         ruff check --fix
         biome check --fix --formatter-enabled=false
+        tsc --noEmit
       fi
     '')
     (makeScript "pyright" "pnpm exec basedpyright")
@@ -719,8 +720,8 @@ let
         curl -fsSL --compressed "$url" | jq --sort-keys . > "$file"
       done
     '')
-    (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:49566")
-    (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
+    (makeScript "open-mailpit" "python -m webbrowser http://localhost:49566")
+    (makeScript "open-app" "python -m webbrowser http://localhost:8000")
     (makeScript "git-restore-mtimes" ''
       # shellcheck disable=SC2016
       (if [ -t 0 ]; then git ls-files; else cat; fi) | parallel \
@@ -852,7 +853,7 @@ let
     + lib.optionalString isDevelopment ''
       export ENV=dev
       export SECRET=development-secret
-      export APP_URL=http://127.0.0.1:8000
+      export APP_URL=http://localhost:8000
       export NOMINATIM_URL=https://nominatim.monicz.dev
       export GRAPHHOPPER_API_KEY=e6d61235-3e37-4290-91a7-d7be9e5a8909
       export FACEBOOK_OAUTH_PUBLIC=1538918736889845
@@ -868,7 +869,7 @@ let
       export LEGACY_GEOM_SKIP_MISSING_NODES=1
     ''
     + lib.optionalString enableMailpit ''
-      export SMTP_HOST=127.0.0.1
+      export SMTP_HOST=localhost
       export SMTP_PORT=49565
       export SMTP_USER=mail@openstreetmap.org
       export SMTP_PASS=anything

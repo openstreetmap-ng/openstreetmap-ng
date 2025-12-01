@@ -135,8 +135,6 @@ class SystemAppService:
 
 async def _register_app(app: SystemApp) -> None:
     """Register a system app."""
-    logging.info('Registering system app %r', app.name)
-
     app_init: OAuth2ApplicationInit = {
         'id': zid(),  # type: ignore
         'user_id': None,
@@ -170,4 +168,6 @@ async def _register_app(app: SystemApp) -> None:
         ) as r,
     ):
         app_id: ApplicationId = (await r.fetchone())[0]  # type: ignore
-        SYSTEM_APP_CLIENT_ID_MAP[app.client_id] = app_id
+
+    SYSTEM_APP_CLIENT_ID_MAP[app.client_id] = app_id
+    logging.info('Registered system app %r', app.name)

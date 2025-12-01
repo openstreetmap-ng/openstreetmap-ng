@@ -7,7 +7,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                     aria-label="{{ t('javascripts.close') }}"></button>
             </div>
-            <form class="setup-totp-form" method="POST" action="/api/web/settings/totp/setup"
+            <form method="POST" action="/api/web/settings/totp/setup"
                 data-account-name="{{ user.display_name }} ({{ user.email }})">
                 <div class="modal-body">
                     <h6>{{ t('two_fa.step_1_scan_qr_code') }}</h6>

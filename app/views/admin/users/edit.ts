@@ -92,7 +92,7 @@ mount("admin-user-edit-body", (body) => {
             newPasswordConfirmInput.value = ""
         },
         {
-            clientValidationCallback: () => {
+            validationCallback: () => {
                 const result: APIDetail[] = []
 
                 if (newPasswordInput.value || newPasswordConfirmInput.value) {
@@ -133,7 +133,7 @@ mount("admin-user-edit-body", (body) => {
             window.location.reload()
         },
         {
-            clientValidationCallback: () =>
+            validationCallback: () =>
                 confirm("Remove TOTP 2FA for this user?")
                     ? null
                     : "Operation cancelled by user",

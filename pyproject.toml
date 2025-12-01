@@ -12,6 +12,7 @@ dependencies = [
   "blake3",
   "blurhash-python",
   "brotli",
+  "cbor2",
   "cython",
   "dnspython",
   "duckdb",

@@ -55,6 +55,52 @@
         <tbody>
             <tr>
                 <td>
+                    <i class="bi bi-fingerprint"></i>
+                </td>
+                <td>
+                    <h6 class="d-flex align-items-center mb-0">
+                        {{ t('two_fa.passkeys') }}
+                        {% if passkeys %}
+                        <span class="enabled-badge">{{ t('state.enabled') }}</span>
+                        {% endif %}
+                    </h6>
+                    <p class="form-text mb-0">
+                        {{ t('two_fa.sign_in_securely_with_biometrics_or_security_keys') }}
+                    </p>
+                    {% if passkeys %}
+                    <ul class="metadata list-unstyled mt-0 mb-0">
+                        {% for passkey in passkeys %}
+                        <li class="passkey-entry">
+                            {% set _date %}
+                            <time datetime="{{ passkey.created_at.isoformat() }}" data-date="medium"
+                                data-time="short"></time>
+                            {% endset %}
+                            <i class="bi bi-key-fill text-body-secondary me-1-5"></i>
+                            <span>{{ passkey.name }}</span>
+                            <span class="text-body-secondary mx-1-5">&mdash;</span>
+                            {{- t('two_fa.added_on_date', date=_date) | safe -}}
+                            <button class="btn btn-sm btn-link p-0 ms-1-5" type="button"
+                                data-auth-action="/api/web/settings/passkey/{{ passkey.credential_id | b64 }}/remove"
+                                data-title="{{ t('two_fa.remove_passkey') }}" data-bs-toggle="modal"
+                                data-bs-target="#disableAuthMethodModal">
+                                {{ t('action.remove') }}
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    {% if passkeys | length < PASSKEY_LIMIT %}
+                    <button class="btn btn-light border" type="button" data-bs-toggle="modal"
+                        data-bs-target="#addPasskeyModal">
+                        {{ t('action.configure') }}
+                    </button>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <i class="bi bi-phone"></i>
                 </td>
                 <td>
@@ -93,7 +139,7 @@
             </tr>
             <tr>
                 <td>
-                    <i class="bi bi-key"></i>
+                    <i class="bi bi-file-text"></i>
                 </td>
                 <td>
                     <h6 class="d-flex align-items-center mb-0">
@@ -179,6 +225,9 @@
     {% endfor %}
 </ul>
 
+{% if passkeys | length < PASSKEY_LIMIT %}
+{% include 'settings/_add-passkey-modal' %}
+{% endif %}
 {% if not totp_created_at %}
 {% include 'settings/_setup-totp-modal' %}
 {% endif %}

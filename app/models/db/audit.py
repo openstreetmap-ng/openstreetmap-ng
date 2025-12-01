@@ -9,6 +9,7 @@ from app.models.types import ApplicationId, UserId
 
 AuditType = Literal[
     'add_connected_account',
+    'add_passkey',
     'add_totp',
     'admin_task',
     'auth_api',
@@ -39,6 +40,7 @@ AuditType = Literal[
     'nsfw_image',
     'rate_limit',
     'remove_connected_account',
+    'remove_passkey',
     'remove_totp',
     'request_change_email',
     'request_reset_password',

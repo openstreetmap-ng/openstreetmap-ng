@@ -25,7 +25,7 @@ mount("signup-body", (body) => {
             window.location.href = redirect_url
         },
         {
-            clientValidationCallback: () => {
+            validationCallback: () => {
                 const result: APIDetail[] = []
 
                 // Validate name for blacklisted characters

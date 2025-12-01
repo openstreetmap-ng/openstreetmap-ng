@@ -187,13 +187,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
                     lat: lat.toString(),
                     zoom: zoomFloor.toString(),
                 })}`,
-                {
-                    method: "GET",
-                    mode: "same-origin",
-                    cache: "no-store", // request params are too volatile to cache
-                    signal: abortSignal,
-                    priority: "high",
-                },
+                { signal: abortSignal, priority: "high" },
             )
                 .then(async (resp) => {
                     onSidebarLoaded(await resp.text())

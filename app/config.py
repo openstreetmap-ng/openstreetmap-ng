@@ -216,6 +216,11 @@ MICROSOFT_OAUTH_PUBLIC = ''
 WIKIMEDIA_OAUTH_PUBLIC = ''
 WIKIMEDIA_OAUTH_SECRET = SecretStr('')
 
+# Passkeys
+PASSKEY_CHALLENGE_EXPIRE = timedelta(minutes=5)
+PASSKEY_NAME_MAX_LENGTH = 50
+PASSKEY_LIMIT = 5
+
 # TOTP
 TOTP_MAX_ATTEMPTS_PER_WINDOW = 3
 
@@ -354,6 +359,7 @@ class _AuditPolicies(BaseModel):
             )
 
     add_connected_account: Policy = Policy(30)
+    add_passkey: Policy = Policy(60)
     add_totp: Policy = Policy(60)
     admin_task: Policy = Policy(60)
     auth_api: Policy = Policy(14, timedelta(days=1), sample_rate=0.05)
@@ -384,6 +390,7 @@ class _AuditPolicies(BaseModel):
     nsfw_image: Policy = Policy(30, timedelta(minutes=10))
     rate_limit: Policy = Policy(14, timedelta(hours=6), sample_rate=0.05)
     remove_connected_account: Policy = Policy(30)
+    remove_passkey: Policy = Policy(60)
     remove_totp: Policy = Policy(60)
     request_change_email: Policy = Policy(14)
     request_reset_password: Policy = Policy(14)

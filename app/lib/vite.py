@@ -25,7 +25,7 @@ def vite_render_asset(path: str, *, rtl: bool = False) -> str:
     if _MANIFEST is None:
         # Development environment:
         # Use Vite dev server
-        base = 'http://127.0.0.1:49568/static/vite/'
+        base = 'http://localhost:49568/static/vite/'
 
         if suffix == '.scss':
             href = f'{base}{path}{"?rtl" if rtl else ""}'

@@ -493,6 +493,14 @@ login:
 two_fa:
   two_factor_methods: Two-factor methods
   secure_your_account_using_additional_verification_methods: Secure your account using additional verification methods.
+  passkeys: Passkeys
+  sign_in_securely_with_biometrics_or_security_keys: Sign in securely with biometrics or security keys
+  configure_passkey: Configure passkey
+  added_on_date: "Added on {{date}}"
+  remove_passkey: Remove passkey
+  could_not_complete_passkey_registration: Could not complete passkey registration
+  could_not_complete_passkey_verification: Could not complete passkey verification
+  retry_passkey: Retry passkey
   authenticator_app: Authenticator app
   require_code_from_your_mobile_authenticator_app_when_signing_in: Require a code from your mobile authenticator app when signing in
   configure_authenticator_app: Configure authenticator app

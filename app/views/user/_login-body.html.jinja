@@ -40,6 +40,27 @@
                 </div>
             </div>
 
+            <div data-section="passkey">
+                <p>{{ t('two_fa.could_not_complete_passkey_verification') }}</p>
+                <button class="retry-passkey-btn btn btn-primary fw-medium w-100 mb-3" type="submit">
+                    <i class="bi bi-arrow-clockwise me-1-5"></i>
+                    {{- t('two_fa.retry_passkey') -}}
+                </button>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="cancel-auth-btn btn btn-light border" type="button">
+                        {{ t('action.cancel') }}
+                    </button>
+                    <div>
+                        <button class="use-totp-btn btn btn-link btn-sm p-0 d-block" type="button">
+                            {{ t('two_fa.use_authenticator_instead') }}
+                        </button>
+                        <button class="use-recovery-btn btn btn-link btn-sm p-0 d-block" type="button">
+                            {{ t('two_fa.use_recovery_code_instead') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div data-section="totp">
                 <label class="form-label d-block mb-2">
                     {{ t('two_fa.enter_two_factor_code') }}

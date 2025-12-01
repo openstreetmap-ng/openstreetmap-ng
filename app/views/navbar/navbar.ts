@@ -88,8 +88,6 @@ editGroup.addEventListener("click", (event: Event): void => {
     fetch("/api/web/settings/editor", {
         method: "POST",
         body: formData,
-        mode: "same-origin",
-        cache: "no-store",
         priority: "high",
     })
         .then((resp) => {

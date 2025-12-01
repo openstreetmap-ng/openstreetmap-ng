@@ -52,7 +52,7 @@ class UserProfile(TypedDict):
 
 async def user_profiles_resolve_rich_text(objs: list[UserProfile]) -> None:
     await resolve_rich_text(
-        objs,  # type: ignore
+        objs,
         'user_profile',
         'description',
         'markdown',

@@ -214,3 +214,28 @@ export const darkenColor = memoize((hex: string, amount: number): string => {
 
     return `#${darken(r)}${darken(g)}${darken(b)}`
 })
+
+const b2hLut = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"))
+
+/** Convert a byte array to a hex string */
+export const toHex = (bytes: Uint8Array): string => {
+    let s = ""
+    for (const byte of bytes) s += b2hLut[byte]
+    return s
+}
+
+const h2bLut = new Uint8Array(128)
+for (let i = 0; i < 10; i++) h2bLut[48 + i] = i
+for (let i = 0; i < 6; i++) h2bLut[65 + i] = 10 + i
+for (let i = 0; i < 6; i++) h2bLut[97 + i] = 10 + i
+
+/** Convert a hex string to a byte array */
+export const fromHex = (hex: string): Uint8Array => {
+    const len = hex.length >> 1
+    const out = new Uint8Array(len)
+    for (let i = 0; i < len; i++) {
+        const j = i << 1
+        out[i] = (h2bLut[hex.charCodeAt(j)] << 4) | h2bLut[hex.charCodeAt(j + 1)]
+    }
+    return out
+}

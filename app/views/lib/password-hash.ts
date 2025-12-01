@@ -1,5 +1,4 @@
 import { create, toBinary } from "@bufbuild/protobuf"
-import { base64Encode } from "@bufbuild/protobuf/wire"
 import { pbkdf2Async } from "@noble/hashes/pbkdf2.js"
 import { sha512 } from "@noble/hashes/sha2.js"
 import {
@@ -37,8 +36,9 @@ export const configurePasswordsForm = (
     }
 }
 
-export const updatePasswordsFormHashes = async (
+export const appendPasswordsToFormData = async (
     form: HTMLFormElement,
+    formData: FormData,
     passwordInputs: NodeListOf<HTMLInputElement>,
 ): Promise<void> => {
     const passwordSchemas = formUsePasswordSchemasMap.get(form)
@@ -52,15 +52,14 @@ export const updatePasswordsFormHashes = async (
     const tasks: Promise<void>[] = []
     for (const input of passwordInputs) {
         const inputName = input.dataset.name
-        const passwordInput = form.querySelector(`input[name="${input.dataset.name}"]`)
-        if (!inputName.endsWith("_confirm")) {
+        if (!inputName.endsWith("_confirm") && input.value) {
             tasks.push(
-                wrappedClientHashPassword(passwordSchemas, input.value).then(
-                    (result) => {
-                        passwordInput.value = result
-                        passwordInput.dispatchEvent(new Event("change"))
-                    },
-                ),
+                buildTransmitPassword(passwordSchemas, input.value).then((binary) => {
+                    formData.set(
+                        inputName,
+                        new Blob([binary], { type: "application/octet-stream" }),
+                    )
+                }),
             )
         }
     }
@@ -81,17 +80,17 @@ export const handlePasswordSchemaFeedback = (
     return true
 }
 
-const wrappedClientHashPassword = async (
+const buildTransmitPassword = async (
     passwordSchemas: (PasswordSchema | string)[],
     password: string,
-): Promise<string> => {
+): Promise<Uint8Array<ArrayBuffer>> => {
     const transmitUserPassword = create(TransmitUserPasswordSchema)
     const tasks: Promise<void>[] = []
     for (const passwordSchema of passwordSchemas) {
         tasks.push(clientHashPassword(transmitUserPassword, passwordSchema, password))
     }
     await Promise.all(tasks)
-    return base64Encode(toBinary(TransmitUserPasswordSchema, transmitUserPassword))
+    return toBinary(TransmitUserPasswordSchema, transmitUserPassword)
 }
 
 const clientHashPassword = async (

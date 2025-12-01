@@ -55,7 +55,7 @@ async def transport():
 
 @pytest.fixture
 def client(transport: ASGITransport) -> AsyncClient:
-    return AsyncClient(base_url='http://127.0.0.1:8000', transport=transport)
+    return AsyncClient(base_url='http://localhost:8000', transport=transport)
 
 
 @pytest_asyncio.fixture

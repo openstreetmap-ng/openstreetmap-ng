@@ -39,9 +39,7 @@ class PasswordHash:
         Hash a password using the latest recommended algorithm.
         Returns None if the given password schema cannot be used.
         """
-        transmit_password = TransmitUserPassword.FromString(
-            b64decode(password.get_secret_value())
-        )
+        transmit_password = TransmitUserPassword.FromString(password)
         if transmit_password.v1:
             return _hash_v1(transmit_password.v1)
 
@@ -57,9 +55,7 @@ class PasswordHash:
         if not user['password_pb']:
             return VerifyResult(False, rehash_needed=False)
 
-        transmit_password = TransmitUserPassword.FromString(
-            b64decode(password.get_secret_value())
-        )
+        transmit_password = TransmitUserPassword.FromString(password)
         password_pb_ = UserPassword.FromString(user['password_pb'])
         password_pb_schema: PasswordSchema = password_pb_.WhichOneof('schema')
 

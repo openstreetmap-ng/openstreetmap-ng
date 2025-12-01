@@ -1,8 +1,45 @@
+import { create, toBinary } from "@bufbuild/protobuf"
 import { mount } from "../lib/mount"
+import { PasskeyAssertionSchema } from "../lib/proto/shared_pb"
 import { qsParse } from "../lib/qs"
 import { configureStandardForm } from "../lib/standard-form"
+import { buildCredentialDescriptors, fetchPasskeyChallenge } from "../lib/webauthn"
 
-type LoginState = "login" | "totp" | "recovery"
+type LoginState = "login" | "passkey" | "totp" | "recovery"
+
+/** Performs WebAuthn authentication flow, returning assertion blob or error string. */
+const performWebAuthn = async (
+    formData?: FormData,
+    userVerification: UserVerificationRequirement = "required",
+): Promise<Blob | string> => {
+    const challenge = await fetchPasskeyChallenge(formData)
+    if (typeof challenge === "string") return challenge
+
+    // Get credential from authenticator
+    let credential: PublicKeyCredential | null = null
+    try {
+        credential = (await navigator.credentials.get({
+            publicKey: {
+                challenge: challenge.challenge as BufferSource,
+                userVerification,
+                allowCredentials: buildCredentialDescriptors(challenge.credentials),
+            },
+        })) as PublicKeyCredential | null
+    } catch (e) {
+        console.warn("WebAuthn:", e)
+    }
+    if (!credential) return ""
+
+    // Build assertion blob
+    const response = credential.response as AuthenticatorAssertionResponse
+    const assertion = create(PasskeyAssertionSchema, {
+        credentialId: new Uint8Array(credential.rawId),
+        clientDataJson: new Uint8Array(response.clientDataJSON),
+        authenticatorData: new Uint8Array(response.authenticatorData),
+        signature: new Uint8Array(response.signature),
+    })
+    return new Blob([toBinary(PasskeyAssertionSchema, assertion)])
+}
 
 const loginForm = document.querySelector("form.login-form")
 if (loginForm) {
@@ -15,10 +52,32 @@ if (loginForm) {
     const totpDigitInputs = loginForm.querySelectorAll("input.totp-digit")
     const totpCodeInput = loginForm.querySelector("input[name=totp_code]")
     const recoveryCodeInput = loginForm.querySelector("input[name=recovery_code]")
-    const cancelBtn = loginForm.querySelector(".cancel-auth-btn")
+    const cancelBtns = loginForm.querySelectorAll(".cancel-auth-btn")
     const toggleRecoveryBtn = loginForm.querySelector(".toggle-recovery-btn")
     const toggleTotpBtn = loginForm.querySelector(".toggle-totp-btn")
     const totpInputRegex = /^\d$/
+    const displayNameInput = loginForm.querySelector(
+        "input[name=display_name_or_email]",
+    )
+    const passwordInput = loginForm.querySelector("input[data-name=password]")
+    const rememberInput = loginForm.querySelector("input[name=remember]")
+    const passkeyBtn = document.querySelector(".passkey-btn")
+    const retryPasskeyBtn = loginForm.querySelector(".retry-passkey-btn")
+    const useTotpBtn = loginForm.querySelector(".use-totp-btn")
+    const useRecoveryBtn = loginForm.querySelector(".use-recovery-btn")
+
+    let passwordless = false
+    let passkeyHasTotpFallback = false
+    let submittedFormData: FormData | null = null
+
+    const navigateOnSuccess = (): void => {
+        console.debug("onLoginSuccess", referrer)
+        if (referrer !== defaultReferrer) {
+            window.location.href = `${window.location.origin}${referrer}`
+        } else {
+            window.location.reload()
+        }
+    }
 
     // Set the login form state and focus the appropriate input.
     const setState = (state: LoginState): void => {
@@ -37,7 +96,8 @@ if (loginForm) {
     }
 
     // State transition handlers
-    cancelBtn.addEventListener("click", () => setState("login"))
+    for (const cancelBtn of cancelBtns)
+        cancelBtn.addEventListener("click", () => setState("login"))
     toggleRecoveryBtn.addEventListener("click", () => setState("recovery"))
     toggleTotpBtn.addEventListener("click", () => setState("totp"))
 
@@ -117,27 +177,76 @@ if (loginForm) {
         })
     })
 
-    // Configure login form
+    /** Starts the passkey 2FA flow after password validation. */
+    const startPasskey2FA = async () => {
+        const result = await performWebAuthn(submittedFormData, "discouraged")
+        if (typeof result === "string") {
+            setState("passkey")
+            return
+        }
+        submittedFormData.set("passkey", result)
+        const resp = await fetch(loginForm.action, {
+            method: "POST",
+            body: submittedFormData,
+        })
+        if (!resp.ok) {
+            setState("passkey")
+            return
+        }
+        navigateOnSuccess()
+    }
+
+    // Configure login form with unified passkey/password flow
     configureStandardForm(
         loginForm,
         (data) => {
+            if (data.passkey_required) {
+                console.info("onLoginFormPasskeyRequired", data)
+                passkeyHasTotpFallback = data.has_totp
+                useTotpBtn.classList.toggle("d-none", !passkeyHasTotpFallback)
+                startPasskey2FA()
+                return
+            }
             if (data.totp_required) {
                 console.info("onLoginFormTOTPRequired")
                 setState("totp")
                 return
             }
-
-            console.debug("onLoginFormSuccess", referrer)
-            if (referrer !== defaultReferrer) {
-                window.location.href = `${window.location.origin}${referrer}`
-            } else {
-                window.location.reload()
-            }
+            navigateOnSuccess()
         },
         {
             removeEmptyFields: true,
+            validationCallback: async (formData) => {
+                submittedFormData = formData
+                if (passwordless) {
+                    passwordless = false
+                    displayNameInput.required = true
+                    passwordInput.required = true
+
+                    const result = await performWebAuthn(formData)
+                    if (typeof result === "string") {
+                        setState("login")
+                        return result
+                    }
+                    formData.set("passkey", result)
+                }
+                return null
+            },
         },
     )
+
+    // Passkey button triggers form submit with passkey auth method (Mode 1)
+    passkeyBtn.addEventListener("click", () => {
+        passwordless = true
+        displayNameInput.required = false
+        passwordInput.required = false
+        loginForm.requestSubmit()
+    })
+
+    // Fallback button handlers (Mode 2)
+    retryPasskeyBtn.addEventListener("click", startPasskey2FA)
+    useTotpBtn.addEventListener("click", () => setState("totp"))
+    useRecoveryBtn.addEventListener("click", () => setState("recovery"))
 
     // Propagate referer to auth providers forms
     const authProvidersForms = document.querySelectorAll(".auth-providers form")
@@ -151,15 +260,9 @@ if (loginForm) {
         const dataset = (target as HTMLButtonElement).dataset
         console.debug("onAutofillButtonClick", dataset)
 
-        const loginInput = loginForm.querySelector("input[name=display_name_or_email]")
-        loginInput.value = dataset.login
-
-        const passwordInput = loginForm.querySelector("input[data-name=password]")
+        displayNameInput.value = dataset.login
         passwordInput.value = dataset.password
-
-        const rememberInput = loginForm.querySelector("input[name=remember]")
         rememberInput.checked = true
-
         loginForm.requestSubmit()
     }
 

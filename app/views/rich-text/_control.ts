@@ -36,8 +36,6 @@ for (const container of richTextContainers) {
             fetch("/api/web/rich-text", {
                 method: "POST",
                 body: formData,
-                mode: "same-origin",
-                cache: "no-store",
                 signal: abortController.signal,
                 priority: "high",
             })

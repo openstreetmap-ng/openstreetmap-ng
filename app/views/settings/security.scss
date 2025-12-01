@@ -43,6 +43,17 @@
         }
     }
 
+    .passkey-entry {
+        margin: 0.5rem 0;
+
+        &:first-child {
+            margin-top: 0;
+        }
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
     .qr-code-container > svg {
         @extend .rounded;
     }

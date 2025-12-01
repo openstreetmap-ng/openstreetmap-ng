@@ -655,9 +655,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         const signal = abortController.signal
 
         fetch(`/api/web/changeset/map?${qsEncode(params)}`, {
-            method: "GET",
-            mode: "same-origin",
-            cache: "no-store", // request params are too volatile to cache
             signal: signal,
             priority: "high",
         })

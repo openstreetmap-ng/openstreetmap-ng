@@ -58,11 +58,13 @@ static-precompress    # Produce .zst/.br for large static assets
 
 ## Backend Conventions
 
-- Layering: controller → service → query. Controllers validate and orchestrate; services mutate; queries are side‑effect‑free.
+- Layering: controller → service → query. Controllers validate and orchestrate; services mutate; queries are side‑effect‑free. Read‑only lookup methods (even complex ones combining multiple conditions) belong in queries, not services.
 - Database access: always use `app/db.py:db(write=False|True, ...)`. Default cursors are binary; use `conn.cursor(row_factory=dict_row)` for dict rows. Direct database access via `psql "$POSTGRES_URL"` is available for investigation and debugging.
 - SQL safety: never build SQL with f‑strings/concat. Use `psycopg.sql.SQL`/`Identifier` for dynamic pieces and pass parameters (`%s`/`%(name)s`). Examples: `app/services/note_service.py`, `app/queries/note_comment_query.py`.
-- Domain errors: use `app/lib/exceptions_context.raise_for` for business/domain failures (not found, insufficient scopes, etc.). These are localized and map to consistent HTTP semantics.
-- Form feedback: return OpenAPI‑compatible `detail` using `StandardFeedback` (see Standard Components). StandardForm consumes this shape for field/tooltips and form‑level alerts.
+- Form feedback: return OpenAPI‑compatible `detail` using `StandardFeedback` (see Standard Components). StandardForm consumes this shape for field tooltips and form‑level alerts. Use `StandardFeedback.raise_error(field, message)` for validation failures.
+- Errors:
+  - `raise_for` (`app/lib/exceptions_context`): business/domain failures (not found, insufficient scopes). Often localized, maps to HTTP semantics.
+  - `HTTPException(status.HTTP_4XX, 'message')`: low‑level/technical errors not worth localizing (e.g., malformed cryptographic data).
 - Translation (server): work inside `translation_context(...)` (middleware sets this) and call `t()/nt()` from `app/lib/translation.py`.
 - Rendering: use `app/lib/render_response.py` to return HTML; it applies standard layout, config, and localization so the frontend can just call i18next.
 - Jinja loader: `render_jinja`/`include` auto‑append `.html.jinja`. Refer to templates without the suffix (e.g., `extends '_base'`).

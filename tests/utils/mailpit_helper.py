@@ -60,8 +60,8 @@ class MailpitMessage(TypedDict):
     To: list[MailpitAddress]
 
 
-_API_URL = 'http://127.0.0.1:49566/api'
-_API_WS_URL = 'ws://127.0.0.1:49566/api/events'
+_API_URL = 'http://localhost:49566/api'
+_API_WS_URL = 'ws://localhost:49566/api/events'
 
 
 class MailpitHelper:

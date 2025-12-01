@@ -18,6 +18,7 @@ from app.lib.user_name_blacklist import is_user_name_blacklisted
 from app.models.db.element import Element
 from app.models.db.user import User, UserDisplay, UserRole
 from app.models.types import ApplicationId, ChangesetId, DisplayName, Email, UserId
+from app.validators.email import validate_email
 
 _USER_DISPLAY_SELECT = SQL(',').join([
     Identifier(k) for k in UserDisplay.__annotations__
@@ -69,6 +70,20 @@ class UserQuery:
             ) as r,
         ):
             return await r.fetchone()  # type: ignore
+
+    @staticmethod
+    async def find_by_display_name_or_email(
+        display_name_or_email: DisplayName | Email,
+    ) -> User | None:
+        """Find a user by display name or email."""
+        # (dot) indicates email format, display_name blacklists it
+        if '.' in display_name_or_email:
+            try:
+                email = validate_email(display_name_or_email)
+            except ValueError:
+                return None
+            return await UserQuery.find_by_email(email)
+        return await UserQuery.find_by_display_name(DisplayName(display_name_or_email))
 
     @staticmethod
     async def find_by_ids(user_ids: list[UserId]) -> list[User]:

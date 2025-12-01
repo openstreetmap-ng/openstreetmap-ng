@@ -11,7 +11,7 @@ from app.utils import HTTP
 
 router = APIRouter(prefix='/oauth2/facebook')
 
-_REDIRECT_URI = f'{APP_URL.replace("127.0.0.1", "localhost")}/oauth2/facebook/callback'
+_REDIRECT_URI = f'{APP_URL}/oauth2/facebook/callback'
 
 
 @router.post('/authorize')

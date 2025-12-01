@@ -29,7 +29,7 @@ mount("settings-body", (body) => {
             window.location.reload()
         },
         {
-            clientValidationCallback: () => {
+            validationCallback: () => {
                 const result: APIDetail[] = []
 
                 const displayNameChars = new Set(displayNameInput.value)

@@ -517,8 +517,8 @@ async def _delete_stale_unauthorized_tokens() -> None:
             """
             DELETE FROM oauth2_token
             WHERE authorized_at IS NULL
-            AND application_id != %s
-            AND created_at < statement_timestamp() - %s
+              AND application_id != %s
+              AND created_at < statement_timestamp() - %s
             """,
             (
                 SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID],

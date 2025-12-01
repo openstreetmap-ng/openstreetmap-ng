@@ -9,6 +9,7 @@ from starlette.responses import RedirectResponse
 from app.config import (
     ACTIVE_SESSIONS_DISPLAY_LIMIT,
     EMAIL_MIN_LENGTH,
+    PASSKEY_LIMIT,
     PASSWORD_MIN_LENGTH,
     URLSAFE_BLACKLIST,
 )
@@ -18,6 +19,7 @@ from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
+from app.queries.user_passkey_query import UserPasskeyQuery
 from app.queries.user_recovery_code_query import UserRecoveryCodeQuery
 from app.queries.user_totp_query import UserTOTPQuery
 from app.services.auth_service import AuthService
@@ -47,6 +49,7 @@ async def settings_email(_: Annotated[User, web_user()]):
 @router.get('/settings/security')
 async def settings_security(user: Annotated[User, web_user()]):
     async with TaskGroup() as tg:
+        passkeys_t = tg.create_task(UserPasskeyQuery.find_all_by_user_id(user['id']))
         totp_t = tg.create_task(UserTOTPQuery.find_one_by_user_id(user['id']))
         recovery_codes_status_t = tg.create_task(
             UserRecoveryCodeQuery.get_status(user['id'])
@@ -65,6 +68,8 @@ async def settings_security(user: Annotated[User, web_user()]):
     return await render_response(
         'settings/security',
         {
+            'passkeys': passkeys_t.result(),
+            'PASSKEY_LIMIT': PASSKEY_LIMIT,
             'totp_created_at': totp['created_at'] if totp is not None else None,
             'recovery_codes_status': recovery_codes_status_t.result(),
             'current_session_id': current_t.result()['id'],  # type: ignore

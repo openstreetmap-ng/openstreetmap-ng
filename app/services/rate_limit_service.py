@@ -152,6 +152,5 @@ async def _delete_expired() -> None:
             """,
             (_DEFAULT_QUOTA_WINDOW,),
         )
-
         if result.rowcount:
             logging.debug('Deleted %d expired rate limit entries', result.rowcount)

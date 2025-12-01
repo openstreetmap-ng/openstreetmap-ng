@@ -1,14 +1,14 @@
 from typing import Annotated, NewType
 
 from annotated_types import Interval
-from pydantic import SecretStr
 
 Email = NewType('Email', str)
 DisplayName = NewType('DisplayName', str)
 
 ClientId = NewType('ClientId', str)
 LocaleCode = NewType('LocaleCode', str)
-Password = NewType('Password', SecretStr)
+# TODO: switch to SecretBytes after https://github.com/fastapi/fastapi/pull/14427
+Password = bytes
 StorageKey = NewType('StorageKey', str)
 
 Longitude = Annotated[float, Interval(ge=-180, le=180)]

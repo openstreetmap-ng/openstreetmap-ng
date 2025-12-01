@@ -23,7 +23,7 @@ async def test_totp_flow():
     assert user is not None
     user_id = user['id']
 
-    password = Password(SecretStr('anything'))
+    password = Password(b'anything')
     secret_str = 'JBSWY3DPEHPK3PXP'
     secret = SecretStr(secret_str)
 

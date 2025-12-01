@@ -1,23 +1,29 @@
+from asyncio import TaskGroup
 from typing import Annotated
 
 import orjson
-from fastapi import APIRouter, Cookie, Form, Query, Response
+from fastapi import APIRouter, Cookie, File, Form, Query, Response
 from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import COOKIE_AUTH_MAX_AGE, ENV, TIMEZONE_MAX_LENGTH
 from app.lib.auth_context import auth_user, web_user
+from app.lib.password_hash import PasswordHash
 from app.lib.referrer import redirect_referrer
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
+from app.models.proto.shared_pb2 import PasskeyChallenge
 from app.models.types import Email, Password
+from app.queries.user_query import UserQuery
 from app.services.auth_provider_service import AuthProviderService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
+from app.services.user_passkey_challenge_service import UserPasskeyChallengeService
+from app.services.user_passkey_service import UserPasskeyService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_email_service import UserTokenEmailService
@@ -31,27 +37,30 @@ router = APIRouter(prefix='/api/web/user')
 @router.post('/login')
 async def login(
     display_name_or_email: Annotated[
-        DisplayNameNormalizing | Email, Form(min_length=1)
-    ],
-    password: Annotated[Password, Form()],
+        DisplayNameNormalizing | Email | None, Form(min_length=1)
+    ] = None,
+    password: Annotated[Password | None, File()] = None,
+    passkey: Annotated[bytes | None, File()] = None,
     totp_code: Annotated[str | None, Form(pattern=r'^\d{6}$')] = None,
     recovery_code: Annotated[str | None, Form()] = None,
     remember: Annotated[bool, Form()] = False,
 ):
-    access_token = await UserService.login(
+    result = await UserService.login(
         display_name_or_email=display_name_or_email,
         password=password,
+        passkey=passkey,
         totp_code=totp_code,
         recovery_code=recovery_code,
     )
 
-    if access_token == 'totp_required':
-        return {'totp_required': True}
+    # 2FA required
+    if isinstance(result, dict):
+        return result
 
     response = Response(None, status.HTTP_204_NO_CONTENT)
     response.set_cookie(
         key='auth',
-        value=access_token.get_secret_value(),
+        value=result.get_secret_value(),
         max_age=int(COOKIE_AUTH_MAX_AGE.total_seconds()) if remember else None,
         secure=ENV != 'dev',
         httponly=True,
@@ -75,7 +84,7 @@ async def logout(
 async def signup(
     display_name: Annotated[DisplayNameValidating, Form()],
     email: Annotated[EmailValidating, Form()],
-    password: Annotated[Password, Form()],
+    password: Annotated[Password, File()],
     tracking: Annotated[bool, Form()] = False,
     auth_provider_verification: Annotated[str | None, Cookie()] = None,
 ):
@@ -168,7 +177,7 @@ async def reset_password(
 @router.post('/reset-password/token')
 async def reset_password_token(
     token: Annotated[SecretStr, Form()],
-    new_password: Annotated[Password, Form()],
+    new_password: Annotated[Password, File()],
 ):
     revoke_other_sessions = auth_user() is None
 
@@ -195,3 +204,37 @@ async def update_timezone(
 ):
     await UserService.update_timezone(timezone)
     return Response(None, status.HTTP_204_NO_CONTENT)
+
+
+@router.post('/login/passkey/challenge')
+async def passkey_challenge(
+    display_name_or_email: Annotated[
+        DisplayNameNormalizing | Email | None, Form(min_length=1)
+    ] = None,
+    password: Annotated[Password | None, File()] = None,
+):
+    user = auth_user()
+
+    if user is None and display_name_or_email is not None and password is not None:
+        user = await UserQuery.find_by_display_name_or_email(display_name_or_email)
+        if user is not None and not PasswordHash.verify(user, password).success:
+            user = None
+
+    async with TaskGroup() as tg:
+        challenge_t = tg.create_task(UserPasskeyChallengeService.create())
+        credentials = (
+            await UserPasskeyService.get_credentials(user['id'])
+            if user is not None
+            else []
+        )
+
+    pb = PasskeyChallenge(
+        challenge=challenge_t.result(),
+        credentials=credentials,
+    )
+    if user is not None:
+        pb.user_id = user['id']
+        pb.user_display_name = user['display_name']
+        pb.user_email = user['email']
+
+    return Response(pb.SerializeToString(), media_type='application/x-protobuf')

@@ -1,5 +1,4 @@
 import pytest
-from pydantic import SecretStr
 
 from app.lib.auth_context import auth_context
 from app.lib.locale import DEFAULT_LOCALE
@@ -16,7 +15,7 @@ async def test_recovery_code_flow():
     assert user is not None
 
     user_id = user['id']
-    password = Password(SecretStr('anything'))
+    password = Password(b'anything')
 
     with translation_context(DEFAULT_LOCALE), auth_context(user):
         # Generate codes

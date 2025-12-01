@@ -208,13 +208,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
                 bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
                 limit: loadDataOverride ? "" : loadDataAlertThreshold.toString(),
             })}`,
-            {
-                method: "GET",
-                mode: "same-origin",
-                cache: "no-store", // request params are too volatile to cache
-                signal: abortController.signal,
-                priority: "high",
-            },
+            { signal: abortController.signal, priority: "high" },
         )
             .then(async (resp) => {
                 toggleLayerSpinner(layerId, false)

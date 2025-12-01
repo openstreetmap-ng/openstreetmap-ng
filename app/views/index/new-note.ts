@@ -29,7 +29,7 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
     const form = sidebar.querySelector("form")
     const lonInput = form.querySelector("input[name=lon]")
     const latInput = form.querySelector("input[name=lat]")
-    const commentInput = form.querySelector("input[name=text]")
+    const commentInput = form.querySelector("textarea[name=text]")
     const submitButton = form.querySelector("button[type=submit]")
 
     let marker: Marker | null = null

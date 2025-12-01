@@ -5,7 +5,7 @@ from app.middlewares.request_context_middleware import get_request
 
 
 class LocalhostRedirectMiddleware:
-    """Simply redirect localhost requests to 127.0.0.1 for consistency."""
+    """Simply redirect 127.0.0.1 requests to localhost for consistency."""
 
     __slots__ = ('app',)
 
@@ -17,8 +17,8 @@ class LocalhostRedirectMiddleware:
             return await self.app(scope, receive, send)
 
         req = get_request()
-        if req.url.hostname == 'localhost':
-            return await RedirectResponse(req.url.replace(hostname='127.0.0.1'))(
+        if req.url.hostname == '127.0.0.1':
+            return await RedirectResponse(req.url.replace(hostname='localhost'))(
                 scope, receive, send
             )
 

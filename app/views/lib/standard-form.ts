@@ -1,9 +1,9 @@
 import { Alert } from "bootstrap"
 import i18next from "i18next"
 import {
+    appendPasswordsToFormData,
     configurePasswordsForm,
     handlePasswordSchemaFeedback,
-    updatePasswordsFormHashes,
 } from "./password-hash"
 
 export interface APIDetail {
@@ -24,8 +24,8 @@ export const configureStandardForm = (
         formAppend?: boolean
         abortSignal?: boolean
         removeEmptyFields?: boolean
-        clientValidationCallback?: (
-            form: HTMLFormElement,
+        validationCallback?: (
+            formData: FormData,
         ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null
         errorCallback?: (error: Error) => void
     },
@@ -129,6 +129,8 @@ export const configureStandardForm = (
         message: string,
         after?: HTMLElement,
     ): void => {
+        if (!message) return
+
         let feedback = form.querySelector(".form-feedback")
         let feedbackAlert: Alert | null = null
 
@@ -246,7 +248,7 @@ export const configureStandardForm = (
                     ) {
                         handleFormFeedback(type, msg)
                     } else if (input.type === "hidden") {
-                        if (passwordInputs && input.name === "password_schema") {
+                        if (passwordInputs.length && input.name === "password_schema") {
                             if (handlePasswordSchemaFeedback(form, msg)) {
                                 setPendingState(false)
                                 form.requestSubmit()
@@ -291,25 +293,10 @@ export const configureStandardForm = (
         }
 
         setPendingState(true)
+        const formData = new FormData(form)
 
-        if (options?.clientValidationCallback) {
-            let clientValidationResult = options.clientValidationCallback(form)
-            if (clientValidationResult instanceof Promise) {
-                clientValidationResult = await clientValidationResult
-            }
-            if (
-                clientValidationResult &&
-                (!Array.isArray(clientValidationResult) ||
-                    clientValidationResult.length > 0)
-            ) {
-                console.debug("Client validation failed")
-                processFormFeedback(clientValidationResult)
-                setPendingState(false)
-                return
-            }
-        }
-
-        if (passwordInputs.length) await updatePasswordsFormHashes(form, passwordInputs)
+        if (passwordInputs.length)
+            await appendPasswordsToFormData(form, formData, passwordInputs)
 
         formAction = form.getAttribute("action") ?? ""
         const method = form.method.toUpperCase()
@@ -318,18 +305,21 @@ export const configureStandardForm = (
 
         if (method === "POST") {
             url = formAction
-            body = new FormData(form)
+            body = formData
             if (options?.removeEmptyFields) {
-                const newBody = new FormData()
+                const keysToDelete: string[] = []
                 for (const [key, value] of body.entries()) {
-                    if (typeof value === "string" && !value) continue
-                    newBody.append(key, value)
+                    if (typeof value === "string" && !value) {
+                        keysToDelete.push(key)
+                    }
                 }
-                body = newBody
+                for (const key of keysToDelete) {
+                    body.delete(key)
+                }
             }
         } else if (method === "GET") {
             const params = new URLSearchParams()
-            for (const [key, value] of new FormData(form).entries()) {
+            for (const [key, value] of formData.entries()) {
                 const valueString = value.toString()
                 if (options?.removeEmptyFields && !valueString) continue
                 params.append(key, valueString)
@@ -339,11 +329,25 @@ export const configureStandardForm = (
             throw new Error(`Unsupported standard form method ${method}`)
         }
 
+        if (options?.validationCallback) {
+            let result = options.validationCallback(formData)
+            if (result instanceof Promise) {
+                result = await result
+            }
+            if (
+                typeof result === "string" ||
+                (Array.isArray(result) && result.length > 0)
+            ) {
+                console.debug("Client validation failed")
+                processFormFeedback(result)
+                setPendingState(false)
+                return
+            }
+        }
+
         fetch(url, {
             method,
             body,
-            mode: "same-origin",
-            cache: "no-store",
             signal: abortController?.signal,
             priority: "high",
         })

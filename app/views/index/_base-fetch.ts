@@ -89,9 +89,6 @@ export const getBaseFetchController = (
             onSidebarLoading()
 
             fetch(url, {
-                method: "GET",
-                mode: "same-origin",
-                cache: "no-store", // request params are too volatile to cache
                 signal: abortController.signal,
                 priority: "high",
             })

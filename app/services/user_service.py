@@ -1,6 +1,7 @@
 import logging
+from asyncio import TaskGroup
 from collections.abc import Awaitable, Callable
-from typing import Any, Literal
+from typing import Any
 
 from fastapi import UploadFile
 from psycopg import AsyncConnection
@@ -19,7 +20,9 @@ from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import Editor, User, UserRole, user_avatar_url, user_is_test
+from app.models.proto.shared_pb2 import PasskeyAssertion
 from app.models.types import DisplayName, Email, LocaleCode, Password, UserId
+from app.queries.user_passkey_query import UserPasskeyQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_token_query import UserTokenQuery
 from app.queries.user_totp_query import UserTOTPQuery
@@ -27,78 +30,63 @@ from app.services.audit_service import audit
 from app.services.image_service import ImageService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
+from app.services.user_passkey_service import UserPasskeyService
 from app.services.user_recovery_code_service import UserRecoveryCodeService
 from app.services.user_token_email_service import UserTokenEmailService
 from app.services.user_token_service import UserTokenService
 from app.services.user_totp_service import UserTOTPService
-from app.validators.email import validate_email, validate_email_deliverability
+from app.validators.email import validate_email_deliverability
 
 
 class UserService:
     @staticmethod
     async def login(
         *,
-        display_name_or_email: DisplayName | Email,
-        password: Password,
+        display_name_or_email: DisplayName | Email | None,
+        password: Password | None,
+        passkey: bytes | None,
         totp_code: str | None,
         recovery_code: str | None,
-    ) -> SecretStr | Literal['totp_required']:
-        """Attempt to login as a user. Returns (user_id, access_token)."""
-        # TODO: normalize unicode & strip
-        # (dot) indicates email format, display_name blacklists it
-        if '.' in display_name_or_email:
-            try:
-                email = validate_email(display_name_or_email)
-            except ValueError:
-                user = None
-            else:
-                user = await UserQuery.find_by_email(email)
+    ) -> SecretStr | dict[str, Any]:
+        """Attempt to login as a user. Returns access_token or 2FA requirement dict."""
+        if passkey is not None:
+            # Mode 1 (passwordless): No credentials → require UV (PIN/biometric)
+            # Mode 2 (2FA): Credentials provided → password already verified identity
+            is_passwordless = display_name_or_email is None
+            user_id = await _login_with_passkey(passkey, require_uv=is_passwordless)
         else:
-            display_name = DisplayName(display_name_or_email)
-            user = await UserQuery.find_by_display_name(display_name)
-
-        if user is None:
-            logging.debug('User not found %r', display_name_or_email)
-            StandardFeedback.raise_error(
-                None, t('users.auth_failure.invalid_credentials')
-            )
-
-        user_id = user['id']
-        await UserService.verify_user_password(
-            user,
-            password,
-            field_name=None,
-            error_message=t('users.auth_failure.invalid_credentials'),
-            audit_failure='password',
-        )
-
-        # Verify TOTP
-        totp = await UserTOTPQuery.find_one_by_user_id(user_id)
-        if totp is not None:
-            if totp_code is None and recovery_code is None:
-                return 'totp_required'
-
-            if recovery_code is not None:
-                if not await UserRecoveryCodeService.verify_recovery_code(
-                    user_id, recovery_code
-                ):
-                    StandardFeedback.raise_error(
-                        'recovery_code',
-                        t('two_fa.invalid_or_expired_authentication_code'),
-                    )
-
-            elif not await UserTOTPService.verify_totp(user_id, totp_code):  # type: ignore
+            if display_name_or_email is None or password is None:
                 StandardFeedback.raise_error(
-                    'totp_code', t('two_fa.invalid_or_expired_authentication_code')
+                    None, t('users.auth_failure.invalid_credentials')
                 )
+            result = await _login_with_password(
+                display_name_or_email,
+                password,
+                totp_code=totp_code,
+                recovery_code=recovery_code,
+            )
+            if isinstance(result, dict):
+                return result
+            user_id = result
 
         access_token = await SystemAppService.create_access_token(
             SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
         )
+
+        extra: dict[str, Any] = {'login': True}
+        if passkey is not None:
+            extra['2fa'] = 'passkey'
+        elif recovery_code is not None:
+            extra['2fa'] = 'recovery'
+        elif totp_code is not None:
+            extra['2fa'] = 'totp'
+        if display_name_or_email is None:
+            extra['passwordless'] = True
+
         await audit(
             'auth_web',
             user_id=user_id,
-            extra={'login': True},
+            extra=extra,
             sample_rate=1,
             discard_repeated=None,
         )
@@ -572,6 +560,79 @@ class UserService:
                     await UserTokenService.delete_all_for_user(conn, user_id)
             for op in audits:
                 await op(conn)
+
+
+async def _login_with_passkey(passkey: bytes, *, require_uv: bool) -> UserId:
+    """Authenticate via passkey."""
+    assertion = PasskeyAssertion.FromString(passkey)
+    user_id = await UserPasskeyService.verify_passkey(assertion, require_uv=require_uv)
+    if user_id is None:
+        StandardFeedback.raise_error(None, t('users.auth_failure.invalid_credentials'))
+    return user_id
+
+
+async def _login_with_password(
+    display_name_or_email: DisplayName | Email,
+    password: Password,
+    *,
+    totp_code: str | None,
+    recovery_code: str | None,
+) -> UserId | dict[str, Any]:
+    """
+    Authenticate via password with 2FA handling.
+
+    Returns user_id if authentication succeeds.
+    Returns dict if additional 2FA step required.
+    """
+    user = await UserQuery.find_by_display_name_or_email(display_name_or_email)
+    if user is None:
+        logging.debug('User not found %r', display_name_or_email)
+        StandardFeedback.raise_error(None, t('users.auth_failure.invalid_credentials'))
+
+    await UserService.verify_user_password(
+        user,
+        password,
+        field_name=None,
+        error_message=t('users.auth_failure.invalid_credentials'),
+        audit_failure='password',
+    )
+
+    user_id = user['id']
+
+    # Check recovery code bypasses all 2FA
+    if recovery_code is not None:
+        if not await UserRecoveryCodeService.verify_recovery_code(
+            user_id, recovery_code
+        ):
+            StandardFeedback.raise_error(
+                'recovery_code',
+                t('two_fa.invalid_or_expired_authentication_code'),
+            )
+        return user_id
+
+    # Either passkey or TOTP is required
+    # When both are configured, prefer passkey
+    async with TaskGroup() as tg:
+        has_passkey_t = tg.create_task(UserPasskeyQuery.check_any_by_user_id(user_id))
+        has_totp = (await UserTOTPQuery.find_one_by_user_id(user_id)) is not None
+
+        if has_totp and totp_code is not None:
+            has_passkey_t.cancel()
+            if not await UserTOTPService.verify_totp(user_id, totp_code):
+                StandardFeedback.raise_error(
+                    'totp_code',
+                    t('two_fa.invalid_or_expired_authentication_code'),
+                )
+            return user_id
+
+    if has_passkey_t.result():
+        logging.debug('2FA required for user %d: passkey', user_id)
+        return {'passkey_required': True, 'has_totp': has_totp}
+    if has_totp:
+        logging.debug('2FA required for user %d: totp', user_id)
+        return {'totp_required': True}
+
+    return user_id
 
 
 async def _rehash_user_password(user: User, password: Password) -> None:

@@ -16,10 +16,8 @@ const loadSystemApp = (
     }
 
     fetch(`${config.apiUrl}/api/0.6/user/details`, {
-        method: "GET",
         credentials: "omit",
         headers: { authorization: `Bearer ${accessToken}` },
-        cache: "no-store",
         priority: "high",
     })
         .then((resp) => {
@@ -45,8 +43,6 @@ const createAccessToken = (
     fetch("/api/web/system-app/create-access-token", {
         method: "POST",
         body: formData,
-        mode: "same-origin",
-        cache: "no-store",
         priority: "high",
     })
         .then(async (resp) => {

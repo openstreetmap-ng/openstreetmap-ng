@@ -112,9 +112,6 @@ export const configureStandardPagination = (
         setPendingState(true)
 
         fetch(url, {
-            method: "GET",
-            mode: "same-origin",
-            cache: "no-store",
             signal: abortController.signal,
             priority: "high",
         })

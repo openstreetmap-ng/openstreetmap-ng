@@ -173,6 +173,25 @@ CREATE TABLE connected_account (
 
 CREATE UNIQUE INDEX connected_account_provider_uid_idx ON connected_account (provider, uid);
 
+CREATE TABLE user_passkey (
+    credential_id bytea NOT NULL PRIMARY KEY,
+    user_id bigint NOT NULL REFERENCES "user" ON DELETE CASCADE,
+    name text NOT NULL,
+    algorithm smallint NOT NULL,
+    public_key bytea NOT NULL,
+    sign_count bigint NOT NULL DEFAULT 0,
+    transports TEXT[] NOT NULL DEFAULT '{}',
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    last_used_at timestamptz NOT NULL DEFAULT statement_timestamp()
+);
+
+CREATE INDEX user_passkey_user_id_idx ON user_passkey (user_id, created_at);
+
+CREATE UNLOGGED TABLE user_passkey_challenge (
+    challenge bytea PRIMARY KEY,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp()
+);
+
 CREATE TABLE user_totp (
     user_id bigint PRIMARY KEY REFERENCES "user" ON DELETE CASCADE,
     secret_encrypted bytea NOT NULL,
@@ -263,6 +282,7 @@ WHERE
 
 CREATE TYPE audit_type AS enum(
     'add_connected_account',
+    'add_passkey',
     'add_totp',
     'admin_task',
     'auth_api',
@@ -293,6 +313,7 @@ CREATE TYPE audit_type AS enum(
     'nsfw_image',
     'rate_limit',
     'remove_connected_account',
+    'remove_passkey',
     'remove_totp',
     'request_change_email',
     'request_reset_password',

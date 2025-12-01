@@ -1,0 +1,24 @@
+<div class="modal fade" id="addPasskeyModal" tabindex="-1" aria-labelledby="addPasskeyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPasskeyModalLabel">{{ t('two_fa.configure_passkey') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="{{ t('javascripts.close') }}"></button>
+            </div>
+            <form method="POST" action="/api/web/settings/passkey/register">
+                <div class="modal-body">
+                    <label class="form-label d-block mb-3">
+                        <span class="required">{{ t('settings.name') }}</span>
+                        <input type="text" class="form-control mt-2" name="name" autocomplete="off" required>
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">{{ t('action.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('action.submit') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

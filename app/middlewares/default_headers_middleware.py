@@ -12,16 +12,16 @@ CSP_HEADER = '; '.join(
             "default-src 'self'",
             (
                 "script-src 'self' https://matomo.monicz.dev/matomo.js"
-                + (' http://127.0.0.1:49568' if ENV == 'dev' else '')
+                + (' http://localhost:49568' if ENV == 'dev' else '')
             ),
             (
                 # vite and sentry feedbackIntegration require unsafe-inline
-                "style-src 'self' 'unsafe-inline' http://127.0.0.1:49568"
+                "style-src 'self' 'unsafe-inline' http://localhost:49568"
                 if ENV == 'dev' or (SENTRY_DSN and ENV == 'test')
                 else None
             ),
             (
-                "font-src 'self' http://127.0.0.1:49568"
+                "font-src 'self' http://localhost:49568"
                 if ENV == 'dev'  #
                 else None
             ),

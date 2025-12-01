@@ -93,7 +93,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         "img.draggable-marker[data-direction=end]",
     )
     const reverseButton = form.querySelector("button.reverse-btn")
-    const engineInput = form.querySelector("input[name=engine]")
+    const engineInput = form.querySelector("select[name=engine]")
     const bboxInput = form.querySelector("input[name=bbox]")
     const loadingContainer = sidebar.querySelector(".loading")
     const routeContainer = sidebar.querySelector(".route")
@@ -364,8 +364,8 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         },
         {
             abortSignal: true,
-            clientValidationCallback: () => {
-                // On client validation, hide previous route data
+            validationCallback: () => {
+                // Hide previous route data before submission
                 loadingContainer.classList.remove("d-none")
                 routeContainer.classList.add("d-none")
                 return null

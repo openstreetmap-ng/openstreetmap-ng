@@ -20,8 +20,6 @@ const timezoneUpdate = (): void => {
     fetch("/api/web/user/timezone", {
         method: "POST",
         body: formData,
-        mode: "same-origin",
-        cache: "no-store",
         priority: "low",
     })
         .then((resp) => {

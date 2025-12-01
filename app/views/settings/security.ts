@@ -1,9 +1,12 @@
+import { create, toBinary } from "@bufbuild/protobuf"
 import i18next from "i18next"
 import qrcode from "qrcode-generator"
 import { configureCopyGroups } from "../lib/copy-group"
 import { mount } from "../lib/mount"
+import { PasskeyRegistrationSchema } from "../lib/proto/shared_pb"
 import { qsEncode } from "../lib/qs"
 import { type APIDetail, configureStandardForm } from "../lib/standard-form"
+import { buildCredentialDescriptors, fetchPasskeyChallenge } from "../lib/webauthn"
 
 const generateTOTPSecret = (): string => {
     const buffer = new Uint8Array(16) // 128 bits
@@ -40,6 +43,7 @@ const generateTOTPQRCode = (secret: string, accountName: string): string => {
 }
 
 mount("settings-security-body", (body) => {
+    // Password change
     const passwordForm = body.querySelector("form.password-form")
     const newPasswordInput = passwordForm.querySelector(
         "input[type=password][data-name=new_password]",
@@ -56,7 +60,7 @@ mount("settings-security-body", (body) => {
             passwordForm.reset()
         },
         {
-            clientValidationCallback: () => {
+            validationCallback: () => {
                 const result: APIDetail[] = []
                 // Validate passwords equality
                 if (newPasswordInput.value !== newPasswordConfirmInput.value) {
@@ -73,12 +77,92 @@ mount("settings-security-body", (body) => {
         },
     )
 
-    const setupTOTPForm = body.querySelector("form.setup-totp-form")
-    if (setupTOTPForm) {
+    // Passkey registration
+    const addPasskeyModal = document.getElementById("addPasskeyModal")
+    if (addPasskeyModal) {
+        const addPasskeyForm = addPasskeyModal.querySelector("form")
+        const nameInput = addPasskeyForm.querySelector("input[name=name]")
+
+        addPasskeyModal.addEventListener("shown.bs.modal", () => {
+            nameInput.focus()
+        })
+
+        addPasskeyModal.addEventListener("hidden.bs.modal", () => {
+            addPasskeyForm.reset()
+        })
+
+        configureStandardForm(
+            addPasskeyForm,
+            () => {
+                console.debug("onAddPasskeyFormSuccess")
+                window.location.reload()
+            },
+            {
+                formBody: addPasskeyForm.querySelector(".modal-body"),
+                validationCallback: async (formData) => {
+                    const challenge = await fetchPasskeyChallenge()
+                    if (typeof challenge === "string") return challenge
+
+                    // Convert user ID to bytes for WebAuthn
+                    const userIdBytes = new Uint8Array(8)
+                    new DataView(userIdBytes.buffer).setBigUint64(0, challenge.userId)
+
+                    let credential: PublicKeyCredential | null = null
+                    try {
+                        credential = (await navigator.credentials.create({
+                            publicKey: {
+                                challenge: challenge.challenge as BufferSource,
+                                rp: { name: i18next.t("project_name") },
+                                user: {
+                                    id: userIdBytes,
+                                    name: challenge.userEmail,
+                                    displayName: challenge.userDisplayName,
+                                },
+                                pubKeyCredParams: [
+                                    { alg: -8, type: "public-key" }, // EdDSA
+                                    { alg: -7, type: "public-key" }, // ES256
+                                ],
+                                excludeCredentials: buildCredentialDescriptors(
+                                    challenge.credentials,
+                                ),
+                                authenticatorSelection: {
+                                    residentKey: "preferred",
+                                    userVerification: "required",
+                                },
+                            },
+                        })) as PublicKeyCredential
+                    } catch (e) {
+                        console.warn("WebAuthn:", e)
+                        return i18next.t(
+                            "two_fa.could_not_complete_passkey_registration",
+                        )
+                    }
+                    if (!credential) return ""
+
+                    const response =
+                        credential.response as AuthenticatorAttestationResponse
+                    const registration = create(PasskeyRegistrationSchema, {
+                        clientDataJson: new Uint8Array(response.clientDataJSON),
+                        attestationObject: new Uint8Array(response.attestationObject),
+                        transports: response.getTransports?.() ?? [],
+                    })
+                    formData.set(
+                        "passkey",
+                        new Blob([toBinary(PasskeyRegistrationSchema, registration)]),
+                    )
+                    return null
+                },
+            },
+        )
+    }
+
+    // Authenticator app
+    const setupModal = document.getElementById("setupTotpModal")
+    if (setupModal) {
+        const setupTOTPForm = setupModal.querySelector("form")
         const secretInput = setupTOTPForm.querySelector("input[name=secret]")
         const qrContainer = setupTOTPForm.querySelector(".qr-code-container")
         const codeInput = setupTOTPForm.querySelector("input[name=totp_code]")
-        const setupModal = document.getElementById("setupTotpModal")
 
         // Select secret on click for easy copying
         secretInput.addEventListener("click", () => {
@@ -98,9 +182,8 @@ mount("settings-security-body", (body) => {
 
         // Clear sensitive data on modal close
         setupModal.addEventListener("hidden.bs.modal", () => {
-            secretInput.value = ""
+            setupTOTPForm.reset()
             qrContainer.innerHTML = ""
-            codeInput.value = ""
         })
 
         configureStandardForm(setupTOTPForm, () => {

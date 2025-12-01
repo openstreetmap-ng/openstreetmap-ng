@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Annotated, Literal
 
 import orjson
-from fastapi import APIRouter, Cookie, Form, HTTPException, Query, Response
+from fastapi import APIRouter, Cookie, File, Form, HTTPException, Query, Response
 from pydantic import PositiveInt, SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -105,7 +105,7 @@ async def update_user(
     email: Annotated[EmailValidating | None, Form()] = None,
     email_verified: Annotated[bool, Form()] = False,
     roles: Annotated[list[UserRole] | None, Form()] = None,
-    new_password: Annotated[Password | None, Form()] = None,
+    new_password: Annotated[Password | None, File()] = None,
 ):
     await UserService.admin_update_user(
         user_id=user_id,
