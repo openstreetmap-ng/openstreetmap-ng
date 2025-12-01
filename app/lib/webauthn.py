@@ -98,6 +98,7 @@ def parse_auth_data(auth_data: bytes, *, require_uv: bool = True) -> _AuthData |
     cred_id_len = int.from_bytes(
         auth_data[_AUTH_DATA_CRED_ID_LEN_OFFSET:_AUTH_DATA_CRED_ID_OFFSET]
     )
+    assert cred_id_len <= 1023
     credential_id = auth_data[
         _AUTH_DATA_CRED_ID_OFFSET : _AUTH_DATA_CRED_ID_OFFSET + cred_id_len
     ]
@@ -192,7 +193,9 @@ def _verify_signature(
         x = int.from_bytes(public_key[:32])
         y = int.from_bytes(public_key[32:])
         key = ECC.construct(curve='P-256', point_x=x, point_y=y)
-        verifier = DSS.new(key, 'fips-186-3')
+        # Detect signature format: binary (IEEE P1363) is exactly 64 bytes, DER is 70-72
+        encoding = 'binary' if len(signature) == 64 else 'der'
+        verifier = DSS.new(key, 'fips-186-3', encoding=encoding)
         msg_hash = SHA256.new(data)
         try:
             verifier.verify(msg_hash, signature)
