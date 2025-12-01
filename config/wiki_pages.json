@@ -2130,9 +2130,6 @@
       "Pl",
       "RU"
     ],
-    "uav": [
-      ""
-    ],
     "windsock": [
       "",
       "Ca",
@@ -4136,6 +4133,9 @@
       "RU",
       "Uk"
     ],
+    "mounting_block": [
+      ""
+    ],
     "mtb_school": [
       "",
       "DE"
@@ -4494,6 +4494,10 @@
       "Pl",
       "RU",
       "Uk"
+    ],
+    "produce_collection_centre": [
+      "",
+      "Pl"
     ],
     "proposed": [
       "",
@@ -5817,6 +5821,9 @@
     "land_art": [
       "",
       "RU"
+    ],
+    "living_sculpture": [
+      ""
     ],
     "mosaic": [
       "",
@@ -7648,6 +7655,11 @@
       "Uk"
     ]
   },
+  "bikini": {
+    "*": [
+      ""
+    ]
+  },
   "billiards": {
     "*": [
       ""
@@ -9232,7 +9244,8 @@
       "RU"
     ],
     "goat_shed": [
-      ""
+      "",
+      "FR"
     ],
     "government": [
       "",
@@ -10660,6 +10673,7 @@
     "*": [
       "",
       "DE",
+      "Da",
       "RU",
       "Uk"
     ]
@@ -10758,6 +10772,7 @@
   },
   "camera:*": {
     "*": [
+      "",
       "Pl"
     ]
   },
@@ -11757,6 +11772,11 @@
       "Sk"
     ]
   },
+  "closed:*": {
+    "*": [
+      ""
+    ]
+  },
   "closed:note": {
     "*": [
       "",
@@ -11774,6 +11794,12 @@
       "Pl",
       "RU",
       "Template"
+    ],
+    "babies": [
+      ""
+    ],
+    "children": [
+      ""
     ],
     "fashion": [
       "",
@@ -13149,6 +13175,11 @@
     "wine": [
       "",
       "Sk"
+    ]
+  },
+  "controlled_by": {
+    "*": [
+      ""
     ]
   },
   "converted_by": {
@@ -16057,7 +16088,6 @@
   },
   "demolished": {
     "*": [
-      "",
       "NL",
       "Sk"
     ],
@@ -16734,7 +16764,8 @@
     ],
     "forward": [
       "",
-      "DE"
+      "DE",
+      "RU"
     ]
   },
   "direction_north": {
@@ -18326,6 +18357,9 @@
       "",
       "Sk"
     ],
+    "no": [
+      ""
+    ],
     "secondary": [
       "",
       "Uk"
@@ -19681,6 +19715,7 @@
   "frontage_road": {
     "*": [
       "",
+      "El",
       "Pt"
     ]
   },
@@ -21069,6 +21104,7 @@
     ],
     "public_service": [
       "",
+      "DE",
       "RU"
     ],
     "register_office": [
@@ -22555,32 +22591,7 @@
       ""
     ]
   },
-  "hgv:parking": {
-    "*": [
-      ""
-    ]
-  },
-  "hgv:parts": {
-    "*": [
-      ""
-    ]
-  },
-  "hgv:rental": {
-    "*": [
-      ""
-    ]
-  },
   "hgv:repair": {
-    "*": [
-      ""
-    ]
-  },
-  "hgv:sales": {
-    "*": [
-      ""
-    ]
-  },
-  "hgv:tyres": {
     "*": [
       ""
     ]
@@ -25023,6 +25034,7 @@
       "DE",
       "ES",
       "FR",
+      "IT",
       "JA",
       "Pl",
       "RU",
@@ -25041,6 +25053,7 @@
       "DE",
       "ES",
       "FR",
+      "IT",
       "JA",
       "Pl",
       "RU"
@@ -25055,6 +25068,9 @@
       "JA",
       "Pl",
       "RU"
+    ],
+    "helpdesk": [
+      ""
     ],
     "map": [
       "",
@@ -25900,6 +25916,9 @@
       ""
     ],
     "dune_system": [
+      ""
+    ],
+    "esker": [
       ""
     ]
   },
@@ -29741,6 +29760,9 @@
       "Pt",
       "RU"
     ],
+    "sewer": [
+      ""
+    ],
     "telecom": [
       "",
       "JA",
@@ -30158,6 +30180,7 @@
       "DE",
       "Da",
       "ES",
+      "El",
       "FR",
       "Fi",
       "Hu",
@@ -31733,7 +31756,6 @@
     "*": [
       "Cs",
       "DE",
-      "EN",
       "FR",
       "Sq"
     ]
@@ -31771,6 +31793,7 @@
       "",
       "Cs",
       "DE",
+      "El",
       "JA",
       "Ko",
       "Pl",
@@ -31839,6 +31862,7 @@
       "",
       "Cs",
       "ES",
+      "El",
       "RU"
     ]
   },
@@ -31848,6 +31872,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fi",
       "IT",
@@ -36597,6 +36622,11 @@
       "RU"
     ]
   },
+  "nobrand": {
+    "yes": [
+      ""
+    ]
+  },
   "noexit": {
     "*": [
       "",
@@ -36683,6 +36713,11 @@
       "DE",
       "ES",
       "Uk"
+    ]
+  },
+  "not:brand": {
+    "*": [
+      ""
     ]
   },
   "not:brand:wikidata": {
@@ -37804,6 +37839,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "JA",
       "Pl",
       "RU"
@@ -38625,6 +38661,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Ko",
@@ -39277,6 +39314,9 @@
       "IT",
       "RU"
     ],
+    "link": [
+      ""
+    ],
     "mtb": [
       ""
     ],
@@ -39323,7 +39363,6 @@
     "*": [
       "Cs",
       "ES",
-      "FR",
       "JA"
     ]
   },
@@ -39332,8 +39371,14 @@
       "",
       "DE",
       "ES",
+      "FR",
       "Pl",
       "RU"
+    ]
+  },
+  "payment:*/Fuel_cards_data": {
+    "*": [
+      ""
     ]
   },
   "payment:app:android": {
@@ -40455,10 +40500,19 @@
       "Uk",
       "Zh-hant"
     ],
+    "agility_trail": [
+      ""
+    ],
+    "baby_swing": [
+      ""
+    ],
     "balancebeam": [
       "",
       "Pl",
       "RU"
+    ],
+    "basketswing": [
+      ""
     ],
     "bridge": [
       "",
@@ -40513,10 +40567,19 @@
       "Pl",
       "RU"
     ],
+    "rope_swing": [
+      ""
+    ],
+    "rotating_seesaw": [
+      ""
+    ],
     "sandpit": [
       "",
       "Pl",
       "RU"
+    ],
+    "seesaw": [
+      ""
     ],
     "sledding": [
       "",
@@ -40545,6 +40608,9 @@
       "",
       "Pl",
       "RU"
+    ],
+    "tire_swing": [
+      ""
     ],
     "trampoline": [
       "",
@@ -41832,7 +41898,8 @@
       ""
     ],
     "piston": [
-      ""
+      "",
+      "DE"
     ],
     "progressive_cavity": [
       ""
@@ -42569,7 +42636,8 @@
   },
   "railway:milestone:catenary_mast": {
     "*": [
-      ""
+      "",
+      "Cs"
     ]
   },
   "railway:platform:section": {
@@ -42649,6 +42717,11 @@
     "*": [
       "",
       "Cs"
+    ]
+  },
+  "railway:signal:combined:function": {
+    "*": [
+      ""
     ]
   },
   "railway:signal:crossing": {
@@ -42761,7 +42834,8 @@
   },
   "railway:signal:main:function": {
     "*": [
-      ""
+      "",
+      "Cs"
     ]
   },
   "railway:signal:main:height": {
@@ -42968,6 +43042,12 @@
       "Cs"
     ]
   },
+  "railway:signal:minor:function": {
+    "*": [
+      "",
+      "Cs"
+    ]
+  },
   "railway:signal:route": {
     "*": [
       "Cs"
@@ -43038,6 +43118,12 @@
     "*": [
       "",
       "DE"
+    ]
+  },
+  "railway:signal:station": {
+    "*": [
+      "",
+      "Cs"
     ]
   },
   "railway:signal_box": {
@@ -43507,6 +43593,7 @@
   },
   "ref:BY:trade_register": {
     "*": [
+      "",
       "RU"
     ]
   },
@@ -44856,11 +44943,6 @@
       ""
     ]
   },
-  "ref:ocpi": {
-    "*": [
-      ""
-    ]
-  },
   "ref:okn": {
     "*": [
       "RU"
@@ -44965,11 +45047,6 @@
     ]
   },
   "ref:sci": {
-    "*": [
-      ""
-    ]
-  },
-  "ref:se:skolverket": {
     "*": [
       ""
     ]
@@ -45234,6 +45311,12 @@
     "*": [
       "",
       "ES"
+    ]
+  },
+  "related_law:FR:NOR": {
+    "*": [
+      "",
+      "FR"
     ]
   },
   "religion": {
@@ -46216,6 +46299,7 @@
     ],
     "lecture_hall": [
       "",
+      "FR",
       "RU"
     ]
   },
@@ -46812,6 +46896,26 @@
       "Cs",
       "FR",
       "RU"
+    ]
+  },
+  "sanitary_dump_station:gravity": {
+    "*": [
+      ""
+    ]
+  },
+  "sanitary_dump_station:pump-out": {
+    "*": [
+      ""
+    ]
+  },
+  "sanitary_dump_station:round_drain": {
+    "*": [
+      ""
+    ]
+  },
+  "sanitary_dump_station:suction": {
+    "*": [
+      ""
     ]
   },
   "sauna": {
@@ -49005,6 +49109,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fi",
       "IT",
@@ -49135,7 +49240,8 @@
       "Pt"
     ],
     "slipway": [
-      ""
+      "",
+      "El"
     ],
     "spur": [
       "",
@@ -50884,6 +50990,9 @@
     "hydroponics": [
       ""
     ],
+    "hypermarket": [
+      ""
+    ],
     "ice_cream": [
       "",
       "Cs",
@@ -52151,6 +52260,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "RU"
@@ -52196,6 +52306,7 @@
   "side_road": {
     "*": [
       "",
+      "El",
       "RU"
     ]
   },
@@ -52621,6 +52732,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Hu",
       "IT",
@@ -53086,6 +53198,12 @@
   },
   "source:ele": {
     "*": [
+      ""
+    ],
+    "AMS": [
+      ""
+    ],
+    "SRTM": [
       ""
     ],
     "barometric": [
@@ -55632,6 +55750,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Pl",
@@ -56610,6 +56729,7 @@
       "",
       "Cs",
       "DE",
+      "Da",
       "ES",
       "FR",
       "JA",
@@ -57321,7 +57441,6 @@
     "yes": [
       "",
       "DE",
-      "FA",
       "FR",
       "Fa",
       "Ko"
@@ -59720,6 +59839,9 @@
       "Pl",
       "Pt",
       "RU"
+    ],
+    "0": [
+      ""
     ]
   },
   "voltage-high": {
@@ -59728,6 +59850,11 @@
     ]
   },
   "voltage-low": {
+    "*": [
+      ""
+    ]
+  },
+  "voltage:design": {
     "*": [
       ""
     ]
