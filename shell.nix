@@ -529,7 +529,7 @@ let
         fi
 
         echo "Downloading $name preload data"
-        curl -fsSL "$remote_url" -o "$local_file"
+        curl -fSL "$remote_url" -o "$local_file"
 
         # recompute checksum
         local_checksum=$(b3sum --no-names "$local_file")
