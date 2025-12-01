@@ -6,6 +6,8 @@
 
 <h3 class="mb-3">{{ t('settings.change_email') }}</h3>
 <form class="email-form" method="POST" action="/api/web/settings/email">
+    <input type="text" class="d-none" name="display_name" value="{{ user.display_name }}" autocomplete="username">
+
     <label class="form-label d-block mb-3">
         {{ t('settings.current_email_address') }}
         <input type="email" class="form-control bg-body-tertiary mt-2" value="{{ user.email }}" readonly>
