@@ -270,7 +270,7 @@ export const configureStandardForm = (
     }
 
     // On form submit, build and submit the request
-    form.addEventListener("submit", async (e): Promise<void> => {
+    form.addEventListener("submit", async (e) => {
         console.debug("configureStandardForm", "onSubmit", formAction)
         e.preventDefault()
 

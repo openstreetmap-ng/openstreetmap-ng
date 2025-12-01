@@ -1,45 +1,9 @@
-import { create, toBinary } from "@bufbuild/protobuf"
 import { mount } from "../lib/mount"
-import { PasskeyAssertionSchema } from "../lib/proto/shared_pb"
 import { qsParse } from "../lib/qs"
 import { configureStandardForm } from "../lib/standard-form"
-import { buildCredentialDescriptors, fetchPasskeyChallenge } from "../lib/webauthn"
+import { getPasskeyAssertion, startConditionalMediation } from "../lib/webauthn"
 
 type LoginState = "login" | "passkey" | "totp" | "recovery"
-
-/** Performs WebAuthn authentication flow, returning assertion blob or error string. */
-const performWebAuthn = async (
-    formData?: FormData,
-    userVerification: UserVerificationRequirement = "required",
-): Promise<Blob | string> => {
-    const challenge = await fetchPasskeyChallenge(formData)
-    if (typeof challenge === "string") return challenge
-
-    // Get credential from authenticator
-    let credential: PublicKeyCredential | null = null
-    try {
-        credential = (await navigator.credentials.get({
-            publicKey: {
-                challenge: challenge.challenge as BufferSource,
-                userVerification,
-                allowCredentials: buildCredentialDescriptors(challenge.credentials),
-            },
-        })) as PublicKeyCredential | null
-    } catch (e) {
-        console.warn("WebAuthn:", e)
-    }
-    if (!credential) return ""
-
-    // Build assertion blob
-    const response = credential.response as AuthenticatorAssertionResponse
-    const assertion = create(PasskeyAssertionSchema, {
-        credentialId: new Uint8Array(credential.rawId),
-        clientDataJson: new Uint8Array(response.clientDataJSON),
-        authenticatorData: new Uint8Array(response.authenticatorData),
-        signature: new Uint8Array(response.signature),
-    })
-    return new Blob([toBinary(PasskeyAssertionSchema, assertion)])
-}
 
 const loginForm = document.querySelector("form.login-form")
 if (loginForm) {
@@ -66,6 +30,8 @@ if (loginForm) {
     const useTotpBtn = loginForm.querySelector(".use-totp-btn")
     const useRecoveryBtn = loginForm.querySelector(".use-recovery-btn")
 
+    let conditionalMediationAbort: AbortController | null = null
+    let conditionalMediationAssertion: Blob | null = null
     let passwordless = false
     let passkeyHasTotpFallback = false
     let submittedFormData: FormData | null = null
@@ -179,7 +145,7 @@ if (loginForm) {
 
     /** Starts the passkey 2FA flow after password validation. */
     const startPasskey2FA = async () => {
-        const result = await performWebAuthn(submittedFormData, "discouraged")
+        const result = await getPasskeyAssertion(submittedFormData, "discouraged")
         if (typeof result === "string") {
             setState("passkey")
             return
@@ -217,13 +183,21 @@ if (loginForm) {
         {
             removeEmptyFields: true,
             validationCallback: async (formData) => {
+                conditionalMediationAbort?.abort()
                 submittedFormData = formData
                 if (passwordless) {
                     passwordless = false
                     displayNameInput.required = true
                     passwordInput.required = true
 
-                    const result = await performWebAuthn(formData)
+                    // Use stored conditional mediation assertion or perform WebAuthn
+                    let result: Blob | string
+                    if (conditionalMediationAssertion) {
+                        result = conditionalMediationAssertion
+                        conditionalMediationAssertion = null
+                    } else {
+                        result = await getPasskeyAssertion(formData)
+                    }
                     if (typeof result === "string") {
                         setState("login")
                         return result
@@ -247,6 +221,32 @@ if (loginForm) {
     retryPasskeyBtn.addEventListener("click", startPasskey2FA)
     useTotpBtn.addEventListener("click", () => setState("totp"))
     useRecoveryBtn.addEventListener("click", () => setState("recovery"))
+
+    // Conditional mediation: passkey autofill
+    const initConditionalMediation = async () => {
+        conditionalMediationAbort = new AbortController()
+        const assertion = await startConditionalMediation(
+            conditionalMediationAbort.signal,
+        )
+        if (!assertion) return
+        conditionalMediationAssertion = assertion
+        passwordless = true
+        displayNameInput.required = false
+        passwordInput.required = false
+        loginForm.requestSubmit()
+    }
+
+    // Start conditional mediation based on context
+    const loginModal = document.querySelector("#loginModal")
+    if (loginModal) {
+        // Modal: defer until it opens
+        loginModal.addEventListener("show.bs.modal", initConditionalMediation, {
+            once: true,
+        })
+    } else {
+        // Embedded: start shortly after
+        setTimeout(initConditionalMediation, 100)
+    }
 
     // Propagate referer to auth providers forms
     const authProvidersForms = document.querySelectorAll(".auth-providers form")

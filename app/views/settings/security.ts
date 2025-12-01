@@ -1,12 +1,10 @@
-import { create, toBinary } from "@bufbuild/protobuf"
 import i18next from "i18next"
 import qrcode from "qrcode-generator"
 import { configureCopyGroups } from "../lib/copy-group"
 import { mount } from "../lib/mount"
-import { PasskeyRegistrationSchema } from "../lib/proto/shared_pb"
 import { qsEncode } from "../lib/qs"
 import { type APIDetail, configureStandardForm } from "../lib/standard-form"
-import { buildCredentialDescriptors, fetchPasskeyChallenge } from "../lib/webauthn"
+import { getPasskeyRegistration } from "../lib/webauthn"
 
 const generateTOTPSecret = (): string => {
     const buffer = new Uint8Array(16) // 128 bits
@@ -100,56 +98,9 @@ mount("settings-security-body", (body) => {
             {
                 formBody: addPasskeyForm.querySelector(".modal-body"),
                 validationCallback: async (formData) => {
-                    const challenge = await fetchPasskeyChallenge()
-                    if (typeof challenge === "string") return challenge
-
-                    // Convert user ID to bytes for WebAuthn
-                    const userIdBytes = new Uint8Array(8)
-                    new DataView(userIdBytes.buffer).setBigUint64(0, challenge.userId)
-
-                    let credential: PublicKeyCredential | null = null
-                    try {
-                        credential = (await navigator.credentials.create({
-                            publicKey: {
-                                challenge: challenge.challenge as BufferSource,
-                                rp: { name: i18next.t("project_name") },
-                                user: {
-                                    id: userIdBytes,
-                                    name: challenge.userEmail,
-                                    displayName: challenge.userDisplayName,
-                                },
-                                pubKeyCredParams: [
-                                    { alg: -8, type: "public-key" }, // EdDSA
-                                    { alg: -7, type: "public-key" }, // ES256
-                                ],
-                                excludeCredentials: buildCredentialDescriptors(
-                                    challenge.credentials,
-                                ),
-                                authenticatorSelection: {
-                                    residentKey: "preferred",
-                                    userVerification: "required",
-                                },
-                            },
-                        })) as PublicKeyCredential
-                    } catch (e) {
-                        console.warn("WebAuthn:", e)
-                        return i18next.t(
-                            "two_fa.could_not_complete_passkey_registration",
-                        )
-                    }
-                    if (!credential) return ""
-
-                    const response =
-                        credential.response as AuthenticatorAttestationResponse
-                    const registration = create(PasskeyRegistrationSchema, {
-                        clientDataJson: new Uint8Array(response.clientDataJSON),
-                        attestationObject: new Uint8Array(response.attestationObject),
-                        transports: response.getTransports?.() ?? [],
-                    })
-                    formData.set(
-                        "passkey",
-                        new Blob([toBinary(PasskeyRegistrationSchema, registration)]),
-                    )
+                    const result = await getPasskeyRegistration()
+                    if (typeof result === "string") return result
+                    formData.set("passkey", result)
                     return null
                 },
             },
