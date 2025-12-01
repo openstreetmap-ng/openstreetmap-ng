@@ -495,6 +495,8 @@ CREATE INDEX element_spatial_staging_depth_id_idx ON element_spatial_staging (de
 WHERE
     depth > 0;
 
+CREATE UNLOGGED TABLE element_spatial_staging_batch (batch_id integer PRIMARY KEY, typed_ids BIGINT[]);
+
 CREATE UNLOGGED TABLE element_spatial_pending_rels (typed_id bigint PRIMARY KEY);
 
 CREATE TABLE element_spatial (

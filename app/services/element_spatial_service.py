@@ -326,6 +326,7 @@ async def _update(
     # Rollback unfinished work
     async with db(True) as conn:
         await conn.execute('TRUNCATE element_spatial_staging')
+        await conn.execute('TRUNCATE element_spatial_staging_batch')
         await conn.execute('TRUNCATE element_spatial_pending_rels')
 
     parallelism = calc_num_workers(parallelism if last_sequence else parallelism_init)
@@ -497,16 +498,6 @@ async def _seed_pending_relations(
                 {'depth': depth},
             )
 
-        async with await conn.execute(
-            """
-            SELECT COUNT(*)
-            FROM element_spatial_staging
-            WHERE %(depth)s = 0 OR depth = %(depth)s
-            """,
-            {'depth': depth},
-        ) as r:
-            (num_items,) = await r.fetchone()  # type: ignore
-
     semaphore = Semaphore(parallelism)
 
     async with TaskGroup() as tg:
@@ -517,18 +508,52 @@ async def _seed_pending_relations(
                 tg.create_task(_seed_from_element_batch(seq_start, seq_end, semaphore))
 
         # Ways and relations from staging
-        for offset in range(0, num_items, batch_size):
-            tg.create_task(
-                _seed_from_staging_batch(
-                    depth=depth,
-                    semaphore=semaphore,
-                    offset=offset,
-                    limit=batch_size,
-                )
-            )
+        num_batches = await _materialize_staging_batches(
+            depth=depth, batch_size=batch_size
+        )
+        for batch_id in range(num_batches):
+            tg.create_task(_seed_from_staging_batch(batch_id, semaphore))
 
     async with db(True) as conn:
         await conn.execute('ANALYZE element_spatial_pending_rels')
+
+
+async def _materialize_staging_batches(
+    *,
+    depth: int,
+    batch_size: int,
+) -> int:
+    """Materialize staging batches. Returns number of batches."""
+    async with db(True) as conn:
+        await conn.execute('TRUNCATE element_spatial_staging_batch')
+        await conn.execute(
+            """
+            WITH staging_rows AS (
+                SELECT
+                    typed_id,
+                    ROW_NUMBER() OVER (ORDER BY typed_id) AS rn
+                FROM element_spatial_staging
+                WHERE %(depth)s = 0 OR depth = %(depth)s
+            ),
+            batched AS (
+                SELECT
+                    ((rn - 1) / %(batch_size)s)::INTEGER AS batch_id,
+                    ARRAY_AGG(typed_id) AS typed_ids
+                FROM staging_rows
+                GROUP BY batch_id
+            )
+            INSERT INTO element_spatial_staging_batch (batch_id, typed_ids)
+            SELECT batch_id, typed_ids FROM batched
+            """,
+            {'depth': depth, 'batch_size': batch_size},
+        )
+        await conn.execute('ANALYZE element_spatial_staging_batch')
+
+        async with await conn.execute(
+            'SELECT COUNT(*) FROM element_spatial_staging_batch'
+        ) as r:
+            (num_batches,) = await r.fetchone()  # type: ignore
+            return num_batches
 
 
 async def _seed_from_element_batch(
@@ -555,32 +580,23 @@ async def _seed_from_element_batch(
         )
 
 
-async def _seed_from_staging_batch(
-    *,
-    depth: int,
-    semaphore: Semaphore,
-    offset: int,
-    limit: int,
-) -> None:
-    """Find relations whose members include staging ways or relations."""
+async def _seed_from_staging_batch(batch_id: int, semaphore: Semaphore) -> None:
+    """Find relations using pre-materialized batches."""
     async with semaphore, db(True) as conn:
         await conn.execute(
             """
             INSERT INTO element_spatial_pending_rels (typed_id)
             SELECT typed_id FROM element
-            WHERE members && ARRAY(
-                SELECT typed_id FROM element_spatial_staging
-                WHERE %(depth)s = 0 OR depth = %(depth)s
-                ORDER BY typed_id
-                OFFSET %(offset)s
-                LIMIT %(limit)s
-              )
+            WHERE members && (
+                SELECT typed_ids FROM element_spatial_staging_batch
+                WHERE batch_id = %(batch_id)s
+            )
               AND typed_id >= 2305843009213693952
               AND latest
               AND tags IS NOT NULL
             ON CONFLICT DO NOTHING
             """,
-            {'depth': depth, 'offset': offset, 'limit': limit},
+            {'batch_id': batch_id},
         )
 
 
@@ -636,6 +652,7 @@ async def _finalize_staging(*, max_sequence: int, last_sequence: int) -> None:
         )
 
         await conn.execute('TRUNCATE element_spatial_staging')
+        await conn.execute('TRUNCATE element_spatial_staging_batch')
         await conn.execute('TRUNCATE element_spatial_pending_rels')
 
     logging.debug('Finished updating element_spatial')
