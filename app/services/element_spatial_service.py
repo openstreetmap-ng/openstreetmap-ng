@@ -518,6 +518,30 @@ async def _seed_pending_relations(
         await conn.execute('ANALYZE element_spatial_pending_rels')
 
 
+async def _seed_from_element_batch(
+    seq_start: int, seq_end: int, semaphore: Semaphore
+) -> None:
+    """Find relations whose members include nodes from given sequence range."""
+    async with semaphore, db(True) as conn:
+        await conn.execute(
+            """
+            INSERT INTO element_spatial_pending_rels (typed_id)
+            SELECT typed_id FROM element
+            WHERE members && ARRAY(
+                SELECT typed_id FROM element
+                WHERE sequence_id BETWEEN %(seq_start)s AND %(seq_end)s
+                  AND typed_id <= 1152921504606846975
+                  AND latest
+              )
+              AND typed_id >= 2305843009213693952
+              AND latest
+              AND tags IS NOT NULL
+            ON CONFLICT DO NOTHING
+            """,
+            {'seq_start': seq_start, 'seq_end': seq_end},
+        )
+
+
 async def _materialize_staging_batches(
     *,
     depth: int,
@@ -554,30 +578,6 @@ async def _materialize_staging_batches(
         ) as r:
             (num_batches,) = await r.fetchone()  # type: ignore
             return num_batches
-
-
-async def _seed_from_element_batch(
-    seq_start: int, seq_end: int, semaphore: Semaphore
-) -> None:
-    """Find relations whose members include nodes from given sequence range."""
-    async with semaphore, db(True) as conn:
-        await conn.execute(
-            """
-            INSERT INTO element_spatial_pending_rels (typed_id)
-            SELECT typed_id FROM element
-            WHERE members && ARRAY(
-                SELECT typed_id FROM element
-                WHERE sequence_id BETWEEN %(seq_start)s AND %(seq_end)s
-                  AND typed_id <= 1152921504606846975
-                  AND latest
-              )
-              AND typed_id >= 2305843009213693952
-              AND latest
-              AND tags IS NOT NULL
-            ON CONFLICT DO NOTHING
-            """,
-            {'seq_start': seq_start, 'seq_end': seq_end},
-        )
 
 
 async def _seed_from_staging_batch(batch_id: int, semaphore: Semaphore) -> None:
