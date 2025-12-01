@@ -102,7 +102,7 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
 
         const commentForm = sidebarContent.querySelector("form.comment-form")
         if (commentForm) {
-            const commentInput = commentForm.querySelector("input[name=text]")
+            const commentInput = commentForm.querySelector("textarea[name=text]")
             const eventInput = commentForm.querySelector("input[name=event]")
             const closeButton = commentForm.querySelector("button.close-btn")
             const commentCloseButton = commentForm.querySelector(
