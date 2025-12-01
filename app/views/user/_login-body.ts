@@ -17,8 +17,8 @@ if (loginForm) {
     const totpCodeInput = loginForm.querySelector("input[name=totp_code]")
     const recoveryCodeInput = loginForm.querySelector("input[name=recovery_code]")
     const cancelBtns = loginForm.querySelectorAll(".cancel-auth-btn")
-    const toggleRecoveryBtn = loginForm.querySelector(".toggle-recovery-btn")
-    const toggleTotpBtn = loginForm.querySelector(".toggle-totp-btn")
+    const switchRecoveryBtns = loginForm.querySelectorAll(".switch-recovery-btn")
+    const switchTotpBtns = loginForm.querySelectorAll(".switch-totp-btn")
     const totpInputRegex = /^\d$/
     const displayNameInput = loginForm.querySelector(
         "input[name=display_name_or_email]",
@@ -26,9 +26,10 @@ if (loginForm) {
     const passwordInput = loginForm.querySelector("input[data-name=password]")
     const rememberInput = loginForm.querySelector("input[name=remember]")
     const passkeyBtn = document.querySelector(".passkey-btn")
-    const retryPasskeyBtn = loginForm.querySelector(".retry-passkey-btn")
-    const useTotpBtn = loginForm.querySelector(".use-totp-btn")
-    const useRecoveryBtn = loginForm.querySelector(".use-recovery-btn")
+    const passkeyRetryBtn = loginForm.querySelector(".retry-passkey-btn")
+    const passkeySwitchTotpBtn = loginForm.querySelector(
+        "[data-section=passkey] .switch-totp-btn",
+    )
 
     let conditionalMediationAbort: AbortController | null = null
     let conditionalMediationAssertion: Blob | null = null
@@ -62,10 +63,11 @@ if (loginForm) {
     }
 
     // State transition handlers
-    for (const cancelBtn of cancelBtns)
-        cancelBtn.addEventListener("click", () => setState("login"))
-    toggleRecoveryBtn.addEventListener("click", () => setState("recovery"))
-    toggleTotpBtn.addEventListener("click", () => setState("totp"))
+    for (const btn of cancelBtns) btn.addEventListener("click", () => setState("login"))
+    for (const btn of switchRecoveryBtns)
+        btn.addEventListener("click", () => setState("recovery"))
+    for (const btn of switchTotpBtns)
+        btn.addEventListener("click", () => setState("totp"))
 
     /**
      * Tries to submit the TOTP code.
@@ -169,7 +171,7 @@ if (loginForm) {
             if (data.passkey_required) {
                 console.info("onLoginFormPasskeyRequired", data)
                 passkeyHasTotpFallback = data.has_totp
-                useTotpBtn.classList.toggle("d-none", !passkeyHasTotpFallback)
+                passkeySwitchTotpBtn.classList.toggle("d-none", !passkeyHasTotpFallback)
                 startPasskey2FA()
                 return
             }
@@ -209,18 +211,19 @@ if (loginForm) {
         },
     )
 
-    // Passkey button triggers form submit with passkey auth method (Mode 1)
-    passkeyBtn.addEventListener("click", () => {
+    /** Triggers passwordless passkey submission. */
+    const requestSubmitPasswordless = (): void => {
         passwordless = true
         displayNameInput.required = false
         passwordInput.required = false
         loginForm.requestSubmit()
-    })
+    }
 
-    // Fallback button handlers (Mode 2)
-    retryPasskeyBtn.addEventListener("click", startPasskey2FA)
-    useTotpBtn.addEventListener("click", () => setState("totp"))
-    useRecoveryBtn.addEventListener("click", () => setState("recovery"))
+    // Passkey button triggers form submit with passkey auth method (Mode 1)
+    passkeyBtn.addEventListener("click", requestSubmitPasswordless)
+
+    // Fallback button handler (Mode 2)
+    passkeyRetryBtn.addEventListener("click", startPasskey2FA)
 
     // Conditional mediation: passkey autofill
     const initConditionalMediation = async () => {
@@ -230,10 +233,7 @@ if (loginForm) {
         )
         if (!assertion) return
         conditionalMediationAssertion = assertion
-        passwordless = true
-        displayNameInput.required = false
-        passwordInput.required = false
-        loginForm.requestSubmit()
+        requestSubmitPasswordless()
     }
 
     // Start conditional mediation based on context

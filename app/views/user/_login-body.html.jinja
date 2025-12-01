@@ -51,10 +51,10 @@
                         {{ t('action.cancel') }}
                     </button>
                     <div>
-                        <button class="use-totp-btn btn btn-link btn-sm p-0 d-block" type="button">
+                        <button class="switch-totp-btn btn btn-link btn-sm p-0 d-block" type="button">
                             {{ t('two_fa.use_authenticator_instead') }}
                         </button>
-                        <button class="use-recovery-btn btn btn-link btn-sm p-0 d-block" type="button">
+                        <button class="switch-recovery-btn btn btn-link btn-sm p-0 d-block" type="button">
                             {{ t('two_fa.use_recovery_code_instead') }}
                         </button>
                     </div>
@@ -82,7 +82,7 @@
                     <input type="hidden" name="totp_code">
                 </label>
                 <div class="text-center">
-                    <button class="toggle-recovery-btn btn btn-link btn-sm p-0" type="button">
+                    <button class="switch-recovery-btn btn btn-link btn-sm p-0" type="button">
                         {{ t('two_fa.use_recovery_code_instead') }}
                     </button>
                 </div>
@@ -96,7 +96,7 @@
                         autocapitalize="none" inputmode="text" maxlength="11">
                 </label>
                 <div class="text-center">
-                    <button class="toggle-totp-btn btn btn-link btn-sm p-0" type="button">
+                    <button class="switch-totp-btn btn btn-link btn-sm p-0" type="button">
                         {{ t('two_fa.use_authenticator_instead') }}
                     </button>
                 </div>
