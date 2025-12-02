@@ -29,10 +29,14 @@ const generateTOTPSecret = (): string => {
     return output.join("")
 }
 
-const generateTOTPQRCode = (secret: string, accountName: string): string => {
+const generateTOTPQRCode = (
+    secret: string,
+    digits: number,
+    accountName: string,
+): string => {
     const issuer = i18next.t("project_name")
     const label = `${issuer}:${accountName}`
-    const uri = `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`
+    const uri = `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=${digits}&period=30`
 
     const qr = qrcode(0, "L")
     qr.addData(uri)
@@ -111,20 +115,44 @@ mount("settings-security-body", (body) => {
     const setupModal = document.getElementById("setupTotpModal")
     if (setupModal) {
         const setupTOTPForm = setupModal.querySelector("form")
+        const digitsInputs = setupTOTPForm.querySelectorAll("input[name=digits]")
         const secretInput = setupTOTPForm.querySelector("input[name=secret]")
         const qrContainer = setupTOTPForm.querySelector(".qr-code-container")
         const codeInput = setupTOTPForm.querySelector("input[name=totp_code]")
+        const accountName = setupTOTPForm.dataset.accountName
 
         // Select secret on click for easy copying
         secretInput.addEventListener("click", () => {
             secretInput.select()
         })
 
+        // Strip non-digit characters from code input
+        codeInput.addEventListener("input", () => {
+            codeInput.value = codeInput.value.replace(/\D/g, "")
+        })
+
+        // Update QR code and input attributes when digit selection changes
+        for (const radio of digitsInputs) {
+            radio.addEventListener("change", () => {
+                const digits = Number(radio.value)
+                qrContainer.innerHTML = generateTOTPQRCode(
+                    secretInput.value,
+                    digits,
+                    accountName,
+                )
+                codeInput.placeholder = "0".repeat(digits)
+                codeInput.pattern = `[0-9]{${digits}}`
+
+                codeInput.maxLength = 100
+                codeInput.minLength = digits
+                codeInput.maxLength = digits
+            })
+        }
+
         setupModal.addEventListener("show.bs.modal", () => {
-            const secret = generateTOTPSecret()
-            const accountName = setupTOTPForm.dataset.accountName
-            secretInput.value = secret
-            qrContainer.innerHTML = generateTOTPQRCode(secret, accountName)
+            secretInput.value = generateTOTPSecret()
+            digitsInputs[0].checked = true
+            digitsInputs[0].dispatchEvent(new Event("change"))
         })
 
         setupModal.addEventListener("shown.bs.modal", () => {

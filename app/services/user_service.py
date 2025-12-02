@@ -614,9 +614,9 @@ async def _login_with_password(
     # When both are configured, prefer passkey
     async with TaskGroup() as tg:
         has_passkey_t = tg.create_task(UserPasskeyQuery.check_any_by_user_id(user_id))
-        has_totp = (await UserTOTPQuery.find_one_by_user_id(user_id)) is not None
+        totp = await UserTOTPQuery.find_one_by_user_id(user_id)
 
-        if has_totp and totp_code is not None:
+        if totp is not None and totp_code is not None:
             has_passkey_t.cancel()
             if not await UserTOTPService.verify_totp(user_id, totp_code):
                 StandardFeedback.raise_error(
@@ -625,12 +625,14 @@ async def _login_with_password(
                 )
             return user_id
 
+    result = {}
     if has_passkey_t.result():
-        logging.debug('2FA required for user %d: passkey', user_id)
-        return {'passkey_required': True, 'has_totp': has_totp}
-    if has_totp:
-        logging.debug('2FA required for user %d: totp', user_id)
-        return {'totp_required': True}
+        result['passkey'] = True
+    if totp is not None:
+        result['totp'] = totp['digits']
+    if result:
+        logging.debug('2FA required for user %d: %s', user_id, result)
+        return result
 
     return user_id
 

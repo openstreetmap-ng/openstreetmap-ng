@@ -195,6 +195,7 @@ CREATE UNLOGGED TABLE user_passkey_challenge (
 CREATE TABLE user_totp (
     user_id bigint PRIMARY KEY REFERENCES "user" ON DELETE CASCADE,
     secret_encrypted bytea NOT NULL,
+    digits smallint NOT NULL,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 

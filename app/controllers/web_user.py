@@ -41,7 +41,7 @@ async def login(
     ] = None,
     password: Annotated[Password | None, File()] = None,
     passkey: Annotated[bytes | None, File()] = None,
-    totp_code: Annotated[str | None, Form(pattern=r'^\d{6}$')] = None,
+    totp_code: Annotated[str | None, Form(pattern=r'^(?:\d{6}|\d{8})$')] = None,
     recovery_code: Annotated[str | None, Form()] = None,
     remember: Annotated[bool, Form()] = False,
 ):

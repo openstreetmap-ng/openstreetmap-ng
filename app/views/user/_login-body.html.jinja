@@ -13,9 +13,10 @@
             <div data-section="login">
                 <label class="form-label d-block mb-2">
                     {{ t('sessions.new.email or username') | capitalize }}
-                    <input type="text" class="form-control mt-2" name="display_name_or_email" autocomplete="username webauthn"
-                        autocapitalize="none" {% if ENV != 'prod' %} data-bs-toggle="popover" data-bs-trigger="focus"
-                        data-bs-placement="top" data-bs-title="Test Site Reminder"
+                    <input type="text" class="form-control mt-2" name="display_name_or_email"
+                        autocomplete="username webauthn" autocapitalize="none" {% if ENV != 'prod' %}
+                        data-bs-toggle="popover" data-bs-trigger="focus" data-bs-placement="top"
+                        data-bs-title="Test Site Reminder"
                         data-bs-content="Use fake data only. Do not provide real email addresses. All emails go to mail.openstreetmap.ng"
                         {% endif %} required>
                 </label>
@@ -64,20 +65,10 @@
             <div data-section="totp">
                 <label class="form-label d-block mb-2">
                     {{ t('two_fa.enter_two_factor_code') }}
-                    <p class="form-text">{{ t('two_fa.enter_the_6digit_code_from_your_app') }}</p>
+                    <p class="form-text">{{ t('two_fa.enter_the_one_time_code_from_your_app') }}</p>
                     <div class="totp-input-group d-flex justify-content-center gap-1 gap-sm-2">
-                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
-                            pattern="[0-9]" autocomplete="one-time-code">
-                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
-                            pattern="[0-9]" autocomplete="off">
-                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
-                            pattern="[0-9]" autocomplete="off">
-                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
-                            pattern="[0-9]" autocomplete="off">
-                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
-                            pattern="[0-9]" autocomplete="off">
-                        <input type="text" class="form-control totp-digit" maxlength="1" inputmode="numeric"
-                            pattern="[0-9]" autocomplete="off">
+                        <input type="text" class="form-control" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                            autocomplete="one-time-code">
                     </div>
                     <input type="hidden" name="totp_code">
                 </label>

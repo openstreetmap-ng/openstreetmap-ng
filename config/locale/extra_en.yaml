@@ -506,17 +506,21 @@ two_fa:
   configure_authenticator_app: Configure authenticator app
   disable_authenticator_app: Disable authenticator app
   configured_on_date: "Configured on {{date}}"
-  step_1_scan_qr_code: "Step 1: Scan QR code"
+  step_1_choose_code_length: "Step 1: Choose code length"
+  adjust_the_strength_of_your_one_time_codes: Adjust the strength of your one-time codes.
+  8_digit_code_more_secure: 8-digit code (more secure)
+  6_digit_code: 6-digit code
+  step_2_scan_qr_code: "Step 2: Scan QR code"
   scan_this_qr_code_with_your_preferred_authenticator_app: Scan this QR code with your preferred authenticator app.
   alternatively_enter_secret_key_manually: Alternatively, enter the secret key manually.
-  step_2_enter_code: "Step 2: Enter code"
-  enter_the_6digit_code_from_your_app_to_finish_setup: Enter the 6-digit code from your app to finish setup.
+  step_3_enter_code: "Step 3: Enter code"
+  enter_the_one_time_code_from_your_app_to_finish_setup: Enter the one-time code from your app to finish setup.
   invalid_or_expired_authentication_code: Invalid or expired authentication code
   enter_two_factor_code: Enter authentication code
   enter_recovery_code: Enter recovery code
   use_recovery_code_instead: Use a recovery code instead
   use_authenticator_instead: Use authenticator app instead
-  enter_the_6digit_code_from_your_app: Enter the 6-digit code from your authenticator app
+  enter_the_one_time_code_from_your_app: Enter the one-time code from your authenticator app
   enter_one_of_your_recovery_codes: Enter one of your recovery codes
   too_many_failed_attempts_please_try_again_in_one_minute: Too many failed attempts. Please try again in one minute.
   recovery_codes: Recovery codes

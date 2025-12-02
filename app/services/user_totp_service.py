@@ -16,7 +16,7 @@ from app.services.audit_service import audit
 
 class UserTOTPService:
     @staticmethod
-    async def setup_totp(secret: SecretStr, code: str) -> None:
+    async def setup_totp(secret: SecretStr, digits: int, code: str) -> None:
         """
         Set up TOTP for the current user.
 
@@ -35,7 +35,7 @@ class UserTOTPService:
         except Exception as e:
             raise ValueError('Invalid secret format') from e
 
-        if not verify_totp_code(secret_bytes, code):
+        if not verify_totp_code(secret_bytes, digits, code):
             StandardFeedback.raise_error(
                 'totp_code', t('two_fa.invalid_or_expired_authentication_code')
             )
@@ -45,14 +45,14 @@ class UserTOTPService:
         async with db(True) as conn:
             result = await conn.execute(
                 """
-                INSERT INTO user_totp (user_id, secret_encrypted)
-                VALUES (%s, %s)
+                INSERT INTO user_totp (user_id, secret_encrypted, digits)
+                VALUES (%s, %s, %s)
                 ON CONFLICT DO NOTHING
                 """,
-                (user_id, secret_encrypted),
+                (user_id, secret_encrypted, digits),
             )
             if result.rowcount:
-                await audit('add_totp', conn)
+                await audit('add_totp', conn, extra={'digits': digits})
 
     @staticmethod
     async def verify_totp(user_id: UserId, code: str) -> bool:
@@ -107,7 +107,9 @@ class UserTOTPService:
                 )
                 return False
 
-            if not verify_totp_code(decrypt(totp['secret_encrypted']), code):
+            if not verify_totp_code(
+                decrypt(totp['secret_encrypted']), totp['digits'], code
+            ):
                 await audit(
                     'auth_fail',
                     conn,

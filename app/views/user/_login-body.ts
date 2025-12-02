@@ -13,7 +13,8 @@ if (loginForm) {
     // Referrer must start with '/' to avoid open redirect
     if (!referrer.startsWith("/")) referrer = defaultReferrer
 
-    const totpDigitInputs = loginForm.querySelectorAll("input.totp-digit")
+    const totpInputGroup = loginForm.querySelector(".totp-input-group")
+    const totpInputTemplate = totpInputGroup.firstElementChild
     const totpCodeInput = loginForm.querySelector("input[name=totp_code]")
     const recoveryCodeInput = loginForm.querySelector("input[name=recovery_code]")
     const cancelBtns = loginForm.querySelectorAll(".cancel-auth-btn")
@@ -34,7 +35,7 @@ if (loginForm) {
     let conditionalMediationAbort: AbortController | null = null
     let conditionalMediationAssertion: Blob | null = null
     let passwordless = false
-    let passkeyHasTotpFallback = false
+    let totpDigits: number | undefined
     let submittedFormData: FormData | null = null
 
     const navigateOnSuccess = (): void => {
@@ -46,7 +47,84 @@ if (loginForm) {
         }
     }
 
-    // Set the login form state and focus the appropriate input.
+    const tryTOTPSubmit = (): boolean => {
+        const inputs = totpInputGroup.children as HTMLCollectionOf<HTMLInputElement>
+        const code = Array.from(inputs)
+            .map((input) => input.value)
+            .join("")
+        if (code.length !== totpDigits) return false
+
+        totpCodeInput.value = code
+        loginForm.requestSubmit()
+        return true
+    }
+
+    const createTOTPInputs = (): void => {
+        // Clear all except template
+        while (totpInputGroup.children.length > 1) {
+            totpInputGroup.lastElementChild.remove()
+        }
+
+        // Clone template to create remaining inputs
+        while (totpInputGroup.children.length < totpDigits) {
+            const clone = totpInputTemplate.cloneNode(true) as HTMLInputElement
+            clone.autocomplete = "off"
+            totpInputGroup.appendChild(clone)
+        }
+
+        // Setup event handlers
+        const inputs = totpInputGroup.children as HTMLCollectionOf<HTMLInputElement>
+        for (let index = 0; index < inputs.length; index++) {
+            const input = inputs[index]
+            input.value = ""
+
+            input.addEventListener("input", () => {
+                if (!totpInputRegex.test(input.value)) {
+                    input.value = ""
+                    return
+                }
+                if (index < inputs.length - 1) {
+                    inputs[index + 1].focus()
+                    inputs[index + 1].select()
+                } else {
+                    tryTOTPSubmit()
+                }
+            })
+
+            input.addEventListener("keydown", (e: KeyboardEvent) => {
+                if (e.key === "Backspace" && !input.value && index) {
+                    inputs[index - 1].focus()
+                    inputs[index - 1].select()
+                } else if (e.key === "ArrowLeft" && index) {
+                    e.preventDefault()
+                    inputs[index - 1].focus()
+                    inputs[index - 1].select()
+                } else if (e.key === "ArrowRight" && index < inputs.length - 1) {
+                    e.preventDefault()
+                    inputs[index + 1].focus()
+                    inputs[index + 1].select()
+                }
+            })
+
+            input.addEventListener("focus", () => input.select())
+
+            input.addEventListener("paste", (e: ClipboardEvent) => {
+                e.preventDefault()
+                const digits = (e.clipboardData?.getData("text") || "").replace(
+                    /\D/g,
+                    "",
+                )
+                if (!digits.length) return
+
+                for (let i = 0; i < digits.length && index + i < inputs.length; i++) {
+                    inputs[index + i].value = digits[i]
+                }
+                inputs[Math.min(index + digits.length, inputs.length - 1)].focus()
+                tryTOTPSubmit()
+            })
+        }
+    }
+
     const setState = (state: LoginState): void => {
         console.debug("setLoginState", state)
         loginForm.setAttribute("data-login-state", state)
@@ -55,8 +133,8 @@ if (loginForm) {
         recoveryCodeInput.value = ""
 
         if (state === "totp") {
-            for (const input of totpDigitInputs) input.value = ""
-            totpDigitInputs[0].focus()
+            createTOTPInputs()
+            ;(totpInputGroup.firstElementChild as HTMLInputElement).focus()
         } else if (state === "recovery") {
             recoveryCodeInput.focus()
         }
@@ -68,82 +146,6 @@ if (loginForm) {
         btn.addEventListener("click", () => setState("recovery"))
     for (const btn of switchTotpBtns)
         btn.addEventListener("click", () => setState("totp"))
-
-    /**
-     * Tries to submit the TOTP code.
-     * @returns Whether the submission was successful.
-     */
-    const tryTOTPSubmit = (): boolean => {
-        const code = Array.from(totpDigitInputs)
-            .map((input) => input.value)
-            .join("")
-        if (code.length !== 6) return false
-
-        totpCodeInput.value = code
-        loginForm.requestSubmit()
-        return true
-    }
-
-    totpDigitInputs.forEach((input, index) => {
-        input.addEventListener("input", () => {
-            // Validate digit input
-            if (!totpInputRegex.test(input.value)) {
-                input.value = ""
-                return
-            }
-
-            // Submit or focus next
-            if (index < totpDigitInputs.length - 1) {
-                totpDigitInputs[index + 1].focus()
-                totpDigitInputs[index + 1].select()
-            } else {
-                tryTOTPSubmit()
-            }
-        })
-
-        // Improve keyboard navigation
-        input.addEventListener("keydown", (e) => {
-            if (e.key === "Backspace" && !input.value && index) {
-                totpDigitInputs[index - 1].focus()
-                totpDigitInputs[index - 1].select()
-            } else if (e.key === "ArrowLeft" && index) {
-                e.preventDefault()
-                totpDigitInputs[index - 1].focus()
-                totpDigitInputs[index - 1].select()
-            } else if (e.key === "ArrowRight" && index < totpDigitInputs.length - 1) {
-                e.preventDefault()
-                totpDigitInputs[index + 1].focus()
-                totpDigitInputs[index + 1].select()
-            }
-        })
-
-        // Select all on focus for easy replacement
-        input.addEventListener("focus", () => input.select())
-
-        // Handle paste - distribute digits across inputs
-        input.addEventListener("paste", (e) => {
-            e.preventDefault()
-            const pastedData = e.clipboardData?.getData("text") || ""
-            const digits = pastedData.replace(/\D/g, "")
-            if (!digits.length) return
-
-            // Distribute digits starting from current input
-            for (
-                let i = 0;
-                i < digits.length && index + i < totpDigitInputs.length;
-                i++
-            ) {
-                totpDigitInputs[index + i].value = digits[i]
-            }
-
-            const focusIndex = Math.min(
-                index + digits.length,
-                totpDigitInputs.length - 1,
-            )
-            totpDigitInputs[focusIndex].focus()
-            tryTOTPSubmit()
-        })
-    })
 
     /** Starts the passkey 2FA flow after password validation. */
     const startPasskey2FA = async () => {
@@ -168,15 +170,15 @@ if (loginForm) {
     configureStandardForm(
         loginForm,
         (data) => {
-            if (data.passkey_required) {
+            totpDigits = data.totp
+            if (data.passkey) {
                 console.info("onLoginFormPasskeyRequired", data)
-                passkeyHasTotpFallback = data.has_totp
-                passkeySwitchTotpBtn.classList.toggle("d-none", !passkeyHasTotpFallback)
+                passkeySwitchTotpBtn.classList.toggle("d-none", !totpDigits)
                 startPasskey2FA()
                 return
             }
-            if (data.totp_required) {
-                console.info("onLoginFormTOTPRequired")
+            if (totpDigits) {
+                console.info("onLoginFormTOTPRequired", data)
                 setState("totp")
                 return
             }

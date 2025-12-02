@@ -125,9 +125,10 @@ async def settings_password(
 async def settings_totp_setup(
     _: Annotated[User, web_user()],
     secret: Annotated[SecretStr, Form()],
-    totp_code: Annotated[str, Form(pattern=r'^\d{6}$')],
+    digits: Annotated[Literal['6', '8'], Form()],
+    totp_code: Annotated[str, Form(pattern=r'^(?:\d{6}|\d{8})$')],
 ):
-    await UserTOTPService.setup_totp(secret, totp_code)
+    await UserTOTPService.setup_totp(secret, int(digits), totp_code)
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 
