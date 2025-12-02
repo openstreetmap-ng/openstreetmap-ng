@@ -14,6 +14,23 @@ class _RecoveryCodeStatus(TypedDict):
 
 class UserRecoveryCodeQuery:
     @staticmethod
+    async def check_any_by_user_id(user_id: UserId) -> bool:
+        """Check if user has any unused recovery codes."""
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT 1
+                FROM user_recovery_code
+                WHERE user_id = %s
+                  AND array_remove(codes_hashed, NULL) != '{}'
+                """,
+                (user_id,),
+            ) as r,
+        ):
+            return await r.fetchone() is not None
+
+    @staticmethod
     async def get_status(user_id: UserId) -> _RecoveryCodeStatus:
         async with (
             db() as conn,

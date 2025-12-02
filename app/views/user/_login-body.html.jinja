@@ -9,8 +9,8 @@
 
 <div class="auth-switcher mb-2">
     <div>
-        <form class="login-form" method="POST" action="/api/web/user/login" data-login-state="login">
-            <div data-section="login">
+        <form class="login-form" method="POST" action="/api/web/user/login" data-login-state="credentials">
+            <div data-section="credentials">
                 <label class="form-label d-block mb-2">
                     {{ t('sessions.new.email or username') | capitalize }}
                     <input type="text" class="form-control mt-2" name="display_name_or_email"
@@ -42,23 +42,17 @@
             </div>
 
             <div data-section="passkey">
-                <p>{{ t('two_fa.could_not_complete_passkey_verification') }}</p>
-                <button class="retry-passkey-btn btn btn-primary fw-medium w-100 mb-3" type="submit">
+                <p class="text-center text-body-secondary mb-3">
+                    {{ t('two_fa.could_not_complete_passkey_verification') }}
+                </p>
+                <button class="retry-passkey-btn btn btn-primary fw-medium w-100 mb-3" type="button">
                     <i class="bi bi-arrow-clockwise me-1-5"></i>
                     {{- t('two_fa.retry_passkey') -}}
                 </button>
-                <div class="d-flex align-items-center gap-3">
-                    <button class="cancel-auth-btn btn btn-light border" type="button">
-                        {{ t('action.cancel') }}
+                <div class="text-center">
+                    <button class="try-another-method-btn btn btn-link btn-sm p-0" type="button">
+                        {{ t('two_fa.try_another_method') }}
                     </button>
-                    <div>
-                        <button class="switch-totp-btn btn btn-link btn-sm p-0 d-block" type="button">
-                            {{ t('two_fa.use_authenticator_instead') }}
-                        </button>
-                        <button class="switch-recovery-btn btn btn-link btn-sm p-0 d-block" type="button">
-                            {{ t('two_fa.use_recovery_code_instead') }}
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -66,15 +60,15 @@
                 <label class="form-label d-block mb-2">
                     {{ t('two_fa.enter_two_factor_code') }}
                     <p class="form-text">{{ t('two_fa.enter_the_one_time_code_from_your_app') }}</p>
-                    <div class="totp-input-group d-flex justify-content-center gap-1 gap-sm-2">
+                    <div class="totp-input-group d-flex justify-content-center gap-1">
                         <input type="text" class="form-control" maxlength="1" inputmode="numeric" pattern="[0-9]"
                             autocomplete="one-time-code">
                     </div>
                     <input type="hidden" name="totp_code">
                 </label>
                 <div class="text-center">
-                    <button class="switch-recovery-btn btn btn-link btn-sm p-0" type="button">
-                        {{ t('two_fa.use_recovery_code_instead') }}
+                    <button class="try-another-method-btn btn btn-link btn-sm p-0" type="button">
+                        {{ t('two_fa.try_another_method') }}
                     </button>
                 </div>
             </div>
@@ -87,15 +81,68 @@
                         autocapitalize="none" inputmode="text" maxlength="11">
                 </label>
                 <div class="text-center">
-                    <button class="switch-totp-btn btn btn-link btn-sm p-0" type="button">
-                        {{ t('two_fa.use_authenticator_instead') }}
+                    <button class="try-another-method-btn btn btn-link btn-sm p-0" type="button">
+                        {{ t('two_fa.try_another_method') }}
                     </button>
                 </div>
             </div>
 
+            <div data-section="method-select">
+                <p class="text-center text-body-secondary mb-3">
+                    {{ t('two_fa.choose_how_to_verify') }}
+                </p>
+                <div class="list-group list-group-flush mb-3">
+                    <button type="button" data-method="passkey"
+                        class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
+                        <i class="bi bi-fingerprint fs-4 text-secondary"></i>
+                        <span class="flex-grow-1">
+                            <strong class="d-block">{{ t('two_fa.passkeys') }}</strong>
+                            <small
+                                class="text-body-secondary">{{ t('two_fa.use_fingerprint_face_or_security_key') }}</small>
+                        </span>
+                        <i class="bi bi-chevron-right text-body-tertiary"></i>
+                    </button>
+                    <button type="button" data-method="totp"
+                        class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
+                        <i class="bi bi-phone fs-4 text-secondary"></i>
+                        <span class="flex-grow-1">
+                            <strong class="d-block">{{ t('two_fa.authenticator_app') }}</strong>
+                            <small
+                                class="text-body-secondary">{{ t('two_fa.enter_the_code_from_your_authenticator_app') }}</small>
+                        </span>
+                        <i class="bi bi-chevron-right text-body-tertiary"></i>
+                    </button>
+                    <button type="button" data-method="recovery"
+                        class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
+                        <i class="bi bi-file-text fs-4 text-secondary"></i>
+                        <span class="flex-grow-1">
+                            <strong class="d-block">{{ t('two_fa.recovery_codes') }}</strong>
+                            <small
+                                class="text-body-secondary">{{ t('two_fa.use_one_of_your_saved_recovery_codes') }}</small>
+                        </span>
+                        <i class="bi bi-chevron-right text-body-tertiary"></i>
+                    </button>
+                    {% if ENV != 'prod' %}
+                    <button type="button" data-method="bypass"
+                        class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
+                        <i class="bi bi-skip-forward fs-4 text-secondary"></i>
+                        <span class="flex-grow-1">
+                            <strong class="d-block">Bypass 2FA</strong>
+                            <small class="text-body-secondary">This is a testing environment</small>
+                        </span>
+                        <i class="bi bi-chevron-right text-body-tertiary"></i>
+                    </button>
+                    <input type="hidden" name="bypass_2fa">
+                    {% endif %}
+                </div>
+                <button class="cancel-2fa-btn btn btn-light border w-100" type="button">
+                    {{ t('action.cancel') }}
+                </button>
+            </div>
+
             <div data-section="totp recovery">
                 <div class="d-flex gap-2 mt-3">
-                    <button class="cancel-auth-btn btn btn-light border" type="button">
+                    <button class="cancel-2fa-btn btn btn-light border" type="button">
                         {{ t('action.cancel') }}
                     </button>
                     <button class="btn btn-primary fw-medium flex-grow-1" type="submit">
@@ -103,7 +150,7 @@
                     </button>
                 </div>
             </div>
-            <div data-section="login">
+            <div data-section="credentials">
                 <button class="btn btn-primary w-100 fw-medium" type="submit">
                     {{ t('login.sign_in') }}
                 </button>

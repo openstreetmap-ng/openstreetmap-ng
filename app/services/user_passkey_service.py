@@ -5,6 +5,7 @@ from starlette.exceptions import HTTPException
 from app.config import PASSKEY_LIMIT
 from app.db import db
 from app.lib.auth_context import auth_user
+from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.webauthn import (
     parse_auth_data,
@@ -12,6 +13,7 @@ from app.lib.webauthn import (
     verify_assertion,
 )
 from app.models.proto.shared_pb2 import (
+    LoginResponse,
     PasskeyAssertion,
     PasskeyCredential,
     PasskeyRegistration,
@@ -90,8 +92,8 @@ class UserPasskeyService:
     @staticmethod
     async def verify_passkey(
         assertion: PasskeyAssertion, *, require_uv: bool = True
-    ) -> UserId | None:
-        """Verify a passkey assertion. Returns user_id if valid, None otherwise."""
+    ) -> UserId | LoginResponse | None:
+        """Verify a passkey assertion."""
         # Parse and validate client data
         client_data = parse_client_data(
             assertion.client_data_json, expected_type='webauthn.get'
@@ -107,7 +109,9 @@ class UserPasskeyService:
                 assertion.credential_id, conn=conn
             )
             if passkey is None:
-                return None
+                StandardFeedback.raise_error(
+                    None, t('two_fa.this_passkey_is_not_assigned_to_any_account')
+                )
 
             # Verify assertion
             new_sign_count = verify_assertion(passkey, assertion)

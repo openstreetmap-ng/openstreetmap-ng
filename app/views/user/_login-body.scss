@@ -47,7 +47,7 @@
         [data-section] {
             display: none;
         }
-        &[data-login-state="login"] [data-section="login"] {
+        &[data-login-state="credentials"] [data-section="credentials"] {
             display: block;
         }
         &[data-login-state="totp"] [data-section~="totp"] {
@@ -57,6 +57,9 @@
             display: block;
         }
         &[data-login-state="passkey"] [data-section="passkey"] {
+            display: block;
+        }
+        &[data-login-state="method-select"] [data-section="method-select"] {
             display: block;
         }
     }
@@ -80,5 +83,11 @@
         @extend .fw-semibold;
 
         letter-spacing: 0.05em;
+    }
+
+    // Fix border on last visible method option (when others are hidden)
+    [data-section="method-select"]
+        .list-group-item:not(.d-none):not(:has(~ .list-group-item:not(.d-none))) {
+        border-bottom: 0;
     }
 }

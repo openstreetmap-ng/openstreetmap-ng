@@ -500,6 +500,7 @@ two_fa:
   remove_passkey: Remove passkey
   could_not_complete_passkey_registration: Could not complete passkey registration
   could_not_complete_passkey_verification: Could not complete passkey verification
+  this_passkey_is_not_assigned_to_any_account: This passkey is not assigned to any account
   retry_passkey: Retry passkey
   authenticator_app: Authenticator app
   require_code_from_your_mobile_authenticator_app_when_signing_in: Require a code from your mobile authenticator app when signing in
@@ -518,8 +519,11 @@ two_fa:
   invalid_or_expired_authentication_code: Invalid or expired authentication code
   enter_two_factor_code: Enter authentication code
   enter_recovery_code: Enter recovery code
-  use_recovery_code_instead: Use a recovery code instead
-  use_authenticator_instead: Use authenticator app instead
+  try_another_method: Try another method
+  choose_how_to_verify: Choose how to verify
+  use_fingerprint_face_or_security_key: Use fingerprint, face, or security key
+  enter_the_code_from_your_authenticator_app: Enter the code from your authenticator app
+  use_one_of_your_saved_recovery_codes: Use one of your saved recovery codes
   enter_the_one_time_code_from_your_app: Enter the one-time code from your authenticator app
   enter_one_of_your_recovery_codes: Enter one of your recovery codes
   too_many_failed_attempts_please_try_again_in_one_minute: Too many failed attempts. Please try again in one minute.

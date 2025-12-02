@@ -16,7 +16,7 @@ from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
-from app.models.proto.shared_pb2 import PasskeyChallenge
+from app.models.proto.shared_pb2 import LoginResponse, PasskeyChallenge
 from app.models.types import Email, Password
 from app.queries.user_query import UserQuery
 from app.services.auth_provider_service import AuthProviderService
@@ -43,6 +43,7 @@ async def login(
     passkey: Annotated[bytes | None, File()] = None,
     totp_code: Annotated[str | None, Form(pattern=r'^(?:\d{6}|\d{8})$')] = None,
     recovery_code: Annotated[str | None, Form()] = None,
+    bypass_2fa: Annotated[bool, Form()] = False,
     remember: Annotated[bool, Form()] = False,
 ):
     result = await UserService.login(
@@ -51,11 +52,12 @@ async def login(
         passkey=passkey,
         totp_code=totp_code,
         recovery_code=recovery_code,
+        bypass_2fa=bypass_2fa,
     )
 
     # 2FA required
-    if isinstance(result, dict):
-        return result
+    if isinstance(result, LoginResponse):
+        return Response(result.SerializeToString(), media_type='application/x-protobuf')
 
     response = Response(None, status.HTTP_204_NO_CONTENT)
     response.set_cookie(

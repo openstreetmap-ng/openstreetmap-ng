@@ -1,9 +1,11 @@
+import { fromBinary } from "@bufbuild/protobuf"
 import { mount } from "../lib/mount"
+import { type LoginResponse, LoginResponseSchema } from "../lib/proto/shared_pb"
 import { qsParse } from "../lib/qs"
 import { configureStandardForm } from "../lib/standard-form"
 import { getPasskeyAssertion, startConditionalMediation } from "../lib/webauthn"
 
-type LoginState = "login" | "passkey" | "totp" | "recovery"
+type LoginState = "credentials" | "passkey" | "totp" | "recovery" | "method-select"
 
 const loginForm = document.querySelector("form.login-form")
 if (loginForm) {
@@ -14,12 +16,13 @@ if (loginForm) {
     if (!referrer.startsWith("/")) referrer = defaultReferrer
 
     const totpInputGroup = loginForm.querySelector(".totp-input-group")
-    const totpInputTemplate = totpInputGroup.firstElementChild
+    const totpInputTemplate = totpInputGroup.firstElementChild as HTMLInputElement
     const totpCodeInput = loginForm.querySelector("input[name=totp_code]")
+    const bypass2faInput = loginForm.querySelector("input[name=bypass_2fa]")
     const recoveryCodeInput = loginForm.querySelector("input[name=recovery_code]")
-    const cancelBtns = loginForm.querySelectorAll(".cancel-auth-btn")
-    const switchRecoveryBtns = loginForm.querySelectorAll(".switch-recovery-btn")
-    const switchTotpBtns = loginForm.querySelectorAll(".switch-totp-btn")
+    const cancelBtns = loginForm.querySelectorAll(".cancel-2fa-btn")
+    const tryAnotherMethodBtns = loginForm.querySelectorAll(".try-another-method-btn")
+    const methodOptions = loginForm.querySelectorAll("button[data-method]")
     const totpInputRegex = /^\d$/
     const displayNameInput = loginForm.querySelector(
         "input[name=display_name_or_email]",
@@ -28,14 +31,11 @@ if (loginForm) {
     const rememberInput = loginForm.querySelector("input[name=remember]")
     const passkeyBtn = document.querySelector(".passkey-btn")
     const passkeyRetryBtn = loginForm.querySelector(".retry-passkey-btn")
-    const passkeySwitchTotpBtn = loginForm.querySelector(
-        "[data-section=passkey] .switch-totp-btn",
-    )
 
     let conditionalMediationAbort: AbortController | null = null
     let conditionalMediationAssertion: Blob | null = null
     let passwordless = false
-    let totpDigits: number | undefined
+    let loginResponse: LoginResponse | null = null
     let submittedFormData: FormData | null = null
 
     const navigateOnSuccess = (): void => {
@@ -52,7 +52,7 @@ if (loginForm) {
         const code = Array.from(inputs)
             .map((input) => input.value)
             .join("")
-        if (code.length !== totpDigits) return false
+        if (code.length !== loginResponse.totp) return false
 
         totpCodeInput.value = code
         loginForm.requestSubmit()
@@ -66,7 +66,7 @@ if (loginForm) {
         }
 
         // Clone template to create remaining inputs
-        while (totpInputGroup.children.length < totpDigits) {
+        while (totpInputGroup.children.length < loginResponse.totp) {
             const clone = totpInputTemplate.cloneNode(true) as HTMLInputElement
             clone.autocomplete = "off"
             totpInputGroup.appendChild(clone)
@@ -110,10 +110,7 @@ if (loginForm) {
 
             input.addEventListener("paste", (e: ClipboardEvent) => {
                 e.preventDefault()
-                const digits = (e.clipboardData?.getData("text") || "").replace(
-                    /\D/g,
-                    "",
-                )
+                const digits = e.clipboardData.getData("text").replace(/\D/g, "")
                 if (!digits.length) return
 
                 for (let i = 0; i < digits.length && index + i < inputs.length; i++) {
@@ -134,18 +131,40 @@ if (loginForm) {
 
         if (state === "totp") {
             createTOTPInputs()
-            ;(totpInputGroup.firstElementChild as HTMLInputElement).focus()
+            totpInputTemplate.focus()
         } else if (state === "recovery") {
             recoveryCodeInput.focus()
+        } else if (state === "method-select") {
+            // Update method visibility based on available methods
+            for (const option of methodOptions) {
+                const method = option.dataset.method
+                const isAvailable =
+                    (method === "passkey" && loginResponse.passkey) ||
+                    (method === "totp" && loginResponse.totp) ||
+                    (method === "recovery" && loginResponse.recovery) ||
+                    method === "bypass"
+                option.classList.toggle("d-none", !isAvailable)
+            }
         }
     }
 
     // State transition handlers
-    for (const btn of cancelBtns) btn.addEventListener("click", () => setState("login"))
-    for (const btn of switchRecoveryBtns)
-        btn.addEventListener("click", () => setState("recovery"))
-    for (const btn of switchTotpBtns)
-        btn.addEventListener("click", () => setState("totp"))
+    for (const btn of cancelBtns)
+        btn.addEventListener("click", () => setState("credentials"))
+    for (const btn of tryAnotherMethodBtns)
+        btn.addEventListener("click", () => setState("method-select"))
+    for (const option of methodOptions) {
+        option.addEventListener("click", () => {
+            const method = option.dataset.method
+            if (method === "passkey") startPasskey2FA()
+            else if (method === "totp") setState("totp")
+            else if (method === "recovery") setState("recovery")
+            else if (method === "bypass") {
+                bypass2faInput.value = "true"
+                loginForm.requestSubmit()
+            }
+        })
+    }
 
     /** Starts the passkey 2FA flow after password validation. */
     const startPasskey2FA = async () => {
@@ -170,15 +189,18 @@ if (loginForm) {
     configureStandardForm(
         loginForm,
         (data) => {
-            totpDigits = data.totp
-            if (data.passkey) {
-                console.info("onLoginFormPasskeyRequired", data)
-                passkeySwitchTotpBtn.classList.toggle("d-none", !totpDigits)
+            if (!data.protobuf) {
+                navigateOnSuccess()
+                return
+            }
+            loginResponse = fromBinary(LoginResponseSchema, data.protobuf)
+            if (loginResponse.passkey) {
+                console.info("onLoginFormPasskeyRequired")
                 startPasskey2FA()
                 return
             }
-            if (totpDigits) {
-                console.info("onLoginFormTOTPRequired", data)
+            if (loginResponse.totp) {
+                console.info("onLoginFormTOTPRequired")
                 setState("totp")
                 return
             }
@@ -203,7 +225,6 @@ if (loginForm) {
                         result = await getPasskeyAssertion(formData)
                     }
                     if (typeof result === "string") {
-                        setState("login")
                         return result
                     }
                     formData.set("passkey", result)
@@ -259,7 +280,7 @@ if (loginForm) {
 
     // Autofill buttons are present in development environment
     const onAutofillButtonClick = ({ target }: Event): void => {
-        const dataset = (target as HTMLButtonElement).dataset
+        const dataset = (target as HTMLElement).dataset
         console.debug("onAutofillButtonClick", dataset)
 
         displayNameInput.value = dataset.login

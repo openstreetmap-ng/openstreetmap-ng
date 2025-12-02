@@ -81,6 +81,13 @@ message PasskeyChallenge {
     string user_email = 5;
 }
 
+// Login response for 2FA flow
+message LoginResponse {
+    optional bool passkey = 1;
+    optional uint32 totp = 2;
+    optional bool recovery = 3;
+}
+
 // =============================================
 // Geographical Data Structures
 // =============================================
