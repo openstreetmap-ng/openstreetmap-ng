@@ -42,19 +42,16 @@ def _format_number(n: float) -> str:
 @cython.cfunc
 def _format_time(seconds: float) -> str:
     """Format seconds into human readable time."""
-    if seconds < 60:
-        return f'{seconds:.0f}s'
-    if seconds < 3600:
-        minutes, secs = divmod(seconds, 60)
-        return f'{minutes:.0f}m{secs:02.0f}s'
-    if seconds < 86400:
-        hours, remainder = divmod(seconds, 3600)
-        minutes, secs = divmod(remainder, 60)
-        return f'{hours:.0f}h{minutes:02.0f}m{secs:02.0f}s'
-    days, remainder = divmod(seconds, 86400)
-    hours, remainder = divmod(remainder, 3600)
-    minutes = remainder / 60
-    return f'{days:.0f}d{hours:02.0f}h{minutes:02.0f}m'
+    d, r = divmod(seconds, 86400)
+    h, r = divmod(r, 3600)
+    if d:
+        return f'{d:.0f}d{h:02.0f}h{r / 60:02.0f}m'
+    m, s = divmod(r, 60)
+    if h:
+        return f'{h:.0f}h{m:02.0f}m{s:02.0f}s'
+    if m:
+        return f'{m:.0f}m{s:02.0f}s'
+    return f'{s:.0f}s'
 
 
 @contextmanager
@@ -63,7 +60,7 @@ def _progress_context(
 ) -> Generator[_Advance]:
     desc = kwargs.get('desc')
     total = kwargs.get('total')
-    total_str = _format_number(total) if total is not None else ''
+    total_str = _format_number(total) if total else ''
     level = kwargs.get('level', logging.INFO)
 
     current: cython.size_t = 0
@@ -104,7 +101,7 @@ def _progress_context(
         nonlocal current, last_time
         current += n
         now: cython.double = monotonic()
-        if now - last_time < 5:
+        if now - last_time < 5 or (total and current >= total):
             return
         last_time = now
         log()
