@@ -113,8 +113,6 @@ def _generate_accessible_color(rng: Random) -> str:
         contrast = _contrast_ratio(white_luminance, color_luminance)
         l *= 0.9  # Make darker
 
-    print(h, l)
-
     return color
 
 
