@@ -20,19 +20,21 @@ class _Advance(Protocol):
 
 
 @cython.cfunc
-def _format_rate(n: float) -> str:
-    """Format rate with K/M/G suffix, 3 significant digits."""
-    if n >= 1_000_000_000:
-        v, suffix = n / 1_000_000_000, 'G/s'
+def _format_number(n: float) -> str:
+    """Format number with K/M/B/T suffix, 3 significant digits."""
+    if n >= 1_000_000_000_000:
+        v, suffix = n / 1_000_000_000_000, 'T'
+    elif n >= 1_000_000_000:
+        v, suffix = n / 1_000_000_000, 'B'
     elif n >= 1_000_000:
-        v, suffix = n / 1_000_000, 'M/s'
+        v, suffix = n / 1_000_000, 'M'
     elif n >= 1000:
-        v, suffix = n / 1000, 'K/s'
+        v, suffix = n / 1000, 'K'
     else:
-        return f'{n:.0f}/s'
-    if v >= 100:
+        return f'{n:.0f}'
+    if v >= 99.95:
         return f'{v:.0f}{suffix}'
-    if v >= 10:
+    if v >= 9.995:
         return f'{v:.1f}{suffix}'
     return f'{v:.2f}{suffix}'
 
@@ -61,8 +63,7 @@ def _progress_context(
 ) -> Generator[_Advance]:
     desc = kwargs.get('desc')
     total = kwargs.get('total')
-    total_str = str(total) if total is not None else ''
-    total_width = len(total_str)
+    total_str = _format_number(total) if total is not None else ''
     level = kwargs.get('level', logging.INFO)
 
     current: cython.size_t = 0
@@ -81,13 +82,13 @@ def _progress_context(
 
         if total:
             parts.append(
-                f'{current:>{total_width}}/{total_str} ({current * 100 / total:4.1f}%)'
+                f'{_format_number(current):>5} of {total_str} ({current * 100 / total:4.1f}%)'
             )
         else:
-            parts.append(str(current))
+            parts.append(_format_number(current))
 
         rate = current / elapsed
-        rate_str = _format_rate(rate)
+        rate_str = _format_number(rate) + '/s'
         rate_width = max(rate_width, len(rate_str))
         parts.append(rate_str.rjust(rate_width))
 
