@@ -9,9 +9,9 @@ from typing import LiteralString
 
 import cython
 from sentry_sdk.api import start_transaction
-from tqdm import tqdm
 
 from app.db import db, db_lock, without_indexes
+from app.lib.progress import progress
 from app.lib.retry import retry
 from app.lib.sentry import (
     SENTRY_ELEMENT_SPATIAL_MONITOR,
@@ -395,10 +395,10 @@ async def _process_depth(
     semaphore = Semaphore(parallelism)
 
     with (
-        tqdm(desc=f'element_spatial_staging depth={depth}', total=num_items)
+        progress(desc=f'element_spatial_staging depth={depth}', total=num_items)
         if not last_sequence
         else nullcontext()
-    ) as pbar:
+    ) as advance:
 
         async def process_ways_batch(start_seq: int, end_seq: int):
             async with semaphore, db(True) as conn:
@@ -410,8 +410,8 @@ async def _process_depth(
                         'last_seq': last_sequence,
                     },
                 )
-            if pbar is not None:
-                pbar.update(end_seq - start_seq + 1)
+            if advance is not None:
+                advance(end_seq - start_seq + 1)
 
         async def process_rels_batch(batch_offset: int):
             async with semaphore, db(True) as conn:
@@ -426,8 +426,8 @@ async def _process_depth(
                         'batch_limit': batch_size,
                     },
                 )
-            if pbar is not None:
-                pbar.update(min(batch_size, num_items - batch_offset))
+            if advance is not None:
+                advance(min(batch_size, num_items - batch_offset))
 
         async with TaskGroup() as tg:
             if not depth:
@@ -499,20 +499,32 @@ async def _seed_pending_relations(
             )
 
     semaphore = Semaphore(parallelism)
+    num_items = max_sequence - last_sequence
 
-    async with TaskGroup() as tg:
-        if depth == 0:
-            # Nodes from element
-            for seq_start in range(last_sequence + 1, max_sequence + 1, batch_size):
-                seq_end = min(seq_start + batch_size - 1, max_sequence)
-                tg.create_task(_seed_from_element_batch(seq_start, seq_end, semaphore))
+    with (
+        progress(desc='element_spatial_pending_rels', total=num_items)
+        if not last_sequence and not depth
+        else nullcontext()
+    ) as advance:
 
-        # Ways and relations from staging
-        num_batches = await _materialize_staging_batches(
-            depth=depth, batch_size=batch_size
-        )
-        for batch_id in range(num_batches):
-            tg.create_task(_seed_from_staging_batch(batch_id, semaphore))
+        async def seed_from_element_batch_task(seq_start: int, seq_end: int) -> None:
+            await _seed_from_element_batch(seq_start, seq_end, semaphore)
+            if advance is not None:
+                advance(seq_end - seq_start + 1)
+
+        async with TaskGroup() as tg:
+            if depth == 0:
+                # Nodes from element
+                for seq_start in range(last_sequence + 1, max_sequence + 1, batch_size):
+                    seq_end = min(seq_start + batch_size - 1, max_sequence)
+                    tg.create_task(seed_from_element_batch_task(seq_start, seq_end))
+
+            # Ways and relations from staging
+            num_batches = await _materialize_staging_batches(
+                depth=depth, batch_size=batch_size
+            )
+            for batch_id in range(num_batches):
+                tg.create_task(_seed_from_staging_batch(batch_id, semaphore))
 
     async with db(True) as conn:
         await conn.execute('ANALYZE element_spatial_pending_rels')

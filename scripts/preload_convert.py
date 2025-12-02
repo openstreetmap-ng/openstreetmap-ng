@@ -10,7 +10,6 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from psycopg.sql import SQL
 from psycopg.sql import Literal as PgLiteral
-from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
 from app.db import db, duckdb_connect, psycopg_pool_open_decorator
@@ -18,6 +17,7 @@ from app.lib.compressible_geometry import (
     bbox_to_compressible_wkb,
     point_to_compressible_wkb,
 )
+from app.lib.progress import progress
 from app.lib.xmltodict import XMLToDict
 from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
@@ -198,7 +198,7 @@ def run_planet_workers() -> None:
         for i, from_seek in enumerate(from_seeks)
     ]
     with Pool(_NUM_WORKERS) as pool:
-        for _ in tqdm(
+        for _ in progress(
             pool.imap_unordered(planet_worker, args),
             desc='Preparing planet data',
             total=num_tasks,
@@ -314,7 +314,7 @@ def run_changesets_workers() -> None:
         for i, from_seek in enumerate(from_seeks)
     ]
     with Pool(_NUM_WORKERS) as pool:
-        for _ in tqdm(
+        for _ in progress(
             pool.imap_unordered(changesets_worker, args),
             desc='Preparing changesets data',
             total=num_tasks,
@@ -450,7 +450,7 @@ def run_notes_workers() -> None:
         for i, from_seek in enumerate(from_seeks)
     ]
     with Pool(_NUM_WORKERS) as pool:
-        for _ in tqdm(
+        for _ in progress(
             pool.imap_unordered(notes_worker, args),
             desc='Preparing notes data',
             total=num_tasks,
