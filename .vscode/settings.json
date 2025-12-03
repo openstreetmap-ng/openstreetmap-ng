@@ -44,7 +44,7 @@
     ".clang-format": ".clang-format-*",
     ".gitignore": ".gitattributes",
     "*.html.jinja": "${capture}.*",
-    "package.json": "pnpm-*.yaml",
+    "package.json": "bunfig.toml",
     "pyproject.toml": "uv.lock",
     "README.md": "LICENSE"
   },
@@ -52,6 +52,7 @@
     ".*cache/": true,
     ".direnv/": true,
     ".venv/": true,
+    "bun.lock": true,
     "{app,script}/**/*.c": true,
     "**/__pycache__/": true,
     "**/_generated/": true,

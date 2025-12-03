@@ -1,25 +1,29 @@
 {
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
-    "allowJs": true,
-    "isolatedModules": true,
+    "target": "ES2023",
     "module": "ES2020",
     "moduleDetection": "force",
+    "allowJs": true,
+
     "moduleResolution": "bundler",
-    "noEmit": true,
-    "noFallthroughCasesInSwitch": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true,
+    "isolatedModules": true,
+    "noEmit": true,
+
     "strict": true,
     "strictNullChecks": false,
-    "target": "ES2023",
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+
     "types": [
       "@types/bootstrap",
+      "@types/bun",
       "@types/geojson",
-      "@types/node",
       "typed-query-selector/strict"
-    ],
-    "verbatimModuleSyntax": true
+    ]
   },
   "exclude": ["app/views/lib/_generated/**/*", "app/views/lib/proto/**/*"],
   "include": ["app/views/**/**.ts", "vite.config.ts"]

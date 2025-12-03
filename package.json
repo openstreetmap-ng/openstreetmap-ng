@@ -22,44 +22,23 @@
     "@babel/preset-typescript": "latest",
     "@bufbuild/protoc-gen-es": "latest",
     "@types/bootstrap": "latest",
+    "@types/bun": "latest",
     "@types/geojson": "latest",
-    "@types/node": "latest",
     "@types/rtlcss": "latest",
     "@vitejs/plugin-legacy": "latest",
     "autoprefixer": "latest",
-    "basedpyright": "latest",
-    "browserslist": "latest",
-    "caniuse-lite": "latest",
-    "core-js": "3.46.0",
     "i18next-conv": "latest",
-    "prettier": "latest",
     "rtlcss": "latest",
     "sass-embedded": "latest",
-    "sql-formatter": "latest",
-    "terser": "latest",
     "typed-query-selector": "latest",
-    "typescript": "latest",
-    "vite": "npm:rolldown-vite@^7.2.2"
+    "vite": "latest"
   },
   "scripts": {
-    "postinstall": "_pnpm-postinstall"
+    "postinstall": "_scripts-postinstall"
   },
-  "pnpm": {
-    "overrides": {
-      "vite": "$vite"
-    },
-    "ignoredBuiltDependencies": [
-      "@parcel/watcher",
-      "core-js",
-      "core-js-bundle",
-      "esbuild",
-      "sharp"
-    ],
-    "auditConfig": {
-      "ignoreGhsas": [
-        "GHSA-jq9w-gjvg-mxr8"
-      ]
-    }
+  "overrides": {
+    "core-js": "3.47.0",
+    "vite": "npm:rolldown-vite@latest"
   },
   "babel": {
     "presets": [
@@ -67,7 +46,7 @@
         "@babel/preset-env",
         {
           "corejs": {
-            "version": "3.46.0"
+            "version": "3.47.0"
           },
           "modules": false,
           "useBuiltIns": "usage"

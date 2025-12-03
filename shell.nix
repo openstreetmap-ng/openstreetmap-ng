@@ -161,8 +161,7 @@ let
     libxml2.dev
     openssl.dev
     # Frontend:
-    nodejs-slim_24
-    pnpm
+    bun
     biome
     # Services:
     (postgresql_18_jit.withPackages (ps: [
@@ -311,8 +310,8 @@ let
       find  \
         "app/static" \
         "config/locale/i18next" \
-        node_modules/.pnpm/iD@*/node_modules/iD/dist \
-        node_modules/.pnpm/@rapideditor+rapid@*/node_modules/@rapideditor/rapid/dist \
+        node_modules/.bun/iD@*/node_modules/iD/dist \
+        node_modules/.bun/@rapideditor+rapid@*/node_modules/@rapideditor/rapid/dist \
         -type f \
         -not -name "*.xcf" \
         -not -name "*.gif" \
@@ -619,20 +618,32 @@ let
       fi
       exec vite build
     '')
-    (makeScript "_pnpm-postinstall" ''
-      rm -rf node_modules/bootstrap/dist/css
-
-      if [ ! data/cache/browserslist_versions.json -nt pnpm-lock.yaml ]; then
-        echo "Browserslist cache stale, regenerating..."
-        mkdir -p data/cache
-        pnpm browserslist | jq -Rnc '
-          [inputs | split(" ") | {browser: .[0], version: (.[1] | split("-") | map(tonumber) | min)}] |
-          group_by(.browser) |
-          map({(.[0].browser): (map(.version) | min)}) |
-          add
-        ' > data/cache/browserslist_versions.json
-      fi
-    '')
+    (makeScript "_scripts-postinstall" (
+      ''
+        rm -rf node_modules/bootstrap/dist/css
+        if [ ! data/cache/browserslist_versions.json -nt bun.lock ]; then
+          echo "Regenerating browserslist cache"
+          mkdir -p data/cache
+          bunx browserslist | jq -Rnc '
+            [inputs | split(" ") | {browser: .[0], version: (.[1] | split("-") | map(tonumber) | min)}] |
+            group_by(.browser) |
+            map({(.[0].browser): (map(.version) | min)}) |
+            add
+          ' > data/cache/browserslist_versions.json
+        fi
+      ''
+      + lib.optionalString stdenv.isLinux ''
+        interpreter="${stdenv.cc.bintools.dynamicLinker}"
+        find node_modules/.bun/sass-embedded* -type f -name dart -executable -print0 |
+          while IFS= read -r -d "" bin; do
+            curr=$(patchelf --print-interpreter "$bin" 2>/dev/null || true)
+            if [ "$curr" != "$interpreter" ]; then
+              patchelf --set-interpreter "$interpreter" "$bin"
+              echo "Patched $bin interpreter to $interpreter"
+            fi
+          done
+      ''
+    ))
 
     # -- Misc
     (makeScript "run" (
@@ -686,8 +697,8 @@ let
       format_files '*.nix' -- nixfmt
       format_files '*.py' '*.pyi' -- ruff check --select I --fix --force-exclude
       format_files '*.py' '*.pyi' -- ruff format --force-exclude
-      format_files '*.scss' -- pnpm exec prettier --cache --write
-      format_files '*.sql' -- pnpm exec sql-formatter --fix
+      format_files '*.scss' -- bunx prettier --cache --write
+      format_files '*.sql' -- bunx sql-formatter --fix
       format_files '*.ts' '*.js' '*.json' -- biome format --write --no-errors-on-unmatched
 
       if [ "$1" = "--staged" ]; then
@@ -699,10 +710,10 @@ let
         echo "Linting files..."
         ruff check --fix
         biome check --fix --formatter-enabled=false
-        tsc --noEmit
+        bun tsc --noEmit
       fi
     '')
-    (makeScript "pyright" "pnpm exec basedpyright")
+    (makeScript "pyright" "bunx basedpyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
@@ -730,14 +741,6 @@ let
           timestamp=$(git log -1 --format=%ct -- {})
           touch -d "@$timestamp" {}
         '
-    '')
-    (makeScript "_patch-interpreter" ''
-      interpreter="${stdenv.cc.bintools.dynamicLinker}"
-      find node_modules/.pnpm/sass-embedded* -type f -name dart -executable -print0 |
-        while IFS= read -r -d "" bin; do
-          curr=$(patchelf --print-interpreter "$bin" 2>/dev/null || true)
-          [ "$curr" = "$interpreter" ] || patchelf --set-interpreter "$interpreter" "$bin"
-        done
     '')
     (makeScript "_patch-shebang" ''
       find .venv/bin -maxdepth 1 -type f -executable | while read -r script; do
@@ -828,16 +831,13 @@ let
       [ -n "$(find speedup -type f -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
         uv add ./speedup --reinstall-package speedup
 
-      echo "Installing Node.js dependencies"
-      pnpm install --prefer-frozen-lockfile
+      echo "Installing TS/JS dependencies"
+      bun install --frozen-lockfile
 
       echo "Activating environment"
-      export PATH="$(pnpm bin):$PATH"
+      export PATH="${projectDir}/node_modules/.bin:$PATH"
       source .venv/bin/activate
 
-    ''
-    + lib.optionalString stdenv.isLinux ''
-      _patch-interpreter &
     ''
     + lib.optionalString stdenv.isDarwin ''
       _patch-shebang &

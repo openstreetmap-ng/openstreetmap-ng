@@ -21,8 +21,7 @@ def transform(
     # transform json to po
     subprocess.run(
         [
-            'pnpm',
-            'exec',
+            'bunx',
             'i18next-conv',
             '--quiet',
             '--language',

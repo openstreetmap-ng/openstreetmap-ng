@@ -27,18 +27,18 @@ runs:
       id: cache-dirs
       shell: bash
       run: |
-        nix-shell -p uv pnpm --run "
+        nix-shell -p uv bun --run "
           echo \"UV_CACHE=\$(uv cache dir)\"
-          echo \"PNPM_STORE=\$(pnpm store path)\"
+          echo \"BUN_CACHE=\$(bun pm cache)\"
         " | tee -a $GITHUB_OUTPUT
 
     - name: Cache files and packages
       uses: actions/cache@v4
       with:
-        key: pkg-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock', 'pnpm-lock.yaml') }}
+        key: pkg-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock', 'bun.lock') }}
         path: |
           ${{ steps.cache-dirs.outputs.UV_CACHE }}
-          ${{ steps.cache-dirs.outputs.PNPM_STORE }}
+          ${{ steps.cache-dirs.outputs.BUN_CACHE }}
           .venv
           node_modules
           app/static/img/element/_generated
