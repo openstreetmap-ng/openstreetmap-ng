@@ -55,7 +55,7 @@ export const renderAnimatedTrace = (svg: SVGElement, coords: [number, number][])
 
 /** Generate a path data string from coordinates in [x, y] pairs */
 const generatePathData = (coords: [number, number][]): string => {
-    const ds = [`M${coords[0][0]},${coords[0][1]}`]
-    for (const pair of coords.slice(1)) ds.push(`L${pair[0]},${pair[1]}`)
-    return ds.join(" ")
+    let d = `M${coords[0][0]},${coords[0][1]}`
+    for (let i = 1; i < coords.length; i++) d += ` L${coords[i][0]},${coords[i][1]}`
+    return d
 }

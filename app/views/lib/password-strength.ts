@@ -1,6 +1,7 @@
 import { sha1 } from "@noble/hashes/legacy.js"
 import { effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
+import { toHex } from "./utils"
 
 type StrengthLevelKey = "weak" | "fair" | "good" | "strong" | "perfect"
 
@@ -381,8 +382,5 @@ const sha1_hex = async (value: string): Promise<string> => {
         console.warn("SubtleCrypto does not support SHA-1, falling back to polyfill")
         bytes = sha1(data)
     }
-    return Array.from(bytes)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("")
-        .toUpperCase()
+    return toHex(bytes).toUpperCase()
 }

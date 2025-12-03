@@ -13,20 +13,20 @@ const generateTOTPSecret = (): string => {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
     let value = 0
     let bits = 0
+    let output = ""
 
-    const output: string[] = []
     for (const byte of buffer) {
         value = (value << 8) | byte
         bits += 8
         while (bits >= 5) {
-            output.push(alphabet[(value >>> (bits - 5)) & 31])
+            output += alphabet[(value >>> (bits - 5)) & 31]
             bits -= 5
         }
     }
     if (bits > 0) {
-        output.push(alphabet[(value << (5 - bits)) & 31])
+        output += alphabet[(value << (5 - bits)) & 31]
     }
-    return output.join("")
+    return output
 }
 
 const generateTOTPQRCode = (
@@ -36,9 +36,9 @@ const generateTOTPQRCode = (
 ): string => {
     const issuer = i18next.t("project_name")
     const label = `${issuer}:${accountName}`
-    const uri = `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=${digits}&period=30`
+    const uri = `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&digits=${digits}`
 
-    const qr = qrcode(0, "L")
+    const qr = qrcode(0, "M")
     qr.addData(uri)
     qr.make()
     return qr.createSvgTag(3)

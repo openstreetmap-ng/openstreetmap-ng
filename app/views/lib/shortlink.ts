@@ -21,15 +21,11 @@ export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom): string => {
         c = (c << 2n) | (x & mask ? 2n : 0n) | (y & mask ? 1n : 0n)
     }
 
-    const buffer = new Array(d + r)
-    for (let i = 0; i < d; i++) {
-        buffer[i] = code[Number((c >> BigInt(58 - 6 * i)) & 0x3fn)]
-    }
-    for (let i = d; i < buffer.length; i++) {
-        buffer[i] = "-"
-    }
-
-    return buffer.join("")
+    let result = ""
+    for (let i = 0; i < d; i++)
+        result += code[Number((c >> BigInt(58 - 6 * i)) & 0x3fn)]
+    for (let i = 0; i < r; i++) result += "-"
+    return result
 }
 
 /** 64 chars to encode 6 bits */

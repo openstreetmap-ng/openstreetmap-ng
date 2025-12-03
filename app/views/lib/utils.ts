@@ -215,27 +215,34 @@ export const darkenColor = memoize((hex: string, amount: number): string => {
     return `#${darken(r)}${darken(g)}${darken(b)}`
 })
 
-const b2hLut = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"))
+const getB2HLut = staticCache(() =>
+    Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0")),
+)
 
 /** Convert a byte array to a hex string */
 export const toHex = (bytes: Uint8Array): string => {
-    let s = ""
-    for (const byte of bytes) s += b2hLut[byte]
-    return s
+    const lut = getB2HLut()
+    let out = ""
+    for (const byte of bytes) out += lut[byte]
+    return out
 }
 
-const h2bLut = new Uint8Array(128)
-for (let i = 0; i < 10; i++) h2bLut[48 + i] = i
-for (let i = 0; i < 6; i++) h2bLut[65 + i] = 10 + i
-for (let i = 0; i < 6; i++) h2bLut[97 + i] = 10 + i
+const getH2BLut = staticCache(() => {
+    const lut = new Uint8Array(128)
+    for (let i = 0; i < 10; i++) lut[48 + i] = i
+    for (let i = 0; i < 6; i++) lut[65 + i] = 10 + i
+    for (let i = 0; i < 6; i++) lut[97 + i] = 10 + i
+    return lut
+})
 
 /** Convert a hex string to a byte array */
 export const fromHex = (hex: string): Uint8Array => {
+    const lut = getH2BLut()
     const len = hex.length >> 1
     const out = new Uint8Array(len)
     for (let i = 0; i < len; i++) {
         const j = i << 1
-        out[i] = (h2bLut[hex.charCodeAt(j)] << 4) | h2bLut[hex.charCodeAt(j + 1)]
+        out[i] = (lut[hex.charCodeAt(j)] << 4) | lut[hex.charCodeAt(j + 1)]
     }
     return out
 }
