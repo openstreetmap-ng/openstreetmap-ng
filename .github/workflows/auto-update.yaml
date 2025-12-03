@@ -16,7 +16,8 @@ jobs:
       - name: Run update scripts
         run: |
           nix-shell --pure --run '
-               feature-icons-popular-update \
+               aaguid-update \
+            && feature-icons-popular-update \
             && timezone-bbox-update \
             && vector-styles-update \
             && wiki-pages-update

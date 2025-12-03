@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import cbor2
 from starlette import status
 from starlette.exceptions import HTTPException
@@ -8,6 +10,7 @@ from app.lib.auth_context import auth_user
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.webauthn import (
+    AAGUID_DB,
     parse_auth_data,
     parse_client_data,
     verify_assertion,
@@ -27,11 +30,7 @@ from app.services.user_password_service import UserPasswordService
 
 class UserPasskeyService:
     @staticmethod
-    async def register_passkey(
-        *,
-        name: str,
-        registration: PasskeyRegistration,
-    ) -> None:
+    async def register_passkey(registration: PasskeyRegistration) -> None:
         """Register a new passkey for the current user."""
         user_id = auth_user(required=True)['id']
 
@@ -50,7 +49,7 @@ class UserPasskeyService:
 
         transports = list(set(registration.transports))
         assert len(transports) <= 10
-        assert all(len(t) <= 20 for t in transports)
+        assert all(len(tp) <= 20 for tp in transports)
 
         async with db(True) as conn:
             result = await conn.execute(
@@ -64,18 +63,18 @@ class UserPasskeyService:
                     WHERE user_id = %(user_id)s
                 )
                 INSERT INTO user_passkey (
-                    user_id, name, credential_id,
+                    user_id, aaguid, credential_id,
                     algorithm, public_key, transports
                 )
                 SELECT
-                    %(user_id)s, %(name)s, %(credential_id)s,
+                    %(user_id)s, %(aaguid)s, %(credential_id)s,
                     %(algorithm)s, %(public_key)s, %(transports)s
                 FROM passkey_count
                 WHERE passkey_count.cnt < %(limit)s
                 """,
                 {
                     'user_id': user_id,
-                    'name': name,
+                    'aaguid': auth_data.aaguid,
                     'credential_id': auth_data.credential_id,
                     'algorithm': auth_data.algorithm,
                     'public_key': auth_data.public_key,
@@ -166,6 +165,40 @@ class UserPasskeyService:
                     conn,
                     target_user_id=(user_id if password is None else None),
                 )
+
+    @staticmethod
+    async def rename_passkey(credential_id: bytes, *, name: str) -> str | None:
+        """
+        Rename a passkey for the current user.
+        Empty name restores the default.
+        Returns the effective display name or None if not found.
+        """
+        user_id = auth_user(required=True)['id']
+        name_value = name.strip() or None
+
+        async with (
+            db(True) as conn,
+            await conn.execute(
+                """
+                UPDATE user_passkey
+                SET name = %s
+                WHERE credential_id = %s
+                  AND user_id = %s
+                RETURNING name, aaguid
+                """,
+                (name_value, credential_id, user_id),
+            ) as r,
+        ):
+            row: tuple[str | None, UUID] | None = await r.fetchone()
+            if row is None:
+                return None
+
+        stored_name, aaguid = row
+        if stored_name is not None:
+            return stored_name
+
+        aaguid_info = AAGUID_DB.get(aaguid)
+        return aaguid_info['name'] if aaguid_info else t('two_fa.my_passkey')
 
     @staticmethod
     async def get_credentials(user_id: UserId) -> list[PasskeyCredential]:

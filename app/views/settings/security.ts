@@ -80,19 +80,8 @@ mount("settings-security-body", (body) => {
     )
 
     // Passkey registration
-    const addPasskeyModal = document.getElementById("addPasskeyModal")
-    if (addPasskeyModal) {
-        const addPasskeyForm = addPasskeyModal.querySelector("form")
-        const nameInput = addPasskeyForm.querySelector("input[name=name]")
-
-        addPasskeyModal.addEventListener("shown.bs.modal", () => {
-            nameInput.focus()
-        })
-
-        addPasskeyModal.addEventListener("hidden.bs.modal", () => {
-            addPasskeyForm.reset()
-        })
-
+    const addPasskeyForm = body.querySelector("form.add-passkey-form")
+    if (addPasskeyForm) {
         configureStandardForm(
             addPasskeyForm,
             () => {
@@ -100,7 +89,7 @@ mount("settings-security-body", (body) => {
                 window.location.reload()
             },
             {
-                formBody: addPasskeyForm.querySelector(".modal-body"),
+                formBody: addPasskeyForm.closest(".table-responsive"),
                 validationCallback: async (formData) => {
                     const result = await getPasskeyRegistration()
                     if (typeof result === "string") return result
@@ -109,6 +98,37 @@ mount("settings-security-body", (body) => {
                 },
             },
         )
+    }
+
+    // Passkey rename
+    const renameBtns = body.querySelectorAll("button.passkey-rename-btn")
+    for (const renamebtn of renameBtns) {
+        const nameSpan = renamebtn.parentElement.querySelector(".passkey-name")
+        renamebtn.addEventListener("click", async () => {
+            const oldName = nameSpan.textContent
+            const newName =
+                prompt(i18next.t("two_fa.enter_new_passkey_name"), oldName)?.trim() ??
+                ""
+            if (newName === oldName) return
+
+            const credentialId = renamebtn.dataset.credentialId
+            const formData = new FormData()
+            formData.set("name", newName)
+
+            const resp = await fetch(
+                `/api/web/settings/passkey/${credentialId}/rename`,
+                {
+                    method: "POST",
+                    body: formData,
+                    priority: "high",
+                },
+            )
+
+            if (resp.ok) {
+                const data = await resp.json()
+                nameSpan.textContent = data.name
+            }
+        })
     }
 
     // Authenticator app

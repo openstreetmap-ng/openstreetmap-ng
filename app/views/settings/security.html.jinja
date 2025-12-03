@@ -75,8 +75,19 @@
                             <time datetime="{{ passkey.created_at.isoformat() }}" data-date="medium"
                                 data-time="short"></time>
                             {% endset %}
-                            <i class="bi bi-key-fill text-body-secondary me-1-5"></i>
-                            <span>{{ passkey.name }}</span>
+                            {% if passkey.aaguid_info and passkey.aaguid_info.icon_light %}
+                            <img class="passkey-icon-light align-text-top" src="{{ passkey.aaguid_info.icon_light }}"
+                                alt="" width="16" height="16">
+                            <img class="passkey-icon-dark align-text-top" src="{{ passkey.aaguid_info.icon_dark }}"
+                                alt="" width="16" height="16">
+                            {% else %}
+                            <i class="bi bi-key-fill text-body"></i>
+                            {% endif %}
+                            <span class="passkey-name ms-1">{{ passkey.name }}</span>
+                            <button class="btn btn-sm btn-link p-0 ms-1-5 passkey-rename-btn" type="button"
+                                data-credential-id="{{ passkey.credential_id | b64 }}">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
                             <span class="text-body-secondary mx-1-5">&mdash;</span>
                             {{- t('two_fa.added_on_date', date=_date) | safe -}}
                             <button class="btn btn-sm btn-link p-0 ms-1-5" type="button"
@@ -92,10 +103,11 @@
                 </td>
                 <td class="text-end">
                     {% if passkeys | length < PASSKEY_LIMIT %}
-                    <button class="btn btn-light border" type="button" data-bs-toggle="modal"
-                        data-bs-target="#addPasskeyModal">
-                        {{ t('action.configure') }}
-                    </button>
+                    <form class="add-passkey-form d-inline" method="POST" action="/api/web/settings/passkey/register">
+                        <button class="btn btn-light border" type="submit">
+                            {{ t('action.configure') }}
+                        </button>
+                    </form>
                     {% endif %}
                 </td>
             </tr>
@@ -225,9 +237,6 @@
     {% endfor %}
 </ul>
 
-{% if passkeys | length < PASSKEY_LIMIT %}
-{% include 'settings/_add-passkey-modal' %}
-{% endif %}
 {% if not totp_created_at %}
 {% include 'settings/_setup-totp-modal' %}
 {% endif %}

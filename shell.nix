@@ -717,6 +717,18 @@ let
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
+    (makeScript "aaguid-update" ''
+      url="https://raw.githubusercontent.com/passkeydeveloper/passkey-authenticator-aaguids/main/combined_aaguid.json"
+      data=$(curl -fsSL --compressed "$url")
+
+      if [ "$(echo "$data" | jq 'length')" -eq 0 ]; then
+        echo "Error: AAGUID database is empty"
+        exit 1
+      fi
+
+      echo "$data" | jq --sort-keys . > config/aaguid.json
+      echo "Saved $(echo "$data" | jq 'length') AAGUID entries"
+    '')
     (makeScript "vector-styles-update" ''
       dir=app/views/lib/vector-styles
       mkdir -p "$dir"

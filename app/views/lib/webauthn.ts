@@ -71,6 +71,7 @@ export const getPasskeyRegistration = async (): Promise<Blob | string> => {
                     residentKey: "preferred",
                     userVerification: "required",
                 },
+                attestation: "indirect",
             },
         })) as PublicKeyCredential | null
     } catch (e) {

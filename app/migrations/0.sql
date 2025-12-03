@@ -162,7 +162,8 @@ CREATE TABLE user_password (
 CREATE TABLE user_passkey (
     credential_id bytea NOT NULL PRIMARY KEY,
     user_id bigint NOT NULL REFERENCES "user" ON DELETE CASCADE,
-    name text NOT NULL,
+    aaguid uuid NOT NULL,
+    name text,
     algorithm smallint NOT NULL,
     public_key bytea NOT NULL,
     sign_count bigint NOT NULL DEFAULT 0,

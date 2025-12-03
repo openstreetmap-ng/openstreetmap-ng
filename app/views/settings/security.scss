@@ -52,6 +52,10 @@
         &:last-child {
             margin-bottom: 0;
         }
+
+        .bi-key-fill {
+            font-size: 1rem;
+        }
     }
 
     .qr-code-container > svg {
@@ -123,6 +127,18 @@
     .settings-security-body {
         .qr-code-container > svg {
             @extend .border;
+        }
+
+        .passkey-icon-dark {
+            display: none;
+        }
+    }
+}
+
+@include color-mode(dark) {
+    .settings-security-body {
+        .passkey-icon-light {
+            display: none;
         }
     }
 }

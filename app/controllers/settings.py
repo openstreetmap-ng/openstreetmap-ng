@@ -20,6 +20,7 @@ from app.models.db.user import User
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_passkey_query import UserPasskeyQuery
+from app.queries.user_password_query import UserPasswordQuery
 from app.queries.user_recovery_code_query import UserRecoveryCodeQuery
 from app.queries.user_totp_query import UserTOTPQuery
 from app.services.auth_service import AuthService
@@ -28,10 +29,16 @@ router = APIRouter()
 
 
 @router.get('/settings')
-async def settings(_: Annotated[User, web_user()]):
+async def settings(user: Annotated[User, web_user()]):
+    password_updated_at = (
+        await UserPasswordQuery.get_updated_at(user['id']) or user['created_at']
+    )
     return await render_response(
         'settings/settings',
-        {'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST},
+        {
+            'password_updated_at': password_updated_at,
+            'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
+        },
     )
 
 

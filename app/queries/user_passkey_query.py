@@ -3,6 +3,8 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL
 
 from app.db import db
+from app.lib.translation import t
+from app.lib.webauthn import AAGUID_DB
 from app.models.db.user_passkey import UserPasskey
 from app.models.types import UserId
 
@@ -26,7 +28,9 @@ class UserPasskeyQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def find_all_by_user_id(user_id: UserId) -> list[UserPasskey]:
+    async def find_all_by_user_id(
+        user_id: UserId, *, resolve_aaguid_db: bool = True
+    ) -> list[UserPasskey]:
         """Find all passkeys for a user, ordered by creation date."""
         async with (
             db() as conn,
@@ -40,7 +44,20 @@ class UserPasskeyQuery:
                 (user_id,),
             ) as r,
         ):
-            return await r.fetchall()  # type: ignore
+            passkeys: list[UserPasskey] = await r.fetchall()  # type: ignore
+
+        if resolve_aaguid_db:
+            default_name = t('two_fa.my_passkey')
+            for passkey in passkeys:
+                passkey['aaguid_info'] = aaguid_info = AAGUID_DB.get(passkey['aaguid'])
+                if passkey['name'] is not None:
+                    pass
+                elif aaguid_info is not None:
+                    passkey['name'] = aaguid_info['name']
+                else:
+                    passkey['name'] = default_name
+
+        return passkeys
 
     @staticmethod
     async def find_one_by_credential_id(

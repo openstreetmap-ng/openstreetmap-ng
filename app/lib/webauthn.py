@@ -1,6 +1,8 @@
 from hashlib import sha256
+from pathlib import Path
 from typing import Literal, NamedTuple, NotRequired, TypedDict
 from urllib.parse import urlsplit
+from uuid import UUID
 
 import cbor2
 import cython
@@ -12,7 +14,7 @@ from starlette import status
 from starlette.exceptions import HTTPException
 
 from app.config import APP_URL
-from app.models.db.user_passkey import UserPasskey
+from app.models.db.user_passkey import AAGUIDInfo, UserPasskey
 from app.models.proto.shared_pb2 import PasskeyAssertion
 
 _ClientDataType = Literal['webauthn.create', 'webauthn.get']
@@ -26,7 +28,23 @@ class _ClientData(TypedDict):
     topOrigin: NotRequired[str]
 
 
+AAGUID_DB: dict[UUID, AAGUIDInfo] = {
+    UUID(k): v  #
+    for k, v in orjson.loads(Path('config/aaguid.json').read_bytes()).items()
+}
+
+# Fill in missing variants for better consistency
+for info in AAGUID_DB.values():
+    icon_light = info.get('icon_light')
+    icon_dark = info.get('icon_dark')
+    if icon_light is not None and icon_dark is None:
+        info['icon_dark'] = icon_light
+    elif icon_dark is not None and icon_light is None:
+        info['icon_light'] = icon_dark
+
+
 class _AuthData(NamedTuple):
+    aaguid: UUID
     credential_id: bytes
     algorithm: int
     public_key: bytes
@@ -36,6 +54,7 @@ class _AuthData(NamedTuple):
 _AUTH_DATA_RP_ID_HASH_LEN = 32
 _AUTH_DATA_FLAGS_OFFSET = 32
 _AUTH_DATA_SIGN_COUNT_OFFSET = 33
+_AUTH_DATA_AAGUID_OFFSET = 37
 _AUTH_DATA_CRED_ID_LEN_OFFSET = 53
 _AUTH_DATA_CRED_ID_OFFSET = 55
 
@@ -103,6 +122,9 @@ def parse_auth_data(auth_data: bytes, *, require_uv: bool = True) -> _AuthData |
     if not (flags & _FLAG_AT):
         return None
 
+    aaguid = UUID(
+        bytes=auth_data[_AUTH_DATA_AAGUID_OFFSET : _AUTH_DATA_AAGUID_OFFSET + 16]
+    )
     cred_id_len = int.from_bytes(
         auth_data[_AUTH_DATA_CRED_ID_LEN_OFFSET:_AUTH_DATA_CRED_ID_OFFSET]
     )
@@ -114,6 +136,7 @@ def parse_auth_data(auth_data: bytes, *, require_uv: bool = True) -> _AuthData |
     algorithm, public_key = _parse_cose_public_key(cose_key)
 
     return _AuthData(
+        aaguid=aaguid,
         credential_id=credential_id,
         algorithm=algorithm,
         public_key=public_key,

@@ -205,15 +205,24 @@ async def settings_connections(
 @router.post('/settings/passkey/register')
 async def settings_passkey_register(
     _: Annotated[User, web_user()],
-    name: Annotated[str, Form(min_length=1, max_length=PASSKEY_NAME_MAX_LENGTH)],
     passkey: Annotated[bytes, File()],
 ):
     registration = PasskeyRegistration.FromString(passkey)
-    await UserPasskeyService.register_passkey(
-        name=name,
-        registration=registration,
-    )
+    await UserPasskeyService.register_passkey(registration)
     return Response(None, status.HTTP_204_NO_CONTENT)
+
+
+@router.post('/settings/passkey/{credential_id_b64:str}/rename')
+async def settings_passkey_rename(
+    _: Annotated[User, web_user()],
+    credential_id_b64: str,
+    name: Annotated[str, Form(max_length=PASSKEY_NAME_MAX_LENGTH)],
+):
+    credential_id = urlsafe_b64decode(credential_id_b64 + '==')
+    effective_name = await UserPasskeyService.rename_passkey(credential_id, name=name)
+    if effective_name is None:
+        return Response(None, status.HTTP_404_NOT_FOUND)
+    return {'name': effective_name}
 
 
 @router.post('/settings/passkey/{credential_id_b64:str}/remove')
