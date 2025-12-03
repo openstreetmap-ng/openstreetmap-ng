@@ -16,10 +16,12 @@ from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User, UserRole
 from app.models.types import ApplicationId, Password, UserId
 from app.queries.audit_query import AuditQuery
+from app.queries.user_passkey_query import UserPasskeyQuery
 from app.queries.user_query import UserQuery
 from app.services.audit_service import audit
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
+from app.services.user_passkey_service import UserPasskeyService
 from app.services.user_service import UserService
 from app.services.user_totp_service import UserTOTPService
 from app.validators.display_name import DisplayNameValidating
@@ -56,15 +58,21 @@ async def users_page(
         sort=sort,
     )
 
-    ip_counts = await AuditQuery.count_ip_by_user(
-        [user['id'] for user in users], since=timedelta(days=1), ignore_app_events=True
-    )
+    user_ids = [user['id'] for user in users]
+    async with TaskGroup() as tg:
+        two_fa_status_t = tg.create_task(UserQuery.get_2fa_status(user_ids))
+        ip_counts_t = tg.create_task(
+            AuditQuery.count_ip_by_user(
+                user_ids, since=timedelta(days=1), ignore_app_events=True
+            )
+        )
 
     return await render_response(
         'admin/users/page',
         {
             'users': users,
-            'ip_counts': ip_counts,
+            'two_fa_status': two_fa_status_t.result(),
+            'ip_counts': ip_counts_t.result(),
         },
     )
 
@@ -123,12 +131,25 @@ async def update_user(
     )
 
 
-@router.post('/{user_id:int}/remove-totp')
-async def remove_user_totp(
+@router.post('/{user_id:int}/reset-2fa')
+async def reset_user_2fa(
     _: Annotated[User, web_user('role_administrator')],
     user_id: UserId,
 ):
-    await UserTOTPService.remove_totp(password=None, user_id=user_id)
+    """Reset 2FA methods for a user (passkeys and TOTP)."""
+    passkeys = await UserPasskeyQuery.find_all_by_user_id(
+        user_id, resolve_aaguid_db=False
+    )
+
+    async with TaskGroup() as tg:
+        for passkey in passkeys:
+            tg.create_task(
+                UserPasskeyService.remove_passkey(
+                    passkey['credential_id'], password=None, user_id=user_id
+                )
+            )
+        tg.create_task(UserTOTPService.remove_totp(password=None, user_id=user_id))
+
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 

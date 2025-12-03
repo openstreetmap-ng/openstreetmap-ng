@@ -37,47 +37,6 @@ mount("admin-user-edit-body", (body) => {
             originalRoles.add(checkbox.value)
         }
     }
-
-    accountForm.addEventListener("submit", (e) => {
-        const currentRoles = new Set<string>()
-        for (const checkbox of roleCheckboxes) {
-            if (checkbox.checked) {
-                currentRoles.add(checkbox.value)
-            }
-        }
-
-        const addedRoles: string[] = []
-        const removedRoles: string[] = []
-
-        for (const role of currentRoles) {
-            if (!originalRoles.has(role)) {
-                addedRoles.push(role)
-            }
-        }
-
-        for (const role of originalRoles) {
-            if (!currentRoles.has(role)) {
-                removedRoles.push(role)
-            }
-        }
-
-        for (const role of removedRoles) {
-            const message = `Remove ${role} role from this user?`
-            if (!confirm(message)) {
-                e.preventDefault()
-                return
-            }
-        }
-
-        for (const role of addedRoles) {
-            const message = `Grant ${role} role to this user?`
-            if (!confirm(message)) {
-                e.preventDefault()
-                return
-            }
-        }
-    })
-
     configureStandardForm(
         accountForm,
         () => {
@@ -94,6 +53,38 @@ mount("admin-user-edit-body", (body) => {
         {
             validationCallback: () => {
                 const result: APIDetail[] = []
+
+                const currentRoles = new Set<string>()
+                for (const checkbox of roleCheckboxes) {
+                    if (checkbox.checked) {
+                        currentRoles.add(checkbox.value)
+                    }
+                }
+
+                const addedRoles: string[] = []
+                const removedRoles: string[] = []
+
+                for (const role of currentRoles) {
+                    if (!originalRoles.has(role)) {
+                        addedRoles.push(role)
+                    }
+                }
+
+                for (const role of originalRoles) {
+                    if (!currentRoles.has(role)) {
+                        removedRoles.push(role)
+                    }
+                }
+
+                for (const role of removedRoles) {
+                    const message = `Remove ${role} role from this user?`
+                    if (!confirm(message)) return ""
+                }
+
+                for (const role of addedRoles) {
+                    const message = `Grant ${role} role to this user?`
+                    if (!confirm(message)) return ""
+                }
 
                 if (newPasswordInput.value || newPasswordConfirmInput.value) {
                     if (newPasswordInput.value !== newPasswordConfirmInput.value) {
@@ -125,16 +116,21 @@ mount("admin-user-edit-body", (body) => {
         }
     })
 
-    const removeTOTPForm = body.querySelector("form.remove-totp-form")
+    const reset2FAForm = body.querySelector("form.reset-2fa-form")
     configureStandardForm(
-        removeTOTPForm,
+        reset2FAForm,
         () => {
-            console.debug("onRemoveTOTPFormSuccess")
+            console.debug("onReset2FAFormSuccess")
             window.location.reload()
         },
         {
             validationCallback: () =>
-                confirm("Remove TOTP 2FA for this user?")
+                confirm(
+                    "Reset two-factor authentication for this user?\n\n" +
+                        "This will remove:\n" +
+                        "• All passkeys\n" +
+                        "• Authenticator app",
+                )
                     ? null
                     : "Operation cancelled by user",
         },

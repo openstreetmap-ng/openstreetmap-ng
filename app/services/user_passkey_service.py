@@ -87,7 +87,11 @@ class UserPasskeyService:
                     status.HTTP_400_BAD_REQUEST, 'Passkey limit exceeded'
                 )
 
-            await audit('add_passkey', conn)
+            extra = {}
+            aaguid_info = AAGUID_DB.get(auth_data.aaguid)
+            if aaguid_info is not None:
+                extra['aaguid_name'] = aaguid_info['name']
+            await audit('add_passkey', conn, extra=extra)
 
     @staticmethod
     async def verify_passkey(
@@ -151,20 +155,31 @@ class UserPasskeyService:
                 error_message=lambda: t('validation.password_is_incorrect'),
             )
 
-        async with db(True) as conn:
-            result = await conn.execute(
+        async with (
+            db(True) as conn,
+            await conn.execute(
                 """
                 DELETE FROM user_passkey
                 WHERE credential_id = %s AND user_id = %s
+                RETURNING aaguid
                 """,
                 (credential_id, user_id),
+            ) as r,
+        ):
+            row: tuple[UUID] | None = await r.fetchone()
+            if row is None:
+                return
+
+            extra = {}
+            aaguid_info = AAGUID_DB.get(row[0])
+            if aaguid_info is not None:
+                extra['aaguid_name'] = aaguid_info['name']
+            await audit(
+                'remove_passkey',
+                conn,
+                target_user_id=(user_id if password is None else None),
+                extra=extra,
             )
-            if result.rowcount:
-                await audit(
-                    'remove_passkey',
-                    conn,
-                    target_user_id=(user_id if password is None else None),
-                )
 
     @staticmethod
     async def rename_passkey(credential_id: bytes, *, name: str) -> str | None:

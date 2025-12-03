@@ -28,27 +28,17 @@ class _ClientData(TypedDict):
     topOrigin: NotRequired[str]
 
 
-AAGUID_DB: dict[UUID, AAGUIDInfo] = {
-    UUID(k): v  #
-    for k, v in orjson.loads(Path('config/aaguid.json').read_bytes()).items()
-}
-
-# Fill in missing variants for better consistency
-for info in AAGUID_DB.values():
-    icon_light = info.get('icon_light')
-    icon_dark = info.get('icon_dark')
-    if icon_light is not None and icon_dark is None:
-        info['icon_dark'] = icon_light
-    elif icon_dark is not None and icon_light is None:
-        info['icon_light'] = icon_dark
-
-
 class _AuthData(NamedTuple):
     aaguid: UUID
     credential_id: bytes
     algorithm: int
     public_key: bytes
 
+
+AAGUID_DB: dict[UUID, AAGUIDInfo] = {
+    UUID(k): v  #
+    for k, v in orjson.loads(Path('config/aaguid.json').read_bytes()).items()
+}
 
 # https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API/Authenticator_data
 _AUTH_DATA_RP_ID_HASH_LEN = 32

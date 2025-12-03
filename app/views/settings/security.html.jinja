@@ -75,11 +75,11 @@
                             <time datetime="{{ passkey.created_at.isoformat() }}" data-date="medium"
                                 data-time="short"></time>
                             {% endset %}
-                            {% if passkey.aaguid_info and passkey.aaguid_info.icon_light %}
-                            <img class="passkey-icon-light align-text-top" src="{{ passkey.aaguid_info.icon_light }}"
-                                alt="" width="16" height="16">
-                            <img class="passkey-icon-dark align-text-top" src="{{ passkey.aaguid_info.icon_dark }}"
-                                alt="" width="16" height="16">
+                            {% if passkey.icons %}
+                            <img class="passkey-icon-light align-text-top" src="{{ passkey.icons[0] }}" alt=""
+                                width="16" height="16">
+                            <img class="passkey-icon-dark align-text-top" src="{{ passkey.icons[1] }}" alt="" width="16"
+                                height="16">
                             {% else %}
                             <i class="bi bi-key-fill text-body"></i>
                             {% endif %}

@@ -43,21 +43,6 @@
         }
     }
 
-    .passkey-entry {
-        margin: 0.5rem 0;
-
-        &:first-child {
-            margin-top: 0;
-        }
-        &:last-child {
-            margin-bottom: 0;
-        }
-
-        .bi-key-fill {
-            font-size: 1rem;
-        }
-    }
-
     .qr-code-container > svg {
         @extend .rounded;
     }
@@ -123,8 +108,27 @@
     }
 }
 
+.settings-security-body,
+.admin-user-edit-body {
+    .passkey-entry {
+        margin: 0.5rem 0;
+
+        &:first-child {
+            margin-top: 0;
+        }
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        .bi-key-fill {
+            font-size: 1rem;
+        }
+    }
+}
+
 @include color-mode(light) {
-    .settings-security-body {
+    .settings-security-body,
+    .admin-user-edit-body {
         .qr-code-container > svg {
             @extend .border;
         }
@@ -136,7 +140,8 @@
 }
 
 @include color-mode(dark) {
-    .settings-security-body {
+    .settings-security-body,
+    .admin-user-edit-body {
         .passkey-icon-light {
             display: none;
         }

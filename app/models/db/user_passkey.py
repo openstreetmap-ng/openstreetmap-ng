@@ -24,4 +24,4 @@ class UserPasskey(TypedDict):
     last_used_at: datetime
 
     # runtime
-    aaguid_info: NotRequired[AAGUIDInfo | None]
+    icons: NotRequired[tuple[str, str]]  # (icon_light, icon_dark)

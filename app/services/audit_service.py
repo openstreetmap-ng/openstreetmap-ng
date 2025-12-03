@@ -132,7 +132,7 @@ def audit(
 
     task = _TG.create_task(_audit_task(conn, event_init, discard_repeated))
 
-    if type not in {'auth_api', 'auth_web'} or extra is not None:
+    if type not in {'auth_api', 'auth_web'} or extra:
         values: list[str] = []
         if user_id is not None:
             values.append(f'uid={user_id}')
@@ -188,11 +188,7 @@ async def _audit_task(
             query,
             {
                 **event_init,
-                'extra': (
-                    Jsonb(extra)
-                    if (extra := event_init.get('extra')) is not None
-                    else None
-                ),
+                'extra': (Jsonb(extra) if (extra := event_init.get('extra')) else None),
                 'discard_repeated': discard_repeated,
             },
         )

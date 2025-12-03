@@ -152,33 +152,13 @@
                     </label>
                     <p class="form-text">Leave blank to keep current password</p>
 
-                    <label class="form-label d-block mb-3">
+                    <label class="form-label d-block">
                         <span>{{ t('settings.new_password_repeat') }}</span>
                         <input type="password" class="form-control mt-2" data-name="new_password_confirm"
                             minlength="{{ PASSWORD_MIN_LENGTH }}">
                     </label>
 
-                    <hr class="my-3">
-
-                    <h4 class="mb-3">{{ t('two_fa.two_factor_methods') }}</h4>
-                    {% if has_totp %}
-                    <div class="mb-3">
-                        <span class="badge bg-success me-2">
-                            <i class="bi bi-shield-check"></i>
-                            {{ t('two_fa.two_factor_enabled_badge') }}
-                        </span>
-                    </div>
-                    <form class="remove-totp-form d-inline" method="POST"
-                        action="/api/web/admin/users/{{ edit_user.id }}/remove-totp">
-                        <button class="btn btn-sm btn-outline-danger" type="submit">
-                            <i class="bi bi-x-circle me-1"></i>Remove TOTP 2FA
-                        </button>
-                    </form>
-                    {% else %}
-                    <p class="text-muted mb-0">Two-factor authentication is not enabled for this user.</p>
-                    {% endif %}
-
-                    <hr class="my-3">
+                    <hr class="my-4">
 
                     <div class="text-end">
                         <button class="btn btn-primary px-3" type="submit">
@@ -186,6 +166,22 @@
                         </button>
                     </div>
                 </form>
+
+                <h4 class="mb-3">{{ t('two_fa.two_factor_methods') }}</h4>
+                <div class="d-flex gap-3">
+                    {% set _map = {True: 'text-success', False: 'text-body-tertiary'} %}
+                    <i class="bi bi-fingerprint fs-4 {{ _map[two_fa_status.has_passkeys] }}"></i>
+                    <i class="bi bi-phone fs-4 {{ _map[two_fa_status.has_totp] }}"></i>
+                    <i class="bi bi-file-text fs-4 {{ _map[two_fa_status.has_recovery] }}"></i>
+                    {% if two_fa_status.has_passkeys or two_fa_status.has_totp %}
+                    <form class="reset-2fa-form ms-2" method="POST"
+                        action="/api/web/admin/users/{{ edit_user.id }}/reset-2fa">
+                        <button class="btn btn-outline-danger" type="submit">
+                            Reset 2FA
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
             </div>
 
             <div class="tab-pane fade" id="connections">

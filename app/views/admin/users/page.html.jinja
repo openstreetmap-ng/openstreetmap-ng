@@ -44,6 +44,15 @@
         {% endif %}
     </td>
     <td>
+        <div class="d-flex gap-1">
+            {% set _2fa = two_fa_status[user.id] %}
+            {% set _map = {True: 'text-success', False: 'text-body-tertiary'} %}
+            <i class="bi bi-fingerprint {{ _map[_2fa.has_passkeys] }}"></i>
+            <i class="bi bi-phone {{ _map[_2fa.has_totp] }}"></i>
+            <i class="bi bi-file-text {{ _map[_2fa.has_recovery] }}"></i>
+        </div>
+    </td>
+    <td>
         <time datetime="{{ user.created_at.isoformat() }}" data-style="short"></time>
     </td>
     {% set _user_ips = ip_counts[user.id] %}

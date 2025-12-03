@@ -1,6 +1,6 @@
 from datetime import datetime
 from ipaddress import ip_address, ip_network
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
@@ -19,6 +19,13 @@ from app.models.db.element import Element
 from app.models.db.user import User, UserDisplay, UserRole
 from app.models.types import ApplicationId, ChangesetId, DisplayName, Email, UserId
 from app.validators.email import validate_email
+
+
+class _2FAStatus(TypedDict):  # noqa: N801
+    has_passkeys: bool
+    has_totp: bool
+    has_recovery: bool
+
 
 _USER_DISPLAY_SELECT = SQL(',').join([
     Identifier(k) for k in UserDisplay.__annotations__
@@ -438,3 +445,36 @@ class UserQuery:
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
             return await r.fetchall()  # type: ignore
+
+    @staticmethod
+    async def get_2fa_status(user_ids: list[UserId]) -> dict[UserId, _2FAStatus]:
+        """Get 2FA status for multiple users efficiently."""
+        if not user_ids:
+            return {}
+
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT
+                    u.user_id,
+                    EXISTS(SELECT 1 FROM user_passkey WHERE user_id = u.user_id) AS has_passkeys,
+                    EXISTS(SELECT 1 FROM user_totp WHERE user_id = u.user_id) AS has_totp,
+                    EXISTS(
+                        SELECT 1 FROM user_recovery_code
+                        WHERE user_id = u.user_id
+                        AND array_remove(codes_hashed, NULL) != '{}'
+                    ) AS has_recovery
+                FROM unnest(%s::bigint[]) AS u(user_id)
+                """,
+                (user_ids,),
+            ) as r,
+        ):
+            return {
+                row[0]: _2FAStatus(
+                    has_passkeys=row[1],
+                    has_totp=row[2],
+                    has_recovery=row[3],
+                )
+                for row in await r.fetchall()
+            }

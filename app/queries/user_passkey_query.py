@@ -48,14 +48,26 @@ class UserPasskeyQuery:
 
         if resolve_aaguid_db:
             default_name = t('two_fa.my_passkey')
+
             for passkey in passkeys:
-                passkey['aaguid_info'] = aaguid_info = AAGUID_DB.get(passkey['aaguid'])
+                aaguid_info = AAGUID_DB.get(passkey['aaguid'])
+
                 if passkey['name'] is not None:
                     pass
                 elif aaguid_info is not None:
                     passkey['name'] = aaguid_info['name']
                 else:
                     passkey['name'] = default_name
+
+                if aaguid_info is not None:
+                    icon_light = aaguid_info.get('icon_light')
+                    icon_dark = aaguid_info.get('icon_dark')
+                    if icon_light is not None and icon_dark is not None:
+                        passkey['icons'] = (icon_light, icon_dark)
+                    elif icon_light is not None:
+                        passkey['icons'] = (icon_light, icon_light)
+                    elif icon_dark is not None:
+                        passkey['icons'] = (icon_dark, icon_dark)
 
         return passkeys
 

@@ -19,7 +19,6 @@ from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
-from app.queries.user_totp_query import UserTOTPQuery
 from app.services.audit_service import audit
 
 router = APIRouter()
@@ -81,7 +80,7 @@ async def user_edit(
 
     async with TaskGroup() as tg:
         tg.create_task(audit('view_admin_users', target_user_id=user_id))
-        totp_t = tg.create_task(UserTOTPQuery.find_one_by_user_id(user_id))
+        two_fa_status_t = tg.create_task(UserQuery.get_2fa_status([user_id]))
         connected_accounts_t = tg.create_task(
             ConnectedAccountQuery.find_by_user(user_id)
         )
@@ -94,7 +93,7 @@ async def user_edit(
         'admin/users/edit',
         {
             'edit_user': edit_user,
-            'has_totp': totp_t.result() is not None,
+            'two_fa_status': two_fa_status_t.result()[user_id],
             'connected_accounts': connected_accounts_t.result(),
             'authorizations': authorizations,
             'applications': applications_t.result(),
