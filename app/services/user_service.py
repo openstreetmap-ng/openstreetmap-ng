@@ -11,13 +11,10 @@ from pydantic import SecretStr
 from app.config import ENV, USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.exceptions_context import raise_for
 from app.lib.image import Image, UserAvatarType
 from app.lib.locale import is_installed_locale
-from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
-from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import Editor, User, UserRole, user_avatar_url, user_is_test
 from app.models.proto.shared_pb2 import LoginResponse, PasskeyAssertion
@@ -25,13 +22,12 @@ from app.models.types import DisplayName, Email, LocaleCode, Password, UserId
 from app.queries.user_passkey_query import UserPasskeyQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_recovery_code_query import UserRecoveryCodeQuery
-from app.queries.user_token_query import UserTokenQuery
 from app.queries.user_totp_query import UserTOTPQuery
 from app.services.audit_service import audit
 from app.services.image_service import ImageService
-from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_passkey_service import UserPasskeyService
+from app.services.user_password_service import UserPasswordService
 from app.services.user_recovery_code_service import UserRecoveryCodeService
 from app.services.user_token_email_service import UserTokenEmailService
 from app.services.user_token_service import UserTokenService
@@ -64,7 +60,7 @@ class UserService:
                 StandardFeedback.raise_error(
                     None, t('users.auth_failure.invalid_credentials')
                 )
-            result = await _login_with_password(
+            result = await _login_with_credentials(
                 display_name_or_email,
                 password,
                 totp_code=totp_code,
@@ -233,11 +229,11 @@ class UserService:
                 'email', 'Changing test user email is disabled'
             )
 
-        await UserService.verify_user_password(
+        await UserPasswordService.verify_password(
             user,
             password,
             field_name='password',
-            error_message=t('validation.password_is_incorrect'),
+            error_message=lambda: t('validation.password_is_incorrect'),
         )
 
         if not await UserQuery.check_email_available(new_email):
@@ -249,128 +245,6 @@ class UserService:
 
         # TODO: send to old email too for security
         await UserTokenEmailService.send_email(new_email)
-
-    @staticmethod
-    async def update_password(
-        *,
-        old_password: Password,
-        new_password: Password,
-    ) -> None:
-        """Update user password."""
-        user = auth_user(required=True)
-        user_id = user['id']
-
-        await UserService.verify_user_password(
-            user,
-            old_password,
-            field_name='old_password',
-            error_message=t('validation.password_is_incorrect'),
-            skip_rehash=True,
-        )
-
-        new_password_pb = PasswordHash.hash(new_password)
-        assert new_password_pb is not None, (
-            'Provided password schemas cannot be used during update_password'
-        )
-
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                UPDATE "user"
-                SET password_pb = %s,
-                    password_updated_at = statement_timestamp()
-                WHERE id = %s
-                """,
-                (new_password_pb, user_id),
-            )
-            await audit('change_password', conn)
-
-    @staticmethod
-    async def reset_password(
-        token: SecretStr,
-        *,
-        new_password: Password,
-        revoke_other_sessions: bool,
-    ) -> None:
-        """Reset the user password."""
-        token_struct = UserTokenStructUtils.from_str(token)
-
-        user_token = await UserTokenQuery.find_by_token_struct(
-            'reset_password', token_struct
-        )
-        if user_token is None:
-            raise_for.bad_user_token_struct()
-        user_id = user_token['user_id']
-
-        new_password_pb = PasswordHash.hash(new_password)
-        assert new_password_pb is not None, (
-            'Provided password schemas cannot be used during reset_password'
-        )
-
-        if revoke_other_sessions:
-            await OAuth2TokenService.revoke_by_client_id(
-                SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
-            )
-
-        async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT 1 FROM user_token
-                WHERE id = %s AND type = 'reset_password'
-                FOR UPDATE
-                """,
-                (token_struct.id,),
-            ) as r:
-                if await r.fetchone() is None:
-                    raise_for.bad_user_token_struct()
-
-            async with conn.pipeline():
-                await conn.execute(
-                    """
-                    UPDATE "user"
-                    SET password_pb = %s,
-                        password_updated_at = DEFAULT
-                    WHERE id = %s
-                    """,
-                    (new_password_pb, user_id),
-                )
-                await conn.execute(
-                    'DELETE FROM user_token WHERE id = %s',
-                    (token_struct.id,),
-                )
-
-            await audit(
-                'change_password', conn, user_id=user_id, extra={'reason': 'reset'}
-            )
-
-    @staticmethod
-    async def verify_user_password(
-        user: User,
-        password: Password,
-        *,
-        field_name: str | None,
-        error_message: str | None = None,
-        audit_failure: str | None = None,
-        skip_rehash: bool = False,
-    ) -> None:
-        verification = PasswordHash.verify(user, password)
-
-        if not verification.success:
-            if audit_failure is not None:
-                await audit(
-                    'auth_fail', user_id=user['id'], extra={'reason': audit_failure}
-                )
-
-            if error_message is None:
-                error_message = t('users.auth_failure.invalid_credentials')
-
-            StandardFeedback.raise_error(field_name, error_message)
-
-        if not skip_rehash and verification.rehash_needed:
-            await _rehash_user_password(user, password)
-
-        if verification.schema_needed is not None:
-            StandardFeedback.raise_error('password_schema', verification.schema_needed)
 
     @staticmethod
     async def update_timezone(timezone: str) -> None:
@@ -527,13 +401,6 @@ class UserService:
             )
 
         if new_password is not None:
-            assignments.append(SQL('password_pb = %s'))
-            assignments.append(SQL('password_updated_at = statement_timestamp()'))
-            new_password_pb = PasswordHash.hash(new_password)
-            assert new_password_pb is not None, (
-                'Provided password schemas cannot be used during admin_update_user'
-            )
-            params.append(new_password_pb)
             audits.append(
                 lambda conn: audit(
                     'change_password',
@@ -561,9 +428,14 @@ class UserService:
 
         async with db(True) as conn:
             if ENV != 'test':  # Prevent admin user updates on the test instance
-                await conn.execute(query, params)
+                if assignments:
+                    await conn.execute(query, params)
                 if email is not None:
                     await UserTokenService.delete_all_for_user(conn, user_id)
+                if new_password is not None:
+                    await UserPasswordService.set_password_unsafe(
+                        conn, user_id, new_password
+                    )
             for op in audits:
                 await op(conn)
 
@@ -579,7 +451,7 @@ async def _login_with_passkey(
     return result
 
 
-async def _login_with_password(
+async def _login_with_credentials(
     display_name_or_email: DisplayName | Email,
     password: Password,
     *,
@@ -598,11 +470,10 @@ async def _login_with_password(
         logging.debug('User not found %r', display_name_or_email)
         StandardFeedback.raise_error(None, t('users.auth_failure.invalid_credentials'))
 
-    await UserService.verify_user_password(
+    await UserPasswordService.verify_password(
         user,
         password,
-        field_name=None,
-        error_message=t('users.auth_failure.invalid_credentials'),
+        error_message=lambda: t('users.auth_failure.invalid_credentials'),
         audit_failure='password',
     )
 
@@ -650,25 +521,3 @@ async def _login_with_password(
         return resp
 
     return user_id
-
-
-async def _rehash_user_password(user: User, password: Password) -> None:
-    """Rehash user password if the hashing algorithm or parameters have changed."""
-    user_id = user['id']
-
-    new_password_pb = PasswordHash.hash(password)
-    if new_password_pb is None:
-        return
-
-    async with db(True) as conn:
-        result = await conn.execute(
-            """
-            UPDATE "user"
-            SET password_pb = %s
-            WHERE id = %s AND password_pb = %s
-            """,
-            (new_password_pb, user_id, user['password_pb']),
-        )
-
-        if result.rowcount:
-            logging.debug('Rehashed password for user %d', user_id)

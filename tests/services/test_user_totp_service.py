@@ -1,5 +1,6 @@
 from base64 import b32decode
 
+import pytest
 from pydantic import SecretBytes, SecretStr
 
 from app.lib.auth_context import auth_context
@@ -12,13 +13,14 @@ from app.queries.user_totp_query import UserTOTPQuery
 from app.services.user_totp_service import UserTOTPService
 
 
-def generate_code(secret_str: str) -> str:
+def generate_code(secret_str: str, digits: int) -> str:
     padding = '=' * (-len(secret_str) % 8)
     secret_bytes = SecretBytes(b32decode(secret_str.upper() + padding))
-    return _generate_totp_code(secret_bytes, totp_time_window())
+    return _generate_totp_code(secret_bytes, digits, totp_time_window())
 
 
-async def test_totp_flow():
+@pytest.mark.parametrize('digits', [6, 8])
+async def test_totp_flow(digits: int):
     user = await UserQuery.find_by_display_name(DisplayName('user1'))
     assert user is not None
     user_id = user['id']
@@ -32,15 +34,15 @@ async def test_totp_flow():
 
     with translation_context(DEFAULT_LOCALE), auth_context(user):
         # Setup TOTP
-        code = generate_code(secret_str)
-        await UserTOTPService.setup_totp(secret, code)
+        code = generate_code(secret_str, digits)
+        await UserTOTPService.setup_totp(secret, digits, code)
 
         # Verify stored in DB
         stored_totp = await UserTOTPQuery.find_one_by_user_id(user_id)
         assert stored_totp is not None
 
         # Verify valid code
-        current_code = generate_code(secret_str)
+        current_code = generate_code(secret_str, digits)
         success = await UserTOTPService.verify_totp(user_id, current_code)
         assert success is True
 
@@ -49,7 +51,7 @@ async def test_totp_flow():
         assert success is False
 
         # Verify invalid code
-        success = await UserTOTPService.verify_totp(user_id, '000000')
+        success = await UserTOTPService.verify_totp(user_id, '0' * digits)
         assert success is False
 
         # Remove TOTP

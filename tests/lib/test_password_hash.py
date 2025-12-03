@@ -1,18 +1,7 @@
-from app.config import TEST_USER_EMAIL_SUFFIX
 from app.lib.password_hash import PasswordHash
-from app.models.db.user import User
 from app.models.proto.server_pb2 import UserPassword
 from app.models.proto.shared_pb2 import TransmitUserPassword
-from app.models.types import Email, Password
-
-
-def _user(password_pb: bytes, *, is_test_user: bool = False) -> User:
-    return {
-        'email': Email(
-            f'user{TEST_USER_EMAIL_SUFFIX if is_test_user else "@example.com"}'
-        ),
-        'password_pb': password_pb,
-    }  # type: ignore
+from app.models.types import Password
 
 
 def test_password_hash_v1():
@@ -21,7 +10,7 @@ def test_password_hash_v1():
     password_pb = PasswordHash.hash(password)
     assert password_pb is not None
 
-    verified = PasswordHash.verify(_user(password_pb), password)
+    verified = PasswordHash.verify(password_pb, password)
     assert verified.success
 
 
@@ -33,20 +22,8 @@ def test_password_hash_v1_mismatch():
     password_pb = PasswordHash.hash(password_1)
     assert password_pb is not None
 
-    verified = PasswordHash.verify(_user(password_pb), password_2)
+    verified = PasswordHash.verify(password_pb, password_2)
     assert not verified.success
-
-
-def test_password_hash_v1_test_user():
-    password_1 = TransmitUserPassword(v1=b'a' * 64)
-    password_1 = Password(password_1.SerializeToString())
-    password_2 = TransmitUserPassword(v1=b'b' * 64)
-    password_2 = Password(password_2.SerializeToString())
-    password_pb = PasswordHash.hash(password_1)
-    assert password_pb is not None
-
-    verified = PasswordHash.verify(_user(password_pb, is_test_user=True), password_2)
-    assert verified.success
 
 
 def test_password_hash_legacy_unsupported():
@@ -66,7 +43,7 @@ def test_password_hash_legacy_argon():
         )
     ).SerializeToString()
 
-    assert PasswordHash.verify(_user(password_pb), password).success
+    assert PasswordHash.verify(password_pb, password).success
 
 
 def test_password_hash_legacy_md5():
@@ -79,4 +56,4 @@ def test_password_hash_legacy_md5():
         )
     ).SerializeToString()
 
-    assert PasswordHash.verify(_user(password_pb), password).success
+    assert PasswordHash.verify(password_pb, password).success

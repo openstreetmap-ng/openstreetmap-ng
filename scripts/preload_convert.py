@@ -682,7 +682,6 @@ def _write_user(modes: set[str]) -> None:
                     display_name || '_' || user_id,
                     display_name
                 ) AS display_name,
-                '' AS password_pb,
                 'en' AS language,
                 TRUE AS activity_tracking,
                 TRUE AS crash_reporting

@@ -22,6 +22,7 @@ from app.models.types import Password, UserId
 from app.queries.user_passkey_query import UserPasskeyQuery
 from app.services.audit_service import audit
 from app.services.user_passkey_challenge_service import UserPasskeyChallengeService
+from app.services.user_password_service import UserPasswordService
 
 
 class UserPasskeyService:
@@ -119,8 +120,9 @@ class UserPasskeyService:
             # Update sign count
             await conn.execute(
                 """
-                UPDATE user_passkey
-                SET sign_count = %s, last_used_at = statement_timestamp()
+                UPDATE user_passkey SET
+                    sign_count = %s,
+                    last_used_at = DEFAULT
                 WHERE credential_id = %s
                 """,
                 (new_sign_count, passkey['credential_id']),
@@ -143,13 +145,11 @@ class UserPasskeyService:
             user = auth_user(required=True)
             user_id = user['id']
 
-            from app.services.user_service import UserService  # noqa: PLC0415
-
-            await UserService.verify_user_password(
+            await UserPasswordService.verify_password(
                 user,
                 password,
                 field_name='password',
-                error_message=t('validation.password_is_incorrect'),
+                error_message=lambda: t('validation.password_is_incorrect'),
             )
 
         async with db(True) as conn:

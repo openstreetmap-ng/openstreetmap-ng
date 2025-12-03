@@ -19,7 +19,6 @@ class UserInit(TypedDict):
     email: Email
     email_verified: bool
     display_name: DisplayName
-    password_pb: bytes
     language: LocaleCode
     activity_tracking: bool
     crash_reporting: bool
@@ -35,7 +34,6 @@ class User(UserInit):
     avatar_id: StorageKey | None
     background_id: StorageKey | None
     created_at: datetime
-    password_updated_at: datetime | None
     scheduled_delete_at: datetime | None
 
 

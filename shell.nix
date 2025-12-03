@@ -710,7 +710,7 @@ let
         echo "Linting files..."
         ruff check --fix
         biome check --fix --formatter-enabled=false
-        bun tsc --noEmit
+        bunx typescript --noEmit
       fi
     '')
     (makeScript "pyright" "bunx basedpyright")

@@ -77,7 +77,6 @@ class TestService:
             'email': Email(f'{name}{TEST_USER_EMAIL_SUFFIX}'),
             'email_verified': email_verified,
             'display_name': name,  # type: ignore
-            'password_pb': b'',
             'language': language,
             'activity_tracking': False,
             'crash_reporting': False,
@@ -86,31 +85,40 @@ class TestService:
 
         try:
             async with db(True) as conn:
-                await conn.execute(
+                async with await conn.execute(
                     """
                     INSERT INTO "user" (
-                        email, email_verified, display_name, password_pb,
+                        email, email_verified, display_name,
                         language, activity_tracking, crash_reporting,
                         roles, created_at
                     )
                     VALUES (
-                        %(email)s, %(email_verified)s, %(display_name)s, %(password_pb)s,
+                        %(email)s, %(email_verified)s, %(display_name)s,
                         %(language)s, %(activity_tracking)s, %(crash_reporting)s,
                         %(roles)s, COALESCE(%(created_at)s, statement_timestamp())
                     )
                     ON CONFLICT (display_name) DO UPDATE SET
                         email = EXCLUDED.email,
                         email_verified = EXCLUDED.email_verified,
-                        password_pb = EXCLUDED.password_pb,
                         language = EXCLUDED.language,
                         roles = EXCLUDED.roles,
                         created_at = COALESCE(%(created_at)s, "user".created_at)
+                    RETURNING id
                     """,
                     {
                         **user_init,
                         'roles': roles or [],
                         'created_at': created_at,
                     },
+                ) as r:
+                    (user_id,) = await r.fetchone()  # type: ignore
+
+                await conn.execute(
+                    """
+                    DELETE FROM user_password
+                    WHERE user_id = %s
+                    """,
+                    (user_id,),
                 )
         except UniqueViolation:
             pass

@@ -68,7 +68,7 @@ class ReportService:
                 )
                 ON CONFLICT (type, type_id) DO UPDATE SET
                     closed_at = NULL,
-                    updated_at = statement_timestamp()
+                    updated_at = DEFAULT
                 RETURNING id
                 """,
                 report_init,
@@ -233,7 +233,7 @@ class ReportService:
             await conn.execute(
                 """
                 UPDATE report
-                SET updated_at = statement_timestamp()
+                SET updated_at = DEFAULT
                 WHERE id = %s
                 """,
                 (report_id,),
@@ -281,7 +281,7 @@ class ReportService:
                 """
                 UPDATE report SET
                     closed_at = statement_timestamp(),
-                    updated_at = statement_timestamp()
+                    updated_at = DEFAULT
                 WHERE id = %s
                 """,
                 (report_id,),
@@ -325,7 +325,7 @@ class ReportService:
                 """
                 UPDATE report SET
                     closed_at = NULL,
-                    updated_at = statement_timestamp()
+                    updated_at = DEFAULT
                 WHERE id = %s
                 """,
                 (report_id,),

@@ -118,8 +118,6 @@ CREATE TABLE "user" (
     email text NOT NULL,
     email_verified boolean NOT NULL,
     display_name text NOT NULL,
-    password_pb bytea NOT NULL,
-    password_updated_at timestamptz NOT NULL DEFAULT statement_timestamp(),
     roles user_role[] NOT NULL DEFAULT '{}',
     language text NOT NULL,
     timezone text,
@@ -155,23 +153,11 @@ WHERE
 
 CREATE INDEX user_roles_idx ON "user" USING gin (roles);
 
-CREATE TYPE auth_provider AS enum(
-    'google',
-    'facebook',
-    'microsoft',
-    'github',
-    'wikimedia'
+CREATE TABLE user_password (
+    user_id bigint PRIMARY KEY REFERENCES "user" ON DELETE CASCADE,
+    password_pb bytea NOT NULL,
+    updated_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
-
-CREATE TABLE connected_account (
-    user_id bigint NOT NULL REFERENCES "user",
-    provider auth_provider NOT NULL,
-    uid text NOT NULL,
-    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
-    PRIMARY KEY (user_id, provider)
-);
-
-CREATE UNIQUE INDEX connected_account_provider_uid_idx ON connected_account (provider, uid);
 
 CREATE TABLE user_passkey (
     credential_id bytea NOT NULL PRIMARY KEY,
@@ -211,6 +197,24 @@ CREATE TABLE user_recovery_code (
     codes_hashed bytea[] NOT NULL,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
+
+CREATE TYPE auth_provider AS enum(
+    'google',
+    'facebook',
+    'microsoft',
+    'github',
+    'wikimedia'
+);
+
+CREATE TABLE connected_account (
+    user_id bigint NOT NULL REFERENCES "user",
+    provider auth_provider NOT NULL,
+    uid text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT statement_timestamp(),
+    PRIMARY KEY (user_id, provider)
+);
+
+CREATE UNIQUE INDEX connected_account_provider_uid_idx ON connected_account (provider, uid);
 
 CREATE TYPE scope AS enum(
     'web_user',

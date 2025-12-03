@@ -9,7 +9,6 @@ from starlette.responses import RedirectResponse
 
 from app.config import COOKIE_AUTH_MAX_AGE, ENV, TIMEZONE_MAX_LENGTH
 from app.lib.auth_context import auth_user, web_user
-from app.lib.password_hash import PasswordHash
 from app.lib.referrer import redirect_referrer
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
@@ -24,6 +23,7 @@ from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_passkey_challenge_service import UserPasskeyChallengeService
 from app.services.user_passkey_service import UserPasskeyService
+from app.services.user_password_service import UserPasswordService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_email_service import UserTokenEmailService
@@ -183,7 +183,7 @@ async def reset_password_token(
 ):
     revoke_other_sessions = auth_user() is None
 
-    await UserService.reset_password(
+    await UserPasswordService.reset_password(
         token=token,
         new_password=new_password,
         revoke_other_sessions=revoke_other_sessions,
@@ -219,7 +219,9 @@ async def passkey_challenge(
 
     if user is None and display_name_or_email is not None and password is not None:
         user = await UserQuery.find_by_display_name_or_email(display_name_or_email)
-        if user is not None and not PasswordHash.verify(user, password).success:
+        if user is not None and not await UserPasswordService.verify_password(
+            user, password, error_message='ignore'
+        ):
             user = None
 
     async with TaskGroup() as tg:

@@ -9,6 +9,7 @@ from app.models.db.user_recovery_code import UserRecoveryCode
 from app.models.types import Password, UserId
 from app.services.audit_service import audit
 from app.services.rate_limit_service import RateLimitService
+from app.services.user_password_service import UserPasswordService
 
 
 class UserRecoveryCodeService:
@@ -25,13 +26,11 @@ class UserRecoveryCodeService:
         user = auth_user(required=True)
         user_id = user['id']
 
-        from app.services.user_service import UserService  # noqa: PLC0415
-
-        await UserService.verify_user_password(
+        await UserPasswordService.verify_password(
             user,
             password,
             field_name='password',
-            error_message=t('validation.password_is_incorrect'),
+            error_message=lambda: t('validation.password_is_incorrect'),
         )
 
         # Generate new codes

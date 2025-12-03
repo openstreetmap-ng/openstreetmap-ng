@@ -27,6 +27,7 @@ from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_passkey_service import UserPasskeyService
+from app.services.user_password_service import UserPasswordService
 from app.services.user_profile_service import UserProfileService
 from app.services.user_recovery_code_service import UserRecoveryCodeService
 from app.services.user_service import UserService
@@ -104,7 +105,7 @@ async def settings_password(
     new_password: Annotated[Password, File()],
     revoke_other_sessions: Annotated[bool, Form()] = False,
 ):
-    await UserService.update_password(
+    await UserPasswordService.update_password(
         old_password=old_password,
         new_password=new_password,
     )
