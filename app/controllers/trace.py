@@ -24,7 +24,7 @@ async def upload(_: Annotated[User, web_user()]):
 
 @router.get('/{trace_id:int}')
 async def details(trace_id: TraceId):
-    trace = await TraceQuery.get_one_by_id(trace_id)
+    trace = await TraceQuery.get_by_id(trace_id)
 
     async with TaskGroup() as tg:
         items = [trace]
@@ -49,7 +49,7 @@ async def edit(
     trace_id: TraceId,
     user: Annotated[User, web_user()],
 ):
-    trace = await TraceQuery.get_one_by_id(trace_id)
+    trace = await TraceQuery.get_by_id(trace_id)
     if trace['user_id'] != user['id']:
         # TODO: this could be nicer?
         return Response(None, status.HTTP_403_FORBIDDEN)

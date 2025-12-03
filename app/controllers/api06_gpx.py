@@ -54,7 +54,7 @@ async def upload_trace(
 async def get_trace(
     trace_id: TraceId,
 ):
-    trace = await TraceQuery.get_one_by_id(trace_id)
+    trace = await TraceQuery.get_by_id(trace_id)
 
     async with TaskGroup() as tg:
         items = [trace]
@@ -87,7 +87,7 @@ async def get_current_user_traces(
 async def get_trace_gpx(
     trace_id: TraceId,
 ):
-    trace = await TraceQuery.get_one_by_id(trace_id)
+    trace = await TraceQuery.get_by_id(trace_id)
     data = FormatGPX.encode_tracks([trace])
     resp = GPXResponse.serialize(data)
     return Response(

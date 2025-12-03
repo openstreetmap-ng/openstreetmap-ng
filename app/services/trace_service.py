@@ -126,7 +126,7 @@ class TraceService:
     ) -> None:
         """Update a trace."""
         user_id = auth_user(required=True)['id']
-        trace = await TraceQuery.get_one_by_id(trace_id)
+        trace = await TraceQuery.get_by_id(trace_id)
 
         audit_extra: dict[str, Any] = {'id': trace_id}
         if trace['name'] != name:

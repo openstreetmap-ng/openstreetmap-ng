@@ -37,7 +37,7 @@ async def read_message(
     user: Annotated[User, web_user()],
     message_id: MessageId,
 ):
-    message = await MessageQuery.get_one_by_id(message_id)
+    message = await MessageQuery.get_by_id(message_id)
     assert 'recipients' in message, 'Message recipients must be set'
 
     user_recipient = (

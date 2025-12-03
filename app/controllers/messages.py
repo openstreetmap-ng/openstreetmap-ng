@@ -65,7 +65,7 @@ async def new_message(
     body: str = ''
 
     if reply is not None or reply_all is not None:
-        reply_message = await MessageQuery.get_one_by_id(reply or reply_all)  # type: ignore
+        reply_message = await MessageQuery.get_by_id(reply or reply_all)  # type: ignore
         assert 'recipients' in reply_message, 'Message recipients must be set'
 
         async with TaskGroup() as tg:

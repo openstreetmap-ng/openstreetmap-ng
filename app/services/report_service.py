@@ -380,7 +380,7 @@ async def _validate_integrity(
 
     elif action == 'user_message':
         assert action_id is not None
-        message = await MessageQuery.get_one_by_id(action_id)  # pyright: ignore[reportArgumentType]
+        message = await MessageQuery.get_by_id(action_id)  # pyright: ignore[reportArgumentType]
         assert message['from_user_id'] == type_id
 
     elif action == 'user_note':
@@ -400,7 +400,7 @@ async def _validate_integrity(
 
     elif action == 'user_trace':
         assert action_id is not None
-        trace = await TraceQuery.get_one_by_id(action_id)  # pyright: ignore[reportArgumentType]
+        trace = await TraceQuery.get_by_id(action_id)  # pyright: ignore[reportArgumentType]
         assert trace['user_id'] == type_id
 
     else:

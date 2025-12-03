@@ -20,7 +20,7 @@ class _MessageCountByUserResult(NamedTuple):
 
 class MessageQuery:
     @staticmethod
-    async def get_one_by_id(message_id: MessageId) -> Message:
+    async def get_by_id(message_id: MessageId) -> Message:
         """Get a message and its recipients by id."""
         user = auth_user(required=True)
         user_id = user['id']

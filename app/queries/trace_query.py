@@ -32,7 +32,7 @@ from app.queries.timescaledb_query import TimescaleDBQuery
 
 class TraceQuery:
     @staticmethod
-    async def get_one_by_id(trace_id: TraceId) -> Trace:
+    async def get_by_id(trace_id: TraceId) -> Trace:
         """
         Get a trace by id.
         Raises if the trace is not visible to the current user.
@@ -78,7 +78,7 @@ class TraceQuery:
         Raises if the trace is not visible to the current user.
         Returns the file bytes.
         """
-        trace = await TraceQuery.get_one_by_id(trace_id)
+        trace = await TraceQuery.get_by_id(trace_id)
         file_buffer = await TRACE_STORAGE.load(trace['file_id'])
         file_bytes = TraceFile.decompress_if_needed(file_buffer, trace['file_id'])
         return file_bytes
