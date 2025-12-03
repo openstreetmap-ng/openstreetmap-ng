@@ -1,5 +1,5 @@
 from hashlib import sha256
-from typing import Literal, NamedTuple, TypedDict
+from typing import Literal, NamedTuple, NotRequired, TypedDict
 from urllib.parse import urlsplit
 
 import cbor2
@@ -22,6 +22,8 @@ class _ClientData(TypedDict):
     challenge: str  # base64url encoded version of the cryptographic challenge
     origin: str
     type: _ClientDataType
+    crossOrigin: NotRequired[bool]
+    topOrigin: NotRequired[str]
 
 
 class _AuthData(NamedTuple):
@@ -75,6 +77,12 @@ def parse_client_data(
     if origin != APP_URL:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, f'ClientData: Invalid origin: {origin}'
+        )
+
+    if data.get('crossOrigin'):
+        top_origin = data.get('topOrigin')
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, f'ClientData: Invalid topOrigin: {top_origin}'
         )
 
     return data
@@ -193,9 +201,7 @@ def _verify_signature(
         x = int.from_bytes(public_key[:32])
         y = int.from_bytes(public_key[32:])
         key = ECC.construct(curve='P-256', point_x=x, point_y=y)
-        # Detect signature format: binary (IEEE P1363) is exactly 64 bytes, DER is 70-72
-        encoding = 'binary' if len(signature) == 64 else 'der'
-        verifier = DSS.new(key, 'fips-186-3', encoding=encoding)
+        verifier = DSS.new(key, 'fips-186-3', 'der')
         msg_hash = SHA256.new(data)
         try:
             verifier.verify(msg_hash, signature)
