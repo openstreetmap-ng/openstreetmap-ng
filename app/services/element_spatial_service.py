@@ -161,7 +161,7 @@ rels_computed AS (
     LEFT JOIN LATERAL (
         -- TODO: Remove `NOT MATERIALIZED` after BUG #19106 is fixed
         WITH member_geoms AS NOT MATERIALIZED (
-            SELECT ST_Collect(geom_val) AS geom
+            SELECT ST_QuantizeCoordinates(ST_Collect(geom_val), 7) AS geom
             FROM (
                 SELECT gl.geom AS geom_val
                 FROM UNNEST(rr.members) AS m(child_rel_id)
