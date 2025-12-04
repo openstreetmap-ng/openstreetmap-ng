@@ -59,17 +59,17 @@ def _progress_context(
     **kwargs: Unpack[_ProgressKwargs],
 ) -> Generator[_Advance]:
     desc = kwargs.get('desc')
-    total = kwargs.get('total')
+    total: cython.size_t = kwargs.get('total', 0)
     total_str = _format_number(total) if total else ''
     level = kwargs.get('level', logging.INFO)
 
     current: cython.size_t = 0
     start_time: cython.double = monotonic()
-    last_time: cython.double = start_time
+    next_log_time: cython.double = start_time + 5
     rate_width: cython.size_t = 0
 
     def log(*, done: str | None = None) -> None:
-        nonlocal rate_width
+        nonlocal rate_width, next_log_time
         now: cython.double = monotonic()
         elapsed = now - start_time
 
@@ -95,15 +95,23 @@ def _progress_context(
             remaining = (total - current) / rate
             parts.append(f'ETA {_format_time(remaining)}')
 
+            interval = remaining / 60
+            if interval < 5:
+                interval = 5
+            elif interval > 60:
+                interval = 60
+            next_log_time = now + interval
+        else:
+            next_log_time = now + 5
+
         logging.log(level, ' · '.join(parts))
 
     def advance(n: cython.size_t = 1) -> None:
-        nonlocal current, last_time
+        nonlocal current
         current += n
         now: cython.double = monotonic()
-        if now - last_time < 5 or (total and current >= total):
+        if now < next_log_time or (total and current >= total):
             return
-        last_time = now
         log()
 
     yield advance
