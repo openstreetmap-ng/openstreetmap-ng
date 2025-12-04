@@ -1,6 +1,6 @@
-import { configureDatetimeInputs } from "../lib/datetime"
-import { mount } from "../lib/mount"
-import { configureStandardPagination } from "../lib/standard-pagination"
+import { configureDatetimeInputs } from "@lib/datetime-inputs"
+import { mount } from "@lib/mount"
+import { configureStandardPagination } from "@lib/standard-pagination"
 
 mount("audit-body", (body) => {
     const filterForm = body.querySelector("form.filters-form")

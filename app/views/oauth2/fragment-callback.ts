@@ -1,5 +1,5 @@
-import { mount } from "../lib/mount"
-import { qsParse } from "../lib/qs"
+import { mount } from "@lib/mount"
+import { qsParse } from "@lib/qs"
 
 mount("oauth-fragment-callback-body", (body) => {
     console.info("Submitting oauth fragment callback form")

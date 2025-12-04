@@ -12,6 +12,11 @@
     "isolatedModules": true,
     "noEmit": true,
 
+    "baseUrl": ".",
+    "paths": {
+      "@lib/*": ["app/views/lib/*"]
+    },
+
     "strict": true,
     "strictNullChecks": false,
     "skipLibCheck": true,

@@ -1,14 +1,11 @@
+import { encodeMapState, type LonLatZoom, type MapState } from "@lib/map/state"
+import { requestAnimationFramePolyfill } from "@lib/polyfills"
+import { qsParse } from "@lib/qs"
+import { remoteEdit } from "@lib/remote-edit"
+import type { OSMObject } from "@lib/types"
+import { isHrefCurrentPage, wrapMessageEventValidator } from "@lib/utils"
 import { Collapse, Dropdown, Tooltip } from "bootstrap"
-import { routerNavigateStrict } from "../index/_router"
-import { encodeMapState, type LonLatZoom, type MapState } from "../lib/map/map-utils"
-import { qsParse } from "../lib/qs"
-import { remoteEdit } from "../lib/remote-edit"
-import type { OSMObject } from "../lib/types"
-import {
-    isHrefCurrentPage,
-    requestAnimationFramePolyfill,
-    wrapMessageEventValidator,
-} from "../lib/utils"
+import { routerNavigateStrict } from "../index/router"
 
 const minEditZoom = 13
 const navbar = document.querySelector(".navbar")

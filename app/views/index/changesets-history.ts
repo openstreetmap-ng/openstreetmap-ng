@@ -1,26 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import type { GeoJsonProperties } from "geojson"
-import i18next, { t } from "i18next"
-import {
-    type GeoJSONSource,
-    LngLatBounds,
-    type MapGeoJSONFeature,
-    type Map as MaplibreMap,
-} from "maplibre-gl"
-import { resolveDatetimeLazy } from "../lib/datetime"
-import { clearMapHover, setMapHover } from "../lib/map/hover"
-import {
-    addMapLayer,
-    emptyFeatureCollection,
-    getExtendedLayerId,
-    type LayerId,
-    layersConfig,
-    removeMapLayer,
-} from "../lib/map/layers/layers.ts"
-import {
-    convertRenderChangesetsData,
-    renderObjects,
-} from "../lib/map/render-objects.ts"
+import { darkenColor } from "@lib/color"
+import { resolveDatetimeLazy } from "@lib/datetime-inputs"
 import {
     checkLngLatBoundsIntersection,
     getLngLatBoundsIntersection,
@@ -29,18 +9,37 @@ import {
     makeBoundsMinimumSize,
     padLngLatBounds,
     unionBounds,
-} from "../lib/map/utils"
+} from "@lib/map/bounds"
+import { clearMapHover, setMapHover } from "@lib/map/hover"
+import {
+    addMapLayer,
+    emptyFeatureCollection,
+    getExtendedLayerId,
+    type LayerId,
+    layersConfig,
+    removeMapLayer,
+} from "@lib/map/layers/layers.ts"
+import { convertRenderChangesetsData, renderObjects } from "@lib/map/render-objects.ts"
+import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import {
     type RenderChangesetsData_Changeset,
     RenderChangesetsDataSchema,
-} from "../lib/proto/shared_pb"
-import { qsEncode, qsParse } from "../lib/qs"
-import { setPageTitle } from "../lib/title"
-import type { Bounds, OSMChangeset } from "../lib/types"
-import { darkenColor, requestAnimationFramePolyfill, throttle } from "../lib/utils"
+} from "@lib/proto/shared_pb"
+import { qsEncode, qsParse } from "@lib/qs"
+import { throttle } from "@lib/timing"
+import { setPageTitle } from "@lib/title"
+import type { Bounds, OSMChangeset } from "@lib/types"
+import type { GeoJsonProperties } from "geojson"
+import i18next, { t } from "i18next"
+import {
+    type GeoJSONSource,
+    LngLatBounds,
+    type MapGeoJSONFeature,
+    type Map as MaplibreMap,
+} from "maplibre-gl"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController, RouteLoadReason } from "./_router"
-import { routerNavigateStrict } from "./_router"
+import type { IndexController, RouteLoadReason } from "./router"
+import { routerNavigateStrict } from "./router"
 
 const fadeSpeed = 0.2
 const thicknessSpeed = fadeSpeed * 0.6

@@ -1,5 +1,5 @@
+import { configureStandardForm } from "@lib/standard-form"
 import { t } from "i18next"
-import { configureStandardForm } from "../../lib/standard-form"
 
 const onResetSecretButtonClick = (event: Event) => {
     console.debug("onResetSecretButtonClick")

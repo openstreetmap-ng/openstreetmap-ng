@@ -2,8 +2,8 @@ import "./rapid.scss"
 import "@rapideditor/rapid/dist/rapid.css"
 import "@rapideditor/rapid"
 
-import { config, primaryLanguage } from "./lib/config"
-import { parentLoadSystemApp } from "./lib/system-app"
+import { config, primaryLanguage } from "@lib/config"
+import { parentLoadSystemApp } from "@lib/system-app"
 
 const container = document.querySelector("div.rapid-container")
 if (!container) throw new Error("Rapid container not found")

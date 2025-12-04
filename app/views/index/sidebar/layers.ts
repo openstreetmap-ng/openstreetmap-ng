@@ -1,11 +1,11 @@
-import { Tooltip } from "bootstrap"
-import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
-import { config, isMobile } from "../../lib/config"
+import { config, isMobile } from "@lib/config"
 import {
     globeProjectionStorage,
     layerOrderStorage,
     overlayOpacityStorage,
-} from "../../lib/local-storage"
+} from "@lib/local-storage"
+import { getLngLatBoundsSize } from "@lib/map/bounds"
+import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import {
     addLayerEventHandler,
     addMapLayer,
@@ -14,15 +14,17 @@ import {
     type LayerId,
     layersConfig,
     removeMapLayer,
-} from "../../lib/map/layers/layers"
-import { getMapBaseLayerId } from "../../lib/map/map-utils"
-import { configureDefaultMapBehavior, getLngLatBoundsSize } from "../../lib/map/utils"
-import { staticCache, throttle } from "../../lib/utils"
+} from "@lib/map/layers/layers"
+import { getMapBaseLayerId } from "@lib/map/state"
+import { memoize } from "@lib/memoize"
+import { throttle } from "@lib/timing"
+import { Tooltip } from "bootstrap"
+import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
 import { SidebarToggleControl } from "./_toggle-button"
 
 const minimapZoomOut = 2
 
-export class LayersSidebarToggleControl extends SidebarToggleControl {
+export class LayerSidebarToggleControl extends SidebarToggleControl {
     public _container: HTMLElement
 
     public constructor() {
@@ -51,7 +53,7 @@ export class LayersSidebarToggleControl extends SidebarToggleControl {
         }
 
         /** Ensure minimaps have been initialized */
-        const initializeMinimapsOnce = staticCache((): void => {
+        const initializeMinimapsOnce = memoize((): void => {
             for (const container of layerIdContainerMap.values()) {
                 const layerId = container.dataset.layerId as LayerId
                 const layerConfig = layersConfig.get(layerId)

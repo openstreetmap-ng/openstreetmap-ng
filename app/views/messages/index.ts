@@ -1,8 +1,8 @@
+import { resolveDatetimeLazy } from "@lib/datetime-inputs"
+import { mount } from "@lib/mount"
+import { configureReportButton } from "@lib/report-modal"
+import { configureStandardForm } from "@lib/standard-form"
 import { t } from "i18next"
-import { resolveDatetimeLazy } from "../lib/datetime"
-import { mount } from "../lib/mount"
-import { configureReportButton } from "../lib/report-modal"
-import { configureStandardForm } from "../lib/standard-form"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
 mount("messages-index-body", (body) => {

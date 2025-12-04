@@ -1,5 +1,5 @@
+import { wrapIdleCallbackStatic } from "@lib/memoize"
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
-import { configureRouter, type IndexController } from "../../index/_router"
 import { getChangesetController } from "../../index/changeset"
 import { getChangesetsHistoryController } from "../../index/changesets-history"
 import { configureContextMenu } from "../../index/context-menu"
@@ -11,32 +11,27 @@ import { getIndexController } from "../../index/index"
 import { getNewNoteController } from "../../index/new-note"
 import { getNoteController } from "../../index/note"
 import { getQueryFeaturesController } from "../../index/query-features"
+import { configureRouter, type IndexController } from "../../index/router"
 import { getRoutingController } from "../../index/routing"
 import { getSearchController } from "../../index/search"
 import { configureSearchForm } from "../../index/search-form"
-import { LayersSidebarToggleControl } from "../../index/sidebar/layers"
+import { LayerSidebarToggleControl } from "../../index/sidebar/layers"
 import { LegendSidebarToggleControl } from "../../index/sidebar/legend"
 import { ShareSidebarToggleControl } from "../../index/sidebar/share"
 import { handleEditRemotePath, updateNavbarAndHash } from "../../navbar/navbar"
 import { config } from "../config"
 import { mapStateStorage } from "../local-storage"
-import { wrapIdleCallbackStatic } from "../utils"
 import { CustomGeolocateControl } from "./controls/geolocate"
+import { addControlGroup } from "./controls/group"
 import { NewNoteControl } from "./controls/new-note"
 import { QueryFeaturesControl } from "./controls/query-features"
 import { CustomZoomControl } from "./controls/zoom"
+import { configureDefaultMapBehavior } from "./defaults"
 import { configureFindHomeButton } from "./find-home"
 import { configureDataLayer } from "./layers/data-layer"
 import { addLayerEventHandler, addMapLayerSources } from "./layers/layers"
 import { configureNotesLayer } from "./layers/notes-layer"
-import {
-    addControlGroup,
-    getInitialMapState,
-    getMapState,
-    parseMapState,
-    setMapState,
-} from "./map-utils"
-import { configureDefaultMapBehavior } from "./utils"
+import { getInitialMapState, getMapState, parseMapState, setMapState } from "./state"
 
 /** Get the main map instance */
 const createMainMap = (container: HTMLElement): MaplibreMap => {
@@ -73,7 +68,7 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
     map.addControl(new ScaleControl({ unit: "metric" }))
     addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
     addControlGroup(map, [
-        new LayersSidebarToggleControl(),
+        new LayerSidebarToggleControl(),
         new LegendSidebarToggleControl(),
         new ShareSidebarToggleControl(),
     ])

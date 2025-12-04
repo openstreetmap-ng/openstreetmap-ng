@@ -1,5 +1,5 @@
-import type { LonLatZoom } from "./map/map-utils"
-import { mod } from "./utils"
+import { mod } from "@lib/coords"
+import type { LonLatZoom } from "./map/state"
 
 /**
  * Encode a coordinate and zoom level to a short link code

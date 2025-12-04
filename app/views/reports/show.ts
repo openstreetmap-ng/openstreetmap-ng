@@ -1,6 +1,6 @@
-import { mount } from "../lib/mount"
-import { configureStandardForm } from "../lib/standard-form"
-import { configureStandardPagination } from "../lib/standard-pagination"
+import { mount } from "@lib/mount"
+import { configureStandardForm } from "@lib/standard-form"
+import { configureStandardPagination } from "@lib/standard-pagination"
 
 mount("report-show-body", () => {
     const setupVisibilityDropdowns = () => {

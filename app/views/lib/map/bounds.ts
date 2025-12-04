@@ -1,42 +1,7 @@
-import {
-    LngLatBounds,
-    type Map as MaplibreMap,
-    Point,
-    type PositionAnchor,
-} from "maplibre-gl"
-import { isLatitude, isLongitude } from "../../lib/utils"
+import { LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
 import type { Bounds } from "../types"
 
 const minBoundsSizePx = 20
-
-export const markerIconAnchor: PositionAnchor = "bottom"
-
-export const getMarkerIconElement = (
-    color: string,
-    showShadow: boolean,
-): HTMLElement => {
-    const container = document.createElement("div")
-    container.classList.add("marker-icon")
-    if (showShadow) {
-        const shadow = document.createElement("img")
-        shadow.classList.add("marker-shadow")
-        shadow.src = "/static/img/marker/shadow.webp"
-        shadow.width = 41
-        shadow.height = 41
-        shadow.draggable = false
-        container.appendChild(shadow)
-    }
-    const icon = document.createElement("img")
-    icon.classList.add("marker-icon-inner")
-    icon.src = `/static/img/marker/${color}.webp`
-    icon.width = 25
-    icon.height = 41
-    icon.draggable = false
-    container.appendChild(icon)
-    // TODO: leaflet leftover
-    // iconAnchor: [12, 41]
-    return container
-}
 
 /** Get the bounds area in square degrees */
 export const getLngLatBoundsSize = (bounds: LngLatBounds): number => {
@@ -167,45 +132,3 @@ export const unionBounds = (left: Bounds | null, right: Bounds): Bounds =>
               Math.max(left[3], right[3]),
           ]
         : right
-
-/** Get the closest point on a segment */
-export const closestPointOnSegment = (test: Point, start: Point, end: Point): Point => {
-    const dx = end.x - start.x
-    const dy = end.y - start.y
-    if (dx === 0 && dy === 0) return new Point(start.x, start.y)
-
-    // Calculate projection position (t) on line using dot product
-    // t = ((test-start) * (end-start)) / |end-start|²
-    const t = Math.max(
-        0,
-        Math.min(
-            1,
-            ((test.x - start.x) * dx + (test.y - start.y) * dy) / (dx ** 2 + dy ** 2),
-        ),
-    )
-    return new Point(start.x + t * dx, start.y + t * dy)
-}
-
-export const configureDefaultMapBehavior = (map: MaplibreMap): void => {
-    map.setProjection({ type: "mercator" })
-
-    map.dragRotate.disable()
-    map.keyboard.disableRotation()
-    map.touchZoomRotate.disableRotation()
-
-    // Use constant zoom rate for consistent behavior
-    // https://github.com/maplibre/maplibre-gl-js/issues/5367
-    const zoomRate = 1 / 300
-    map.scrollZoom.setWheelZoomRate(zoomRate)
-    map.scrollZoom.setZoomRate(zoomRate)
-}
-
-/** Parse a simple "lat, lon" string into [lon, lat]. Returns null if invalid. */
-export const tryParsePoint = (text: string): [number, number] | null => {
-    if (!text) return null
-    const parts = text.split(",")
-    if (parts.length !== 2) return null
-    const lat = Number.parseFloat(parts[0].trim())
-    const lon = Number.parseFloat(parts[1].trim())
-    return isLatitude(lat) && isLongitude(lon) ? [lon, lat] : null
-}

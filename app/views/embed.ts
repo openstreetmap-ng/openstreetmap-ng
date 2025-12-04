@@ -1,29 +1,25 @@
 import "./embed.scss"
 
 import "./lib/i18n"
-import i18next from "i18next"
-
-import {
-    AttributionControl,
-    Map as MaplibreMap,
-    Marker,
-    NavigationControl,
-} from "maplibre-gl"
+import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
+import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import {
     addMapLayer,
     addMapLayerSources,
     defaultLayerId,
     type LayerId,
     resolveLayerCodeOrId,
-} from "./lib/map/layers/layers"
-import type { LonLatZoom } from "./lib/map/map-utils"
+} from "@lib/map/layers/layers"
+import { getMarkerIconElement, markerIconAnchor } from "@lib/map/marker"
+import type { LonLatZoom } from "@lib/map/state"
+import { qsParse } from "@lib/qs"
+import i18next from "i18next"
 import {
-    configureDefaultMapBehavior,
-    getMarkerIconElement,
-    markerIconAnchor,
-} from "./lib/map/utils"
-import { qsParse } from "./lib/qs"
-import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "./lib/utils"
+    AttributionControl,
+    Map as MaplibreMap,
+    Marker,
+    NavigationControl,
+} from "maplibre-gl"
 
 const mapContainer = document.getElementById("map")
 const attributionControl = new AttributionControl()

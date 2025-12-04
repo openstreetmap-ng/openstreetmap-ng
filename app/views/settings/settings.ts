@@ -1,7 +1,7 @@
+import { getLocaleOptions } from "@lib/locale"
+import { mount } from "@lib/mount"
+import { type APIDetail, configureStandardForm } from "@lib/standard-form"
 import i18next from "i18next"
-import { getLocaleOptions } from "../lib/locale"
-import { mount } from "../lib/mount"
-import { type APIDetail, configureStandardForm } from "../lib/standard-form"
 
 mount("settings-body", (body) => {
     const settingsForm = body.querySelector("form.settings-form")

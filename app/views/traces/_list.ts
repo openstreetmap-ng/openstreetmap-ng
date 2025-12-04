@@ -1,4 +1,4 @@
-import { decodeLonLat } from "../lib/polyline"
+import { decodeLonLat } from "@lib/polyline"
 import { renderAnimatedTrace, renderTrace } from "./_svg"
 
 for (const tracesList of document.querySelectorAll("ul.traces-list")) {

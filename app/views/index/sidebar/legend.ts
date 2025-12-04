@@ -1,8 +1,8 @@
+import { addLayerEventHandler, type LayerId } from "@lib/map/layers/layers"
+import { getMapBaseLayerId } from "@lib/map/state"
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { addLayerEventHandler, type LayerId } from "../../lib/map/layers/layers"
-import { getMapBaseLayerId } from "../../lib/map/map-utils"
 import { SidebarToggleControl } from "./_toggle-button"
 
 const precomputeMaxZoom = 25

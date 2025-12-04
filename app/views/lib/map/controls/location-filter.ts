@@ -1,3 +1,5 @@
+import { mod } from "@lib/coords"
+import { throttle } from "@lib/timing"
 import type { GeoJSON } from "geojson"
 import {
     type GeoJSONSource,
@@ -7,7 +9,6 @@ import {
     Marker,
 } from "maplibre-gl"
 import type { Bounds } from "../../types"
-import { mod, throttle } from "../../utils"
 import {
     addMapLayer,
     emptyFeatureCollection,

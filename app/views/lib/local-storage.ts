@@ -1,14 +1,10 @@
+import { isLatitude, isLongitude, isZoom } from "@lib/coords"
+import { memoize } from "@lib/memoize"
+import { getDeviceThemePreference } from "@lib/polyfills"
+import { getUnixTimestamp } from "@lib/utils"
 import type { AppTheme } from "../navbar/_theme"
 import type { LayerId } from "./map/layers/layers"
-import type { MapState } from "./map/map-utils"
-import {
-    getDeviceThemePreference,
-    getUnixTimestamp,
-    isLatitude,
-    isLongitude,
-    isZoom,
-    memoize,
-} from "./utils"
+import type { MapState } from "./map/state"
 
 type StorageConfig<T> = {
     defaultValue?: T

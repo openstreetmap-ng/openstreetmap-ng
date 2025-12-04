@@ -1,6 +1,6 @@
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { collapseNavbar } from "../navbar/navbar"
-import { routerNavigateStrict } from "./_router"
+import { routerNavigateStrict } from "./router"
 
 const actionSidebars = document.querySelectorAll("div.action-sidebar")
 const sidebarContainer = actionSidebars.length ? actionSidebars[0].parentElement : null

@@ -1,9 +1,9 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import { mount } from "../lib/mount"
-import { type LoginResponse, LoginResponseSchema } from "../lib/proto/shared_pb"
-import { qsParse } from "../lib/qs"
-import { configureStandardForm } from "../lib/standard-form"
-import { getPasskeyAssertion, startConditionalMediation } from "../lib/webauthn"
+import { mount } from "@lib/mount"
+import { type LoginResponse, LoginResponseSchema } from "@lib/proto/shared_pb"
+import { qsParse } from "@lib/qs"
+import { configureStandardForm } from "@lib/standard-form"
+import { getPasskeyAssertion, startConditionalMediation } from "@lib/webauthn"
 
 type LoginState = "credentials" | "passkey" | "totp" | "recovery" | "method-select"
 

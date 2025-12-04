@@ -1,5 +1,5 @@
-import { mount } from "../lib/mount"
-import { configureStandardPagination } from "../lib/standard-pagination"
+import { mount } from "@lib/mount"
+import { configureStandardPagination } from "@lib/standard-pagination"
 
 mount("notes-body", (body) => {
     const noteStatusFilter = body.querySelector("select#noteStatusFilter")

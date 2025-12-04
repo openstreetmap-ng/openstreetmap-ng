@@ -1,7 +1,7 @@
+import { toHex } from "@lib/hex"
 import { sha1 } from "@noble/hashes/legacy.js"
 import { effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
-import { toHex } from "./utils"
 
 type StrengthLevelKey = "weak" | "fair" | "good" | "strong" | "perfect"
 

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { dirname, relative } from "node:path"
+import { dirname, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import legacy from "@vitejs/plugin-legacy"
 import autoprefixer from "autoprefixer"
@@ -42,6 +42,11 @@ const rewriteCssModule = (code: string, mutate: (css: string) => string): string
 export default defineConfig({
     appType: "custom",
     base: "/static/vite/",
+    resolve: {
+        alias: {
+            "@lib": resolve(dirname(fileURLToPath(import.meta.url)), "app/views/lib"),
+        },
+    },
     clearScreen: false,
     server: {
         host: "localhost",

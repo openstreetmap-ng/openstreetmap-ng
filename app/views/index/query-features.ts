@@ -1,11 +1,9 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import type { FeatureCollection } from "geojson"
-import i18next from "i18next"
-import { type GeoJSONSource, LngLat, type Map as MaplibreMap } from "maplibre-gl"
-import { prefersReducedMotion } from "../lib/config"
-import { queryFeaturesMinZoom } from "../lib/map/controls/query-features"
-import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
+import { prefersReducedMotion } from "@lib/config"
+import { isLatitude, isLongitude, isZoom } from "@lib/coords"
+import { queryFeaturesMinZoom } from "@lib/map/controls/query-features"
+import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
     addMapLayer,
     emptyFeatureCollection,
@@ -13,21 +11,19 @@ import {
     type LayerId,
     layersConfig,
     removeMapLayer,
-} from "../lib/map/layers/layers"
-import type { LonLatZoom } from "../lib/map/map-utils"
-import { convertRenderElementsData } from "../lib/map/render-objects"
-import { PartialQueryFeaturesParamsSchema } from "../lib/proto/shared_pb"
-import { qsEncode, qsParse } from "../lib/qs"
-import { setPageTitle } from "../lib/title"
-import {
-    isLatitude,
-    isLongitude,
-    isZoom,
-    requestAnimationFramePolyfill,
-    staticCache,
-} from "../lib/utils"
+} from "@lib/map/layers/layers"
+import { convertRenderElementsData } from "@lib/map/render-objects"
+import type { LonLatZoom } from "@lib/map/state"
+import { memoize } from "@lib/memoize"
+import { requestAnimationFramePolyfill } from "@lib/polyfills"
+import { PartialQueryFeaturesParamsSchema } from "@lib/proto/shared_pb"
+import { qsEncode, qsParse } from "@lib/qs"
+import { setPageTitle } from "@lib/title"
+import type { FeatureCollection } from "geojson"
+import i18next from "i18next"
+import { type GeoJSONSource, LngLat, type Map as MaplibreMap } from "maplibre-gl"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./_router"
+import type { IndexController } from "./router"
 
 const layerId = "query-features" as LayerId
 const themeColor = "#f60"
@@ -106,7 +102,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
         for (let i = 0; i < resultActions.length; i++) {
             const resultAction = resultActions[i]
             const render = params.renders[i]
-            const elements = staticCache(() => convertRenderElementsData(render))
+            const elements = memoize(() => convertRenderElementsData(render))
             resultAction.addEventListener("mouseenter", () =>
                 focusObjects(map, elements(), focusPaint),
             )

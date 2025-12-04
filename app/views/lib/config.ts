@@ -1,7 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
+import { memoize } from "@lib/memoize"
 import { WebConfigSchema } from "./proto/shared_pb"
-import { staticCache } from "./utils"
 
 /** Global dataset options that are defined on <html> tag */
 export const config = fromBinary(
@@ -29,9 +29,9 @@ export const crashReporting =
 export const primaryLanguage = document.documentElement.lang
 
 /** Whether user is on a mobile device */
-export const isMobile = staticCache(() => window.innerWidth <= 1024)
+export const isMobile = memoize(() => window.innerWidth <= 1024)
 
 /** Whether user prefers reduced motion */
-export const prefersReducedMotion = staticCache(
+export const prefersReducedMotion = memoize(
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
 )

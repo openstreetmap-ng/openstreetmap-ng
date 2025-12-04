@@ -1,25 +1,16 @@
+import { isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
+import { CustomGeolocateControl } from "@lib/map/controls/geolocate"
+import { addControlGroup } from "@lib/map/controls/group"
+import { CustomZoomControl } from "@lib/map/controls/zoom"
+import { configureDefaultMapBehavior } from "@lib/map/defaults"
+import { addMapLayer, addMapLayerSources, defaultLayerId } from "@lib/map/layers/layers"
+import { getMarkerIconElement, markerIconAnchor } from "@lib/map/marker"
+import { getInitialMapState, type LonLatZoom } from "@lib/map/state"
+import { mount } from "@lib/mount"
+import { configureStandardForm } from "@lib/standard-form"
+import { throttle } from "@lib/timing"
 import i18next from "i18next"
 import { type LngLat, type LngLatLike, Map as MaplibreMap, Marker } from "maplibre-gl"
-import { CustomGeolocateControl } from "../lib/map/controls/geolocate"
-import { CustomZoomControl } from "../lib/map/controls/zoom"
-import {
-    addMapLayer,
-    addMapLayerSources,
-    defaultLayerId,
-} from "../lib/map/layers/layers"
-import {
-    addControlGroup,
-    getInitialMapState,
-    type LonLatZoom,
-} from "../lib/map/map-utils"
-import {
-    configureDefaultMapBehavior,
-    getMarkerIconElement,
-    markerIconAnchor,
-} from "../lib/map/utils"
-import { mount } from "../lib/mount"
-import { configureStandardForm } from "../lib/standard-form"
-import { isLatitude, isLongitude, throttle, zoomPrecision } from "../lib/utils"
 
 mount("diary-compose-body", (body) => {
     configureStandardForm(

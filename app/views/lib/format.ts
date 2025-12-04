@@ -1,6 +1,6 @@
+import { memoize } from "@lib/memoize"
 import i18next from "i18next"
 import { primaryLanguage } from "./config"
-import { memoize, staticCache } from "./utils"
 
 type LonLat = { lon: number; lat: number }
 
@@ -40,7 +40,7 @@ export const formatWeekdayName = (
         timeZone: "UTC",
     }).format(new Date(dateIso))
 
-export const getTimezoneName = staticCache(() => {
+export const getTimezoneName = memoize(() => {
     const result = dateTimeFormat().resolvedOptions().timeZone
     console.debug("Current timezone name", result)
     return result
@@ -57,7 +57,7 @@ const isImperialRegion = (timezoneName: string): boolean =>
     timezoneName === "Asia/Yangon" ||
     timezoneName === "Africa/Monrovia"
 
-export const isMetricUnit = staticCache(() => {
+export const isMetricUnit = memoize(() => {
     const language = navigator.language
     const timezoneName = getTimezoneName()
     const result = !(isImperialLanguage(language) && isImperialRegion(timezoneName))

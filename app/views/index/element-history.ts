@@ -1,16 +1,16 @@
+import { tagsDiffStorage } from "@lib/local-storage"
+import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
+import { convertRenderElementsData } from "@lib/map/render-objects"
+import { memoize } from "@lib/memoize"
+import type { RenderElementsData } from "@lib/proto/shared_pb"
+import { configureStandardPagination } from "@lib/standard-pagination"
+import { setPageTitle } from "@lib/title"
 import { effect, signal } from "@preact/signals-core"
 import Tooltip from "bootstrap/js/dist/tooltip"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { tagsDiffStorage } from "../lib/local-storage"
-import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
-import { convertRenderElementsData } from "../lib/map/render-objects"
-import type { RenderElementsData } from "../lib/proto/shared_pb"
-import { configureStandardPagination } from "../lib/standard-pagination"
-import { setPageTitle } from "../lib/title"
-import { staticCache } from "../lib/utils"
 import { getBaseFetchController } from "./_base-fetch"
-import type { IndexController } from "./_router"
 import { initializeElementContent } from "./element"
+import type { IndexController } from "./router"
 
 const themeColor = "#f60"
 const focusPaint: FocusLayerPaint = Object.freeze({
@@ -74,7 +74,7 @@ export const getElementHistoryController = (map: MaplibreMap): IndexController =
                             map,
                             versionSection,
                         )
-                        const elements = staticCache(() =>
+                        const elements = memoize(() =>
                             convertRenderElementsData(render),
                         )
                         versionSection.addEventListener("mouseenter", () =>

@@ -86,7 +86,7 @@ static-precompress    # Produce .zst/.br for large static assets
 - DOM typing: rely on `typed-query-selector` inference for `querySelector/All`; avoid `as HTML...` casts and non-null assertions. Required elements are guaranteed by the template contract; let missing ones crash loudly.
 - Modern syntax: write ES2023/modern CSS. Polyfills and transforms are injected automatically (Vite legacy plugin in `vite.config.ts`, Babel preset‑env + `core-js` and `browserslist` in `package.json`, Autoprefixer in `vite.config.ts`).
 - Styling: SCSS with Bootstrap 5. Prefer semantic classes; avoid inline styles; use `rem`/`em` instead of `px` where sensible.
-- Router integration: for map/index pages, implement `IndexController` and register routes via `configureRouter(...)` (`app/views/index/_router.ts`); navigate with `routerNavigateStrict(...)`.
+- Router integration: for map/index pages, implement `IndexController` and register routes via `configureRouter(...)` (`app/views/index/router.ts`); navigate with `routerNavigateStrict(...)`.
 - Forms: use `app/views/lib/standard-form.ts` for submissions and feedback (see Standard Components); avoid bespoke AJAX.
 - Jinja templates:
   - General page templates extend `_base` (omit the `.html.jinja` suffix when referring to templates); shared markup lives either next to the feature under a leading-underscore filename (e.g. `traces/_list-entry`) or globally in `app/views/lib/`.
@@ -94,6 +94,29 @@ static-precompress    # Produce .zst/.br for large static assets
   - When an include needs parameters, set them immediately beforehand and prefix each variable with the component name to avoid collisions (e.g. `multi_input_name`, `entry_hide_preview`). Only add fallbacks inside the partial when the component truly benefits from a default; otherwise let missing data fail loudly.
   - Locals created with `set` should start with an underscore (e.g. `{% set _is_deleted = ... %}`) to avoid clashing with request or component variables.
   - Keep component contexts lean: pass in presentation-ready values.
+  - Asset naming: when a Jinja template has a `_` prefix (e.g., `_list-entry.html.jinja`), related TypeScript and SCSS files must use the same prefix (e.g., `_list-entry.ts`, `_list-entry.scss`). This enables IDE file folding to group related files together.
+- Path aliases: use `@lib/*` to import from `app/views/lib/*` instead of deep relative paths (e.g., `import { throttle } from "@lib/timing"` instead of `import { throttle } from "../../lib/timing"`).
+- Lib module organization:
+  - `coords.ts`: coordinate/zoom validation (`isLatitude`, `isLongitude`, `isZoom`, `beautifyZoom`, `zoomPrecision`, `mod`)
+  - `memoize.ts`: memoization utilities (`memoize`, `wrapIdleCallbackStatic`); `memoize` has a fast path for zero-arg calls
+  - `polyfills.ts`: browser polyfills (`requestAnimationFramePolyfill`, `requestIdleCallbackPolyfill`, `getDeviceThemePreference`)
+  - `timing.ts`: throttle function
+  - `color.ts`: color manipulation (`darkenColor`)
+  - `hex.ts`: hex encoding/decoding (`toHex`, `fromHex`)
+  - `utils.ts`: last-resort generic utilities (see policy below)
+  - `map/state.ts`: map state management (`MapState`, `getMapState`, `setMapState`, `encodeMapState`, `parseMapState`, `getInitialMapState`, sharing URLs)
+  - `map/bounds.ts`: map bounds utilities (marker icon, bounds operations, `configureDefaultMapBehavior`)
+  - `map/controls/group.ts`: `addControlGroup()` for grouping map controls
+  - `datetime-inputs.ts`: DOM date/time input handling
+  - `format.ts`: Intl-based formatting (dates, numbers, distances)
+- `utils.ts` policy: this file is the **last resort** for generic helpers that don't fit elsewhere. Current contents: `isHrefCurrentPage()`, `getUnixTimestamp()`, `range()`, `unquotePlus()`, `wrapMessageEventValidator()`. Before adding to utils.ts, consider: (1) does it fit an existing focused module? (2) can it be co-located with the feature using it? (3) is it truly generic and reusable?
+- Underscore convention: TypeScript and SCSS files must match their related Jinja template's underscore prefix for IDE file folding (e.g., `_theme.html.jinja` + `_theme.ts` + `_theme.scss`). Additionally, some TS files use underscore to indicate they're internal to their directory (e.g., `index/_action-sidebar.ts`, `index/_base-fetch.ts`)—not meant for import outside that directory.
+- Body class naming: use `{feature}-{context}-body` where context is plural for lists, singular for details/edits (e.g., `admin-users-body` for list, `admin-user-edit-body` for edit).
+- Sidebar types:
+  - `.action-sidebar`: dynamic route content (search, note, element details)
+  - `.leaflet-sidebar`: persistent map controls (layers, legend, share)
+  - `.sidebar`: container element for both types
+- "Index" terminology: the term "index" appears in three contexts—route controller (`getIndexController()` for root `/` map page), file naming (`index.ts` as main entry for a feature), and array indices (`stepIndex`). This is intentional; the root map page *is* the index page.
 
 ## Standard Components
 
