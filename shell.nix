@@ -161,6 +161,7 @@ let
     libxml2.dev
     openssl.dev
     # Frontend:
+    nodejs-slim_24
     bun
     biome
     # Services:
