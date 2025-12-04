@@ -1,5 +1,6 @@
 import { Offcanvas } from "bootstrap"
 import { mount } from "../lib/mount"
+import { configureScrollspy } from "../lib/scrollspy"
 import { configureStandardForm } from "../lib/standard-form"
 import { configureStandardPagination } from "../lib/standard-pagination"
 
@@ -91,6 +92,11 @@ mount("diary-index-body", (body) => {
             { once: true },
         )
     }
+
+    // Custom scrollspy for diary navigation
+    const diaryList = body.querySelector(".diary-list")
+    const scrollNav = document.getElementById("diary-scroll-nav")
+    configureScrollspy(diaryList, scrollNav)
 
     // Hide the diary scroll navigation panel after any link click
     // (mobile view)
