@@ -1,5 +1,4 @@
-<article id="diary{{ diary.id }}" class="diary {% if entry_mode == 'details' %}show{% endif %}"
-    data-diary-id="{{ diary.id }}">
+<article id="diary{{ diary.id }}" class="diary {% if entry_mode == 'details' %}show{% endif %}">
     {% set _show_header = (entry_mode != 'details') %}
     {% set _show_side_avatar = (entry_mode != 'details') and (profile is none) %}
     <div class="row">
