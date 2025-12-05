@@ -2,6 +2,7 @@ import { configureCopyGroups } from "@lib/copy-group"
 import { mount } from "@lib/mount"
 import { qsEncode } from "@lib/qs"
 import { type APIDetail, configureStandardForm } from "@lib/standard-form"
+import { NON_DIGIT_RE } from "@lib/utils"
 import { getPasskeyRegistration } from "@lib/webauthn"
 import i18next from "i18next"
 import qrcode from "qrcode-generator"
@@ -148,7 +149,7 @@ mount("settings-security-body", (body) => {
 
         // Strip non-digit characters from code input
         codeInput.addEventListener("input", () => {
-            codeInput.value = codeInput.value.replace(/\D/g, "")
+            codeInput.value = codeInput.value.replace(NON_DIGIT_RE, "")
         })
 
         // Update QR code and input attributes when digit selection changes

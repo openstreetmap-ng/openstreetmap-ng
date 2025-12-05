@@ -120,7 +120,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                 const url = URL.createObjectURL(blob)
 
                 const now = new Date()
-                const date = `${now.toISOString().slice(0, 10)} ${now.toLocaleTimeString().replace(/:/g, "-")}`
+                const date = `${now.toISOString().slice(0, 10)} ${now.toLocaleTimeString().replaceAll(":", "-")}`
 
                 const a = document.createElement("a")
                 a.href = url

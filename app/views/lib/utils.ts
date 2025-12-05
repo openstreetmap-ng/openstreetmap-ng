@@ -35,10 +35,13 @@ export const mod = (n: number, m: number): number => ((n % m) + m) % m
 
 /** Decodes a URL-encoded string, converting both %xx sequences and + characters to their original form */
 export const unquotePlus = (str: string): string =>
-    decodeURIComponent(str.replace(/\+/g, " "))
+    decodeURIComponent(str.replaceAll("+", " "))
 
-const eventOriginRegex = /^https?:\/\/(?:www\.)?/
-const currentHost = `.${window.location.host.replace(/^www\./, "")}`
+/** Matches any non-digit character */
+export const NON_DIGIT_RE = /\D/g
+
+const EVENT_ORIGIN_REGEX = /^https?:\/\/(?:www\.)?/
+const CURRENT_HOST = `.${window.location.host.replace(/^www\./, "")}`
 
 /**
  * Wrap message event handler to accept only messages from trusted sources
@@ -50,9 +53,11 @@ export const wrapMessageEventValidator = <T extends (event: MessageEvent) => any
     isParent = true,
 ): T =>
     ((event: MessageEvent) => {
-        const eventHost = `.${event.origin.replace(eventOriginRegex, "")}`
+        const eventHost = `.${event.origin.replace(EVENT_ORIGIN_REGEX, "")}`
         if (
-            isParent ? eventHost.endsWith(currentHost) : currentHost.endsWith(eventHost)
+            isParent
+                ? eventHost.endsWith(CURRENT_HOST)
+                : CURRENT_HOST.endsWith(eventHost)
         )
             return fn(event)
     }) as T

@@ -2,6 +2,8 @@ import { primaryLanguage } from "@lib/config"
 import { getLocaleOptions } from "@lib/locale"
 import { Modal } from "bootstrap"
 
+const NON_ALPHA_SPACE_RE = /[^a-z\s]/g
+
 const languagePickerModal = document.querySelector("#languagePickerModal")
 if (languagePickerModal) {
     const modalInstance = new Modal(languagePickerModal)
@@ -97,7 +99,7 @@ if (languagePickerModal) {
         const searchTerm = searchInput.value
             .toLowerCase()
             .trim()
-            .replace(/[^a-z\s]/g, " ")
+            .replace(NON_ALPHA_SPACE_RE, " ")
 
         for (const btn of languageButtons) {
             btn.parentElement.hidden =

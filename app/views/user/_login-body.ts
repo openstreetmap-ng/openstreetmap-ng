@@ -3,6 +3,7 @@ import { mount } from "@lib/mount"
 import { type LoginResponse, LoginResponseSchema } from "@lib/proto/shared_pb"
 import { qsParse } from "@lib/qs"
 import { configureStandardForm } from "@lib/standard-form"
+import { NON_DIGIT_RE } from "@lib/utils"
 import { getPasskeyAssertion, startConditionalMediation } from "@lib/webauthn"
 
 type LoginState = "credentials" | "passkey" | "totp" | "recovery" | "method-select"
@@ -23,7 +24,6 @@ if (loginForm) {
     const cancelBtns = loginForm.querySelectorAll(".cancel-2fa-btn")
     const tryAnotherMethodBtns = loginForm.querySelectorAll(".try-another-method-btn")
     const methodOptions = loginForm.querySelectorAll("button[data-method]")
-    const totpInputRegex = /^\d$/
     const displayNameInput = loginForm.querySelector(
         "input[name=display_name_or_email]",
     )
@@ -37,6 +37,8 @@ if (loginForm) {
     let passwordless = false
     let loginResponse: LoginResponse | null = null
     let submittedFormData: FormData | null = null
+
+    const isDigit = (c: string): boolean => c.length === 1 && c >= "0" && c <= "9"
 
     const navigateOnSuccess = (): void => {
         console.debug("onLoginSuccess", referrer)
@@ -79,7 +81,7 @@ if (loginForm) {
             input.value = ""
 
             input.addEventListener("input", () => {
-                if (!totpInputRegex.test(input.value)) {
+                if (!isDigit(input.value)) {
                     input.value = ""
                     return
                 }
@@ -110,7 +112,7 @@ if (loginForm) {
 
             input.addEventListener("paste", (e: ClipboardEvent) => {
                 e.preventDefault()
-                const digits = e.clipboardData.getData("text").replace(/\D/g, "")
+                const digits = e.clipboardData.getData("text").replace(NON_DIGIT_RE, "")
                 if (!digits.length) return
 
                 for (let i = 0; i < digits.length && index + i < inputs.length; i++) {
