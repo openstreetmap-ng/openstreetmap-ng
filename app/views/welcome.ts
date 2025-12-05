@@ -25,15 +25,12 @@ mount("welcome-body", (body) => {
     noteLink.href = noteHref
 
     // Passthrough supported parameters
-    const startParams: { [key: string]: string } = {}
+    const startParams: Record<string, string> = {}
     if (params.editor) startParams.editor = params.editor
 
     // If location was provided, redirect to /edit with the provided coordinates
     if (providedState) {
-        let startHref = "/edit"
-        if (Object.keys(startParams).length) startHref += `?${qsEncode(startParams)}`
-        startHref += encodeMapState(providedState)
-        startButton.href = startHref
+        startButton.href = `/edit${qsEncode(startParams)}${encodeMapState(providedState)}`
         return
     }
 
@@ -71,10 +68,7 @@ mount("welcome-body", (body) => {
             layersCode: params.layers,
         }
 
-        let startHref = "/edit"
-        if (Object.keys(startParams).length) startHref += `?${qsEncode(startParams)}`
-        startHref += encodeMapState(geolocationState)
-        startButton.href = startHref
+        startButton.href = `/edit${qsEncode(startParams)}${encodeMapState(geolocationState)}`
         startButton.removeEventListener("click", onStartButtonClick)
     }
 

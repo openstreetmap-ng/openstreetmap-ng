@@ -81,7 +81,7 @@ export const configureStandardPagination = (
         options?.loadCallback?.(renderContainer, currentPage.peek())
     }
 
-    // Update collection
+    // Effect: Load and render page content when currentPage changes (fetches or uses cache)
     const disposeCollectionEffect = effect(() => {
         if (!currentPage.value) return
         const currentPageString = currentPage.toString()
@@ -97,7 +97,7 @@ export const configureStandardPagination = (
         const params = qsParse(q)
         params.page = currentPageString
         params.num_items = String(numItems.peek())
-        const url = `${path}?${qsEncode(params)}`
+        const url = `${path}${qsEncode(params)}`
 
         // Serve from cache when available
         const cached = fetchCache.get(url)
@@ -149,7 +149,7 @@ export const configureStandardPagination = (
         return () => abortController.abort()
     })
 
-    // Update pagination
+    // Effect: Rebuild pagination UI buttons when page count or current page changes
     const disposePaginationEffect = effect(() => {
         const numItemsValue = numItems.value
         const totalPagesValue = totalPages.value

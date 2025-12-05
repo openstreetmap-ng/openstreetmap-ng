@@ -1,36 +1,19 @@
-/** Check if the given href is the current page */
 export const isHrefCurrentPage = (href: string) => {
     const hrefPathname = new URL(href).pathname
     const locationPathname = window.location.pathname
     return hrefPathname === locationPathname || `${hrefPathname}/` === locationPathname
 }
 
-/**
- * Get the current unix timestamp
- * @example
- * getUnixTimestamp()
- * // => 1717761123
- */
 export const getUnixTimestamp = () => (Date.now() / 1000) | 0
 
-/**
- * Create a Python-like range of numbers
- * @example
- * range(1, 5)
- * // => [1, 2, 3, 4]
- */
+/** Create a Python-like range [start, stop) */
 export const range = (start: number, stop: number, step = 1) => {
     const result: number[] = []
     for (let i = start; i < stop; i += step) result.push(i)
     return result
 }
 
-/**
- * Compute the modulo of a number, supporting negative numbers
- * @example
- * mod(-1, 3)
- * // => 2
- */
+/** Modulo supporting negative numbers: mod(-1, 3) => 2 */
 export const mod = (n: number, m: number) => ((n % m) + m) % m
 
 /** Decodes a URL-encoded string, converting both %xx sequences and + characters to their original form */

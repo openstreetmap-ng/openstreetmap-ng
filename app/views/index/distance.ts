@@ -56,7 +56,6 @@ layersConfig.set(LAYER_ID, {
     priority: 160,
 })
 
-/** Controller for distance measurement functionality */
 export const getDistanceController = (map: MaplibreMap) => {
     const mapContainer = map.getContainer()
     const source = map.getSource(LAYER_ID) as GeoJSONSource
@@ -107,7 +106,7 @@ export const getDistanceController = (map: MaplibreMap) => {
         marker.addClassName("d-none")
         marker.setOffset([0, 8])
         marker.on("dragstart", startGhostMarkerDrag)
-        marker.on("drag", handleGhostMarkerDrag)
+        marker.on("drag", onGhostMarkerDrag)
         marker.on("dragend", () => {
             ghostMarker.removeClassName("dragging")
             ghostMarker.addClassName("d-none")
@@ -413,8 +412,7 @@ export const getDistanceController = (map: MaplibreMap) => {
         insertMarker(ghostMarkerIndex, ghostMarker.getLngLat())
     }
 
-    /** On ghost marker drag, update the real marker position */
-    const handleGhostMarkerDrag = throttle((e: Event) => {
+    const onGhostMarkerDrag = throttle((e: Event) => {
         if (!ghostMarker.getElement().classList.contains("dragging")) return
         const marker = markers[ghostMarkerIndex]
         marker.setLngLat(ghostMarker.getLngLat())

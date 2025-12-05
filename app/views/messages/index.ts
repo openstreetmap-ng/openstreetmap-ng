@@ -27,7 +27,6 @@ mount("messages-index-body", (body) => {
     let openTarget: HTMLElement | null = null
     let openMessageId: string | null = null
 
-    /** Open a message in the sidebar preview panel */
     const openMessagePreview = async (target: HTMLElement) => {
         const newMessageId = target.dataset.id
         if (openMessageId === newMessageId) return
@@ -135,7 +134,6 @@ mount("messages-index-body", (body) => {
         }
     }
 
-    /** Close the message sidebar preview panel */
     const closeMessagePreview = () => {
         console.debug("closeMessagePreview", openMessageId)
         messagePreviewContainer.classList.add("d-none")
@@ -149,7 +147,6 @@ mount("messages-index-body", (body) => {
         updatePageUrl(undefined)
     }
 
-    /** Update the URL with the given message, without reloading the page */
     const updatePageUrl = (message: HTMLElement | undefined) => {
         if (message) {
             const messageLink = message.querySelector("a.stretched-link")

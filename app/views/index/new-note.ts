@@ -22,7 +22,6 @@ const focusPaint: FocusLayerPaint = {
     "circle-stroke-width": 2.5,
 }
 
-/** Create a new new note controller */
 export const getNewNoteController = (map: MaplibreMap) => {
     const sidebar = getActionSidebar("new-note")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
@@ -34,7 +33,6 @@ export const getNewNoteController = (map: MaplibreMap) => {
 
     let marker: Marker | null = null
 
-    /** On comment input, update the button state */
     const updateButtonState = () => {
         const hasValue = commentInput.value.trim().length > 0
         submitButton.disabled = !hasValue

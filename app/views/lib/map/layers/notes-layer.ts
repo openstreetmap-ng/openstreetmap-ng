@@ -74,8 +74,8 @@ export const configureNotesLayer = (map: MaplibreMap) => {
         hoverLngLat = e.lngLat
         const feature = e.features[0]
         const featureId = feature.id as number
+        if (hoveredFeatureId === featureId) return
         if (hoveredFeatureId) {
-            if (hoveredFeatureId === featureId) return
             map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
         } else {
             setMapHover(map, LAYER_ID)
@@ -145,7 +145,6 @@ export const configureNotesLayer = (map: MaplibreMap) => {
                     priority: "high",
                 },
             )
-            toggleLayerSpinner(LAYER_ID, false)
             if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
             const buffer = await resp.arrayBuffer()
@@ -157,8 +156,9 @@ export const configureNotesLayer = (map: MaplibreMap) => {
         } catch (error) {
             if (error.name === "AbortError") return
             console.error("Failed to fetch notes", error)
-            toggleLayerSpinner(LAYER_ID, false)
             source.setData(emptyFeatureCollection)
+        } finally {
+            toggleLayerSpinner(LAYER_ID, false)
         }
     }
     map.on("moveend", updateLayer)

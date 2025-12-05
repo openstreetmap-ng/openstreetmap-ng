@@ -8,7 +8,6 @@ import { qsEncode } from "@lib/qs"
 import { Dropdown } from "bootstrap"
 import { type Map as MaplibreMap, type MapMouseEvent, Popup } from "maplibre-gl"
 
-/** Configure the map context menu */
 export const configureContextMenu = (map: MaplibreMap) => {
     const mapContainer = map.getContainer()
 
@@ -117,7 +116,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
         const { lon, lat } = getPopupPosition()
         closePopup()
         const from = `${lat}, ${lon}`
-        routerNavigateStrict(`/directions?${qsEncode({ from })}`)
+        routerNavigateStrict(`/directions${qsEncode({ from })}`)
     })
 
     // On routing to button click, navigate to routing page
@@ -126,7 +125,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
         const { lon, lat } = getPopupPosition()
         closePopup()
         const to = `${lat}, ${lon}`
-        routerNavigateStrict(`/directions?${qsEncode({ to })}`)
+        routerNavigateStrict(`/directions${qsEncode({ to })}`)
     })
 
     // On new note button click, navigate to new-note page
@@ -144,7 +143,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
         const { lon, lat } = getPopupPosition()
         closePopup()
         routerNavigateStrict(
-            `/search?${qsEncode({
+            `/search${qsEncode({
                 whereami: "1",
                 query: `${lat},${lon}`,
             })}`,
@@ -173,6 +172,6 @@ export const configureContextMenu = (map: MaplibreMap) => {
         const { lon, lat } = getPopupPosition()
         closePopup()
         const line = encodeLonLat([[Number.parseFloat(lon), Number.parseFloat(lat)]], 5)
-        routerNavigateStrict(`/distance?${qsEncode({ line })}`)
+        routerNavigateStrict(`/distance${qsEncode({ line })}`)
     })
 }

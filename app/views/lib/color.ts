@@ -1,6 +1,5 @@
 import { memoize } from "@lib/memoize"
 
-/** Darken a hex color by a specified amount */
 export const darkenColor = memoize((hex: string, amount: number) => {
     const hexCode = hex.replace("#", "")
 

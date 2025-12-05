@@ -1,6 +1,5 @@
 import { cancelIdleCallbackPolyfill, requestIdleCallbackPolyfill } from "@lib/polyfills"
 
-/** Memoize a function result, depending on the arguments */
 export const memoize = <T extends (...args: any[]) => any>(fn: T) => {
     let noArgsCalled = false
     let noArgsResult: ReturnType<T> | undefined

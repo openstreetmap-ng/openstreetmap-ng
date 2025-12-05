@@ -28,7 +28,6 @@ const getObjectRequestUrl = (object: OSMObject) => {
         : `${config.apiUrl}/api/0.6/${type}/${object.id}`
 }
 
-/** Get bounds from coordinates and zoom level */
 const getBoundsFromCoords = ({ lon, lat, zoom }: LonLatZoom, paddingRatio = 0) => {
     // Assume the map takes up the entire screen
     const mapHeight = window.innerHeight
@@ -45,7 +44,6 @@ const getBoundsFromCoords = ({ lon, lat, zoom }: LonLatZoom, paddingRatio = 0) =
     return [lon - deltaLon, lat - deltaLat, lon + deltaLon, lat + deltaLat]
 }
 
-/** Start remote edit in JOSM */
 export const remoteEdit = async (button: HTMLButtonElement) => {
     console.debug("remoteEdit", button)
     const remoteEditJson = button.dataset.remoteEdit
@@ -57,7 +55,7 @@ export const remoteEdit = async (button: HTMLButtonElement) => {
     const { state, object }: { state: LonLatZoom; object?: OSMObject } =
         JSON.parse(remoteEditJson)
     const [minLon, minLat, maxLon, maxLat] = getBoundsFromCoords(state, 0.05)
-    const loadQuery: { [key: string]: string } = {
+    const loadQuery: Record<string, string> = {
         left: minLon.toString(),
         bottom: minLat.toString(),
         right: maxLon.toString(),
@@ -73,8 +71,7 @@ export const remoteEdit = async (button: HTMLButtonElement) => {
     button.disabled = true
 
     try {
-        const loadAndZoomQuery = qsEncode(loadQuery)
-        await fetch(`${REMOTE_EDIT_HOST}/load_and_zoom?${loadAndZoomQuery}`, {
+        await fetch(`${REMOTE_EDIT_HOST}/load_and_zoom${qsEncode(loadQuery)}`, {
             method: "GET",
             mode: "no-cors",
             credentials: "omit",
@@ -84,14 +81,16 @@ export const remoteEdit = async (button: HTMLButtonElement) => {
 
         // Optionally import note
         if (object && object.type === "note") {
-            const importQuery = qsEncode({ url: getObjectRequestUrl(object) })
-            await fetch(`${REMOTE_EDIT_HOST}/import?${importQuery}`, {
-                method: "GET",
-                mode: "no-cors",
-                credentials: "omit",
-                cache: "no-store",
-                priority: "high",
-            })
+            await fetch(
+                `${REMOTE_EDIT_HOST}/import${qsEncode({ url: getObjectRequestUrl(object) })}`,
+                {
+                    method: "GET",
+                    mode: "no-cors",
+                    credentials: "omit",
+                    cache: "no-store",
+                    priority: "high",
+                },
+            )
         }
     } catch (error) {
         console.error("Failed to edit remotely", error)

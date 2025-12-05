@@ -7,7 +7,6 @@ type ThemeEventHandler = (theme: "light" | "dark") => void
 
 const themeEventHandlers: ThemeEventHandler[] = []
 
-/** Add a theme event handler, called when app theme is changed */
 export const addThemeEventHandler = (handler: ThemeEventHandler) =>
     themeEventHandlers.push(handler)
 

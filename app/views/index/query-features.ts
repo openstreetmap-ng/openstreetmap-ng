@@ -56,7 +56,6 @@ const focusPaint: FocusLayerPaint = {
     "circle-stroke-width": 3,
 }
 
-/** Create a new query features controller */
 export const getQueryFeaturesController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const sidebar = getActionSidebar("query-features")
@@ -70,7 +69,6 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
 
     let abortController: AbortController | null = null
 
-    /** Get query position from URL */
     const getURLQueryPosition = () => {
         const searchParams = qsParse(window.location.search)
         if (searchParams.lon && searchParams.lat) {
@@ -176,7 +174,7 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
             onSidebarLoading(center, zoomFloor, abortSignal)
             try {
                 const resp = await fetch(
-                    `/partial/query/nearby?${qsEncode({
+                    `/partial/query/nearby${qsEncode({
                         lon: lon.toString(),
                         lat: lat.toString(),
                         zoom: zoomFloor.toString(),

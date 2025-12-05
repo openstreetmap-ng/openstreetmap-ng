@@ -37,12 +37,6 @@ layersConfig.set(LAYER_ID, {
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#quality
 const IMAGE_QUALITY = 0.98
 
-/**
- * Export the map image
- * @example
- * exportMapImage("image/png", [48.208889, 16.3725, 48.209444, 16.373056], 12, baseLayer)
- * // => Blob { size: 123456, type: "image/png" }
- */
 export const exportMapImage = async (
     mimeType: string,
     map: MaplibreMap,

@@ -30,7 +30,6 @@ const focusLayout: FocusLayerLayout = {
     "icon-anchor": "bottom",
 }
 
-/** Create a new note controller */
 export const getNoteController = (map: MaplibreMap) => {
     const base = getBaseFetchController(map, "note", (sidebarContent) => {
         const sidebarTitleElement = sidebarContent.querySelector(
@@ -94,7 +93,6 @@ export const getNoteController = (map: MaplibreMap) => {
             const commentButton = commentForm.querySelector("button.comment-btn")
             const submitButtons = commentForm.querySelectorAll("button[type=submit]")
 
-            /** On success callback, reload the note details and the notes layer */
             const onFormSuccess = () => {
                 map.fire("reloadnoteslayer")
                 controller.unload()
@@ -106,7 +104,6 @@ export const getNoteController = (map: MaplibreMap) => {
             configureStandardForm(subscriptionForm, onFormSuccess)
             configureStandardForm(commentForm, onFormSuccess)
 
-            /** On submit click, set event type */
             const onSubmitClick = ({ target }: MouseEvent) => {
                 eventInput.value = (target as HTMLButtonElement).dataset.event
             }
@@ -114,7 +111,6 @@ export const getNoteController = (map: MaplibreMap) => {
                 button.addEventListener("click", onSubmitClick)
 
             if (commentInput) {
-                /** On comment input, update the button state */
                 const onCommentInput = () => {
                     const hasValue = commentInput.value.trim().length > 0
                     closeButton.classList.toggle("d-none", hasValue)

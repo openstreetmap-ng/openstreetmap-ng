@@ -119,7 +119,6 @@ const FOCUS_HOVER_DELAY = 1000
 const LOAD_MORE_SCROLL_BUFFER = 1000
 const RELOAD_PROPORTION_THRESHOLD = 0.9
 
-/** Create a new changesets history controller */
 export const getChangesetsHistoryController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const sourceBorders = map.getSource(LAYER_ID_BORDERS) as GeoJSONSource
@@ -490,7 +489,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
         resolveDatetimeLazy(entryContainer)
     }
 
-    /** Set the hover state of the changeset features */
     const setHover = (
         { id, numBounds }: GeoJsonProperties,
         hover: boolean,
@@ -510,7 +508,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
         }
     }
 
-    // On feature click, navigate to the changeset
     const LAYER_IDFill = getExtendedLayerId(LAYER_ID, "fill")
     map.on("click", LAYER_IDFill, (e) => {
         // Find feature with the smallest bounds area
@@ -554,7 +551,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     }
     map.on("mouseleave", LAYER_IDFill, onMapMouseLeave)
 
-    /** On sidebar scroll, update changeset visibility and load more if needed */
     const onSidebarScroll = () => {
         // Update changeset visibility based on scroll position
         throttledUpdateLayersVisibility()
@@ -599,7 +595,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
 
             // Create the close button as a link
             const closeLink = document.createElement("a")
-            closeLink.href = `${window.location.pathname}?${qsEncode({
+            closeLink.href = `${window.location.pathname}${qsEncode({
                 ...params,
                 date: undefined,
             })}`
@@ -652,7 +648,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
         const signal = abortController.signal
 
         try {
-            const resp = await fetch(`/api/web/changeset/map?${qsEncode(params)}`, {
+            const resp = await fetch(`/api/web/changeset/map${qsEncode(params)}`, {
                 signal: signal,
                 priority: "high",
             })

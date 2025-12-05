@@ -1,50 +1,16 @@
-/**
- * Check if number is a valid longitude
- * @example
- * isLongitude(180)
- * // => true
- */
 export const isLongitude = (lon: number) => lon >= -180 && lon <= 180
 
-/**
- * Check if number is a valid latitude
- * @example
- * isLatitude(90)
- * // => true
- */
 export const isLatitude = (lat: number) => lat >= -90 && lat <= 90
 
-/**
- * Check if number is a valid zoom level
- * @example
- * isZoom(17)
- * // => true
- */
 export const isZoom = (zoom: number) => zoom >= 0 && zoom <= 25
 
-/**
- * Get a zoom level as a string with 2 decimal places
- * @example
- * beautifyZoom(4.4321)
- * // => "4.43"
- */
 export const beautifyZoom = (zoom: number) => (((zoom * 100) | 0) / 100).toString()
 
-/**
- * Compute the coordinate precision for a given zoom level
- * @example
- * zoomPrecision(17)
- * // => 5
- */
+/** Coordinate precision (decimal places) for a given zoom level */
 export const zoomPrecision = (zoom: number) =>
     Math.max(0, Math.ceil(Math.log(zoom | 0) / Math.LN2))
 
-/**
- * Parse a simple "lat, lon" string into [lon, lat]. Returns null if invalid.
- * @example
- * tryParsePoint("51.5, -0.1")
- * // => [-0.1, 51.5]
- */
+/** Parse "lat, lon" string into [lon, lat], or null if invalid */
 export const tryParsePoint = (text: string) => {
     if (!text) return null
     const parts = text.split(",")

@@ -9,7 +9,6 @@ export const getLngLatBoundsSize = (bounds: LngLatBounds) => {
     return (maxLon - minLon) * (maxLat - minLat)
 }
 
-/** Get the intersection of two bounds */
 export const getLngLatBoundsIntersection = (
     bounds1: LngLatBounds,
     bounds2: LngLatBounds,
@@ -34,7 +33,6 @@ export const getLngLatBoundsIntersection = (
     return new LngLatBounds([minLon, minLat, maxLon, maxLat])
 }
 
-/** Check if two bounds intersect */
 export const checkLngLatBoundsIntersection = (
     bounds1: LngLatBounds,
     bounds2: LngLatBounds,
@@ -54,7 +52,6 @@ export const checkLngLatBoundsIntersection = (
     )
 }
 
-/** Check if two bounds are equal */
 export const lngLatBoundsEqual = (bounds1?: LngLatBounds, bounds2?: LngLatBounds) => {
     if (!bounds1 && !bounds2) return true
     if (!bounds1 || !bounds2) return false
@@ -116,7 +113,6 @@ export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds) => {
     ] as Bounds
 }
 
-/** Union two bounds, returning a new bounds */
 export const unionBounds = (left: Bounds | null, right: Bounds) =>
     left
         ? ([

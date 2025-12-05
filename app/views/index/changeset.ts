@@ -27,7 +27,6 @@ const focusPaint: FocusLayerPaint = {
 
 const ELEMENTS_PER_PAGE = 20
 
-/** Create a new changeset controller */
 export const getChangesetController = (map: MaplibreMap) => {
     let params: PartialChangesetParams | null = null
     let paramsBounds: Bounds[] | null = null
@@ -114,10 +113,9 @@ export const getChangesetController = (map: MaplibreMap) => {
     return controller
 }
 
-/** Render elements component */
 const renderElements = (
     elementsSection: HTMLElement,
-    elements: { [key: string]: PartialChangesetParams_Element[] },
+    elements: Record<string, PartialChangesetParams_Element[]>,
 ) => {
     console.debug("renderElements")
 
@@ -150,7 +148,6 @@ const renderElements = (
     }
 }
 
-/** Render elements of a specific type */
 const renderElementType = (
     groupTemplate: HTMLTemplateElement,
     entryTemplate: HTMLTemplateElement,

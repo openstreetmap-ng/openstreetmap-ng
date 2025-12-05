@@ -30,7 +30,6 @@ const focusPaint: FocusLayerPaint = {
 
 const ELEMENTS_PER_PAGE = 20
 
-/** Create a new element controller */
 export const getElementController = (map: MaplibreMap): IndexController => {
     const base = getBaseFetchController(map, "element", (sidebarSection) => {
         const sidebarContent = sidebarSection.querySelector("div.sidebar-content")
@@ -65,7 +64,6 @@ export const getElementController = (map: MaplibreMap): IndexController => {
     }
 }
 
-/** Initialize element content */
 export const initializeElementContent = (map: MaplibreMap, container: HTMLElement) => {
     console.debug("initializeElementContent")
 
@@ -109,7 +107,6 @@ export const initializeElementContent = (map: MaplibreMap, container: HTMLElemen
     ] as const
 }
 
-/** Render elements component */
 const renderElementsComponent = (
     elementsSection: HTMLElement,
     elements: PartialElementParams_Entry[],

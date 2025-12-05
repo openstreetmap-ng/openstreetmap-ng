@@ -52,7 +52,6 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
             )
         }
 
-        /** Ensure minimaps have been initialized */
         const initializeMinimapsOnce = memoize(() => {
             for (const container of layerIdContainerMap.values()) {
                 const layerId = container.dataset.layerId as LayerId
@@ -96,7 +95,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
         })
 
         const updateLayerOrder = (selectedLayerId?: LayerId) => {
-            let order = layerOrderStorage.get() || []
+            let order = layerOrderStorage.get() ?? []
 
             if (selectedLayerId && selectedLayerId !== "standard") {
                 // Create a new order with the selected layer upfront
@@ -159,7 +158,6 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
             }
         })
 
-        /** On map zoom, update the available overlays */
         const updateAvailableOverlays = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
@@ -244,7 +242,6 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
             }
         }
 
-        /** On layer click, update the active (base) layer */
         const onContainerClick = (e: MouseEvent) => {
             const container = e.currentTarget as HTMLElement
             const layerId = container.dataset.layerId as LayerId
@@ -272,7 +269,6 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
             container.addEventListener("click", onContainerClick)
         }
 
-        /** On overlay checkbox change, add or remove the overlay layer */
         const onOverlayCheckboxChange = (e: Event) => {
             const checkbox = e.currentTarget as HTMLInputElement
             const layerId = checkbox.value as LayerId

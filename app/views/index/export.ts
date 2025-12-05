@@ -7,7 +7,6 @@ import { throttle } from "@lib/throttle"
 import { setPageTitle } from "@lib/title"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
-/** Create a new export controller */
 export const getExportController = (map: MaplibreMap) => {
     const sidebar = getActionSidebar("export")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
@@ -46,7 +45,6 @@ export const getExportController = (map: MaplibreMap) => {
         updateState()
     })
 
-    /** On map move end, update the inputs */
     const updateState = () => {
         const precision = zoomPrecision(map.getZoom())
         const bounds = customRegionCheckbox.checked

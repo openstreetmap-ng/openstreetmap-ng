@@ -166,7 +166,6 @@ if (loginForm) {
         })
     }
 
-    /** Starts the passkey 2FA flow after password validation. */
     const startPasskey2FA = async () => {
         const result = await getPasskeyAssertion(submittedFormData, "discouraged")
         if (typeof result === "string") {
@@ -234,7 +233,6 @@ if (loginForm) {
         },
     )
 
-    /** Triggers passwordless passkey submission. */
     const requestSubmitPasswordless = () => {
         passwordless = true
         displayNameInput.required = false

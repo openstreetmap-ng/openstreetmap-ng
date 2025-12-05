@@ -294,7 +294,7 @@ export const getSearchController = (map: MaplibreMap) => {
                 const zoom = (
                     Number(options?.zoom ?? searchParams.zoom ?? map.getZoom()) | 0
                 ).toString()
-                base.load(`/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`)
+                base.load(`/partial/where-is-this${qsEncode({ lon, lat, zoom })}`)
             } else {
                 setPageTitle(query || searchTitle)
                 setSearchFormQuery(query)
@@ -309,7 +309,7 @@ export const getSearchController = (map: MaplibreMap) => {
                 ).toArray()
 
                 base.load(
-                    `/partial/search?${qsEncode({
+                    `/partial/search${qsEncode({
                         q: query,
                         bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
                         local_only: Boolean(options?.localOnly).toString(),

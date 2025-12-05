@@ -108,8 +108,8 @@ export const configureDataLayer = (map: MaplibreMap) => {
     const onFeatureHover = (e: MapLayerMouseEvent) => {
         const feature = e.features[0]
         const featureId = feature.id as number
+        if (hoveredFeatureId === featureId) return
         if (hoveredFeatureId) {
-            if (hoveredFeatureId === featureId) return
             map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
         } else {
             setMapHover(map, LAYER_ID)
@@ -205,13 +205,12 @@ export const configureDataLayer = (map: MaplibreMap) => {
         toggleLayerSpinner(LAYER_ID, true)
         try {
             const resp = await fetch(
-                `/api/web/map?${qsEncode({
+                `/api/web/map${qsEncode({
                     bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
                     limit: loadDataOverride ? "" : LOAD_DATA_ALERT_THRESHOLD.toString(),
                 })}`,
                 { signal: abortController.signal, priority: "high" },
             )
-            toggleLayerSpinner(LAYER_ID, false)
             if (!resp.ok) {
                 if (resp.status === 400) {
                     errorDataAlert.classList.remove("d-none")
@@ -234,8 +233,9 @@ export const configureDataLayer = (map: MaplibreMap) => {
         } catch (error) {
             if (error.name === "AbortError") return
             console.error("Failed to fetch map data", error)
-            toggleLayerSpinner(LAYER_ID, false)
             clearData()
+        } finally {
+            toggleLayerSpinner(LAYER_ID, false)
         }
     }
     map.on("moveend", updateLayer)

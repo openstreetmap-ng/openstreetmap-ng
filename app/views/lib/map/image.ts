@@ -20,7 +20,6 @@ export type NoteStatus = keyof typeof NOTE_STATUS_MARKERS
 
 const images = new Map<MarkerImageName, HTMLImageElement>()
 
-/** Load an image into the map context */
 export const loadMapImage = (
     map: MaplibreMap,
     name: MarkerImageName,

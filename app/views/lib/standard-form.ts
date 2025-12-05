@@ -58,7 +58,6 @@ export const configureStandardForm = (
         }
     }
 
-    /** Handle feedback for a specific element */
     const handleElementFeedback = (
         element: HTMLInputElement | HTMLTextAreaElement,
         type: "success" | "info" | "error",
@@ -92,7 +91,7 @@ export const configureStandardForm = (
 
         feedback.textContent = message
 
-        // Remove feedback on change or submit
+        // Clear stale validation when user modifies input
         const onInput = () => {
             if (!feedback) return
             console.debug("Invalidating form feedback")
@@ -111,7 +110,6 @@ export const configureStandardForm = (
             element.classList.remove("is-valid", "is-invalid")
         }
 
-        // Listen for events that invalidate the feedback
         element.addEventListener("input", onInput, { once: true })
         form.addEventListener("invalidate", onInvalidated, { once: true })
         form.addEventListener("submit", onInvalidated, { once: true })
@@ -157,7 +155,7 @@ export const configureStandardForm = (
                 const scrollContainer = findScrollableContainer(formBody)
                 const scrollWindow = scrollContainer === document.documentElement
 
-                // Check if user was scrolled to bottom before appending
+                // Preserve scroll position for auto-scroll UX
                 let wasAtBottom: boolean
                 if (scrollWindow) {
                     wasAtBottom =
@@ -171,7 +169,7 @@ export const configureStandardForm = (
                 feedback.classList.add("alert-last")
                 formBody.append(feedback)
 
-                // Scroll back to bottom if user was previously at the bottom
+                // Keep latest content visible if user was at bottom
                 if (wasAtBottom) {
                     if (scrollWindow) {
                         window.scrollTo({
@@ -210,7 +208,6 @@ export const configureStandardForm = (
             feedback = null
         }
 
-        // Listen for events that invalidate the feedback
         form.addEventListener("invalidate", onInvalidated, { once: true })
         form.addEventListener("submit", onInvalidated, { once: true })
     }
@@ -218,59 +215,61 @@ export const configureStandardForm = (
     const processFormFeedback = (detail: string | APIDetail[]) => {
         console.debug("Received form feedback", detail)
 
-        if (Array.isArray(detail)) {
-            // Process array of details
-            for (const {
-                type,
-                loc: [_, field],
-                msg,
-            } of detail) {
-                if (field) {
-                    const input = form.querySelector(`[name="${field}"]`)
-                    console.debug("Processing field feedback for", field, input)
+        if (!Array.isArray(detail)) {
+            handleFormFeedback("error", detail)
+            return
+        }
 
-                    if (
-                        !(input instanceof HTMLInputElement) &&
-                        !(input instanceof HTMLTextAreaElement)
-                    ) {
-                        handleFormFeedback(type, msg)
-                    } else if (input.type === "hidden") {
-                        if (passwordInputs.length && input.name === "password_schema") {
-                            if (handlePasswordSchemaFeedback(form, msg)) {
-                                setPendingState(false)
-                                form.requestSubmit()
-                            }
-                        } else {
-                            handleFormFeedback(type, msg, input)
-                        }
-                    } else {
-                        handleElementFeedback(input, type, msg)
+        for (const {
+            type,
+            loc: [_, field],
+            msg,
+        } of detail) {
+            if (!field) {
+                handleFormFeedback(type, msg)
+                continue
+            }
+
+            const input = form.querySelector(`[name="${field}"]`)
+            console.debug("Processing field feedback for", field, input)
+
+            if (
+                !(input instanceof HTMLInputElement) &&
+                !(input instanceof HTMLTextAreaElement)
+            ) {
+                handleFormFeedback(type, msg)
+                continue
+            }
+
+            if (input.type === "hidden") {
+                if (passwordInputs.length && input.name === "password_schema") {
+                    if (handlePasswordSchemaFeedback(form, msg)) {
+                        setPendingState(false)
+                        form.requestSubmit()
                     }
                 } else {
-                    handleFormFeedback(type, msg)
+                    handleFormFeedback(type, msg, input)
                 }
+                continue
             }
-        } else {
-            // Process detail as a single text message
-            handleFormFeedback("error", detail)
+
+            handleElementFeedback(input, type, msg)
         }
     }
 
-    // On form submit, build and submit the request
     form.addEventListener("submit", async (e) => {
         console.debug("configureStandardForm", "onSubmit", formAction)
         e.preventDefault()
 
-        // Check form validity
+        // Stage 1: Validate form structure
         if (!form.checkValidity()) {
             e.stopPropagation()
             form.classList.add("was-validated")
             return
         }
-
         form.classList.remove("was-validated")
 
-        // Depending on configuration, abort pending requests or prevent double submission
+        // Stage 2: Handle concurrent submissions
         if (options?.abortSignal) {
             abortController?.abort()
             abortController = new AbortController()
@@ -279,6 +278,7 @@ export const configureStandardForm = (
             return
         }
 
+        // Stage 3: Serialize form data
         setPendingState(true)
         const formData = new FormData(form)
 
@@ -316,6 +316,7 @@ export const configureStandardForm = (
             throw new Error(`Unsupported standard form method ${method}`)
         }
 
+        // Stage 4: Run client-side validation
         if (options?.validationCallback) {
             let result = options.validationCallback(formData)
             if (result instanceof Promise) {
@@ -332,6 +333,7 @@ export const configureStandardForm = (
             }
         }
 
+        // Stage 5: Execute request and handle response
         try {
             const resp = await fetch(url, {
                 method,

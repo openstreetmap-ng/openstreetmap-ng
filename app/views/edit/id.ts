@@ -7,7 +7,7 @@ if (iframe) {
     const hashParams = qsParse(window.location.hash)
     const searchParams = qsParse(window.location.search)
     let { lon, lat, zoom } = getInitialMapState()
-    const result: { [key: string]: string } = {}
+    const params: Record<string, string> = {}
 
     // Optional scale instead of zoom (legacy, deprecated)
     if (searchParams.scale) {
@@ -15,7 +15,7 @@ if (iframe) {
         if (scale > 0) zoom = Math.log(360 / (scale * 512)) / Math.log(2)
     }
 
-    result.map = `${zoom}/${lat}/${lon}`
+    params.map = `${zoom}/${lat}/${lon}`
 
     // Optional object to select
     for (const type of ["node", "way", "relation", "note"]) {
@@ -24,13 +24,13 @@ if (iframe) {
             if (!Number.isInteger(id) || id <= 0) continue
 
             // Location will be derived from the object
-            result.id = `${type[0]}${id}`
-            result.map = undefined
+            params.id = `${type[0]}${id}`
+            params.map = undefined
 
             // Optionally override location only from hash
             const hashState = parseMapState(window.location.hash)
             if (hashState) {
-                result.map = `${hashState.zoom}/${hashState.lat}/${hashState.lon}`
+                params.map = `${hashState.zoom}/${hashState.lat}/${hashState.lon}`
             }
 
             break
@@ -39,9 +39,9 @@ if (iframe) {
 
     // Optionally select gpx trace
     if (searchParams.gpx) {
-        result.gpx = `${window.location.origin}/api/0.6/gpx/${searchParams.gpx}/data.gpx`
+        params.gpx = `${window.location.origin}/api/0.6/gpx/${searchParams.gpx}/data.gpx`
     } else if (hashParams.gpx) {
-        result.gpx = `${window.location.origin}/api/0.6/gpx/${hashParams.gpx}/data.gpx`
+        params.gpx = `${window.location.origin}/api/0.6/gpx/${hashParams.gpx}/data.gpx`
     }
 
     // Passthrough some hash parameters
@@ -65,10 +65,10 @@ if (iframe) {
         "walkthrough",
     ]) {
         const value = hashParams[param]
-        if (value) result[param] = value
+        if (value) params[param] = value
     }
 
-    const src = `${iframe.dataset.url}/id#${qsEncode(result)}`
+    const src = `${iframe.dataset.url}/id${qsEncode(params, "#")}`
     const iframeOrigin = new URL(src).origin
     configureIFrameSystemApp("SystemApp.id", iframe, iframeOrigin)
 

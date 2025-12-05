@@ -19,7 +19,6 @@ interface RenderOptions {
     renderAreas: boolean
 }
 
-/** Render OSMObjects to GeoJSON data */
 export const renderObjects = (
     objects: OSMObject[],
     options?: Partial<RenderOptions>,
@@ -125,24 +124,27 @@ export const renderObjects = (
         })
     }
 
-    const processFnMap = {
-        changeset: processChangeset,
-        node: processNode,
-        way: processWay,
-        note: processNote,
-    }
-
     for (const object of objects) {
-        // @ts-expect-error
-        const fn = processFnMap[object.type]
-        if (fn) fn(object)
-        else console.error("Unsupported feature type", object)
+        switch (object.type) {
+            case "changeset":
+                processChangeset(object)
+                break
+            case "node":
+                processNode(object)
+                break
+            case "way":
+                processWay(object)
+                break
+            case "note":
+                processNote(object)
+                break
+            // Relations have no geometry to render
+        }
     }
 
     return { type: "FeatureCollection", features }
 }
 
-/** Convert render data to OSMChangesets */
 export const convertRenderChangesetsData = (
     changesets: RenderChangesetsData_Changeset[],
 ) => {
@@ -161,7 +163,6 @@ export const convertRenderChangesetsData = (
     return result
 }
 
-/** Convert render data to OSMObjects */
 export const convertRenderElementsData = (render: RenderElementsData) => {
     const result: (OSMNode | OSMWay)[] = []
     for (const way of render.ways) {
@@ -182,7 +183,6 @@ export const convertRenderElementsData = (render: RenderElementsData) => {
     return result
 }
 
-/** Convert render notes data to OSMNotes */
 export const convertRenderNotesData = (render: RenderNotesData) => {
     const result: OSMNote[] = []
     for (const note of render.notes) {

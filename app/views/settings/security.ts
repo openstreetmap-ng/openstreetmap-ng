@@ -14,20 +14,20 @@ const generateTOTPSecret = () => {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
     let value = 0
     let bits = 0
-    let output = ""
+    let result = ""
 
     for (const byte of buffer) {
         value = (value << 8) | byte
         bits += 8
         while (bits >= 5) {
-            output += alphabet[(value >>> (bits - 5)) & 31]
+            result += alphabet[(value >>> (bits - 5)) & 31]
             bits -= 5
         }
     }
     if (bits > 0) {
-        output += alphabet[(value << (5 - bits)) & 31]
+        result += alphabet[(value << (5 - bits)) & 31]
     }
-    return output
+    return result
 }
 
 const generateTOTPQRCode = (secret: string, digits: number, accountName: string) => {
@@ -212,11 +212,11 @@ mount("settings-security-body", (body) => {
     const generateRecoveryCodesBody = generateRecoveryCodesForm.parentElement
 
     generateRecoveryCodesModal.addEventListener("hide.bs.modal", () => {
-        if (!generateRecoveryCodesModal.querySelector("form")) {
-            window.location.reload()
-        } else {
+        if (generateRecoveryCodesModal.querySelector("form")) {
             generateRecoveryCodesForm.reset()
+            return
         }
+        window.location.reload()
     })
 
     configureStandardForm(generateRecoveryCodesForm, (data) => {
@@ -237,7 +237,7 @@ mount("settings-security-body", (body) => {
             )
 
             if (isCurrentSession) {
-                window.location.href = `/login?${qsEncode({ referer: window.location.pathname + window.location.search })}`
+                window.location.href = `/login${qsEncode({ referer: window.location.pathname + window.location.search })}`
             } else {
                 row.remove()
             }

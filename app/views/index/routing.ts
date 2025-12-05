@@ -77,7 +77,6 @@ const DRAG_IMAGE_HEIGHT = 41
 const DRAG_IMAGE_OFFSET_X = 12
 const DRAG_IMAGE_OFFSET_Y = 21
 
-/** Create a new routing controller */
 export const getRoutingController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const mapContainer = map.getContainer()
@@ -146,18 +145,17 @@ export const getRoutingController = (map: MaplibreMap) => {
                 )
             }
             return startMarker
-        } else {
-            if (!endMarker) {
-                endMarker = markerFactory("red")
-                endMarker.on("dragend", () =>
-                    onMapMarkerDragEnd(endMarker.getLngLat(), false),
-                )
-            }
-            return endMarker
         }
+
+        if (!endMarker) {
+            endMarker = markerFactory("red")
+            endMarker.on("dragend", () =>
+                onMapMarkerDragEnd(endMarker.getLngLat(), false),
+            )
+        }
+        return endMarker
     }
 
-    /** On draggable marker drag start, set data and drag image */
     const onInterfaceMarkerDragStart = (event: DragEvent) => {
         const target = event.target as HTMLImageElement
         const direction = target.dataset.direction
@@ -186,7 +184,7 @@ export const getRoutingController = (map: MaplibreMap) => {
         popup.setDOMContent(content).setLngLat(lngLat).addTo(map)
     }
 
-    // On feature click, open a popup
+    // Show step instruction details on click
     map.on("click", LAYER_ID, (e) => {
         const feature = e.features[0] as Feature<LineString>
         const featureId = feature.id as number
@@ -194,6 +192,7 @@ export const getRoutingController = (map: MaplibreMap) => {
         openPopup(result, feature.geometry.coordinates[0] as LngLatLike)
     })
 
+    // Sync hover between map features and sidebar table
     map.on("mousemove", LAYER_ID, (e) => {
         const id = e.features[0].id as number
         setMapHover(map, LAYER_ID)
@@ -204,7 +203,6 @@ export const getRoutingController = (map: MaplibreMap) => {
         updateHover(null)
     })
 
-    /** Update hovered step and map feature atomically */
     const updateHover = (id: number | null, scrollIntoView = false) => {
         if (id === hoverId) return
 
@@ -245,7 +243,6 @@ export const getRoutingController = (map: MaplibreMap) => {
         updateHover(row ? Number.parseInt(row.dataset.stepIndex, 10) : null)
     }
 
-    /** On marker drag end, update the form's coordinates */
     const onMapMarkerDragEnd = (lngLat: LngLat, isStart: boolean) => {
         console.debug("onMapMarkerDragEnd", lngLat, isStart)
 
@@ -265,10 +262,8 @@ export const getRoutingController = (map: MaplibreMap) => {
         submitFormIfFilled()
     }
 
-    /** On map drag over, prevent default behavior */
     const onMapDragOver = (event: DragEvent) => event.preventDefault()
 
-    /** On map marker drop, update the marker's coordinates */
     const onMapDrop = (event: DragEvent) => {
         const dragData = event.dataTransfer.getData(DRAG_DATA_TYPE)
         console.debug("onMapDrop", dragData)
@@ -286,7 +281,6 @@ export const getRoutingController = (map: MaplibreMap) => {
         marker.setLngLat(map.unproject(mousePoint)).addTo(map).fire("dragend")
     }
 
-    /** If input looks like coordinates, place or update its marker immediately */
     const ensureMarkerFromInput = (dir: "start" | "end") => {
         const input = dir === "start" ? startInput : endInput
         const coords = tryParsePoint(input.value)
@@ -307,7 +301,6 @@ export const getRoutingController = (map: MaplibreMap) => {
         }
     }
 
-    /** On map update, update the form's bounding box */
     const onMapZoomOrMoveEnd = () => {
         const [[minLon, minLat], [maxLon, maxLat]] = map
             .getBounds()
@@ -316,14 +309,14 @@ export const getRoutingController = (map: MaplibreMap) => {
         bboxInput.value = `${minLon},${minLat},${maxLon},${maxLat}`
     }
 
-    // On engine input change, remember the last routing engine
+    // Persist engine selection to avoid re-selecting on future visits
     engineInput.addEventListener("input", () => {
         console.debug("onEngineInputChange")
         routingEngineStorage.set(engineInput.value)
         submitFormIfFilled()
     })
 
-    // On reverse button click, swap the from and to inputs
+    // Swap route direction and update markers
     reverseButton.addEventListener("click", () => {
         console.debug("onReverseButtonClick")
         const newStartValue = endInput.value
@@ -348,7 +341,6 @@ export const getRoutingController = (map: MaplibreMap) => {
         submitFormIfFilled()
     })
 
-    /** Utility method to submit the form if filled with data */
     const submitFormIfFilled = () => {
         popup.remove()
         if (startInput.value && endInput.value) form.requestSubmit()
@@ -361,7 +353,7 @@ export const getRoutingController = (map: MaplibreMap) => {
             if (loadingContainer.classList.contains("d-none")) return
             loadingContainer.classList.add("d-none")
 
-            // On success callback, call routing engine, display results, and update search params
+            // Update UI with server-computed route
             const data = fromBinary(RoutingResultSchema, protobuf)
             console.debug("onRoutingFormSuccess", data)
 
@@ -585,7 +577,7 @@ export const getRoutingController = (map: MaplibreMap) => {
 
             submitFormIfFilled()
             addMapLayer(map, LAYER_ID)
-            // Listen for events
+            // Keep bbox in sync with map viewport
             map.on("moveend", onMapZoomOrMoveEnd)
             mapContainer.addEventListener("dragover", onMapDragOver)
             mapContainer.addEventListener("drop", onMapDrop)
@@ -618,7 +610,6 @@ export const getRoutingController = (map: MaplibreMap) => {
     }
 }
 
-/** Get initial routing engine identifier */
 const getInitialRoutingEngine = (engine?: string) => {
     return engine ?? routingEngineStorage.get()
 }

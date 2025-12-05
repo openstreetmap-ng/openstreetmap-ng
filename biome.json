@@ -1,11 +1,12 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
   "files": {
     "ignoreUnknown": true,
     "includes": [
       "*.js",
       "**/*.ts",
       "**/*.json",
+      "!!app/views/lib/standard-form.ts",
       "!app/views/lib/timezone-bbox.ts",
       "!app/views/lib/vector-styles/*",
       "!config/aaguid.json",
@@ -31,7 +32,13 @@
         "useWhile": "on"
       },
       "nursery": {
-        "noUselessUndefined": "on"
+        "noEqualsToNull": "on",
+        "noForIn": "on",
+        "noProto": "on",
+        "noUselessUndefined": "on",
+        "useArraySortCompare": "on",
+        "useFind": "on",
+        "useSpread": "on"
       },
       "performance": {
         "noAwaitInLoops": "on",
@@ -45,19 +52,25 @@
         "noNamespace": "on",
         "noSubstr": "on",
         "noUnusedTemplateLiteral": "on",
+        "noUselessElse": "on",
         "useCollapsedElseIf": "on",
         "useConsistentArrayType": "on",
         "useConsistentBuiltinInstantiation": "on",
+        "useDefaultParameterLast": "on",
+        "useExportType": "on",
         "useForOf": "on",
+        "useImportType": "on",
         "useNumberNamespace": "on",
         "useObjectSpread": "on",
         "useShorthandAssign": "on",
         "useThrowNewError": "on",
-        "useThrowOnlyError": "on"
+        "useThrowOnlyError": "on",
+        "useTrimStartEnd": "on"
       },
       "suspicious": {
         "noConfusingVoidType": "off",
         "noConstantBinaryExpressions": "on",
+        "noDocumentCookie": "off",
         "noEvolvingTypes": "on",
         "noExplicitAny": "off",
         "useAwait": "on"

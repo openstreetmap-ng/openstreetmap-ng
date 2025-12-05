@@ -6,7 +6,7 @@ import {
 } from "@lib/proto/shared_pb"
 import i18next from "i18next"
 
-/** Fetch and parse passkey challenge from server. Returns challenge or error string. */
+/** Fetch and parse passkey challenge from server, returns challenge or error string */
 const fetchPasskeyChallenge = async (formData?: FormData) => {
     const resp = await fetch("/api/web/user/login/passkey/challenge", {
         method: "POST",
@@ -17,7 +17,7 @@ const fetchPasskeyChallenge = async (formData?: FormData) => {
     return fromBinary(PasskeyChallengeSchema, new Uint8Array(await resp.arrayBuffer()))
 }
 
-/** Build credential descriptors for WebAuthn allowCredentials/excludeCredentials. */
+/** Build credential descriptors for WebAuthn allowCredentials/excludeCredentials */
 const buildCredentialDescriptors = (
     credentials: { credentialId: Uint8Array; transports: string[] }[],
 ) =>
@@ -27,7 +27,7 @@ const buildCredentialDescriptors = (
         type: "public-key" as const,
     }))
 
-/** Build assertion blob from credential response. */
+/** Build assertion blob from credential response */
 const buildAssertionBlob = (credential: PublicKeyCredential) => {
     const response = credential.response as AuthenticatorAssertionResponse
     const assertion = create(PasskeyAssertionSchema, {
@@ -39,7 +39,7 @@ const buildAssertionBlob = (credential: PublicKeyCredential) => {
     return new Blob([toBinary(PasskeyAssertionSchema, assertion)])
 }
 
-/** Register a new passkey, returning registration blob or error string. */
+/** Register a new passkey, returning registration blob or error string */
 export const getPasskeyRegistration = async () => {
     const challenge = await fetchPasskeyChallenge()
     if (typeof challenge === "string") return challenge
@@ -85,7 +85,7 @@ export const getPasskeyRegistration = async () => {
     return new Blob([toBinary(PasskeyRegistrationSchema, registration)])
 }
 
-/** Perform WebAuthn authentication, returning assertion blob or error string. */
+/** Perform WebAuthn authentication, returning assertion blob or error string */
 export const getPasskeyAssertion = async (
     formData?: FormData,
     userVerification: UserVerificationRequirement = "required",

@@ -2,7 +2,6 @@ import { type Map as MaplibreMap, Marker } from "maplibre-gl"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "./marker"
 import type { LonLat } from "./state"
 
-/** Configure the find home button */
 export const configureFindHomeButton = (
     map: MaplibreMap,
     button: HTMLButtonElement,

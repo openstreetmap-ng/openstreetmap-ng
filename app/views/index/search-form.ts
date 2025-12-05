@@ -13,7 +13,7 @@ export const configureSearchForm = (map: MaplibreMap) => {
         console.debug("onSearchFormSubmit")
         e.preventDefault()
         const query = searchQueryInput.value
-        if (query) routerNavigateStrict(`/search?${qsEncode({ q: query })}`)
+        if (query) routerNavigateStrict(`/search${qsEncode({ q: query })}`)
     })
 
     const whereIsThisButton = searchForm.querySelector("button.where-is-this")
@@ -23,7 +23,7 @@ export const configureSearchForm = (map: MaplibreMap) => {
         const precision = zoomPrecision(zoom)
         const lngLat = map.getCenter()
         routerNavigateStrict(
-            `/search?${qsEncode({
+            `/search${qsEncode({
                 lat: lngLat.lat.toFixed(precision),
                 lon: lngLat.lng.toFixed(precision),
                 zoom: beautifyZoom(zoom),

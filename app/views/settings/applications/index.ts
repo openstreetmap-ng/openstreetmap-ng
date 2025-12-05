@@ -59,7 +59,7 @@ mount("settings-applications-body", (body) => {
             console.debug("onCreateTokenFormSuccess", token_id)
             const searchParams = qsParse(window.location.search)
             searchParams.expand = token_id
-            window.location.href = `${window.location.pathname}?${qsEncode(searchParams)}${window.location.hash}`
+            window.location.href = `${window.location.pathname}${qsEncode(searchParams)}${window.location.hash}`
         })
     }
 })

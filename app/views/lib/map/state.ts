@@ -44,12 +44,6 @@ export interface MapState extends LonLatZoom {
     layersCode?: string
 }
 
-/**
- * Encode current layers to a string using layer codes
- * @example
- * getMapLayersCode(map)
- * // => "BT"
- */
 export const getMapLayersCode = (map: MaplibreMap) => {
     const layerCodes = new Set<LayerCode>()
     for (const extendedLayerId of map.getLayersOrder()) {
@@ -60,11 +54,6 @@ export const getMapLayersCode = (map: MaplibreMap) => {
     return Array.from(layerCodes).sort().join("")
 }
 
-/**
- * Set the map layers from a layers code
- * @example
- * setMapLayersCode(map, "BT")
- */
 const setMapLayersCode = (map: MaplibreMap, layersCode?: string) => {
     console.debug("setMapLayersCode", layersCode)
     const addLayerCodes = new Set<LayerCode>()
@@ -110,12 +99,6 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string) => {
     }
 }
 
-/**
- * Get the base layer id of the map
- * @example
- * getMapBaseLayerId(map)
- * // => "standard"
- */
 export const getMapBaseLayerId = (map: MaplibreMap) => {
     let baseLayerId: LayerId | null = null
     for (const extendedLayerId of map.getLayersOrder()) {
@@ -129,7 +112,6 @@ export const getMapBaseLayerId = (map: MaplibreMap) => {
     return baseLayerId
 }
 
-/** Get the current map state object */
 export const getMapState = (map: MaplibreMap) => {
     const center = map.getCenter().wrap()
     const zoom = map.getZoom()
@@ -137,7 +119,6 @@ export const getMapState = (map: MaplibreMap) => {
     return { lon: center.lng, lat: center.lat, zoom, layersCode }
 }
 
-/** Set the map state from a state object */
 export const setMapState = (
     map: MaplibreMap,
     state: MapState,
@@ -204,7 +185,6 @@ export const parseMapState = (hash: string) => {
     }
 }
 
-/** Convert bounds to a lon, lat, zoom object */
 const convertBoundsToLonLatZoom = (map: MaplibreMap | null, bounds: Bounds) => {
     const [minLon, minLat, maxLon, maxLat] = bounds
     const lon = (minLon + maxLon) / 2
@@ -236,12 +216,7 @@ const convertBoundsToLonLatZoom = (map: MaplibreMap | null, bounds: Bounds) => {
     return { lon, lat, zoom }
 }
 
-/**
- * Get default map state by analyzing various parameters
- * @example
- * getInitialMapState()
- * // => { lon: -0.09, lat: 51.505, zoom: 15, layersCode: "BT" }
- */
+/** Get default map state by analyzing various parameters */
 export const getInitialMapState = (map?: MaplibreMap) => {
     const hashState = parseMapState(window.location.hash)
 
@@ -371,12 +346,6 @@ export const getInitialMapState = (map?: MaplibreMap) => {
     return defaultState
 }
 
-/**
- * Get a URL for the current map location
- * @example
- * getMapUrl(map)
- * // => "https://www.openstreetmap.org/#map=15/51.505/-0.09&layers=BT"
- */
 export const getMapUrl = (map: MaplibreMap, showMarker = false) => {
     const state = getMapState(map)
     const hash = encodeMapState(state)
@@ -395,16 +364,10 @@ const SHORT_DOMAINS: Record<string, string> = {
     "openstreetmap.ng": "osm.ng",
 }
 
-/**
- * Get a short URL for the current map location
- * @example
- * getMapShortUrl(map)
- * // => "https://osm.org/go/wF7ZdNbjU-"
- */
 export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat) => {
     const state = getMapState(map)
     const code = shortLinkEncode(state)
-    const params: { [key: string]: string } = {}
+    const params: Record<string, string> = {}
     if (state.layersCode) params.layers = state.layersCode
     if (markerLngLat) {
         const precision = zoomPrecision(state.zoom)
@@ -419,22 +382,15 @@ export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat) => {
     const shortDomainKey = domainPos > 0 ? hostname.slice(domainPos + 1) : hostname
     const host = SHORT_DOMAINS[shortDomainKey] ?? location.host
 
-    return Object.keys(params).length
-        ? `${location.protocol}//${host}/go/${code}?${qsEncode(params)}`
-        : `${location.protocol}//${host}/go/${code}`
+    return `${location.protocol}//${host}/go/${code}${qsEncode(params)}`
 }
 
-/**
- * Get HTML for embedding the current map location
- * @example
- * getMapEmbedHtml(map, [-0.09, 51.505])
- */
 export const getMapEmbedHtml = (map: MaplibreMap, markerLngLat?: LngLat) => {
     const [[minLon, minLat], [maxLon, maxLat]] = map
         .getBounds()
         .adjustAntiMeridian()
         .toArray()
-    const params: { [key: string]: string } = {
+    const params: Record<string, string> = {
         bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
         layer: getMapBaseLayerId(map),
     }
@@ -454,7 +410,7 @@ export const getMapEmbedHtml = (map: MaplibreMap, markerLngLat?: LngLat) => {
     const iframe = document.createElement("iframe")
     iframe.width = "425"
     iframe.height = "350"
-    iframe.src = `${window.location.origin}/export/embed.html?${qsEncode(params)}`
+    iframe.src = `${window.location.origin}/export/embed.html${qsEncode(params)}`
     iframe.style.border = "1px solid black"
 
     // allow-popups: allow links to open in a new window: "Report a problem", copyright
@@ -481,12 +437,6 @@ export const getMapEmbedHtml = (map: MaplibreMap, markerLngLat?: LngLat) => {
     return container.innerHTML
 }
 
-/**
- * Get a geo URI for the current map location
- * @example
- * getMapGeoUri(map)
- * // => "geo:51.505,-0.09?z=15"
- */
 export const getMapGeoUri = (map: MaplibreMap) => {
     const { lon, lat, zoom } = getMapState(map)
     const precision = zoomPrecision(zoom)

@@ -74,12 +74,6 @@ if (searchParams.marker) {
 
 addMapLayer(map, layerId)
 
-/**
- * Get the fix the map link
- * @example
- * getFixTheMapLink(5.123456, 6.123456, 17)
- * // => "https://www.openstreetmap.org/fixthemap?lat=6.123456&lon=5.123456&zoom=17"
- */
 const getFixTheMapLink = ({ lon, lat, zoom }: LonLatZoom) => {
     const zoomRounded = beautifyZoom(zoom)
     const precision = zoomPrecision(zoom)

@@ -5,7 +5,7 @@
  * // => { foo: "bar", baz: "qux" }
  */
 export const qsParse = (qs: string) => {
-    const result: { [key: string]: string } = {}
+    const result: Record<string, string> = {}
     if (!qs) return result
     if (qs.startsWith("#")) qs = qs.slice(1)
     const params = new URLSearchParams(qs)
@@ -18,12 +18,19 @@ export const qsParse = (qs: string) => {
 }
 
 /**
- * Encode an object into a URLSearchParams object
+ * Encode an object into a query string with prefix
  * @example
  * qsEncode({ foo: "bar", baz: "qux", quux: undefined })
- * // => URLSearchParams { "foo" => "bar", "baz" => "qux" }
+ * // => "?foo=bar&baz=qux"
+ * qsEncode({})
+ * // => ""
+ * qsEncode({ hash: "value" }, "#")
+ * // => "#hash=value"
  */
-export const qsEncode = (obj: { [key: string]: string | string[] | undefined }) => {
+export const qsEncode = (
+    obj: Record<string, string | string[] | undefined>,
+    prefix = "?",
+): string => {
     const params = new URLSearchParams()
     for (const [key, value] of Object.entries(obj)) {
         // Skip undefined values
@@ -35,5 +42,6 @@ export const qsEncode = (obj: { [key: string]: string | string[] | undefined }) 
             params.set(key, value)
         }
     }
-    return params
+    const str = params.toString()
+    return str ? `${prefix}${str}` : ""
 }

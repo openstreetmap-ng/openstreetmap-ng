@@ -4,7 +4,7 @@ import { unquotePlus } from "@lib/utils"
 export type RouteLoadReason = "navigation" | "popstate"
 
 export interface IndexController {
-    load: (matchGroups: { [key: string]: string }, reason?: RouteLoadReason) => void
+    load: (matchGroups: Record<string, string>, reason?: RouteLoadReason) => void
     unload: (newPath?: string) => void
 }
 
@@ -19,49 +19,33 @@ let routes: Route[] = []
 let currentPath: string | null = null
 let currentRoute: Route | null = null
 
-/** Find the first route that matches a path */
 const findRoute = (p: string) => routes.find((r) => r.match(p)) ?? null
 
-/** Create a route object */
 export const makeRoute = (pattern: string, controller: IndexController) => {
-    // Ignore query string and require exact match
-    const re = new RegExp(`^${pattern}($|\\?)`)
+    const re = new RegExp(`^${pattern}($|\\?)`) // match pattern, allow query string
 
     return {
-        /** Test if a path matches this route */
         match: (path: string) => re.test(path),
-
-        /** Execute load action on this route */
         load: (path: string, reason: RouteLoadReason) => {
-            // Extract path parameters
             const matchGroups = re.exec(path).groups
             controller.load(matchGroups, reason)
         },
-
-        /** Execute unload action on this route */
         unload: controller.unload,
     }
 }
 
-/** Remove trailing slashes from a string, preserving the root "/" */
 const removeTrailingSlash = (s: string) => {
     let end = s.length
     while (end > 1 && s[end - 1] === "/") end--
     return end < s.length ? s.slice(0, end) : s
 }
 
-/**
- * Navigate to a path and return true if successful
- * @example
- * routerNavigate("/way/1234")
- * // => true
- */
 export const routerNavigate = (newPath: string) => {
     console.debug("routerNavigate", newPath)
     const newRoute = findRoute(newPath)
     if (!newRoute) return false
 
-    // Unload current route before changing URL
+    // Ensure unload hooks fire before history change
     currentRoute?.unload(newPath)
     history.pushState(null, "", newPath + location.hash)
     currentPath = newPath
@@ -70,17 +54,11 @@ export const routerNavigate = (newPath: string) => {
     return true
 }
 
-/**
- * Navigate to a path, throwing an error if no route is found
- * @example
- * routerNavigateStrict("/way/1234")
- */
 export const routerNavigateStrict = (newPath: string) => {
     console.debug("routerNavigateStrict", newPath)
     if (!routerNavigate(newPath)) throw new Error(`No route found for path: ${newPath}`)
 }
 
-/** Configure the router */
 export const configureRouter = (pathControllerMap: Map<string, IndexController>) => {
     routes = Array.from(pathControllerMap, ([p, c]) => makeRoute(p, c))
     console.debug("Loaded", routes.length, "application routes")
@@ -90,13 +68,13 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
             removeTrailingSlash(window.location.pathname) + window.location.search,
         )
 
-    // Sync with browser back/forward navigation
+    // Handle browser back/forward navigation
     window.addEventListener("popstate", () => {
         console.debug("onBrowserNavigation", location)
         const newPath = getCurrentPath()
         if (newPath === currentPath) return
 
-        // Unload current route before changing URL
+        // Ensure unload hooks fire before state change
         currentRoute?.unload(newPath)
         currentPath = newPath
         currentRoute = findRoute(newPath)

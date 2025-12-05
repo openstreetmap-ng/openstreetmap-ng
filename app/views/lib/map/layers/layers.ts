@@ -82,7 +82,7 @@ interface LayerConfig {
     legacyLayerIds?: LayerId[]
     layerTypes?: LayerType[]
     layerOptions?: AddMapLayerOptions
-    /** Layers with higher priority are drawn on top of others, defaults to 0. */
+    /** Layers with higher priority are drawn on top of others, defaults to 0 */
     priority?: number
 }
 
