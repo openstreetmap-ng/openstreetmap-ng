@@ -73,6 +73,10 @@ layersConfig.set(LAYER_ID, {
 })
 
 const DRAG_DATA_TYPE = "text/osm-routing-direction"
+const DRAG_IMAGE_WIDTH = 25
+const DRAG_IMAGE_HEIGHT = 41
+const DRAG_IMAGE_OFFSET_X = 12
+const DRAG_IMAGE_OFFSET_Y = 21
 
 /** Create a new routing controller */
 export const getRoutingController = (map: MaplibreMap): IndexController => {
@@ -165,11 +169,11 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         dt.setData("text/plain", "")
         dt.setData(DRAG_DATA_TYPE, direction)
         const canvas = document.createElement("canvas")
-        canvas.width = 25
-        canvas.height = 41
+        canvas.width = DRAG_IMAGE_WIDTH
+        canvas.height = DRAG_IMAGE_HEIGHT
         const ctx = canvas.getContext("2d")
-        ctx.drawImage(target, 0, 0, 25, 41)
-        dt.setDragImage(canvas, 12, 21)
+        ctx.drawImage(target, 0, 0, DRAG_IMAGE_WIDTH, DRAG_IMAGE_HEIGHT)
+        dt.setDragImage(canvas, DRAG_IMAGE_OFFSET_X, DRAG_IMAGE_OFFSET_Y)
     }
     startDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
     endDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)

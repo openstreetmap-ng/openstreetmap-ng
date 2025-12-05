@@ -43,6 +43,12 @@ const LOWERCASE_REGEX = /[a-z]/
 const UPPERCASE_REGEX = /[A-Z]/
 const NUMBER_REGEX = /\d/
 const SYMBOL_REGEX = /[^A-Za-z0-9]/
+const LOWERCASE_POOL_SIZE = 26
+const UPPERCASE_POOL_SIZE = 26
+const DIGIT_POOL_SIZE = 10
+const SYMBOL_POOL_SIZE = 33
+const TOTAL_POOL_SIZE =
+    LOWERCASE_POOL_SIZE + UPPERCASE_POOL_SIZE + DIGIT_POOL_SIZE + SYMBOL_POOL_SIZE
 const STRENGTH_LENGTH_WEIGHT = 0.5
 const STRENGTH_COMPLEXITY_WEIGHT = 0.45
 const STRENGTH_DIVERSITY_WEIGHT = 0.05
@@ -74,12 +80,12 @@ const evaluateStrength = (
 
     const categoryNormalized = categoryCount <= 1 ? 0 : (categoryCount - 1) / 3
     const characterSpace =
-        (hasLowercase ? 26 : 0) +
-        (hasUppercase ? 26 : 0) +
-        (hasNumber ? 10 : 0) +
-        (hasSymbol ? 33 : 0)
+        (hasLowercase ? LOWERCASE_POOL_SIZE : 0) +
+        (hasUppercase ? UPPERCASE_POOL_SIZE : 0) +
+        (hasNumber ? DIGIT_POOL_SIZE : 0) +
+        (hasSymbol ? SYMBOL_POOL_SIZE : 0)
     const poolNormalized =
-        Math.log2(Math.max(characterSpace, 2)) / Math.log2(26 + 26 + 10 + 33)
+        Math.log2(Math.max(characterSpace, 2)) / Math.log2(TOTAL_POOL_SIZE)
     const complexityNormalized = (categoryNormalized + poolNormalized) / 2
 
     const uniqueRatio = length ? new Set(password).size / length : 0
