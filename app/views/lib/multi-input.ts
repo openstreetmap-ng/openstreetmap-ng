@@ -110,7 +110,7 @@ for (const container of multiInputContainers) {
 
         const parts = input.value.split(delimiter)
         for (const p of parts.slice(0, -1)) addToken(p)
-        input.value = parts[parts.length - 1].trim()
+        input.value = parts.at(-1).trim()
     })
 
     // Commit remaining value on blur

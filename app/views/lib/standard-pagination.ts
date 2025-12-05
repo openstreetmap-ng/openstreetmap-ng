@@ -29,7 +29,7 @@ export const configureStandardPagination = (
         return () => {}
     }
 
-    const dataset = paginationContainers[paginationContainers.length - 1].dataset
+    const dataset = paginationContainers.at(-1).dataset
     const initialPages = Number.parseInt(dataset.pages, 10)
     if (!initialPages) {
         console.debug("Ignored standard pagination: missing data-pages")

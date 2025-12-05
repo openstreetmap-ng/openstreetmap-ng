@@ -616,8 +616,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         ) {
             // Load more changesets
             if (noMoreChangesets) return
-            if (changesets.length)
-                params.before = changesets[changesets.length - 1].id.toString()
+            if (changesets.length) params.before = changesets.at(-1).id.toString()
         } else {
             // Ignore small bounds changes
             if (fetchedBounds && fetchBounds && fetchedDate === fetchDate) {
