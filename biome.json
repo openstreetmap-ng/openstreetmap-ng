@@ -8,6 +8,7 @@
       "**/*.json",
       "!app/views/lib/timezone-bbox.ts",
       "!app/views/lib/vector-styles/*",
+      "!config/aaguid.json",
       "!config/wiki_pages.json"
     ]
   },
