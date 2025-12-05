@@ -28,7 +28,7 @@ export class SidebarToggleControl implements IControl {
         const buttonText = i18next.t(this._tooltipTitle)
         const button = document.createElement("button")
         button.type = "button"
-        button.className = "control-button"
+        button.className = "control-btn"
         button.ariaLabel = buttonText
         const icon = document.createElement("img")
         icon.className = `icon ${this._className}`
@@ -49,9 +49,7 @@ export class SidebarToggleControl implements IControl {
             // Unselect other buttons
             for (const otherContainer of sidebarToggleContainers) {
                 if (otherContainer === container) continue
-                const otherButton = otherContainer.querySelector(
-                    "button.control-button",
-                )
+                const otherButton = otherContainer.querySelector("button.control-btn")
                 if (otherButton.classList.contains("active")) {
                     console.debug("Deactivating sidebar toggle button", otherButton)
                     otherButton.click()

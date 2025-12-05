@@ -18,7 +18,7 @@ export class NewNoteControl implements IControl {
         const buttonText = i18next.t("javascripts.site.createnote_tooltip")
         const button = document.createElement("button")
         button.type = "button"
-        button.className = "control-button"
+        button.className = "control-btn"
         button.ariaLabel = buttonText
         const icon = document.createElement("img")
         icon.className = "icon new-note"
@@ -87,7 +87,7 @@ export const setNewNoteButtonState = (active: boolean): void => {
         "containers",
     )
     for (const container of newNoteContainers) {
-        const button = container.querySelector(".control-button")
+        const button = container.querySelector(".control-btn")
         button.classList.toggle("active", active)
     }
 }

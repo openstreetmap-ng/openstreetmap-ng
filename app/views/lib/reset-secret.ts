@@ -22,7 +22,7 @@ const onResetSecretButtonClick = (event: Event) => {
 }
 
 for (const control of document.querySelectorAll(".reset-secret-control")) {
-    const button = control.querySelector("button.reset-secret-button")
+    const button = control.querySelector("button.reset-secret-btn")
     if (button) {
         button.addEventListener("click", onResetSecretButtonClick)
     } else {

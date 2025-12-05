@@ -18,7 +18,7 @@ export class QueryFeaturesControl implements IControl {
         const buttonText = i18next.t("javascripts.site.queryfeature_tooltip")
         const button = document.createElement("button")
         button.type = "button"
-        button.className = "control-button"
+        button.className = "control-btn"
         button.ariaLabel = buttonText
         const icon = document.createElement("img")
         icon.className = "icon query-features"

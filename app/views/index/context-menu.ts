@@ -23,7 +23,7 @@ export const configureContextMenu = (map: MaplibreMap): void => {
     const routingFromButton = container.querySelector("button.routing-from")
     const routingToButton = container.querySelector("button.routing-to")
     const newNoteButton = container.querySelector("button.new-note")
-    const showAddressButton = container.querySelector("button.show-address")
+    const showAddressButton = container.querySelector("button.show-address-btn")
     const queryFeaturesButton = container.querySelector("button.query-features")
     const centerHereButton = container.querySelector("button.center-here")
     const measureDistanceButton = container.querySelector("button.measure-distance")

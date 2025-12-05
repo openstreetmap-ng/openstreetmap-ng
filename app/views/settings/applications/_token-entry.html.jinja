@@ -42,7 +42,7 @@
                         value="{% if token.token_preview is not none %}{{ token.token_preview }}...{% endif %}"
                         readonly>
                     {% if not _readonly %}
-                    <button class="btn btn-light border reset-secret-button" type="button"
+                    <button class="btn btn-light border reset-secret-btn" type="button"
                         data-token-id="{{ token.id }}">
                         <i class="bi bi-arrow-clockwise"></i>
                         {{ t('settings.new_access_token') }}
