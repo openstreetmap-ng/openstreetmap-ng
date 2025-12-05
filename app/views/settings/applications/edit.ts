@@ -37,8 +37,8 @@ mount("settings-application-edit-body", (body) => {
         "input[name=revoke_all_authorizations]",
     )
 
-    const onIsConfidentialChange = ({ target }: Event) => {
-        const radio = target as HTMLInputElement
+    const onIsConfidentialChange = (e: Event) => {
+        const radio = e.target as HTMLInputElement
         console.debug("onIsConfidentialChange", radio.value)
         resetSecretControl.classList.toggle("d-none", radio.value === "false")
     }
@@ -64,10 +64,10 @@ mount("settings-application-edit-body", (body) => {
     })
 
     const deleteButton = deleteForm.querySelector("button[type=submit]")
-    deleteButton.addEventListener("click", (event: Event) => {
+    deleteButton.addEventListener("click", (e) => {
         // On delete button click, request confirmation
         if (!confirm(t("settings.delete_this_application_question"))) {
-            event.preventDefault()
+            e.preventDefault()
         }
     })
 })

@@ -98,7 +98,7 @@ export const getBaseFetchController = (
                     onSidebarLoaded(await resp.text(), url)
                     loadCallbackDispose = loadCallback?.(dynamicContent)
                 })
-                .catch((error) => {
+                .catch((error: Error) => {
                     if (error.name === "AbortError") return
                     console.error("Failed to fetch sidebar", error)
                     dynamicContent.textContent = error.message

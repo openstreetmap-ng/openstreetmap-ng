@@ -102,10 +102,10 @@ mount("diary-index-body", (body) => {
     // (mobile view)
     const navOffcanvas = document.getElementById("diary-scroll-nav-offcanvas")
     const navOffcanvasInstance = Offcanvas.getOrCreateInstance(navOffcanvas)
-    navOffcanvas.addEventListener("click", ({ target }) => {
+    navOffcanvas.addEventListener("click", (e) => {
+        const target = e.target
         if (!(target instanceof Element)) return
-        const link = target.closest("a[href]")
-        if (!(link instanceof HTMLAnchorElement)) return
+        if (!target.closest("a[href]")) return
         navOffcanvasInstance.hide()
     })
 })

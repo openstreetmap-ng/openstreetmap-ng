@@ -394,8 +394,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         const fragment = document.createDocumentFragment()
         for (const changeset of changesets.slice(-newChangesetsLength)) {
             const changesetId = changeset.id.toString()
-            const div = (entryTemplate.content.cloneNode(true) as DocumentFragment)
-                .children[0] as HTMLElement
+            const div = entryTemplate.content.firstElementChild.cloneNode(
+                true,
+            ) as HTMLElement
 
             // Find elements to populate
             const userContainer = div.querySelector(".user")
@@ -694,7 +695,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                     for (const indicator of scrollIndicators)
                         indicator.classList.remove("d-none")
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch map data", error)
                 resetChangesets()

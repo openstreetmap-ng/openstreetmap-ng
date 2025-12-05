@@ -18,10 +18,10 @@ mount("traces-edit-body", (body) => {
     })
 
     const deleteButton = deleteForm.querySelector("button[type=submit]")
-    deleteButton.addEventListener("click", (event: Event) => {
+    deleteButton.addEventListener("click", (e) => {
         // On delete button click, request confirmation
         if (!confirm(t("trace.delete_confirmation"))) {
-            event.preventDefault()
+            e.preventDefault()
         }
     })
 })

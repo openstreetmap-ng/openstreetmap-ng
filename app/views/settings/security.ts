@@ -196,8 +196,8 @@ mount("settings-security-body", (body) => {
     const disableAuthMethodModal = document.getElementById("disableAuthMethodModal")
     const disableAuthMethodForm = disableAuthMethodModal.querySelector("form")
 
-    disableAuthMethodModal.addEventListener("show.bs.modal", (event: Event) => {
-        const button = (event as any).relatedTarget as HTMLButtonElement
+    disableAuthMethodModal.addEventListener("show.bs.modal", (e) => {
+        const button = (e as any).relatedTarget as HTMLButtonElement
         disableAuthMethodForm.action = button.dataset.authAction
         disableAuthMethodModal.querySelector(".modal-title").textContent =
             button.dataset.title

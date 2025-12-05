@@ -22,8 +22,8 @@ mount("audit-body", (body) => {
             for (const button of renderContainer.querySelectorAll(
                 "button[data-app-id]",
             )) {
-                button.addEventListener("click", (event) => {
-                    event.preventDefault()
+                button.addEventListener("click", (e) => {
+                    e.preventDefault()
                     filterForm.querySelector("input[name=application_id]").value =
                         button.dataset.appId
                     filterForm.requestSubmit()

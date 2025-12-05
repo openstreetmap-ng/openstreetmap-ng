@@ -235,7 +235,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
                     loadData()
                 }
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch map data", error)
                 toggleLayerSpinner(LAYER_ID, false)

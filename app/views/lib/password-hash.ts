@@ -146,8 +146,8 @@ const pbkdf2_sha512 = async (
                 512,
             ),
         )
-    } catch (e: any) {
-        if (e.name !== "NotSupportedError") throw e
+    } catch (error) {
+        if ((error as Error).name !== "NotSupportedError") throw error
     }
     console.warn(
         "SubtleCrypto does not support PBKDF2 SHA-512, falling back to polyfill",

@@ -377,8 +377,8 @@ const sha1_hex = async (value: string): Promise<string> => {
     let bytes: Uint8Array
     try {
         bytes = new Uint8Array(await crypto.subtle.digest("SHA-1", data))
-    } catch (e: any) {
-        if (e?.name !== "NotSupportedError") throw e
+    } catch (error) {
+        if ((error as Error).name !== "NotSupportedError") throw error
         console.warn("SubtleCrypto does not support SHA-1, falling back to polyfill")
         bytes = sha1(data)
     }

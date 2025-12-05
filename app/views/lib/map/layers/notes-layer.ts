@@ -152,7 +152,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
                 fetchedBounds = fetchBounds
                 console.debug("Notes layer showing", notes.length, "notes")
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch notes", error)
                 toggleLayerSpinner(LAYER_ID, false)

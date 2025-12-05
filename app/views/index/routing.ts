@@ -491,8 +491,9 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
                 })
             }
 
-            const div = (stepTemplate.content.cloneNode(true) as DocumentFragment)
-                .children[0] as HTMLElement
+            const div = stepTemplate.content.firstElementChild.cloneNode(
+                true,
+            ) as HTMLElement
             div.dataset.stepIndex = String(stepIndex)
             div.querySelector(".icon div").classList.add(
                 `icon-${step.iconNum}`,

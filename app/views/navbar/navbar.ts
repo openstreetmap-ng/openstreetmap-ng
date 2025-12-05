@@ -64,8 +64,8 @@ const editGroupTooltip = Tooltip.getOrCreateInstance(editGroup, {
 editGroupTooltip.disable()
 
 // On edit link click, check and handle the remember choice checkbox
-editGroup.addEventListener("click", (event: Event): void => {
-    const target = event.target as HTMLElement
+editGroup.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement
     const editLink = target.closest<HTMLAnchorElement | HTMLButtonElement>(".edit-link")
     if (!editLink) return
     const editor = editLink.dataset.editor
@@ -79,7 +79,7 @@ editGroup.addEventListener("click", (event: Event): void => {
     }
 
     // With remember choice, change default editor first
-    event.preventDefault()
+    e.preventDefault()
     console.debug("Changing default editor to", editor)
     editDropdown.hide()
 
@@ -93,7 +93,7 @@ editGroup.addEventListener("click", (event: Event): void => {
         .then((resp) => {
             if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
             console.debug("Changed default editor to", editor)
-            editLink.dispatchEvent(new MouseEvent(event.type, event))
+            editLink.dispatchEvent(new MouseEvent(e.type, e))
         })
         .catch((error) => {
             console.error("Failed to change default editor", error)

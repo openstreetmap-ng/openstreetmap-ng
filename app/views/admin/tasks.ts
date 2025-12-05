@@ -24,7 +24,7 @@ mount("admin-tasks-body", (body) => {
                     badge.classList.toggle("bg-secondary", !taskInfo.running)
                 }
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch tasks status", error)
             })

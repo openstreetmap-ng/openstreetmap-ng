@@ -24,7 +24,7 @@ mount("messages-index-body", (body) => {
     const reportButton = messagePreview.querySelector("button.report-btn")
 
     let abortController: AbortController | null = null
-    let openTarget: HTMLElement = null
+    let openTarget: HTMLElement | null = null
     let openMessageId: string | null = null
 
     /** Open a message in the sidebar preview panel */
@@ -126,7 +126,7 @@ mount("messages-index-body", (body) => {
                     actionId: openMessageId,
                 })
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch message", error)
                 messageBody.textContent = error.message

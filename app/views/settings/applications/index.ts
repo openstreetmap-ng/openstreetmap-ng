@@ -15,8 +15,8 @@ mount("settings-applications-body", (body) => {
         collapseInstance._triggerArray.push(button)
 
         // On accordion button click, toggle the collapse if target is not a link
-        button.addEventListener("click", ({ target }: Event) => {
-            const tagName = (target as HTMLElement).tagName
+        button.addEventListener("click", (e) => {
+            const tagName = (e.target as HTMLElement).tagName
             if (tagName === "A") return
             collapseInstance.toggle()
         })

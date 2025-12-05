@@ -42,7 +42,7 @@ for (const container of richTextContainers) {
                 .then(async (resp) => {
                     previewDiv.innerHTML = await resp.text()
                 })
-                .catch((error) => {
+                .catch((error: Error) => {
                     if (error.name === "AbortError") return
                     console.error("Failed to fetch rich text preview", error)
                     previewDiv.innerHTML = error.message

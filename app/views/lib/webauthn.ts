@@ -74,8 +74,8 @@ export const getPasskeyRegistration = async (): Promise<Blob | string> => {
                 attestation: "indirect",
             },
         })) as PublicKeyCredential | null
-    } catch (e) {
-        console.warn("WebAuthn:", e)
+    } catch (error) {
+        console.warn("WebAuthn:", error)
     }
     if (!credential) return i18next.t("two_fa.could_not_complete_passkey_registration")
 
@@ -105,8 +105,8 @@ export const getPasskeyAssertion = async (
                 allowCredentials: buildCredentialDescriptors(challenge.credentials),
             },
         })) as PublicKeyCredential | null
-    } catch (e) {
-        console.warn("WebAuthn:", e)
+    } catch (error) {
+        console.warn("WebAuthn:", error)
     }
     if (!credential) return ""
 
@@ -147,9 +147,9 @@ export const startConditionalMediation = async (
             mediation: "conditional",
             signal,
         })) as PublicKeyCredential | null
-    } catch (e: any) {
-        if (e.name !== "AbortError") {
-            console.warn("Conditional WebAuthn:", e)
+    } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+            console.warn("Conditional WebAuthn:", error)
         }
     }
     if (!credential) return null

@@ -33,6 +33,10 @@ import {
     Point,
 } from "maplibre-gl"
 
+interface DistanceLabel extends Marker {
+    distance: number
+}
+
 const LAYER_ID = "distance" as LayerId
 layersConfig.set(LAYER_ID, {
     specification: {
@@ -64,7 +68,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
 
     const positionsUrl: [number, number][] = []
     const lines: Feature<LineString>[] = []
-    const labels: Marker[] = []
+    const labels: DistanceLabel[] = []
     const markers: Marker[] = []
     let ghostMarker: Marker | null = null
     let ghostMarkerIndex = -1
@@ -186,13 +190,15 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
             const labelIndex = markerIndex - 1
             if (labelIndex >= labels.length) {
                 // Create new label
-                labels[labelIndex] = new Marker({
+                const label = new Marker({
                     anchor: "center",
                     element: document.createElement("div"),
                     className: "distance-label",
                 })
                     .setLngLat([0, 0])
-                    .addTo(map)
+                    .addTo(map) as DistanceLabel
+                label.distance = 0
+                labels[labelIndex] = label
             }
             for (const labelIndexOffset of [labelIndex, labelIndex + 1]) {
                 // Update existing label (before and after)
@@ -221,14 +227,16 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
 
                 const label = labels[labelIndexOffset]
                 label.setLngLat(middlePoint)
-                const distance = startPoint.distanceTo(endPoint)
-                ;(label as any).distance = distance
+                label.distance = startPoint.distanceTo(endPoint)
                 label.setRotation((angle * 180) / Math.PI)
-                label.getElement().textContent = formatDistance(distance, currentUnit)
+                label.getElement().textContent = formatDistance(
+                    label.distance,
+                    currentUnit,
+                )
             }
         }
         let totalDistance = 0
-        for (const label of labels) totalDistance += (label as any).distance
+        for (const label of labels) totalDistance += label.distance
         totalDistanceLabel.textContent = formatDistance(totalDistance, currentUnit)
     }
 

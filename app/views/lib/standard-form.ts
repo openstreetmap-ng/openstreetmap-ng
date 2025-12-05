@@ -8,7 +8,7 @@ import i18next from "i18next"
 
 export interface APIDetail {
     type: "success" | "info" | "error"
-    loc: [any, string]
+    loc: [string | null, string | null]
     msg: string
 }
 

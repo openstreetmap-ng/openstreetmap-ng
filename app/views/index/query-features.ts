@@ -188,7 +188,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
                 .then(async (resp) => {
                     onSidebarLoaded(await resp.text())
                 })
-                .catch((error) => {
+                .catch((error: Error) => {
                     if (error.name === "AbortError") return
                     console.error("Failed to fetch query features", error)
                     onSidebarLoaded(
