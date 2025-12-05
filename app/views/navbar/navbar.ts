@@ -41,12 +41,10 @@ export const changeUnreadMessagesBadge = (change: number): void => {
 
 // Initialize active nav link
 const navLinks = navbar.querySelectorAll("a.nav-link")
-for (const link of navLinks) {
-    if (isHrefCurrentPage(link.href)) {
-        link.classList.add("active")
-        link.ariaCurrent = "page"
-        break
-    }
+const activeNavLink = Array.from(navLinks).find((link) => isHrefCurrentPage(link.href))
+if (activeNavLink) {
+    activeNavLink.classList.add("active")
+    activeNavLink.ariaCurrent = "page"
 }
 
 const editGroup = navbar.querySelector("div.edit-group")
@@ -250,7 +248,8 @@ if (navbarLinksList) {
 
         if (shouldCollapse()) {
             // Get all widths at once to avoid layout thrashing
-            const linkWidths = Array.from(navbarLinksList.children).map(
+            const linkWidths = Array.from(
+                navbarLinksList.children,
                 (child) => (child as HTMLElement).offsetWidth,
             )
 

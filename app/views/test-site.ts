@@ -22,10 +22,12 @@ const checkQuizCompletion = () => {
     const allRadios = quizForm.querySelectorAll('input[type="radio"]')
     const checkedRadios = quizForm.querySelectorAll('input[type="radio"]:checked')
 
-    const questionCount = new Set([...allRadios].map((input) => input.name)).size
+    const questionCount = new Set(Array.from(allRadios, (input) => input.name)).size
 
     const allAnswered = questionCount === checkedRadios.length
-    const allCorrect = [...checkedRadios].every((radio) => radio.value === "correct")
+    const allCorrect = Array.from(checkedRadios).every(
+        (radio) => radio.value === "correct",
+    )
 
     submitButton.disabled = !allAnswered || !allCorrect
 }

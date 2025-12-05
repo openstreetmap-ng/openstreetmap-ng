@@ -51,9 +51,7 @@ if (loginForm) {
 
     const tryTOTPSubmit = (): boolean => {
         const inputs = totpInputGroup.children as HTMLCollectionOf<HTMLInputElement>
-        const code = Array.from(inputs)
-            .map((input) => input.value)
-            .join("")
+        const code = Array.from(inputs, (input) => input.value).join("")
         if (code.length !== loginResponse.totp) return false
 
         totpCodeInput.value = code

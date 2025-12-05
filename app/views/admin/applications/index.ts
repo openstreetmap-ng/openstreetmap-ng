@@ -19,7 +19,8 @@ mount("admin-applications-body", (body) => {
 
     const exportVisibleBtn = body.querySelector("button.export-visible-btn")
     exportVisibleBtn.addEventListener("click", async () => {
-        const appIds = Array.from(body.querySelectorAll("tr[data-app-id]")).map(
+        const appIds = Array.from(
+            body.querySelectorAll("tr[data-app-id]"),
             (el) => el.dataset.appId,
         )
         const json = `[${appIds.join(",")}]`

@@ -367,15 +367,11 @@ const lookupPwnedPassword = async (
         throw new Error(`Failed to check password safety (${response.status})`)
 
     const body = await response.text()
-    for (const line of body.split("\n")) {
+    const isPwned = body.split("\n").some((line) => {
         const [hashSuffix, occurrences] = line.split(":")
-        if (hashSuffix === suffix && occurrences !== "0") {
-            pwnedPasswordCache.set(password, true)
-            return
-        }
-    }
-
-    pwnedPasswordCache.set(password, false)
+        return hashSuffix === suffix && occurrences !== "0"
+    })
+    pwnedPasswordCache.set(password, isPwned)
 }
 
 const sha1_hex = async (value: string): Promise<string> => {

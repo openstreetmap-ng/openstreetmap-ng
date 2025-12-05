@@ -100,19 +100,18 @@ export const focusObjects = (
 
             if (last) {
                 for (const k of Object.keys(last)) {
-                    for (const prefix of validPrefixes) {
-                        if (!k.startsWith(prefix) || (current && k in current)) continue
+                    if (
+                        validPrefixes.some((prefix) => k.startsWith(prefix)) &&
+                        !(current && k in current)
+                    ) {
                         setter.call(map, extendedLayerId, k, null)
-                        break
                     }
                 }
             }
             if (current) {
                 for (const [k, v] of Object.entries(current)) {
-                    for (const prefix of validPrefixes) {
-                        if (!k.startsWith(prefix)) continue
+                    if (validPrefixes.some((prefix) => k.startsWith(prefix))) {
                         setter.call(map, extendedLayerId, k, v)
-                        break
                     }
                 }
             }
@@ -187,7 +186,7 @@ const getGeometryBounds = (g: Geometry): LngLatBounds => {
     if (g.type === "Polygon") {
         const outer = g.coordinates[0]
         return outer
-            .slice(0, outer.length - 1)
+            .slice(0, -1)
             .reduce(
                 (bounds, coord) => bounds.extend(coord as LngLatLike),
                 new LngLatBounds(),
@@ -198,7 +197,7 @@ const getGeometryBounds = (g: Geometry): LngLatBounds => {
         for (const polygon of g.coordinates) {
             const outer = polygon[0]
             bounds = outer
-                .slice(0, outer.length - 1)
+                .slice(0, -1)
                 .reduce((bounds, coord) => bounds.extend(coord as LngLatLike), bounds)
         }
         return bounds

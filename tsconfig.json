@@ -17,6 +17,7 @@
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
+    "useUnknownInCatchVariables": false,
 
     "paths": {
       "@index/*": ["./app/views/index/*"],

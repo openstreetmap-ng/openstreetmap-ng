@@ -142,12 +142,10 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
 
         // Restore last form values
         const lastShareExportFormat = shareExportFormatStorage.get()
-        for (const option of formatSelect.options) {
-            if (option.value === lastShareExportFormat) {
-                option.selected = true
-                break
-            }
-        }
+        const matchingOption = Array.from(formatSelect.options).find(
+            (option) => option.value === lastShareExportFormat,
+        )
+        if (matchingOption) matchingOption.selected = true
 
         const linkInput = this.sidebar.querySelector("input.link-input")
         const geoUriInput = this.sidebar.querySelector("input.geo-uri-input")

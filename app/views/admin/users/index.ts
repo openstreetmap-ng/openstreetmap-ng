@@ -19,7 +19,8 @@ mount("admin-users-body", (body) => {
 
     const exportVisibleBtn = body.querySelector("button.export-visible-btn")
     exportVisibleBtn.addEventListener("click", async () => {
-        const userIds = Array.from(body.querySelectorAll("tr[data-user-id]")).map(
+        const userIds = Array.from(
+            body.querySelectorAll("tr[data-user-id]"),
             (el) => el.dataset.userId,
         )
         const json = `[${userIds.join(",")}]`

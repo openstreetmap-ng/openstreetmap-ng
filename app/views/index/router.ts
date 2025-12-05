@@ -86,7 +86,7 @@ export const routerNavigateStrict = (newPath: string): void => {
 export const configureRouter = (
     pathControllerMap: Map<string, IndexController>,
 ): void => {
-    routes = Array.from(pathControllerMap).map(([p, c]) => makeRoute(p, c))
+    routes = Array.from(pathControllerMap, ([p, c]) => makeRoute(p, c))
     console.debug("Loaded", routes.length, "application routes")
 
     const getCurrentPath = (): string =>

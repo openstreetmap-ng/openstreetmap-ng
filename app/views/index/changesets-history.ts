@@ -159,11 +159,10 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const changesetIsWithinView = (changesetId: string): boolean => {
         const cs = idChangesetMap.get(changesetId)
         const mapBounds = map.getBounds()
-        for (const b of cs.bounds) {
+        return cs.bounds.some((b) => {
             const csBounds = new LngLatBounds([b.minLon, b.minLat, b.maxLon, b.maxLat])
-            if (checkLngLatBoundsIntersection(mapBounds, csBounds)) return true
-        }
-        return false
+            return checkLngLatBoundsIntersection(mapBounds, csBounds)
+        })
     }
 
     const scheduleSidebarFit = (changesetId: string): void => {

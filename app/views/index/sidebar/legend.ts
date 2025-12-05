@@ -31,7 +31,8 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
         const layerContainers = this.sidebar.querySelectorAll("table.layer-container")
         for (const layerContainer of layerContainers) {
             const layerId = layerContainer.dataset.layerId as LayerId
-            const elements = Array.from(layerContainer.querySelectorAll("tr")).map(
+            const elements = Array.from(
+                layerContainer.querySelectorAll("tr"),
                 (element) => {
                     const [minZoomStr, maxZoomStr] = element.dataset.zoom.split("-")
                     const minZoom = minZoomStr ? Number.parseInt(minZoomStr, 10) : 0
