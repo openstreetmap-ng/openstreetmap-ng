@@ -12,8 +12,7 @@
     {% set show_elements = data.show_elements %}
     {% set show_parents = data.show_parents %}
     {% set compact = True %}
-    <div class="version-section section position-relative" data-params="{{ data.params }}"
-        data-leaflet="{{ data.leaflet }}">
+    <div class="version-section section position-relative" data-params="{{ data.params }}">
         <a class="stretched-link" href="/{{ type }}/{{ id }}/history/{{ element.version }}"></a>
         <h3 class="version-badge badge mb-3 {% if next_version is none %}is-latest{% endif %}">
             {{ t('browse.version') }} {{ element.version }}
