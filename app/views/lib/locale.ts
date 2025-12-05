@@ -1,5 +1,5 @@
+import { memoize } from "@lib/memoize"
 import { config } from "./config"
-import { staticCache } from "./utils"
 
 export type LocaleOption = {
     code: string
@@ -9,7 +9,7 @@ export type LocaleOption = {
     flag?: string
 }
 
-export const getLocaleOptions = staticCache((): readonly LocaleOption[] =>
+export const getLocaleOptions = memoize((): readonly LocaleOption[] =>
     config.locales.map((locale) => {
         const nativeName = locale.nativeName
         const englishName = locale.englishName ?? nativeName

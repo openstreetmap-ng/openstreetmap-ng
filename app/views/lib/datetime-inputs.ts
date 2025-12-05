@@ -1,7 +1,7 @@
 import { primaryLanguage } from "./config"
 import { dateTimeFormat, relativeTimeFormat } from "./format"
 
-const resolvedElements: WeakSet<HTMLTimeElement> = new WeakSet()
+const resolvedElements = new WeakSet<HTMLTimeElement>()
 
 /**
  * Convert a UTC datetime string to local time format for datetime-local input

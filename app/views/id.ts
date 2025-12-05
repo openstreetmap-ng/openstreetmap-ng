@@ -2,9 +2,9 @@ import "./id.scss"
 import "iD/dist/iD.css"
 import "iD"
 
-import { config, primaryLanguage } from "./lib/config"
-import { parentLoadSystemApp } from "./lib/system-app"
-import { throttle } from "./lib/utils"
+import { config, primaryLanguage } from "@lib/config"
+import { parentLoadSystemApp } from "@lib/system-app"
+import { throttle } from "@lib/throttle"
 
 const container = document.querySelector("div.id-container")
 if (!container) throw new Error("iD container not found")

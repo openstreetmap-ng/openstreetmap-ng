@@ -1,24 +1,24 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import type { Map as MaplibreMap } from "maplibre-gl"
 import {
     loadMapImage,
     markerClosedImageUrl,
     markerHiddenImageUrl,
     markerOpenImageUrl,
-} from "../lib/map/image.ts"
+} from "@lib/map/image.ts"
 import {
     type FocusLayerLayout,
     type FocusLayerPaint,
     focusObjects,
-} from "../lib/map/layers/focus-layer.ts"
-import { PartialNoteParamsSchema } from "../lib/proto/shared_pb"
-import { configureReportButtonsLazy } from "../lib/report-modal"
-import { configureStandardForm } from "../lib/standard-form"
-import { configureStandardPagination } from "../lib/standard-pagination"
-import { setPageTitle } from "../lib/title"
+} from "@lib/map/layers/focus-layer.ts"
+import { PartialNoteParamsSchema } from "@lib/proto/shared_pb"
+import { configureReportButtonsLazy } from "@lib/report-modal"
+import { configureStandardForm } from "@lib/standard-form"
+import { configureStandardPagination } from "@lib/standard-pagination"
+import { setPageTitle } from "@lib/title"
+import type { Map as MaplibreMap } from "maplibre-gl"
 import { getBaseFetchController } from "./_base-fetch"
-import type { IndexController } from "./_router"
+import type { IndexController } from "./router"
 
 const themeColor = "#f60"
 const focusPaint: FocusLayerPaint = Object.freeze({

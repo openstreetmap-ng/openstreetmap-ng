@@ -1,7 +1,7 @@
-import { encodeMapState } from "./lib/map/map-utils"
-import { mount } from "./lib/mount"
-import { qsParse } from "./lib/qs"
-import { isLatitude, isLongitude, isZoom } from "./lib/utils"
+import { isLatitude, isLongitude, isZoom } from "@lib/coords"
+import { encodeMapState } from "@lib/map/state"
+import { mount } from "@lib/mount"
+import { qsParse } from "@lib/qs"
 
 mount("fixthemap-body", (body) => {
     const params = qsParse(window.location.search)

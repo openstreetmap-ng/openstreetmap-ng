@@ -1,6 +1,6 @@
+import { mount } from "@lib/mount"
+import { configureStandardForm } from "@lib/standard-form"
 import { t } from "i18next"
-import { mount } from "../../lib/mount"
-import { configureStandardForm } from "../../lib/standard-form"
 
 mount("settings-application-edit-body", (body) => {
     const avatarForm = body.querySelector("form.avatar-form")

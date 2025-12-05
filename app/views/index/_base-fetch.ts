@@ -1,6 +1,6 @@
+import { resolveDatetimeLazy } from "@lib/datetime-inputs"
+import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { resolveDatetimeLazy } from "../lib/datetime"
-import { requestAnimationFramePolyfill } from "../lib/utils"
 import {
     configureActionSidebar,
     getActionSidebar,

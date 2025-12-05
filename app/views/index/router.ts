@@ -1,4 +1,4 @@
-import { unquotePlus } from "../lib/utils"
+import { unquotePlus } from "@lib/utils"
 
 // Router interfaces
 export type RouteLoadReason = "navigation" | "popstate"

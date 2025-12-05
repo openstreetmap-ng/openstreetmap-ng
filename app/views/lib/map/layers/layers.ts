@@ -1,3 +1,6 @@
+import { getActiveTheme, overlayOpacityStorage } from "@lib/local-storage"
+import { memoize } from "@lib/memoize"
+import libertyStyle from "@lib/vector-styles/liberty.json"
 import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
 import {
@@ -10,9 +13,6 @@ import {
     type StyleSpecification,
 } from "maplibre-gl"
 import { addThemeEventHandler } from "../../../navbar/_theme"
-import { getActiveTheme, overlayOpacityStorage } from "../../local-storage"
-import { staticCache } from "../../utils"
-import libertyStyle from "../../vector-styles/liberty.json"
 
 declare const brandSymbol: unique symbol
 
@@ -217,7 +217,7 @@ layersConfig.set("gps" as LayerId, {
     priority: 60,
 })
 
-const layerLookupMap = staticCache((): Map<LayerId | LayerCode, LayerId> => {
+const layerLookupMap = memoize((): Map<LayerId | LayerCode, LayerId> => {
     console.debug(
         "Lazily initializing layerLookupMap with",
         layersConfig.size,

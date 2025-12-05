@@ -1,23 +1,22 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import i18next from "i18next"
-
-import type { MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
-import { renderColorPreviews } from "../lib/color-preview"
-import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer.ts"
-import { makeBoundsMinimumSize } from "../lib/map/utils"
+import { renderColorPreviews } from "@lib/color"
+import { makeBoundsMinimumSize } from "@lib/map/bounds"
+import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer.ts"
 import {
     type PartialChangesetParams,
     type PartialChangesetParams_Element,
     PartialChangesetParamsSchema,
-} from "../lib/proto/shared_pb"
-import { configureReportButtonsLazy } from "../lib/report-modal"
-import { configureStandardForm } from "../lib/standard-form"
-import { configureStandardPagination } from "../lib/standard-pagination"
-import { setPageTitle } from "../lib/title"
-import type { Bounds, OSMChangeset } from "../lib/types"
+} from "@lib/proto/shared_pb"
+import { configureReportButtonsLazy } from "@lib/report-modal"
+import { configureStandardForm } from "@lib/standard-form"
+import { configureStandardPagination } from "@lib/standard-pagination"
+import { setPageTitle } from "@lib/title"
+import type { Bounds, OSMChangeset } from "@lib/types"
+import i18next from "i18next"
+import type { MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
 import { getBaseFetchController } from "./_base-fetch.ts"
-import type { IndexController } from "./_router"
+import type { IndexController } from "./router"
 
 const focusPaint: FocusLayerPaint = Object.freeze({
     "fill-opacity": 0,

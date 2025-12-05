@@ -1,6 +1,6 @@
+import { mount } from "@lib/mount"
+import { configureStandardForm } from "@lib/standard-form"
 import { t } from "i18next"
-import { mount } from "../lib/mount"
-import { configureStandardForm } from "../lib/standard-form"
 
 mount("traces-edit-body", (body) => {
     const updateForm = body.querySelector("form.update-form")

@@ -1,6 +1,6 @@
 import i18next from "i18next"
 import { config } from "./config"
-import type { LonLatZoom } from "./map/map-utils"
+import type { LonLatZoom } from "./map/state"
 import { qsEncode } from "./qs"
 import type { Bounds, OSMObject } from "./types"
 

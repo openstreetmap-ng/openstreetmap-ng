@@ -1,20 +1,20 @@
 import { fromBinary } from "@bufbuild/protobuf"
+import { routerNavigateStrict } from "@index/router"
+import { toggleLayerSpinner } from "@index/sidebar/layers"
+import { config } from "@lib/config"
+import { RenderElementsDataSchema } from "@lib/proto/shared_pb"
+import { qsEncode } from "@lib/qs"
+import type { OSMNode, OSMWay } from "@lib/types"
 import type {
     GeoJSONSource,
     LngLatBounds,
     MapLayerMouseEvent,
     Map as MaplibreMap,
 } from "maplibre-gl"
-import { routerNavigateStrict } from "../../../index/_router"
-import { toggleLayerSpinner } from "../../../index/sidebar/layers"
-import { config } from "../../config"
-import { RenderElementsDataSchema } from "../../proto/shared_pb"
-import { qsEncode } from "../../qs"
-import type { OSMNode, OSMWay } from "../../types"
 import { getMapAlert } from "../alert"
+import { getLngLatBoundsSize, padLngLatBounds } from "../bounds"
 import { clearMapHover, setMapHover } from "../hover"
 import { convertRenderElementsData, renderObjects } from "../render-objects"
-import { getLngLatBoundsSize, padLngLatBounds } from "../utils"
 import {
     addLayerEventHandler,
     emptyFeatureCollection,

@@ -1,12 +1,8 @@
-import type { LineString } from "geojson"
-import {
-    type GeoJSONSource,
-    LngLatBounds,
-    Map as MaplibreMap,
-    ScaleControl,
-} from "maplibre-gl"
-import { CustomGeolocateControl } from "../lib/map/controls/geolocate"
-import { CustomZoomControl } from "../lib/map/controls/zoom"
+import { padLngLatBounds } from "@lib/map/bounds"
+import { CustomGeolocateControl } from "@lib/map/controls/geolocate"
+import { addControlGroup } from "@lib/map/controls/group"
+import { CustomZoomControl } from "@lib/map/controls/zoom"
+import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import {
     addMapLayer,
     addMapLayerSources,
@@ -14,11 +10,16 @@ import {
     emptyFeatureCollection,
     type LayerId,
     layersConfig,
-} from "../lib/map/layers/layers"
-import { addControlGroup } from "../lib/map/map-utils"
-import { configureDefaultMapBehavior, padLngLatBounds } from "../lib/map/utils"
-import { decodeLonLat } from "../lib/polyline"
-import { requestAnimationFramePolyfill } from "../lib/utils"
+} from "@lib/map/layers/layers"
+import { requestAnimationFramePolyfill } from "@lib/polyfills"
+import { decodeLonLat } from "@lib/polyline"
+import type { LineString } from "geojson"
+import {
+    type GeoJSONSource,
+    LngLatBounds,
+    Map as MaplibreMap,
+    ScaleControl,
+} from "maplibre-gl"
 
 const tracePreviewContainer = document.querySelector("div.trace-preview")
 if (tracePreviewContainer) {

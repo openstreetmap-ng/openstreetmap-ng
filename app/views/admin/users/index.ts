@@ -1,7 +1,7 @@
+import { configureDatetimeInputs } from "@lib/datetime-inputs"
+import { mount } from "@lib/mount"
+import { configureStandardPagination } from "@lib/standard-pagination"
 import { Tooltip } from "bootstrap"
-import { configureDatetimeInputs } from "../../lib/datetime"
-import { mount } from "../../lib/mount"
-import { configureStandardPagination } from "../../lib/standard-pagination"
 
 mount("admin-users-body", (body) => {
     const filterForm = body.querySelector("form.filters-form")

@@ -1,7 +1,7 @@
-import { encodeMapState, type MapState } from "./lib/map/map-utils"
-import { mount } from "./lib/mount"
-import { qsEncode, qsParse } from "./lib/qs"
-import { isLatitude, isLongitude, isZoom } from "./lib/utils"
+import { isLatitude, isLongitude, isZoom } from "@lib/coords"
+import { encodeMapState, type MapState } from "@lib/map/state"
+import { mount } from "@lib/mount"
+import { qsEncode, qsParse } from "@lib/qs"
 
 mount("welcome-body", (body) => {
     const noteLink = body.querySelector("a.note-link")

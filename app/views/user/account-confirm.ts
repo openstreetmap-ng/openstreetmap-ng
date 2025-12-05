@@ -1,5 +1,5 @@
-import { mount } from "../lib/mount"
-import { configureStandardForm } from "../lib/standard-form"
+import { mount } from "@lib/mount"
+import { configureStandardForm } from "@lib/standard-form"
 
 mount("account-confirm-body", (body) => {
     configureStandardForm(body.querySelector("form.resend-form"), (data) => {

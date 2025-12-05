@@ -1,5 +1,5 @@
+import { configureStandardForm } from "@lib/standard-form"
 import { Modal } from "bootstrap"
-import { configureStandardForm } from "./lib/standard-form"
 
 const modalElement = document.getElementById("unsubscribeDiscussionModal")
 if (modalElement) {

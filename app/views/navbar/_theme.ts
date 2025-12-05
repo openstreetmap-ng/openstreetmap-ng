@@ -1,5 +1,5 @@
-import { themeStorage } from "../lib/local-storage"
-import { getDeviceThemePreference } from "../lib/utils"
+import { themeStorage } from "@lib/local-storage"
+import { getDeviceThemePreference } from "@lib/polyfills"
 
 export type AppTheme = "light" | "dark" | "auto"
 

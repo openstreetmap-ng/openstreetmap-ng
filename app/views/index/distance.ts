@@ -1,3 +1,19 @@
+import { formatDistance, isMetricUnit } from "@lib/format"
+import { closestPointOnSegment } from "@lib/geometry"
+import { padLngLatBounds } from "@lib/map/bounds"
+import {
+    addMapLayer,
+    emptyFeatureCollection,
+    hasMapLayer,
+    type LayerId,
+    layersConfig,
+    removeMapLayer,
+} from "@lib/map/layers/layers"
+import { getMarkerIconElement, markerIconAnchor } from "@lib/map/marker"
+import { decodeLonLat, encodeLonLat } from "@lib/polyline"
+import { qsParse } from "@lib/qs"
+import { throttle } from "@lib/throttle"
+import { range } from "@lib/utils"
 import type { Feature, LineString } from "geojson"
 import i18next from "i18next"
 import {
@@ -10,26 +26,8 @@ import {
     Marker,
     Point,
 } from "maplibre-gl"
-import { formatDistance, isMetricUnit } from "../lib/format"
-import {
-    addMapLayer,
-    emptyFeatureCollection,
-    hasMapLayer,
-    type LayerId,
-    layersConfig,
-    removeMapLayer,
-} from "../lib/map/layers/layers"
-import {
-    closestPointOnSegment,
-    getMarkerIconElement,
-    markerIconAnchor,
-    padLngLatBounds,
-} from "../lib/map/utils"
-import { decodeLonLat, encodeLonLat } from "../lib/polyline"
-import { qsParse } from "../lib/qs"
-import { range, throttle } from "../lib/utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./_router"
+import type { IndexController } from "./router"
 
 const layerId = "distance" as LayerId
 layersConfig.set(layerId as LayerId, {

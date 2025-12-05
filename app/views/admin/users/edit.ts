@@ -1,7 +1,7 @@
+import { mount } from "@lib/mount"
+import { type APIDetail, configureStandardForm } from "@lib/standard-form"
 import { Collapse } from "bootstrap"
 import i18next from "i18next"
-import { mount } from "../../lib/mount"
-import { type APIDetail, configureStandardForm } from "../../lib/standard-form"
 
 mount("admin-user-edit-body", (body) => {
     // Accordion toggling for application/token previews (read-only)

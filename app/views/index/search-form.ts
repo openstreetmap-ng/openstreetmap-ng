@@ -1,7 +1,7 @@
+import { beautifyZoom, zoomPrecision } from "@lib/coords"
+import { qsEncode } from "@lib/qs"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { qsEncode } from "../lib/qs"
-import { beautifyZoom, zoomPrecision } from "../lib/utils"
-import { routerNavigateStrict } from "./_router"
+import { routerNavigateStrict } from "./router"
 
 const searchForm = document.querySelector("form.search-form")
 const searchQueryInput = searchForm?.querySelector("input[name=q]")

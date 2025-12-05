@@ -1,7 +1,14 @@
+import {
+    beautifyZoom,
+    isLatitude,
+    isLongitude,
+    isZoom,
+    zoomPrecision,
+} from "@lib/coords"
+import { mod } from "@lib/utils"
 import i18next from "i18next"
 import {
     type EaseToOptions,
-    type IControl,
     type LngLat,
     LngLatBounds,
     type Map as MaplibreMap,
@@ -13,14 +20,7 @@ import { qsEncode, qsParse } from "../qs"
 import { shortLinkEncode } from "../shortlink"
 import { timezoneBoundsMap } from "../timezone-bbox"
 import type { Bounds } from "../types"
-import {
-    beautifyZoom,
-    isLatitude,
-    isLongitude,
-    isZoom,
-    mod,
-    zoomPrecision,
-} from "../utils"
+import { padLngLatBounds } from "./bounds"
 import {
     addMapLayer,
     type LayerCode,
@@ -30,7 +30,6 @@ import {
     resolveExtendedLayerId,
     resolveLayerCodeOrId,
 } from "./layers/layers"
-import { padLngLatBounds } from "./utils"
 
 export interface LonLat {
     lon: number
@@ -52,7 +51,7 @@ export interface MapState extends LonLatZoom {
  * // => "BT"
  */
 export const getMapLayersCode = (map: MaplibreMap): string => {
-    const layerCodes: Set<LayerCode> = new Set()
+    const layerCodes = new Set<LayerCode>()
     for (const extendedLayerId of map.getLayersOrder()) {
         const layerId = resolveExtendedLayerId(extendedLayerId)
         const layerConfig = layersConfig.get(layerId)
@@ -68,7 +67,7 @@ export const getMapLayersCode = (map: MaplibreMap): string => {
  */
 const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
     console.debug("setMapLayersCode", layersCode)
-    const addLayerCodes: Set<LayerCode> = new Set()
+    const addLayerCodes = new Set<LayerCode>()
     let hasBaseLayer = false
 
     for (const layerCode of (layersCode || "") as Iterable<LayerCode>) {
@@ -92,7 +91,7 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
     if (!hasBaseLayer) addLayerCodes.add("" as LayerCode)
 
     // Remove layers not found in the code
-    const missingLayerCodes: Set<LayerCode> = new Set(addLayerCodes)
+    const missingLayerCodes = new Set<LayerCode>(addLayerCodes)
     for (const extendedLayerId of map.getLayersOrder()) {
         const layerId = resolveExtendedLayerId(extendedLayerId)
         if (!layerId) continue
@@ -497,20 +496,4 @@ export const getMapGeoUri = (map: MaplibreMap): string => {
     const lonFixed = lon.toFixed(precision)
     const latFixed = lat.toFixed(precision)
     return `geo:${latFixed},${lonFixed}?z=${zoom | 0}`
-}
-
-/** Add a control group to the map */
-export const addControlGroup = (map: MaplibreMap, controls: IControl[]): void => {
-    for (const [i, control] of controls.entries()) {
-        map.addControl(control)
-
-        // @ts-expect-error
-        const container: HTMLElement | undefined = control._container
-        if (!container) continue
-        const classList = container.classList
-        classList.add("custom-control-group")
-
-        if (i === 0) classList.add("first")
-        if (i === controls.length - 1) classList.add("last")
-    }
 }

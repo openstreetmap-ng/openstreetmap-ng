@@ -1,8 +1,8 @@
+import { mount } from "@lib/mount"
+import { configureScrollspy } from "@lib/scrollspy"
+import { configureStandardForm } from "@lib/standard-form"
+import { configureStandardPagination } from "@lib/standard-pagination"
 import { Offcanvas } from "bootstrap"
-import { mount } from "../lib/mount"
-import { configureScrollspy } from "../lib/scrollspy"
-import { configureStandardForm } from "../lib/standard-form"
-import { configureStandardPagination } from "../lib/standard-pagination"
 
 // Details page: always expanded; comments live under #comments
 mount("diary-details-body", (body) => {

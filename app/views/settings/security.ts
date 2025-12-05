@@ -1,10 +1,10 @@
+import { configureCopyGroups } from "@lib/copy-group"
+import { mount } from "@lib/mount"
+import { qsEncode } from "@lib/qs"
+import { type APIDetail, configureStandardForm } from "@lib/standard-form"
+import { getPasskeyRegistration } from "@lib/webauthn"
 import i18next from "i18next"
 import qrcode from "qrcode-generator"
-import { configureCopyGroups } from "../lib/copy-group"
-import { mount } from "../lib/mount"
-import { qsEncode } from "../lib/qs"
-import { type APIDetail, configureStandardForm } from "../lib/standard-form"
-import { getPasskeyRegistration } from "../lib/webauthn"
 
 const generateTOTPSecret = (): string => {
     const buffer = new Uint8Array(16) // 128 bits

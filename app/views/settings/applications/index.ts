@@ -1,7 +1,7 @@
+import { mount } from "@lib/mount"
+import { qsEncode, qsParse } from "@lib/qs"
+import { configureStandardForm } from "@lib/standard-form"
 import { Collapse } from "bootstrap"
-import { mount } from "../../lib/mount"
-import { qsEncode, qsParse } from "../../lib/qs"
-import { configureStandardForm } from "../../lib/standard-form"
 
 mount("settings-applications-body", (body) => {
     // Fixup links in buttons

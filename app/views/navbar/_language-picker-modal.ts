@@ -1,6 +1,6 @@
+import { primaryLanguage } from "@lib/config"
+import { getLocaleOptions } from "@lib/locale"
 import { Modal } from "bootstrap"
-import { primaryLanguage } from "../lib/config"
-import { getLocaleOptions } from "../lib/locale"
 
 const languagePickerModal = document.querySelector("#languagePickerModal")
 if (languagePickerModal) {

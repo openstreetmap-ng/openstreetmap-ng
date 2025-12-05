@@ -1,3 +1,4 @@
+import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import i18next from "i18next"
 import type {
     GeoJSONSource,
@@ -5,7 +6,7 @@ import type {
     LngLatBounds,
     Map as MaplibreMap,
 } from "maplibre-gl"
-import { requestAnimationFramePolyfill } from "../utils"
+import { checkLngLatBoundsIntersection, getLngLatBoundsIntersection } from "./bounds"
 import { loadMapImage, markerBlueImageUrl } from "./image"
 import {
     addMapLayer,
@@ -14,7 +15,6 @@ import {
     layersConfig,
     removeMapLayer,
 } from "./layers/layers"
-import { checkLngLatBoundsIntersection, getLngLatBoundsIntersection } from "./utils"
 
 const layerId = "export-image" as LayerId
 layersConfig.set(layerId as LayerId, {

@@ -1,4 +1,8 @@
 import { fromBinary } from "@bufbuild/protobuf"
+import { routerNavigateStrict } from "@index/router"
+import { toggleLayerSpinner } from "@index/sidebar/layers"
+import { config } from "@lib/config"
+import { RenderNotesDataSchema } from "@lib/proto/shared_pb"
 import {
     type GeoJSONSource,
     type LngLat,
@@ -6,10 +10,7 @@ import {
     type Map as MaplibreMap,
     Popup,
 } from "maplibre-gl"
-import { routerNavigateStrict } from "../../../index/_router"
-import { toggleLayerSpinner } from "../../../index/sidebar/layers"
-import { config } from "../../config"
-import { RenderNotesDataSchema } from "../../proto/shared_pb"
+import { getLngLatBoundsIntersection, getLngLatBoundsSize } from "../bounds"
 import { clearMapHover, setMapHover } from "../hover"
 import {
     loadMapImage,
@@ -18,7 +19,6 @@ import {
     markerOpenImageUrl,
 } from "../image"
 import { convertRenderNotesData, renderObjects } from "../render-objects"
-import { getLngLatBoundsIntersection, getLngLatBoundsSize } from "../utils"
 import {
     addLayerEventHandler,
     emptyFeatureCollection,

@@ -1,8 +1,8 @@
+import { isBannerHidden, markBannerHidden } from "@lib/local-storage"
+import { setPageTitle } from "@lib/title"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { isBannerHidden, markBannerHidden } from "../lib/local-storage"
-import { setPageTitle } from "../lib/title"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./_router"
+import type { IndexController } from "./router"
 import { setSearchFormQuery } from "./search-form"
 
 /** Create a new index controller */

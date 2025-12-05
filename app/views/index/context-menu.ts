@@ -1,12 +1,12 @@
+import { routerNavigateStrict } from "@index/router"
+import { beautifyZoom, zoomPrecision } from "@lib/coords"
+import { formatCoordinate } from "@lib/format"
+import { newNoteMinZoom } from "@lib/map/controls/new-note"
+import { queryFeaturesMinZoom } from "@lib/map/controls/query-features"
+import { encodeLonLat } from "@lib/polyline"
+import { qsEncode } from "@lib/qs"
 import { Dropdown } from "bootstrap"
 import { type Map as MaplibreMap, type MapMouseEvent, Popup } from "maplibre-gl"
-import { routerNavigateStrict } from "../index/_router"
-import { formatCoordinate } from "../lib/format"
-import { newNoteMinZoom } from "../lib/map/controls/new-note"
-import { queryFeaturesMinZoom } from "../lib/map/controls/query-features"
-import { encodeLonLat } from "../lib/polyline"
-import { qsEncode } from "../lib/qs"
-import { beautifyZoom, zoomPrecision } from "../lib/utils"
 
 /** Configure the map context menu */
 export const configureContextMenu = (map: MaplibreMap): void => {

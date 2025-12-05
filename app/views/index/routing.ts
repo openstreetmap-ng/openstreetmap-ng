@@ -1,4 +1,30 @@
 import { fromBinary } from "@bufbuild/protobuf"
+import { tryParsePoint, zoomPrecision } from "@lib/coords"
+import {
+    formatDistance,
+    formatDistanceRounded,
+    formatHeight,
+    formatTime,
+} from "@lib/format"
+import { routingEngineStorage } from "@lib/local-storage"
+import { clearMapHover, setMapHover } from "@lib/map/hover"
+import {
+    addMapLayer,
+    emptyFeatureCollection,
+    type LayerId,
+    layersConfig,
+    removeMapLayer,
+} from "@lib/map/layers/layers"
+import { getMarkerIconElement, markerIconAnchor } from "@lib/map/marker"
+import { decodeLonLat } from "@lib/polyline"
+import {
+    type RoutingResult,
+    type RoutingResult_Endpoint,
+    RoutingResultSchema,
+} from "@lib/proto/shared_pb"
+import { qsParse } from "@lib/qs"
+import { configureStandardForm } from "@lib/standard-form"
+import { setPageTitle } from "@lib/title"
 import type { Feature, LineString } from "geojson"
 import i18next from "i18next"
 import {
@@ -11,34 +37,8 @@ import {
     Point,
     Popup,
 } from "maplibre-gl"
-import {
-    formatDistance,
-    formatDistanceRounded,
-    formatHeight,
-    formatTime,
-} from "../lib/format"
-import { routingEngineStorage } from "../lib/local-storage"
-import { clearMapHover, setMapHover } from "../lib/map/hover"
-import {
-    addMapLayer,
-    emptyFeatureCollection,
-    type LayerId,
-    layersConfig,
-    removeMapLayer,
-} from "../lib/map/layers/layers"
-import { getMarkerIconElement, markerIconAnchor, tryParsePoint } from "../lib/map/utils"
-import { decodeLonLat } from "../lib/polyline"
-import {
-    type RoutingResult,
-    type RoutingResult_Endpoint,
-    RoutingResultSchema,
-} from "../lib/proto/shared_pb"
-import { qsParse } from "../lib/qs"
-import { configureStandardForm } from "../lib/standard-form"
-import { setPageTitle } from "../lib/title"
-import { zoomPrecision } from "../lib/utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./_router"
+import type { IndexController } from "./router"
 
 const layerId = "routing" as LayerId
 layersConfig.set(layerId as LayerId, {

@@ -1,3 +1,4 @@
+import type { OSMObject } from "@lib/types"
 import type { Geometry } from "geojson"
 import {
     type GeoJSONSource,
@@ -5,13 +6,12 @@ import {
     type LngLatLike,
     type Map as MaplibreMap,
 } from "maplibre-gl"
-import type { OSMObject } from "../../types"
-import { renderObjects } from "../render-objects"
 import {
     checkLngLatBoundsIntersection,
     getLngLatBoundsSize,
     padLngLatBounds,
-} from "../utils"
+} from "../bounds"
+import { renderObjects } from "../render-objects"
 import {
     type AddMapLayerOptions,
     addMapLayer,

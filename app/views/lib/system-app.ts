@@ -1,6 +1,6 @@
+import { wrapMessageEventValidator } from "@lib/utils"
 import { config } from "./config"
 import { systemAppAccessTokenStorage } from "./local-storage"
-import { wrapMessageEventValidator } from "./utils"
 
 /** Load system app access token and call successCallback with it */
 const loadSystemApp = (

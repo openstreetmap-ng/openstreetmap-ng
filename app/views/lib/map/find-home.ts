@@ -1,6 +1,6 @@
 import { type Map as MaplibreMap, Marker } from "maplibre-gl"
-import type { LonLat } from "./map-utils"
-import { getMarkerIconElement, markerIconAnchor } from "./utils"
+import { getMarkerIconElement, markerIconAnchor } from "./marker"
+import type { LonLat } from "./state"
 
 /** Configure the find home button */
 export const configureFindHomeButton = (

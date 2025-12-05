@@ -1,18 +1,18 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import i18next from "i18next"
-import type { Map as MaplibreMap } from "maplibre-gl"
-import { type FocusLayerPaint, focusObjects } from "../lib/map/layers/focus-layer"
-import { convertRenderElementsData } from "../lib/map/render-objects"
+import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
+import { convertRenderElementsData } from "@lib/map/render-objects"
 import {
     type PartialElementParams_Entry,
     PartialElementParamsSchema,
     type RenderElementsData,
-} from "../lib/proto/shared_pb"
-import { configureStandardPagination } from "../lib/standard-pagination"
-import { setPageTitle } from "../lib/title"
+} from "@lib/proto/shared_pb"
+import { configureStandardPagination } from "@lib/standard-pagination"
+import { setPageTitle } from "@lib/title"
+import i18next from "i18next"
+import type { Map as MaplibreMap } from "maplibre-gl"
 import { getBaseFetchController } from "./_base-fetch"
-import type { IndexController } from "./_router"
+import type { IndexController } from "./router"
 
 const themeColor = "#f60"
 const focusPaint: FocusLayerPaint = Object.freeze({
