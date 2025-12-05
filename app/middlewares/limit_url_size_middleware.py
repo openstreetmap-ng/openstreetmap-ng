@@ -11,7 +11,7 @@ class LimitUrlSizeMiddleware:
 
     __slots__ = ('app',)
 
-    def __init__(self, app: ASGIApp) -> None:
+    def __init__(self, app: ASGIApp):
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:

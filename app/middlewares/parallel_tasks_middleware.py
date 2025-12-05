@@ -69,7 +69,7 @@ class ParallelTasksMiddleware:
 
     __slots__ = ('app',)
 
-    def __init__(self, app: ASGIApp) -> None:
+    def __init__(self, app: ASGIApp):
         self.app = app
 
     async def __call__(

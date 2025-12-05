@@ -68,9 +68,8 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
     place = f'{y:.5f}, {x:.5f}'
     try:
         # reverse geocode the note point
-        result = await NominatimQuery.reverse(note['point'])
-        if result is not None:
-            place = result.display_name
+        if (geocode := await NominatimQuery.reverse(note['point'])) is not None:
+            place = geocode.display_name
     except HTTPError:
         pass
 
@@ -117,9 +116,8 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
     place = f'{y:.5f}, {x:.5f}'
     try:
         # reverse geocode the note point
-        result = await NominatimQuery.reverse(point)
-        if result is not None:
-            place = result.display_name
+        if (geocode := await NominatimQuery.reverse(point)) is not None:
+            place = geocode.display_name
     except HTTPError:
         pass
 

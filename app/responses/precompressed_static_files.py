@@ -22,7 +22,7 @@ _CacheValue = tuple[str, StatResultType, str | None]
 
 
 class PrecompressedStaticFiles(StaticFiles):
-    def __init__(self, directory: str | PathLike[str]) -> None:
+    def __init__(self, directory: str | PathLike[str]):
         super().__init__(directory=directory)
         self._resolve_cache = OrderedDict[_CacheKey, _CacheValue]()
 

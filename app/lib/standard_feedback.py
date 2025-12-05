@@ -15,7 +15,7 @@ class StandardFeedback:
 
     __slots__ = ('_messages',)
 
-    def __init__(self) -> None:
+    def __init__(self):
         self._messages: defaultdict[str | None, list[tuple[MessageSeverity, str]]]
         self._messages = defaultdict(list)
 

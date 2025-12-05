@@ -10,7 +10,7 @@ class APICorsMiddleware:
 
     __slots__ = ('app', 'cors')
 
-    def __init__(self, app: ASGIApp) -> None:
+    def __init__(self, app: ASGIApp):
         self.app = app
         self.cors = CORSMiddleware(
             app,

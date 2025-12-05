@@ -101,7 +101,7 @@ class OptimisticDiffPrepare:
     Changeset bounding box set of element refs.
     """
 
-    def __init__(self, conn: AsyncConnection, elements: list[ElementInit], /) -> None:
+    def __init__(self, conn: AsyncConnection, elements: list[ElementInit], /):
         self.conn = conn
         self.apply_elements = []
         self._elements = list(map(dict.copy, elements))  # type: ignore

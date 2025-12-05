@@ -53,7 +53,7 @@ def oauth2_token_is_oob(
 class OAuth2TokenOOB:
     __slots__ = ('authorization_code', 'state')
 
-    def __init__(self, authorization_code: str, state: str | None) -> None:
+    def __init__(self, authorization_code: str, state: str | None):
         self.authorization_code = authorization_code
         self.state = state
 

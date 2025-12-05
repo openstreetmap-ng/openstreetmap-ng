@@ -103,9 +103,12 @@ class Element06Mixin:
             else:
                 action = 'delete'
 
-            result_: tuple[OSMChangeAction, dict[ElementType, dict]]
-            result_ = (action, {type_id[0]: _encode_element(element, is_json=False)})
-            result[i] = result_
+            entry: tuple[OSMChangeAction, dict[ElementType, dict]]
+            entry = (
+                action,
+                {type_id[0]: _encode_element(element, is_json=False)},
+            )
+            result[i] = entry
 
         return result
 
@@ -276,12 +279,12 @@ def _decode_members_unsafe(
     ... ])
     [ElementMember(type='node', id=1, role='a')]
     """
-    result: list[TypedElementId] = []
+    result_ids: list[TypedElementId] = []
     result_roles: list[str] = []
     for member in members:
-        result.append(typed_element_id(member['@type'], member['@ref']))
+        result_ids.append(typed_element_id(member['@type'], member['@ref']))
         result_roles.append(member['@role'])
-    return result, result_roles
+    return result_ids, result_roles
 
 
 @cython.cfunc

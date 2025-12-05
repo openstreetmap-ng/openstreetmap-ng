@@ -67,7 +67,7 @@ def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) ->
 class LocalChaptersExtractor:
     __slots__ = ('communities',)
 
-    def __init__(self) -> None:
+    def __init__(self):
         resources = _OCI_DIR.joinpath('dist/json/resources.min.json').read_bytes()
         communities_dict: dict[str, dict[str, Any]]
         communities_dict = orjson.loads(resources)['resources']

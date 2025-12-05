@@ -13,7 +13,7 @@ class LifespanManager:
         '_task',
     )
 
-    def __init__(self, app: ASGIApp) -> None:
+    def __init__(self, app: ASGIApp):
         self._app = app
         self._task: Task | None = None
         self._message_queue = Queue[Message]()

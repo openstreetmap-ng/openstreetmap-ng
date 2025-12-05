@@ -65,9 +65,9 @@ class OptimisticDiffApply:
             unassigned_tid = element.get('unassigned_typed_id', assigned_tid)
             version = element['version']
 
-            r = result.get(unassigned_tid)
-            if r is not None:
-                r[1].append(version)
+            entry = result.get(unassigned_tid)
+            if entry is not None:
+                entry[1].append(version)
                 continue
 
             # Lookup negative ids in the assigned map.

@@ -205,10 +205,10 @@ def _geometry_to_sequences(geometry: BaseGeometry) -> list[list[list[float]]]:
         return _geometry_to_sequences(geometry.boundary)
 
     if gtype in {'MultiPoint', 'MultiLineString', 'GeometryCollection'}:
-        out: list[list[list[float]]] = []
+        result: list[list[list[float]]] = []
         for sub in geometry.geoms:  # type: ignore
-            out.extend(_geometry_to_sequences(sub))
-        return out
+            result.extend(_geometry_to_sequences(sub))
+        return result
 
     raise NotImplementedError(f'Unsupported geometry type {gtype!r}')
 
