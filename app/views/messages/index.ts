@@ -5,6 +5,20 @@ import { configureStandardForm } from "@lib/standard-form"
 import { t } from "i18next"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
+interface MessageUser {
+    display_name: string
+    avatar_url: string
+}
+
+interface MessageReadResponse {
+    sender: MessageUser & { id: number }
+    recipients: MessageUser[]
+    is_recipient: boolean
+    time: string
+    subject: string
+    body_rich: string
+}
+
 mount("messages-index-body", (body) => {
     const messages = body.querySelectorAll(".messages-list li.social-entry.clickable")
     const messagePreview = body.querySelector(".message-preview") as HTMLElement
@@ -74,24 +88,24 @@ mount("messages-index-body", (body) => {
                 priority: "high",
             })
             if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-            const { sender, recipients, time, subject, body_rich, is_recipient } =
-                await resp.json()
+
+            const message: MessageReadResponse = await resp.json()
             console.debug(
                 "Fetched message",
                 openMessageId,
-                sender,
-                recipients,
-                is_recipient,
+                message.sender,
+                message.recipients,
+                message.is_recipient,
             )
 
-            senderAvatar.src = sender.avatar_url
-            senderLink.href = `/user/${sender.display_name}`
-            senderLink.textContent = sender.display_name
-            messageTime.innerHTML = time
+            senderAvatar.src = message.sender.avatar_url
+            senderLink.href = `/user/${message.sender.display_name}`
+            senderLink.textContent = message.sender.display_name
+            messageTime.innerHTML = message.time
 
             // Add each recipient
             const messageRecipientsFragment = document.createDocumentFragment()
-            for (const user of recipients) {
+            for (const user of message.recipients) {
                 const userElement = recipientTemplate.content.cloneNode(
                     true,
                 ) as HTMLElement
@@ -106,21 +120,21 @@ mount("messages-index-body", (body) => {
             }
             messageRecipients.innerHTML = ""
             messageRecipients.appendChild(messageRecipientsFragment)
-            if (replyAllLink && recipients.length > 1) {
+            if (replyAllLink && message.recipients.length > 1) {
                 replyAllLink.classList.remove("d-none")
             }
 
             // Hide button group when moderator viewing reported message
-            btnGroup.classList.toggle("disabled", !is_recipient)
+            btnGroup.classList.toggle("disabled", !message.is_recipient)
 
-            messageTitle.textContent = subject
-            messageBody.innerHTML = body_rich
+            messageTitle.textContent = message.subject
+            messageBody.innerHTML = message.body_rich
             resolveDatetimeLazy(messageTime)
 
             // Configure report button
             configureReportButton(reportButton, {
                 type: "user",
-                typeId: sender.id,
+                typeId: message.sender.id,
                 action: "user_message",
                 actionId: openMessageId,
             })
