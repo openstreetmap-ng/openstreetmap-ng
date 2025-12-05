@@ -28,7 +28,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/91c9a64ce2a84e648d0cf9671274bb9c2fb9ba60.tar.gz";
+  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/bd88d6c13ab85cc842b93d53f68d6d40412e5a18.tar.gz";
   pkgs = import (fetchTarball pkgsUrl) { };
 
   projectDir = toString ./.;
