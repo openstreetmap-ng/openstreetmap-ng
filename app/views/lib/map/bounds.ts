@@ -1,5 +1,5 @@
+import type { Bounds } from "@lib/types"
 import { LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
-import type { Bounds } from "../types"
 
 const minBoundsSizePx = 20
 

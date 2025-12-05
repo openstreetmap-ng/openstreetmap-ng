@@ -1,10 +1,9 @@
-import type { Feature, FeatureCollection } from "geojson"
-import { decodeLonLat } from "../polyline"
+import { decodeLonLat } from "@lib/polyline"
 import type {
     RenderChangesetsData_Changeset,
     RenderElementsData,
     RenderNotesData,
-} from "../proto/shared_pb"
+} from "@lib/proto/shared_pb"
 import type {
     Bounds,
     OSMChangeset,
@@ -12,7 +11,8 @@ import type {
     OSMNote,
     OSMObject,
     OSMWay,
-} from "../types"
+} from "@lib/types"
+import type { Feature, FeatureCollection } from "geojson"
 
 interface RenderOptions {
     /** Whether to render areas */

@@ -1,6 +1,6 @@
 import { formatDistance, isMetricUnit } from "@lib/format"
-import { closestPointOnSegment } from "@lib/geometry"
 import { padLngLatBounds } from "@lib/map/bounds"
+import { closestPointOnSegment } from "@lib/map/geometry"
 import {
     addMapLayer,
     emptyFeatureCollection,

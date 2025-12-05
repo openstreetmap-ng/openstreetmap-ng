@@ -1,3 +1,4 @@
+import { config } from "@lib/config"
 import {
     beautifyZoom,
     isLatitude,
@@ -5,6 +6,12 @@ import {
     isZoom,
     zoomPrecision,
 } from "@lib/coords"
+import { getTimezoneName } from "@lib/format"
+import { mapStateStorage } from "@lib/local-storage"
+import { qsEncode, qsParse } from "@lib/qs"
+import { shortLinkEncode } from "@lib/shortlink"
+import { timezoneBoundsMap } from "@lib/timezone-bbox"
+import type { Bounds } from "@lib/types"
 import { mod } from "@lib/utils"
 import i18next from "i18next"
 import {
@@ -13,13 +20,6 @@ import {
     LngLatBounds,
     type Map as MaplibreMap,
 } from "maplibre-gl"
-import { config } from "../config"
-import { getTimezoneName } from "../format"
-import { mapStateStorage } from "../local-storage"
-import { qsEncode, qsParse } from "../qs"
-import { shortLinkEncode } from "../shortlink"
-import { timezoneBoundsMap } from "../timezone-bbox"
-import type { Bounds } from "../types"
 import { padLngLatBounds } from "./bounds"
 import {
     addMapLayer,
