@@ -1,10 +1,10 @@
-import { Alert } from "bootstrap"
-import i18next from "i18next"
 import {
     appendPasswordsToFormData,
     configurePasswordsForm,
     handlePasswordSchemaFeedback,
-} from "./password-hash"
+} from "@lib/password-hash"
+import { Alert } from "bootstrap"
+import i18next from "i18next"
 
 export interface APIDetail {
     type: "success" | "info" | "error"

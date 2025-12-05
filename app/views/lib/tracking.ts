@@ -1,3 +1,6 @@
+import { activityTracking, config, crashReporting } from "@lib/config"
+import { getTimezoneName } from "@lib/format"
+import { themeStorage } from "@lib/local-storage"
 import {
     addIntegration,
     browserTracingIntegration,
@@ -6,9 +9,6 @@ import {
     setUser,
     type User,
 } from "@sentry/browser"
-import { activityTracking, config, crashReporting } from "./config"
-import { getTimezoneName } from "./format"
-import { themeStorage } from "./local-storage"
 
 if (crashReporting) {
     console.debug("Enabling crash reporting")

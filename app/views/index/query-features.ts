@@ -1,5 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
+import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
+import type { IndexController } from "@index/router"
 import { prefersReducedMotion } from "@lib/config"
 import { isLatitude, isLongitude, isZoom } from "@lib/coords"
 import { queryFeaturesMinZoom } from "@lib/map/controls/query-features"
@@ -22,8 +24,6 @@ import { setPageTitle } from "@lib/title"
 import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
 import { type GeoJSONSource, LngLat, type Map as MaplibreMap } from "maplibre-gl"
-import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./router"
 
 const layerId = "query-features" as LayerId
 const themeColor = "#f60"

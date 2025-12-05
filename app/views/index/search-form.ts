@@ -1,7 +1,7 @@
+import { routerNavigateStrict } from "@index/router"
 import { beautifyZoom, zoomPrecision } from "@lib/coords"
 import { qsEncode } from "@lib/qs"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { routerNavigateStrict } from "./router"
 
 const searchForm = document.querySelector("form.search-form")
 const searchQueryInput = searchForm?.querySelector("input[name=q]")

@@ -1,9 +1,9 @@
+import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
+import type { IndexController } from "@index/router"
+import { setSearchFormQuery } from "@index/search-form"
 import { isBannerHidden, markBannerHidden } from "@lib/local-storage"
 import { setPageTitle } from "@lib/title"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./router"
-import { setSearchFormQuery } from "./search-form"
 
 /** Create a new index controller */
 export const getIndexController = (map: MaplibreMap): IndexController => {

@@ -1,4 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
+import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
+import type { IndexController, RouteLoadReason } from "@index/router"
+import { routerNavigateStrict } from "@index/router"
 import { darkenColor } from "@lib/color"
 import { resolveDatetimeLazy } from "@lib/datetime-inputs"
 import {
@@ -37,9 +40,6 @@ import {
     type MapGeoJSONFeature,
     type Map as MaplibreMap,
 } from "maplibre-gl"
-import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController, RouteLoadReason } from "./router"
-import { routerNavigateStrict } from "./router"
 
 const fadeSpeed = 0.2
 const thicknessSpeed = fadeSpeed * 0.6

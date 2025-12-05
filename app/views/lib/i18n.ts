@@ -1,5 +1,5 @@
+import { primaryLanguage } from "@lib/config"
 import i18next, { type Resource } from "i18next"
-import { primaryLanguage } from "./config"
 
 const resources: Resource = (window as any).locales
 console.debug("Discovered i18next locales", Object.keys(resources))

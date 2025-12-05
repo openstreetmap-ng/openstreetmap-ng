@@ -1,3 +1,5 @@
+import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
+import type { IndexController } from "@index/router"
 import { formatDistance, isMetricUnit } from "@lib/format"
 import { padLngLatBounds } from "@lib/map/bounds"
 import { closestPointOnSegment } from "@lib/map/geometry"
@@ -26,8 +28,6 @@ import {
     Marker,
     Point,
 } from "maplibre-gl"
-import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./router"
 
 const layerId = "distance" as LayerId
 layersConfig.set(layerId as LayerId, {

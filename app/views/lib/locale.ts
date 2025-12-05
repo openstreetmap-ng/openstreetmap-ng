@@ -1,5 +1,5 @@
+import { config } from "@lib/config"
 import { memoize } from "@lib/memoize"
-import { config } from "./config"
 
 export type LocaleOption = {
     code: string

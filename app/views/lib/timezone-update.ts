@@ -1,8 +1,8 @@
+import { config } from "@lib/config"
+import { getTimezoneName } from "@lib/format"
+import { timezoneUpdateTimeStorage } from "@lib/local-storage"
 import { requestIdleCallbackPolyfill } from "@lib/polyfills"
 import { getUnixTimestamp } from "@lib/utils"
-import { config } from "./config"
-import { getTimezoneName } from "./format"
-import { timezoneUpdateTimeStorage } from "./local-storage"
 
 const updateDelay = 24 * 3600 // 1 day
 

@@ -1,3 +1,6 @@
+import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
+import type { IndexController } from "@index/router"
+import { routerNavigateStrict } from "@index/router"
 import { isLatitude, isLongitude } from "@lib/coords"
 import { setNewNoteButtonState } from "@lib/map/controls/new-note"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
@@ -8,9 +11,6 @@ import { qsParse } from "@lib/qs"
 import { configureStandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import { LngLat, type Map as MaplibreMap, Marker } from "maplibre-gl"
-import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./router"
-import { routerNavigateStrict } from "./router"
 
 const themeColor = "#f60"
 const focusPaint: FocusLayerPaint = Object.freeze({

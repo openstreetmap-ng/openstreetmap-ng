@@ -1,3 +1,4 @@
+import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { config, isMobile } from "@lib/config"
 import {
     globeProjectionStorage,
@@ -20,7 +21,6 @@ import { memoize } from "@lib/memoize"
 import { throttle } from "@lib/throttle"
 import { Tooltip } from "bootstrap"
 import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
-import { SidebarToggleControl } from "./_toggle-button"
 
 const minimapZoomOut = 2
 

@@ -1,6 +1,6 @@
 import "./embed.scss"
 
-import "./lib/i18n"
+import "@lib/i18n"
 import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
 import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import {

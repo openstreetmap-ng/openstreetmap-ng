@@ -1,4 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
+import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
+import type { IndexController } from "@index/router"
 import { tryParsePoint, zoomPrecision } from "@lib/coords"
 import {
     formatDistance,
@@ -37,8 +39,6 @@ import {
     Point,
     Popup,
 } from "maplibre-gl"
-import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./router"
 
 const layerId = "routing" as LayerId
 layersConfig.set(layerId as LayerId, {

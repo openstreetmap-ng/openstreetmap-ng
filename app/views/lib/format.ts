@@ -1,6 +1,6 @@
+import { primaryLanguage } from "@lib/config"
 import { memoize } from "@lib/memoize"
 import i18next from "i18next"
-import { primaryLanguage } from "./config"
 
 type LonLat = { lon: number; lat: number }
 

@@ -1,11 +1,11 @@
-import { resolveDatetimeLazy } from "@lib/datetime-inputs"
-import { requestAnimationFramePolyfill } from "@lib/polyfills"
-import type { Map as MaplibreMap } from "maplibre-gl"
 import {
     configureActionSidebar,
     getActionSidebar,
     switchActionSidebar,
-} from "./_action-sidebar"
+} from "@index/_action-sidebar"
+import { resolveDatetimeLazy } from "@lib/datetime-inputs"
+import { requestAnimationFramePolyfill } from "@lib/polyfills"
+import type { Map as MaplibreMap } from "maplibre-gl"
 
 let currentUrl: string | null = null
 let sidebarScrollPosition = 0

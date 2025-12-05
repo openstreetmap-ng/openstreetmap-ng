@@ -1,7 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { memoize } from "@lib/memoize"
-import { WebConfigSchema } from "./proto/shared_pb"
+import { WebConfigSchema } from "@lib/proto/shared_pb"
 
 /** Global dataset options that are defined on <html> tag */
 export const config = fromBinary(

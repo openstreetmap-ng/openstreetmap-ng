@@ -1,3 +1,4 @@
+import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { isLatitude, isLongitude } from "@lib/coords"
 import { shareExportFormatStorage } from "@lib/local-storage"
 import { padLngLatBounds } from "@lib/map/bounds"
@@ -13,7 +14,6 @@ import {
 import { qsParse } from "@lib/qs"
 import i18next from "i18next"
 import { type Map as MaplibreMap, Marker } from "maplibre-gl"
-import { SidebarToggleControl } from "./_toggle-button"
 
 export class ShareSidebarToggleControl extends SidebarToggleControl {
     public _container: HTMLElement

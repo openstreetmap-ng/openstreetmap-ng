@@ -1,6 +1,6 @@
+import { config } from "@lib/config"
+import { systemAppAccessTokenStorage } from "@lib/local-storage"
 import { wrapMessageEventValidator } from "@lib/utils"
-import { config } from "./config"
-import { systemAppAccessTokenStorage } from "./local-storage"
 
 /** Load system app access token and call successCallback with it */
 const loadSystemApp = (

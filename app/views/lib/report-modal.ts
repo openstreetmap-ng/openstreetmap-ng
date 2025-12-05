@@ -1,5 +1,5 @@
+import { configureStandardForm } from "@lib/standard-form"
 import { Modal } from "bootstrap"
-import { configureStandardForm } from "./standard-form"
 
 type ReportType = "anonymous_note" | "user"
 

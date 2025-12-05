@@ -1,11 +1,11 @@
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf"
-import i18next from "i18next"
 import {
     PasskeyAssertionSchema,
     type PasskeyChallenge,
     PasskeyChallengeSchema,
     PasskeyRegistrationSchema,
-} from "./proto/shared_pb"
+} from "@lib/proto/shared_pb"
+import i18next from "i18next"
 
 /** Fetch and parse passkey challenge from server. Returns challenge or error string. */
 const fetchPasskeyChallenge = async (

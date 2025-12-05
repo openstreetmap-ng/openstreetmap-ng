@@ -1,3 +1,5 @@
+import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
+import type { IndexController } from "@index/router"
 import { config } from "@lib/config"
 import { zoomPrecision } from "@lib/coords"
 import { padLngLatBounds } from "@lib/map/bounds"
@@ -5,8 +7,6 @@ import { LocationFilterControl } from "@lib/map/controls/location-filter"
 import { throttle } from "@lib/throttle"
 import { setPageTitle } from "@lib/title"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { IndexController } from "./router"
 
 /** Create a new export controller */
 export const getExportController = (map: MaplibreMap): IndexController => {

@@ -1,10 +1,10 @@
 import { create, toBinary } from "@bufbuild/protobuf"
-import { pbkdf2Async } from "@noble/hashes/pbkdf2.js"
-import { sha512 } from "@noble/hashes/sha2.js"
 import {
     type TransmitUserPassword,
     TransmitUserPasswordSchema,
-} from "./proto/shared_pb"
+} from "@lib/proto/shared_pb"
+import { pbkdf2Async } from "@noble/hashes/pbkdf2.js"
+import { sha512 } from "@noble/hashes/sha2.js"
 
 type PasswordSchema = "v1" | "legacy"
 

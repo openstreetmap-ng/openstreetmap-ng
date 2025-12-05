@@ -1,5 +1,8 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
+import { getBaseFetchController } from "@index/_base-fetch"
+import type { IndexController } from "@index/router"
+import { setSearchFormQuery } from "@index/search-form"
 import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
 import { getMapAlert } from "@lib/map/alert"
 import {
@@ -30,9 +33,6 @@ import type { Bounds, OSMObject } from "@lib/types"
 import type { Feature } from "geojson"
 import i18next from "i18next"
 import { type GeoJSONSource, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
-import { getBaseFetchController } from "./_base-fetch"
-import type { IndexController } from "./router"
-import { setSearchFormQuery } from "./search-form"
 
 const layerId = "search" as LayerId
 layersConfig.set(layerId, {

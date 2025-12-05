@@ -1,3 +1,6 @@
+import { getBaseFetchController } from "@index/_base-fetch"
+import { initializeElementContent } from "@index/element"
+import type { IndexController } from "@index/router"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
@@ -8,9 +11,6 @@ import { setPageTitle } from "@lib/title"
 import { effect, signal } from "@preact/signals-core"
 import Tooltip from "bootstrap/js/dist/tooltip"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { getBaseFetchController } from "./_base-fetch"
-import { initializeElementContent } from "./element"
-import type { IndexController } from "./router"
 
 const themeColor = "#f60"
 const focusPaint: FocusLayerPaint = Object.freeze({

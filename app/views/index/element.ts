@@ -1,5 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
+import { getBaseFetchController } from "@index/_base-fetch"
+import type { IndexController } from "@index/router"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import {
@@ -11,8 +13,6 @@ import { configureStandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
 import i18next from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { getBaseFetchController } from "./_base-fetch"
-import type { IndexController } from "./router"
 
 const themeColor = "#f60"
 const focusPaint: FocusLayerPaint = Object.freeze({

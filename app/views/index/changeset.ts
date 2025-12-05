@@ -1,5 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
+import { getBaseFetchController } from "@index/_base-fetch"
+import type { IndexController } from "@index/router"
 import { renderColorPreviews } from "@lib/color"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer.ts"
@@ -15,8 +17,6 @@ import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMChangeset } from "@lib/types"
 import i18next from "i18next"
 import type { MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
-import { getBaseFetchController } from "./_base-fetch.ts"
-import type { IndexController } from "./router"
 
 const focusPaint: FocusLayerPaint = Object.freeze({
     "fill-opacity": 0,
