@@ -39,7 +39,7 @@ run
 Code Quality:
 
 ```sh
-format                # Format and lint ALL files
+format                # Format and lint
 pyright               # Python type checking (BasedPyright)
 run-tests             # Standard pytest suite
 run-tests --extended  # Extended tests marked with @pytest.mark.extended
