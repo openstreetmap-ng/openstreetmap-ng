@@ -126,10 +126,9 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
         const animationDuration = 750
         const fillLayerId = getExtendedLayerId(LAYER_ID, "fill")
         const lineLayerId = getExtendedLayerId(LAYER_ID, "line")
-        const fadeOut = (timestamp?: DOMHighResTimeStamp) => {
-            const currentTime = timestamp ?? performance.now()
-            if (currentTime < animationStart) animationStart = currentTime
-            const elapsedTime = currentTime - animationStart
+        const fadeOut = (timestamp: DOMHighResTimeStamp) => {
+            if (timestamp < animationStart) animationStart = timestamp
+            const elapsedTime = timestamp - animationStart
             let opacity = 1 - Math.min(elapsedTime / animationDuration, 1)
             if (prefersReducedMotion()) opacity = opacity > 0 ? 1 : 0
             map.setPaintProperty(fillLayerId, "fill-opacity", opacity * 0.4)

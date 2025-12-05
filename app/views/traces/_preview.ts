@@ -107,9 +107,8 @@ if (tracePreviewContainer) {
 
     let lastOffset = -1
 
-    const antPath = (timestamp?: DOMHighResTimeStamp) => {
-        const progress =
-            ((timestamp ?? performance.now()) % ANT_DURATION) / ANT_DURATION
+    const antPath = (timestamp: DOMHighResTimeStamp) => {
+        const progress = (timestamp % ANT_DURATION) / ANT_DURATION
         const offset = Math.round(progress * ANT_DASH_LENGTH * 10) / 10
         if (offset !== lastOffset) {
             lastOffset = offset
