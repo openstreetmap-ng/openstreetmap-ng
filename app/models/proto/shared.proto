@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 // =============================================
-// Client Configuration
+// Configuration
 // =============================================
 
 // Centralized client configuration parameters
@@ -45,6 +45,10 @@ message WebConfig {
     repeated Locale locales = 8;  // Language options
 }
 
+// =============================================
+// Authentication
+// =============================================
+
 // Password transmission container for different schema versions
 message TransmitUserPassword {
     optional string legacy = 1;  // Unencrypted password (deprecated)
@@ -86,6 +90,31 @@ message LoginResponse {
     optional bool passkey = 1;
     optional uint32 totp = 2;
     optional bool recovery = 3;
+}
+
+// =============================================
+// Messages
+// =============================================
+
+// Message read response
+message MessageRead {
+    message Sender {
+        uint64 id = 1;  // User ID
+        string display_name = 2;  // Display name
+        string avatar_url = 3;  // Profile image URL
+    }
+
+    message Recipient {
+        string display_name = 1;  // Display name
+        string avatar_url = 2;  // Profile image URL
+    }
+
+    Sender sender = 1;  // Message author
+    repeated Recipient recipients = 2;  // Message recipients
+    bool is_recipient = 3;  // Whether current user is a recipient
+    string time = 4;  // HTML time element
+    string subject = 5;  // Message subject
+    string body_rich = 6;  // Rich text HTML body
 }
 
 // =============================================

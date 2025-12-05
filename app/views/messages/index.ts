@@ -1,23 +1,11 @@
+import { fromBinary } from "@bufbuild/protobuf"
 import { resolveDatetimeLazy } from "@lib/datetime-inputs"
 import { mount } from "@lib/mount"
+import { MessageReadSchema } from "@lib/proto/shared_pb"
 import { configureReportButton } from "@lib/report-modal"
 import { configureStandardForm } from "@lib/standard-form"
 import { t } from "i18next"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
-
-interface MessageUser {
-    display_name: string
-    avatar_url: string
-}
-
-interface MessageReadResponse {
-    sender: MessageUser & { id: number }
-    recipients: MessageUser[]
-    is_recipient: boolean
-    time: string
-    subject: string
-    body_rich: string
-}
 
 mount("messages-index-body", (body) => {
     const messages = body.querySelectorAll(".messages-list li.social-entry.clickable")
@@ -89,18 +77,19 @@ mount("messages-index-body", (body) => {
             })
             if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
-            const message: MessageReadResponse = await resp.json()
+            const buffer = await resp.arrayBuffer()
+            const message = fromBinary(MessageReadSchema, new Uint8Array(buffer))
             console.debug(
                 "Fetched message",
                 openMessageId,
                 message.sender,
                 message.recipients,
-                message.is_recipient,
+                message.isRecipient,
             )
 
-            senderAvatar.src = message.sender.avatar_url
-            senderLink.href = `/user/${message.sender.display_name}`
-            senderLink.textContent = message.sender.display_name
+            senderAvatar.src = message.sender.avatarUrl
+            senderLink.href = `/user/${message.sender.displayName}`
+            senderLink.textContent = message.sender.displayName
             messageTime.innerHTML = message.time
 
             // Add each recipient
@@ -112,9 +101,9 @@ mount("messages-index-body", (body) => {
                 const avatar = userElement.querySelector("img.avatar")
                 const link = userElement.querySelector("a.user-link")
 
-                avatar.src = user.avatar_url
-                link.href = `/user/${user.display_name}`
-                link.textContent = user.display_name
+                avatar.src = user.avatarUrl
+                link.href = `/user/${user.displayName}`
+                link.textContent = user.displayName
 
                 messageRecipientsFragment.appendChild(userElement)
             }
@@ -125,10 +114,10 @@ mount("messages-index-body", (body) => {
             }
 
             // Hide button group when moderator viewing reported message
-            btnGroup.classList.toggle("disabled", !message.is_recipient)
+            btnGroup.classList.toggle("disabled", !message.isRecipient)
 
             messageTitle.textContent = message.subject
-            messageBody.innerHTML = message.body_rich
+            messageBody.innerHTML = message.bodyRich
             resolveDatetimeLazy(messageTime)
 
             // Configure report button

@@ -8,6 +8,7 @@ from app.config import MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH
 from app.lib.auth_context import web_user
 from app.models.db.message import messages_resolve_rich_text
 from app.models.db.user import User, user_avatar_url
+from app.models.proto.shared_pb2 import MessageRead
 from app.models.types import MessageId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
@@ -63,24 +64,25 @@ async def read_message(
     from_user = message['from_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     time_html = f'<time datetime="{message["created_at"].isoformat()}" data-date="long" data-time="short"></time>'
 
-    return {
-        'sender': {
-            'id': message['from_user_id'],
-            'display_name': from_user['display_name'],
-            'avatar_url': user_avatar_url(from_user),
-        },
-        'recipients': [
-            {
-                'display_name': r['user']['display_name'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
-                'avatar_url': user_avatar_url(r['user']),  # pyright: ignore [reportTypedDictNotRequiredAccess]
-            }
+    result = MessageRead(
+        sender=MessageRead.Sender(
+            id=message['from_user_id'],
+            display_name=from_user['display_name'],
+            avatar_url=user_avatar_url(from_user),
+        ),
+        recipients=[
+            MessageRead.Recipient(
+                display_name=r['user']['display_name'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
+                avatar_url=user_avatar_url(r['user']),  # pyright: ignore [reportTypedDictNotRequiredAccess]
+            )
             for r in message['recipients']
         ],
-        'is_recipient': user_recipient is not None,
-        'time': time_html,
-        'subject': message['subject'],
-        'body_rich': message['body_rich'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
-    }
+        is_recipient=user_recipient is not None,
+        time=time_html,
+        subject=message['subject'],
+        body_rich=message['body_rich'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
+    )
+    return Response(result.SerializeToString(), media_type='application/x-protobuf')
 
 
 @router.post('/{message_id:int}/unread')
