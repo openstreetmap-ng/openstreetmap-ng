@@ -704,7 +704,9 @@ let
 
       if [ "$1" = "--staged" ]; then
         # Stage changes
-        git diff --cached --name-only --diff-filter=ACMR -z -- | xargs -0 -r git add --
+        git diff --cached --name-only --diff-filter=ACMR -z -- | while IFS= read -r -d ''' file; do
+          git diff --quiet -- "$file" && printf '%s\0' "$file"
+        done | xargs -0 -r git add --
       else
         # Run linters
         set +e
