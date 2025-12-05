@@ -2,6 +2,13 @@ import type { LonLatZoom } from "@lib/map/state"
 import { memoize } from "@lib/memoize"
 import { mod } from "@lib/utils"
 
+/** 64 chars to encode 6 bits */
+const CODE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
+
+const getBitMasks = memoize(() =>
+    Array.from({ length: 32 }, (_, i) => 1n << BigInt(31 - i)),
+)
+
 /**
  * Encode a coordinate and zoom level to a short link code
  * @example
@@ -28,10 +35,3 @@ export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom): string => {
     for (let i = 0; i < r; i++) result += "-"
     return result
 }
-
-const getBitMasks = memoize(() =>
-    Array.from({ length: 32 }, (_, i) => 1n << BigInt(31 - i)),
-)
-
-/** 64 chars to encode 6 bits */
-const CODE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
