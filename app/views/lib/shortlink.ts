@@ -1,4 +1,5 @@
 import type { LonLatZoom } from "@lib/map/state"
+import { memoize } from "@lib/memoize"
 import { mod } from "@lib/utils"
 
 /**
@@ -16,7 +17,7 @@ export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom): string => {
     const y = BigInt(((lat + 90) * 23860929.422222223) | 0) // (2 ** 32) / 180
 
     let c = 0n
-    for (const mask of BIT_MASKS) {
+    for (const mask of getBitMasks()) {
         // noinspection JSBitwiseOperatorUsage
         c = (c << 2n) | (x & mask ? 2n : 0n) | (y & mask ? 1n : 0n)
     }
@@ -28,39 +29,9 @@ export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom): string => {
     return result
 }
 
+const getBitMasks = memoize(() =>
+    Array.from({ length: 32 }, (_, i) => 1n << BigInt(31 - i)),
+)
+
 /** 64 chars to encode 6 bits */
 const CODE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
-const BIT_MASKS = [
-    2147483648n,
-    1073741824n,
-    536870912n,
-    268435456n,
-    134217728n,
-    67108864n,
-    33554432n,
-    16777216n,
-    8388608n,
-    4194304n,
-    2097152n,
-    1048576n,
-    524288n,
-    262144n,
-    131072n,
-    65536n,
-    32768n,
-    16384n,
-    8192n,
-    4096n,
-    2048n,
-    1024n,
-    512n,
-    256n,
-    128n,
-    64n,
-    32n,
-    16n,
-    8n,
-    4n,
-    2n,
-    1n,
-] as const
