@@ -22,7 +22,7 @@ export class QueryFeaturesControl implements IControl {
         button.ariaLabel = buttonText
         const icon = document.createElement("img")
         icon.className = "icon query-features"
-        icon.src = "/static/img/leaflet/_generated/query-features.webp"
+        icon.src = "/static/img/controls/_generated/query-features.webp"
         button.appendChild(icon)
         container.appendChild(button)
 

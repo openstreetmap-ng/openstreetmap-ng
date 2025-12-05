@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query, Response
 from pydantic import PositiveInt
 
 from app.config import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
-from app.format import FormatLeaflet
+from app.format import FormatRender
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.models.proto.shared_pb2 import RenderElementsData
@@ -47,7 +47,7 @@ async def get_map(
         )
 
     return Response(
-        FormatLeaflet.encode_elements(
+        FormatRender.encode_elements(
             elements, detailed=True, areas=False
         ).SerializeToString(),
         media_type='application/x-protobuf',

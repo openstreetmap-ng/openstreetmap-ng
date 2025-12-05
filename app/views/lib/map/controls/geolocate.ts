@@ -24,7 +24,7 @@ export class CustomGeolocateControl extends GeolocateControl {
         })
         const icon = document.createElement("img")
         icon.className = "icon geolocate"
-        icon.src = "/static/img/leaflet/_generated/geolocate.webp"
+        icon.src = "/static/img/controls/_generated/geolocate.webp"
         button.replaceChildren(icon)
         return container
     }

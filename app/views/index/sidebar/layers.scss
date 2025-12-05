@@ -1,5 +1,5 @@
 // Style the "Map Layers" sidebar picker
-.leaflet-sidebar.layers {
+.map-sidebar.layers {
     // Make each layer clickable and overlay a label on top of it
     .layer {
         @extend .rounded-2;
@@ -134,7 +134,7 @@
 }
 
 @include color-mode(dark) {
-    .leaflet-sidebar.layers {
+    .map-sidebar.layers {
         .layer {
             label {
                 background: rgba($body-bg-dark, 0.8);

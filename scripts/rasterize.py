@@ -78,7 +78,7 @@ def static_img_pipeline(verbose: bool) -> None:
                 pool.apply_async(rasterize, (i, output), {'size': 128, 'quality': 80})
             )
 
-        root = Path('app/static/img/leaflet')
+        root = Path('app/static/img/controls')
         for i in root.rglob('*.svg'):
             output = get_output_path(i, root=root)
             if output.is_file() and i.stat().st_mtime <= output.stat().st_mtime:

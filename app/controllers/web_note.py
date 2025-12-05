@@ -11,7 +11,7 @@ from app.config import (
     NOTE_QUERY_DEFAULT_CLOSED,
     NOTE_QUERY_WEB_LIMIT,
 )
-from app.format import FormatLeaflet
+from app.format import FormatRender
 from app.lib.auth_context import web_user
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
@@ -67,7 +67,7 @@ async def get_map(bbox: Annotated[str, Query()]):
     )
 
     return Response(
-        FormatLeaflet.encode_notes(notes).SerializeToString(),
+        FormatRender.encode_notes(notes).SerializeToString(),
         media_type='application/x-protobuf',
     )
 

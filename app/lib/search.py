@@ -45,7 +45,7 @@ class Search:
         """
         Get search bounds from a bbox string.
 
-        Returns a list of (leaflet, shapely) bounds.
+        Returns a list of (bounds_str, shapely) bounds.
         """
         search_local_area_limit: cython.double = SEARCH_LOCAL_AREA_LIMIT
         search_local_max_iterations: cython.size_t = (
@@ -88,9 +88,9 @@ class Search:
             bounds_miny = bbox_center_y - bounds_height_2
             bounds_maxx = bbox_center_x + bounds_width_2
             bounds_maxy = bbox_center_y + bounds_height_2
-            leaflet_bounds = f'{bounds_minx:.7f},{bounds_miny:.7f},{bounds_maxx:.7f},{bounds_maxy:.7f}'
-            shapely_bounds = parse_bbox(leaflet_bounds)
-            result[i] = (leaflet_bounds, shapely_bounds)
+            bounds_str = f'{bounds_minx:.7f},{bounds_miny:.7f},{bounds_maxx:.7f},{bounds_maxy:.7f}'
+            shapely_bounds = parse_bbox(bounds_str)
+            result[i] = (bounds_str, shapely_bounds)
 
         if not local_only:
             # append global search bounds

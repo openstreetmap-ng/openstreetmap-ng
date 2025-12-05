@@ -7,7 +7,7 @@ from fastapi import APIRouter, Query
 from shapely import Point, get_coordinates
 
 from app.config import SEARCH_QUERY_MAX_LENGTH, SEARCH_RESULTS_LIMIT
-from app.format import FormatLeaflet
+from app.format import FormatRender
 from app.lib.render_response import render_response
 from app.lib.search import Search, SearchResult
 from app.models.db.element import Element
@@ -129,7 +129,7 @@ async def _get_response(
                     if (e := members_map.get(mm)) is not None
                 )
 
-        render = FormatLeaflet.encode_elements(full_data, detailed=False, areas=False)
+        render = FormatRender.encode_elements(full_data, detailed=False, areas=False)
         renders[i] = render
 
         # Ensure there is always a node. It's nice visually.

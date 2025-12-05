@@ -22,7 +22,7 @@ export class NewNoteControl implements IControl {
         button.ariaLabel = buttonText
         const icon = document.createElement("img")
         icon.className = "icon new-note"
-        icon.src = "/static/img/leaflet/_generated/new-note.webp"
+        icon.src = "/static/img/controls/_generated/new-note.webp"
         button.appendChild(icon)
         container.appendChild(button)
 

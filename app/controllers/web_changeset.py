@@ -7,7 +7,7 @@ from pydantic import PositiveInt
 from starlette import status
 
 from app.config import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_QUERY_WEB_LIMIT
-from app.format import FormatLeaflet
+from app.format import FormatRender
 from app.lib.auth_context import web_user
 from app.lib.geo_utils import parse_bbox
 from app.lib.render_response import render_response
@@ -78,7 +78,7 @@ async def get_map(
         tg.create_task(ChangesetCommentQuery.resolve_num_comments(changesets))
 
     return Response(
-        FormatLeaflet.encode_changesets(changesets).SerializeToString(),
+        FormatRender.encode_changesets(changesets).SerializeToString(),
         media_type='application/x-protobuf',
     )
 

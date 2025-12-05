@@ -55,8 +55,8 @@
     inset: 0;
 }
 
-// Style the leaflet sidebar (right)
-.leaflet-sidebar {
+// Style the map sidebar (right)
+.map-sidebar {
     position: relative;
     width: $map-sidebar-width;
     z-index: 1003; // higher than .sidebar-overlay

@@ -82,7 +82,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
     const hideDataButton = loadDataAlert.querySelector("button.hide-data-btn")
     const showDataButton = loadDataAlert.querySelector("button.show-data-btn")
     const dataOverlayCheckbox = document.querySelector(
-        ".leaflet-sidebar.layers input.overlay[value=data]",
+        ".map-sidebar.layers input.overlay[value=data]",
     )
 
     let enabled = false

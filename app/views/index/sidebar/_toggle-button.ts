@@ -16,7 +16,7 @@ export class SidebarToggleControl implements IControl {
 
     public onAdd(map: MaplibreMap) {
         // Find corresponding sidebar
-        const sidebar = document.querySelector(`div.leaflet-sidebar.${this._className}`)
+        const sidebar = document.querySelector(`div.map-sidebar.${this._className}`)
         if (!sidebar) console.error("Sidebar", this._className, "not found")
         this.sidebar = sidebar
 
@@ -32,7 +32,7 @@ export class SidebarToggleControl implements IControl {
         button.ariaLabel = buttonText
         const icon = document.createElement("img")
         icon.className = `icon ${this._className}`
-        icon.src = `/static/img/leaflet/_generated/${this._className}.webp`
+        icon.src = `/static/img/controls/_generated/${this._className}.webp`
         button.appendChild(icon)
         container.appendChild(button)
 

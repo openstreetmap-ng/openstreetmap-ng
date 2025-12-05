@@ -6,7 +6,7 @@ from shapely import get_coordinates
 from starlette import status
 
 from app.config import ELEMENT_HISTORY_PAGE_SIZE
-from app.format import FormatLeaflet
+from app.format import FormatRender
 from app.format.element_list import FormatElementList
 from app.lib.feature_icon import features_icons
 from app.lib.feature_name import features_names
@@ -177,7 +177,7 @@ async def get_element_data(
     icon = features_icons([element])[0]
     name = features_names([element])[0]
     tags_map = tags_format(element['tags'])
-    render_data = FormatLeaflet.encode_elements(full_data, detailed=True)
+    render_data = FormatRender.encode_elements(full_data, detailed=True)
 
     param = PartialElementParams(
         type=type,

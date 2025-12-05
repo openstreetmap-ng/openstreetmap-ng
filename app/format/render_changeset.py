@@ -6,7 +6,7 @@ from app.models.db.user import user_avatar_url
 from app.models.proto.shared_pb2 import RenderChangesetsData, SharedBounds
 
 
-class LeafletChangesetMixin:
+class RenderChangesetMixin:
     @staticmethod
     def encode_changesets(changesets: list[Changeset]) -> RenderChangesetsData:
         """Format changesets into a minimal structure, suitable for map rendering."""

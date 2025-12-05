@@ -316,7 +316,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
 /** Toggle the spinner for the given layer */
 export const toggleLayerSpinner = (layerName: LayerId, loading: boolean) => {
     document
-        .querySelector(`.leaflet-sidebar.layers input.overlay[value=${layerName}]`)
+        .querySelector(`.map-sidebar.layers input.overlay[value=${layerName}]`)
         .parentElement.querySelector(".spinner-border")
         .classList.toggle("d-none", !loading)
 }

@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query
 from shapely import Point
 
-from app.format import FormatLeaflet
+from app.format import FormatRender
 from app.lib.geo_utils import meters_to_degrees
 from app.lib.query_features import QueryFeatures
 from app.lib.render_response import render_response
@@ -30,7 +30,7 @@ async def query_nearby_features(
 
     spatial_elements = await ElementSpatialQuery.query_features(search_area)
     results = QueryFeatures.wrap_element_spatial(spatial_elements)
-    renders = FormatLeaflet.encode_query_features(results, search_area=search_area)
+    renders = FormatRender.encode_query_features(results, search_area=search_area)
 
     params = PartialQueryFeaturesParams(renders=renders)
     return await render_response(

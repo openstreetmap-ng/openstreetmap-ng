@@ -5,7 +5,7 @@ from app.models.db.note import Note, note_status
 from app.models.proto.shared_pb2 import RenderNotesData
 
 
-class LeafletNoteMixin:
+class RenderNoteMixin:
     @staticmethod
     def encode_notes(notes: list[Note]) -> RenderNotesData:
         """Format notes into a minimal structure, suitable for map rendering."""
