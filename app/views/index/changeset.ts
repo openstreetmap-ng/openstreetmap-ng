@@ -1,7 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
-import type { IndexController } from "@index/router"
 import { renderColorPreviews } from "@lib/color"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer.ts"
@@ -17,6 +16,7 @@ import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMChangeset } from "@lib/types"
 import i18next from "i18next"
 import type { MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
+import type { IndexController } from "./router"
 
 const focusPaint: FocusLayerPaint = {
     "fill-opacity": 0,
@@ -28,7 +28,7 @@ const focusPaint: FocusLayerPaint = {
 const ELEMENTS_PER_PAGE = 20
 
 /** Create a new changeset controller */
-export const getChangesetController = (map: MaplibreMap): IndexController => {
+export const getChangesetController = (map: MaplibreMap) => {
     let params: PartialChangesetParams | null = null
     let paramsBounds: Bounds[] | null = null
 
@@ -88,7 +88,7 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
         }
     })
 
-    const refocus = (e?: MapLibreEvent): void => {
+    const refocus = (e?: MapLibreEvent) => {
         // On map zoom change, refocus the changeset (due to size change)
         const object: OSMChangeset = {
             type: "changeset",
@@ -118,7 +118,7 @@ export const getChangesetController = (map: MaplibreMap): IndexController => {
 const renderElements = (
     elementsSection: HTMLElement,
     elements: { [key: string]: PartialChangesetParams_Element[] },
-): (() => void) => {
+) => {
     console.debug("renderElements")
 
     const groupTemplate = elementsSection.querySelector("template.group")
@@ -156,7 +156,7 @@ const renderElementType = (
     entryTemplate: HTMLTemplateElement,
     type: string,
     elements: PartialChangesetParams_Element[],
-): [DocumentFragment, () => void] => {
+) => {
     console.debug("renderElementType", type, elements)
 
     const groupFragment = groupTemplate.content.cloneNode(true) as DocumentFragment
@@ -172,7 +172,7 @@ const renderElementType = (
         paginationContainer.parentElement.classList.add("d-none")
     }
 
-    const updateTitle = (page: number): void => {
+    const updateTitle = (page: number) => {
         let count: string
         if (totalPages > 1) {
             const from = (page - 1) * ELEMENTS_PER_PAGE + 1
@@ -200,7 +200,7 @@ const renderElementType = (
         titleElement.textContent = newTitle
     }
 
-    const updateTable = (page: number, renderContainer: HTMLElement): void => {
+    const updateTable = (page: number, renderContainer: HTMLElement) => {
         const renderFragment = document.createDocumentFragment()
 
         const iStart = (page - 1) * ELEMENTS_PER_PAGE
@@ -254,5 +254,5 @@ const renderElementType = (
         },
     })
 
-    return [groupFragment, disposePagination]
+    return [groupFragment, disposePagination] as const
 }

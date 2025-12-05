@@ -31,7 +31,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
         super("layers", "javascripts.map.layers.title")
     }
 
-    public override onAdd(map: MaplibreMap): HTMLElement {
+    public override onAdd(map: MaplibreMap) {
         const container = super.onAdd(map)
         const button = container.querySelector("button")
 
@@ -53,7 +53,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
         }
 
         /** Ensure minimaps have been initialized */
-        const initializeMinimapsOnce = memoize((): void => {
+        const initializeMinimapsOnce = memoize(() => {
             for (const container of layerIdContainerMap.values()) {
                 const layerId = container.dataset.layerId as LayerId
                 const layerConfig = layersConfig.get(layerId)
@@ -318,7 +318,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
 }
 
 /** Toggle the spinner for the given layer */
-export const toggleLayerSpinner = (layerName: LayerId, loading: boolean): void => {
+export const toggleLayerSpinner = (layerName: LayerId, loading: boolean) => {
     document
         .querySelector(`.leaflet-sidebar.layers input.overlay[value=${layerName}]`)
         .parentElement.querySelector(".spinner-border")

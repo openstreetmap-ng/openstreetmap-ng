@@ -3,7 +3,7 @@
  * Highlights nav links based on which content is in the detection band.
  * Only observes elements whose IDs have matching nav links.
  */
-export const configureScrollspy = (container: Element, nav: Element): (() => void) => {
+export const configureScrollspy = (container: Element, nav: Element) => {
     if (!container || !nav) return () => {}
 
     const navLinks = nav.querySelectorAll("a.nav-link[href^='#']")
@@ -18,7 +18,7 @@ export const configureScrollspy = (container: Element, nav: Element): (() => voi
 
     let currentActive: string | null = null
 
-    const setActive = (id: string | null): void => {
+    const setActive = (id: string | null) => {
         if (currentActive === id) return
         if (currentActive) idToLink.get(currentActive)?.classList.remove("active")
         if (id) idToLink.get(id)?.classList.add("active")
@@ -28,7 +28,7 @@ export const configureScrollspy = (container: Element, nav: Element): (() => voi
     // Track which IDs are currently intersecting the detection band
     const intersecting = new Set<string>()
 
-    const updateActive = (): void => {
+    const updateActive = () => {
         // Find first intersecting entry in DOM order that has a matching nav link
         const activeItem = Array.from(items).find(
             (item) => intersecting.has(item.id) && idToLink.has(item.id),

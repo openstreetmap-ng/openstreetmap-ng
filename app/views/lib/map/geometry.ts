@@ -1,7 +1,7 @@
 import { Point } from "maplibre-gl"
 
 /** Get the closest point on a segment */
-export const closestPointOnSegment = (test: Point, start: Point, end: Point): Point => {
+export const closestPointOnSegment = (test: Point, start: Point, end: Point) => {
     const dx = end.x - start.x
     const dy = end.y - start.y
     if (dx === 0 && dy === 0) return new Point(start.x, start.y)

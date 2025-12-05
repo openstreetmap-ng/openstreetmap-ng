@@ -17,7 +17,7 @@ type ReportAction =
     | "user_profile"
     | "user_trace"
 
-export interface ReportData {
+interface ReportData {
     type: ReportType
     typeId: number
     action: ReportAction
@@ -48,7 +48,7 @@ export const configureReportButton = (
     })
 }
 
-export const showReportModal = (data: ReportData) => {
+const showReportModal = (data: ReportData) => {
     const typeInput = formElement.querySelector("input[name=type]")
     const typeIdInput = formElement.querySelector("input[name=type_id]")
     const actionInput = formElement.querySelector("input[name=action]")
@@ -79,7 +79,7 @@ export const showReportModal = (data: ReportData) => {
 }
 
 // Configure report buttons in dynamic content
-export const configureReportButtonsLazy = (searchElement: Element): void =>
+export const configureReportButtonsLazy = (searchElement: Element) =>
     queueMicrotask(() => {
         let counter = 0
         for (const button of searchElement.querySelectorAll(

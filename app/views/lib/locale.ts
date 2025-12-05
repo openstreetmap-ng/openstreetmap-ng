@@ -9,7 +9,7 @@ export type LocaleOption = {
     flag?: string
 }
 
-export const getLocaleOptions = memoize((): readonly LocaleOption[] =>
+export const getLocaleOptions = memoize(() =>
     config.locales.map((locale) => {
         const nativeName = locale.nativeName
         const englishName = locale.englishName ?? nativeName

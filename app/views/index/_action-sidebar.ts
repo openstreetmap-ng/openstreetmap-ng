@@ -6,17 +6,14 @@ const actionSidebars = document.querySelectorAll("div.action-sidebar")
 const sidebarContainer = actionSidebars.length ? actionSidebars[0].parentElement : null
 
 /** Get the action sidebar with the given class name */
-export const getActionSidebar = (className: string): HTMLElement => {
+export const getActionSidebar = (className: string) => {
     const sidebar = document.querySelector(`div.action-sidebar.${className}`)
     configureActionSidebar(sidebar)
     return sidebar
 }
 
 /** Switch the action sidebar with the given class name */
-export const switchActionSidebar = (
-    map: MaplibreMap,
-    actionSidebar: HTMLElement,
-): void => {
+export const switchActionSidebar = (map: MaplibreMap, actionSidebar: HTMLElement) => {
     console.debug("switchActionSidebar", actionSidebar.classList)
 
     // Toggle all action sidebars
@@ -41,7 +38,7 @@ const onCloseButtonClick = () => {
 }
 
 /** Configure action sidebar events */
-export const configureActionSidebar = (sidebar: Element): void => {
+export const configureActionSidebar = (sidebar: Element) => {
     const closeButton = sidebar.querySelector(".sidebar-close-btn")
     closeButton?.addEventListener("click", onCloseButtonClick)
 }

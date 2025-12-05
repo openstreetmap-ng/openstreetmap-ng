@@ -9,7 +9,7 @@ import { Dropdown } from "bootstrap"
 import { type Map as MaplibreMap, type MapMouseEvent, Popup } from "maplibre-gl"
 
 /** Configure the map context menu */
-export const configureContextMenu = (map: MaplibreMap): void => {
+export const configureContextMenu = (map: MaplibreMap) => {
     const mapContainer = map.getContainer()
 
     const containerTemplate = document.querySelector("template.context-menu-template")
@@ -41,7 +41,7 @@ export const configureContextMenu = (map: MaplibreMap): void => {
      * getPopupPosition()
      * // => { lon: "12.345678", lat: "23.456789", zoom: 17 }
      */
-    const getPopupPosition = (): { lon: string; lat: string; zoom: number } => {
+    const getPopupPosition = () => {
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
         const lngLat = popup.getLngLat()
@@ -104,7 +104,7 @@ export const configureContextMenu = (map: MaplibreMap): void => {
             console.debug("Copied geolocation to clipboard", value)
         } catch (error) {
             console.warn("Failed to copy geolocation", error)
-            if (error instanceof Error) alert(error.message)
+            alert(error.message)
         }
     }
     geolocationField.addEventListener("click", onGeolocationFieldClick)

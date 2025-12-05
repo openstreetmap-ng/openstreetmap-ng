@@ -53,7 +53,7 @@ layersConfig.set(LAYER_ID, {
 const RELOAD_PROPORTION_THRESHOLD = 0.9
 
 /** Configure the notes layer for the given map */
-export const configureNotesLayer = (map: MaplibreMap): void => {
+export const configureNotesLayer = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     let enabled = false
     let fetchedBounds: LngLatBounds | null = null
@@ -107,7 +107,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
     })
 
     /** On map update, fetch the notes and update the notes layer */
-    const updateLayer = (): void => {
+    const updateLayer = async () => {
         // Skip if the notes layer is not visible
         if (!enabled) return
 
@@ -137,27 +137,29 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
             .toArray()
 
         toggleLayerSpinner(LAYER_ID, true)
-        fetch(`/api/web/note/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
-            signal: abortController.signal,
-            priority: "high",
-        })
-            .then(async (resp) => {
-                toggleLayerSpinner(LAYER_ID, false)
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+        try {
+            const resp = await fetch(
+                `/api/web/note/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`,
+                {
+                    signal: abortController.signal,
+                    priority: "high",
+                },
+            )
+            toggleLayerSpinner(LAYER_ID, false)
+            if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
-                const buffer = await resp.arrayBuffer()
-                const render = fromBinary(RenderNotesDataSchema, new Uint8Array(buffer))
-                const notes = convertRenderNotesData(render)
-                source.setData(renderObjects(notes))
-                fetchedBounds = fetchBounds
-                console.debug("Notes layer showing", notes.length, "notes")
-            })
-            .catch((error: Error) => {
-                if (error.name === "AbortError") return
-                console.error("Failed to fetch notes", error)
-                toggleLayerSpinner(LAYER_ID, false)
-                source.setData(emptyFeatureCollection)
-            })
+            const buffer = await resp.arrayBuffer()
+            const render = fromBinary(RenderNotesDataSchema, new Uint8Array(buffer))
+            const notes = convertRenderNotesData(render)
+            source.setData(renderObjects(notes))
+            fetchedBounds = fetchBounds
+            console.debug("Notes layer showing", notes.length, "notes")
+        } catch (error) {
+            if (error.name === "AbortError") return
+            console.error("Failed to fetch notes", error)
+            toggleLayerSpinner(LAYER_ID, false)
+            source.setData(emptyFeatureCollection)
+        }
     }
     map.on("moveend", updateLayer)
     map.on("reloadnoteslayer", () => {

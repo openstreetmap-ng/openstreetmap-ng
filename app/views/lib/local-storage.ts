@@ -32,7 +32,7 @@ function createStorage<T>(key: string, config: StorageConfig<T> = {}) {
     } = config
 
     return {
-        get: (): T | null => {
+        get: () => {
             const stored = localStorage.getItem(key)
             if (stored === null) return defaultValue
 
@@ -44,7 +44,7 @@ function createStorage<T>(key: string, config: StorageConfig<T> = {}) {
             }
         },
 
-        set: (value: T): void => {
+        set: (value: T) => {
             if (logOperations) console.debug("Storage set:", key, "=", value)
             localStorage.setItem(key, serialize(value))
         },
@@ -57,7 +57,7 @@ const createScopedStorage = <T>(prefix: string, config?: StorageConfig<T>) =>
 export const themeStorage = createStorage<AppTheme>("theme", {
     defaultValue: "auto",
 })
-export const getActiveTheme = (): "light" | "dark" => {
+export const getActiveTheme = () => {
     const appTheme = themeStorage.get()
     return appTheme === "auto" ? getDeviceThemePreference() : appTheme
 }

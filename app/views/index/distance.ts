@@ -1,5 +1,4 @@
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
-import type { IndexController } from "@index/router"
 import { formatDistance, isMetricUnit } from "@lib/format"
 import { padLngLatBounds } from "@lib/map/bounds"
 import { closestPointOnSegment } from "@lib/map/geometry"
@@ -58,7 +57,7 @@ layersConfig.set(LAYER_ID, {
 })
 
 /** Controller for distance measurement functionality */
-export const getDistanceController = (map: MaplibreMap): IndexController => {
+export const getDistanceController = (map: MaplibreMap) => {
     const mapContainer = map.getContainer()
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const sidebar = getActionSidebar("distance")
@@ -74,7 +73,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     let ghostMarkerIndex = -1
     let currentUnit: "metric" | "imperial" = isMetricUnit() ? "metric" : "imperial"
 
-    const markerFactory = (index: number, color: MarkerColor): Marker => {
+    const markerFactory = (index: number, color: MarkerColor) => {
         const marker = new Marker({
             anchor: MARKER_ICON_ANCHOR,
             element: getMarkerIconElement(color, true),
@@ -102,7 +101,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         return marker
     }
 
-    const ghostMarkerFactory = (): Marker => {
+    const ghostMarkerFactory = () => {
         const marker = markerFactory(-1, "blue")
         marker.addClassName("ghost-marker")
         marker.addClassName("d-none")
@@ -119,7 +118,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }
 
     // Encodes current marker positions into URL polyline parameter
-    const updateUrl = (dirtyIndices: number[]): void => {
+    const updateUrl = (dirtyIndices: number[]) => {
         const newLength = markers.length
         if (newLength < positionsUrl.length) {
             // Truncate positions
@@ -140,7 +139,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }, 250)
 
     // Updates GeoJSON line features between consecutive markers
-    const updateLines = (dirtyIndices: number[]): void => {
+    const updateLines = (dirtyIndices: number[]) => {
         const newLength = Math.max(markers.length - 1, 0)
         if (newLength < lines.length) {
             // Truncate lines
@@ -179,7 +178,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }
 
     // Updates distance labels and calculates total measurement
-    const updateLabels = (dirtyIndices: number[]): void => {
+    const updateLabels = (dirtyIndices: number[]) => {
         const newLength = Math.max(markers.length - 1, 0)
         if (newLength < labels.length) {
             // Truncate labels
@@ -241,7 +240,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }
 
     // Schedule updates to all components after marker changes, dirtyIndices must be sorted
-    const update = (dirtyIndices: number[]): void => {
+    const update = (dirtyIndices: number[]) => {
         updateUrl(dirtyIndices)
         updateLines(dirtyIndices)
         updateLabels(dirtyIndices)
@@ -272,7 +271,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     })
 
     // Removes a marker and updates subsequent geometry
-    const removeMarker = (index: number): void => {
+    const removeMarker = (index: number) => {
         console.debug("Remove distance marker", index)
         // Pop tailing markers
         const tail = markers.splice(index + 1)
@@ -326,7 +325,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }: {
         lngLat: LngLatLike
         skipUpdates?: boolean
-    }): void => {
+    }) => {
         // Avoid event handlers after the controller is unloaded
         if (!hasMapLayer(map, LAYER_ID)) return
         console.debug("Create distance marker", lngLat, skipUpdates)
@@ -346,63 +345,58 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     }
 
     // Handles ghost marker positioning near existing line segments
-    const updateGhostMarkerPosition = throttle(
-        (e: MapMouseEvent | MouseEvent): void => {
-            if (showMarker) {
-                if (!ghostMarker)
-                    ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
-                else if (ghostMarker.getElement().classList.contains("dragging")) return
-                ghostMarker.removeClassName("d-none")
-                showMarker = false
-            } else {
-                if (!ghostMarker) return
-                const classList = ghostMarker.getElement().classList
-                if (classList.contains("d-none") || classList.contains("dragging"))
-                    return
-            }
+    const updateGhostMarkerPosition = throttle((e: MapMouseEvent | MouseEvent) => {
+        if (showMarker) {
+            if (!ghostMarker)
+                ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
+            else if (ghostMarker.getElement().classList.contains("dragging")) return
+            ghostMarker.removeClassName("d-none")
+            showMarker = false
+        } else {
+            if (!ghostMarker) return
+            const classList = ghostMarker.getElement().classList
+            if (classList.contains("d-none") || classList.contains("dragging")) return
+        }
 
-            const { clientX, clientY } =
-                e instanceof MapMouseEvent ? e.originalEvent : e
-            const mapRect = mapContainer.getBoundingClientRect()
-            const point = new Point(
-                clientX - mapRect.left,
-                clientY - mapRect.top + 20, // offset for marker height
+        const { clientX, clientY } = e instanceof MapMouseEvent ? e.originalEvent : e
+        const mapRect = mapContainer.getBoundingClientRect()
+        const point = new Point(
+            clientX - mapRect.left,
+            clientY - mapRect.top + 20, // offset for marker height
+        )
+        const lngLat = map.unproject(point)
+
+        let minDistance = Number.POSITIVE_INFINITY
+        let minLngLat: LngLat | null = null
+        ghostMarkerIndex = -1
+        for (let i = 1; i < markers.length; i++) {
+            const closestLngLat = map.unproject(
+                closestPointOnSegment(
+                    point,
+                    map.project(markers[i - 1].getLngLat()),
+                    map.project(markers[i].getLngLat()),
+                ),
             )
-            const lngLat = map.unproject(point)
-
-            let minDistance = Number.POSITIVE_INFINITY
-            let minLngLat: LngLat | null = null
-            ghostMarkerIndex = -1
-            for (let i = 1; i < markers.length; i++) {
-                const closestLngLat = map.unproject(
-                    closestPointOnSegment(
-                        point,
-                        map.project(markers[i - 1].getLngLat()),
-                        map.project(markers[i].getLngLat()),
-                    ),
-                )
-                const distance = closestLngLat.distanceTo(lngLat)
-                if (distance < minDistance) {
-                    minDistance = distance
-                    minLngLat = closestLngLat
-                    ghostMarkerIndex = i
-                }
+            const distance = closestLngLat.distanceTo(lngLat)
+            if (distance < minDistance) {
+                minDistance = distance
+                minLngLat = closestLngLat
+                ghostMarkerIndex = i
             }
-            if (ghostMarkerIndex > -1) ghostMarker.setLngLat(minLngLat)
+        }
+        if (ghostMarkerIndex > -1) ghostMarker.setLngLat(minLngLat)
 
-            // Hide the marker if it's not hovered
-            const markerRect = ghostMarker.getElement().getBoundingClientRect()
-            if (
-                clientX < markerRect.left ||
-                clientX > markerRect.right ||
-                clientY < markerRect.top ||
-                clientY > markerRect.bottom
-            ) {
-                ghostMarker.addClassName("d-none")
-            }
-        },
-        16,
-    )
+        // Hide the marker if it's not hovered
+        const markerRect = ghostMarker.getElement().getBoundingClientRect()
+        if (
+            clientX < markerRect.left ||
+            clientX > markerRect.right ||
+            clientY < markerRect.top ||
+            clientY > markerRect.bottom
+        ) {
+            ghostMarker.addClassName("d-none")
+        }
+    }, 16)
 
     // Toggle ghost marker out of hidden state
     let showMarker = false

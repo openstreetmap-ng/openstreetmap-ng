@@ -25,7 +25,7 @@ export const loadMapImage = (
     map: MaplibreMap,
     name: MarkerImageName,
     successCallback?: () => void,
-): void => {
+) => {
     let image = images.get(name)
     if (!image) {
         image = new Image()

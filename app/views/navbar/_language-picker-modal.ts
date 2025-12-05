@@ -48,7 +48,6 @@ if (languagePickerModal) {
             button.addEventListener("click", () => {
                 if (locale.code !== primaryLanguage) {
                     console.info("Changing language to", locale.code)
-                    // biome-ignore lint/suspicious/noDocumentCookie: acceptable
                     document.cookie = `lang=${locale.code}; path=/; max-age=31536000; samesite=lax`
                     window.location.reload()
                     button.disabled = true

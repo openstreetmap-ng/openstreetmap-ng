@@ -16,13 +16,13 @@ for (const container of multiInputContainers) {
 
     const tokens = new Map<string, HTMLElement>()
 
-    const updateInputState = (): void => {
+    const updateInputState = () => {
         const count = tokens.size
         input.placeholder = count ? "" : placeholder
         input.required = initiallyRequired && !count
     }
 
-    const createTokenElement = (value: string): HTMLElement => {
+    const createTokenElement = (value: string) => {
         const tokenElement = document.createElement("span")
         tokenElement.className = "multi-input-token d-inline-flex align-items-center"
         tokenElement.addEventListener("click", (e) => {
@@ -66,7 +66,7 @@ for (const container of multiInputContainers) {
         return tokenElement
     }
 
-    const addToken = (value: string): void => {
+    const addToken = (value: string) => {
         value = value.trim()
         if (!value) return
 
@@ -75,7 +75,7 @@ for (const container of multiInputContainers) {
         updateInputState()
     }
 
-    const editLastToken = (): void => {
+    const editLastToken = () => {
         const tokenElement = tokensContainer.lastElementChild
         if (!tokenElement) return
 
@@ -86,7 +86,7 @@ for (const container of multiInputContainers) {
         updateInputState()
     }
 
-    const addTokenFromInput = (): void => {
+    const addTokenFromInput = () => {
         const value = input.value.trim()
         if (!value) return
         addToken(value)
@@ -142,7 +142,7 @@ for (const container of multiInputContainers) {
     )
 
     // Initialize with existing comma-separated value
-    const initializeTokens = (): void => {
+    const initializeTokens = () => {
         const values = input.value
             .trim()
             .split(delimiter)

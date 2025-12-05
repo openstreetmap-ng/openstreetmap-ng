@@ -1,7 +1,7 @@
 import { memoize } from "@lib/memoize"
 
 /** Darken a hex color by a specified amount */
-export const darkenColor = memoize((hex: string, amount: number): string => {
+export const darkenColor = memoize((hex: string, amount: number) => {
     const hexCode = hex.replace("#", "")
 
     let r: string
@@ -20,7 +20,7 @@ export const darkenColor = memoize((hex: string, amount: number): string => {
         return hex
     }
 
-    const darken = (value: string): string =>
+    const darken = (value: string) =>
         Math.round(Number.parseInt(value, 16) * (1 - amount))
             .toString(16)
             .padStart(2, "0")
@@ -29,7 +29,7 @@ export const darkenColor = memoize((hex: string, amount: number): string => {
 })
 
 /** Render color preview elements by setting their background color */
-export const renderColorPreviews = (searchElement: Element): void => {
+export const renderColorPreviews = (searchElement: Element) => {
     const elements = searchElement.querySelectorAll(
         ".color-preview[data-color]",
     ) as NodeListOf<HTMLElement>

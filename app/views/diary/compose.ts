@@ -35,7 +35,7 @@ mount("diary-compose-body", (body) => {
     let map: MaplibreMap | null = null
     let marker: Marker | null = null
 
-    const setMarker = (lngLat: LngLatLike): void => {
+    const setMarker = (lngLat: LngLatLike) => {
         if (marker) {
             marker.setLngLat(lngLat)
             return
@@ -53,7 +53,7 @@ mount("diary-compose-body", (body) => {
         )
     }
 
-    const setInput = (lngLat: LngLat): void => {
+    const setInput = (lngLat: LngLat) => {
         const precision = zoomPrecision(map.getZoom())
         const lngLatWrap = lngLat.wrap()
         lonInput.value = lngLatWrap.lng.toFixed(precision)
@@ -88,11 +88,18 @@ mount("diary-compose-body", (body) => {
     latInput.addEventListener("change", onCoordinatesInputChange)
 
     const showMapButton = showMapContainer.querySelector("button.show-map-btn")
+    const removeMapButton = showMapContainer.querySelector("button.remove-location-btn")
+
+    /** Toggle map visibility and related UI elements */
+    const setMapVisible = (visible: boolean) => {
+        showMapButton.classList.toggle("d-none", visible)
+        removeMapButton.classList.toggle("d-none", !visible)
+        mapDiv.classList.toggle("d-none", !visible)
+    }
+
     showMapButton.addEventListener("click", () => {
         // On "Select on map" button click, show the map and hide the button
-        showMapButton.classList.add("d-none")
-        removeMapButton.classList.remove("d-none")
-        mapDiv.classList.remove("d-none")
+        setMapVisible(true)
 
         if (!map) {
             map = new MaplibreMap({
@@ -134,12 +141,9 @@ mount("diary-compose-body", (body) => {
         map.on("click", onMapClick)
     })
 
-    const removeMapButton = showMapContainer.querySelector("button.remove-location-btn")
     removeMapButton.addEventListener("click", () => {
         // On "Remove location" button click, hide the map and show the button
-        showMapButton.classList.remove("d-none")
-        removeMapButton.classList.add("d-none")
-        mapDiv.classList.add("d-none")
+        setMapVisible(false)
 
         lonInput.value = ""
         latInput.value = ""

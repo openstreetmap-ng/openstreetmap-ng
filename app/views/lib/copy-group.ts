@@ -1,4 +1,4 @@
-export const configureCopyGroups = (root: ParentNode): void => {
+export const configureCopyGroups = (root: ParentNode) => {
     const elements = root.querySelectorAll(".copy-group")
     console.debug("Initializing", elements.length, "copy groups")
 
@@ -34,7 +34,7 @@ export const configureCopyGroups = (root: ParentNode): void => {
                 console.debug("Copied to clipboard")
             } catch (error) {
                 console.warn("Failed to write to clipboard", error)
-                if (error instanceof Error) alert(error.message)
+                alert(error.message)
                 return
             }
 

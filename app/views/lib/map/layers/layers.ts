@@ -217,7 +217,7 @@ layersConfig.set("gps" as LayerId, {
     priority: 60,
 })
 
-const layerLookupMap = memoize((): Map<LayerId | LayerCode, LayerId> => {
+const layerLookupMap = memoize(() => {
     console.debug(
         "Lazily initializing layerLookupMap with",
         layersConfig.size,
@@ -245,9 +245,8 @@ const layerLookupMap = memoize((): Map<LayerId | LayerCode, LayerId> => {
  * resolveLayerCodeOrId("mapnik")
  * // => "standard"
  */
-export const resolveLayerCodeOrId = (
-    layerCodeOrId: LayerCode | LayerId,
-): LayerId | undefined => layerLookupMap().get(layerCodeOrId)
+export const resolveLayerCodeOrId = (layerCodeOrId: LayerCode | LayerId) =>
+    layerLookupMap().get(layerCodeOrId)
 
 export const DEFAULT_LAYER_ID = "standard" as LayerId
 
@@ -259,7 +258,7 @@ export const DEFAULT_LAYER_ID = "standard" as LayerId
 export const addMapLayerSources = (
     map: MaplibreMap,
     kind: "all" | "base" | LayerId,
-): void => {
+) => {
     const exactConfig = layersConfig.get(kind as LayerId)
     const isDarkTheme = getActiveTheme() === "dark"
     let watchMap = false
@@ -326,10 +325,10 @@ addThemeEventHandler((theme) => {
     }
 })
 
-export const getExtendedLayerId = (layerId: LayerId, type: LayerType): string =>
+export const getExtendedLayerId = (layerId: LayerId, type: LayerType) =>
     `${layerId}:${type}`
 
-export const resolveExtendedLayerId = (extendedLayerId: string): LayerId => {
+export const resolveExtendedLayerId = (extendedLayerId: string) => {
     const i = extendedLayerId.indexOf(":")
     const layerId = i === -1 ? extendedLayerId : extendedLayerId.slice(0, i)
     return layerId as LayerId
@@ -344,7 +343,7 @@ type LayerEventHandler = (
 const layerEventHandlers: LayerEventHandler[] = []
 
 /** Add a layer event handler, called when a layer is added or removed */
-export const addLayerEventHandler = (handler: LayerEventHandler): void => {
+export const addLayerEventHandler = (handler: LayerEventHandler) => {
     layerEventHandlers.push(handler)
 }
 
@@ -370,7 +369,7 @@ export const addMapLayer = (
     map: MaplibreMap,
     layerId: LayerId,
     triggerEvent = true,
-): void => {
+) => {
     const config = layersConfig.get(layerId)
     if (!config) {
         console.warn("Layer", layerId, "not found in", layersConfig.keys())
@@ -498,7 +497,7 @@ export const removeMapLayer = (
     map: MaplibreMap,
     layerId: LayerId,
     triggerEvent = true,
-): void => {
+) => {
     let removed = false
     // Remove layers
     for (const extendedLayerId of map.getLayersOrder()) {
@@ -537,7 +536,7 @@ export const removeMapLayer = (
 }
 
 /** Test if a layer is present in the map */
-export const hasMapLayer = (map: MaplibreMap, layerId: LayerId): boolean => {
+export const hasMapLayer = (map: MaplibreMap, layerId: LayerId) => {
     for (const extendedLayerId of map.getLayersOrder()) {
         if (resolveExtendedLayerId(extendedLayerId) === layerId) return true
     }

@@ -72,23 +72,13 @@ mount("report-show-body", () => {
             const hasComment = commentTextarea.value.trim().length > 0
 
             if (closeBtn && commentCloseBtn) {
-                if (hasComment) {
-                    closeBtn.classList.add("d-none")
-                    commentCloseBtn.classList.remove("d-none")
-                } else {
-                    closeBtn.classList.remove("d-none")
-                    commentCloseBtn.classList.add("d-none")
-                }
+                closeBtn.classList.toggle("d-none", hasComment)
+                commentCloseBtn.classList.toggle("d-none", !hasComment)
             }
 
             if (reopenBtn && commentReopenBtn) {
-                if (hasComment) {
-                    reopenBtn.classList.add("d-none")
-                    commentReopenBtn.classList.remove("d-none")
-                } else {
-                    reopenBtn.classList.remove("d-none")
-                    commentReopenBtn.classList.add("d-none")
-                }
+                reopenBtn.classList.toggle("d-none", hasComment)
+                commentReopenBtn.classList.toggle("d-none", !hasComment)
             }
 
             // Disable comment button if no text

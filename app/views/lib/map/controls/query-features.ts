@@ -9,7 +9,7 @@ export const QUERY_FEATURES_MIN_ZOOM = 14
 export class QueryFeaturesControl implements IControl {
     public _container: HTMLElement
 
-    public onAdd(map: MaplibreMap): HTMLElement {
+    public onAdd(map: MaplibreMap) {
         const mapContainer = map.getContainer()
         const container = document.createElement("div")
         container.className = "maplibregl-ctrl maplibregl-ctrl-group query-features"
@@ -31,7 +31,7 @@ export class QueryFeaturesControl implements IControl {
             placement: "left",
         })
 
-        const onMapClick = ({ lngLat }: MapMouseEvent): void => {
+        const onMapClick = ({ lngLat }: MapMouseEvent) => {
             const zoom = map.getZoom()
             const zoomRounded = beautifyZoom(zoom)
             routerNavigateStrict(
@@ -84,7 +84,7 @@ export class QueryFeaturesControl implements IControl {
         return container
     }
 
-    public onRemove(): void {
+    public onRemove() {
         // Not implemented
     }
 }

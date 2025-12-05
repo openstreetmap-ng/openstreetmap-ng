@@ -1,7 +1,7 @@
 import { config } from "@lib/config"
 import type { LonLatZoom } from "@lib/map/state"
 import { qsEncode } from "@lib/qs"
-import type { Bounds, OSMObject } from "@lib/types"
+import type { OSMObject } from "@lib/types"
 import i18next from "i18next"
 
 const REMOTE_EDIT_HOST = "http://localhost:8111"
@@ -12,7 +12,7 @@ const REMOTE_EDIT_HOST = "http://localhost:8111"
  * getObjectRequestUrl({ type: "node", id: 123456 })
  * // => "https://api.openstreetmap.org/api/0.6/node/123456"
  */
-const getObjectRequestUrl = (object: OSMObject): string => {
+const getObjectRequestUrl = (object: OSMObject) => {
     const type = object.type === "note" ? "notes" : object.type
 
     // When requested for complex object, request for full version (incl. object's members)
@@ -29,10 +29,7 @@ const getObjectRequestUrl = (object: OSMObject): string => {
 }
 
 /** Get bounds from coordinates and zoom level */
-const getBoundsFromCoords = (
-    { lon, lat, zoom }: LonLatZoom,
-    paddingRatio = 0,
-): Bounds => {
+const getBoundsFromCoords = ({ lon, lat, zoom }: LonLatZoom, paddingRatio = 0) => {
     // Assume the map takes up the entire screen
     const mapHeight = window.innerHeight
     const mapWidth = window.innerWidth
@@ -49,7 +46,7 @@ const getBoundsFromCoords = (
 }
 
 /** Start remote edit in JOSM */
-export const remoteEdit = (button: HTMLButtonElement): void => {
+export const remoteEdit = async (button: HTMLButtonElement) => {
     console.debug("remoteEdit", button)
     const remoteEditJson = button.dataset.remoteEdit
     if (!remoteEditJson) {
@@ -75,32 +72,31 @@ export const remoteEdit = (button: HTMLButtonElement): void => {
     // Disable button while loading
     button.disabled = true
 
-    const loadAndZoomQuery = qsEncode(loadQuery)
-    fetch(`${REMOTE_EDIT_HOST}/load_and_zoom?${loadAndZoomQuery}`, {
-        method: "GET",
-        mode: "no-cors",
-        credentials: "omit",
-        cache: "no-store",
-        priority: "high",
-    })
-        .then(() => {
-            // Optionally import note
-            if (object && object.type === "note") {
-                const importQuery = qsEncode({ url: getObjectRequestUrl(object) })
-                return fetch(`${REMOTE_EDIT_HOST}/import?${importQuery}`, {
-                    method: "GET",
-                    mode: "no-cors",
-                    credentials: "omit",
-                    cache: "no-store",
-                    priority: "high",
-                })
-            }
+    try {
+        const loadAndZoomQuery = qsEncode(loadQuery)
+        await fetch(`${REMOTE_EDIT_HOST}/load_and_zoom?${loadAndZoomQuery}`, {
+            method: "GET",
+            mode: "no-cors",
+            credentials: "omit",
+            cache: "no-store",
+            priority: "high",
         })
-        .catch((error) => {
-            console.error("Failed to edit remotely", error)
-            alert(i18next.t("site.index.remote_failed"))
-        })
-        .finally(() => {
-            button.disabled = false
-        })
+
+        // Optionally import note
+        if (object && object.type === "note") {
+            const importQuery = qsEncode({ url: getObjectRequestUrl(object) })
+            await fetch(`${REMOTE_EDIT_HOST}/import?${importQuery}`, {
+                method: "GET",
+                mode: "no-cors",
+                credentials: "omit",
+                cache: "no-store",
+                priority: "high",
+            })
+        }
+    } catch (error) {
+        console.error("Failed to edit remotely", error)
+        alert(i18next.t("site.index.remote_failed"))
+    } finally {
+        button.disabled = false
+    }
 }

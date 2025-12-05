@@ -1,7 +1,7 @@
 import { throttle } from "@lib/throttle"
 import type { Bounds } from "@lib/types"
 import { mod } from "@lib/utils"
-import type { GeoJSON } from "geojson"
+import type { Feature, Polygon } from "geojson"
 import {
     type GeoJSONSource,
     type IControl,
@@ -40,7 +40,7 @@ export class LocationFilterControl implements IControl {
     private _corners: Marker[]
     private _onRenderHandlers: (() => void)[] = []
 
-    public addTo(map: MaplibreMap, bounds: LngLatBounds): this {
+    public addTo(map: MaplibreMap, bounds: LngLatBounds) {
         this._map = map
         addMapLayer(map, LAYER_ID)
 
@@ -83,7 +83,7 @@ export class LocationFilterControl implements IControl {
         return this
     }
 
-    public remove(): void {
+    public remove() {
         removeMapLayer(this._map, LAYER_ID)
         for (const corner of this._corners) corner.remove()
         this._corners = null
@@ -91,7 +91,7 @@ export class LocationFilterControl implements IControl {
         this._grabber = null
     }
 
-    public getBounds(): LngLatBounds {
+    public getBounds() {
         let [minLon, minLat, maxLon, maxLat] = this._bounds
         if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
         if (minLat > maxLat) [minLat, maxLat] = [maxLat, minLat]
@@ -151,7 +151,7 @@ export class LocationFilterControl implements IControl {
         this._render(i)
     }
 
-    private _render(i?: number): void {
+    private _render(i?: number) {
         const [minLon, minLat, maxLon, maxLat] = this._bounds
         if (i !== -1)
             this._grabber.setLngLat([
@@ -167,7 +167,7 @@ export class LocationFilterControl implements IControl {
         for (const handler of this._onRenderHandlers) handler()
     }
 
-    public addOnRenderHandler(handler: () => void): void {
+    public addOnRenderHandler(handler: () => void) {
         this._onRenderHandlers.push(handler)
     }
 
@@ -176,12 +176,12 @@ export class LocationFilterControl implements IControl {
         return
     }
 
-    public onRemove(): void {
+    public onRemove() {
         // Do nothing
     }
 }
 
-const createGrabberElement = (): HTMLElement => {
+const createGrabberElement = () => {
     const container = document.createElement("div")
     container.classList.add("location-filter-grabber")
     for (let i = 0; i < 9; i++) {
@@ -191,13 +191,13 @@ const createGrabberElement = (): HTMLElement => {
     return container
 }
 
-const createCornerElement = (): HTMLElement => {
+const createCornerElement = () => {
     const container = document.createElement("div")
     container.classList.add("location-filter-corner")
     return container
 }
 
-const getMaskData = ([minLon, minLat, maxLon, maxLat]: Bounds): GeoJSON => {
+const getMaskData = ([minLon, minLat, maxLon, maxLat]: Bounds): Feature<Polygon> => {
     // Normalize bounds
     if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
     if (minLat > maxLat) [minLat, maxLat] = [maxLat, minLat]

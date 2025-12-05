@@ -20,19 +20,19 @@ let currentPath: string | null = null
 let currentRoute: Route | null = null
 
 /** Find the first route that matches a path */
-const findRoute = (p: string): Route | null => routes.find((r) => r.match(p)) ?? null
+const findRoute = (p: string) => routes.find((r) => r.match(p)) ?? null
 
 /** Create a route object */
-export const makeRoute = (pattern: string, controller: IndexController): Route => {
+export const makeRoute = (pattern: string, controller: IndexController) => {
     // Ignore query string and require exact match
     const re = new RegExp(`^${pattern}($|\\?)`)
 
     return {
         /** Test if a path matches this route */
-        match: (path: string): boolean => re.test(path),
+        match: (path: string) => re.test(path),
 
         /** Execute load action on this route */
-        load: (path: string, reason: RouteLoadReason): void => {
+        load: (path: string, reason: RouteLoadReason) => {
             // Extract path parameters
             const matchGroups = re.exec(path).groups
             controller.load(matchGroups, reason)
@@ -43,14 +43,12 @@ export const makeRoute = (pattern: string, controller: IndexController): Route =
     }
 }
 
-/**
- * Remove trailing slash from a string
- * @example
- * removeTrailingSlash("/way/1234/")
- * // => "/way/1234"
- */
-const removeTrailingSlash = (s: string): string =>
-    s.endsWith("/") && s.length > 1 ? removeTrailingSlash(s.slice(0, -1)) : s
+/** Remove trailing slashes from a string, preserving the root "/" */
+const removeTrailingSlash = (s: string) => {
+    let end = s.length
+    while (end > 1 && s[end - 1] === "/") end--
+    return end < s.length ? s.slice(0, end) : s
+}
 
 /**
  * Navigate to a path and return true if successful
@@ -58,7 +56,7 @@ const removeTrailingSlash = (s: string): string =>
  * routerNavigate("/way/1234")
  * // => true
  */
-export const routerNavigate = (newPath: string): boolean => {
+export const routerNavigate = (newPath: string) => {
     console.debug("routerNavigate", newPath)
     const newRoute = findRoute(newPath)
     if (!newRoute) return false
@@ -77,25 +75,23 @@ export const routerNavigate = (newPath: string): boolean => {
  * @example
  * routerNavigateStrict("/way/1234")
  */
-export const routerNavigateStrict = (newPath: string): void => {
+export const routerNavigateStrict = (newPath: string) => {
     console.debug("routerNavigateStrict", newPath)
     if (!routerNavigate(newPath)) throw new Error(`No route found for path: ${newPath}`)
 }
 
 /** Configure the router */
-export const configureRouter = (
-    pathControllerMap: Map<string, IndexController>,
-): void => {
+export const configureRouter = (pathControllerMap: Map<string, IndexController>) => {
     routes = Array.from(pathControllerMap, ([p, c]) => makeRoute(p, c))
     console.debug("Loaded", routes.length, "application routes")
 
-    const getCurrentPath = (): string =>
+    const getCurrentPath = () =>
         unquotePlus(
             removeTrailingSlash(window.location.pathname) + window.location.search,
         )
 
     // Sync with browser back/forward navigation
-    window.addEventListener("popstate", (): void => {
+    window.addEventListener("popstate", () => {
         console.debug("onBrowserNavigation", location)
         const newPath = getCurrentPath()
         if (newPath === currentPath) return
@@ -108,7 +104,7 @@ export const configureRouter = (
     })
 
     // Intercept same-origin anchor clicks to route internally
-    window.addEventListener("click", (e: MouseEvent): void => {
+    window.addEventListener("click", (e: MouseEvent) => {
         if (
             e.defaultPrevented ||
             e.button !== 0 ||

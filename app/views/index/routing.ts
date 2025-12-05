@@ -1,6 +1,5 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
-import type { IndexController } from "@index/router"
 import { tryParsePoint, zoomPrecision } from "@lib/coords"
 import {
     formatDistance,
@@ -79,7 +78,7 @@ const DRAG_IMAGE_OFFSET_X = 12
 const DRAG_IMAGE_OFFSET_Y = 21
 
 /** Create a new routing controller */
-export const getRoutingController = (map: MaplibreMap): IndexController => {
+export const getRoutingController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const mapContainer = map.getContainer()
     const sidebar = getActionSidebar("routing")
@@ -131,14 +130,14 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         className: "route-steps",
     })
 
-    const markerFactory = (color: MarkerColor): Marker =>
+    const markerFactory = (color: MarkerColor) =>
         new Marker({
             anchor: MARKER_ICON_ANCHOR,
             element: getMarkerIconElement(color, true),
             draggable: true,
         })
 
-    const getOrCreateMarker = (dir: "start" | "end"): Marker => {
+    const getOrCreateMarker = (dir: "start" | "end") => {
         if (dir === "start") {
             if (!startMarker) {
                 startMarker = markerFactory("green")
@@ -178,7 +177,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     startDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
     endDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
 
-    const openPopup = (result: Element, lngLat: LngLatLike): void => {
+    const openPopup = (result: Element, lngLat: LngLatLike) => {
         const content = popupTemplate.content.cloneNode(true) as DocumentFragment
         content.querySelector(".number").innerHTML =
             result.querySelector(".number").innerHTML
@@ -206,7 +205,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     })
 
     /** Update hovered step and map feature atomically */
-    const updateHover = (id: number | null, scrollIntoView = false): void => {
+    const updateHover = (id: number | null, scrollIntoView = false) => {
         if (id === hoverId) return
 
         if (hoverId !== null) {
@@ -233,11 +232,11 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         }
     }
 
-    const onSidebarMouseMove = (e: MouseEvent): void => {
+    const onSidebarMouseMove = (e: MouseEvent) => {
         lastMouse = [e.clientX, e.clientY]
     }
 
-    const onSidebarScroll = (): void => {
+    const onSidebarScroll = () => {
         if (!lastMouse) return
         const [x, y] = lastMouse
         const r = parentSidebar.getBoundingClientRect()
@@ -247,7 +246,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     }
 
     /** On marker drag end, update the form's coordinates */
-    const onMapMarkerDragEnd = (lngLat: LngLat, isStart: boolean): void => {
+    const onMapMarkerDragEnd = (lngLat: LngLat, isStart: boolean) => {
         console.debug("onMapMarkerDragEnd", lngLat, isStart)
 
         const precision = zoomPrecision(map.getZoom())
@@ -386,7 +385,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         },
     )
 
-    const updateEndpoints = (data: RoutingResult): void => {
+    const updateEndpoints = (data: RoutingResult) => {
         const updateEndpoint = (
             dir: "start" | "end",
             entry: RoutingResult_Endpoint,
@@ -429,7 +428,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         }
     }
 
-    const updateUrl = (): void => {
+    const updateUrl = () => {
         if (!startMarker || !endMarker) return
         const routingEngineName = engineInput.value
 
@@ -452,7 +451,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         window.history.replaceState(null, "", url)
     }
 
-    const updateRoute = (route: RoutingResult): void => {
+    const updateRoute = (route: RoutingResult) => {
         const lines: Feature<LineString>[] = []
         const allCoords = decodeLonLat(route.line, route.lineQuality)
 
@@ -519,12 +518,10 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         routeTime.textContent = formatTime(totalTime)
 
         // Display the optional elevation information
+        routeElevationContainer.classList.toggle("d-none", !route.elevation)
         if (route.elevation) {
-            routeElevationContainer.classList.remove("d-none")
             routeAscend.textContent = formatHeight(route.elevation.ascend)
             routeDescend.textContent = formatHeight(route.elevation.descend)
-        } else {
-            routeElevationContainer.classList.add("d-none")
         }
 
         // Display the turn-by-turn table
@@ -622,6 +619,6 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
 }
 
 /** Get initial routing engine identifier */
-const getInitialRoutingEngine = (engine?: string): string | null => {
+const getInitialRoutingEngine = (engine?: string) => {
     return engine ?? routingEngineStorage.get()
 }

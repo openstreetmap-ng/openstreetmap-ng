@@ -29,7 +29,7 @@ mount("admin-applications-body", (body) => {
             await navigator.clipboard.writeText(json)
         } catch (error) {
             console.warn("Failed to copy app IDs", error)
-            if (error instanceof Error) alert(error.message)
+            alert(error.message)
         }
     })
 

@@ -27,7 +27,7 @@ export const renderObjects = (
 ): FeatureCollection => {
     const features: Feature[] = []
 
-    const processChangeset = (changeset: OSMChangeset): void => {
+    const processChangeset = (changeset: OSMChangeset) => {
         const properties = {
             type: "changeset",
             id: changeset.id.toString(),
@@ -65,7 +65,7 @@ export const renderObjects = (
         }
     }
 
-    const processNode = (node: OSMNode): void => {
+    const processNode = (node: OSMNode) => {
         features.push({
             type: "Feature",
             id: featureIdCounter++,
@@ -81,7 +81,7 @@ export const renderObjects = (
     }
 
     const renderAreas = options?.renderAreas ?? true
-    const processWay = (way: OSMWay): void => {
+    const processWay = (way: OSMWay) => {
         const properties = {
             type: "way",
             id: way.id.toString(),
@@ -108,7 +108,7 @@ export const renderObjects = (
         }
     }
 
-    const processNote = (note: OSMNote): void => {
+    const processNote = (note: OSMNote) => {
         features.push({
             type: "Feature",
             id: featureIdCounter++,
@@ -145,7 +145,7 @@ export const renderObjects = (
 /** Convert render data to OSMChangesets */
 export const convertRenderChangesetsData = (
     changesets: RenderChangesetsData_Changeset[],
-): OSMChangeset[] => {
+) => {
     const result: OSMChangeset[] = []
     for (const changeset of changesets) {
         const bounds: Bounds[] = []
@@ -162,9 +162,7 @@ export const convertRenderChangesetsData = (
 }
 
 /** Convert render data to OSMObjects */
-export const convertRenderElementsData = (
-    render: RenderElementsData,
-): (OSMNode | OSMWay)[] => {
+export const convertRenderElementsData = (render: RenderElementsData) => {
     const result: (OSMNode | OSMWay)[] = []
     for (const way of render.ways) {
         result.push({
@@ -185,7 +183,7 @@ export const convertRenderElementsData = (
 }
 
 /** Convert render notes data to OSMNotes */
-export const convertRenderNotesData = (render: RenderNotesData): OSMNote[] => {
+export const convertRenderNotesData = (render: RenderNotesData) => {
     const result: OSMNote[] = []
     for (const note of render.notes) {
         result.push({

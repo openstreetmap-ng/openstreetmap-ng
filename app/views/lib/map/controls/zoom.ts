@@ -7,7 +7,7 @@ export class CustomZoomControl extends NavigationControl {
         super({ showCompass: false })
     }
 
-    public override onAdd(map: MaplibreMap): HTMLElement {
+    public override onAdd(map: MaplibreMap) {
         const container = super.onAdd(map)
 
         const zoomInButton = container.querySelector("button.maplibregl-ctrl-zoom-in")

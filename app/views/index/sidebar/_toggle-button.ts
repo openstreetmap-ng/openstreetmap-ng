@@ -14,7 +14,7 @@ export class SidebarToggleControl implements IControl {
         this._tooltipTitle = tooltipTitle
     }
 
-    public onAdd(map: MaplibreMap): HTMLElement {
+    public onAdd(map: MaplibreMap) {
         // Find corresponding sidebar
         const sidebar = document.querySelector(`div.leaflet-sidebar.${this._className}`)
         if (!sidebar) console.error("Sidebar", this._className, "not found")
@@ -76,7 +76,7 @@ export class SidebarToggleControl implements IControl {
         return container
     }
 
-    public onRemove(_: MaplibreMap): void {
+    public onRemove(_: MaplibreMap) {
         // Do nothing
     }
 }

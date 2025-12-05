@@ -80,7 +80,7 @@ addMapLayer(map, layerId)
  * getFixTheMapLink(5.123456, 6.123456, 17)
  * // => "https://www.openstreetmap.org/fixthemap?lat=6.123456&lon=5.123456&zoom=17"
  */
-const getFixTheMapLink = ({ lon, lat, zoom }: LonLatZoom): string => {
+const getFixTheMapLink = ({ lon, lat, zoom }: LonLatZoom) => {
     const zoomRounded = beautifyZoom(zoom)
     const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)

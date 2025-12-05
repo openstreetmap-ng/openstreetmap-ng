@@ -1,6 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
-import type { IndexController, RouteLoadReason } from "@index/router"
+import type { RouteLoadReason } from "@index/router"
 import { routerNavigateStrict } from "@index/router"
 import { darkenColor } from "@lib/color"
 import { resolveDatetimeLazy } from "@lib/datetime-inputs"
@@ -120,7 +120,7 @@ const LOAD_MORE_SCROLL_BUFFER = 1000
 const RELOAD_PROPORTION_THRESHOLD = 0.9
 
 /** Create a new changesets history controller */
-export const getChangesetsHistoryController = (map: MaplibreMap): IndexController => {
+export const getChangesetsHistoryController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const sourceBorders = map.getSource(LAYER_ID_BORDERS) as GeoJSONSource
     const sidebar = getActionSidebar("changesets-history")
@@ -151,12 +151,12 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     let sidebarHoverId: string | null = null
     let shouldFitOnInitialLoad = false
 
-    const cancelSidebarHoverFit = (): void => {
+    const cancelSidebarHoverFit = () => {
         clearTimeout(sidebarHoverTimer)
         sidebarHoverId = null
     }
 
-    const changesetIsWithinView = (changesetId: string): boolean => {
+    const changesetIsWithinView = (changesetId: string) => {
         const cs = idChangesetMap.get(changesetId)
         const mapBounds = map.getBounds()
         return cs.bounds.some((b) => {
@@ -165,7 +165,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         })
     }
 
-    const scheduleSidebarFit = (changesetId: string): void => {
+    const scheduleSidebarFit = (changesetId: string) => {
         clearTimeout(sidebarHoverTimer)
         sidebarHoverId = changesetId
         sidebarHoverTimer = setTimeout(() => {
@@ -185,7 +185,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         }, FOCUS_HOVER_DELAY)
     }
 
-    const resetChangesets = (): void => {
+    const resetChangesets = () => {
         console.debug("resetChangesets")
         onMapMouseLeave()
         source.setData(emptyFeatureCollection)
@@ -206,7 +206,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     /** Update changeset visibility states */
-    const updateLayersVisibility = (): void => {
+    const updateLayersVisibility = () => {
         const sidebarRect = parentSidebar.getBoundingClientRect()
         const sidebarTop = sidebarRect.top
         const sidebarBottom = sidebarRect.bottom
@@ -272,15 +272,14 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     const throttledUpdateLayersVisibility = throttle(updateLayersVisibility, 50)
 
     /** Calculate opacity based on distance using FADE_SPEED */
-    const distanceOpacity = (distance: number): number =>
-        Math.max(1 - distance * FADE_SPEED, 0)
+    const distanceOpacity = (distance: number) => Math.max(1 - distance * FADE_SPEED, 0)
 
     /** Update changeset visibility and calculate consecutive hidden ranges */
     const updateFeatureState = (
         changesetId: string,
         state: "above" | "visible" | "below",
         distance: number,
-    ): void => {
+    ) => {
         const firstFeatureId = idFirstFeatureIdMap.get(changesetId)
         if (!firstFeatureId) return
         const changeset = idChangesetMap.get(changesetId)
@@ -387,7 +386,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     let hoveredChangeset: RenderChangesetsData_Changeset | null = null
-    const updateSidebar = (appendMode: boolean, newChangesetsLength: number): void => {
+    const updateSidebar = (appendMode: boolean, newChangesetsLength: number) => {
         if (!appendMode) idSidebarMap.clear()
 
         const fragment = document.createDocumentFragment()
@@ -496,7 +495,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         { id, numBounds }: GeoJsonProperties,
         hover: boolean,
         scrollIntoView = false,
-    ): void => {
+    ) => {
         const result = idSidebarMap.get(id)
         result?.classList.toggle("hover", hover)
 
@@ -556,7 +555,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     map.on("mouseleave", LAYER_IDFill, onMapMouseLeave)
 
     /** On sidebar scroll, update changeset visibility and load more if needed */
-    const onSidebarScroll = (): void => {
+    const onSidebarScroll = () => {
         // Update changeset visibility based on scroll position
         throttledUpdateLayersVisibility()
 
@@ -572,7 +571,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
     }
 
     /** On map update, fetch the changesets in view and update the changesets layer */
-    const updateState = (e?: any): void => {
+    const updateState = async (e?: any) => {
         if (e?.skipUpdateState) return
 
         // Request full world when initial loading for scope/user
@@ -652,61 +651,63 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         abortController = new AbortController()
         const signal = abortController.signal
 
-        fetch(`/api/web/changeset/map?${qsEncode(params)}`, {
-            signal: signal,
-            priority: "high",
-        })
-            .then(async (resp) => {
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+        try {
+            const resp = await fetch(`/api/web/changeset/map?${qsEncode(params)}`, {
+                signal: signal,
+                priority: "high",
+            })
+            if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
-                const buffer = await resp.arrayBuffer()
-                const newChangesets = fromBinary(
-                    RenderChangesetsDataSchema,
-                    new Uint8Array(buffer),
-                ).changesets
+            const buffer = await resp.arrayBuffer()
+            const newChangesets = fromBinary(
+                RenderChangesetsDataSchema,
+                new Uint8Array(buffer),
+            ).changesets
 
-                if (newChangesets.length) {
-                    const appendMode = Boolean(changesets.length)
-                    changesets.push(...newChangesets)
-                    for (const cs of newChangesets) {
-                        idChangesetMap.set(cs.id.toString(), cs)
-                    }
-                    console.debug(
-                        "Changesets layer showing",
-                        changesets.length,
-                        "changesets, including",
-                        newChangesets.length,
-                        "new",
-                    )
-                    updateLayers()
-                    updateSidebar(appendMode, newChangesets.length)
-                    requestAnimationFramePolyfill(updateLayersVisibility)
-                } else {
-                    console.debug("No more changesets")
-                    noMoreChangesets = true
+            if (newChangesets.length) {
+                const appendMode = Boolean(changesets.length)
+                changesets.push(...newChangesets)
+                for (const cs of newChangesets) {
+                    idChangesetMap.set(cs.id.toString(), cs)
                 }
+                console.debug(
+                    "Changesets layer showing",
+                    changesets.length,
+                    "changesets, including",
+                    newChangesets.length,
+                    "new",
+                )
+                updateLayers()
+                updateSidebar(appendMode, newChangesets.length)
+                requestAnimationFramePolyfill(updateLayersVisibility)
+            } else {
+                console.debug("No more changesets")
+                noMoreChangesets = true
+            }
 
-                fetchedBounds = fetchBounds
-                fetchedDate = fetchDate
+            fetchedBounds = fetchBounds
+            fetchedDate = fetchDate
 
-                if (changesets.length)
-                    for (const indicator of scrollIndicators)
-                        indicator.classList.remove("d-none")
-            })
-            .catch((error: Error) => {
-                if (error.name === "AbortError") return
-                console.error("Failed to fetch map data", error)
-                resetChangesets()
-            })
-            .finally(() => {
-                if (signal.aborted) return
+            if (changesets.length)
+                for (const indicator of scrollIndicators)
+                    indicator.classList.remove("d-none")
+        } catch (error) {
+            if (error.name === "AbortError") return
+            console.error("Failed to fetch map data", error)
+            resetChangesets()
+        } finally {
+            if (!signal.aborted) {
                 loadingContainer.classList.add("d-none")
                 parentSidebar.addEventListener("scroll", onSidebarScroll)
-            })
+            }
+        }
     }
 
     return {
-        load: ({ scope, displayName }, reason?: RouteLoadReason) => {
+        load: (
+            { scope, displayName }: { scope?: string; displayName?: string },
+            reason?: RouteLoadReason,
+        ) => {
             loadScope = scope
             loadDisplayName = displayName
             shouldFitOnInitialLoad =

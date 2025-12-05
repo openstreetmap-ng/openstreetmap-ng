@@ -1,7 +1,7 @@
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
 
 /** Add a control group to the map */
-export const addControlGroup = (map: MaplibreMap, controls: IControl[]): void => {
+export const addControlGroup = (map: MaplibreMap, controls: IControl[]) => {
     for (const [i, control] of controls.entries()) {
         map.addControl(control)
 

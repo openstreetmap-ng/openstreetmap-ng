@@ -1,6 +1,6 @@
 import type { Map as MaplibreMap } from "maplibre-gl"
 
-export const configureDefaultMapBehavior = (map: MaplibreMap): void => {
+export const configureDefaultMapBehavior = (map: MaplibreMap) => {
     map.setProjection({ type: "mercator" })
 
     map.dragRotate.disable()

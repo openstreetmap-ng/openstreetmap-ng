@@ -14,7 +14,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
         super("legend", "javascripts.key.tooltip")
     }
 
-    public override onAdd(map: MaplibreMap): HTMLElement {
+    public override onAdd(map: MaplibreMap) {
         const container = super.onAdd(map)
         const button = container.querySelector("button")
 
@@ -79,7 +79,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
         })
 
         /** Update the sidebar content to show only relevant elements */
-        const updateSidebar = (): void => {
+        const updateSidebar = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 

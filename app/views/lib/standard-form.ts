@@ -29,7 +29,7 @@ export const configureStandardForm = (
         ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null
         errorCallback?: (error: Error) => void
     },
-): void => {
+) => {
     if (!form || form.classList.contains("needs-validation")) return
     let formAction = form.getAttribute("action") ?? ""
     console.debug("Initializing standard form", formAction)
@@ -45,7 +45,7 @@ export const configureStandardForm = (
     if (passwordInputs.length) configurePasswordsForm(form, passwordInputs)
     let abortController: AbortController | null = null
 
-    const setPendingState = (state: boolean): void => {
+    const setPendingState = (state: boolean) => {
         const currentState = form.classList.contains("pending")
         if (currentState === state) return
         console.debug("configureStandardForm", "setPendingState", state)
@@ -63,7 +63,7 @@ export const configureStandardForm = (
         element: HTMLInputElement | HTMLTextAreaElement,
         type: "success" | "info" | "error",
         message: string,
-    ): void => {
+    ) => {
         if (element.classList.contains("hidden-password-input")) {
             const actualElement = form.querySelector(
                 `input[type=password][data-name="${element.name}"]`,
@@ -84,17 +84,11 @@ export const configureStandardForm = (
             element.after(feedback)
         }
 
-        if (type === "success" || type === "info") {
-            feedback.classList.add("valid-tooltip")
-            feedback.classList.remove("invalid-tooltip")
-            element.classList.add("is-valid")
-            element.classList.remove("is-invalid")
-        } else {
-            feedback.classList.add("invalid-tooltip")
-            feedback.classList.remove("valid-tooltip")
-            element.classList.add("is-invalid")
-            element.classList.remove("is-valid")
-        }
+        const isValid = type === "success" || type === "info"
+        feedback.classList.toggle("valid-tooltip", isValid)
+        feedback.classList.toggle("invalid-tooltip", !isValid)
+        element.classList.toggle("is-valid", isValid)
+        element.classList.toggle("is-invalid", !isValid)
 
         feedback.textContent = message
 
@@ -128,7 +122,7 @@ export const configureStandardForm = (
         type: "success" | "info" | "error",
         message: string,
         after?: HTMLElement,
-    ): void => {
+    ) => {
         if (!message) return
 
         let feedback = form.querySelector(".form-feedback")
@@ -196,16 +190,9 @@ export const configureStandardForm = (
             }
         }
 
-        if (type === "success") {
-            feedback.classList.remove("alert-info", "alert-danger")
-            feedback.classList.add("alert-success")
-        } else if (type === "info") {
-            feedback.classList.remove("alert-success", "alert-danger")
-            feedback.classList.add("alert-info")
-        } else {
-            feedback.classList.remove("alert-success", "alert-info")
-            feedback.classList.add("alert-danger")
-        }
+        feedback.classList.toggle("alert-success", type === "success")
+        feedback.classList.toggle("alert-info", type === "info")
+        feedback.classList.toggle("alert-danger", type === "error")
 
         feedback.firstElementChild.textContent = message
 
@@ -228,7 +215,7 @@ export const configureStandardForm = (
         form.addEventListener("submit", onInvalidated, { once: true })
     }
 
-    const processFormFeedback = (detail: string | APIDetail[]): void => {
+    const processFormFeedback = (detail: string | APIDetail[]) => {
         console.debug("Received form feedback", detail)
 
         if (Array.isArray(detail)) {
@@ -345,53 +332,51 @@ export const configureStandardForm = (
             }
         }
 
-        fetch(url, {
-            method,
-            body,
-            signal: abortController?.signal,
-            priority: "high",
-        })
-            .then(async (resp) => {
-                if (resp.ok) console.debug("Form submitted successfully")
-
-                let data: any
-                const contentType = resp.headers.get("Content-Type") ?? ""
-                if (contentType.startsWith("application/json")) {
-                    console.debug("Reading JSON response")
-                    data = await resp.json()
-                } else if (contentType === "application/x-protobuf") {
-                    console.debug("Reading Protobuf response")
-                    data = { protobuf: new Uint8Array(await resp.arrayBuffer()) }
-                } else {
-                    console.debug("Reading text response")
-                    data = { detail: await resp.text() }
-                }
-
-                // Process form feedback if present
-                const detail = data.detail
-                if (detail) processFormFeedback(detail)
-
-                // If the request was successful, call the callback
-                if (resp.ok) {
-                    successCallback?.(data)
-                } else {
-                    options?.errorCallback?.(new Error(detail ?? ""))
-                }
+        try {
+            const resp = await fetch(url, {
+                method,
+                body,
+                signal: abortController?.signal,
+                priority: "high",
             })
-            .catch((error: Error) => {
-                if (error.name === "AbortError") return
-                console.error("Failed to submit standard form", error)
-                handleFormFeedback("error", error.message)
-                options?.errorCallback?.(error)
-            })
-            .finally(() => {
-                setPendingState(false)
-            })
+            if (resp.ok) console.debug("Form submitted successfully")
+
+            let data: any
+            const contentType = resp.headers.get("Content-Type") ?? ""
+            if (contentType.startsWith("application/json")) {
+                console.debug("Reading JSON response")
+                data = await resp.json()
+            } else if (contentType === "application/x-protobuf") {
+                console.debug("Reading Protobuf response")
+                data = { protobuf: new Uint8Array(await resp.arrayBuffer()) }
+            } else {
+                console.debug("Reading text response")
+                data = { detail: await resp.text() }
+            }
+
+            // Process form feedback if present
+            const detail = data.detail
+            if (detail) processFormFeedback(detail)
+
+            // If the request was successful, call the callback
+            if (resp.ok) {
+                successCallback?.(data)
+            } else {
+                options?.errorCallback?.(new Error(detail ?? ""))
+            }
+        } catch (error) {
+            if (error.name === "AbortError") return
+            console.error("Failed to submit standard form", error)
+            handleFormFeedback("error", error.message)
+            options?.errorCallback?.(error)
+        } finally {
+            setPendingState(false)
+        }
     })
 }
 
 /** Find the scrollable container for the form */
-const findScrollableContainer = (element: Element): Element => {
+const findScrollableContainer = (element: Element) => {
     let current = element.parentElement
     while (current && current !== document.body) {
         const style = window.getComputedStyle(current)

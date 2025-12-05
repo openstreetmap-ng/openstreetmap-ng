@@ -1,12 +1,12 @@
 import { cancelIdleCallbackPolyfill, requestIdleCallbackPolyfill } from "@lib/polyfills"
 
 /** Memoize a function result, depending on the arguments */
-export const memoize = <T extends (...args: any[]) => any>(fn: T): T => {
+export const memoize = <T extends (...args: any[]) => any>(fn: T) => {
     let noArgsCalled = false
     let noArgsResult: ReturnType<T> | undefined
     const cache = new Map<string, ReturnType<T>>()
 
-    return ((...args: Parameters<T>): ReturnType<T> => {
+    return ((...args: Parameters<T>) => {
         // Fast path for zero-argument calls
         if (args.length === 0) {
             if (noArgsCalled) return noArgsResult
@@ -30,7 +30,7 @@ export const memoize = <T extends (...args: any[]) => any>(fn: T): T => {
 export const wrapIdleCallbackStatic = <T extends (...args: any[]) => any>(
     fn: T,
     timeout = 5000,
-): T => {
+) => {
     let idleCallbackId: number | null = null
     return ((...args: any[]) => {
         cancelIdleCallbackPolyfill(idleCallbackId)

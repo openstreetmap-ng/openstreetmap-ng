@@ -1,7 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
-import type { IndexController } from "@index/router"
 import { prefersReducedMotion } from "@lib/config"
 import { isLatitude, isLongitude, isZoom } from "@lib/coords"
 import { QUERY_FEATURES_MIN_ZOOM } from "@lib/map/controls/query-features"
@@ -15,7 +14,6 @@ import {
     removeMapLayer,
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import type { LonLatZoom } from "@lib/map/state"
 import { memoize } from "@lib/memoize"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { PartialQueryFeaturesParamsSchema } from "@lib/proto/shared_pb"
@@ -59,7 +57,7 @@ const focusPaint: FocusLayerPaint = {
 }
 
 /** Create a new query features controller */
-export const getQueryFeaturesController = (map: MaplibreMap): IndexController => {
+export const getQueryFeaturesController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const sidebar = getActionSidebar("query-features")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
@@ -73,7 +71,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
     let abortController: AbortController | null = null
 
     /** Get query position from URL */
-    const getURLQueryPosition = (): LonLatZoom | null => {
+    const getURLQueryPosition = () => {
         const searchParams = qsParse(window.location.search)
         if (searchParams.lon && searchParams.lat) {
             const lon = Number.parseFloat(searchParams.lon)
@@ -92,7 +90,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
     }
 
     /** Configure result actions to handle focus and clicks */
-    const configureResultActions = (container: HTMLElement): void => {
+    const configureResultActions = (container: HTMLElement) => {
         const queryList = container.querySelector("ul.search-list")
         const resultActions = queryList.querySelectorAll("li.social-entry.clickable")
         const params = fromBinary(
@@ -115,7 +113,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
         center: LngLat,
         zoom: number,
         abortSignal: AbortSignal,
-    ): void => {
+    ) => {
         nearbyContainer.innerHTML = nearbyLoadingHtml
 
         const radiusMeters = 10 * 1.5 ** (19 - zoom)
@@ -146,13 +144,13 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
     }
 
     /** On sidebar loaded, display content */
-    const onSidebarLoaded = (html: string): void => {
+    const onSidebarLoaded = (html: string) => {
         nearbyContainer.innerHTML = html
         configureResultActions(nearbyContainer)
     }
 
     return {
-        load: () => {
+        load: async () => {
             switchActionSidebar(map, sidebar)
             setPageTitle(sidebarTitle)
 
@@ -176,27 +174,26 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
             // Fetch nearby features
             const zoomFloor = zoom | 0
             onSidebarLoading(center, zoomFloor, abortSignal)
-            fetch(
-                `/partial/query/nearby?${qsEncode({
-                    lon: lon.toString(),
-                    lat: lat.toString(),
-                    zoom: zoomFloor.toString(),
-                })}`,
-                { signal: abortSignal, priority: "high" },
-            )
-                .then(async (resp) => {
-                    onSidebarLoaded(await resp.text())
-                })
-                .catch((error: Error) => {
-                    if (error.name === "AbortError") return
-                    console.error("Failed to fetch query features", error)
-                    onSidebarLoaded(
-                        i18next.t("javascripts.query.error", {
-                            server: window.location.host,
-                            error: error.message,
-                        }),
-                    )
-                })
+            try {
+                const resp = await fetch(
+                    `/partial/query/nearby?${qsEncode({
+                        lon: lon.toString(),
+                        lat: lat.toString(),
+                        zoom: zoomFloor.toString(),
+                    })}`,
+                    { signal: abortSignal, priority: "high" },
+                )
+                onSidebarLoaded(await resp.text())
+            } catch (error) {
+                if (error.name === "AbortError") return
+                console.error("Failed to fetch query features", error)
+                onSidebarLoaded(
+                    i18next.t("javascripts.query.error", {
+                        server: window.location.host,
+                        error: error.message,
+                    }),
+                )
+            }
         },
         unload: (newPath?: string) => {
             // On navigation, deactivate query features button
@@ -264,5 +261,4 @@ const getCircleFeature = (
     }
 }
 
-const metersToDegrees = (meters: number): number =>
-    meters / (6371000 / 57.29577951308232) // R / (180 / pi)
+const metersToDegrees = (meters: number) => meters / (6371000 / 57.29577951308232) // R / (180 / pi)

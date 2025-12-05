@@ -1,5 +1,5 @@
 /** Render a static trace to the given SVG element */
-export const renderTrace = (svg: SVGElement, coords: [number, number][]): void => {
+export const renderTrace = (svg: SVGElement, coords: [number, number][]) => {
     if (!coords.length) return
     const pathData = generatePathData(coords)
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
@@ -54,7 +54,7 @@ export const renderAnimatedTrace = (svg: SVGElement, coords: [number, number][])
 }
 
 /** Generate a path data string from coordinates in [x, y] pairs */
-const generatePathData = (coords: [number, number][]): string => {
+const generatePathData = (coords: [number, number][]) => {
     let d = `M${coords[0][0]},${coords[0][1]}`
     for (let i = 1; i < coords.length; i++) d += ` L${coords[i][0]},${coords[i][1]}`
     return d

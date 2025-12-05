@@ -28,7 +28,7 @@ mount("messages-index-body", (body) => {
     let openMessageId: string | null = null
 
     /** Open a message in the sidebar preview panel */
-    const openMessagePreview = (target: HTMLElement) => {
+    const openMessagePreview = async (target: HTMLElement) => {
         const newMessageId = target.dataset.id
         if (openMessageId === newMessageId) return
         if (openTarget) closeMessagePreview()
@@ -69,72 +69,70 @@ mount("messages-index-body", (body) => {
             block: "start",
         })
 
-        fetch(`/api/web/messages/${openMessageId}`, {
-            signal: abortController.signal,
-            priority: "high",
-        })
-            .then(async (resp) => {
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-                const { sender, recipients, time, subject, body_rich, is_recipient } =
-                    await resp.json()
-                console.debug(
-                    "Fetched message",
-                    openMessageId,
-                    sender,
-                    recipients,
-                    is_recipient,
-                )
-
-                senderAvatar.src = sender.avatar_url
-                senderLink.href = `/user/${sender.display_name}`
-                senderLink.textContent = sender.display_name
-                messageTime.innerHTML = time
-
-                // Add each recipient
-                const messageRecipientsFragment = document.createDocumentFragment()
-                for (const user of recipients) {
-                    const userElement = recipientTemplate.content.cloneNode(
-                        true,
-                    ) as HTMLElement
-                    const avatar = userElement.querySelector("img.avatar")
-                    const link = userElement.querySelector("a.user-link")
-
-                    avatar.src = user.avatar_url
-                    link.href = `/user/${user.display_name}`
-                    link.textContent = user.display_name
-
-                    messageRecipientsFragment.appendChild(userElement)
-                }
-                messageRecipients.innerHTML = ""
-                messageRecipients.appendChild(messageRecipientsFragment)
-                if (replyAllLink && recipients.length > 1) {
-                    replyAllLink.classList.remove("d-none")
-                }
-
-                // Hide button group when moderator viewing reported message
-                btnGroup.classList.toggle("disabled", !is_recipient)
-
-                messageTitle.textContent = subject
-                messageBody.innerHTML = body_rich
-                resolveDatetimeLazy(messageTime)
-
-                // Configure report button
-                configureReportButton(reportButton, {
-                    type: "user",
-                    typeId: sender.id,
-                    action: "user_message",
-                    actionId: openMessageId,
-                })
+        try {
+            const resp = await fetch(`/api/web/messages/${openMessageId}`, {
+                signal: abortController.signal,
+                priority: "high",
             })
-            .catch((error: Error) => {
-                if (error.name === "AbortError") return
-                console.error("Failed to fetch message", error)
-                messageBody.textContent = error.message
-                alert(error.message)
+            if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+            const { sender, recipients, time, subject, body_rich, is_recipient } =
+                await resp.json()
+            console.debug(
+                "Fetched message",
+                openMessageId,
+                sender,
+                recipients,
+                is_recipient,
+            )
+
+            senderAvatar.src = sender.avatar_url
+            senderLink.href = `/user/${sender.display_name}`
+            senderLink.textContent = sender.display_name
+            messageTime.innerHTML = time
+
+            // Add each recipient
+            const messageRecipientsFragment = document.createDocumentFragment()
+            for (const user of recipients) {
+                const userElement = recipientTemplate.content.cloneNode(
+                    true,
+                ) as HTMLElement
+                const avatar = userElement.querySelector("img.avatar")
+                const link = userElement.querySelector("a.user-link")
+
+                avatar.src = user.avatar_url
+                link.href = `/user/${user.display_name}`
+                link.textContent = user.display_name
+
+                messageRecipientsFragment.appendChild(userElement)
+            }
+            messageRecipients.innerHTML = ""
+            messageRecipients.appendChild(messageRecipientsFragment)
+            if (replyAllLink && recipients.length > 1) {
+                replyAllLink.classList.remove("d-none")
+            }
+
+            // Hide button group when moderator viewing reported message
+            btnGroup.classList.toggle("disabled", !is_recipient)
+
+            messageTitle.textContent = subject
+            messageBody.innerHTML = body_rich
+            resolveDatetimeLazy(messageTime)
+
+            // Configure report button
+            configureReportButton(reportButton, {
+                type: "user",
+                typeId: sender.id,
+                action: "user_message",
+                actionId: openMessageId,
             })
-            .finally(() => {
-                loadingSpinner.classList.add("d-none")
-            })
+        } catch (error) {
+            if (error.name === "AbortError") return
+            console.error("Failed to fetch message", error)
+            messageBody.textContent = error.message
+            alert(error.message)
+        } finally {
+            loadingSpinner.classList.add("d-none")
+        }
     }
 
     /** Close the message sidebar preview panel */

@@ -8,7 +8,7 @@ type ThemeEventHandler = (theme: "light" | "dark") => void
 const themeEventHandlers: ThemeEventHandler[] = []
 
 /** Add a theme event handler, called when app theme is changed */
-export const addThemeEventHandler = (handler: ThemeEventHandler): number =>
+export const addThemeEventHandler = (handler: ThemeEventHandler) =>
     themeEventHandlers.push(handler)
 
 // Support for pages without a navbar
@@ -28,7 +28,7 @@ if (control) {
         themeIconMap.set(key, iconClass)
     }
 
-    const updateState = (forceAppTheme?: AppTheme): void => {
+    const updateState = (forceAppTheme?: AppTheme) => {
         const appTheme = forceAppTheme ?? themeStorage.get()
         const activeTheme = appTheme === "auto" ? getDeviceThemePreference() : appTheme
         console.debug(

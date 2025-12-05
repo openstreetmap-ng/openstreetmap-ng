@@ -1,7 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
-import type { IndexController } from "@index/router"
 import { setSearchFormQuery } from "@index/search-form"
 import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
 import { getMapAlert } from "@lib/map/alert"
@@ -85,7 +84,7 @@ const focusOptions: FocusOptions = {
 const SEARCH_ALERT_CHANGE_THRESHOLD = 0.9
 
 /** Create a new search controller */
-export const getSearchController = (map: MaplibreMap): IndexController => {
+export const getSearchController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const searchForm = document.querySelector("form.search-form")
     const searchAlert = getMapAlert("search-alert")
@@ -208,7 +207,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
         console.debug("Search layer showing", results.length, "results")
 
         /** Set the hover state of the search features */
-        setHover = (id: number, hover: boolean): void => {
+        setHover = (id: number, hover: boolean) => {
             const result = results[id]
             result?.classList.toggle("hover", hover)
 
@@ -267,8 +266,13 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
         }
     })
 
-    const controller: IndexController = {
-        load: (options) => {
+    const controller = {
+        load: (options?: {
+            lon?: string
+            lat?: string
+            zoom?: string
+            localOnly?: string
+        }) => {
             // Load image resources
             loadMapImage(map, "marker-red")
 

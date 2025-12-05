@@ -1,7 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
-import type { IndexController } from "@index/router"
 import { loadMapImage, NOTE_STATUS_MARKERS, type NoteStatus } from "@lib/map/image.ts"
 import {
     type FocusLayerLayout,
@@ -14,6 +13,7 @@ import { configureStandardForm } from "@lib/standard-form"
 import { configureStandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
 import type { Map as MaplibreMap } from "maplibre-gl"
+import type { IndexController } from "./router"
 
 const THEME_COLOR = "#f60"
 const focusPaint: FocusLayerPaint = {
@@ -31,7 +31,7 @@ const focusLayout: FocusLayerLayout = {
 }
 
 /** Create a new note controller */
-export const getNoteController = (map: MaplibreMap): IndexController => {
+export const getNoteController = (map: MaplibreMap) => {
     const base = getBaseFetchController(map, "note", (sidebarContent) => {
         const sidebarTitleElement = sidebarContent.querySelector(
             ".sidebar-title",
@@ -117,15 +117,9 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
                 /** On comment input, update the button state */
                 const onCommentInput = () => {
                     const hasValue = commentInput.value.trim().length > 0
-                    if (hasValue) {
-                        closeButton.classList.add("d-none")
-                        commentCloseButton.classList.remove("d-none")
-                        commentButton.disabled = false
-                    } else {
-                        closeButton.classList.remove("d-none")
-                        commentCloseButton.classList.add("d-none")
-                        commentButton.disabled = true
-                    }
+                    closeButton.classList.toggle("d-none", hasValue)
+                    commentCloseButton.classList.toggle("d-none", !hasValue)
+                    commentButton.disabled = !hasValue
                 }
 
                 commentInput.addEventListener("input", onCommentInput)

@@ -6,24 +6,24 @@ for (const root of roots) {
     const toProviders = cta.querySelector("button[data-auth-switcher-target=providers]")
     const toEmail = cta.querySelector("button[data-auth-switcher-target=email]")
 
-    const updateCta = (): void => {
+    const updateCta = () => {
         const providersState = root.dataset.state === "providers"
         toProviders.classList.toggle("d-none", providersState)
         toEmail.classList.toggle("d-none", !providersState)
     }
 
-    const onResize = (): void => {
+    const onResize = () => {
         root.scrollLeft = 999999
     }
 
-    toProviders.addEventListener("click", (): void => {
+    toProviders.addEventListener("click", () => {
         root.dataset.state = "providers"
         root.scrollTo({ left: 999999, behavior: "smooth" })
         updateCta()
         window.addEventListener("resize", onResize)
     })
 
-    toEmail.addEventListener("click", (): void => {
+    toEmail.addEventListener("click", () => {
         root.dataset.state = "email"
         root.scrollTo({ left: 0, behavior: "smooth" })
         updateCta()

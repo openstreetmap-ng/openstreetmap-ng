@@ -7,7 +7,6 @@ import { convertRenderElementsData } from "@lib/map/render-objects"
 import {
     type PartialElementParams_Entry,
     PartialElementParamsSchema,
-    type RenderElementsData,
 } from "@lib/proto/shared_pb"
 import { configureStandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
@@ -67,10 +66,7 @@ export const getElementController = (map: MaplibreMap): IndexController => {
 }
 
 /** Initialize element content */
-export const initializeElementContent = (
-    map: MaplibreMap,
-    container: HTMLElement,
-): [RenderElementsData, () => void] => {
+export const initializeElementContent = (map: MaplibreMap, container: HTMLElement) => {
     console.debug("initializeElementContent")
 
     const locationButton = container.querySelector(".location-container button")
@@ -110,7 +106,7 @@ export const initializeElementContent = (
         () => {
             for (const dispose of disposeList) dispose()
         },
-    ]
+    ] as const
 }
 
 /** Render elements component */
@@ -118,7 +114,7 @@ const renderElementsComponent = (
     elementsSection: HTMLElement,
     elements: PartialElementParams_Entry[],
     isWay: boolean,
-): (() => void) => {
+) => {
     console.debug("renderElementsComponent", elements.length)
 
     const entryTemplate = elementsSection.querySelector("template.entry")
@@ -134,7 +130,7 @@ const renderElementsComponent = (
         paginationContainer.parentElement.classList.add("d-none")
     }
 
-    const updateTitle = (page: number): void => {
+    const updateTitle = (page: number) => {
         let count: string
         if (totalPages > 1) {
             const from = (page - 1) * ELEMENTS_PER_PAGE + 1
@@ -160,7 +156,7 @@ const renderElementsComponent = (
         titleElement.textContent = newTitle
     }
 
-    const updateTable = (page: number, renderContainer: HTMLElement): void => {
+    const updateTable = (page: number, renderContainer: HTMLElement) => {
         const renderFragment = document.createDocumentFragment()
 
         const iStart = (page - 1) * ELEMENTS_PER_PAGE

@@ -15,5 +15,5 @@ export const cancelIdleCallbackPolyfill: (handle: number) => void =
     window.cancelIdleCallback || ((handle) => window.clearTimeout(handle))
 
 /** Get the device theme preference, *NOT* the currently active theme */
-export const getDeviceThemePreference = (): "light" | "dark" =>
+export const getDeviceThemePreference = () =>
     window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"

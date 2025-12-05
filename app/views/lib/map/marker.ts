@@ -4,10 +4,7 @@ export const MARKER_ICON_ANCHOR: PositionAnchor = "bottom"
 
 export type MarkerColor = "blue" | "green" | "red" | "new"
 
-export const getMarkerIconElement = (
-    color: MarkerColor,
-    showShadow: boolean,
-): HTMLElement => {
+export const getMarkerIconElement = (color: MarkerColor, showShadow: boolean) => {
     const container = document.createElement("div")
     container.classList.add("marker-icon")
     if (showShadow) {

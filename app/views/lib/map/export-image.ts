@@ -49,7 +49,7 @@ export const exportMapImage = async (
     filterBounds: LngLatBounds | null,
     markerLngLat: LngLat | null,
     attribution: boolean,
-): Promise<Blob> => {
+) => {
     const mapBounds = map.getBounds()
 
     // Render marker onto the map
@@ -149,7 +149,7 @@ export const exportMapImage = async (
     }
 
     // Export the canvas to an image
-    return new Promise((resolve, reject) => {
+    return new Promise<Blob>((resolve, reject) => {
         exportCanvas.toBlob(
             (blob) => {
                 if (blob) resolve(blob)
@@ -168,7 +168,7 @@ const getImageTrim = (
     height: number,
     mapBounds: LngLatBounds,
     filterBounds: LngLatBounds,
-): { top: number; left: number; bottom: number; right: number } => {
+) => {
     if (!checkLngLatBoundsIntersection(mapBounds, filterBounds)) {
         return { top: 0, left: 0, bottom: 0, right: 0 }
     }

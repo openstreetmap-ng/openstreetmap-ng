@@ -50,7 +50,7 @@ export interface MapState extends LonLatZoom {
  * getMapLayersCode(map)
  * // => "BT"
  */
-export const getMapLayersCode = (map: MaplibreMap): string => {
+export const getMapLayersCode = (map: MaplibreMap) => {
     const layerCodes = new Set<LayerCode>()
     for (const extendedLayerId of map.getLayersOrder()) {
         const layerId = resolveExtendedLayerId(extendedLayerId)
@@ -65,7 +65,7 @@ export const getMapLayersCode = (map: MaplibreMap): string => {
  * @example
  * setMapLayersCode(map, "BT")
  */
-const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
+const setMapLayersCode = (map: MaplibreMap, layersCode?: string) => {
     console.debug("setMapLayersCode", layersCode)
     const addLayerCodes = new Set<LayerCode>()
     let hasBaseLayer = false
@@ -116,7 +116,7 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
  * getMapBaseLayerId(map)
  * // => "standard"
  */
-export const getMapBaseLayerId = (map: MaplibreMap): LayerId | null => {
+export const getMapBaseLayerId = (map: MaplibreMap) => {
     let baseLayerId: LayerId | null = null
     for (const extendedLayerId of map.getLayersOrder()) {
         const layerId = resolveExtendedLayerId(extendedLayerId)
@@ -130,7 +130,7 @@ export const getMapBaseLayerId = (map: MaplibreMap): LayerId | null => {
 }
 
 /** Get the current map state object */
-export const getMapState = (map: MaplibreMap): MapState => {
+export const getMapState = (map: MaplibreMap) => {
     const center = map.getCenter().wrap()
     const zoom = map.getZoom()
     const layersCode = getMapLayersCode(map)
@@ -142,7 +142,7 @@ export const setMapState = (
     map: MaplibreMap,
     state: MapState,
     options?: EaseToOptions,
-): void => {
+) => {
     console.debug("setMapState", state)
     const { lon, lat, zoom, layersCode } = state
     map.panTo([lon, lat], { ...(options ?? {}), zoom })
@@ -156,7 +156,7 @@ export const setMapState = (
  * encodeMapState(state)
  * // => "#map=15/51.505/-0.09&layers=BT"
  */
-export const encodeMapState = (state: MapState): string => {
+export const encodeMapState = (state: MapState) => {
     let { lon, lat, zoom, layersCode } = state
     lon = mod(lon + 180, 360) - 180
     const zoomRounded = beautifyZoom(zoom)
@@ -174,13 +174,13 @@ export const encodeMapState = (state: MapState): string => {
  * parseMapState("#map=15/51.505/-0.09&layers=BT")
  * // => { lon: -0.09, lat: 51.505, zoom: 15, layersCode: "BT" }
  */
-export const parseMapState = (hash: string): MapState | null => {
+export const parseMapState = (hash: string) => {
     // Skip if there's no hash
     const i = hash.indexOf("#")
     if (i < 0) return null
 
     // Parse the hash as a query string
-    const params = qsParse(hash.substring(i + 1))
+    const params = qsParse(hash.slice(i + 1))
 
     // Hash string must contain map parameter
     if (!params.map) return null
@@ -205,10 +205,7 @@ export const parseMapState = (hash: string): MapState | null => {
 }
 
 /** Convert bounds to a lon, lat, zoom object */
-const convertBoundsToLonLatZoom = (
-    map: MaplibreMap | null,
-    bounds: Bounds,
-): LonLatZoom => {
+const convertBoundsToLonLatZoom = (map: MaplibreMap | null, bounds: Bounds) => {
     const [minLon, minLat, maxLon, maxLat] = bounds
     const lon = (minLon + maxLon) / 2
     const lat = (minLat + maxLat) / 2
@@ -218,8 +215,8 @@ const convertBoundsToLonLatZoom = (
         if (camera) return { lon, lat, zoom: camera.zoom }
     }
 
-    const latRad = (lat: number): number => Math.sin((lat * Math.PI) / 180)
-    const getZoom = (mapPx: number, worldPx: number, fraction: number): number =>
+    const latRad = (lat: number) => Math.sin((lat * Math.PI) / 180)
+    const getZoom = (mapPx: number, worldPx: number, fraction: number) =>
         (Math.log(mapPx / worldPx / fraction) / Math.LN2) | 0
 
     // Calculate the fraction of the world that the longitude and latitude take up
@@ -245,7 +242,7 @@ const convertBoundsToLonLatZoom = (
  * getInitialMapState()
  * // => { lon: -0.09, lat: 51.505, zoom: 15, layersCode: "BT" }
  */
-export const getInitialMapState = (map?: MaplibreMap): MapState => {
+export const getInitialMapState = (map?: MaplibreMap) => {
     const hashState = parseMapState(window.location.hash)
 
     // 1. Use the position from the hash state
@@ -365,7 +362,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
         // Iteratively remove the last timezone component
         // e.g. Europe/Warsaw/Example -> Europe/Warsaw -> Europe
         const lastSlash = timezoneName.lastIndexOf("/")
-        timezoneName = lastSlash > 0 ? timezoneName.substring(0, lastSlash) : ""
+        timezoneName = lastSlash > 0 ? timezoneName.slice(0, lastSlash) : ""
     }
 
     // 9. Use the default location
@@ -380,7 +377,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
  * getMapUrl(map)
  * // => "https://www.openstreetmap.org/#map=15/51.505/-0.09&layers=BT"
  */
-export const getMapUrl = (map: MaplibreMap, showMarker = false): string => {
+export const getMapUrl = (map: MaplibreMap, showMarker = false) => {
     const state = getMapState(map)
     const hash = encodeMapState(state)
     const { lon, lat, zoom } = state
@@ -404,7 +401,7 @@ const SHORT_DOMAINS: Record<string, string> = {
  * getMapShortUrl(map)
  * // => "https://osm.org/go/wF7ZdNbjU-"
  */
-export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat): string => {
+export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat) => {
     const state = getMapState(map)
     const code = shortLinkEncode(state)
     const params: { [key: string]: string } = {}
@@ -419,7 +416,7 @@ export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat): string
     const hostname = location.hostname
     const tldPos = hostname.lastIndexOf(".")
     const domainPos = hostname.lastIndexOf(".", tldPos - 1)
-    const shortDomainKey = domainPos > 0 ? hostname.substring(domainPos + 1) : hostname
+    const shortDomainKey = domainPos > 0 ? hostname.slice(domainPos + 1) : hostname
     const host = SHORT_DOMAINS[shortDomainKey] ?? location.host
 
     return Object.keys(params).length
@@ -432,7 +429,7 @@ export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat): string
  * @example
  * getMapEmbedHtml(map, [-0.09, 51.505])
  */
-export const getMapEmbedHtml = (map: MaplibreMap, markerLngLat?: LngLat): string => {
+export const getMapEmbedHtml = (map: MaplibreMap, markerLngLat?: LngLat) => {
     const [[minLon, minLat], [maxLon, maxLat]] = map
         .getBounds()
         .adjustAntiMeridian()
@@ -490,7 +487,7 @@ export const getMapEmbedHtml = (map: MaplibreMap, markerLngLat?: LngLat): string
  * getMapGeoUri(map)
  * // => "geo:51.505,-0.09?z=15"
  */
-export const getMapGeoUri = (map: MaplibreMap): string => {
+export const getMapGeoUri = (map: MaplibreMap) => {
     const { lon, lat, zoom } = getMapState(map)
     const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)

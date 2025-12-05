@@ -15,7 +15,7 @@ const getBitMasks = memoize(() =>
  * shortLinkEncode(5.123, 10.456, 17)
  * // => "wF7ZdNbjU-"
  */
-export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom): string => {
+export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom) => {
     const z = (zoom | 0) + 8
     const d = Math.ceil(z / 3)
     const r = z % 3

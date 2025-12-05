@@ -1,5 +1,4 @@
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
-import type { IndexController } from "@index/router"
 import { routerNavigateStrict } from "@index/router"
 import { isLatitude, isLongitude } from "@lib/coords"
 import { setNewNoteButtonState } from "@lib/map/controls/new-note"
@@ -24,7 +23,7 @@ const focusPaint: FocusLayerPaint = {
 }
 
 /** Create a new new note controller */
-export const getNewNoteController = (map: MaplibreMap): IndexController => {
+export const getNewNoteController = (map: MaplibreMap) => {
     const sidebar = getActionSidebar("new-note")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")

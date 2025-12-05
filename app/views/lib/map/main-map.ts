@@ -34,7 +34,7 @@ import { configureNotesLayer } from "./layers/notes-layer"
 import { getInitialMapState, getMapState, parseMapState, setMapState } from "./state"
 
 /** Get the main map instance */
-const createMainMap = (container: HTMLElement): MaplibreMap => {
+const createMainMap = (container: HTMLElement) => {
     console.debug("Initializing main map")
     const map = new MaplibreMap({
         container,
@@ -94,7 +94,7 @@ const createMainMap = (container: HTMLElement): MaplibreMap => {
 }
 
 /** Configure the main map and all its components */
-const configureMainMap = (container: HTMLElement): void => {
+const configureMainMap = (container: HTMLElement) => {
     const map = createMainMap(container)
 
     // Configure here instead of navbar to avoid global script dependency (navbar is global)

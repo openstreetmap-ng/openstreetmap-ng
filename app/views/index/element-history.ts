@@ -1,6 +1,5 @@
 import { getBaseFetchController } from "@index/_base-fetch"
 import { initializeElementContent } from "@index/element"
-import type { IndexController } from "@index/router"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
@@ -11,6 +10,7 @@ import { setPageTitle } from "@lib/title"
 import { effect, signal } from "@preact/signals-core"
 import Tooltip from "bootstrap/js/dist/tooltip"
 import type { Map as MaplibreMap } from "maplibre-gl"
+import type { IndexController } from "./router"
 
 const THEME_COLOR = "#f60"
 const focusPaint: FocusLayerPaint = {
@@ -28,7 +28,7 @@ const focusPaint: FocusLayerPaint = {
 }
 
 /** Create a new element history controller */
-export const getElementHistoryController = (map: MaplibreMap): IndexController => {
+export const getElementHistoryController = (map: MaplibreMap) => {
     const base = getBaseFetchController(map, "element-history", (sidebarContent) => {
         for (const element of sidebarContent.querySelectorAll(
             "[data-bs-toggle=tooltip]",

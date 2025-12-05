@@ -7,9 +7,9 @@
  * round_py2(0.5) // 1
  * round_py2(-0.5) // -1
  */
-const roundPy2 = (value: number): number => (value + (value < 0 ? -0.5 : 0.5)) | 0
+const roundPy2 = (value: number) => (value + (value < 0 ? -0.5 : 0.5)) | 0
 
-const encode = (delta: number, codes: number[]): void => {
+const encode = (delta: number, codes: number[]) => {
     let coord = (delta << 1) ^ (delta >> 0x1f)
     do {
         const b = coord & 0x1f
@@ -19,7 +19,7 @@ const encode = (delta: number, codes: number[]): void => {
 }
 
 /** Encode the given [longitude, latitude] coordinate pairs */
-export const encodeLonLat = (coords: [number, number][], precision: number): string => {
+export const encodeLonLat = (coords: [number, number][], precision: number) => {
     const factor = 10 ** precision
     const codes: number[] = []
     let prevLatInt = 0
@@ -36,13 +36,13 @@ export const encodeLonLat = (coords: [number, number][], precision: number): str
 }
 
 /** Decode to [longitude, latitude] coordinate pairs */
-export const decodeLonLat = (line: string, precision: number): [number, number][] => {
+export const decodeLonLat = (line: string, precision: number) => {
     const invFactor = 10 ** -precision
     const coords: [number, number][] = []
     let lat = 0
     let lon = 0
     for (let i = 0; i < line.length; ) {
-        const decode = (): number => {
+        const decode = () => {
             let result = 0
             let shift = 1
             let code: number

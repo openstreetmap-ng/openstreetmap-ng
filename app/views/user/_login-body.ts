@@ -38,9 +38,9 @@ if (loginForm) {
     let loginResponse: LoginResponse | null = null
     let submittedFormData: FormData | null = null
 
-    const isDigit = (c: string): boolean => c.length === 1 && c >= "0" && c <= "9"
+    const isDigit = (c: string) => c.length === 1 && c >= "0" && c <= "9"
 
-    const navigateOnSuccess = (): void => {
+    const navigateOnSuccess = () => {
         console.debug("onLoginSuccess", referrer)
         if (referrer !== defaultReferrer) {
             window.location.href = `${window.location.origin}${referrer}`
@@ -49,7 +49,7 @@ if (loginForm) {
         }
     }
 
-    const tryTOTPSubmit = (): boolean => {
+    const tryTOTPSubmit = () => {
         const inputs = totpInputGroup.children as HTMLCollectionOf<HTMLInputElement>
         const code = Array.from(inputs, (input) => input.value).join("")
         if (code.length !== loginResponse.totp) return false
@@ -59,7 +59,7 @@ if (loginForm) {
         return true
     }
 
-    const createTOTPInputs = (): void => {
+    const createTOTPInputs = () => {
         // Clear all except template
         while (totpInputGroup.children.length > 1) {
             totpInputGroup.lastElementChild.remove()
@@ -122,7 +122,7 @@ if (loginForm) {
         }
     }
 
-    const setState = (state: LoginState): void => {
+    const setState = (state: LoginState) => {
         console.debug("setLoginState", state)
         loginForm.setAttribute("data-login-state", state)
 
@@ -235,7 +235,7 @@ if (loginForm) {
     )
 
     /** Triggers passwordless passkey submission. */
-    const requestSubmitPasswordless = (): void => {
+    const requestSubmitPasswordless = () => {
         passwordless = true
         displayNameInput.required = false
         passwordInput.required = false
@@ -279,7 +279,7 @@ if (loginForm) {
     }
 
     // Autofill buttons are present in development environment
-    const onAutofillButtonClick = ({ target }: Event): void => {
+    const onAutofillButtonClick = ({ target }: Event) => {
         const dataset = (target as HTMLElement).dataset
         console.debug("onAutofillButtonClick", dataset)
 

@@ -14,7 +14,7 @@ export const relativeTimeFormat = memoize(
         new Intl.RelativeTimeFormat(...args),
 )
 
-export const formatShortDate = (dateIso: string): string =>
+export const formatShortDate = (dateIso: string) =>
     dateTimeFormat(primaryLanguage, {
         day: "numeric",
         month: "short",
@@ -25,7 +25,7 @@ export const formatShortDate = (dateIso: string): string =>
 export const formatMonthName = (
     dateIso: string,
     month: Intl.DateTimeFormatOptions["month"],
-): string =>
+) =>
     dateTimeFormat(primaryLanguage, {
         month: month,
         timeZone: "UTC",
@@ -34,7 +34,7 @@ export const formatMonthName = (
 export const formatWeekdayName = (
     dateIso: string,
     weekday: Intl.DateTimeFormatOptions["weekday"],
-): string =>
+) =>
     dateTimeFormat(primaryLanguage, {
         weekday: weekday,
         timeZone: "UTC",
@@ -46,12 +46,12 @@ export const getTimezoneName = memoize(() => {
     return result
 })
 
-const isImperialLanguage = (language: string): boolean =>
+const isImperialLanguage = (language: string) =>
     language.startsWith("en-US") ||
     language.startsWith("en-GB") ||
     language.startsWith("my")
 
-const isImperialRegion = (timezoneName: string): boolean =>
+const isImperialRegion = (timezoneName: string) =>
     timezoneName.startsWith("America/") ||
     timezoneName === "Europe/London" ||
     timezoneName === "Asia/Yangon" ||
@@ -75,7 +75,7 @@ export const isMetricUnit = memoize(() => {
 export const formatDistance = (
     meters: number,
     unit: "metric" | "imperial" = "metric",
-): string => {
+) => {
     if (unit === "imperial") {
         const feet = meters * 3.28084
         if (feet < 1000) {
@@ -102,7 +102,7 @@ export const formatDistance = (
 export const formatDistanceRounded = (
     meters: number,
     unit: "metric" | "imperial" = "metric",
-): string => {
+) => {
     if (unit === "imperial") {
         const feet = meters * 3.28084
         if (feet < 5) return ""
@@ -132,20 +132,20 @@ export const formatDistanceRounded = (
     })
 }
 
-export const formatHeight = (meters: number): string =>
+export const formatHeight = (meters: number) =>
     i18next.t("javascripts.directions.distance_m", {
         distance: Math.round(meters),
     })
 
-export const formatTime = (seconds: number): string => {
+export const formatTime = (seconds: number) => {
     const hours = (seconds / 3600) | 0
     const minutes = ((seconds % 3600) / 60) | 0
     return `${hours}:${minutes.toString().padStart(2, "0")}`
 }
 
-const padDegreesComponent = (value: number): string => value.toString().padStart(2, "0")
+const padDegreesComponent = (value: number) => value.toString().padStart(2, "0")
 
-const formatDegrees = (decimalDegree: number): string => {
+const formatDegrees = (decimalDegree: number) => {
     decimalDegree = Math.abs(decimalDegree)
     const deg = decimalDegree | 0
     const minSec = (decimalDegree - deg) * 60
@@ -154,7 +154,7 @@ const formatDegrees = (decimalDegree: number): string => {
     return `${padDegreesComponent(deg)}°${padDegreesComponent(min)}′${padDegreesComponent(sec)}″`
 }
 
-export const formatCoordinate = ({ lon, lat }: LonLat): string => {
+export const formatCoordinate = ({ lon, lat }: LonLat) => {
     const latDir = lat === 0 ? "" : lat > 0 ? "N" : "S"
     const lonDir = lon === 0 ? "" : lon > 0 ? "E" : "W"
     return `${formatDegrees(lat)}${latDir} ${formatDegrees(lon)}${lonDir}`

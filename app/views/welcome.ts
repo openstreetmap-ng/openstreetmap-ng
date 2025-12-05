@@ -28,74 +28,77 @@ mount("welcome-body", (body) => {
     const startParams: { [key: string]: string } = {}
     if (params.editor) startParams.editor = params.editor
 
+    // If location was provided, redirect to /edit with the provided coordinates
     if (providedState) {
-        // If location was provided, redirect to /edit with the provided coordinates
         let startHref = "/edit"
         if (Object.keys(startParams).length) startHref += `?${qsEncode(startParams)}`
         startHref += encodeMapState(providedState)
         startButton.href = startHref
-    } else {
-        // If location was not provided, request navigator.geolocation
-        /** On geolocation success, redirect to /edit with the returned coordinates */
-        const onGeolocationSuccess = (position: GeolocationPosition) => {
-            console.debug("onGeolocationSuccess", position)
-            const lon = position.coords.longitude
-            const lat = position.coords.latitude
-            const zoom = 17
-            const geolocationState: MapState = {
-                lon,
-                lat,
-                zoom,
-                layersCode: params.layers,
-            }
+        return
+    }
 
-            let startHref = "/edit"
-            if (Object.keys(startParams).length)
-                startHref += `?${qsEncode(startParams)}`
-            startHref += encodeMapState(geolocationState)
-            startButton.href = startHref
-            startButton.removeEventListener("click", onStartButtonClick)
+    // If location was not provided, request navigator.geolocation
+
+    const onStartButtonClick = (e: Event) => {
+        e.preventDefault()
+        navigator.geolocation.getCurrentPosition(
+            (position: GeolocationPosition) => {
+                onGeolocationSuccess(position)
+                window.location.href = startButton.href
+            },
+            () => {
+                onGeolocationFailure()
+                window.location.href = startButton.href
+            },
+            {
+                maximumAge: 28800_000, // 8 hours
+                timeout: 10_000, // 10 seconds
+            },
+        )
+    }
+    startButton.addEventListener("click", onStartButtonClick, { once: true })
+
+    /** On geolocation success, redirect to /edit with the returned coordinates */
+    const onGeolocationSuccess = (position: GeolocationPosition) => {
+        console.debug("onGeolocationSuccess", position)
+        const lon = position.coords.longitude
+        const lat = position.coords.latitude
+        const zoom = 17
+        const geolocationState: MapState = {
+            lon,
+            lat,
+            zoom,
+            layersCode: params.layers,
         }
 
-        /** On geolocation failure, remove event listener */
-        const onGeolocationFailure = () => {
-            console.debug("onGeolocationFailure")
-            startButton.removeEventListener("click", onStartButtonClick)
-        }
+        let startHref = "/edit"
+        if (Object.keys(startParams).length) startHref += `?${qsEncode(startParams)}`
+        startHref += encodeMapState(geolocationState)
+        startButton.href = startHref
+        startButton.removeEventListener("click", onStartButtonClick)
+    }
 
-        const onStartButtonClick = (e: Event) => {
-            e.preventDefault()
+    /** On geolocation failure, remove event listener */
+    const onGeolocationFailure = () => {
+        console.debug("onGeolocationFailure")
+        startButton.removeEventListener("click", onStartButtonClick)
+    }
+
+    /** If permission was granted, start geolocation early */
+    const checkGeolocationPermission = async () => {
+        const result = await navigator.permissions?.query({ name: "geolocation" })
+        if (!result) return
+        console.debug("permissions.geolocation", result.state)
+        if (result.state === "granted") {
             navigator.geolocation.getCurrentPosition(
-                (position: GeolocationPosition) => {
-                    onGeolocationSuccess(position)
-                    window.location.href = startButton.href
-                },
-                () => {
-                    onGeolocationFailure()
-                    window.location.href = startButton.href
-                },
+                onGeolocationSuccess,
+                onGeolocationFailure,
                 {
                     maximumAge: 28800_000, // 8 hours
-                    timeout: 10_000, // 10 seconds
+                    timeout: 60_000, // 60 seconds
                 },
             )
         }
-
-        // If permission was granted, start geolocation early
-        navigator.permissions?.query({ name: "geolocation" }).then((result) => {
-            console.debug("permissions.geolocation", result.state)
-            if (result.state === "granted") {
-                navigator.geolocation.getCurrentPosition(
-                    onGeolocationSuccess,
-                    onGeolocationFailure,
-                    {
-                        maximumAge: 28800_000, // 8 hours
-                        timeout: 60_000, // 60 seconds
-                    },
-                )
-            }
-        })
-
-        startButton.addEventListener("click", onStartButtonClick, { once: true })
     }
+    checkGeolocationPermission()
 })

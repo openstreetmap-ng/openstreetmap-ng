@@ -10,7 +10,7 @@ const newNoteContainers: HTMLDivElement[] = []
 export class NewNoteControl implements IControl {
     public _container: HTMLElement
 
-    public onAdd(map: MaplibreMap): HTMLElement {
+    public onAdd(map: MaplibreMap) {
         const container = document.createElement("div")
         container.className = "maplibregl-ctrl maplibregl-ctrl-group new-note"
 
@@ -72,13 +72,13 @@ export class NewNoteControl implements IControl {
         return container
     }
 
-    public onRemove(): void {
+    public onRemove() {
         // Not implemented
     }
 }
 
 /** Set availability of the new note button */
-export const setNewNoteButtonState = (active: boolean): void => {
+export const setNewNoteButtonState = (active: boolean) => {
     console.debug(
         "setNewNoteButtonState",
         active,

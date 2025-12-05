@@ -20,14 +20,14 @@ const navbarCollapseInstance = Collapse.getOrCreateInstance(
  * Collapse mobile navbar if currently expanded.
  * Improves user experience when navigating to a new page in SPA mode.
  */
-export const collapseNavbar = (): void => navbarCollapseInstance.hide()
+export const collapseNavbar = () => navbarCollapseInstance.hide()
 
 // Messages badge
 const newUnreadMessagesBadge = navbar.querySelector(".new-unread-messages-badge")
 const unreadMessagesBadge = navbar.querySelector(".unread-messages-badge")
 
 /** Update the unread messages badge in the navbar */
-export const changeUnreadMessagesBadge = (change: number): void => {
+export const changeUnreadMessagesBadge = (change: number) => {
     const current =
         Number.parseInt(
             newUnreadMessagesBadge.textContent.replace(NON_DIGIT_RE, ""),
@@ -62,7 +62,7 @@ const editGroupTooltip = Tooltip.getOrCreateInstance(editGroup, {
 editGroupTooltip.disable()
 
 // On edit link click, check and handle the remember choice checkbox
-editGroup.addEventListener("click", (e) => {
+editGroup.addEventListener("click", async (e) => {
     const target = e.target as HTMLElement
     const editLink = target.closest<HTMLAnchorElement | HTMLButtonElement>(".edit-link")
     if (!editLink) return
@@ -83,20 +83,19 @@ editGroup.addEventListener("click", (e) => {
 
     const formData = new FormData()
     formData.append("editor", editor)
-    fetch("/api/web/settings/editor", {
-        method: "POST",
-        body: formData,
-        priority: "high",
-    })
-        .then((resp) => {
-            if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-            console.debug("Changed default editor to", editor)
-            editLink.dispatchEvent(new MouseEvent(e.type, e))
+    try {
+        const resp = await fetch("/api/web/settings/editor", {
+            method: "POST",
+            body: formData,
+            priority: "high",
         })
-        .catch((error) => {
-            console.error("Failed to change default editor", error)
-            alert(error.message)
-        })
+        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+        console.debug("Changed default editor to", editor)
+        editLink.dispatchEvent(new MouseEvent(e.type, e))
+    } catch (error) {
+        console.error("Failed to change default editor", error)
+        alert(error.message)
+    }
 })
 // On dropdown hidden, uncheck remember choice checkbox
 editGroup.addEventListener("hidden.bs.dropdown", () => {
@@ -116,7 +115,7 @@ for (const link of mapLinks) {
     if (link instanceof HTMLAnchorElement) link.dataset.baseHref = link.href
 }
 
-const setEditControlsDisabled = (disabled: boolean): void => {
+const setEditControlsDisabled = (disabled: boolean) => {
     for (const link of editLinks) {
         link.classList.toggle("disabled", disabled)
         if (disabled) link.setAttribute("aria-disabled", "true")
@@ -135,7 +134,7 @@ const setEditControlsDisabled = (disabled: boolean): void => {
 
 // TODO: wth object support?
 /** Update the navbar links and current URL hash */
-export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void => {
+export const updateNavbarAndHash = (state: MapState, object?: OSMObject) => {
     const hash = encodeMapState(state)
     const isEditDisabled = state.zoom < MIN_EDIT_ZOOM
 
@@ -179,7 +178,7 @@ export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void =
  * Handle remote edit path (/edit?editor=remote).
  * Simulate a click on the remote edit button and navigate back to index.
  */
-export const handleEditRemotePath = (): void => {
+export const handleEditRemotePath = () => {
     if (window.location.pathname !== "/edit") return
 
     const searchParams = qsParse(window.location.search)
@@ -193,7 +192,7 @@ export const handleEditRemotePath = (): void => {
 // Handle mapState window messages (from iD/Rapid)
 window.addEventListener(
     "message",
-    wrapMessageEventValidator(({ data }: MessageEvent): void => {
+    wrapMessageEventValidator(({ data }: MessageEvent) => {
         if (data.type !== "mapState") return
         const { lon, lat, zoom } = data.state as LonLatZoom
         updateNavbarAndHash({ lon, lat, zoom, layersCode: "" })
@@ -233,11 +232,11 @@ if (navbarLinksList) {
 
         let currentWidth = navbarLinksList.scrollWidth
 
-        const shouldCollapse = (): boolean =>
+        const shouldCollapse = () =>
             navbarLinksList.children.length &&
             currentWidth + collapseBuffer > availableWidth
 
-        const shouldExpand = (): boolean =>
+        const shouldExpand = () =>
             moreDropdownList.children.length &&
             currentWidth +
                 Number.parseFloat(

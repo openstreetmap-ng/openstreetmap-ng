@@ -6,7 +6,7 @@ import { getUnixTimestamp } from "@lib/utils"
 
 const UPDATE_DELAY = 24 * 3600 // 1 day
 
-const timezoneUpdate = (): void => {
+const timezoneUpdate = async () => {
     const last = timezoneUpdateTimeStorage.get()
     const now = getUnixTimestamp()
     if (last && last + UPDATE_DELAY > now) return
@@ -18,18 +18,17 @@ const timezoneUpdate = (): void => {
     const formData = new FormData()
     formData.append("timezone", timezone)
 
-    fetch("/api/web/user/timezone", {
-        method: "POST",
-        body: formData,
-        priority: "low",
-    })
-        .then((resp) => {
-            if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-            console.debug("Successfully updated user timezone")
+    try {
+        const resp = await fetch("/api/web/user/timezone", {
+            method: "POST",
+            body: formData,
+            priority: "low",
         })
-        .catch((error) => {
-            console.warn("Failed to update user timezone", error)
-        })
+        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+        console.debug("Successfully updated user timezone")
+    } catch (error) {
+        console.warn("Failed to update user timezone", error)
+    }
 }
 
 if (config.userConfig)

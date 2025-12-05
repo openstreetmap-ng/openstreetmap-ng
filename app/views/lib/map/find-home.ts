@@ -7,7 +7,7 @@ export const configureFindHomeButton = (
     map: MaplibreMap,
     button: HTMLButtonElement,
     { lon, lat }: LonLat,
-): void => {
+) => {
     let marker: Marker | null = null
 
     // On click, create a marker and zoom to it

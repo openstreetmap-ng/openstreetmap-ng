@@ -22,7 +22,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
         super("share", "javascripts.share.title")
     }
 
-    public override onAdd(map: MaplibreMap): HTMLElement {
+    public override onAdd(map: MaplibreMap) {
         const container = super.onAdd(map)
         const button = container.querySelector("button")
 

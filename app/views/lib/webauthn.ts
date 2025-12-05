@@ -1,16 +1,13 @@
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf"
 import {
     PasskeyAssertionSchema,
-    type PasskeyChallenge,
     PasskeyChallengeSchema,
     PasskeyRegistrationSchema,
 } from "@lib/proto/shared_pb"
 import i18next from "i18next"
 
 /** Fetch and parse passkey challenge from server. Returns challenge or error string. */
-const fetchPasskeyChallenge = async (
-    formData?: FormData,
-): Promise<PasskeyChallenge | string> => {
+const fetchPasskeyChallenge = async (formData?: FormData) => {
     const resp = await fetch("/api/web/user/login/passkey/challenge", {
         method: "POST",
         body: formData,
@@ -23,7 +20,7 @@ const fetchPasskeyChallenge = async (
 /** Build credential descriptors for WebAuthn allowCredentials/excludeCredentials. */
 const buildCredentialDescriptors = (
     credentials: { credentialId: Uint8Array; transports: string[] }[],
-): PublicKeyCredentialDescriptor[] =>
+) =>
     credentials.map((c) => ({
         id: c.credentialId as BufferSource,
         transports: c.transports as AuthenticatorTransport[],
@@ -31,7 +28,7 @@ const buildCredentialDescriptors = (
     }))
 
 /** Build assertion blob from credential response. */
-const buildAssertionBlob = (credential: PublicKeyCredential): Blob => {
+const buildAssertionBlob = (credential: PublicKeyCredential) => {
     const response = credential.response as AuthenticatorAssertionResponse
     const assertion = create(PasskeyAssertionSchema, {
         credentialId: new Uint8Array(credential.rawId),
@@ -43,7 +40,7 @@ const buildAssertionBlob = (credential: PublicKeyCredential): Blob => {
 }
 
 /** Register a new passkey, returning registration blob or error string. */
-export const getPasskeyRegistration = async (): Promise<Blob | string> => {
+export const getPasskeyRegistration = async () => {
     const challenge = await fetchPasskeyChallenge()
     if (typeof challenge === "string") return challenge
 
@@ -92,7 +89,7 @@ export const getPasskeyRegistration = async (): Promise<Blob | string> => {
 export const getPasskeyAssertion = async (
     formData?: FormData,
     userVerification: UserVerificationRequirement = "required",
-): Promise<Blob | string> => {
+) => {
     const challenge = await fetchPasskeyChallenge(formData)
     if (typeof challenge === "string") return challenge
 
@@ -118,9 +115,7 @@ export const getPasskeyAssertion = async (
  * Resolves when user selects a passkey from autofill, or never if they don't.
  * Returns assertion blob on success, null on cancel/error.
  */
-export const startConditionalMediation = async (
-    signal: AbortSignal,
-): Promise<Blob | null> => {
+export const startConditionalMediation = async (signal: AbortSignal) => {
     console.debug("startConditionalMediation")
 
     // Feature detection
@@ -148,7 +143,7 @@ export const startConditionalMediation = async (
             signal,
         })) as PublicKeyCredential | null
     } catch (error) {
-        if ((error as Error).name !== "AbortError") {
+        if (error.name !== "AbortError") {
             console.warn("Conditional WebAuthn:", error)
         }
     }

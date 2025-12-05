@@ -9,6 +9,6 @@ const originalTitle = document.title
  * @example setPageTitle("Export")
  * // => "Export | OpenStreetMap"
  */
-export const setPageTitle = (prefix?: string): void => {
+export const setPageTitle = (prefix?: string) => {
     document.title = prefix ? `${prefix} | ${originalTitle}` : originalTitle
 }

@@ -75,7 +75,7 @@ layersConfig.set(LAYER_ID, {
 const LOAD_DATA_ALERT_THRESHOLD = 10_000
 
 /** Configure the data layer for the given map */
-export const configureDataLayer = (map: MaplibreMap): void => {
+export const configureDataLayer = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const errorDataAlert = getMapAlert("data-layer-error-alert")
     const loadDataAlert = getMapAlert("data-layer-load-alert")
@@ -91,7 +91,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
     let fetchedElements: (OSMNode | OSMWay)[] | null = null
     let loadDataOverride = false
 
-    const clearData = (): void => {
+    const clearData = () => {
         fetchedBounds = null
         fetchedElements = null
         source.setData(emptyFeatureCollection)
@@ -99,13 +99,13 @@ export const configureDataLayer = (map: MaplibreMap): void => {
     }
 
     /** On feature click, navigate to the object page */
-    const onFeatureClick = (e: MapLayerMouseEvent): void => {
+    const onFeatureClick = (e: MapLayerMouseEvent) => {
         const props = e.features[0].properties
         routerNavigateStrict(`/${props.type}/${props.id}`)
     }
 
     let hoveredFeatureId: number | null = null
-    const onFeatureHover = (e: MapLayerMouseEvent): void => {
+    const onFeatureHover = (e: MapLayerMouseEvent) => {
         const feature = e.features[0]
         const featureId = feature.id as number
         if (hoveredFeatureId) {
@@ -117,7 +117,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
         hoveredFeatureId = featureId
         map.setFeatureState({ source: LAYER_ID, id: hoveredFeatureId }, { hover: true })
     }
-    const onFeatureLeave = (): void => {
+    const onFeatureLeave = () => {
         map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
         hoveredFeatureId = null
         clearMapHover(map, LAYER_ID)
@@ -131,14 +131,14 @@ export const configureDataLayer = (map: MaplibreMap): void => {
     }
 
     /** Load map data into the data layer */
-    const loadData = (): void => {
+    const loadData = () => {
         console.debug("Loading", fetchedElements.length, "elements")
         loadDataAlert.classList.add("d-none")
         source.setData(renderObjects(fetchedElements, { renderAreas: false }))
     }
 
     /** Display data alert if not already shown */
-    const showDataAlert = (): void => {
+    const showDataAlert = () => {
         console.debug("Requested too much data, showing alert")
         if (!loadDataAlert.classList.contains("d-none")) return
         showDataButton.addEventListener("click", onShowDataButtonClick, { once: true })
@@ -167,7 +167,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
     }
 
     /** On map update, fetch the elements in view and update the data layer */
-    const updateLayer = (): void => {
+    const updateLayer = async () => {
         // Skip if the notes layer is not visible
         if (!enabled) return
 
@@ -203,44 +203,40 @@ export const configureDataLayer = (map: MaplibreMap): void => {
             .toArray()
 
         toggleLayerSpinner(LAYER_ID, true)
-        fetch(
-            `/api/web/map?${qsEncode({
-                bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
-                limit: loadDataOverride ? "" : LOAD_DATA_ALERT_THRESHOLD.toString(),
-            })}`,
-            { signal: abortController.signal, priority: "high" },
-        )
-            .then(async (resp) => {
-                toggleLayerSpinner(LAYER_ID, false)
-                if (!resp.ok) {
-                    if (resp.status === 400) {
-                        errorDataAlert.classList.remove("d-none")
-                        loadDataAlert.classList.add("d-none")
-                        clearData()
-                        return
-                    }
-                    throw new Error(`${resp.status} ${resp.statusText}`)
+        try {
+            const resp = await fetch(
+                `/api/web/map?${qsEncode({
+                    bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
+                    limit: loadDataOverride ? "" : LOAD_DATA_ALERT_THRESHOLD.toString(),
+                })}`,
+                { signal: abortController.signal, priority: "high" },
+            )
+            toggleLayerSpinner(LAYER_ID, false)
+            if (!resp.ok) {
+                if (resp.status === 400) {
+                    errorDataAlert.classList.remove("d-none")
+                    loadDataAlert.classList.add("d-none")
+                    clearData()
+                    return
                 }
+                throw new Error(`${resp.status} ${resp.statusText}`)
+            }
 
-                const buffer = await resp.arrayBuffer()
-                const render = fromBinary(
-                    RenderElementsDataSchema,
-                    new Uint8Array(buffer),
-                )
-                fetchedElements = convertRenderElementsData(render)
-                fetchedBounds = fetchBounds
-                if (render.tooMuchData) {
-                    showDataAlert()
-                } else {
-                    loadData()
-                }
-            })
-            .catch((error: Error) => {
-                if (error.name === "AbortError") return
-                console.error("Failed to fetch map data", error)
-                toggleLayerSpinner(LAYER_ID, false)
-                clearData()
-            })
+            const buffer = await resp.arrayBuffer()
+            const render = fromBinary(RenderElementsDataSchema, new Uint8Array(buffer))
+            fetchedElements = convertRenderElementsData(render)
+            fetchedBounds = fetchBounds
+            if (render.tooMuchData) {
+                showDataAlert()
+            } else {
+                loadData()
+            }
+        } catch (error) {
+            if (error.name === "AbortError") return
+            console.error("Failed to fetch map data", error)
+            toggleLayerSpinner(LAYER_ID, false)
+            clearData()
+        }
     }
     map.on("moveend", updateLayer)
 

@@ -17,7 +17,7 @@ const formUsePasswordSchemasMap = new WeakMap<
 export const configurePasswordsForm = (
     form: HTMLFormElement,
     passwordInputs: NodeListOf<HTMLInputElement>,
-): void => {
+) => {
     console.debug(
         "Initializing passwords form with",
         passwordInputs.length,
@@ -40,7 +40,7 @@ export const appendPasswordsToFormData = async (
     form: HTMLFormElement,
     formData: FormData,
     passwordInputs: NodeListOf<HTMLInputElement>,
-): Promise<void> => {
+) => {
     const passwordSchemas = formUsePasswordSchemasMap.get(form)
     console.debug(
         "Updating passwords form with",
@@ -53,14 +53,16 @@ export const appendPasswordsToFormData = async (
     for (const input of passwordInputs) {
         const inputName = input.dataset.name
         if (!inputName.endsWith("_confirm") && input.value) {
-            tasks.push(
-                buildTransmitPassword(passwordSchemas, input.value).then((binary) => {
-                    formData.set(
-                        inputName,
-                        new Blob([binary], { type: "application/octet-stream" }),
-                    )
-                }),
-            )
+            const buildAndSet = async () => {
+                formData.set(
+                    inputName,
+                    new Blob(
+                        [await buildTransmitPassword(passwordSchemas, input.value)],
+                        { type: "application/octet-stream" },
+                    ),
+                )
+            }
+            tasks.push(buildAndSet())
         }
     }
     await Promise.all(tasks)
@@ -70,7 +72,7 @@ export const appendPasswordsToFormData = async (
 export const handlePasswordSchemaFeedback = (
     form: HTMLFormElement,
     response: PasswordSchema | string,
-): boolean => {
+) => {
     const currentPasswordSchemas = formUsePasswordSchemasMap.get(form)
     if (currentPasswordSchemas.length === 2 && currentPasswordSchemas[1] === response)
         return false
@@ -83,7 +85,7 @@ export const handlePasswordSchemaFeedback = (
 const buildTransmitPassword = async (
     passwordSchemas: (PasswordSchema | string)[],
     password: string,
-): Promise<Uint8Array<ArrayBuffer>> => {
+) => {
     const transmitUserPassword = create(TransmitUserPasswordSchema)
     const tasks: Promise<void>[] = []
     for (const passwordSchema of passwordSchemas) {
@@ -97,7 +99,7 @@ const clientHashPassword = async (
     transmitUserPassword: TransmitUserPassword,
     passwordSchema: PasswordSchema | string,
     password: string,
-): Promise<void> => {
+) => {
     if (passwordSchema === "v1") {
         // TODO: check performance on mobile
         // client-side pbkdf2 sha512, 100_000 iters, base64 encoded
@@ -120,11 +122,7 @@ const clientHashPassword = async (
     }
 }
 
-const pbkdf2_sha512 = async (
-    password: string,
-    salt: string,
-    iterations: number,
-): Promise<Uint8Array> => {
+const pbkdf2_sha512 = async (password: string, salt: string, iterations: number) => {
     try {
         const encoder = new TextEncoder()
         const passwordKey = await crypto.subtle.importKey(
@@ -147,7 +145,7 @@ const pbkdf2_sha512 = async (
             ),
         )
     } catch (error) {
-        if ((error as Error).name !== "NotSupportedError") throw error
+        if (error.name !== "NotSupportedError") throw error
     }
     console.warn(
         "SubtleCrypto does not support PBKDF2 SHA-512, falling back to polyfill",

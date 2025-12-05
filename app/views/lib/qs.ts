@@ -4,10 +4,10 @@
  * qsParse("?foo=bar&baz=qux")
  * // => { foo: "bar", baz: "qux" }
  */
-export const qsParse = (qs: string): { [key: string]: string } => {
+export const qsParse = (qs: string) => {
     const result: { [key: string]: string } = {}
     if (!qs) return result
-    if (qs.startsWith("#")) qs = qs.substring(1)
+    if (qs.startsWith("#")) qs = qs.slice(1)
     const params = new URLSearchParams(qs)
     for (const key of params.keys()) {
         if (result[key] === undefined) {
@@ -23,9 +23,7 @@ export const qsParse = (qs: string): { [key: string]: string } => {
  * qsEncode({ foo: "bar", baz: "qux", quux: undefined })
  * // => URLSearchParams { "foo" => "bar", "baz" => "qux" }
  */
-export const qsEncode = (obj: {
-    [key: string]: string | string[] | undefined
-}): URLSearchParams => {
+export const qsEncode = (obj: { [key: string]: string | string[] | undefined }) => {
     const params = new URLSearchParams()
     for (const [key, value] of Object.entries(obj)) {
         // Skip undefined values

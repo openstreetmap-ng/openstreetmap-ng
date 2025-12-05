@@ -7,7 +7,7 @@ const searchForm = document.querySelector("form.search-form")
 const searchQueryInput = searchForm?.querySelector("input[name=q]")
 
 /** Configure the search form */
-export const configureSearchForm = (map: MaplibreMap): void => {
+export const configureSearchForm = (map: MaplibreMap) => {
     // On search form submit, capture and perform router navigation
     searchForm.addEventListener("submit", (e) => {
         console.debug("onSearchFormSubmit")
@@ -33,7 +33,7 @@ export const configureSearchForm = (map: MaplibreMap): void => {
 }
 
 /** Set search form to the given query */
-export const setSearchFormQuery = (query: string): void => {
+export const setSearchFormQuery = (query: string) => {
     if (!searchForm) {
         console.error("Attempted to set search query but search form is not available")
         return

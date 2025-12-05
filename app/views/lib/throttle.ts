@@ -6,11 +6,11 @@
 export const throttle = <T extends any[]>(
     func: (...args: T) => void,
     delay: number,
-): ((...args: T) => void) => {
+) => {
     let lastCalled = 0
     let timeout: ReturnType<typeof setTimeout> | null = null
 
-    return (...args) => {
+    return (...args: T) => {
         clearTimeout(timeout)
         const now = performance.now()
         const timeElapsed = now - lastCalled

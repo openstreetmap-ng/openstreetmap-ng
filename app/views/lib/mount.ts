@@ -10,7 +10,7 @@ const bodyClasses = new Set(document.body.classList)
 export const mount = (
     target: string | readonly string[],
     callback: (body: HTMLBodyElement) => void | Promise<void>,
-): void => {
+) => {
     const matches = Array.isArray(target)
         ? target.some((className) => bodyClasses.has(className))
         : bodyClasses.has(target as string)

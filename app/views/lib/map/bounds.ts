@@ -4,7 +4,7 @@ import { LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
 const MIN_BOUNDS_SIZE_PX = 20
 
 /** Get the bounds area in square degrees */
-export const getLngLatBoundsSize = (bounds: LngLatBounds): number => {
+export const getLngLatBoundsSize = (bounds: LngLatBounds) => {
     const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
     return (maxLon - minLon) * (maxLat - minLat)
 }
@@ -13,7 +13,7 @@ export const getLngLatBoundsSize = (bounds: LngLatBounds): number => {
 export const getLngLatBoundsIntersection = (
     bounds1: LngLatBounds,
     bounds2: LngLatBounds,
-): LngLatBounds => {
+) => {
     const [[minLon1, minLat1], [maxLon1, maxLat1]] = bounds1
         .adjustAntiMeridian()
         .toArray()
@@ -38,7 +38,7 @@ export const getLngLatBoundsIntersection = (
 export const checkLngLatBoundsIntersection = (
     bounds1: LngLatBounds,
     bounds2: LngLatBounds,
-): boolean => {
+) => {
     const [[minLon1, minLat1], [maxLon1, maxLat1]] = bounds1
         .adjustAntiMeridian()
         .toArray()
@@ -55,10 +55,7 @@ export const checkLngLatBoundsIntersection = (
 }
 
 /** Check if two bounds are equal */
-export const lngLatBoundsEqual = (
-    bounds1?: LngLatBounds,
-    bounds2?: LngLatBounds,
-): boolean => {
+export const lngLatBoundsEqual = (bounds1?: LngLatBounds, bounds2?: LngLatBounds) => {
     if (!bounds1 && !bounds2) return true
     if (!bounds1 || !bounds2) return false
     const [[minLon1, minLat1], [maxLon1, maxLat1]] = bounds1
@@ -76,10 +73,7 @@ export const lngLatBoundsEqual = (
 }
 
 /** Pad bounds to grow/shrink them */
-export const padLngLatBounds = (
-    bounds: LngLatBounds,
-    padding?: number,
-): LngLatBounds => {
+export const padLngLatBounds = (bounds: LngLatBounds, padding?: number) => {
     if (!padding) return bounds
     const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
     const paddingX = padding * (maxLon - minLon)
@@ -93,7 +87,7 @@ export const padLngLatBounds = (
 }
 
 /** Make bounds minimum size to make them easier to click */
-export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds): Bounds => {
+export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds) => {
     const [minLon, minLat, maxLon, maxLat] = bounds
     const mapBottomLeft = map.project([minLon, minLat])
     const mapTopRight = map.project([maxLon, maxLat])
@@ -119,16 +113,16 @@ export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds): Bounds 
         lngLatBottomLeft.lat,
         lngLatTopRight.lng,
         lngLatTopRight.lat,
-    ]
+    ] as Bounds
 }
 
 /** Union two bounds, returning a new bounds */
-export const unionBounds = (left: Bounds | null, right: Bounds): Bounds =>
+export const unionBounds = (left: Bounds | null, right: Bounds) =>
     left
-        ? [
+        ? ([
               Math.min(left[0], right[0]),
               Math.min(left[1], right[1]),
               Math.max(left[2], right[2]),
               Math.max(left[3], right[3]),
-          ]
+          ] as Bounds)
         : right

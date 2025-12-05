@@ -13,7 +13,7 @@ export const configureStandardPagination = (
         customLoader?: (renderContainer: HTMLElement, page: number) => void
         loadCallback?: (renderContainer: HTMLElement, page: number) => void
     },
-): (() => void) => {
+) => {
     if (!container) {
         console.debug("Ignored standard pagination: missing container")
         return () => {}
@@ -51,7 +51,7 @@ export const configureStandardPagination = (
     const fetchCache = new Map<string, string>()
     let firstLoad = true
 
-    const setPendingState = (state: boolean): void => {
+    const setPendingState = (state: boolean) => {
         renderContainer.style.opacity = !firstLoad && state ? "0.5" : ""
 
         // Only show spinner during initial load
@@ -75,7 +75,7 @@ export const configureStandardPagination = (
         }
     }
 
-    const onLoad = (html: string): void => {
+    const onLoad = (html: string) => {
         renderContainer.innerHTML = html
         resolveDatetimeLazy(renderContainer)
         options?.loadCallback?.(renderContainer, currentPage.peek())
@@ -111,11 +111,12 @@ export const configureStandardPagination = (
         const abortController = new AbortController()
         setPendingState(true)
 
-        fetch(url, {
-            signal: abortController.signal,
-            priority: "high",
-        })
-            .then(async (resp) => {
+        const fetchPage = async () => {
+            try {
+                const resp = await fetch(url, {
+                    signal: abortController.signal,
+                    priority: "high",
+                })
                 if (resp.ok) console.debug("Navigated to page", currentPageString)
                 const text = await resp.text()
                 fetchCache.set(url, text)
@@ -135,15 +136,15 @@ export const configureStandardPagination = (
                         currentPage.value = reverse ? totalPages.value : 1
                     })
                 }
-            })
-            .catch((error: Error) => {
+            } catch (error) {
                 if (error.name === "AbortError") return
                 console.error("Failed to navigate to page", currentPageString, error)
                 renderContainer.textContent = error.message
-            })
-            .finally(() => {
+            } finally {
                 setPendingState(false)
-            })
+            }
+        }
+        fetchPage()
 
         return () => abortController.abort()
     })

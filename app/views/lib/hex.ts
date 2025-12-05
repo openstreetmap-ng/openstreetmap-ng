@@ -5,7 +5,7 @@ const getB2HLut = memoize(() =>
 )
 
 /** Convert a byte array to a hex string */
-export const toHex = (bytes: Uint8Array): string => {
+export const toHex = (bytes: Uint8Array) => {
     const lut = getB2HLut()
     let out = ""
     for (const byte of bytes) out += lut[byte]
@@ -21,7 +21,7 @@ const getH2BLut = memoize(() => {
 })
 
 /** Convert a hex string to a byte array */
-export const fromHex = (hex: string): Uint8Array => {
+export const fromHex = (hex: string) => {
     const lut = getH2BLut()
     const len = hex.length >> 1
     const out = new Uint8Array(len)

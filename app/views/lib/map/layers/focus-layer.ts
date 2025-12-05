@@ -71,7 +71,7 @@ export const focusObjects = (
     paint?: FocusLayerPaint,
     layout?: FocusLayerLayout,
     options?: FocusOptions,
-): void => {
+) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     source.setData(emptyFeatureCollection)
 
@@ -171,7 +171,7 @@ export const focusObjects = (
     }
 }
 
-const getGeometryBounds = (g: Geometry): LngLatBounds => {
+const getGeometryBounds = (g: Geometry) => {
     if (g.type === "Point") {
         const [lon, lat] = g.coordinates
         return new LngLatBounds([lon, lat, lon, lat])

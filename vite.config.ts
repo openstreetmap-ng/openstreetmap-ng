@@ -9,19 +9,19 @@ import { browserslist } from "./package.json"
 
 const CSS_FILE_RE = /\.(?:c|s[ac])ss$/i
 
-const getPackageDist = (pkgName: string): string => {
+const getPackageDist = (pkgName: string) => {
     const absolutePath = dirname(fileURLToPath(import.meta.resolve(pkgName)))
     const relativePath = relative(process.cwd(), absolutePath).replace(/\\/g, "/")
     return `${relativePath}/`
 }
 
-const trimDevBase = (base: string, path: string): string => {
+const trimDevBase = (base: string, path: string) => {
     if (!path.startsWith(base)) return path
     const trimmed = path.slice(base.length)
     return trimmed.startsWith("/") ? trimmed : `/${trimmed}`
 }
 
-const rewriteCssModule = (code: string, mutate: (css: string) => string): string => {
+const rewriteCssModule = (code: string, mutate: (css: string) => string) => {
     const marker = 'const __vite__css = "'
     const markerIndex = code.indexOf(marker)
     assert(markerIndex >= 0)

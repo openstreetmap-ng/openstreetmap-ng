@@ -8,7 +8,7 @@ const resolvedElements = new WeakSet<HTMLTimeElement>()
  * @param utcDateString - ISO datetime string in UTC (from backend)
  * @returns Local datetime string in 'YYYY-MM-DDTHH:mm' format for datetime-local input
  */
-const utcStringToLocalString = (utcDateString: string): string => {
+const utcStringToLocalString = (utcDateString: string) => {
     const utcDate = new Date(utcDateString)
     if (Number.isNaN(utcDate.getTime())) return ""
 
@@ -27,7 +27,7 @@ const utcStringToLocalString = (utcDateString: string): string => {
  * @param localDatetimeString - Local datetime string from datetime-local input
  * @returns ISO datetime string in UTC format
  */
-const localStringToUtcString = (localDatetimeString: string): string => {
+const localStringToUtcString = (localDatetimeString: string) => {
     // Create date object treating the input as local time
     const localDate = new Date(localDatetimeString)
     if (Number.isNaN(localDate.getTime())) return ""
@@ -84,7 +84,7 @@ export const configureDatetimeInputs = (
     }
 }
 
-export const resolveDatetimeLazy = (searchElement: Element): void =>
+export const resolveDatetimeLazy = (searchElement: Element) =>
     queueMicrotask(() => {
         let absoluteCounter = 0
         let relativeCounter = 0
@@ -135,18 +135,19 @@ export const resolveDatetimeLazy = (searchElement: Element): void =>
         )
     })
 
-const getRelativeFormatValueUnit = (
-    date: Date,
-): [number, Intl.RelativeTimeFormatUnitSingular] => {
-    const diffSeconds = (date.getTime() - Date.now()) / 1000
-    const diffAbs = Math.abs(diffSeconds)
-    if (diffAbs >= 31536000) return [(diffSeconds / 31536000) | 0, "year"]
-    if (diffAbs >= 2592000) return [(diffSeconds / 2592000) | 0, "month"]
-    if (diffAbs >= 604800) return [(diffSeconds / 604800) | 0, "week"]
-    if (diffAbs >= 86400) return [(diffSeconds / 86400) | 0, "day"]
-    if (diffAbs >= 3600) return [(diffSeconds / 3600) | 0, "hour"]
-    if (diffAbs >= 60) return [(diffSeconds / 60) | 0, "minute"]
-    return [diffSeconds | 0, "second"]
+const TIME_UNITS = [
+    [31536000, "year"],
+    [2592000, "month"],
+    [604800, "week"],
+    [86400, "day"],
+    [3600, "hour"],
+    [60, "minute"],
+] as const
+
+const getRelativeFormatValueUnit = (date: Date) => {
+    const diff = (date.getTime() - Date.now()) / 1000
+    const [secs, unit] = TIME_UNITS.find(([s]) => Math.abs(diff) >= s) ?? [1, "second"]
+    return [(diff / secs) | 0, unit] as const
 }
 
 // Initial update

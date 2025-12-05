@@ -33,21 +33,23 @@ for (const container of richTextContainers) {
             const formData = new FormData()
             formData.append("text", sourceTextArea.value)
 
-            fetch("/api/web/rich-text", {
-                method: "POST",
-                body: formData,
-                signal: abortController.signal,
-                priority: "high",
-            })
-                .then(async (resp) => {
+            const fetchPreview = async () => {
+                try {
+                    const resp = await fetch("/api/web/rich-text", {
+                        method: "POST",
+                        body: formData,
+                        signal: abortController.signal,
+                        priority: "high",
+                    })
                     previewDiv.innerHTML = await resp.text()
-                })
-                .catch((error: Error) => {
+                } catch (error) {
                     if (error.name === "AbortError") return
                     console.error("Failed to fetch rich text preview", error)
                     previewDiv.innerHTML = error.message
                     // TODO: standard alert
-                })
+                }
+            }
+            fetchPreview()
 
             return () => abortController.abort()
         }

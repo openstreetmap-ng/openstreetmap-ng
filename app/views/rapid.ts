@@ -8,7 +8,7 @@ import { parentLoadSystemApp } from "@lib/system-app"
 const container = document.querySelector("div.rapid-container")
 if (!container) throw new Error("Rapid container not found")
 
-parentLoadSystemApp((accessToken, parentOrigin) => {
+parentLoadSystemApp(async (accessToken, parentOrigin) => {
     // @ts-expect-error
     const ctx = new window.Rapid.Context()
     ctx.preauth = {
@@ -22,20 +22,20 @@ parentLoadSystemApp((accessToken, parentOrigin) => {
     ctx.locale = primaryLanguage
     ctx.embed(true)
 
-    ctx.initAsync().then(() => {
-        const map = ctx.systems.map
+    await ctx.initAsync()
 
-        // Map emits 'draw' on full redraws, it's already throttled
-        map.on("draw", () => {
-            // Skip during introduction
-            if (ctx.inIntro) return
+    const map = ctx.systems.map
 
-            const [lon, lat] = map.center()
-            const zoom = map.zoom()
-            window.parent.postMessage(
-                { type: "mapState", state: { lon, lat, zoom } },
-                parentOrigin,
-            )
-        })
+    // Map emits 'draw' on full redraws, it's already throttled
+    map.on("draw", () => {
+        // Skip during introduction
+        if (ctx.inIntro) return
+
+        const [lon, lat] = map.center()
+        const zoom = map.zoom()
+        window.parent.postMessage(
+            { type: "mapState", state: { lon, lat, zoom } },
+            parentOrigin,
+        )
     })
 })

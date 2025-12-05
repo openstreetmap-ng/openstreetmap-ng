@@ -25,14 +25,14 @@ export const getBaseFetchController = (
     let abortController: AbortController | null = null
     let loadCallbackDispose: void | (() => void)
 
-    const onSidebarLoading = (): void => {
+    const onSidebarLoading = () => {
         // On sidebar loading, display loading content
         sidebarScrollPosition = scrollSidebar.scrollTop
         console.debug("Save sidebar scroll position", sidebarScrollPosition)
         dynamicContent.innerHTML = loadingHtml
     }
 
-    const onSidebarLoaded = (html: string, newUrl: string): void => {
+    const onSidebarLoaded = (html: string, newUrl: string) => {
         // On sidebar loaded, display content and call callback
         dynamicContent.innerHTML = html
         resolveDatetimeLazy(dynamicContent)
@@ -41,7 +41,7 @@ export const getBaseFetchController = (
         if (currentUrl === newUrl) {
             // If reload, restore sidebar scroll position
             const startTime = performance.now()
-            const tryRestoreScroll = (): void => {
+            const tryRestoreScroll = () => {
                 if (scrollSidebar.scrollHeight > sidebarScrollPosition) {
                     scrollSidebar.scrollTop = sidebarScrollPosition
                     console.debug(
@@ -69,8 +69,27 @@ export const getBaseFetchController = (
         }
     }
 
+    /** Fetch sidebar content from url */
+    const fetchSidebar = async (url: string) => {
+        try {
+            const resp = await fetch(url, {
+                signal: abortController.signal,
+                priority: "high",
+            })
+            if (!resp.ok && resp.status !== 404)
+                throw new Error(`${resp.status} ${resp.statusText}`)
+            onSidebarLoaded(await resp.text(), url)
+            loadCallbackDispose = loadCallback?.(dynamicContent)
+        } catch (error) {
+            if (error.name === "AbortError") return
+            console.error("Failed to fetch sidebar", error)
+            dynamicContent.textContent = error.message
+            alert(error.message)
+        }
+    }
+
     return {
-        load: (url?: string): void => {
+        load: (url?: string) => {
             if (abortController) {
                 console.error(
                     "Base fetch controller",
@@ -88,22 +107,7 @@ export const getBaseFetchController = (
             abortController = new AbortController()
             onSidebarLoading()
 
-            fetch(url, {
-                signal: abortController.signal,
-                priority: "high",
-            })
-                .then(async (resp) => {
-                    if (!resp.ok && resp.status !== 404)
-                        throw new Error(`${resp.status} ${resp.statusText}`)
-                    onSidebarLoaded(await resp.text(), url)
-                    loadCallbackDispose = loadCallback?.(dynamicContent)
-                })
-                .catch((error: Error) => {
-                    if (error.name === "AbortError") return
-                    console.error("Failed to fetch sidebar", error)
-                    dynamicContent.textContent = error.message
-                    alert(error.message)
-                })
+            fetchSidebar(url)
         },
         unload: () => {
             abortController?.abort()

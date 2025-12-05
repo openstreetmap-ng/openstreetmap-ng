@@ -25,12 +25,6 @@ interface StrengthLevel {
     minScore: number
 }
 
-interface StrengthResult {
-    score: number
-    level: StrengthLevel
-    suggestions: SuggestionKey[]
-}
-
 const STRENGTH_LEVELS: StrengthLevel[] = [
     { key: "weak", minScore: 0 },
     { key: "fair", minScore: 40 },
@@ -60,7 +54,7 @@ let hintIdCounter = 0
 const evaluateStrength = (
     password: string,
     { minLength, idealLength }: EvaluateOptions,
-): StrengthResult => {
+) => {
     const length = password.length
     const hasLowercase = LOWERCASE_REGEX.test(password)
     const hasUppercase = UPPERCASE_REGEX.test(password)
@@ -334,12 +328,16 @@ for (const input of inputs) {
         if (password.length < minLength) return
 
         const abortController = new AbortController()
-        lookupPwnedPassword(password, abortController.signal)
-            .then(update)
-            .catch((error: Error) => {
+        const lookupAndUpdate = async () => {
+            try {
+                await lookupPwnedPassword(password, abortController.signal)
+                update()
+            } catch (error) {
                 if (error.name === "AbortError") return
                 console.error("Failed to check password safety", error)
-            })
+            }
+        }
+        lookupAndUpdate()
 
         return () => {
             abortController.abort()
@@ -347,10 +345,7 @@ for (const input of inputs) {
     })
 }
 
-const lookupPwnedPassword = async (
-    password: string,
-    abortSignal: AbortSignal,
-): Promise<void> => {
+const lookupPwnedPassword = async (password: string, abortSignal: AbortSignal) => {
     const cached = pwnedPasswordCache.get(password)
     if (cached !== undefined) return
 
@@ -374,13 +369,13 @@ const lookupPwnedPassword = async (
     pwnedPasswordCache.set(password, isPwned)
 }
 
-const sha1_hex = async (value: string): Promise<string> => {
+const sha1_hex = async (value: string) => {
     const data = new TextEncoder().encode(value)
     let bytes: Uint8Array
     try {
         bytes = new Uint8Array(await crypto.subtle.digest("SHA-1", data))
     } catch (error) {
-        if ((error as Error).name !== "NotSupportedError") throw error
+        if (error.name !== "NotSupportedError") throw error
         console.warn("SubtleCrypto does not support SHA-1, falling back to polyfill")
         bytes = sha1(data)
     }

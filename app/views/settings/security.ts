@@ -7,7 +7,7 @@ import { getPasskeyRegistration } from "@lib/webauthn"
 import i18next from "i18next"
 import qrcode from "qrcode-generator"
 
-const generateTOTPSecret = (): string => {
+const generateTOTPSecret = () => {
     const buffer = new Uint8Array(16) // 128 bits
     crypto.getRandomValues(buffer)
 
@@ -30,11 +30,7 @@ const generateTOTPSecret = (): string => {
     return output
 }
 
-const generateTOTPQRCode = (
-    secret: string,
-    digits: number,
-    accountName: string,
-): string => {
+const generateTOTPQRCode = (secret: string, digits: number, accountName: string) => {
     const issuer = i18next.t("project_name")
     const label = `${issuer}:${accountName}`
     const uri = `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&digits=${digits}`
