@@ -18,6 +18,9 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
 
+    "paths": {
+      "@lib/*": ["./app/views/lib/*"]
+    },
     "types": [
       "@types/bootstrap",
       "@types/bun",
