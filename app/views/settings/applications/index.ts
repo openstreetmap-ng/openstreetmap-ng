@@ -1,4 +1,5 @@
 import { mount } from "@lib/mount"
+import { IdResponseSchema } from "@lib/proto/shared_pb"
 import { qsEncode, qsParse } from "@lib/qs"
 import { configureStandardForm } from "@lib/standard-form"
 import { Collapse } from "bootstrap"
@@ -54,12 +55,16 @@ mount("settings-applications-body", (body) => {
     // settings/applications/tokens
     const createTokenForm = body.querySelector("form.create-token-form")
     if (createTokenForm) {
-        configureStandardForm(createTokenForm, ({ token_id }) => {
-            // On success callback, reload the page
-            console.debug("onCreateTokenFormSuccess", token_id)
-            const searchParams = qsParse(window.location.search)
-            searchParams.expand = token_id
-            window.location.href = `${window.location.pathname}${qsEncode(searchParams)}${window.location.hash}`
-        })
+        configureStandardForm(
+            createTokenForm,
+            (data) => {
+                // On success callback, reload the page
+                console.debug("onCreateTokenFormSuccess", data.id)
+                const searchParams = qsParse(window.location.search)
+                searchParams.expand = data.id.toString()
+                window.location.href = `${window.location.pathname}${qsEncode(searchParams)}${window.location.hash}`
+            },
+            { protobuf: IdResponseSchema },
+        )
     }
 })

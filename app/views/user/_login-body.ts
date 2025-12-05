@@ -1,4 +1,3 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import { mount } from "@lib/mount"
 import { type LoginResponse, LoginResponseSchema } from "@lib/proto/shared_pb"
 import { qsParse } from "@lib/qs"
@@ -35,7 +34,7 @@ if (loginForm) {
     let conditionalMediationAbort: AbortController | null = null
     let conditionalMediationAssertion: Blob | null = null
     let passwordless = false
-    let loginResponse: LoginResponse | null = null
+    const loginResponse: LoginResponse | null = null
     let submittedFormData: FormData | null = null
 
     const isDigit = (c: string) => c.length === 1 && c >= "0" && c <= "9"
@@ -187,12 +186,11 @@ if (loginForm) {
     // Configure login form with unified passkey/password flow
     configureStandardForm(
         loginForm,
-        (data) => {
-            if (!data.protobuf) {
+        (loginResponse) => {
+            if (!loginResponse) {
                 navigateOnSuccess()
                 return
             }
-            loginResponse = fromBinary(LoginResponseSchema, data.protobuf)
             if (loginResponse.passkey) {
                 console.info("onLoginFormPasskeyRequired")
                 startPasskey2FA()
@@ -207,6 +205,7 @@ if (loginForm) {
         },
         {
             removeEmptyFields: true,
+            protobuf: LoginResponseSchema,
             validationCallback: async (formData) => {
                 conditionalMediationAbort?.abort()
                 submittedFormData = formData

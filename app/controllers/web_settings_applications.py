@@ -17,6 +17,7 @@ from app.models.scope import scope_from_kwargs
 from app.models.types import ApplicationId, OAuth2TokenId
 from app.services.oauth2_application_service import OAuth2ApplicationService
 from app.services.oauth2_token_service import OAuth2TokenService
+from app.utils import id_response
 
 router = APIRouter(prefix='/api/web')
 
@@ -132,7 +133,7 @@ async def settings_application_tokens_create(
         write_notes=write_notes,
     )
     token_id = await OAuth2TokenService.create_pat(name=name, scopes=scopes)
-    return {'token_id': str(token_id)}  # as string, avoiding loss of precision
+    return id_response(token_id)
 
 
 @router.post('/settings/applications/token/{token_id:int}/reset-access-token')

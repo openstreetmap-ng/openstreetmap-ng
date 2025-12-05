@@ -3,10 +3,12 @@ from os import process_cpu_count
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import cython
+from fastapi import Response
 from httpx import AsyncClient
 from httpx_secure import httpx_ssrf_protection
 
 from app.config import HTTP_TIMEOUT, USER_AGENT
+from app.models.proto.shared_pb2 import IdResponse
 
 
 @cython.cfunc
@@ -78,4 +80,12 @@ def calc_num_workers(
             min,
         ),
         max,
+    )
+
+
+def id_response(id: int) -> Response:
+    """Create a protobuf response containing a single ID."""
+    return Response(
+        IdResponse(id=id).SerializeToString(),
+        media_type='application/x-protobuf',
     )

@@ -1,14 +1,19 @@
 import { mount } from "@lib/mount"
+import { IdResponseSchema } from "@lib/proto/shared_pb"
 import { configureStandardForm } from "@lib/standard-form"
 import { t } from "i18next"
 
 mount("traces-edit-body", (body) => {
     const updateForm = body.querySelector("form.update-form")
-    configureStandardForm(updateForm, ({ trace_id }) => {
-        // On success callback, navigate to the trace details
-        console.debug("onUpdateFormSuccess", trace_id)
-        window.location.href = `/trace/${trace_id}`
-    })
+    configureStandardForm(
+        updateForm,
+        (data) => {
+            // On success callback, navigate to the trace details
+            console.debug("onUpdateFormSuccess", data.id)
+            window.location.href = `/trace/${data.id}`
+        },
+        { protobuf: IdResponseSchema },
+    )
 
     const deleteForm = body.querySelector("form.delete-form")
     configureStandardForm(deleteForm, ({ redirect_url }) => {

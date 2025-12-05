@@ -1,4 +1,3 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
 import { tryParsePoint, zoomPrecision } from "@lib/coords"
 import {
@@ -348,21 +347,20 @@ export const getRoutingController = (map: MaplibreMap) => {
 
     configureStandardForm(
         form,
-        ({ protobuf }: { protobuf: Uint8Array }) => {
+        (data) => {
             // Return early if unloaded
             if (loadingContainer.classList.contains("d-none")) return
             loadingContainer.classList.add("d-none")
 
             // Update UI with server-computed route
-            const data = fromBinary(RoutingResultSchema, protobuf)
             console.debug("onRoutingFormSuccess", data)
-
             updateEndpoints(data)
             updateUrl()
             updateRoute(data)
         },
         {
             abortSignal: true,
+            protobuf: RoutingResultSchema,
             validationCallback: () => {
                 // Hide previous route data before submission
                 loadingContainer.classList.remove("d-none")

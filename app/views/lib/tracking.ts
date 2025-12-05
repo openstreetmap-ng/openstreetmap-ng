@@ -61,8 +61,7 @@ if (crashReporting) {
 
 if (activityTracking) {
     console.debug("Enabling activity tracking")
-    // @ts-expect-error
-    window._paq = window._paq || []
+    ;(window as any)._paq ??= []
     const _paq: any[] = (window as any)._paq
 
     // tracker methods like "setCustomDimension" should be called before "trackPageView"

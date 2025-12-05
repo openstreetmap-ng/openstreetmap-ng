@@ -1,6 +1,7 @@
 import { getInitialMapState, parseMapState } from "@lib/map/state"
 import { qsEncode, qsParse } from "@lib/qs"
 import { configureIFrameSystemApp } from "@lib/system-app"
+import { NON_DIGIT_RE } from "@lib/utils"
 
 const iframe = document.querySelector("iframe.id-iframe")
 if (iframe) {
@@ -19,22 +20,22 @@ if (iframe) {
 
     // Optional object to select
     for (const type of ["node", "way", "relation", "note"]) {
-        if (searchParams[type]) {
-            const id = Number.parseInt(searchParams[type], 10)
-            if (!Number.isInteger(id) || id <= 0) continue
+        const idStr = searchParams[type]
+        if (!idStr) continue
 
-            // Location will be derived from the object
-            params.id = `${type[0]}${id}`
-            params.map = undefined
+        const idDigits = idStr.replace(NON_DIGIT_RE, "")
+        if (!idDigits || idDigits === "0") continue
 
-            // Optionally override location only from hash
-            const hashState = parseMapState(window.location.hash)
-            if (hashState) {
-                params.map = `${hashState.zoom}/${hashState.lat}/${hashState.lon}`
-            }
+        // Location will be derived from the object
+        params.id = `${type[0]}${idDigits}`
+        params.map = undefined
 
-            break
+        // Optionally override location only from hash
+        const hashState = parseMapState(window.location.hash)
+        if (hashState) {
+            params.map = `${hashState.zoom}/${hashState.lat}/${hashState.lon}`
         }
+        break
     }
 
     // Optionally select gpx trace

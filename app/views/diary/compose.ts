@@ -132,7 +132,7 @@ mount("diary-compose-body", (body) => {
 
         // When input is not valid, use the default center
         // This will only focus the map, not display a marker
-        if (!state) state = getInitialMapState(map)
+        state ??= getInitialMapState(map)
 
         map.jumpTo({
             center: [state.lon, state.lat],

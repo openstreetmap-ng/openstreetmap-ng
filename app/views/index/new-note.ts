@@ -6,6 +6,7 @@ import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { type LayerId, layersConfig } from "@lib/map/layers/layers"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { getMapState, setMapState } from "@lib/map/state"
+import { IdResponseSchema } from "@lib/proto/shared_pb"
 import { qsParse } from "@lib/qs"
 import { configureStandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
@@ -39,11 +40,15 @@ export const getNewNoteController = (map: MaplibreMap) => {
     }
     commentInput.addEventListener("input", updateButtonState)
 
-    configureStandardForm(form, ({ note_id }) => {
-        // On success callback, navigate to the new note and reload the notes layer
-        map.fire("reloadnoteslayer")
-        routerNavigateStrict(`/note/${note_id}`)
-    })
+    configureStandardForm(
+        form,
+        (data) => {
+            // On success callback, navigate to the new note and reload the notes layer
+            map.fire("reloadnoteslayer")
+            routerNavigateStrict(`/note/${data.id}`)
+        },
+        { protobuf: IdResponseSchema },
+    )
 
     return {
         load: () => {

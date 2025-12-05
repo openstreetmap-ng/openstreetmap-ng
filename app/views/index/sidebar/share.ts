@@ -86,7 +86,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
         )
         customRegionCheckbox.addEventListener("change", () => {
             if (customRegionCheckbox.checked) {
-                if (!locationFilter) locationFilter = new LocationFilterControl()
+                locationFilter ??= new LocationFilterControl()
                 // By default, location filter is slightly smaller than the current view
                 locationFilter.addTo(map, padLngLatBounds(map.getBounds(), -0.2))
             } else {

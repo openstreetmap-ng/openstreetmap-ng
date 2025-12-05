@@ -1,3 +1,6 @@
+import type { Message } from "@bufbuild/protobuf"
+import { fromBinary } from "@bufbuild/protobuf"
+import type { GenMessage } from "@bufbuild/protobuf/codegenv2"
 import {
     appendPasswordsToFormData,
     configurePasswordsForm,
@@ -16,14 +19,15 @@ export interface APIDetail {
  * Initialize a standard bootstrap form
  * @see https://getbootstrap.com/docs/5.3/forms/validation/
  */
-export const configureStandardForm = (
+export const configureStandardForm = <T = any>(
     form?: HTMLFormElement,
-    successCallback?: (data: any) => void,
+    successCallback?: (data?: T) => void,
     options?: {
         formBody?: Element
         formAppend?: boolean
         abortSignal?: boolean
         removeEmptyFields?: boolean
+        protobuf?: GenMessage<T & Message>
         validationCallback?: (
             formData: FormData,
         ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null
@@ -343,28 +347,35 @@ export const configureStandardForm = (
             })
             if (resp.ok) console.debug("Form submitted successfully")
 
-            let data: any
             const contentType = resp.headers.get("Content-Type") ?? ""
+            if (contentType && Boolean(options?.protobuf) !== (contentType === "application/x-protobuf")) {
+                throw new Error(`Mismatched response content type: ${contentType}`)
+            }
+
+            let data : any = null
             if (contentType.startsWith("application/json")) {
                 console.debug("Reading JSON response")
                 data = await resp.json()
             } else if (contentType === "application/x-protobuf") {
                 console.debug("Reading Protobuf response")
-                data = { protobuf: new Uint8Array(await resp.arrayBuffer()) }
-            } else {
+                data = fromBinary(
+                    options.protobuf,
+                    new Uint8Array(await resp.arrayBuffer()),
+                )
+            } else if (contentType) {
                 console.debug("Reading text response")
                 data = { detail: await resp.text() }
             }
 
             // Process form feedback if present
-            const detail = data.detail
+            const detail = data?.detail ?? ""
             if (detail) processFormFeedback(detail)
 
             // If the request was successful, call the callback
             if (resp.ok) {
                 successCallback?.(data)
             } else {
-                options?.errorCallback?.(new Error(detail ?? ""))
+                options?.errorCallback?.(new Error(detail))
             }
         } catch (error) {
             if (error.name === "AbortError") return

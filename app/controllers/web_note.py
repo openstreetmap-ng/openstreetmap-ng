@@ -23,6 +23,7 @@ from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
 from app.services.note_service import NoteService
+from app.utils import id_response
 
 router = APIRouter(prefix='/api/web/note')
 
@@ -34,7 +35,7 @@ async def create_note(
     text: Annotated[str, Form(min_length=1, max_length=NOTE_COMMENT_BODY_MAX_LENGTH)],
 ):
     note_id = await NoteService.create(lon, lat, text)
-    return {'note_id': note_id}
+    return id_response(note_id)
 
 
 @router.post('/{note_id:int}/comment')

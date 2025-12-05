@@ -19,7 +19,7 @@ type ReportAction =
 
 interface ReportData {
     type: ReportType
-    typeId: number
+    typeId: bigint
     action: ReportAction
     actionId?: string
 }
@@ -34,13 +34,12 @@ export const configureReportButton = (
 ) => {
     if (!button) return
 
-    if (!data)
-        data = {
-            type: button.dataset.reportType as ReportType,
-            typeId: Number.parseInt(button.dataset.reportTypeId, 10),
-            action: button.dataset.reportAction as ReportAction,
-            actionId: button.dataset.reportActionId,
-        }
+    data ??= {
+        type: button.dataset.reportType as ReportType,
+        typeId: BigInt(button.dataset.reportTypeId),
+        action: button.dataset.reportAction as ReportAction,
+        actionId: button.dataset.reportActionId,
+    }
 
     button.addEventListener("click", (e) => {
         e.preventDefault()

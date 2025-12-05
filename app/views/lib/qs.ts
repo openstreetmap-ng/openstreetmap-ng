@@ -10,9 +10,7 @@ export const qsParse = (qs: string) => {
     if (qs.startsWith("#")) qs = qs.slice(1)
     const params = new URLSearchParams(qs)
     for (const key of params.keys()) {
-        if (result[key] === undefined) {
-            result[key] = params.getAll(key).join(";")
-        }
+        result[key] ??= params.getAll(key).join(";")
     }
     return result
 }

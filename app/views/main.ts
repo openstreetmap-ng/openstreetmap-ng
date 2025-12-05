@@ -1,5 +1,7 @@
 import "./main.scss"
 
+import "@lib/polyfills"
+
 import "@lib/tracking"
 
 import "./navbar/_theme"

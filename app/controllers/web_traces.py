@@ -12,6 +12,7 @@ from app.models.db.trace import (
 from app.models.db.user import User
 from app.models.types import TraceId
 from app.services.trace_service import TraceService
+from app.utils import id_response
 
 router = APIRouter(prefix='/api/web/traces')
 
@@ -33,7 +34,7 @@ async def upload(
         detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
         StandardFeedback.raise_error(None, detail)
 
-    return {'trace_id': trace_id}
+    return id_response(trace_id)
 
 
 @router.post('/{trace_id:int}/update')
@@ -58,7 +59,7 @@ async def update(
         detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
         StandardFeedback.raise_error(None, detail)
 
-    return {'trace_id': trace_id}
+    return id_response(trace_id)
 
 
 @router.post('/{trace_id:int}/delete')
