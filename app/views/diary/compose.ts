@@ -3,8 +3,12 @@ import { CustomGeolocateControl } from "@lib/map/controls/geolocate"
 import { addControlGroup } from "@lib/map/controls/group"
 import { CustomZoomControl } from "@lib/map/controls/zoom"
 import { configureDefaultMapBehavior } from "@lib/map/defaults"
-import { addMapLayer, addMapLayerSources, defaultLayerId } from "@lib/map/layers/layers"
-import { getMarkerIconElement, markerIconAnchor } from "@lib/map/marker"
+import {
+    addMapLayer,
+    addMapLayerSources,
+    DEFAULT_LAYER_ID,
+} from "@lib/map/layers/layers"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { getInitialMapState, type LonLatZoom } from "@lib/map/state"
 import { mount } from "@lib/mount"
 import { configureStandardForm } from "@lib/standard-form"
@@ -37,7 +41,7 @@ mount("diary-compose-body", (body) => {
             return
         }
         marker = new Marker({
-            anchor: markerIconAnchor,
+            anchor: MARKER_ICON_ANCHOR,
             element: getMarkerIconElement("red", true),
             draggable: true,
         })
@@ -98,12 +102,12 @@ mount("diary-compose-body", (body) => {
                 refreshExpiredTiles: false,
             })
             configureDefaultMapBehavior(map)
-            addMapLayerSources(map, defaultLayerId)
+            addMapLayerSources(map, DEFAULT_LAYER_ID)
             addControlGroup(map, [
                 new CustomZoomControl(),
                 new CustomGeolocateControl(),
             ])
-            addMapLayer(map, defaultLayerId)
+            addMapLayer(map, DEFAULT_LAYER_ID)
         }
 
         let state: LonLatZoom | null = null

@@ -1,24 +1,35 @@
 import type { Map as MaplibreMap } from "maplibre-gl"
 
-export const markerOpenImageUrl = "/static/img/marker/open.webp"
-export const markerClosedImageUrl = "/static/img/marker/closed.webp"
-export const markerHiddenImageUrl = "/static/img/marker/hidden.webp"
-export const markerBlueImageUrl = "/static/img/marker/blue.webp"
-export const markerRedImageUrl = "/static/img/marker/red.webp"
+const MARKER_IMAGES = {
+    "marker-open": "/static/img/marker/open.webp",
+    "marker-closed": "/static/img/marker/closed.webp",
+    "marker-hidden": "/static/img/marker/hidden.webp",
+    "marker-blue": "/static/img/marker/blue.webp",
+    "marker-red": "/static/img/marker/red.webp",
+} as const
 
-const images = new Map<string, HTMLImageElement>()
+type MarkerImageName = keyof typeof MARKER_IMAGES
+
+export const NOTE_STATUS_MARKERS = {
+    open: "marker-open",
+    closed: "marker-closed",
+    hidden: "marker-hidden",
+} as const satisfies Record<string, MarkerImageName>
+
+export type NoteStatus = keyof typeof NOTE_STATUS_MARKERS
+
+const images = new Map<MarkerImageName, HTMLImageElement>()
 
 /** Load an image into the map context */
 export const loadMapImage = (
     map: MaplibreMap,
-    name: string,
-    url: string,
+    name: MarkerImageName,
     successCallback?: () => void,
 ): void => {
     let image = images.get(name)
     if (!image) {
         image = new Image()
-        image.src = url
+        image.src = MARKER_IMAGES[name]
         image.decoding = "async"
         images.set(name, image)
     }

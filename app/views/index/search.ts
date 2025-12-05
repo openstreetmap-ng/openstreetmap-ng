@@ -11,7 +11,7 @@ import {
     padLngLatBounds,
 } from "@lib/map/bounds"
 import { clearMapHover, setMapHover } from "@lib/map/hover"
-import { loadMapImage, markerRedImageUrl } from "@lib/map/image"
+import { loadMapImage } from "@lib/map/image"
 import {
     type FocusLayerPaint,
     type FocusOptions,
@@ -34,8 +34,8 @@ import type { Feature } from "geojson"
 import i18next from "i18next"
 import { type GeoJSONSource, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
 
-const layerId = "search" as LayerId
-layersConfig.set(layerId, {
+const LAYER_ID = "search" as LayerId
+layersConfig.set(LAYER_ID, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -61,32 +61,32 @@ layersConfig.set(layerId, {
     priority: 150,
 })
 
-const themeColor = "#f60"
-const focusPaint: FocusLayerPaint = Object.freeze({
-    "fill-color": themeColor,
+const THEME_COLOR = "#f60"
+const focusPaint: FocusLayerPaint = {
+    "fill-color": THEME_COLOR,
     "fill-opacity": 0.5,
-    "line-color": themeColor,
+    "line-color": THEME_COLOR,
     "line-opacity": 1,
     "line-width": 4,
     "circle-radius": 10,
-    "circle-color": themeColor,
+    "circle-color": THEME_COLOR,
     "circle-opacity": 0.4,
-    "circle-stroke-color": themeColor,
+    "circle-stroke-color": THEME_COLOR,
     "circle-stroke-opacity": 1,
     "circle-stroke-width": 3,
-})
-const focusOptions: FocusOptions = Object.freeze({
+}
+const focusOptions: FocusOptions = {
     padBounds: 0.5,
     maxZoom: 14,
     intersects: true,
     proportionCheck: false,
-})
+}
 
-const searchAlertChangeThreshold = 0.9
+const SEARCH_ALERT_CHANGE_THRESHOLD = 0.9
 
 /** Create a new search controller */
 export const getSearchController = (map: MaplibreMap): IndexController => {
-    const source = map.getSource(layerId) as GeoJSONSource
+    const source = map.getSource(LAYER_ID) as GeoJSONSource
     const searchForm = document.querySelector("form.search-form")
     const searchAlert = getMapAlert("search-alert")
     const searchTitle = i18next.t("site.search.search")
@@ -98,28 +98,28 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
     let whereIsThisMode = false
 
     // On feature click, navigate to the note
-    map.on("click", layerId, (e) => {
+    map.on("click", LAYER_ID, (e) => {
         const result = results[e.features[0].id as number]
         const target = result.querySelector("a.stretched-link")
         target.click()
     })
 
     let hoveredFeatureId: number | null = null
-    map.on("mousemove", layerId, (e) => {
+    map.on("mousemove", LAYER_ID, (e) => {
         const featureId = e.features[0].id
         if (hoveredFeatureId) {
             if (hoveredFeatureId === featureId) return
             setHover(hoveredFeatureId, false)
         } else {
-            setMapHover(map, layerId)
+            setMapHover(map, LAYER_ID)
         }
         hoveredFeatureId = featureId as number
         setHover(hoveredFeatureId, true)
     })
-    map.on("mouseleave", layerId, () => {
+    map.on("mouseleave", LAYER_ID, () => {
         setHover?.(hoveredFeatureId, false)
         hoveredFeatureId = null
-        clearMapHover(map, layerId)
+        clearMapHover(map, LAYER_ID)
     })
 
     /** On search alert click, reload the search with the new area */
@@ -159,7 +159,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
             intersectionBoundsSize / mapBoundsSize,
             intersectionBoundsSize / initialBoundsSize,
         )
-        if (proportion > searchAlertChangeThreshold) return
+        if (proportion > SEARCH_ALERT_CHANGE_THRESHOLD) return
 
         searchAlert.classList.remove("d-none")
         map.off("moveend", onMapZoomOrMoveEnd)
@@ -204,7 +204,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
             }
         }
         source.setData({ type: "FeatureCollection", features })
-        addMapLayer(map, layerId)
+        addMapLayer(map, LAYER_ID)
         console.debug("Search layer showing", results.length, "results")
 
         /** Set the hover state of the search features */
@@ -212,7 +212,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
             const result = results[id]
             result?.classList.toggle("hover", hover)
 
-            map.setFeatureState({ source: layerId, id: id }, { hover })
+            map.setFeatureState({ source: LAYER_ID, id: id }, { hover })
 
             if (hover && result) {
                 // Scroll result into view
@@ -258,9 +258,9 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
 
         return () => {
             map.off("moveend", onMapZoomOrMoveEnd)
-            removeMapLayer(map, layerId)
+            removeMapLayer(map, LAYER_ID)
             source.setData(emptyFeatureCollection)
-            clearMapHover(map, layerId)
+            clearMapHover(map, LAYER_ID)
             focusObjects(map)
             results = null
             setHover = null
@@ -270,7 +270,7 @@ export const getSearchController = (map: MaplibreMap): IndexController => {
     const controller: IndexController = {
         load: (options) => {
             // Load image resources
-            loadMapImage(map, "marker-red", markerRedImageUrl)
+            loadMapImage(map, "marker-red")
 
             // Stick the search form
             searchForm.classList.add("sticky-top")

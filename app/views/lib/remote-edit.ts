@@ -4,7 +4,7 @@ import { qsEncode } from "@lib/qs"
 import type { Bounds, OSMObject } from "@lib/types"
 import i18next from "i18next"
 
-const remoteEditHost = "http://localhost:8111"
+const REMOTE_EDIT_HOST = "http://localhost:8111"
 
 /**
  * Get object request URL
@@ -76,7 +76,7 @@ export const remoteEdit = (button: HTMLButtonElement): void => {
     button.disabled = true
 
     const loadAndZoomQuery = qsEncode(loadQuery)
-    fetch(`${remoteEditHost}/load_and_zoom?${loadAndZoomQuery}`, {
+    fetch(`${REMOTE_EDIT_HOST}/load_and_zoom?${loadAndZoomQuery}`, {
         method: "GET",
         mode: "no-cors",
         credentials: "omit",
@@ -87,7 +87,7 @@ export const remoteEdit = (button: HTMLButtonElement): void => {
             // Optionally import note
             if (object && object.type === "note") {
                 const importQuery = qsEncode({ url: getObjectRequestUrl(object) })
-                return fetch(`${remoteEditHost}/import?${importQuery}`, {
+                return fetch(`${REMOTE_EDIT_HOST}/import?${importQuery}`, {
                     method: "GET",
                     mode: "no-cors",
                     credentials: "omit",

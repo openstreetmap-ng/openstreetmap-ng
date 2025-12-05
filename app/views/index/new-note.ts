@@ -5,22 +5,23 @@ import { isLatitude, isLongitude } from "@lib/coords"
 import { setNewNoteButtonState } from "@lib/map/controls/new-note"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { type LayerId, layersConfig } from "@lib/map/layers/layers"
-import { getMarkerIconElement, markerIconAnchor } from "@lib/map/marker"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { getMapState, setMapState } from "@lib/map/state"
 import { qsParse } from "@lib/qs"
 import { configureStandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import { LngLat, type Map as MaplibreMap, Marker } from "maplibre-gl"
 
-const themeColor = "#f60"
-const focusPaint: FocusLayerPaint = Object.freeze({
+const NOTES_LAYER_ID = "notes" as LayerId
+const THEME_COLOR = "#f60"
+const focusPaint: FocusLayerPaint = {
     "circle-radius": 20,
-    "circle-color": themeColor,
+    "circle-color": THEME_COLOR,
     "circle-opacity": 0.5,
-    "circle-stroke-color": themeColor,
+    "circle-stroke-color": THEME_COLOR,
     "circle-stroke-opacity": 1,
     "circle-stroke-width": 2.5,
-})
+}
 
 /** Create a new new note controller */
 export const getNewNoteController = (map: MaplibreMap): IndexController => {
@@ -65,7 +66,7 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
             }
 
             marker = new Marker({
-                anchor: markerIconAnchor,
+                anchor: MARKER_ICON_ANCHOR,
                 element: getMarkerIconElement("new", false),
                 draggable: true,
             })
@@ -108,7 +109,7 @@ export const getNewNoteController = (map: MaplibreMap): IndexController => {
 
             // Enable notes layer to prevent duplicates
             const state = getMapState(map)
-            const notesLayerCode = layersConfig.get("notes" as LayerId).layerCode
+            const notesLayerCode = layersConfig.get(NOTES_LAYER_ID).layerCode
             if (!state.layersCode.includes(notesLayerCode)) {
                 state.layersCode += notesLayerCode
                 setMapState(map, state)

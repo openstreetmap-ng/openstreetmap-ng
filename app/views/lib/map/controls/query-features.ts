@@ -4,7 +4,7 @@ import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { IControl, Map as MaplibreMap, MapMouseEvent } from "maplibre-gl"
 
-export const queryFeaturesMinZoom = 14
+export const QUERY_FEATURES_MIN_ZOOM = 14
 
 export class QueryFeaturesControl implements IControl {
     public _container: HTMLElement
@@ -55,7 +55,7 @@ export class QueryFeaturesControl implements IControl {
         /** On map zoom, change button availability */
         const updateState = () => {
             const zoom = map.getZoom()
-            if (zoom < queryFeaturesMinZoom) {
+            if (zoom < QUERY_FEATURES_MIN_ZOOM) {
                 if (!button.disabled) {
                     if (button.classList.contains("active")) button.click()
                     button.blur()

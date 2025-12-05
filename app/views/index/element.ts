@@ -14,22 +14,22 @@ import { setPageTitle } from "@lib/title"
 import i18next from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
-const themeColor = "#f60"
-const focusPaint: FocusLayerPaint = Object.freeze({
-    "fill-color": themeColor,
+const THEME_COLOR = "#f60"
+const focusPaint: FocusLayerPaint = {
+    "fill-color": THEME_COLOR,
     "fill-opacity": 0.5,
-    "line-color": themeColor,
+    "line-color": THEME_COLOR,
     "line-opacity": 1,
     "line-width": 4,
     "circle-radius": 10,
-    "circle-color": themeColor,
+    "circle-color": THEME_COLOR,
     "circle-opacity": 0.4,
-    "circle-stroke-color": themeColor,
+    "circle-stroke-color": THEME_COLOR,
     "circle-stroke-opacity": 1,
     "circle-stroke-width": 3,
-})
+}
 
-const elementsPerPage = 20
+const ELEMENTS_PER_PAGE = 20
 
 /** Create a new element controller */
 export const getElementController = (map: MaplibreMap): IndexController => {
@@ -127,7 +127,7 @@ const renderElementsComponent = (
 
     // Calculate pagination
     const elementsLength = elements.length
-    const totalPages = Math.ceil(elementsLength / elementsPerPage)
+    const totalPages = Math.ceil(elementsLength / ELEMENTS_PER_PAGE)
     paginationContainer.dataset.pages = totalPages.toString()
 
     if (totalPages <= 1) {
@@ -137,8 +137,8 @@ const renderElementsComponent = (
     const updateTitle = (page: number): void => {
         let count: string
         if (totalPages > 1) {
-            const from = (page - 1) * elementsPerPage + 1
-            const to = Math.min(page * elementsPerPage, elementsLength)
+            const from = (page - 1) * ELEMENTS_PER_PAGE + 1
+            const to = Math.min(page * ELEMENTS_PER_PAGE, elementsLength)
             count = i18next.t("pagination.range", {
                 x: `${from}-${to}`,
                 y: elementsLength,
@@ -163,8 +163,8 @@ const renderElementsComponent = (
     const updateTable = (page: number, renderContainer: HTMLElement): void => {
         const renderFragment = document.createDocumentFragment()
 
-        const iStart = (page - 1) * elementsPerPage
-        const iEnd = Math.min(page * elementsPerPage, elementsLength)
+        const iStart = (page - 1) * ELEMENTS_PER_PAGE
+        const iEnd = Math.min(page * ELEMENTS_PER_PAGE, elementsLength)
         for (let i = iStart; i < iEnd; i++) {
             const element = elements[i]
             const type = element.type

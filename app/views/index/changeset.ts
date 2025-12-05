@@ -18,14 +18,14 @@ import type { Bounds, OSMChangeset } from "@lib/types"
 import i18next from "i18next"
 import type { MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
 
-const focusPaint: FocusLayerPaint = Object.freeze({
+const focusPaint: FocusLayerPaint = {
     "fill-opacity": 0,
     "line-color": "#f90",
     "line-opacity": 1,
     "line-width": 3,
-})
+}
 
-const elementsPerPage = 20
+const ELEMENTS_PER_PAGE = 20
 
 /** Create a new changeset controller */
 export const getChangesetController = (map: MaplibreMap): IndexController => {
@@ -165,7 +165,7 @@ const renderElementType = (
 
     // Calculate pagination
     const elementsLength = elements.length
-    const totalPages = Math.ceil(elementsLength / elementsPerPage)
+    const totalPages = Math.ceil(elementsLength / ELEMENTS_PER_PAGE)
     paginationContainer.dataset.pages = totalPages.toString()
 
     if (totalPages <= 1) {
@@ -175,8 +175,8 @@ const renderElementType = (
     const updateTitle = (page: number): void => {
         let count: string
         if (totalPages > 1) {
-            const from = (page - 1) * elementsPerPage + 1
-            const to = Math.min(page * elementsPerPage, elementsLength)
+            const from = (page - 1) * ELEMENTS_PER_PAGE + 1
+            const to = Math.min(page * ELEMENTS_PER_PAGE, elementsLength)
             count = i18next.t("pagination.range", {
                 x: `${from}-${to}`,
                 y: elementsLength,
@@ -203,8 +203,8 @@ const renderElementType = (
     const updateTable = (page: number, renderContainer: HTMLElement): void => {
         const renderFragment = document.createDocumentFragment()
 
-        const iStart = (page - 1) * elementsPerPage
-        const iEnd = Math.min(page * elementsPerPage, elementsLength)
+        const iStart = (page - 1) * ELEMENTS_PER_PAGE
+        const iEnd = Math.min(page * ELEMENTS_PER_PAGE, elementsLength)
         for (let i = iStart; i < iEnd; i++) {
             const element = elements[i]
 

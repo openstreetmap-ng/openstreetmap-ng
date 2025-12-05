@@ -38,14 +38,14 @@ export interface FocusOptions {
     proportionCheck?: boolean
 }
 
-const layerId = "focus" as LayerId
-const layerTypes = Object.freeze(["fill", "line", "circle", "symbol"]) as LayerType[]
-layersConfig.set(layerId as LayerId, {
+const LAYER_ID = "focus" as LayerId
+const LAYER_TYPES: LayerType[] = ["fill", "line", "circle", "symbol"]
+layersConfig.set(LAYER_ID, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
     },
-    layerTypes: layerTypes,
+    layerTypes: LAYER_TYPES,
     layerOptions: {
         layout: {
             "line-cap": "round",
@@ -72,7 +72,7 @@ export const focusObjects = (
     layout?: FocusLayerLayout,
     options?: FocusOptions,
 ): void => {
-    const source = map.getSource(layerId) as GeoJSONSource
+    const source = map.getSource(LAYER_ID) as GeoJSONSource
     source.setData(emptyFeatureCollection)
 
     // If there are no objects to focus, remove the focus layer
@@ -80,7 +80,7 @@ export const focusObjects = (
 
     if (!layerAddedMap.has(map)) {
         layerAddedMap.add(map)
-        addMapLayer(map, layerId)
+        addMapLayer(map, LAYER_ID)
     }
 
     const [lastPaint, lastLayout] = lastPropertyMap.get(map) ?? [undefined, undefined]
@@ -91,8 +91,8 @@ export const focusObjects = (
     ] as const) {
         if (last === current) continue
 
-        for (const type of layerTypes) {
-            const extendedLayerId = getExtendedLayerId(layerId, type)
+        for (const type of LAYER_TYPES) {
+            const extendedLayerId = getExtendedLayerId(LAYER_ID, type)
             if (!map.getLayer(extendedLayerId)) continue
 
             const validPrefixes = [`${type}-`]

@@ -4,7 +4,7 @@ import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
 import type { IndexController } from "@index/router"
 import { prefersReducedMotion } from "@lib/config"
 import { isLatitude, isLongitude, isZoom } from "@lib/coords"
-import { queryFeaturesMinZoom } from "@lib/map/controls/query-features"
+import { QUERY_FEATURES_MIN_ZOOM } from "@lib/map/controls/query-features"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
     addMapLayer,
@@ -25,9 +25,9 @@ import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
 import { type GeoJSONSource, LngLat, type Map as MaplibreMap } from "maplibre-gl"
 
-const layerId = "query-features" as LayerId
-const themeColor = "#f60"
-layersConfig.set(layerId as LayerId, {
+const LAYER_ID = "query-features" as LayerId
+const THEME_COLOR = "#f60"
+layersConfig.set(LAYER_ID, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -36,31 +36,31 @@ layersConfig.set(layerId as LayerId, {
     layerOptions: {
         paint: {
             "fill-opacity": 0,
-            "fill-color": themeColor,
+            "fill-color": THEME_COLOR,
             "line-opacity": 0,
-            "line-color": themeColor,
+            "line-color": THEME_COLOR,
             "line-width": 4,
         },
     },
     priority: 170,
 })
-const focusPaint: FocusLayerPaint = Object.freeze({
-    "fill-color": themeColor,
+const focusPaint: FocusLayerPaint = {
+    "fill-color": THEME_COLOR,
     "fill-opacity": 0.5,
-    "line-color": themeColor,
+    "line-color": THEME_COLOR,
     "line-opacity": 1,
     "line-width": 4,
     "circle-radius": 10,
-    "circle-color": themeColor,
+    "circle-color": THEME_COLOR,
     "circle-opacity": 0.4,
-    "circle-stroke-color": themeColor,
+    "circle-stroke-color": THEME_COLOR,
     "circle-stroke-opacity": 1,
     "circle-stroke-width": 3,
-})
+}
 
 /** Create a new query features controller */
 export const getQueryFeaturesController = (map: MaplibreMap): IndexController => {
-    const source = map.getSource(layerId) as GeoJSONSource
+    const source = map.getSource(LAYER_ID) as GeoJSONSource
     const sidebar = getActionSidebar("query-features")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const nearbyContainer = sidebar.querySelector("div.nearby-container")
@@ -82,7 +82,7 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
                 searchParams.zoom
                     ? Number.parseFloat(searchParams.zoom)
                     : map.getZoom(),
-                queryFeaturesMinZoom,
+                QUERY_FEATURES_MIN_ZOOM,
             )
             if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
                 return { lon, lat, zoom }
@@ -124,8 +124,8 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
 
         // Fade out circle smoothly
         const animationDuration = 750
-        const fillLayerId = getExtendedLayerId(layerId, "fill")
-        const lineLayerId = getExtendedLayerId(layerId, "line")
+        const fillLayerId = getExtendedLayerId(LAYER_ID, "fill")
+        const lineLayerId = getExtendedLayerId(LAYER_ID, "line")
         const fadeOut = (timestamp?: DOMHighResTimeStamp) => {
             const currentTime = timestamp ?? performance.now()
             if (currentTime < animationStart) animationStart = currentTime
@@ -137,11 +137,11 @@ export const getQueryFeaturesController = (map: MaplibreMap): IndexController =>
             if (opacity > 0 && !abortSignal.aborted)
                 requestAnimationFramePolyfill(fadeOut)
             else {
-                removeMapLayer(map, layerId, false)
+                removeMapLayer(map, LAYER_ID, false)
                 source.setData(emptyFeatureCollection)
             }
         }
-        addMapLayer(map, layerId, false)
+        addMapLayer(map, LAYER_ID, false)
         let animationStart = performance.now()
         requestAnimationFramePolyfill(fadeOut)
     }

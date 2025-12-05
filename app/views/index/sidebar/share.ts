@@ -4,7 +4,7 @@ import { shareExportFormatStorage } from "@lib/local-storage"
 import { padLngLatBounds } from "@lib/map/bounds"
 import { LocationFilterControl } from "@lib/map/controls/location-filter"
 import { exportMapImage } from "@lib/map/export-image"
-import { getMarkerIconElement, markerIconAnchor } from "@lib/map/marker"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import {
     getInitialMapState,
     getMapEmbedHtml,
@@ -48,7 +48,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
             if (markerCheckbox.checked) {
                 if (!marker)
                     marker = new Marker({
-                        anchor: markerIconAnchor,
+                        anchor: MARKER_ICON_ANCHOR,
                         element: getMarkerIconElement("blue", true),
                         draggable: true,
                     })

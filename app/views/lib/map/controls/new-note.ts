@@ -3,7 +3,7 @@ import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
 
-export const newNoteMinZoom = 12
+export const NEW_NOTE_MIN_ZOOM = 12
 
 const newNoteContainers: HTMLDivElement[] = []
 
@@ -45,7 +45,7 @@ export class NewNoteControl implements IControl {
         /** On map zoom, change button availability */
         const updateState = () => {
             const zoom = map.getZoom()
-            if (zoom < newNoteMinZoom) {
+            if (zoom < NEW_NOTE_MIN_ZOOM) {
                 if (!button.disabled) {
                     button.blur()
                     button.disabled = true

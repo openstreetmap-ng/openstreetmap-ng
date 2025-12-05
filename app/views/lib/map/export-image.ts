@@ -7,7 +7,7 @@ import type {
     Map as MaplibreMap,
 } from "maplibre-gl"
 import { checkLngLatBoundsIntersection, getLngLatBoundsIntersection } from "./bounds"
-import { loadMapImage, markerBlueImageUrl } from "./image"
+import { loadMapImage } from "./image"
 import {
     addMapLayer,
     emptyFeatureCollection,
@@ -16,8 +16,8 @@ import {
     removeMapLayer,
 } from "./layers/layers"
 
-const layerId = "export-image" as LayerId
-layersConfig.set(layerId as LayerId, {
+const LAYER_ID = "export-image" as LayerId
+layersConfig.set(LAYER_ID, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -35,7 +35,7 @@ layersConfig.set(layerId as LayerId, {
 })
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#quality
-const imageQuality = 0.98
+const IMAGE_QUALITY = 0.98
 
 /**
  * Export the map image
@@ -59,9 +59,9 @@ export const exportMapImage = async (
         (!filterBounds || filterBounds.contains(markerLngLat))
     ) {
         console.debug("Rendering marker onto the map")
-        const source = map.getSource(layerId) as GeoJSONSource
+        const source = map.getSource(LAYER_ID) as GeoJSONSource
         await new Promise<void>((resolve) => {
-            loadMapImage(map, "marker-blue", markerBlueImageUrl, () => {
+            loadMapImage(map, "marker-blue", () => {
                 source.setData({
                     type: "Feature",
                     properties: {},
@@ -70,7 +70,7 @@ export const exportMapImage = async (
                         coordinates: [markerLngLat.lng, markerLngLat.lat],
                     },
                 })
-                addMapLayer(map, layerId)
+                addMapLayer(map, LAYER_ID)
                 map.once("render", () => {
                     let framesDelay = 3
                     const tryResolve = () => {
@@ -82,7 +82,7 @@ export const exportMapImage = async (
                 })
             })
         })
-        removeMapLayer(map, layerId)
+        removeMapLayer(map, LAYER_ID)
         source.setData(emptyFeatureCollection)
     }
 
@@ -91,7 +91,7 @@ export const exportMapImage = async (
         "Exporting map image",
         [sourceCanvas.width, sourceCanvas.height],
         mimeType,
-        imageQuality,
+        IMAGE_QUALITY,
     )
     let exportCanvas = document.createElement("canvas")
     exportCanvas.width = sourceCanvas.width
@@ -156,7 +156,7 @@ export const exportMapImage = async (
                 else reject("Failed to export the map image")
             },
             mimeType,
-            imageQuality,
+            IMAGE_QUALITY,
         )
     })
 }

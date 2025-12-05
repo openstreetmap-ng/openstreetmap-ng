@@ -8,7 +8,7 @@ import { sha512 } from "@noble/hashes/sha2.js"
 
 type PasswordSchema = "v1" | "legacy"
 
-const defaultPasswordSchema: PasswordSchema = "v1"
+const DEFAULT_PASSWORD_SCHEMA: PasswordSchema = "v1"
 const formUsePasswordSchemasMap = new WeakMap<
     HTMLFormElement,
     (PasswordSchema | string)[]
@@ -24,7 +24,7 @@ export const configurePasswordsForm = (
         "inputs",
         form.action,
     )
-    formUsePasswordSchemasMap.set(form, [defaultPasswordSchema])
+    formUsePasswordSchemasMap.set(form, [DEFAULT_PASSWORD_SCHEMA])
 
     for (const input of passwordInputs) {
         const inputName = input.dataset.name

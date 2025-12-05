@@ -47,7 +47,7 @@ const STRENGTH_LENGTH_WEIGHT = 0.5
 const STRENGTH_COMPLEXITY_WEIGHT = 0.45
 const STRENGTH_DIVERSITY_WEIGHT = 0.05
 const PWNED_PASSWORD_CHECK_DELAY = 750
-const PWNED_PASSWORD_CACHE = new Map<string, boolean>()
+const pwnedPasswordCache = new Map<string, boolean>()
 
 let hintIdCounter = 0
 
@@ -60,7 +60,7 @@ const evaluateStrength = (
     const hasUppercase = UPPERCASE_REGEX.test(password)
     const hasNumber = NUMBER_REGEX.test(password)
     const hasSymbol = SYMBOL_REGEX.test(password)
-    const isCompromised = PWNED_PASSWORD_CACHE.get(password)
+    const isCompromised = pwnedPasswordCache.get(password)
 
     const categoryCount =
         Number(hasLowercase) +
@@ -345,7 +345,7 @@ const lookupPwnedPassword = async (
     password: string,
     abortSignal: AbortSignal,
 ): Promise<void> => {
-    const cached = PWNED_PASSWORD_CACHE.get(password)
+    const cached = pwnedPasswordCache.get(password)
     if (cached !== undefined) return
 
     const hash = await sha1_hex(password)
@@ -364,12 +364,12 @@ const lookupPwnedPassword = async (
     for (const line of body.split("\n")) {
         const [hashSuffix, occurrences] = line.split(":")
         if (hashSuffix === suffix && occurrences !== "0") {
-            PWNED_PASSWORD_CACHE.set(password, true)
+            pwnedPasswordCache.set(password, true)
             return
         }
     }
 
-    PWNED_PASSWORD_CACHE.set(password, false)
+    pwnedPasswordCache.set(password, false)
 }
 
 const sha1_hex = async (value: string): Promise<string> => {

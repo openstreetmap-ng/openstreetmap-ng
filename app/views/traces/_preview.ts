@@ -6,7 +6,7 @@ import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import {
     addMapLayer,
     addMapLayerSources,
-    defaultLayerId,
+    DEFAULT_LAYER_ID,
     emptyFeatureCollection,
     type LayerId,
     layersConfig,
@@ -21,12 +21,19 @@ import {
     ScaleControl,
 } from "maplibre-gl"
 
+const LAYER_ID = "trace-preview" as LayerId
+const LAYER_ID_ANT = "trace-preview-ant" as LayerId
+
+const ANT_DURATION = 2000
+const ANT_DASH_A = 4
+const ANT_DASH_B = 3
+const ANT_DASH_LENGTH = ANT_DASH_A + ANT_DASH_B
+
 const tracePreviewContainer = document.querySelector("div.trace-preview")
 if (tracePreviewContainer) {
     console.debug("Initializing trace preview map")
 
-    const baseLayerId = "trace-preview" as LayerId
-    layersConfig.set(baseLayerId as LayerId, {
+    layersConfig.set(LAYER_ID, {
         specification: {
             type: "geojson",
             data: emptyFeatureCollection,
@@ -43,8 +50,7 @@ if (tracePreviewContainer) {
             },
         },
     })
-    const antLayerId = "trace-preview-ant" as LayerId
-    layersConfig.set(antLayerId as LayerId, {
+    layersConfig.set(LAYER_ID_ANT, {
         specification: {
             type: "geojson",
             data: emptyFeatureCollection,
@@ -80,9 +86,9 @@ if (tracePreviewContainer) {
         addControlGroup(map, [new CustomZoomControl()])
     }
 
-    addMapLayer(map, defaultLayerId)
-    addMapLayer(map, baseLayerId)
-    addMapLayer(map, antLayerId)
+    addMapLayer(map, DEFAULT_LAYER_ID)
+    addMapLayer(map, LAYER_ID)
+    addMapLayer(map, LAYER_ID_ANT)
 
     // Add trace path
     const coordinates = decodeLonLat(tracePreviewContainer.dataset.line, 6)
@@ -96,26 +102,23 @@ if (tracePreviewContainer) {
         type: "LineString",
         coordinates,
     }
-    ;(map.getSource(baseLayerId) as GeoJSONSource).setData(geometry)
-    ;(map.getSource(antLayerId) as GeoJSONSource).setData(geometry)
+    ;(map.getSource(LAYER_ID) as GeoJSONSource).setData(geometry)
+    ;(map.getSource(LAYER_ID_ANT) as GeoJSONSource).setData(geometry)
 
-    const duration = 2000
-    const dashA = 4
-    const dashB = 3
-    const totalLength = dashA + dashB
     let lastOffset = -1
 
     const antPath = (timestamp?: DOMHighResTimeStamp) => {
-        const progress = ((timestamp ?? performance.now()) % duration) / duration
-        const offset = Math.round(progress * totalLength * 10) / 10
+        const progress =
+            ((timestamp ?? performance.now()) % ANT_DURATION) / ANT_DURATION
+        const offset = Math.round(progress * ANT_DASH_LENGTH * 10) / 10
         if (offset !== lastOffset) {
             lastOffset = offset
             // https://docs.mapbox.com/mapbox-gl-js/example/animate-ant-path/
             const dashPattern: number[] =
-                offset <= dashB //
-                    ? [offset, dashA, dashB - offset]
-                    : [0, offset - dashB, dashB, totalLength - offset]
-            map.setPaintProperty(antLayerId, "line-dasharray", dashPattern)
+                offset <= ANT_DASH_B //
+                    ? [offset, ANT_DASH_A, ANT_DASH_B - offset]
+                    : [0, offset - ANT_DASH_B, ANT_DASH_B, ANT_DASH_LENGTH - offset]
+            map.setPaintProperty(LAYER_ID_ANT, "line-dasharray", dashPattern)
         }
         requestAnimationFramePolyfill(antPath)
     }

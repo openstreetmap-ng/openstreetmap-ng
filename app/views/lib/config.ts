@@ -11,16 +11,16 @@ export const config = fromBinary(
 console.info("Application version", config.version)
 
 /** Determine default tracking based on user browser settings */
-const defaultTracking =
+const DEFAULT_TRACKING =
     navigator.doNotTrack !== "1" && !(navigator as any).globalPrivacyControl
 
 /** Whether to enable activity tracking */
-export const activityTracking = config.userConfig?.activityTracking ?? defaultTracking
+export const activityTracking = config.userConfig?.activityTracking ?? DEFAULT_TRACKING
 
 /** Whether to enable crash reporting */
 export const crashReporting =
     config.sentryConfig &&
-    (config.env === "test" || (config.userConfig?.crashReporting ?? defaultTracking))
+    (config.env === "test" || (config.userConfig?.crashReporting ?? DEFAULT_TRACKING))
 
 /**
  * User's primary translation language

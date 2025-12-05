@@ -11,7 +11,11 @@ import {
     layersConfig,
     removeMapLayer,
 } from "@lib/map/layers/layers"
-import { getMarkerIconElement, markerIconAnchor } from "@lib/map/marker"
+import {
+    getMarkerIconElement,
+    MARKER_ICON_ANCHOR,
+    type MarkerColor,
+} from "@lib/map/marker"
 import { decodeLonLat, encodeLonLat } from "@lib/polyline"
 import { qsParse } from "@lib/qs"
 import { throttle } from "@lib/throttle"
@@ -29,8 +33,8 @@ import {
     Point,
 } from "maplibre-gl"
 
-const layerId = "distance" as LayerId
-layersConfig.set(layerId as LayerId, {
+const LAYER_ID = "distance" as LayerId
+layersConfig.set(LAYER_ID, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -52,7 +56,7 @@ layersConfig.set(layerId as LayerId, {
 /** Controller for distance measurement functionality */
 export const getDistanceController = (map: MaplibreMap): IndexController => {
     const mapContainer = map.getContainer()
-    const source = map.getSource(layerId) as GeoJSONSource
+    const source = map.getSource(LAYER_ID) as GeoJSONSource
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")
     const clearBtn = sidebar.querySelector("button.clear-btn")
@@ -66,9 +70,9 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     let ghostMarkerIndex = -1
     let currentUnit: "metric" | "imperial" = isMetricUnit() ? "metric" : "imperial"
 
-    const markerFactory = (index: number, color: string): Marker => {
+    const markerFactory = (index: number, color: MarkerColor): Marker => {
         const marker = new Marker({
-            anchor: markerIconAnchor,
+            anchor: MARKER_ICON_ANCHOR,
             element: getMarkerIconElement(color, true),
             className: "distance-marker",
             draggable: true,
@@ -316,7 +320,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         skipUpdates?: boolean
     }): void => {
         // Avoid event handlers after the controller is unloaded
-        if (!hasMapLayer(map, layerId)) return
+        if (!hasMapLayer(map, LAYER_ID)) return
         console.debug("Create distance marker", lngLat, skipUpdates)
         const markerIndex = markers.length
         // Turn previous marker into blue
@@ -394,7 +398,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
 
     // Toggle ghost marker out of hidden state
     let showMarker = false
-    map.on("mouseenter", layerId, () => {
+    map.on("mouseenter", LAYER_ID, () => {
         showMarker = true
     })
 
@@ -427,7 +431,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
     return {
         load: () => {
             switchActionSidebar(map, sidebar)
-            addMapLayer(map, layerId)
+            addMapLayer(map, LAYER_ID)
 
             // Initialize the unit toggle button text
             updateUnitToggleButton()
@@ -475,7 +479,7 @@ export const getDistanceController = (map: MaplibreMap): IndexController => {
         unload: () => {
             map.off("click", createNewMarker)
             map.off("mousemove", updateGhostMarkerPosition)
-            removeMapLayer(map, layerId)
+            removeMapLayer(map, LAYER_ID)
             source.setData(emptyFeatureCollection)
             ghostMarker?.remove()
             ghostMarker = null

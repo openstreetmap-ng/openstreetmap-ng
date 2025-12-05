@@ -1,9 +1,11 @@
 import type { PositionAnchor } from "maplibre-gl"
 
-export const markerIconAnchor: PositionAnchor = "bottom"
+export const MARKER_ICON_ANCHOR: PositionAnchor = "bottom"
+
+export type MarkerColor = "blue" | "green" | "red" | "new"
 
 export const getMarkerIconElement = (
-    color: string,
+    color: MarkerColor,
     showShadow: boolean,
 ): HTMLElement => {
     const container = document.createElement("div")

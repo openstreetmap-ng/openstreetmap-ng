@@ -7,7 +7,7 @@ import type { OSMObject } from "@lib/types"
 import { isHrefCurrentPage, NON_DIGIT_RE, wrapMessageEventValidator } from "@lib/utils"
 import { Collapse, Dropdown, Tooltip } from "bootstrap"
 
-const minEditZoom = 13
+const MIN_EDIT_ZOOM = 13
 const navbar = document.querySelector(".navbar")
 const navbarCollapseInstance = Collapse.getOrCreateInstance(
     navbar.querySelector(".navbar-collapse"),
@@ -29,7 +29,10 @@ const unreadMessagesBadge = navbar.querySelector(".unread-messages-badge")
 /** Update the unread messages badge in the navbar */
 export const changeUnreadMessagesBadge = (change: number): void => {
     const current =
-        Number.parseInt(newUnreadMessagesBadge.textContent.replace(NON_DIGIT_RE, ""), 10) || 0
+        Number.parseInt(
+            newUnreadMessagesBadge.textContent.replace(NON_DIGIT_RE, ""),
+            10,
+        ) || 0
     const newCount = current + change
     console.debug("Change unread message badge count", current, "->", newCount)
     newUnreadMessagesBadge.textContent = newCount > 0 ? newCount.toString() : ""
@@ -136,7 +139,7 @@ const setEditControlsDisabled = (disabled: boolean): void => {
 /** Update the navbar links and current URL hash */
 export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void => {
     const hash = encodeMapState(state)
-    const isEditDisabled = state.zoom < minEditZoom
+    const isEditDisabled = state.zoom < MIN_EDIT_ZOOM
 
     for (const link of mapLinks) {
         const isEditLink = link.classList.contains("edit-link")

@@ -4,12 +4,12 @@ import { timezoneUpdateTimeStorage } from "@lib/local-storage"
 import { requestIdleCallbackPolyfill } from "@lib/polyfills"
 import { getUnixTimestamp } from "@lib/utils"
 
-const updateDelay = 24 * 3600 // 1 day
+const UPDATE_DELAY = 24 * 3600 // 1 day
 
 const timezoneUpdate = (): void => {
     const last = timezoneUpdateTimeStorage.get()
     const now = getUnixTimestamp()
-    if (last && last + updateDelay > now) return
+    if (last && last + UPDATE_DELAY > now) return
 
     timezoneUpdateTimeStorage.set(now)
     const timezone = getTimezoneName()

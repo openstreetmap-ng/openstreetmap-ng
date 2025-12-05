@@ -2,12 +2,7 @@ import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
 import type { IndexController } from "@index/router"
-import {
-    loadMapImage,
-    markerClosedImageUrl,
-    markerHiddenImageUrl,
-    markerOpenImageUrl,
-} from "@lib/map/image.ts"
+import { loadMapImage, NOTE_STATUS_MARKERS, type NoteStatus } from "@lib/map/image.ts"
 import {
     type FocusLayerLayout,
     type FocusLayerPaint,
@@ -20,14 +15,14 @@ import { configureStandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
-const themeColor = "#f60"
-const focusPaint: FocusLayerPaint = Object.freeze({
+const THEME_COLOR = "#f60"
+const focusPaint: FocusLayerPaint = {
     "circle-radius": 20,
-    "circle-color": themeColor,
+    "circle-color": THEME_COLOR,
     "circle-opacity": 0.5,
     "circle-stroke-width": 2.5,
-    "circle-stroke-color": themeColor,
-})
+    "circle-stroke-color": THEME_COLOR,
+}
 const focusLayout: FocusLayerLayout = {
     "icon-image": ["get", "icon"],
     "icon-size": 41 / 128,
@@ -54,20 +49,8 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
         const center: [number, number] = [params.lon, params.lat]
 
         // Display marker layer
-        switch (params.status) {
-            case "open":
-                loadMapImage(map, "marker-open", markerOpenImageUrl)
-                break
-            case "closed":
-                loadMapImage(map, "marker-closed", markerClosedImageUrl)
-                break
-            case "hidden":
-                loadMapImage(map, "marker-hidden", markerHiddenImageUrl)
-                break
-            default:
-                console.error("Unsupported note status", params.status)
-                break
-        }
+        const status = params.status as NoteStatus
+        loadMapImage(map, NOTE_STATUS_MARKERS[status])
 
         focusObjects(
             map,
@@ -75,7 +58,7 @@ export const getNoteController = (map: MaplibreMap): IndexController => {
                 {
                     type: "note",
                     geom: center,
-                    status: params.status as "open" | "closed" | "hidden",
+                    status,
                     text: "",
                 },
             ],

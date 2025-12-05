@@ -6,11 +6,11 @@ import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import {
     addMapLayer,
     addMapLayerSources,
-    defaultLayerId,
+    DEFAULT_LAYER_ID,
     type LayerId,
     resolveLayerCodeOrId,
 } from "@lib/map/layers/layers"
-import { getMarkerIconElement, markerIconAnchor } from "@lib/map/marker"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import type { LonLatZoom } from "@lib/map/state"
 import { qsParse } from "@lib/qs"
 import i18next from "i18next"
@@ -34,7 +34,7 @@ configureDefaultMapBehavior(map)
 
 // Parse search params
 const searchParams = qsParse(window.location.search)
-const layerId = resolveLayerCodeOrId(searchParams.layer as LayerId) ?? defaultLayerId
+const layerId = resolveLayerCodeOrId(searchParams.layer as LayerId) ?? DEFAULT_LAYER_ID
 addMapLayerSources(map, layerId)
 
 map.addControl(new NavigationControl({ showCompass: false }))
@@ -63,7 +63,7 @@ if (searchParams.marker) {
         const [lat, lon] = coords
         if (isLongitude(lon) && isLatitude(lat)) {
             new Marker({
-                anchor: markerIconAnchor,
+                anchor: MARKER_ICON_ANCHOR,
                 element: getMarkerIconElement("blue", true),
             })
                 .setLngLat([lon, lat])

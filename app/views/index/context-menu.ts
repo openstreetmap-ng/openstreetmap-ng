@@ -1,8 +1,8 @@
 import { routerNavigateStrict } from "@index/router"
 import { beautifyZoom, zoomPrecision } from "@lib/coords"
 import { formatCoordinate } from "@lib/format"
-import { newNoteMinZoom } from "@lib/map/controls/new-note"
-import { queryFeaturesMinZoom } from "@lib/map/controls/query-features"
+import { NEW_NOTE_MIN_ZOOM } from "@lib/map/controls/new-note"
+import { QUERY_FEATURES_MIN_ZOOM } from "@lib/map/controls/query-features"
 import { encodeLonLat } from "@lib/polyline"
 import { qsEncode } from "@lib/qs"
 import { Dropdown } from "bootstrap"
@@ -91,8 +91,8 @@ export const configureContextMenu = (map: MaplibreMap): void => {
     // On map zoomend, update the available buttons
     map.on("zoomend", () => {
         const zoom = map.getZoom()
-        newNoteButton.disabled = zoom < newNoteMinZoom
-        queryFeaturesButton.disabled = zoom < queryFeaturesMinZoom
+        newNoteButton.disabled = zoom < NEW_NOTE_MIN_ZOOM
+        queryFeaturesButton.disabled = zoom < QUERY_FEATURES_MIN_ZOOM
     })
 
     /** On geolocation field click, copy the text content */

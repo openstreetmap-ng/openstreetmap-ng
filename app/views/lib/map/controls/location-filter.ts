@@ -17,8 +17,8 @@ import {
     removeMapLayer,
 } from "../layers/layers"
 
-const layerId: LayerId = "location-filter" as LayerId
-layersConfig.set(layerId as LayerId, {
+const LAYER_ID: LayerId = "location-filter" as LayerId
+layersConfig.set(LAYER_ID, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -42,7 +42,7 @@ export class LocationFilterControl implements IControl {
 
     public addTo(map: MaplibreMap, bounds: LngLatBounds): this {
         this._map = map
-        addMapLayer(map, layerId)
+        addMapLayer(map, LAYER_ID)
 
         const [[minLon, minLat], [maxLon, maxLat]] = bounds.toArray()
         this._bounds = [minLon, minLat, maxLon, maxLat]
@@ -84,7 +84,7 @@ export class LocationFilterControl implements IControl {
     }
 
     public remove(): void {
-        removeMapLayer(this._map, layerId)
+        removeMapLayer(this._map, LAYER_ID)
         for (const corner of this._corners) corner.remove()
         this._corners = null
         this._grabber.remove()
@@ -162,7 +162,7 @@ export class LocationFilterControl implements IControl {
         if (i !== 1) this._corners[1].setLngLat([minLon, maxLat])
         if (i !== 2) this._corners[2].setLngLat([maxLon, maxLat])
         if (i !== 3) this._corners[3].setLngLat([maxLon, minLat])
-        const source = this._map.getSource(layerId) as GeoJSONSource
+        const source = this._map.getSource(LAYER_ID) as GeoJSONSource
         source.setData(getMaskData(this._bounds))
         for (const handler of this._onRenderHandlers) handler()
     }

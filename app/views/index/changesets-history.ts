@@ -41,14 +41,14 @@ import {
     type Map as MaplibreMap,
 } from "maplibre-gl"
 
-const fadeSpeed = 0.2
-const thicknessSpeed = fadeSpeed * 0.6
-const lineWidth = 3
+const FADE_SPEED = 0.2
+const THICKNESS_SPEED = FADE_SPEED * 0.6
+const LINE_WIDTH = 3
 
-const layerId = "changesets-history" as LayerId
-const layerIdBorders = "changesets-history-borders" as LayerId
+const LAYER_ID = "changesets-history" as LayerId
+const LAYER_ID_BORDERS = "changesets-history-borders" as LayerId
 
-layersConfig.set(layerIdBorders, {
+layersConfig.set(LAYER_ID_BORDERS, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -73,7 +73,7 @@ layersConfig.set(layerIdBorders, {
     priority: 120,
 })
 
-layersConfig.set(layerId, {
+layersConfig.set(LAYER_ID, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -115,14 +115,14 @@ layersConfig.set(layerId, {
     priority: 121,
 })
 
-const focusHoverDelay = 1000
-const loadMoreScrollBuffer = 1000
-const reloadProportionThreshold = 0.9
+const FOCUS_HOVER_DELAY = 1000
+const LOAD_MORE_SCROLL_BUFFER = 1000
+const RELOAD_PROPORTION_THRESHOLD = 0.9
 
 /** Create a new changesets history controller */
 export const getChangesetsHistoryController = (map: MaplibreMap): IndexController => {
-    const source = map.getSource(layerId) as GeoJSONSource
-    const sourceBorders = map.getSource(layerIdBorders) as GeoJSONSource
+    const source = map.getSource(LAYER_ID) as GeoJSONSource
+    const sourceBorders = map.getSource(LAYER_ID_BORDERS) as GeoJSONSource
     const sidebar = getActionSidebar("changesets-history")
     const parentSidebar = sidebar.closest("div.sidebar")
     const sidebarTitleElement = sidebar.querySelector(".sidebar-title")
@@ -183,7 +183,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 { maxZoom: 16 },
                 { skipUpdateState: true },
             )
-        }, focusHoverDelay)
+        }, FOCUS_HOVER_DELAY)
     }
 
     const resetChangesets = (): void => {
@@ -272,9 +272,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
     const throttledUpdateLayersVisibility = throttle(updateLayersVisibility, 50)
 
-    /** Calculate opacity based on distance using fadeSpeed */
+    /** Calculate opacity based on distance using FADE_SPEED */
     const distanceOpacity = (distance: number): number =>
-        Math.max(1 - distance * fadeSpeed, 0)
+        Math.max(1 - distance * FADE_SPEED, 0)
 
     /** Update changeset visibility and calculate consecutive hidden ranges */
     const updateFeatureState = (
@@ -301,7 +301,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             colorHover = "#f60"
             opacity = 1
             opacityHover = 1
-            width = lineWidth
+            width = LINE_WIDTH
             widthHover = width + 2
             borderWidth = 0
             borderWidthHover = widthHover + 2.5
@@ -313,7 +313,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             colorHover = darkenColor(color, 0.15)
             opacity = distanceOpacity(distance)
             opacityHover = 1
-            width = Math.max(lineWidth - distance * thicknessSpeed * lineWidth, 0)
+            width = Math.max(LINE_WIDTH - distance * THICKNESS_SPEED * LINE_WIDTH, 0)
             widthHover = Math.max(width, 1) + 2
             borderWidth = 0
             borderWidthHover = widthHover + 2.5
@@ -331,8 +331,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         }
 
         for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
-            map.setFeatureState({ source: layerIdBorders, id: i }, featureState)
-            map.setFeatureState({ source: layerId, id: i }, featureState)
+            map.setFeatureState({ source: LAYER_ID_BORDERS, id: i }, featureState)
+            map.setFeatureState({ source: LAYER_ID, id: i }, featureState)
         }
     }
 
@@ -506,14 +506,14 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         const firstFeatureId = idFirstFeatureIdMap.get(id)
         if (!firstFeatureId) return
         for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
-            map.setFeatureState({ source: layerIdBorders, id: i }, { hover })
-            map.setFeatureState({ source: layerId, id: i }, { hover })
+            map.setFeatureState({ source: LAYER_ID_BORDERS, id: i }, { hover })
+            map.setFeatureState({ source: LAYER_ID, id: i }, { hover })
         }
     }
 
     // On feature click, navigate to the changeset
-    const layerIdFill = getExtendedLayerId(layerId, "fill")
-    map.on("click", layerIdFill, (e) => {
+    const LAYER_IDFill = getExtendedLayerId(LAYER_ID, "fill")
+    map.on("click", LAYER_IDFill, (e) => {
         // Find feature with the smallest bounds area
         const feature = e.features.reduce((a, b) =>
             a.properties.boundsArea <= b.properties.boundsArea ? a : b,
@@ -524,7 +524,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
 
     let hoveredFeature: MapGeoJSONFeature | null = null
     let scrollDelayTimer: ReturnType<typeof setTimeout> | null = null
-    map.on("mousemove", layerIdFill, (e) => {
+    map.on("mousemove", LAYER_IDFill, (e) => {
         // Find feature with the smallest bounds area
         const feature = e.features.reduce((a, b) =>
             a.properties.boundsArea <= b.properties.boundsArea ? a : b,
@@ -533,7 +533,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             if (hoveredFeature.id === feature.id) return
             setHover(hoveredFeature.properties, false)
         } else {
-            setMapHover(map, layerId)
+            setMapHover(map, LAYER_ID)
         }
 
         clearTimeout(scrollDelayTimer)
@@ -543,7 +543,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         // Set delayed scroll timer
         scrollDelayTimer = setTimeout(() => {
             setHover(hoveredFeature.properties, true, true)
-        }, focusHoverDelay)
+        }, FOCUS_HOVER_DELAY)
     })
 
     const onMapMouseLeave = () => {
@@ -551,9 +551,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         clearTimeout(scrollDelayTimer)
         setHover(hoveredFeature.properties, false)
         hoveredFeature = null
-        clearMapHover(map, layerId)
+        clearMapHover(map, LAYER_ID)
     }
-    map.on("mouseleave", layerIdFill, onMapMouseLeave)
+    map.on("mouseleave", LAYER_IDFill, onMapMouseLeave)
 
     /** On sidebar scroll, update changeset visibility and load more if needed */
     const onSidebarScroll = (): void => {
@@ -564,7 +564,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
         if (
             noMoreChangesets ||
             parentSidebar.offsetHeight + parentSidebar.scrollTop <
-                parentSidebar.scrollHeight - loadMoreScrollBuffer
+                parentSidebar.scrollHeight - LOAD_MORE_SCROLL_BUFFER
         )
             return
         console.debug("Sidebar scrolled to the bottom")
@@ -629,7 +629,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
                 const proportion =
                     visibleArea /
                     Math.max(getLngLatBoundsSize(fetchedBounds), fetchArea)
-                if (proportion > reloadProportionThreshold) return
+                if (proportion > RELOAD_PROPORTION_THRESHOLD) return
             }
 
             // Clear the changesets if the bbox changed
@@ -741,8 +741,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             sidebarTitleElement.innerHTML = sidebarTitleHtml
             setPageTitle(sidebarTitleText)
 
-            addMapLayer(map, layerId)
-            addMapLayer(map, layerIdBorders)
+            addMapLayer(map, LAYER_ID)
+            addMapLayer(map, LAYER_ID_BORDERS)
             map.on("zoomend", updateLayers)
             map.on("moveend", updateState)
             updateState()
@@ -751,8 +751,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap): IndexControlle
             map.off("moveend", updateState)
             map.off("zoomend", updateLayers)
             parentSidebar.removeEventListener("scroll", onSidebarScroll)
-            removeMapLayer(map, layerId)
-            removeMapLayer(map, layerIdBorders)
+            removeMapLayer(map, LAYER_ID)
+            removeMapLayer(map, LAYER_ID_BORDERS)
             resetChangesets()
             fetchedBounds = null
         },

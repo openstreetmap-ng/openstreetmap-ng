@@ -5,7 +5,7 @@ import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
-const precomputeMaxZoom = 25
+const PRECOMPUTE_MAX_ZOOM = 25
 
 export class LegendSidebarToggleControl extends SidebarToggleControl {
     public _container: HTMLElement
@@ -37,8 +37,8 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
                     const minZoom = minZoomStr ? Number.parseInt(minZoomStr, 10) : 0
                     const maxZoom = maxZoomStr
                         ? Number.parseInt(maxZoomStr, 10)
-                        : precomputeMaxZoom
-                    const visibility: boolean[] = new Array(precomputeMaxZoom + 1)
+                        : PRECOMPUTE_MAX_ZOOM
+                    const visibility: boolean[] = new Array(PRECOMPUTE_MAX_ZOOM + 1)
 
                     visibility.fill(false, 0, minZoom)
                     visibility.fill(true, minZoom, maxZoom + 1)

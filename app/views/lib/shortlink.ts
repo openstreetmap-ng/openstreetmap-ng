@@ -16,21 +16,21 @@ export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom): string => {
     const y = BigInt(((lat + 90) * 23860929.422222223) | 0) // (2 ** 32) / 180
 
     let c = 0n
-    for (const mask of bitMasks) {
+    for (const mask of BIT_MASKS) {
         // noinspection JSBitwiseOperatorUsage
         c = (c << 2n) | (x & mask ? 2n : 0n) | (y & mask ? 1n : 0n)
     }
 
     let result = ""
     for (let i = 0; i < d; i++)
-        result += code[Number((c >> BigInt(58 - 6 * i)) & 0x3fn)]
+        result += CODE[Number((c >> BigInt(58 - 6 * i)) & 0x3fn)]
     for (let i = 0; i < r; i++) result += "-"
     return result
 }
 
 /** 64 chars to encode 6 bits */
-const code = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
-const bitMasks = Object.freeze([
+const CODE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
+const BIT_MASKS = [
     2147483648n,
     1073741824n,
     536870912n,
@@ -63,4 +63,4 @@ const bitMasks = Object.freeze([
     4n,
     2n,
     1n,
-]) // Array.from({ length: 32 }, (_, i) => 1n << BigInt(31 - i))
+] as const

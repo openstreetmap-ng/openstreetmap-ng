@@ -1,5 +1,5 @@
 import { type Map as MaplibreMap, Marker } from "maplibre-gl"
-import { getMarkerIconElement, markerIconAnchor } from "./marker"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "./marker"
 import type { LonLat } from "./state"
 
 /** Configure the find home button */
@@ -15,7 +15,8 @@ export const configureFindHomeButton = (
         console.debug("onFindHomeButtonClick")
         if (!marker) {
             marker = new Marker({
-                anchor: markerIconAnchor,
+                anchor: MARKER_ICON_ANCHOR,
+                // @ts-expect-error
                 element: getMarkerIconElement("blue-home", true),
             })
                 .setLngLat([lon, lat])

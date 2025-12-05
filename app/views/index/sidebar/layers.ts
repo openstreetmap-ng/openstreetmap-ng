@@ -22,7 +22,7 @@ import { throttle } from "@lib/throttle"
 import { Tooltip } from "bootstrap"
 import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
 
-const minimapZoomOut = 2
+const MINIMAP_ZOOM_OUT = 2
 
 export class LayerSidebarToggleControl extends SidebarToggleControl {
     public _container: HTMLElement
@@ -121,7 +121,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
             initializeMinimapsOnce()
             const options: JumpToOptions = {
                 center: map.getCenter(),
-                zoom: Math.max(map.getZoom() - minimapZoomOut, 0),
+                zoom: Math.max(map.getZoom() - MINIMAP_ZOOM_OUT, 0),
             }
             for (const minimap of minimaps) {
                 minimap.resize()
@@ -152,7 +152,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
 
             const options: EaseToOptions = {
                 center: map.getCenter(),
-                zoom: Math.max(map.getZoom() - minimapZoomOut, 0),
+                zoom: Math.max(map.getZoom() - MINIMAP_ZOOM_OUT, 0),
             }
             for (const minimap of minimaps) {
                 minimap.easeTo(options)

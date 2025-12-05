@@ -9,7 +9,7 @@ export const configureDefaultMapBehavior = (map: MaplibreMap): void => {
 
     // Use constant zoom rate for consistent behavior
     // https://github.com/maplibre/maplibre-gl-js/issues/5367
-    const zoomRate = 1 / 300
-    map.scrollZoom.setWheelZoomRate(zoomRate)
-    map.scrollZoom.setZoomRate(zoomRate)
+    const ZOOM_RATE = 1 / 300
+    map.scrollZoom.setWheelZoomRate(ZOOM_RATE)
+    map.scrollZoom.setZoomRate(ZOOM_RATE)
 }

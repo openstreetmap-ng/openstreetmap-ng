@@ -393,10 +393,10 @@ export const getMapUrl = (map: MaplibreMap, showMarker = false): string => {
     return `${window.location.origin}/${hash}`
 }
 
-const shortDomainUpgrades: Record<string, string> = Object.freeze({
+const SHORT_DOMAINS: Record<string, string> = {
     "openstreetmap.org": "osm.org",
     "openstreetmap.ng": "osm.ng",
-})
+}
 
 /**
  * Get a short URL for the current map location
@@ -420,7 +420,7 @@ export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat): string
     const tldPos = hostname.lastIndexOf(".")
     const domainPos = hostname.lastIndexOf(".", tldPos - 1)
     const shortDomainKey = domainPos > 0 ? hostname.substring(domainPos + 1) : hostname
-    const host = shortDomainUpgrades[shortDomainKey] ?? location.host
+    const host = SHORT_DOMAINS[shortDomainKey] ?? location.host
 
     return Object.keys(params).length
         ? `${location.protocol}//${host}/go/${code}?${qsEncode(params)}`

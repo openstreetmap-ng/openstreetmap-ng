@@ -12,12 +12,7 @@ import {
 } from "maplibre-gl"
 import { getLngLatBoundsIntersection, getLngLatBoundsSize } from "../bounds"
 import { clearMapHover, setMapHover } from "../hover"
-import {
-    loadMapImage,
-    markerClosedImageUrl,
-    markerHiddenImageUrl,
-    markerOpenImageUrl,
-} from "../image"
+import { loadMapImage } from "../image"
 import { convertRenderNotesData, renderObjects } from "../render-objects"
 import {
     addLayerEventHandler,
@@ -27,8 +22,8 @@ import {
     layersConfig,
 } from "./layers"
 
-const layerId = "notes" as LayerId
-layersConfig.set(layerId as LayerId, {
+const LAYER_ID = "notes" as LayerId
+layersConfig.set(LAYER_ID, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -55,17 +50,17 @@ layersConfig.set(layerId as LayerId, {
     priority: 130,
 })
 
-const reloadProportionThreshold = 0.9
+const RELOAD_PROPORTION_THRESHOLD = 0.9
 
 /** Configure the notes layer for the given map */
 export const configureNotesLayer = (map: MaplibreMap): void => {
-    const source = map.getSource(layerId) as GeoJSONSource
+    const source = map.getSource(LAYER_ID) as GeoJSONSource
     let enabled = false
     let fetchedBounds: LngLatBounds | null = null
     let abortController: AbortController | null = null
 
     // On feature click, navigate to the note
-    map.on("click", layerId, (e) => {
+    map.on("click", LAYER_ID, (e) => {
         const noteId = e.features[0].properties.id
         routerNavigateStrict(`/note/${noteId}`)
     })
@@ -75,18 +70,18 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
     let hoverPopupTimeout: ReturnType<typeof setTimeout> | null = null
     const hoverPopup: Popup = new Popup({ closeButton: false, closeOnMove: true })
 
-    map.on("mousemove", layerId, (e) => {
+    map.on("mousemove", LAYER_ID, (e) => {
         hoverLngLat = e.lngLat
         const feature = e.features[0]
         const featureId = feature.id as number
         if (hoveredFeatureId) {
             if (hoveredFeatureId === featureId) return
-            map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
+            map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
         } else {
-            setMapHover(map, layerId)
+            setMapHover(map, LAYER_ID)
         }
         hoveredFeatureId = featureId
-        map.setFeatureState({ source: layerId, id: hoveredFeatureId }, { hover: true })
+        map.setFeatureState({ source: LAYER_ID, id: hoveredFeatureId }, { hover: true })
         // Show popup after a short delay
         clearTimeout(hoverPopupTimeout)
         hoverPopup.remove()
@@ -103,12 +98,12 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
                 .addTo(map)
         }, 500)
     })
-    map.on("mouseleave", layerId, () => {
-        map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
+    map.on("mouseleave", LAYER_ID, () => {
+        map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
         hoveredFeatureId = null
         clearTimeout(hoverPopupTimeout)
         hoverPopup.remove()
-        clearMapHover(map, layerId)
+        clearMapHover(map, LAYER_ID)
     })
 
     /** On map update, fetch the notes and update the notes layer */
@@ -134,20 +129,20 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
             const visibleArea = getLngLatBoundsSize(visibleBounds)
             const proportion =
                 visibleArea / Math.max(getLngLatBoundsSize(fetchedBounds), fetchArea)
-            if (proportion > reloadProportionThreshold) return
+            if (proportion > RELOAD_PROPORTION_THRESHOLD) return
         }
 
         const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
             .adjustAntiMeridian()
             .toArray()
 
-        toggleLayerSpinner(layerId, true)
+        toggleLayerSpinner(LAYER_ID, true)
         fetch(`/api/web/note/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
             signal: abortController.signal,
             priority: "high",
         })
             .then(async (resp) => {
-                toggleLayerSpinner(layerId, false)
+                toggleLayerSpinner(LAYER_ID, false)
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
                 const buffer = await resp.arrayBuffer()
@@ -160,7 +155,7 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
             .catch((error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch notes", error)
-                toggleLayerSpinner(layerId, false)
+                toggleLayerSpinner(LAYER_ID, false)
                 source.setData(emptyFeatureCollection)
             })
     }
@@ -172,20 +167,20 @@ export const configureNotesLayer = (map: MaplibreMap): void => {
     })
 
     addLayerEventHandler((isAdded, eventLayerId) => {
-        if (eventLayerId !== layerId) return
+        if (eventLayerId !== LAYER_ID) return
         enabled = isAdded
         if (isAdded) {
             // Load image resources
-            loadMapImage(map, "marker-open", markerOpenImageUrl)
-            loadMapImage(map, "marker-closed", markerClosedImageUrl)
-            loadMapImage(map, "marker-hidden", markerHiddenImageUrl)
+            loadMapImage(map, "marker-open")
+            loadMapImage(map, "marker-closed")
+            loadMapImage(map, "marker-hidden")
             updateLayer()
         } else {
             abortController?.abort()
             abortController = null
-            toggleLayerSpinner(layerId, false)
+            toggleLayerSpinner(LAYER_ID, false)
             source.setData(emptyFeatureCollection)
-            clearMapHover(map, layerId)
+            clearMapHover(map, LAYER_ID)
             fetchedBounds = null
         }
     })

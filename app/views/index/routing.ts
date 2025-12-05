@@ -17,7 +17,11 @@ import {
     layersConfig,
     removeMapLayer,
 } from "@lib/map/layers/layers"
-import { getMarkerIconElement, markerIconAnchor } from "@lib/map/marker"
+import {
+    getMarkerIconElement,
+    MARKER_ICON_ANCHOR,
+    type MarkerColor,
+} from "@lib/map/marker"
 import { decodeLonLat } from "@lib/polyline"
 import {
     type RoutingResult,
@@ -40,8 +44,8 @@ import {
     Popup,
 } from "maplibre-gl"
 
-const layerId = "routing" as LayerId
-layersConfig.set(layerId as LayerId, {
+const LAYER_ID = "routing" as LayerId
+layersConfig.set(LAYER_ID, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -68,11 +72,11 @@ layersConfig.set(layerId as LayerId, {
     priority: 110,
 })
 
-const dragDataType = "text/osm-routing-direction"
+const DRAG_DATA_TYPE = "text/osm-routing-direction"
 
 /** Create a new routing controller */
 export const getRoutingController = (map: MaplibreMap): IndexController => {
-    const source = map.getSource(layerId) as GeoJSONSource
+    const source = map.getSource(LAYER_ID) as GeoJSONSource
     const mapContainer = map.getContainer()
     const sidebar = getActionSidebar("routing")
     const parentSidebar = sidebar.closest("div.sidebar")
@@ -123,9 +127,9 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         className: "route-steps",
     })
 
-    const markerFactory = (color: string): Marker =>
+    const markerFactory = (color: MarkerColor): Marker =>
         new Marker({
-            anchor: markerIconAnchor,
+            anchor: MARKER_ICON_ANCHOR,
             element: getMarkerIconElement(color, true),
             draggable: true,
         })
@@ -159,7 +163,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         const dt = event.dataTransfer
         dt.effectAllowed = "move"
         dt.setData("text/plain", "")
-        dt.setData(dragDataType, direction)
+        dt.setData(DRAG_DATA_TYPE, direction)
         const canvas = document.createElement("canvas")
         canvas.width = 25
         canvas.height = 41
@@ -180,20 +184,20 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
     }
 
     // On feature click, open a popup
-    map.on("click", layerId, (e) => {
+    map.on("click", LAYER_ID, (e) => {
         const feature = e.features[0] as Feature<LineString>
         const featureId = feature.id as number
         const result = stepsTableBody.children[featureId]
         openPopup(result, feature.geometry.coordinates[0] as LngLatLike)
     })
 
-    map.on("mousemove", layerId, (e) => {
+    map.on("mousemove", LAYER_ID, (e) => {
         const id = e.features[0].id as number
-        setMapHover(map, layerId)
+        setMapHover(map, LAYER_ID)
         updateHover(id >= 0 ? id : null, true)
     })
-    map.on("mouseleave", layerId, () => {
-        clearMapHover(map, layerId)
+    map.on("mouseleave", LAYER_ID, () => {
+        clearMapHover(map, LAYER_ID)
         updateHover(null)
     })
 
@@ -204,7 +208,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         if (hoverId !== null) {
             const prev = stepsTableBody.children[hoverId]
             prev?.classList.remove("hover")
-            map.setFeatureState({ source: layerId, id: hoverId }, { hover: false })
+            map.setFeatureState({ source: LAYER_ID, id: hoverId }, { hover: false })
         }
 
         hoverId = id
@@ -221,7 +225,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
                 if (!isVisible)
                     el.scrollIntoView({ behavior: "smooth", block: "center" })
             }
-            map.setFeatureState({ source: layerId, id }, { hover: true })
+            map.setFeatureState({ source: LAYER_ID, id }, { hover: true })
         }
     }
 
@@ -263,7 +267,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
 
     /** On map marker drop, update the marker's coordinates */
     const onMapDrop = (event: DragEvent) => {
-        const dragData = event.dataTransfer.getData(dragDataType)
+        const dragData = event.dataTransfer.getData(DRAG_DATA_TYPE)
         console.debug("onMapDrop", dragData)
 
         let marker: Marker
@@ -578,7 +582,7 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
             }
 
             submitFormIfFilled()
-            addMapLayer(map, layerId)
+            addMapLayer(map, LAYER_ID)
             // Listen for events
             map.on("moveend", onMapZoomOrMoveEnd)
             mapContainer.addEventListener("dragover", onMapDragOver)
@@ -588,9 +592,9 @@ export const getRoutingController = (map: MaplibreMap): IndexController => {
         },
         unload: () => {
             map.off("moveend", onMapZoomOrMoveEnd)
-            removeMapLayer(map, layerId)
+            removeMapLayer(map, LAYER_ID)
             source.setData(emptyFeatureCollection)
-            clearMapHover(map, layerId)
+            clearMapHover(map, LAYER_ID)
             mapContainer.removeEventListener("dragover", onMapDragOver)
             mapContainer.removeEventListener("drop", onMapDrop)
             parentSidebar.removeEventListener("mousemove", onSidebarMouseMove)

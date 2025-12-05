@@ -1,7 +1,7 @@
 import type { Bounds } from "@lib/types"
 import { LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
 
-const minBoundsSizePx = 20
+const MIN_BOUNDS_SIZE_PX = 20
 
 /** Get the bounds area in square degrees */
 export const getLngLatBoundsSize = (bounds: LngLatBounds): number => {
@@ -100,14 +100,14 @@ export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds): Bounds 
     const width = mapTopRight.x - mapBottomLeft.x
     const height = mapBottomLeft.y - mapTopRight.y
 
-    if (width < minBoundsSizePx) {
-        const diff = minBoundsSizePx - width
+    if (width < MIN_BOUNDS_SIZE_PX) {
+        const diff = MIN_BOUNDS_SIZE_PX - width
         mapBottomLeft.x -= diff / 2
         mapTopRight.x += diff / 2
     }
 
-    if (height < minBoundsSizePx) {
-        const diff = minBoundsSizePx - height
+    if (height < MIN_BOUNDS_SIZE_PX) {
+        const diff = MIN_BOUNDS_SIZE_PX - height
         mapBottomLeft.y += diff / 2
         mapTopRight.y -= diff / 2
     }

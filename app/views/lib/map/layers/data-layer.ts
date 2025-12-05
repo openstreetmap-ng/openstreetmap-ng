@@ -24,10 +24,10 @@ import {
     layersConfig,
 } from "./layers"
 
-const layerId = "data" as LayerId
-const themeColor = "#38f"
-const hoverThemeColor = "#f90"
-layersConfig.set(layerId as LayerId, {
+const LAYER_ID = "data" as LayerId
+const THEME_COLOR = "#38f"
+const HOVER_THEME_COLOR = "#f90"
+layersConfig.set(LAYER_ID, {
     specification: {
         type: "geojson",
         data: emptyFeatureCollection,
@@ -43,16 +43,16 @@ layersConfig.set(layerId as LayerId, {
             "line-color": [
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
-                hoverThemeColor,
-                themeColor,
+                HOVER_THEME_COLOR,
+                THEME_COLOR,
             ],
             "line-width": 3,
             "circle-radius": 10,
             "circle-color": [
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
-                hoverThemeColor,
-                themeColor,
+                HOVER_THEME_COLOR,
+                THEME_COLOR,
             ],
             "circle-opacity": [
                 "case",
@@ -63,8 +63,8 @@ layersConfig.set(layerId as LayerId, {
             "circle-stroke-color": [
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
-                hoverThemeColor,
-                themeColor,
+                HOVER_THEME_COLOR,
+                THEME_COLOR,
             ],
             "circle-stroke-width": 3,
         },
@@ -72,11 +72,11 @@ layersConfig.set(layerId as LayerId, {
     priority: 100,
 })
 
-const loadDataAlertThreshold = 10_000
+const LOAD_DATA_ALERT_THRESHOLD = 10_000
 
 /** Configure the data layer for the given map */
 export const configureDataLayer = (map: MaplibreMap): void => {
-    const source = map.getSource(layerId) as GeoJSONSource
+    const source = map.getSource(LAYER_ID) as GeoJSONSource
     const errorDataAlert = getMapAlert("data-layer-error-alert")
     const loadDataAlert = getMapAlert("data-layer-load-alert")
     const hideDataButton = loadDataAlert.querySelector("button.hide-data-btn")
@@ -95,7 +95,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
         fetchedBounds = null
         fetchedElements = null
         source.setData(emptyFeatureCollection)
-        clearMapHover(map, layerId)
+        clearMapHover(map, LAYER_ID)
     }
 
     /** On feature click, navigate to the object page */
@@ -110,21 +110,21 @@ export const configureDataLayer = (map: MaplibreMap): void => {
         const featureId = feature.id as number
         if (hoveredFeatureId) {
             if (hoveredFeatureId === featureId) return
-            map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
+            map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
         } else {
-            setMapHover(map, layerId)
+            setMapHover(map, LAYER_ID)
         }
         hoveredFeatureId = featureId
-        map.setFeatureState({ source: layerId, id: hoveredFeatureId }, { hover: true })
+        map.setFeatureState({ source: LAYER_ID, id: hoveredFeatureId }, { hover: true })
     }
     const onFeatureLeave = (): void => {
-        map.removeFeatureState({ source: layerId, id: hoveredFeatureId })
+        map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
         hoveredFeatureId = null
-        clearMapHover(map, layerId)
+        clearMapHover(map, LAYER_ID)
     }
 
     for (const type of ["fill", "line", "circle"] as const) {
-        const extendedLayerId = getExtendedLayerId(layerId, type)
+        const extendedLayerId = getExtendedLayerId(LAYER_ID, type)
         map.on("click", extendedLayerId, onFeatureClick)
         map.on("mousemove", extendedLayerId, onFeatureHover)
         map.on("mouseleave", extendedLayerId, onFeatureLeave)
@@ -202,16 +202,16 @@ export const configureDataLayer = (map: MaplibreMap): void => {
             .adjustAntiMeridian()
             .toArray()
 
-        toggleLayerSpinner(layerId, true)
+        toggleLayerSpinner(LAYER_ID, true)
         fetch(
             `/api/web/map?${qsEncode({
                 bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
-                limit: loadDataOverride ? "" : loadDataAlertThreshold.toString(),
+                limit: loadDataOverride ? "" : LOAD_DATA_ALERT_THRESHOLD.toString(),
             })}`,
             { signal: abortController.signal, priority: "high" },
         )
             .then(async (resp) => {
-                toggleLayerSpinner(layerId, false)
+                toggleLayerSpinner(LAYER_ID, false)
                 if (!resp.ok) {
                     if (resp.status === 400) {
                         errorDataAlert.classList.remove("d-none")
@@ -238,14 +238,14 @@ export const configureDataLayer = (map: MaplibreMap): void => {
             .catch((error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch map data", error)
-                toggleLayerSpinner(layerId, false)
+                toggleLayerSpinner(LAYER_ID, false)
                 clearData()
             })
     }
     map.on("moveend", updateLayer)
 
     addLayerEventHandler((isAdded, eventLayerId) => {
-        if (eventLayerId !== layerId) return
+        if (eventLayerId !== LAYER_ID) return
         enabled = isAdded
         if (isAdded) {
             updateLayer()
@@ -254,7 +254,7 @@ export const configureDataLayer = (map: MaplibreMap): void => {
             loadDataAlert.classList.add("d-none")
             abortController?.abort()
             abortController = null
-            toggleLayerSpinner(layerId, false)
+            toggleLayerSpinner(LAYER_ID, false)
             clearData()
         }
     })

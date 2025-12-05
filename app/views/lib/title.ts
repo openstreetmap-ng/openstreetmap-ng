@@ -2,7 +2,7 @@
  * Original page title
  * @example "OpenStreetMap"
  */
-const originalTitle: string = document.title
+const originalTitle = document.title
 
 /**
  * Set page title with optional prefix

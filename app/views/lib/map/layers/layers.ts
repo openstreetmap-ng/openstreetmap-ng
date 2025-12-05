@@ -19,9 +19,9 @@ declare const brandSymbol: unique symbol
 export type LayerId = string & { readonly [brandSymbol]: unique symbol }
 export type LayerCode = string & { readonly [brandSymbol]: unique symbol }
 
-const highResTiles: boolean = window.devicePixelRatio > 1
-const thunderforestApiKey: string = "9b990c27013343a99536213faee0983e"
-const tracestrackApiKey: string = "684615014d1a572361803e062ccf609a"
+const HIGH_RES_TILES = window.devicePixelRatio > 1
+const THUNDERFOREST_API_KEY = "9b990c27013343a99536213faee0983e"
+const TRACESTRACK_API_KEY = "684615014d1a572361803e062ccf609a"
 
 const copyrightText = i18next.t("javascripts.map.openstreetmap_contributors")
 const copyright = `© <a href="/copyright" rel="license" target="_blank">${copyrightText}</a>`
@@ -131,7 +131,7 @@ layersConfig.set("cyclemap" as LayerId, {
         type: "raster",
         maxzoom: 21,
         tiles: [
-            `https://tile.thunderforest.com/cycle/{z}/{x}/{y}${highResTiles ? "@2x" : ""}.png?apikey=${thunderforestApiKey}`,
+            `https://tile.thunderforest.com/cycle/{z}/{x}/{y}${HIGH_RES_TILES ? "@2x" : ""}.png?apikey=${THUNDERFOREST_API_KEY}`,
         ],
         tileSize: 256,
         attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
@@ -146,13 +146,13 @@ layersConfig.set("transportmap" as LayerId, {
         type: "raster",
         maxzoom: 21,
         tiles: [
-            `https://tile.thunderforest.com/transport/{z}/{x}/{y}${highResTiles ? "@2x" : ""}.png?apikey=${thunderforestApiKey}`,
+            `https://tile.thunderforest.com/transport/{z}/{x}/{y}${HIGH_RES_TILES ? "@2x" : ""}.png?apikey=${THUNDERFOREST_API_KEY}`,
         ],
         tileSize: 256,
         attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
     },
     darkTiles: [
-        `https://tile.thunderforest.com/transport-dark/{z}/{x}/{y}${highResTiles ? "@2x" : ""}.png?apikey=${thunderforestApiKey}`,
+        `https://tile.thunderforest.com/transport-dark/{z}/{x}/{y}${HIGH_RES_TILES ? "@2x" : ""}.png?apikey=${THUNDERFOREST_API_KEY}`,
     ],
     isBaseLayer: true,
     layerCode: "T" as LayerCode,
@@ -163,7 +163,7 @@ layersConfig.set("tracestracktopo" as LayerId, {
         type: "raster",
         maxzoom: 19,
         tiles: [
-            `https://tile.tracestrack.com/topo__/{z}/{x}/{y}.png?key=${tracestrackApiKey}`,
+            `https://tile.tracestrack.com/topo__/{z}/{x}/{y}.png?key=${TRACESTRACK_API_KEY}`,
         ],
         tileSize: 256,
         attribution: `${copyright}. ${tracestrackCredit}. ${terms}`,
@@ -249,7 +249,7 @@ export const resolveLayerCodeOrId = (
     layerCodeOrId: LayerCode | LayerId,
 ): LayerId | undefined => layerLookupMap().get(layerCodeOrId)
 
-export const defaultLayerId = "standard" as LayerId
+export const DEFAULT_LAYER_ID = "standard" as LayerId
 
 /**
  * Add layers sources to the map.
@@ -359,12 +359,12 @@ export type LayerType =
     | "hillshade"
     | "background"
 
-const layerTypeFilters = Object.freeze({
+const LAYER_TYPE_FILTERS: Partial<Record<LayerType, FilterSpecification>> = {
     fill: ["==", ["geometry-type"], "Polygon"],
     line: ["==", ["geometry-type"], "LineString"],
     circle: ["==", ["geometry-type"], "Point"],
     symbol: ["==", ["geometry-type"], "Point"],
-}) as Record<LayerType, FilterSpecification>
+}
 
 export const addMapLayer = (
     map: MaplibreMap,
@@ -480,7 +480,7 @@ export const addMapLayer = (
                     layerObject[key] = newValue
                 }
             }
-            const filter = layerTypeFilters[type]
+            const filter = LAYER_TYPE_FILTERS[type]
             // @ts-expect-error
             if (filter) layerObject.filter = filter
             map.addLayer(layerObject, beforeId)

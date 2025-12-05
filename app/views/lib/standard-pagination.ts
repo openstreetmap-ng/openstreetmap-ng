@@ -3,7 +3,7 @@ import { qsEncode, qsParse } from "@lib/qs"
 import { batch, effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
 
-const paginationDistance = 2
+const PAGINATION_DISTANCE = 2
 
 export const configureStandardPagination = (
     container?: ParentNode,
@@ -164,8 +164,8 @@ export const configureStandardPagination = (
         const pagesToRender: number[] = []
         pagesToRender.push(1)
         for (
-            let i = currentPageValue - paginationDistance;
-            i <= currentPageValue + paginationDistance;
+            let i = currentPageValue - PAGINATION_DISTANCE;
+            i <= currentPageValue + PAGINATION_DISTANCE;
             i++
         ) {
             if (i > 1 && i < totalPagesValue) pagesToRender.push(i)

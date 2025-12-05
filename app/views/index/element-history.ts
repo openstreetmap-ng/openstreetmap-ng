@@ -12,20 +12,20 @@ import { effect, signal } from "@preact/signals-core"
 import Tooltip from "bootstrap/js/dist/tooltip"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
-const themeColor = "#f60"
-const focusPaint: FocusLayerPaint = Object.freeze({
-    "fill-color": themeColor,
+const THEME_COLOR = "#f60"
+const focusPaint: FocusLayerPaint = {
+    "fill-color": THEME_COLOR,
     "fill-opacity": 0.5,
-    "line-color": themeColor,
+    "line-color": THEME_COLOR,
     "line-opacity": 1,
     "line-width": 4,
     "circle-radius": 10,
-    "circle-color": themeColor,
+    "circle-color": THEME_COLOR,
     "circle-opacity": 0.4,
-    "circle-stroke-color": themeColor,
+    "circle-stroke-color": THEME_COLOR,
     "circle-stroke-opacity": 1,
     "circle-stroke-width": 3,
-})
+}
 
 /** Create a new element history controller */
 export const getElementHistoryController = (map: MaplibreMap): IndexController => {
