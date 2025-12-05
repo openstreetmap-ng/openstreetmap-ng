@@ -355,7 +355,7 @@ export const configureStandardForm = (
                 if (resp.ok) console.debug("Form submitted successfully")
 
                 let data: any
-                const contentType = resp.headers.get("Content-Type") || ""
+                const contentType = resp.headers.get("Content-Type") ?? ""
                 if (contentType.startsWith("application/json")) {
                     console.debug("Reading JSON response")
                     data = await resp.json()

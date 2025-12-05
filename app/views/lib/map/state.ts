@@ -70,7 +70,7 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string): void => {
     const addLayerCodes = new Set<LayerCode>()
     let hasBaseLayer = false
 
-    for (const layerCode of (layersCode || "") as Iterable<LayerCode>) {
+    for (const layerCode of (layersCode ?? "") as Iterable<LayerCode>) {
         const layerId = resolveLayerCodeOrId(layerCode)
         if (!layerId) continue
         addLayerCodes.add(layerCode)

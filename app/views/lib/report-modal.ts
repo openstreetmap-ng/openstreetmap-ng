@@ -73,7 +73,7 @@ export const showReportModal = (data: ReportData) => {
     typeInput.value = data.type
     typeIdInput.value = data.typeId.toString()
     actionInput.value = data.action
-    actionIdInput.value = data.actionId || ""
+    actionIdInput.value = data.actionId ?? ""
 
     modalInstance.show()
 }
