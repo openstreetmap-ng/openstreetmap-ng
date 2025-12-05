@@ -39,8 +39,8 @@ run
 Code Quality:
 
 ```sh
-format                # Format and lint
-pyright               # Python type checking (BasedPyright)
+format                # Format/lint/non-Python type checks
+pyright               # Python type checks (BasedPyright)
 run-tests             # Standard pytest suite
 run-tests --extended  # Extended tests marked with @pytest.mark.extended
 ```
@@ -86,7 +86,7 @@ static-precompress    # Produce .zst/.br for large static assets
 - DOM typing: rely on `typed-query-selector` inference for `querySelector/All`; avoid `as HTML...` casts and non-null assertions. Required elements are guaranteed by the template contract; let missing ones crash loudly.
 - Modern syntax: write ES2023/modern CSS. Polyfills and transforms are injected automatically (Vite legacy plugin in `vite.config.ts`, Babel preset‑env + `core-js` and `browserslist` in `package.json`, Autoprefixer in `vite.config.ts`).
 - Styling: SCSS with Bootstrap 5. Prefer semantic classes; avoid inline styles; use `rem`/`em` instead of `px` where sensible.
-- Router integration: for map/index pages, implement `IndexController` and register routes via `configureRouter(...)` (`app/views/index/_router.ts`); navigate with `routerNavigateStrict(...)`.
+- Router integration: for map/index pages, implement `IndexController` and register routes via `configureRouter(...)` (`app/views/index/router.ts`); navigate with `routerNavigateStrict(...)`.
 - Forms: use `app/views/lib/standard-form.ts` for submissions and feedback (see Standard Components); avoid bespoke AJAX.
 - Jinja templates:
   - General page templates extend `_base` (omit the `.html.jinja` suffix when referring to templates); shared markup lives either next to the feature under a leading-underscore filename (e.g. `traces/_list-entry`) or globally in `app/views/lib/`.
@@ -94,6 +94,7 @@ static-precompress    # Produce .zst/.br for large static assets
   - When an include needs parameters, set them immediately beforehand and prefix each variable with the component name to avoid collisions (e.g. `multi_input_name`, `entry_hide_preview`). Only add fallbacks inside the partial when the component truly benefits from a default; otherwise let missing data fail loudly.
   - Locals created with `set` should start with an underscore (e.g. `{% set _is_deleted = ... %}`) to avoid clashing with request or component variables.
   - Keep component contexts lean: pass in presentation-ready values.
+  - Asset naming: when a Jinja template has a `_` prefix (e.g., `_list-entry.html.jinja`), related TypeScript and SCSS files must use the same prefix (e.g., `_list-entry.ts`, `_list-entry.scss`). This enables IDE file folding to group related files together.
 
 ## Standard Components
 
