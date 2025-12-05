@@ -44,6 +44,10 @@ export default defineConfig({
     base: "/static/vite/",
     resolve: {
         alias: {
+            "@index": resolve(
+                dirname(fileURLToPath(import.meta.url)),
+                "app/views/index",
+            ),
             "@lib": resolve(dirname(fileURLToPath(import.meta.url)), "app/views/lib"),
         },
     },

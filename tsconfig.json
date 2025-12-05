@@ -19,6 +19,7 @@
     "noImplicitOverride": true,
 
     "paths": {
+      "@index/*": ["./app/views/index/*"],
       "@lib/*": ["./app/views/lib/*"]
     },
     "types": [
