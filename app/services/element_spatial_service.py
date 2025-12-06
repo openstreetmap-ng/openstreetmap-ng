@@ -161,7 +161,7 @@ rels_computed AS (
     LEFT JOIN LATERAL (
         -- TODO: Remove `NOT MATERIALIZED` after BUG #19106 is fixed
         WITH member_geoms AS NOT MATERIALIZED (
-            SELECT ST_QuantizeCoordinates(ST_Collect(geom_val), 7) AS geom
+            SELECT ST_Collect(geom_val) AS geom
             FROM (
                 SELECT gl.geom AS geom_val
                 FROM UNNEST(rr.members) AS m(child_rel_id)
@@ -185,24 +185,30 @@ rels_computed AS (
             )
         ),
         noded_geoms AS NOT MATERIALIZED (
-            SELECT ST_UnaryUnion(ST_Collect(
+            SELECT ST_Union(
                 ST_CollectionExtract(member_geoms.geom, 2),
-                ST_Boundary(ST_CollectionExtract(member_geoms.geom, 3))
-            )) AS geom
+                ST_Boundary(ST_CollectionExtract(member_geoms.geom, 3)),
+                1e-7
+            ) AS geom
             FROM member_geoms
         ),
         polygon_geoms AS NOT MATERIALIZED (
-            SELECT ST_UnaryUnion(ST_Collect(
+            SELECT ST_Union(
                 ST_CollectionExtract(ST_Polygonize((SELECT geom FROM noded_geoms)), 3),
-                ST_CollectionExtract((SELECT geom FROM member_geoms), 3)
-            )) AS geom
+                ST_CollectionExtract((SELECT geom FROM member_geoms), 3),
+                1e-7
+            ) AS geom
         )
         SELECT ST_RemoveRepeatedPoints(
             ST_QuantizeCoordinates(
                 ST_Collect(
                     CASE
                         WHEN ST_IsEmpty((SELECT geom FROM polygon_geoms)) AND ST_IsEmpty((SELECT geom FROM noded_geoms)) THEN NULL
-                        ELSE ST_UnaryUnion(ST_Collect((SELECT geom FROM polygon_geoms), ST_LineMerge((SELECT geom FROM noded_geoms))))
+                        ELSE ST_Union(
+                            (SELECT geom FROM polygon_geoms),
+                            ST_LineMerge((SELECT geom FROM noded_geoms)),
+                            1e-7
+                        )
                     END,
                     CASE
                         WHEN ST_IsEmpty(ST_CollectionExtract((SELECT geom FROM member_geoms), 1)) THEN NULL
