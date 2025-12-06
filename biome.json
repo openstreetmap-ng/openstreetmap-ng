@@ -50,6 +50,7 @@
         "noCommonJs": "on",
         "noInferrableTypes": "on",
         "noNamespace": "on",
+        "noNonNullAssertion": "off",
         "noSubstr": "on",
         "noUnusedTemplateLiteral": "on",
         "noUselessElse": "on",

@@ -13,8 +13,8 @@
     "noEmit": true,
 
     "strict": true,
-    "strictNullChecks": false,
     "skipLibCheck": true,
+    "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
     "useUnknownInCatchVariables": false,
