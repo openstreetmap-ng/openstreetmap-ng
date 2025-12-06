@@ -280,16 +280,22 @@ message PartialChangesetParams {
 
 // Partial element response params
 message PartialElementParams {
+    enum ElementType {
+        node = 0;
+        way = 1;
+        relation = 2;
+    }
+
     // Hierarchical element relationship entry
     message Entry {
-        string type = 1;  // "node", "way", or "relation"
+        ElementType type = 1;  // Element type
         uint64 id = 2;  // OSM ID
         optional string role = 3;  // Relation member role
         optional string name = 4;  // Localized display name
         optional ElementIcon icon = 5;  // Associated visualization
     }
 
-    string type = 1;  // Primary element type
+    ElementType type = 1;  // Primary element type
     repeated Entry members = 2;  // Child elements (for ways and relations)
     repeated Entry parents = 3;  // Parent elements
     RenderElementsData render = 4;  // Visual representation data

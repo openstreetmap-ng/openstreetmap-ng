@@ -5,6 +5,7 @@ import type { IndexController } from "@index/router"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import {
+    PartialElementParams_ElementType,
     type PartialElementParams_Entry,
     PartialElementParamsSchema,
 } from "@lib/proto/shared_pb"
@@ -95,7 +96,7 @@ export const initializeElementContent = (map: MaplibreMap, container: HTMLElemen
             renderElementsComponent(
                 membersContainer,
                 params.members,
-                params.type === "way",
+                params.type === PartialElementParams_ElementType.way,
             ),
         )
 
@@ -177,11 +178,11 @@ const renderElementsComponent = (
 
             // Prefer static translation strings to ease automation
             let typeStr: string
-            if (type === "node") {
+            if (type === PartialElementParams_ElementType.node) {
                 typeStr = i18next.t("javascripts.query.node")
-            } else if (type === "way") {
+            } else if (type === PartialElementParams_ElementType.way) {
                 typeStr = i18next.t("javascripts.query.way")
-            } else if (type === "relation") {
+            } else {
                 typeStr = i18next.t("javascripts.query.relation")
             }
 
@@ -196,7 +197,7 @@ const renderElementsComponent = (
             } else {
                 linkLatest.textContent = element.id.toString()
             }
-            linkLatest.href = `/${type}/${element.id}`
+            linkLatest.href = `/${PartialElementParams_ElementType[type]}/${element.id}`
 
             if (isWay) {
                 content.appendChild(linkLatest)
