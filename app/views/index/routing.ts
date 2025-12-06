@@ -33,7 +33,6 @@ import type { Feature, LineString } from "geojson"
 import i18next from "i18next"
 import {
     type GeoJSONSource,
-    type LngLat,
     LngLatBounds,
     type LngLatLike,
     type Map as MaplibreMap,
@@ -80,39 +79,39 @@ export const getRoutingController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const mapContainer = map.getContainer()
     const sidebar = getActionSidebar("routing")
-    const parentSidebar = sidebar.closest("div.sidebar")
-    const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const form = sidebar.querySelector("form.routing-form")
-    const startInput = form.querySelector("input[name=start]")
-    const startLoadedInput = form.querySelector("input[name=start_loaded]")
-    const startLoadedLonInput = form.querySelector("input[name=start_loaded_lon]")
-    const startLoadedLatInput = form.querySelector("input[name=start_loaded_lat]")
+    const parentSidebar = sidebar.closest("div.sidebar")!
+    const sidebarTitle = sidebar.querySelector(".sidebar-title")!.textContent
+    const form = sidebar.querySelector("form.routing-form")!
+    const startInput = form.querySelector("input[name=start]")!
+    const startLoadedInput = form.querySelector("input[name=start_loaded]")!
+    const startLoadedLonInput = form.querySelector("input[name=start_loaded_lon]")!
+    const startLoadedLatInput = form.querySelector("input[name=start_loaded_lat]")!
     const startDraggableMarker = form.querySelector(
         "img.draggable-marker[data-direction=start]",
-    )
-    const endInput = form.querySelector("input[name=end]")
-    const endLoadedInput = form.querySelector("input[name=end_loaded]")
-    const endLoadedLonInput = form.querySelector("input[name=end_loaded_lon]")
-    const endLoadedLatInput = form.querySelector("input[name=end_loaded_lat]")
+    )!
+    const endInput = form.querySelector("input[name=end]")!
+    const endLoadedInput = form.querySelector("input[name=end_loaded]")!
+    const endLoadedLonInput = form.querySelector("input[name=end_loaded_lon]")!
+    const endLoadedLatInput = form.querySelector("input[name=end_loaded_lat]")!
     const endDraggableMarker = form.querySelector(
         "img.draggable-marker[data-direction=end]",
-    )
-    const reverseButton = form.querySelector("button.reverse-btn")
-    const engineInput = form.querySelector("select[name=engine]")
-    const bboxInput = form.querySelector("input[name=bbox]")
-    const loadingContainer = sidebar.querySelector(".loading")
-    const routeContainer = sidebar.querySelector(".route")
-    const routeDistance = routeContainer.querySelector(".route-info .distance")
-    const routeTime = routeContainer.querySelector(".route-info .time")
+    )!
+    const reverseButton = form.querySelector("button.reverse-btn")!
+    const engineInput = form.querySelector("select[name=engine]")!
+    const bboxInput = form.querySelector("input[name=bbox]")!
+    const loadingContainer = sidebar.querySelector(".loading")!
+    const routeContainer = sidebar.querySelector(".route")!
+    const routeDistance = routeContainer.querySelector(".route-info .distance")!
+    const routeTime = routeContainer.querySelector(".route-info .time")!
     const routeElevationContainer = routeContainer.querySelector(
         ".route-elevation-info",
-    )
-    const routeAscend = routeElevationContainer.querySelector(".ascend")
-    const routeDescend = routeElevationContainer.querySelector(".descend")
-    const stepsTableBody = routeContainer.querySelector(".route-steps tbody")
-    const attribution = routeContainer.querySelector(".attribution")
-    const popupTemplate = routeContainer.querySelector("template.popup")
-    const stepTemplate = routeContainer.querySelector("template.step")
+    )!
+    const routeAscend = routeElevationContainer.querySelector(".ascend")!
+    const routeDescend = routeElevationContainer.querySelector(".descend")!
+    const stepsTableBody = routeContainer.querySelector(".route-steps tbody")!
+    const attribution = routeContainer.querySelector(".attribution")!
+    const popupTemplate = routeContainer.querySelector("template.popup")!
+    const stepTemplate = routeContainer.querySelector("template.step")!
 
     let startBounds: LngLatBounds | null = null
     let startMarker: Marker | null = null
@@ -139,35 +138,31 @@ export const getRoutingController = (map: MaplibreMap) => {
         if (dir === "start") {
             if (!startMarker) {
                 startMarker = markerFactory("green")
-                startMarker.on("dragend", () =>
-                    onMapMarkerDragEnd(startMarker.getLngLat(), true),
-                )
+                startMarker.on("dragend", () => onMapMarkerDragEnd(startMarker, true))
             }
             return startMarker
         }
 
         if (!endMarker) {
             endMarker = markerFactory("red")
-            endMarker.on("dragend", () =>
-                onMapMarkerDragEnd(endMarker.getLngLat(), false),
-            )
+            endMarker.on("dragend", () => onMapMarkerDragEnd(endMarker, false))
         }
         return endMarker
     }
 
     const onInterfaceMarkerDragStart = (event: DragEvent) => {
         const target = event.target as HTMLImageElement
-        const direction = target.dataset.direction
+        const direction = target.dataset.direction!
         console.debug("onInterfaceMarkerDragStart", direction)
 
-        const dt = event.dataTransfer
+        const dt = event.dataTransfer!
         dt.effectAllowed = "move"
         dt.setData("text/plain", "")
         dt.setData(DRAG_DATA_TYPE, direction)
         const canvas = document.createElement("canvas")
         canvas.width = DRAG_IMAGE_WIDTH
         canvas.height = DRAG_IMAGE_HEIGHT
-        const ctx = canvas.getContext("2d")
+        const ctx = canvas.getContext("2d")!
         ctx.drawImage(target, 0, 0, DRAG_IMAGE_WIDTH, DRAG_IMAGE_HEIGHT)
         dt.setDragImage(canvas, DRAG_IMAGE_OFFSET_X, DRAG_IMAGE_OFFSET_Y)
     }
@@ -176,16 +171,16 @@ export const getRoutingController = (map: MaplibreMap) => {
 
     const openPopup = (result: Element, lngLat: LngLatLike) => {
         const content = popupTemplate.content.cloneNode(true) as DocumentFragment
-        content.querySelector(".number").innerHTML =
-            result.querySelector(".number").innerHTML
-        content.querySelector(".instruction").innerHTML =
-            result.querySelector(".instruction").innerHTML
+        content.querySelector(".number")!.innerHTML =
+            result.querySelector(".number")!.innerHTML
+        content.querySelector(".instruction")!.innerHTML =
+            result.querySelector(".instruction")!.innerHTML
         popup.setDOMContent(content).setLngLat(lngLat).addTo(map)
     }
 
     // Show step instruction details on click
     map.on("click", LAYER_ID, (e) => {
-        const feature = e.features[0] as Feature<LineString>
+        const feature = e.features![0] as Feature<LineString>
         const featureId = feature.id as number
         const result = stepsTableBody.children[featureId]
         openPopup(result, feature.geometry.coordinates[0] as LngLatLike)
@@ -193,7 +188,7 @@ export const getRoutingController = (map: MaplibreMap) => {
 
     // Sync hover between map features and sidebar table
     map.on("mousemove", LAYER_ID, (e) => {
-        const id = e.features[0].id as number
+        const id = e.features![0].id as number
         setMapHover(map, LAYER_ID)
         updateHover(id >= 0 ? id : null, true)
     })
@@ -239,10 +234,12 @@ export const getRoutingController = (map: MaplibreMap) => {
         const r = parentSidebar.getBoundingClientRect()
         if (x < r.left || x > r.right || y < r.top || y > r.bottom) return
         const row = document.elementFromPoint(x, y)?.closest("tr[data-step-index]")
-        updateHover(row ? Number.parseInt(row.dataset.stepIndex, 10) : null)
+        updateHover(row ? Number.parseInt(row.dataset.stepIndex!, 10) : null)
     }
 
-    const onMapMarkerDragEnd = (lngLat: LngLat, isStart: boolean) => {
+    const onMapMarkerDragEnd = (marker: Marker | null, isStart: boolean) => {
+        if (!marker) return
+        const lngLat = marker.getLngLat()
         console.debug("onMapMarkerDragEnd", lngLat, isStart)
 
         const precision = zoomPrecision(map.getZoom())
@@ -264,7 +261,7 @@ export const getRoutingController = (map: MaplibreMap) => {
     const onMapDragOver = (event: DragEvent) => event.preventDefault()
 
     const onMapDrop = (event: DragEvent) => {
-        const dragData = event.dataTransfer.getData(DRAG_DATA_TYPE)
+        const dragData = event.dataTransfer!.getData(DRAG_DATA_TYPE)
         console.debug("onMapDrop", dragData)
 
         let marker: Marker
@@ -380,7 +377,7 @@ export const getRoutingController = (map: MaplibreMap) => {
             dir: "start" | "end",
             entry: RoutingResult_Endpoint,
         ) => {
-            const { minLon, minLat, maxLon, maxLat } = entry.bounds
+            const { minLon, minLat, maxLon, maxLat } = entry.bounds!
             const b = new LngLatBounds([minLon, minLat, maxLon, maxLat])
             if (dir === "start") startBounds = b
             else endBounds = b
@@ -411,15 +408,17 @@ export const getRoutingController = (map: MaplibreMap) => {
         if (markerBounds) {
             const mapBounds = map.getBounds()
             if (
-                !mapBounds.contains(markerBounds.getSouthWest()) &&
-                !mapBounds.contains(markerBounds.getNorthEast())
+                !(
+                    mapBounds.contains(markerBounds.getSouthWest()) ||
+                    mapBounds.contains(markerBounds.getNorthEast())
+                )
             )
                 map.fitBounds(markerBounds)
         }
     }
 
     const updateUrl = () => {
-        if (!startMarker || !endMarker) return
+        if (!(startMarker && endMarker)) return
         const routingEngineName = engineInput.value
 
         const precision = zoomPrecision(19)
@@ -484,17 +483,17 @@ export const getRoutingController = (map: MaplibreMap) => {
                 })
             }
 
-            const div = stepTemplate.content.firstElementChild.cloneNode(
+            const div = stepTemplate.content.firstElementChild!.cloneNode(
                 true,
             ) as HTMLElement
             div.dataset.stepIndex = String(stepIndex)
-            div.querySelector(".icon div").classList.add(
+            div.querySelector(".icon div")!.classList.add(
                 `icon-${step.iconNum}`,
                 "dark-filter-invert",
             )
-            div.querySelector(".number").textContent = `${stepIndex + 1}.`
-            div.querySelector(".instruction").textContent = step.text
-            div.querySelector(".distance").textContent = formatDistanceRounded(
+            div.querySelector(".number")!.textContent = `${stepIndex + 1}.`
+            div.querySelector(".instruction")!.textContent = step.text
+            div.querySelector(".distance")!.textContent = formatDistanceRounded(
                 step.distance,
             )
             div.addEventListener("click", () => openPopup(div, stepCoords[0]))

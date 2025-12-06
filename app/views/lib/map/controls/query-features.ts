@@ -7,7 +7,7 @@ import type { IControl, Map as MaplibreMap, MapMouseEvent } from "maplibre-gl"
 export const QUERY_FEATURES_MIN_ZOOM = 14
 
 export class QueryFeaturesControl implements IControl {
-    public _container: HTMLElement
+    public _container!: HTMLElement
 
     public onAdd(map: MaplibreMap) {
         const mapContainer = map.getContainer()
@@ -60,7 +60,7 @@ export class QueryFeaturesControl implements IControl {
                     if (button.classList.contains("active")) button.click()
                     button.blur()
                     button.disabled = true
-                    Tooltip.getInstance(button).setContent({
+                    Tooltip.getInstance(button)!.setContent({
                         ".tooltip-inner": i18next.t(
                             "javascripts.site.queryfeature_disabled_tooltip",
                         ),
@@ -68,7 +68,7 @@ export class QueryFeaturesControl implements IControl {
                 }
             } else if (button.disabled) {
                 button.disabled = false
-                Tooltip.getInstance(button).setContent({
+                Tooltip.getInstance(button)!.setContent({
                     ".tooltip-inner": i18next.t(
                         "javascripts.site.queryfeature_tooltip",
                     ),

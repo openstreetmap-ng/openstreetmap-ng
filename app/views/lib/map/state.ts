@@ -41,7 +41,7 @@ export interface LonLatZoom extends LonLat {
 }
 
 export interface MapState extends LonLatZoom {
-    layersCode?: string
+    layersCode: string | undefined
 }
 
 export const getMapLayersCode = (map: MaplibreMap) => {
@@ -63,7 +63,7 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string) => {
         const layerId = resolveLayerCodeOrId(layerCode)
         if (!layerId) continue
         addLayerCodes.add(layerCode)
-        if (layersConfig.get(layerId).isBaseLayer) {
+        if (layersConfig.get(layerId)!.isBaseLayer) {
             if (hasBaseLayer) {
                 console.error(
                     "Invalid layers code",
@@ -84,10 +84,10 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string) => {
     for (const extendedLayerId of map.getLayersOrder()) {
         const layerId = resolveExtendedLayerId(extendedLayerId)
         if (!layerId) continue
-        const layerCode = layersConfig.get(layerId).layerCode
+        const layerCode = layersConfig.get(layerId)!.layerCode
         if (layerCode === undefined || addLayerCodes.has(layerCode)) {
             console.debug("Keeping layer", layerId)
-            missingLayerCodes.delete(layerCode)
+            if (layerCode !== undefined) missingLayerCodes.delete(layerCode)
             continue
         }
         removeMapLayer(map, layerId)
@@ -95,7 +95,7 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string) => {
 
     // Add missing layers
     for (const layerCode of missingLayerCodes) {
-        addMapLayer(map, resolveLayerCodeOrId(layerCode))
+        addMapLayer(map, resolveLayerCodeOrId(layerCode)!)
     }
 }
 
@@ -185,14 +185,19 @@ export const parseMapState = (hash: string) => {
     }
 }
 
-const convertBoundsToLonLatZoom = (map: MaplibreMap | null, bounds: Bounds) => {
+const convertBoundsToLonLatZoom = (
+    map: MaplibreMap | null | undefined,
+    bounds: Bounds,
+) => {
     const [minLon, minLat, maxLon, maxLat] = bounds
     const lon = (minLon + maxLon) / 2
     const lat = (minLat + maxLat) / 2
 
     if (map) {
         const camera = map.cameraForBounds([minLon, minLat, maxLon, maxLat])
-        if (camera) return { lon, lat, zoom: camera.zoom }
+        if (camera?.zoom !== undefined) {
+            return { lon, lat, zoom: camera.zoom }
+        }
     }
 
     const latRad = (lat: number) => Math.sin((lat * Math.PI) / 180)
@@ -364,7 +369,10 @@ const SHORT_DOMAINS: Record<string, string> = {
     "openstreetmap.ng": "osm.ng",
 }
 
-export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat) => {
+export const getMapShortlink = (
+    map: MaplibreMap,
+    markerLngLat?: LngLat | null | undefined,
+) => {
     const state = getMapState(map)
     const code = shortLinkEncode(state)
     const params: Record<string, string> = {}
@@ -385,14 +393,17 @@ export const getMapShortlink = (map: MaplibreMap, markerLngLat?: LngLat) => {
     return `${location.protocol}//${host}/go/${code}${qsEncode(params)}`
 }
 
-export const getMapEmbedHtml = (map: MaplibreMap, markerLngLat?: LngLat) => {
+export const getMapEmbedHtml = (
+    map: MaplibreMap,
+    markerLngLat?: LngLat | null | undefined,
+) => {
     const [[minLon, minLat], [maxLon, maxLat]] = map
         .getBounds()
         .adjustAntiMeridian()
         .toArray()
     const params: Record<string, string> = {
         bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
-        layer: getMapBaseLayerId(map),
+        layer: getMapBaseLayerId(map)!,
     }
 
     // Add optional map marker

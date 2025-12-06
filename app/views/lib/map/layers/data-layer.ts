@@ -79,34 +79,32 @@ export const configureDataLayer = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const errorDataAlert = getMapAlert("data-layer-error-alert")
     const loadDataAlert = getMapAlert("data-layer-load-alert")
-    const hideDataButton = loadDataAlert.querySelector("button.hide-data-btn")
-    const showDataButton = loadDataAlert.querySelector("button.show-data-btn")
+    const hideDataButton = loadDataAlert.querySelector("button.hide-data-btn")!
+    const showDataButton = loadDataAlert.querySelector("button.show-data-btn")!
     const dataOverlayCheckbox = document.querySelector(
         ".map-sidebar.layers input.overlay[value=data]",
-    )
+    )!
 
     let enabled = false
     let abortController: AbortController | null = null
     let fetchedBounds: LngLatBounds | null = null
-    let fetchedElements: (OSMNode | OSMWay)[] | null = null
     let loadDataOverride = false
 
     const clearData = () => {
         fetchedBounds = null
-        fetchedElements = null
         source.setData(emptyFeatureCollection)
         clearMapHover(map, LAYER_ID)
     }
 
     /** On feature click, navigate to the object page */
     const onFeatureClick = (e: MapLayerMouseEvent) => {
-        const props = e.features[0].properties
+        const props = e.features![0].properties
         routerNavigateStrict(`/${props.type}/${props.id}`)
     }
 
     let hoveredFeatureId: number | null = null
     const onFeatureHover = (e: MapLayerMouseEvent) => {
-        const feature = e.features[0]
+        const feature = e.features![0]
         const featureId = feature.id as number
         if (hoveredFeatureId === featureId) return
         if (hoveredFeatureId) {
@@ -118,6 +116,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
         map.setFeatureState({ source: LAYER_ID, id: hoveredFeatureId }, { hover: true })
     }
     const onFeatureLeave = () => {
+        if (!hoveredFeatureId) return
         map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
         hoveredFeatureId = null
         clearMapHover(map, LAYER_ID)
@@ -131,10 +130,10 @@ export const configureDataLayer = (map: MaplibreMap) => {
     }
 
     /** Load map data into the data layer */
-    const loadData = () => {
-        console.debug("Loading", fetchedElements.length, "elements")
+    const loadData = (elements: (OSMNode | OSMWay)[]) => {
+        console.debug("Loading", elements.length, "elements")
         loadDataAlert.classList.add("d-none")
-        source.setData(renderObjects(fetchedElements, { renderAreas: false }))
+        source.setData(renderObjects(elements, { renderAreas: false }))
     }
 
     /** Display data alert if not already shown */
@@ -152,7 +151,6 @@ export const configureDataLayer = (map: MaplibreMap) => {
         console.debug("onShowDataButtonClick")
         loadDataOverride = true
         loadDataAlert.classList.add("d-none")
-        fetchedElements = []
         fetchedBounds = null
         updateLayer()
     }
@@ -223,12 +221,11 @@ export const configureDataLayer = (map: MaplibreMap) => {
 
             const buffer = await resp.arrayBuffer()
             const render = fromBinary(RenderElementsDataSchema, new Uint8Array(buffer))
-            fetchedElements = convertRenderElementsData(render)
             fetchedBounds = fetchBounds
             if (render.tooMuchData) {
                 showDataAlert()
             } else {
-                loadData()
+                loadData(convertRenderElementsData(render))
             }
         } catch (error) {
             if (error.name === "AbortError") return

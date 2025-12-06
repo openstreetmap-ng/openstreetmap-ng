@@ -59,13 +59,13 @@ const focusPaint: FocusLayerPaint = {
 export const getQueryFeaturesController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const sidebar = getActionSidebar("query-features")
-    const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const nearbyContainer = sidebar.querySelector("div.nearby-container")
+    const sidebarTitle = sidebar.querySelector(".sidebar-title")!.textContent
+    const nearbyContainer = sidebar.querySelector("div.nearby-container")!
     const nearbyLoadingHtml = nearbyContainer.innerHTML
     const emptyText = i18next.t("javascripts.query.nothing_found")
     const queryFeaturesButton = map
         .getContainer()
-        .querySelector(".maplibregl-ctrl.query-features button")
+        .querySelector(".maplibregl-ctrl.query-features button")!
 
     let abortController: AbortController | null = null
 
@@ -89,11 +89,11 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
 
     /** Configure result actions to handle focus and clicks */
     const configureResultActions = (container: HTMLElement) => {
-        const queryList = container.querySelector("ul.search-list")
+        const queryList = container.querySelector("ul.search-list")!
         const resultActions = queryList.querySelectorAll("li.social-entry.clickable")
         const params = fromBinary(
             PartialQueryFeaturesParamsSchema,
-            base64Decode(queryList.dataset.params),
+            base64Decode(queryList.dataset.params!),
         )
         for (let i = 0; i < resultActions.length; i++) {
             const resultAction = resultActions[i]

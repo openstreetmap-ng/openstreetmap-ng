@@ -9,19 +9,17 @@ export const memoize = <T extends (...args: any[]) => any>(fn: T) => {
         // Fast path for zero-argument calls
         if (args.length === 0) {
             if (noArgsCalled) return noArgsResult
-            noArgsCalled = true
             noArgsResult = fn()
+            noArgsCalled = true
             return noArgsResult
         }
 
         // Standard path for calls with arguments
         const key = JSON.stringify(args)
-        let cached = cache.get(key)
-        if (cached === undefined) {
-            cached = fn(...args)
-            cache.set(key, cached)
-        }
-        return cached
+        if (cache.has(key)) return cache.get(key)!
+        const result = fn(...args)
+        cache.set(key, result)
+        return result
     }) as T
 }
 
@@ -30,9 +28,9 @@ export const wrapIdleCallbackStatic = <T extends (...args: any[]) => any>(
     fn: T,
     timeout = 5000,
 ) => {
-    let idleCallbackId: number | null = null
+    let idleCallbackId: number | undefined
     return ((...args: any[]) => {
-        cancelIdleCallbackPolyfill(idleCallbackId)
+        if (idleCallbackId !== undefined) cancelIdleCallbackPolyfill(idleCallbackId)
         idleCallbackId = requestIdleCallbackPolyfill(() => fn(...args), { timeout })
     }) as T
 }

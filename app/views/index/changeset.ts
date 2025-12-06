@@ -18,6 +18,8 @@ import i18next from "i18next"
 import type { MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
 import type { IndexController } from "./router"
 
+type ElementType = "node" | "way" | "relation"
+
 const focusPaint: FocusLayerPaint = {
     "fill-opacity": 0,
     "line-color": "#f90",
@@ -28,17 +30,16 @@ const focusPaint: FocusLayerPaint = {
 const ELEMENTS_PER_PAGE = 20
 
 export const getChangesetController = (map: MaplibreMap) => {
-    let params: PartialChangesetParams | null = null
-    let paramsBounds: Bounds[] | null = null
+    let params: PartialChangesetParams
+    let paramsBounds: Bounds[]
 
     const base = getBaseFetchController(map, "changeset", (sidebarContent) => {
         renderColorPreviews(sidebarContent)
         configureReportButtonsLazy(sidebarContent)
 
-        const sidebarTitleElement = sidebarContent.querySelector(
-            ".sidebar-title",
-        ) as HTMLElement
-        const elementsSection = sidebarContent.querySelector("div.elements")
+        const sidebarTitleElement =
+            sidebarContent.querySelector<HTMLElement>(".sidebar-title")!
+        const elementsSection = sidebarContent.querySelector("div.elements")!
         setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found
@@ -115,22 +116,22 @@ export const getChangesetController = (map: MaplibreMap) => {
 
 const renderElements = (
     elementsSection: HTMLElement,
-    elements: Record<string, PartialChangesetParams_Element[]>,
+    elements: Record<ElementType, PartialChangesetParams_Element[]>,
 ) => {
     console.debug("renderElements")
 
-    const groupTemplate = elementsSection.querySelector("template.group")
-    const entryTemplate = elementsSection.querySelector("template.entry")
+    const groupTemplate = elementsSection.querySelector("template.group")!
+    const entryTemplate = elementsSection.querySelector("template.entry")!
     const fragment = document.createDocumentFragment()
     const disposeList: (() => void)[] = []
 
-    for (const [type, elementsType] of Object.entries(elements)) {
-        if (!elementsType.length) continue
+    for (const [type, typeElements] of Object.entries(elements)) {
+        if (!typeElements.length) continue
         const [renderFragment, disposePagination] = renderElementType(
             groupTemplate,
             entryTemplate,
-            type,
-            elementsType,
+            type as ElementType,
+            typeElements,
         )
         fragment.appendChild(renderFragment)
         disposeList.push(disposePagination)
@@ -151,14 +152,14 @@ const renderElements = (
 const renderElementType = (
     groupTemplate: HTMLTemplateElement,
     entryTemplate: HTMLTemplateElement,
-    type: string,
+    type: ElementType,
     elements: PartialChangesetParams_Element[],
 ) => {
     console.debug("renderElementType", type, elements)
 
     const groupFragment = groupTemplate.content.cloneNode(true) as DocumentFragment
-    const titleElement = groupFragment.querySelector(".title")
-    const paginationContainer = groupFragment.querySelector("ul.pagination")
+    const titleElement = groupFragment.querySelector(".title")!
+    const paginationContainer = groupFragment.querySelector("ul.pagination")!
 
     // Calculate pagination
     const elementsLength = elements.length
@@ -166,7 +167,7 @@ const renderElementType = (
     paginationContainer.dataset.pages = totalPages.toString()
 
     if (totalPages <= 1) {
-        paginationContainer.parentElement.classList.add("d-none")
+        paginationContainer.parentElement!.classList.add("d-none")
     }
 
     const updateTitle = (page: number) => {
@@ -190,7 +191,7 @@ const renderElementType = (
         } else if (type === "way") {
             // @ts-expect-error
             newTitle = i18next.t("browse.changeset.way", { count })
-        } else if (type === "relation") {
+        } else {
             // @ts-expect-error
             newTitle = i18next.t("browse.changeset.relation", { count })
         }
@@ -208,9 +209,9 @@ const renderElementType = (
             const entryFragment = entryTemplate.content.cloneNode(
                 true,
             ) as DocumentFragment
-            const iconImg = entryFragment.querySelector("img")
-            const linkLatest = entryFragment.querySelector("a.link-latest")
-            const linkVersion = entryFragment.querySelector("a.link-version")
+            const iconImg = entryFragment.querySelector("img")!
+            const linkLatest = entryFragment.querySelector("a.link-latest")!
+            const linkVersion = entryFragment.querySelector("a.link-version")!
 
             if (element.icon) {
                 iconImg.src = `/static/img/element/${element.icon.icon}`
@@ -220,7 +221,7 @@ const renderElementType = (
             }
 
             if (!element.visible) {
-                linkLatest.parentElement.parentElement.classList.add("deleted")
+                linkLatest.parentElement!.parentElement!.classList.add("deleted")
             }
 
             if (element.name) {

@@ -27,7 +27,7 @@ export const makeRoute = (pattern: string, controller: IndexController) => {
     return {
         match: (path: string) => re.test(path),
         load: (path: string, reason: RouteLoadReason) => {
-            const matchGroups = re.exec(path).groups
+            const matchGroups = re.exec(path)!.groups ?? {}
             controller.load(matchGroups, reason)
         },
         unload: controller.unload,
@@ -94,7 +94,7 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
             return
 
         const target = (e.target as Element).closest("a")
-        if (!target || !target.href || target.origin !== location.origin) return
+        if (!target?.href || target.origin !== location.origin) return
 
         const newPath = removeTrailingSlash(target.pathname) + target.search
         console.debug("onWindowClick", newPath)

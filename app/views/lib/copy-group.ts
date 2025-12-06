@@ -3,14 +3,15 @@ export const configureCopyGroups = (root: ParentNode) => {
     console.debug("Initializing", elements.length, "copy groups")
 
     for (const element of elements) {
-        let button: HTMLElement | null = null
-        let input: HTMLInputElement | null = null
-        let timeout: ReturnType<typeof setTimeout> | null = null
+        let button: HTMLElement
+        let input: HTMLInputElement | null
+        let timeout: ReturnType<typeof setTimeout> | undefined
 
         if (element.tagName === "BUTTON") {
             button = element as HTMLButtonElement
+            input = null
         } else {
-            button = element.querySelector("i.bi-copy").parentElement
+            button = element.querySelector("i.bi-copy")!.parentElement!
             input = element.querySelector("input.form-control")
         }
 
@@ -26,7 +27,7 @@ export const configureCopyGroups = (root: ParentNode) => {
 
             const text = input
                 ? input.value
-                : root.querySelector(button.dataset.copyTarget).textContent.trim()
+                : root.querySelector(button.dataset.copyTarget!)!.textContent.trim()
 
             try {
                 // Write to clipboard
@@ -38,7 +39,7 @@ export const configureCopyGroups = (root: ParentNode) => {
                 return
             }
 
-            const icon = button.querySelector("i")
+            const icon = button.querySelector("i")!
             icon.classList.remove("bi-copy")
             icon.classList.add("bi-check2")
 

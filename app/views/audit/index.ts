@@ -3,7 +3,7 @@ import { mount } from "@lib/mount"
 import { configureStandardPagination } from "@lib/standard-pagination"
 
 mount("audit-body", (body) => {
-    const filterForm = body.querySelector("form.filters-form")
+    const filterForm = body.querySelector("form.filters-form")!
 
     // Setup datetime input timezone conversion
     configureDatetimeInputs(filterForm, ["created_after", "created_before"])
@@ -24,8 +24,8 @@ mount("audit-body", (body) => {
             )) {
                 button.addEventListener("click", (e) => {
                     e.preventDefault()
-                    filterForm.querySelector("input[name=application_id]").value =
-                        button.dataset.appId
+                    filterForm.querySelector("input[name=application_id]")!.value =
+                        button.dataset.appId!
                     filterForm.requestSubmit()
                 })
             }

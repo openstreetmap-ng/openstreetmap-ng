@@ -74,7 +74,7 @@ export const configureIFrameSystemApp = (
             console.debug("Received loadSystemApp request from", origin)
             loadSystemApp(clientId, (accessToken) => {
                 console.debug("Responding to loadSystemApp request to", iframeOrigin)
-                iframe.contentWindow.postMessage(
+                iframe.contentWindow!.postMessage(
                     { type: "loadedSystemApp", accessToken },
                     iframeOrigin,
                 )

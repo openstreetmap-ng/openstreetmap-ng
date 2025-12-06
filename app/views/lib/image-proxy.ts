@@ -6,12 +6,12 @@ console.debug("Initializing", imageProxies.length, "image proxies")
 if (imageProxies.length) {
     const padding = 48 // Account for padding around the image
     const canvas = document.createElement("canvas")
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d")!
 
     for (const img of imageProxies) {
-        const hash = img.dataset.thumbnail
-        const imgWidth = Number.parseInt(img.getAttribute("width"), 10) - padding
-        const imgHeight = Number.parseInt(img.getAttribute("height"), 10) - padding
+        const hash = img.dataset.thumbnail!
+        const imgWidth = Number.parseInt(img.getAttribute("width")!, 10) - padding
+        const imgHeight = Number.parseInt(img.getAttribute("height")!, 10) - padding
 
         const aspectRatio = imgWidth / imgHeight
         const thumbHeight = 24

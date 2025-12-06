@@ -4,9 +4,9 @@ import i18next from "i18next"
 const richTextContainers = document.querySelectorAll(".rich-text-container")
 console.debug("Initializing", richTextContainers.length, "rich text containers")
 for (const container of richTextContainers) {
-    const sourceTextArea = container.querySelector("textarea.rich-text-source")
-    const previewDiv = container.querySelector(".rich-text-preview")
-    const helpDiv = container.querySelector(".rich-text-tips")
+    const sourceTextArea = container.querySelector("textarea.rich-text-source")!
+    const previewDiv = container.querySelector(".rich-text-preview")!
+    const helpDiv = container.querySelector(".rich-text-tips")!
 
     const state = signal<"edit" | "preview" | "help" | undefined>()
 

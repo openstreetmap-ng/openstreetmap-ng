@@ -8,33 +8,33 @@ import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 
 mount("user-profile-body", (body) => {
-    const avatarForm = body.querySelector("form.avatar-form")
+    const avatarForm = body.querySelector("form.avatar-form")!
     const avatarDropdown = avatarForm.querySelector(".dropdown")
 
     // Check if editing features available
     if (avatarDropdown) {
         const avatars = document.querySelectorAll("img.avatar")
-        const avatarTypeInput = avatarForm.querySelector("input[name=avatar_type]")
-        const avatarFileInput = avatarForm.querySelector("input[name=avatar_file]")
+        const avatarTypeInput = avatarForm.querySelector("input[name=avatar_type]")!
+        const avatarFileInput = avatarForm.querySelector("input[name=avatar_file]")!
 
         avatarFileInput.addEventListener("change", () => {
             avatarTypeInput.value = "custom"
             avatarForm.requestSubmit()
         })
 
-        const uploadAvatarButton = avatarForm.querySelector("button.upload-btn")
+        const uploadAvatarButton = avatarForm.querySelector("button.upload-btn")!
         uploadAvatarButton.addEventListener("click", () => {
             avatarFileInput.click()
         })
 
-        const useGravatarButton = avatarForm.querySelector("button.gravatar-btn")
+        const useGravatarButton = avatarForm.querySelector("button.gravatar-btn")!
         useGravatarButton.addEventListener("click", () => {
             avatarTypeInput.value = "gravatar"
             avatarFileInput.value = ""
             avatarForm.requestSubmit()
         })
 
-        const removeAvatarButton = avatarForm.querySelector("button.remove-btn")
+        const removeAvatarButton = avatarForm.querySelector("button.remove-btn")!
         removeAvatarButton.addEventListener("click", () => {
             avatarTypeInput.value = ""
             avatarFileInput.value = ""
@@ -49,22 +49,24 @@ mount("user-profile-body", (body) => {
             }
         })
 
-        const backgroundForm = body.querySelector("form.background-form")
-        const backgroundImage = backgroundForm.querySelector("img.background")
+        const backgroundForm = body.querySelector("form.background-form")!
+        const backgroundImage = backgroundForm.querySelector("img.background")!
         const backgroundFileInput = backgroundForm.querySelector(
             "input[name=background_file]",
-        )
+        )!
 
         backgroundFileInput.addEventListener("change", () => {
             backgroundForm.requestSubmit()
         })
 
-        const uploadBackgroundButton = backgroundForm.querySelector("button.upload-btn")
+        const uploadBackgroundButton =
+            backgroundForm.querySelector("button.upload-btn")!
         uploadBackgroundButton.addEventListener("click", () => {
             backgroundFileInput.click()
         })
 
-        const removeBackgroundButton = backgroundForm.querySelector("button.remove-btn")
+        const removeBackgroundButton =
+            backgroundForm.querySelector("button.remove-btn")!
         removeBackgroundButton.addEventListener("click", () => {
             backgroundFileInput.value = ""
             backgroundForm.requestSubmit()
@@ -101,11 +103,11 @@ mount("user-profile-body", (body) => {
     // Socials modal handler
     const socialsModal = document.getElementById("profileSocialsModal")
     if (socialsModal) {
-        const form = socialsModal.querySelector("form")
-        const container = form.querySelector(".socials-container") as HTMLElement
-        const template = container.querySelector("template")
-        const maxItems = Number.parseInt(container.dataset.maxItems, 10)
-        const addBtn = form.querySelector("button.add-btn")
+        const form = socialsModal.querySelector("form")!
+        const container = form.querySelector<HTMLElement>(".socials-container")!
+        const template = container.querySelector("template")!
+        const maxItems = Number.parseInt(container.dataset.maxItems!, 10)
+        const addBtn = form.querySelector("button.add-btn")!
 
         configureStandardForm(form, () => {
             window.location.reload()
@@ -126,20 +128,20 @@ mount("user-profile-body", (body) => {
 
         /** Update input type, placeholder, and label based on selected service */
         function updateRowState(row: Element) {
-            const select = row.querySelector("select")
-            const input = row.querySelector("input[name=value]")
-            const label = row.querySelector(".custom-input-group label")
+            const select = row.querySelector("select")!
+            const input = row.querySelector("input[name=value]")!
+            const label = row.querySelector(".custom-input-group label")!
             const selected = select.selectedOptions[0]
 
-            input.placeholder = selected.dataset.placeholder
+            input.placeholder = selected.dataset.placeholder!
             input.type = selected.dataset.hasTemplate ? "text" : "url"
-            label.textContent = selected.dataset.label
+            label.textContent = selected.dataset.label!
         }
 
         /** Disable move buttons at boundaries */
         function updateMoveButtons(row: Element, index: number, total: number) {
-            row.querySelector("button.move-up-btn").disabled = index === 0
-            row.querySelector("button.move-down-btn").disabled = index === total - 1
+            row.querySelector("button.move-up-btn")!.disabled = index === 0
+            row.querySelector("button.move-down-btn")!.disabled = index === total - 1
         }
 
         /** Move a row up (swap with previous sibling) */
@@ -150,7 +152,7 @@ mount("user-profile-body", (body) => {
 
         /** Move a row down (swap with next sibling) */
         function moveDown(row: Element) {
-            container.insertBefore(row.nextElementSibling, row)
+            container.insertBefore(row.nextElementSibling!, row)
             updateState()
         }
 
@@ -158,17 +160,17 @@ mount("user-profile-body", (body) => {
             const target = e.target as HTMLElement
 
             if (target.closest(".move-up-btn")) {
-                moveUp(target.closest(".social-row"))
+                moveUp(target.closest(".social-row")!)
                 return
             }
 
             if (target.closest(".move-down-btn")) {
-                moveDown(target.closest(".social-row"))
+                moveDown(target.closest(".social-row")!)
                 return
             }
 
             if (target.closest(".remove-btn")) {
-                target.closest(".social-row").remove()
+                target.closest(".social-row")!.remove()
                 updateState()
                 return
             }
@@ -182,20 +184,20 @@ mount("user-profile-body", (body) => {
         form.addEventListener("change", (e) => {
             const target = e.target as HTMLElement
             if (target.matches("select[name=service]")) {
-                updateRowState(target.closest(".social-row"))
+                updateRowState(target.closest(".social-row")!)
             }
         })
 
         updateState()
     }
 
-    const chartTable = body.querySelector("table.activity-chart[data-chart]")
+    const chartTable = body.querySelector("table.activity-chart[data-chart]")!
     const chartBody = document.createElement("tbody")
     const chart = fromBinary(
         UserActivityChartSchema,
-        base64Decode(chartTable.dataset.chart),
+        base64Decode(chartTable.dataset.chart!),
     )
-    const chartLinkPrefix = `/user/${encodeURIComponent(chartTable.dataset.displayName)}/history?date=`
+    const chartLinkPrefix = `/user/${encodeURIComponent(chartTable.dataset.displayName!)}/history?date=`
 
     const dayMs = 86_400_000
     const startMs = Date.parse(`${chart.startDate}T00:00:00Z`)
@@ -246,7 +248,7 @@ mount("user-profile-body", (body) => {
 
     const activateTooltip = ({ target }: Event) => {
         const element = target as HTMLElement
-        const [iso, valueStr] = element.ariaLabel.split(": ")
+        const [iso, valueStr] = element.ariaLabel!.split(": ")
         const value = Number.parseInt(valueStr, 10)
         const dateLabel = formatShortDate(iso)
         const title =

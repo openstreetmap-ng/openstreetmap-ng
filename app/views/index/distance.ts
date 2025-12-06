@@ -1,4 +1,5 @@
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
+import { assert } from "@lib/assert"
 import { formatDistance, isMetricUnit } from "@lib/format"
 import { padLngLatBounds } from "@lib/map/bounds"
 import { closestPointOnSegment } from "@lib/map/geometry"
@@ -60,9 +61,9 @@ export const getDistanceController = (map: MaplibreMap) => {
     const mapContainer = map.getContainer()
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const sidebar = getActionSidebar("distance")
-    const totalDistanceLabel = sidebar.querySelector(".total-distance")
-    const clearBtn = sidebar.querySelector("button.clear-btn")
-    const unitToggleBtn = sidebar.querySelector("button.unit-toggle-btn")
+    const totalDistanceLabel = sidebar.querySelector(".total-distance")!
+    const clearBtn = sidebar.querySelector("button.clear-btn")!
+    const unitToggleBtn = sidebar.querySelector("button.unit-toggle-btn")!
 
     const positionsUrl: [number, number][] = []
     const lines: Feature<LineString>[] = []
@@ -108,8 +109,8 @@ export const getDistanceController = (map: MaplibreMap) => {
         marker.on("dragstart", startGhostMarkerDrag)
         marker.on("drag", onGhostMarkerDrag)
         marker.on("dragend", () => {
-            ghostMarker.removeClassName("dragging")
-            ghostMarker.addClassName("d-none")
+            marker.removeClassName("dragging")
+            marker.addClassName("d-none")
         })
         const element = marker.getElement()
         element.addEventListener("click", onGhostMarkerClick)
@@ -366,7 +367,7 @@ export const getDistanceController = (map: MaplibreMap) => {
         const lngLat = map.unproject(point)
 
         let minDistance = Number.POSITIVE_INFINITY
-        let minLngLat: LngLat | null = null
+        let minLngLat: LngLat | undefined
         ghostMarkerIndex = -1
         for (let i = 1; i < markers.length; i++) {
             const closestLngLat = map.unproject(
@@ -383,7 +384,7 @@ export const getDistanceController = (map: MaplibreMap) => {
                 ghostMarkerIndex = i
             }
         }
-        if (ghostMarkerIndex > -1) ghostMarker.setLngLat(minLngLat)
+        if (ghostMarkerIndex > -1) ghostMarker.setLngLat(minLngLat!)
 
         // Hide the marker if it's not hovered
         const markerRect = ghostMarker.getElement().getBoundingClientRect()
@@ -406,6 +407,7 @@ export const getDistanceController = (map: MaplibreMap) => {
     /** On ghost marker drag start, replace it with a real marker */
     const startGhostMarkerDrag = () => {
         console.debug("materializeGhostMarker")
+        assert(ghostMarker)
         ghostMarker.removeClassName("d-none")
         ghostMarker.addClassName("dragging")
         // Add a real marker
@@ -413,7 +415,7 @@ export const getDistanceController = (map: MaplibreMap) => {
     }
 
     const onGhostMarkerDrag = throttle((e: Event) => {
-        if (!ghostMarker.getElement().classList.contains("dragging")) return
+        if (!ghostMarker?.getElement().classList.contains("dragging")) return
         const marker = markers[ghostMarkerIndex]
         marker.setLngLat(ghostMarker.getLngLat())
         marker.fire(e.type, e)
@@ -423,6 +425,7 @@ export const getDistanceController = (map: MaplibreMap) => {
     const onGhostMarkerClick = (e: MouseEvent) => {
         e.stopPropagation()
         console.debug("onGhostMarkerClick")
+        assert(ghostMarker)
         startGhostMarkerDrag()
         ghostMarker.removeClassName("dragging")
         ghostMarker.addClassName("d-none")

@@ -8,7 +8,7 @@ import type { Map as MaplibreMap } from "maplibre-gl"
 const PRECOMPUTE_MAX_ZOOM = 25
 
 export class LegendSidebarToggleControl extends SidebarToggleControl {
-    public _container: HTMLElement
+    public _container!: HTMLElement
 
     public constructor() {
         super("legend", "javascripts.key.tooltip")
@@ -16,7 +16,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
 
     public override onAdd(map: MaplibreMap) {
         const container = super.onAdd(map)
-        const button = container.querySelector("button")
+        const button = container.querySelector("button")!
 
         // On sidebar shown, update the sidebar
         button.addEventListener("click", () => {
@@ -34,7 +34,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
             const elements = Array.from(
                 layerContainer.querySelectorAll("tr"),
                 (element) => {
-                    const [minZoomStr, maxZoomStr] = element.dataset.zoom.split("-")
+                    const [minZoomStr, maxZoomStr] = element.dataset.zoom!.split("-")
                     const minZoom = minZoomStr ? Number.parseInt(minZoomStr, 10) : 0
                     const maxZoom = maxZoomStr
                         ? Number.parseInt(maxZoomStr, 10)
@@ -53,12 +53,12 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
 
         // On base layer change, update availability of the button and its tooltip
         addLayerEventHandler((isAdded, layerId, config) => {
-            if (!isAdded || !config.isBaseLayer) return
+            if (!(isAdded && config.isBaseLayer)) return
             const isLegendAvailable = layerElementsMap.has(layerId)
             if (isLegendAvailable) {
                 if (button.disabled) {
                     button.disabled = false
-                    Tooltip.getInstance(button).setContent({
+                    Tooltip.getInstance(button)!.setContent({
                         ".tooltip-inner": i18next.t("javascripts.key.tooltip"),
                     })
                 }
@@ -66,7 +66,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
                 if (!button.disabled) {
                     button.blur()
                     button.disabled = true
-                    Tooltip.getInstance(button).setContent({
+                    Tooltip.getInstance(button)!.setContent({
                         ".tooltip-inner": i18next.t("javascripts.key.tooltip_disabled"),
                     })
                 }
@@ -96,7 +96,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
                     // TODO: map key not available for this layer infobox
                     for (const { element, visibility } of layerElementsMap.get(
                         layerId,
-                    )) {
+                    )!) {
                         const isVisible = visibility[currentZoomFloor]
                         element.classList.toggle("d-none", !isVisible)
                     }

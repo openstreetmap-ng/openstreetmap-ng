@@ -33,8 +33,8 @@ const ELEMENTS_PER_PAGE = 20
 
 export const getElementController = (map: MaplibreMap): IndexController => {
     const base = getBaseFetchController(map, "element", (sidebarSection) => {
-        const sidebarContent = sidebarSection.querySelector("div.sidebar-content")
-        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
+        const sidebarContent = sidebarSection.querySelector("div.sidebar-content")!
+        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")!
         setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found
@@ -71,16 +71,16 @@ export const initializeElementContent = (map: MaplibreMap, container: HTMLElemen
     const locationButton = container.querySelector(".location-container button")
     locationButton?.addEventListener("click", () => {
         // On location click, pan the map
-        const dataset = locationButton.dataset
+        const dataset = locationButton!.dataset
         console.debug("onLocationButtonClick", dataset)
-        const lon = Number.parseFloat(dataset.lon)
-        const lat = Number.parseFloat(dataset.lat)
+        const lon = Number.parseFloat(dataset.lon!)
+        const lat = Number.parseFloat(dataset.lat!)
         map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 15) })
     })
 
     const params = fromBinary(
         PartialElementParamsSchema,
-        base64Decode(container.dataset.params),
+        base64Decode(container.dataset.params!),
     )
     const disposeList: (() => void)[] = []
 
@@ -101,7 +101,7 @@ export const initializeElementContent = (map: MaplibreMap, container: HTMLElemen
         )
 
     return [
-        params.render,
+        params.render!,
         () => {
             for (const dispose of disposeList) dispose()
         },
@@ -115,9 +115,9 @@ const renderElementsComponent = (
 ) => {
     console.debug("renderElementsComponent", elements.length)
 
-    const entryTemplate = elementsSection.querySelector("template.entry")
-    const titleElement = elementsSection.querySelector(".title")
-    const paginationContainer = elementsSection.querySelector("ul.pagination")
+    const entryTemplate = elementsSection.querySelector("template.entry")!
+    const titleElement = elementsSection.querySelector(".title")!
+    const paginationContainer = elementsSection.querySelector("ul.pagination")!
 
     // Calculate pagination
     const elementsLength = elements.length
@@ -125,7 +125,7 @@ const renderElementsComponent = (
     paginationContainer.dataset.pages = totalPages.toString()
 
     if (totalPages <= 1) {
-        paginationContainer.parentElement.classList.add("d-none")
+        paginationContainer.parentElement!.classList.add("d-none")
     }
 
     const updateTitle = (page: number) => {
@@ -166,8 +166,8 @@ const renderElementsComponent = (
             const entryFragment = entryTemplate.content.cloneNode(
                 true,
             ) as DocumentFragment
-            const iconImg = entryFragment.querySelector("img")
-            const content = entryFragment.querySelector("td:last-child")
+            const iconImg = entryFragment.querySelector("img")!
+            const content = entryFragment.querySelector("td:last-child")!
 
             if (element.icon) {
                 iconImg.src = `/static/img/element/${element.icon.icon}`

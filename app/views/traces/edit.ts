@@ -15,14 +15,14 @@ mount("traces-edit-body", (body) => {
         { protobuf: IdResponseSchema },
     )
 
-    const deleteForm = body.querySelector("form.delete-form")
+    const deleteForm = body.querySelector("form.delete-form")!
     configureStandardForm(deleteForm, ({ redirect_url }) => {
         // On success callback, navigate to my traces
         console.debug("onDeleteFormSuccess", redirect_url)
         window.location.href = redirect_url
     })
 
-    const deleteButton = deleteForm.querySelector("button[type=submit]")
+    const deleteButton = deleteForm.querySelector("button[type=submit]")!
     deleteButton.addEventListener("click", (e) => {
         // On delete button click, request confirmation
         if (!confirm(t("trace.delete_confirmation"))) {

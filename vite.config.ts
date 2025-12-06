@@ -126,7 +126,7 @@ export default defineConfig({
                     const scriptRtl =
                         url.searchParams.get("rtl") === "1" || referer.includes("rtl=1")
 
-                    if (!scriptRtl && !hasRtlParam) return next()
+                    if (!(scriptRtl || hasRtlParam)) return next()
 
                     const requestPath = `${trimDevBase(server.config.base, url.pathname)}${url.search}`
 

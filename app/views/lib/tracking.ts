@@ -1,4 +1,4 @@
-import { activityTracking, config, crashReporting } from "@lib/config"
+import { activityTracking, config, isCrashReportingEnabled } from "@lib/config"
 import { getTimezoneName } from "@lib/format"
 import { themeStorage } from "@lib/local-storage"
 import {
@@ -10,7 +10,7 @@ import {
     type User,
 } from "@sentry/browser"
 
-if (crashReporting) {
+if (isCrashReportingEnabled(config)) {
     console.debug("Enabling crash reporting")
     const userConfig = config.userConfig
     const sentryConfig = config.sentryConfig
@@ -32,8 +32,8 @@ if (crashReporting) {
     })
 
     const userInfo: User = {
-        id: userConfig?.id?.toString(),
-        username: userConfig?.displayName,
+        ...(userConfig?.id && { id: userConfig.id.toString() }),
+        ...(userConfig?.displayName && { username: userConfig.displayName }),
         ip_address: "{{auto}}",
         geo: {
             region: getTimezoneName(),

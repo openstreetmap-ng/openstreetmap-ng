@@ -1,8 +1,9 @@
+import { assert } from "@lib/assert"
 import { decodeLonLat } from "@lib/polyline"
 import { renderAnimatedTrace, renderTrace } from "./_svg"
 
 for (const tracesList of document.querySelectorAll("ul.traces-list")) {
-    const tracesLines = tracesList.dataset.lines.split(";")
+    const tracesLines = tracesList.dataset.lines!.split(";")
     const svgs: NodeListOf<SVGElement> = tracesList.querySelectorAll("svg")
     const resultActions = tracesList.querySelectorAll(".social-entry.clickable")
 
@@ -12,7 +13,7 @@ for (const tracesList of document.querySelectorAll("ul.traces-list")) {
         const coords = decodeLonLat(tracesLines[i], 0)
         renderTrace(svg, coords)
 
-        let svgAnimated: SVGElement | null = null
+        let svgAnimated: SVGElement | undefined
 
         // On action enter, show animated trace
         const resultAction = resultActions[i]
@@ -23,12 +24,13 @@ for (const tracesList of document.querySelectorAll("ul.traces-list")) {
                 console.debug("Rendering animated trace SVG at", i)
                 renderAnimatedTrace(svgAnimated, coords)
             }
-            svg.parentElement.replaceChild(svgAnimated, svg)
+            svg.parentElement!.replaceChild(svgAnimated, svg)
         })
 
         // On action leave, show static trace
         resultAction.addEventListener("mouseleave", () => {
-            svgAnimated.parentElement.replaceChild(svg, svgAnimated)
+            assert(svgAnimated)
+            svgAnimated.parentElement!.replaceChild(svg, svgAnimated)
         })
     }
 }

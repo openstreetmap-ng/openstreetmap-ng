@@ -8,7 +8,7 @@ mount("settings-applications-body", (body) => {
     // Fixup links in buttons
     const accordionButtons = body.querySelectorAll("button.accordion-button")
     for (const button of accordionButtons) {
-        const collapse = document.querySelector(button.dataset.bsTarget)
+        const collapse = document.querySelector(button.dataset.bsTarget!)!
         const collapseInstance = Collapse.getOrCreateInstance(collapse, {
             toggle: false,
         })
@@ -28,21 +28,23 @@ mount("settings-applications-body", (body) => {
     for (const form of revokeApplicationForms) {
         configureStandardForm(form, () => {
             console.debug("onRevokeApplicationFormSuccess")
-            form.closest("li").remove()
+            form.closest("li")!.remove()
         })
     }
 
     // settings/applications/admin
     const createApplicationButton = body.querySelector("button.create-application-btn")
     if (createApplicationButton) {
-        const createApplicationForm = body.querySelector("form.create-application-form")
+        const createApplicationForm = body.querySelector(
+            "form.create-application-form",
+        )!
 
         // On create new application button click, show the form and focus the name input
         createApplicationButton.addEventListener("click", () => {
             console.debug("onCreateNewApplicationClick")
             createApplicationButton.classList.add("d-none")
             createApplicationForm.classList.remove("d-none")
-            const nameInput = createApplicationForm.querySelector("input[name=name]")
+            const nameInput = createApplicationForm.querySelector("input[name=name]")!
             nameInput.focus()
         })
 

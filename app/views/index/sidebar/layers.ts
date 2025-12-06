@@ -25,7 +25,7 @@ import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "mapl
 const MINIMAP_ZOOM_OUT = 2
 
 export class LayerSidebarToggleControl extends SidebarToggleControl {
-    public _container: HTMLElement
+    public _container!: HTMLElement
 
     public constructor() {
         super("layers", "javascripts.map.layers.title")
@@ -33,7 +33,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
 
     public override onAdd(map: MaplibreMap) {
         const container = super.onAdd(map)
-        const button = container.querySelector("button")
+        const button = container.querySelector("button")!
 
         const minimaps: MaplibreMap[] = []
         const layerIdContainerMap = new Map<LayerId, HTMLElement>()
@@ -61,7 +61,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                     continue
                 }
 
-                const minimapContainer = container.querySelector("div.map-container")
+                const minimapContainer = container.querySelector("div.map-container")!
 
                 // On mobile devices, show thumbnail instead of initializing MapLibre
                 // Avoids "Too many active WebGL context even after destroyed"
@@ -87,9 +87,9 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
             }
         })
 
-        const layerOrderContainer = this.sidebar.querySelector(".layer-order")
-        const layerOrderItems = layerOrderContainer.querySelector("ul")
-        const layerCollapseButton = layerOrderContainer.querySelector("button")
+        const layerOrderContainer = this.sidebar.querySelector(".layer-order")!
+        const layerOrderItems = layerOrderContainer.querySelector("ul")!
+        const layerCollapseButton = layerOrderContainer.querySelector("button")!
         layerCollapseButton.addEventListener("click", () => {
             layerOrderContainer.classList.toggle("collapsed")
         })
@@ -168,16 +168,16 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                 ["notes", config.noteQueryAreaMaxSize],
                 ["data", config.mapQueryAreaMaxSize],
             ] as [LayerId, number][]) {
-                const checkbox = layerIdOverlayCheckboxMap.get(layerId)
+                const checkbox = layerIdOverlayCheckboxMap.get(layerId)!
                 const isAvailable = currentViewAreaSize <= areaMaxSize
                 if (isAvailable) {
                     if (checkbox.disabled) {
                         checkbox.disabled = false
 
-                        const parent = checkbox.closest(".form-check") as HTMLElement
+                        const parent = checkbox.closest<HTMLElement>(".form-check")!
                         parent.classList.remove("disabled")
                         parent.ariaDisabled = "false"
-                        const tooltip = Tooltip.getInstance(parent)
+                        const tooltip = Tooltip.getInstance(parent)!
                         tooltip.disable()
                         tooltip.hide()
 
@@ -196,7 +196,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                     checkbox.blur()
                     checkbox.disabled = true
 
-                    const parent = checkbox.closest(".form-check") as HTMLElement
+                    const parent = checkbox.closest<HTMLElement>(".form-check")!
                     parent.classList.add("disabled")
                     parent.ariaDisabled = "true"
                     Tooltip.getOrCreateInstance(parent, {
@@ -245,7 +245,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
         const onContainerClick = (e: MouseEvent) => {
             const container = e.currentTarget as HTMLElement
             const layerId = container.dataset.layerId as LayerId
-            const config = layersConfig.get(layerId)
+            const config = layersConfig.get(layerId)!
 
             if (config.isBaseLayer) {
                 // Skip updates if the container is already active
@@ -316,7 +316,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
 /** Toggle the spinner for the given layer */
 export const toggleLayerSpinner = (layerName: LayerId, loading: boolean) => {
     document
-        .querySelector(`.map-sidebar.layers input.overlay[value=${layerName}]`)
-        .parentElement.querySelector(".spinner-border")
+        .querySelector(`.map-sidebar.layers input.overlay[value=${layerName}]`)!
+        .parentElement!.querySelector(".spinner-border")!
         .classList.toggle("d-none", !loading)
 }

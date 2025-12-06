@@ -17,6 +17,6 @@ mount("fixthemap-body", (body) => {
         }
     }
 
-    const noteLink = body.querySelector("a.note-link")
+    const noteLink = body.querySelector("a.note-link")!
     noteLink.href = noteHref
 })

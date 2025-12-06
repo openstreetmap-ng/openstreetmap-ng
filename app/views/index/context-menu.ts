@@ -11,21 +11,21 @@ import { type Map as MaplibreMap, type MapMouseEvent, Popup } from "maplibre-gl"
 export const configureContextMenu = (map: MaplibreMap) => {
     const mapContainer = map.getContainer()
 
-    const containerTemplate = document.querySelector("template.context-menu-template")
+    const containerTemplate = document.querySelector("template.context-menu-template")!
     const container = containerTemplate.content.firstElementChild as HTMLElement
-    const dropdownButton = container.querySelector(".dropdown-toggle")
+    const dropdownButton = container.querySelector(".dropdown-toggle")!
     const dropdown = Dropdown.getOrCreateInstance(dropdownButton)
-    const geolocationField = container.querySelector(".geolocation-dd")
-    const geolocationGeoField = container.querySelector(".geolocation-geo")
-    const geolocationUriField = container.querySelector(".geolocation-uri")
+    const geolocationField = container.querySelector(".geolocation-dd")!
+    const geolocationGeoField = container.querySelector(".geolocation-geo")!
+    const geolocationUriField = container.querySelector(".geolocation-uri")!
 
-    const routingFromButton = container.querySelector("button.routing-from")
-    const routingToButton = container.querySelector("button.routing-to")
-    const newNoteButton = container.querySelector("button.new-note")
-    const showAddressButton = container.querySelector("button.show-address-btn")
-    const queryFeaturesButton = container.querySelector("button.query-features")
-    const centerHereButton = container.querySelector("button.center-here")
-    const measureDistanceButton = container.querySelector("button.measure-distance")
+    const routingFromButton = container.querySelector("button.routing-from")!
+    const routingToButton = container.querySelector("button.routing-to")!
+    const newNoteButton = container.querySelector("button.new-note")!
+    const showAddressButton = container.querySelector("button.show-address-btn")!
+    const queryFeaturesButton = container.querySelector("button.query-features")!
+    const centerHereButton = container.querySelector("button.center-here")!
+    const measureDistanceButton = container.querySelector("button.measure-distance")!
 
     const popup = new Popup({
         closeButton: false,

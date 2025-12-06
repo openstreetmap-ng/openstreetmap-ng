@@ -3,20 +3,20 @@ import { configureStandardForm } from "@lib/standard-form"
 import { t } from "i18next"
 
 mount("settings-application-edit-body", (body) => {
-    const avatarForm = body.querySelector("form.avatar-form")
-    const avatarImage = avatarForm.querySelector("img.avatar")
-    const avatarFileInput = avatarForm.querySelector("input[name=avatar_file]")
+    const avatarForm = body.querySelector("form.avatar-form")!
+    const avatarImage = avatarForm.querySelector("img.avatar")!
+    const avatarFileInput = avatarForm.querySelector("input[name=avatar_file]")!
 
     avatarFileInput.addEventListener("change", () => {
         avatarForm.requestSubmit()
     })
 
-    const uploadAvatarButton = avatarForm.querySelector("button.upload-btn")
+    const uploadAvatarButton = avatarForm.querySelector("button.upload-btn")!
     uploadAvatarButton.addEventListener("click", () => {
         avatarFileInput.click()
     })
 
-    const removeAvatarButton = avatarForm.querySelector("button.remove-btn")
+    const removeAvatarButton = avatarForm.querySelector("button.remove-btn")!
     removeAvatarButton.addEventListener("click", () => {
         avatarFileInput.value = ""
         avatarForm.requestSubmit()
@@ -28,14 +28,14 @@ mount("settings-application-edit-body", (body) => {
         avatarImage.src = avatar_url
     })
 
-    const editForm = body.querySelector("form.edit-form")
-    const resetSecretControl = editForm.querySelector(".reset-secret-control")
+    const editForm = body.querySelector("form.edit-form")!
+    const resetSecretControl = editForm.querySelector(".reset-secret-control")!
     const isConfidentialRadios = editForm.querySelectorAll(
         "input[name=is_confidential]",
     )
     const revokeAllAuthorizationsCheckbox = editForm.querySelector(
         "input[name=revoke_all_authorizations]",
-    )
+    )!
 
     const onIsConfidentialChange = (e: Event) => {
         const radio = e.target as HTMLInputElement
@@ -56,14 +56,14 @@ mount("settings-application-edit-body", (body) => {
         { formAppend: true },
     )
 
-    const deleteForm = body.querySelector("form.delete-form")
+    const deleteForm = body.querySelector("form.delete-form")!
     configureStandardForm(deleteForm, ({ redirect_url }) => {
         // On success callback, navigate to my applications
         console.debug("onDeleteFormSuccess", redirect_url)
         window.location.href = redirect_url
     })
 
-    const deleteButton = deleteForm.querySelector("button[type=submit]")
+    const deleteButton = deleteForm.querySelector("button[type=submit]")!
     deleteButton.addEventListener("click", (e) => {
         // On delete button click, request confirmation
         if (!confirm(t("settings.delete_this_application_question"))) {

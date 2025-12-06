@@ -1,3 +1,4 @@
+import { assert } from "@lib/assert"
 import { isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
 import { CustomGeolocateControl } from "@lib/map/controls/geolocate"
 import { addControlGroup } from "@lib/map/controls/group"
@@ -27,12 +28,12 @@ mount("diary-compose-body", (body) => {
         { removeEmptyFields: true },
     )
 
-    const showMapContainer = body.querySelector(".show-map-container")
-    const lonInput = showMapContainer.querySelector("input[name=lon]")
-    const latInput = showMapContainer.querySelector("input[name=lat]")
-    const mapDiv = showMapContainer.querySelector("div.map-container")
+    const showMapContainer = body.querySelector(".show-map-container")!
+    const lonInput = showMapContainer.querySelector("input[name=lon]")!
+    const latInput = showMapContainer.querySelector("input[name=lat]")!
+    const mapDiv = showMapContainer.querySelector("div.map-container")!
 
-    let map: MaplibreMap | null = null
+    let map: MaplibreMap | undefined
     let marker: Marker | null = null
 
     const setMarker = (lngLat: LngLatLike) => {
@@ -40,6 +41,7 @@ mount("diary-compose-body", (body) => {
             marker.setLngLat(lngLat)
             return
         }
+        assert(map)
         marker = new Marker({
             anchor: MARKER_ICON_ANCHOR,
             element: getMarkerIconElement("red", true),
@@ -49,11 +51,14 @@ mount("diary-compose-body", (body) => {
             .addTo(map)
         marker.on(
             "drag",
-            throttle(() => setInput(marker.getLngLat()), 100),
+            throttle(() => {
+                if (marker) setInput(marker.getLngLat())
+            }, 100),
         )
     }
 
     const setInput = (lngLat: LngLat) => {
+        assert(map)
         const precision = zoomPrecision(map.getZoom())
         const lngLatWrap = lngLat.wrap()
         lonInput.value = lngLatWrap.lng.toFixed(precision)
@@ -70,6 +75,8 @@ mount("diary-compose-body", (body) => {
     /** On coordinates input change, update the marker position */
     const onCoordinatesInputChange = () => {
         if (mapDiv.classList.contains("d-none")) return
+        assert(map)
+
         if (lonInput.value && latInput.value) {
             console.debug("onCoordinatesInputChange", lonInput.value, latInput.value)
             const lon = Number.parseFloat(lonInput.value)
@@ -87,8 +94,10 @@ mount("diary-compose-body", (body) => {
     lonInput.addEventListener("change", onCoordinatesInputChange)
     latInput.addEventListener("change", onCoordinatesInputChange)
 
-    const showMapButton = showMapContainer.querySelector("button.show-map-btn")
-    const removeMapButton = showMapContainer.querySelector("button.remove-location-btn")
+    const showMapButton = showMapContainer.querySelector("button.show-map-btn")!
+    const removeMapButton = showMapContainer.querySelector(
+        "button.remove-location-btn",
+    )!
 
     /** Toggle map visibility and related UI elements */
     const setMapVisible = (visible: boolean) => {
@@ -163,7 +172,7 @@ mount("diary-compose-body", (body) => {
         })
 
         // On delete button click, request confirmation
-        const deleteButton = deleteForm.querySelector("button[type=submit]")
+        const deleteButton = deleteForm.querySelector("button[type=submit]")!
         deleteButton.addEventListener("click", (e) => {
             if (!confirm(i18next.t("diary.delete_confirmation"))) {
                 e.preventDefault()

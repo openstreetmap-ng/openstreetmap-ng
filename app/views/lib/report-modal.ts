@@ -1,3 +1,4 @@
+import { assert } from "@lib/assert"
 import { configureStandardForm } from "@lib/standard-form"
 import { Modal } from "bootstrap"
 
@@ -21,7 +22,7 @@ interface ReportData {
     type: ReportType
     typeId: bigint
     action: ReportAction
-    actionId?: string
+    actionId: string | undefined
 }
 
 const modalElement = document.getElementById("reportModal")
@@ -29,14 +30,14 @@ const modalInstance = modalElement ? new Modal(modalElement) : null
 const formElement = modalElement?.querySelector("form")
 
 export const configureReportButton = (
-    button?: HTMLButtonElement,
+    button: HTMLButtonElement | null,
     data?: ReportData,
 ) => {
     if (!button) return
 
     data ??= {
         type: button.dataset.reportType as ReportType,
-        typeId: BigInt(button.dataset.reportTypeId),
+        typeId: BigInt(button.dataset.reportTypeId!),
         action: button.dataset.reportAction as ReportAction,
         actionId: button.dataset.reportActionId,
     }
@@ -48,11 +49,13 @@ export const configureReportButton = (
 }
 
 const showReportModal = (data: ReportData) => {
-    const typeInput = formElement.querySelector("input[name=type]")
-    const typeIdInput = formElement.querySelector("input[name=type_id]")
-    const actionInput = formElement.querySelector("input[name=action]")
-    const actionIdInput = formElement.querySelector("input[name=action_id]")
-    const categorySelect = formElement.querySelector("select[name=category]")
+    assert(modalInstance)
+    assert(formElement)
+    const typeInput = formElement.querySelector("input[name=type]")!
+    const typeIdInput = formElement.querySelector("input[name=type_id]")!
+    const actionInput = formElement.querySelector("input[name=action]")!
+    const actionIdInput = formElement.querySelector("input[name=action_id]")!
+    const categorySelect = formElement.querySelector("select[name=category]")!
 
     // Special handling for certain actions - limit categories
     if (data.action === "user_account") {
@@ -96,7 +99,7 @@ export const configureReportButtonsLazy = (searchElement: Element) =>
         }
     })
 
-if (modalElement) {
+if (modalElement && formElement) {
     configureStandardForm(
         formElement,
         () => {
@@ -105,7 +108,7 @@ if (modalElement) {
         },
         {
             removeEmptyFields: true,
-            formBody: formElement.querySelector(".modal-body"),
+            formBody: formElement.querySelector(".modal-body")!,
         },
     )
 

@@ -3,7 +3,7 @@ import { Modal } from "bootstrap"
 
 const modalElement = document.getElementById("unsubscribeDiscussionModal")
 if (modalElement) {
-    const redirectLink = modalElement.querySelector("a.btn-close[href]").href
+    const redirectLink = modalElement.querySelector("a.btn-close[href]")!.href
 
     modalElement.addEventListener("hide.bs.modal", (e) => {
         e.preventDefault()

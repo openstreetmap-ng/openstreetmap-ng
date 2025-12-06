@@ -1,6 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
+import { assert } from "@lib/assert"
 import { loadMapImage, NOTE_STATUS_MARKERS, type NoteStatus } from "@lib/map/image.ts"
 import {
     type FocusLayerLayout,
@@ -32,9 +33,8 @@ const focusLayout: FocusLayerLayout = {
 
 export const getNoteController = (map: MaplibreMap) => {
     const base = getBaseFetchController(map, "note", (sidebarContent) => {
-        const sidebarTitleElement = sidebarContent.querySelector(
-            ".sidebar-title",
-        ) as HTMLElement
+        const sidebarTitleElement =
+            sidebarContent.querySelector<HTMLElement>(".sidebar-title")!
         setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found
@@ -56,6 +56,7 @@ export const getNoteController = (map: MaplibreMap) => {
             [
                 {
                     type: "note",
+                    id: null,
                     geom: center,
                     status,
                     text: "",
@@ -69,7 +70,7 @@ export const getNoteController = (map: MaplibreMap) => {
         // On location click, pan the map
         const locationButton = sidebarContent.querySelector(
             ".location-container button",
-        )
+        )!
         locationButton.addEventListener("click", () => {
             console.debug("onLocationButtonClick", center)
             map.flyTo({ center, zoom: Math.max(map.getZoom(), 15) })
@@ -85,7 +86,7 @@ export const getNoteController = (map: MaplibreMap) => {
         const commentForm = sidebarContent.querySelector("form.comment-form")
         if (commentForm) {
             const commentInput = commentForm.querySelector("textarea[name=text]")
-            const eventInput = commentForm.querySelector("input[name=event]")
+            const eventInput = commentForm.querySelector("input[name=event]")!
             const closeButton = commentForm.querySelector("button.close-btn")
             const commentCloseButton = commentForm.querySelector(
                 "button.comment-close-btn",
@@ -105,12 +106,15 @@ export const getNoteController = (map: MaplibreMap) => {
             configureStandardForm(commentForm, onFormSuccess)
 
             const onSubmitClick = ({ target }: MouseEvent) => {
-                eventInput.value = (target as HTMLButtonElement).dataset.event
+                eventInput.value = (target as HTMLButtonElement).dataset.event!
             }
             for (const button of submitButtons)
                 button.addEventListener("click", onSubmitClick)
 
             if (commentInput) {
+                assert(closeButton)
+                assert(commentCloseButton)
+                assert(commentButton)
                 const onCommentInput = () => {
                     const hasValue = commentInput.value.trim().length > 0
                     closeButton.classList.toggle("d-none", hasValue)

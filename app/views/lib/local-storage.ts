@@ -51,8 +51,17 @@ function createStorage<T>(key: string, config: StorageConfig<T> = {}) {
     }
 }
 
-const createScopedStorage = <T>(prefix: string, config?: StorageConfig<T>) =>
-    memoize((scope: string) => createStorage<T>(`${prefix}-${scope}`, config))
+function createScopedStorage<T>(
+    prefix: string,
+    config: StorageConfig<T> & { defaultValue: T },
+): (scope: string) => { get: () => T; set: (value: T) => void }
+function createScopedStorage<T>(
+    prefix: string,
+    config?: StorageConfig<T>,
+): (scope: string) => { get: () => T | null; set: (value: T) => void }
+function createScopedStorage<T>(prefix: string, config?: StorageConfig<T>) {
+    return memoize((scope: string) => createStorage<T>(`${prefix}-${scope}`, config))
+}
 
 export const themeStorage = createStorage<AppTheme>("theme", {
     defaultValue: "auto",

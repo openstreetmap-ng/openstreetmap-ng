@@ -1,4 +1,5 @@
 import { routerNavigateStrict } from "@index/router"
+import { assert } from "@lib/assert"
 import { beautifyZoom, zoomPrecision } from "@lib/coords"
 import { qsEncode } from "@lib/qs"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -8,6 +9,9 @@ const searchQueryInput = searchForm?.querySelector("input[name=q]")
 
 /** Configure the search form */
 export const configureSearchForm = (map: MaplibreMap) => {
+    assert(searchForm)
+    assert(searchQueryInput)
+
     // On search form submit, capture and perform router navigation
     searchForm.addEventListener("submit", (e) => {
         console.debug("onSearchFormSubmit")
@@ -16,7 +20,7 @@ export const configureSearchForm = (map: MaplibreMap) => {
         if (query) routerNavigateStrict(`/search${qsEncode({ q: query })}`)
     })
 
-    const whereIsThisButton = searchForm.querySelector("button.where-is-this")
+    const whereIsThisButton = searchForm.querySelector("button.where-is-this")!
     whereIsThisButton.addEventListener("click", () => {
         console.debug("onWhereIsThisButtonClick")
         const zoom = map.getZoom()
@@ -34,9 +38,6 @@ export const configureSearchForm = (map: MaplibreMap) => {
 
 /** Set search form to the given query */
 export const setSearchFormQuery = (query: string) => {
-    if (!searchForm) {
-        console.error("Attempted to set search query but search form is not available")
-        return
-    }
+    assert(searchQueryInput)
     searchQueryInput.value = query
 }

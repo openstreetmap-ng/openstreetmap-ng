@@ -1,4 +1,5 @@
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
+import { assert } from "@lib/assert"
 import { isLatitude, isLongitude } from "@lib/coords"
 import { shareExportFormatStorage } from "@lib/local-storage"
 import { padLngLatBounds } from "@lib/map/bounds"
@@ -16,7 +17,7 @@ import i18next from "i18next"
 import { type Map as MaplibreMap, Marker } from "maplibre-gl"
 
 export class ShareSidebarToggleControl extends SidebarToggleControl {
-    public _container: HTMLElement
+    public _container!: HTMLElement
 
     public constructor() {
         super("share", "javascripts.share.title")
@@ -24,7 +25,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
 
     public override onAdd(map: MaplibreMap) {
         const container = super.onAdd(map)
-        const button = container.querySelector("button")
+        const button = container.querySelector("button")!
 
         button.addEventListener("click", () => {
             if (button.classList.contains("active")) {
@@ -37,12 +38,12 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
             }
         })
 
-        const exportForm = this.sidebar.querySelector("form.export-form")
-        const exportSubmitButton = exportForm.querySelector("button[type=submit]")
-        const attributionCheckbox = exportForm.querySelector("input.attribution-check")
+        const exportForm = this.sidebar.querySelector("form.export-form")!
+        const exportSubmitButton = exportForm.querySelector("button[type=submit]")!
+        const attributionCheckbox = exportForm.querySelector("input.attribution-check")!
 
-        let marker: Marker | null = null
-        const markerCheckbox = this.sidebar.querySelector("input.marker-check")
+        let marker: Marker | undefined
+        const markerCheckbox = this.sidebar.querySelector("input.marker-check")!
         markerCheckbox.addEventListener("change", () => {
             // On marker checkbox change, display/hide the marker
             if (markerCheckbox.checked) {
@@ -54,6 +55,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                     })
                 marker.setLngLat(map.getCenter()).addTo(map)
             } else {
+                assert(marker)
                 marker.remove()
             }
             updateSidebar()
@@ -68,6 +70,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                 console.debug("Initializing marker from search params", [mlon, mlat])
                 markerCheckbox.checked = true
                 markerCheckbox.dispatchEvent(new Event("change"))
+                assert(marker)
                 marker.setLngLat([mlon, mlat])
             }
         } else if (searchParams.m !== undefined) {
@@ -76,20 +79,22 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
             console.debug("Initializing marker at the center", [lon, lat])
             markerCheckbox.checked = true
             markerCheckbox.dispatchEvent(new Event("change"))
+            assert(marker)
             marker.setLngLat([lon, lat])
         }
 
         // On custom region checkbox change, enable/disable the location filter
-        let locationFilter: LocationFilterControl | null = null
+        let locationFilter: LocationFilterControl | undefined
         const customRegionCheckbox = exportForm.querySelector(
             "input.custom-region-check",
-        )
+        )!
         customRegionCheckbox.addEventListener("change", () => {
             if (customRegionCheckbox.checked) {
                 locationFilter ??= new LocationFilterControl()
                 // By default, location filter is slightly smaller than the current view
                 locationFilter.addTo(map, padLngLatBounds(map.getBounds(), -0.2))
             } else {
+                assert(locationFilter)
                 locationFilter.remove()
             }
         })
@@ -113,8 +118,8 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                 const blob = await exportMapImage(
                     mimeType,
                     map,
-                    customRegionCheckbox.checked ? locationFilter.getBounds() : null,
-                    markerCheckbox.checked ? marker.getLngLat() : null,
+                    customRegionCheckbox.checked ? locationFilter!.getBounds() : null,
+                    markerCheckbox.checked ? marker!.getLngLat() : null,
                     attribution,
                 )
                 const url = URL.createObjectURL(blob)
@@ -135,7 +140,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
         })
 
         // On format change, remember the selection
-        const formatSelect = exportForm.querySelector("select.format-select")
+        const formatSelect = exportForm.querySelector("select.format-select")!
         formatSelect.addEventListener("change", () =>
             shareExportFormatStorage.set(formatSelect.value),
         )
@@ -147,14 +152,14 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
         )
         if (matchingOption) matchingOption.selected = true
 
-        const linkInput = this.sidebar.querySelector("input.link-input")
-        const geoUriInput = this.sidebar.querySelector("input.geo-uri-input")
-        const embedInput = this.sidebar.querySelector("input.embed-input")
+        const linkInput = this.sidebar.querySelector("input.link-input")!
+        const geoUriInput = this.sidebar.querySelector("input.geo-uri-input")!
+        const embedInput = this.sidebar.querySelector("input.embed-input")!
         const updateSidebar = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 
-            const markerLngLat = markerCheckbox.checked ? marker.getLngLat() : null
+            const markerLngLat = markerCheckbox.checked ? marker!.getLngLat() : null
             linkInput.value = getMapShortlink(map, markerLngLat)
             geoUriInput.value = getMapGeoUri(map)
             embedInput.value = getMapEmbedHtml(map, markerLngLat)

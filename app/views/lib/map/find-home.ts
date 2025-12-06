@@ -7,20 +7,19 @@ export const configureFindHomeButton = (
     button: HTMLButtonElement,
     { lon, lat }: LonLat,
 ) => {
+    // biome-ignore lint/correctness/noUnusedVariables: not implemented
     let marker: Marker | null = null
 
     // On click, create a marker and zoom to it
     button.addEventListener("click", () => {
         console.debug("onFindHomeButtonClick")
-        if (!marker) {
-            marker = new Marker({
-                anchor: MARKER_ICON_ANCHOR,
-                // @ts-expect-error
-                element: getMarkerIconElement("blue-home", true),
-            })
-                .setLngLat([lon, lat])
-                .addTo(map)
-        }
+        marker ??= new Marker({
+            anchor: MARKER_ICON_ANCHOR,
+            // @ts-expect-error
+            element: getMarkerIconElement("blue-home", true),
+        })
+            .setLngLat([lon, lat])
+            .addTo(map)
         map.flyTo({ center: [lon, lat] })
     })
 }

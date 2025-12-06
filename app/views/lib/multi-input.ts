@@ -5,8 +5,8 @@ console.debug("Initializing", multiInputContainers.length, "multi-input componen
 
 for (const container of multiInputContainers) {
     const form = container.closest("form")
-    const input = container.querySelector("input[type=text]")
-    const tokensContainer = container.querySelector(".multi-input-tokens")
+    const input = container.querySelector("input[type=text]")!
+    const tokensContainer = container.querySelector(".multi-input-tokens")!
 
     const name = input.name
     input.removeAttribute("name")
@@ -31,7 +31,7 @@ for (const container of multiInputContainers) {
             input.value = value
 
             // tokenElement may have been removed by addTokenFromInput
-            tokens.get(value).remove()
+            tokens.get(value)!.remove()
             tokens.delete(value)
             updateInputState()
 
@@ -79,7 +79,7 @@ for (const container of multiInputContainers) {
         const tokenElement = tokensContainer.lastElementChild
         if (!tokenElement) return
 
-        const tokenValue = tokenElement.querySelector("span").textContent
+        const tokenValue = tokenElement.querySelector("span")!.textContent
         input.value = tokenValue
         tokenElement.remove()
         tokens.delete(tokenValue)
@@ -110,7 +110,7 @@ for (const container of multiInputContainers) {
 
         const parts = input.value.split(delimiter)
         for (const p of parts.slice(0, -1)) addToken(p)
-        input.value = parts.at(-1).trim()
+        input.value = parts.at(-1)!.trim()
     })
 
     // Commit remaining value on blur
@@ -133,10 +133,10 @@ for (const container of multiInputContainers) {
                 const hiddenInput = document.createElement("input")
                 hiddenInput.type = "hidden"
                 hiddenInput.name = name
-                hiddenInput.value = tokenElement.querySelector("span").textContent
+                hiddenInput.value = tokenElement.querySelector("span")!.textContent
                 fragment.appendChild(hiddenInput)
             }
-            input.parentElement.appendChild(fragment)
+            input.parentElement!.appendChild(fragment)
         },
         { capture: true },
     )

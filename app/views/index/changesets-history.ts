@@ -123,12 +123,12 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
     const sourceBorders = map.getSource(LAYER_ID_BORDERS) as GeoJSONSource
     const sidebar = getActionSidebar("changesets-history")
-    const parentSidebar = sidebar.closest("div.sidebar")
-    const sidebarTitleElement = sidebar.querySelector(".sidebar-title")
-    const dateFilterElement = sidebar.querySelector(".date-filter")
-    const entryTemplate = sidebar.querySelector("template.entry")
-    const entryContainer = entryTemplate.parentElement
-    const loadingContainer = sidebar.querySelector(".loading")
+    const parentSidebar = sidebar.closest("div.sidebar")!
+    const sidebarTitleElement = sidebar.querySelector(".sidebar-title")!
+    const dateFilterElement = sidebar.querySelector(".date-filter")!
+    const entryTemplate = sidebar.querySelector("template.entry")!
+    const entryContainer = entryTemplate.parentElement!
+    const loadingContainer = sidebar.querySelector(".loading")!
     const scrollIndicators = sidebar.querySelectorAll(".scroll-indicator")
 
     let abortController: AbortController | null = null
@@ -146,7 +146,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     let visibleChangesetsBounds: LngLatBounds | null = null
     let hiddenBefore = 0
     let hiddenAfter = 0
-    let sidebarHoverTimer: ReturnType<typeof setTimeout> | null = null
+    let sidebarHoverTimer: ReturnType<typeof setTimeout> | undefined
     let sidebarHoverId: string | null = null
     let shouldFitOnInitialLoad = false
 
@@ -157,6 +157,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
 
     const changesetIsWithinView = (changesetId: string) => {
         const cs = idChangesetMap.get(changesetId)
+        if (!cs) return false
         const mapBounds = map.getBounds()
         return cs.bounds.some((b) => {
             const csBounds = new LngLatBounds([b.minLon, b.minLat, b.maxLon, b.maxLat])
@@ -280,8 +281,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
         distance: number,
     ) => {
         const firstFeatureId = idFirstFeatureIdMap.get(changesetId)
-        if (!firstFeatureId) return
         const changeset = idChangesetMap.get(changesetId)
+        if (!(firstFeatureId && changeset)) return
         const numBounds = changeset.bounds.length
 
         let color: string
@@ -356,13 +357,13 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
             ? new LngLatBounds(aggregatedBounds)
             : null
 
-        const data = renderObjects(changesetsMinimumSize, null, featureIdCounter)
+        const data = renderObjects(changesetsMinimumSize, { featureIdCounter })
         source.setData(data)
         sourceBorders.setData(data)
         for (const feature of data.features)
             idFirstFeatureIdMap.set(
-                feature.properties.id,
-                feature.properties.firstFeatureId,
+                feature.properties!.id,
+                feature.properties!.firstFeatureId,
             )
 
         // Update layers visibility after map event
@@ -391,19 +392,19 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
         const fragment = document.createDocumentFragment()
         for (const changeset of changesets.slice(-newChangesetsLength)) {
             const changesetId = changeset.id.toString()
-            const div = entryTemplate.content.firstElementChild.cloneNode(
+            const div = entryTemplate.content.firstElementChild!.cloneNode(
                 true,
             ) as HTMLElement
 
             // Find elements to populate
-            const userContainer = div.querySelector(".user")
-            const dateContainer = div.querySelector(".date")
-            const commentValue = div.querySelector(".comment")
-            const changesetLink = div.querySelector("a.stretched-link")
-            const numCommentsValue = div.querySelector(".num-comments")
-            const statCreateValue = div.querySelector(".stat-create")
-            const statModifyValue = div.querySelector(".stat-modify")
-            const statDeleteValue = div.querySelector(".stat-delete")
+            const userContainer = div.querySelector(".user")!
+            const dateContainer = div.querySelector(".date")!
+            const commentValue = div.querySelector(".comment")!
+            const changesetLink = div.querySelector("a.stretched-link")!
+            const numCommentsValue = div.querySelector(".num-comments")!
+            const statCreateValue = div.querySelector(".stat-create")!
+            const statModifyValue = div.querySelector(".stat-modify")!
+            const statDeleteValue = div.querySelector(".stat-delete")!
 
             // Populate elements
             if (changeset.user) {
@@ -490,10 +491,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     }
 
     const setHover = (
-        { id, numBounds }: GeoJsonProperties,
+        properties: GeoJsonProperties,
         hover: boolean,
         scrollIntoView = false,
     ) => {
+        const { id, numBounds } = properties!
         const result = idSidebarMap.get(id)
         result?.classList.toggle("hover", hover)
 
@@ -511,7 +513,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     const LAYER_IDFill = getExtendedLayerId(LAYER_ID, "fill")
     map.on("click", LAYER_IDFill, (e) => {
         // Find feature with the smallest bounds area
-        const feature = e.features.reduce((a, b) =>
+        const feature = e.features!.reduce((a, b) =>
             a.properties.boundsArea <= b.properties.boundsArea ? a : b,
         )
         const changesetId = feature.properties.id
@@ -519,10 +521,10 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     })
 
     let hoveredFeature: MapGeoJSONFeature | null = null
-    let scrollDelayTimer: ReturnType<typeof setTimeout> | null = null
+    let scrollDelayTimer: ReturnType<typeof setTimeout> | undefined
     map.on("mousemove", LAYER_IDFill, (e) => {
         // Find feature with the smallest bounds area
-        const feature = e.features.reduce((a, b) =>
+        const feature = e.features!.reduce((a, b) =>
             a.properties.boundsArea <= b.properties.boundsArea ? a : b,
         )
         if (hoveredFeature) {
@@ -538,7 +540,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
 
         // Set delayed scroll timer
         scrollDelayTimer = setTimeout(() => {
-            setHover(hoveredFeature.properties, true, true)
+            setHover(hoveredFeature!.properties, true, true)
         }, FOCUS_HOVER_DELAY)
     })
 
@@ -572,14 +574,16 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
 
         // Request full world when initial loading for scope/user
         const fetchBounds =
-            fetchedBounds || (!loadScope && !loadDisplayName) ? map.getBounds() : null
+            fetchedBounds || !(loadScope || loadDisplayName) ? map.getBounds() : null
 
         // During full world view, skip event-based updates
         if (e && !fetchBounds) {
             return
         }
 
-        const params = qsParse(window.location.search)
+        const params: Record<string, string | undefined> = qsParse(
+            window.location.search,
+        )
 
         // Update date filter element
         const fetchDate = params.date
@@ -610,7 +614,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
         ) {
             // Load more changesets
             if (noMoreChangesets) return
-            if (changesets.length) params.before = changesets.at(-1).id.toString()
+            if (changesets.length) params.before = changesets.at(-1)!.id.toString()
         } else {
             // Ignore small bounds changes
             if (fetchedBounds && fetchBounds && fetchedDate === fetchDate) {

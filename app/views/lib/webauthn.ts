@@ -10,7 +10,7 @@ import i18next from "i18next"
 const fetchPasskeyChallenge = async (formData?: FormData) => {
     const resp = await fetch("/api/web/user/login/passkey/challenge", {
         method: "POST",
-        body: formData,
+        body: formData ?? null,
         priority: "high",
     })
     if (!resp.ok) return `Error: ${resp.status} ${resp.statusText}`
@@ -120,8 +120,10 @@ export const startConditionalMediation = async (signal: AbortSignal) => {
 
     // Feature detection
     if (
-        !PublicKeyCredential?.isConditionalMediationAvailable ||
-        !(await PublicKeyCredential.isConditionalMediationAvailable())
+        !(
+            PublicKeyCredential?.isConditionalMediationAvailable &&
+            (await PublicKeyCredential.isConditionalMediationAvailable())
+        )
     )
         return null
 

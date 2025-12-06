@@ -4,7 +4,7 @@ import { configureStandardPagination } from "@lib/standard-pagination"
 import { Tooltip } from "bootstrap"
 
 mount("admin-users-body", (body) => {
-    const filterForm = body.querySelector("form.filters-form")
+    const filterForm = body.querySelector("form.filters-form")!
 
     // Setup datetime input timezone conversion
     configureDatetimeInputs(filterForm, ["created_after", "created_before"])
@@ -17,7 +17,7 @@ mount("admin-users-body", (body) => {
         }
     })
 
-    const exportVisibleBtn = body.querySelector("button.export-visible-btn")
+    const exportVisibleBtn = body.querySelector("button.export-visible-btn")!
     exportVisibleBtn.addEventListener("click", async () => {
         const userIds = Array.from(
             body.querySelectorAll("tr[data-user-id]"),
@@ -33,7 +33,7 @@ mount("admin-users-body", (body) => {
         }
     })
 
-    const exportAllBtn = body.querySelector("button.export-all-btn")
+    const exportAllBtn = body.querySelector("button.export-all-btn")!
     exportAllBtn.addEventListener("click", () => {
         const a = document.createElement("a")
         a.href = `/api/web/admin/users/export${window.location.search}`

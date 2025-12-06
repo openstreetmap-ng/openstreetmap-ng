@@ -8,6 +8,7 @@ import {
 } from "@lib/password-hash"
 import { Alert } from "bootstrap"
 import i18next from "i18next"
+import { assert } from "@lib/assert";
 
 export interface APIDetail {
     type: "success" | "info" | "error"
@@ -20,8 +21,8 @@ export interface APIDetail {
  * @see https://getbootstrap.com/docs/5.3/forms/validation/
  */
 export const configureStandardForm = <T = any>(
-    form?: HTMLFormElement,
-    successCallback?: (data?: T) => void,
+    form: HTMLFormElement | null,
+    successCallback?: (data: T) => void,
     options?: {
         formBody?: Element
         formAppend?: boolean
@@ -78,7 +79,7 @@ export const configureStandardForm = <T = any>(
             }
         }
 
-        element.parentElement.classList.add("position-relative")
+        element.parentElement!.classList.add("position-relative")
 
         let feedback = element.nextElementSibling
         if (!feedback?.classList.contains("element-feedback")) {
@@ -196,7 +197,7 @@ export const configureStandardForm = <T = any>(
         feedback.classList.toggle("alert-info", type === "info")
         feedback.classList.toggle("alert-danger", type === "error")
 
-        feedback.firstElementChild.textContent = message
+        feedback.firstElementChild!.textContent = message
 
         // Remove feedback on submit
         const onInvalidated = () => {
@@ -206,6 +207,7 @@ export const configureStandardForm = <T = any>(
                 "handleFormFeedback",
                 "onInvalidated",
             )
+            assert(feedbackAlert)
             feedbackAlert.dispose()
             feedbackAlert = null
             feedback.remove()
@@ -342,7 +344,7 @@ export const configureStandardForm = <T = any>(
             const resp = await fetch(url, {
                 method,
                 body,
-                signal: abortController?.signal,
+                signal: abortController?.signal ?? null,
                 priority: "high",
             })
             if (resp.ok) console.debug("Form submitted successfully")
@@ -359,7 +361,7 @@ export const configureStandardForm = <T = any>(
             } else if (contentType === "application/x-protobuf") {
                 console.debug("Reading Protobuf response")
                 data = fromBinary(
-                    options.protobuf,
+                    options!.protobuf!,
                     new Uint8Array(await resp.arrayBuffer()),
                 )
             } else if (contentType) {

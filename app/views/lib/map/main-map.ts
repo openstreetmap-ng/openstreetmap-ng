@@ -101,8 +101,8 @@ const configureMainMap = (container: HTMLElement) => {
     // Find home button is only available for the users with configured home location
     const homePoint = config.userConfig?.homePoint
     if (homePoint) {
-        const findHomeContainer = document.querySelector(".find-home-container")
-        const findHomeButton = findHomeContainer.querySelector("button")
+        const findHomeContainer = document.querySelector(".find-home-container")!
+        const findHomeButton = findHomeContainer.querySelector("button")!
         configureFindHomeButton(map, findHomeButton, homePoint)
         findHomeContainer.classList.remove("d-none")
     }

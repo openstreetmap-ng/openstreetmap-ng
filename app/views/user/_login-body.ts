@@ -1,3 +1,4 @@
+import { assert } from "@lib/assert"
 import { mount } from "@lib/mount"
 import { type LoginResponse, LoginResponseSchema } from "@lib/proto/shared_pb"
 import { qsParse } from "@lib/qs"
@@ -15,26 +16,26 @@ if (loginForm) {
     // Referrer must start with '/' to avoid open redirect
     if (!referrer.startsWith("/")) referrer = defaultReferrer
 
-    const totpInputGroup = loginForm.querySelector(".totp-input-group")
+    const totpInputGroup = loginForm.querySelector(".totp-input-group")!
     const totpInputTemplate = totpInputGroup.firstElementChild as HTMLInputElement
-    const totpCodeInput = loginForm.querySelector("input[name=totp_code]")
-    const bypass2faInput = loginForm.querySelector("input[name=bypass_2fa]")
-    const recoveryCodeInput = loginForm.querySelector("input[name=recovery_code]")
+    const totpCodeInput = loginForm.querySelector("input[name=totp_code]")!
+    const bypass2faInput = loginForm.querySelector("input[name=bypass_2fa]")!
+    const recoveryCodeInput = loginForm.querySelector("input[name=recovery_code]")!
     const cancelBtns = loginForm.querySelectorAll(".cancel-2fa-btn")
     const tryAnotherMethodBtns = loginForm.querySelectorAll(".try-another-method-btn")
     const methodOptions = loginForm.querySelectorAll("button[data-method]")
     const displayNameInput = loginForm.querySelector(
         "input[name=display_name_or_email]",
-    )
-    const passwordInput = loginForm.querySelector("input[data-name=password]")
-    const rememberInput = loginForm.querySelector("input[name=remember]")
-    const passkeyBtn = document.querySelector(".passkey-btn")
-    const passkeyRetryBtn = loginForm.querySelector(".retry-passkey-btn")
+    )!
+    const passwordInput = loginForm.querySelector("input[data-name=password]")!
+    const rememberInput = loginForm.querySelector("input[name=remember]")!
+    const passkeyBtn = document.querySelector(".passkey-btn")!
+    const passkeyRetryBtn = loginForm.querySelector(".retry-passkey-btn")!
 
     let conditionalMediationAbort: AbortController | null = null
     let conditionalMediationAssertion: Blob | null = null
     let passwordless = false
-    const loginResponse: LoginResponse | null = null
+    let loginResponse: LoginResponse | undefined
     let submittedFormData: FormData | null = null
 
     const isDigit = (c: string) => c.length === 1 && c >= "0" && c <= "9"
@@ -49,6 +50,7 @@ if (loginForm) {
     }
 
     const tryTOTPSubmit = () => {
+        assert(loginResponse)
         const inputs = totpInputGroup.children as HTMLCollectionOf<HTMLInputElement>
         const code = Array.from(inputs, (input) => input.value).join("")
         if (code.length !== loginResponse.totp) return false
@@ -59,13 +61,14 @@ if (loginForm) {
     }
 
     const createTOTPInputs = () => {
+        assert(loginResponse)
         // Clear all except template
         while (totpInputGroup.children.length > 1) {
-            totpInputGroup.lastElementChild.remove()
+            totpInputGroup.lastElementChild!.remove()
         }
 
         // Clone template to create remaining inputs
-        while (totpInputGroup.children.length < loginResponse.totp) {
+        while (totpInputGroup.children.length < loginResponse.totp!) {
             const clone = totpInputTemplate.cloneNode(true) as HTMLInputElement
             clone.autocomplete = "off"
             totpInputGroup.appendChild(clone)
@@ -109,7 +112,9 @@ if (loginForm) {
 
             input.addEventListener("paste", (e: ClipboardEvent) => {
                 e.preventDefault()
-                const digits = e.clipboardData.getData("text").replace(NON_DIGIT_RE, "")
+                const digits = e
+                    .clipboardData!.getData("text")
+                    .replace(NON_DIGIT_RE, "")
                 if (!digits.length) return
 
                 for (let i = 0; i < digits.length && index + i < inputs.length; i++) {
@@ -135,6 +140,7 @@ if (loginForm) {
             recoveryCodeInput.focus()
         } else if (state === "method-select") {
             // Update method visibility based on available methods
+            assert(loginResponse)
             for (const option of methodOptions) {
                 const method = option.dataset.method
                 const isAvailable =
@@ -166,6 +172,7 @@ if (loginForm) {
     }
 
     const startPasskey2FA = async () => {
+        assert(submittedFormData)
         const result = await getPasskeyAssertion(submittedFormData, "discouraged")
         if (typeof result === "string") {
             setState("passkey")
@@ -186,11 +193,12 @@ if (loginForm) {
     // Configure login form with unified passkey/password flow
     configureStandardForm(
         loginForm,
-        (loginResponse) => {
-            if (!loginResponse) {
+        (response) => {
+            if (!response) {
                 navigateOnSuccess()
                 return
             }
+            loginResponse = response
             if (loginResponse.passkey) {
                 console.info("onLoginFormPasskeyRequired")
                 startPasskey2FA()
@@ -257,7 +265,7 @@ if (loginForm) {
     }
 
     // Start conditional mediation based on context
-    const loginModal = document.querySelector("#loginModal")
+    const loginModal = document.getElementById("loginModal")
     if (loginModal) {
         // Modal: defer until it opens
         loginModal.addEventListener("show.bs.modal", initConditionalMediation, {
@@ -280,8 +288,8 @@ if (loginForm) {
         const dataset = (target as HTMLElement).dataset
         console.debug("onAutofillButtonClick", dataset)
 
-        displayNameInput.value = dataset.login
-        passwordInput.value = dataset.password
+        displayNameInput.value = dataset.login!
+        passwordInput.value = dataset.password!
         rememberInput.checked = true
         loginForm.requestSubmit()
     }
@@ -296,7 +304,7 @@ if (loginForm) {
 mount("login-body", () => {
     const navbarLoginButton = document.querySelector(
         "button[data-bs-target='#loginModal']",
-    )
+    )!
     navbarLoginButton.removeAttribute("data-bs-target")
     navbarLoginButton.removeAttribute("data-bs-toggle")
     navbarLoginButton.addEventListener("click", () => {

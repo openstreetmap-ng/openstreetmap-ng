@@ -8,7 +8,7 @@ export const NEW_NOTE_MIN_ZOOM = 12
 const newNoteContainers: HTMLDivElement[] = []
 
 export class NewNoteControl implements IControl {
-    public _container: HTMLElement
+    public _container!: HTMLElement
 
     public onAdd(map: MaplibreMap) {
         const container = document.createElement("div")
@@ -49,7 +49,7 @@ export class NewNoteControl implements IControl {
                 if (!button.disabled) {
                     button.blur()
                     button.disabled = true
-                    Tooltip.getInstance(button).setContent({
+                    Tooltip.getInstance(button)!.setContent({
                         ".tooltip-inner": i18next.t(
                             "javascripts.site.createnote_disabled_tooltip",
                         ),
@@ -57,7 +57,7 @@ export class NewNoteControl implements IControl {
                 }
             } else if (button.disabled) {
                 button.disabled = false
-                Tooltip.getInstance(button).setContent({
+                Tooltip.getInstance(button)!.setContent({
                     ".tooltip-inner": i18next.t("javascripts.site.createnote_tooltip"),
                 })
             }
@@ -87,7 +87,7 @@ export const setNewNoteButtonState = (active: boolean) => {
         "containers",
     )
     for (const container of newNoteContainers) {
-        const button = container.querySelector(".control-btn")
+        const button = container.querySelector(".control-btn")!
         button.classList.toggle("active", active)
     }
 }

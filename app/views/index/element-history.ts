@@ -37,7 +37,7 @@ export const getElementHistoryController = (map: MaplibreMap) => {
         }
 
         // Get elements
-        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
+        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")!
         setPageTitle(sidebarTitleElement.textContent)
 
         // Handle not found
@@ -56,7 +56,7 @@ export const getElementHistoryController = (map: MaplibreMap) => {
         const paginationContainers = sidebarContent.querySelectorAll("ul.pagination")
         const disposePaginationEffect = effect(() => {
             for (const pagination of paginationContainers) {
-                pagination.dataset.action = pagination.dataset.actionTemplate.replace(
+                pagination.dataset.action = pagination.dataset.actionTemplate!.replace(
                     "{tags_diff}",
                     tagsDiff.toString(),
                 )

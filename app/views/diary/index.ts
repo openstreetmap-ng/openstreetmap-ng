@@ -6,7 +6,7 @@ import { Offcanvas } from "bootstrap"
 
 // Details page: always expanded; comments live under #comments
 mount("diary-details-body", (body) => {
-    const comments = body.querySelector("#comments")
+    const comments = document.getElementById("comments")!
     let disposePagination = configureStandardPagination(comments)
 
     // Subscriptions affect global state; simple, reliable full reload
@@ -27,8 +27,8 @@ mount("diary-index-body", (body) => {
     const disposers = new WeakMap<Element, () => void>()
 
     for (const article of body.querySelectorAll("article.diary")) {
-        const diaryBody = article.querySelector(".diary-body")
-        const readMore = article.querySelector(".diary-read-more")
+        const diaryBody = article.querySelector(".diary-body")!
+        const readMore = article.querySelector(".diary-read-more")!
 
         // Mark entry clamped when rendered height < content height
         const updateClamp = () => {
@@ -63,7 +63,7 @@ mount("diary-index-body", (body) => {
             { once: true },
         )
 
-        const commentsCont = article.querySelector(".diary-comments")
+        const commentsCont = article.querySelector(".diary-comments")!
 
         commentsCont.addEventListener(
             "show.bs.collapse",
@@ -73,14 +73,13 @@ mount("diary-index-body", (body) => {
                 disposers.set(commentsCont, dispose)
 
                 const subForm = commentsCont.querySelector("form.subscription-form")
-                // Keep this simple; reloading reflects state everywhere
                 configureStandardForm(subForm, () => {
                     window.location.reload()
                 })
 
-                const commentform = commentsCont.querySelector("form.comment-form")
-                configureStandardForm(commentform, () => {
-                    commentform.reset()
+                const commentForm = commentsCont.querySelector("form.comment-form")
+                configureStandardForm(commentForm, () => {
+                    commentForm!.reset()
                     const paginationElement =
                         commentsCont.querySelector("ul.pagination")
                     if (paginationElement) paginationElement.dataset.numItems = "-1"
@@ -101,13 +100,15 @@ mount("diary-index-body", (body) => {
     // Hide the diary scroll navigation panel after any link click
     // (mobile view)
     const navOffcanvas = document.getElementById("diary-scroll-nav-offcanvas")
-    const navOffcanvasInstance = Offcanvas.getOrCreateInstance(navOffcanvas)
-    navOffcanvas.addEventListener("click", (e) => {
-        const target = e.target
-        if (!(target instanceof Element)) return
-        if (!target.closest("a[href]")) return
-        navOffcanvasInstance.hide()
-    })
+    if (navOffcanvas) {
+        const navOffcanvasInstance = Offcanvas.getOrCreateInstance(navOffcanvas)
+        navOffcanvas.addEventListener("click", (e) => {
+            const target = e.target
+            if (!(target instanceof Element)) return
+            if (!target.closest("a[href]")) return
+            navOffcanvasInstance.hide()
+        })
+    }
 })
 
 mount(["diary-details-body", "diary-index-body"], (body) => {

@@ -5,7 +5,6 @@ import { config } from "@lib/config"
 import { RenderNotesDataSchema } from "@lib/proto/shared_pb"
 import {
     type GeoJSONSource,
-    type LngLat,
     type LngLatBounds,
     type Map as MaplibreMap,
     Popup,
@@ -61,18 +60,17 @@ export const configureNotesLayer = (map: MaplibreMap) => {
 
     // On feature click, navigate to the note
     map.on("click", LAYER_ID, (e) => {
-        const noteId = e.features[0].properties.id
+        const noteId = e.features![0].properties.id
         routerNavigateStrict(`/note/${noteId}`)
     })
 
     let hoveredFeatureId: number | null = null
-    let hoverLngLat: LngLat | null = null
-    let hoverPopupTimeout: ReturnType<typeof setTimeout> | null = null
+    let hoverPopupTimeout: ReturnType<typeof setTimeout> | undefined
     const hoverPopup: Popup = new Popup({ closeButton: false, closeOnMove: true })
 
     map.on("mousemove", LAYER_ID, (e) => {
-        hoverLngLat = e.lngLat
-        const feature = e.features[0]
+        const lngLat = e.lngLat
+        const feature = e.features![0]
         const featureId = feature.id as number
         if (hoveredFeatureId === featureId) return
         if (hoveredFeatureId) {
@@ -86,19 +84,12 @@ export const configureNotesLayer = (map: MaplibreMap) => {
         clearTimeout(hoverPopupTimeout)
         hoverPopup.remove()
         hoverPopupTimeout = setTimeout(() => {
-            console.debug(
-                "Showing popup for note",
-                feature.properties.id,
-                "at",
-                hoverLngLat,
-            )
-            hoverPopup
-                .setText(feature.properties.text)
-                .setLngLat(hoverLngLat)
-                .addTo(map)
+            console.debug("Showing popup for note", feature.properties.id, "at", lngLat)
+            hoverPopup.setText(feature.properties.text).setLngLat(lngLat).addTo(map)
         }, 500)
     })
     map.on("mouseleave", LAYER_ID, () => {
+        if (!hoveredFeatureId) return
         map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
         hoveredFeatureId = null
         clearTimeout(hoverPopupTimeout)

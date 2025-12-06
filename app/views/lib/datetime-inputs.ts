@@ -8,7 +8,9 @@ const resolvedElements = new WeakSet<HTMLTimeElement>()
  * @param utcDateString - ISO datetime string in UTC (from backend)
  * @returns Local datetime string in 'YYYY-MM-DDTHH:mm' format for datetime-local input
  */
-const utcStringToLocalString = (utcDateString: string) => {
+const utcStringToLocalString = (utcDateString: string | null) => {
+    if (!utcDateString) return ""
+
     const utcDate = new Date(utcDateString)
     if (Number.isNaN(utcDate.getTime())) return ""
 

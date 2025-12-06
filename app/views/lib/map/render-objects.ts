@@ -15,16 +15,16 @@ import type {
 import type { Feature, FeatureCollection } from "geojson"
 
 interface RenderOptions {
-    /** Whether to render areas */
-    renderAreas: boolean
+    renderAreas: boolean // default: true
+    featureIdCounter: number // default: 1
 }
 
 export const renderObjects = (
     objects: OSMObject[],
     options?: Partial<RenderOptions>,
-    featureIdCounter = 1,
 ): FeatureCollection => {
     const features: Feature[] = []
+    let featureIdCounter = options?.featureIdCounter ?? 1
 
     const processChangeset = (changeset: OSMChangeset) => {
         const properties = {

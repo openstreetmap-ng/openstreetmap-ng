@@ -1,3 +1,4 @@
+import { assert } from "@lib/assert"
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
@@ -5,7 +6,7 @@ import type { IControl, Map as MaplibreMap } from "maplibre-gl"
 const sidebarToggleContainers: HTMLElement[] = []
 
 export class SidebarToggleControl implements IControl {
-    protected sidebar?: HTMLElement
+    protected sidebar!: HTMLElement
     private readonly _className: string
     private readonly _tooltipTitle: string
 
@@ -17,7 +18,7 @@ export class SidebarToggleControl implements IControl {
     public onAdd(map: MaplibreMap) {
         // Find corresponding sidebar
         const sidebar = document.querySelector(`div.map-sidebar.${this._className}`)
-        if (!sidebar) console.error("Sidebar", this._className, "not found")
+        assert(sidebar, `Sidebar ${this._className} not found`)
         this.sidebar = sidebar
 
         // Create container
@@ -49,7 +50,7 @@ export class SidebarToggleControl implements IControl {
             // Unselect other buttons
             for (const otherContainer of sidebarToggleContainers) {
                 if (otherContainer === container) continue
-                const otherButton = otherContainer.querySelector("button.control-btn")
+                const otherButton = otherContainer.querySelector("button.control-btn")!
                 if (otherButton.classList.contains("active")) {
                     console.debug("Deactivating sidebar toggle button", otherButton)
                     otherButton.click()
@@ -65,7 +66,7 @@ export class SidebarToggleControl implements IControl {
         })
 
         // On sidebar close button, trigger the sidebar toggle button
-        const sidebarCloseButton = sidebar.querySelector(".sidebar-close-btn")
+        const sidebarCloseButton = sidebar.querySelector(".sidebar-close-btn")!
         sidebarCloseButton.addEventListener("click", () => {
             if (button.classList.contains("active")) {
                 button.dispatchEvent(new Event("click"))

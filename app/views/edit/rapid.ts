@@ -8,7 +8,7 @@ if (iframe) {
     const hashParams = qsParse(window.location.hash)
     const searchParams = qsParse(window.location.search)
     const { lon, lat, zoom } = getInitialMapState()
-    const params: Record<string, string> = {}
+    const params: Record<string, string | undefined> = {}
 
     params.map = `${zoom}/${lat}/${lon}`
 

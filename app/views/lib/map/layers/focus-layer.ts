@@ -1,3 +1,4 @@
+import { assert } from "@lib/assert"
 import type { OSMObject } from "@lib/types"
 import type { Geometry } from "geojson"
 import {
@@ -58,7 +59,10 @@ layersConfig.set(LAYER_ID, {
     priority: 140,
 })
 
-const lastPropertyMap = new WeakMap<MaplibreMap, [FocusLayerPaint, FocusLayerLayout]>()
+const lastPropertyMap = new WeakMap<
+    MaplibreMap,
+    [FocusLayerPaint | null | undefined, FocusLayerLayout | null | undefined]
+>()
 const layerAddedMap = new WeakSet<MaplibreMap>()
 
 /**
@@ -68,8 +72,8 @@ const layerAddedMap = new WeakSet<MaplibreMap>()
 export const focusObjects = (
     map: MaplibreMap,
     objects?: OSMObject[],
-    paint?: FocusLayerPaint,
-    layout?: FocusLayerLayout,
+    paint?: FocusLayerPaint | null,
+    layout?: FocusLayerLayout | null,
     options?: FocusOptions,
 ) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
@@ -125,11 +129,12 @@ export const focusObjects = (
 
     // Focus on the layers if they are offscreen
     if (options?.fitBounds ?? true) {
-        let bounds: LngLatBounds | null = null
+        let bounds: LngLatBounds | undefined
         for (const feature of data.features) {
             const geometryBounds = getGeometryBounds(feature.geometry)
             bounds = bounds ? bounds.extend(geometryBounds) : geometryBounds
         }
+        assert(bounds)
         const boundsPadded = padLngLatBounds(bounds, options?.padBounds ?? 0.2)
         const mapBounds = map.getBounds()
 

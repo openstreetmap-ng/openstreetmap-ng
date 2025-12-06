@@ -21,7 +21,7 @@ export interface OSMRelation {
 
 export interface OSMNote {
     type: "note"
-    id?: bigint
+    id: bigint | null
     geom: [number, number]
     text: string
     status: "open" | "closed" | "hidden"

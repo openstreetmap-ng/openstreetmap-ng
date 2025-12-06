@@ -2,7 +2,7 @@ import { mount } from "@lib/mount"
 import { configureStandardPagination } from "@lib/standard-pagination"
 
 mount("reports-body", (body) => {
-    const reportStatusFilter = body.querySelector("select#reportStatusFilter")
+    const reportStatusFilter = body.querySelector("select#reportStatusFilter")!
     reportStatusFilter.addEventListener("change", () => {
         const status = reportStatusFilter.value
         console.debug("onReportStatusFilterChange", status)

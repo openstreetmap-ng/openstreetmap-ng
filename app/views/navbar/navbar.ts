@@ -8,9 +8,9 @@ import { isHrefCurrentPage, NON_DIGIT_RE, wrapMessageEventValidator } from "@lib
 import { Collapse, Dropdown, Tooltip } from "bootstrap"
 
 const MIN_EDIT_ZOOM = 13
-const navbar = document.querySelector(".navbar")
+const navbar = document.querySelector(".navbar")!
 const navbarCollapseInstance = Collapse.getOrCreateInstance(
-    navbar.querySelector(".navbar-collapse"),
+    navbar.querySelector(".navbar-collapse")!,
     {
         toggle: false,
     },
@@ -23,8 +23,8 @@ const navbarCollapseInstance = Collapse.getOrCreateInstance(
 export const collapseNavbar = () => navbarCollapseInstance.hide()
 
 // Messages badge
-const newUnreadMessagesBadge = navbar.querySelector(".new-unread-messages-badge")
-const unreadMessagesBadge = navbar.querySelector(".unread-messages-badge")
+const newUnreadMessagesBadge = navbar.querySelector(".new-unread-messages-badge")!
+const unreadMessagesBadge = navbar.querySelector(".unread-messages-badge")!
 
 /** Update the unread messages badge in the navbar */
 export const changeUnreadMessagesBadge = (change: number) => {
@@ -47,16 +47,16 @@ if (activeNavLink) {
     activeNavLink.ariaCurrent = "page"
 }
 
-const editGroup = navbar.querySelector("div.edit-group")
+const editGroup = navbar.querySelector("div.edit-group")!
 const editDropdown = Dropdown.getOrCreateInstance(
-    editGroup.querySelector(".dropdown-toggle"),
+    editGroup.querySelector(".dropdown-toggle")!,
 )
 const remoteEditButton = editGroup.querySelector(
     "button.dropdown-item.edit-link[data-editor=remote]",
-)
-const rememberChoice = editGroup.querySelector("input[name=remember-choice]")
+)!
+const rememberChoice = editGroup.querySelector("input[name=remember-choice]")!
 const editGroupTooltip = Tooltip.getOrCreateInstance(editGroup, {
-    title: editGroup.dataset.bsTitle,
+    title: editGroup.dataset.bsTitle!,
     placement: "bottom",
 })
 editGroupTooltip.disable()
@@ -66,7 +66,7 @@ editGroup.addEventListener("click", async (e) => {
     const target = e.target as HTMLElement
     const editLink = target.closest<HTMLAnchorElement | HTMLButtonElement>(".edit-link")
     if (!editLink) return
-    const editor = editLink.dataset.editor
+    const editor = editLink.dataset.editor!
 
     // Without remember choice, continue as usual
     if (!rememberChoice.checked) {
@@ -154,7 +154,7 @@ export const updateNavbarAndHash = (state: MapState, object?: OSMObject) => {
         }
 
         if (link instanceof HTMLAnchorElement) {
-            const baseHref = link.dataset.baseHref
+            const baseHref = link.dataset.baseHref!
             if (object) {
                 const url = new URL(baseHref, window.location.origin)
                 url.searchParams.set(object.type, String(object.id))
@@ -202,9 +202,9 @@ window.addEventListener(
 // Responsive navbar links
 const navbarLinksList = navbar.querySelector("ul.navbar-nav")
 if (navbarLinksList) {
-    const navbarLinksParent = navbarLinksList.parentElement
-    const moreDropdown = navbar.querySelector("div.navbar-nav-more")
-    const moreDropdownList = moreDropdown.querySelector("ul")
+    const navbarLinksParent = navbarLinksList.parentElement!
+    const moreDropdown = navbar.querySelector("div.navbar-nav-more")!
+    const moreDropdownList = moreDropdown.querySelector("ul")!
     let moreButtonWidth = 80
 
     const collapseBuffer = 60
@@ -240,7 +240,8 @@ if (navbarLinksList) {
             moreDropdownList.children.length &&
             currentWidth +
                 Number.parseFloat(
-                    (moreDropdownList.firstElementChild as HTMLLIElement).dataset.width,
+                    (moreDropdownList.firstElementChild as HTMLLIElement).dataset
+                        .width!,
                 ) +
                 expandBuffer <
                 availableWidth
@@ -279,7 +280,7 @@ if (navbarLinksList) {
             while (shouldExpand()) {
                 const dropdownItem = moreDropdownList.firstElementChild as HTMLLIElement
                 const link = dropdownItem.firstElementChild as HTMLAnchorElement
-                const linkWidth = Number.parseFloat(dropdownItem.dataset.width)
+                const linkWidth = Number.parseFloat(dropdownItem.dataset.width!)
                 currentWidth += linkWidth
 
                 // Create nav link item

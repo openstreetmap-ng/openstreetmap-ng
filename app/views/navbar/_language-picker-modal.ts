@@ -4,11 +4,11 @@ import { Modal } from "bootstrap"
 
 const NON_ALPHA_SPACE_RE = /[^a-z\s]/g
 
-const languagePickerModal = document.querySelector("#languagePickerModal")
+const languagePickerModal = document.getElementById("languagePickerModal")
 if (languagePickerModal) {
     const modalInstance = new Modal(languagePickerModal)
-    const searchInput = languagePickerModal.querySelector("input")
-    const languageList = languagePickerModal.querySelector(".language-list")
+    const searchInput = languagePickerModal.querySelector("input")!
+    const languageList = languagePickerModal.querySelector(".language-list")!
     const languageButtons: HTMLButtonElement[] = []
 
     const initializeLanguages = () => {
@@ -89,7 +89,7 @@ if (languagePickerModal) {
     languagePickerModal.addEventListener("hidden.bs.modal", () => {
         searchInput.value = ""
         for (const btn of languageButtons) {
-            btn.parentElement.hidden = false
+            btn.parentElement!.hidden = false
         }
     })
 
@@ -101,8 +101,8 @@ if (languagePickerModal) {
             .replace(NON_ALPHA_SPACE_RE, " ")
 
         for (const btn of languageButtons) {
-            btn.parentElement.hidden =
-                !!searchTerm && !btn.dataset.search.includes(searchTerm)
+            btn.parentElement!.hidden =
+                !!searchTerm && !btn.dataset.search!.includes(searchTerm)
         }
     })
 }

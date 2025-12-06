@@ -16,10 +16,10 @@ export const getBaseFetchController = (
     loadCallback?: (sidebarContent: HTMLElement) => void | (() => void),
 ) => {
     const sidebar = getActionSidebar(className)
-    const scrollSidebar = sidebar.closest(".sidebar") as HTMLElement
+    const scrollSidebar = sidebar.closest(".sidebar")!
     const dynamicContent = sidebar.classList.contains("dynamic-content")
         ? sidebar
-        : sidebar.querySelector("div.dynamic-content")
+        : sidebar.querySelector("div.dynamic-content")!
     const loadingHtml = dynamicContent.innerHTML
 
     let abortController: AbortController | null = null
@@ -71,6 +71,8 @@ export const getBaseFetchController = (
 
     /** Fetch sidebar content from url */
     const fetchSidebar = async (url: string) => {
+        abortController = new AbortController()
+
         try {
             const resp = await fetch(url, {
                 signal: abortController.signal,
@@ -89,7 +91,7 @@ export const getBaseFetchController = (
     }
 
     return {
-        load: (url?: string) => {
+        load: (url: string | null) => {
             if (abortController) {
                 console.error(
                     "Base fetch controller",
@@ -99,14 +101,12 @@ export const getBaseFetchController = (
             }
 
             switchActionSidebar(map, sidebar)
-            if (!url) {
-                currentUrl = url
+            if (url === null) {
+                currentUrl = null
                 return
             }
 
-            abortController = new AbortController()
             onSidebarLoading()
-
             fetchSidebar(url)
         },
         unload: () => {

@@ -5,17 +5,17 @@ import { Collapse } from "bootstrap"
 import i18next from "i18next"
 
 mount("signup-body", (body) => {
-    const signupForm = body.querySelector("form.signup-form")
-    const displayNameInput = signupForm.querySelector("input[name=display_name]")
-    const displayNameBlacklist = displayNameInput.dataset.blacklist
+    const signupForm = body.querySelector("form.signup-form")!
+    const displayNameInput = signupForm.querySelector("input[name=display_name]")!
+    const displayNameBlacklist = displayNameInput.dataset.blacklist!
     const passwordInput = signupForm.querySelector(
         "input[type=password][data-name=password]",
-    )
+    )!
     const passwordConfirmInput = signupForm.querySelector(
         "input[type=password][data-name=password_confirm]",
-    )
+    )!
 
-    const trackingInput = signupForm.querySelector("input[name=tracking]")
+    const trackingInput = signupForm.querySelector("input[name=tracking]")!
     trackingInput.value = activityTracking.toString()
 
     configureStandardForm(
@@ -53,7 +53,7 @@ mount("signup-body", (body) => {
     )
 
     // Collapse/expand password confirmation based on password presence
-    const confirmCollapse = new Collapse(passwordConfirmInput.closest(".collapse"), {
+    const confirmCollapse = new Collapse(passwordConfirmInput.closest(".collapse")!, {
         toggle: false,
     })
 

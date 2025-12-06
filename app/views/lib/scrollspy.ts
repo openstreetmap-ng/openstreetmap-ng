@@ -3,12 +3,12 @@
  * Highlights nav links based on which content is in the detection band.
  * Only observes elements whose IDs have matching nav links.
  */
-export const configureScrollspy = (container: Element, nav: Element) => {
-    if (!container || !nav) return () => {}
+export const configureScrollspy = (container: Element | null, nav: Element | null) => {
+    if (!(container && nav)) return () => {}
 
     const navLinks = nav.querySelectorAll("a.nav-link[href^='#']")
     const items = container.querySelectorAll("[id]")
-    if (!navLinks.length || !items.length) return () => {}
+    if (!(navLinks.length && items.length)) return () => {}
 
     // Build ID -> link map
     const idToLink = new Map<string, HTMLAnchorElement>()

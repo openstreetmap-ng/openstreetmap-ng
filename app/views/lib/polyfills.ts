@@ -13,7 +13,11 @@ export const requestIdleCallbackPolyfill: (
     options?: IdleRequestOptions,
 ) => number =
     window.requestIdleCallback ||
-    ((callback) => window.setTimeout(() => callback(null), 0))
+    ((callback) =>
+        window.setTimeout(
+            () => callback({ didTimeout: false, timeRemaining: () => 0 }),
+            0,
+        ))
 
 export const cancelIdleCallbackPolyfill: (handle: number) => void =
     window.cancelIdleCallback || ((handle) => window.clearTimeout(handle))

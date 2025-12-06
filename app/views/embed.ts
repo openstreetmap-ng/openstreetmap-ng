@@ -21,7 +21,7 @@ import {
     NavigationControl,
 } from "maplibre-gl"
 
-const mapContainer = document.getElementById("map")
+const mapContainer = document.getElementById("map")!
 const attributionControl = new AttributionControl()
 const map = new MaplibreMap({
     container: mapContainer,

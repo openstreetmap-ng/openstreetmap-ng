@@ -43,13 +43,13 @@ const generateTOTPQRCode = (secret: string, digits: number, accountName: string)
 
 mount("settings-security-body", (body) => {
     // Password change
-    const passwordForm = body.querySelector("form.password-form")
+    const passwordForm = body.querySelector("form.password-form")!
     const newPasswordInput = passwordForm.querySelector(
         "input[type=password][data-name=new_password]",
-    )
+    )!
     const newPasswordConfirmInput = passwordForm.querySelector(
         "input[type=password][data-name=new_password_confirm]",
-    )
+    )!
 
     configureStandardForm(
         passwordForm,
@@ -86,7 +86,7 @@ mount("settings-security-body", (body) => {
                 window.location.reload()
             },
             {
-                formBody: addPasskeyForm.closest(".table-responsive"),
+                formBody: addPasskeyForm.closest(".table-responsive")!,
                 validationCallback: async (formData) => {
                     const result = await getPasskeyRegistration()
                     if (typeof result === "string") return result
@@ -100,7 +100,7 @@ mount("settings-security-body", (body) => {
     // Passkey rename
     const renameBtns = body.querySelectorAll("button.passkey-rename-btn")
     for (const renamebtn of renameBtns) {
-        const nameSpan = renamebtn.parentElement.querySelector(".passkey-name")
+        const nameSpan = renamebtn.parentElement!.querySelector(".passkey-name")!
         renamebtn.addEventListener("click", async () => {
             const oldName = nameSpan.textContent
             const newName =
@@ -131,12 +131,12 @@ mount("settings-security-body", (body) => {
     // Authenticator app
     const setupModal = document.getElementById("setupTotpModal")
     if (setupModal) {
-        const setupTOTPForm = setupModal.querySelector("form")
+        const setupTOTPForm = setupModal.querySelector("form")!
         const digitsInputs = setupTOTPForm.querySelectorAll("input[name=digits]")
-        const secretInput = setupTOTPForm.querySelector("input[name=secret]")
-        const qrContainer = setupTOTPForm.querySelector(".qr-code-container")
-        const codeInput = setupTOTPForm.querySelector("input[name=totp_code]")
-        const accountName = setupTOTPForm.dataset.accountName
+        const secretInput = setupTOTPForm.querySelector("input[name=secret]")!
+        const qrContainer = setupTOTPForm.querySelector(".qr-code-container")!
+        const codeInput = setupTOTPForm.querySelector("input[name=totp_code]")!
+        const accountName = setupTOTPForm.dataset.accountName!
 
         // Select secret on click for easy copying
         secretInput.addEventListener("click", () => {
@@ -189,14 +189,14 @@ mount("settings-security-body", (body) => {
     }
 
     // Generic authentication method disable handling
-    const disableAuthMethodModal = document.getElementById("disableAuthMethodModal")
-    const disableAuthMethodForm = disableAuthMethodModal.querySelector("form")
+    const disableAuthMethodModal = document.getElementById("disableAuthMethodModal")!
+    const disableAuthMethodForm = disableAuthMethodModal.querySelector("form")!
 
     disableAuthMethodModal.addEventListener("show.bs.modal", (e) => {
         const button = (e as any).relatedTarget as HTMLButtonElement
-        disableAuthMethodForm.action = button.dataset.authAction
-        disableAuthMethodModal.querySelector(".modal-title").textContent =
-            button.dataset.title
+        disableAuthMethodForm.action = button.dataset.authAction!
+        disableAuthMethodModal.querySelector(".modal-title")!.textContent =
+            button.dataset.title!
     })
 
     configureStandardForm(disableAuthMethodForm, () => {
@@ -207,9 +207,9 @@ mount("settings-security-body", (body) => {
     // Recovery codes generation
     const generateRecoveryCodesModal = document.getElementById(
         "generateRecoveryCodesModal",
-    )
-    const generateRecoveryCodesForm = generateRecoveryCodesModal.querySelector("form")
-    const generateRecoveryCodesBody = generateRecoveryCodesForm.parentElement
+    )!
+    const generateRecoveryCodesForm = generateRecoveryCodesModal.querySelector("form")!
+    const generateRecoveryCodesBody = generateRecoveryCodesForm.parentElement!
 
     generateRecoveryCodesModal.addEventListener("hide.bs.modal", () => {
         if (generateRecoveryCodesModal.querySelector("form")) {
@@ -229,7 +229,7 @@ mount("settings-security-body", (body) => {
     for (const form of revokeTokenForms) {
         configureStandardForm(form, () => {
             // On success callback, remove the HTML element or redirect to login page
-            const row = form.closest("li")
+            const row = form.closest("li")!
             const isCurrentSession = row.querySelector(".current-session") !== null
             console.debug(
                 "onRevokeTokenFormSuccess",

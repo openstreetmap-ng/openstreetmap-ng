@@ -6,7 +6,7 @@ export type LocaleOption = {
     nativeName: string
     englishName: string
     displayName: string
-    flag?: string
+    flag: string | null
 }
 
 export const getLocaleOptions = memoize(() =>
@@ -22,7 +22,7 @@ export const getLocaleOptions = memoize(() =>
             nativeName,
             englishName,
             displayName,
-            flag: locale.flag,
+            flag: locale.flag ?? null,
         }
         return option
     }),

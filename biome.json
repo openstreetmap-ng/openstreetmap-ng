@@ -29,6 +29,7 @@
         "noForEach": "on",
         "noUselessStringConcat": "on",
         "noVoid": "on",
+        "useSimplifiedLogicExpression": "on",
         "useWhile": "on"
       },
       "nursery": {

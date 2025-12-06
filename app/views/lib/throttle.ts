@@ -8,7 +8,7 @@ export const throttle = <T extends any[]>(
     delay: number,
 ) => {
     let lastCalled = 0
-    let timeout: ReturnType<typeof setTimeout> | null = null
+    let timeout: ReturnType<typeof setTimeout> | undefined
 
     return (...args: T) => {
         clearTimeout(timeout)

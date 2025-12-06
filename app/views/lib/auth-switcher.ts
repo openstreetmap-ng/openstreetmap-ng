@@ -3,8 +3,11 @@ console.debug("Initializing", roots.length, "auth switchers")
 
 for (const root of roots) {
     const cta = root.nextElementSibling
-    const toProviders = cta.querySelector("button[data-auth-switcher-target=providers]")
-    const toEmail = cta.querySelector("button[data-auth-switcher-target=email]")
+    const toProviders = cta?.querySelector(
+        "button[data-auth-switcher-target=providers]",
+    )
+    const toEmail = cta?.querySelector("button[data-auth-switcher-target=email]")
+    if (!(toProviders && toEmail)) continue
 
     const updateCta = () => {
         const providersState = root.dataset.state === "providers"

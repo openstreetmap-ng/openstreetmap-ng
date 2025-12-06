@@ -90,7 +90,7 @@ export const exportMapImage = async (
     let exportCanvas = document.createElement("canvas")
     exportCanvas.width = sourceCanvas.width
     exportCanvas.height = sourceCanvas.height
-    let ctx = exportCanvas.getContext("2d", { alpha: false })
+    let ctx = exportCanvas.getContext("2d", { alpha: false })!
     ctx.drawImage(sourceCanvas, 0, 0)
 
     if (filterBounds) {
@@ -105,7 +105,7 @@ export const exportMapImage = async (
         const trimCanvas = document.createElement("canvas")
         trimCanvas.width = exportCanvas.width - (left + right)
         trimCanvas.height = exportCanvas.height - (top + bottom)
-        ctx = trimCanvas.getContext("2d", { alpha: false })
+        ctx = trimCanvas.getContext("2d", { alpha: false })!
         ctx.drawImage(
             exportCanvas,
             left,
@@ -123,7 +123,7 @@ export const exportMapImage = async (
         const attributionText = `© ${i18next.t("javascripts.map.openstreetmap_contributors")}`
         const fontSize = Math.round(window.devicePixelRatio * 16)
 
-        const ctx = exportCanvas.getContext("2d", { alpha: false })
+        const ctx = exportCanvas.getContext("2d", { alpha: false })!
         ctx.font = `500 ${fontSize}px sans-serif`
         ctx.textAlign = "left"
         ctx.textBaseline = "top"

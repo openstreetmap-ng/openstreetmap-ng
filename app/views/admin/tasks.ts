@@ -10,14 +10,14 @@ mount("admin-tasks-body", (body) => {
         console.debug("Updating tasks status", data)
 
         for (const form of forms) {
-            const taskId = form.querySelector("input[name=id]")
+            const taskId = form.querySelector("input[name=id]")!
             const taskInfo = infoMap.get(taskId.value)
             if (!taskInfo) {
                 console.warn("Task not found", taskId.value)
                 continue
             }
 
-            const badge = form.closest(".card").querySelector(".status-badge")
+            const badge = form.closest(".card")!.querySelector(".status-badge")!
             badge.textContent = taskInfo.running ? "Running" : "Idle"
             badge.classList.toggle("bg-success", taskInfo.running)
             badge.classList.toggle("bg-secondary", !taskInfo.running)

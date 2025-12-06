@@ -91,7 +91,7 @@ if (tracePreviewContainer) {
     addMapLayer(map, LAYER_ID_ANT)
 
     // Add trace path
-    const coordinates = decodeLonLat(tracePreviewContainer.dataset.line, 6)
+    const coordinates = decodeLonLat(tracePreviewContainer.dataset.line!, 6)
     const bounds = coordinates.reduce(
         (bounds, coord) => bounds.extend(coord),
         new LngLatBounds(),

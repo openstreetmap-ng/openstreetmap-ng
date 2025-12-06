@@ -27,12 +27,12 @@ export const configurePasswordsForm = (
     formUsePasswordSchemasMap.set(form, [DEFAULT_PASSWORD_SCHEMA])
 
     for (const input of passwordInputs) {
-        const inputName = input.dataset.name
+        const inputName = input.dataset.name!
         const passwordInput = document.createElement("input")
         passwordInput.classList.add("hidden-password-input", "d-none")
         passwordInput.type = "text" // as "text" to show standardForm feedback directly next to the original
         passwordInput.name = inputName
-        input.parentElement.insertBefore(passwordInput, input.nextSibling)
+        input.parentElement!.insertBefore(passwordInput, input.nextSibling)
     }
 }
 
@@ -41,7 +41,7 @@ export const appendPasswordsToFormData = async (
     formData: FormData,
     passwordInputs: NodeListOf<HTMLInputElement>,
 ) => {
-    const passwordSchemas = formUsePasswordSchemasMap.get(form)
+    const passwordSchemas = formUsePasswordSchemasMap.get(form)!
     console.debug(
         "Updating passwords form with",
         passwordSchemas,
@@ -51,7 +51,7 @@ export const appendPasswordsToFormData = async (
 
     const tasks: Promise<void>[] = []
     for (const input of passwordInputs) {
-        const inputName = input.dataset.name
+        const inputName = input.dataset.name!
         if (!inputName.endsWith("_confirm") && input.value) {
             const buildAndSet = async () => {
                 formData.set(
@@ -73,7 +73,7 @@ export const handlePasswordSchemaFeedback = (
     form: HTMLFormElement,
     response: PasswordSchema | string,
 ) => {
-    const currentPasswordSchemas = formUsePasswordSchemasMap.get(form)
+    const currentPasswordSchemas = formUsePasswordSchemasMap.get(form)!
     if (currentPasswordSchemas.length === 2 && currentPasswordSchemas[1] === response)
         return false
     const newPasswordSchemas = [currentPasswordSchemas[0], response]

@@ -6,7 +6,7 @@ import { WebConfigSchema } from "@lib/proto/shared_pb"
 /** Global dataset options that are defined on <html> tag */
 export const config = fromBinary(
     WebConfigSchema,
-    base64Decode(document.documentElement.dataset.config),
+    base64Decode(document.documentElement.dataset.config!),
 )
 console.info("Application version", config.version)
 
@@ -17,10 +17,15 @@ const DEFAULT_TRACKING =
 /** Whether to enable activity tracking */
 export const activityTracking = config.userConfig?.activityTracking ?? DEFAULT_TRACKING
 
-/** Whether to enable crash reporting */
-export const crashReporting =
-    config.sentryConfig &&
-    (config.env === "test" || (config.userConfig?.crashReporting ?? DEFAULT_TRACKING))
+/** Check if crash reporting is enabled */
+export const isCrashReportingEnabled = (
+    cfg: typeof config,
+): cfg is typeof config & { sentryConfig: NonNullable<typeof config.sentryConfig> } =>
+    Boolean(
+        cfg.sentryConfig &&
+            (cfg.env === "test" ||
+                (cfg.userConfig?.crashReporting ?? DEFAULT_TRACKING)),
+    )
 
 /**
  * User's primary translation language

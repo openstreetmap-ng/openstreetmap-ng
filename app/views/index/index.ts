@@ -10,7 +10,7 @@ export const getIndexController = (map: MaplibreMap) => {
     const banners = sidebar.querySelectorAll("div.sidebar-banner")
 
     for (const banner of banners) {
-        const bannerName = banner.dataset.name
+        const bannerName = banner.dataset.name!
 
         // Remove hidden banners
         if (isBannerHidden(bannerName)) {
@@ -22,7 +22,7 @@ export const getIndexController = (map: MaplibreMap) => {
         banner.classList.remove("d-none")
 
         // On close button click, hide the banner
-        const closeButton = banner.querySelector(".btn-close")
+        const closeButton = banner.querySelector(".btn-close")!
         closeButton.addEventListener("click", () => {
             markBannerHidden(bannerName)
             banner.remove()

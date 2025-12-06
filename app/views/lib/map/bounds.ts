@@ -52,9 +52,12 @@ export const checkLngLatBoundsIntersection = (
     )
 }
 
-export const lngLatBoundsEqual = (bounds1?: LngLatBounds, bounds2?: LngLatBounds) => {
-    if (!bounds1 && !bounds2) return true
-    if (!bounds1 || !bounds2) return false
+export const lngLatBoundsEqual = (
+    bounds1: LngLatBounds | null | undefined,
+    bounds2: LngLatBounds | null | undefined,
+) => {
+    if (!(bounds1 || bounds2)) return true
+    if (!(bounds1 && bounds2)) return false
     const [[minLon1, minLat1], [maxLon1, maxLat1]] = bounds1
         .adjustAntiMeridian()
         .toArray()

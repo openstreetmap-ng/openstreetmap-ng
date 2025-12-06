@@ -34,10 +34,10 @@ layersConfig.set(LAYER_ID, {
 })
 
 export class LocationFilterControl implements IControl {
-    private _map: MaplibreMap
-    private _bounds: Bounds
-    private _grabber: Marker
-    private _corners: Marker[]
+    private _map!: MaplibreMap
+    private _bounds!: Bounds
+    private _grabber!: Marker
+    private _corners!: Marker[]
     private _onRenderHandlers: (() => void)[] = []
 
     public addTo(map: MaplibreMap, bounds: LngLatBounds) {
@@ -86,9 +86,7 @@ export class LocationFilterControl implements IControl {
     public remove() {
         removeMapLayer(this._map, LAYER_ID)
         for (const corner of this._corners) corner.remove()
-        this._corners = null
         this._grabber.remove()
-        this._grabber = null
     }
 
     public getBounds() {
@@ -172,7 +170,7 @@ export class LocationFilterControl implements IControl {
     }
 
     public onAdd(_: MaplibreMap): HTMLElement {
-        // Do nothing
+        // @ts-expect-error
         return
     }
 

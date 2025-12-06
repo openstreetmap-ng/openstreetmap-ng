@@ -4,8 +4,8 @@ import { mount } from "@lib/mount"
 import { qsEncode, qsParse } from "@lib/qs"
 
 mount("welcome-body", (body) => {
-    const noteLink = body.querySelector("a.note-link")
-    const startButton = body.querySelector("a.start-btn")
+    const noteLink = body.querySelector("a.note-link")!
+    const startButton = body.querySelector("a.start-btn")!
 
     // Support default location setting via URL parameters
     let providedState: MapState | null = null

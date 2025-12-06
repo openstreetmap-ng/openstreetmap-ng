@@ -10,7 +10,7 @@ export class CustomZoomControl extends NavigationControl {
     public override onAdd(map: MaplibreMap) {
         const container = super.onAdd(map)
 
-        const zoomInButton = container.querySelector("button.maplibregl-ctrl-zoom-in")
+        const zoomInButton = container.querySelector("button.maplibregl-ctrl-zoom-in")!
         const zoomInText = i18next.t("javascripts.map.zoom.in")
         zoomInButton.ariaLabel = zoomInText
         new Tooltip(zoomInButton, {
@@ -22,7 +22,9 @@ export class CustomZoomControl extends NavigationControl {
         zoomInIcon.src = "/static/img/controls/_generated/zoom-in.webp"
         zoomInButton.replaceChildren(zoomInIcon)
 
-        const zoomOutButton = container.querySelector("button.maplibregl-ctrl-zoom-out")
+        const zoomOutButton = container.querySelector(
+            "button.maplibregl-ctrl-zoom-out",
+        )!
         const zoomOutText = i18next.t("javascripts.map.zoom.out")
         zoomOutButton.ariaLabel = zoomOutText
         new Tooltip(zoomOutButton, {

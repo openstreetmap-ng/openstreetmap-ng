@@ -6,7 +6,7 @@ import i18next from "i18next"
 const PAGINATION_DISTANCE = 2
 
 export const configureStandardPagination = (
-    container?: ParentNode,
+    container: ParentNode | null,
     options?: {
         reverse?: boolean
         initialPage?: number
@@ -22,30 +22,29 @@ export const configureStandardPagination = (
     const renderContainer =
         container.querySelector("ul.list-unstyled") ?? container.querySelector("tbody")
     const paginationContainers = Array.from(container.querySelectorAll("ul.pagination"))
-    if (!renderContainer || !paginationContainers.length) {
+    if (!(renderContainer && paginationContainers.length)) {
         console.debug(
             "Ignored standard pagination: missing renderContainer/paginationContainers",
         )
         return () => {}
     }
 
-    const dataset = paginationContainers.at(-1).dataset
-    const initialPages = Number.parseInt(dataset.pages, 10)
-    if (!initialPages) {
+    const dataset = paginationContainers.at(-1)!.dataset
+    if (!dataset.pages) {
         console.debug("Ignored standard pagination: missing data-pages")
         return () => {}
     }
-
-    const pageSize = Number.parseInt(dataset.pageSize, 10) // optional
+    const initialPages = Number.parseInt(dataset.pages, 10)
+    const pageSize = dataset.pageSize ? Number.parseInt(dataset.pageSize, 10) : null // optional
     const reverse = options?.reverse ?? true
 
-    const endpointPattern = dataset.action
+    const endpointPattern = dataset.action!
     console.debug(
         "Initializing standard pagination",
         options?.customLoader ? "<custom loader>" : endpointPattern,
     )
 
-    const numItems = signal(Number.parseInt(dataset.numItems, 10))
+    const numItems = signal(Number.parseInt(dataset.numItems!, 10))
     const totalPages = signal(initialPages)
     const currentPage = signal(options?.initialPage ?? (reverse ? initialPages : 1))
     const fetchCache = new Map<string, string>()
@@ -126,11 +125,11 @@ export const configureStandardPagination = (
                 if (numItems.value < 0) {
                     batch(() => {
                         numItems.value = Number.parseInt(
-                            resp.headers.get("X-SP-NumItems"),
+                            resp.headers.get("X-SP-NumItems")!,
                             10,
                         )
                         totalPages.value = Number.parseInt(
-                            resp.headers.get("X-SP-NumPages"),
+                            resp.headers.get("X-SP-NumPages")!,
                             10,
                         )
                         currentPage.value = reverse ? totalPages.value : 1

@@ -25,12 +25,12 @@ const focusPaint: FocusLayerPaint = {
 
 export const getNewNoteController = (map: MaplibreMap) => {
     const sidebar = getActionSidebar("new-note")
-    const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const form = sidebar.querySelector("form")
-    const lonInput = form.querySelector("input[name=lon]")
-    const latInput = form.querySelector("input[name=lat]")
-    const commentInput = form.querySelector("textarea[name=text]")
-    const submitButton = form.querySelector("button[type=submit]")
+    const sidebarTitle = sidebar.querySelector(".sidebar-title")!.textContent
+    const form = sidebar.querySelector("form")!
+    const lonInput = form.querySelector("input[name=lon]")!
+    const latInput = form.querySelector("input[name=lat]")!
+    const commentInput = form.querySelector("textarea[name=text]")!
+    const submitButton = form.querySelector("button[type=submit]")!
 
     let marker: Marker | null = null
 
@@ -75,7 +75,10 @@ export const getNewNoteController = (map: MaplibreMap) => {
                 .setLngLat(center ?? map.getCenter())
                 .addTo(map)
 
-            const focusHalo = () => {
+            const onDragEnd = () => {
+                if (!marker) return
+
+                // Focus halo and update inputs
                 const lngLat = marker.getLngLat()
                 focusObjects(
                     map,
@@ -92,11 +95,6 @@ export const getNewNoteController = (map: MaplibreMap) => {
                     null,
                     { fitBounds: false },
                 )
-            }
-
-            const onDragEnd = () => {
-                focusHalo()
-                const lngLat = marker.getLngLat()
                 lonInput.value = lngLat.lng.toString()
                 latInput.value = lngLat.lat.toString()
             }
@@ -111,7 +109,7 @@ export const getNewNoteController = (map: MaplibreMap) => {
 
             // Enable notes layer to prevent duplicates
             const state = getMapState(map)
-            const notesLayerCode = layersConfig.get(NOTES_LAYER_ID).layerCode
+            const notesLayerCode = layersConfig.get(NOTES_LAYER_ID)!.layerCode!
             if (!state.layersCode.includes(notesLayerCode)) {
                 state.layersCode += notesLayerCode
                 setMapState(map, state)
@@ -120,7 +118,7 @@ export const getNewNoteController = (map: MaplibreMap) => {
         unload: () => {
             setNewNoteButtonState(false)
             focusObjects(map)
-            marker.remove()
+            marker!.remove()
             marker = null
         },
     }

@@ -117,7 +117,7 @@ const evaluateStrength = (
 
     // Only allow "perfect" when there are no suggestions; otherwise cap at "strong"
     if (level.key === "perfect" && suggestions.size)
-        level = STRENGTH_LEVELS.find((l) => l.key === "strong")
+        level = STRENGTH_LEVELS.find((l) => l.key === "strong")!
 
     return { score, level, suggestions: [...suggestions] }
 }

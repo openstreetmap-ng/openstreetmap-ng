@@ -199,7 +199,8 @@ layersConfig.set("aerial" as LayerId, {
     },
     layerOptions: {
         paint: {
-            "raster-opacity": null, // loaded from storage
+            // @ts-expect-error loaded from storage
+            "raster-opacity": null,
         },
     },
     layerCode: "A" as LayerCode,
@@ -280,14 +281,15 @@ export const addMapLayerSources = (
             }
         } else if (specType === "vector") {
             for (const [sourceId, source] of Object.entries(
-                config.vectorStyle.sources,
+                config.vectorStyle!.sources,
             )) {
                 if (
                     (source.type !== "raster" && source.type !== "vector") ||
-                    (!source.tiles && !source.url)
+                    !(source.tiles || source.url)
                 )
                     continue
                 if (source.attribution || config.specification.attribution)
+                    // @ts-expect-error override source attribution
                     source.attribution = config.specification.attribution
                 map.addSource(
                     getExtendedLayerId(layerId, sourceId as LayerType),
@@ -312,7 +314,7 @@ addThemeEventHandler((theme) => {
     for (const map of watchMapsLayerSources) {
         for (const [layerId, config] of layersConfig) {
             const source = map.getSource(layerId)
-            if (!source || !(source instanceof RasterTileSource)) continue
+            if (!(source && source instanceof RasterTileSource)) continue
             if (isDarkTheme) {
                 if (config.darkTiles) {
                     source.setTiles(config.darkTiles)
@@ -377,7 +379,7 @@ export const addMapLayer = (
     }
 
     const specType = config.specification.type
-    let layerTypes: LayerType[]
+    let layerTypes!: LayerType[]
     if (config.layerTypes) {
         layerTypes = config.layerTypes
     } else if (specType === "raster") {
@@ -398,7 +400,7 @@ export const addMapLayer = (
 
     if (specType === "vector") {
         console.debug("Adding vectory layer", layerId, "before", beforeId)
-        const vectorStyle = config.vectorStyle
+        const vectorStyle = config.vectorStyle!
 
         // Add glyphs
         if (vectorStyle.glyphs) map.setGlyphs(vectorStyle.glyphs)
@@ -507,10 +509,10 @@ export const removeMapLayer = (
         removed = true
     }
     if (removed) {
-        const config = layersConfig.get(layerId)
+        const config = layersConfig.get(layerId)!
 
         if (config.specification.type === "vector") {
-            const vectorStyle = config.vectorStyle
+            const vectorStyle = config.vectorStyle!
 
             // Remove glyphs
             if (vectorStyle.glyphs) map.setGlyphs(null)

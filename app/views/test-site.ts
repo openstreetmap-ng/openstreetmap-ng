@@ -2,19 +2,19 @@ import "./main.scss"
 
 import "bootstrap"
 
-const quizModal = document.querySelector("#testSiteQuizModal")
-const quizForm = quizModal.querySelector("form")
-const submitButton = quizForm.querySelector('button[type="submit"]')
+const quizModal = document.getElementById("testSiteQuizModal")!
+const quizForm = quizModal.querySelector("form")!
+const submitButton = quizForm.querySelector('button[type="submit"]')!
 
 const updateAnswerStyles = (input: HTMLInputElement) => {
     // Clear all styles for this question
     for (const radio of quizForm.querySelectorAll(`input[name="${input.name}"]`))
-        radio.closest("label").classList.remove("text-success", "text-danger")
+        radio.closest("label")!.classList.remove("text-success", "text-danger")
 
     // Apply style to checked input
     if (input.checked)
         input
-            .closest("label")
+            .closest("label")!
             .classList.add(input.value === "correct" ? "text-success" : "text-danger")
 }
 
@@ -29,7 +29,7 @@ const checkQuizCompletion = () => {
         (radio) => radio.value === "correct",
     )
 
-    submitButton.disabled = !allAnswered || !allCorrect
+    submitButton.disabled = !(allAnswered && allCorrect)
 }
 
 quizForm.addEventListener("change", (e) => {

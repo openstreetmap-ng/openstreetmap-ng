@@ -1,4 +1,5 @@
 import { fromBinary } from "@bufbuild/protobuf"
+import { assert } from "@lib/assert"
 import { resolveDatetimeLazy } from "@lib/datetime-inputs"
 import { mount } from "@lib/mount"
 import { MessageReadSchema } from "@lib/proto/shared_pb"
@@ -9,20 +10,20 @@ import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
 mount("messages-index-body", (body) => {
     const messages = body.querySelectorAll(".messages-list li.social-entry.clickable")
-    const messagePreview = body.querySelector(".message-preview") as HTMLElement
-    const messagePreviewContainer = messagePreview.parentElement
-    const messageSender = messagePreview.querySelector(".message-sender")
-    const senderAvatar = messageSender.querySelector("img.avatar")
-    const senderLink = messageSender.querySelector("a.sender-link")
-    const messageTime = messagePreview.querySelector(".message-time")
-    const messageRecipients = messagePreview.querySelector(".message-recipients")
-    const btnGroup = messagePreview.querySelector(".btn-group")
-    const replyLink = btnGroup.querySelector("a.reply-link")
+    const messagePreview = body.querySelector<HTMLElement>(".message-preview")!
+    const messagePreviewContainer = messagePreview.parentElement!
+    const messageSender = messagePreview.querySelector(".message-sender")!
+    const senderAvatar = messageSender.querySelector("img.avatar")!
+    const senderLink = messageSender.querySelector("a.sender-link")!
+    const messageTime = messagePreview.querySelector(".message-time")!
+    const messageRecipients = messagePreview.querySelector(".message-recipients")!
+    const btnGroup = messagePreview.querySelector(".btn-group")!
+    const replyLink = btnGroup.querySelector("a.reply-link")!
     const replyAllLink = btnGroup.querySelector("a.reply-all-link")
-    const messageTitle = messagePreview.querySelector(".message-title")
-    const messageBody = messagePreview.querySelector(".message-body")
-    const loadingSpinner = messagePreview.querySelector(".loading")
-    const recipientTemplate = body.querySelector("template.message-recipient-template")
+    const messageTitle = messagePreview.querySelector(".message-title")!
+    const messageBody = messagePreview.querySelector(".message-body")!
+    const loadingSpinner = messagePreview.querySelector(".loading")!
+    const recipientTemplate = body.querySelector("template.message-recipient-template")!
     const reportButton = messagePreview.querySelector("button.report-btn")
 
     let abortController: AbortController | null = null
@@ -30,9 +31,9 @@ mount("messages-index-body", (body) => {
     let openMessageId: string | null = null
 
     const openMessagePreview = async (target: HTMLElement) => {
-        const newMessageId = target.dataset.id
+        const newMessageId = target.dataset.id!
         if (openMessageId === newMessageId) return
-        if (openTarget) closeMessagePreview()
+        closeMessagePreview()
 
         openTarget = target
         openMessageId = newMessageId
@@ -87,9 +88,10 @@ mount("messages-index-body", (body) => {
                 message.isRecipient,
             )
 
-            senderAvatar.src = message.sender.avatarUrl
-            senderLink.href = `/user/${message.sender.displayName}`
-            senderLink.textContent = message.sender.displayName
+            const sender = message.sender!
+            senderAvatar.src = sender.avatarUrl
+            senderLink.href = `/user/${sender.displayName}`
+            senderLink.textContent = sender.displayName
             messageTime.innerHTML = message.time
 
             // Add each recipient
@@ -98,8 +100,8 @@ mount("messages-index-body", (body) => {
                 const userElement = recipientTemplate.content.cloneNode(
                     true,
                 ) as HTMLElement
-                const avatar = userElement.querySelector("img.avatar")
-                const link = userElement.querySelector("a.user-link")
+                const avatar = userElement.querySelector("img.avatar")!
+                const link = userElement.querySelector("a.user-link")!
 
                 avatar.src = user.avatarUrl
                 link.href = `/user/${user.displayName}`
@@ -123,7 +125,7 @@ mount("messages-index-body", (body) => {
             // Configure report button
             configureReportButton(reportButton, {
                 type: "user",
-                typeId: message.sender.id,
+                typeId: sender.id,
                 action: "user_message",
                 actionId: openMessageId,
             })
@@ -138,6 +140,9 @@ mount("messages-index-body", (body) => {
     }
 
     const closeMessagePreview = () => {
+        if (!openTarget) return
+        assert(openMessageId)
+
         console.debug("closeMessagePreview", openMessageId)
         messagePreviewContainer.classList.add("d-none")
         abortController?.abort()
@@ -152,7 +157,7 @@ mount("messages-index-body", (body) => {
 
     const updatePageUrl = (message: HTMLElement | undefined) => {
         if (message) {
-            const messageLink = message.querySelector("a.stretched-link")
+            const messageLink = message.querySelector("a.stretched-link")!
             window.history.replaceState(null, "", messageLink.href)
         } else {
             const url = new URL(window.location.href)
@@ -162,18 +167,20 @@ mount("messages-index-body", (body) => {
     }
 
     // Configure message header buttons
-    const closePreviewButton = messagePreview.querySelector(".btn-close")
+    const closePreviewButton = messagePreview.querySelector(".btn-close")!
     closePreviewButton.addEventListener("click", closeMessagePreview)
 
     const unreadButton = messagePreview.querySelector("button.unread-btn")
     if (unreadButton) {
-        const unreadForm = messagePreview.querySelector("form.unread-form")
+        const unreadForm = messagePreview.querySelector("form.unread-form")!
         configureStandardForm(unreadForm, () => {
             // On success callback, mark the message as unread and update the badge
             console.debug("onUnreadFormSuccess", openMessageId)
-            openTarget.classList.add("unread")
             changeUnreadMessagesBadge(1)
-            closeMessagePreview()
+            if (openTarget) {
+                openTarget.classList.add("unread")
+                closeMessagePreview()
+            }
         })
 
         // On unread button click, submit the form
@@ -184,14 +191,16 @@ mount("messages-index-body", (body) => {
         })
     }
 
-    const deleteForm = messagePreview.querySelector("form.delete-form")
+    const deleteForm = messagePreview.querySelector("form.delete-form")!
     configureStandardForm(deleteForm, () => {
         console.debug("onDeleteFormSuccess", openMessageId)
-        openTarget.remove()
-        closeMessagePreview()
+        if (openTarget) {
+            openTarget.remove()
+            closeMessagePreview()
+        }
     })
 
-    const deleteButton = messagePreview.querySelector("button.delete-btn")
+    const deleteButton = messagePreview.querySelector("button.delete-btn")!
     deleteButton.addEventListener("click", () => {
         if (!confirm(t("messages.delete_confirmation"))) return
         deleteForm.action = `/api/web/messages/${openMessageId}/delete`
@@ -200,7 +209,7 @@ mount("messages-index-body", (body) => {
 
     // Configure message selection
     for (const message of messages) {
-        const messageLink = message.querySelector("a.stretched-link")
+        const messageLink = message.querySelector("a.stretched-link")!
 
         // On message click, open preview if target is not a link
         messageLink.addEventListener("click", (e) => {

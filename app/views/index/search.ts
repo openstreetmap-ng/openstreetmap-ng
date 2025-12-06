@@ -86,7 +86,7 @@ const SEARCH_ALERT_CHANGE_THRESHOLD = 0.9
 /** Create a new search controller */
 export const getSearchController = (map: MaplibreMap) => {
     const source = map.getSource(LAYER_ID) as GeoJSONSource
-    const searchForm = document.querySelector("form.search-form")
+    const searchForm = document.querySelector("form.search-form")!
     const searchAlert = getMapAlert("search-alert")
     const searchTitle = i18next.t("site.search.search")
     const whereIsThisTitle = i18next.t("site.search.where_am_i")
@@ -98,14 +98,16 @@ export const getSearchController = (map: MaplibreMap) => {
 
     // On feature click, navigate to the note
     map.on("click", LAYER_ID, (e) => {
-        const result = results[e.features[0].id as number]
-        const target = result.querySelector("a.stretched-link")
+        if (!results) return
+        const result = results[e.features![0].id as number]
+        const target = result.querySelector("a.stretched-link")!
         target.click()
     })
 
     let hoveredFeatureId: number | null = null
     map.on("mousemove", LAYER_ID, (e) => {
-        const featureId = e.features[0].id
+        if (!setHover) return
+        const featureId = e.features![0].id
         if (hoveredFeatureId) {
             if (hoveredFeatureId === featureId) return
             setHover(hoveredFeatureId, false)
@@ -116,6 +118,7 @@ export const getSearchController = (map: MaplibreMap) => {
         setHover(hoveredFeatureId, true)
     })
     map.on("mouseleave", LAYER_ID, () => {
+        if (!hoveredFeatureId) return
         setHover?.(hoveredFeatureId, false)
         hoveredFeatureId = null
         clearMapHover(map, LAYER_ID)
@@ -165,13 +168,13 @@ export const getSearchController = (map: MaplibreMap) => {
     }
 
     const base = getBaseFetchController(map, "search", (sidebarContent) => {
-        const sidebar = sidebarContent.closest(".sidebar")
-        const searchList = sidebarContent.querySelector("ul.search-list")
+        const sidebar = sidebarContent.closest(".sidebar")!
+        const searchList = sidebarContent.querySelector("ul.search-list")!
         results = searchList.querySelectorAll("li.social-entry.clickable")
 
         const params = fromBinary(
             PartialSearchParamsSchema,
-            base64Decode(searchList.dataset.params),
+            base64Decode(searchList.dataset.params!),
         )
         const globalMode = !params.boundsStr
         whereIsThisMode = params.whereIsThis
@@ -180,15 +183,15 @@ export const getSearchController = (map: MaplibreMap) => {
         const features: Feature[] = []
         for (let i = 0; i < results.length; i++) {
             const result = results[i]
-            result.addEventListener("mouseenter", () => setHover(i, true))
+            result.addEventListener("mouseenter", () => setHover?.(i, true))
             result.addEventListener("mouseleave", () => setHover?.(i, false))
 
             // Lazily convert render elements data
             elements.push(memoize(() => convertRenderElementsData(params.renders[i])))
 
             const dataset = result.dataset
-            const lon = Number.parseFloat(dataset.lon)
-            const lat = Number.parseFloat(dataset.lat)
+            const lon = Number.parseFloat(dataset.lon!)
+            const lat = Number.parseFloat(dataset.lat!)
             if (isLongitude(lon) && isLatitude(lat)) {
                 // Not all results have a central point
                 features.push({
@@ -208,7 +211,7 @@ export const getSearchController = (map: MaplibreMap) => {
 
         /** Set the hover state of the search features */
         setHover = (id: number, hover: boolean) => {
-            const result = results[id]
+            const result = results![id]
             result?.classList.toggle("hover", hover)
 
             map.setFeatureState({ source: LAYER_ID, id: id }, { hover })
@@ -247,7 +250,7 @@ export const getSearchController = (map: MaplibreMap) => {
 
             const boundsPadded = padLngLatBounds(
                 new LngLatBounds(
-                    params.boundsStr.split(",").map(Number.parseFloat) as Bounds,
+                    params.boundsStr!.split(",").map(Number.parseFloat) as Bounds,
                 ),
                 0.05,
             )
@@ -289,7 +292,7 @@ export const getSearchController = (map: MaplibreMap) => {
 
             if (!query && lon && lat) {
                 setPageTitle(whereIsThisTitle)
-                setSearchFormQuery(null)
+                setSearchFormQuery("")
 
                 const zoom = (
                     Number(options?.zoom ?? searchParams.zoom ?? map.getZoom()) | 0
@@ -300,7 +303,7 @@ export const getSearchController = (map: MaplibreMap) => {
                 setSearchFormQuery(query)
 
                 // Load empty sidebar to ensure proper bbox
-                base.load()
+                base.load(null)
 
                 // Pad the bounds to avoid floating point errors
                 const [[minLon, minLat], [maxLon, maxLat]] = padLngLatBounds(

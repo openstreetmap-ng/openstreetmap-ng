@@ -1,4 +1,5 @@
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
+import { assert } from "@lib/assert"
 import { config } from "@lib/config"
 import { zoomPrecision } from "@lib/coords"
 import { padLngLatBounds } from "@lib/map/bounds"
@@ -9,25 +10,24 @@ import type { Map as MaplibreMap } from "maplibre-gl"
 
 export const getExportController = (map: MaplibreMap) => {
     const sidebar = getActionSidebar("export")
-    const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const minLonInput = sidebar.querySelector("input[name=min_lon]")
-    const minLatInput = sidebar.querySelector("input[name=min_lat]")
-    const maxLonInput = sidebar.querySelector("input[name=max_lon]")
-    const maxLatInput = sidebar.querySelector("input[name=max_lat]")
-    const customRegionCheckbox = sidebar.querySelector("input.custom-region-check")
+    const sidebarTitle = sidebar.querySelector(".sidebar-title")!.textContent
+    const minLonInput = sidebar.querySelector("input[name=min_lon]")!
+    const minLatInput = sidebar.querySelector("input[name=min_lat]")!
+    const maxLonInput = sidebar.querySelector("input[name=max_lon]")!
+    const maxLatInput = sidebar.querySelector("input[name=max_lat]")!
+    const customRegionCheckbox = sidebar.querySelector("input.custom-region-check")!
     const exportAvailableContainer = sidebar.querySelector(
         ".export-available-container",
-    )
-    const exportLink = exportAvailableContainer.querySelector("a.export-link")
+    )!
+    const exportLink = exportAvailableContainer.querySelector("a.export-link")!
     const exportBaseHref = exportLink.href
     const exportUnavailableContainer = sidebar.querySelector(
         ".export-unavailable-container",
-    )
-    const exportOverpassLink = sidebar.querySelector("a.export-overpass-link")
+    )!
+    const exportOverpassLink = sidebar.querySelector("a.export-overpass-link")!
     const exportOverpassBaseHref = exportOverpassLink.href
 
-    // Null values until initialized
-    let locationFilter: LocationFilterControl | null = null
+    let locationFilter: LocationFilterControl | undefined
 
     // On custom region checkbox change, enable/disable the location filter
     customRegionCheckbox.addEventListener("change", () => {
@@ -40,6 +40,7 @@ export const getExportController = (map: MaplibreMap) => {
             // By default, location filter is slightly smaller than the current view
             locationFilter.addTo(map, padLngLatBounds(map.getBounds(), -0.2))
         } else {
+            assert(locationFilter)
             locationFilter.remove()
         }
         updateState()
@@ -48,7 +49,7 @@ export const getExportController = (map: MaplibreMap) => {
     const updateState = () => {
         const precision = zoomPrecision(map.getZoom())
         const bounds = customRegionCheckbox.checked
-            ? locationFilter.getBounds()
+            ? locationFilter!.getBounds()
             : map.getBounds()
         const [[minLon, minLat], [maxLon, maxLat]] = bounds
             .adjustAntiMeridian()
