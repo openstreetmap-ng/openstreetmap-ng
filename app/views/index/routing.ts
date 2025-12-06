@@ -76,7 +76,7 @@ const DRAG_IMAGE_OFFSET_X = 12
 const DRAG_IMAGE_OFFSET_Y = 21
 
 export const getRoutingController = (map: MaplibreMap) => {
-    const source = map.getSource(LAYER_ID) as GeoJSONSource
+    const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     const mapContainer = map.getContainer()
     const sidebar = getActionSidebar("routing")
     const parentSidebar = sidebar.closest("div.sidebar")!

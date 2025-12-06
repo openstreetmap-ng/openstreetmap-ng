@@ -53,7 +53,7 @@ export const exportMapImage = async (
         (!filterBounds || filterBounds.contains(markerLngLat))
     ) {
         console.debug("Rendering marker onto the map")
-        const source = map.getSource(LAYER_ID) as GeoJSONSource
+        const source = map.getSource<GeoJSONSource>(LAYER_ID)!
         await new Promise<void>((resolve) => {
             loadMapImage(map, "marker-blue", () => {
                 source.setData({

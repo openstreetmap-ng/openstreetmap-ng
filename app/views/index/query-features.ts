@@ -57,7 +57,7 @@ const focusPaint: FocusLayerPaint = {
 }
 
 export const getQueryFeaturesController = (map: MaplibreMap) => {
-    const source = map.getSource(LAYER_ID) as GeoJSONSource
+    const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     const sidebar = getActionSidebar("query-features")
     const sidebarTitle = sidebar.querySelector(".sidebar-title")!.textContent
     const nearbyContainer = sidebar.querySelector("div.nearby-container")!

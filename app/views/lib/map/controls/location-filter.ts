@@ -150,6 +150,8 @@ export class LocationFilterControl implements IControl {
     }
 
     private _render(i?: number) {
+        const source = this._map.getSource<GeoJSONSource>(LAYER_ID)
+        if (!source) return
         const [minLon, minLat, maxLon, maxLat] = this._bounds
         if (i !== -1)
             this._grabber.setLngLat([
@@ -160,7 +162,6 @@ export class LocationFilterControl implements IControl {
         if (i !== 1) this._corners[1].setLngLat([minLon, maxLat])
         if (i !== 2) this._corners[2].setLngLat([maxLon, maxLat])
         if (i !== 3) this._corners[3].setLngLat([maxLon, minLat])
-        const source = this._map.getSource(LAYER_ID) as GeoJSONSource
         source.setData(getMaskData(this._bounds))
         for (const handler of this._onRenderHandlers) handler()
     }

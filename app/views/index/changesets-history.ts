@@ -120,8 +120,8 @@ const LOAD_MORE_SCROLL_BUFFER = 1000
 const RELOAD_PROPORTION_THRESHOLD = 0.9
 
 export const getChangesetsHistoryController = (map: MaplibreMap) => {
-    const source = map.getSource(LAYER_ID) as GeoJSONSource
-    const sourceBorders = map.getSource(LAYER_ID_BORDERS) as GeoJSONSource
+    const source = map.getSource<GeoJSONSource>(LAYER_ID)!
+    const sourceBorders = map.getSource<GeoJSONSource>(LAYER_ID_BORDERS)!
     const sidebar = getActionSidebar("changesets-history")
     const parentSidebar = sidebar.closest("div.sidebar")!
     const sidebarTitleElement = sidebar.querySelector(".sidebar-title")!

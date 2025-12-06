@@ -59,7 +59,7 @@ layersConfig.set(LAYER_ID, {
 
 export const getDistanceController = (map: MaplibreMap) => {
     const mapContainer = map.getContainer()
-    const source = map.getSource(LAYER_ID) as GeoJSONSource
+    const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")!
     const clearBtn = sidebar.querySelector("button.clear-btn")!
@@ -83,10 +83,13 @@ export const getDistanceController = (map: MaplibreMap) => {
         // Listen for events on real markers
         if (index >= 0) {
             // On marker drag, update the state
-            const markerDirtyIndex = [index]
             marker.on(
                 "drag",
-                throttle(() => update(markerDirtyIndex), 16),
+                throttle(() => {
+                    const currentIndex = markers.indexOf(marker)
+                    if (currentIndex === -1) return
+                    update([currentIndex])
+                }, 16),
             )
             // On marker click, remove that marker
             marker.getElement().addEventListener(
@@ -346,6 +349,7 @@ export const getDistanceController = (map: MaplibreMap) => {
 
     // Handles ghost marker positioning near existing line segments
     const updateGhostMarkerPosition = throttle((e: MapMouseEvent | MouseEvent) => {
+        if (!markers.length) return
         if (showMarker) {
             if (!ghostMarker)
                 ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)

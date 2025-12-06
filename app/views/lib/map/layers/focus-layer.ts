@@ -76,7 +76,7 @@ export const focusObjects = (
     layout?: FocusLayerLayout | null,
     options?: FocusOptions,
 ) => {
-    const source = map.getSource(LAYER_ID) as GeoJSONSource
+    const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     source.setData(emptyFeatureCollection)
 
     // If there are no objects to focus, remove the focus layer

@@ -85,7 +85,7 @@ const SEARCH_ALERT_CHANGE_THRESHOLD = 0.9
 
 /** Create a new search controller */
 export const getSearchController = (map: MaplibreMap) => {
-    const source = map.getSource(LAYER_ID) as GeoJSONSource
+    const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     const searchForm = document.querySelector("form.search-form")!
     const searchAlert = getMapAlert("search-alert")
     const searchTitle = i18next.t("site.search.search")

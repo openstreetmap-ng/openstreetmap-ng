@@ -98,12 +98,9 @@ if (tracePreviewContainer) {
     )
     map.fitBounds(padLngLatBounds(bounds, 0.3), { animate: false })
 
-    const geometry: LineString = {
-        type: "LineString",
-        coordinates,
-    }
-    ;(map.getSource(LAYER_ID) as GeoJSONSource).setData(geometry)
-    ;(map.getSource(LAYER_ID_ANT) as GeoJSONSource).setData(geometry)
+    const geometry: LineString = { type: "LineString", coordinates }
+    map.getSource<GeoJSONSource>(LAYER_ID)!.setData(geometry)
+    map.getSource<GeoJSONSource>(LAYER_ID_ANT)!.setData(geometry)
 
     let lastOffset = -1
 

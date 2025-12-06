@@ -76,7 +76,7 @@ const LOAD_DATA_ALERT_THRESHOLD = 10_000
 
 /** Configure the data layer for the given map */
 export const configureDataLayer = (map: MaplibreMap) => {
-    const source = map.getSource(LAYER_ID) as GeoJSONSource
+    const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     const errorDataAlert = getMapAlert("data-layer-error-alert")
     const loadDataAlert = getMapAlert("data-layer-load-alert")
     const hideDataButton = loadDataAlert.querySelector("button.hide-data-btn")!

@@ -53,7 +53,7 @@ const RELOAD_PROPORTION_THRESHOLD = 0.9
 
 /** Configure the notes layer for the given map */
 export const configureNotesLayer = (map: MaplibreMap) => {
-    const source = map.getSource(LAYER_ID) as GeoJSONSource
+    const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     let enabled = false
     let fetchedBounds: LngLatBounds | null = null
     let abortController: AbortController | null = null

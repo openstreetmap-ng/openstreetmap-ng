@@ -314,7 +314,7 @@ addThemeEventHandler((theme) => {
     for (const map of watchMapsLayerSources) {
         for (const [layerId, config] of layersConfig) {
             const source = map.getSource(layerId)
-            if (!(source && source instanceof RasterTileSource)) continue
+            if (!(source instanceof RasterTileSource)) continue
             if (isDarkTheme) {
                 if (config.darkTiles) {
                     source.setTiles(config.darkTiles)
