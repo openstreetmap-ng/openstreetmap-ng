@@ -9,6 +9,7 @@ from app.exceptions import Exceptions
 from app.exceptions.api_error import APIError
 from app.lib.auth_context import auth_context
 from app.lib.exceptions_context import exceptions_context
+from app.models.proto.shared_pb2 import MessageRead
 from app.models.types import DisplayName, MessageId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
@@ -41,25 +42,16 @@ async def test_message_crud(client: AsyncClient):
     r = await client.get(f'/api/web/messages/{message_id}')
     assert r.is_success, r.text
 
-    sender_read_response = r.json()
-    assert_model(
-        sender_read_response,
-        {
-            'sender': {
-                'display_name': 'user1',
-                'avatar_url': str,
-            },
-            'recipients': [
-                {
-                    'display_name': 'user2',
-                    'avatar_url': str,
-                }
-            ],
-            'time': str,
-            'subject': 'Test Subject',
-            'body_rich': '<p>Test Body</p>\n',
-        },
-    )
+    msg = MessageRead.FromString(r.content)
+    assert msg.sender.display_name == 'user1'
+    assert msg.sender.avatar_url
+    assert len(msg.recipients) == 1
+    assert msg.recipients[0].display_name == 'user2'
+    assert msg.recipients[0].avatar_url
+    assert not msg.is_recipient
+    assert msg.time
+    assert msg.subject == 'Test Subject'
+    assert msg.body_rich == '<p>Test Body</p>\n'
 
     with auth_context(user1):
         message = await MessageQuery.get_by_id(message_id)
@@ -72,25 +64,16 @@ async def test_message_crud(client: AsyncClient):
     r = await client.get(f'/api/web/messages/{message_id}')
     assert r.is_success, r.text
 
-    read_response = r.json()
-    assert_model(
-        read_response,
-        {
-            'sender': {
-                'display_name': 'user1',
-                'avatar_url': str,
-            },
-            'recipients': [
-                {
-                    'display_name': 'user2',
-                    'avatar_url': str,
-                }
-            ],
-            'time': str,
-            'subject': 'Test Subject',
-            'body_rich': '<p>Test Body</p>\n',
-        },
-    )
+    msg = MessageRead.FromString(r.content)
+    assert msg.sender.display_name == 'user1'
+    assert msg.sender.avatar_url
+    assert len(msg.recipients) == 1
+    assert msg.recipients[0].display_name == 'user2'
+    assert msg.recipients[0].avatar_url
+    assert msg.is_recipient
+    assert msg.time
+    assert msg.subject == 'Test Subject'
+    assert msg.body_rich == '<p>Test Body</p>\n'
 
     with auth_context(user1):
         message = await MessageQuery.get_by_id(message_id)
