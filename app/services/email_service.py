@@ -10,6 +10,7 @@ from typing import Any, Literal, overload
 import cython
 from aiosmtplib import SMTP
 from psycopg.rows import dict_row
+from sentry_sdk import capture_exception
 from zid import zid
 
 from app.config import (
@@ -140,7 +141,7 @@ async def _process_task() -> None:
         try:
             await _process_task_inner()
         except Exception:
-            pass
+            capture_exception()
 
     # Avoids race conditions in which scheduled mail is not processed immediately.
     # In rare cases, there will be more than one task running at the time (per process).
@@ -177,6 +178,7 @@ async def _process_task_inner() -> None:
                     await conn.execute('DELETE FROM mail WHERE id = %s', (mail_id,))
 
                 except Exception:
+                    capture_exception()
                     expires_at = mail['created_at'] + MAIL_UNPROCESSED_EXPIRE
                     scheduled_at = now + timedelta(
                         minutes=mail['processing_counter'] ** MAIL_UNPROCESSED_EXPONENT

@@ -11,6 +11,7 @@ from httpx import HTTPError, HTTPStatusError
 from psycopg import AsyncConnection
 from psycopg.rows import dict_row
 from psycopg.sql import SQL
+from sentry_sdk import capture_exception
 from starlette import status
 from zid import zids
 
@@ -95,7 +96,7 @@ class ImageProxyService:
             try:
                 await ImageProxyService.fetch(proxy_id)
             except Exception:
-                pass
+                capture_exception()
 
         prefetch_count: cython.size_t = 0
 

@@ -14,6 +14,7 @@ import fastapi.routing
 from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.asyncexitstack import AsyncExitStackMiddleware
+from sentry_sdk import capture_exception
 from starlette import concurrency as starlette_concurrency
 from starlette import status
 from starlette.applications import Starlette
@@ -249,5 +250,6 @@ async def exception_group_handler(request: Request, exc: ExceptionGroup):
         if isinstance(e, HTTPException):
             return await http_exception_handler(request, e)
 
+    capture_exception(exc)
     traceback.print_exception(exc.__class__, exc, exc.__traceback__)
     return Response('Internal Server Error', status.HTTP_500_INTERNAL_SERVER_ERROR)

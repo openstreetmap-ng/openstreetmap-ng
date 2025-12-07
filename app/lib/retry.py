@@ -6,6 +6,7 @@ from random import uniform
 from time import monotonic
 
 import cython
+from sentry_sdk import capture_exception
 
 
 def retry(
@@ -28,6 +29,7 @@ def retry(
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
+                    capture_exception()
                     attempt += 1
 
                     # retry is not possible, re-raise the exception
