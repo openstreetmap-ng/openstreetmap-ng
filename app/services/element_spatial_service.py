@@ -1,13 +1,14 @@
 import asyncio
 import logging
-from asyncio import Event, Semaphore, TaskGroup
+from asyncio import Event, Future, Semaphore, TaskGroup
 from contextlib import asynccontextmanager, nullcontext
 from math import ceil
 from random import uniform
 from time import monotonic
-from typing import LiteralString
 
 import cython
+from psycopg.errors import InternalError_
+from sentry_sdk import capture_exception
 from sentry_sdk.api import start_transaction
 
 from app.db import db, db_lock, without_indexes
@@ -26,45 +27,43 @@ _MAX_RELATION_NESTING_DEPTH = 15
 _PROCESS_REQUEST_EVENT = Event()
 _PROCESS_DONE_EVENT = Event()
 
-_BATCH_QUERY_WAYS: LiteralString = """
-/*+ NoSeqScan(wc) */
+# - w n: avg ways per batch
+# - m node_point: avg nodes per way (LEFT JOIN hint unsupported: github.com/ossc-db/pg_hint_plan/issues/217)
+_BATCH_QUERY_WAYS = """
+/*+ NoSeqScan(w) Rows(w n #{ways_per_batch}) Rows(m node_point #10) */
 WITH nodes AS (
     SELECT array_agg(typed_id) AS ids
     FROM element
-    WHERE sequence_id BETWEEN %(start_seq)s AND %(end_seq)s
+    WHERE sequence_id BETWEEN {start_seq} AND {end_seq}
       AND typed_id <= 1152921504606846975
       AND latest
 ),
 ways AS (
-    SELECT w.typed_id, w.sequence_id
+    SELECT w.typed_id, w.sequence_id, w.members, w.visible
     FROM element w
     CROSS JOIN nodes n
     WHERE w.typed_id BETWEEN 1152921504606846976 AND 2305843009213693951
       AND w.latest
       AND (
-        w.sequence_id BETWEEN %(start_seq)s AND %(end_seq)s
+        w.sequence_id BETWEEN {start_seq} AND {end_seq}
         OR w.members && n.ids
       )
 ),
 ways_computed AS (
     SELECT
-        wc.typed_id,
-        wc.sequence_id,
+        w.typed_id,
+        w.sequence_id,
         ST_RemoveRepeatedPoints(
-            ST_QuantizeCoordinates(
-                CASE
-                    WHEN ST_IsClosed(line_geom) AND ST_NumPoints(line_geom) >= 4
-                    THEN ST_MakePolygon(line_geom)
-                    ELSE line_geom
-                END,
-                7
-            )
+            CASE
+                WHEN ST_IsClosed(line_geom) AND ST_NPoints(line_geom) >= 4 AND ST_IsSimple(line_geom)
+                THEN ST_MakePolygon(line_geom)
+                ELSE line_geom
+            END
         ) AS geom
-    FROM element wc
-    INNER JOIN ways ON ways.sequence_id = wc.sequence_id
+    FROM ways w
     LEFT JOIN LATERAL (
         SELECT ST_MakeLine(node_point.point ORDER BY m.ord) AS line_geom
-        FROM UNNEST(wc.members) WITH ORDINALITY AS m(node_id, ord)
+        FROM UNNEST(w.members) WITH ORDINALITY AS m(node_id, ord)
         LEFT JOIN LATERAL (
             SELECT point
             FROM element n
@@ -72,22 +71,27 @@ ways_computed AS (
             ORDER BY n.sequence_id DESC
             LIMIT 1
         ) node_point ON true
-        WHERE wc.visible
-          AND wc.members IS NOT NULL
+        WHERE w.visible
+          AND w.members IS NOT NULL
     ) AS way_geom ON true
 )
 INSERT INTO element_spatial_staging (typed_id, sequence_id, updated_sequence_id, depth, geom)
-SELECT typed_id, sequence_id, %(end_seq)s, 0, geom FROM ways_computed
+SELECT typed_id, sequence_id, {end_seq}, 0, geom FROM ways_computed
 """
 
-_BATCH_QUERY_RELATIONS: LiteralString = """
+# - r rels_batch: 1 row per relation
+# - r m: avg members per batch
+# - mr glr: avg child relations per relation
+# - mw glw: avg ways/nodes per relation (LEFT JOIN hint unsupported: github.com/ossc-db/pg_hint_plan/issues/217)
+_BATCH_QUERY_RELATIONS = """
+/*+ Rows(r rels_batch #{batch_limit}) Rows(r m #{members_per_batch}) Rows(mr glr #1) Rows(mw glw #30) */
 WITH
 rels_batch AS (
     SELECT typed_id
     FROM element_spatial_pending_rels
     ORDER BY typed_id
-    OFFSET %(batch_offset)s
-    LIMIT %(batch_limit)s
+    OFFSET {batch_offset}
+    LIMIT {batch_limit}
 ),
 rels AS (
     SELECT r.typed_id, r.sequence_id, r.members, r.visible, r.tags
@@ -111,7 +115,7 @@ geom_lookup AS MATERIALIZED (
         SELECT DISTINCT ON (s.typed_id) s.typed_id, s.geom
         FROM element_spatial_staging s
         INNER JOIN needed_ids n ON n.typed_id = s.typed_id
-        WHERE s.depth < %(depth)s
+        WHERE s.depth < {depth}
         ORDER BY s.typed_id, s.updated_sequence_id DESC
     )
 
@@ -126,31 +130,23 @@ geom_lookup AS MATERIALIZED (
             SELECT 1
             FROM element_spatial_staging s
             WHERE s.typed_id = es.typed_id
-              AND s.depth < %(depth)s
+              AND s.depth < {depth}
         )
     )
+),
+blocked_rels AS (
+    SELECT DISTINCT rm.parent_id
+    FROM rels_members rm
+    LEFT JOIN geom_lookup gl ON gl.typed_id = rm.member_id
+    LEFT JOIN element_spatial_pending_rels pr ON pr.typed_id = rm.member_id
+    WHERE rm.member_id >= 2305843009213693952
+      AND (pr.typed_id IS NOT NULL OR gl.typed_id IS NULL)
 ),
 rels_ready AS (
     SELECT r.*
     FROM rels r
-    WHERE %(depth)s >= %(max_depth)s OR NOT EXISTS (
-        SELECT 1
-        FROM rels_members cm
-        WHERE cm.parent_id = r.typed_id
-          AND cm.member_id >= 2305843009213693952
-          AND (
-            EXISTS (
-                SELECT 1
-                FROM element_spatial_pending_rels pr
-                WHERE pr.typed_id = cm.member_id
-            )
-            OR NOT EXISTS (
-                SELECT 1
-                FROM geom_lookup gl
-                WHERE gl.typed_id = cm.member_id
-            )
-          )
-    )
+    LEFT JOIN blocked_rels b ON b.parent_id = r.typed_id
+    WHERE {depth} >= {max_depth} OR b.parent_id IS NULL
 ),
 rels_computed AS (
     SELECT
@@ -159,63 +155,65 @@ rels_computed AS (
         rel_geom.geom
     FROM rels_ready rr
     LEFT JOIN LATERAL (
-        -- TODO: Remove `NOT MATERIALIZED` after BUG #19106 is fixed
-        WITH member_geoms AS NOT MATERIALIZED (
-            SELECT ST_Collect(geom_val) AS geom
+        WITH member_geoms AS (
+            SELECT ST_Union(geom_val) AS geom
             FROM (
-                SELECT gl.geom AS geom_val
-                FROM UNNEST(rr.members) AS m(child_rel_id)
-                INNER JOIN geom_lookup gl ON gl.typed_id = m.child_rel_id
-                WHERE m.child_rel_id >= 2305843009213693952
-                  AND gl.geom IS NOT NULL
+                SELECT glr.geom AS geom_val
+                FROM UNNEST(rr.members) AS mr(child_rel_id)
+                INNER JOIN geom_lookup glr ON glr.typed_id = mr.child_rel_id
+                WHERE mr.child_rel_id >= 2305843009213693952
+                  AND glr.geom IS NOT NULL
 
                 UNION ALL
 
-                SELECT COALESCE(gl.geom, node_point.point) AS geom_val
-                FROM UNNEST(rr.members) AS m(member_id)
-                LEFT JOIN geom_lookup gl ON gl.typed_id = m.member_id
+                SELECT COALESCE(glw.geom, node_point.point) AS geom_val
+                FROM UNNEST(rr.members) AS mw(member_id)
+                LEFT JOIN geom_lookup glw ON glw.typed_id = mw.member_id
                 LEFT JOIN LATERAL (
                     SELECT point
                     FROM element n
-                    WHERE n.typed_id = m.member_id
+                    WHERE n.typed_id = mw.member_id
                     ORDER BY n.sequence_id DESC
                     LIMIT 1
-                ) node_point ON m.member_id <= 1152921504606846975
-                WHERE m.member_id <= 2305843009213693951
+                ) node_point ON mw.member_id <= 1152921504606846975
+                WHERE mw.member_id <= 2305843009213693951
             )
         ),
-        noded_geoms AS NOT MATERIALIZED (
-            SELECT ST_Union(
-                ST_CollectionExtract(member_geoms.geom, 2),
-                ST_Boundary(ST_CollectionExtract(member_geoms.geom, 3)),
-                1e-7
-            ) AS geom
+        extracted AS (
+            SELECT
+                ST_CollectionExtract(geom, 1) AS points,
+                ST_CollectionExtract(geom, 2) AS lines,
+                ST_CollectionExtract(geom, 3) AS polys
             FROM member_geoms
         ),
-        polygon_geoms AS NOT MATERIALIZED (
+        lines_geom AS (
             SELECT ST_Union(
-                ST_CollectionExtract(ST_Polygonize((SELECT geom FROM noded_geoms)), 3),
-                ST_CollectionExtract((SELECT geom FROM member_geoms), 3),
-                1e-7
+                (SELECT lines FROM extracted),
+                ST_Boundary((SELECT polys FROM extracted))
+            ) AS geom
+        ),
+        polys_geom AS (
+            SELECT ST_Union(
+                (SELECT ST_Polygonize(geom) FROM lines_geom),
+                (SELECT polys FROM extracted)
             ) AS geom
         )
         SELECT ST_RemoveRepeatedPoints(
-            ST_QuantizeCoordinates(
-                ST_Collect(
-                    CASE
-                        WHEN ST_IsEmpty((SELECT geom FROM polygon_geoms)) AND ST_IsEmpty((SELECT geom FROM noded_geoms)) THEN NULL
-                        ELSE ST_Union(
-                            (SELECT geom FROM polygon_geoms),
-                            ST_LineMerge((SELECT geom FROM noded_geoms)),
-                            1e-7
-                        )
-                    END,
-                    CASE
-                        WHEN ST_IsEmpty(ST_CollectionExtract((SELECT geom FROM member_geoms), 1)) THEN NULL
-                        ELSE ST_CollectionExtract((SELECT geom FROM member_geoms), 1)
-                    END
-                ),
-                7
+            ST_Collect(
+                CASE
+                    WHEN ST_IsEmpty((SELECT geom FROM polys_geom))
+                     AND ST_IsEmpty((SELECT geom FROM lines_geom))
+                    THEN NULL
+                    ELSE ST_Union(
+                        (SELECT geom FROM polys_geom),
+                        ST_LineMerge((SELECT geom FROM lines_geom))
+                    )
+                END,
+                CASE
+                    WHEN ST_IsEmpty((SELECT points FROM extracted))
+                    THEN NULL
+                    ELSE (SELECT points FROM extracted)
+                END
             )
         ) AS geom
         WHERE rr.visible
@@ -224,7 +222,7 @@ rels_computed AS (
     ) AS rel_geom ON true
 )
 INSERT INTO element_spatial_staging (typed_id, sequence_id, updated_sequence_id, depth, geom)
-SELECT typed_id, sequence_id, %(end_seq)s, %(depth)s, geom FROM rels_computed
+SELECT typed_id, sequence_id, {end_seq}, {depth}, geom FROM rels_computed
 """
 
 
@@ -266,13 +264,24 @@ async def _process_task() -> None:
                 _PROCESS_REQUEST_EVENT.clear()
 
                 ts = monotonic()
-                with (
-                    SENTRY_ELEMENT_SPATIAL_MONITOR,
-                    start_transaction(
-                        op='task', name=SENTRY_ELEMENT_SPATIAL_MONITOR_SLUG
-                    ),
-                ):
-                    await _update()
+
+                try:
+                    with (
+                        SENTRY_ELEMENT_SPATIAL_MONITOR,
+                        start_transaction(
+                            op='task', name=SENTRY_ELEMENT_SPATIAL_MONITOR_SLUG
+                        ),
+                    ):
+                        await _update()
+                except InternalError_ as e:
+                    if 'GEOS Error' not in str(e):
+                        capture_exception(e)
+                        logging.exception(
+                            'ElementSpatialService encountered a GEOS error; paused indefinitely',
+                        )
+                        await Future()
+                    raise
+
                 tt = monotonic() - ts
 
                 if not _PROCESS_REQUEST_EVENT.is_set():
@@ -289,7 +298,7 @@ async def _update(
     *,
     parallelism: int | float = 0.5,
     parallelism_init: int | float = 1.5,
-    ways_batch_size: int = 10_000,
+    ways_batch_size: int = 20_000,
     rels_batch_size: int = 1_000,
     _MAX_RELATION_NESTING_DEPTH: cython.size_t = _MAX_RELATION_NESTING_DEPTH,
 ) -> None:
@@ -409,12 +418,11 @@ async def _process_depth(
         async def process_ways_batch(start_seq: int, end_seq: int):
             async with semaphore, db(True) as conn:
                 await conn.execute(
-                    _BATCH_QUERY_WAYS,
-                    {
-                        'start_seq': start_seq,
-                        'end_seq': end_seq,
-                        'last_seq': last_sequence,
-                    },
+                    _BATCH_QUERY_WAYS.format(  # type: ignore
+                        ways_per_batch=batch_size // 10,
+                        start_seq=start_seq,
+                        end_seq=end_seq,
+                    )
                 )
             if advance is not None:
                 advance(end_seq - start_seq + 1)
@@ -422,15 +430,14 @@ async def _process_depth(
         async def process_rels_batch(batch_offset: int):
             async with semaphore, db(True) as conn:
                 await conn.execute(
-                    _BATCH_QUERY_RELATIONS,
-                    {
-                        'depth': depth,
-                        'max_depth': _MAX_RELATION_NESTING_DEPTH,
-                        'last_seq': last_sequence,
-                        'end_seq': max_sequence,
-                        'batch_offset': batch_offset,
-                        'batch_limit': batch_size,
-                    },
+                    _BATCH_QUERY_RELATIONS.format(  # type: ignore
+                        members_per_batch=batch_size * 30,
+                        depth=depth,
+                        max_depth=_MAX_RELATION_NESTING_DEPTH,
+                        end_seq=max_sequence,
+                        batch_offset=batch_offset,
+                        batch_limit=batch_size,
+                    )
                 )
             if advance is not None:
                 advance(min(batch_size, num_items - batch_offset))
