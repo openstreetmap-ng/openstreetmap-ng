@@ -20,8 +20,8 @@ export const configureScrollspy = (container: Element | null, nav: Element | nul
 
     const setActive = (id: string | null) => {
         if (currentActive === id) return
-        if (currentActive) idToLink.get(currentActive)?.classList.remove("active")
-        if (id) idToLink.get(id)?.classList.add("active")
+        if (currentActive) idToLink.get(currentActive)!.classList.remove("active")
+        if (id) idToLink.get(id)!.classList.add("active")
         currentActive = id
     }
 

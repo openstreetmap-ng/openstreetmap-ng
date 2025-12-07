@@ -17,7 +17,7 @@ mount("diary-details-body", (body) => {
     configureStandardForm(body.querySelector("form.comment-form"), () => {
         const paginationElement = comments.querySelector("ul.pagination")
         if (paginationElement) paginationElement.dataset.numItems = "-1"
-        disposePagination?.()
+        disposePagination()
         disposePagination = configureStandardPagination(comments)
     })
 })
