@@ -48,7 +48,7 @@ export const configureStandardForm = <T = any>(
     >
     const passwordInputs = form.querySelectorAll("input[type=password][data-name]")
     if (passwordInputs.length) configurePasswordsForm(form, passwordInputs)
-    let abortController: AbortController | null = null
+    let abortController: AbortController | undefined
 
     const setPendingState = (state: boolean) => {
         const currentState = form.classList.contains("pending")

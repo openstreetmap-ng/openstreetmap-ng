@@ -62,7 +62,7 @@ export const getElementHistoryController = (map: MaplibreMap) => {
                 )
             }
 
-            let disposeElementContent: (() => void) | null = null
+            let disposeElementContent: (() => void) | undefined
 
             const disposePagination = configureStandardPagination(sidebarContent, {
                 loadCallback: (renderContainer) => {

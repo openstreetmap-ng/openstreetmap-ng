@@ -8,7 +8,7 @@ mount("welcome-body", (body) => {
     const startButton = body.querySelector("a.start-btn")!
 
     // Support default location setting via URL parameters
-    let providedState: MapState | null = null
+    let providedState: MapState | undefined
     const params = qsParse(window.location.search)
     if (params.lon && params.lat) {
         const lon = Number.parseFloat(params.lon)

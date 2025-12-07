@@ -113,12 +113,12 @@ export const getRoutingController = (map: MaplibreMap) => {
     const popupTemplate = routeContainer.querySelector("template.popup")!
     const stepTemplate = routeContainer.querySelector("template.step")!
 
-    let startBounds: LngLatBounds | null = null
+    let startBounds: LngLatBounds | undefined
     let startMarker: Marker | null = null
-    let endBounds: LngLatBounds | null = null
+    let endBounds: LngLatBounds | undefined
     let endMarker: Marker | null = null
     let hoverId: number | null = null
-    let lastMouse: [number, number] | null = null
+    let lastMouse: [number, number] | undefined
 
     const popup = new Popup({
         closeButton: false,

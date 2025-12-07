@@ -116,7 +116,7 @@ export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds) => {
     ] as Bounds
 }
 
-export const unionBounds = (left: Bounds | null, right: Bounds) =>
+export const unionBounds = (left: Bounds | null | undefined, right: Bounds) =>
     left
         ? ([
               Math.min(left[0], right[0]),

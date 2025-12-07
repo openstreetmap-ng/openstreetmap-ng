@@ -8,7 +8,7 @@ export const configureFindHomeButton = (
     { lon, lat }: LonLat,
 ) => {
     // biome-ignore lint/correctness/noUnusedVariables: not implemented
-    let marker: Marker | null = null
+    let marker: Marker | undefined
 
     // On click, create a marker and zoom to it
     button.addEventListener("click", () => {

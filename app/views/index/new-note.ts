@@ -57,7 +57,7 @@ export const getNewNoteController = (map: MaplibreMap) => {
             setPageTitle(sidebarTitle)
 
             // Allow default location setting via URL search parameters
-            let center: LngLat | null = null
+            let center: LngLat | undefined
             const searchParams = qsParse(window.location.search)
             if (searchParams.lon && searchParams.lat) {
                 const lon = Number.parseFloat(searchParams.lon)

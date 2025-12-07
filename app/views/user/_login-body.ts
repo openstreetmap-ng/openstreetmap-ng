@@ -34,11 +34,11 @@ if (loginForm) {
     const passkeyButton = document.querySelector(".passkey-btn")!
     const passkeyRetryButton = loginForm.querySelector(".retry-passkey-btn")!
 
-    let conditionalMediationAbort: AbortController | null = null
+    let conditionalMediationAbort: AbortController | undefined
     let conditionalMediationAssertion: Blob | null = null
     let passwordless = false
     let loginResponse: LoginResponse | undefined
-    let submittedFormData: FormData | null = null
+    let submittedFormData: FormData | undefined
 
     const isDigit = (c: string) => c.length === 1 && c >= "0" && c <= "9"
 

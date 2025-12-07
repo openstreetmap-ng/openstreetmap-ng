@@ -16,7 +16,7 @@ export interface Route {
 
 // Router state
 let routes: Route[] = []
-let currentPath: string | null = null
+let currentPath: string | undefined
 let currentRoute: Route | null = null
 
 const findRoute = (p: string) => routes.find((r) => r.match(p)) ?? null

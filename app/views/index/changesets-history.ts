@@ -131,7 +131,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     const loadingContainer = sidebar.querySelector(".loading")!
     const scrollIndicators = sidebar.querySelectorAll(".scroll-indicator")
 
-    let abortController: AbortController | null = null
+    let abortController: AbortController | undefined
 
     // Store changesets to allow loading more
     const changesets: RenderChangesetsData_Changeset[] = []
@@ -340,7 +340,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
             featureIdCounter += changeset.bounds.length * 2
 
         const changesetsMinimumSize: OSMChangeset[] = []
-        let aggregatedBounds: Bounds | null = null
+        let aggregatedBounds: Bounds | undefined
 
         for (const changeset of convertRenderChangesetsData(
             changesets.slice(hiddenBefore, changesets.length - hiddenAfter),

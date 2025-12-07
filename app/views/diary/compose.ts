@@ -126,7 +126,7 @@ mount("diary-compose-body", (body) => {
             addMapLayer(map, DEFAULT_LAYER_ID)
         }
 
-        let state: LonLatZoom | null = null
+        let state: LonLatZoom | undefined
 
         // Attempt to parse the lat/lon from the inputs
         // If they're valid, use them as the initial center and display a marker
