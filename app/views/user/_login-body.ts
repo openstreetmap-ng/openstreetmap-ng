@@ -130,7 +130,7 @@ if (loginForm) {
 
     const setState = (state: LoginState) => {
         console.debug("setLoginState", state)
-        loginForm.setAttribute("data-login-state", state)
+        loginForm.dataset.loginState = state
 
         totpCodeInput.value = ""
         recoveryCodeInput.value = ""

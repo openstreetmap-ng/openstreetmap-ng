@@ -144,8 +144,8 @@ for (const input of inputs) {
 
     const status = document.createElement("span")
     status.classList.add("password-strength-status")
-    status.setAttribute("aria-live", "polite")
-    status.setAttribute("role", "status")
+    status.ariaLive = "polite"
+    status.role = "status"
     header.append(status)
 
     const progress = document.createElement("div")
@@ -154,9 +154,9 @@ for (const input of inputs) {
 
     const progressBar = document.createElement("div")
     progressBar.classList.add("progress-bar", "password-strength-progress-bar")
-    progressBar.setAttribute("role", "progressbar")
-    progressBar.setAttribute("aria-valuemin", "0")
-    progressBar.setAttribute("aria-valuemax", "100")
+    progressBar.role = "progressbar"
+    progressBar.ariaValueMin = "0"
+    progressBar.ariaValueMax = "100"
     progressBar.ariaLabel = i18next.t("password_strength.password_strength")
     progress.append(progressBar)
 
@@ -182,7 +182,7 @@ for (const input of inputs) {
     const renderEmptyState = () => {
         container.dataset.level = "empty"
         progressBar.style.width = "0%"
-        progressBar.setAttribute("aria-valuenow", "0")
+        progressBar.ariaValueNow = "0"
         status.textContent = ""
         hintText.hidden = true
         hintList.replaceChildren()
@@ -204,7 +204,7 @@ for (const input of inputs) {
         container.dataset.level = level.key
         const displayedScore = level.key === "perfect" ? 100 : score
         progressBar.style.width = `${Math.max(displayedScore, 5)}%`
-        progressBar.setAttribute("aria-valuenow", displayedScore.toString())
+        progressBar.ariaValueNow = displayedScore.toString()
 
         let levelLabel: string
         switch (level.key) {

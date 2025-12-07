@@ -60,7 +60,7 @@ if (languagePickerModal) {
 
             if (locale.code === primaryLanguage) {
                 // Move current language to top and mark as active (lazy)
-                button.setAttribute("aria-current", "true")
+                button.ariaCurrent = "true"
                 fragment.prepend(listItem)
             } else {
                 fragment.append(listItem)

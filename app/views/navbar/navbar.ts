@@ -118,15 +118,13 @@ for (const link of mapLinks) {
 const setEditControlsDisabled = (disabled: boolean) => {
     for (const link of editLinks) {
         link.classList.toggle("disabled", disabled)
-        if (disabled) link.setAttribute("aria-disabled", "true")
-        else link.removeAttribute("aria-disabled")
+        link.ariaDisabled = disabled ? "true" : null
     }
     editGroup.classList.toggle("disabled", disabled)
+    editGroup.ariaDisabled = disabled ? "true" : null
     if (disabled) {
-        editGroup.setAttribute("aria-disabled", "true")
         editGroupTooltip.enable()
     } else {
-        editGroup.removeAttribute("aria-disabled")
         editGroupTooltip.disable()
         editGroupTooltip.hide()
     }

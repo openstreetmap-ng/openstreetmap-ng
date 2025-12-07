@@ -93,7 +93,7 @@ export const resolveDatetimeLazy = (searchElement: Element) =>
         for (const element of searchElement.querySelectorAll("time[datetime]")) {
             if (resolvedElements.has(element)) continue
             resolvedElements.add(element)
-            const datetime = element.getAttribute("datetime")
+            const datetime = element.dateTime
             if (!datetime) {
                 console.warn("Missing datetime attribute on", element)
                 continue

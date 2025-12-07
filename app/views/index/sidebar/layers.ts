@@ -176,7 +176,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
 
                         const parent = checkbox.closest<HTMLElement>(".form-check")!
                         parent.classList.remove("disabled")
-                        parent.ariaDisabled = "false"
+                        parent.ariaDisabled = null
                         const tooltip = Tooltip.getInstance(parent)!
                         tooltip.disable()
                         tooltip.hide()
