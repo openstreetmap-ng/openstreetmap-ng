@@ -46,11 +46,11 @@ mount("report-show-body", () => {
     const reopenForm = document.querySelector("form.reopen-form")!
 
     const commentTextarea = commentForm.querySelector("textarea[name=body]")!
-    const commentBtn = commentForm.querySelector("button.comment-btn")!
-    const closeBtn = document.querySelector("button.close-btn")
-    const commentCloseBtn = document.querySelector("button.comment-close-btn")
-    const reopenBtn = document.querySelector("button.reopen-btn")
-    const commentReopenBtn = document.querySelector("button.comment-reopen-btn")
+    const commentButton = commentForm.querySelector("button.comment-btn")!
+    const closeButton = document.querySelector("button.close-btn")
+    const commentCloseButton = document.querySelector("button.comment-close-btn")
+    const reopenButton = document.querySelector("button.reopen-btn")
+    const commentReopenButton = document.querySelector("button.comment-reopen-btn")
 
     configureStandardForm(commentForm, () => {
         window.location.reload()
@@ -66,18 +66,18 @@ mount("report-show-body", () => {
     const updateButtons = () => {
         const hasComment = commentTextarea.value.trim().length > 0
 
-        if (closeBtn && commentCloseBtn) {
-            closeBtn.classList.toggle("d-none", hasComment)
-            commentCloseBtn.classList.toggle("d-none", !hasComment)
+        if (closeButton && commentCloseButton) {
+            closeButton.classList.toggle("d-none", hasComment)
+            commentCloseButton.classList.toggle("d-none", !hasComment)
         }
 
-        if (reopenBtn && commentReopenBtn) {
-            reopenBtn.classList.toggle("d-none", hasComment)
-            commentReopenBtn.classList.toggle("d-none", !hasComment)
+        if (reopenButton && commentReopenButton) {
+            reopenButton.classList.toggle("d-none", hasComment)
+            commentReopenButton.classList.toggle("d-none", !hasComment)
         }
 
         // Disable comment button if no text
-        commentBtn.disabled = !hasComment
+        commentButton.disabled = !hasComment
     }
 
     commentTextarea.addEventListener("input", updateButtons)
@@ -86,13 +86,13 @@ mount("report-show-body", () => {
     updateButtons()
 
     // Handle close button click
-    if (closeBtn) {
-        closeBtn.addEventListener("click", () => {
+    if (closeButton) {
+        closeButton.addEventListener("click", () => {
             closeForm.requestSubmit()
         })
     }
-    if (commentCloseBtn) {
-        commentCloseBtn.addEventListener("click", () => {
+    if (commentCloseButton) {
+        commentCloseButton.addEventListener("click", () => {
             const bodyInput = closeForm.querySelector("input[name=body]")!
             bodyInput.value = commentTextarea.value
             closeForm.requestSubmit()
@@ -100,13 +100,13 @@ mount("report-show-body", () => {
     }
 
     // Handle reopen button click
-    if (reopenBtn) {
-        reopenBtn.addEventListener("click", () => {
+    if (reopenButton) {
+        reopenButton.addEventListener("click", () => {
             reopenForm.requestSubmit()
         })
     }
-    if (commentReopenBtn) {
-        commentReopenBtn.addEventListener("click", () => {
+    if (commentReopenButton) {
+        commentReopenButton.addEventListener("click", () => {
             const bodyInput = reopenForm.querySelector("input[name=body]")!
             bodyInput.value = commentTextarea.value
             reopenForm.requestSubmit()

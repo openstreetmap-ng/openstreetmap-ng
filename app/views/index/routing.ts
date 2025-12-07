@@ -150,12 +150,12 @@ export const getRoutingController = (map: MaplibreMap) => {
         return endMarker
     }
 
-    const onInterfaceMarkerDragStart = (event: DragEvent) => {
-        const target = event.target as HTMLImageElement
+    const onInterfaceMarkerDragStart = (e: DragEvent) => {
+        const target = e.target as HTMLImageElement
         const direction = target.dataset.direction!
         console.debug("onInterfaceMarkerDragStart", direction)
 
-        const dt = event.dataTransfer!
+        const dt = e.dataTransfer!
         dt.effectAllowed = "move"
         dt.setData("text/plain", "")
         dt.setData(DRAG_DATA_TYPE, direction)
@@ -209,16 +209,17 @@ export const getRoutingController = (map: MaplibreMap) => {
         hoverId = id
 
         if (id !== null) {
-            const el = stepsTableBody.children[id]
-            el?.classList.add("hover")
-            if (scrollIntoView && el) {
+            const result = stepsTableBody.children[id]
+            result?.classList.add("hover")
+
+            if (scrollIntoView && result) {
                 const sidebarRect = parentSidebar.getBoundingClientRect()
-                const resultRect = el.getBoundingClientRect()
+                const resultRect = result.getBoundingClientRect()
                 const isVisible =
                     resultRect.top >= sidebarRect.top &&
                     resultRect.bottom <= sidebarRect.bottom
                 if (!isVisible)
-                    el.scrollIntoView({ behavior: "smooth", block: "center" })
+                    result.scrollIntoView({ behavior: "smooth", block: "center" })
             }
             map.setFeatureState({ source: LAYER_ID, id }, { hover: true })
         }
@@ -258,10 +259,10 @@ export const getRoutingController = (map: MaplibreMap) => {
         submitFormIfFilled()
     }
 
-    const onMapDragOver = (event: DragEvent) => event.preventDefault()
+    const onMapDragOver = (e: DragEvent) => e.preventDefault()
 
-    const onMapDrop = (event: DragEvent) => {
-        const dragData = event.dataTransfer!.getData(DRAG_DATA_TYPE)
+    const onMapDrop = (e: DragEvent) => {
+        const dragData = e.dataTransfer!.getData(DRAG_DATA_TYPE)
         console.debug("onMapDrop", dragData)
 
         let marker: Marker
@@ -270,10 +271,7 @@ export const getRoutingController = (map: MaplibreMap) => {
         else return
 
         const mapRect = mapContainer.getBoundingClientRect()
-        const mousePoint = new Point(
-            event.clientX - mapRect.left,
-            event.clientY - mapRect.top,
-        )
+        const mousePoint = new Point(e.clientX - mapRect.left, e.clientY - mapRect.top)
         marker.setLngLat(map.unproject(mousePoint)).addTo(map).fire("dragend")
     }
 

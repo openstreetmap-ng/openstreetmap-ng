@@ -17,9 +17,9 @@ mount("messages-index-body", (body) => {
     const senderLink = messageSender.querySelector("a.sender-link")!
     const messageTime = messagePreview.querySelector(".message-time")!
     const messageRecipients = messagePreview.querySelector(".message-recipients")!
-    const btnGroup = messagePreview.querySelector(".btn-group")!
-    const replyLink = btnGroup.querySelector("a.reply-link")!
-    const replyAllLink = btnGroup.querySelector("a.reply-all-link")
+    const buttonGroup = messagePreview.querySelector(".btn-group")!
+    const replyLink = buttonGroup.querySelector("a.reply-link")!
+    const replyAllLink = buttonGroup.querySelector("a.reply-all-link")
     const messageTitle = messagePreview.querySelector(".message-title")!
     const messageBody = messagePreview.querySelector(".message-body")!
     const loadingSpinner = messagePreview.querySelector(".loading")!
@@ -116,7 +116,7 @@ mount("messages-index-body", (body) => {
             }
 
             // Hide button group when moderator viewing reported message
-            btnGroup.classList.toggle("disabled", !message.isRecipient)
+            buttonGroup.classList.toggle("disabled", !message.isRecipient)
 
             messageTitle.textContent = message.subject
             messageBody.innerHTML = message.bodyRich

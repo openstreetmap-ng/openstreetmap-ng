@@ -17,8 +17,8 @@ mount("admin-applications-body", (body) => {
         }
     })
 
-    const exportVisibleBtn = body.querySelector("button.export-visible-btn")!
-    exportVisibleBtn.addEventListener("click", async () => {
+    const exportVisibleButton = body.querySelector("button.export-visible-btn")!
+    exportVisibleButton.addEventListener("click", async () => {
         const appIds = Array.from(
             body.querySelectorAll("tr[data-app-id]"),
             (el) => el.dataset.appId,
@@ -33,8 +33,8 @@ mount("admin-applications-body", (body) => {
         }
     })
 
-    const exportAllBtn = body.querySelector("button.export-all-btn")!
-    exportAllBtn.addEventListener("click", () => {
+    const exportAllButton = body.querySelector("button.export-all-btn")!
+    exportAllButton.addEventListener("click", () => {
         const a = document.createElement("a")
         a.href = `/api/web/admin/applications/export${window.location.search}`
         a.download = ""

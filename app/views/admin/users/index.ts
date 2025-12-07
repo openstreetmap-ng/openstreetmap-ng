@@ -17,8 +17,8 @@ mount("admin-users-body", (body) => {
         }
     })
 
-    const exportVisibleBtn = body.querySelector("button.export-visible-btn")!
-    exportVisibleBtn.addEventListener("click", async () => {
+    const exportVisibleButton = body.querySelector("button.export-visible-btn")!
+    exportVisibleButton.addEventListener("click", async () => {
         const userIds = Array.from(
             body.querySelectorAll("tr[data-user-id]"),
             (el) => el.dataset.userId,
@@ -33,8 +33,8 @@ mount("admin-users-body", (body) => {
         }
     })
 
-    const exportAllBtn = body.querySelector("button.export-all-btn")!
-    exportAllBtn.addEventListener("click", () => {
+    const exportAllButton = body.querySelector("button.export-all-btn")!
+    exportAllButton.addEventListener("click", () => {
         const a = document.createElement("a")
         a.href = `/api/web/admin/users/export${window.location.search}`
         a.download = ""

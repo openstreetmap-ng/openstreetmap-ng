@@ -21,16 +21,18 @@ if (loginForm) {
     const totpCodeInput = loginForm.querySelector("input[name=totp_code]")!
     const bypass2faInput = loginForm.querySelector("input[name=bypass_2fa]")!
     const recoveryCodeInput = loginForm.querySelector("input[name=recovery_code]")!
-    const cancelBtns = loginForm.querySelectorAll(".cancel-2fa-btn")
-    const tryAnotherMethodBtns = loginForm.querySelectorAll(".try-another-method-btn")
+    const cancelButtons = loginForm.querySelectorAll(".cancel-2fa-btn")
+    const tryAnotherMethodButtons = loginForm.querySelectorAll(
+        ".try-another-method-btn",
+    )
     const methodOptions = loginForm.querySelectorAll("button[data-method]")
     const displayNameInput = loginForm.querySelector(
         "input[name=display_name_or_email]",
     )!
     const passwordInput = loginForm.querySelector("input[data-name=password]")!
     const rememberInput = loginForm.querySelector("input[name=remember]")!
-    const passkeyBtn = document.querySelector(".passkey-btn")!
-    const passkeyRetryBtn = loginForm.querySelector(".retry-passkey-btn")!
+    const passkeyButton = document.querySelector(".passkey-btn")!
+    const passkeyRetryButton = loginForm.querySelector(".retry-passkey-btn")!
 
     let conditionalMediationAbort: AbortController | null = null
     let conditionalMediationAssertion: Blob | null = null
@@ -154,10 +156,10 @@ if (loginForm) {
     }
 
     // State transition handlers
-    for (const btn of cancelBtns)
-        btn.addEventListener("click", () => setState("credentials"))
-    for (const btn of tryAnotherMethodBtns)
-        btn.addEventListener("click", () => setState("method-select"))
+    for (const button of cancelButtons)
+        button.addEventListener("click", () => setState("credentials"))
+    for (const button of tryAnotherMethodButtons)
+        button.addEventListener("click", () => setState("method-select"))
     for (const option of methodOptions) {
         option.addEventListener("click", () => {
             const method = option.dataset.method
@@ -248,10 +250,10 @@ if (loginForm) {
     }
 
     // Passkey button triggers form submit with passkey auth method (Mode 1)
-    passkeyBtn.addEventListener("click", requestSubmitPasswordless)
+    passkeyButton.addEventListener("click", requestSubmitPasswordless)
 
     // Fallback button handler (Mode 2)
-    passkeyRetryBtn.addEventListener("click", startPasskey2FA)
+    passkeyRetryButton.addEventListener("click", startPasskey2FA)
 
     // Conditional mediation: passkey autofill
     const initConditionalMediation = async () => {

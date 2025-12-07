@@ -98,17 +98,17 @@ mount("settings-security-body", (body) => {
     }
 
     // Passkey rename
-    const renameBtns = body.querySelectorAll("button.passkey-rename-btn")
-    for (const renamebtn of renameBtns) {
-        const nameSpan = renamebtn.parentElement!.querySelector(".passkey-name")!
-        renamebtn.addEventListener("click", async () => {
+    const renameButtons = body.querySelectorAll("button.passkey-rename-btn")
+    for (const renameButton of renameButtons) {
+        const nameSpan = renameButton.parentElement!.querySelector(".passkey-name")!
+        renameButton.addEventListener("click", async () => {
             const oldName = nameSpan.textContent
             const newName =
                 prompt(i18next.t("two_fa.enter_new_passkey_name"), oldName)?.trim() ??
                 ""
             if (newName === oldName) return
 
-            const credentialId = renamebtn.dataset.credentialId
+            const credentialId = renameButton.dataset.credentialId
             const formData = new FormData()
             formData.set("name", newName)
 

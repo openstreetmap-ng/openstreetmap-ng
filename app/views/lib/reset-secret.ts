@@ -1,9 +1,9 @@
 import { configureStandardForm } from "@lib/standard-form"
 import { t } from "i18next"
 
-const onResetSecretButtonClick = (event: Event) => {
+const onResetSecretButtonClick = (e: Event) => {
     console.debug("onResetSecretButtonClick")
-    const button = event.target as HTMLButtonElement
+    const button = e.target as HTMLButtonElement
     const control = button.closest(".reset-secret-control")
     const form =
         control?.querySelector("form.reset-secret-form") ??

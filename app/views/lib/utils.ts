@@ -30,16 +30,16 @@ const CURRENT_HOST = `.${window.location.host.replace(/^www\./, "")}`
  * @param fn - Message event handler
  * @param isParent - If true, only messages from child domains are accepted, otherwise only from parent domains
  */
-export const wrapMessageEventValidator = <T extends (event: MessageEvent) => any>(
+export const wrapMessageEventValidator = <T extends (e: MessageEvent) => any>(
     fn: T,
     isParent = true,
 ) =>
-    ((event: MessageEvent) => {
-        const eventHost = `.${event.origin.replace(EVENT_ORIGIN_REGEX, "")}`
+    ((e: MessageEvent) => {
+        const eventHost = `.${e.origin.replace(EVENT_ORIGIN_REGEX, "")}`
         if (
             isParent
                 ? eventHost.endsWith(CURRENT_HOST)
                 : CURRENT_HOST.endsWith(eventHost)
         )
-            return fn(event)
+            return fn(e)
     }) as T

@@ -63,29 +63,31 @@ mount("diary-index-body", (body) => {
             { once: true },
         )
 
-        const commentsCont = article.querySelector(".diary-comments")!
+        const commentsContainer = article.querySelector(".diary-comments")!
 
-        commentsCont.addEventListener(
+        commentsContainer.addEventListener(
             "show.bs.collapse",
             () => {
                 // Initialize only once on first toggle; reuse DOM thereafter
-                const dispose = configureStandardPagination(commentsCont)
-                disposers.set(commentsCont, dispose)
+                const dispose = configureStandardPagination(commentsContainer)
+                disposers.set(commentsContainer, dispose)
 
-                const subForm = commentsCont.querySelector("form.subscription-form")
+                const subForm = commentsContainer.querySelector(
+                    "form.subscription-form",
+                )
                 configureStandardForm(subForm, () => {
                     window.location.reload()
                 })
 
-                const commentForm = commentsCont.querySelector("form.comment-form")
+                const commentForm = commentsContainer.querySelector("form.comment-form")
                 configureStandardForm(commentForm, () => {
                     commentForm!.reset()
                     const paginationElement =
-                        commentsCont.querySelector("ul.pagination")
+                        commentsContainer.querySelector("ul.pagination")
                     if (paginationElement) paginationElement.dataset.numItems = "-1"
-                    disposers.get(commentsCont)?.()
-                    const d2 = configureStandardPagination(commentsCont)
-                    disposers.set(commentsCont, d2)
+                    disposers.get(commentsContainer)?.()
+                    const d2 = configureStandardPagination(commentsContainer)
+                    disposers.set(commentsContainer, d2)
                 })
             },
             { once: true },

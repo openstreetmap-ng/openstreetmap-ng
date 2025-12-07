@@ -107,7 +107,7 @@ mount("user-profile-body", (body) => {
         const container = form.querySelector<HTMLElement>(".socials-container")!
         const template = container.querySelector("template")!
         const maxItems = Number.parseInt(container.dataset.maxItems!, 10)
-        const addBtn = form.querySelector("button.add-btn")!
+        const addButton = form.querySelector("button.add-btn")!
 
         configureStandardForm(form, () => {
             window.location.reload()
@@ -118,7 +118,7 @@ mount("user-profile-body", (body) => {
             const rows = container.querySelectorAll(".social-row")
             const count = rows.length
 
-            addBtn.hidden = count >= maxItems
+            addButton.hidden = count >= maxItems
 
             rows.forEach((row, index) => {
                 updateRowState(row)

@@ -62,8 +62,8 @@ export const getDistanceController = (map: MaplibreMap) => {
     const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")!
-    const clearBtn = sidebar.querySelector("button.clear-btn")!
-    const unitToggleBtn = sidebar.querySelector("button.unit-toggle-btn")!
+    const clearButton = sidebar.querySelector("button.clear-btn")!
+    const unitToggleButton = sidebar.querySelector("button.unit-toggle-btn")!
 
     const positionsUrl: [number, number][] = []
     const lines: Feature<LineString>[] = []
@@ -248,7 +248,7 @@ export const getDistanceController = (map: MaplibreMap) => {
         updateLines(dirtyIndices)
         updateLabels(dirtyIndices)
 
-        clearBtn.classList.toggle("d-none", !markers.length)
+        clearButton.classList.toggle("d-none", !markers.length)
     }
 
     const clearMarkers = () => {
@@ -256,17 +256,17 @@ export const getDistanceController = (map: MaplibreMap) => {
         markers.length = 0
         update([])
     }
-    clearBtn.addEventListener("click", clearMarkers)
+    clearButton.addEventListener("click", clearMarkers)
 
     const updateUnitToggleButton = () => {
         const buttonText =
             currentUnit === "metric"
                 ? i18next.t("distance.switch_to_imperial")
                 : i18next.t("distance.switch_to_metric")
-        unitToggleBtn.textContent = buttonText
+        unitToggleButton.textContent = buttonText
     }
 
-    unitToggleBtn.addEventListener("click", () => {
+    unitToggleButton.addEventListener("click", () => {
         currentUnit = currentUnit === "metric" ? "imperial" : "metric"
         console.debug("Toggle distance unit", currentUnit)
         updateUnitToggleButton()
