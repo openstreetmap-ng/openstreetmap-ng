@@ -86,11 +86,11 @@ export const configureDatetimeInputs = (
     }
 }
 
-export const resolveDatetimeLazy = (searchElement: Element) =>
+export const resolveDatetimeLazy = (container: Element) =>
     queueMicrotask(() => {
         let absoluteCounter = 0
         let relativeCounter = 0
-        for (const element of searchElement.querySelectorAll("time[datetime]")) {
+        for (const element of container.querySelectorAll("time[datetime]")) {
             if (resolvedElements.has(element)) continue
             resolvedElements.add(element)
             const datetime = element.dateTime

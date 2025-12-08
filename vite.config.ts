@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url"
 import legacy from "@vitejs/plugin-legacy"
 import autoprefixer from "autoprefixer"
 import rtlcss from "rtlcss"
+import Macros from "unplugin-macros/vite"
 import { defineConfig } from "vite"
 import { browserslist } from "./package.json"
 
@@ -102,6 +103,7 @@ export default defineConfig({
         },
     },
     plugins: [
+        Macros(),
         legacy({
             modernTargets: browserslist[0],
             modernPolyfills: true,

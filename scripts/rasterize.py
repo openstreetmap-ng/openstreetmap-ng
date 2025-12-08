@@ -67,16 +67,18 @@ def static_img_pipeline(verbose: bool) -> None:
     with measure() as time, Pool() as pool:
         jobs: list[AsyncResult[None]] = []
 
-        root = Path('app/static/img/element')
-        for i in root.rglob('*.svg'):
-            output = get_output_path(i, root=root)
-            if output.is_file() and i.stat().st_mtime <= output.stat().st_mtime:
-                if verbose:
-                    print(f'Skipped {output} (already exists)')
-                continue
-            jobs.append(
-                pool.apply_async(rasterize, (i, output), {'size': 128, 'quality': 80})
-            )
+        for root in (Path('app/static/img/element'), Path('app/static/img/browser')):
+            for i in root.rglob('*.svg'):
+                output = get_output_path(i, root=root)
+                if output.is_file() and i.stat().st_mtime <= output.stat().st_mtime:
+                    if verbose:
+                        print(f'Skipped {output} (already exists)')
+                    continue
+                jobs.append(
+                    pool.apply_async(
+                        rasterize, (i, output), {'size': 128, 'quality': 80}
+                    )
+                )
 
         root = Path('app/static/img/controls')
         for i in root.rglob('*.svg'):

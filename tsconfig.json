@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES2023",
-    "module": "ES2020",
+    "target": "es2023",
+    "module": "esnext",
     "moduleDetection": "force",
     "allowJs": true,
 
@@ -31,5 +31,5 @@
     ]
   },
   "exclude": ["app/views/lib/_generated/**/*", "app/views/lib/proto/**/*"],
-  "include": ["app/views/**/**.ts", "vite.config.ts"]
+  "include": ["app/views/**/**.ts", "vite.config.ts", "typings/**/*.d.ts"]
 }

@@ -27,12 +27,9 @@
     </td>
     <td>
         {% if event.user_agent %}
-        <abbr class="text-body-secondary" title="{{ event.user_agent }}">
-            {{ event.ip }}
-        </abbr>
-        {% else %}
-        <span class="text-body-secondary">{{ event.ip }}</span>
+        <span class="ua-icons me-1" title="{{ event.user_agent }}"></span>
         {% endif %}
+        <span class="text-body-secondary">{{ event.ip }}</span>
     </td>
     <td>
         {% if event.application %}

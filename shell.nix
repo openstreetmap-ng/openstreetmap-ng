@@ -529,7 +529,7 @@ let
         fi
 
         echo "Downloading $name preload data"
-        curl -fSL "$remote_url" -o "$local_file"
+        curl -fL "$remote_url" -o "$local_file"
 
         # recompute checksum
         local_checksum=$(b3sum --no-names "$local_file")
@@ -622,6 +622,9 @@ let
     (makeScript "_scripts-postinstall" (
       ''
         rm -rf node_modules/bootstrap/dist/css
+
+        static-img-pipeline &
+
         if [ ! data/cache/browserslist_versions.json -nt bun.lock ]; then
           echo "Regenerating browserslist cache"
           mkdir -p data/cache
@@ -643,6 +646,9 @@ let
               echo "Patched $bin interpreter to $interpreter"
             fi
           done
+      ''
+      + ''
+        wait
       ''
     ))
 
@@ -732,6 +738,47 @@ let
       echo "$data" | jq --sort-keys . > config/aaguid.json
       echo "Saved $(echo "$data" | jq 'length') AAGUID entries"
     '')
+    (makeScript "browser-logos-update" ''
+      version=75.0.1
+      dest=app/static/img/browser
+
+      [ "$(cat "$dest/.version" 2>/dev/null)" = "$version" ] && exit 0
+      echo "Downloading browser logos (v$version)..."
+
+      tmp=$(mktemp -d)
+      trap 'rm -rf "$tmp"' EXIT
+      curl -fL "https://github.com/alrra/browser-logos/archive/refs/tags/$version.tar.gz" \
+        | tar -xz -C "$tmp"
+
+      src="$tmp/browser-logos-$version/src"
+
+      rm -rf "$dest"
+      mkdir -p "$dest"
+      count=0
+
+      for browser_dir in "$src"/*/; do
+        name=$(basename "$browser_dir")
+
+        # Prefer SVG
+        svg=$(find "$browser_dir" -maxdepth 1 -name '*.svg' | head -1)
+        if [ -n "$svg" ]; then
+          cp "$svg" "$dest/$name.svg"
+          count=$((count + 1))
+          continue
+        fi
+
+        # Fallback to 128x128 PNG
+        png=$(find "$browser_dir" -maxdepth 1 -name '*_128x128.png' | head -1)
+        if [ -n "$png" ]; then
+          cp "$png" "$dest/$name.png"
+          count=$((count + 1))
+          continue
+        fi
+      done
+
+      echo "Downloaded $count browser logos"
+      echo "$version" > "$dest/.version"
+    '')
     (makeScript "vector-styles-update" ''
       dir=app/views/lib/vector-styles
       mkdir -p "$dir"
@@ -800,7 +847,6 @@ let
       [ -z "$SSL_CERT_FILE" ] && export SSL_CERT_FILE="$NIX_SSL_CERT_FILE"
     ''
     + ''
-
       export TZ=UTC
       export NIX_ENFORCE_NO_NATIVE=0
       export PROC_COMP_CONFIG=data/pcompose
@@ -826,44 +872,6 @@ let
         -fuse-ld=lld \
         ${if isDevelopment then "-Wl,-O0" else "-Wl,-O3"} \
         ${lib.optionalString stdenv.isLinux "-Wl,-z,relro -Wl,-z,now"}"
-
-      en_yaml_path="${projectDir}/config/locale/download/en.yaml"
-      en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
-      current_en_yaml=$(readlink -e "$en_yaml_sym_path" || echo "")
-      if [ "$current_en_yaml" != "$en_yaml_path" ]; then
-        echo "Creating convenience symlink for en.yaml"
-        ln -s "$en_yaml_path" "$en_yaml_sym_path"
-      fi
-
-      current_python=$(readlink -e .venv/bin/python || echo "")
-      current_python=''${current_python%/bin/*}
-      [ "$current_python" != "${python'}" ] && rm -rf .venv/
-
-      echo "Installing Python dependencies"
-      export UV_NATIVE_TLS=true
-      export UV_PYTHON="${python'}/bin/python"
-      uv sync --frozen
-      [ -n "$(find speedup -type f -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
-        uv add ./speedup --reinstall-package speedup
-
-      echo "Installing TS/JS dependencies"
-      bun install --frozen-lockfile
-
-      echo "Activating environment"
-      export PATH="${projectDir}/node_modules/.bin:$PATH"
-      source .venv/bin/activate
-
-    ''
-    + lib.optionalString stdenv.isDarwin ''
-      _patch-shebang &
-    ''
-    + ''
-
-      if [ -d .git ]; then
-        echo "Installing git hooks"
-        ln -sf ${makeScript "pre-commit" "exec format --staged"}/bin/pre-commit .git/hooks/pre-commit
-      fi
-
     ''
     + lib.optionalString isDevelopment ''
       export ENV=dev
@@ -902,8 +910,41 @@ let
         echo "Skipped loading .env file (not found)"
       fi
 
-      echo "Running [static-img-pipeline]"
-      static-img-pipeline &
+      browser-logos-update
+
+      en_yaml_path="${projectDir}/config/locale/download/en.yaml"
+      en_yaml_sym_path="${projectDir}/config/locale/en.yaml"
+      current_en_yaml=$(readlink -e "$en_yaml_sym_path" || echo "")
+      if [ "$current_en_yaml" != "$en_yaml_path" ]; then
+        echo "Creating convenience symlink for en.yaml"
+        ln -s "$en_yaml_path" "$en_yaml_sym_path"
+      fi
+
+      current_python=$(readlink -e .venv/bin/python || echo "")
+      current_python=''${current_python%/bin/*}
+      [ "$current_python" != "${python'}" ] && rm -rf .venv/
+
+      echo "Installing Python dependencies"
+      export UV_NATIVE_TLS=true
+      export UV_PYTHON="${python'}/bin/python"
+      uv sync --frozen
+      [ -n "$(find speedup -type f -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
+        uv add ./speedup --reinstall-package speedup
+      source .venv/bin/activate
+
+      echo "Installing TS/JS dependencies"
+      bun install --frozen-lockfile
+      export PATH="${projectDir}/node_modules/.bin:$PATH"
+
+      if [ -d .git ]; then
+        echo "Installing git hooks"
+        ln -sf ${makeScript "pre-commit" "exec format --staged"}/bin/pre-commit .git/hooks/pre-commit
+      fi
+    ''
+    + lib.optionalString stdenv.isDarwin ''
+      _patch-shebang &
+    ''
+    + ''
       echo "Running [proto-pipeline]"
       proto-pipeline &
     ''
