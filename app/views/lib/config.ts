@@ -7,14 +7,21 @@ import {
     _ENV,
     _MAP_QUERY_AREA_MAX_SIZE,
     _NOTE_QUERY_AREA_MAX_SIZE,
+    _SENTRY_DSN,
+    _SENTRY_TRACES_SAMPLE_RATE,
     _VERSION,
 } from "./config.macro" with { type: "macro" }
+import { getLocaleOptions } from "./locale.macro" with { type: "macro" }
 
 export const API_URL = _API_URL
 export const ENV = _ENV
 export const MAP_QUERY_AREA_MAX_SIZE = _MAP_QUERY_AREA_MAX_SIZE
 export const NOTE_QUERY_AREA_MAX_SIZE = _NOTE_QUERY_AREA_MAX_SIZE
+export const SENTRY_DSN = _SENTRY_DSN
+export const SENTRY_TRACES_SAMPLE_RATE = _SENTRY_TRACES_SAMPLE_RATE
 export const VERSION = _VERSION
+
+export const LOCALE_OPTIONS = getLocaleOptions()
 
 /** Global dataset options that are defined on <html> tag */
 export const config = fromBinary(
@@ -31,11 +38,10 @@ const DEFAULT_TRACKING =
 export const activityTracking = config.userConfig?.activityTracking ?? DEFAULT_TRACKING
 
 /** Check if crash reporting is enabled */
-export const isCrashReportingEnabled = (
-    cfg: typeof config,
-): cfg is typeof config & { sentryConfig: NonNullable<typeof config.sentryConfig> } =>
+export const isCrashReportingEnabled = (cfg: typeof config) =>
     Boolean(
-        cfg.sentryConfig &&
+        SENTRY_DSN &&
+            SENTRY_DSN !== "UNSET" &&
             (ENV === "test" || (cfg.userConfig?.crashReporting ?? DEFAULT_TRACKING)),
     )
 

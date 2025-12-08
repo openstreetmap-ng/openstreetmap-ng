@@ -5,37 +5,14 @@ from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
 from app.lib.auth_context import auth_user
-from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, map_i18next_files
+from app.lib.locale import map_i18next_files
 from app.lib.render_jinja import render_jinja
-from app.lib.sentry import SENTRY_DSN, SENTRY_TRACES_SAMPLE_RATE
 from app.lib.translation import translation_locales
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.request_context_middleware import get_request
 from app.models.proto.shared_pb2 import WebConfig
 
-_CONFIG_BASE = WebConfig(
-    sentry_config=(
-        WebConfig.SentryConfig(
-            dsn=SENTRY_DSN,
-            traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
-        )
-        if SENTRY_DSN
-        else None
-    ),
-    locales=[
-        WebConfig.Locale(
-            code=code,
-            native_name=locale_name.native,
-            english_name=(
-                locale_name.english
-                if locale_name.english != locale_name.native
-                else None
-            ),
-            flag=locale_name.flag,
-        )
-        for code, locale_name in INSTALLED_LOCALES_NAMES_MAP.items()
-    ],
-)
+_CONFIG_BASE = WebConfig()
 _CONFIG_DEFAULT = urlsafe_b64encode(_CONFIG_BASE.SerializeToString()).decode()
 
 
@@ -68,10 +45,6 @@ async def render_response(
 
         web_config = WebConfig(user_config=user_config)
         web_config.MergeFrom(_CONFIG_BASE)
-
-        # Optimization: clear locales data for all but settings template
-        if template_name != 'settings/settings':
-            web_config.ClearField('locales')
 
         data['WEB_CONFIG'] = urlsafe_b64encode(web_config.SerializeToString()).decode()
 

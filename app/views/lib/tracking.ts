@@ -4,6 +4,8 @@ import {
     config,
     ENV,
     isCrashReportingEnabled,
+    SENTRY_DSN,
+    SENTRY_TRACES_SAMPLE_RATE,
     VERSION,
 } from "@lib/config"
 import { getTimezoneName } from "@lib/format"
@@ -20,7 +22,6 @@ import {
 if (isCrashReportingEnabled(config)) {
     console.debug("Enabling crash reporting")
     const userConfig = config.userConfig
-    const sentryConfig = config.sentryConfig
 
     const tracePropagationTargets: (string | RegExp)[] = [/^\/(?!static)/]
     if (API_URL !== window.location.origin) {
@@ -29,10 +30,10 @@ if (isCrashReportingEnabled(config)) {
     console.debug("Sentry trace propagation targets", tracePropagationTargets)
 
     SentryInit({
-        dsn: sentryConfig.dsn,
+        dsn: SENTRY_DSN,
         release: VERSION,
         environment: window.location.host,
-        tracesSampleRate: sentryConfig.tracesSampleRate,
+        tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
         tracePropagationTargets: tracePropagationTargets,
         skipBrowserExtensionCheck: true,
         integrations: [browserTracingIntegration()],

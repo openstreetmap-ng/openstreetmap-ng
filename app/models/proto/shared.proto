@@ -29,23 +29,7 @@ message WebConfig {
         optional HomePoint home_point = 5;  // User's home point
     }
 
-    // Sentry configuration
-    message SentryConfig {
-        string dsn = 1;  // Sentry DSN
-        float traces_sample_rate = 2;  // Traces sampling rate
-    }
-
-    // Installed language option
-    message Locale {
-        string code = 1;  // Locale code
-        string native_name = 2;  // Native display name
-        optional string english_name = 3;  // English display name when different
-        optional string flag = 4;  // Emoji flag, when available
-    }
-
     optional UserConfig user_config = 1;  // User preferences override
-    optional SentryConfig sentry_config = 2;  // Sentry configuration
-    repeated Locale locales = 3;  // Language options
 }
 
 // =============================================

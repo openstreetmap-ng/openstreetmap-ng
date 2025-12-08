@@ -76,8 +76,6 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
         code=locale,
         english=english,
         native=native,
-        installed=True,
-        flag=None,
     )
 
 
@@ -97,8 +95,6 @@ def add_extra_locales_names(locales_names: list[LocaleName]):
                 code=code,
                 english=english_name,
                 native=native_name,
-                installed=True,
-                flag=None,
             )
         )
         print(f'[➕] Added extra name: {code}')  # noqa: RUF001

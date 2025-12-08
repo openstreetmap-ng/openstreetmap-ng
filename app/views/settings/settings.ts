@@ -1,4 +1,4 @@
-import { getLocaleOptions } from "@lib/locale"
+import { LOCALE_OPTIONS } from "@lib/config"
 import { mount } from "@lib/mount"
 import { type APIDetail, configureStandardForm } from "@lib/standard-form"
 import i18next from "i18next"
@@ -10,7 +10,7 @@ mount("settings-body", (body) => {
     const languageSelect = settingsForm.querySelector('select[name="language"]')!
 
     const fragment = document.createDocumentFragment()
-    for (const locale of getLocaleOptions()) {
+    for (const locale of LOCALE_OPTIONS) {
         const option = document.createElement("option")
         option.value = locale.code
         option.textContent = locale.flag

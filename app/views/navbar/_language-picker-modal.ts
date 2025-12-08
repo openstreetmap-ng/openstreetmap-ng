@@ -1,5 +1,4 @@
-import { primaryLanguage } from "@lib/config"
-import { getLocaleOptions } from "@lib/locale"
+import { LOCALE_OPTIONS, primaryLanguage } from "@lib/config"
 import { Modal } from "bootstrap"
 
 const NON_ALPHA_SPACE_RE = /[^a-z\s]/g
@@ -16,7 +15,7 @@ if (languagePickerModal) {
         console.debug("Initializing language picker")
         const fragment = document.createDocumentFragment()
 
-        for (const locale of getLocaleOptions()) {
+        for (const locale of LOCALE_OPTIONS) {
             const hasEnglishName = locale.nativeName !== locale.englishName
 
             const listItem = document.createElement("li")

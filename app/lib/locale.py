@@ -1,7 +1,5 @@
 import logging
 import re
-import tomllib
-import unicodedata
 from pathlib import Path
 from typing import NamedTuple, overload
 
@@ -16,8 +14,6 @@ class LocaleName(NamedTuple):
     code: LocaleCode
     english: str
     native: str
-    installed: bool
-    flag: str | None
 
     @property
     def display_name(self) -> str:
@@ -34,43 +30,6 @@ _NON_ALPHA_RE = re.compile(r'[^a-z]+')
 
 
 @cython.cfunc
-def _get_flag(
-    code: str, flags: dict[str, str], flags_passthrough: set[str]
-) -> str | None:
-    parts = code.upper().split('-')
-
-    for i in range(len(parts), 0, -1):
-        code = '-'.join(parts[:i])
-
-        flag_code = code if code in flags_passthrough else flags.get(code)
-        if flag_code is None:
-            continue
-
-        # Handle subdivision flags (format: CC-SUB, e.g., GB-WLS)
-        code_parts = flag_code.split('-')
-        if len(code_parts) == 2:
-            # Build Unicode subdivision flag:
-            # black flag + country tags + subdivision tags + cancel tag
-            return ''.join((
-                '🏴',
-                *(chr(0xE0000 + ord(c)) for cp in code_parts for c in cp.lower()),
-                '\U000e007f',
-            ))
-
-        try:
-            emoji = ''.join(chr(0x1F1A5 + ord(c)) for c in flag_code)
-            if all(
-                unicodedata.name(c, '').startswith('REGIONAL INDICATOR SYMBOL')
-                for c in emoji
-            ):
-                return emoji
-        except (ValueError, OverflowError):
-            continue
-
-    return None
-
-
-@cython.cfunc
 def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]:
     i18next_map: dict[LocaleCode, str]
     i18next_map = orjson.loads(Path('config/locale/i18next/map.json').read_bytes())
@@ -83,26 +42,18 @@ def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]
     raw_names.sort(key=lambda v: (v['native'] or v['english']).casefold())
     locale_names_map: dict[LocaleCode, LocaleName] = {}
 
-    flags = tomllib.loads(Path('config/locale/flags.toml').read_text())
-    flags_passthrough = set(flags.pop('passthrough'))
-
     for raw_name in raw_names:
         code = LocaleCode(raw_name.pop('code'))
-        locale_name = LocaleName(
-            **raw_name,
-            code=code,
-            installed=code in i18next_map,
-            flag=_get_flag(code, flags, flags_passthrough),
-        )
+        locale_name = LocaleName(**raw_name, code=code)
 
-        if not locale_name.installed:
-            new_code = locales_codes_normalized_map.get(_normalize(locale_name.code))
+        if code not in i18next_map:
+            new_code = locales_codes_normalized_map.get(_normalize(code))
             if new_code is not None:
                 raise ValueError(
-                    f'Locale code {locale_name.code!r} is mistyped, expected {new_code!r}'
+                    f'Locale code {code!r} is mistyped, expected {new_code!r}'
                 )
 
-        locale_names_map[locale_name.code] = locale_name
+        locale_names_map[code] = locale_name
 
     # Check that the default locale is installed
     if DEFAULT_LOCALE not in i18next_map:
@@ -135,7 +86,7 @@ _I18NEXT_MAP, LOCALES_NAMES_MAP = _load_locale()
 INSTALLED_LOCALES_NAMES_MAP = {
     code: locale_name
     for code, locale_name in LOCALES_NAMES_MAP.items()
-    if locale_name.installed
+    if code in _I18NEXT_MAP
 }
 _INSTALLED_LOCALES_CODES_NORMALIZED_MAP = {
     _normalize(code): code for code in INSTALLED_LOCALES_NAMES_MAP
@@ -145,7 +96,7 @@ logging.info(
     len(_I18NEXT_MAP),
     len(LOCALES_NAMES_MAP),
     len(INSTALLED_LOCALES_NAMES_MAP),
-    len([ln.code for ln in LOCALES_NAMES_MAP.values() if not ln.installed]),
+    len(LOCALES_NAMES_MAP) - len(INSTALLED_LOCALES_NAMES_MAP),
 )
 
 

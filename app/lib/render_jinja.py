@@ -11,7 +11,6 @@ from app.config import APP_URL, ENV, REPORT_COMMENT_BODY_MAX_LENGTH, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
 from app.lib.image import Image
-from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP
 from app.lib.translation import nt, primary_translation_locale, t
 from app.lib.vite import vite_render_asset
 from app.models.db.audit import AUDIT_TYPE_VALUES
@@ -195,7 +194,6 @@ _J2.globals.update(
     AUDIT_TYPE_SET=AUDIT_TYPE_VALUES,
     CONFIGURED_AUTH_PROVIDERS=CONFIGURED_AUTH_PROVIDERS,
     DEFAULT_EDITOR=DEFAULT_EDITOR,
-    INSTALLED_LOCALES_NAMES_MAP=INSTALLED_LOCALES_NAMES_MAP,
     REPORT_COMMENT_BODY_MAX_LENGTH=REPORT_COMMENT_BODY_MAX_LENGTH,
     ceil=ceil,
     format_rfc2822_date=format_rfc2822_date,
