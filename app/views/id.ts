@@ -2,7 +2,7 @@ import "./id.scss"
 import "iD/dist/iD.css"
 import "iD"
 
-import { config, primaryLanguage } from "@lib/config"
+import { API_URL, primaryLanguage } from "@lib/config"
 import { parentLoadSystemApp } from "@lib/system-app"
 import { throttle } from "@lib/throttle"
 
@@ -15,7 +15,7 @@ parentLoadSystemApp((accessToken, parentOrigin) => {
     ctx.connection().apiConnections([])
     ctx.preauth({
         url: parentOrigin,
-        apiUrl: config.apiUrl,
+        apiUrl: API_URL,
         access_token: accessToken,
     })
 

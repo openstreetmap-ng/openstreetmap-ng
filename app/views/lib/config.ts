@@ -2,13 +2,26 @@ import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { memoize } from "@lib/memoize"
 import { WebConfigSchema } from "@lib/proto/shared_pb"
+import {
+    _API_URL,
+    _ENV,
+    _MAP_QUERY_AREA_MAX_SIZE,
+    _NOTE_QUERY_AREA_MAX_SIZE,
+    _VERSION,
+} from "./config.macro" with { type: "macro" }
+
+export const API_URL = _API_URL
+export const ENV = _ENV
+export const MAP_QUERY_AREA_MAX_SIZE = _MAP_QUERY_AREA_MAX_SIZE
+export const NOTE_QUERY_AREA_MAX_SIZE = _NOTE_QUERY_AREA_MAX_SIZE
+export const VERSION = _VERSION
 
 /** Global dataset options that are defined on <html> tag */
 export const config = fromBinary(
     WebConfigSchema,
     base64Decode(document.documentElement.dataset.config!),
 )
-console.info("Application version", config.version)
+console.info("Application version", VERSION)
 
 /** Determine default tracking based on user browser settings */
 const DEFAULT_TRACKING =
@@ -23,8 +36,7 @@ export const isCrashReportingEnabled = (
 ): cfg is typeof config & { sentryConfig: NonNullable<typeof config.sentryConfig> } =>
     Boolean(
         cfg.sentryConfig &&
-            (cfg.env === "test" ||
-                (cfg.userConfig?.crashReporting ?? DEFAULT_TRACKING)),
+            (ENV === "test" || (cfg.userConfig?.crashReporting ?? DEFAULT_TRACKING)),
     )
 
 /**

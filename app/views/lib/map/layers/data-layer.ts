@@ -1,7 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { routerNavigateStrict } from "@index/router"
 import { toggleLayerSpinner } from "@index/sidebar/layers"
-import { config } from "@lib/config"
+import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { RenderElementsDataSchema } from "@lib/proto/shared_pb"
 import { qsEncode } from "@lib/qs"
 import type { OSMNode, OSMWay } from "@lib/types"
@@ -188,7 +188,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
 
         // Skip updates if the area is too big
         const area = getLngLatBoundsSize(fetchBounds)
-        if (area > config.mapQueryAreaMaxSize) {
+        if (area > MAP_QUERY_AREA_MAX_SIZE) {
             errorDataAlert.classList.remove("d-none")
             loadDataAlert.classList.add("d-none")
             clearData()

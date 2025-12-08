@@ -1,6 +1,6 @@
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
 import { assert } from "@lib/assert"
-import { config } from "@lib/config"
+import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { zoomPrecision } from "@lib/coords"
 import { padLngLatBounds } from "@lib/map/bounds"
 import { LocationFilterControl } from "@lib/map/controls/location-filter"
@@ -69,7 +69,7 @@ export const getExportController = (map: MaplibreMap) => {
     ) => {
         // Update the form availability
         const currentViewAreaSize = (maxLon - minLon) * (maxLat - minLat)
-        const isFormAvailable = currentViewAreaSize <= config.mapQueryAreaMaxSize
+        const isFormAvailable = currentViewAreaSize <= MAP_QUERY_AREA_MAX_SIZE
         exportAvailableContainer.classList.toggle("d-none", !isFormAvailable)
         exportUnavailableContainer.classList.toggle("d-none", isFormAvailable)
 

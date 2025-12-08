@@ -1,4 +1,4 @@
-import { config } from "@lib/config"
+import { API_URL } from "@lib/config"
 import type { LonLatZoom } from "@lib/map/state"
 import { qsEncode } from "@lib/qs"
 import type { OSMObject } from "@lib/types"
@@ -18,14 +18,14 @@ const getObjectRequestUrl = (object: OSMObject) => {
     // When requested for complex object, request for full version (incl. object's members)
     // Ignore version specification as there is a very high chance it will be rendered incorrectly
     if (type === "way" || type === "relation") {
-        return `${config.apiUrl}/api/0.6/${type}/${object.id}/full`
+        return `${API_URL}/api/0.6/${type}/${object.id}/full`
     }
 
     // @ts-expect-error
     const version = object.version
     return version
-        ? `${config.apiUrl}/api/0.6/${type}/${object.id}/${version}`
-        : `${config.apiUrl}/api/0.6/${type}/${object.id}`
+        ? `${API_URL}/api/0.6/${type}/${object.id}/${version}`
+        : `${API_URL}/api/0.6/${type}/${object.id}`
 }
 
 const getBoundsFromCoords = ({ lon, lat, zoom }: LonLatZoom, paddingRatio = 0) => {

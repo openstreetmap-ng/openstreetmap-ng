@@ -2,7 +2,7 @@ import "./rapid.scss"
 import "@rapideditor/rapid/dist/rapid.css"
 import "@rapideditor/rapid"
 
-import { config, primaryLanguage } from "@lib/config"
+import { API_URL, primaryLanguage } from "@lib/config"
 import { parentLoadSystemApp } from "@lib/system-app"
 
 const container = document.querySelector("div.rapid-container")
@@ -13,7 +13,7 @@ parentLoadSystemApp(async (accessToken, parentOrigin) => {
     const ctx = new window.Rapid.Context()
     ctx.preauth = {
         url: parentOrigin,
-        apiUrl: config.apiUrl,
+        apiUrl: API_URL,
         access_token: accessToken,
     }
 

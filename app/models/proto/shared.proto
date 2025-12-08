@@ -45,12 +45,7 @@ message WebConfig {
 
     optional UserConfig user_config = 1;  // User preferences override
     optional SentryConfig sentry_config = 2;  // Sentry configuration
-    string version = 3;  // Application version
-    string env = 4;  // Environment mode (dev, test, prod)
-    string api_url = 5;  // Base URL for making API requests
-    float map_query_area_max_size = 6;  // Max sq km for map data queries
-    float note_query_area_max_size = 7;  // Max sq km for note queries
-    repeated Locale locales = 8;  // Language options
+    repeated Locale locales = 3;  // Language options
 }
 
 // =============================================

@@ -1,7 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { routerNavigateStrict } from "@index/router"
 import { toggleLayerSpinner } from "@index/sidebar/layers"
-import { config } from "@lib/config"
+import { NOTE_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { RenderNotesDataSchema } from "@lib/proto/shared_pb"
 import {
     type GeoJSONSource,
@@ -109,7 +109,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
         // Skip updates if the area is too big
         const fetchBounds = map.getBounds()
         const fetchArea = getLngLatBoundsSize(fetchBounds)
-        if (fetchArea > config.noteQueryAreaMaxSize) return
+        if (fetchArea > NOTE_QUERY_AREA_MAX_SIZE) return
 
         // Skip updates if the view is satisfied
         if (fetchedBounds) {

@@ -4,13 +4,6 @@ from typing import Any
 from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
-from app.config import (
-    API_URL,
-    ENV,
-    MAP_QUERY_AREA_MAX_SIZE,
-    NOTE_QUERY_AREA_MAX_SIZE,
-    VERSION,
-)
 from app.lib.auth_context import auth_user
 from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, map_i18next_files
 from app.lib.render_jinja import render_jinja
@@ -29,11 +22,6 @@ _CONFIG_BASE = WebConfig(
         if SENTRY_DSN
         else None
     ),
-    version=VERSION,
-    env=ENV,
-    api_url=API_URL,
-    map_query_area_max_size=MAP_QUERY_AREA_MAX_SIZE,
-    note_query_area_max_size=NOTE_QUERY_AREA_MAX_SIZE,
     locales=[
         WebConfig.Locale(
             code=code,

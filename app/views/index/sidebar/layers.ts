@@ -1,5 +1,9 @@
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
-import { config, isMobile } from "@lib/config"
+import {
+    isMobile,
+    MAP_QUERY_AREA_MAX_SIZE,
+    NOTE_QUERY_AREA_MAX_SIZE,
+} from "@lib/config"
 import {
     globeProjectionStorage,
     layerOrderStorage,
@@ -168,8 +172,8 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
             const currentViewAreaSize = getLngLatBoundsSize(map.getBounds())
 
             for (const [layerId, areaMaxSize] of [
-                ["notes", config.noteQueryAreaMaxSize],
-                ["data", config.mapQueryAreaMaxSize],
+                ["notes", NOTE_QUERY_AREA_MAX_SIZE],
+                ["data", MAP_QUERY_AREA_MAX_SIZE],
             ] as [LayerId, number][]) {
                 const checkbox = layerIdOverlayCheckboxMap.get(layerId)!
                 const isAvailable = currentViewAreaSize <= areaMaxSize

@@ -1,4 +1,11 @@
-import { activityTracking, config, isCrashReportingEnabled } from "@lib/config"
+import {
+    API_URL,
+    activityTracking,
+    config,
+    ENV,
+    isCrashReportingEnabled,
+    VERSION,
+} from "@lib/config"
 import { getTimezoneName } from "@lib/format"
 import { themeStorage } from "@lib/local-storage"
 import {
@@ -16,14 +23,14 @@ if (isCrashReportingEnabled(config)) {
     const sentryConfig = config.sentryConfig
 
     const tracePropagationTargets: (string | RegExp)[] = [/^\/(?!static)/]
-    if (config.apiUrl !== window.location.origin) {
-        tracePropagationTargets.push(config.apiUrl)
+    if (API_URL !== window.location.origin) {
+        tracePropagationTargets.push(API_URL)
     }
     console.debug("Sentry trace propagation targets", tracePropagationTargets)
 
     SentryInit({
         dsn: sentryConfig.dsn,
-        release: config.version,
+        release: VERSION,
         environment: window.location.host,
         tracesSampleRate: sentryConfig.tracesSampleRate,
         tracePropagationTargets: tracePropagationTargets,
@@ -42,7 +49,7 @@ if (isCrashReportingEnabled(config)) {
     console.debug("Providing user information", userInfo)
     setUser(userInfo)
 
-    if (config.env === "test") {
+    if (ENV === "test") {
         console.debug("Enabling feedback integration")
         const appTheme = themeStorage.get()
         addIntegration(

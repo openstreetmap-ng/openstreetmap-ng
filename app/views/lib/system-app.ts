@@ -1,4 +1,4 @@
-import { config } from "@lib/config"
+import { API_URL } from "@lib/config"
 import { systemAppAccessTokenStorage } from "@lib/local-storage"
 import { wrapMessageEventValidator } from "@lib/utils"
 
@@ -16,7 +16,7 @@ const loadSystemApp = async (
     }
 
     try {
-        const resp = await fetch(`${config.apiUrl}/api/0.6/user/details`, {
+        const resp = await fetch(`${API_URL}/api/0.6/user/details`, {
             credentials: "omit",
             headers: { authorization: `Bearer ${accessToken}` },
             priority: "high",
