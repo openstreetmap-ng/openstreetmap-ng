@@ -3,6 +3,7 @@ from datetime import datetime
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from math import ceil
 from typing import Annotated
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Query, Request
 
@@ -45,12 +46,29 @@ async def audit_index(
         )
         audit_num_pages = ceil(audit_num_items / AUDIT_LIST_PAGE_SIZE)
 
+        # Build pagination action URL with current filters
+        pagination_params: dict[str, str] = {}
+        if ip:
+            pagination_params['ip'] = str(ip)
+        if user:
+            pagination_params['user'] = user
+        if application_id:
+            pagination_params['application_id'] = str(application_id)
+        if type:
+            pagination_params['type'] = type
+        if created_after:
+            pagination_params['created_after'] = created_after.isoformat()
+        if created_before:
+            pagination_params['created_before'] = created_before.isoformat()
+        pagination_action = f'/api/web/audit?{urlencode(pagination_params)}'
+
         return await render_response(
             'audit/index',
             {
                 'AUDIT_TYPE_VALUES': AUDIT_TYPE_VALUES,
                 'audit_num_items': audit_num_items,
                 'audit_num_pages': audit_num_pages,
+                'pagination_action': pagination_action,
                 'ip': ip or '',
                 'user_q': user or '',
                 'application_id': application_id or '',

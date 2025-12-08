@@ -127,7 +127,7 @@
         </div>
         <nav aria-label="{{ t('alt.page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-0"
-                data-action="/api/web/admin/users?sort={{ sort }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if unverified %}&unverified=1{% endif %}{% for role in roles %}&roles={{ role }}{% endfor %}{% if created_after %}&created_after={{ created_after }}{% endif %}{% if created_before %}&created_before={{ created_before }}{% endif %}{% if application_id %}&application_id={{ application_id }}{% endif %}"
+                data-action="{{ pagination_action }}"
                 data-pages="{{ users_num_pages }}" data-num-items="{{ users_num_items }}">
             </ul>
         </nav>

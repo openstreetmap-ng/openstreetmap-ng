@@ -2,6 +2,7 @@ from asyncio import TaskGroup
 from datetime import datetime
 from math import ceil
 from typing import Annotated, Literal
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Query, Request
 
@@ -42,11 +43,28 @@ async def applications_index(
         )
         apps_num_pages = ceil(apps_num_items / ADMIN_APPLICATION_LIST_PAGE_SIZE)
 
+        # Build pagination action URL with current filters
+        pagination_params: dict[str, str] = {'sort': sort}
+        if search:
+            pagination_params['search'] = search
+        if owner:
+            pagination_params['owner'] = owner
+        if interacted_user:
+            pagination_params['interacted_user'] = interacted_user
+        if created_after:
+            pagination_params['created_after'] = created_after.isoformat()
+        if created_before:
+            pagination_params['created_before'] = created_before.isoformat()
+        pagination_action = (
+            f'/api/web/admin/applications?{urlencode(pagination_params)}'
+        )
+
         return await render_response(
             'admin/applications/index',
             {
                 'apps_num_items': apps_num_items,
                 'apps_num_pages': apps_num_pages,
+                'pagination_action': pagination_action,
                 'search': search or '',
                 'owner': owner or '',
                 'interacted_user': interacted_user or '',

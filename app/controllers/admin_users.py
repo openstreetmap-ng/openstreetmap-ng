@@ -2,6 +2,7 @@ from asyncio import TaskGroup
 from datetime import datetime
 from math import ceil
 from typing import Annotated, Literal
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Query, Request, Response
 from starlette import status
@@ -53,11 +54,30 @@ async def users_index(
         )
         users_num_pages = ceil(users_num_items / ADMIN_USER_LIST_PAGE_SIZE)
 
+        # Build pagination action URL with current filters
+        pagination_params: dict[str, str | list] = {'sort': sort}
+        if search:
+            pagination_params['search'] = search
+        if unverified:
+            pagination_params['unverified'] = '1'
+        if roles:
+            pagination_params['roles'] = roles
+        if created_after:
+            pagination_params['created_after'] = created_after.isoformat()
+        if created_before:
+            pagination_params['created_before'] = created_before.isoformat()
+        if application_id:
+            pagination_params['application_id'] = str(application_id)
+        pagination_action = (
+            f'/api/web/admin/users?{urlencode(pagination_params, doseq=True)}'
+        )
+
         return await render_response(
             'admin/users/index',
             {
                 'users_num_items': users_num_items,
                 'users_num_pages': users_num_pages,
+                'pagination_action': pagination_action,
                 'search': search or '',
                 'unverified': unverified,
                 'roles': roles or (),

@@ -109,7 +109,7 @@
         </div>
         <nav aria-label="{{ t('alt.page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-0"
-                data-action="/api/web/admin/applications?sort={{ sort }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if owner %}&owner={{ owner|urlencode }}{% endif %}{% if interacted_user %}&interacted_user={{ interacted_user|urlencode }}{% endif %}{% if created_after %}&created_after={{ created_after }}{% endif %}{% if created_before %}&created_before={{ created_before }}{% endif %}"
+                data-action="{{ pagination_action }}"
                 data-pages="{{ apps_num_pages }}" data-num-items="{{ apps_num_items }}">
             </ul>
         </nav>
