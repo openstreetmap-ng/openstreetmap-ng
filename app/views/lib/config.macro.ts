@@ -13,6 +13,7 @@ print(json.dumps({
     'NOTE_QUERY_AREA_MAX_SIZE': NOTE_QUERY_AREA_MAX_SIZE,
     'SENTRY_DSN': SENTRY_DSN,
     'SENTRY_TRACES_SAMPLE_RATE': SENTRY_TRACES_SAMPLE_RATE,
+    'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
     'VERSION': VERSION,
 }))"`,
         { encoding: "utf8" },
@@ -26,4 +27,5 @@ export const _NOTE_QUERY_AREA_MAX_SIZE: number = pythonConfig.NOTE_QUERY_AREA_MA
 // TODO: revert "UNSET" workaround when fixed https://github.com/unplugin/unplugin-macros/issues/122
 export const _SENTRY_DSN: string = pythonConfig.SENTRY_DSN || "UNSET"
 export const _SENTRY_TRACES_SAMPLE_RATE: number = pythonConfig.SENTRY_TRACES_SAMPLE_RATE
+export const _URLSAFE_BLACKLIST: string = pythonConfig.URLSAFE_BLACKLIST
 export const _VERSION: string = pythonConfig.VERSION

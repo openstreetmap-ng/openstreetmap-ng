@@ -11,7 +11,6 @@ from app.config import (
     EMAIL_MIN_LENGTH,
     PASSKEY_LIMIT,
     PASSWORD_MIN_LENGTH,
-    URLSAFE_BLACKLIST,
 )
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
@@ -36,10 +35,7 @@ async def settings(user: Annotated[User, web_user()]):
     )
     return await render_response(
         'settings/settings',
-        {
-            'password_updated_at': password_updated_at,
-            'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
-        },
+        {'password_updated_at': password_updated_at},
     )
 
 

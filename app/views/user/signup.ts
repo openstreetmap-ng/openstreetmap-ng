@@ -1,4 +1,4 @@
-import { activityTracking } from "@lib/config"
+import { activityTracking, URLSAFE_BLACKLIST } from "@lib/config"
 import { mount } from "@lib/mount"
 import { type APIDetail, configureStandardForm } from "@lib/standard-form"
 import { Collapse } from "bootstrap"
@@ -7,7 +7,6 @@ import i18next from "i18next"
 mount("signup-body", (body) => {
     const signupForm = body.querySelector("form.signup-form")!
     const displayNameInput = signupForm.querySelector("input[name=display_name]")!
-    const displayNameBlacklist = displayNameInput.dataset.blacklist!
     const passwordInput = signupForm.querySelector(
         "input[type=password][data-name=password]",
     )!
@@ -30,11 +29,9 @@ mount("signup-body", (body) => {
 
                 // Validate name for blacklisted characters
                 const displayNameChars = new Set(displayNameInput.value)
-                if (
-                    displayNameBlacklist.split("").some((c) => displayNameChars.has(c))
-                ) {
+                if (URLSAFE_BLACKLIST.split("").some((c) => displayNameChars.has(c))) {
                     const msg = i18next.t("validations.url_characters", {
-                        characters: displayNameBlacklist,
+                        characters: URLSAFE_BLACKLIST,
                         interpolation: { escapeValue: false },
                     })
                     result.push({ type: "error", loc: ["", "display_name"], msg })

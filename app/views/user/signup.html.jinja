@@ -49,8 +49,8 @@
                             <label class="form-label d-block">
                                 {{ t('activerecord.attributes.user.display_name') | capitalize }}
                                 <input type="text" class="form-control mt-2" name="display_name"
-                                    data-blacklist="{{ URLSAFE_BLACKLIST }}" value="{{ display_name_value }}"
-                                    autocomplete="username" autocapitalize="none" required>
+                                    value="{{ display_name_value }}" autocomplete="username" autocapitalize="none"
+                                    required>
                             </label>
                             <p class="form-text">
                                 {{ t('settings.your_public_username') }}

@@ -10,8 +10,8 @@
 
     <label class="form-label d-block mb-3">
         {{ t('activerecord.attributes.user.display_name') | capitalize }}
-        <input type="text" class="form-control mt-2" name="display_name" data-blacklist="{{ URLSAFE_BLACKLIST }}"
-            value="{{ user.display_name }}" autocapitalize="none" required>
+        <input type="text" class="form-control mt-2" name="display_name" value="{{ user.display_name }}"
+            autocapitalize="none" required>
     </label>
 
     <label class="form-label d-block">

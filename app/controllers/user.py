@@ -13,7 +13,6 @@ from starlette.responses import RedirectResponse
 from app.config import (
     EMAIL_MIN_LENGTH,
     PASSWORD_MIN_LENGTH,
-    URLSAFE_BLACKLIST,
     USER_DESCRIPTION_MAX_LENGTH,
     USER_MAX_SOCIALS,
     USER_NEW_DAYS,
@@ -68,7 +67,6 @@ async def signup(auth_provider_verification: Annotated[str | None, Cookie()] = N
         {
             'display_name_value': display_name,
             'email_value': email,
-            'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
             'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
             'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,

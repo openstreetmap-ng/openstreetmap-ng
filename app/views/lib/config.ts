@@ -9,6 +9,7 @@ import {
     _NOTE_QUERY_AREA_MAX_SIZE,
     _SENTRY_DSN,
     _SENTRY_TRACES_SAMPLE_RATE,
+    _URLSAFE_BLACKLIST,
     _VERSION,
 } from "./config.macro" with { type: "macro" }
 import { getLocaleOptions } from "./locale.macro" with { type: "macro" }
@@ -19,6 +20,7 @@ export const MAP_QUERY_AREA_MAX_SIZE = _MAP_QUERY_AREA_MAX_SIZE
 export const NOTE_QUERY_AREA_MAX_SIZE = _NOTE_QUERY_AREA_MAX_SIZE
 export const SENTRY_DSN = _SENTRY_DSN
 export const SENTRY_TRACES_SAMPLE_RATE = _SENTRY_TRACES_SAMPLE_RATE
+export const URLSAFE_BLACKLIST = _URLSAFE_BLACKLIST
 export const VERSION = _VERSION
 
 export const LOCALE_OPTIONS = getLocaleOptions()
