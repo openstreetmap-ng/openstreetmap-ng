@@ -164,6 +164,7 @@ ignore = [
   "ISC002",  # multi-line-implicit-string-concatenation
   "LOG015",  # root-logger-call
   "N803",  # invalid-argument-name
+  "N806",  # non-lowercase-variable-in-function
   "PLR09",  # too-many-*
   "PLR1702",  # too-many-nested-blocks
   "PLR1704",  # redefined-argument-from-local

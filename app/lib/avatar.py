@@ -55,50 +55,64 @@ def _hsl_to_rgb(h: cython.double, s: cython.double, l: cython.double) -> str:
     return f'{r:02x}{g:02x}{b:02x}'
 
 
-def _relative_luminance(rgb_hex: str) -> cython.double:
+def _apca_luminance(rgb_hex: str) -> cython.double:
     """
-    Calculate relative luminance for sRGB color.
-    https://www.w3.org/TR/WCAG21/#dfn-relative-luminance
+    Calculate APCA screen luminance (Ys) with soft clip for blacks.
+    https://github.com/Myndex/SAPC-APCA
     """
-    r: cython.uchar = int(rgb_hex[0:2], 16)
-    g: cython.uchar = int(rgb_hex[2:4], 16)
-    b: cython.uchar = int(rgb_hex[4:6], 16)
+    S_TRC: cython.double = 2.4  # sRGB linearization exponent
+    B_THRSH: cython.double = 0.022  # black soft clip threshold
+    B_CLIP: cython.double = 1.414  # black soft clip exponent
 
-    r_srgb: cython.double = r / 255
-    g_srgb: cython.double = g / 255
-    b_srgb: cython.double = b / 255
+    r: cython.double = (int(rgb_hex[0:2], 16) / 255) ** S_TRC
+    g: cython.double = (int(rgb_hex[2:4], 16) / 255) ** S_TRC
+    b: cython.double = (int(rgb_hex[4:6], 16) / 255) ** S_TRC
 
-    r_lin: cython.double = (
-        r_srgb / 12.92 if r_srgb <= 0.04045 else ((r_srgb + 0.055) / 1.055) ** 2.4
-    )
-    g_lin: cython.double = (
-        g_srgb / 12.92 if g_srgb <= 0.04045 else ((g_srgb + 0.055) / 1.055) ** 2.4
-    )
-    b_lin: cython.double = (
-        b_srgb / 12.92 if b_srgb <= 0.04045 else ((b_srgb + 0.055) / 1.055) ** 2.4
-    )
+    y: cython.double = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b
 
-    return 0.2126 * r_lin + 0.7152 * g_lin + 0.0722 * b_lin
+    # Soft clip for black level
+    if y < B_THRSH:
+        y += (B_THRSH - y) ** B_CLIP
+    return y
 
 
-def _contrast_ratio(l1: cython.double, l2: cython.double) -> cython.double:
+def _apca_contrast(y_txt: cython.double, y_bg: cython.double) -> cython.double:
     """
-    Calculate contrast ratio between two relative luminances.
-    https://www.w3.org/TR/WCAG21/#dfn-contrast-ratio
+    Calculate APCA lightness contrast (Lc) between text and background.
+    Returns signed value: positive = dark text on light bg, negative = light text on dark bg.
     """
-    lighter: cython.double = max(l1, l2)
-    darker: cython.double = min(l1, l2)
-    return (lighter + 0.05) / (darker + 0.05)
+    N_TX: cython.double = 0.57  # normal polarity text exponent
+    N_BG: cython.double = 0.56  # normal polarity background exponent
+    R_TX: cython.double = 0.62  # reverse polarity text exponent
+    R_BG: cython.double = 0.65  # reverse polarity background exponent
+    W_SCALE: cython.double = 1.14  # output scale
+    W_OFFSET: cython.double = 0.027  # output offset
+    W_CLAMP: cython.double = 0.1  # low contrast clamp threshold
+
+    sapc: cython.double
+    if y_bg > y_txt:
+        # Normal polarity: dark text on light background
+        sapc = (y_bg**N_BG - y_txt**N_TX) * W_SCALE
+    else:
+        # Reverse polarity: light text on dark background
+        sapc = (y_bg**R_BG - y_txt**R_TX) * W_SCALE
+
+    # Clamp and apply offset
+    if abs(sapc) < W_CLAMP:
+        return 0.0
+    if sapc > 0:
+        return (sapc - W_OFFSET) * 100.0
+    return (sapc + W_OFFSET) * 100.0
 
 
 def _generate_accessible_color(rng: Random) -> str:
     """
     Generate a random color with guaranteed contrast against white text.
     Uses HSL color space for better control over visual properties.
-    Ensures WCAG AA compliance (4.5:1 contrast ratio) for normal text.
+    Ensures APCA Lc >= 60 (equivalent to WCAG AA 4.5:1) for body text.
     """
-    white_luminance = 1.0
-    min_contrast = 4.5
+    MIN_LC: cython.double = 60.0  # minimum APCA lightness contrast
+    WHITE_Y: cython.double = 1.0  # white text luminance
 
     # Generate vibrant, accessible colors
     h = rng.random() * 360
@@ -106,11 +120,11 @@ def _generate_accessible_color(rng: Random) -> str:
     l = 0.3 + rng.random() * 0.35
 
     color = ''
-    contrast = -1
-    while contrast < min_contrast:
+    lc: cython.double = 0.0
+    while abs(lc) < MIN_LC:
         color = _hsl_to_rgb(h, s, l)
-        color_luminance = _relative_luminance(color)
-        contrast = _contrast_ratio(white_luminance, color_luminance)
+        bg_y = _apca_luminance(color)
+        lc = _apca_contrast(WHITE_Y, bg_y)  # white text on colored bg
         l *= 0.9  # Make darker
 
     return color

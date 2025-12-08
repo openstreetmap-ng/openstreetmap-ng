@@ -3,11 +3,11 @@ from random import Random
 import pytest
 
 from app.lib.avatar import (
-    _contrast_ratio,
+    _apca_contrast,
+    _apca_luminance,
     _extract_initials,
     _generate_accessible_color,
     _hsl_to_rgb,
-    _relative_luminance,
 )
 
 
@@ -33,33 +33,31 @@ def test_hsl_to_rgb(h: float, s: float, l: float, expected: str):
     ('color', 'expected'),
     [
         ('ffffff', 1.0),  # White
-        ('000000', 0.0),  # Black
-        ('ff0000', 0.2126),  # Red
+        ('000000', 0.0035),  # Black (soft clipped)
+        ('ff0000', 0.2127),  # Red
         ('00ff00', 0.7152),  # Green
         ('0000ff', 0.0722),  # Blue
     ],
 )
-def test_relative_luminance(color: str, expected: float):
-    assert _relative_luminance(color) == pytest.approx(expected, abs=0.01)
+def test_apca_luminance(color: str, expected: float):
+    assert _apca_luminance(color) == pytest.approx(expected, abs=0.01)
 
 
 @pytest.mark.parametrize(
-    ('l1', 'l2', 'expected'),
+    ('y_txt', 'y_bg', 'expected'),
     [
-        (1.0, 0.0, 21.0),  # White vs Black
-        (0.5, 0.5, 1.0),  # Same color
-        (0.0, 1.0, 21.0),  # Order independence (Black vs White)
+        (1.0, 0.0035, -108.4),  # White text on black bg (reverse polarity)
+        (0.0035, 1.0, 106.7),  # Black text on white bg (normal polarity)
+        (0.5, 0.5, 0.0),  # Same luminance (clamped to 0)
     ],
 )
-def test_contrast_ratio(l1: float, l2: float, expected: float):
-    assert _contrast_ratio(l1, l2) == pytest.approx(expected, abs=0.1)
+def test_apca_contrast(y_txt: float, y_bg: float, expected: float):
+    assert _apca_contrast(y_txt, y_bg) == pytest.approx(expected, abs=0.1)
 
 
-def test_generate_accessible_color_meets_wcag_aa():
-    """Test that generated colors meet WCAG AA standard (4.5:1 contrast)."""
-    rng = Random(42)
-    white_luminance = 1.0
-    min_contrast = 4.5
+def test_generate_accessible_color_meets_apca():
+    """Test that generated colors meet APCA Lc >= 60 for body text readability."""
+    MIN_LC = 60.0
 
     # Test 100 random seeds to ensure consistency
     for seed in range(100):
@@ -70,11 +68,11 @@ def test_generate_accessible_color_meets_wcag_aa():
         assert len(color) == 6
         int(color, 16)  # Should not raise
 
-        # Verify contrast meets WCAG AA
-        color_luminance = _relative_luminance(color)
-        contrast = _contrast_ratio(white_luminance, color_luminance)
-        assert contrast >= min_contrast, (
-            f'Color #{color} has contrast {contrast:.2f}, expected >= {min_contrast}'
+        # Verify contrast meets APCA threshold (white text on colored bg)
+        bg_y = _apca_luminance(color)
+        lc = _apca_contrast(1.0, bg_y)  # white text
+        assert abs(lc) >= MIN_LC, (
+            f'Color #{color} has Lc {lc:.1f}, expected |Lc| >= {MIN_LC}'
         )
 
 
