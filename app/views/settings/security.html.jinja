@@ -50,14 +50,12 @@
 
 <h3>{{ t('two_fa.two_factor_methods') }}</h3>
 <p>{{ t('two_fa.secure_your_account_using_additional_verification_methods') }}</p>
-<div class="table-responsive">
-    <table class="table align-middle mb-0">
-        <tbody>
-            <tr>
-                <td>
-                    <i class="bi bi-fingerprint"></i>
-                </td>
-                <td>
+<ul class="two-factor-methods list-unstyled mx-2">
+    <li>
+        <div class="row g-2 align-items-center">
+            <div class="col-sm d-flex gap-2 gap-sm-3">
+                <i class="bi bi-fingerprint two-factor-icon"></i>
+                <div>
                     <h6 class="d-flex align-items-center mb-0">
                         {{ t('two_fa.passkeys') }}
                         {% if passkeys %}
@@ -100,22 +98,24 @@
                         {% endfor %}
                     </ul>
                     {% endif %}
-                </td>
-                <td class="text-end">
-                    {% if passkeys | length < PASSKEY_LIMIT %}
-                    <form class="add-passkey-form d-inline" method="POST" action="/api/web/settings/passkey/register">
-                        <button class="btn btn-light border" type="submit">
-                            {{ t('action.configure') }}
-                        </button>
-                    </form>
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <i class="bi bi-phone"></i>
-                </td>
-                <td>
+                </div>
+            </div>
+            <div class="col-sm-auto text-end">
+                {% if passkeys | length < PASSKEY_LIMIT %}
+                <form class="add-passkey-form d-inline" method="POST" action="/api/web/settings/passkey/register">
+                    <button class="btn btn-light border" type="submit">
+                        {{ t('action.configure') }}
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </li>
+    <li>
+        <div class="row g-2 align-items-center">
+            <div class="col-sm d-flex gap-2 gap-sm-3">
+                <i class="bi bi-phone two-factor-icon"></i>
+                <div>
                     <h6 class="d-flex align-items-center mb-0">
                         {{ t('two_fa.authenticator_app') }}
                         {% if totp_created_at %}
@@ -123,7 +123,8 @@
                         {% endif %}
                     </h6>
                     <p class="form-text mb-0">
-                        {{ t('two_fa.require_code_from_your_mobile_authenticator_app_when_signing_in') }}</p>
+                        {{ t('two_fa.require_code_from_your_mobile_authenticator_app_when_signing_in') }}
+                    </p>
                     {% if totp_created_at %}
                     <span class="metadata">
                         {% set _date %}
@@ -133,27 +134,29 @@
                         {{- t('two_fa.configured_on_date', date=_date) | safe -}}
                     </span>
                     {% endif %}
-                </td>
-                <td class="text-end">
-                    {% if totp_created_at %}
-                    <button class="btn btn-light border" type="button" data-auth-action="/api/web/settings/totp/remove"
-                        data-title="{{ t('two_fa.disable_authenticator_app') }}" data-bs-toggle="modal"
-                        data-bs-target="#disableAuthMethodModal">
-                        {{ t('action.disable') }}
-                    </button>
-                    {% else %}
-                    <button class="btn btn-light border" type="button" data-bs-toggle="modal"
-                        data-bs-target="#setupTotpModal">
-                        {{ t('action.configure') }}
-                    </button>
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <i class="bi bi-file-text"></i>
-                </td>
-                <td>
+                </div>
+            </div>
+            <div class="col-sm-auto text-end">
+                {% if totp_created_at %}
+                <button class="btn btn-light border" type="button" data-auth-action="/api/web/settings/totp/remove"
+                    data-title="{{ t('two_fa.disable_authenticator_app') }}" data-bs-toggle="modal"
+                    data-bs-target="#disableAuthMethodModal">
+                    {{ t('action.disable') }}
+                </button>
+                {% else %}
+                <button class="btn btn-light border" type="button" data-bs-toggle="modal"
+                    data-bs-target="#setupTotpModal">
+                    {{ t('action.configure') }}
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </li>
+    <li>
+        <div class="row g-2 align-items-center">
+            <div class="col-sm d-flex gap-2 gap-sm-3">
+                <i class="bi bi-file-text two-factor-icon"></i>
+                <div>
                     <h6 class="d-flex align-items-center mb-0">
                         {{ t('two_fa.recovery_codes') }}
                         {% if recovery_codes_status.num_remaining %}
@@ -175,21 +178,21 @@
                         {{- t('two_fa.generated_on_date', date=_date) | safe -}}
                     </span>
                     {% endif %}
-                </td>
-                <td class="text-end">
-                    <button class="btn btn-light border" type="button" data-bs-toggle="modal"
-                        data-bs-target="#generateRecoveryCodesModal">
-                        {% if recovery_codes_status.num_remaining %}
-                        {{ t('action.regenerate') }}
-                        {% else %}
-                        {{ t('action.configure') }}
-                        {% endif %}
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+                </div>
+            </div>
+            <div class="col-sm-auto text-end">
+                <button class="btn btn-light border" type="button" data-bs-toggle="modal"
+                    data-bs-target="#generateRecoveryCodesModal">
+                    {% if recovery_codes_status.num_remaining %}
+                    {{ t('action.regenerate') }}
+                    {% else %}
+                    {{ t('action.configure') }}
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+    </li>
+</ul>
 
 <hr class="my-4">
 

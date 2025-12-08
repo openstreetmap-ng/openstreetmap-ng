@@ -1,24 +1,18 @@
 @use "bootstrap/scss/functions";
 
 .settings-security-body {
-    .table {
-        tr:last-child {
-            td {
-                border-bottom: unset;
-            }
+    .two-factor-methods > li {
+        padding: 1rem 0;
+
+        &:not(:last-child) {
+            @extend .border-bottom;
         }
 
-        td:first-child {
-            @extend .fs-3;
+        .two-factor-icon {
             @extend .text-body-secondary;
-            @extend .text-center;
 
-            width: 1%;
+            font-size: 1.875rem;
         }
-    }
-
-    .table > :not(caption) > * > * {
-        padding: 1rem 0.5rem;
     }
 
     .enabled-badge {
@@ -97,13 +91,23 @@
         .col {
             @extend .py-3;
             border-bottom: 1px solid $table-border-color;
-            border-right: 1px solid $table-border-color;
-        }
-        .col:nth-last-child(-n + 2) {
-            border-bottom: 0;
-        }
-        .col:nth-child(even) {
-            border-right: 0;
+
+            // Single column: no right borders, only last removes bottom
+            @include media-breakpoint-down(sm) {
+                &:last-child {
+                    border-bottom: 0;
+                }
+            }
+
+            // Two columns: last row and right column remove borders
+            @include media-breakpoint-up(sm) {
+                &:nth-child(odd) {
+                    border-right: 1px solid $table-border-color;
+                }
+                &:nth-last-child(-n + 2) {
+                    border-bottom: 0;
+                }
+            }
         }
     }
 }
