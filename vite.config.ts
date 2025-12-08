@@ -11,33 +11,29 @@ import { browserslist } from "./package.json"
 const CSS_FILE_RE = /\.(?:c|s[ac])ss$/i
 
 const getPackageDist = (pkgName: string) => {
-    const absolutePath = dirname(fileURLToPath(import.meta.resolve(pkgName)))
-    const relativePath = relative(process.cwd(), absolutePath).replace(/\\/g, "/")
-    return `${relativePath}/`
+    const dir = dirname(fileURLToPath(import.meta.resolve(pkgName)))
+    return `${relative(process.cwd(), dir).replaceAll("\\", "/")}/`
 }
 
-const trimDevBase = (base: string, path: string) => {
-    if (!path.startsWith(base)) return path
-    const trimmed = path.slice(base.length)
-    return trimmed.startsWith("/") ? trimmed : `/${trimmed}`
-}
+const trimDevBase = (base: string, path: string) =>
+    path.startsWith(base) ? `/${path.slice(base.length).replace(/^\//, "")}` : path
 
 const rewriteCssModule = (code: string, mutate: (css: string) => string) => {
-    const marker = 'const __vite__css = "'
-    const markerIndex = code.indexOf(marker)
-    assert(markerIndex >= 0)
+    const START = 'const __vite__css = "'
+    const END = '"\n__vite__updateStyle'
 
-    const valueStart = markerIndex + marker.length
-    const valueEnd = code.indexOf('"\n__vite__updateStyle', valueStart)
-    assert(valueEnd >= 0)
+    const valueStart = code.indexOf(START)
+    assert(valueStart >= 0)
+    const contentStart = valueStart + START.length
 
-    const literal = `"${code.slice(valueStart, valueEnd)}"`
-    const original = Function(`"use strict";return (${literal});`)()
+    const contentEnd = code.indexOf(END, contentStart)
+    assert(contentEnd >= 0)
 
-    const prefix = code.slice(0, valueStart)
-    const suffix = code.slice(valueEnd)
-
-    return `${prefix}${JSON.stringify(mutate(original)).slice(1, -1)}${suffix}`
+    const original = Function(
+        `"use strict";return "${code.slice(contentStart, contentEnd)}";`,
+    )()
+    const mutated = JSON.stringify(mutate(original)).slice(1, -1)
+    return code.slice(0, contentStart) + mutated + code.slice(contentEnd)
 }
 
 export default defineConfig({
