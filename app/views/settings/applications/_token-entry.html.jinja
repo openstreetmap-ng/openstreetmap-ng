@@ -1,5 +1,5 @@
-{% set _expanded = token_entry_expanded if token_entry_expanded is defined else false %}
-{% set _readonly = token_entry_readonly if token_entry_readonly is defined else false %}
+{% set _expanded = token_entry_expanded | default(false) %}
+{% set _readonly = token_entry_readonly | default(false) %}
 <div class="accordion">
     <div class="accordion-header">
         <button class="accordion-button {% if not _expanded %}collapsed{% endif %}"

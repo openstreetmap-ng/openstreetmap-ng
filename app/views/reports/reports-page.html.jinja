@@ -26,14 +26,14 @@
         <span class="badge bg-primary">Open</span>
         {% endif %}
     </p>
-    {% set comment = report.comments[-1] %}
+    {% set comment = report.comments | last %}
     <div class="body">
         <div class="d-flex justify-content-between">
             <div class="body-preview">
                 {% include 'reports/_comment' %}
             </div>
             <div class="num-comments ms-3">
-                {% set _last_comment = report.comments[-1] %}
+                {% set _last_comment = comment %}
                 {% set _attention =
                     not report.closed_at
                     and _last_comment.action not in ('comment', 'close', 'reopen', None)

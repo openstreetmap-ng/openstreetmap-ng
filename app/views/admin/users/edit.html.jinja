@@ -228,13 +228,9 @@
                 {% set application_entry_expanded = false %}
                 {% set application_entry_readonly = true %}
                 <ul class="applications-list list-unstyled">
-                    {% for token in authorizations %}
-                    {% if token.application %}
+                    {% for token in authorizations | selectattr('application') | rejectattr('application.client_id', 'eq', 'SystemApp.pat') %}
                     {% set app = token.application %}
-                    {% if app.client_id != 'SystemApp.pat' %}
                     <li>{% include 'settings/applications/_application-entry' %}</li>
-                    {% endif %}
-                    {% endif %}
                     {% endfor %}
                 </ul>
                 {% else %}

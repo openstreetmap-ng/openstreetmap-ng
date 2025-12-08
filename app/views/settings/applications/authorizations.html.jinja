@@ -12,11 +12,9 @@
 <ul class="applications-list list-unstyled">
     {% set application_entry_expanded = false %}
 
-    {% for token in tokens %}
+    {% for token in tokens | rejectattr('application.client_id', 'eq', 'SystemApp.pat') %}
     {% set app = token.application %}
-    {% if app.client_id != 'SystemApp.pat' %}
     <li>{% include 'settings/applications/_application-entry' %}</li>
-    {% endif %}
     {% endfor %}
 </ul>
 

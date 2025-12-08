@@ -22,7 +22,7 @@
 
         <ul class="content-list notes-list social-list-sm list-unstyled">
             {% for note in notes %}
-            {% set comment = note.comments[0] %}
+            {% set comment = note.comments | first %}
             <li class="row g-2">
                 <div class="col-auto">
                     {% if note.closed_at is none %}

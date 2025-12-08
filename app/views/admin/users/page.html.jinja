@@ -58,7 +58,7 @@
     {% set _user_ips = ip_counts[user.id] %}
     <td>
         {% if _user_ips %}
-        {% set _main_ip, _main_count = _user_ips[0] %}
+        {% set _main_ip, _main_count = _user_ips | first %}
         {% set _more_ips = _user_ips[1:10] %}
         {% set _has_more = _user_ips | length > 10 %}
 

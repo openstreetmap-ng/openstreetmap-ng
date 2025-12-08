@@ -69,7 +69,7 @@
     {% set _app_ips = ip_counts[app.id] %}
     <td>
         {% if _app_ips %}
-        {% set _main_ip, _main_count = _app_ips[0] %}
+        {% set _main_ip, _main_count = _app_ips | first %}
         {% set _more_ips = _app_ips[1:10] %}
         {% set _has_more = _app_ips | length > 10 %}
 

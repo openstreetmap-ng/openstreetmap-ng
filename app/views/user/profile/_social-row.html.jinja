@@ -10,7 +10,7 @@
         </div>
         <select class="form-select form-select-sm w-auto" name="service">
             {% for key, config in SOCIALS_CONFIG.items() %}
-            {% set _key = key.replace('-', '_') %}
+            {% set _key = key | replace('-', '_') %}
             <option value="{{ key }}" data-label="{{ t('socials.label.' + config.label) }}"
                 data-placeholder="{{ config.placeholder }}" {% if config.template is defined %}data-has-template="1"
                 {% endif %} {% if key == social_row_service %}selected{% endif %}>
