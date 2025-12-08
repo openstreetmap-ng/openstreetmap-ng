@@ -19,7 +19,7 @@ from app.models.db.oauth2_application import (
 )
 from app.models.db.oauth2_token import OAuth2TokenInit
 from app.models.scope import PUBLIC_SCOPES, Scope
-from app.models.types import ApplicationId, ClientId, UserId
+from app.models.types import ApplicationId, ClientId, OAuth2TokenId, UserId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from speedup.buffered_rand import buffered_rand_urlsafe
 
@@ -33,6 +33,12 @@ class SystemApp(NamedTuple):
     name: str
     client_id: ClientId
     scopes: list[Scope]
+
+
+class AccessTokenResult(NamedTuple):
+    token: SecretStr
+    token_id: OAuth2TokenId
+    app_id: ApplicationId
 
 
 class SystemAppService:
@@ -79,7 +85,7 @@ class SystemAppService:
     @staticmethod
     async def create_access_token(
         client_id: ClientId, *, user_id: UserId | None = None, hidden: bool = False
-    ) -> SecretStr:
+    ) -> AccessTokenResult:
         """Create an OAuth2-based access token for the given system app."""
         if user_id is None:
             user_id = auth_user(required=True)['id']
@@ -130,7 +136,11 @@ class SystemAppService:
             )
 
         logging.debug('Created %r access token for user %d', client_id, user_id)
-        return access_token
+        return AccessTokenResult(
+            token=access_token,
+            token_id=token_init['id'],
+            app_id=app_id,
+        )
 
 
 async def _register_app(app: SystemApp) -> None:

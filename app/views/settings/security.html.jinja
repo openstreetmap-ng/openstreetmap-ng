@@ -200,32 +200,47 @@
 <p>{{ t('settings.review_and_manage_your_active_login_sessions') }}</p>
 <ul class="active-sessions list-unstyled mx-2">
     {% for session in active_sessions %}
+    {% set _activity = session.last_activity %}
     <li>
         <div class="row g-2 align-items-center">
-            <div class="col-sm">
-                <h6 class="mb-1">
-                    {% if session.id == current_session_id %}
-                    <span class="current-session me-1" data-bs-toggle="tooltip"
-                        data-bs-title="{{ t('settings.this_is_your_current_session') }}"
-                        aria-label="{{ t('settings.this_is_your_current_session') }}"></span>
-                    {% endif %}
-                    {% set id %}
-                    <span class="session-id">
-                        {{ str(session.id)[:5] }}
-                        <i class="bi bi-three-dots"></i>
-                        {{ str(session.id)[-7:] }}
-                    </span>
-                    {% endset %}
-                    {{ t('settings.session_colon_id', id=id) | safe }}
-                </h6>
-                <p class="form-text mb-0">
-                    {% set date %}
-                    <time class="fw-medium" datetime="{{ session.authorized_at.isoformat() }}" data-date="long"
-                        data-time="short"></time>
-                    (<time datetime="{{ session.authorized_at.isoformat() }}" data-style="long"></time>)
-                    {% endset %}
-                    {{ t('settings.authorized_at', date=date) | safe }}
-                </p>
+            <div class="col-sm d-flex gap-2 gap-sm-3 align-items-center">
+                {% if _activity and _activity.user_agent %}
+                <span class="ua-icons" title="{{ _activity.user_agent }}"></span>
+                {% endif %}
+                <div>
+                    <h6 class="mb-1">
+                        {% if session.id == current_session_id %}
+                        <span class="current-session me-1" data-bs-toggle="tooltip"
+                            data-bs-title="{{ t('settings.this_is_your_current_session') }}"
+                            aria-label="{{ t('settings.this_is_your_current_session') }}"></span>
+                        {% endif %}
+                        {% if _activity %}
+                        {% set _date %}
+                        <time datetime="{{ _activity.created_at.isoformat() }}" data-style="day"></time>
+                        {% endset %}
+                        {% set _ip %}<span class="fw-normal">{{ _activity.ip | mask_ip }}</span>{% endset %}
+                        {{ t('settings.last_seen_date_from_ip', date=_date, ip=_ip) | safe }}
+                        {% else %}
+                        {{ t('settings.unknown_device') }}
+                        {% endif %}
+                    </h6>
+                    <p class="form-text mb-0">
+                        {% set _id %}
+                        <span class="session-id">
+                            {{- str(session.id)[:5] -}}
+                            <i class="bi bi-three-dots"></i>
+                            {{- str(session.id)[-7:] -}}
+                        </span>
+                        {% endset %}
+                        {{ t('settings.session_id', id=_id) | safe }}
+                        <span class="text-body-secondary mx-1">&middot;</span>
+                        {% set _date %}
+                        <time datetime="{{ session.authorized_at.isoformat() }}" data-date="medium"
+                            data-time="short"></time>
+                        {% endset %}
+                        {{ t('settings.authorized_at', date=_date) | safe }}
+                    </p>
+                </div>
             </div>
             <div class="col-sm-auto align-self-center text-end">
                 <form class="revoke-token-form" method="POST" action="/api/web/settings/revoke-token">

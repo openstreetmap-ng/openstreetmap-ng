@@ -5,7 +5,7 @@ from typing import Any, Literal, NotRequired, TypedDict, get_args
 from app.config import AUDIT_POLICY
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import UserDisplay
-from app.models.types import ApplicationId, UserId
+from app.models.types import ApplicationId, OAuth2TokenId, UserId
 
 AuditType = Literal[
     'add_connected_account',
@@ -72,6 +72,7 @@ class AuditEventInit(TypedDict):
     user_id: UserId | None
     target_user_id: UserId | None
     application_id: ApplicationId | None
+    token_id: OAuth2TokenId | None
     extra: dict[str, Any] | None
 
 

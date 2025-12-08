@@ -114,6 +114,17 @@ export const resolveDatetimeLazy = (container: Element) =>
                     timeStyle: timeStyle ? "long" : undefined,
                 }).format(date)
                 absoluteCounter++
+            } else if (style === "day") {
+                // Day-relative date (today, yesterday, etc.)
+                const dayDiff = getDayDiff(date)
+                element.textContent = relativeTimeFormat(primaryLanguage, {
+                    style: "long",
+                    numeric: "auto",
+                }).format(dayDiff, "day")
+                element.title = dateTimeFormat(primaryLanguage, {
+                    dateStyle: "long",
+                }).format(date)
+                relativeCounter++
             } else if (style) {
                 // Relative date
                 const [diff, unit] = getRelativeFormatValueUnit(date)
@@ -136,6 +147,13 @@ export const resolveDatetimeLazy = (container: Element) =>
             "relative datetimes",
         )
     })
+
+const getDayDiff = (date: Date): number => {
+    const now = new Date()
+    const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    const todayDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    return Math.round((dateDay.getTime() - todayDay.getTime()) / 86400000)
+}
 
 const TIME_UNITS = [
     [31536000, "year"],

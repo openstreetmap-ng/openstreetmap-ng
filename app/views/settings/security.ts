@@ -2,6 +2,7 @@ import { configureCopyGroups } from "@lib/copy-group"
 import { mount } from "@lib/mount"
 import { qsEncode } from "@lib/qs"
 import { type APIDetail, configureStandardForm } from "@lib/standard-form"
+import { resolveUserAgentIconsLazy } from "@lib/user-agent-icons"
 import { NON_DIGIT_RE } from "@lib/utils"
 import { getPasskeyRegistration } from "@lib/webauthn"
 import i18next from "i18next"
@@ -243,4 +244,6 @@ mount("settings-security-body", (body) => {
             }
         })
     }
+
+    resolveUserAgentIconsLazy(body)
 })

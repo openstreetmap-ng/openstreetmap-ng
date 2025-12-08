@@ -9,7 +9,7 @@ from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User, user_extend_scopes
 from app.models.scope import PUBLIC_SCOPES, Scope
-from app.models.types import ApplicationId, DisplayName
+from app.models.types import ApplicationId, DisplayName, OAuth2TokenId
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
 from app.services.audit_service import audit
@@ -22,7 +22,7 @@ _EMPTY_SCOPES = frozenset[Scope]()
 class AuthService:
     @staticmethod
     async def authenticate_request() -> tuple[
-        User | None, frozenset[Scope], ApplicationId | None
+        User | None, frozenset[Scope], tuple[ApplicationId, OAuth2TokenId] | None
     ]:
         """Authenticate the request. Returns the authenticated user (if any) and scopes."""
         req = get_request()
@@ -92,7 +92,7 @@ async def _extract_oauth2_token(request: Request) -> SecretStr | None:
 
 async def _authenticate_with_oauth2(
     request: Request,
-) -> tuple[User, frozenset[Scope], ApplicationId] | None:
+) -> tuple[User, frozenset[Scope], tuple[ApplicationId, OAuth2TokenId]] | None:
     access_token = await _extract_oauth2_token(request)
     if access_token is None:
         return None
@@ -104,14 +104,14 @@ async def _authenticate_with_oauth2(
 
     user = token['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     scopes = user_extend_scopes(user, frozenset(token['scopes']))
-    application_id = token['application_id']
-    audit('auth_api', user_id=token['user_id'], application_id=application_id).close()
-    return user, scopes, application_id
+    oauth2 = (token['application_id'], token['id'])
+    audit('auth_api', user_id=token['user_id'], oauth2=oauth2).close()
+    return user, scopes, oauth2
 
 
 async def _authenticate_with_cookie(
     request: Request,
-) -> tuple[User, frozenset[Scope], None] | None:
+) -> tuple[User, frozenset[Scope], tuple[ApplicationId, OAuth2TokenId]] | None:
     auth = request.cookies.get('auth')
     if auth is None:
         return None
@@ -125,8 +125,9 @@ async def _authenticate_with_cookie(
 
     user = token['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     scopes = user_extend_scopes(user, _SESSION_AUTH_SCOPES)
-    audit('auth_web', user_id=token['user_id'], application_id=None).close()
-    return user, scopes, None
+    oauth2 = (token['application_id'], token['id'])
+    audit('auth_web', user_id=token['user_id'], oauth2=oauth2).close()
+    return user, scopes, oauth2
 
 
 @testmethod

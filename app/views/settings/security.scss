@@ -49,8 +49,16 @@
         }
     }
 
+    .ua-icons {
+        font-size: 1.125rem;
+    }
+
     .session-id {
         font-family: monospace;
+
+        .bi {
+            margin: 0 0.2rem;
+        }
     }
 
     .current-session {

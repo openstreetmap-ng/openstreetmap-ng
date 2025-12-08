@@ -1,5 +1,6 @@
 from base64 import urlsafe_b64encode
 from datetime import datetime
+from ipaddress import IPv4Address, IPv6Address
 from typing import Any, override
 
 import cython
@@ -155,6 +156,40 @@ def stripspecial(value: str) -> str:
     return value.strip('!?:;., ')
 
 
+def mask_ip(ip: IPv4Address | IPv6Address) -> str:
+    """
+    Mask an IP address for privacy in user-facing displays.
+
+    IPv4: Masks last 16 bits (2 octets) per CNIL recommendation.
+    IPv6: Masks last 80 bits (preserves /48 prefix).
+    IPv4-mapped IPv6: Extracted and displayed as masked IPv4.
+    Loopback addresses are returned unmasked.
+
+    >>> mask_ip(IPv4Address('203.0.113.42'))
+    '203.0.*.*'
+    >>> mask_ip(IPv6Address('2001:db8:85a3::8a2e:370:7334'))
+    '2001:db8:85a3:*:*:*:*:*'
+    >>> mask_ip(IPv4Address('127.0.0.1'))
+    '127.0.0.1'
+    """
+    if not ip.is_global:
+        return str(ip)
+
+    # Handle IPv4-mapped IPv6 (::ffff:a.b.c.d)
+    if isinstance(ip, IPv6Address) and ip.ipv4_mapped:
+        ip = ip.ipv4_mapped
+
+    if isinstance(ip, IPv4Address):
+        # Mask last 16 bits (2 octets)
+        octets = ip.packed
+        return f'{octets[0]}.{octets[1]}.*.*'
+
+    # IPv6: preserve /48 prefix (first 3 groups), mask the rest
+    packed = ip.packed
+    groups = [(packed[i] << 8) | packed[i + 1] for i in range(0, 16, 2)]
+    return f'{groups[0]:x}:{groups[1]:x}:{groups[2]:x}:*:*:*:*:*'
+
+
 # configure template globals
 _J2.globals.update(
     AUDIT_TYPE_SET=AUDIT_TYPE_VALUES,
@@ -184,5 +219,6 @@ _J2.globals.update(
 # configure template filters
 _J2.filters.update(
     b64=b64,
+    mask_ip=mask_ip,
     stripspecial=stripspecial,
 )

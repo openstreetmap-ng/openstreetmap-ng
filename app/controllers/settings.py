@@ -17,6 +17,7 @@ from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
+from app.queries.audit_query import AuditQuery
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_passkey_query import UserPasskeyQuery
@@ -62,13 +63,12 @@ async def settings_security(user: Annotated[User, web_user()]):
             UserRecoveryCodeQuery.get_status(user['id'])
         )
         current_t = tg.create_task(AuthService.authenticate_oauth2(None))
-        active_t = tg.create_task(
-            OAuth2TokenQuery.find_authorized_by_user_client_id(
-                user_id=user['id'],
-                client_id=SYSTEM_APP_WEB_CLIENT_ID,
-                limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
-            )
+        active_sessions = await OAuth2TokenQuery.find_authorized_by_user_client_id(
+            user_id=user['id'],
+            client_id=SYSTEM_APP_WEB_CLIENT_ID,
+            limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
         )
+        tg.create_task(AuditQuery.resolve_last_activity(active_sessions))
 
     totp = totp_t.result()
 
@@ -80,7 +80,7 @@ async def settings_security(user: Annotated[User, web_user()]):
             'totp_created_at': totp['created_at'] if totp is not None else None,
             'recovery_codes_status': recovery_codes_status_t.result(),
             'current_session_id': current_t.result()['id'],  # type: ignore
-            'active_sessions': active_t.result(),
+            'active_sessions': active_sessions,
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
         },
     )

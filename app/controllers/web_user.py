@@ -117,7 +117,7 @@ async def signup(
     )
     response.set_cookie(
         key='auth',
-        value=access_token.get_secret_value(),
+        value=access_token.token.get_secret_value(),
         max_age=None,
         secure=ENV != 'dev',
         httponly=True,

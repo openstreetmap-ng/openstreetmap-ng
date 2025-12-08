@@ -17,7 +17,7 @@ from sentry_sdk.api import start_transaction
 from app.config import AUDIT_POLICY, AUDIT_USER_AGENT_MAX_LENGTH, ENV
 from app.db import db, db_lock
 from app.lib.anonymizer import anonymize_ip
-from app.lib.auth_context import auth_app, auth_user
+from app.lib.auth_context import auth_oauth2, auth_user
 from app.lib.retry import retry
 from app.lib.sentry import (
     SENTRY_AUDIT_MANAGEMENT_MONITOR,
@@ -26,7 +26,7 @@ from app.lib.sentry import (
 from app.lib.testmethod import testmethod
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.audit import AUDIT_TYPE_VALUES, AuditEventInit, AuditType
-from app.models.types import ApplicationId, UserId
+from app.models.types import ApplicationId, OAuth2TokenId, UserId
 
 _TG: TaskGroup
 _PROCESS_REQUEST_EVENT = Event()
@@ -64,7 +64,7 @@ def audit(
     # Event metadata
     user_id: UserId | None | Literal['UNSET'] = 'UNSET',
     target_user_id: UserId | None = None,
-    application_id: ApplicationId | None | Literal['UNSET'] = 'UNSET',
+    oauth2: tuple[ApplicationId, OAuth2TokenId] | None | Literal['UNSET'] = 'UNSET',
     extra: dict[str, Any] | None = None,
     # Event config overrides
     sample_rate: float | None = None,
@@ -107,8 +107,9 @@ def audit(
         logging.info('Audit event %r skipped, missing request context', type)
         return _noop()
 
-    if application_id == 'UNSET':
-        application_id = auth_app()
+    if oauth2 == 'UNSET':
+        oauth2 = auth_oauth2()
+    application_id, token_id = oauth2 if oauth2 is not None else (None, None)
 
     req_ip = ip_address(req.client.host)  # type: ignore
     req_ua = req.headers.get('User-Agent')
@@ -127,6 +128,7 @@ def audit(
         'user_id': user_id,
         'target_user_id': target_user_id,
         'application_id': application_id,
+        'token_id': token_id,
         'extra': extra,
     }
 
@@ -156,11 +158,11 @@ async def _audit_task(
     query = SQL("""
         INSERT INTO audit (
             type, ip, user_agent, user_id,
-            target_user_id, application_id, extra
+            target_user_id, application_id, token_id, extra
         )
         SELECT
             %(type)s, %(ip)s, %(user_agent)s, %(user_id)s,
-            %(target_user_id)s, %(application_id)s, %(extra)s::jsonb
+            %(target_user_id)s, %(application_id)s, %(token_id)s, %(extra)s::jsonb
         {}
     """).format(
         SQL(
@@ -172,6 +174,7 @@ async def _audit_task(
                 AND user_id IS NOT DISTINCT FROM %(user_id)s
                 AND target_user_id IS NOT DISTINCT FROM %(target_user_id)s
                 AND application_id IS NOT DISTINCT FROM %(application_id)s
+                AND token_id IS NOT DISTINCT FROM %(token_id)s
                 AND hashtext(extra::text) IS NOT DISTINCT FROM hashtext(%(extra)s::text)
                 AND extra::jsonb IS NOT DISTINCT FROM %(extra)s::jsonb
                 AND created_at > statement_timestamp() - %(discard_repeated)s

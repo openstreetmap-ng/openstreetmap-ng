@@ -118,7 +118,7 @@ class AuthProviderService:
             response.delete_cookie('auth_provider_state')
             response.set_cookie(
                 key='auth',
-                value=access_token.get_secret_value(),
+                value=access_token.token.get_secret_value(),
                 # TODO: remember option for auth providers
                 max_age=int(COOKIE_AUTH_MAX_AGE.total_seconds()),
                 secure=ENV != 'dev',

@@ -9,7 +9,8 @@ from app.config import AUDIT_LIST_PAGE_SIZE
 from app.db import db
 from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.audit import AuditEvent, AuditType
-from app.models.types import ApplicationId, DisplayName, UserId
+from app.models.db.oauth2_token import OAuth2Token
+from app.models.types import ApplicationId, DisplayName, OAuth2TokenId, UserId
 from app.queries.user_query import UserQuery
 
 
@@ -231,3 +232,26 @@ class AuditQuery:
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
             return await r.fetchall()  # type: ignore
+
+    @staticmethod
+    async def resolve_last_activity(tokens: list[OAuth2Token]) -> None:
+        """Resolve last_activity for tokens."""
+        if not tokens:
+            return
+
+        id_map: dict[OAuth2TokenId, OAuth2Token] = {t['id']: t for t in tokens}
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT DISTINCT ON (token_id) *
+                FROM audit
+                WHERE token_id = ANY(%s)
+                ORDER BY token_id DESC, created_at DESC
+                """,
+                (list(id_map),),
+            ) as r,
+        ):
+            for row in await r.fetchall():
+                id_map[row['token_id']]['last_activity'] = row  # type: ignore

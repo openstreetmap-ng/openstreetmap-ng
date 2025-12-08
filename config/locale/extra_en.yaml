@@ -218,8 +218,10 @@ settings:
   enter_your_password_to_confirm: Enter your password to confirm
   active_sessions: Active sessions
   review_and_manage_your_active_login_sessions: Review and manage your active login sessions.
-  session_colon_id: "Session ID: {{id}}"
+  session_id: "Session {{id}}"
   this_is_your_current_session: This is your current session
+  last_seen_date_from_ip: "Last seen {{date}} from {{ip}}"
+  unknown_device: Unknown device
   connections:
     external_services: External services
     description: Link your existing accounts from other services to make signing in easier.

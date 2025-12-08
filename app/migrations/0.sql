@@ -344,6 +344,7 @@ CREATE TABLE audit (
     user_id bigint,
     target_user_id bigint,
     application_id bigint,
+    token_id bigint,
     extra jsonb,
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
@@ -365,6 +366,10 @@ WHERE
 CREATE INDEX audit_application_created_at_idx ON audit (application_id, created_at) INCLUDE (type, ip)
 WHERE
     application_id IS NOT NULL;
+
+CREATE INDEX audit_token_created_at_idx ON audit (token_id, created_at)
+WHERE
+    token_id IS NOT NULL;
 
 CREATE INDEX audit_discard_repeated_idx ON audit (
     type,

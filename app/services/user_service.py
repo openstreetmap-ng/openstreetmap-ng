@@ -88,11 +88,12 @@ class UserService:
         await audit(
             'auth_web',
             user_id=user_id,
+            oauth2=(access_token.app_id, access_token.token_id),
             extra=extra,
             sample_rate=1,
             discard_repeated=None,
         )
-        return access_token
+        return access_token.token
 
     @staticmethod
     async def update_avatar(

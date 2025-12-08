@@ -14,7 +14,7 @@ from app.lib.exceptions_context import raise_for
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User, user_is_test
 from app.models.scope import Scope
-from app.models.types import ApplicationId
+from app.models.types import ApplicationId, OAuth2TokenId
 
 # TODO: ACL
 # TODO: more 0.7 scopes
@@ -22,14 +22,14 @@ from app.models.types import ApplicationId
 
 _USER_CTX = ContextVar[User | None]('AuthUser')
 _SCOPES_CTX = ContextVar[frozenset[Scope]]('AuthScopes')
-_APP_CTX = ContextVar[ApplicationId | None]('AuthApp')
+_OAUTH2_CTX = ContextVar[tuple[ApplicationId, OAuth2TokenId] | None]('AuthOAuth2')
 
 
 @contextmanager
 def auth_context(
     user: User | None,
     scopes=frozenset[Scope](),
-    app_id: ApplicationId | None = None,
+    oauth2: tuple[ApplicationId, OAuth2TokenId] | None = None,
     /,
 ):
     """Context manager for authenticating the user."""
@@ -47,13 +47,13 @@ def auth_context(
 
     user_token = _USER_CTX.set(user)
     scopes_token = _SCOPES_CTX.set(scopes)
-    app_token = _APP_CTX.set(app_id)
+    oauth2_token = _OAUTH2_CTX.set(oauth2)
     try:
         yield
     finally:
         _USER_CTX.reset(user_token)
         _SCOPES_CTX.reset(scopes_token)
-        _APP_CTX.reset(app_token)
+        _OAUTH2_CTX.reset(oauth2_token)
 
 
 @overload
@@ -75,9 +75,9 @@ def auth_scopes() -> frozenset[Scope]:
     return _SCOPES_CTX.get()
 
 
-def auth_app() -> ApplicationId | None:
-    """Get the authenticated app id."""
-    return _APP_CTX.get()
+def auth_oauth2() -> tuple[ApplicationId, OAuth2TokenId] | None:
+    """Get the authenticated OAuth2 app and token ids."""
+    return _OAUTH2_CTX.get()
 
 
 def api_user(*require_scopes: Scope) -> User:

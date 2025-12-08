@@ -1,7 +1,7 @@
 import { configureDatetimeInputs } from "@lib/datetime-inputs"
 import { mount } from "@lib/mount"
 import { configureStandardPagination } from "@lib/standard-pagination"
-import { configureUserAgentIcons } from "@lib/user-agent-icons"
+import { resolveUserAgentIconsLazy } from "@lib/user-agent-icons"
 
 mount("audit-body", (body) => {
     const filterForm = body.querySelector("form.filters-form")!
@@ -20,7 +20,7 @@ mount("audit-body", (body) => {
     configureStandardPagination(body, {
         reverse: false,
         loadCallback: (renderContainer) => {
-            configureUserAgentIcons(renderContainer)
+            resolveUserAgentIconsLazy(renderContainer)
 
             for (const button of renderContainer.querySelectorAll(
                 "button[data-app-id]",

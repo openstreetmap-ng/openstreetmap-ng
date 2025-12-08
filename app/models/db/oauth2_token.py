@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Literal, NotRequired, TypedDict, override
 
+from app.models.db.audit import AuditEvent
 from app.models.db.oauth2_application import OAuth2Application, OAuth2Uri
 from app.models.db.user import User
 from app.models.scope import PublicScope
@@ -34,6 +35,7 @@ class OAuth2Token(OAuth2TokenInit):
     # runtime
     user: NotRequired[User]
     application: NotRequired[OAuth2Application]
+    last_activity: NotRequired[AuditEvent]
 
 
 def oauth2_token_is_oob(
