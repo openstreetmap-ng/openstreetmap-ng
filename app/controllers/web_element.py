@@ -8,7 +8,6 @@ from app.config import ELEMENT_HISTORY_PAGE_SIZE
 from app.controllers.partial_element import get_element_data
 from app.lib.render_response import render_response
 from app.lib.standard_pagination import standard_pagination_range
-from app.lib.tags_diff_mode import tags_diff_mode
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementType
 from app.queries.element_query import ElementQuery
@@ -74,10 +73,15 @@ async def get_history(
 
     elements_data = list(map(Task.result, elements_tasks))
 
+    # Compute tags_old for diff mode (compare consecutive versions)
     if previous_task is not None:
         previous_element_ = previous_task.result()
-        previous_element = previous_element_[0] if previous_element_ else None
-        tags_diff_mode(previous_element, elements_data)
+        previous_tags = previous_element_[0]['tags'] if previous_element_ else None
+
+        # Iterate in reverse (oldest to newest) to chain previous tags
+        for data in reversed(elements_data):
+            data['tags_old'] = previous_tags
+            previous_tags = data['element']['tags']
 
     return await render_response(
         'partial/element-history-page',

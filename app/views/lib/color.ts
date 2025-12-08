@@ -26,15 +26,3 @@ export const darkenColor = memoize((hex: string, amount: number) => {
 
     return `#${darken(r)}${darken(g)}${darken(b)}`
 })
-
-/** Render color preview elements by setting their background color */
-export const renderColorPreviews = (searchElement: Element) => {
-    const elements = searchElement.querySelectorAll(
-        ".color-preview[data-color]",
-    ) as NodeListOf<HTMLElement>
-    for (const element of elements) {
-        element.style.background = element.dataset.color!
-        element.removeAttribute("data-color")
-    }
-    console.debug("Rendered", elements.length, "color previews")
-}

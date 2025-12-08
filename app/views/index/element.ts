@@ -10,6 +10,7 @@ import {
     PartialElementParamsSchema,
 } from "@lib/proto/shared_pb"
 import { configureStandardPagination } from "@lib/standard-pagination"
+import { configureTagsFormat } from "@lib/tags-format"
 import { setPageTitle } from "@lib/title"
 import i18next from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -67,6 +68,9 @@ export const getElementController = (map: MaplibreMap): IndexController => {
 
 export const initializeElementContent = (map: MaplibreMap, container: HTMLElement) => {
     console.debug("initializeElementContent")
+
+    // Enhance tags table
+    configureTagsFormat(container.querySelector<HTMLElement>("div.tags"))
 
     const locationButton = container.querySelector(".location-container button")
     locationButton?.addEventListener("click", () => {

@@ -82,7 +82,7 @@ export const configureDatetimeInputs = (
             input.dataset.value ?? input.getAttribute("value"),
         )
         input.dispatchEvent(new Event("input"))
-        delete input.dataset.value
+        input.removeAttribute("data-value")
     }
 }
 

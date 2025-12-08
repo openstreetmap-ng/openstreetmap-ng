@@ -41,11 +41,7 @@
                     {% endif %}
                 </p>
                 <div class="body">
-                    <span>
-                        {% for value in comment_tag.values %}
-                        {% include 'partial/_tag' %}
-                        {% endfor %}
-                    </span>
+                    <span>{{ comment_html | safe }}</span>
                     <div class="changeset-stats">
                         {% if changeset.num_create %}
                         <span class="stat-create">{{ changeset.num_create }}</span>
@@ -65,19 +61,12 @@
         <div class="tags">
             <table class="table table-sm">
                 <tbody dir="auto">
-                    {% for tag in tags %}
+                    {%- for key, value in tags | dictsort -%}
                     <tr>
-                        <td>
-                            {% set value = tag.key %}
-                            {% include 'partial/_tag' %}
-                        </td>
-                        <td>
-                            {% for value in tag.values %}
-                            {% include 'partial/_tag' %}
-                            {% endfor %}
-                        </td>
+                        <td>{{ key }}</td>
+                        <td>{{ value }}</td>
                     </tr>
-                    {% endfor %}
+                    {%- endfor -%}
                 </tbody>
             </table>
         </div>

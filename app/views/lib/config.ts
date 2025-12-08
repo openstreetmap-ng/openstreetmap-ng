@@ -43,7 +43,6 @@ export const activityTracking = config.userConfig?.activityTracking ?? DEFAULT_T
 export const isCrashReportingEnabled = (cfg: typeof config) =>
     Boolean(
         SENTRY_DSN &&
-            SENTRY_DSN !== "UNSET" &&
             (ENV === "test" || (cfg.userConfig?.crashReporting ?? DEFAULT_TRACKING)),
     )
 

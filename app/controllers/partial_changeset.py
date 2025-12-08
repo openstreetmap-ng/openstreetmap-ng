@@ -9,7 +9,7 @@ from starlette import status
 from app.config import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_COMMENTS_PAGE_SIZE
 from app.format.element_list import FormatElementList
 from app.lib.render_response import render_response
-from app.lib.tags_format import tags_format
+from app.lib.rich_text import process_rich_text_plain
 from app.lib.translation import t
 from app.models.proto.shared_pb2 import PartialChangesetParams, SharedBounds
 from app.models.types import ChangesetId
@@ -59,11 +59,8 @@ async def get_changeset(id: ChangesetId):
     elements = elements_t.result()
     prev_changeset_id, next_changeset_id = adjacent_t.result()
 
-    changeset_tags = changeset['tags']
-    if not changeset_tags.get('comment'):
-        changeset_tags['comment'] = t('browse.no_comment')
-    tags = tags_format(changeset_tags)
-    comment_tag = tags.pop('comment')
+    comment_text = changeset['tags'].pop('comment', None) or t('browse.no_comment')
+    comment_html = process_rich_text_plain(comment_text)
 
     changeset_comments_num_items = changeset['num_comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     changeset_comments_num_pages = ceil(
@@ -100,8 +97,8 @@ async def get_changeset(id: ChangesetId):
             'prev_changeset_id': prev_changeset_id,
             'next_changeset_id': next_changeset_id,
             'is_subscribed': is_subscribed_t.result(),
-            'tags': tags.values(),
-            'comment_tag': comment_tag,
+            'tags': changeset['tags'],
+            'comment_html': comment_html,
             'params': urlsafe_b64encode(params.SerializeToString()).decode(),
             'CHANGESET_COMMENT_BODY_MAX_LENGTH': CHANGESET_COMMENT_BODY_MAX_LENGTH,
         },

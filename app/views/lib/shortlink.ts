@@ -9,8 +9,7 @@ const CODE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
 const LON_TO_UINT32 = 2 ** 32 / 360
 const LAT_TO_UINT32 = 2 ** 32 / 180
 
-const _BIT_MASKS = getBitMasks()
-const BIT_MASKS = _BIT_MASKS.map(BigInt)
+const BIT_MASKS = getBitMasks()
 
 /** Encode coordinates to OSM shortlink code */
 export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom) => {

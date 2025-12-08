@@ -1,7 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
-import { renderColorPreviews } from "@lib/color"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer.ts"
 import {
@@ -12,6 +11,7 @@ import {
 import { configureReportButtonsLazy } from "@lib/report-modal"
 import { configureStandardForm } from "@lib/standard-form"
 import { configureStandardPagination } from "@lib/standard-pagination"
+import { configureTagsFormat } from "@lib/tags-format"
 import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMChangeset } from "@lib/types"
 import i18next from "i18next"
@@ -34,7 +34,7 @@ export const getChangesetController = (map: MaplibreMap) => {
     let paramsBounds: Bounds[]
 
     const base = getBaseFetchController(map, "changeset", (sidebarContent) => {
-        renderColorPreviews(sidebarContent)
+        configureTagsFormat(sidebarContent.querySelector<HTMLElement>("div.tags"))
         configureReportButtonsLazy(sidebarContent)
 
         const sidebarTitleElement =

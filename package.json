@@ -24,6 +24,7 @@
     "i18next": "latest",
     "i18next-conv": "latest",
     "iD": "github:openstreetmap/iD#release",
+    "libphonenumber-js": "latest",
     "maplibre-gl": "latest",
     "osm-community-index": "latest",
     "qrcode-generator": "latest",

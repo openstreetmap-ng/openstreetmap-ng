@@ -43,9 +43,7 @@ export const configureStandardForm = <T = any>(
     // disables maxlength and other browser checks: form.noValidate = true
     form.classList.add("needs-validation")
 
-    const submitElements = form.querySelectorAll("[type=submit]") as NodeListOf<
-        HTMLInputElement | HTMLButtonElement
-    >
+    const submitElements = form.querySelectorAll<HTMLInputElement | HTMLButtonElement>("[type=submit]")
     const passwordInputs = form.querySelectorAll("input[type=password][data-name]")
     if (passwordInputs.length) configurePasswordsForm(form, passwordInputs)
     let abortController: AbortController | undefined

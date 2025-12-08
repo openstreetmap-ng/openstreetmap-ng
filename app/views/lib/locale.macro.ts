@@ -149,9 +149,10 @@ export function getLocaleOptions() {
     }
 
     // Sort by native name (case-insensitive)
-    options.sort((a, b) =>
-        a.nativeName.toLowerCase().localeCompare(b.nativeName.toLowerCase()),
-    )
+    options
+        .map((opt) => ({ opt, key: opt.nativeName.toLowerCase() }))
+        .sort((a, b) => a.key.localeCompare(b.key))
+        .map(({ opt }) => opt)
 
     return options
 }

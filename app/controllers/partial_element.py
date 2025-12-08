@@ -11,7 +11,7 @@ from app.format.element_list import FormatElementList
 from app.lib.feature_icon import features_icons
 from app.lib.feature_name import features_names
 from app.lib.render_response import render_response
-from app.lib.tags_format import tags_format
+from app.lib.rich_text import process_rich_text_plain
 from app.lib.translation import t
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementType
@@ -162,9 +162,8 @@ async def get_element_data(
     full_data, element_members = data_t.result() if data_t is not None else ([], [])
     element_parents = parents_t.result() if parents_t is not None else []
 
-    comment_tag = tags_format({
-        'comment': changeset['tags'].get('comment') or t('browse.no_comment')
-    })['comment']
+    comment_text = changeset['tags'].get('comment') or t('browse.no_comment')
+    comment_html = process_rich_text_plain(comment_text)
 
     if (point := element['point']) is not None:
         x, y = get_coordinates(point)[0].tolist()
@@ -176,7 +175,6 @@ async def get_element_data(
     next_version = version + 1 if not element['latest'] else None
     icon = features_icons([element])[0]
     name = features_names([element])[0]
-    tags_map = tags_format(element['tags'])
     render_data = FormatRender.encode_elements(full_data, detailed=True)
 
     param = PartialElementParams(
@@ -194,8 +192,8 @@ async def get_element_data(
         'next_version': next_version,
         'icon': icon,
         'name': name,
-        'tags_map': tags_map,
-        'comment_tag': comment_tag,
+        'tags': element['tags'],
+        'comment_html': comment_html,
         'show_elements': bool(element_members),
         'show_parents': bool(element_parents),
         'params': urlsafe_b64encode(param.SerializeToString()).decode(),

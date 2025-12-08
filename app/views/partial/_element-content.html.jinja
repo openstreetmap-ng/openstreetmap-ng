@@ -40,11 +40,7 @@
             </a>
         </p>
         {# Comment #}
-        <div class="fst-italic">
-            {% for value in comment_tag.values %}
-            {% include 'partial/_tag' %}
-            {% endfor %}
-        </div>
+        <div class="fst-italic">{{ comment_html | safe }}</div>
     </div>
 
 </div>
@@ -59,34 +55,16 @@
 {% endif %}
 
 {# Tags #}
-{% if tags_map %}
-<div class="tags">
+{% if tags %}
+<div class="tags" {% if tags_old %} data-tags-old="{{ tags_old | tojson }}" {% endif %}>
     <table class="table table-sm">
         <tbody dir="auto">
-            {% for tag in tags_map.values() %}
-            <tr data-status="{{ tag.status }}">
-                <td>
-                    {% set value = tag.key %}
-                    {% include 'partial/_tag' %}
-                </td>
-                <td>
-                    <div>
-                        <div class="tag-values">
-                            {% for value in tag.values %}
-                            {% include 'partial/_tag' %}
-                            {% endfor %}
-                        </div>
-                        {% if tag.previous %}
-                        <div class="tag-previous">
-                            {% for value in tag.previous %}
-                            {% include 'partial/_tag' %}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                </td>
+            {%- for key, value in tags | dictsort -%}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ value }}</td>
             </tr>
-            {% endfor %}
+            {%- endfor -%}
         </tbody>
     </table>
 </div>
