@@ -67,7 +67,10 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                 // Avoids "Too many active WebGL context even after destroyed"
                 if (container.dataset.thumbnail && isMobile()) {
                     console.debug("Showing layer thumbnail", layerId)
-                    minimapContainer.innerHTML = `<img src="${container.dataset.thumbnail}" loading="lazy">`
+                    const img = document.createElement("img")
+                    img.src = container.dataset.thumbnail
+                    img.loading = "lazy"
+                    minimapContainer.replaceChildren(img)
                     continue
                 }
 
