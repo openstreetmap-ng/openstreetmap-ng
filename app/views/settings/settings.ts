@@ -1,4 +1,5 @@
-import { LOCALE_OPTIONS, URLSAFE_BLACKLIST } from "@lib/config"
+import { URLSAFE_BLACKLIST } from "@lib/config"
+import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
 import { mount } from "@lib/mount"
 import { type APIDetail, configureStandardForm } from "@lib/standard-form"
 import i18next from "i18next"
@@ -12,9 +13,7 @@ mount("settings-body", (body) => {
     for (const locale of LOCALE_OPTIONS) {
         const option = document.createElement("option")
         option.value = locale.code
-        option.textContent = locale.flag
-            ? `${locale.flag} ${locale.displayName}`
-            : locale.displayName
+        option.textContent = getLocaleDisplayName(locale, true)
         fragment.append(option)
     }
     languageSelect.append(fragment)

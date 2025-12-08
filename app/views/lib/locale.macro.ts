@@ -7,11 +7,10 @@ interface LocaleName {
     native: string | null
 }
 
-interface LocaleOption {
+export interface LocaleOption {
     code: string
-    nativeName: string
-    englishName: string
-    displayName: string
+    english: string
+    native?: string
     flag?: string
 }
 
@@ -130,17 +129,8 @@ export function getLocaleOptions() {
     for (const name of names) {
         if (!(name.code in installedLocales)) continue
 
-        const nativeName = name.native ?? name.english
-        const englishName = name.english
-        const displayName =
-            nativeName === englishName ? nativeName : `${nativeName} (${englishName})`
-
-        const option: LocaleOption = {
-            code: name.code,
-            nativeName,
-            englishName,
-            displayName,
-        }
+        const option: LocaleOption = { code: name.code, english: name.english }
+        if (name.native && name.native !== name.english) option.native = name.native
 
         const flag = computeFlag(name.code, flagLookup, passthroughSet)
         if (flag) option.flag = flag
@@ -148,11 +138,9 @@ export function getLocaleOptions() {
         options.push(option)
     }
 
-    // Sort by native name (case-insensitive)
-    options
-        .map((opt) => ({ opt, key: opt.nativeName.toLowerCase() }))
+    // Sort by display name (case-insensitive)
+    return options
+        .map((opt) => ({ opt, key: (opt.native ?? opt.english).toLowerCase() }))
         .sort((a, b) => a.key.localeCompare(b.key))
         .map(({ opt }) => opt)
-
-    return options
 }

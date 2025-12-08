@@ -1,4 +1,5 @@
-import { LOCALE_OPTIONS, primaryLanguage } from "@lib/config"
+import { primaryLanguage } from "@lib/config"
+import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
 import { Modal } from "bootstrap"
 
 const NON_ALPHA_SPACE_RE = /[^a-z\s]/g
@@ -16,14 +17,14 @@ if (languagePickerModal) {
         const fragment = document.createDocumentFragment()
 
         for (const locale of LOCALE_OPTIONS) {
-            const hasEnglishName = locale.nativeName !== locale.englishName
+            const displayName = locale.native ?? locale.english
 
             const listItem = document.createElement("li")
             const button = document.createElement("button")
             button.type = "button"
             button.dataset.search =
-                `${locale.code} ${locale.nativeName}${hasEnglishName ? ` ${locale.englishName}` : ""}`.toLowerCase()
-            button.title = locale.displayName
+                `${locale.code} ${displayName}${locale.native ? ` ${locale.english}` : ""}`.toLowerCase()
+            button.title = getLocaleDisplayName(locale)
 
             if (locale.flag) {
                 const flag = document.createElement("span")
@@ -34,13 +35,13 @@ if (languagePickerModal) {
 
             const nativeName = document.createElement("span")
             nativeName.className = "name-native"
-            nativeName.textContent = locale.nativeName
+            nativeName.textContent = displayName
             button.append(nativeName)
 
-            if (hasEnglishName) {
+            if (locale.native) {
                 const englishName = document.createElement("span")
                 englishName.className = "name-english"
-                englishName.textContent = locale.englishName
+                englishName.textContent = locale.english
                 button.append(englishName)
             }
 

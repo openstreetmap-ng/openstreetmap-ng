@@ -12,7 +12,6 @@ import {
     _URLSAFE_BLACKLIST,
     _VERSION,
 } from "./config.macro" with { type: "macro" }
-import { getLocaleOptions } from "./locale.macro" with { type: "macro" }
 
 export const API_URL = _API_URL
 export const ENV = _ENV
@@ -22,8 +21,6 @@ export const SENTRY_DSN = _SENTRY_DSN
 export const SENTRY_TRACES_SAMPLE_RATE = _SENTRY_TRACES_SAMPLE_RATE
 export const URLSAFE_BLACKLIST = _URLSAFE_BLACKLIST
 export const VERSION = _VERSION
-
-export const LOCALE_OPTIONS = getLocaleOptions()
 
 /** Global dataset options that are defined on <html> tag */
 export const config = fromBinary(
