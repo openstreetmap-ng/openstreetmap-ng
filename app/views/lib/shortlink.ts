@@ -1,18 +1,16 @@
 import type { LonLatZoom } from "@lib/map/state"
-import { memoize } from "@lib/memoize"
 import { mod } from "@lib/utils"
+import { getBitMasks } from "./shortlink.macro" with { type: "macro" }
 
 /** 64 chars to encode 6 bits */
 const CODE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
 
-// Bit masks for coordinate interleaving (Morton code / Z-order curve)
-const getBitMasks = memoize(() =>
-    Array.from({ length: 32 }, (_, i) => 1n << BigInt(31 - i)),
-)
+// Normalize lon/lat to 32-bit unsigned
+const LON_TO_UINT32 = 2 ** 32 / 360
+const LAT_TO_UINT32 = 2 ** 32 / 180
 
-// (2^32)/360 and (2^32)/180: normalize lon/lat to 32-bit unsigned
-const LON_TO_INT32 = 11930464.711111112
-const LAT_TO_INT32 = 23860929.422222223
+const _BIT_MASKS = getBitMasks()
+const BIT_MASKS = _BIT_MASKS.map(BigInt)
 
 /** Encode coordinates to OSM shortlink code */
 export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom) => {
@@ -20,12 +18,12 @@ export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom) => {
     const d = Math.ceil(z / 3)
     const r = z % 3
 
-    const x = BigInt((mod(lon + 180, 360) * LON_TO_INT32) | 0)
-    const y = BigInt(((lat + 90) * LAT_TO_INT32) | 0)
+    const x = BigInt((mod(lon + 180, 360) * LON_TO_UINT32) | 0)
+    const y = BigInt(((lat + 90) * LAT_TO_UINT32) | 0)
 
     // Interleave x/y bits (Morton code)
     let c = 0n
-    for (const mask of getBitMasks()) {
+    for (const mask of BIT_MASKS) {
         c = (c << 2n) | (x & mask ? 2n : 0n) | (y & mask ? 1n : 0n)
     }
 
