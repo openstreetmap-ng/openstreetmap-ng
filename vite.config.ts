@@ -16,7 +16,7 @@ const getPackageDist = (pkgName: string) => {
 }
 
 const trimDevBase = (base: string, path: string) =>
-    path.startsWith(base) ? `/${path.slice(base.length).replace(/^\//, "")}` : path
+    path.startsWith(base) ? `/${path.slice(base.length)}` : path
 
 const rewriteCssModule = (code: string, mutate: (css: string) => string) => {
     const START = 'const __vite__css = "'
