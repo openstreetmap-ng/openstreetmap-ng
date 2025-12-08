@@ -350,7 +350,7 @@ export const configureStandardForm = <T = any>(
             if (resp.ok) console.debug("Form submitted successfully")
 
             const contentType = resp.headers.get("Content-Type") ?? ""
-            if (contentType && Boolean(options?.protobuf) !== (contentType === "application/x-protobuf")) {
+            if (resp.ok && contentType && Boolean(options?.protobuf) !== (contentType === "application/x-protobuf")) {
                 throw new Error(`Mismatched response content type: ${contentType}`)
             }
 
