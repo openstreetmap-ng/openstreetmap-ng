@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { dirname, relative, resolve } from "node:path"
+import { dirname, relative } from "node:path"
 import { fileURLToPath } from "node:url"
 import legacy from "@vitejs/plugin-legacy"
 import autoprefixer from "autoprefixer"
@@ -44,13 +44,22 @@ export default defineConfig({
     appType: "custom",
     base: "/static/vite/",
     resolve: {
-        alias: {
-            "@index": resolve(
-                dirname(fileURLToPath(import.meta.url)),
-                "app/views/index",
-            ),
-            "@lib": resolve(dirname(fileURLToPath(import.meta.url)), "app/views/lib"),
-        },
+        alias: [
+            {
+                find: "@index",
+                replacement: fileURLToPath(import.meta.resolve("./app/views/index")),
+            },
+            {
+                find: "@lib",
+                replacement: fileURLToPath(import.meta.resolve("./app/views/lib")),
+            },
+            {
+                find: /^bootstrap$/,
+                replacement: fileURLToPath(
+                    import.meta.resolve("bootstrap/js/index.esm.js"),
+                ),
+            },
+        ],
     },
     clearScreen: false,
     server: {

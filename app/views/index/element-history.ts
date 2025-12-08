@@ -8,7 +8,7 @@ import type { RenderElementsData } from "@lib/proto/shared_pb"
 import { configureStandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
 import { effect, signal } from "@preact/signals-core"
-import Tooltip from "bootstrap/js/dist/tooltip"
+import { Tooltip } from "bootstrap"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import type { IndexController } from "./router"
 
