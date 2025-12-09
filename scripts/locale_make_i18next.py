@@ -12,10 +12,9 @@ _I18NEXT_DIR.mkdir(parents=True, exist_ok=True)
 _I18NEXT_MAP_PATH = _I18NEXT_DIR.joinpath('map.json')
 
 _INCLUDE_PREFIXES = [
-    'javascripts.key.tooltip',
-    'javascripts.key.tooltip_disabled',
     'javascripts.map.layers.title',
     'javascripts.share.title',
+    'site.key.table.entry',
 ]
 
 _INCLUDE_PREFIXES_DOT = [f'{prefix}.' for prefix in _INCLUDE_PREFIXES]
