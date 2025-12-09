@@ -134,6 +134,7 @@ COMPRESS_REPLICATION_GZIP_THREADS: int | float = 0.5
 CORS_MAX_AGE = timedelta(days=1)
 HSTS_MAX_AGE = timedelta(days=365)
 RATE_LIMIT_OPTIMISTIC_BLACKLIST_EXPIRE = timedelta(minutes=10)
+RATE_LIMIT_CLEANUP_PROBABILITY = 0.0001
 TRUSTED_HOSTS_EXTRA = ''
 
 # -------------------- Authentication and User --------------------
@@ -180,6 +181,7 @@ USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE = timedelta(days=30)
 USER_TOKEN_EMAIL_CHANGE_EXPIRE = timedelta(days=1)
 USER_TOKEN_EMAIL_REPLY_EXPIRE = timedelta(days=2 * 365)  # 2 years
 USER_TOKEN_RESET_PASSWORD_EXPIRE = timedelta(days=1)
+USER_TOKEN_CLEANUP_PROBABILITY = 0.001
 
 # OAuth/OpenID settings
 AUTH_PROVIDER_UID_MAX_LENGTH = 255
@@ -198,6 +200,7 @@ OAUTH_SECRET_PREVIEW_LENGTH = 7
 OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT = 10
 OPENID_DISCOVERY_CACHE_EXPIRE = timedelta(hours=8)
 OPENID_DISCOVERY_HTTP_TIMEOUT = timedelta(seconds=10)
+OAUTH2_TOKEN_CLEANUP_PROBABILITY = 0.001
 
 # OAuth providers
 # https://developers.facebook.com/docs/development/create-an-app/facebook-login-use-case
@@ -218,6 +221,7 @@ WIKIMEDIA_OAUTH_SECRET = SecretStr('')
 
 # Passkeys
 PASSKEY_CHALLENGE_EXPIRE = timedelta(minutes=5)
+PASSKEY_CHALLENGE_CLEANUP_PROBABILITY = 0.001
 PASSKEY_NAME_MAX_LENGTH = 50
 PASSKEY_LIMIT = 5
 

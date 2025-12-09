@@ -891,6 +891,10 @@ CREATE TABLE user_token (
 
 CREATE INDEX user_token_user_idx ON user_token (user_id);
 
+CREATE INDEX user_token_type_created_at_idx ON user_token (type, created_at)
+WITH
+    (fillfactor = 100);
+
 CREATE TABLE file (
     context text NOT NULL,
     key text NOT NULL,

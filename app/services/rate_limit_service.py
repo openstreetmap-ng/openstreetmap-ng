@@ -1,27 +1,15 @@
-import asyncio
 import logging
-from asyncio import Event, TaskGroup
 from collections.abc import Callable
-from contextlib import asynccontextmanager
 from datetime import timedelta
-from random import uniform
-from time import monotonic
+from random import random
 
 from fastapi import HTTPException
-from sentry_sdk import start_transaction
+from psycopg import AsyncConnection
 from starlette import status
 
-from app.db import db, db_lock
-from app.lib.retry import retry
-from app.lib.sentry import (
-    SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR,
-    SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG,
-)
-from app.lib.testmethod import testmethod
+from app.config import RATE_LIMIT_CLEANUP_PROBABILITY
+from app.db import db
 from app.services.audit_service import audit
-
-_PROCESS_REQUEST_EVENT = Event()
-_PROCESS_DONE_EVENT = Event()
 
 _DEFAULT_QUOTA_WINDOW = timedelta(hours=1)
 
@@ -65,6 +53,10 @@ class RateLimitService:
         ):
             usage: float = (await r.fetchone())[0]  # type: ignore
 
+            # probabilistic cleanup of expired entries
+            if random() < RATE_LIMIT_CLEANUP_PROBABILITY:
+                await _delete_expired(conn)
+
         # Prepare headers
         quota_remaining = max(quota - usage, 0)
         reset_seconds = usage / quota_per_second
@@ -87,70 +79,14 @@ class RateLimitService:
 
         return headers
 
-    @staticmethod
-    @asynccontextmanager
-    async def context():
-        """Context manager for deleting expired rate limit entries."""
-        async with TaskGroup() as tg:
-            task = tg.create_task(_process_task())
-            yield
-            task.cancel()
 
-    @staticmethod
-    @testmethod
-    async def force_process():
+async def _delete_expired(conn: AsyncConnection) -> None:
+    result = await conn.execute(
         """
-        Force the rate limit processing loop to wake up early, and wait for it to finish.
-        This method is only available during testing, and is limited to the current process.
-        """
-        logging.debug('Requesting rate limit processing loop early wakeup')
-        _PROCESS_REQUEST_EVENT.set()
-        _PROCESS_DONE_EVENT.clear()
-        await _PROCESS_DONE_EVENT.wait()
-
-
-@retry(None)
-async def _process_task() -> None:
-    async def sleep(delay: float) -> None:
-        if delay > 0:
-            try:
-                await asyncio.wait_for(_PROCESS_REQUEST_EVENT.wait(), timeout=delay)
-            except TimeoutError:
-                pass
-
-    while True:
-        async with db_lock(8569304793767999080) as acquired:
-            if acquired:
-                _PROCESS_REQUEST_EVENT.clear()
-
-                ts = monotonic()
-                with (
-                    SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR,
-                    start_transaction(
-                        op='task', name=SENTRY_RATE_LIMIT_MANAGEMENT_MONITOR_SLUG
-                    ),
-                ):
-                    await _delete_expired()
-                tt = monotonic() - ts
-
-                if not _PROCESS_REQUEST_EVENT.is_set():
-                    _PROCESS_DONE_EVENT.set()
-
-                # on success, sleep ~5min
-                await sleep(uniform(290, 310) - tt)
-            else:
-                # on failure, sleep ~1h
-                await sleep(uniform(0.5 * 3600, 1.5 * 3600))
-
-
-async def _delete_expired() -> None:
-    async with db(True) as conn:
-        result = await conn.execute(
-            """
-            DELETE FROM rate_limit
-            WHERE updated_at < statement_timestamp() - %s
-            """,
-            (_DEFAULT_QUOTA_WINDOW,),
-        )
-        if result.rowcount:
-            logging.debug('Deleted %d expired rate limit entries', result.rowcount)
+        DELETE FROM rate_limit
+        WHERE updated_at < statement_timestamp() - %s
+        """,
+        (_DEFAULT_QUOTA_WINDOW,),
+    )
+    if result.rowcount:
+        logging.debug('Deleted %d expired rate limit entries', result.rowcount)

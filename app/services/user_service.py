@@ -1,6 +1,7 @@
 import logging
 from asyncio import TaskGroup
 from collections.abc import Awaitable, Callable
+from random import random
 from typing import Any
 
 from fastapi import UploadFile
@@ -8,7 +9,12 @@ from psycopg import AsyncConnection
 from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
 
-from app.config import ENV, USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
+from app.config import (
+    ENV,
+    USER_PENDING_EXPIRE,
+    USER_SCHEDULED_DELETE_DELAY,
+    USER_TOKEN_CLEANUP_PROBABILITY,
+)
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.image import Image, UserAvatarType
@@ -74,6 +80,10 @@ class UserService:
         access_token = await SystemAppService.create_access_token(
             SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
         )
+
+        # probabilistic cleanup of expired user tokens
+        if random() < USER_TOKEN_CLEANUP_PROBABILITY:
+            await UserTokenService.delete_expired()
 
         extra: dict[str, Any] = {'login': True}
         if passkey is not None:

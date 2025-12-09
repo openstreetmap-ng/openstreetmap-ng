@@ -3,7 +3,9 @@ from base64 import urlsafe_b64decode
 from datetime import datetime
 from random import random
 
-from app.config import PASSKEY_CHALLENGE_EXPIRE
+from psycopg import AsyncConnection
+
+from app.config import PASSKEY_CHALLENGE_CLEANUP_PROBABILITY, PASSKEY_CHALLENGE_EXPIRE
 from app.db import db
 from speedup.buffered_rand import buffered_randbytes
 
@@ -29,19 +31,9 @@ class UserPasskeyChallengeService:
         challenge = urlsafe_b64decode(challenge_b64 + '==')
 
         async with db(True, autocommit=True) as conn:
-            # 0.1% probabilistic cleanup of expired challenges
-            if random() < 0.001:
-                result = await conn.execute(
-                    """
-                    DELETE FROM user_passkey_challenge
-                    WHERE created_at <= statement_timestamp() - %s
-                    """,
-                    (PASSKEY_CHALLENGE_EXPIRE,),
-                )
-                if result.rowcount:
-                    logging.debug(
-                        'Deleted %d expired passkey challenges', result.rowcount
-                    )
+            # probabilistic cleanup of expired challenges
+            if random() < PASSKEY_CHALLENGE_CLEANUP_PROBABILITY:
+                await _delete_expired(conn)
 
             async with await conn.execute(
                 """
@@ -53,3 +45,15 @@ class UserPasskeyChallengeService:
                 (challenge, PASSKEY_CHALLENGE_EXPIRE),
             ) as r:
                 return row[0] if (row := await r.fetchone()) is not None else None
+
+
+async def _delete_expired(conn: AsyncConnection) -> None:
+    result = await conn.execute(
+        """
+        DELETE FROM user_passkey_challenge
+        WHERE created_at <= statement_timestamp() - %s
+        """,
+        (PASSKEY_CHALLENGE_EXPIRE,),
+    )
+    if result.rowcount:
+        logging.debug('Deleted %d expired passkey challenges', result.rowcount)

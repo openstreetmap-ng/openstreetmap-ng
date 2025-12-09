@@ -6,7 +6,7 @@ from app.config import OAUTH_AUTHORIZATION_CODE_TIMEOUT
 from app.db import db
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.types import OAuth2TokenId
-from app.services.oauth2_token_service import OAuth2TokenService
+from app.services.oauth2_token_service import _delete_stale_unauthorized
 from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 
 
@@ -41,8 +41,9 @@ async def test_oauth2_token_cleanup_deletes_only_stale_unauthorized():
             },
         )
 
-    # Act: Trigger cleanup loop
-    await OAuth2TokenService.force_process()
+    # Act: Trigger cleanup
+    async with db(True) as conn:
+        await _delete_stale_unauthorized(conn)
 
     # Assert: Verify only the stale token was deleted
     async with (
