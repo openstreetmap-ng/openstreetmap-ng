@@ -1,5 +1,10 @@
 import assert from "node:assert/strict"
+import { execSync } from "node:child_process"
+import { globSync, readFileSync, rmSync, statSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
 import { fileURLToPath } from "node:url"
+import { parse as parseToml } from "@std/toml"
 import legacy from "@vitejs/plugin-legacy"
 import autoprefixer from "autoprefixer"
 import { PurgeCSS } from "purgecss"
@@ -10,6 +15,14 @@ import { defineConfig, type PluginOption } from "vite"
 import { browserslist } from "./package.json"
 
 const CSS_FILE_RE = /\.(?:c|s[ac])ss$/i
+
+// Content paths scanned for class usage
+const CONTENT_PATHS = ["app/views/**/*.html.jinja", "app/views/**/*.ts"]
+
+// Dynamic icons from config/socials.toml
+const SOCIALS_ICONS = Object.entries(
+    parseToml(readFileSync("config/socials.toml", "utf-8")),
+).map(([service, config]) => `bi-${(config as { icon?: string }).icon ?? service}`)
 
 const PURGECSS_SAFELIST = {
     standard: [
@@ -26,33 +39,8 @@ const PURGECSS_SAFELIST = {
         "was-validated",
         "is-valid",
         "is-invalid",
-        // Bootstrap icons from config/socials.toml
-        "bi-bluesky",
-        "bi-discord",
-        "bi-facebook",
-        "bi-github",
-        "bi-globe2", // other.icon
-        "bi-instagram",
-        "bi-line",
-        "bi-linkedin",
-        "bi-mastodon",
-        "bi-medium",
-        "bi-pinterest",
-        "bi-reddit",
-        "bi-signal",
-        "bi-sina-weibo",
-        "bi-snapchat",
-        "bi-spotify",
-        "bi-steam",
-        "bi-telegram",
-        "bi-threads",
-        "bi-tiktok",
-        "bi-twitch",
-        "bi-twitter-x", // x.icon
-        "bi-wechat",
-        "bi-whatsapp",
-        "bi-wordpress",
-        "bi-youtube",
+        // Bootstrap icons
+        ...SOCIALS_ICONS,
     ],
     greedy: [
         // Bootstrap dynamic components
@@ -246,7 +234,7 @@ export default defineConfig({
                                 : Buffer.from(chunk.source).toString()
 
                         const [result] = await purgecss.purge({
-                            content: ["app/views/**/*.html.jinja", "app/views/**/*.ts"],
+                            content: CONTENT_PATHS,
                             css: [{ raw: source, name: fileName }],
                             safelist: PURGECSS_SAFELIST,
                             defaultExtractor: PURGECSS_EXTRACTOR,
@@ -283,6 +271,88 @@ export default defineConfig({
                         fileName: rtlFileName,
                         source: rtlSource,
                     })
+                }
+            },
+        },
+        {
+            name: "build-icons-subset",
+            apply: "build",
+            enforce: "post",
+            generateBundle(_options, bundle) {
+                // Scan content files for bi-* icon usage
+                const biPattern = /\bbi-([a-z0-9-]+)\b/g
+                const usedIcons = new Set<string>()
+
+                for (const pattern of CONTENT_PATHS) {
+                    for (const file of globSync(pattern)) {
+                        const content = readFileSync(file, "utf-8")
+                        for (const match of content.matchAll(biPattern)) {
+                            usedIcons.add(match[1])
+                        }
+                    }
+                }
+
+                for (const icon of SOCIALS_ICONS) {
+                    usedIcons.add(icon.slice(3))
+                }
+
+                // Load icon name → unicode mapping
+                const iconsMap: Record<string, number> = JSON.parse(
+                    readFileSync(
+                        "node_modules/bootstrap-icons/font/bootstrap-icons.json",
+                        "utf-8",
+                    ),
+                )
+
+                // Warn about unknown icons
+                for (const icon of [...usedIcons]) {
+                    if (!(icon in iconsMap)) {
+                        this.warn(`Unknown Bootstrap icon: bi-${icon}`)
+                        usedIcons.delete(icon)
+                    }
+                }
+
+                // Build unicode list
+                const unicodes = [...usedIcons]
+                    .map((icon) => `U+${iconsMap[icon].toString(16).toUpperCase()}`)
+                    .join(",")
+
+                // Generate subset font
+                const inputPath =
+                    "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2"
+                const tempFile = join(tmpdir(), "bi-subset.woff2")
+                execSync(
+                    `pyftsubset "${inputPath}" --unicodes="${unicodes}" --flavor=woff2 --layout-features=* --no-hinting --desubroutinize --output-file="${tempFile}"`,
+                    { stdio: "pipe" },
+                )
+                const source = readFileSync(tempFile)
+                rmSync(tempFile)
+
+                const originalSize = statSync(inputPath).size
+                const reduction = ((1 - source.length / originalSize) * 100).toFixed(1)
+                this.info(
+                    `Icons subset: ${usedIcons.size} icons, ${originalSize}B → ${source.length}B (${reduction}% smaller)`,
+                )
+
+                const ref = this.emitFile({
+                    type: "asset",
+                    name: "bootstrap-icons.woff2",
+                    source,
+                })
+                const woff2File = this.getFileName(ref)
+
+                // Replace font URLs in CSS
+                const fontUrlPattern =
+                    /\.\/fonts\/bootstrap-icons\.woff2?(?:\?[^")]*)?/g
+
+                for (const [fileName, chunk] of Object.entries(bundle)) {
+                    if (!fileName.endsWith(".css") || chunk.type !== "asset") continue
+                    const css =
+                        typeof chunk.source === "string"
+                            ? chunk.source
+                            : Buffer.from(chunk.source).toString()
+
+                    chunk.source = css.replace(fontUrlPattern, `/${woff2File}`)
                 }
             },
         },

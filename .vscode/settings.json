@@ -44,7 +44,7 @@
     ".clang-format": ".clang-format-*",
     ".gitignore": ".gitattributes",
     "*.html.jinja": "${capture}.*",
-    "package.json": "bunfig.toml",
+    "package.json": ".npmrc,bunfig.toml",
     "pyproject.toml": "uv.lock",
     "README.md": "LICENSE"
   },

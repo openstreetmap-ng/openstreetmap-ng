@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs"
-import { parse } from "smol-toml"
+import { parse } from "@std/toml"
 
 interface LocaleName {
     code: string

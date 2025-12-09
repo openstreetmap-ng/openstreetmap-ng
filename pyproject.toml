@@ -19,6 +19,7 @@ dependencies = [
   "email-validator",
   "fastapi",
   "feedgen",
+  "fonttools",
   "githead",
   "gunicorn",
   "h3",

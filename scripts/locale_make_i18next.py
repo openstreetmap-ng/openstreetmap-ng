@@ -160,7 +160,7 @@ def main() -> None:
     if original_keys_count:
         print(
             f'[i18next] Filtered {original_keys_count} → {filtered_keys_count} keys '
-            f'({(original_keys_count - filtered_keys_count) / original_keys_count * 100:.1f}% reduction)'
+            f'({(original_keys_count - filtered_keys_count) / original_keys_count * 100:.1f}% smaller)'
         )
 
 
