@@ -103,12 +103,7 @@ const clientHashPassword = async (
     if (passwordSchema === "v1") {
         // TODO: check performance on mobile
         // client-side pbkdf2 sha512, 100_000 iters, base64 encoded
-        let origin = window.location.origin
-        // TODO: remove during test db reset
-        if (origin === "https://test.openstreetmap.ng") {
-            origin = "https://www.openstreetmap.ng"
-        }
-        const salt = `${origin}/zaczero@osm.ng`
+        const salt = `${window.location.origin}/zaczero@osm.ng`
         let timer = performance.now()
         const hashBytes = await pbkdf2_sha512(password, salt, 100_000)
         timer = performance.now() - timer
