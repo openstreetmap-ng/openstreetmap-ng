@@ -26,6 +26,33 @@ const PURGECSS_SAFELIST = {
         "was-validated",
         "is-valid",
         "is-invalid",
+        // Bootstrap icons from config/socials.toml
+        "bi-bluesky",
+        "bi-discord",
+        "bi-facebook",
+        "bi-github",
+        "bi-globe2", // other.icon
+        "bi-instagram",
+        "bi-line",
+        "bi-linkedin",
+        "bi-mastodon",
+        "bi-medium",
+        "bi-pinterest",
+        "bi-reddit",
+        "bi-signal",
+        "bi-sina-weibo",
+        "bi-snapchat",
+        "bi-spotify",
+        "bi-steam",
+        "bi-telegram",
+        "bi-threads",
+        "bi-tiktok",
+        "bi-twitch",
+        "bi-twitter-x", // x.icon
+        "bi-wechat",
+        "bi-whatsapp",
+        "bi-wordpress",
+        "bi-youtube",
     ],
     greedy: [
         // Bootstrap dynamic components
@@ -40,8 +67,6 @@ const PURGECSS_SAFELIST = {
         /^d-/,
         /^opacity-/,
         /^btn-/,
-        // Bootstrap icons
-        /^bi-/,
         // MapLibre GL
         /^maplibregl-/,
         // Project-specific dynamic classes
