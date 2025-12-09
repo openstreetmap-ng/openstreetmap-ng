@@ -21,35 +21,47 @@ if (loginForm) {
     const totpCodeInput = loginForm.querySelector("input[name=totp_code]")!
     const bypass2faInput = loginForm.querySelector("input[name=bypass_2fa]")!
     const recoveryCodeInput = loginForm.querySelector("input[name=recovery_code]")!
-    const cancelButtons = loginForm.querySelectorAll(".cancel-2fa-btn")
-    const tryAnotherMethodButtons = loginForm.querySelectorAll(
-        ".try-another-method-btn",
-    )
-    const methodOptions = loginForm.querySelectorAll("button[data-method]")
     const displayNameInput = loginForm.querySelector(
         "input[name=display_name_or_email]",
     )!
     const passwordInput = loginForm.querySelector("input[data-name=password]")!
     const rememberInput = loginForm.querySelector("input[name=remember]")!
-    const passkeyButton = document.querySelector(".passkey-btn")!
-    const passkeyRetryButton = loginForm.querySelector(".retry-passkey-btn")!
 
     let conditionalMediationAbort: AbortController | undefined
-    let conditionalMediationAssertion: Blob | null = null
-    let passwordless = false
+    let passkeyAssertion: Blob | null = null
+    let passkey: boolean | "passwordless" = false
     let loginResponse: LoginResponse | undefined
-    let submittedFormData: FormData | undefined
 
-    const isDigit = (c: string) => c.length === 1 && c >= "0" && c <= "9"
-
-    const navigateOnSuccess = () => {
-        console.debug("onLoginSuccess", referrer)
-        if (referrer !== defaultReferrer) {
-            window.location.href = `${window.location.origin}${referrer}`
-        } else {
-            window.location.reload()
+    const setLoginState = (state: LoginState) => {
+        console.debug("setLoginState", state)
+        loginForm.dataset.loginState = state
+        switch (state) {
+            case "totp":
+                createTOTPInputs()
+                totpInputTemplate.focus()
+                totpCodeInput.value = ""
+                break
+            case "recovery":
+                recoveryCodeInput.value = ""
+                recoveryCodeInput.focus()
+                break
+            case "method-select":
+                assert(loginResponse)
+                for (const option of loginForm.querySelectorAll(
+                    "button[data-action^='method-']",
+                )) {
+                    const action = option.dataset.action
+                    const isAvailable =
+                        (action === "method-passkey" && loginResponse.passkey) ||
+                        (action === "method-totp" && loginResponse.totp) ||
+                        (action === "method-recovery" && loginResponse.recovery) ||
+                        action === "method-bypass"
+                    option.classList.toggle("d-none", !isAvailable)
+                }
+                break
         }
     }
+    setLoginState("credentials")
 
     const tryTOTPSubmit = () => {
         assert(loginResponse)
@@ -83,7 +95,11 @@ if (loginForm) {
             input.value = ""
 
             input.addEventListener("input", () => {
-                if (!isDigit(input.value)) {
+                if (
+                    input.value.length !== 1 ||
+                    input.value < "0" ||
+                    input.value > "9"
+                ) {
                     input.value = ""
                     return
                 }
@@ -128,68 +144,16 @@ if (loginForm) {
         }
     }
 
-    const setState = (state: LoginState) => {
-        console.debug("setLoginState", state)
-        loginForm.dataset.loginState = state
-
-        totpCodeInput.value = ""
-        recoveryCodeInput.value = ""
-
-        if (state === "totp") {
-            createTOTPInputs()
-            totpInputTemplate.focus()
-        } else if (state === "recovery") {
-            recoveryCodeInput.focus()
-        } else if (state === "method-select") {
-            // Update method visibility based on available methods
-            assert(loginResponse)
-            for (const option of methodOptions) {
-                const method = option.dataset.method
-                const isAvailable =
-                    (method === "passkey" && loginResponse.passkey) ||
-                    (method === "totp" && loginResponse.totp) ||
-                    (method === "recovery" && loginResponse.recovery) ||
-                    method === "bypass"
-                option.classList.toggle("d-none", !isAvailable)
-            }
-        }
+    const requestSubmitPasswordless = () => {
+        passkey = "passwordless"
+        displayNameInput.required = false
+        passwordInput.required = false
+        loginForm.requestSubmit()
     }
 
-    // State transition handlers
-    for (const button of cancelButtons)
-        button.addEventListener("click", () => setState("credentials"))
-    for (const button of tryAnotherMethodButtons)
-        button.addEventListener("click", () => setState("method-select"))
-    for (const option of methodOptions) {
-        option.addEventListener("click", () => {
-            const method = option.dataset.method
-            if (method === "passkey") startPasskey2FA()
-            else if (method === "totp") setState("totp")
-            else if (method === "recovery") setState("recovery")
-            else if (method === "bypass") {
-                bypass2faInput.value = "true"
-                loginForm.requestSubmit()
-            }
-        })
-    }
-
-    const startPasskey2FA = async () => {
-        assert(submittedFormData)
-        const result = await getPasskeyAssertion(submittedFormData, "discouraged")
-        if (typeof result === "string") {
-            setState("passkey")
-            return
-        }
-        submittedFormData.set("passkey", result)
-        const resp = await fetch(loginForm.action, {
-            method: "POST",
-            body: submittedFormData,
-        })
-        if (!resp.ok) {
-            setState("passkey")
-            return
-        }
-        navigateOnSuccess()
+    const requestSubmitPasskey = () => {
+        passkey = true
+        loginForm.requestSubmit()
     }
 
     // Configure login form with unified passkey/password flow
@@ -197,63 +161,87 @@ if (loginForm) {
         loginForm,
         (response) => {
             if (!response) {
-                navigateOnSuccess()
+                window.location.href = referrer
                 return
             }
             loginResponse = response
             if (loginResponse.passkey) {
-                console.info("onLoginFormPasskeyRequired")
-                startPasskey2FA()
+                requestSubmitPasskey()
                 return
             }
             if (loginResponse.totp) {
-                console.info("onLoginFormTOTPRequired")
-                setState("totp")
+                setLoginState("totp")
                 return
             }
-            navigateOnSuccess()
+            window.location.href = referrer
         },
         {
             removeEmptyFields: true,
             protobuf: LoginResponseSchema,
             validationCallback: async (formData) => {
                 conditionalMediationAbort?.abort()
-                submittedFormData = formData
-                if (passwordless) {
-                    passwordless = false
+                if (!passkey) return null
+
+                const isPasswordless = passkey === "passwordless"
+                passkey = false
+
+                // Restore required attributes
+                if (isPasswordless) {
                     displayNameInput.required = true
                     passwordInput.required = true
-
-                    // Use stored conditional mediation assertion or perform WebAuthn
-                    let result: Blob | string
-                    if (conditionalMediationAssertion) {
-                        result = conditionalMediationAssertion
-                        conditionalMediationAssertion = null
-                    } else {
-                        result = await getPasskeyAssertion(formData)
-                    }
-                    if (typeof result === "string") {
-                        return result
-                    }
-                    formData.set("passkey", result)
                 }
+
+                // Consume passkey assertion or request a new one
+                const result =
+                    passkeyAssertion ??
+                    (await getPasskeyAssertion(
+                        formData,
+                        isPasswordless ? "required" : "discouraged",
+                    ))
+                passkeyAssertion = null
+
+                if (typeof result === "string") {
+                    if (!isPasswordless) setLoginState("passkey")
+                    return isPasswordless ? result : null
+                }
+
+                formData.set("passkey", result)
                 return null
             },
         },
     )
 
-    const requestSubmitPasswordless = () => {
-        passwordless = true
-        displayNameInput.required = false
-        passwordInput.required = false
-        loginForm.requestSubmit()
-    }
+    // Delegated click handler for login UI actions
+    loginForm.addEventListener("click", (e: Event) => {
+        const target = (e.target as Element).closest("button[data-action]")
+        if (!target) return
 
-    // Passkey button triggers form submit with passkey auth method (Mode 1)
-    passkeyButton.addEventListener("click", requestSubmitPasswordless)
-
-    // Fallback button handler (Mode 2)
-    passkeyRetryButton.addEventListener("click", startPasskey2FA)
+        const action = target.dataset.action!
+        switch (action) {
+            case "passkey-login":
+                requestSubmitPasswordless()
+                break
+            case "cancel-2fa":
+                setLoginState("credentials")
+                break
+            case "another-method":
+                setLoginState("method-select")
+                break
+            case "method-passkey":
+                requestSubmitPasskey()
+                break
+            case "method-totp":
+                setLoginState("totp")
+                break
+            case "method-recovery":
+                setLoginState("recovery")
+                break
+            case "method-bypass":
+                bypass2faInput.value = "true"
+                loginForm.requestSubmit()
+                break
+        }
+    })
 
     // Conditional mediation: passkey autofill
     const initConditionalMediation = async () => {
@@ -262,7 +250,7 @@ if (loginForm) {
             conditionalMediationAbort.signal,
         )
         if (!assertion) return
-        conditionalMediationAssertion = assertion
+        passkeyAssertion = assertion
         requestSubmitPasswordless()
     }
 
@@ -279,26 +267,20 @@ if (loginForm) {
     }
 
     // Propagate referer to auth providers forms
-    const authProvidersForms = document.querySelectorAll(".auth-providers form")
-    for (const form of authProvidersForms) {
-        const referrerInput = form.querySelector("input[name=referer]")
-        if (referrerInput) referrerInput.value = referrer
+    for (const input of document.querySelectorAll(
+        ".auth-providers input[name=referer]",
+    )) {
+        input.value = referrer
     }
 
-    // Autofill buttons are present in development environment
-    const onAutofillButtonClick = ({ target }: Event) => {
-        const dataset = (target as HTMLElement).dataset
-        console.debug("onAutofillButtonClick", dataset)
-
-        displayNameInput.value = dataset.login!
-        passwordInput.value = dataset.password!
-        rememberInput.checked = true
-        loginForm.requestSubmit()
-    }
-
-    const autofillButtons = document.querySelectorAll("button.autofill-btn")
-    for (const btn of autofillButtons) {
-        btn.addEventListener("click", onAutofillButtonClick)
+    // Autofill buttons
+    for (const btn of document.querySelectorAll("button[data-login][data-password]")) {
+        btn.addEventListener("click", () => {
+            displayNameInput.value = btn.dataset.login!
+            passwordInput.value = btn.dataset.password!
+            rememberInput.checked = true
+            loginForm.requestSubmit()
+        })
     }
 }
 
