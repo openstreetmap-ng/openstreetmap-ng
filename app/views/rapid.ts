@@ -2,7 +2,7 @@ import "./rapid.scss"
 import "@rapideditor/rapid/dist/rapid.css"
 import "@rapideditor/rapid"
 
-import { API_URL, primaryLanguage } from "@lib/config"
+import { API_URL, primaryLanguage, RAPID_PATH } from "@lib/config"
 import { parentLoadSystemApp } from "@lib/system-app"
 
 const container = document.querySelector("div.rapid-container")
@@ -18,7 +18,7 @@ parentLoadSystemApp(async (accessToken, parentOrigin) => {
     }
 
     ctx.containerNode = container
-    ctx.assetPath = __RAPID_PATH__
+    ctx.assetPath = RAPID_PATH
     ctx.locale = primaryLanguage
     ctx.embed(true)
 

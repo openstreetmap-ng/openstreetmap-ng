@@ -1,5 +1,4 @@
 import assert from "node:assert/strict"
-import { dirname, relative } from "node:path"
 import { fileURLToPath } from "node:url"
 import legacy from "@vitejs/plugin-legacy"
 import autoprefixer from "autoprefixer"
@@ -9,11 +8,6 @@ import { defineConfig } from "vite"
 import { browserslist } from "./package.json"
 
 const CSS_FILE_RE = /\.(?:c|s[ac])ss$/i
-
-const getPackageDist = (pkgName: string) => {
-    const dir = dirname(fileURLToPath(import.meta.resolve(pkgName)))
-    return `${relative(process.cwd(), dir).replaceAll("\\", "/")}/`
-}
 
 const trimDevBase = (base: string, path: string) =>
     path.startsWith(base) ? `/${path.slice(base.length)}` : path
@@ -63,12 +57,6 @@ export default defineConfig({
         port: 49568,
         strictPort: true,
         origin: "http://localhost:49568",
-    },
-    define: {
-        __ID_PATH__: JSON.stringify(`/static-${getPackageDist("iD")}`),
-        __RAPID_PATH__: JSON.stringify(
-            `/static-${getPackageDist("@rapideditor/rapid")}`,
-        ),
     },
     build: {
         manifest: true,

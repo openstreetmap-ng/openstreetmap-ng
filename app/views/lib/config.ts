@@ -5,8 +5,10 @@ import { WebConfigSchema } from "@lib/proto/shared_pb"
 import {
     _API_URL,
     _ENV,
+    _ID_PATH,
     _MAP_QUERY_AREA_MAX_SIZE,
     _NOTE_QUERY_AREA_MAX_SIZE,
+    _RAPID_PATH,
     _SENTRY_DSN,
     _SENTRY_TRACES_SAMPLE_RATE,
     _URLSAFE_BLACKLIST,
@@ -15,8 +17,10 @@ import {
 
 export const API_URL = _API_URL
 export const ENV = _ENV
+export const ID_PATH = _ID_PATH
 export const MAP_QUERY_AREA_MAX_SIZE = _MAP_QUERY_AREA_MAX_SIZE
 export const NOTE_QUERY_AREA_MAX_SIZE = _NOTE_QUERY_AREA_MAX_SIZE
+export const RAPID_PATH = _RAPID_PATH
 export const SENTRY_DSN = _SENTRY_DSN
 export const SENTRY_TRACES_SAMPLE_RATE = _SENTRY_TRACES_SAMPLE_RATE
 export const URLSAFE_BLACKLIST = _URLSAFE_BLACKLIST

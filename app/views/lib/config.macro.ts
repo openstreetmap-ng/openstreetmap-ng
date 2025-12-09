@@ -1,4 +1,6 @@
 import { execSync } from "node:child_process"
+import { readFileSync } from "node:fs"
+import { dirname } from "node:path"
 
 const pythonConfig: Record<string, any> = JSON.parse(
     execSync(
@@ -28,3 +30,13 @@ export const _SENTRY_DSN: string = pythonConfig.SENTRY_DSN
 export const _SENTRY_TRACES_SAMPLE_RATE: number = pythonConfig.SENTRY_TRACES_SAMPLE_RATE
 export const _URLSAFE_BLACKLIST: string = pythonConfig.URLSAFE_BLACKLIST
 export const _VERSION: string = pythonConfig.VERSION
+
+const getPackageDist = (pkgName: string) => {
+    const pkgPath = `node_modules/${pkgName}/package.json`
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"))
+    const distDir = dirname(pkg.main)
+    return `/static-node_modules/${pkgName}/${distDir}/`
+}
+
+export const _ID_PATH = getPackageDist("iD")
+export const _RAPID_PATH = getPackageDist("@rapideditor/rapid")

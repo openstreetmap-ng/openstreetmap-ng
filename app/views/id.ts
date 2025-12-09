@@ -2,7 +2,7 @@ import "./id.scss"
 import "iD/dist/iD.css"
 import "iD"
 
-import { API_URL, primaryLanguage } from "@lib/config"
+import { API_URL, ID_PATH, primaryLanguage } from "@lib/config"
 import { parentLoadSystemApp } from "@lib/system-app"
 import { throttle } from "@lib/throttle"
 
@@ -21,7 +21,7 @@ parentLoadSystemApp((accessToken, parentOrigin) => {
 
     const id = ctx
         .embed(true)
-        .assetPath(__ID_PATH__)
+        .assetPath(ID_PATH)
         .locale(primaryLanguage)
         .containerNode(container)
         .init()
