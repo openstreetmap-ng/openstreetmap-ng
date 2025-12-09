@@ -5,8 +5,7 @@ export const LOCALE_OPTIONS = getLocaleOptions()
 
 /** Get display name for a locale option, optionally prefixed with flag emoji */
 export function getLocaleDisplayName(locale: LocaleOption, withFlag = false): string {
-    const displayName = locale.native
-        ? `${locale.native} (${locale.english})`
-        : locale.english
-    return withFlag && locale.flag ? `${locale.flag} ${displayName}` : displayName
+    const [, english, native, flag] = locale
+    const displayName = native ? `${native} (${english})` : english
+    return withFlag && flag ? `${flag} ${displayName}` : displayName
 }

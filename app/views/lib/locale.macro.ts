@@ -7,12 +7,12 @@ interface LocaleName {
     native: string | null
 }
 
-export interface LocaleOption {
-    code: string
-    english: string
-    native?: string
-    flag?: string
-}
+export type LocaleOption = readonly [
+    code: string,
+    english: string,
+    native: string | null,
+    flag?: string,
+]
 
 interface FlagsToml {
     passthrough: string[]
@@ -124,23 +124,24 @@ export function getLocaleOptions() {
     const passthroughSet = new Set(flags.passthrough.map((s) => s.toLowerCase()))
 
     // Filter to installed locales and build options
-    const options: LocaleOption[] = []
+    const options: { tuple: LocaleOption; sortKey: string }[] = []
 
     for (const name of names) {
         if (!(name.code in installedLocales)) continue
 
-        const option: LocaleOption = { code: name.code, english: name.english }
-        if (name.native && name.native !== name.english) option.native = name.native
-
+        const native = name.native && name.native !== name.english ? name.native : null
         const flag = computeFlag(name.code, flagLookup, passthroughSet)
-        if (flag) option.flag = flag
 
-        options.push(option)
+        options.push({
+            tuple: flag
+                ? [name.code, name.english, native, flag]
+                : [name.code, name.english, native],
+            sortKey: (native ?? name.english).toLowerCase(),
+        })
     }
 
     // Sort by display name (case-insensitive)
     return options
-        .map((opt) => ({ opt, key: (opt.native ?? opt.english).toLowerCase() }))
-        .sort((a, b) => a.key.localeCompare(b.key))
-        .map(({ opt }) => opt)
+        .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+        .map((o) => o.tuple)
 }

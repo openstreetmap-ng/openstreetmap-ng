@@ -17,38 +17,40 @@ if (languagePickerModal) {
         const fragment = document.createDocumentFragment()
 
         for (const locale of LOCALE_OPTIONS) {
-            const displayName = locale.native ?? locale.english
+            const [code, english, native, flag] = locale
 
             const listItem = document.createElement("li")
             const button = document.createElement("button")
             button.type = "button"
-            button.dataset.search =
-                `${locale.code} ${displayName}${locale.native ? ` ${locale.english}` : ""}`.toLowerCase()
+            button.dataset.search = [code, english, native]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase()
             button.title = getLocaleDisplayName(locale)
 
-            if (locale.flag) {
-                const flag = document.createElement("span")
-                flag.className = "flag"
-                flag.textContent = locale.flag
-                button.append(flag)
+            if (flag) {
+                const flagSpan = document.createElement("span")
+                flagSpan.className = "flag"
+                flagSpan.textContent = flag
+                button.append(flagSpan)
             }
 
             const nativeName = document.createElement("span")
             nativeName.className = "name-native"
-            nativeName.textContent = displayName
+            nativeName.textContent = native ?? english
             button.append(nativeName)
 
-            if (locale.native) {
+            if (native) {
                 const englishName = document.createElement("span")
                 englishName.className = "name-english"
-                englishName.textContent = locale.english
+                englishName.textContent = english
                 button.append(englishName)
             }
 
             button.addEventListener("click", () => {
-                if (locale.code !== primaryLanguage) {
-                    console.info("Changing language to", locale.code)
-                    document.cookie = `lang=${locale.code}; path=/; max-age=31536000; samesite=lax`
+                if (code !== primaryLanguage) {
+                    console.info("Changing language to", code)
+                    document.cookie = `lang=${code}; path=/; max-age=31536000; samesite=lax`
                     window.location.reload()
                     button.disabled = true
                 } else {
@@ -58,7 +60,7 @@ if (languagePickerModal) {
 
             listItem.append(button)
 
-            if (locale.code === primaryLanguage) {
+            if (code === primaryLanguage) {
                 // Move current language to top and mark as active (lazy)
                 button.ariaCurrent = "true"
                 fragment.prepend(listItem)

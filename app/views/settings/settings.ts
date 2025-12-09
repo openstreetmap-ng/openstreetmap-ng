@@ -12,7 +12,7 @@ mount("settings-body", (body) => {
     const fragment = document.createDocumentFragment()
     for (const locale of LOCALE_OPTIONS) {
         const option = document.createElement("option")
-        option.value = locale.code
+        option.value = locale[0]
         option.textContent = getLocaleDisplayName(locale, true)
         fragment.append(option)
     }
