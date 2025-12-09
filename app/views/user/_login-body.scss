@@ -32,7 +32,7 @@
         }
     }
 
-    .passkey-btn {
+    button[data-action="passkey-login"] {
         img {
             width: 0.875em;
             height: 0.875em;
