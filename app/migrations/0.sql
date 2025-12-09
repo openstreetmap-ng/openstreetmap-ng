@@ -427,8 +427,6 @@ WHERE
     AND size = 0;
 
 CREATE INDEX changeset_open_idx ON changeset (updated_at) INCLUDE (created_at)
-WITH
-    (fillfactor = 100)
 WHERE
     closed_at IS NULL;
 
@@ -668,9 +666,7 @@ CREATE INDEX note_created_at_idx ON note (created_at)
 WITH
     (fillfactor = 100);
 
-CREATE INDEX note_updated_at_idx ON note (updated_at)
-WITH
-    (fillfactor = 100);
+CREATE INDEX note_updated_at_idx ON note (updated_at);
 
 CREATE INDEX note_closed_at_idx ON note (closed_at)
 WITH
@@ -891,9 +887,7 @@ CREATE TABLE user_token (
 
 CREATE INDEX user_token_user_idx ON user_token (user_id);
 
-CREATE INDEX user_token_type_created_at_idx ON user_token (type, created_at)
-WITH
-    (fillfactor = 100);
+CREATE INDEX user_token_type_created_at_idx ON user_token (type, created_at);
 
 CREATE TABLE file (
     context text NOT NULL,
@@ -910,9 +904,7 @@ CREATE TABLE admin_task (
     heartbeat_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 
-CREATE INDEX admin_task_heartbeat_at_idx ON admin_task (heartbeat_at)
-WITH
-    (fillfactor = 100);
+CREATE INDEX admin_task_heartbeat_at_idx ON admin_task (heartbeat_at);
 
 CREATE UNLOGGED TABLE rate_limit (
     key text PRIMARY KEY,
