@@ -243,6 +243,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
         if (isAdded) {
             updateLayer()
         } else {
+            onFeatureLeave()
             errorDataAlert.classList.add("d-none")
             loadDataAlert.classList.add("d-none")
             abortController?.abort()

@@ -68,6 +68,16 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     let hoverPopupTimeout: ReturnType<typeof setTimeout> | undefined
     const hoverPopup: Popup = new Popup({ closeButton: false, closeOnMove: true })
 
+    const clearHoverState = () => {
+        if (hoveredFeatureId) {
+            map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
+            hoveredFeatureId = null
+        }
+        clearTimeout(hoverPopupTimeout)
+        hoverPopup.remove()
+        clearMapHover(map, LAYER_ID)
+    }
+
     map.on("mousemove", LAYER_ID, (e) => {
         const lngLat = e.lngLat
         const feature = e.features![0]
@@ -90,11 +100,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     })
     map.on("mouseleave", LAYER_ID, () => {
         if (!hoveredFeatureId) return
-        map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
-        hoveredFeatureId = null
-        clearTimeout(hoverPopupTimeout)
-        hoverPopup.remove()
-        clearMapHover(map, LAYER_ID)
+        clearHoverState()
     })
 
     /** On map update, fetch the notes and update the notes layer */
@@ -169,11 +175,11 @@ export const configureNotesLayer = (map: MaplibreMap) => {
             loadMapImage(map, "marker-hidden")
             updateLayer()
         } else {
+            clearHoverState()
             abortController?.abort()
             abortController = null
             toggleLayerSpinner(LAYER_ID, false)
             source.setData(emptyFeatureCollection)
-            clearMapHover(map, LAYER_ID)
             fetchedBounds = null
         }
     })

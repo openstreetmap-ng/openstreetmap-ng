@@ -175,17 +175,21 @@ mount("messages-index-body", (body) => {
         const unreadForm = messagePreview.querySelector("form.unread-form")!
         configureStandardForm(unreadForm, () => {
             // On success callback, mark the message as unread and update the badge
-            console.debug("onUnreadFormSuccess", openMessageId)
+            const targetId = unreadForm.dataset.targetId!
+            console.debug("onUnreadFormSuccess", targetId)
             changeUnreadMessagesBadge(1)
-            if (openTarget) {
-                openTarget.classList.add("unread")
-                closeMessagePreview()
-            }
+            const target = body.querySelector(
+                `.messages-list li[data-id="${targetId}"]`,
+            )
+            if (!target) return
+            target.classList.add("unread")
+            if (target === openTarget) closeMessagePreview()
         })
 
         // On unread button click, submit the form
         unreadButton.addEventListener("click", () => {
             console.debug("onUnreadButtonClick", openMessageId)
+            unreadForm.dataset.targetId = openMessageId!
             unreadForm.action = `/api/web/messages/${openMessageId}/unread`
             unreadForm.requestSubmit()
         })
@@ -193,16 +197,18 @@ mount("messages-index-body", (body) => {
 
     const deleteForm = messagePreview.querySelector("form.delete-form")!
     configureStandardForm(deleteForm, () => {
-        console.debug("onDeleteFormSuccess", openMessageId)
-        if (openTarget) {
-            openTarget.remove()
-            closeMessagePreview()
-        }
+        const targetId = deleteForm.dataset.targetId!
+        console.debug("onDeleteFormSuccess", targetId)
+        const target = body.querySelector(`.messages-list li[data-id="${targetId}"]`)
+        if (!target) return
+        target.remove()
+        if (target === openTarget) closeMessagePreview()
     })
 
     const deleteButton = messagePreview.querySelector("button.delete-btn")!
     deleteButton.addEventListener("click", () => {
         if (!confirm(t("messages.delete_confirmation"))) return
+        deleteForm.dataset.targetId = openMessageId!
         deleteForm.action = `/api/web/messages/${openMessageId}/delete`
         deleteForm.requestSubmit()
     })

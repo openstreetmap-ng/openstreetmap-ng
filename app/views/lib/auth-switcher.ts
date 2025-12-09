@@ -23,6 +23,7 @@ for (const root of roots) {
         root.dataset.state = "providers"
         root.scrollTo({ left: 999999, behavior: "smooth" })
         updateCta()
+        window.removeEventListener("resize", onResize)
         window.addEventListener("resize", onResize)
     })
 
