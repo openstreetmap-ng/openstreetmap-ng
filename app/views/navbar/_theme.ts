@@ -1,14 +1,6 @@
 import { themeStorage } from "@lib/local-storage"
-import { getDeviceThemePreference } from "@lib/polyfills"
-
-export type AppTheme = "light" | "dark" | "auto"
-
-type ThemeEventHandler = (theme: "light" | "dark") => void
-
-const themeEventHandlers: ThemeEventHandler[] = []
-
-export const addThemeEventHandler = (handler: ThemeEventHandler) =>
-    themeEventHandlers.push(handler)
+import { type AppTheme, activeTheme, refreshActiveTheme } from "@lib/theme"
+import { effect } from "@preact/signals-core"
 
 // Support for pages without a navbar
 const control = document.querySelector(".navbar-theme")
@@ -27,30 +19,18 @@ if (control) {
         themeIconMap.set(key, iconClass)
     }
 
-    const updateState = (forceAppTheme?: AppTheme) => {
-        const appTheme = forceAppTheme ?? themeStorage.get()
-        const activeTheme = appTheme === "auto" ? getDeviceThemePreference() : appTheme
-        console.debug(
-            "Updating theme state, preference:",
-            appTheme,
-            "; active:",
-            activeTheme,
-        )
+    // React to theme changes
+    effect(() => {
+        const theme = activeTheme.value
+        const appTheme = themeStorage.get()
+        console.debug("Updating theme state, preference:", appTheme, "; active:", theme)
 
-        document.documentElement.dataset.bsTheme = activeTheme
+        document.documentElement.dataset.bsTheme = theme
         buttonIcon.classList.remove(...themeIconMap.values(), "opacity-0")
         buttonIcon.classList.add(themeIconMap.get(appTheme)!)
-        for (const [theme, itemButton] of themeItemButtonMap) {
-            itemButton.classList.toggle("active", theme === appTheme)
+        for (const [t, itemButton] of themeItemButtonMap) {
+            itemButton.classList.toggle("active", t === appTheme)
         }
-
-        for (const handler of themeEventHandlers) handler(activeTheme)
-    }
-
-    // Listen for system color scheme changes
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-        console.debug("Handling system color scheme change")
-        updateState()
     })
 
     for (const [theme, itemButton] of themeItemButtonMap.entries()) {
@@ -58,10 +38,7 @@ if (control) {
             if (themeStorage.get() === theme) return
             console.debug("Handling application theme change to", theme)
             themeStorage.set(theme)
-            updateState(theme)
+            refreshActiveTheme()
         })
     }
-
-    // Initial update
-    updateState()
 }

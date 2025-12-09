@@ -4,7 +4,7 @@ import type { MapState } from "@lib/map/state"
 import { memoize } from "@lib/memoize"
 import { getDeviceThemePreference } from "@lib/polyfills"
 import { getUnixTimestamp } from "@lib/utils"
-import type { AppTheme } from "../navbar/_theme"
+import type { AppTheme } from "./theme"
 
 type StorageConfig<T> = {
     defaultValue?: T

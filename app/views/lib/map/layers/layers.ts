@@ -1,6 +1,8 @@
 import { getActiveTheme, overlayOpacityStorage } from "@lib/local-storage"
 import { memoize } from "@lib/memoize"
+import { activeTheme } from "@lib/theme"
 import libertyStyle from "@lib/vector-styles/liberty.json"
+import { effect } from "@preact/signals-core"
 import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
 import {
@@ -12,7 +14,6 @@ import {
     type SourceSpecification,
     type StyleSpecification,
 } from "maplibre-gl"
-import { addThemeEventHandler } from "../../../navbar/_theme"
 
 declare const brandSymbol: unique symbol
 
@@ -302,8 +303,9 @@ export const addMapLayerSources = (
 }
 const watchMapsLayerSources: MaplibreMap[] = []
 
-// Listen for system color scheme changes
-addThemeEventHandler((theme) => {
+// Listen for theme changes
+effect(() => {
+    const theme = activeTheme.value
     console.debug(
         "Changing",
         watchMapsLayerSources.length,
