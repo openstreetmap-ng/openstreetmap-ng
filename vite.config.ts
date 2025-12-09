@@ -2,12 +2,54 @@ import assert from "node:assert/strict"
 import { fileURLToPath } from "node:url"
 import legacy from "@vitejs/plugin-legacy"
 import autoprefixer from "autoprefixer"
+import { PurgeCSS } from "purgecss"
+import { visualizer } from "rollup-plugin-visualizer"
 import rtlcss from "rtlcss"
 import Macros from "unplugin-macros/vite"
-import { defineConfig } from "vite"
+import { defineConfig, type PluginOption } from "vite"
 import { browserslist } from "./package.json"
 
 const CSS_FILE_RE = /\.(?:c|s[ac])ss$/i
+
+const PURGECSS_SAFELIST = {
+    standard: [
+        // Bootstrap state classes
+        "show",
+        "fade",
+        "active",
+        "disabled",
+        "collapsed",
+        "collapsing",
+        "visually-hidden",
+        "invisible",
+        // Form validation
+        "was-validated",
+        "is-valid",
+        "is-invalid",
+    ],
+    greedy: [
+        // Bootstrap dynamic components
+        /^modal/,
+        /^offcanvas/,
+        /^tooltip/,
+        /^popover/,
+        /^dropdown/,
+        /^collapse/,
+        /^nav-/,
+        // Bootstrap utilities
+        /^d-/,
+        /^opacity-/,
+        /^btn-/,
+        // Bootstrap icons
+        /^bi-/,
+        // MapLibre GL
+        /^maplibregl-/,
+        // Project-specific dynamic classes
+        /^activity-\d+$/,
+        /^icon-\d+$/,
+    ],
+}
+const PURGECSS_EXTRACTOR = (content: string) => content.match(/[\w-/:]+(?<!:)/g) ?? []
 
 const trimDevBase = (base: string, path: string) =>
     path.startsWith(base) ? `/${path.slice(base.length)}` : path
@@ -159,6 +201,39 @@ export default defineConfig({
             },
         },
         {
+            name: "build-purgecss",
+            apply: "build",
+            enforce: "post",
+            async generateBundle(_options, bundle) {
+                const cssEntries = Object.entries(bundle).filter(
+                    ([fileName, chunk]) =>
+                        fileName.endsWith(".css") && chunk.type === "asset",
+                )
+                if (!cssEntries.length) return
+
+                const purgecss = new PurgeCSS()
+                await Promise.all(
+                    cssEntries.map(async ([fileName, chunk]) => {
+                        if (chunk.type !== "asset") return
+                        const source =
+                            typeof chunk.source === "string"
+                                ? chunk.source
+                                : Buffer.from(chunk.source).toString()
+
+                        const [result] = await purgecss.purge({
+                            content: ["app/views/**/*.html.jinja", "app/views/**/*.ts"],
+                            css: [{ raw: source, name: fileName }],
+                            safelist: PURGECSS_SAFELIST,
+                            defaultExtractor: PURGECSS_EXTRACTOR,
+                        })
+                        if (result) {
+                            chunk.source = result.css
+                        }
+                    }),
+                )
+            },
+        },
+        {
             name: "build-rtl-css",
             apply: "build",
             generateBundle(_options, bundle) {
@@ -186,5 +261,8 @@ export default defineConfig({
                 }
             },
         },
+        visualizer({
+            filename: "app/static/vite/stats.html",
+        }) as PluginOption,
     ],
 })

@@ -1,4 +1,3 @@
-import { parsePhoneNumberFromString } from "libphonenumber-js/min"
 import { primaryLanguage } from "./config"
 import { memoize } from "./memoize"
 import { getWikiData } from "./tags-format.macro" with { type: "macro" }
@@ -114,8 +113,12 @@ const formatEmail: FormatterFn = (_, text) =>
     isEmailString(text) ? createLink(text, `mailto:${text}`) : null
 
 const formatPhone: FormatterFn = (_, text) => {
-    const phone = parsePhoneNumberFromString(text)
-    return phone?.isValid() ? createLink(text, phone.getURI()) : null
+    const span = createSpan(text)
+    import("libphonenumber-js/min").then(({ parsePhoneNumberFromString }) => {
+        const phone = parsePhoneNumberFromString(text)
+        if (phone?.isValid()) span.replaceWith(createLink(text, phone.getURI()))
+    })
+    return span
 }
 
 const formatWikidata: FormatterFn = (_, text) =>

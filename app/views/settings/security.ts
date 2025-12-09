@@ -6,7 +6,6 @@ import { resolveUserAgentIconsLazy } from "@lib/user-agent-icons"
 import { NON_DIGIT_RE } from "@lib/utils"
 import { getPasskeyRegistration } from "@lib/webauthn"
 import i18next from "i18next"
-import qrcode from "qrcode-generator"
 
 const generateTOTPSecret = () => {
     const buffer = new Uint8Array(16) // 128 bits
@@ -31,11 +30,16 @@ const generateTOTPSecret = () => {
     return result
 }
 
-const generateTOTPQRCode = (secret: string, digits: number, accountName: string) => {
+const generateTOTPQRCode = async (
+    secret: string,
+    digits: number,
+    accountName: string,
+) => {
     const issuer = i18next.t("project_name")
     const label = `${issuer}:${accountName}`
     const uri = `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&digits=${digits}`
 
+    const qrcode = (await import("qrcode-generator")).default
     const qr = qrcode(0, "M")
     qr.addData(uri)
     qr.make()
@@ -151,9 +155,9 @@ mount("settings-security-body", (body) => {
 
         // Update QR code and input attributes when digit selection changes
         for (const radio of digitsInputs) {
-            radio.addEventListener("change", () => {
+            radio.addEventListener("change", async () => {
                 const digits = Number(radio.value)
-                qrContainer.innerHTML = generateTOTPQRCode(
+                qrContainer.innerHTML = await generateTOTPQRCode(
                     secretInput.value,
                     digits,
                     accountName,
