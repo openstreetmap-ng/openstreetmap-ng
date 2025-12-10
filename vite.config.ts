@@ -320,7 +320,7 @@ export default defineConfig({
                 // Generate subset font
                 const inputPath =
                     "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2"
-                const tempFile = join(tmpdir(), "bi-subset.woff2")
+                const tempFile = join(tmpdir(), `bi-subset-${process.pid}.woff2`)
                 execSync(
                     `pyftsubset "${inputPath}" --unicodes="${unicodes}" --flavor=woff2 --layout-features=* --no-hinting --desubroutinize --output-file="${tempFile}"`,
                     { stdio: "pipe" },
