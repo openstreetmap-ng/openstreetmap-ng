@@ -14,39 +14,46 @@ const installedLocales = new Set(Object.keys(i18nextMap))
 installedLocales.delete("en")
 installedLocales.add("")
 
-// Deduplicate locale sets
-const localeSetMap = new Map<string, number>()
-const localeSets: string[][] = []
-
-const getLocaleSetIndex = (locales: string[]): number => {
-    // Filter to installed locales only, lowercase, and dedupe
-    const filtered = [
+// Filter and normalize locale array: lowercase, dedupe, sort
+const normalizeLocales = (locales: string[]): string[] =>
+    [
         ...new Set(
             locales.map((l) => l.toLowerCase()).filter((l) => installedLocales.has(l)),
         ),
-    ]
-    const key = filtered.join(",")
+    ].sort()
 
-    let index = localeSetMap.get(key)
-    if (index === undefined) {
-        index = localeSets.length
-        localeSets.push(filtered)
-        localeSetMap.set(key, index)
+// Pass 1: Count frequency of each locale set
+const localeSetFreq = new Map<string, { locales: string[]; count: number }>()
+
+for (const values of Object.values(wikiPagesRaw)) {
+    for (const locales of Object.values(values)) {
+        const filtered = normalizeLocales(locales)
+        if (!filtered.length) continue
+        const key = filtered.join(",")
+        const entry = localeSetFreq.get(key)
+        if (entry) entry.count++
+        else localeSetFreq.set(key, { locales: filtered, count: 1 })
     }
-    return index
 }
 
-// Build optimized wiki pages structure
-// { "key:value": localeSetIndex } where value "*" is wildcard
-const wikiPages: Record<string, number> = {}
+// Sort by frequency (most common = index 0) for better compression
+const sortedLocaleSets = [...localeSetFreq.entries()].sort(
+    (a, b) => b[1].count - a[1].count,
+)
+const localeSets = sortedLocaleSets.map(([_, { locales }]) => locales)
+const localeSetIndex = new Map(sortedLocaleSets.map(([key], i) => [key, i]))
 
-for (const [keyPart, values] of Object.entries(wikiPagesRaw)) {
+// Pass 2: Build wiki pages with frequency-sorted indices
+const wikiPages: Record<string, Record<string, number>> = {}
+
+for (const [key, values] of Object.entries(wikiPagesRaw)) {
+    const keyValues: Record<string, number> = {}
     for (const [value, locales] of Object.entries(values)) {
-        const index = getLocaleSetIndex(locales)
-        // Skip entries with no installed locales
-        if (localeSets[index].length === 0) continue
-        wikiPages[`${keyPart}:${value}`] = index
+        const normalized = normalizeLocales(locales)
+        if (!normalized.length) continue
+        keyValues[value] = localeSetIndex.get(normalized.join(","))!
     }
+    if (Object.keys(keyValues).length) wikiPages[key] = keyValues
 }
 
 export const getWikiData = () => ({

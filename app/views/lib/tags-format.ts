@@ -49,8 +49,7 @@ const isWikimediaEntry = (s: string) => WIKIMEDIA_ENTRY_RE.test(s)
 // ============================================================
 
 const getWikiUrl = (key: string, value: string | null) => {
-    const lookupKey = value !== null ? `${key}:${value}` : `${key}:*`
-    const localeSetIndex = WIKI_PAGES[lookupKey]
+    const localeSetIndex = WIKI_PAGES[key]?.[value ?? "*"]
     if (localeSetIndex === undefined) return null
 
     const availableLocales = getLocaleSet(localeSetIndex)
