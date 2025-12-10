@@ -107,16 +107,23 @@ class MailpitHelper:
             # Process new messages
             while True:
                 data = await wait_for(websocket.recv(), deadline - monotonic())
-                event = orjson.loads(data)
-                if event.get('Type') != 'new':  # Listen for new messages only
-                    continue
 
-                msg: MailpitMessage = event['Data']
-                if msg['ID'] in messages:  # Skip if the message was already checked
-                    continue
+                for line in (
+                    data.split(b'\n') if isinstance(data, bytes) else data.split('\n')
+                ):
+                    if not line:
+                        continue
 
-                if (summary := await check_message(msg)) is not None:
-                    return summary
+                    event = orjson.loads(line)
+                    if event.get('Type') != 'new':  # Listen for new messages only
+                        continue
+
+                    msg: MailpitMessage = event['Data']
+                    if msg['ID'] in messages:  # Skip if the message was already checked
+                        continue
+
+                    if (summary := await check_message(msg)) is not None:
+                        return summary
 
     @staticmethod
     async def get_message(message_id: str) -> MailpitMessageSummary:
