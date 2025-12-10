@@ -75,7 +75,7 @@ if (languagePickerModal) {
     }
 
     languagePickerModal.addEventListener(
-        "show.bs.modal",
+        Modal.Events.show,
         () => {
             initializeLanguages()
         },
@@ -83,12 +83,12 @@ if (languagePickerModal) {
     )
 
     // Focus search input when modal is shown
-    languagePickerModal.addEventListener("shown.bs.modal", () => {
+    languagePickerModal.addEventListener(Modal.Events.shown, () => {
         searchInput.focus()
     })
 
     // Reset modal when closed
-    languagePickerModal.addEventListener("hidden.bs.modal", () => {
+    languagePickerModal.addEventListener(Modal.Events.hidden, () => {
         searchInput.value = ""
         for (const btn of languageButtons) {
             btn.parentElement!.hidden = false

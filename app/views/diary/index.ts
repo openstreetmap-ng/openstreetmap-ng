@@ -3,7 +3,7 @@ import { configureScrollspy } from "@lib/scrollspy"
 import { configureStandardForm } from "@lib/standard-form"
 import { configureStandardPagination } from "@lib/standard-pagination"
 import { delay } from "@std/async/delay"
-import { Offcanvas } from "bootstrap"
+import { Collapse, Offcanvas } from "bootstrap"
 
 // Details page: always expanded; comments live under #comments
 mount("diary-details-body", (body) => {
@@ -66,7 +66,7 @@ mount("diary-index-body", (body) => {
         const commentsContainer = article.querySelector(".diary-comments")!
 
         commentsContainer.addEventListener(
-            "show.bs.collapse",
+            Collapse.Events.show,
             () => {
                 // Initialize only once on first toggle; reuse DOM thereafter
                 const dispose = configureStandardPagination(commentsContainer)

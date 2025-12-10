@@ -5,6 +5,7 @@ import { configureStandardForm } from "@lib/standard-form"
 import { NON_DIGIT_RE } from "@lib/utils"
 import { getPasskeyAssertion, startConditionalMediation } from "@lib/webauthn"
 import { assertExists } from "@std/assert"
+import { Modal } from "bootstrap"
 
 type LoginState = "credentials" | "passkey" | "totp" | "recovery" | "method-select"
 
@@ -258,7 +259,7 @@ if (loginForm) {
     const loginModal = document.getElementById("loginModal")
     if (loginModal) {
         // Modal: defer until it opens
-        loginModal.addEventListener("show.bs.modal", initConditionalMediation, {
+        loginModal.addEventListener(Modal.Events.show, initConditionalMediation, {
             once: true,
         })
     } else {
