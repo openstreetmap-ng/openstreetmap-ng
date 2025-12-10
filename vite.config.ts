@@ -331,7 +331,7 @@ export default defineConfig({
                 const originalSize = statSync(inputPath).size
                 const reduction = ((1 - source.length / originalSize) * 100).toFixed(1)
                 this.info(
-                    `Icons subset: ${usedIcons.size} icons, ${originalSize}B → ${source.length}B (${reduction}% smaller)`,
+                    `Detected ${usedIcons.size} icons, ${originalSize}B → ${source.length}B (${reduction}% smaller)`,
                 )
 
                 const ref = this.emitFile({

@@ -12,43 +12,42 @@ const DEVICE_ICON_CLASS: Record<string, string> = {
 
 /** Populate .ua-icons elements with browser/OS/device icons */
 export const resolveUserAgentIconsLazy = (container: HTMLElement) => {
-    queueMicrotask(() => {
+    queueMicrotask(async () => {
         const icons = container.querySelectorAll<HTMLElement>(".ua-icons[title]")
         if (!icons.length) return
         console.debug("Initializing", icons.length, "UserAgent icons")
 
-        import("bowser").then(({ default: Bowser }) => {
-            for (const el of icons) {
-                const userAgent = el.title
-                const parser = Bowser.getParser(userAgent)
+        const { default: Bowser } = await import("bowser")
+        for (const el of icons) {
+            const userAgent = el.title
+            const parser = Bowser.getParser(userAgent)
 
-                // Build icons
-                const browser = parser.getBrowserName()
-                const browserSuffix = browser ? BROWSER_ICON_MAP[browser] : null
-                if (browserSuffix) {
-                    const img = document.createElement("img")
-                    img.src = BROWSER_PREFIX + browserSuffix
-                    img.alt = browser
-                    img.className = "me-1 align-middle"
-                    el.appendChild(img)
-                }
-
-                const os = parser.getOSName()
-                const osSuffix = os ? OS_ICON_MAP[os] : null
-                if (osSuffix) {
-                    const img = document.createElement("img")
-                    img.src = OS_PREFIX + osSuffix
-                    img.alt = os
-                    img.className = "ua-os-icon me-1 align-middle"
-                    el.appendChild(img)
-                }
-
-                const platformType = parser.getPlatformType()
-                const deviceClass = DEVICE_ICON_CLASS[platformType] ?? "bi-display"
-                const deviceIcon = document.createElement("i")
-                deviceIcon.className = `bi ${deviceClass} align-middle`
-                el.appendChild(deviceIcon)
+            // Build icons
+            const browser = parser.getBrowserName()
+            const browserSuffix = browser ? BROWSER_ICON_MAP[browser] : null
+            if (browserSuffix) {
+                const img = document.createElement("img")
+                img.src = BROWSER_PREFIX + browserSuffix
+                img.alt = browser
+                img.className = "me-1 align-middle"
+                el.appendChild(img)
             }
-        })
+
+            const os = parser.getOSName()
+            const osSuffix = os ? OS_ICON_MAP[os] : null
+            if (osSuffix) {
+                const img = document.createElement("img")
+                img.src = OS_PREFIX + osSuffix
+                img.alt = os
+                img.className = "ua-os-icon me-1 align-middle"
+                el.appendChild(img)
+            }
+
+            const platformType = parser.getPlatformType()
+            const deviceClass = DEVICE_ICON_CLASS[platformType] ?? "bi-display"
+            const deviceIcon = document.createElement("i")
+            deviceIcon.className = `bi ${deviceClass} align-middle`
+            el.appendChild(deviceIcon)
+        }
     })
 }

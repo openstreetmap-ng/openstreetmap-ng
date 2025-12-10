@@ -1,4 +1,4 @@
-import { assert } from "@lib/assert"
+import { assertExists } from "@std/assert"
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
@@ -18,7 +18,7 @@ export class SidebarToggleControl implements IControl {
     public onAdd(map: MaplibreMap) {
         // Find corresponding sidebar
         const sidebar = document.querySelector(`div.map-sidebar.${this._className}`)
-        assert(sidebar, `Sidebar ${this._className} not found`)
+        assertExists(sidebar, `Sidebar ${this._className} not found`)
         this.sidebar = sidebar
 
         // Create container

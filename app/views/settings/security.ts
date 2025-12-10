@@ -5,29 +5,13 @@ import { type APIDetail, configureStandardForm } from "@lib/standard-form"
 import { resolveUserAgentIconsLazy } from "@lib/user-agent-icons"
 import { NON_DIGIT_RE } from "@lib/utils"
 import { getPasskeyRegistration } from "@lib/webauthn"
+import { encodeBase32 } from "@std/encoding/base32"
 import i18next from "i18next"
 
 const generateTOTPSecret = () => {
     const buffer = new Uint8Array(16) // 128 bits
     crypto.getRandomValues(buffer)
-
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
-    let value = 0
-    let bits = 0
-    let result = ""
-
-    for (const byte of buffer) {
-        value = (value << 8) | byte
-        bits += 8
-        while (bits >= 5) {
-            result += alphabet[(value >>> (bits - 5)) & 31]
-            bits -= 5
-        }
-    }
-    if (bits > 0) {
-        result += alphabet[(value << (5 - bits)) & 31]
-    }
-    return result
+    return encodeBase32(buffer).replaceAll("=", "")
 }
 
 const generateTOTPQRCode = async (

@@ -13,6 +13,7 @@ import {
 } from "@lib/map/layers/layers"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { decodeLonLat } from "@lib/polyline"
+import { roundTo } from "@std/math/round-to"
 import type { LineString } from "geojson"
 import {
     type GeoJSONSource,
@@ -106,7 +107,7 @@ if (tracePreviewContainer) {
 
     const antPath = (timestamp: DOMHighResTimeStamp) => {
         const progress = (timestamp % ANT_DURATION) / ANT_DURATION
-        const offset = Math.round(progress * ANT_DASH_LENGTH * 10) / 10
+        const offset = roundTo(progress * ANT_DASH_LENGTH, 1)
         if (offset !== lastOffset) {
             lastOffset = offset
             // https://docs.mapbox.com/mapbox-gl-js/example/animate-ant-path/

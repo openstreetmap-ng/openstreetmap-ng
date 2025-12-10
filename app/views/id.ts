@@ -4,10 +4,11 @@ import "iD"
 
 import { API_URL, ID_PATH, primaryLanguage } from "@lib/config"
 import { parentLoadSystemApp } from "@lib/system-app"
-import { throttle } from "@lib/throttle"
+import { assertExists } from "@std/assert"
+import { throttle } from "@std/async/unstable-throttle"
 
 const container = document.querySelector("div.id-container")
-if (!container) throw new Error("iD container not found")
+assertExists(container, "iD container not found")
 
 parentLoadSystemApp((accessToken, parentOrigin) => {
     // @ts-expect-error
@@ -31,16 +32,20 @@ parentLoadSystemApp((accessToken, parentOrigin) => {
     // On map move, send the new state to the parent
     map.on(
         "move.embed",
-        throttle(() => {
-            // Skip during introduction
-            if (id.inIntro()) return
+        throttle(
+            () => {
+                // Skip during introduction
+                if (id.inIntro()) return
 
-            const [lon, lat] = map.center()
-            const zoom = map.zoom()
-            window.parent.postMessage(
-                { type: "mapState", source: "id", state: { lon, lat, zoom } },
-                parentOrigin,
-            )
-        }, 250),
+                const [lon, lat] = map.center()
+                const zoom = map.zoom()
+                window.parent.postMessage(
+                    { type: "mapState", source: "id", state: { lon, lat, zoom } },
+                    parentOrigin,
+                )
+            },
+            250,
+            { ensureLastCall: true },
+        ),
     )
 })

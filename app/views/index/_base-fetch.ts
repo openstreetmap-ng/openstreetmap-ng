@@ -5,6 +5,7 @@ import {
 } from "@index/_action-sidebar"
 import { resolveDatetimeLazy } from "@lib/datetime-inputs"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
+import { assert } from "@std/assert"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
 let currentUrl: string | null = null
@@ -22,7 +23,7 @@ export const getBaseFetchController = (
         : sidebar.querySelector("div.dynamic-content")!
     const loadingHtml = dynamicContent.innerHTML
 
-    let abortController: AbortController | null = null
+    let abortController: AbortController | undefined
     let loadCallbackDispose: void | (() => void)
 
     const onSidebarLoading = () => {
@@ -78,8 +79,7 @@ export const getBaseFetchController = (
                 signal: abortController.signal,
                 priority: "high",
             })
-            if (!resp.ok && resp.status !== 404)
-                throw new Error(`${resp.status} ${resp.statusText}`)
+            assert(resp.ok || resp.status === 404, `${resp.status} ${resp.statusText}`)
             onSidebarLoaded(await resp.text(), url)
             loadCallbackDispose = loadCallback?.(dynamicContent)
         } catch (error) {
@@ -92,14 +92,6 @@ export const getBaseFetchController = (
 
     return {
         load: (url: string | null) => {
-            if (abortController) {
-                console.error(
-                    "Base fetch controller",
-                    className,
-                    "wasn't properly unloaded",
-                )
-            }
-
             switchActionSidebar(map, sidebar)
             if (url === null) {
                 currentUrl = null
@@ -111,7 +103,6 @@ export const getBaseFetchController = (
         },
         unload: () => {
             abortController?.abort()
-            abortController = null
             if (typeof loadCallbackDispose === "function") {
                 loadCallbackDispose()
                 loadCallbackDispose = undefined

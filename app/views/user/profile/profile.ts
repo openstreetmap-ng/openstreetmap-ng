@@ -4,6 +4,8 @@ import { formatMonthName, formatShortDate, formatWeekdayName } from "@lib/format
 import { mount } from "@lib/mount"
 import { UserActivityChartSchema } from "@lib/proto/shared_pb"
 import { configureStandardForm } from "@lib/standard-form"
+import { DAY } from "@std/datetime/constants"
+import { format as formatDate } from "@std/datetime/format"
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 
@@ -199,7 +201,7 @@ mount("user-profile-body", (body) => {
     )
     const chartLinkPrefix = `/user/${encodeURIComponent(chartTable.dataset.displayName!)}/history?date=`
 
-    const dayMs = 86_400_000
+    const dayMs = DAY
     const startMs = Date.parse(`${chart.startDate}T00:00:00Z`)
     const totalWeeks = Math.ceil(chart.values.length / 7)
 
@@ -207,7 +209,7 @@ mount("user-profile-body", (body) => {
 
     const days = chart.values.map((value, index) => {
         const date = new Date(startMs + index * dayMs)
-        const iso = date.toISOString().slice(0, 10)
+        const iso = formatDate(date, "yyyy-MM-dd", { timeZone: "UTC" })
         const week = Math.floor(index / 7)
         if (date.getUTCDate() === 1) {
             monthLabels[week] = formatMonthName(iso, "short")

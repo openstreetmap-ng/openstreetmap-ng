@@ -3,6 +3,9 @@ import { routerNavigateStrict } from "@index/router"
 import { toggleLayerSpinner } from "@index/sidebar/layers"
 import { NOTE_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { RenderNotesDataSchema } from "@lib/proto/shared_pb"
+import { assert } from "@std/assert"
+import { delay } from "@std/async/delay"
+import { SECOND } from "@std/datetime/constants"
 import {
     type GeoJSONSource,
     type LngLatBounds,
@@ -56,7 +59,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     let enabled = false
     let fetchedBounds: LngLatBounds | null = null
-    let abortController: AbortController | null = null
+    let abortController: AbortController | undefined
 
     // On feature click, navigate to the note
     map.on("click", LAYER_ID, (e) => {
@@ -65,7 +68,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     })
 
     let hoveredFeatureId: number | null = null
-    let hoverPopupTimeout: ReturnType<typeof setTimeout> | undefined
+    let hoverPopupAbort: AbortController | undefined
     const hoverPopup: Popup = new Popup({ closeButton: false, closeOnMove: true })
 
     const clearHoverState = () => {
@@ -73,12 +76,12 @@ export const configureNotesLayer = (map: MaplibreMap) => {
             map.removeFeatureState({ source: LAYER_ID, id: hoveredFeatureId })
             hoveredFeatureId = null
         }
-        clearTimeout(hoverPopupTimeout)
+        hoverPopupAbort?.abort()
         hoverPopup.remove()
         clearMapHover(map, LAYER_ID)
     }
 
-    map.on("mousemove", LAYER_ID, (e) => {
+    map.on("mousemove", LAYER_ID, async (e) => {
         const lngLat = e.lngLat
         const feature = e.features![0]
         const featureId = feature.id as number
@@ -91,12 +94,16 @@ export const configureNotesLayer = (map: MaplibreMap) => {
         hoveredFeatureId = featureId
         map.setFeatureState({ source: LAYER_ID, id: hoveredFeatureId }, { hover: true })
         // Show popup after a short delay
-        clearTimeout(hoverPopupTimeout)
+        hoverPopupAbort?.abort()
+        hoverPopupAbort = new AbortController()
         hoverPopup.remove()
-        hoverPopupTimeout = setTimeout(() => {
-            console.debug("Showing popup for note", feature.properties.id, "at", lngLat)
-            hoverPopup.setText(feature.properties.text).setLngLat(lngLat).addTo(map)
-        }, 500)
+        try {
+            await delay(0.5 * SECOND, { signal: hoverPopupAbort.signal })
+        } catch {
+            return
+        }
+        console.debug("Showing popup for note", feature.properties.id, "at", lngLat)
+        hoverPopup.setText(feature.properties.text).setLngLat(lngLat).addTo(map)
     })
     map.on("mouseleave", LAYER_ID, () => {
         if (!hoveredFeatureId) return
@@ -142,7 +149,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
                     priority: "high",
                 },
             )
-            if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+            assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
             const buffer = await resp.arrayBuffer()
             const render = fromBinary(RenderNotesDataSchema, new Uint8Array(buffer))
@@ -177,7 +184,6 @@ export const configureNotesLayer = (map: MaplibreMap) => {
         } else {
             clearHoverState()
             abortController?.abort()
-            abortController = null
             toggleLayerSpinner(LAYER_ID, false)
             source.setData(emptyFeatureCollection)
             fetchedBounds = null

@@ -1,4 +1,5 @@
 import { unquotePlus } from "@lib/utils"
+import { assert } from "@std/assert"
 
 // Router interfaces
 export type RouteLoadReason = "navigation" | "popstate"
@@ -56,7 +57,7 @@ export const routerNavigate = (newPath: string) => {
 
 export const routerNavigateStrict = (newPath: string) => {
     console.debug("routerNavigateStrict", newPath)
-    if (!routerNavigate(newPath)) throw new Error(`No route found for path: ${newPath}`)
+    assert(routerNavigate(newPath), `No route found for path: ${newPath}`)
 }
 
 export const configureRouter = (pathControllerMap: Map<string, IndexController>) => {

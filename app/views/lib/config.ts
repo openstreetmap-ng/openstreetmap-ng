@@ -1,7 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import { memoize } from "@lib/memoize"
 import { WebConfigSchema } from "@lib/proto/shared_pb"
+import { memoize } from "@std/cache/memoize"
 import {
     _API_URL,
     _ENV,

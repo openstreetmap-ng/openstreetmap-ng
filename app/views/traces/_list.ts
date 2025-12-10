@@ -1,5 +1,5 @@
-import { assert } from "@lib/assert"
 import { decodeLonLat } from "@lib/polyline"
+import { assertExists } from "@std/assert"
 import { renderAnimatedTrace, renderTrace } from "./_svg"
 
 for (const tracesList of document.querySelectorAll("ul.traces-list")) {
@@ -29,7 +29,7 @@ for (const tracesList of document.querySelectorAll("ul.traces-list")) {
 
         // On action leave, show static trace
         resultAction.addEventListener("mouseleave", () => {
-            assert(svgAnimated)
+            assertExists(svgAnimated)
             svgAnimated.parentElement!.replaceChild(svg, svgAnimated)
         })
     }

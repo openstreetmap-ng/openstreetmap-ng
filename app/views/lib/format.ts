@@ -1,5 +1,5 @@
 import { primaryLanguage } from "@lib/config"
-import { memoize } from "@lib/memoize"
+import { memoize } from "@std/cache/memoize"
 import i18next from "i18next"
 
 type LonLat = { lon: number; lat: number }
@@ -7,11 +7,13 @@ type LonLat = { lon: number; lat: number }
 export const dateTimeFormat = memoize(
     (...args: ConstructorParameters<typeof Intl.DateTimeFormat>) =>
         new Intl.DateTimeFormat(...args),
+    { getKey: (...args) => JSON.stringify(args) },
 )
 
 export const relativeTimeFormat = memoize(
     (...args: ConstructorParameters<typeof Intl.RelativeTimeFormat>) =>
         new Intl.RelativeTimeFormat(...args),
+    { getKey: (...args) => JSON.stringify(args) },
 )
 
 export const formatShortDate = (dateIso: string) =>

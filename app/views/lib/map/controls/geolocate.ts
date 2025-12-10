@@ -1,3 +1,4 @@
+import { MINUTE, SECOND } from "@std/datetime/constants"
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import { GeolocateControl, type Map as MaplibreMap } from "maplibre-gl"
@@ -6,8 +7,8 @@ export class CustomGeolocateControl extends GeolocateControl {
     public constructor() {
         super({
             positionOptions: {
-                maximumAge: 300_000, // 5 minutes
-                timeout: 30_000, // 30 seconds
+                maximumAge: 5 * MINUTE,
+                timeout: 30 * SECOND,
             },
             trackUserLocation: true,
         })

@@ -1,5 +1,4 @@
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
-import { assert } from "@lib/assert"
 import { isLatitude, isLongitude } from "@lib/coords"
 import { shareExportFormatStorage } from "@lib/local-storage"
 import { padLngLatBounds } from "@lib/map/bounds"
@@ -13,6 +12,8 @@ import {
     getMapShortlink,
 } from "@lib/map/state"
 import { qsParse } from "@lib/qs"
+import { assertExists } from "@std/assert"
+import { format as formatDate } from "@std/datetime/format"
 import i18next from "i18next"
 import { type Map as MaplibreMap, Marker } from "maplibre-gl"
 
@@ -55,7 +56,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                     })
                 marker.setLngLat(map.getCenter()).addTo(map)
             } else {
-                assert(marker)
+                assertExists(marker)
                 marker.remove()
             }
             updateSidebar()
@@ -70,7 +71,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                 console.debug("Initializing marker from search params", [mlon, mlat])
                 markerCheckbox.checked = true
                 markerCheckbox.dispatchEvent(new Event("change"))
-                assert(marker)
+                assertExists(marker)
                 marker.setLngLat([mlon, mlat])
             }
         } else if (searchParams.m !== undefined) {
@@ -79,7 +80,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
             console.debug("Initializing marker at the center", [lon, lat])
             markerCheckbox.checked = true
             markerCheckbox.dispatchEvent(new Event("change"))
-            assert(marker)
+            assertExists(marker)
             marker.setLngLat([lon, lat])
         }
 
@@ -94,7 +95,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                 // By default, location filter is slightly smaller than the current view
                 locationFilter.addTo(map, padLngLatBounds(map.getBounds(), -0.2))
             } else {
-                assert(locationFilter)
+                assertExists(locationFilter)
                 locationFilter.remove()
             }
         })
@@ -125,7 +126,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
                 const url = URL.createObjectURL(blob)
 
                 const now = new Date()
-                const date = `${now.toISOString().slice(0, 10)} ${now.toLocaleTimeString().replaceAll(":", "-")}`
+                const date = `${formatDate(now, "yyyy-MM-dd", { timeZone: "UTC" })} ${formatDate(now, "HH-mm-ss")}`
 
                 const a = document.createElement("a")
                 a.href = url

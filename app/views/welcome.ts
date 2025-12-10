@@ -2,6 +2,7 @@ import { isLatitude, isLongitude, isZoom } from "@lib/coords"
 import { encodeMapState, type MapState } from "@lib/map/state"
 import { mount } from "@lib/mount"
 import { qsEncode, qsParse } from "@lib/qs"
+import { HOUR, MINUTE, SECOND } from "@std/datetime/constants"
 
 mount("welcome-body", (body) => {
     const noteLink = body.querySelector("a.note-link")!
@@ -48,8 +49,8 @@ mount("welcome-body", (body) => {
                 window.location.href = startButton.href
             },
             {
-                maximumAge: 28800_000, // 8 hours
-                timeout: 10_000, // 10 seconds
+                maximumAge: 8 * HOUR,
+                timeout: 10 * SECOND,
             },
         )
     }
@@ -88,8 +89,8 @@ mount("welcome-body", (body) => {
                 onGeolocationSuccess,
                 onGeolocationFailure,
                 {
-                    maximumAge: 28800_000, // 8 hours
-                    timeout: 60_000, // 60 seconds
+                    maximumAge: 8 * HOUR,
+                    timeout: MINUTE,
                 },
             )
         }

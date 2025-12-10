@@ -1,8 +1,8 @@
 import { getActiveTheme, overlayOpacityStorage } from "@lib/local-storage"
-import { memoize } from "@lib/memoize"
 import { activeTheme } from "@lib/theme"
 import libertyStyle from "@lib/vector-styles/liberty.json"
 import { effect } from "@preact/signals-core"
+import { memoize } from "@std/cache/memoize"
 import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
 import {

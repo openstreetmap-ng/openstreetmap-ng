@@ -40,5 +40,5 @@ export const loadMapImage = (
         successCallback?.()
     }
     if (image.complete) addImage()
-    else image.addEventListener("load", () => addImage(), { once: true })
+    else image.addEventListener("load", addImage, { once: true })
 }

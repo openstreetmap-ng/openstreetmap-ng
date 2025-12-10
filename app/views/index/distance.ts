@@ -1,5 +1,4 @@
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
-import { assert } from "@lib/assert"
 import { formatDistance, isMetricUnit } from "@lib/format"
 import { padLngLatBounds } from "@lib/map/bounds"
 import { closestPointOnSegment } from "@lib/map/geometry"
@@ -18,8 +17,9 @@ import {
 } from "@lib/map/marker"
 import { decodeLonLat, encodeLonLat } from "@lib/polyline"
 import { qsParse } from "@lib/qs"
-import { throttle } from "@lib/throttle"
 import { range } from "@lib/utils"
+import { assertExists } from "@std/assert"
+import { throttle } from "@std/async/unstable-throttle"
 import type { Feature, LineString } from "geojson"
 import i18next from "i18next"
 import {
@@ -85,11 +85,15 @@ export const getDistanceController = (map: MaplibreMap) => {
             // On marker drag, update the state
             marker.on(
                 "drag",
-                throttle(() => {
-                    const currentIndex = markers.indexOf(marker)
-                    if (currentIndex === -1) return
-                    update([currentIndex])
-                }, 16),
+                throttle(
+                    () => {
+                        const currentIndex = markers.indexOf(marker)
+                        if (currentIndex === -1) return
+                        update([currentIndex])
+                    },
+                    16,
+                    { ensureLastCall: true },
+                ),
             )
             // On marker click, remove that marker
             marker.getElement().addEventListener(
@@ -135,11 +139,15 @@ export const getDistanceController = (map: MaplibreMap) => {
         throttledUpdateHistory()
     }
 
-    const throttledUpdateHistory = throttle(() => {
-        const url = new URL(window.location.href)
-        url.searchParams.set("line", encodeLonLat(positionsUrl, 5))
-        window.history.replaceState(null, "", url)
-    }, 250)
+    const throttledUpdateHistory = throttle(
+        () => {
+            const url = new URL(window.location.href)
+            url.searchParams.set("line", encodeLonLat(positionsUrl, 5))
+            window.history.replaceState(null, "", url)
+        },
+        250,
+        { ensureLastCall: true },
+    )
 
     // Updates GeoJSON line features between consecutive markers
     const updateLines = (dirtyIndices: number[]) => {
@@ -348,59 +356,65 @@ export const getDistanceController = (map: MaplibreMap) => {
     }
 
     // Handles ghost marker positioning near existing line segments
-    const updateGhostMarkerPosition = throttle((e: MapMouseEvent | MouseEvent) => {
-        if (!markers.length) return
-        if (showMarker) {
-            if (!ghostMarker)
-                ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
-            else if (ghostMarker.getElement().classList.contains("dragging")) return
-            ghostMarker.removeClassName("d-none")
-            showMarker = false
-        } else {
-            if (!ghostMarker) return
-            const classList = ghostMarker.getElement().classList
-            if (classList.contains("d-none") || classList.contains("dragging")) return
-        }
-
-        const { clientX, clientY } = e instanceof MapMouseEvent ? e.originalEvent : e
-        const mapRect = mapContainer.getBoundingClientRect()
-        const point = new Point(
-            clientX - mapRect.left,
-            clientY - mapRect.top + 20, // offset for marker height
-        )
-        const lngLat = map.unproject(point)
-
-        let minDistance = Number.POSITIVE_INFINITY
-        let minLngLat: LngLat | undefined
-        ghostMarkerIndex = -1
-        for (let i = 1; i < markers.length; i++) {
-            const closestLngLat = map.unproject(
-                closestPointOnSegment(
-                    point,
-                    map.project(markers[i - 1].getLngLat()),
-                    map.project(markers[i].getLngLat()),
-                ),
-            )
-            const distance = closestLngLat.distanceTo(lngLat)
-            if (distance < minDistance) {
-                minDistance = distance
-                minLngLat = closestLngLat
-                ghostMarkerIndex = i
+    const updateGhostMarkerPosition = throttle(
+        (e: MapMouseEvent | MouseEvent) => {
+            if (!markers.length) return
+            if (showMarker) {
+                if (!ghostMarker)
+                    ghostMarker = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
+                else if (ghostMarker.getElement().classList.contains("dragging")) return
+                ghostMarker.removeClassName("d-none")
+                showMarker = false
+            } else {
+                if (!ghostMarker) return
+                const classList = ghostMarker.getElement().classList
+                if (classList.contains("d-none") || classList.contains("dragging"))
+                    return
             }
-        }
-        if (ghostMarkerIndex > -1) ghostMarker.setLngLat(minLngLat!)
 
-        // Hide the marker if it's not hovered
-        const markerRect = ghostMarker.getElement().getBoundingClientRect()
-        if (
-            clientX < markerRect.left ||
-            clientX > markerRect.right ||
-            clientY < markerRect.top ||
-            clientY > markerRect.bottom
-        ) {
-            ghostMarker.addClassName("d-none")
-        }
-    }, 16)
+            const { clientX, clientY } =
+                e instanceof MapMouseEvent ? e.originalEvent : e
+            const mapRect = mapContainer.getBoundingClientRect()
+            const point = new Point(
+                clientX - mapRect.left,
+                clientY - mapRect.top + 20, // offset for marker height
+            )
+            const lngLat = map.unproject(point)
+
+            let minDistance = Number.POSITIVE_INFINITY
+            let minLngLat: LngLat | undefined
+            ghostMarkerIndex = -1
+            for (let i = 1; i < markers.length; i++) {
+                const closestLngLat = map.unproject(
+                    closestPointOnSegment(
+                        point,
+                        map.project(markers[i - 1].getLngLat()),
+                        map.project(markers[i].getLngLat()),
+                    ),
+                )
+                const distance = closestLngLat.distanceTo(lngLat)
+                if (distance < minDistance) {
+                    minDistance = distance
+                    minLngLat = closestLngLat
+                    ghostMarkerIndex = i
+                }
+            }
+            if (ghostMarkerIndex > -1) ghostMarker.setLngLat(minLngLat!)
+
+            // Hide the marker if it's not hovered
+            const markerRect = ghostMarker.getElement().getBoundingClientRect()
+            if (
+                clientX < markerRect.left ||
+                clientX > markerRect.right ||
+                clientY < markerRect.top ||
+                clientY > markerRect.bottom
+            ) {
+                ghostMarker.addClassName("d-none")
+            }
+        },
+        16,
+        { ensureLastCall: true },
+    )
 
     // Toggle ghost marker out of hidden state
     let showMarker = false
@@ -411,25 +425,29 @@ export const getDistanceController = (map: MaplibreMap) => {
     /** On ghost marker drag start, replace it with a real marker */
     const startGhostMarkerDrag = () => {
         console.debug("materializeGhostMarker")
-        assert(ghostMarker)
+        assertExists(ghostMarker)
         ghostMarker.removeClassName("d-none")
         ghostMarker.addClassName("dragging")
         // Add a real marker
         insertMarker(ghostMarkerIndex, ghostMarker.getLngLat())
     }
 
-    const onGhostMarkerDrag = throttle((e: Event) => {
-        if (!ghostMarker?.getElement().classList.contains("dragging")) return
-        const marker = markers[ghostMarkerIndex]
-        marker.setLngLat(ghostMarker.getLngLat())
-        marker.fire(e.type, e)
-    }, 16)
+    const onGhostMarkerDrag = throttle(
+        (e: Event) => {
+            if (!ghostMarker?.getElement().classList.contains("dragging")) return
+            const marker = markers[ghostMarkerIndex]
+            marker.setLngLat(ghostMarker.getLngLat())
+            marker.fire(e.type, e)
+        },
+        16,
+        { ensureLastCall: true },
+    )
 
     /** On ghost marker click, convert it into a real marker */
     const onGhostMarkerClick = (e: MouseEvent) => {
         e.stopPropagation()
         console.debug("onGhostMarkerClick")
-        assert(ghostMarker)
+        assertExists(ghostMarker)
         startGhostMarkerDrag()
         ghostMarker.removeClassName("dragging")
         ghostMarker.addClassName("d-none")

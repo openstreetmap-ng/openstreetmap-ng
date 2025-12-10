@@ -1,7 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
-import { assert } from "@lib/assert"
 import { loadMapImage, NOTE_STATUS_MARKERS, type NoteStatus } from "@lib/map/image.ts"
 import {
     type FocusLayerLayout,
@@ -13,6 +12,7 @@ import { configureReportButtonsLazy } from "@lib/report-modal"
 import { configureStandardForm } from "@lib/standard-form"
 import { configureStandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
+import { assertExists } from "@std/assert"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import type { IndexController } from "./router"
 
@@ -112,9 +112,9 @@ export const getNoteController = (map: MaplibreMap) => {
                 button.addEventListener("click", onSubmitClick)
 
             if (commentInput) {
-                assert(closeButton)
-                assert(commentCloseButton)
-                assert(commentButton)
+                assertExists(closeButton)
+                assertExists(commentCloseButton)
+                assertExists(commentButton)
                 const onCommentInput = () => {
                     const hasValue = commentInput.value.trim().length > 0
                     closeButton.classList.toggle("d-none", hasValue)

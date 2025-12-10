@@ -5,6 +5,7 @@ import { qsParse } from "@lib/qs"
 import { remoteEdit } from "@lib/remote-edit"
 import type { OSMObject } from "@lib/types"
 import { isHrefCurrentPage, NON_DIGIT_RE, wrapMessageEventValidator } from "@lib/utils"
+import { assert } from "@std/assert"
 import { Collapse, Dropdown, Tooltip } from "bootstrap"
 
 const MIN_EDIT_ZOOM = 13
@@ -89,7 +90,7 @@ editGroup.addEventListener("click", async (e) => {
             body: formData,
             priority: "high",
         })
-        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+        assert(resp.ok, `${resp.status} ${resp.statusText}`)
         console.debug("Changed default editor to", editor)
         editLink.dispatchEvent(new MouseEvent(e.type, e))
     } catch (error) {

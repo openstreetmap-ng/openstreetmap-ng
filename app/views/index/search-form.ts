@@ -1,7 +1,7 @@
 import { routerNavigateStrict } from "@index/router"
-import { assert } from "@lib/assert"
 import { beautifyZoom, zoomPrecision } from "@lib/coords"
 import { qsEncode } from "@lib/qs"
+import { assertExists } from "@std/assert"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
 const searchForm = document.querySelector("form.search-form")
@@ -9,8 +9,8 @@ const searchQueryInput = searchForm?.querySelector("input[name=q]")
 
 /** Configure the search form */
 export const configureSearchForm = (map: MaplibreMap) => {
-    assert(searchForm)
-    assert(searchQueryInput)
+    assertExists(searchForm)
+    assertExists(searchQueryInput)
 
     // On search form submit, capture and perform router navigation
     searchForm.addEventListener("submit", (e) => {
@@ -38,6 +38,6 @@ export const configureSearchForm = (map: MaplibreMap) => {
 
 /** Set search form to the given query */
 export const setSearchFormQuery = (query: string) => {
-    assert(searchQueryInput)
+    assertExists(searchQueryInput)
     searchQueryInput.value = query
 }

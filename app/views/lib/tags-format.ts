@@ -1,5 +1,5 @@
+import { memoize } from "@std/cache/memoize"
 import { primaryLanguage } from "./config"
-import { memoize } from "./memoize"
 import { getWikiData } from "./tags-format.macro" with { type: "macro" }
 
 const { localeSets, wikiPages: WIKI_PAGES } = getWikiData()
@@ -114,10 +114,11 @@ const formatEmail: FormatterFn = (_, text) =>
 
 const formatPhone: FormatterFn = (_, text) => {
     const span = createSpan(text)
-    import("libphonenumber-js/min").then(({ parsePhoneNumberFromString }) => {
+    ;(async () => {
+        const { parsePhoneNumberFromString } = await import("libphonenumber-js/min")
         const phone = parsePhoneNumberFromString(text)
         if (phone?.isValid()) span.replaceWith(createLink(text, phone.getURI()))
-    })
+    })()
     return span
 }
 

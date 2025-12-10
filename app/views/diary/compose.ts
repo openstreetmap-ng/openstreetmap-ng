@@ -1,4 +1,3 @@
-import { assert } from "@lib/assert"
 import { isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
 import { CustomGeolocateControl } from "@lib/map/controls/geolocate"
 import { addControlGroup } from "@lib/map/controls/group"
@@ -13,7 +12,8 @@ import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { getInitialMapState, type LonLatZoom } from "@lib/map/state"
 import { mount } from "@lib/mount"
 import { configureStandardForm } from "@lib/standard-form"
-import { throttle } from "@lib/throttle"
+import { assertExists } from "@std/assert"
+import { throttle } from "@std/async/unstable-throttle"
 import i18next from "i18next"
 import { type LngLat, type LngLatLike, Map as MaplibreMap, Marker } from "maplibre-gl"
 
@@ -41,7 +41,7 @@ mount("diary-compose-body", (body) => {
             marker.setLngLat(lngLat)
             return
         }
-        assert(map)
+        assertExists(map)
         marker = new Marker({
             anchor: MARKER_ICON_ANCHOR,
             element: getMarkerIconElement("red", true),
@@ -51,14 +51,18 @@ mount("diary-compose-body", (body) => {
             .addTo(map)
         marker.on(
             "drag",
-            throttle(() => {
-                if (marker) setInput(marker.getLngLat())
-            }, 100),
+            throttle(
+                () => {
+                    if (marker) setInput(marker.getLngLat())
+                },
+                100,
+                { ensureLastCall: true },
+            ),
         )
     }
 
     const setInput = (lngLat: LngLat) => {
-        assert(map)
+        assertExists(map)
         const precision = zoomPrecision(map.getZoom())
         const lngLatWrap = lngLat.wrap()
         lonInput.value = lngLatWrap.lng.toFixed(precision)
@@ -75,7 +79,7 @@ mount("diary-compose-body", (body) => {
     /** On coordinates input change, update the marker position */
     const onCoordinatesInputChange = () => {
         if (mapDiv.classList.contains("d-none")) return
-        assert(map)
+        assertExists(map)
 
         if (lonInput.value && latInput.value) {
             console.debug("onCoordinatesInputChange", lonInput.value, latInput.value)

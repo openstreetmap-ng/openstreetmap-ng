@@ -1,5 +1,5 @@
-import { assert } from "@lib/assert"
 import { configureStandardForm } from "@lib/standard-form"
+import { assertExists } from "@std/assert"
 import { Modal } from "bootstrap"
 
 type ReportType = "anonymous_note" | "user"
@@ -49,8 +49,8 @@ export const configureReportButton = (
 }
 
 const showReportModal = (data: ReportData) => {
-    assert(modalInstance)
-    assert(formElement)
+    assertExists(modalInstance)
+    assertExists(formElement)
     const typeInput = formElement.querySelector("input[name=type]")!
     const typeIdInput = formElement.querySelector("input[name=type_id]")!
     const actionInput = formElement.querySelector("input[name=action]")!

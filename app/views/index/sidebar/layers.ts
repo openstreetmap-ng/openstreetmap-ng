@@ -21,8 +21,8 @@ import {
     removeMapLayer,
 } from "@lib/map/layers/layers"
 import { getMapBaseLayerId } from "@lib/map/state"
-import { memoize } from "@lib/memoize"
-import { throttle } from "@lib/throttle"
+import { throttle } from "@std/async/unstable-throttle"
+import { memoize } from "@std/cache/memoize"
 import { Tooltip } from "bootstrap"
 import { type EaseToOptions, type JumpToOptions, Map as MaplibreMap } from "maplibre-gl"
 
@@ -307,11 +307,15 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
             range.value = (overlayOpacityStorage(layerId).get() * 100).toString()
             range.addEventListener(
                 "input",
-                throttle(() => {
-                    const opacity = Number.parseFloat(range.value) / 100
-                    map.setPaintProperty(layerId, "raster-opacity", opacity)
-                    overlayOpacityStorage(layerId).set(opacity)
-                }, 100),
+                throttle(
+                    () => {
+                        const opacity = Number.parseFloat(range.value) / 100
+                        map.setPaintProperty(layerId, "raster-opacity", opacity)
+                        overlayOpacityStorage(layerId).set(opacity)
+                    },
+                    100,
+                    { ensureLastCall: true },
+                ),
             )
         }
 

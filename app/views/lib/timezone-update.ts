@@ -2,13 +2,14 @@ import { config } from "@lib/config"
 import { getTimezoneName } from "@lib/format"
 import { timezoneUpdateTimeStorage } from "@lib/local-storage"
 import { requestIdleCallbackPolyfill } from "@lib/polyfills"
-import { getUnixTimestamp } from "@lib/utils"
+import { assert } from "@std/assert"
+import { DAY, SECOND } from "@std/datetime/constants"
 
-const UPDATE_DELAY = 24 * 3600 // 1 day
+const UPDATE_DELAY = 1 * DAY
 
 const timezoneUpdate = async () => {
     const last = timezoneUpdateTimeStorage.get()
-    const now = getUnixTimestamp()
+    const now = Date.now()
     if (last && last + UPDATE_DELAY > now) return
 
     timezoneUpdateTimeStorage.set(now)
@@ -24,7 +25,7 @@ const timezoneUpdate = async () => {
             body: formData,
             priority: "low",
         })
-        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+        assert(resp.ok, `${resp.status} ${resp.statusText}`)
         console.debug("Successfully updated user timezone")
     } catch (error) {
         console.warn("Failed to update user timezone", error)
@@ -33,5 +34,5 @@ const timezoneUpdate = async () => {
 
 if (config.userConfig)
     setTimeout(() => {
-        requestIdleCallbackPolyfill(timezoneUpdate, { timeout: 10_000 })
-    }, 10_000)
+        requestIdleCallbackPolyfill(timezoneUpdate, { timeout: 10 * SECOND })
+    }, 10 * SECOND)

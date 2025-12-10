@@ -4,9 +4,10 @@ import "@rapideditor/rapid"
 
 import { API_URL, primaryLanguage, RAPID_PATH } from "@lib/config"
 import { parentLoadSystemApp } from "@lib/system-app"
+import { assertExists } from "@std/assert"
 
 const container = document.querySelector("div.rapid-container")
-if (!container) throw new Error("Rapid container not found")
+assertExists(container, "Rapid container not found")
 
 parentLoadSystemApp(async (accessToken, parentOrigin) => {
     // @ts-expect-error

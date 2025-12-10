@@ -114,7 +114,7 @@ for (const container of multiInputContainers) {
     })
 
     // Commit remaining value on blur
-    input.addEventListener("blur", () => addTokenFromInput())
+    input.addEventListener("blur", addTokenFromInput)
 
     // On submit, convert tokens to hidden inputs
     form?.addEventListener(

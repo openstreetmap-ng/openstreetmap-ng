@@ -1,4 +1,5 @@
 import type { Bounds } from "@lib/types"
+import { clamp } from "@std/math/clamp"
 import { LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
 
 const MIN_BOUNDS_SIZE_PX = 20
@@ -80,9 +81,9 @@ export const padLngLatBounds = (bounds: LngLatBounds, padding?: number) => {
     const paddingY = padding * (maxLat - minLat)
     return new LngLatBounds([
         minLon - paddingX,
-        Math.max(minLat - paddingY, -85),
+        clamp(minLat - paddingY, -85, 85),
         maxLon + paddingX,
-        Math.min(maxLat + paddingY, 85),
+        clamp(maxLat + paddingY, -85, 85),
     ])
 }
 

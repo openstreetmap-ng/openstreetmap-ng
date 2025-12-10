@@ -4,17 +4,12 @@ export const isHrefCurrentPage = (href: string) => {
     return hrefPathname === locationPathname || `${hrefPathname}/` === locationPathname
 }
 
-export const getUnixTimestamp = () => (Date.now() / 1000) | 0
-
 /** Create a Python-like range [start, stop) */
 export const range = (start: number, stop: number, step = 1) => {
     const result: number[] = []
     for (let i = start; i < stop; i += step) result.push(i)
     return result
 }
-
-/** Modulo supporting negative numbers: mod(-1, 3) => 2 */
-export const mod = (n: number, m: number) => ((n % m) + m) % m
 
 /** Decodes a URL-encoded string, converting both %xx sequences and + characters to their original form */
 export const unquotePlus = (str: string) => decodeURIComponent(str.replaceAll("+", " "))

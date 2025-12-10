@@ -1,10 +1,10 @@
-import { assert } from "@lib/assert"
 import { mount } from "@lib/mount"
 import { type LoginResponse, LoginResponseSchema } from "@lib/proto/shared_pb"
 import { qsParse } from "@lib/qs"
 import { configureStandardForm } from "@lib/standard-form"
 import { NON_DIGIT_RE } from "@lib/utils"
 import { getPasskeyAssertion, startConditionalMediation } from "@lib/webauthn"
+import { assertExists } from "@std/assert"
 
 type LoginState = "credentials" | "passkey" | "totp" | "recovery" | "method-select"
 
@@ -46,7 +46,7 @@ if (loginForm) {
                 recoveryCodeInput.focus()
                 break
             case "method-select":
-                assert(loginResponse)
+                assertExists(loginResponse)
                 for (const option of loginForm.querySelectorAll(
                     "button[data-action^='method-']",
                 )) {
@@ -64,7 +64,7 @@ if (loginForm) {
     setLoginState("credentials")
 
     const tryTOTPSubmit = () => {
-        assert(loginResponse)
+        assertExists(loginResponse)
         const inputs = totpInputGroup.children as HTMLCollectionOf<HTMLInputElement>
         const code = Array.from(inputs, (input) => input.value).join("")
         if (code.length !== loginResponse.totp) return false
@@ -75,7 +75,7 @@ if (loginForm) {
     }
 
     const createTOTPInputs = () => {
-        assert(loginResponse)
+        assertExists(loginResponse)
         // Clear all except template
         while (totpInputGroup.children.length > 1) {
             totpInputGroup.lastElementChild!.remove()

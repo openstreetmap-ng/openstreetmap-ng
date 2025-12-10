@@ -1,5 +1,7 @@
 import { primaryLanguage } from "@lib/config"
 import { dateTimeFormat, relativeTimeFormat } from "@lib/format"
+import { DAY, HOUR, MINUTE, SECOND, WEEK } from "@std/datetime/constants"
+import { format } from "@std/datetime/format"
 
 const resolvedElements = new WeakSet<HTMLTimeElement>()
 
@@ -14,14 +16,7 @@ const utcStringToLocalString = (utcDateString: string | null) => {
     const utcDate = new Date(utcDateString)
     if (Number.isNaN(utcDate.getTime())) return ""
 
-    // Convert to local time and format for datetime-local input
-    const year = utcDate.getFullYear()
-    const month = String(utcDate.getMonth() + 1).padStart(2, "0")
-    const day = String(utcDate.getDate()).padStart(2, "0")
-    const hours = String(utcDate.getHours()).padStart(2, "0")
-    const minutes = String(utcDate.getMinutes()).padStart(2, "0")
-
-    return `${year}-${month}-${day}T${hours}:${minutes}`
+    return format(utcDate, "yyyy-MM-dd'T'HH:mm")
 }
 
 /**
@@ -152,22 +147,25 @@ const getDayDiff = (date: Date): number => {
     const now = new Date()
     const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
     const todayDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    return Math.round((dateDay.getTime() - todayDay.getTime()) / 86400000)
+    return Math.round((dateDay.getTime() - todayDay.getTime()) / DAY)
 }
 
 const TIME_UNITS = [
-    [31536000, "year"],
-    [2592000, "month"],
-    [604800, "week"],
-    [86400, "day"],
-    [3600, "hour"],
-    [60, "minute"],
+    [365 * DAY, "year"],
+    [30 * DAY, "month"],
+    [WEEK, "week"],
+    [DAY, "day"],
+    [HOUR, "hour"],
+    [MINUTE, "minute"],
 ] as const
 
 const getRelativeFormatValueUnit = (date: Date) => {
-    const diff = (date.getTime() - Date.now()) / 1000
-    const [secs, unit] = TIME_UNITS.find(([s]) => Math.abs(diff) >= s) ?? [1, "second"]
-    return [(diff / secs) | 0, unit] as const
+    const diff = date.getTime() - Date.now()
+    const [ms, unit] = TIME_UNITS.find(([ms]) => Math.abs(diff) >= ms) ?? [
+        SECOND,
+        "second",
+    ]
+    return [(diff / ms) | 0, unit] as const
 }
 
 // Initial update

@@ -24,11 +24,11 @@ import {
     removeMapLayer,
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import { memoize } from "@lib/memoize"
 import { PartialSearchParamsSchema } from "@lib/proto/shared_pb"
 import { qsEncode, qsParse } from "@lib/qs"
 import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMObject } from "@lib/types"
+import { memoize } from "@std/cache/memoize"
 import type { Feature } from "geojson"
 import i18next from "i18next"
 import { type GeoJSONSource, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"

@@ -12,7 +12,7 @@ import { qsEncode, qsParse } from "@lib/qs"
 import { shortLinkEncode } from "@lib/shortlink"
 import { timezoneBoundsMap } from "@lib/timezone-bbox"
 import type { Bounds } from "@lib/types"
-import { mod } from "@lib/utils"
+import { modulo } from "@std/math/modulo"
 import i18next from "i18next"
 import {
     type EaseToOptions,
@@ -139,7 +139,7 @@ export const setMapState = (
  */
 export const encodeMapState = (state: MapState) => {
     let { lon, lat, zoom, layersCode } = state
-    lon = mod(lon + 180, 360) - 180
+    lon = modulo(lon + 180, 360) - 180
     const zoomRounded = beautifyZoom(zoom)
     const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)
@@ -206,8 +206,7 @@ const convertBoundsToLonLatZoom = (
 
     // Calculate the fraction of the world that the longitude and latitude take up
     const latFraction = (latRad(maxLat) - latRad(minLat)) / Math.PI
-    const lonDiff = maxLon - minLon
-    const lonFraction = (lonDiff < 0 ? lonDiff + 360 : lonDiff) / 360
+    const lonFraction = modulo(maxLon - minLon, 360) / 360
 
     // Assume the map takes up the entire screen
     const mapHeight = window.innerHeight

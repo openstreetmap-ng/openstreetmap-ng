@@ -3,8 +3,8 @@ import {
     type TransmitUserPassword,
     TransmitUserPasswordSchema,
 } from "@lib/proto/shared_pb"
-import { pbkdf2Async } from "@noble/hashes/pbkdf2.js"
-import { sha512 } from "@noble/hashes/sha2.js"
+import { unreachable } from "@std/assert"
+import { roundTo } from "@std/math/round-to"
 
 type PasswordSchema = "v1" | "legacy"
 
@@ -107,21 +107,21 @@ const clientHashPassword = async (
         let timer = performance.now()
         const hashBytes = await pbkdf2_sha512(password, salt, 100_000)
         timer = performance.now() - timer
-        console.debug("pbkdf2_sha512 took", Math.round(timer * 10) / 10, "ms")
+        console.debug("pbkdf2_sha512 took", roundTo(timer, 1), "ms")
         transmitUserPassword.v1 = hashBytes
     } else if (passwordSchema === "legacy") {
         // no client-side hashing
         transmitUserPassword.legacy = password
     } else {
-        throw new Error(`Unsupported clientHash password schema: ${passwordSchema}`)
+        unreachable(`Unsupported clientHash password schema: ${passwordSchema}`)
     }
 }
 
 const pbkdf2_sha512 = async (password: string, salt: string, iterations: number) => {
+    const encoder = new TextEncoder()
     try {
-        const encoder = new TextEncoder()
         const passwordKey = await crypto.subtle.importKey(
-            "raw", //
+            "raw",
             encoder.encode(password),
             "PBKDF2",
             false,
@@ -142,8 +142,7 @@ const pbkdf2_sha512 = async (password: string, salt: string, iterations: number)
     } catch (error) {
         if (error.name !== "NotSupportedError") throw error
     }
-    console.warn(
-        "SubtleCrypto does not support PBKDF2 SHA-512, falling back to polyfill",
-    )
-    return await pbkdf2Async(sha512, password, salt, { c: iterations, dkLen: 64 })
+    console.warn("SubtleCrypto does not support PBKDF2 SHA-512, using polyfill")
+    const { pbkdf2Async, sha512 } = await import("@lib/polyfills-pbkdf2")
+    return pbkdf2Async(sha512, password, salt, { c: iterations, dkLen: 64 })
 }

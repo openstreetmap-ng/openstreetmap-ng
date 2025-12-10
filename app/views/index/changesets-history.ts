@@ -29,9 +29,12 @@ import {
     RenderChangesetsDataSchema,
 } from "@lib/proto/shared_pb"
 import { qsEncode, qsParse } from "@lib/qs"
-import { throttle } from "@lib/throttle"
 import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMChangeset } from "@lib/types"
+import { assert } from "@std/assert"
+import { delay } from "@std/async/delay"
+import { throttle } from "@std/async/unstable-throttle"
+import { SECOND } from "@std/datetime/constants"
 import type { GeoJsonProperties } from "geojson"
 import i18next, { t } from "i18next"
 import {
@@ -115,7 +118,7 @@ layersConfig.set(LAYER_ID, {
     priority: 121,
 })
 
-const FOCUS_HOVER_DELAY = 1000
+const FOCUS_HOVER_DELAY = 1 * SECOND
 const LOAD_MORE_SCROLL_BUFFER = 1000
 const RELOAD_PROPORTION_THRESHOLD = 0.9
 
@@ -146,12 +149,12 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     let visibleChangesetsBounds: LngLatBounds | null = null
     let hiddenBefore = 0
     let hiddenAfter = 0
-    let sidebarHoverTimer: ReturnType<typeof setTimeout> | undefined
+    let sidebarHoverAbort: AbortController | undefined
     let sidebarHoverId: string | null = null
     let shouldFitOnInitialLoad = false
 
     const cancelSidebarHoverFit = () => {
-        clearTimeout(sidebarHoverTimer)
+        sidebarHoverAbort?.abort()
         sidebarHoverId = null
     }
 
@@ -165,24 +168,31 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
         })
     }
 
-    const scheduleSidebarFit = (changesetId: string) => {
-        clearTimeout(sidebarHoverTimer)
+    const scheduleSidebarFit = async (changesetId: string) => {
+        sidebarHoverAbort?.abort()
+        sidebarHoverAbort = new AbortController()
         sidebarHoverId = changesetId
-        sidebarHoverTimer = setTimeout(() => {
-            if (
-                // Ensure the item is currently rendered in the map layers
-                !idFirstFeatureIdMap.has(changesetId) ||
-                changesetIsWithinView(changesetId) ||
-                !visibleChangesetsBounds
-            )
-                return
-            console.debug("Fitting map to visible changesets after sidebar hover")
-            map.fitBounds(
-                padLngLatBounds(visibleChangesetsBounds, 0.3),
-                { maxZoom: 16 },
-                { skipUpdateState: true },
-            )
-        }, FOCUS_HOVER_DELAY)
+
+        try {
+            await delay(FOCUS_HOVER_DELAY, { signal: sidebarHoverAbort.signal })
+        } catch {
+            return
+        }
+
+        if (
+            // Ensure the item is currently rendered in the map layers
+            !idFirstFeatureIdMap.has(changesetId) ||
+            changesetIsWithinView(changesetId) ||
+            !visibleChangesetsBounds
+        )
+            return
+
+        console.debug("Fitting map to visible changesets after sidebar hover")
+        map.fitBounds(
+            padLngLatBounds(visibleChangesetsBounds, 0.3),
+            { maxZoom: 16 },
+            { skipUpdateState: true },
+        )
     }
 
     const resetChangesets = () => {
@@ -269,7 +279,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
         }
     }
 
-    const throttledUpdateLayersVisibility = throttle(updateLayersVisibility, 50)
+    const throttledUpdateLayersVisibility = throttle(updateLayersVisibility, 50, {
+        ensureLastCall: true,
+    })
 
     /** Calculate opacity based on distance using FADE_SPEED */
     const distanceOpacity = (distance: number) => Math.max(1 - distance * FADE_SPEED, 0)
@@ -521,8 +533,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     })
 
     let hoveredFeature: MapGeoJSONFeature | null = null
-    let scrollDelayTimer: ReturnType<typeof setTimeout> | undefined
-    map.on("mousemove", LAYER_IDFill, (e) => {
+    let scrollDelayAbort: AbortController | undefined
+    map.on("mousemove", LAYER_IDFill, async (e) => {
         // Find feature with the smallest bounds area
         const feature = e.features!.reduce((a, b) =>
             a.properties.boundsArea <= b.properties.boundsArea ? a : b,
@@ -534,19 +546,24 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
             setMapHover(map, LAYER_ID)
         }
 
-        clearTimeout(scrollDelayTimer)
+        scrollDelayAbort?.abort()
+        scrollDelayAbort = new AbortController()
         hoveredFeature = feature
         setHover(hoveredFeature.properties, true)
 
-        // Set delayed scroll timer
-        scrollDelayTimer = setTimeout(() => {
-            setHover(hoveredFeature!.properties, true, true)
-        }, FOCUS_HOVER_DELAY)
+        // Set delayed scroll
+        try {
+            await delay(FOCUS_HOVER_DELAY, { signal: scrollDelayAbort.signal })
+        } catch {
+            return
+        }
+
+        setHover(hoveredFeature!.properties, true, true)
     })
 
     const onMapMouseLeave = () => {
         if (!hoveredFeature) return
-        clearTimeout(scrollDelayTimer)
+        scrollDelayAbort?.abort()
         setHover(hoveredFeature.properties, false)
         hoveredFeature = null
         clearMapHover(map, LAYER_ID)
@@ -656,7 +673,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
                 signal: signal,
                 priority: "high",
             })
-            if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+            assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
             const buffer = await resp.arrayBuffer()
             const newChangesets = fromBinary(

@@ -1,6 +1,9 @@
-import { toHex } from "@lib/hex"
-import { sha1 } from "@noble/hashes/legacy.js"
 import { effect, signal } from "@preact/signals-core"
+import { assert } from "@std/assert"
+import { delay } from "@std/async/delay"
+import { LruCache } from "@std/cache/lru-cache"
+import { encodeHex } from "@std/encoding/hex"
+import { clamp } from "@std/math/clamp"
 import i18next from "i18next"
 
 type StrengthLevelKey = "weak" | "fair" | "good" | "strong" | "perfect"
@@ -47,7 +50,7 @@ const STRENGTH_LENGTH_WEIGHT = 0.5
 const STRENGTH_COMPLEXITY_WEIGHT = 0.45
 const STRENGTH_DIVERSITY_WEIGHT = 0.05
 const PWNED_PASSWORD_CHECK_DELAY = 750
-const pwnedPasswordCache = new Map<string, boolean>()
+const pwnedPasswordCache = new LruCache<string, boolean>(100)
 
 let hintIdCounter = 0
 
@@ -83,19 +86,17 @@ const evaluateStrength = (
     const complexityNormalized = (categoryNormalized + poolNormalized) / 2
 
     const uniqueRatio = length ? new Set(password).size / length : 0
-    const uniqueNormalized = Math.max(0, Math.min(1, (uniqueRatio - 0.5) / 0.5))
+    const uniqueNormalized = clamp((uniqueRatio - 0.5) / 0.5, 0, 1)
 
     const score = isCompromised
         ? 5
         : Math.round(
-              Math.max(
+              clamp(
+                  lengthNormalized * STRENGTH_LENGTH_WEIGHT +
+                      complexityNormalized * STRENGTH_COMPLEXITY_WEIGHT +
+                      uniqueNormalized * STRENGTH_DIVERSITY_WEIGHT,
                   0,
-                  Math.min(
-                      1,
-                      lengthNormalized * STRENGTH_LENGTH_WEIGHT +
-                          complexityNormalized * STRENGTH_COMPLEXITY_WEIGHT +
-                          uniqueNormalized * STRENGTH_DIVERSITY_WEIGHT,
-                  ),
+                  1,
               ) * 100,
           )
 
@@ -294,9 +295,9 @@ for (const input of inputs) {
         }
     }
 
-    let scheduledCheck: number | undefined
-    const requestPwnedCheck = (immediate: boolean) => {
-        window.clearTimeout(scheduledCheck)
+    let scheduledCheckAbort: AbortController | undefined
+    const requestPwnedCheck = async (immediate: boolean) => {
+        scheduledCheckAbort?.abort()
 
         const password = input.value
         if (!password || immediate) {
@@ -304,9 +305,15 @@ for (const input of inputs) {
             return
         }
 
-        scheduledCheck = window.setTimeout(() => {
-            passwordToCheck.value = password
-        }, PWNED_PASSWORD_CHECK_DELAY)
+        scheduledCheckAbort = new AbortController()
+        try {
+            await delay(PWNED_PASSWORD_CHECK_DELAY, {
+                signal: scheduledCheckAbort.signal,
+            })
+        } catch {
+            return
+        }
+        passwordToCheck.value = password
     }
 
     update()
@@ -316,10 +323,11 @@ for (const input of inputs) {
         requestPwnedCheck(false)
     })
     input.addEventListener("blur", () => requestPwnedCheck(true))
-    input.form?.addEventListener("reset", () => {
-        window.clearTimeout(scheduledCheck)
+    input.form?.addEventListener("reset", async () => {
+        scheduledCheckAbort?.abort()
         passwordToCheck.value = ""
-        window.setTimeout(update)
+        await delay(0)
+        update()
     })
     input.after(container)
 
@@ -358,8 +366,7 @@ const lookupPwnedPassword = async (password: string, abortSignal: AbortSignal) =
         headers: { "Add-Padding": "true" },
         referrerPolicy: "no-referrer",
     })
-    if (!response.ok)
-        throw new Error(`Failed to check password safety (${response.status})`)
+    assert(response.ok, `Failed to check password safety (${response.status})`)
 
     const body = await response.text()
     const isPwned = body.split("\n").some((line) => {
@@ -370,14 +377,7 @@ const lookupPwnedPassword = async (password: string, abortSignal: AbortSignal) =
 }
 
 const sha1_hex = async (value: string) => {
-    const data = new TextEncoder().encode(value)
-    let bytes: Uint8Array
-    try {
-        bytes = new Uint8Array(await crypto.subtle.digest("SHA-1", data))
-    } catch (error) {
-        if (error.name !== "NotSupportedError") throw error
-        console.warn("SubtleCrypto does not support SHA-1, falling back to polyfill")
-        bytes = sha1(data)
-    }
-    return toHex(bytes).toUpperCase()
+    const encoder = new TextEncoder()
+    const bytes = await crypto.subtle.digest("SHA-1", encoder.encode(value))
+    return encodeHex(bytes).toUpperCase()
 }

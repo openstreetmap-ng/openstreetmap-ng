@@ -1,6 +1,7 @@
-import { throttle } from "@lib/throttle"
 import type { Bounds } from "@lib/types"
-import { mod } from "@lib/utils"
+import { throttle } from "@std/async/unstable-throttle"
+import { clamp } from "@std/math/clamp"
+import { modulo } from "@std/math/modulo"
 import type { Feature, Polygon } from "geojson"
 import {
     type GeoJSONSource,
@@ -56,7 +57,7 @@ export class LocationFilterControl implements IControl {
             .addTo(map)
         this._grabber.on(
             "drag",
-            throttle(() => this._processMarkerUpdate(-1), 16),
+            throttle(() => this._processMarkerUpdate(-1), 16, { ensureLastCall: true }),
         )
         this._corners = []
         for (const [i, x, y] of [
@@ -74,7 +75,9 @@ export class LocationFilterControl implements IControl {
                 .addTo(map)
             corner.on(
                 "drag",
-                throttle(() => this._processMarkerUpdate(i), 16),
+                throttle(() => this._processMarkerUpdate(i), 16, {
+                    ensureLastCall: true,
+                }),
             )
             this._corners.push(corner)
         }
@@ -141,10 +144,8 @@ export class LocationFilterControl implements IControl {
             console.warn("Invalid marker index", i)
             return
         }
-        if (minLat < -85) minLat = -85
-        else if (minLat > 85) minLat = 85
-        if (maxLat < -85) maxLat = -85
-        else if (maxLat > 85) maxLat = 85
+        minLat = clamp(minLat, -85, 85)
+        maxLat = clamp(maxLat, -85, 85)
         this._bounds = [minLon, minLat, maxLon, maxLat]
         this._render(i)
     }
@@ -200,8 +201,8 @@ const getMaskData = ([minLon, minLat, maxLon, maxLat]: Bounds): Feature<Polygon>
     // Normalize bounds
     if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
     if (minLat > maxLat) [minLat, maxLat] = [maxLat, minLat]
-    if (minLon < -180 || minLon > 180) minLon = mod(minLon + 180, 360) - 180
-    if (maxLon < -180 || maxLon > 180) maxLon = mod(maxLon + 180, 360) - 180
+    if (minLon < -180 || minLon > 180) minLon = modulo(minLon + 180, 360) - 180
+    if (maxLon < -180 || maxLon > 180) maxLon = modulo(maxLon + 180, 360) - 180
 
     const crossesAntimeridian = minLon > maxLon
     if (!crossesAntimeridian) {

@@ -1,3 +1,5 @@
+import { SECOND } from "@std/datetime/constants"
+
 // Enable JSON.stringify for BigInt
 // @ts-expect-error - extending built-in prototype
 BigInt.prototype.toJSON = function () {
@@ -21,6 +23,18 @@ export const requestIdleCallbackPolyfill: (
 
 export const cancelIdleCallbackPolyfill: (handle: number) => void =
     window.cancelIdleCallback || ((handle) => window.clearTimeout(handle))
+
+/** Wrap a low-priority function to execute during idle time */
+export const wrapIdleCallbackStatic = <T extends (...args: never[]) => void>(
+    fn: T,
+    timeout = 5 * SECOND,
+) => {
+    let idleCallbackId: number | undefined
+    return ((...args) => {
+        if (idleCallbackId !== undefined) cancelIdleCallbackPolyfill(idleCallbackId)
+        idleCallbackId = requestIdleCallbackPolyfill(() => fn(...args), { timeout })
+    }) as T
+}
 
 export const getDeviceThemePreference = () =>
     window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"

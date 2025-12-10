@@ -1,10 +1,13 @@
+import { roundTo } from "@std/math/round-to"
+
 export const isLongitude = (lon: number) => lon >= -180 && lon <= 180
 
 export const isLatitude = (lat: number) => lat >= -90 && lat <= 90
 
 export const isZoom = (zoom: number) => zoom >= 0 && zoom <= 25
 
-export const beautifyZoom = (zoom: number) => (((zoom * 100) | 0) / 100).toString()
+export const beautifyZoom = (zoom: number) =>
+    roundTo(zoom, 2, { strategy: "trunc" }).toString()
 
 /** Coordinate precision (decimal places) for a given zoom level */
 export const zoomPrecision = (zoom: number) =>

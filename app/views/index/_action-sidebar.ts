@@ -1,5 +1,5 @@
 import { routerNavigateStrict } from "@index/router"
-import { assert } from "@lib/assert"
+import { assertExists } from "@std/assert"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { collapseNavbar } from "../navbar/navbar"
 
@@ -16,7 +16,7 @@ export const getActionSidebar = (className: string) => {
 /** Switch the action sidebar with the given class name */
 export const switchActionSidebar = (map: MaplibreMap, actionSidebar: HTMLElement) => {
     console.debug("switchActionSidebar", actionSidebar.classList)
-    assert(sidebarContainer)
+    assertExists(sidebarContainer)
 
     // Toggle all action sidebars
     for (const sidebar of actionSidebars) {

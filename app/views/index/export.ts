@@ -1,11 +1,11 @@
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
-import { assert } from "@lib/assert"
 import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { zoomPrecision } from "@lib/coords"
 import { padLngLatBounds } from "@lib/map/bounds"
 import { LocationFilterControl } from "@lib/map/controls/location-filter"
-import { throttle } from "@lib/throttle"
 import { setPageTitle } from "@lib/title"
+import { assertExists } from "@std/assert"
+import { throttle } from "@std/async/unstable-throttle"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
 export const getExportController = (map: MaplibreMap) => {
@@ -35,12 +35,14 @@ export const getExportController = (map: MaplibreMap) => {
         if (customRegionCheckbox.checked) {
             if (!locationFilter) {
                 locationFilter = new LocationFilterControl()
-                locationFilter.addOnRenderHandler(throttle(() => updateState(), 250))
+                locationFilter.addOnRenderHandler(
+                    throttle(updateState, 250, { ensureLastCall: true }),
+                )
             }
             // By default, location filter is slightly smaller than the current view
             locationFilter.addTo(map, padLngLatBounds(map.getBounds(), -0.2))
         } else {
-            assert(locationFilter)
+            assertExists(locationFilter)
             locationFilter.remove()
         }
         updateState()

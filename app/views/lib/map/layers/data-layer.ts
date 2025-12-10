@@ -5,6 +5,7 @@ import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { RenderElementsDataSchema } from "@lib/proto/shared_pb"
 import { qsEncode } from "@lib/qs"
 import type { OSMNode, OSMWay } from "@lib/types"
+import { fail } from "@std/assert"
 import type {
     GeoJSONSource,
     LngLatBounds,
@@ -86,7 +87,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
     )!
 
     let enabled = false
-    let abortController: AbortController | null = null
+    let abortController: AbortController | undefined
     let fetchedBounds: LngLatBounds | null = null
     let loadDataOverride = false
 
@@ -216,7 +217,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
                     clearData()
                     return
                 }
-                throw new Error(`${resp.status} ${resp.statusText}`)
+                fail(`${resp.status} ${resp.statusText}`)
             }
 
             const buffer = await resp.arrayBuffer()
@@ -247,7 +248,6 @@ export const configureDataLayer = (map: MaplibreMap) => {
             errorDataAlert.classList.add("d-none")
             loadDataAlert.classList.add("d-none")
             abortController?.abort()
-            abortController = null
             toggleLayerSpinner(LAYER_ID, false)
             clearData()
         }

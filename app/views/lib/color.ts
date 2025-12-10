@@ -1,4 +1,4 @@
-import { memoize } from "@lib/memoize"
+import { memoize } from "@std/cache/memoize"
 
 export const darkenColor = memoize((hex: string, amount: number) => {
     const hexCode = hex.replace("#", "")

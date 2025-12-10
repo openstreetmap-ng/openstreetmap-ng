@@ -8,7 +8,7 @@ import {
 } from "@lib/password-hash"
 import { Alert } from "bootstrap"
 import i18next from "i18next"
-import { assert } from "@lib/assert";
+import { assert, assertExists, assertFalse, unreachable } from "@std/assert"
 
 export interface APIDetail {
     type: "success" | "info" | "error"
@@ -205,7 +205,7 @@ export const configureStandardForm = <T = any>(
                 "handleFormFeedback",
                 "onInvalidated",
             )
-            assert(feedbackAlert)
+            assertExists(feedbackAlert)
             feedbackAlert.dispose()
             feedbackAlert = null
             feedback.remove()
@@ -317,7 +317,7 @@ export const configureStandardForm = <T = any>(
             }
             url = `${formAction}?${params}`
         } else {
-            throw new Error(`Unsupported standard form method ${method}`)
+            unreachable(`Unsupported standard form method ${method}`)
         }
 
         // Stage 4: Run client-side validation
@@ -348,9 +348,10 @@ export const configureStandardForm = <T = any>(
             if (resp.ok) console.debug("Form submitted successfully")
 
             const contentType = resp.headers.get("Content-Type") ?? ""
-            if (resp.ok && contentType && Boolean(options?.protobuf) !== (contentType === "application/x-protobuf")) {
-                throw new Error(`Mismatched response content type: ${contentType}`)
-            }
+            assertFalse(
+                resp.ok && contentType && Boolean(options?.protobuf) !== (contentType === "application/x-protobuf"),
+                `Mismatched response content type: ${contentType}`,
+            )
 
             let data : any = null
             if (contentType.startsWith("application/json")) {

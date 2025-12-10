@@ -1,9 +1,8 @@
 import { isLatitude, isLongitude, isZoom } from "@lib/coords"
 import type { LayerId } from "@lib/map/layers/layers"
 import type { MapState } from "@lib/map/state"
-import { memoize } from "@lib/memoize"
 import { getDeviceThemePreference } from "@lib/polyfills"
-import { getUnixTimestamp } from "@lib/utils"
+import { memoize } from "@std/cache/memoize"
 import type { AppTheme } from "./theme"
 
 type StorageConfig<T> = {
@@ -79,8 +78,7 @@ export const mapStateStorage = createStorage<MapState>("mapState", {
 
 const bannerStorage = createScopedStorage<number>("bannerHidden")
 export const isBannerHidden = (name: string) => bannerStorage(name).get() !== null
-export const markBannerHidden = (name: string) =>
-    bannerStorage(name).set(getUnixTimestamp())
+export const markBannerHidden = (name: string) => bannerStorage(name).set(Date.now())
 
 export const routingEngineStorage = createStorage<string>("routingEngine")
 

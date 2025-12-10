@@ -1,3 +1,6 @@
+import { delay } from "@std/async/delay"
+import { SECOND } from "@std/datetime/constants"
+
 export const configureCopyGroups = (root: ParentNode) => {
     const elements = root.querySelectorAll(".copy-group")
     console.debug("Initializing", elements.length, "copy groups")
@@ -5,7 +8,7 @@ export const configureCopyGroups = (root: ParentNode) => {
     for (const element of elements) {
         let button: HTMLElement
         let input: HTMLInputElement | null
-        let timeout: ReturnType<typeof setTimeout> | undefined
+        let feedbackAbort: AbortController | undefined
 
         if (element.tagName === "BUTTON") {
             button = element as HTMLButtonElement
@@ -43,11 +46,15 @@ export const configureCopyGroups = (root: ParentNode) => {
             icon.classList.remove("bi-copy")
             icon.classList.add("bi-check2")
 
-            clearTimeout(timeout)
-            timeout = setTimeout(() => {
-                icon.classList.remove("bi-check2")
-                icon.classList.add("bi-copy")
-            }, 1500)
+            feedbackAbort?.abort()
+            feedbackAbort = new AbortController()
+            try {
+                await delay(1.5 * SECOND, { signal: feedbackAbort.signal })
+            } catch {
+                return
+            }
+            icon.classList.remove("bi-check2")
+            icon.classList.add("bi-copy")
         })
     }
 }

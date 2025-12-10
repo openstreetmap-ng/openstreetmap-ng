@@ -1,5 +1,5 @@
-import { assert } from "@lib/assert"
 import type { OSMObject } from "@lib/types"
+import { assertExists } from "@std/assert"
 import type { Geometry } from "geojson"
 import {
     type GeoJSONSource,
@@ -134,7 +134,7 @@ export const focusObjects = (
             const geometryBounds = getGeometryBounds(feature.geometry)
             bounds = bounds ? bounds.extend(geometryBounds) : geometryBounds
         }
-        assert(bounds)
+        assertExists(bounds)
         const boundsPadded = padLngLatBounds(bounds, options?.padBounds ?? 0.2)
         const mapBounds = map.getBounds()
 

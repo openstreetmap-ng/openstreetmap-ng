@@ -1,6 +1,7 @@
 import { API_URL } from "@lib/config"
 import { systemAppAccessTokenStorage } from "@lib/local-storage"
 import { wrapMessageEventValidator } from "@lib/utils"
+import { assert } from "@std/assert"
 
 /** Load system app access token and call successCallback with it */
 const loadSystemApp = async (
@@ -21,7 +22,7 @@ const loadSystemApp = async (
             headers: { authorization: `Bearer ${accessToken}` },
             priority: "high",
         })
-        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+        assert(resp.ok, `${resp.status} ${resp.statusText}`)
         console.debug("Using cached system app access token")
         successCallback(accessToken)
     } catch {
@@ -45,7 +46,7 @@ const createAccessToken = async (
             body: formData,
             priority: "high",
         })
-        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+        assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
         const data = await resp.json()
         const accessToken = data.access_token

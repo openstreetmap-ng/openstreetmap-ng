@@ -1,10 +1,10 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import { assert } from "@lib/assert"
 import { resolveDatetimeLazy } from "@lib/datetime-inputs"
 import { mount } from "@lib/mount"
 import { MessageReadSchema } from "@lib/proto/shared_pb"
 import { configureReportButton } from "@lib/report-modal"
 import { configureStandardForm } from "@lib/standard-form"
+import { assert, assertExists } from "@std/assert"
 import { t } from "i18next"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
@@ -26,7 +26,7 @@ mount("messages-index-body", (body) => {
     const recipientTemplate = body.querySelector("template.message-recipient-template")!
     const reportButton = messagePreview.querySelector("button.report-btn")
 
-    let abortController: AbortController | null = null
+    let abortController: AbortController | undefined
     let openTarget: HTMLElement | null = null
     let openMessageId: string | null = null
 
@@ -76,7 +76,7 @@ mount("messages-index-body", (body) => {
                 signal: abortController.signal,
                 priority: "high",
             })
-            if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+            assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
             const buffer = await resp.arrayBuffer()
             const message = fromBinary(MessageReadSchema, new Uint8Array(buffer))
@@ -141,12 +141,11 @@ mount("messages-index-body", (body) => {
 
     const closeMessagePreview = () => {
         if (!openTarget) return
-        assert(openMessageId)
+        assertExists(openMessageId)
 
         console.debug("closeMessagePreview", openMessageId)
         messagePreviewContainer.classList.add("d-none")
         abortController?.abort()
-        abortController = null
         openTarget.classList.remove("active")
         openTarget = null
         openMessageId = null

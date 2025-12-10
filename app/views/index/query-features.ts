@@ -14,11 +14,11 @@ import {
     removeMapLayer,
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import { memoize } from "@lib/memoize"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { PartialQueryFeaturesParamsSchema } from "@lib/proto/shared_pb"
 import { qsEncode, qsParse } from "@lib/qs"
 import { setPageTitle } from "@lib/title"
+import { memoize } from "@std/cache/memoize"
 import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
 import { type GeoJSONSource, LngLat, type Map as MaplibreMap } from "maplibre-gl"
@@ -67,7 +67,7 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
         .getContainer()
         .querySelector(".maplibregl-ctrl.query-features button")!
 
-    let abortController: AbortController | null = null
+    let abortController: AbortController | undefined
 
     const getURLQueryPosition = () => {
         const searchParams = qsParse(window.location.search)
@@ -203,7 +203,6 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
                 queryFeaturesButton.click()
             }
             abortController?.abort()
-            abortController = null
             focusObjects(map)
         },
     }

@@ -2,6 +2,7 @@ import { mount } from "@lib/mount"
 import { configureScrollspy } from "@lib/scrollspy"
 import { configureStandardForm } from "@lib/standard-form"
 import { configureStandardPagination } from "@lib/standard-pagination"
+import { delay } from "@std/async/delay"
 import { Offcanvas } from "bootstrap"
 
 // Details page: always expanded; comments live under #comments
@@ -53,12 +54,11 @@ mount("diary-index-body", (body) => {
         // Expand smoothly, then remove the button to avoid layout jitter
         readMore.addEventListener(
             "click",
-            () => {
+            async () => {
                 article.classList.add("show")
                 readMore.classList.add("invisible")
-                setTimeout(() => {
-                    readMore.remove()
-                }, 50)
+                await delay(50)
+                readMore.remove()
             },
             { once: true },
         )

@@ -1,10 +1,12 @@
 import { mount } from "@lib/mount"
 import { configureStandardForm } from "@lib/standard-form"
+import { assert } from "@std/assert"
+import { SECOND } from "@std/datetime/constants"
 
 mount("admin-tasks-body", (body) => {
     const updateStatus = async () => {
         const resp = await fetch("/api/web/admin/tasks/status")
-        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+        assert(resp.ok, `${resp.status} ${resp.statusText}`)
         const data: Array<{ id: string; running: boolean }> = await resp.json()
         const infoMap = new Map(data.map((item) => [item.id, item]))
         console.debug("Updating tasks status", data)
@@ -31,6 +33,6 @@ mount("admin-tasks-body", (body) => {
         }
 
         updateStatus()
-        setInterval(updateStatus, 20_000)
+        setInterval(updateStatus, 20 * SECOND)
     }
 })
