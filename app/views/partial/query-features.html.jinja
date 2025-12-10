@@ -2,13 +2,11 @@
     {% for result in results %}
     {% set element = result.element %}
     {% set _type, _id = split_typed_element_id(element.typed_id) %}
-    {% set icon = result.icon %}
     <li class="social-entry clickable">
         <p class="header text-muted d-flex justify-content-between">
             <span>
-                {% if icon is not none %}
-                <img class="icon" src="/static/img/element/{{ icon.filename }}" title="{{ icon.title }}">
-                {% endif %}
+                <img class="icon d-none" data-feature-icon data-tags="{{ element.tags | tojson }}"
+                    data-type="{{ _type }}">
                 {{ result.prefix }}
             </span>
             <a class="stretched-link" href="/{{ _type }}/{{ _id }}">

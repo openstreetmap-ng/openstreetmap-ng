@@ -4,7 +4,6 @@ from shapely.geometry.base import BaseGeometry
 
 from app.config import QUERY_FEATURES_RESULTS_LIMIT
 from app.lib.elements_filter import ElementsFilter
-from app.lib.feature_icon import FeatureIcon, features_icons
 from app.lib.feature_name import features_names
 from app.lib.feature_prefix import features_prefixes
 from app.models.db.element import ElementInit
@@ -14,7 +13,6 @@ from app.models.element import TypedElementId
 
 class QueryFeatureResult(NamedTuple):
     element: ElementInit
-    icon: FeatureIcon | None
     prefix: str
     display_name: str | None
     geometry: BaseGeometry
@@ -56,14 +54,12 @@ class QueryFeatures:
         return [
             QueryFeatureResult(
                 element=element,
-                icon=icon,
                 prefix=prefix,
                 display_name=name,
                 geometry=spatial_map[element['typed_id']]['geom'],
             )
-            for element, icon, name, prefix in zip(
+            for element, name, prefix in zip(
                 elements,
-                features_icons(elements),
                 features_names(elements),
                 features_prefixes(elements),
                 strict=True,

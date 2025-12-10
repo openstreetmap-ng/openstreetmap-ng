@@ -3,6 +3,7 @@ import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
 import { prefersReducedMotion } from "@lib/config"
 import { isLatitude, isLongitude, isZoom } from "@lib/coords"
+import { populateFeatureIcons } from "@lib/feature-icons"
 import { QUERY_FEATURES_MIN_ZOOM } from "@lib/map/controls/query-features"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
@@ -144,6 +145,7 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
     /** On sidebar loaded, display content */
     const onSidebarLoaded = (html: string) => {
         nearbyContainer.innerHTML = html
+        populateFeatureIcons(nearbyContainer)
         configureResultActions(nearbyContainer)
     }
 

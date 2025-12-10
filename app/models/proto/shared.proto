@@ -222,12 +222,6 @@ message RoutingResult {
 // UI Element Metadata
 // =============================================
 
-// Icon with tooltip for map elements
-message ElementIcon {
-    string icon = 1;  // Icon URL
-    string title = 2;  // Accessible tooltip text
-}
-
 // Encoded user activity heatmap data
 message UserActivityChart {
     string start_date = 1;  // ISO date (YYYY-MM-DD) of the first cell (UTC)
@@ -247,7 +241,7 @@ message PartialChangesetParams {
         uint64 version = 2;  // Object version
         bool visible = 3;  // Whether element is visible
         optional string name = 4;  // Localized display name
-        optional ElementIcon icon = 5;  // Associated icon visualization
+        map<string, string> tags = 5;  // Element tags for client-side icon computation
     }
 
     uint64 id = 1;  // Changeset ID
@@ -271,7 +265,7 @@ message PartialElementParams {
         uint64 id = 2;  // OSM ID
         optional string role = 3;  // Relation member role
         optional string name = 4;  // Localized display name
-        optional ElementIcon icon = 5;  // Associated visualization
+        map<string, string> tags = 5;  // Element tags for client-side icon computation
     }
 
     ElementType type = 1;  // Primary element type

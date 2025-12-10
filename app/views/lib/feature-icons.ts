@@ -80,3 +80,20 @@ export const getFeatureIcons = <
     elements: (T | null)[],
 ): (FeatureIcon | null)[] =>
     elements.map((e) => (e ? getFeatureIcon(e.tags, e.type) : null))
+
+/**
+ * Populate feature icons in a container from data attributes.
+ * Finds all img[data-feature-icon] elements and sets their src/title.
+ */
+export const populateFeatureIcons = (container: Element): void => {
+    for (const img of container.querySelectorAll("img[data-feature-icon]")) {
+        const tags = JSON.parse(img.dataset.tags!)
+        const type = img.dataset.type as ElementType
+        const icon = getFeatureIcon(tags, type)
+        if (icon) {
+            img.src = `/static/img/element/${icon.filename}`
+            img.title = icon.title
+            img.classList.remove("d-none")
+        }
+    }
+}

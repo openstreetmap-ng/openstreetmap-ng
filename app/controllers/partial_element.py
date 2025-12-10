@@ -8,7 +8,6 @@ from starlette import status
 from app.config import ELEMENT_HISTORY_PAGE_SIZE
 from app.format import FormatRender
 from app.format.element_list import FormatElementList
-from app.lib.feature_icon import features_icons
 from app.lib.feature_name import features_names
 from app.lib.render_response import render_response
 from app.lib.rich_text import process_rich_text_plain
@@ -173,7 +172,6 @@ async def get_element_data(
 
     prev_version = version - 1 if version > 1 else None
     next_version = version + 1 if not element['latest'] else None
-    icon = features_icons([element])[0]
     name = features_names([element])[0]
     render_data = FormatRender.encode_elements(full_data, detailed=True)
 
@@ -190,7 +188,6 @@ async def get_element_data(
         'changeset': changeset,
         'prev_version': prev_version,
         'next_version': next_version,
-        'icon': icon,
         'name': name,
         'tags': element['tags'],
         'comment_html': comment_html,

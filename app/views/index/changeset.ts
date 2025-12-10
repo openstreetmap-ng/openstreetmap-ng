@@ -1,6 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
+import { type ElementType, getFeatureIcon } from "@lib/feature-icons"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer.ts"
 import {
@@ -17,8 +18,6 @@ import type { Bounds, OSMChangeset } from "@lib/types"
 import i18next from "i18next"
 import type { MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
 import type { IndexController } from "./router"
-
-type ElementType = "node" | "way" | "relation"
 
 const focusPaint: FocusLayerPaint = {
     "fill-opacity": 0,
@@ -213,9 +212,10 @@ const renderElementType = (
             const linkLatest = entryFragment.querySelector("a.link-latest")!
             const linkVersion = entryFragment.querySelector("a.link-version")!
 
-            if (element.icon) {
-                iconImg.src = `/static/img/element/${element.icon.icon}`
-                iconImg.title = element.icon.title
+            const icon = getFeatureIcon(element.tags, type)
+            if (icon) {
+                iconImg.src = `/static/img/element/${icon.filename}`
+                iconImg.title = icon.title
             } else {
                 iconImg.remove()
             }

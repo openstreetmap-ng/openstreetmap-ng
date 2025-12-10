@@ -2,6 +2,7 @@ import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
 import type { IndexController } from "@index/router"
+import { type ElementType, getFeatureIcon } from "@lib/feature-icons"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import {
@@ -68,6 +69,18 @@ export const getElementController = (map: MaplibreMap): IndexController => {
 
 export const initializeElementContent = (map: MaplibreMap, container: HTMLElement) => {
     console.debug("initializeElementContent")
+
+    // Populate feature icons from data attributes
+    for (const img of container.querySelectorAll("img[data-feature-icon]")) {
+        const tags = JSON.parse(img.dataset.tags!)
+        const type = img.dataset.type as ElementType
+        const icon = getFeatureIcon(tags, type)
+        if (icon) {
+            img.src = `/static/img/element/${icon.filename}`
+            img.title = icon.title
+            img.classList.remove("d-none")
+        }
+    }
 
     // Enhance tags table
     configureTagsFormat(container.querySelector<HTMLElement>("div.tags"))
@@ -173,9 +186,11 @@ const renderElementsComponent = (
             const iconImg = entryFragment.querySelector("img")!
             const content = entryFragment.querySelector("td:last-child")!
 
-            if (element.icon) {
-                iconImg.src = `/static/img/element/${element.icon.icon}`
-                iconImg.title = element.icon.title
+            const elementType = PartialElementParams_ElementType[type] as ElementType
+            const icon = getFeatureIcon(element.tags, elementType)
+            if (icon) {
+                iconImg.src = `/static/img/element/${icon.filename}`
+                iconImg.title = icon.title
             } else {
                 iconImg.remove()
             }

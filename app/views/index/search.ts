@@ -3,6 +3,7 @@ import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
 import { setSearchFormQuery } from "@index/search-form"
 import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
+import { populateFeatureIcons } from "@lib/feature-icons"
 import { getMapAlert } from "@lib/map/alert"
 import {
     getLngLatBoundsIntersection,
@@ -168,6 +169,7 @@ export const getSearchController = (map: MaplibreMap) => {
     }
 
     const base = getBaseFetchController(map, "search", (sidebarContent) => {
+        populateFeatureIcons(sidebarContent)
         const sidebar = sidebarContent.closest(".sidebar")!
         const searchList = sidebarContent.querySelector("ul.search-list")!
         results = searchList.querySelectorAll("li.social-entry.clickable")

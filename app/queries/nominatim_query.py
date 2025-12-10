@@ -14,7 +14,6 @@ from app.config import (
     NOMINATIM_URL,
 )
 from app.lib.crypto import hash_storage_key
-from app.lib.feature_icon import features_icons
 from app.lib.feature_prefix import features_prefixes
 from app.lib.search import SearchResult
 from app.lib.translation import primary_translation_locale
@@ -186,10 +185,9 @@ async def _get_search_result(
     elements = [type_id_map.get(typed_id) for typed_id in typed_ids]
     result: list[SearchResult] = []
 
-    for entry, element, icon, prefix in zip(
+    for entry, element, prefix in zip(
         entries,
         elements,
-        features_icons(elements),
         features_prefixes(elements),
         strict=True,
     ):
@@ -215,7 +213,6 @@ async def _get_search_result(
                 element=element,
                 rank=entry['place_rank'],
                 importance=entry['importance'],
-                icon=icon,
                 prefix=prefix,
                 display_name=entry['display_name'],
                 point=Point(lon, lat),

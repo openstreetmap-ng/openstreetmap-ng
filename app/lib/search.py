@@ -10,7 +10,6 @@ from app.config import (
     SEARCH_LOCAL_MAX_ITERATIONS,
     SEARCH_LOCAL_RATIO,
 )
-from app.lib.feature_icon import FeatureIcon
 from app.lib.geo_utils import parse_bbox
 from app.models.db.element import Element
 from app.models.element import TypedElementId
@@ -27,7 +26,6 @@ class SearchResult:
     element: Element
     rank: int  # for determining global vs local relevance
     importance: float  # for sorting results
-    icon: FeatureIcon | None
     prefix: str
     display_name: str
     point: Point
