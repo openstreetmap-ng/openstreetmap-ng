@@ -1,5 +1,5 @@
 const roots = document.querySelectorAll<HTMLElement>(".auth-switcher")
-console.debug("Initializing", roots.length, "auth switchers")
+console.debug("AuthSwitcher: Initializing", roots.length)
 
 for (const root of roots) {
     const cta = root.nextElementSibling

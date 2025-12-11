@@ -74,6 +74,6 @@ if (iframe) {
     configureIFrameSystemApp("SystemApp.id", iframe, iframeOrigin)
 
     // Initialize iframe
-    console.debug("Initializing iD iframe", src)
+    console.debug("IDEditor: Initializing iframe", src)
     iframe.src = src
 }

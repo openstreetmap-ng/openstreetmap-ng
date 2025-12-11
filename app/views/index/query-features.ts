@@ -115,7 +115,7 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
         nearbyContainer.innerHTML = nearbyLoadingHtml
 
         const radiusMeters = 10 * 1.5 ** (19 - zoom)
-        console.debug("Query features radius", radiusMeters, "meters")
+        console.debug("QueryFeatures: Radius", radiusMeters, "meters")
         source.setData(getCircleFeature(center, radiusMeters))
 
         // Fade out circle smoothly
@@ -184,7 +184,7 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
                 onSidebarLoaded(await resp.text())
             } catch (error) {
                 if (error.name === "AbortError") return
-                console.error("Failed to fetch query features", error)
+                console.error("QueryFeatures: Failed to fetch", error)
                 onSidebarLoaded(
                     i18next.t("javascripts.query.error", {
                         server: window.location.host,
@@ -199,7 +199,7 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
                 !newPath?.startsWith("/query") &&
                 queryFeaturesButton.classList.contains("active")
             ) {
-                console.debug("Deactivating query features button")
+                console.debug("QueryFeatures: Deactivating button")
                 queryFeaturesButton.click()
             }
             abortController?.abort()

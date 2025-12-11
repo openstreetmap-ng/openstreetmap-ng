@@ -8,7 +8,7 @@ const loadSystemApp = async (
     clientId: string,
     successCallback: (token: string) => void,
 ) => {
-    console.debug("loadSystemApp", clientId)
+    console.debug("SystemApp: Loading", clientId)
 
     const accessToken = systemAppAccessTokenStorage(clientId).get()
     if (!accessToken) {
@@ -23,10 +23,10 @@ const loadSystemApp = async (
             priority: "high",
         })
         assert(resp.ok, `${resp.status} ${resp.statusText}`)
-        console.debug("Using cached system app access token")
+        console.debug("SystemApp: Using cached token")
         successCallback(accessToken)
     } catch {
-        console.debug("Cached system app access token is invalid")
+        console.debug("SystemApp: Cached token invalid")
         createAccessToken(clientId, successCallback)
     }
 }
@@ -35,7 +35,7 @@ const createAccessToken = async (
     clientId: string,
     successCallback: (token: string) => void,
 ) => {
-    console.debug("Creating system app access token")
+    console.debug("SystemApp: Creating token")
 
     const formData = new FormData()
     formData.append("client_id", clientId)
@@ -53,7 +53,7 @@ const createAccessToken = async (
         systemAppAccessTokenStorage(clientId).set(accessToken)
         successCallback(accessToken)
     } catch (error) {
-        console.error("Failed to create system app access token", error)
+        console.error("SystemApp: Failed to create token", error)
         alert(error.message)
     }
 }
@@ -64,7 +64,7 @@ export const configureIFrameSystemApp = (
     iframe: HTMLIFrameElement,
     iframeOrigin: string,
 ) => {
-    console.debug("configureIFrameSystemApp", clientId, iframeOrigin)
+    console.debug("SystemApp: Configuring iframe", { clientId, iframeOrigin })
 
     /** Handle load system app requests, obtain token and respond back */
     const onWindowMessage = wrapMessageEventValidator(
@@ -72,9 +72,9 @@ export const configureIFrameSystemApp = (
             if (data.type !== "loadSystemApp") return
             // Respond only once
             window.removeEventListener("message", onWindowMessage)
-            console.debug("Received loadSystemApp request from", origin)
+            console.debug("SystemApp: Request received from", origin)
             loadSystemApp(clientId, (accessToken) => {
-                console.debug("Responding to loadSystemApp request to", iframeOrigin)
+                console.debug("SystemApp: Responding to", iframeOrigin)
                 iframe.contentWindow!.postMessage(
                     { type: "loadedSystemApp", accessToken },
                     iframeOrigin,
@@ -89,7 +89,7 @@ export const configureIFrameSystemApp = (
 export const parentLoadSystemApp = (
     successCallback: (token: string, parentOrigin: string) => void,
 ) => {
-    console.debug("parentLoadSystemApp")
+    console.debug("SystemApp: Parent load request")
 
     /** Handle load system app response, call successCallback with access token */
     const onWindowMessage = wrapMessageEventValidator(
@@ -97,7 +97,7 @@ export const parentLoadSystemApp = (
             if (data.type !== "loadedSystemApp") return
             // Respond only once
             window.removeEventListener("message", onWindowMessage)
-            console.debug("Received loadSystemApp response from", origin)
+            console.debug("SystemApp: Response received from", origin)
             successCallback(data.accessToken, origin)
         },
         false,

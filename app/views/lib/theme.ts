@@ -18,6 +18,6 @@ export const refreshActiveTheme = () => {
 
 // Listen for system color scheme changes
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    console.debug("Handling system color scheme change")
+    console.debug("Theme: System preference changed")
     refreshActiveTheme()
 })

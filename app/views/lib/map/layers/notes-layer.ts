@@ -102,7 +102,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
         } catch {
             return
         }
-        console.debug("Showing popup for note", feature.properties.id, "at", lngLat)
+        console.debug("NotesLayer: Showing popup", feature.properties.id)
         hoverPopup.setText(feature.properties.text).setLngLat(lngLat).addTo(map)
     })
     map.on("mouseleave", LAYER_ID, () => {
@@ -156,10 +156,10 @@ export const configureNotesLayer = (map: MaplibreMap) => {
             const notes = convertRenderNotesData(render)
             source.setData(renderObjects(notes))
             fetchedBounds = fetchBounds
-            console.debug("Notes layer showing", notes.length, "notes")
+            console.debug("NotesLayer: Loaded", notes.length, "notes")
         } catch (error) {
             if (error.name === "AbortError") return
-            console.error("Failed to fetch notes", error)
+            console.error("NotesLayer: Failed to fetch", error)
             source.setData(emptyFeatureCollection)
         } finally {
             toggleLayerSpinner(LAYER_ID, false)
@@ -167,7 +167,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     }
     map.on("moveend", updateLayer)
     map.on("reloadnoteslayer", () => {
-        console.debug("Reloading notes layer")
+        console.debug("NotesLayer: Reloading")
         fetchedBounds = null
         updateLayer()
     })

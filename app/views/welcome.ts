@@ -58,7 +58,7 @@ mount("welcome-body", (body) => {
 
     /** On geolocation success, redirect to /edit with the returned coordinates */
     const onGeolocationSuccess = (position: GeolocationPosition) => {
-        console.debug("onGeolocationSuccess", position)
+        console.debug("Welcome: Geolocation success", position)
         const lon = position.coords.longitude
         const lat = position.coords.latitude
         const zoom = 17
@@ -75,7 +75,7 @@ mount("welcome-body", (body) => {
 
     /** On geolocation failure, remove event listener */
     const onGeolocationFailure = () => {
-        console.debug("onGeolocationFailure")
+        console.debug("Welcome: Geolocation failure")
         startButton.removeEventListener("click", onStartButtonClick)
     }
 
@@ -83,7 +83,7 @@ mount("welcome-body", (body) => {
     const checkGeolocationPermission = async () => {
         const result = await navigator.permissions?.query({ name: "geolocation" })
         if (!result) return
-        console.debug("permissions.geolocation", result.state)
+        console.debug("Welcome: Geolocation permission", result.state)
         if (result.state === "granted") {
             navigator.geolocation.getCurrentPosition(
                 onGeolocationSuccess,

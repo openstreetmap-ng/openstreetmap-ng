@@ -68,7 +68,10 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
             const mlon = Number.parseFloat(searchParams.mlon)
             const mlat = Number.parseFloat(searchParams.mlat)
             if (isLongitude(mlon) && isLatitude(mlat)) {
-                console.debug("Initializing marker from search params", [mlon, mlat])
+                console.debug("ShareSidebar: Initializing marker from search params", [
+                    mlon,
+                    mlat,
+                ])
                 markerCheckbox.checked = true
                 markerCheckbox.dispatchEvent(new Event("change"))
                 assertExists(marker)
@@ -77,7 +80,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
         } else if (searchParams.m !== undefined) {
             // Marker at the center
             const { lon, lat } = getInitialMapState(map)
-            console.debug("Initializing marker at the center", [lon, lat])
+            console.debug("ShareSidebar: Initializing marker at center", [lon, lat])
             markerCheckbox.checked = true
             markerCheckbox.dispatchEvent(new Event("change"))
             assertExists(marker)

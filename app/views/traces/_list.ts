@@ -7,7 +7,7 @@ for (const tracesList of document.querySelectorAll("ul.traces-list")) {
     const svgs: NodeListOf<SVGElement> = tracesList.querySelectorAll("svg")
     const resultActions = tracesList.querySelectorAll(".social-entry.clickable")
 
-    console.debug("Rendering", svgs.length, "trace SVGs")
+    console.debug("TraceList: Rendering trace SVGs", svgs.length)
     for (let i = 0; i < svgs.length; i++) {
         const svg = svgs[i]
         const coords = decodeLonLat(tracesLines[i], 0)
@@ -21,7 +21,6 @@ for (const tracesList of document.querySelectorAll("ul.traces-list")) {
             if (!svgAnimated) {
                 svgAnimated = svg.cloneNode(true) as SVGElement
                 svgAnimated.innerHTML = ""
-                console.debug("Rendering animated trace SVG at", i)
                 renderAnimatedTrace(svgAnimated, coords)
             }
             svg.parentElement!.replaceChild(svgAnimated, svg)

@@ -151,11 +151,10 @@ export const focusObjects = (
                   )
         ) {
             console.debug(
-                "Fitting map to",
+                "FocusLayer: Fitting bounds (offscreen)",
                 objects.length,
-                "focus objects with zoom",
+                "objects, zoom",
                 fitMaxZoom,
-                "(offscreen)",
             )
             map.fitBounds(boundsPadded, { maxZoom: fitMaxZoom, animate: false })
         } else if ((options?.proportionCheck ?? true) && fitMaxZoom > currentZoom) {
@@ -164,11 +163,10 @@ export const focusObjects = (
             const proportion = boundsSize / mapBoundsSize
             if (proportion > 0 && proportion < 0.00035) {
                 console.debug(
-                    "Fitting map to",
+                    "FocusLayer: Fitting bounds (small)",
                     objects.length,
-                    "focus objects with zoom",
+                    "objects, zoom",
                     fitMaxZoom,
-                    "(small)",
                 )
                 map.fitBounds(boundsPadded, { maxZoom: fitMaxZoom, animate: false })
             }
@@ -207,6 +205,6 @@ const getGeometryBounds = (g: Geometry) => {
         }
         return bounds
     }
-    console.warn("Unsupported geometry type", g.type, "by getGeometryBounds")
+    console.warn("FocusLayer: Unsupported geometry type", g.type)
     return new LngLatBounds()
 }

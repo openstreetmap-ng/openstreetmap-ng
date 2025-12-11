@@ -61,7 +61,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                 const layerId = container.dataset.layerId as LayerId
                 const layerConfig = layersConfig.get(layerId)
                 if (!layerConfig) {
-                    console.error("Minimap layer", layerId, "not found")
+                    console.error("LayersSidebar: Minimap layer not found", layerId)
                     continue
                 }
 
@@ -70,7 +70,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                 // On mobile devices, show thumbnail instead of initializing MapLibre
                 // Avoids "Too many active WebGL context even after destroyed"
                 if (container.dataset.thumbnail && isMobile()) {
-                    console.debug("Showing layer thumbnail", layerId)
+                    console.debug("LayersSidebar: Showing thumbnail", layerId)
                     const img = document.createElement("img")
                     img.src = container.dataset.thumbnail
                     img.loading = "lazy"
@@ -78,7 +78,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                     continue
                 }
 
-                console.debug("Initializing minimap layer", layerId)
+                console.debug("LayersSidebar: Initializing minimap", layerId)
                 const minimap = new MaplibreMap({
                     container: minimapContainer,
                     attributionControl: false,
@@ -191,7 +191,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                         // Restore the overlay state if it was checked before
                         if (checkbox.dataset.wasChecked) {
                             console.debug(
-                                "Restoring checked state for overlay",
+                                "LayersSidebar: Restoring overlay state",
                                 layerId,
                             )
                             checkbox.dataset.wasChecked = undefined
@@ -213,7 +213,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
 
                     // Force uncheck the overlay when it becomes unavailable
                     if (checkbox.checked) {
-                        console.debug("Forcing unchecked state for overlay", layerId)
+                        console.debug("LayersSidebar: Forcing unchecked state", layerId)
                         checkbox.dataset.wasChecked = "true"
                         checkbox.checked = false
                         checkbox.dispatchEvent(new Event("change"))
@@ -243,7 +243,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
             // Initialize checkbox state from local storage
             const enabled = globeProjectionStorage.get()
             if (enabled !== null && globeProjectionCheckbox.checked !== enabled) {
-                console.debug("Setting globe projection checkbox to", enabled)
+                console.debug("LayersSidebar: Setting globe projection", enabled)
                 globeProjectionCheckbox.checked = enabled
                 globeProjectionCheckbox.dispatchEvent(new Event("change"))
             }
@@ -284,9 +284,8 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
             // Skip updates if the layer is already in the correct state
             if (checked === hasMapLayer(map, layerId)) {
                 console.debug(
-                    "Overlay layer",
+                    "LayersSidebar: Overlay already set",
                     layerId,
-                    "is already",
                     checked ? "added" : "removed",
                 )
                 return

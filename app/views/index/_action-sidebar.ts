@@ -15,7 +15,7 @@ export const getActionSidebar = (className: string) => {
 
 /** Switch the action sidebar with the given class name */
 export const switchActionSidebar = (map: MaplibreMap, actionSidebar: HTMLElement) => {
-    console.debug("switchActionSidebar", actionSidebar.classList)
+    console.debug("ActionSidebar: Switching", actionSidebar.classList)
     assertExists(sidebarContainer)
 
     // Toggle all action sidebars
@@ -36,7 +36,7 @@ export const switchActionSidebar = (map: MaplibreMap, actionSidebar: HTMLElement
 
 /** On sidebar close button click, navigate to index */
 const onCloseButtonClick = () => {
-    console.debug("configureActionSidebar", "onCloseButtonClick")
+    console.debug("ActionSidebar: Close clicked")
     routerNavigateStrict("/")
 }
 

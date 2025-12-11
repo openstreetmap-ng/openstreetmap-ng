@@ -44,7 +44,7 @@ export const formatWeekdayName = (
 
 export const getTimezoneName = memoize(() => {
     const result = dateTimeFormat().resolvedOptions().timeZone
-    console.debug("Current timezone name", result)
+    console.debug("Format: Timezone", result)
     return result
 })
 
@@ -63,14 +63,10 @@ export const isMetricUnit = memoize(() => {
     const language = navigator.language
     const timezoneName = getTimezoneName()
     const result = !(isImperialLanguage(language) && isImperialRegion(timezoneName))
-    console.debug(
-        "Using",
-        result ? "metric" : "imperial",
-        "units for",
+    console.debug("Format: Unit system", result ? "metric" : "imperial", {
         language,
-        "in",
         timezoneName,
-    )
+    })
     return result
 })
 

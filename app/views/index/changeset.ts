@@ -118,7 +118,7 @@ const renderElements = (
     elementsSection: HTMLElement,
     elements: Record<ElementType, PartialChangesetParams_Element[]>,
 ) => {
-    console.debug("renderElements")
+    console.debug("Changeset: Rendering elements")
 
     const groupTemplate = elementsSection.querySelector("template.group")!
     const entryTemplate = elementsSection.querySelector("template.entry")!
@@ -155,7 +155,7 @@ const renderElementType = (
     type: ElementType,
     elements: PartialChangesetParams_Element[],
 ) => {
-    console.debug("renderElementType", type, elements)
+    console.debug("Changeset: Rendering element type", type, elements.length)
 
     const groupFragment = groupTemplate.content.cloneNode(true) as DocumentFragment
     const titleElement = groupFragment.querySelector(".title")!

@@ -52,7 +52,7 @@ export const exportMapImage = async (
         mapBounds.contains(markerLngLat) &&
         (!filterBounds || filterBounds.contains(markerLngLat))
     ) {
-        console.debug("Rendering marker onto the map")
+        console.debug("ExportImage: Rendering marker")
         const source = map.getSource<GeoJSONSource>(LAYER_ID)!
         await new Promise<void>((resolve) => {
             loadMapImage(map, "marker-blue", () => {
@@ -82,10 +82,9 @@ export const exportMapImage = async (
 
     const sourceCanvas = map.getCanvas()
     console.debug(
-        "Exporting map image",
+        "ExportImage: Exporting",
         [sourceCanvas.width, sourceCanvas.height],
         mimeType,
-        IMAGE_QUALITY,
     )
     let exportCanvas = document.createElement("canvas")
     exportCanvas.width = sourceCanvas.width
@@ -94,7 +93,7 @@ export const exportMapImage = async (
     ctx.drawImage(sourceCanvas, 0, 0)
 
     if (filterBounds) {
-        console.debug("Filtering map bounds", mapBounds, "with", filterBounds)
+        console.debug("ExportImage: Filtering bounds", { mapBounds, filterBounds })
         const { top, left, bottom, right } = getImageTrim(
             map,
             exportCanvas.width,

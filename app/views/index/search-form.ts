@@ -14,7 +14,7 @@ export const configureSearchForm = (map: MaplibreMap) => {
 
     // On search form submit, capture and perform router navigation
     searchForm.addEventListener("submit", (e) => {
-        console.debug("onSearchFormSubmit")
+        console.debug("SearchForm: Submitted")
         e.preventDefault()
         const query = searchQueryInput.value
         if (query) routerNavigateStrict(`/search${qsEncode({ q: query })}`)
@@ -22,7 +22,7 @@ export const configureSearchForm = (map: MaplibreMap) => {
 
     const whereIsThisButton = searchForm.querySelector("button.where-is-this")!
     whereIsThisButton.addEventListener("click", () => {
-        console.debug("onWhereIsThisButtonClick")
+        console.debug("SearchForm: Where is this clicked")
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
         const lngLat = map.getCenter()

@@ -14,7 +14,7 @@ const timezoneUpdate = async () => {
 
     timezoneUpdateTimeStorage.set(now)
     const timezone = getTimezoneName()
-    console.debug("Updating user timezone", timezone)
+    console.debug("TimezoneUpdate: Updating to", timezone)
 
     const formData = new FormData()
     formData.append("timezone", timezone)
@@ -26,9 +26,9 @@ const timezoneUpdate = async () => {
             priority: "low",
         })
         assert(resp.ok, `${resp.status} ${resp.statusText}`)
-        console.debug("Successfully updated user timezone")
+        console.debug("TimezoneUpdate: Success")
     } catch (error) {
-        console.warn("Failed to update user timezone", error)
+        console.warn("TimezoneUpdate: Failed", error)
     }
 }
 

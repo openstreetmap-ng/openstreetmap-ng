@@ -126,7 +126,7 @@ export const getSearchController = (map: MaplibreMap) => {
 
     /** On search alert click, reload the search with the new area */
     const onSearchAlertClick = () => {
-        console.debug("Searching within new area")
+        console.debug("Search: New area clicked")
         controller.unload()
         if (whereIsThisMode) {
             const center = map.getCenter()
@@ -146,7 +146,7 @@ export const getSearchController = (map: MaplibreMap) => {
     const onMapZoomOrMoveEnd = () => {
         if (!initialBounds) {
             initialBounds = map.getBounds()
-            console.debug("Search initial bounds set to", initialBounds)
+            console.debug("Search: Initial bounds set", initialBounds)
             return
         }
 
@@ -207,7 +207,7 @@ export const getSearchController = (map: MaplibreMap) => {
         }
         source.setData({ type: "FeatureCollection", features })
         addMapLayer(map, LAYER_ID)
-        console.debug("Search layer showing", results.length, "results")
+        console.debug("Search: Loaded", results.length, "results")
 
         /** Set the hover state of the search features */
         setHover = (id: number, hover: boolean) => {
@@ -254,7 +254,7 @@ export const getSearchController = (map: MaplibreMap) => {
                 ),
                 0.05,
             )
-            console.debug("Search focusing on", boundsPadded)
+            console.debug("Search: Focusing on", boundsPadded)
             map.fitBounds(boundsPadded)
         }
 

@@ -5,7 +5,7 @@ mount("notes-body", (body) => {
     const noteStatusFilter = body.querySelector("select#noteStatusFilter")!
     noteStatusFilter.addEventListener("change", () => {
         const status = noteStatusFilter.value
-        console.debug("onNoteStatusFilterChange", status)
+        console.debug("NotesIndex: Status filter changed", status)
         window.location.href = status ? `?status=${noteStatusFilter.value}` : "?"
     })
 

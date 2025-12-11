@@ -55,7 +55,7 @@ export const getMapLayersCode = (map: MaplibreMap) => {
 }
 
 const setMapLayersCode = (map: MaplibreMap, layersCode?: string) => {
-    console.debug("setMapLayersCode", layersCode)
+    console.debug("MapState: Setting layers", layersCode)
     const addLayerCodes = new Set<LayerCode>()
     let hasBaseLayer = false
 
@@ -66,9 +66,8 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string) => {
         if (layersConfig.get(layerId)!.isBaseLayer) {
             if (hasBaseLayer) {
                 console.error(
-                    "Invalid layers code",
+                    "MapState: Invalid layers code (multiple base layers)",
                     layersCode,
-                    "(too many base layers)",
                 )
                 return
             }
@@ -86,7 +85,6 @@ const setMapLayersCode = (map: MaplibreMap, layersCode?: string) => {
         if (!layerId) continue
         const layerCode = layersConfig.get(layerId)!.layerCode
         if (layerCode === undefined || addLayerCodes.has(layerCode)) {
-            console.debug("Keeping layer", layerId)
             if (layerCode !== undefined) missingLayerCodes.delete(layerCode)
             continue
         }
@@ -105,7 +103,7 @@ export const getMapBaseLayerId = (map: MaplibreMap) => {
         const layerId = resolveExtendedLayerId(extendedLayerId)
         const layerConfig = layersConfig.get(layerId)
         if (layerConfig?.isBaseLayer) {
-            if (baseLayerId) console.warn("Multiple base layers found")
+            if (baseLayerId) console.warn("MapState: Multiple base layers found")
             baseLayerId = layerId
         }
     }
@@ -124,7 +122,7 @@ export const setMapState = (
     state: MapState,
     options?: EaseToOptions,
 ) => {
-    console.debug("setMapState", state)
+    console.debug("MapState: Setting", state)
     const { lon, lat, zoom, layersCode } = state
     map.panTo([lon, lat], { ...(options ?? {}), zoom })
     setMapLayersCode(map, layersCode)
@@ -226,7 +224,7 @@ export const getInitialMapState = (map?: MaplibreMap) => {
 
     // 1. Use the position from the hash state
     if (hashState) {
-        console.debug("Initial map state from hash", hashState)
+        console.debug("MapState: Initial from hash", hashState)
         return hashState
     }
 
@@ -240,7 +238,7 @@ export const getInitialMapState = (map?: MaplibreMap) => {
         if (bbox.length === 4) {
             const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, bbox as Bounds)
             const state = { lon, lat, zoom, layersCode: lastState?.layersCode }
-            console.debug("Initial map state from bbox query", state)
+            console.debug("MapState: Initial from bbox query", state)
             return state
         }
     }
@@ -269,7 +267,7 @@ export const getInitialMapState = (map?: MaplibreMap) => {
                 maxLat,
             ])
             const state = { lon, lat, zoom, layersCode: lastState?.layersCode }
-            console.debug("Initial map state from bounds query", state)
+            console.debug("MapState: Initial from bounds query", state)
             return state
         }
     }
@@ -286,7 +284,7 @@ export const getInitialMapState = (map?: MaplibreMap) => {
                 zoom,
                 layersCode: lastState?.layersCode,
             }
-            console.debug("Initial map state from marker query", state)
+            console.debug("MapState: Initial from marker", state)
             return state
         }
     }
@@ -298,14 +296,14 @@ export const getInitialMapState = (map?: MaplibreMap) => {
         const zoom = searchParams.zoom ? Number.parseFloat(searchParams.zoom) : 12
         if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
             const state = { lon, lat, zoom, layersCode: lastState?.layersCode }
-            console.debug("Initial map state from lon/lat query", state)
+            console.debug("MapState: Initial from lonlat", state)
             return state
         }
     }
 
     // 6. Use the last location from local storage
     if (lastState) {
-        console.debug("Initial map state from last state", lastState)
+        console.debug("MapState: Initial from storage", lastState)
         return lastState
     }
 
@@ -314,7 +312,7 @@ export const getInitialMapState = (map?: MaplibreMap) => {
     if (homePoint) {
         const { lon, lat } = homePoint
         const state = { lon, lat, zoom: 15, layersCode: "" }
-        console.debug("Initial map state from home location", state)
+        console.debug("MapState: Initial from home", state)
         return state
     }
 
@@ -335,7 +333,7 @@ export const getInitialMapState = (map?: MaplibreMap) => {
                 maxLat,
             ])
             const state = { lon, lat, zoom, layersCode: "" }
-            console.debug("Initial map state from country bounds", state)
+            console.debug("MapState: Initial from timezone", state)
             return state
         }
         // Iteratively remove the last timezone component
@@ -346,7 +344,7 @@ export const getInitialMapState = (map?: MaplibreMap) => {
 
     // 9. Use the default location
     const defaultState = { lon: 0, lat: 30, zoom: 3, layersCode: "" }
-    console.debug("Initial map state from default location", defaultState)
+    console.debug("MapState: Initial from default", defaultState)
     return defaultState
 }
 

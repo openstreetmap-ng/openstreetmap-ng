@@ -153,7 +153,7 @@ export const getRoutingController = (map: MaplibreMap) => {
     const onInterfaceMarkerDragStart = (e: DragEvent) => {
         const target = e.target as HTMLImageElement
         const direction = target.dataset.direction!
-        console.debug("onInterfaceMarkerDragStart", direction)
+        console.debug("Routing: Interface marker drag start", direction)
 
         const dt = e.dataTransfer!
         dt.effectAllowed = "move"
@@ -241,7 +241,7 @@ export const getRoutingController = (map: MaplibreMap) => {
     const onMapMarkerDragEnd = (marker: Marker | null, isStart: boolean) => {
         if (!marker) return
         const lngLat = marker.getLngLat()
-        console.debug("onMapMarkerDragEnd", lngLat, isStart)
+        console.debug("Routing: Marker drag end", lngLat, isStart)
 
         const precision = zoomPrecision(map.getZoom())
         const lon = lngLat.lng.toFixed(precision)
@@ -263,7 +263,7 @@ export const getRoutingController = (map: MaplibreMap) => {
 
     const onMapDrop = (e: DragEvent) => {
         const dragData = e.dataTransfer!.getData(DRAG_DATA_TYPE)
-        console.debug("onMapDrop", dragData)
+        console.debug("Routing: Map drop", dragData)
 
         let marker: Marker
         if (dragData === "start") marker = getOrCreateMarker("start")
@@ -305,14 +305,14 @@ export const getRoutingController = (map: MaplibreMap) => {
 
     // Persist engine selection to avoid re-selecting on future visits
     engineInput.addEventListener("input", () => {
-        console.debug("onEngineInputChange")
+        console.debug("Routing: Engine changed")
         routingEngineStorage.set(engineInput.value)
         submitFormIfFilled()
     })
 
     // Swap route direction and update markers
     reverseButton.addEventListener("click", () => {
-        console.debug("onReverseButtonClick")
+        console.debug("Routing: Reverse clicked")
         const newStartValue = endInput.value
         const newEndValue = startInput.value
         startInput.value = newStartValue
@@ -348,7 +348,7 @@ export const getRoutingController = (map: MaplibreMap) => {
             loadingContainer.classList.add("d-none")
 
             // Update UI with server-computed route
-            console.debug("onRoutingFormSuccess", data)
+            console.debug("Routing: Route calculated", data)
             updateEndpoints(data)
             updateUrl()
             updateRoute(data)
@@ -525,7 +525,7 @@ export const getRoutingController = (map: MaplibreMap) => {
 
         // Update the route layer
         source.setData({ type: "FeatureCollection", features: lines })
-        console.debug("Route showing", route.steps.length, "steps")
+        console.debug("Routing: Loaded", route.steps.length, "steps")
     }
 
     return {
@@ -566,7 +566,7 @@ export const getRoutingController = (map: MaplibreMap) => {
                     // Don't trigger event to avoid repeated submitFormIfFilled():
                     // engineInput.dispatchEvent(new Event("input"))
                 } else {
-                    console.warn("Unsupported routing engine", routingEngine)
+                    console.warn("Routing: Unsupported engine", routingEngine)
                 }
             }
 

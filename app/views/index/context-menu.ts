@@ -59,7 +59,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
 
     // On map contextmenu, open the popup
     map.on("contextmenu", ({ point, lngLat }: MapMouseEvent) => {
-        console.debug("onMapContextMenu", lngLat.lng, lngLat.lat)
+        console.debug("ContextMenu: Opened", lngLat.lng, lngLat.lat)
 
         // Update the geolocation fields
         const zoom = map.getZoom()
@@ -100,9 +100,9 @@ export const configureContextMenu = (map: MaplibreMap) => {
         try {
             const value = (target as Element).textContent
             await navigator.clipboard.writeText(value)
-            console.debug("Copied geolocation to clipboard", value)
+            console.debug("ContextMenu: Copied geolocation", value)
         } catch (error) {
-            console.warn("Failed to copy geolocation", error)
+            console.warn("ContextMenu: Failed to copy", error)
             alert(error.message)
         }
     }
@@ -112,7 +112,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
 
     // On routing from button click, navigate to routing page
     routingFromButton.addEventListener("click", () => {
-        console.debug("onRoutingFromButtonClick")
+        console.debug("ContextMenu: Route from clicked")
         const { lon, lat } = getPopupPosition()
         closePopup()
         const from = `${lat}, ${lon}`
@@ -121,7 +121,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
 
     // On routing to button click, navigate to routing page
     routingToButton.addEventListener("click", () => {
-        console.debug("onRoutingToButtonClick")
+        console.debug("ContextMenu: Route to clicked")
         const { lon, lat } = getPopupPosition()
         closePopup()
         const to = `${lat}, ${lon}`
@@ -130,7 +130,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
 
     // On new note button click, navigate to new-note page
     newNoteButton.addEventListener("click", () => {
-        console.debug("onNewNoteButtonClick")
+        console.debug("ContextMenu: New note clicked")
         const { lon, lat, zoom } = getPopupPosition()
         const zoomRounded = beautifyZoom(zoom)
         closePopup()
@@ -139,7 +139,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
 
     // On show address button click, navigate to search page
     showAddressButton.addEventListener("click", () => {
-        console.debug("onShowAddressButtonClick")
+        console.debug("ContextMenu: Show address clicked")
         const { lon, lat } = getPopupPosition()
         closePopup()
         routerNavigateStrict(
@@ -152,7 +152,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
 
     // On query features button click, navigate to query-features page
     queryFeaturesButton.addEventListener("click", () => {
-        console.debug("onQueryFeaturesButtonClick")
+        console.debug("ContextMenu: Query features clicked")
         const { lon, lat, zoom } = getPopupPosition()
         const zoomRounded = beautifyZoom(zoom)
         closePopup()
@@ -161,14 +161,14 @@ export const configureContextMenu = (map: MaplibreMap) => {
 
     // On center here button click, center the map
     centerHereButton.addEventListener("click", () => {
-        console.debug("onCenterHereButtonClick")
+        console.debug("ContextMenu: Center here clicked")
         map.panTo(popup.getLngLat())
         closePopup()
     })
 
     // On measure distance button click, open the distance tool
     measureDistanceButton.addEventListener("click", () => {
-        console.debug("onMeasureDistanceButtonClick")
+        console.debug("ContextMenu: Measure distance clicked")
         const { lon, lat } = getPopupPosition()
         closePopup()
         const line = encodeLonLat([[Number.parseFloat(lon), Number.parseFloat(lat)]], 5)

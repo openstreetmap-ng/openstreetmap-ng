@@ -32,7 +32,7 @@ const ANT_DASH_LENGTH = ANT_DASH_A + ANT_DASH_B
 
 const tracePreviewContainer = document.querySelector("div.trace-preview")
 if (tracePreviewContainer) {
-    console.debug("Initializing trace preview map")
+    console.debug("TracePreview: Initializing map")
 
     layersConfig.set(LAYER_ID, {
         specification: {

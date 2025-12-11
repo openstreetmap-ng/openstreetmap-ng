@@ -1,7 +1,7 @@
 import { decode } from "blurhash"
 
 const imageProxies = document.querySelectorAll("img[data-thumbnail]")
-console.debug("Initializing", imageProxies.length, "image proxies")
+console.debug("ImageProxy: Initializing", imageProxies.length)
 
 if (imageProxies.length) {
     const padding = 48 // Account for padding around the image

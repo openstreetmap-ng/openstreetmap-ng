@@ -27,7 +27,7 @@ mount("settings-applications-body", (body) => {
     const revokeApplicationForms = body.querySelectorAll("form.revoke-application-form")
     for (const form of revokeApplicationForms) {
         configureStandardForm(form, () => {
-            console.debug("onRevokeApplicationFormSuccess")
+            console.debug("Applications: Revoked")
             form.closest("li")!.remove()
         })
     }
@@ -41,7 +41,7 @@ mount("settings-applications-body", (body) => {
 
         // On create new application button click, show the form and focus the name input
         createApplicationButton.addEventListener("click", () => {
-            console.debug("onCreateNewApplicationClick")
+            console.debug("Applications: Create clicked")
             createApplicationButton.classList.add("d-none")
             createApplicationForm.classList.remove("d-none")
             const nameInput = createApplicationForm.querySelector("input[name=name]")!
@@ -49,7 +49,7 @@ mount("settings-applications-body", (body) => {
         })
 
         configureStandardForm(createApplicationForm, ({ redirect_url }) => {
-            console.debug("onCreateApplicationFormSuccess", redirect_url)
+            console.debug("Applications: Created", redirect_url)
             window.location.href = redirect_url
         })
     }
@@ -61,7 +61,7 @@ mount("settings-applications-body", (body) => {
             createTokenForm,
             (data) => {
                 // On success callback, reload the page
-                console.debug("onCreateTokenFormSuccess", data.id)
+                console.debug("Applications: Token created", data.id)
                 const searchParams = qsParse(window.location.search)
                 searchParams.expand = data.id.toString()
                 window.location.href = `${window.location.pathname}${qsEncode(searchParams)}${window.location.hash}`

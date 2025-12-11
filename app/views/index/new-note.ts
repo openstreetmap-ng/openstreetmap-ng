@@ -44,6 +44,7 @@ export const getNewNoteController = (map: MaplibreMap) => {
         form,
         (data) => {
             // On success callback, navigate to the new note and reload the notes layer
+            console.debug("NewNote: Created", data.id)
             map.fire("reloadnoteslayer")
             routerNavigateStrict(`/note/${data.id}`)
         },

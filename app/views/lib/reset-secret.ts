@@ -2,7 +2,7 @@ import { configureStandardForm } from "@lib/standard-form"
 import { t } from "i18next"
 
 const onResetSecretButtonClick = (e: Event) => {
-    console.debug("onResetSecretButtonClick")
+    console.debug("ResetSecret: Button clicked")
     const button = e.target as HTMLButtonElement
     const control = button.closest(".reset-secret-control")
     const form =
@@ -12,7 +12,7 @@ const onResetSecretButtonClick = (e: Event) => {
     if (confirm(t("settings.new_secret_question"))) {
         configureStandardForm(form, ({ secret }) => {
             // On success callback, display the new secret
-            console.debug("onResetSecretFormSuccess")
+            console.debug("ResetSecret: Success")
             const input = button.parentElement!.querySelector("input")!
             input.value = secret
             input.dispatchEvent(new Event("change"))
@@ -26,6 +26,6 @@ for (const control of document.querySelectorAll(".reset-secret-control")) {
     if (button) {
         button.addEventListener("click", onResetSecretButtonClick)
     } else {
-        console.error("Reset control button is not available", control)
+        console.error("ResetSecret: Button not found", control)
     }
 }

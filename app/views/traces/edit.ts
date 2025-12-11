@@ -9,7 +9,7 @@ mount("traces-edit-body", (body) => {
         updateForm,
         (data) => {
             // On success callback, navigate to the trace details
-            console.debug("onUpdateFormSuccess", data.id)
+            console.debug("TraceEdit: Updated", data.id)
             window.location.href = `/trace/${data.id}`
         },
         { protobuf: IdResponseSchema },
@@ -18,7 +18,7 @@ mount("traces-edit-body", (body) => {
     const deleteForm = body.querySelector("form.delete-form")!
     configureStandardForm(deleteForm, ({ redirect_url }) => {
         // On success callback, navigate to my traces
-        console.debug("onDeleteFormSuccess", redirect_url)
+        console.debug("TraceEdit: Deleted", redirect_url)
         window.location.href = redirect_url
     })
 

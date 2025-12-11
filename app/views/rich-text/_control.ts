@@ -2,7 +2,7 @@ import { effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
 
 const richTextContainers = document.querySelectorAll(".rich-text-container")
-console.debug("Initializing", richTextContainers.length, "rich text containers")
+console.debug("RichTextControl: Initializing", richTextContainers.length, "containers")
 for (const container of richTextContainers) {
     const sourceTextArea = container.querySelector("textarea.rich-text-source")!
     const previewDiv = container.querySelector(".rich-text-preview")!
@@ -44,7 +44,7 @@ for (const container of richTextContainers) {
                     previewDiv.innerHTML = await resp.text()
                 } catch (error) {
                     if (error.name === "AbortError") return
-                    console.error("Failed to fetch rich text preview", error)
+                    console.error("RichTextControl: Preview fetch failed", error)
                     previewDiv.innerHTML = error.message
                     // TODO: standard alert
                 }

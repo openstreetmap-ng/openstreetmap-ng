@@ -3,7 +3,7 @@ import { SECOND } from "@std/datetime/constants"
 
 export const configureCopyGroups = (root: ParentNode) => {
     const elements = root.querySelectorAll(".copy-group")
-    console.debug("Initializing", elements.length, "copy groups")
+    console.debug("CopyGroup: Initializing", elements.length)
 
     for (const element of elements) {
         let button: HTMLElement
@@ -23,7 +23,7 @@ export const configureCopyGroups = (root: ParentNode) => {
 
         // On copy group button click, copy input and change tooltip text
         button.addEventListener("click", async () => {
-            console.debug("onCopyButtonClick")
+            console.debug("CopyGroup: Copying")
 
             // Visual feedback
             input?.select()
@@ -35,9 +35,9 @@ export const configureCopyGroups = (root: ParentNode) => {
             try {
                 // Write to clipboard
                 await navigator.clipboard.writeText(text)
-                console.debug("Copied to clipboard")
+                console.debug("CopyGroup: Copied")
             } catch (error) {
-                console.warn("Failed to write to clipboard", error)
+                console.warn("CopyGroup: Failed to copy", error)
                 alert(error.message)
                 return
             }

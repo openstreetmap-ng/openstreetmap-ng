@@ -47,14 +47,14 @@ export const configureDatetimeInputs = (
     form: HTMLFormElement,
     datetimeInputNames: string[],
 ) => {
-    console.debug("configureDatetimeInputs", datetimeInputNames)
+    console.debug("DatetimeInputs: Configuring", datetimeInputNames)
 
     for (const inputName of datetimeInputNames) {
         const input = form.querySelector(
             `input[type=datetime-local][name="${inputName}"]`,
         )
         if (!input) {
-            console.warn("Missing datetime-local input for", inputName)
+            console.warn("DatetimeInputs: Missing input", inputName)
             continue
         }
 
@@ -90,7 +90,7 @@ export const resolveDatetimeLazy = (container: Element) =>
             resolvedElements.add(element)
             const datetime = element.dateTime
             if (!datetime) {
-                console.warn("Missing datetime attribute on", element)
+                console.warn("DatetimeInputs: Missing datetime attribute", element)
                 continue
             }
             const date = new Date(datetime)
@@ -135,11 +135,11 @@ export const resolveDatetimeLazy = (container: Element) =>
             }
         }
         console.debug(
-            "Resolved",
+            "DatetimeInputs: Resolved",
             absoluteCounter,
-            "absolute and",
+            "absolute,",
             relativeCounter,
-            "relative datetimes",
+            "relative",
         )
     })
 

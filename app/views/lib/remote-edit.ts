@@ -45,10 +45,10 @@ const getBoundsFromCoords = ({ lon, lat, zoom }: LonLatZoom, paddingRatio = 0) =
 }
 
 export const remoteEdit = async (button: HTMLButtonElement) => {
-    console.debug("remoteEdit", button)
+    console.debug("RemoteEdit: Opening", button)
     const remoteEditJson = button.dataset.remoteEdit
     if (!remoteEditJson) {
-        console.error("Remote edit button is missing data-remote-edit")
+        console.error("RemoteEdit: Missing data-remote-edit")
         return
     }
 
@@ -93,7 +93,7 @@ export const remoteEdit = async (button: HTMLButtonElement) => {
             )
         }
     } catch (error) {
-        console.error("Failed to edit remotely", error)
+        console.error("RemoteEdit: Failed", error)
         alert(i18next.t("site.index.remote_failed"))
     } finally {
         button.disabled = false

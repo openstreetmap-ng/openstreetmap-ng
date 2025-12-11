@@ -19,7 +19,7 @@ export const configurePasswordsForm = (
     passwordInputs: NodeListOf<HTMLInputElement>,
 ) => {
     console.debug(
-        "Initializing passwords form with",
+        "PasswordHash: Initializing",
         passwordInputs.length,
         "inputs",
         form.action,
@@ -42,12 +42,7 @@ export const appendPasswordsToFormData = async (
     passwordInputs: NodeListOf<HTMLInputElement>,
 ) => {
     const passwordSchemas = formUsePasswordSchemasMap.get(form)!
-    console.debug(
-        "Updating passwords form with",
-        passwordSchemas,
-        "schemas",
-        form.action,
-    )
+    console.debug("PasswordHash: Updating with schemas", passwordSchemas, form.action)
 
     const tasks: Promise<void>[] = []
     for (const input of passwordInputs) {
@@ -77,7 +72,7 @@ export const handlePasswordSchemaFeedback = (
     if (currentPasswordSchemas.length === 2 && currentPasswordSchemas[1] === response)
         return false
     const newPasswordSchemas = [currentPasswordSchemas[0], response]
-    console.debug("Setting password schemas to", newPasswordSchemas, "for", form.action)
+    console.debug("PasswordHash: Setting schemas", newPasswordSchemas, form.action)
     formUsePasswordSchemasMap.set(form, newPasswordSchemas)
     return true
 }
@@ -107,7 +102,7 @@ const clientHashPassword = async (
         let timer = performance.now()
         const hashBytes = await pbkdf2_sha512(password, salt, 100_000)
         timer = performance.now() - timer
-        console.debug("pbkdf2_sha512 took", roundTo(timer, 1), "ms")
+        console.debug("PasswordHash: PBKDF2 completed", roundTo(timer, 1), "ms")
         transmitUserPassword.v1 = hashBytes
     } else if (passwordSchema === "legacy") {
         // no client-side hashing
@@ -142,7 +137,7 @@ const pbkdf2_sha512 = async (password: string, salt: string, iterations: number)
     } catch (error) {
         if (error.name !== "NotSupportedError") throw error
     }
-    console.warn("SubtleCrypto does not support PBKDF2 SHA-512, using polyfill")
+    console.warn("PasswordHash: SubtleCrypto not supported, using polyfill")
     const { pbkdf2Async, sha512 } = await import("@lib/polyfills-pbkdf2")
     return pbkdf2Async(sha512, password, salt, { c: iterations, dkLen: 64 })
 }

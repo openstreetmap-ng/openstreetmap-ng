@@ -15,7 +15,7 @@ export const darkenColor = memoize((hex: string, amount: number) => {
         g = hexCode.slice(2, 4)
         b = hexCode.slice(4, 6)
     } else {
-        console.error("Invalid hex color", hex)
+        console.error("Color: Invalid hex", hex)
         return hex
     }
 

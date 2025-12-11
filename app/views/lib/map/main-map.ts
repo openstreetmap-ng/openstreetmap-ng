@@ -35,7 +35,7 @@ import { getInitialMapState, getMapState, parseMapState, setMapState } from "./s
 
 /** Get the main map instance */
 const createMainMap = (container: HTMLElement) => {
-    console.debug("Initializing main map")
+    console.debug("MainMap: Initializing")
     const map = new MaplibreMap({
         container,
         minZoom: 1,
@@ -78,7 +78,7 @@ const createMainMap = (container: HTMLElement) => {
     // On hash change, update the map view
     window.addEventListener("hashchange", () => {
         // TODO: check if no double setMapState triggered
-        console.debug("onHashChange", location.hash)
+        console.debug("MainMap: Hash changed", location.hash)
         let newState = parseMapState(location.hash)
         if (!newState) {
             // Get the current state if empty/invalid and replace the hash

@@ -126,7 +126,7 @@ const evaluateStrength = (
 const inputs = document.querySelectorAll(
     "input[type=password][data-name=new_password], input[type=password][data-name=password][autocomplete=new-password]",
 )
-console.debug("Initializing", inputs.length, "password strength meters")
+console.debug("PasswordStrength: Initializing", inputs.length)
 for (const input of inputs) {
     const minLength = input.minLength
     const idealLength = Math.max(minLength + 4, 12)
@@ -342,7 +342,7 @@ for (const input of inputs) {
                 update()
             } catch (error) {
                 if (error.name === "AbortError") return
-                console.error("Failed to check password safety", error)
+                console.error("PasswordStrength: Failed to check pwned", error)
             }
         }
         lookupAndUpdate()

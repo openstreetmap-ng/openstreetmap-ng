@@ -7,7 +7,7 @@ mount("traces-upload-body", (body) => {
         body.querySelector("form.upload-form"),
         (data) => {
             // On success callback, navigate to the new trace
-            console.debug("onUploadFormSuccess", data.id)
+            console.debug("TraceUpload: Success", data.id)
             window.location.href = `/trace/${data.id}`
         },
         { protobuf: IdResponseSchema },

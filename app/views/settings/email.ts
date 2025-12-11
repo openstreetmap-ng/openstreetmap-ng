@@ -6,5 +6,6 @@ mount("settings-email-body", (body) => {
     configureStandardForm(emailForm, () => {
         // On success callback, reset the email change form
         emailForm.reset()
+        console.debug("SettingsEmail: Email updated")
     })
 })

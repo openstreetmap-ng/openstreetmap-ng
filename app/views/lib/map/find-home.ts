@@ -12,7 +12,7 @@ export const configureFindHomeButton = (
 
     // On click, create a marker and zoom to it
     button.addEventListener("click", () => {
-        console.debug("onFindHomeButtonClick")
+        console.debug("FindHome: Button clicked")
         marker ??= new Marker({
             anchor: MARKER_ICON_ANCHOR,
             // @ts-expect-error

@@ -42,7 +42,7 @@ const removeTrailingSlash = (s: string) => {
 }
 
 export const routerNavigate = (newPath: string) => {
-    console.debug("routerNavigate", newPath)
+    console.debug("Router: Navigate", newPath)
     const newRoute = findRoute(newPath)
     if (!newRoute) return false
 
@@ -56,13 +56,13 @@ export const routerNavigate = (newPath: string) => {
 }
 
 export const routerNavigateStrict = (newPath: string) => {
-    console.debug("routerNavigateStrict", newPath)
+    console.debug("Router: Navigate strict", newPath)
     assert(routerNavigate(newPath), `No route found for path: ${newPath}`)
 }
 
 export const configureRouter = (pathControllerMap: Map<string, IndexController>) => {
     routes = Array.from(pathControllerMap, ([p, c]) => makeRoute(p, c))
-    console.debug("Loaded", routes.length, "application routes")
+    console.debug("Router: Loaded routes", routes.length)
 
     const getCurrentPath = () =>
         unquotePlus(
@@ -71,7 +71,7 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
 
     // Handle browser back/forward navigation
     window.addEventListener("popstate", () => {
-        console.debug("onBrowserNavigation", location)
+        console.debug("Router: Browser navigation", location)
         const newPath = getCurrentPath()
         if (newPath === currentPath) return
 
@@ -98,7 +98,7 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
         if (!target?.href || target.origin !== location.origin) return
 
         const newPath = removeTrailingSlash(target.pathname) + target.search
-        console.debug("onWindowClick", newPath)
+        console.debug("Router: Anchor click", newPath)
         if (routerNavigate(newPath)) e.preventDefault()
     })
 

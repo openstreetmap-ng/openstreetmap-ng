@@ -68,6 +68,6 @@ if (iframe) {
     configureIFrameSystemApp("SystemApp.rapid", iframe, iframeOrigin)
 
     // Initialize iframe
-    console.debug("Initializing Rapid iframe", src)
+    console.debug("RapidEditor: Initializing iframe", src)
     iframe.src = src
 }

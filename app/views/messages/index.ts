@@ -37,7 +37,7 @@ mount("messages-index-body", (body) => {
 
         openTarget = target
         openMessageId = newMessageId
-        console.debug("openMessagePreview", openMessageId)
+        console.debug("Messages: Opening preview", openMessageId)
         if (openTarget.classList.contains("unread")) {
             openTarget.classList.remove("unread")
             changeUnreadMessagesBadge(-1)
@@ -80,13 +80,10 @@ mount("messages-index-body", (body) => {
 
             const buffer = await resp.arrayBuffer()
             const message = fromBinary(MessageReadSchema, new Uint8Array(buffer))
-            console.debug(
-                "Fetched message",
-                openMessageId,
-                message.sender,
-                message.recipients,
-                message.isRecipient,
-            )
+            console.debug("Messages: Loaded", openMessageId, {
+                sender: message.sender?.displayName,
+                recipients: message.recipients.length,
+            })
 
             const sender = message.sender!
             senderAvatar.src = sender.avatarUrl
@@ -131,7 +128,7 @@ mount("messages-index-body", (body) => {
             })
         } catch (error) {
             if (error.name === "AbortError") return
-            console.error("Failed to fetch message", error)
+            console.error("Messages: Failed to fetch", openMessageId, error)
             messageBody.textContent = error.message
             alert(error.message)
         } finally {
@@ -143,7 +140,7 @@ mount("messages-index-body", (body) => {
         if (!openTarget) return
         assertExists(openMessageId)
 
-        console.debug("closeMessagePreview", openMessageId)
+        console.debug("Messages: Closing preview", openMessageId)
         messagePreviewContainer.classList.add("d-none")
         abortController?.abort()
         openTarget.classList.remove("active")
@@ -175,7 +172,7 @@ mount("messages-index-body", (body) => {
         configureStandardForm(unreadForm, () => {
             // On success callback, mark the message as unread and update the badge
             const targetId = unreadForm.dataset.targetId!
-            console.debug("onUnreadFormSuccess", targetId)
+            console.debug("Messages: Marked as unread", targetId)
             changeUnreadMessagesBadge(1)
             const target = body.querySelector(
                 `.messages-list li[data-id="${targetId}"]`,
@@ -187,7 +184,7 @@ mount("messages-index-body", (body) => {
 
         // On unread button click, submit the form
         unreadButton.addEventListener("click", () => {
-            console.debug("onUnreadButtonClick", openMessageId)
+            console.debug("Messages: Mark as unread clicked", openMessageId)
             unreadForm.dataset.targetId = openMessageId!
             unreadForm.action = `/api/web/messages/${openMessageId}/unread`
             unreadForm.requestSubmit()
@@ -197,7 +194,7 @@ mount("messages-index-body", (body) => {
     const deleteForm = messagePreview.querySelector("form.delete-form")!
     configureStandardForm(deleteForm, () => {
         const targetId = deleteForm.dataset.targetId!
-        console.debug("onDeleteFormSuccess", targetId)
+        console.debug("Messages: Deleted", targetId)
         const target = body.querySelector(`.messages-list li[data-id="${targetId}"]`)
         if (!target) return
         target.remove()

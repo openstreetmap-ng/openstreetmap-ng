@@ -276,14 +276,14 @@ export const getDistanceController = (map: MaplibreMap) => {
 
     unitToggleButton.addEventListener("click", () => {
         currentUnit = currentUnit === "metric" ? "imperial" : "metric"
-        console.debug("Toggle distance unit", currentUnit)
+        console.debug("Distance: Unit toggled", currentUnit)
         updateUnitToggleButton()
         updateLabels(range(0, markers.length))
     })
 
     // Removes a marker and updates subsequent geometry
     const removeMarker = (index: number) => {
-        console.debug("Remove distance marker", index)
+        console.debug("Distance: Marker removed", index)
         // Pop tailing markers
         const tail = markers.splice(index + 1)
         {
@@ -312,7 +312,7 @@ export const getDistanceController = (map: MaplibreMap) => {
 
     // Inserts new marker at specified position and updates connections
     const insertMarker = (index: number, lngLat: LngLat) => {
-        console.debug("Insert distance marker", index, lngLat.lng, lngLat.lat)
+        console.debug("Distance: Marker inserted", index, lngLat.lng, lngLat.lat)
         // Pop tailing markers
         const tail = markers.splice(index)
         update([])
@@ -339,7 +339,7 @@ export const getDistanceController = (map: MaplibreMap) => {
     }) => {
         // Avoid event handlers after the controller is unloaded
         if (!hasMapLayer(map, LAYER_ID)) return
-        console.debug("Create distance marker", lngLat, skipUpdates)
+        console.debug("Distance: Marker created", lngLat, skipUpdates)
         const markerIndex = markers.length
         // Turn previous marker into blue
         if (markerIndex >= 2) {
@@ -424,7 +424,7 @@ export const getDistanceController = (map: MaplibreMap) => {
 
     /** On ghost marker drag start, replace it with a real marker */
     const startGhostMarkerDrag = () => {
-        console.debug("materializeGhostMarker")
+        console.debug("Distance: Ghost marker materialized")
         assertExists(ghostMarker)
         ghostMarker.removeClassName("d-none")
         ghostMarker.addClassName("dragging")
@@ -446,7 +446,7 @@ export const getDistanceController = (map: MaplibreMap) => {
     /** On ghost marker click, convert it into a real marker */
     const onGhostMarkerClick = (e: MouseEvent) => {
         e.stopPropagation()
-        console.debug("onGhostMarkerClick")
+        console.debug("Distance: Ghost marker clicked")
         assertExists(ghostMarker)
         startGhostMarkerDrag()
         ghostMarker.removeClassName("dragging")
@@ -469,7 +469,7 @@ export const getDistanceController = (map: MaplibreMap) => {
                     positions = decodeLonLat(searchParams.line, 5)
                 } catch (error) {
                     console.error(
-                        "Failed to decode line points from",
+                        "Distance: Failed to decode line",
                         searchParams.line,
                         error,
                     )
@@ -478,7 +478,7 @@ export const getDistanceController = (map: MaplibreMap) => {
             for (const [lon, lat] of positions) {
                 createNewMarker({ lngLat: [lon, lat], skipUpdates: true })
             }
-            console.debug("Loaded", positions.length, "distance line points")
+            console.debug("Distance: Loaded", positions.length, "points")
             update(range(0, markers.length))
 
             // Focus on the makers if they're offscreen

@@ -117,9 +117,15 @@ mount(["diary-details-body", "diary-index-body"], (body) => {
     for (const link of body.querySelectorAll(
         "article.diary .share a[data-action=copy-link]",
     )) {
-        link.addEventListener("click", (e) => {
+        link.addEventListener("click", async (e) => {
             e.preventDefault()
-            navigator.clipboard.writeText(link.href)
+            try {
+                await navigator.clipboard.writeText(link.href)
+                console.debug("DiaryIndex: Copied share link", link.href)
+            } catch (error) {
+                console.warn("DiaryIndex: Failed to copy share link", error)
+                alert(error.message)
+            }
         })
     }
 })

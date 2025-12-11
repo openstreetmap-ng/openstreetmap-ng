@@ -20,13 +20,15 @@ mount("report-show-body", () => {
                 () => {
                     currentValue = select.value
                     select.classList.remove("disabled")
-                    console.debug("Visibility changed successfully to", currentValue)
+                    console.debug("ReportsShow: Visibility changed", currentValue)
                 },
                 {
                     errorCallback: () => {
                         select.value = currentValue
                         select.classList.remove("disabled")
-                        console.error("Visibility change failed, rolling back")
+                        console.error(
+                            "ReportsShow: Visibility change failed, rolling back",
+                        )
                     },
                 },
             )

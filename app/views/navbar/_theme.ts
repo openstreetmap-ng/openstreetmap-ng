@@ -23,7 +23,10 @@ if (control) {
     effect(() => {
         const theme = activeTheme.value
         const appTheme = themeStorage.get()
-        console.debug("Updating theme state, preference:", appTheme, "; active:", theme)
+        console.debug("NavbarTheme: Updating state", {
+            preference: appTheme,
+            active: theme,
+        })
 
         document.documentElement.dataset.bsTheme = theme
         buttonIcon.classList.remove(...themeIconMap.values(), "opacity-0")
@@ -36,7 +39,7 @@ if (control) {
     for (const [theme, itemButton] of themeItemButtonMap.entries()) {
         itemButton.addEventListener("click", () => {
             if (themeStorage.get() === theme) return
-            console.debug("Handling application theme change to", theme)
+            console.debug("NavbarTheme: Change requested", theme)
             themeStorage.set(theme)
             refreshActiveTheme()
         })

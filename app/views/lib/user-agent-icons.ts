@@ -15,7 +15,7 @@ export const resolveUserAgentIconsLazy = (container: HTMLElement) => {
     queueMicrotask(async () => {
         const icons = container.querySelectorAll<HTMLElement>(".ua-icons[title]")
         if (!icons.length) return
-        console.debug("Initializing", icons.length, "UserAgent icons")
+        console.debug("UserAgentIcons: Initializing", icons.length)
 
         const { default: Bowser } = await import("bowser")
         for (const el of icons) {

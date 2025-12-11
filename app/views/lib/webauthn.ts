@@ -72,7 +72,7 @@ export const getPasskeyRegistration = async () => {
             },
         })) as PublicKeyCredential | null
     } catch (error) {
-        console.warn("WebAuthn:", error)
+        console.warn("WebAuthn: Registration failed", error)
     }
     if (!credential) return i18next.t("two_fa.could_not_complete_passkey_registration")
 
@@ -103,7 +103,7 @@ export const getPasskeyAssertion = async (
             },
         })) as PublicKeyCredential | null
     } catch (error) {
-        console.warn("WebAuthn:", error)
+        console.warn("WebAuthn: Assertion failed", error)
     }
     if (!credential) return ""
 
@@ -116,7 +116,7 @@ export const getPasskeyAssertion = async (
  * Returns assertion blob on success, null on cancel/error.
  */
 export const startConditionalMediation = async (signal: AbortSignal) => {
-    console.debug("startConditionalMediation")
+    console.debug("WebAuthn: Starting conditional mediation")
 
     // Feature detection
     if (
@@ -130,7 +130,7 @@ export const startConditionalMediation = async (signal: AbortSignal) => {
     // Fetch challenge
     const challenge = await fetchPasskeyChallenge()
     if (typeof challenge === "string") {
-        console.error("Conditional WebAuthn:", challenge)
+        console.error("WebAuthn: Conditional mediation challenge failed", challenge)
         return null
     }
 
@@ -146,7 +146,7 @@ export const startConditionalMediation = async (signal: AbortSignal) => {
         })) as PublicKeyCredential | null
     } catch (error) {
         if (error.name !== "AbortError") {
-            console.warn("Conditional WebAuthn:", error)
+            console.warn("WebAuthn: Conditional mediation error", error)
         }
     }
     if (!credential) return null

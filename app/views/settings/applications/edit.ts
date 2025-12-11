@@ -24,7 +24,7 @@ mount("settings-application-edit-body", (body) => {
 
     configureStandardForm(avatarForm, ({ avatar_url }) => {
         // On successful avatar upload, update avatar image
-        console.debug("onAvatarFormSuccess", avatar_url)
+        console.debug("AppEdit: Avatar updated", avatar_url)
         avatarImage.src = avatar_url
     })
 
@@ -39,7 +39,7 @@ mount("settings-application-edit-body", (body) => {
 
     const onIsConfidentialChange = (e: Event) => {
         const radio = e.target as HTMLInputElement
-        console.debug("onIsConfidentialChange", radio.value)
+        console.debug("AppEdit: Confidential changed", radio.value)
         resetSecretControl.classList.toggle("d-none", radio.value === "false")
     }
     for (const radio of isConfidentialRadios)
@@ -49,7 +49,7 @@ mount("settings-application-edit-body", (body) => {
         editForm,
         () => {
             // On success callback, uncheck revoke all authorizations
-            console.debug("onEditFormSuccess")
+            console.debug("AppEdit: Saved")
             revokeAllAuthorizationsCheckbox.checked = false
             revokeAllAuthorizationsCheckbox.dispatchEvent(new Event("change"))
         },
@@ -59,7 +59,7 @@ mount("settings-application-edit-body", (body) => {
     const deleteForm = body.querySelector("form.delete-form")!
     configureStandardForm(deleteForm, ({ redirect_url }) => {
         // On success callback, navigate to my applications
-        console.debug("onDeleteFormSuccess", redirect_url)
+        console.debug("AppEdit: Deleted", redirect_url)
         window.location.href = redirect_url
     })
 

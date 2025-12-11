@@ -9,13 +9,13 @@ mount("admin-tasks-body", (body) => {
         assert(resp.ok, `${resp.status} ${resp.statusText}`)
         const data: Array<{ id: string; running: boolean }> = await resp.json()
         const infoMap = new Map(data.map((item) => [item.id, item]))
-        console.debug("Updating tasks status", data)
+        console.debug("AdminTasks: Updating status", data)
 
         for (const form of forms) {
             const taskId = form.querySelector("input[name=id]")!
             const taskInfo = infoMap.get(taskId.value)
             if (!taskInfo) {
-                console.warn("Task not found", taskId.value)
+                console.warn("AdminTasks: Task not found", taskId.value)
                 continue
             }
 

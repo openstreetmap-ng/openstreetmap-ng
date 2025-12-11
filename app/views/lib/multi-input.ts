@@ -1,7 +1,7 @@
 import { t } from "i18next"
 
 const multiInputContainers = document.querySelectorAll(".multi-input-container")
-console.debug("Initializing", multiInputContainers.length, "multi-input components")
+console.debug("MultiInput: Initializing", multiInputContainers.length)
 
 for (const container of multiInputContainers) {
     const form = container.closest("form")
@@ -128,7 +128,7 @@ for (const container of multiInputContainers) {
 
             // Add hidden input for each token
             const fragment = document.createDocumentFragment()
-            console.debug("Adding", tokens.size, name, "tokens to form")
+            console.debug("MultiInput: Submitting", tokens.size, name, "tokens")
             for (const tokenElement of tokensContainer.children) {
                 const hiddenInput = document.createElement("input")
                 hiddenInput.type = "hidden"

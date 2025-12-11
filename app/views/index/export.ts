@@ -31,7 +31,10 @@ export const getExportController = (map: MaplibreMap) => {
 
     // On custom region checkbox change, enable/disable the location filter
     customRegionCheckbox.addEventListener("change", () => {
-        console.debug("onCustomRegionCheckboxChange", customRegionCheckbox.checked)
+        console.debug(
+            "Export: Custom region checkbox changed",
+            customRegionCheckbox.checked,
+        )
         if (customRegionCheckbox.checked) {
             if (!locationFilter) {
                 locationFilter = new LocationFilterControl()

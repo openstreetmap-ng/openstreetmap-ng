@@ -35,7 +35,7 @@ export const changeUnreadMessagesBadge = (change: number) => {
             10,
         ) || 0
     const newCount = current + change
-    console.debug("Change unread message badge count", current, "->", newCount)
+    console.debug("Navbar: Message badge changed", current, "->", newCount)
     newUnreadMessagesBadge.textContent = newCount > 0 ? newCount.toString() : ""
     unreadMessagesBadge.textContent = newCount.toString()
 }
@@ -79,7 +79,7 @@ editGroup.addEventListener("click", async (e) => {
 
     // With remember choice, change default editor first
     e.preventDefault()
-    console.debug("Changing default editor to", editor)
+    console.debug("Navbar: Changing default editor", editor)
     editDropdown.hide()
 
     const formData = new FormData()
@@ -91,10 +91,10 @@ editGroup.addEventListener("click", async (e) => {
             priority: "high",
         })
         assert(resp.ok, `${resp.status} ${resp.statusText}`)
-        console.debug("Changed default editor to", editor)
+        console.debug("Navbar: Default editor changed", editor)
         editLink.dispatchEvent(new MouseEvent(e.type, e))
     } catch (error) {
-        console.error("Failed to change default editor", error)
+        console.error("Navbar: Failed to change editor", error)
         alert(error.message)
     }
 })
@@ -162,10 +162,7 @@ export const updateNavbarAndHash = (state: MapState, object?: OSMObject) => {
                 link.href = baseHref + hash
             }
         } else {
-            console.error(
-                "Expected .map-link that is .edit-link to be HTMLAnchorElement",
-                link,
-            )
+            console.error("Navbar: Expected .edit-link to be HTMLAnchorElement", link)
         }
     }
 
@@ -183,7 +180,7 @@ export const handleEditRemotePath = () => {
     const searchParams = qsParse(window.location.search)
     if (searchParams.editor !== "remote") return
 
-    console.debug("handleEditRemotePath")
+    console.debug("Navbar: Handle edit remote path")
     routerNavigateStrict("/")
     remoteEditButton.click()
 }

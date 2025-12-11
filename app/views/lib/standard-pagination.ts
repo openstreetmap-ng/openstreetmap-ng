@@ -14,34 +14,23 @@ export const configureStandardPagination = (
         loadCallback?: (renderContainer: HTMLElement, page: number) => void
     },
 ) => {
-    if (!container) {
-        console.debug("Ignored standard pagination: missing container")
-        return () => {}
-    }
+    if (!container) return () => {}
 
     const renderContainer =
         container.querySelector("ul.list-unstyled") ?? container.querySelector("tbody")
     const paginationContainers = Array.from(container.querySelectorAll("ul.pagination"))
-    if (!(renderContainer && paginationContainers.length)) {
-        console.debug(
-            "Ignored standard pagination: missing renderContainer/paginationContainers",
-        )
-        return () => {}
-    }
+    if (!(renderContainer && paginationContainers.length)) return () => {}
 
     const dataset = paginationContainers.at(-1)!.dataset
-    if (!dataset.pages) {
-        console.debug("Ignored standard pagination: missing data-pages")
-        return () => {}
-    }
+    if (!dataset.pages) return () => {}
     const initialPages = Number.parseInt(dataset.pages, 10)
     const pageSize = dataset.pageSize ? Number.parseInt(dataset.pageSize, 10) : null // optional
     const reverse = options?.reverse ?? true
 
     const endpointPattern = dataset.action!
     console.debug(
-        "Initializing standard pagination",
-        options?.customLoader ? "<custom loader>" : endpointPattern,
+        "Pagination: Initializing",
+        options?.customLoader ? "<custom>" : endpointPattern,
     )
 
     const numItems = signal(Number.parseInt(dataset.numItems!, 10))
@@ -87,7 +76,7 @@ export const configureStandardPagination = (
 
         if (options?.customLoader) {
             options.customLoader(renderContainer, currentPage.value)
-            console.debug("Navigated to page", currentPageString)
+            console.debug("Pagination: Page loaded (custom)", currentPageString)
             return
         }
 
@@ -101,12 +90,12 @@ export const configureStandardPagination = (
         // Serve from cache when available
         const cached = fetchCache.get(url)
         if (cached !== undefined) {
-            console.debug("Loading cached page", currentPageString)
+            console.debug("Pagination: Page loaded (cached)", currentPageString)
             onLoad(cached)
             return () => {}
         }
 
-        console.debug("Navigating to page", currentPageString)
+        console.debug("Pagination: Loading page", currentPageString)
         const abortController = new AbortController()
         setPendingState(true)
 
@@ -116,8 +105,8 @@ export const configureStandardPagination = (
                     signal: abortController.signal,
                     priority: "high",
                 })
-                if (resp.ok) console.debug("Navigated to page", currentPageString)
                 const text = await resp.text()
+                console.debug("Pagination: Page loaded", currentPageString)
                 fetchCache.set(url, text)
                 onLoad(text)
 
@@ -137,7 +126,12 @@ export const configureStandardPagination = (
                 }
             } catch (error) {
                 if (error.name === "AbortError") return
-                console.error("Failed to navigate to page", currentPageString, error)
+                console.error(
+                    "Pagination: Failed to load page",
+                    currentPageString,
+                    endpointPattern,
+                    error,
+                )
                 renderContainer.textContent = error.message
             } finally {
                 setPendingState(false)
@@ -231,7 +225,6 @@ export const configureStandardPagination = (
     })
 
     return () => {
-        console.debug("Disposing standard pagination", endpointPattern)
         disposeCollectionEffect()
         disposePaginationEffect()
     }

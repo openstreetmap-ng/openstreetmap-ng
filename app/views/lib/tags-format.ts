@@ -300,5 +300,5 @@ export const configureTagsFormat = (container: HTMLElement | null) => {
         }
     }
 
-    console.debug("Formatted", currentTags.size, "tags")
+    console.debug("TagsFormat: Formatted", currentTags.size, "tags")
 }

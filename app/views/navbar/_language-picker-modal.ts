@@ -13,7 +13,7 @@ if (languagePickerModal) {
 
     const initializeLanguages = () => {
         if (languageButtons.length) return
-        console.debug("Initializing language picker")
+        console.debug("NavbarLanguage: Initializing picker")
         const fragment = document.createDocumentFragment()
 
         for (const locale of LOCALE_OPTIONS) {
@@ -49,7 +49,7 @@ if (languagePickerModal) {
 
             button.addEventListener("click", () => {
                 if (code !== primaryLanguage) {
-                    console.info("Changing language to", code)
+                    console.info("NavbarLanguage: Change", code)
                     document.cookie = `lang=${code}; path=/; max-age=31536000; samesite=lax`
                     window.location.reload()
                     button.disabled = true

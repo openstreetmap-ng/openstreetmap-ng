@@ -6,5 +6,6 @@ mount("reset-password-body", (body) => {
     configureStandardForm(resetForm, () => {
         // On successful reset request, reset the form
         resetForm.reset()
+        console.debug("ResetPassword: Request submitted")
     })
 })

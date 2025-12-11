@@ -34,7 +34,7 @@ if (loginForm) {
     let loginResponse: LoginResponse | undefined
 
     const setLoginState = (state: LoginState) => {
-        console.debug("setLoginState", state)
+        console.debug("Login: State changed", state)
         loginForm.dataset.loginState = state
         switch (state) {
             case "totp":

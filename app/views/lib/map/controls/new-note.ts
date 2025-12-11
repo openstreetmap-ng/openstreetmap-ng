@@ -80,9 +80,8 @@ export class NewNoteControl implements IControl {
 /** Set availability of the new note button */
 export const setNewNoteButtonState = (active: boolean) => {
     console.debug(
-        "setNewNoteButtonState",
+        "NewNote: Setting button state",
         active,
-        "on",
         newNoteContainers.length,
         "containers",
     )

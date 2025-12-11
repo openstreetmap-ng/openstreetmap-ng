@@ -22,7 +22,7 @@ mount("diary-compose-body", (body) => {
         body.querySelector("form.diary-form"),
         ({ redirect_url }) => {
             // On success callback, navigate to the diary
-            console.debug("onDiaryFormSuccess", redirect_url)
+            console.debug("DiaryCompose: Success", redirect_url)
             window.location.href = redirect_url
         },
         { removeEmptyFields: true },
@@ -71,7 +71,7 @@ mount("diary-compose-body", (body) => {
 
     /** On map click, update the coordinates and move the marker */
     const onMapClick = ({ lngLat }: { lngLat: LngLat }) => {
-        console.debug("onMapClick", lngLat.lng, lngLat.lat)
+        console.debug("DiaryCompose: Map clicked", lngLat.lng, lngLat.lat)
         setMarker(lngLat)
         setInput(lngLat)
     }
@@ -82,7 +82,11 @@ mount("diary-compose-body", (body) => {
         assertExists(map)
 
         if (lonInput.value && latInput.value) {
-            console.debug("onCoordinatesInputChange", lonInput.value, latInput.value)
+            console.debug(
+                "DiaryCompose: Coordinates changed",
+                lonInput.value,
+                latInput.value,
+            )
             const lon = Number.parseFloat(lonInput.value)
             const lat = Number.parseFloat(latInput.value)
             if (isLongitude(lon) && isLatitude(lat)) {
@@ -171,7 +175,7 @@ mount("diary-compose-body", (body) => {
     if (deleteForm) {
         configureStandardForm(deleteForm, ({ redirect_url }) => {
             // On success callback, navigate to my diary
-            console.debug("onDeleteFormSuccess", redirect_url)
+            console.debug("DiaryCompose: Deleted", redirect_url)
             window.location.href = redirect_url
         })
 

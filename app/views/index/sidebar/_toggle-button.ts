@@ -45,14 +45,14 @@ export class SidebarToggleControl implements IControl {
 
         // On click, toggle sidebar visibility and invalidate map size
         button.addEventListener("click", () => {
-            console.debug("onSidebarToggleButtonClick", this._className)
+            console.debug("SidebarToggle: Button clicked", this._className)
 
             // Unselect other buttons
             for (const otherContainer of sidebarToggleContainers) {
                 if (otherContainer === container) continue
                 const otherButton = otherContainer.querySelector("button.control-btn")!
                 if (otherButton.classList.contains("active")) {
-                    console.debug("Deactivating sidebar toggle button", otherButton)
+                    console.debug("SidebarToggle: Deactivating", otherButton)
                     otherButton.click()
                 }
             }

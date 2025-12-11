@@ -34,7 +34,7 @@ export const loadMapImage = (
     }
     const addImage = () => {
         if (!map.hasImage(name)) {
-            console.debug("Adding map image", name)
+            console.debug("MapImage: Adding", name)
             map.addImage(name, image)
         }
         successCallback?.()

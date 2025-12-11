@@ -23,7 +23,7 @@ mount("settings-body", (body) => {
         settingsForm,
         () => {
             // On success callback, reload the page
-            console.debug("onSettingsFormSuccess")
+            console.debug("Settings: Saved")
             window.location.reload()
         },
         {

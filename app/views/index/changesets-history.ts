@@ -187,7 +187,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
         )
             return
 
-        console.debug("Fitting map to visible changesets after sidebar hover")
+        console.debug("ChangesetsHistory: Fitting after hover")
         map.fitBounds(
             padLngLatBounds(visibleChangesetsBounds, 0.3),
             { maxZoom: 16 },
@@ -196,7 +196,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     }
 
     const resetChangesets = () => {
-        console.debug("resetChangesets")
+        console.debug("ChangesetsHistory: Reset")
         onMapMouseLeave()
         source.setData(emptyFeatureCollection)
         sourceBorders.setData(emptyFeatureCollection)
@@ -388,7 +388,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
             visibleChangesetsBounds &&
             !idSidebarMap.size
         ) {
-            console.debug("Fitting map to shown changesets")
+            console.debug("ChangesetsHistory: Fitting to changesets")
             map.fitBounds(
                 padLngLatBounds(visibleChangesetsBounds, 0.3),
                 { maxZoom: 16, animate: false },
@@ -581,7 +581,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
                 parentSidebar.scrollHeight - LOAD_MORE_SCROLL_BUFFER
         )
             return
-        console.debug("Sidebar scrolled to the bottom")
+        console.debug("ChangesetsHistory: Scrolled to bottom")
         updateState()
     }
 
@@ -688,9 +688,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
                     idChangesetMap.set(cs.id.toString(), cs)
                 }
                 console.debug(
-                    "Changesets layer showing",
+                    "ChangesetsHistory: Loaded",
                     changesets.length,
-                    "changesets, including",
+                    "changesets,",
                     newChangesets.length,
                     "new",
                 )
@@ -698,7 +698,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
                 updateSidebar(appendMode, newChangesets.length)
                 requestAnimationFramePolyfill(updateLayersVisibility)
             } else {
-                console.debug("No more changesets")
+                console.debug("ChangesetsHistory: No more changesets")
                 noMoreChangesets = true
             }
 
@@ -710,7 +710,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
                     indicator.classList.remove("d-none")
         } catch (error) {
             if (error.name === "AbortError") return
-            console.error("Failed to fetch map data", error)
+            console.error("ChangesetsHistory: Failed to fetch", error)
             resetChangesets()
         } finally {
             if (!signal.aborted) {

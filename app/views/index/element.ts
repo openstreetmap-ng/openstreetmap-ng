@@ -67,7 +67,7 @@ export const getElementController = (map: MaplibreMap): IndexController => {
 }
 
 export const initializeElementContent = (map: MaplibreMap, container: HTMLElement) => {
-    console.debug("initializeElementContent")
+    console.debug("Element: Initializing content")
 
     // Enhance tags table
     configureTagsFormat(container.querySelector<HTMLElement>("div.tags"))
@@ -76,7 +76,7 @@ export const initializeElementContent = (map: MaplibreMap, container: HTMLElemen
     locationButton?.addEventListener("click", () => {
         // On location click, pan the map
         const dataset = locationButton!.dataset
-        console.debug("onLocationButtonClick", dataset)
+        console.debug("Element: Location clicked", dataset)
         const lon = Number.parseFloat(dataset.lon!)
         const lat = Number.parseFloat(dataset.lat!)
         map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 15) })
@@ -117,7 +117,7 @@ const renderElementsComponent = (
     elements: PartialElementParams_Entry[],
     isWay: boolean,
 ) => {
-    console.debug("renderElementsComponent", elements.length)
+    console.debug("Element: Rendering component", elements.length)
 
     const entryTemplate = elementsSection.querySelector("template.entry")!
     const titleElement = elementsSection.querySelector(".title")!

@@ -95,7 +95,7 @@ export const configureReportButtonsLazy = (searchElement: Element) =>
             counter++
         }
         if (counter) {
-            console.debug("Configured", counter, "report buttons")
+            console.debug("ReportModal: Configured", counter, "buttons")
         }
     })
 
@@ -103,7 +103,7 @@ if (modalElement && formElement) {
     configureStandardForm(
         formElement,
         () => {
-            console.debug("Report submitted successfully")
+            console.debug("ReportModal: Submitted")
             formElement.reset()
         },
         {

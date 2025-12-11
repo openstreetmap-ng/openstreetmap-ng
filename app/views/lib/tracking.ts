@@ -20,14 +20,14 @@ import {
 } from "@sentry/browser"
 
 if (isCrashReportingEnabled(config)) {
-    console.debug("Enabling crash reporting")
+    console.debug("Sentry: Enabling")
     const userConfig = config.userConfig
 
     const tracePropagationTargets: (string | RegExp)[] = [/^\/(?!static)/]
     if (API_URL !== window.location.origin) {
         tracePropagationTargets.push(API_URL)
     }
-    console.debug("Sentry trace propagation targets", tracePropagationTargets)
+    console.debug("Sentry: Trace propagation targets", tracePropagationTargets)
 
     SentryInit({
         dsn: SENTRY_DSN,
@@ -47,11 +47,11 @@ if (isCrashReportingEnabled(config)) {
             region: getTimezoneName(),
         },
     }
-    console.debug("Providing user information", userInfo)
+    console.debug("Sentry: User info", userInfo)
     setUser(userInfo)
 
     if (ENV === "test") {
-        console.debug("Enabling feedback integration")
+        console.debug("Sentry: Feedback integration")
         const appTheme = themeStorage.get()
         addIntegration(
             feedbackIntegration({
@@ -68,7 +68,7 @@ if (isCrashReportingEnabled(config)) {
 }
 
 if (activityTracking) {
-    console.debug("Enabling activity tracking")
+    console.debug("Matomo: Enabling")
     ;(window as any)._paq ??= []
     const _paq: any[] = (window as any)._paq
 

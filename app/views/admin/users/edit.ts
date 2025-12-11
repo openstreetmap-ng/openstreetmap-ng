@@ -41,7 +41,7 @@ mount("admin-user-edit-body", (body) => {
         configureStandardForm(
             accountForm,
             () => {
-                console.debug("onAccountFormSuccess")
+                console.debug("AdminUserEdit: Account saved")
                 originalRoles.clear()
                 for (const checkbox of roleCheckboxes) {
                     if (checkbox.checked) {
@@ -126,7 +126,7 @@ mount("admin-user-edit-body", (body) => {
     configureStandardForm(
         reset2FAForm,
         () => {
-            console.debug("onReset2FAFormSuccess")
+            console.debug("AdminUserEdit: Two-factor reset")
             window.location.reload()
         },
         {

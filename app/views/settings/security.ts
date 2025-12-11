@@ -45,7 +45,7 @@ mount("settings-security-body", (body) => {
         passwordForm,
         () => {
             // On success callback, reset the password change form
-            console.debug("onPasswordFormSuccess")
+            console.debug("Security: Password changed")
             passwordForm.reset()
         },
         {
@@ -72,7 +72,7 @@ mount("settings-security-body", (body) => {
         configureStandardForm(
             addPasskeyForm,
             () => {
-                console.debug("onAddPasskeyFormSuccess")
+                console.debug("Security: Passkey added")
                 window.location.reload()
             },
             {
@@ -173,7 +173,7 @@ mount("settings-security-body", (body) => {
         })
 
         configureStandardForm(setupTOTPForm, () => {
-            console.debug("onSetupTOTPFormSuccess")
+            console.debug("Security: TOTP setup complete")
             window.location.reload()
         })
     }
@@ -190,7 +190,7 @@ mount("settings-security-body", (body) => {
     })
 
     configureStandardForm(disableAuthMethodForm, () => {
-        console.debug("onDisableAuthMethodSuccess")
+        console.debug("Security: Auth method disabled")
         window.location.reload()
     })
 
@@ -210,7 +210,7 @@ mount("settings-security-body", (body) => {
     })
 
     configureStandardForm(generateRecoveryCodesForm, (data) => {
-        console.debug("onGenerateRecoveryCodesSuccess")
+        console.debug("Security: Recovery codes generated")
         generateRecoveryCodesBody.innerHTML = data.detail
         configureCopyGroups(generateRecoveryCodesBody)
     })
@@ -222,7 +222,7 @@ mount("settings-security-body", (body) => {
             const row = form.closest("li")!
             const isCurrentSession = row.querySelector(".current-session") !== null
             console.debug(
-                "onRevokeTokenFormSuccess",
+                "Security: Token revoked",
                 isCurrentSession ? "(current session)" : "(other session)",
             )
 

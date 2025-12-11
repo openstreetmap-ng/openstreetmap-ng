@@ -72,7 +72,7 @@ export const getNoteController = (map: MaplibreMap) => {
             ".location-container button",
         )!
         locationButton.addEventListener("click", () => {
-            console.debug("onLocationButtonClick", center)
+            console.debug("Note: Location clicked", center)
             map.flyTo({ center, zoom: Math.max(map.getZoom(), 15) })
         })
 

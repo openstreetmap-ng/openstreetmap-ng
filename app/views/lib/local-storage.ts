@@ -44,7 +44,7 @@ function createStorage<T>(key: string, config: StorageConfig<T> = {}) {
         },
 
         set: (value: T) => {
-            if (logOperations) console.debug("Storage set:", key, "=", value)
+            if (logOperations) console.debug("LocalStorage: Set", key, "=", value)
             localStorage.setItem(key, serialize(value))
         },
     }

@@ -7,13 +7,13 @@ if (modalElement) {
 
     modalElement.addEventListener(Modal.Events.hide, (e) => {
         e.preventDefault()
-        console.debug("onUnsubscribeModalHide", redirectLink)
+        console.debug("Unsubscribe: Modal hide", redirectLink)
         window.location.href = redirectLink
     })
 
     configureStandardForm(modalElement.querySelector("form.subscription-form"), () => {
         // On success callback, redirect to the discussion page
-        console.debug("onUnsubscribeFormSuccess", redirectLink)
+        console.debug("Unsubscribe: Success", redirectLink)
         window.location.href = redirectLink
     })
 

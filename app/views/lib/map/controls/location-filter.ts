@@ -141,7 +141,7 @@ export class LocationFilterControl implements IControl {
             maxLon = lngLat.lng
             minLat = lngLat.lat
         } else {
-            console.warn("Invalid marker index", i)
+            console.warn("LocationFilter: Invalid marker index", i)
             return
         }
         minLat = clamp(minLat, -85, 85)

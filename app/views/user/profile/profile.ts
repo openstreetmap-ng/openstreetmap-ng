@@ -45,7 +45,7 @@ mount("user-profile-body", (body) => {
 
         configureStandardForm(avatarForm, ({ avatar_url }) => {
             // On successful avatar upload, update avatar images
-            console.debug("onAvatarFormSuccess", avatar_url)
+            console.debug("Profile: Avatar updated", avatar_url)
             for (const avatarImage of avatars) {
                 avatarImage.src = avatar_url
             }
@@ -76,7 +76,7 @@ mount("user-profile-body", (body) => {
 
         configureStandardForm(backgroundForm, ({ background_url }) => {
             // On successful background upload, update background images
-            console.debug("onBackgroundFormSuccess", background_url)
+            console.debug("Profile: Background updated", background_url)
             if (background_url) {
                 backgroundImage.src = background_url
             } else {
@@ -87,7 +87,7 @@ mount("user-profile-body", (body) => {
         const descriptionForm = body.querySelector("form.description-form")
         configureStandardForm(descriptionForm, () => {
             // On description update, reload the page
-            console.debug("onDescriptionFormSuccess")
+            console.debug("Profile: Description updated")
             window.location.reload()
         })
     }
@@ -97,7 +97,7 @@ mount("user-profile-body", (body) => {
     if (followForm) {
         configureStandardForm(followForm, () => {
             // On follow/unfollow success, reload the page
-            console.debug("onFollowFormSuccess")
+            console.debug("Profile: Follow toggled")
             window.location.reload()
         })
     }

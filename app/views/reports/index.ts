@@ -5,7 +5,7 @@ mount("reports-body", (body) => {
     const reportStatusFilter = body.querySelector("select#reportStatusFilter")!
     reportStatusFilter.addEventListener("change", () => {
         const status = reportStatusFilter.value
-        console.debug("onReportStatusFilterChange", status)
+        console.debug("ReportsIndex: Status filter changed", status)
         window.location.href = status ? `?status=${status}` : "?"
     })
 

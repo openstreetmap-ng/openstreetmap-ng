@@ -28,7 +28,7 @@ mount("admin-users-body", (body) => {
         try {
             await navigator.clipboard.writeText(json)
         } catch (error) {
-            console.warn("Failed to copy user IDs", error)
+            console.warn("AdminUsers: Failed to copy IDs", error)
             alert(error.message)
         }
     })

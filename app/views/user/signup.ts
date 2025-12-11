@@ -20,7 +20,7 @@ mount("signup-body", (body) => {
     configureStandardForm(
         signupForm,
         ({ redirect_url }) => {
-            console.debug("onSignupFormSuccess", redirect_url)
+            console.debug("Signup: Success", redirect_url)
             window.location.href = redirect_url
         },
         {

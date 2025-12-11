@@ -132,14 +132,14 @@ export const configureDataLayer = (map: MaplibreMap) => {
 
     /** Load map data into the data layer */
     const loadData = (elements: (OSMNode | OSMWay)[]) => {
-        console.debug("Loading", elements.length, "elements")
+        console.debug("DataLayer: Loaded", elements.length, "elements")
         loadDataAlert.classList.add("d-none")
         source.setData(renderObjects(elements, { renderAreas: false }))
     }
 
     /** Display data alert if not already shown */
     const showDataAlert = () => {
-        console.debug("Requested too much data, showing alert")
+        console.debug("DataLayer: Data limit exceeded, showing alert")
         if (!loadDataAlert.classList.contains("d-none")) return
         showDataButton.addEventListener("click", onShowDataButtonClick, { once: true })
         hideDataButton.addEventListener("click", onHideDataButtonClick, { once: true })
@@ -149,7 +149,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
     /** On show data click, mark override and load data */
     const onShowDataButtonClick = () => {
         if (loadDataOverride) return
-        console.debug("onShowDataButtonClick")
+        console.debug("DataLayer: Show data clicked")
         loadDataOverride = true
         loadDataAlert.classList.add("d-none")
         fetchedBounds = null
@@ -159,7 +159,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
     /** On hide data click, uncheck the data layer checkbox */
     const onHideDataButtonClick = () => {
         if (dataOverlayCheckbox.checked === false) return
-        console.debug("onHideDataButtonClick")
+        console.debug("DataLayer: Hide data clicked")
         dataOverlayCheckbox.checked = false
         dataOverlayCheckbox.dispatchEvent(new Event("change"))
         loadDataAlert.classList.add("d-none")
@@ -230,7 +230,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
             }
         } catch (error) {
             if (error.name === "AbortError") return
-            console.error("Failed to fetch map data", error)
+            console.error("DataLayer: Failed to fetch", error)
             clearData()
         } finally {
             toggleLayerSpinner(LAYER_ID, false)

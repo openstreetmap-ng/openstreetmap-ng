@@ -18,7 +18,7 @@ export const getIndexController = (map: MaplibreMap) => {
             continue
         }
 
-        console.debug("Showing banner", bannerName)
+        console.debug("Index: Showing banner", bannerName)
         banner.classList.remove("d-none")
 
         // On close button click, hide the banner

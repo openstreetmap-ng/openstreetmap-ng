@@ -37,7 +37,7 @@ export const configureStandardForm = <T = any>(
 ) => {
     if (!form || form.classList.contains("needs-validation")) return
     let formAction = form.getAttribute("action") ?? ""
-    console.debug("Initializing standard form", formAction)
+    console.debug("StandardForm: Initializing", formAction)
 
     // Disable browser validation in favor of bootstrap
     // disables maxlength and other browser checks: form.noValidate = true
@@ -51,7 +51,7 @@ export const configureStandardForm = <T = any>(
     const setPendingState = (state: boolean) => {
         const currentState = form.classList.contains("pending")
         if (currentState === state) return
-        console.debug("configureStandardForm", "setPendingState", state)
+        console.debug("StandardForm: Pending state", state, formAction)
         if (state) {
             form.classList.add("pending")
             for (const submit of submitElements) submit.disabled = true
@@ -71,7 +71,6 @@ export const configureStandardForm = <T = any>(
                 `input[type=password][data-name="${element.name}"]`,
             )
             if (actualElement) {
-                console.debug("Redirecting element feedback for", element.name)
                 handleElementFeedback(actualElement, type, message)
                 return
             }
@@ -97,17 +96,11 @@ export const configureStandardForm = <T = any>(
         // Clear stale validation when user modifies input
         const onInput = () => {
             if (!feedback) return
-            console.debug("Invalidating form feedback")
             form.dispatchEvent(new CustomEvent("invalidate"))
         }
 
         const onInvalidated = () => {
             if (!feedback) return
-            console.debug(
-                "configureStandardForm",
-                "handleElementFeedback",
-                "onInvalidated",
-            )
             feedback.remove()
             feedback = null
             element.classList.remove("is-valid", "is-invalid")
@@ -200,11 +193,6 @@ export const configureStandardForm = <T = any>(
         // Remove feedback on submit
         const onInvalidated = () => {
             if (!feedback) return
-            console.debug(
-                "configureStandardForm",
-                "handleFormFeedback",
-                "onInvalidated",
-            )
             assertExists(feedbackAlert)
             feedbackAlert.dispose()
             feedbackAlert = null
@@ -217,8 +205,7 @@ export const configureStandardForm = <T = any>(
     }
 
     const processFormFeedback = (detail: string | APIDetail[]) => {
-        console.debug("Received form feedback", detail)
-
+        console.debug("StandardForm: Received feedback", formAction, detail)
         if (!Array.isArray(detail)) {
             handleFormFeedback("error", detail)
             return
@@ -235,7 +222,7 @@ export const configureStandardForm = <T = any>(
             }
 
             const input = form.querySelector(`[name="${field}"]`)
-            console.debug("Processing field feedback for", field, input)
+            console.debug("StandardForm: Processing field feedback", field, type)
 
             if (
                 !(input instanceof HTMLInputElement) &&
@@ -262,7 +249,7 @@ export const configureStandardForm = <T = any>(
     }
 
     form.addEventListener("submit", async (e) => {
-        console.debug("configureStandardForm", "onSubmit", formAction)
+        console.debug("StandardForm: Submit", formAction)
         e.preventDefault()
 
         // Stage 1: Validate form structure
@@ -278,7 +265,7 @@ export const configureStandardForm = <T = any>(
             abortController?.abort()
             abortController = new AbortController()
         } else if (form.classList.contains("pending")) {
-            console.info("Form already pending", formAction)
+            console.debug("StandardForm: Already pending, ignoring submit", formAction)
             return
         }
 
@@ -330,7 +317,7 @@ export const configureStandardForm = <T = any>(
                 typeof result === "string" ||
                 (Array.isArray(result) && result.length > 0)
             ) {
-                console.debug("Client validation failed")
+                console.debug("StandardForm: Client validation failed", formAction)
                 processFormFeedback(result)
                 setPendingState(false)
                 return
@@ -345,26 +332,21 @@ export const configureStandardForm = <T = any>(
                 signal: abortController?.signal ?? null,
                 priority: "high",
             })
-            if (resp.ok) console.debug("Form submitted successfully")
-
             const contentType = resp.headers.get("Content-Type") ?? ""
             assertFalse(
                 resp.ok && contentType && Boolean(options?.protobuf) !== (contentType === "application/x-protobuf"),
                 `Mismatched response content type: ${contentType}`,
             )
 
-            let data : any = null
+            let data: any = null
             if (contentType.startsWith("application/json")) {
-                console.debug("Reading JSON response")
                 data = await resp.json()
             } else if (contentType === "application/x-protobuf") {
-                console.debug("Reading Protobuf response")
                 data = fromBinary(
                     options!.protobuf!,
                     new Uint8Array(await resp.arrayBuffer()),
                 )
             } else if (contentType) {
-                console.debug("Reading text response")
                 data = { detail: await resp.text() }
             }
 
@@ -380,7 +362,7 @@ export const configureStandardForm = <T = any>(
             }
         } catch (error) {
             if (error.name === "AbortError") return
-            console.error("Failed to submit standard form", error)
+            console.error("StandardForm: Submit failed", formAction, error)
             handleFormFeedback("error", error.message)
             options?.errorCallback?.(error)
         } finally {

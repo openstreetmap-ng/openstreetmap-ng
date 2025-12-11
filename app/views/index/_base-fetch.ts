@@ -29,7 +29,7 @@ export const getBaseFetchController = (
     const onSidebarLoading = () => {
         // On sidebar loading, display loading content
         sidebarScrollPosition = scrollSidebar.scrollTop
-        console.debug("Save sidebar scroll position", sidebarScrollPosition)
+        console.debug("Sidebar: Saved scroll position", sidebarScrollPosition)
         dynamicContent.innerHTML = loadingHtml
     }
 
@@ -46,7 +46,7 @@ export const getBaseFetchController = (
                 if (scrollSidebar.scrollHeight > sidebarScrollPosition) {
                     scrollSidebar.scrollTop = sidebarScrollPosition
                     console.debug(
-                        "Restore sidebar scroll position",
+                        "Sidebar: Restored scroll position",
                         sidebarScrollPosition,
                     )
                     return
@@ -54,14 +54,11 @@ export const getBaseFetchController = (
                 if (performance.now() - startTime < 2000) {
                     requestAnimationFramePolyfill(tryRestoreScroll)
                 } else {
-                    console.warn(
-                        "Failed to restore sidebar scroll: content too small",
-                        {
-                            target: sidebarScrollPosition,
-                            actual: scrollSidebar.scrollHeight,
-                            newUrl,
-                        },
-                    )
+                    console.warn("Sidebar: Failed to restore scroll position", {
+                        target: sidebarScrollPosition,
+                        actual: scrollSidebar.scrollHeight,
+                        newUrl,
+                    })
                 }
             }
             requestAnimationFramePolyfill(tryRestoreScroll)
@@ -84,7 +81,7 @@ export const getBaseFetchController = (
             loadCallbackDispose = loadCallback?.(dynamicContent)
         } catch (error) {
             if (error.name === "AbortError") return
-            console.error("Failed to fetch sidebar", error)
+            console.error("Sidebar: Failed to fetch", url, error)
             dynamicContent.textContent = error.message
             alert(error.message)
         }

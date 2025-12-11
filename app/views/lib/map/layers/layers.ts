@@ -220,11 +220,7 @@ layersConfig.set("gps" as LayerId, {
 })
 
 const layerLookupMap = memoize(() => {
-    console.debug(
-        "Lazily initializing layerLookupMap with",
-        layersConfig.size,
-        "configured layers",
-    )
+    console.debug("Layers: Initializing lookup map", layersConfig.size)
     const result = new Map<LayerId | LayerCode, LayerId>()
     for (const [layerId, config] of layersConfig) {
         result.set(layerId, layerId)
@@ -306,12 +302,7 @@ const watchMapsLayerSources: MaplibreMap[] = []
 // Listen for theme changes
 effect(() => {
     const theme = activeTheme.value
-    console.debug(
-        "Changing",
-        watchMapsLayerSources.length,
-        "maps layer sources to",
-        theme,
-    )
+    console.debug("Layers: Theme changed", theme, watchMapsLayerSources.length, "maps")
     const isDarkTheme = theme === "dark"
     for (const map of watchMapsLayerSources) {
         for (const [layerId, config] of layersConfig) {
@@ -376,7 +367,7 @@ export const addMapLayer = (
 ) => {
     const config = layersConfig.get(layerId)
     if (!config) {
-        console.warn("Layer", layerId, "not found in", layersConfig.keys())
+        console.warn("Layers: Layer not found", layerId)
         return
     }
 
@@ -387,7 +378,7 @@ export const addMapLayer = (
     } else if (specType === "raster") {
         layerTypes = ["raster"]
     } else if (specType !== "vector") {
-        console.warn("Unsupported specification type", specType, "on layer", layerId)
+        console.warn("Layers: Unsupported spec type", specType, layerId)
         return
     }
 
@@ -401,7 +392,7 @@ export const addMapLayer = (
         )
 
     if (specType === "vector") {
-        console.debug("Adding vectory layer", layerId, "before", beforeId)
+        console.debug("Layers: Adding vector", layerId, "before", beforeId)
         const vectorStyle = config.vectorStyle!
 
         // Add glyphs
@@ -435,14 +426,7 @@ export const addMapLayer = (
             map.addLayer(layerObject, beforeId)
         }
     } else {
-        console.debug(
-            "Adding layer",
-            layerId,
-            "with types",
-            layerTypes,
-            "before",
-            beforeId,
-        )
+        console.debug("Layers: Adding", layerId, layerTypes, "before", beforeId)
         const layerOptions = config.layerOptions ?? {}
 
         // Override opacity from storage for overlay layers
@@ -506,7 +490,7 @@ export const removeMapLayer = (
     // Remove layers
     for (const extendedLayerId of map.getLayersOrder()) {
         if (resolveExtendedLayerId(extendedLayerId) !== layerId) continue
-        console.debug("Removing layer", extendedLayerId, "because of", layerId)
+        console.debug("Layers: Removing", extendedLayerId, "for", layerId)
         map.removeLayer(extendedLayerId)
         removed = true
     }
@@ -535,7 +519,7 @@ export const removeMapLayer = (
             }
         }
     } else {
-        console.debug("Removed no layers with id", layerId)
+        console.debug("Layers: Nothing to remove", layerId)
     }
 }
 

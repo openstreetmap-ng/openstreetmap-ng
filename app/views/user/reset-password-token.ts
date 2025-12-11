@@ -8,5 +8,6 @@ mount("reset-password-token-body", (body) => {
         resetForm.reset()
         resetForm.querySelector(".before")!.remove()
         resetForm.querySelector(".after")!.classList.remove("d-none")
+        console.debug("ResetPasswordToken: Password updated")
     })
 })
