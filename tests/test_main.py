@@ -1,4 +1,3 @@
-import re
 from collections import defaultdict
 
 from starlette.routing import Route
@@ -7,7 +6,7 @@ from app.main import main
 
 
 def test_route_conflicts():
-    capture_paths = defaultdict[str, list[re.Pattern[str]]](list)
+    capture_paths = defaultdict(list)
 
     for route in main.routes:
         if not isinstance(route, Route) or not (route_methods := route.methods):

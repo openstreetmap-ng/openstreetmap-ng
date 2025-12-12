@@ -1,4 +1,4 @@
-import { URLSAFE_BLACKLIST } from "@lib/config"
+import { URLSAFE_BLACKLIST, URLSAFE_BLACKLIST_RE } from "@lib/config"
 import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
 import { mount } from "@lib/mount"
 import { type APIDetail, configureStandardForm } from "@lib/standard-form"
@@ -30,8 +30,7 @@ mount("settings-body", (body) => {
             validationCallback: () => {
                 const result: APIDetail[] = []
 
-                const displayNameChars = new Set(displayNameInput.value)
-                if (URLSAFE_BLACKLIST.split("").some((c) => displayNameChars.has(c))) {
+                if (URLSAFE_BLACKLIST_RE.test(displayNameInput.value)) {
                     const msg = i18next.t("validations.url_characters", {
                         characters: URLSAFE_BLACKLIST,
                         interpolation: { escapeValue: false },

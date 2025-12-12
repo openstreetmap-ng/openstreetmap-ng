@@ -1,11 +1,11 @@
 import logging
-import re
 from asyncio import TaskGroup
 from collections.abc import Iterable
 from contextlib import asynccontextmanager
 from datetime import timedelta
 
 import cython
+import re2
 from fastapi import HTTPException
 from httpx import HTTPError, HTTPStatusError
 from psycopg import AsyncConnection
@@ -30,7 +30,7 @@ from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP
 
 _CACHE_CONTEXT = CacheContext('ImageProxy')
-_INLINE_RE = re.compile(r'src="/api/web/img/proxy/(\d{1,20})"')
+_INLINE_RE = re2.compile(r'src="/api/web/img/proxy/(\d{1,20})"')
 _PREFETCH_TG: TaskGroup
 
 
@@ -174,7 +174,7 @@ class ImageProxyService:
 
         for item, html in workload:
 
-            def repl(match: re.Match[str]) -> str:
+            def repl(match: re2._Match[str]) -> str:
                 entry = entries.get(int(match[1]))  # type: ignore
                 if not entry or not entry['thumbnail']:
                     return match[0]

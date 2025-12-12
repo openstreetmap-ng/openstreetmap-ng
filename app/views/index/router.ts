@@ -23,7 +23,7 @@ let currentRoute: Route | null = null
 const findRoute = (p: string) => routes.find((r) => r.match(p)) ?? null
 
 export const makeRoute = (pattern: string, controller: IndexController) => {
-    const re = new RegExp(`^${pattern}($|\\?)`) // match pattern, allow query string
+    const re = new RegExp(`^${pattern}(?:$|\\?)`) // match pattern, allow query string
 
     return {
         match: (path: string) => re.test(path),

@@ -1,6 +1,5 @@
 import asyncio
 import gzip
-import re
 from asyncio import Semaphore, TaskGroup
 from collections import defaultdict
 from datetime import timedelta
@@ -9,12 +8,18 @@ from typing import NamedTuple
 from urllib.parse import unquote_plus
 
 import orjson
+import re2
 
 from app.lib.retry import retry
 from app.utils import HTTP
 
 _download_limiter = Semaphore(6)  # max concurrent downloads
 _wiki_pages_path = Path('config/wiki_pages.json')
+
+_SITEMAP_URL_RE = re2.compile(
+    r'https://wiki\.openstreetmap\.org/sitemap-wiki-NS_\d+-\d+.xml.gz'
+)
+_WIKI_LOC_RE = re2.compile(r'/(?:(?P<locale>[\w-]+):)?(?P<page>(?:Key|Tag):.*?)</loc>')
 
 
 class WikiPageInfo(NamedTuple):
@@ -26,9 +31,7 @@ class WikiPageInfo(NamedTuple):
 async def discover_sitemap_urls() -> list[str]:
     r = await HTTP.get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml')
     r.raise_for_status()
-    matches = re.finditer(
-        r'https://wiki\.openstreetmap\.org/sitemap-wiki-NS_\d+-\d+.xml.gz', r.text
-    )
+    matches = _SITEMAP_URL_RE.finditer(r.text)
     result = [match[0] for match in matches]
     print(f'[🔍] Discovered {len(result)} sitemaps')
     return result
@@ -43,9 +46,7 @@ async def fetch_and_parse_sitemap(url: str) -> list[WikiPageInfo]:
     text = gzip.decompress(r.content).decode()
     result: list[WikiPageInfo] = []
 
-    for match in re.finditer(
-        r'/(?:(?P<locale>[\w-]+):)?(?P<page>(?:Key|Tag):.*?)</loc>', text
-    ):
+    for match in _WIKI_LOC_RE.finditer(text):
         locale = match['locale'] or ''
         locale = unquote_plus(locale)
 

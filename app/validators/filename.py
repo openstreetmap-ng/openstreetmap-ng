@@ -1,8 +1,7 @@
-import re
-
+import re2
 from pydantic import BeforeValidator
 
-_FILENAME_RE = re.compile(r'[^a-zA-Z0-9.]+')
+_FILENAME_RE = re2.compile(r'[^a-zA-Z0-9.]+')
 
 
 def _validate_filename(value: str) -> str:

@@ -1,6 +1,6 @@
-import re
 from typing import get_args, override
 
+import re2
 from starlette.convertors import Convertor
 
 from app.models.element import ElementType
@@ -8,7 +8,7 @@ from speedup.element_type import element_type
 
 
 class ElementTypeConvertor(Convertor):
-    regex = '|'.join(re.escape(v) for v in get_args(ElementType))
+    regex = '|'.join(re2.escape(v) for v in get_args(ElementType))
     convert = staticmethod(element_type)  # type: ignore
 
     @override

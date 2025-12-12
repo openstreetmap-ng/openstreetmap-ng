@@ -1,33 +1,27 @@
 import logging
-import re
 
 import cython
+import re2
 from starlette.applications import Starlette
 from starlette.routing import Route
 
 from app.models.types import DisplayName
 
 _BLACKLIST = set[str]()
+_USER_PATH_RE = re2.compile(r'^/user/([^/{][^/]*)')
 
 
 def user_name_blacklist_routes(app: Starlette) -> None:
     """Blacklist usernames that could conflict with application routes."""
-    path_re = re.compile(r'^/user/(?P<display_name>[^/]+)')
     result: list[str] = []
 
     for route in app.routes:
         if not isinstance(route, Route):
             continue
 
-        match = path_re.search(route.path)
-        if match is None:
-            continue
-
-        name = match['display_name']
-        if name[0] == '{':
-            continue
-
-        result.append(_normalize(name))
+        match = _USER_PATH_RE.match(route.path)
+        if match is not None:
+            result.append(_normalize(match[1]))
 
     _BLACKLIST.update(result)
     logging.info('Blacklisted %d user names from routes: %s', len(result), result)

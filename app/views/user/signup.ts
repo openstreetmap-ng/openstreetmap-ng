@@ -1,4 +1,4 @@
-import { activityTracking, URLSAFE_BLACKLIST } from "@lib/config"
+import { activityTracking, URLSAFE_BLACKLIST, URLSAFE_BLACKLIST_RE } from "@lib/config"
 import { mount } from "@lib/mount"
 import { type APIDetail, configureStandardForm } from "@lib/standard-form"
 import { Collapse } from "bootstrap"
@@ -28,8 +28,7 @@ mount("signup-body", (body) => {
                 const result: APIDetail[] = []
 
                 // Validate name for blacklisted characters
-                const displayNameChars = new Set(displayNameInput.value)
-                if (URLSAFE_BLACKLIST.split("").some((c) => displayNameChars.has(c))) {
+                if (URLSAFE_BLACKLIST_RE.test(displayNameInput.value)) {
                     const msg = i18next.t("validations.url_characters", {
                         characters: URLSAFE_BLACKLIST,
                         interpolation: { escapeValue: false },

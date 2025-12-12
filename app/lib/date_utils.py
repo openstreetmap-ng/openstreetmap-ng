@@ -4,9 +4,26 @@ from typing import overload
 import arrow
 import cython
 import dateutil.parser
+import re2
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.lib.translation import primary_translation_locale
+
+# ISO-ish datetime gate for the fast path in parse_date().
+# We intentionally keep this conservative: if a string doesn't look like ISO 8601,
+# fall back to dateutil (supports RFC2822, partial dates like "Aug 31", times like "16:00", etc.).
+_ISO_LIKE_RE = re2.compile(
+    r'^\d{4}-\d{2}-\d{2}'
+    r'(?:[T ]\d{2}:\d{2}:\d{2}'
+    r'(?:\.\d{1,9})?'
+    r'(?:Z|[+-]\d{2}:?\d{2})?'
+    r')?$'
+)
+
+# datetime.fromisoformat() only supports up to 6 fractional digits (microseconds).
+# If input has more (e.g., nanoseconds), truncate instead of failing.
+# Example: ".123456789Z" -> ".123456Z"
+_ISO_FRACTION_TRUNC_RE = re2.compile(r'\.(\d{6})\d+')
 
 
 @overload
@@ -66,7 +83,18 @@ def parse_date(s: str, /) -> datetime:
     >>> parse_date('2010-10-31')
     datetime.datetime(2010, 10, 31, 0, 0)
     """
-    dt = dateutil.parser.parse(s, ignoretz=False)
+    s = s.strip()
+
+    # dateutil.parser.parse is flexible but slow.
+    # Fast-path ISO-like strings via datetime.fromisoformat
+    if _ISO_LIKE_RE.fullmatch(s):
+        s2 = _ISO_FRACTION_TRUNC_RE.sub(r'.\1', s)
+        try:
+            dt = datetime.fromisoformat(s2)
+        except ValueError:
+            dt = dateutil.parser.parse(s, ignoretz=False)
+    else:
+        dt = dateutil.parser.parse(s, ignoretz=False)
 
     # Set or convert to UTC timezone
     return dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt.astimezone(UTC)

@@ -1,13 +1,13 @@
 import logging
-import re
 from functools import lru_cache
 
 import orjson
+import re2
 
 from app.config import FILE_CACHE_DIR
 
 # Safari detection would be nice, but requires more complex checks
-_USER_AGENT_RE = re.compile(r'(?P<name>Chrome|Firefox)/(?P<major_version>\d{1,4})')
+_USER_AGENT_RE = re2.compile(r'(Chrome|Firefox)/(\d{1,4})')
 
 
 @lru_cache(maxsize=512)
@@ -28,8 +28,7 @@ def is_browser_supported(user_agent: str) -> bool:
     if match is None:
         return True
 
-    name = match['name']
-    major_version = int(match['major_version'])
+    name, major_version = match[1], int(match[2])
 
     if name == 'Chrome':
         return major_version >= _CHROME_MAJOR_VERSION

@@ -12,6 +12,7 @@ import {
     _SENTRY_DSN,
     _SENTRY_TRACES_SAMPLE_RATE,
     _URLSAFE_BLACKLIST,
+    _URLSAFE_BLACKLIST_RE,
     _VERSION,
 } from "./config.macro" with { type: "macro" }
 
@@ -24,6 +25,7 @@ export const RAPID_PATH = _RAPID_PATH
 export const SENTRY_DSN = _SENTRY_DSN
 export const SENTRY_TRACES_SAMPLE_RATE = _SENTRY_TRACES_SAMPLE_RATE
 export const URLSAFE_BLACKLIST = _URLSAFE_BLACKLIST
+export const URLSAFE_BLACKLIST_RE = _URLSAFE_BLACKLIST_RE
 export const VERSION = _VERSION
 
 /** Global dataset options that are defined on <html> tag */

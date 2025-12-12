@@ -1,10 +1,10 @@
 import asyncio
-import re
 from asyncio import Semaphore, TaskGroup
 from datetime import timedelta
 from pathlib import Path
 
 import orjson
+import re2
 
 from app.lib.locale import LocaleName
 from app.lib.retry import retry
@@ -16,6 +16,12 @@ _download_limiter = Semaphore(8)  # max concurrent downloads
 _extra_names_path = Path('config/locale/extra_names.json')
 _names_path = Path('config/locale/names.json')
 
+_OPTION_RE = re2.compile(r"<option value='(?P<value>[\w-]+)'.*?>(?P<label>[\w-]+) - ")
+_FILENAME_LOCALE_RE = re2.compile(r'filename="(?P<locale>[\w-]+)\.yml"')
+_MESSAGES_HEADER_RE = re2.compile(
+    r'# Messages for (?P<english>.+?) \((?P<native>.+?)\)'
+)
+
 
 async def get_download_locales() -> list[LocaleCode]:
     r = await HTTP.get(
@@ -23,8 +29,12 @@ async def get_download_locales() -> list[LocaleCode]:
         params={'group': 'out-osm-site'},
     )
     r.raise_for_status()
-    matches = re.finditer(r"<option value='(?P<value>[\w-]+)'.*?>(?P=value) - ", r.text)
-    return [LocaleCode(match.group('value')) for match in matches]
+    locales: list[LocaleCode] = []
+    for match in _OPTION_RE.finditer(r.text):
+        value, label = match['value'], match['label']
+        if value == label:
+            locales.append(LocaleCode(value))
+    return locales
 
 
 @retry(timedelta(minutes=2))
@@ -44,9 +54,7 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
         if content_disposition is None:
             return None  # missing translation
 
-        match_locale = re.search(
-            r'filename="(?P<locale>[\w-]+)\.yml"', content_disposition
-        )
+        match_locale = _FILENAME_LOCALE_RE.search(content_disposition)
         if match_locale is None:
             raise ValueError(f'Failed to match filename for {locale!r}')
 
@@ -55,7 +63,7 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
             print(f'[❔] {locale}: invalid language code')
             return None
 
-    match = re.match(r'# Messages for (?P<english>.+?) \((?P<native>.+?)\)', r.text)
+    match = _MESSAGES_HEADER_RE.match(r.text)
     if match is None:
         raise ValueError(f'Failed to match language names for {locale!r}')
 

@@ -17,6 +17,7 @@
     "@std/datetime": "npm:@jsr/std__datetime",
     "@std/encoding": "npm:@jsr/std__encoding",
     "@std/math": "npm:@jsr/std__math",
+    "@std/regexp": "npm:@jsr/std__regexp",
     "@std/toml": "npm:@jsr/std__toml",
     "@types/bootstrap": "latest",
     "@types/bun": "latest",

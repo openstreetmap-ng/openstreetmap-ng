@@ -1,10 +1,10 @@
 import logging
-import re
 from pathlib import Path
 from typing import NamedTuple, overload
 
 import cython
 import orjson
+import re2
 
 from app.config import ENV, LOCALE_CODE_MAX_LENGTH
 from app.models.types import LocaleCode
@@ -26,7 +26,7 @@ class LocaleName(NamedTuple):
 
 DEFAULT_LOCALE = LocaleCode('en')
 
-_NON_ALPHA_RE = re.compile(r'[^a-z]+')
+_NON_ALPHA_RE = re2.compile(r'[^a-z]+')
 
 
 @cython.cfunc

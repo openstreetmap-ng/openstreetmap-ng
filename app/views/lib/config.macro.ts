@@ -1,6 +1,7 @@
 import { execSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import { dirname } from "node:path"
+import { escape as escapeRegexp } from "@std/regexp"
 
 const pythonConfig: Record<string, any> = JSON.parse(
     execSync(
@@ -29,6 +30,10 @@ export const _NOTE_QUERY_AREA_MAX_SIZE: number = pythonConfig.NOTE_QUERY_AREA_MA
 export const _SENTRY_DSN: string = pythonConfig.SENTRY_DSN
 export const _SENTRY_TRACES_SAMPLE_RATE: number = pythonConfig.SENTRY_TRACES_SAMPLE_RATE
 export const _URLSAFE_BLACKLIST: string = pythonConfig.URLSAFE_BLACKLIST
+export const _URLSAFE_BLACKLIST_RE = new RegExp(
+    `[${escapeRegexp(_URLSAFE_BLACKLIST)}]`,
+    "u",
+)
 export const _VERSION: string = pythonConfig.VERSION
 
 const getPackageDist = (pkgName: string) => {

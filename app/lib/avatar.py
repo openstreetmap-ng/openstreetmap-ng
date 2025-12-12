@@ -1,10 +1,10 @@
 import logging
-import re
 from html import escape
 from random import Random
 from typing import Literal
 
 import cython
+import re2
 
 from app.lib.crypto import hmac_bytes
 
@@ -228,8 +228,20 @@ def _generate_shapes(seed: int | float | str | bytes | bytearray) -> str:
 </svg>"""
 
 
-_WORD_BOUNDARY_RE = re.compile(r'[\s\-_.,;:!?@/\\()\[\]{}0-9]+')
-_CAMEL_CASE_RE = re.compile(r'(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])')
+_WORD_BOUNDARY_RE = re2.compile(r'[\s\-_.,;:!?@/\\()\[\]{}0-9]+')
+_CAMEL_CASE_BOUNDARY_RE = re2.compile(r'([a-z])([A-Z])|([A-Z])([A-Z][a-z])')
+
+
+@cython.cfunc
+def _split_camel_case(s: str) -> list[str]:
+    """Split a string on camelCase / PascalCase boundaries."""
+    if len(s) < 2:
+        return [s]
+
+    # Patterns:
+    # - lower->upper: "fooBar" => "foo Bar"
+    # - acronym->word: "JSONData" => "JSON Data"
+    return _CAMEL_CASE_BOUNDARY_RE.sub(r'\1\3 \2\4', s).split()
 
 
 def _extract_initials(text: str) -> str:
@@ -267,7 +279,7 @@ def _extract_initials(text: str) -> str:
     elif parts:
         # Single part - check for camelCase
         part = parts[0]
-        camel_parts: list[str] = _CAMEL_CASE_RE.split(part)
+        camel_parts = _split_camel_case(part)
 
         if len(camel_parts) >= 2:
             # CamelCase detected - take first alpha from each part

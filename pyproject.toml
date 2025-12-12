@@ -21,6 +21,7 @@ dependencies = [
   "feedgen",
   "fonttools",
   "githead",
+  "google-re2",
   "gunicorn",
   "h3",
   "httpx-secure",
@@ -142,7 +143,7 @@ line-length = 88
 target-version = "py313"
 
 [tool.ruff.lint]
-exclude = ["typings/brotli/**"]
+exclude = ["typings/brotli/**", "typings/re2/**"]
 # custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 ignore = [
   "ARG001",  # unused-function-argument
@@ -273,6 +274,7 @@ multiline-quotes = "double"
 "arrow.utcnow".msg = "You were likely intending to import `utcnow` from `app.lib.date_utils`."
 "multiprocessing.cpu_count".msg = "Please use `os.process_cpu_count()` instead."
 "os.cpu_count".msg = "Please use `os.process_cpu_count()` instead."
+"re".msg = "Please use `re2` (google-re2) instead."
 
 [tool.ruff.lint.pep8-naming]
 extend-ignore-names = ["ET"]

@@ -1,10 +1,9 @@
-import re
 from hashlib import sha256
-from operator import itemgetter
 from os import utime
 from pathlib import Path
 
 import orjson
+import re2
 
 _POSTPROCESS_DIR = Path('config/locale/postprocess')
 _I18NEXT_DIR = Path('config/locale/i18next')
@@ -17,25 +16,32 @@ _INCLUDE_PREFIXES = [
     'site.key.table.entry',
 ]
 
-_INCLUDE_PREFIXES_DOT = [f'{prefix}.' for prefix in _INCLUDE_PREFIXES]
+_INCLUDE_PREFIXES_DOT = tuple(f'{prefix}.' for prefix in _INCLUDE_PREFIXES)
 
-_COUNT_SUFFIX_RE = re.compile(r'(?<=\.count)_[^.]+$')
+# Match i18next.t() and t() calls with literal strings
+_FIND_USED_KEYS_OPTIONS = re2.Options()
+_FIND_USED_KEYS_OPTIONS.dot_nl = True
+_FIND_USED_KEYS_RE = re2.compile(
+    r'(?:\bi18next\.t|(?:^|[^.\w])t)\s*\(\s*'
+    r'(?:"((?:\\.|[^"\\])*)"|\'((?:\\.|[^\'\\])*)\')'
+    r'\s*[,)]',
+    _FIND_USED_KEYS_OPTIONS,
+)
 
 
 def find_used_keys() -> tuple[set[str], float]:
     """Extract translation keys used in the source files."""
-    # Regex pattern to match i18next.t() and t() calls with literal strings
-    pattern = re.compile(
-        r'(?:\bi18next\.t|(?<![.\w])t)\s*\(\s*(["\'])((?:\\.|(?!\1).)*)\1\s*[,)]',
-        re.DOTALL,
-    )
-
     result = set()
     mtime = 0
 
     for source in Path('app/views').rglob('*.ts'):
-        if matches := pattern.findall(source.read_text()):
-            result.update(map(itemgetter(1), matches))
+        found = False
+        for match in _FIND_USED_KEYS_RE.finditer(source.read_text()):
+            found = True
+            key = match[1] or match[2]
+            if key:
+                result.add(key)
+        if found:
             mtime = max(mtime, source.stat().st_mtime)
 
     return result, mtime
@@ -57,11 +63,16 @@ def filter_unused_keys(
             ):
                 filtered[key] = filtered_nested
         # Check if this key should be included
-        elif (
-            _COUNT_SUFFIX_RE.sub('', current_path, 1) in used_keys  #
-            or any(current_path.startswith(prefix) for prefix in _INCLUDE_PREFIXES_DOT)
-        ):
-            filtered[key] = value
+        else:
+            head, sep, tail = current_path.rpartition('.count_')
+            count_candidate = (
+                f'{head}.count' if (sep and '.' not in tail) else current_path
+            )
+            if (
+                count_candidate in used_keys  #
+                or current_path.startswith(_INCLUDE_PREFIXES_DOT)
+            ):
+                filtered[key] = value
 
     return filtered
 

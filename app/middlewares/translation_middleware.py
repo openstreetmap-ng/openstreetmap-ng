@@ -1,5 +1,4 @@
 import logging
-import re
 from functools import lru_cache
 
 import cython
@@ -11,12 +10,6 @@ from app.lib.locale import DEFAULT_LOCALE, normalize_locale
 from app.lib.translation import translation_context
 from app.middlewares.request_context_middleware import get_request
 from app.models.types import LocaleCode
-
-# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#language
-# limit to matches only supported by our translation files: config/locale
-_ACCEPT_LANGUAGE_RE = re.compile(
-    r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?'
-)
 
 
 class TranslationMiddleware:
@@ -72,24 +65,32 @@ def _parse_accept_language(accept_language: str) -> LocaleCode:
     current_q: cython.double = 0
     current_lang: LocaleCode = DEFAULT_LOCALE
 
-    for match in _ACCEPT_LANGUAGE_RE.finditer(accept_language):
-        q_str: str | None = match['q']
-        q_num: cython.double
-        if q_str is None:
-            q_num = 1
-        else:
-            try:
-                q_num = float(q_str)
-            except ValueError:
-                logging.debug('Invalid accept language q-factor %r', q_str)
-                continue
-
-        if q_num <= current_q:
+    for item in accept_language.split(','):
+        item = item.strip()
+        if not item:
             continue
 
-        lang = LocaleCode(match['lang'])
+        lang_raw, _, params_raw = item.partition(';')
+        lang = LocaleCode(lang_raw.strip())
         if len(lang) > LOCALE_CODE_MAX_LENGTH:
             logging.debug('Accept language code is too long %d', len(lang))
+            continue
+
+        q_num: cython.double = 1
+        if params_raw:
+            for param in params_raw.split(';'):
+                param = param.strip()
+                if not param.startswith('q='):
+                    continue
+                q_str = param[2:]
+                try:
+                    q_num = float(q_str)
+                except ValueError:
+                    logging.debug('Invalid accept language q-factor %r', q_str)
+                    q_num = 0
+                break
+
+        if q_num <= current_q:
             continue
 
         if lang == '*':
