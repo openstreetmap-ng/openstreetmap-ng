@@ -68,7 +68,7 @@
                 </div>
                 <div>
                     <span class="text-muted me-2">
-                        {{ apps_num_items }} applications
+                        <span data-sp-num-items>…</span> applications
                     </span>
                     <div class="btn-group" role="group">
                         <button type="submit" class="btn btn-outline-primary">
@@ -86,7 +86,6 @@
 
 <div class="content-body">
     <div class="container">
-        {% if apps_num_items %}
         <nav aria-label="{{ t('alt.page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-2">
             </ul>
@@ -108,15 +107,9 @@
             </table>
         </div>
         <nav aria-label="{{ t('alt.page_navigation') }}">
-            <ul class="pagination pagination-sm justify-content-end mb-0" data-action="{{ pagination_action }}"
-                data-pages="{{ apps_num_pages }}" data-num-items="{{ apps_num_items }}">
+            <ul class="pagination pagination-sm justify-content-end mb-0" data-action="{{ pagination_action }}">
             </ul>
         </nav>
-        {% else %}
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle me-1-5"></i>No applications found matching your filters.
-        </div>
-        {% endif %}
     </div>
 </div>
 

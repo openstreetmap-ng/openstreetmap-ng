@@ -1,3 +1,4 @@
+{% if apps %}
 {% for app in apps %}
 {% set _is_system = oauth2_app_is_system(app) %}
 <tr data-app-id="{{ app.id }}">
@@ -96,3 +97,10 @@
     </td>
 </tr>
 {% endfor %}
+{% else %}
+<tr>
+    <td colspan="7" class="text-center text-muted py-4">
+        No applications found matching your filters.
+    </td>
+</tr>
+{% endif %}

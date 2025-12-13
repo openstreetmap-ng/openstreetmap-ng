@@ -4,12 +4,13 @@ from typing import Annotated, Literal
 
 import orjson
 from fastapi import APIRouter, Query
-from pydantic import PositiveInt
+from pydantic import NonNegativeInt
 from starlette.responses import Response
 
-from app.config import ADMIN_APPLICATION_EXPORT_LIMIT
+from app.config import ADMIN_APPLICATION_EXPORT_LIMIT, ADMIN_APPLICATION_LIST_PAGE_SIZE
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
+from app.lib.standard_pagination import sp_apply_headers, sp_resolve_page
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import User
 from app.models.types import ApplicationId
@@ -24,8 +25,8 @@ router = APIRouter(prefix='/api/web/admin/applications')
 @router.get('')
 async def applications_page(
     _: Annotated[User, web_user('role_administrator')],
-    page: Annotated[PositiveInt, Query()],
-    num_items: Annotated[PositiveInt, Query()],
+    page: Annotated[NonNegativeInt, Query()],
+    num_items: Annotated[int | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
     owner: Annotated[str | None, Query()] = None,
     interacted_user: Annotated[str | None, Query()] = None,
@@ -33,6 +34,23 @@ async def applications_page(
     created_before: Annotated[datetime | None, Query()] = None,
     sort: Annotated[Literal['created_asc', 'created_desc'], Query()] = 'created_desc',
 ):
+    sp_request_headers = num_items is None
+    if sp_request_headers:
+        num_items = await OAuth2ApplicationQuery.find(  # type: ignore
+            'count',
+            search=search,
+            owner=owner,
+            interacted_user=interacted_user,
+            created_after=created_after,
+            created_before=created_before,
+            sort=sort,
+        )
+
+    assert num_items is not None
+    page = sp_resolve_page(
+        page=page, num_items=num_items, page_size=ADMIN_APPLICATION_LIST_PAGE_SIZE
+    )
+
     apps: list[OAuth2Application] = await OAuth2ApplicationQuery.find(  # type: ignore
         'page',
         page=page,
@@ -55,7 +73,7 @@ async def applications_page(
             OAuth2TokenQuery.count_users_by_applications(app_ids)
         )
 
-    return await render_response(
+    response = await render_response(
         'admin/applications/page',
         {
             'apps': apps,
@@ -63,6 +81,11 @@ async def applications_page(
             'user_counts': user_counts_t.result(),
         },
     )
+    if sp_request_headers:
+        sp_apply_headers(
+            response, num_items=num_items, page_size=ADMIN_APPLICATION_LIST_PAGE_SIZE
+        )
+    return response
 
 
 @router.get('/export')
