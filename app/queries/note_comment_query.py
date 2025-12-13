@@ -1,4 +1,4 @@
-from typing import Any, Literal, overload
+from typing import Any, Literal, TypedDict, Unpack, overload
 
 from psycopg.abc import Params, Query
 from psycopg.rows import dict_row
@@ -57,16 +57,16 @@ class NoteCommentQuery:
         ):
             return await r.fetchall()  # type: ignore
 
+    class _FindParams(TypedDict, total=False):
+        skip_header: bool
+
     @overload
     @staticmethod
     async def find_comments_page(
         mode: Literal['count'],
         /,
         note_id: NoteId,
-        *,
-        page: None = None,
-        num_items: None = None,
-        skip_header: bool = True,
+        **kwargs: Unpack[_FindParams],
     ) -> int: ...
 
     @overload
@@ -78,7 +78,7 @@ class NoteCommentQuery:
         *,
         page: int,
         num_items: int,
-        skip_header: bool = True,
+        **kwargs: Unpack[_FindParams],
     ) -> list[NoteComment]: ...
 
     @staticmethod
@@ -89,7 +89,7 @@ class NoteCommentQuery:
         *,
         page: int | None = None,
         num_items: int | None = None,
-        skip_header: bool = True,
+        **kwargs: Unpack[_FindParams],
     ) -> int | list[NoteComment]:
         """
         Get comments for the given note comments page.
@@ -137,6 +137,7 @@ class NoteCommentQuery:
             comments: list[NoteComment] = await r.fetchall()  # type: ignore
 
             # Skip the header comment
+            skip_header = kwargs.get('skip_header', True)
             if (
                 skip_header
                 and page == 1

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
-from typing import Literal
+from typing import Literal, TypedDict, Unpack, overload
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
@@ -133,6 +133,33 @@ class AuditQuery:
 
         return result
 
+    class _FindParams(TypedDict, total=False):
+        ip: IPv4Address | IPv6Address | IPv4Network | IPv6Network | None
+        user: str | None
+        application_id: ApplicationId | None
+        type: AuditType | None
+        created_after: datetime | None
+        created_before: datetime | None
+
+    @overload
+    @staticmethod
+    async def find(
+        mode: Literal['count'],
+        /,
+        **kwargs: Unpack[_FindParams],
+    ) -> int: ...
+
+    @overload
+    @staticmethod
+    async def find(
+        mode: Literal['page'],
+        /,
+        *,
+        page: int,
+        num_items: int,
+        **kwargs: Unpack[_FindParams],
+    ) -> list[AuditEvent]: ...
+
     @staticmethod
     async def find(
         mode: Literal['count', 'page'],
@@ -140,17 +167,13 @@ class AuditQuery:
         *,
         page: int | None = None,
         num_items: int | None = None,
-        ip: IPv4Address | IPv6Address | IPv4Network | IPv6Network | None = None,
-        user: str | None = None,
-        application_id: ApplicationId | None = None,
-        type: AuditType | None = None,
-        created_after: datetime | None = None,
-        created_before: datetime | None = None,
+        **kwargs: Unpack[_FindParams],
     ) -> int | list[AuditEvent]:
         """Find audit logs. Results are always sorted by created_at DESC (most recent first)."""
         conditions: list[Composable] = []
         params: list = []
 
+        ip = kwargs.get('ip')
         if ip is not None:
             if isinstance(ip, IPv4Network | IPv6Network):
                 conditions.append(SQL('ip >= %s AND ip <= %s'))
@@ -160,6 +183,7 @@ class AuditQuery:
                 conditions.append(SQL('ip = %s'))
                 params.append(ip)
 
+        user = kwargs.get('user')
         if user is not None:
             user_ids: list[UserId] = []
 
@@ -184,18 +208,22 @@ class AuditQuery:
             params.append(user_ids)
             params.append(user_ids)
 
+        application_id = kwargs.get('application_id')
         if application_id is not None:
             conditions.append(SQL('application_id = %s'))
             params.append(application_id)
 
+        type = kwargs.get('type')
         if type is not None:
             conditions.append(SQL('type = %s'))
             params.append(type)
 
+        created_after = kwargs.get('created_after')
         if created_after is not None:
             conditions.append(SQL('created_at >= %s'))
             params.append(created_after)
 
+        created_before = kwargs.get('created_before')
         if created_before is not None:
             conditions.append(SQL('created_at <= %s'))
             params.append(created_before)

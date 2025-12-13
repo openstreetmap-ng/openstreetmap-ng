@@ -36,7 +36,7 @@ async def audit_page(
 ):
     sp_request_headers = num_items is None
     if sp_request_headers:
-        num_items = await AuditQuery.find(  # type: ignore
+        num_items = await AuditQuery.find(
             'count',
             ip=ip,
             user=user,
@@ -51,7 +51,7 @@ async def audit_page(
         page=page, num_items=num_items, page_size=AUDIT_LIST_PAGE_SIZE
     )
 
-    events: list[AuditEvent] = await AuditQuery.find(  # type: ignore
+    events: list[AuditEvent] = await AuditQuery.find(
         'page',
         page=page,
         num_items=num_items,

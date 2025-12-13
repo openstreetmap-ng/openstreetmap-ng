@@ -36,7 +36,7 @@ async def applications_page(
 ):
     sp_request_headers = num_items is None
     if sp_request_headers:
-        num_items = await OAuth2ApplicationQuery.find(  # type: ignore
+        num_items = await OAuth2ApplicationQuery.find(
             'count',
             search=search,
             owner=owner,
@@ -51,7 +51,7 @@ async def applications_page(
         page=page, num_items=num_items, page_size=ADMIN_APPLICATION_LIST_PAGE_SIZE
     )
 
-    apps: list[OAuth2Application] = await OAuth2ApplicationQuery.find(  # type: ignore
+    apps: list[OAuth2Application] = await OAuth2ApplicationQuery.find(
         'page',
         page=page,
         num_items=num_items,
@@ -97,7 +97,7 @@ async def export_ids(
     created_after: Annotated[datetime | None, Query()] = None,
     created_before: Annotated[datetime | None, Query()] = None,
 ):
-    app_ids: list[ApplicationId] = await OAuth2ApplicationQuery.find(  # type: ignore
+    app_ids: list[ApplicationId] = await OAuth2ApplicationQuery.find(
         'ids',
         search=search,
         owner=owner,

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict, Unpack, overload
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
@@ -101,6 +101,43 @@ class OAuth2ApplicationQuery:
 
         return apps
 
+    class _FindParams(TypedDict, total=False):
+        search: str | None
+        owner: str | None
+        interacted_user: str | None
+        created_after: datetime | None
+        created_before: datetime | None
+        sort: Literal['created_asc', 'created_desc']
+
+    @overload
+    @staticmethod
+    async def find(
+        mode: Literal['count'],
+        /,
+        **kwargs: Unpack[_FindParams],
+    ) -> int: ...
+
+    @overload
+    @staticmethod
+    async def find(
+        mode: Literal['ids'],
+        /,
+        *,
+        limit: int,
+        **kwargs: Unpack[_FindParams],
+    ) -> list[ApplicationId]: ...
+
+    @overload
+    @staticmethod
+    async def find(
+        mode: Literal['page'],
+        /,
+        *,
+        page: int,
+        num_items: int,
+        **kwargs: Unpack[_FindParams],
+    ) -> list[OAuth2Application]: ...
+
     @staticmethod
     async def find(
         mode: Literal['count', 'ids', 'page'],
@@ -108,17 +145,13 @@ class OAuth2ApplicationQuery:
         *,
         page: int | None = None,
         num_items: int | None = None,
-        search: str | None = None,
-        owner: str | None = None,
-        interacted_user: str | None = None,
-        created_after: datetime | None = None,
-        created_before: datetime | None = None,
-        sort: Literal['created_asc', 'created_desc'] = 'created_desc',
         limit: int | None = None,
+        **kwargs: Unpack[_FindParams],
     ) -> int | list[OAuth2Application] | list[ApplicationId]:
         conditions: list[Composable] = []
         params: list[Any] = []
 
+        search = kwargs.get('search')
         if search:
             ors: list[Composable] = [SQL('name ILIKE %s'), SQL('client_id = %s')]
             params.extend((f'%{search}%', search))
@@ -129,6 +162,7 @@ class OAuth2ApplicationQuery:
 
             conditions.append(SQL('({})').format(SQL(' OR ').join(ors)))
 
+        owner = kwargs.get('owner')
         if owner:
             owner_ids: list[UserId] = []
 
@@ -152,6 +186,7 @@ class OAuth2ApplicationQuery:
             conditions.append(SQL('user_id = ANY(%s)'))
             params.append(owner_ids)
 
+        interacted_user = kwargs.get('interacted_user')
         if interacted_user:
             interactor_ids: list[UserId] = []
 
@@ -188,10 +223,12 @@ class OAuth2ApplicationQuery:
             )
             params.append(interactor_ids)
 
+        created_after = kwargs.get('created_after')
         if created_after:
             conditions.append(SQL('created_at >= %s'))
             params.append(created_after)
 
+        created_before = kwargs.get('created_before')
         if created_before:
             conditions.append(SQL('created_at <= %s'))
             params.append(created_before)
@@ -205,6 +242,7 @@ class OAuth2ApplicationQuery:
             async with db() as conn, await conn.execute(query, params) as r:
                 return (await r.fetchone())[0]  # type: ignore
 
+        sort = kwargs.get('sort', 'created_desc')
         if sort == 'created_desc':
             order_clause = SQL('created_at DESC')
         elif sort == 'created_asc':

@@ -1,6 +1,6 @@
 from datetime import datetime
 from ipaddress import ip_address, ip_network
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, TypedDict, Unpack, overload
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
@@ -312,6 +312,44 @@ class UserQuery:
 
         await UserQuery.resolve_users(elements)
 
+    class _FindParams(TypedDict, total=False):
+        search: str | None
+        unverified: Literal[True] | None
+        roles: list[UserRole] | None
+        created_after: datetime | None
+        created_before: datetime | None
+        application_id: ApplicationId | None
+        sort: Literal['created_asc', 'created_desc', 'name_asc', 'name_desc']
+
+    @overload
+    @staticmethod
+    async def find(
+        mode: Literal['count'],
+        /,
+        **kwargs: Unpack[_FindParams],
+    ) -> int: ...
+
+    @overload
+    @staticmethod
+    async def find(
+        mode: Literal['ids'],
+        /,
+        *,
+        limit: int,
+        **kwargs: Unpack[_FindParams],
+    ) -> list[UserId]: ...
+
+    @overload
+    @staticmethod
+    async def find(
+        mode: Literal['page'],
+        /,
+        *,
+        page: int,
+        num_items: int,
+        **kwargs: Unpack[_FindParams],
+    ) -> list[User]: ...
+
     @staticmethod
     async def find(
         mode: Literal['count', 'ids', 'page'],
@@ -319,24 +357,14 @@ class UserQuery:
         *,
         page: int | None = None,
         num_items: int | None = None,
-        search: str | None = None,
-        unverified: Literal[True] | None = None,
-        roles: list[UserRole] | None = None,
-        created_after: datetime | None = None,
-        created_before: datetime | None = None,
-        application_id: ApplicationId | None = None,
-        sort: Literal[
-            'created_asc',
-            'created_desc',
-            'name_asc',
-            'name_desc',
-        ] = 'created_desc',
         limit: int | None = None,
+        **kwargs: Unpack[_FindParams],
     ) -> int | list[User] | list[UserId]:
         """Find users matching filters in different modes."""
         conditions: list[Composable] = []
         params: list[Any] = []
 
+        search = kwargs.get('search')
         if search:
             try:
                 search_ip = ip_address(search)
@@ -366,21 +394,26 @@ class UserQuery:
                     pattern = f'%{search}%'
                     params.extend((pattern, pattern))
 
+        unverified = kwargs.get('unverified')
         if unverified:
             conditions.append(SQL('NOT email_verified'))
 
+        roles = kwargs.get('roles')
         if roles:
             conditions.append(SQL('roles && %s'))
             params.append(roles)
 
+        created_after = kwargs.get('created_after')
         if created_after:
             conditions.append(SQL('created_at >= %s'))
             params.append(created_after)
 
+        created_before = kwargs.get('created_before')
         if created_before:
             conditions.append(SQL('created_at <= %s'))
             params.append(created_before)
 
+        application_id = kwargs.get('application_id')
         if application_id is not None:
             conditions.append(
                 SQL("""
@@ -401,6 +434,7 @@ class UserQuery:
             async with db() as conn, await conn.execute(query, params) as r:
                 return (await r.fetchone())[0]  # type: ignore
 
+        sort = kwargs.get('sort', 'created_desc')
         if sort == 'created_asc':
             order_clause = SQL('created_at')
         elif sort == 'created_desc':

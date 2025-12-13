@@ -48,7 +48,7 @@ async def users_page(
 ):
     sp_request_headers = num_items is None
     if sp_request_headers:
-        num_items = await UserQuery.find(  # type: ignore
+        num_items = await UserQuery.find(
             'count',
             search=search,
             unverified=True if unverified else None,
@@ -64,7 +64,7 @@ async def users_page(
         page=page, num_items=num_items, page_size=ADMIN_USER_LIST_PAGE_SIZE
     )
 
-    users: list[User] = await UserQuery.find(  # type: ignore
+    users: list[User] = await UserQuery.find(
         'page',
         page=page,
         num_items=num_items,
@@ -111,7 +111,7 @@ async def export_ids(
     created_before: Annotated[datetime | None, Query()] = None,
     application_id: Annotated[ApplicationId | None, Query()] = None,
 ):
-    user_ids: list[UserId] = await UserQuery.find(  # type: ignore
+    user_ids: list[UserId] = await UserQuery.find(
         'ids',
         search=search,
         unverified=True if unverified else None,

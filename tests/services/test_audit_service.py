@@ -55,7 +55,7 @@ async def test_cleanup_old_audit_logs():
         )
 
     # Verify both events exist before cleanup
-    events_before: list[AuditEvent] = await AuditQuery.find(  # type: ignore
+    events_before: list[AuditEvent] = await AuditQuery.find(
         'page',
         page=1,
         num_items=10,
@@ -68,7 +68,7 @@ async def test_cleanup_old_audit_logs():
     await AuditService.force_process()
 
     # Assert: Verify only the recent event remains after cleanup
-    events_after: list[AuditEvent] = await AuditQuery.find(  # type: ignore
+    events_after: list[AuditEvent] = await AuditQuery.find(
         'page',
         page=1,
         num_items=10,
