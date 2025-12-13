@@ -258,7 +258,8 @@ class ReportService:
         )
 
     @staticmethod
-    async def close_report(report_id: ReportId, body: str) -> None:
+    async def set_state(report_id: ReportId, body: str, *, close: bool) -> None:
+        """Close or reopen a report."""
         user = auth_user(required=True)
         user_id = user['id']
 
@@ -274,68 +275,27 @@ class ReportService:
                 result = await r.fetchone()
                 assert result is not None, f'Report {report_id} not found'
 
-                if result[0] is not None:
+                is_closed = result[0] is not None
+                if close and is_closed:
                     StandardFeedback.raise_error(None, 'Report is already closed')
-
-            await conn.execute(
-                """
-                UPDATE report SET
-                    closed_at = statement_timestamp(),
-                    updated_at = DEFAULT
-                WHERE id = %s
-                """,
-                (report_id,),
-            )
-
-            comment_init: ReportCommentInit = {
-                'id': zid(),  # type: ignore
-                'report_id': report_id,
-                'user_id': user_id,
-                'action': 'close',
-                'action_id': None,
-                'body': body,
-                'category': None,
-                'visible_to': 'moderator',
-            }
-            await _add_report_comment(conn, comment_init)
-
-        logging.debug('Closed report %d by user %d', report_id, user_id)
-
-    @staticmethod
-    async def reopen_report(report_id: ReportId, body: str) -> None:
-        user = auth_user(required=True)
-        user_id = user['id']
-
-        async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT closed_at FROM report
-                WHERE id = %s
-                FOR UPDATE
-                """,
-                (report_id,),
-            ) as r:
-                result = await r.fetchone()
-                assert result is not None, f'Report {report_id} not found'
-
-                if result[0] is None:
+                if not close and not is_closed:
                     StandardFeedback.raise_error(None, 'Report is already open')
 
             await conn.execute(
                 """
                 UPDATE report SET
-                    closed_at = NULL,
+                    closed_at = CASE WHEN %s THEN statement_timestamp() ELSE NULL END,
                     updated_at = DEFAULT
                 WHERE id = %s
                 """,
-                (report_id,),
+                (close, report_id),
             )
 
             comment_init: ReportCommentInit = {
                 'id': zid(),  # type: ignore
                 'report_id': report_id,
                 'user_id': user_id,
-                'action': 'reopen',
+                'action': 'close' if close else 'reopen',
                 'action_id': None,
                 'body': body,
                 'category': None,
@@ -343,7 +303,12 @@ class ReportService:
             }
             await _add_report_comment(conn, comment_init)
 
-        logging.debug('Reopened report %d by user %d', report_id, user_id)
+        logging.debug(
+            '%s report %d by user %d',
+            'Closed' if close else 'Reopened',
+            report_id,
+            user_id,
+        )
 
 
 @cython.cfunc

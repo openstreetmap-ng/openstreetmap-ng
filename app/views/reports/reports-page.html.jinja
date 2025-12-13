@@ -1,4 +1,5 @@
 {% set show_user = True %}
+{% if reports %}
 {% for report in reports %}
 <li class="social-entry clickable">
     <p class="header text-muted d-flex justify-content-between">
@@ -49,3 +50,8 @@
     </div>
 </li>
 {% endfor %}
+{% else %}
+<li class="reports-empty">
+    <h3>{{ t('traces.index.empty_title') }}</h3>
+</li>
+{% endif %}

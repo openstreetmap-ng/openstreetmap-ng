@@ -31,7 +31,6 @@
 
 <div class="content-body">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        {% if reports_num_items %}
         <div class="reports-pagination">
             <nav aria-label="{{ t('alt.page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2">
@@ -40,14 +39,10 @@
             <ul class="social-list list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('alt.page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-0"
-                    data-action="/api/web/reports?status={{ status }}" data-pages="{{ reports_num_pages }}"
-                    data-num-items="{{ reports_num_items }}">
+                    data-action="/api/web/reports?status={{ status }}">
                 </ul>
             </nav>
         </div>
-        {% else %}
-        <h3>{{ t('traces.index.empty_title') }}</h3>
-        {% endif %}
     </div>
 </div>
 

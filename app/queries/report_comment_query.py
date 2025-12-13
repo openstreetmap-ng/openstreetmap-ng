@@ -54,7 +54,7 @@ class ReportCommentQuery:
         num_items: int,
     ) -> list[ReportComment]:
         """Get a page of comments for a report."""
-        stmt_limit, stmt_offset = standard_pagination_range(
+        limit, offset = standard_pagination_range(
             page,
             page_size=REPORT_COMMENTS_PAGE_SIZE,
             num_items=num_items,
@@ -71,9 +71,9 @@ class ReportCommentQuery:
                     OFFSET %s
                     LIMIT %s
                 ) AS subquery
-                ORDER BY created_at ASC
+                ORDER BY created_at
                 """,
-                (report_id, stmt_offset, stmt_limit),
+                (report_id, offset, limit),
             ) as r,
         ):
             comments: list[ReportComment] = await r.fetchall()  # type: ignore
@@ -90,6 +90,22 @@ class ReportCommentQuery:
             )
 
         return comments
+
+    @staticmethod
+    async def count_by_report(report_id: ReportId) -> int:
+        """Count report comments by report id."""
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*)
+                FROM report_comment
+                WHERE report_id = %s
+                """,
+                (report_id,),
+            ) as r,
+        ):
+            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
     async def resolve_comments(
@@ -116,7 +132,7 @@ class ReportCommentQuery:
             )
             SELECT * FROM ranked_comments
             WHERE rn <= %s
-            ORDER BY report_id, created_at ASC
+            ORDER BY report_id, created_at
             """
             params = (list(id_map), per_report_limit)
         else:
@@ -124,7 +140,7 @@ class ReportCommentQuery:
             query = """
             SELECT * FROM report_comment
             WHERE report_id = ANY(%s)
-            ORDER BY report_id, created_at ASC
+            ORDER BY report_id, created_at
             """
             params = (list(id_map),)
 

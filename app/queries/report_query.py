@@ -1,5 +1,6 @@
 from typing import NamedTuple
 
+import cython
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
@@ -35,18 +36,16 @@ class ReportQuery:
     @staticmethod
     async def count_all(*, open: bool | None = None) -> int:
         """Count all reports, optionally filtered by open/closed status."""
-        conditions: list[Composable] = []
-
-        if open or open is None:
-            conditions.append(SQL('closed_at IS NULL'))
-        if not open:
-            conditions.append(SQL('closed_at IS NOT NULL'))
-
-        query = SQL('SELECT COUNT(*) FROM report WHERE {}').format(
-            SQL(' OR ').join(conditions)
-        )
-
-        async with db() as conn, await conn.execute(query) as r:
+        async with (
+            db() as conn,
+            await conn.execute(
+                SQL("""
+                    SELECT COUNT(*)
+                    FROM report
+                    WHERE {}
+                """).format(_where_open(open))
+            ) as r,
+        ):
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
@@ -57,35 +56,25 @@ class ReportQuery:
         open: bool | None = None,
     ) -> list[Report]:
         """Get a page of reports for the list view."""
-        stmt_limit, stmt_offset = standard_pagination_range(
+        if not num_items:
+            return []
+
+        limit, offset = standard_pagination_range(
             page,
             page_size=REPORT_LIST_PAGE_SIZE,
             num_items=num_items,
         )
 
-        conditions: list[Composable] = []
-
-        if open or open is None:
-            conditions.append(SQL('closed_at IS NULL'))
-        if not open:
-            conditions.append(SQL('closed_at IS NOT NULL'))
-
-        # Use DESC ordering for newest first, then reverse for final result
-        query = SQL("""
-            SELECT * FROM (
-                SELECT * FROM report
-                WHERE {}
-                ORDER BY updated_at DESC
-                OFFSET %s
-                LIMIT %s
-            ) AS subquery
-            ORDER BY updated_at ASC
-        """).format(SQL(' OR ').join(conditions))
-
         async with (
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
-                query, (stmt_offset, stmt_limit)
+                SQL("""
+                    SELECT * FROM report
+                    WHERE {}
+                    ORDER BY updated_at DESC
+                    LIMIT %s OFFSET %s
+                """).format(_where_open(open)),
+                (limit, offset),
             ) as r,
         ):
             return await r.fetchall()  # type: ignore
@@ -130,3 +119,12 @@ class ReportQuery:
 
         async with db() as conn, await conn.execute(query) as r:
             return _ReportCountResult(*(await r.fetchone()))  # type: ignore
+
+
+@cython.cfunc
+def _where_open(open: bool | None) -> Composable:
+    if open is True:
+        return SQL('closed_at IS NULL')
+    if open is False:
+        return SQL('closed_at IS NOT NULL')
+    return SQL('TRUE')
