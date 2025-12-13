@@ -6,7 +6,6 @@ import { resolveUserAgentIconsLazy } from "@lib/user-agent-icons"
 import { NON_DIGIT_RE } from "@lib/utils"
 import { getPasskeyRegistration } from "@lib/webauthn"
 import { encodeBase32 } from "@std/encoding/base32"
-import { Modal } from "bootstrap"
 import i18next from "i18next"
 
 const generateTOTPSecret = () => {
@@ -156,18 +155,18 @@ mount("settings-security-body", (body) => {
             })
         }
 
-        setupModal.addEventListener(Modal.Events.show, () => {
+        setupModal.addEventListener("show.bs.modal", () => {
             secretInput.value = generateTOTPSecret()
             digitsInputs[0].checked = true
             digitsInputs[0].dispatchEvent(new Event("change"))
         })
 
-        setupModal.addEventListener(Modal.Events.shown, () => {
+        setupModal.addEventListener("shown.bs.modal", () => {
             codeInput.focus()
         })
 
         // Clear sensitive data on modal close
-        setupModal.addEventListener(Modal.Events.hidden, () => {
+        setupModal.addEventListener("hidden.bs.modal", () => {
             setupTOTPForm.reset()
             qrContainer.innerHTML = ""
         })
@@ -182,7 +181,7 @@ mount("settings-security-body", (body) => {
     const disableAuthMethodModal = document.getElementById("disableAuthMethodModal")!
     const disableAuthMethodForm = disableAuthMethodModal.querySelector("form")!
 
-    disableAuthMethodModal.addEventListener(Modal.Events.show, (e) => {
+    disableAuthMethodModal.addEventListener("show.bs.modal", (e) => {
         const button = e.relatedTarget as HTMLButtonElement
         disableAuthMethodForm.action = button.dataset.authAction!
         disableAuthMethodModal.querySelector(".modal-title")!.textContent =
@@ -201,7 +200,7 @@ mount("settings-security-body", (body) => {
     const generateRecoveryCodesForm = generateRecoveryCodesModal.querySelector("form")!
     const generateRecoveryCodesBody = generateRecoveryCodesForm.parentElement!
 
-    generateRecoveryCodesModal.addEventListener(Modal.Events.hide, () => {
+    generateRecoveryCodesModal.addEventListener("hide.bs.modal", () => {
         if (generateRecoveryCodesModal.querySelector("form")) {
             generateRecoveryCodesForm.reset()
             return

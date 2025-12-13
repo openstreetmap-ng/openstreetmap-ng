@@ -99,7 +99,7 @@ editGroup.addEventListener("click", async (e) => {
     }
 })
 // On dropdown hidden, uncheck remember choice checkbox
-editGroup.addEventListener(Dropdown.Events.hidden, () => {
+editGroup.addEventListener("hidden.bs.dropdown", () => {
     if (!rememberChoice.checked) return
     rememberChoice.checked = false
     rememberChoice.dispatchEvent(new Event("change"))

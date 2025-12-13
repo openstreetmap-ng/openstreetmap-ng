@@ -1,6 +1,6 @@
 import "./main.scss"
 
-import { Modal } from "bootstrap"
+import "bootstrap"
 
 const quizModal = document.getElementById("testSiteQuizModal")!
 const quizForm = quizModal.querySelector("form")!
@@ -40,7 +40,7 @@ quizForm.addEventListener("change", (e) => {
     }
 })
 
-quizModal.addEventListener(Modal.Events.hidden, () => {
+quizModal.addEventListener("hidden.bs.modal", () => {
     // Reset all inputs and styles
     for (const radio of document.querySelectorAll('input[type="radio"]')) {
         radio.checked = false

@@ -2,26 +2,26 @@ import type { Collapse, Dropdown, Modal, Offcanvas } from "bootstrap"
 
 declare global {
     interface HTMLElementEventMap {
-        [Modal.Events.show]: Modal.Event
-        [Modal.Events.shown]: Modal.Event
-        [Modal.Events.hide]: Modal.Event
-        [Modal.Events.hidden]: Modal.Event
-        [Modal.Events.hidePrevented]: Modal.Event
+        "show.bs.modal": Modal.Event
+        "shown.bs.modal": Modal.Event
+        "hide.bs.modal": Modal.Event
+        "hidden.bs.modal": Modal.Event
+        "hidePrevented.bs.modal": Modal.Event
 
-        [Dropdown.Events.show]: Dropdown.Event
-        [Dropdown.Events.shown]: Dropdown.Event
-        [Dropdown.Events.hide]: Dropdown.Event
-        [Dropdown.Events.hidden]: Dropdown.Event
+        "show.bs.dropdown": Dropdown.Event
+        "shown.bs.dropdown": Dropdown.Event
+        "hide.bs.dropdown": Dropdown.Event
+        "hidden.bs.dropdown": Dropdown.Event
 
-        [Collapse.Events.show]: Collapse.Event
-        [Collapse.Events.shown]: Collapse.Event
-        [Collapse.Events.hide]: Collapse.Event
-        [Collapse.Events.hidden]: Collapse.Event
+        "show.bs.collapse": Collapse.Event
+        "shown.bs.collapse": Collapse.Event
+        "hide.bs.collapse": Collapse.Event
+        "hidden.bs.collapse": Collapse.Event
 
-        [Offcanvas.Events.show]: Offcanvas.Event
-        [Offcanvas.Events.shown]: Offcanvas.Event
-        [Offcanvas.Events.hide]: Offcanvas.Event
-        [Offcanvas.Events.hidden]: Offcanvas.Event
-        [Offcanvas.Events.hidePrevented]: Offcanvas.Event
+        "show.bs.offcanvas": Offcanvas.Event
+        "shown.bs.offcanvas": Offcanvas.Event
+        "hide.bs.offcanvas": Offcanvas.Event
+        "hidden.bs.offcanvas": Offcanvas.Event
+        "hidePrevented.bs.offcanvas": Offcanvas.Event
     }
 }

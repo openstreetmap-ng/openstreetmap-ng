@@ -5,7 +5,7 @@ const modalElement = document.getElementById("unsubscribeDiscussionModal")
 if (modalElement) {
     const redirectLink = modalElement.querySelector("a.btn-close[href]")!.href
 
-    modalElement.addEventListener(Modal.Events.hide, (e) => {
+    modalElement.addEventListener("hide.bs.modal", (e) => {
         e.preventDefault()
         console.debug("Unsubscribe: Modal hide", redirectLink)
         window.location.href = redirectLink
