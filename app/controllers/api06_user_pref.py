@@ -21,7 +21,7 @@ router = APIRouter(prefix='/api/0.6')
 async def get_prefs(
     _: Annotated[User, api_user('read_prefs')],
 ):
-    prefs = await UserPrefQuery.find_by_app(app_id=None)
+    prefs = await UserPrefQuery.find(app_id=None)
     return Format06.encode_user_preferences(prefs)
 
 
@@ -30,7 +30,8 @@ async def get_pref(
     key: UserPrefKey,
     _: Annotated[User, api_user('read_prefs')],
 ):
-    pref = await UserPrefQuery.find_by_app_key(app_id=None, key=key)
+    prefs = await UserPrefQuery.find(app_id=None, key=key)
+    pref = next(iter(prefs), None)
     if pref is None:
         raise_for.pref_not_found(app_id=None, key=key)
     return pref['value']
@@ -64,4 +65,4 @@ async def delete_pref(
     key: UserPrefKey,
     _: Annotated[User, api_user('write_prefs')],
 ):
-    await UserPrefService.delete_by_app_key(app_id=None, key=key)
+    await UserPrefService.delete(app_id=None, key=key)

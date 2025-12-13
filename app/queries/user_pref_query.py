@@ -8,40 +8,30 @@ from app.models.types import ApplicationId, UserPrefKey
 
 class UserPrefQuery:
     @staticmethod
-    async def find_by_app_key(
-        app_id: ApplicationId | None, key: UserPrefKey
-    ) -> UserPref | None:
-        """Find a user preference by app id and key."""
+    async def find(
+        app_id: ApplicationId | None, *, key: UserPrefKey | None = None
+    ) -> list[UserPref]:
+        """Find user preferences by app id and optional key."""
         user_id = auth_user(required=True)['id']
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        if key is not None:
+            query = """
                 SELECT * FROM user_pref
                 WHERE user_id = %s
                 AND app_id IS NOT DISTINCT FROM %s
                 AND key = %s
-                """,
-                (user_id, app_id, key),
-            ) as r,
-        ):
-            return await r.fetchone()  # type: ignore
-
-    @staticmethod
-    async def find_by_app(app_id: ApplicationId | None) -> list[UserPref]:
-        """Find all user preferences by app id."""
-        user_id = auth_user(required=True)['id']
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+            """
+            params = (user_id, app_id, key)
+        else:
+            query = """
                 SELECT * FROM user_pref
                 WHERE user_id = %s
                 AND app_id IS NOT DISTINCT FROM %s
-                """,
-                (user_id, app_id),
-            ) as r,
+            """
+            params = (user_id, app_id)
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
         ):
             return await r.fetchall()  # type: ignore

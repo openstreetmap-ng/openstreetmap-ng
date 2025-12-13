@@ -50,36 +50,31 @@ class UserPrefService:
             )
 
     @staticmethod
-    async def delete_by_app_key(app_id: ApplicationId | None, key: UserPrefKey) -> None:
-        """Delete a user preference by app id and key."""
+    async def delete(
+        app_id: ApplicationId | None, *, key: UserPrefKey | None = None
+    ) -> None:
+        """Delete user preference(s) by app id and optional key."""
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            result = await conn.execute(
-                """
-                DELETE FROM user_pref
-                WHERE user_id = %s
-                AND app_id IS NOT DISTINCT FROM %s
-                AND key = %s
-                """,
-                (user_id, app_id, key),
-            )
+            if key is not None:
+                result = await conn.execute(
+                    """
+                    DELETE FROM user_pref
+                    WHERE user_id = %s
+                    AND app_id IS NOT DISTINCT FROM %s
+                    AND key = %s
+                    """,
+                    (user_id, app_id, key),
+                )
+            else:
+                result = await conn.execute(
+                    """
+                    DELETE FROM user_pref
+                    WHERE user_id = %s
+                    AND app_id IS NOT DISTINCT FROM %s
+                    """,
+                    (user_id, app_id),
+                )
             if result.rowcount:
                 await audit('delete_prefs', conn, extra={'app': app_id, 'key': key})
-
-    @staticmethod
-    async def delete_by_app(app_id: ApplicationId | None) -> None:
-        """Delete all user preferences by app id."""
-        user_id = auth_user(required=True)['id']
-
-        async with db(True) as conn:
-            result = await conn.execute(
-                """
-                DELETE FROM user_pref
-                WHERE user_id = %s
-                AND app_id IS NOT DISTINCT FROM %s
-                """,
-                (user_id, app_id),
-            )
-            if result.rowcount:
-                await audit('delete_prefs', conn, extra={'app': app_id})
