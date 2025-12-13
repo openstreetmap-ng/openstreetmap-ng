@@ -13,7 +13,7 @@ async def test_note_comments_resolve_rich_text():
             0, 0, test_note_comments_resolve_rich_text.__qualname__
         )
         comments = await NoteCommentQuery.find_comments_page(
-            note_id, page=1, num_items=1, skip_header=False
+            'page', note_id, page=1, num_items=1, skip_header=False
         )
         header = next(iter(comments), None)
         assert header is not None
@@ -21,7 +21,7 @@ async def test_note_comments_resolve_rich_text():
         assert header['body_rich_hash'] is None
         await note_comments_resolve_rich_text([header])
         comments = await NoteCommentQuery.find_comments_page(
-            note_id, page=1, num_items=1, skip_header=False
+            'page', note_id, page=1, num_items=1, skip_header=False
         )
         header = next(iter(comments), None)
         assert header is not None

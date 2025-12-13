@@ -248,6 +248,7 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
         # Fetch the first comment (which is the opening comment)
         first_comments_t = tg.create_task(
             NoteCommentQuery.find_comments_page(
+                'page',
                 note['id'],
                 page=1,
                 num_items=1,

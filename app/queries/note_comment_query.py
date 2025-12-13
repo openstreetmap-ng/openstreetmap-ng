@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any, Literal, overload
 
 from psycopg.abc import Params, Query
 from psycopg.rows import dict_row
@@ -57,18 +57,61 @@ class NoteCommentQuery:
         ):
             return await r.fetchall()  # type: ignore
 
+    @overload
     @staticmethod
     async def find_comments_page(
+        mode: Literal['count'],
+        /,
+        note_id: NoteId,
+        *,
+        page: None = None,
+        num_items: None = None,
+        skip_header: bool = True,
+    ) -> int: ...
+
+    @overload
+    @staticmethod
+    async def find_comments_page(
+        mode: Literal['page'],
+        /,
         note_id: NoteId,
         *,
         page: int,
         num_items: int,
         skip_header: bool = True,
-    ) -> list[NoteComment]:
+    ) -> list[NoteComment]: ...
+
+    @staticmethod
+    async def find_comments_page(
+        mode: Literal['count', 'page'],
+        /,
+        note_id: NoteId,
+        *,
+        page: int | None = None,
+        num_items: int | None = None,
+        skip_header: bool = True,
+    ) -> int | list[NoteComment]:
         """
         Get comments for the given note comments page.
-        The header comment is omitted if it's the first page.
+        The header comment is omitted from count and from page 1.
         """
+        if mode == 'count':
+            async with (
+                db() as conn,
+                await conn.execute(
+                    """
+                    SELECT GREATEST(COUNT(*) - 1, 0)
+                    FROM note_comment
+                    WHERE note_id = %s
+                    """,
+                    (note_id,),
+                ) as r,
+            ):
+                return (await r.fetchone())[0]  # type: ignore
+
+        # mode == 'page'
+        assert page is not None
+        assert num_items is not None
         stmt_limit, stmt_offset = standard_pagination_range(
             page,
             page_size=NOTE_COMMENTS_PAGE_SIZE,

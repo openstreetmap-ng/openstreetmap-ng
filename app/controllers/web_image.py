@@ -26,7 +26,7 @@ router = APIRouter(prefix='/api/web/img')
 @cache_control(STATIC_CACHE_MAX_AGE, STATIC_CACHE_STALE)
 async def anonymous_note_avatar(note_id: NoteId) -> Response:
     comments = await NoteCommentQuery.find_comments_page(
-        note_id, page=1, num_items=1, skip_header=False
+        'page', note_id, page=1, num_items=1, skip_header=False
     )
     comment = next(iter(comments), None)
     if (

@@ -1,3 +1,4 @@
+{% if notes %}
 {% for note in notes %}
 {% set comment = note.comments | first %}
 <li class="row g-2">
@@ -52,3 +53,8 @@
     </div>
 </li>
 {% endfor %}
+{% else %}
+<li class="notes-empty">
+    <h3>{{ t('traces.index.empty_title') }}</h3>
+</li>
+{% endif %}

@@ -22,7 +22,6 @@
 <div class="content-body">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
 
-        {% if notes_num_items %}
         <div class="notes-pagination">
             <nav aria-label="{{ t('alt.page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2">
@@ -31,14 +30,10 @@
             <ul class="notes-list social-list list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('alt.page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-0"
-                    data-action="/api/web/note/user/{{ profile.id }}?commented={{ commented }}&status={{ status }}"
-                    data-pages="{{ notes_num_pages }}" data-num-items="{{ notes_num_items }}">
+                    data-action="/api/web/note/user/{{ profile.id }}?commented={{ commented }}&status={{ status }}">
                 </ul>
             </nav>
         </div>
-        {% else %}
-        <h3>{{ t('traces.index.empty_title') }}</h3>
-        {% endif %}
 
     </div>
 </div>
