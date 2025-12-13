@@ -58,18 +58,6 @@ def hash_bytes(s: str | bytes, size: int = 32) -> bytes:
     return _hash(s, None, size)
 
 
-def hash_parts(parts: list[str | bytes], size: int = 16) -> bytes:
-    """Hash a list of parts into a hashed digest."""
-    return _hash(
-        b'\0'.join(
-            part.encode() if isinstance(part, str) else part  #
-            for part in parts
-        ),
-        None,
-        size,
-    )
-
-
 @cython.cfunc
 def _hash_urlsafe(s: str | bytes) -> str:
     """Hash the input and return the URL-safe digest."""
