@@ -1,3 +1,5 @@
+from typing import Literal, overload
+
 from psycopg.abc import Params, Query
 from psycopg.rows import dict_row
 
@@ -13,15 +15,53 @@ from app.models.types import ChangesetId
 
 
 class ChangesetCommentQuery:
+    @overload
     @staticmethod
     async def find_comments_page(
+        mode: Literal['count'],
+        /,
+        changeset_id: ChangesetId,
+    ) -> int: ...
+
+    @overload
+    @staticmethod
+    async def find_comments_page(
+        mode: Literal['page'],
+        /,
         changeset_id: ChangesetId,
         *,
         page: int,
         num_items: int,
-    ) -> list[ChangesetComment]:
+    ) -> list[ChangesetComment]: ...
+
+    @staticmethod
+    async def find_comments_page(
+        mode: Literal['count', 'page'],
+        /,
+        changeset_id: ChangesetId,
+        *,
+        page: int | None = None,
+        num_items: int | None = None,
+    ) -> int | list[ChangesetComment]:
         """Get comments for the given changeset comments page."""
-        stmt_limit, stmt_offset = standard_pagination_range(
+        if mode == 'count':
+            async with (
+                db() as conn,
+                await conn.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM changeset_comment
+                    WHERE changeset_id = %s
+                    """,
+                    (changeset_id,),
+                ) as r,
+            ):
+                return (await r.fetchone())[0]  # type: ignore
+
+        # mode == 'page'
+        assert page is not None
+        assert num_items is not None
+        limit, offset = standard_pagination_range(
             page,
             page_size=CHANGESET_COMMENTS_PAGE_SIZE,
             num_items=num_items,
@@ -40,26 +80,10 @@ class ChangesetCommentQuery:
                 )
                 ORDER BY id ASC
                 """,
-                (changeset_id, stmt_offset, stmt_limit),
+                (changeset_id, offset, limit),
             ) as r,
         ):
             return await r.fetchall()  # type: ignore
-
-    @staticmethod
-    async def count_by_changeset(changeset_id: ChangesetId) -> int:
-        """Count changeset comments by changeset id."""
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT COUNT(*)
-                FROM changeset_comment
-                WHERE changeset_id = %s
-                """,
-                (changeset_id,),
-            ) as r,
-        ):
-            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
     async def resolve_num_comments(changesets: list[Changeset]) -> None:

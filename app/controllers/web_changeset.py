@@ -96,7 +96,9 @@ async def comments_page(
 ):
     sp_request_headers = num_items is None
     if sp_request_headers:
-        num_items = await ChangesetCommentQuery.count_by_changeset(changeset_id)
+        num_items = await ChangesetCommentQuery.find_comments_page(
+            'count', changeset_id
+        )
 
     assert num_items is not None
     page = sp_resolve_page(
@@ -104,7 +106,7 @@ async def comments_page(
     )
 
     comments = await ChangesetCommentQuery.find_comments_page(
-        changeset_id, page=page, num_items=num_items
+        'page', changeset_id, page=page, num_items=num_items
     )
 
     async with TaskGroup() as tg:

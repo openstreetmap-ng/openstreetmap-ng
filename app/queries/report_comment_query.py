@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from typing import Literal, overload
 
 import cython
 from psycopg.rows import dict_row
@@ -46,14 +47,52 @@ class ReportCommentQuery:
         ):
             return await r.fetchone()  # type: ignore
 
+    @overload
     @staticmethod
     async def find_comments_page(
+        mode: Literal['count'],
+        /,
+        report_id: ReportId,
+    ) -> int: ...
+
+    @overload
+    @staticmethod
+    async def find_comments_page(
+        mode: Literal['page'],
+        /,
         report_id: ReportId,
         *,
         page: int,
         num_items: int,
-    ) -> list[ReportComment]:
-        """Get a page of comments for a report."""
+    ) -> list[ReportComment]: ...
+
+    @staticmethod
+    async def find_comments_page(
+        mode: Literal['count', 'page'],
+        /,
+        report_id: ReportId,
+        *,
+        page: int | None = None,
+        num_items: int | None = None,
+    ) -> int | list[ReportComment]:
+        """Get comments for the given report comments page."""
+        if mode == 'count':
+            async with (
+                db() as conn,
+                await conn.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM report_comment
+                    WHERE report_id = %s
+                    """,
+                    (report_id,),
+                ) as r,
+            ):
+                return (await r.fetchone())[0]  # type: ignore
+
+        # mode == 'page'
+        assert page is not None
+        assert num_items is not None
         limit, offset = standard_pagination_range(
             page,
             page_size=REPORT_COMMENTS_PAGE_SIZE,
@@ -90,22 +129,6 @@ class ReportCommentQuery:
             )
 
         return comments
-
-    @staticmethod
-    async def count_by_report(report_id: ReportId) -> int:
-        """Count report comments by report id."""
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT COUNT(*)
-                FROM report_comment
-                WHERE report_id = %s
-                """,
-                (report_id,),
-            ) as r,
-        ):
-            return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
     async def resolve_comments(

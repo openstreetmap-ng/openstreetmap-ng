@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal, overload
 
 import cython
 from psycopg.rows import dict_row
@@ -13,29 +13,85 @@ from app.models.types import DiaryCommentId, DiaryId, UserId
 
 
 class DiaryCommentQuery:
+    @overload
     @staticmethod
-    async def count_by_diary(diary_id: DiaryId) -> int:
-        """Count diary comments by diary id."""
+    async def find_comments_page(
+        mode: Literal['count'],
+        /,
+        diary_id: DiaryId,
+    ) -> int: ...
+
+    @overload
+    @staticmethod
+    async def find_comments_page(
+        mode: Literal['page'],
+        /,
+        diary_id: DiaryId,
+        *,
+        page: int,
+        num_items: int,
+    ) -> list[DiaryComment]: ...
+
+    @staticmethod
+    async def find_comments_page(
+        mode: Literal['count', 'page'],
+        /,
+        diary_id: DiaryId,
+        *,
+        page: int | None = None,
+        num_items: int | None = None,
+    ) -> int | list[DiaryComment]:
+        """Get comments for the given diary comments page."""
+        if mode == 'count':
+            async with (
+                db() as conn,
+                await conn.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM diary_comment
+                    WHERE diary_id = %s
+                    """,
+                    (diary_id,),
+                ) as r,
+            ):
+                return (await r.fetchone())[0]  # type: ignore
+
+        # mode == 'page'
+        assert page is not None
+        assert num_items is not None
+        stmt_limit, stmt_offset = standard_pagination_range(
+            page,
+            page_size=DIARY_COMMENTS_PAGE_SIZE,
+            num_items=num_items,
+        )
+
         async with (
             db() as conn,
-            await conn.execute(
+            await conn.cursor(row_factory=dict_row).execute(
                 """
-                SELECT COUNT(*) FROM diary_comment
-                WHERE diary_id = %s
+                SELECT * FROM (
+                    SELECT * FROM diary_comment
+                    WHERE diary_id = %s
+                    ORDER BY id DESC
+                    OFFSET %s
+                    LIMIT %s
+                ) AS subquery
+                ORDER BY id ASC
                 """,
-                (diary_id,),
+                (diary_id, stmt_offset, stmt_limit),
             ) as r,
         ):
-            return (await r.fetchone())[0]  # type: ignore
+            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def count_by_user(user_id: UserId) -> int:
-        """Count diary comments by user id."""
+        """Count diary comments by user id (for profile stats)."""
         async with (
             db() as conn,
             await conn.execute(
                 """
-                SELECT COUNT(*) FROM diary_comment
+                SELECT COUNT(*)
+                FROM diary_comment
                 WHERE user_id = %s
                 """,
                 (user_id,),
@@ -100,38 +156,6 @@ class DiaryCommentQuery:
         async with (
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            return await r.fetchall()  # type: ignore
-
-    @staticmethod
-    async def find_diary_page(
-        diary_id: DiaryId,
-        *,
-        page: int,
-        num_items: int,
-    ) -> list[DiaryComment]:
-        """Get comments for the given diary page."""
-        stmt_limit, stmt_offset = standard_pagination_range(
-            page,
-            page_size=DIARY_COMMENTS_PAGE_SIZE,
-            num_items=num_items,
-        )
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM (
-                    SELECT * FROM diary_comment
-                    WHERE diary_id = %s
-                    ORDER BY id DESC
-                    OFFSET %s
-                    LIMIT %s
-                ) AS subquery
-                ORDER BY id ASC
-                """,
-                (diary_id, stmt_offset, stmt_limit),
-            ) as r,
         ):
             return await r.fetchall()  # type: ignore
 

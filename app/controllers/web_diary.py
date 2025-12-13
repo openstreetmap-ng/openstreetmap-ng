@@ -1,12 +1,10 @@
 from asyncio import TaskGroup
-from math import ceil
 from typing import Annotated
 
 from fastapi import APIRouter, Form, Query, Response
-from pydantic import PositiveInt
+from pydantic import NonNegativeInt
 from shapely import Point
 from starlette import status
-from starlette.responses import HTMLResponse
 
 from app.config import (
     DIARY_BODY_MAX_LENGTH,
@@ -16,8 +14,9 @@ from app.config import (
     LOCALE_CODE_MAX_LENGTH,
 )
 from app.lib.auth_context import web_user
-from app.lib.render_jinja import render_jinja
+from app.lib.render_response import render_response
 from app.lib.standard_feedback import StandardFeedback
+from app.lib.standard_pagination import sp_apply_headers, sp_resolve_page
 from app.lib.translation import t
 from app.models.db.diary_comment import diary_comments_resolve_rich_text
 from app.models.db.user import User
@@ -82,30 +81,33 @@ async def delete(
 @router.get('/{diary_id:int}/comments')
 async def comments_page(
     diary_id: DiaryId,
-    page: Annotated[PositiveInt, Query()],
-    num_items: Annotated[int, Query()],
+    page: Annotated[NonNegativeInt, Query()],
+    num_items: Annotated[int | None, Query()] = None,
 ):
-    if num_items < 0:
-        num_items = await DiaryCommentQuery.count_by_diary(diary_id)
-        headers = {
-            'X-SP-NumItems': str(num_items),
-            'X-SP-NumPages': str(ceil(num_items / DIARY_COMMENTS_PAGE_SIZE)),
-        }
-    else:
-        headers = None
+    sp_request_headers = num_items is None
+    if sp_request_headers:
+        num_items = await DiaryCommentQuery.find_comments_page('count', diary_id)
 
-    comments = await DiaryCommentQuery.find_diary_page(
-        diary_id, page=page, num_items=num_items
+    assert num_items is not None
+    page = sp_resolve_page(
+        page=page, num_items=num_items, page_size=DIARY_COMMENTS_PAGE_SIZE
+    )
+    comments = await DiaryCommentQuery.find_comments_page(
+        'page', diary_id, page=page, num_items=num_items
     )
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(diary_comments_resolve_rich_text(comments))
 
-    return HTMLResponse(
-        render_jinja('diary/comments-page', {'comments': comments}),
-        headers=headers,
-    )
+    response = await render_response('diary/comments-page', {'comments': comments})
+    if sp_request_headers:
+        sp_apply_headers(
+            response,
+            num_items=num_items,
+            page_size=DIARY_COMMENTS_PAGE_SIZE,
+        )
+    return response
 
 
 # TODO: delete comment

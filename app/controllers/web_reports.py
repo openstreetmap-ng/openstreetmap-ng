@@ -160,7 +160,7 @@ async def comments_page(
     """Get a page of comments for a specific report."""
     sp_request_headers = num_items is None
     if sp_request_headers:
-        num_items = await ReportCommentQuery.count_by_report(report_id)
+        num_items = await ReportCommentQuery.find_comments_page('count', report_id)
 
     assert num_items is not None
     page = sp_resolve_page(
@@ -170,7 +170,7 @@ async def comments_page(
         report_task = tg.create_task(ReportQuery.find_by_id(report_id))
         comments_task = tg.create_task(
             ReportCommentQuery.find_comments_page(
-                report_id, page=page, num_items=num_items
+                'page', report_id, page=page, num_items=num_items
             )
         )
 
