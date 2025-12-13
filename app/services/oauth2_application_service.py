@@ -18,6 +18,7 @@ from app.lib.auth_context import auth_user
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.lib.standard_feedback import StandardFeedback
+from app.lib.storage import AVATAR_STORAGE
 from app.lib.translation import t
 from app.models.db.oauth2_application import (
     OAuth2ApplicationInit,
@@ -218,7 +219,7 @@ class OAuth2ApplicationService:
 
         if old_avatar_id is not None:
             async with TaskGroup() as tg:
-                tg.create_task(ImageService.delete_avatar_by_id(old_avatar_id))
+                tg.create_task(AVATAR_STORAGE.delete(old_avatar_id))
 
         return oauth2_app_avatar_url({'avatar_id': avatar_id, 'client_id': client_id})  # type: ignore
 

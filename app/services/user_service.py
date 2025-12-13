@@ -20,6 +20,7 @@ from app.lib.auth_context import auth_user
 from app.lib.image import Image, UserAvatarType
 from app.lib.locale import is_installed_locale
 from app.lib.standard_feedback import StandardFeedback
+from app.lib.storage import AVATAR_STORAGE, BACKGROUND_STORAGE
 from app.lib.translation import t
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import Editor, User, UserRole, user_avatar_url, user_is_test
@@ -134,7 +135,7 @@ class UserService:
 
         # Cleanup old avatar
         if old_avatar_id is not None:
-            await ImageService.delete_avatar_by_id(old_avatar_id)
+            await AVATAR_STORAGE.delete(old_avatar_id)
 
         user: User = {
             **user,
@@ -166,7 +167,7 @@ class UserService:
 
         # Cleanup old background
         if old_background_id is not None:
-            await ImageService.delete_background_by_id(old_background_id)
+            await BACKGROUND_STORAGE.delete(old_background_id)
 
         return Image.get_background_url(background_id)
 
