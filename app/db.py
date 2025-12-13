@@ -124,9 +124,9 @@ async def _register_types():
         await register_enum('scope')
         await register_enum('trace_visibility')
         await register_enum('user_role')
+        await register_enum('user_social_type')
         await register_enum('user_subscription_target')
         await register_enum('user_token_type')
-        await register_enum('user_social_type')
 
         async def register_type(
             name: str,
