@@ -343,7 +343,7 @@ export default defineConfig({
 
                 // Replace font URLs in CSS
                 const fontUrlPattern =
-                    /\.\/fonts\/bootstrap-icons\.woff2?(?:\?[^")]*)?/g
+                    /\/static\/vite\/assets\/bootstrap-icons\.[a-z0-9]+\.woff2?(?:\?[^")]*)?/g
 
                 for (const [fileName, chunk] of Object.entries(bundle)) {
                     if (!fileName.endsWith(".css") || chunk.type !== "asset") continue
@@ -352,7 +352,10 @@ export default defineConfig({
                             ? chunk.source
                             : Buffer.from(chunk.source).toString()
 
-                    chunk.source = css.replace(fontUrlPattern, `/${woff2File}`)
+                    chunk.source = css.replace(
+                        fontUrlPattern,
+                        `/static/vite/${woff2File}`,
+                    )
                 }
             },
         },
