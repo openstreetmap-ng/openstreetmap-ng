@@ -1,5 +1,4 @@
 from asyncio import TaskGroup
-from math import ceil
 from typing import Annotated
 
 from fastapi import APIRouter
@@ -27,18 +26,12 @@ async def _get_follows_page(user_id: UserId, *, followers: bool):
     following_count = following_count_t.result()
     followers_count = followers_count_t.result()
 
-    # Calculate pagination for the active tab
-    active_count = followers_count if followers else following_count
-    num_pages = ceil(active_count / FOLLOWS_LIST_PAGE_SIZE)
-
     return await render_response(
         'follows/index',
         {
             'active_tab': 'followers' if followers else 'following',
             'following_count': following_count,
             'followers_count': followers_count,
-            'follows_num_pages': num_pages,
-            'follows_num_items': active_count,
             'FOLLOWS_LIST_PAGE_SIZE': FOLLOWS_LIST_PAGE_SIZE,
         },
     )

@@ -34,46 +34,29 @@
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
         {% if active_tab == 'following' %}
         <div class="follows-pagination">
-            {% if follows_num_items %}
             <nav aria-label="{{ t('pagination.page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2"></ul>
             </nav>
             <ul class="list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('pagination.page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2" data-action="/api/web/follows/following"
-                    data-pages="{{ follows_num_pages }}" data-num-items="{{ follows_num_items }}"
                     data-page-size="{{ FOLLOWS_LIST_PAGE_SIZE }}">
                 </ul>
             </nav>
-            {% else %}
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-bookmark display-1 d-block mb-3"></i>
-                <p class="mb-2">{{ t('follows.you_are_not_following_anyone_yet') }}</p>
-                <p class="small">{{ t('follows.visit_user_profiles_to_start') }}</p>
-            </div>
-            {% endif %}
         </div>
         {% endif %}
 
         {% if active_tab == 'followers' %}
         <div class="follows-pagination">
-            {% if follows_num_items %}
             <nav aria-label="{{ t('pagination.page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2"></ul>
             </nav>
             <ul class="list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('pagination.page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2" data-action="/api/web/follows/followers"
-                    data-pages="{{ follows_num_pages }}" data-num-items="{{ follows_num_items }}"
                     data-page-size="{{ FOLLOWS_LIST_PAGE_SIZE }}">
                 </ul>
             </nav>
-            {% else %}
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-people display-1 d-block mb-3"></i>
-                <p>{{ t('follows.you_dont_have_any_followers_yet') }}</p>
-            </div>
-            {% endif %}
         </div>
         {% endif %}
     </div>
