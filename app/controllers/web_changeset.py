@@ -3,14 +3,19 @@ from datetime import date, datetime, time, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, Query, Response
-from pydantic import PositiveInt
+from pydantic import NonNegativeInt
 from starlette import status
 
-from app.config import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_QUERY_WEB_LIMIT
+from app.config import (
+    CHANGESET_COMMENT_BODY_MAX_LENGTH,
+    CHANGESET_COMMENTS_PAGE_SIZE,
+    CHANGESET_QUERY_WEB_LIMIT,
+)
 from app.format import FormatRender
 from app.lib.auth_context import web_user
 from app.lib.geo_utils import parse_bbox
 from app.lib.render_response import render_response
+from app.lib.standard_pagination import sp_apply_headers, sp_resolve_page
 from app.models.db.changeset_comment import changeset_comments_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import ChangesetId
@@ -86,9 +91,18 @@ async def get_map(
 @router.get('/{changeset_id:int}/comments')
 async def comments_page(
     changeset_id: ChangesetId,
-    page: Annotated[PositiveInt, Query()],
-    num_items: Annotated[PositiveInt, Query()],
+    page: Annotated[NonNegativeInt, Query()],
+    num_items: Annotated[int | None, Query()] = None,
 ):
+    sp_request_headers = num_items is None
+    if sp_request_headers:
+        num_items = await ChangesetCommentQuery.count_by_changeset(changeset_id)
+
+    assert num_items is not None
+    page = sp_resolve_page(
+        page=page, num_items=num_items, page_size=CHANGESET_COMMENTS_PAGE_SIZE
+    )
+
     comments = await ChangesetCommentQuery.find_comments_page(
         changeset_id, page=page, num_items=num_items
     )
@@ -97,4 +111,11 @@ async def comments_page(
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(changeset_comments_resolve_rich_text(comments))
 
-    return await render_response('changesets/comments-page', {'comments': comments})
+    response = await render_response('changesets/comments-page', {'comments': comments})
+    if sp_request_headers:
+        sp_apply_headers(
+            response,
+            num_items=num_items,
+            page_size=CHANGESET_COMMENTS_PAGE_SIZE,
+        )
+    return response

@@ -46,6 +46,22 @@ class ChangesetCommentQuery:
             return await r.fetchall()  # type: ignore
 
     @staticmethod
+    async def count_by_changeset(changeset_id: ChangesetId) -> int:
+        """Count changeset comments by changeset id."""
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*)
+                FROM changeset_comment
+                WHERE changeset_id = %s
+                """,
+                (changeset_id,),
+            ) as r,
+        ):
+            return (await r.fetchone())[0]  # type: ignore
+
+    @staticmethod
     async def resolve_num_comments(changesets: list[Changeset]) -> None:
         """Resolve the number of comments for each changeset."""
         if not changesets:

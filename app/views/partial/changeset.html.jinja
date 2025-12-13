@@ -109,17 +109,14 @@
             {% endif %}
         </div>
 
-        {% if changeset_comments_num_items %}
         <div class="changeset-comments-pagination">
             <ul class="list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('alt.comments_page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2"
-                    data-action="/api/web/changeset/{{ changeset.id }}/comments"
-                    data-pages="{{ changeset_comments_num_pages }}" data-num-items="{{ changeset_comments_num_items }}">
+                    data-action="/api/web/changeset/{{ changeset.id }}/comments">
                 </ul>
             </nav>
         </div>
-        {% endif %}
 
         {% if user is not none %}
         <form class="comment-form mb-2" method="POST" action="/api/web/changeset/{{ changeset.id }}/comment">

@@ -1,12 +1,11 @@
 from asyncio import TaskGroup
 from base64 import urlsafe_b64encode
-from math import ceil
 
 from fastapi import APIRouter
 from shapely import measurement
 from starlette import status
 
-from app.config import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_COMMENTS_PAGE_SIZE
+from app.config import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from app.format.element_list import FormatElementList
 from app.lib.render_response import render_response
 from app.lib.rich_text import process_rich_text_plain
@@ -14,7 +13,6 @@ from app.lib.translation import t
 from app.models.proto.shared_pb2 import PartialChangesetParams, SharedBounds
 from app.models.types import ChangesetId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
-from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
@@ -49,7 +47,6 @@ async def get_changeset(id: ChangesetId):
         items = [changeset]
         tg.create_task(UserQuery.resolve_users(items))
         tg.create_task(ChangesetBoundsQuery.resolve_bounds(items))
-        tg.create_task(ChangesetCommentQuery.resolve_num_comments(items))
         elements_t = tg.create_task(elements_task())
         adjacent_t = tg.create_task(adjacent_task())
         is_subscribed_t = tg.create_task(
@@ -61,11 +58,6 @@ async def get_changeset(id: ChangesetId):
 
     comment_text = changeset['tags'].pop('comment', None) or t('browse.no_comment')
     comment_html = process_rich_text_plain(comment_text)
-
-    changeset_comments_num_items = changeset['num_comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-    changeset_comments_num_pages = ceil(
-        changeset_comments_num_items / CHANGESET_COMMENTS_PAGE_SIZE
-    )
 
     bounds = changeset.get('bounds')
     bboxes: list[list[float]]
@@ -92,8 +84,6 @@ async def get_changeset(id: ChangesetId):
         'partial/changeset',
         {
             'changeset': changeset,
-            'changeset_comments_num_items': changeset_comments_num_items,
-            'changeset_comments_num_pages': changeset_comments_num_pages,
             'prev_changeset_id': prev_changeset_id,
             'next_changeset_id': next_changeset_id,
             'is_subscribed': is_subscribed_t.result(),
