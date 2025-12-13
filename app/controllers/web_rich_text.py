@@ -13,7 +13,7 @@ from app.config import (
     USER_DESCRIPTION_MAX_LENGTH,
 )
 from app.lib.auth_context import web_user
-from app.lib.render_jinja import render_jinja
+from app.lib.render_response import render_response
 from app.lib.rich_text import rich_text
 from app.models.db.user import User
 
@@ -36,4 +36,6 @@ async def preview(
     _: Annotated[User, web_user()],
 ):
     html = (await rich_text(text, None, 'markdown'))[0]
-    return HTMLResponse(html or render_jinja('rich-text/_empty'))
+    if html:
+        return HTMLResponse(html)
+    return await render_response('rich-text/_empty')

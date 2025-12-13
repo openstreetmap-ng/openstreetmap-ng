@@ -44,7 +44,8 @@ class UserPasskeyChallengeService:
                 """,
                 (challenge, PASSKEY_CHALLENGE_EXPIRE),
             ) as r:
-                return row[0] if (row := await r.fetchone()) is not None else None
+                row = await r.fetchone()
+                return row[0] if row is not None else None
 
 
 async def _delete_expired(conn: AsyncConnection) -> None:

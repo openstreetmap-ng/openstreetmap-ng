@@ -36,8 +36,7 @@ class UserPasskeyQuery:
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
-                SELECT *
-                FROM user_passkey
+                SELECT * FROM user_passkey
                 WHERE user_id = %s
                 ORDER BY created_at
                 """,

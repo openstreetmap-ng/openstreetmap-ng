@@ -36,8 +36,7 @@ class ConnectedAccountQuery:
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
-                SELECT *
-                FROM connected_account
+                SELECT * FROM connected_account
                 WHERE user_id = %s
                 """,
                 (user_id,),

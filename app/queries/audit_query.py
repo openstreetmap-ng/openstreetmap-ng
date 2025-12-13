@@ -211,7 +211,7 @@ class AuditQuery:
         assert page is not None, "Page number must be provided in 'page' mode"
         assert num_items is not None, "Number of items must be provided in 'page' mode"
 
-        stmt_limit, stmt_offset = standard_pagination_range(
+        limit, offset = standard_pagination_range(
             page,
             page_size=AUDIT_LIST_PAGE_SIZE,
             num_items=num_items,
@@ -222,10 +222,9 @@ class AuditQuery:
             SELECT * FROM audit
             WHERE {}
             ORDER BY created_at DESC
-            OFFSET %s
-            LIMIT %s
+            LIMIT %s OFFSET %s
         """).format(where_clause)
-        params.extend((stmt_offset, stmt_limit))
+        params.extend((limit, offset))
 
         async with (
             db() as conn,

@@ -326,7 +326,10 @@ class UserQuery:
         created_before: datetime | None = None,
         application_id: ApplicationId | None = None,
         sort: Literal[
-            'created_asc', 'created_desc', 'name_asc', 'name_desc'
+            'created_asc',
+            'created_desc',
+            'name_asc',
+            'name_desc',
         ] = 'created_desc',
         limit: int | None = None,
     ) -> int | list[User] | list[UserId]:
@@ -420,25 +423,24 @@ class UserQuery:
             async with db() as conn, await conn.execute(query, params) as r:
                 return [row[0] for row in await r.fetchall()]
 
-        # if mode == 'page':
+        # mode == 'page'
         assert page is not None, "Page number must be provided in 'page' mode"
         assert num_items is not None, "Number of items must be provided in 'page' mode"
 
-        stmt_limit, stmt_offset = standard_pagination_range(
+        limit, offset = standard_pagination_range(
             page,
             page_size=ADMIN_USER_LIST_PAGE_SIZE,
             num_items=num_items,
-            reverse=False,  # Page 1 = most recent
+            reverse=False,  # Page 1 = start of ordered set
         )
 
         query = SQL("""
             SELECT * FROM "user"
             WHERE {}
             ORDER BY {}
-            OFFSET %s
-            LIMIT %s
+            LIMIT %s OFFSET %s
         """).format(where_clause, order_clause)
-        params.extend((stmt_offset, stmt_limit))
+        params.extend((limit, offset))
 
         async with (
             db() as conn,
