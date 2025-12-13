@@ -174,7 +174,7 @@ class ImageProxyService:
 
         for item, html in workload:
 
-            def repl(match: re2._Match[str]) -> str:
+            def repl(match: 're2._Match[str]') -> str:
                 entry = entries.get(int(match[1]))  # type: ignore
                 if not entry or not entry['thumbnail']:
                     return match[0]
