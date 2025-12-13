@@ -225,9 +225,7 @@
         <ul class="social-list-sm list-unstyled mb-2"></ul>
         <nav aria-label="{{ t('alt.comments_page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-0"
-                data-action="/api/web/diary/{{ diary.id }}/comments"
-                data-pages="{{ ceil(diary.num_comments / DIARY_COMMENTS_PAGE_SIZE) }}"
-                data-num-items="{{ diary.num_comments }}">
+                data-action="/api/web/diary/{{ diary.id }}/comments">
             </ul>
         </nav>
 

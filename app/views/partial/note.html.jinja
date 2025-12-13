@@ -103,17 +103,14 @@
             {% endif %}
         </div>
 
-        {% if note_comments_num_items %}
         <div class="note-comments-pagination">
             <ul class="list-unstyled mb-2"></ul>
             <nav aria-label="{{ t('alt.comments_page_navigation') }}">
                 <ul class="pagination pagination-sm justify-content-end mb-2"
-                    data-action="/api/web/note/{{ note.id }}/comments" data-pages="{{ note_comments_num_pages }}"
-                    data-num-items="{{ note_comments_num_items }}">
+                    data-action="/api/web/note/{{ note.id }}/comments">
                 </ul>
             </nav>
         </div>
-        {% endif %}
 
         {% if disappear_days is not none %}
         <p class="text-center fst-italic mx-4">

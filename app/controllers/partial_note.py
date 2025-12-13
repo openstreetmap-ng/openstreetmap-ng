@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from shapely import get_coordinates
 from starlette import status
 
-from app.config import NOTE_COMMENTS_PAGE_SIZE, NOTE_FRESHLY_CLOSED_TIMEOUT
+from app.config import NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.lib.date_utils import utcnow
 from app.lib.render_response import render_response
 from app.models.db.note import note_status
@@ -21,7 +21,6 @@ from app.queries.user_subscription_query import UserSubscriptionQuery
 router = APIRouter(prefix='/partial/note')
 
 
-# TODO: pagination discussion, note, changeset, diary
 @router.get('/{id:int}')
 async def get_note(id: NoteId):
     notes = await NoteQuery.find(note_ids=[id], limit=1)
@@ -40,7 +39,6 @@ async def get_note(id: NoteId):
         comments = await NoteCommentQuery.resolve_comments(
             notes, per_note_sort='asc', per_note_limit=1
         )
-        tg.create_task(NoteCommentQuery.resolve_num_comments(notes))
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(note_comments_resolve_rich_text(comments))
 
@@ -52,9 +50,6 @@ async def get_note(id: NoteId):
     else:
         disappear_days = None
 
-    note_comments_num_items = note['num_comments'] - 1  # pyright: ignore [reportTypedDictNotRequiredAccess]
-    note_comments_num_pages = ceil(note_comments_num_items / NOTE_COMMENTS_PAGE_SIZE)
-
     x, y = get_coordinates(note['point'])[0].tolist()
     place = f'{y:.5f}, {x:.5f}'
     params = PartialNoteParams(id=id, lon=x, lat=y, status=note_status(note))
@@ -65,8 +60,6 @@ async def get_note(id: NoteId):
             'note': note,
             'place': place,
             'header': comments[0],
-            'note_comments_num_items': note_comments_num_items,
-            'note_comments_num_pages': note_comments_num_pages,
             'status': note_status(note),
             'is_subscribed': is_subscribed_t.result(),
             'disappear_days': disappear_days,
