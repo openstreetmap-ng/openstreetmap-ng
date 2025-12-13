@@ -2,12 +2,16 @@ from asyncio import Task, TaskGroup
 from typing import Annotated
 
 from fastapi import APIRouter, Query
-from pydantic import PositiveInt
+from pydantic import NonNegativeInt
 
 from app.config import ELEMENT_HISTORY_PAGE_SIZE
 from app.controllers.partial_element import get_element_data
 from app.lib.render_response import render_response
-from app.lib.standard_pagination import standard_pagination_range
+from app.lib.standard_pagination import (
+    sp_apply_headers,
+    sp_resolve_page,
+    standard_pagination_range,
+)
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementType
 from app.queries.element_query import ElementQuery
@@ -20,13 +24,24 @@ router = APIRouter(prefix='/api/web/element')
 async def get_history(
     type: ElementType,
     id: ElementId,
-    page: Annotated[PositiveInt, Query()],
-    num_items: Annotated[PositiveInt, Query()],
+    page: Annotated[NonNegativeInt, Query()],
     tags_diff: Annotated[bool, Query()],
+    num_items: Annotated[int | None, Query()] = None,
 ):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
+    sp_request_headers = num_items is None
+    if sp_request_headers:
+        current_version_map = await ElementQuery.map_refs_to_current_versions(
+            [typed_id], at_sequence_id=at_sequence_id
+        )
+        num_items = current_version_map.get(typed_id, 0) or 0
+
+    assert num_items is not None
+    page = sp_resolve_page(
+        page=page, num_items=num_items, page_size=ELEMENT_HISTORY_PAGE_SIZE
+    )
     stmt_limit, stmt_offset = standard_pagination_range(
         page,
         page_size=ELEMENT_HISTORY_PAGE_SIZE,
@@ -83,7 +98,7 @@ async def get_history(
             data['tags_old'] = previous_tags
             previous_tags = data['element']['tags']
 
-    return await render_response(
+    response = await render_response(
         'partial/element-history-page',
         {
             'type': type,
@@ -92,3 +107,12 @@ async def get_history(
             'tags_diff': tags_diff,
         },
     )
+
+    if sp_request_headers:
+        sp_apply_headers(
+            response,
+            num_items=num_items,
+            page_size=ELEMENT_HISTORY_PAGE_SIZE,
+        )
+
+    return response

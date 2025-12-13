@@ -86,26 +86,19 @@ async def get_history(type: ElementType, id: ElementId):
     current_version_map = await ElementQuery.map_refs_to_current_versions(
         [typed_id], at_sequence_id=at_sequence_id
     )
-    current_version = current_version_map.get(typed_id)
-    if current_version is None:
+    if typed_id not in current_version_map:
         return await render_response(
             'partial/not-found',
             {'type': type, 'id': id},
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    page_size = ELEMENT_HISTORY_PAGE_SIZE
-    num_items = current_version
-    num_pages = (num_items + page_size - 1) // page_size
-
     return await render_response(
         'partial/element-history',
         {
             'type': type,
             'id': id,
-            'page_size': page_size,
-            'num_items': num_items,
-            'num_pages': num_pages,
+            'page_size': ELEMENT_HISTORY_PAGE_SIZE,
         },
     )
 
