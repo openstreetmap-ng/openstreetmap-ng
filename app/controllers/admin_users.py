@@ -1,17 +1,12 @@
 from asyncio import TaskGroup
 from datetime import datetime
-from math import ceil
 from typing import Annotated, Literal
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Query, Request, Response
 from starlette import status
 
-from app.config import (
-    ADMIN_USER_LIST_PAGE_SIZE,
-    DISPLAY_NAME_MAX_LENGTH,
-    PASSWORD_MIN_LENGTH,
-)
+from app.config import DISPLAY_NAME_MAX_LENGTH, PASSWORD_MIN_LENGTH
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.models.db.user import USER_ROLES, User, UserRole
@@ -42,18 +37,6 @@ async def users_index(
     async with TaskGroup() as tg:
         tg.create_task(audit('view_admin_users', extra={'query': request.url.query}))
 
-        users_num_items: int = await UserQuery.find(  # type: ignore
-            'count',
-            search=search,
-            unverified=True if unverified else None,
-            roles=roles,
-            created_after=created_after,
-            created_before=created_before,
-            application_id=application_id,
-            sort=sort,
-        )
-        users_num_pages = ceil(users_num_items / ADMIN_USER_LIST_PAGE_SIZE)
-
         # Build pagination action URL with current filters
         pagination_params: dict[str, str | list] = {'sort': sort}
         if search:
@@ -75,8 +58,6 @@ async def users_index(
         return await render_response(
             'admin/users/index',
             {
-                'users_num_items': users_num_items,
-                'users_num_pages': users_num_pages,
                 'pagination_action': pagination_action,
                 'search': search or '',
                 'unverified': unverified,

@@ -4,14 +4,15 @@ from typing import Annotated, Literal
 
 import orjson
 from fastapi import APIRouter, Cookie, File, Form, HTTPException, Query, Response
-from pydantic import PositiveInt, SecretStr
+from pydantic import NonNegativeInt, SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import ADMIN_USER_EXPORT_LIMIT, ENV
+from app.config import ADMIN_USER_EXPORT_LIMIT, ADMIN_USER_LIST_PAGE_SIZE, ENV
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.lib.standard_feedback import StandardFeedback
+from app.lib.standard_pagination import sp_apply_headers, sp_resolve_page
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User, UserRole
 from app.models.types import ApplicationId, Password, UserId
@@ -33,8 +34,8 @@ router = APIRouter(prefix='/api/web/admin/users')
 @router.get('')
 async def users_page(
     _: Annotated[User, web_user('role_administrator')],
-    page: Annotated[PositiveInt, Query()],
-    num_items: Annotated[PositiveInt, Query()],
+    page: Annotated[NonNegativeInt, Query()],
+    num_items: Annotated[int | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
     unverified: Annotated[bool | None, Query()] = None,
     roles: Annotated[list[UserRole] | None, Query()] = None,
@@ -45,6 +46,24 @@ async def users_page(
         Literal['created_asc', 'created_desc', 'name_asc', 'name_desc'], Query()
     ] = 'created_desc',
 ):
+    sp_request_headers = num_items is None
+    if sp_request_headers:
+        num_items = await UserQuery.find(  # type: ignore
+            'count',
+            search=search,
+            unverified=True if unverified else None,
+            roles=roles,
+            created_after=created_after,
+            created_before=created_before,
+            application_id=application_id,
+            sort=sort,
+        )
+
+    assert num_items is not None
+    page = sp_resolve_page(
+        page=page, num_items=num_items, page_size=ADMIN_USER_LIST_PAGE_SIZE
+    )
+
     users: list[User] = await UserQuery.find(  # type: ignore
         'page',
         page=page,
@@ -67,7 +86,7 @@ async def users_page(
             )
         )
 
-    return await render_response(
+    response = await render_response(
         'admin/users/page',
         {
             'users': users,
@@ -75,6 +94,11 @@ async def users_page(
             'ip_counts': ip_counts_t.result(),
         },
     )
+    if sp_request_headers:
+        sp_apply_headers(
+            response, num_items=num_items, page_size=ADMIN_USER_LIST_PAGE_SIZE
+        )
+    return response
 
 
 @router.get('/export')
