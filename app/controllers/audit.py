@@ -1,19 +1,16 @@
 from asyncio import TaskGroup
 from datetime import datetime
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
-from math import ceil
 from typing import Annotated
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Query, Request
 
-from app.config import AUDIT_LIST_PAGE_SIZE
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.models.db.audit import AUDIT_TYPE_VALUES, AuditType
 from app.models.db.user import User
 from app.models.types import ApplicationId
-from app.queries.audit_query import AuditQuery
 from app.services.audit_service import audit
 
 router = APIRouter()
@@ -35,17 +32,6 @@ async def audit_index(
     async with TaskGroup() as tg:
         tg.create_task(audit('view_audit', extra={'query': request.url.query}))
 
-        audit_num_items: int = await AuditQuery.find(  # type: ignore
-            'count',
-            ip=ip,
-            user=user,
-            application_id=application_id,
-            type=type,
-            created_after=created_after,
-            created_before=created_before,
-        )
-        audit_num_pages = ceil(audit_num_items / AUDIT_LIST_PAGE_SIZE)
-
         # Build pagination action URL with current filters
         pagination_params: dict[str, str] = {}
         if ip:
@@ -66,8 +52,6 @@ async def audit_index(
             'audit/index',
             {
                 'AUDIT_TYPE_VALUES': AUDIT_TYPE_VALUES,
-                'audit_num_items': audit_num_items,
-                'audit_num_pages': audit_num_pages,
                 'pagination_action': pagination_action,
                 'ip': ip or '',
                 'user_q': user or '',

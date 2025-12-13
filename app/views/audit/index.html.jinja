@@ -55,7 +55,7 @@
 
             <div class="text-end">
                 <span class="text-muted me-2">
-                    {{ audit_num_items }} events
+                    <span data-sp-num-items>…</span> events
                 </span>
                 <div class="btn-group" role="group">
                     <button type="submit" class="btn btn-outline-primary">
@@ -72,7 +72,6 @@
 
 <div class="content-body">
     <div class="container">
-        {% if audit_num_items %}
         <nav aria-label="{{ t('alt.page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-2">
             </ul>
@@ -93,15 +92,9 @@
             </table>
         </div>
         <nav aria-label="{{ t('alt.page_navigation') }}">
-            <ul class="pagination pagination-sm justify-content-end mb-0" data-action="{{ pagination_action }}"
-                data-pages="{{ audit_num_pages }}" data-num-items="{{ audit_num_items }}">
+            <ul class="pagination pagination-sm justify-content-end mb-0" data-action="{{ pagination_action }}">
             </ul>
         </nav>
-        {% else %}
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle me-1-5"></i>No audit events found matching your filters.
-        </div>
-        {% endif %}
     </div>
 </div>
 
