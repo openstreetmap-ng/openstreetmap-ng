@@ -56,7 +56,7 @@ class UserFollowQuery:
             page,
             page_size=FOLLOWS_LIST_PAGE_SIZE,
             num_items=num_items,
-            reverse=False,
+            start_from_end=False,
         )
 
         user = auth_user()

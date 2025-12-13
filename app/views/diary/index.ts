@@ -16,8 +16,6 @@ mount("diary-details-body", (body) => {
     })
 
     configureStandardForm(body.querySelector("form.comment-form"), () => {
-        const paginationElement = comments.querySelector("ul.pagination")
-        if (paginationElement) paginationElement.dataset.numItems = "-1"
         disposePagination()
         disposePagination = configureStandardPagination(comments)
     })
@@ -82,9 +80,6 @@ mount("diary-index-body", (body) => {
                 const commentForm = commentsContainer.querySelector("form.comment-form")
                 configureStandardForm(commentForm, () => {
                     commentForm!.reset()
-                    const paginationElement =
-                        commentsContainer.querySelector("ul.pagination")
-                    if (paginationElement) paginationElement.dataset.numItems = "-1"
                     disposers.get(commentsContainer)?.()
                     const d2 = configureStandardPagination(commentsContainer)
                     disposers.set(commentsContainer, d2)

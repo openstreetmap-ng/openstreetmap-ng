@@ -11,7 +11,7 @@ mount("follows-body", (body) => {
                 console.debug("Follows: Toggled", form.action)
                 disposePagination()
                 disposePagination = configureStandardPagination(paginationContainer, {
-                    reverse: false,
+                    startFromEnd: false,
                     initialPage: page,
                     loadCallback: setupFollowForms,
                 })
@@ -20,7 +20,7 @@ mount("follows-body", (body) => {
     }
 
     let disposePagination = configureStandardPagination(paginationContainer, {
-        reverse: false,
+        startFromEnd: false,
         loadCallback: setupFollowForms,
     })
 })

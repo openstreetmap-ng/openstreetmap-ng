@@ -4,11 +4,12 @@ import { batch, effect, signal } from "@preact/signals-core"
 import i18next from "i18next"
 
 const PAGINATION_DISTANCE = 2
+const PAGINATION_MAX_FULL_PAGES = 15
 
 export const configureStandardPagination = (
     container: ParentNode | null,
     options?: {
-        reverse?: boolean
+        startFromEnd?: boolean
         initialPage?: number
         customLoader?: (renderContainer: HTMLElement, page: number) => void
         loadCallback?: (renderContainer: HTMLElement, page: number) => void
@@ -22,22 +23,50 @@ export const configureStandardPagination = (
     if (!(renderContainer && paginationContainers.length)) return () => {}
 
     const dataset = paginationContainers.at(-1)!.dataset
-    if (!dataset.pages) return () => {}
-    const initialPages = Number.parseInt(dataset.pages, 10)
+    const parsedPages = dataset.pages ? Number.parseInt(dataset.pages, 10) : Number.NaN
+    const initialPages = Number.isFinite(parsedPages) ? Math.max(1, parsedPages) : 1
     const pageSize = dataset.pageSize ? Number.parseInt(dataset.pageSize, 10) : null // optional
-    const reverse = options?.reverse ?? true
+    const startFromEnd = options?.startFromEnd ?? true
 
-    const endpointPattern = dataset.action!
+    const endpointPattern = dataset.action
+    if (!(endpointPattern || options?.customLoader)) return () => {}
     console.debug(
         "Pagination: Initializing",
         options?.customLoader ? "<custom>" : endpointPattern,
     )
 
-    const numItems = signal(Number.parseInt(dataset.numItems!, 10))
+    const parsedNumItems = dataset.numItems
+        ? Number.parseInt(dataset.numItems, 10)
+        : Number.NaN
+    const initialNumItems = Number.isFinite(parsedNumItems) ? parsedNumItems : -1
+    const numItems = signal(initialNumItems)
     const totalPages = signal(initialPages)
-    const currentPage = signal(options?.initialPage ?? (reverse ? initialPages : 1))
+    const initialCurrentPage =
+        options?.initialPage ??
+        (startFromEnd
+            ? initialPages > 1
+                ? initialPages
+                : initialNumItems < 0
+                  ? 0
+                  : 1
+            : 1)
+    const currentPage = signal(initialCurrentPage)
+    const parsedSnapshotId = dataset.snapshotId
+        ? Number.parseInt(dataset.snapshotId, 10)
+        : Number.NaN
+    const snapshotId = signal<number | null>(
+        Number.isFinite(parsedSnapshotId) ? parsedSnapshotId : null,
+    )
     const fetchCache = new Map<string, string>()
+    let lastRenderedUrl: string | null = null
     let firstLoad = true
+
+    const numItemsTargets = Array.from(
+        container.querySelectorAll<HTMLElement>("[data-sp-num-items]"),
+    )
+    const numPagesTargets = Array.from(
+        container.querySelectorAll<HTMLElement>("[data-sp-num-pages]"),
+    )
 
     const setPendingState = (state: boolean) => {
         renderContainer.style.opacity = !firstLoad && state ? "0.5" : ""
@@ -69,33 +98,57 @@ export const configureStandardPagination = (
         options?.loadCallback?.(renderContainer, currentPage.peek())
     }
 
+    const buildUrl = (
+        page: number,
+        numItemsValue: number,
+        snapshotIdValue: number | null,
+    ) => {
+        if (!endpointPattern) throw new Error("Pagination: Missing data-action")
+        const [path, q = ""] = endpointPattern.split("?")
+        const params: Record<string, string | undefined> = qsParse(q)
+        params.page = page.toString()
+        if (numItemsValue >= 0) {
+            params.num_items = numItemsValue.toString()
+        } else {
+            params.num_items = undefined
+        }
+        if (snapshotIdValue !== null) params.snapshot_id = snapshotIdValue.toString()
+        return `${path}${qsEncode(params)}`
+    }
+
     // Effect: Load and render page content when currentPage changes (fetches or uses cache)
     const disposeCollectionEffect = effect(() => {
-        if (!currentPage.value) return
-        const currentPageString = currentPage.toString()
+        const requestedPage = currentPage.value
+        if (requestedPage < 0) return
+        const requestedPageString = currentPage.toString()
 
         if (options?.customLoader) {
-            options.customLoader(renderContainer, currentPage.value)
-            console.debug("Pagination: Page loaded (custom)", currentPageString)
+            options.customLoader(renderContainer, requestedPage)
+            console.debug("Pagination: Page loaded (custom)", requestedPageString)
+            return
+        }
+
+        if (requestedPage === 0 && numItems.value >= 0) {
+            currentPage.value = totalPages.value
             return
         }
 
         // Build the endpoint
-        const [path, q = ""] = endpointPattern.split("?")
-        const params = qsParse(q)
-        params.page = currentPageString
-        params.num_items = String(numItems.peek())
-        const url = `${path}${qsEncode(params)}`
+        const snapshotIdValue = snapshotId.peek()
+        const url = buildUrl(requestedPage, numItems.peek(), snapshotIdValue)
 
         // Serve from cache when available
         const cached = fetchCache.get(url)
         if (cached !== undefined) {
-            console.debug("Pagination: Page loaded (cached)", currentPageString)
-            onLoad(cached)
+            console.debug("Pagination: Page loaded (cached)", requestedPageString)
+            if (lastRenderedUrl !== url) {
+                lastRenderedUrl = url
+                onLoad(cached)
+            }
             return () => {}
         }
 
-        console.debug("Pagination: Loading page", currentPageString)
+        console.debug("Pagination: Loading page", requestedPageString)
         const abortController = new AbortController()
         setPendingState(true)
 
@@ -106,29 +159,61 @@ export const configureStandardPagination = (
                     priority: "high",
                 })
                 const text = await resp.text()
-                console.debug("Pagination: Page loaded", currentPageString)
+                console.debug("Pagination: Page loaded", requestedPageString)
                 fetchCache.set(url, text)
-                onLoad(text)
+                let renderUrl = url
 
                 // Sync headers for total items/pages
                 if (numItems.value < 0) {
+                    const serverNumItems = Number.parseInt(
+                        resp.headers.get("X-SP-NumItems")!,
+                        10,
+                    )
+                    const serverTotalPages = Math.max(
+                        1,
+                        Number.parseInt(resp.headers.get("X-SP-NumPages")!, 10),
+                    )
+
+                    const snapshotHeader = resp.headers.get("X-SP-SnapshotId")
+                    const parsedHeaderSnapshotId = snapshotHeader
+                        ? Number.parseInt(snapshotHeader, 10)
+                        : Number.NaN
+                    const serverSnapshotId = Number.isFinite(parsedHeaderSnapshotId)
+                        ? parsedHeaderSnapshotId
+                        : snapshotId.peek()
+
+                    const resolvedPage = Math.min(
+                        requestedPage === 0
+                            ? serverTotalPages
+                            : Math.max(1, requestedPage),
+                        serverTotalPages,
+                    )
+
+                    const resolvedUrl = buildUrl(
+                        resolvedPage,
+                        serverNumItems,
+                        serverSnapshotId,
+                    )
+                    fetchCache.set(resolvedUrl, text)
+                    renderUrl = resolvedUrl
+
                     batch(() => {
-                        numItems.value = Number.parseInt(
-                            resp.headers.get("X-SP-NumItems")!,
-                            10,
-                        )
-                        totalPages.value = Number.parseInt(
-                            resp.headers.get("X-SP-NumPages")!,
-                            10,
-                        )
-                        currentPage.value = reverse ? totalPages.value : 1
+                        numItems.value = serverNumItems
+                        totalPages.value = serverTotalPages
+                        snapshotId.value = serverSnapshotId
+                        currentPage.value = resolvedPage
                     })
+                }
+
+                if (lastRenderedUrl !== renderUrl) {
+                    lastRenderedUrl = renderUrl
+                    onLoad(text)
                 }
             } catch (error) {
                 if (error.name === "AbortError") return
                 console.error(
                     "Pagination: Failed to load page",
-                    currentPageString,
+                    requestedPageString,
                     endpointPattern,
                     error,
                 )
@@ -156,15 +241,19 @@ export const configureStandardPagination = (
         }
 
         const pagesToRender: number[] = []
-        pagesToRender.push(1)
-        for (
-            let i = currentPageValue - PAGINATION_DISTANCE;
-            i <= currentPageValue + PAGINATION_DISTANCE;
-            i++
-        ) {
-            if (i > 1 && i < totalPagesValue) pagesToRender.push(i)
+        if (totalPagesValue <= PAGINATION_MAX_FULL_PAGES) {
+            for (let i = 1; i <= totalPagesValue; i++) pagesToRender.push(i)
+        } else {
+            pagesToRender.push(1)
+            for (
+                let i = currentPageValue - PAGINATION_DISTANCE;
+                i <= currentPageValue + PAGINATION_DISTANCE;
+                i++
+            ) {
+                if (i > 1 && i < totalPagesValue) pagesToRender.push(i)
+            }
+            pagesToRender.push(totalPagesValue)
         }
-        pagesToRender.push(totalPagesValue)
 
         for (const paginationContainer of paginationContainers) {
             paginationContainer.classList.remove("d-none")
@@ -187,12 +276,12 @@ export const configureStandardPagination = (
                 button.type = "button"
                 button.classList.add("page-link")
 
-                if (pageSize && numItemsValue) {
+                if (pageSize && numItemsValue > 0) {
                     const [limit, offset] = standardPaginationRange(
                         pageNumber,
                         pageSize,
                         numItemsValue,
-                        reverse,
+                        startFromEnd,
                     )
                     const itemMax = numItemsValue - offset
                     const itemMin = itemMax - limit + 1
@@ -224,9 +313,26 @@ export const configureStandardPagination = (
         }
     })
 
+    const disposeMetaEffect = effect(() => {
+        const numItemsValue = numItems.value
+        const totalPagesValue = totalPages.value
+
+        if (numItemsValue >= 0) {
+            for (const element of numItemsTargets) {
+                element.textContent = numItemsValue.toString()
+            }
+        }
+        if (numItemsValue >= 0 && totalPagesValue >= 1) {
+            for (const element of numPagesTargets) {
+                element.textContent = totalPagesValue.toString()
+            }
+        }
+    })
+
     return () => {
         disposeCollectionEffect()
         disposePaginationEffect()
+        disposeMetaEffect()
     }
 }
 
@@ -238,10 +344,10 @@ const standardPaginationRange = (
     page: number,
     pageSize: number,
     numItems: number,
-    reverse: boolean,
+    startFromEnd: boolean,
 ) => {
     const numPages = Math.ceil(numItems / pageSize)
-    const offset = reverse ? (numPages - page) * pageSize : (page - 1) * pageSize
+    const offset = startFromEnd ? (numPages - page) * pageSize : (page - 1) * pageSize
     const limit = Math.min(pageSize, numItems - offset)
     return [limit, offset]
 }

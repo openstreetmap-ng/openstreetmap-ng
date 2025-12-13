@@ -48,7 +48,7 @@ mount("admin-applications-body", (body) => {
     })
 
     configureStandardPagination(body, {
-        reverse: false,
+        startFromEnd: false,
         loadCallback: (renderContainer) => {
             for (const element of renderContainer.querySelectorAll(
                 "[data-bs-toggle=tooltip]",

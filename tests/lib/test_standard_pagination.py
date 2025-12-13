@@ -21,7 +21,7 @@ def test_standard_pagination_range_reverse(page, expected):
             page,
             page_size=page_size,
             num_items=num_items,
-            reverse=True,
+            start_from_end=True,
         )
         == expected
     )
@@ -45,7 +45,7 @@ def test_standard_pagination_range_forward(page, expected):
             page,
             page_size=page_size,
             num_items=num_items,
-            reverse=False,
+            start_from_end=False,
         )
         == expected
     )

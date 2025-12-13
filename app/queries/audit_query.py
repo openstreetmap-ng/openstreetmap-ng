@@ -215,7 +215,7 @@ class AuditQuery:
             page,
             page_size=AUDIT_LIST_PAGE_SIZE,
             num_items=num_items,
-            reverse=False,  # Page 1 = most recent
+            start_from_end=False,  # Page 1 = most recent
         )
 
         query = SQL("""

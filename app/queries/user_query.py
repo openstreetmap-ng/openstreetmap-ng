@@ -431,7 +431,7 @@ class UserQuery:
             page,
             page_size=ADMIN_USER_LIST_PAGE_SIZE,
             num_items=num_items,
-            reverse=False,  # Page 1 = start of ordered set
+            start_from_end=False,  # Page 1 = start of ordered set
         )
 
         query = SQL("""
