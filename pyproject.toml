@@ -57,6 +57,7 @@ dependencies = [
   "starlette-compress",
   "torch==2.8.0",
   "torchvision==0.23.0",
+  "totp-rs",
   "transformers[timm,vision]",
   "uvicorn[standard]",
   "zid",

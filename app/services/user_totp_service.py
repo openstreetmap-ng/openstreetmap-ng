@@ -1,13 +1,14 @@
 from base64 import b32decode
 
+from psycopg import AsyncConnection
 from pydantic import SecretBytes, SecretStr
+from totp_rs import totp_time_window, totp_verify
 
 from app.config import TOTP_MAX_ATTEMPTS_PER_WINDOW
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.crypto import decrypt, encrypt
 from app.lib.standard_feedback import StandardFeedback
-from app.lib.totp import totp_time_window, verify_totp_code
 from app.lib.translation import t
 from app.models.types import Password, UserId
 from app.queries.user_totp_query import UserTOTPQuery
@@ -36,7 +37,13 @@ class UserTOTPService:
         except Exception as e:
             raise ValueError('Invalid secret format') from e
 
-        if not verify_totp_code(secret_bytes, digits, code):
+        time_window = totp_time_window()
+        if not totp_verify(
+            secret_bytes.get_secret_value(),
+            code,
+            digits=digits,
+            time_window=time_window,
+        ):
             StandardFeedback.raise_error(
                 'totp_code', t('two_fa.invalid_or_expired_authentication_code')
             )
@@ -53,6 +60,7 @@ class UserTOTPService:
                 (user_id, secret_encrypted, digits),
             )
             if result.rowcount:
+                await _record_used_code(conn, user_id, code, time_window)
                 await audit('add_totp', conn, extra={'digits': digits})
 
     @staticmethod
@@ -86,20 +94,7 @@ class UserTOTPService:
                     t('two_fa.too_many_failed_attempts_please_try_again_in_one_minute'),
                 )
 
-            # Prevent replay: check if this code was already used in any of the valid time windows
-            # Try to insert the used code for t-1, t, and t+1 windows
-            # If any window already has this code, rows_inserted will be less than 3
-            result = await conn.execute(
-                """
-                INSERT INTO user_totp_used_code (user_id, code, time_window)
-                VALUES (%(user_id)s, %(code)s, %(time_window)s - 1),
-                       (%(user_id)s, %(code)s, %(time_window)s),
-                       (%(user_id)s, %(code)s, %(time_window)s + 1)
-                ON CONFLICT (user_id, time_window, code) DO NOTHING
-                """,
-                {'user_id': user_id, 'code': code, 'time_window': time_window},
-            )
-            if result.rowcount != 3:
+            if not await _record_used_code(conn, user_id, code, time_window):
                 await audit(
                     'auth_fail',
                     conn,
@@ -108,8 +103,10 @@ class UserTOTPService:
                 )
                 return False
 
-            if not verify_totp_code(
-                decrypt(totp['secret_encrypted']), totp['digits'], code
+            if not totp_verify(
+                decrypt(totp['secret_encrypted']).get_secret_value(),
+                code,
+                digits=totp['digits'],
             ):
                 await audit(
                     'auth_fail',
@@ -167,3 +164,22 @@ class UserTOTPService:
                 conn,
                 target_user_id=(user_id if password is None else None),
             )
+
+
+async def _record_used_code(
+    conn: AsyncConnection, user_id: UserId, code: str, time_window: int
+) -> bool:
+    # Prevent replay: check if this code was already used in any of the valid time windows
+    # Try to insert the used code for t-1, t, and t+1 windows
+    # If any window already has this code, rows_inserted will be less than 3
+    result = await conn.execute(
+        """
+        INSERT INTO user_totp_used_code (user_id, code, time_window)
+        VALUES (%(user_id)s, %(code)s, %(time_window)s - 1),
+               (%(user_id)s, %(code)s, %(time_window)s),
+               (%(user_id)s, %(code)s, %(time_window)s + 1)
+        ON CONFLICT (user_id, time_window, code) DO NOTHING
+        """,
+        {'user_id': user_id, 'code': code, 'time_window': time_window},
+    )
+    return result.rowcount == 3

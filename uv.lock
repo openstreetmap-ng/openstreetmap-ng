@@ -1343,6 +1343,7 @@ dependencies = [
     { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
     { name = "torchvision", version = "0.23.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux') or sys_platform == 'darwin'" },
     { name = "torchvision", version = "0.23.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'darwin' and sys_platform != 'linux')" },
+    { name = "totp-rs" },
     { name = "transformers", extra = ["timm", "vision"] },
     { name = "uvicorn", extra = ["standard"] },
     { name = "zid" },
@@ -1421,6 +1422,7 @@ requires-dist = [
     { name = "starlette-compress" },
     { name = "torch", specifier = "==2.8.0", index = "https://download.pytorch.org/whl/cpu" },
     { name = "torchvision", specifier = "==0.23.0", index = "https://download.pytorch.org/whl/cpu" },
+    { name = "totp-rs" },
     { name = "transformers", extras = ["timm", "vision"] },
     { name = "uvicorn", extras = ["standard"] },
     { name = "zid" },
@@ -2414,6 +2416,28 @@ wheels = [
     { url = "https://download.pytorch.org/whl/cpu/torchvision-0.23.0%2Bcpu-cp313-cp313-win_amd64.whl", hash = "sha256:82928788025170c62e7df1120dcdc0cd175bfc31c08374613ce6d1a040bc0cda" },
     { url = "https://download.pytorch.org/whl/cpu/torchvision-0.23.0%2Bcpu-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:474d77adbbbed5166db3e5636b4b4ae3399c66ef5bfa12536e254b32259c90c0" },
     { url = "https://download.pytorch.org/whl/cpu/torchvision-0.23.0%2Bcpu-cp313-cp313t-win_amd64.whl", hash = "sha256:8d6a47e23d7896f0ef9aa7ea7179eb6324e82438aa66d19884c2020d0646b104" },
+]
+
+[[package]]
+name = "totp-rs"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1a/9b/1873edd731586c9b4574db8b964121cb10b3fde9fe036940bf64b38e3da3/totp_rs-1.0.0.tar.gz", hash = "sha256:d4a8d648425dc036e3fe66a3c69261fbd6a0ff562f39dbbc6aa89f121ebc85e0", size = 11283, upload-time = "2025-12-14T20:04:57.923Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/35/de/3cf512f70241811e6ed46385cee4dac50e6495e029204f528502a04f9230/totp_rs-1.0.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:8115d2f1245669a97612212efde34a68709d8d40c7ffbed7cc930d55775ca284", size = 211113, upload-time = "2025-12-14T20:04:01.438Z" },
+    { url = "https://files.pythonhosted.org/packages/92/44/41dace633998920545a67d890a8e7670a93df37c053c42899908d3718eb5/totp_rs-1.0.0-cp313-cp313-macosx_11_0_x86_64.whl", hash = "sha256:a96e35ec4946c2dffa0bccef67cac7404c6345cc617e2e16e9e9b255b336e77b", size = 228301, upload-time = "2025-12-14T20:04:02.797Z" },
+    { url = "https://files.pythonhosted.org/packages/ac/30/f8e6256a8a0c5b1d9042a0ef23de5c636ac067117f38cc881c6fb763d4c6/totp_rs-1.0.0-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:df249cd11a66ac496d6fad82ea5125d73b71b71e1926ba037fc8c6d9d6eeec7b", size = 231983, upload-time = "2025-12-14T20:04:04.58Z" },
+    { url = "https://files.pythonhosted.org/packages/6b/08/655e93dda980db8b2b5cb27afbcd6395600c1c3a2aab345a38bdcf97f6cc/totp_rs-1.0.0-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:bc415d97100c45ace113c31769061baa02b67509faf5b2afb84932425885db0e", size = 238692, upload-time = "2025-12-14T20:04:06.319Z" },
+    { url = "https://files.pythonhosted.org/packages/2f/c8/10c92173b4a36c5be062261b71b4959b0dc13367917d7c4ace98916ba9bc/totp_rs-1.0.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:e566d9fa8393b08850c242e5b46f5a9f8eba6e813dcf70a483a361146c47d006", size = 296941, upload-time = "2025-12-14T20:04:07.901Z" },
+    { url = "https://files.pythonhosted.org/packages/ba/b9/a80cf496e0489d9b109876d40cdd05201a8be59d8452e09472719ff85e7a/totp_rs-1.0.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:a65b6419f4e7c767bc8de3db6497a5b0cdd7cb1faad7b8f47e5e09223741c57e", size = 319197, upload-time = "2025-12-14T20:04:09.204Z" },
+    { url = "https://files.pythonhosted.org/packages/55/f5/d4b585a8ca9cd4c9a4f5ae2e1f8856f0dca676b51eb4fd80bb59727f09ca/totp_rs-1.0.0-cp313-cp313-win_amd64.whl", hash = "sha256:92e4bd7e2a947540c42993c82468aa0f48c4846924db314c6c4dc14e24c840e7", size = 130986, upload-time = "2025-12-14T20:04:10.601Z" },
+    { url = "https://files.pythonhosted.org/packages/b4/40/46641ff15fa12cfd12af0d470ab6ed9495406909964f0b7589d14980dd8d/totp_rs-1.0.0-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:5207b84744d735b597d29cd2ab613f12f5a08b74a76a31e9add7ac9f68f548d9", size = 209036, upload-time = "2025-12-14T20:04:11.81Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/3a/b6dcafa10550ea132f6a1595427087881a1854c306cb523d93a498ec47d5/totp_rs-1.0.0-cp313-cp313t-macosx_11_0_x86_64.whl", hash = "sha256:d40385bd97c25b231354dc48bd70a89a6d9f8b81ea62cd17e37445d44b007e34", size = 226165, upload-time = "2025-12-14T20:04:13.304Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/ab/4199a087ad078ce4bc99319f59d41b6b53af92edff506db4ca010b360bd0/totp_rs-1.0.0-cp313-cp313t-manylinux_2_28_aarch64.whl", hash = "sha256:69e8e2ed2b69b215e20261c84fbaed4099060f787a06a2e1bac7ceb69970c11a", size = 230910, upload-time = "2025-12-14T20:04:14.992Z" },
+    { url = "https://files.pythonhosted.org/packages/00/ea/42a5f5ab9de676c172303c1933bf51fd34dd82a319e8f5d40d36b68a7b62/totp_rs-1.0.0-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:ebc385f40535ad10276b9b16a208b096c8a193d14c612b982edece5a5873ebcb", size = 237454, upload-time = "2025-12-14T20:04:16.214Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/7b/a1975a7b8c49bee641ad6458a5b7eacaef48b1c2d247002bbd44b4a49c6c/totp_rs-1.0.0-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:2c6954f206774b7e828ec641a744dd9608138bd1a026741fe72ad18f494c350f", size = 296111, upload-time = "2025-12-14T20:04:17.429Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/cd/8d667b05607bbb80be4b75120b48a6ff54186c2e6d6c522ea19f1260b8a7/totp_rs-1.0.0-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:69bc7c21f5fded544bb9abc91d227085d0fc8c9a32afadfdee7f4c8d45afcdfa", size = 318114, upload-time = "2025-12-14T20:04:19.156Z" },
+    { url = "https://files.pythonhosted.org/packages/9a/45/c72f154156abad15045e63336981e3eb5a8e6641a890a6d3d0243a85329a/totp_rs-1.0.0-cp313-cp313t-win_amd64.whl", hash = "sha256:1e407902d19aa69b826bec9c1c0d14df04a8ef77bcb9ef0b238cd268e01e37b7", size = 129577, upload-time = "2025-12-14T20:04:20.327Z" },
 ]
 
 [[package]]
