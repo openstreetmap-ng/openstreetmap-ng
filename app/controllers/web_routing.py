@@ -24,14 +24,14 @@ router = APIRouter(prefix='/api/web/routing')
 async def route(
     bbox: Annotated[str, Form(min_length=1)],
     start: Annotated[str, Form(min_length=1)],
-    start_loaded: Annotated[str, Form()],
-    start_loaded_lon: Annotated[Longitude, Form()],
-    start_loaded_lat: Annotated[Latitude, Form()],
     end: Annotated[str, Form(min_length=1)],
-    end_loaded: Annotated[str, Form()],
-    end_loaded_lon: Annotated[Longitude, Form()],
-    end_loaded_lat: Annotated[Latitude, Form()],
     engine: Annotated[str, Form(min_length=1)],
+    start_loaded: Annotated[str, Form()] = '',
+    start_loaded_lon: Annotated[Longitude, Form()] = 0,
+    start_loaded_lat: Annotated[Latitude, Form()] = 0,
+    end_loaded: Annotated[str, Form()] = '',
+    end_loaded_lon: Annotated[Longitude, Form()] = 0,
+    end_loaded_lat: Annotated[Latitude, Form()] = 0,
 ):
     start_endpoint, end_endpoint = await _resolve_names(
         bbox, start, start_loaded, end, end_loaded

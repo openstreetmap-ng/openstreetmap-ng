@@ -157,7 +157,7 @@ async def settings_recovery_codes_generate(
 @router.post('/settings/description')
 async def settings_description(
     _: Annotated[User, web_user()],
-    description: Annotated[str, Form(max_length=USER_DESCRIPTION_MAX_LENGTH)],
+    description: Annotated[str, Form(max_length=USER_DESCRIPTION_MAX_LENGTH)] = '',
 ):
     await UserProfileService.update_description(description=description)
     return Response(None, status.HTTP_204_NO_CONTENT)
@@ -216,7 +216,7 @@ async def settings_passkey_register(
 async def settings_passkey_rename(
     _: Annotated[User, web_user()],
     credential_id_b64: str,
-    name: Annotated[str, Form(max_length=PASSKEY_NAME_MAX_LENGTH)],
+    name: Annotated[str, Form(max_length=PASSKEY_NAME_MAX_LENGTH)] = '',
 ):
     credential_id = urlsafe_b64decode(credential_id_b64 + '==')
     effective_name = await UserPasskeyService.rename_passkey(credential_id, name=name)

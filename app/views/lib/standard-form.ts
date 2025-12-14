@@ -113,7 +113,7 @@ export const configureStandardForm = <T = any>(
 
     /** Handle feedback for the entire form */
     const handleFormFeedback = (
-        type: "success" | "info" | "error",
+        type: "success" | "info" | "error" | "missing",
         message: string,
         after?: HTMLElement,
     ) => {
@@ -186,7 +186,7 @@ export const configureStandardForm = <T = any>(
 
         feedback.classList.toggle("alert-success", type === "success")
         feedback.classList.toggle("alert-info", type === "info")
-        feedback.classList.toggle("alert-danger", type === "error")
+        feedback.classList.toggle("alert-danger", type === "error" || type === "missing")
 
         feedback.firstElementChild!.textContent = message
 
