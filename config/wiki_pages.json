@@ -775,6 +775,9 @@
       "JA",
       "Pl"
     ],
+    "optional_sidepath": [
+      ""
+    ],
     "permissive": [
       "",
       "DE",
@@ -3765,6 +3768,7 @@
     ],
     "hydrant": [
       "",
+      "ES",
       "FR",
       "Sk"
     ],
@@ -4676,6 +4680,9 @@
       "JA",
       "Pl",
       "Uk"
+    ],
+    "ritual_bath": [
+      ""
     ],
     "rv_storage": [
       "",
@@ -6140,6 +6147,9 @@
       "FR",
       "RU"
     ],
+    "excavator": [
+      ""
+    ],
     "historic": [
       ""
     ],
@@ -6346,6 +6356,12 @@
     "*": [
       "",
       "RU"
+    ],
+    "no": [
+      ""
+    ],
+    "yes": [
+      ""
     ]
   },
   "baby_feeding": {
@@ -6801,6 +6817,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "IT",
       "Pl",
@@ -8211,7 +8228,8 @@
       "ES",
       "FR",
       "JA",
-      "Ko"
+      "Ko",
+      "RU"
     ]
   },
   "branch:type": {
@@ -8894,6 +8912,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "JA",
       "Pl",
       "RU",
@@ -9000,6 +9019,9 @@
       "Pt",
       "RU",
       "Uk"
+    ],
+    "concession_stand": [
+      ""
     ],
     "condominium": [
       "",
@@ -9219,6 +9241,9 @@
       "Sv",
       "Uk"
     ],
+    "garbage_shed": [
+      ""
+    ],
     "gatehouse": [
       "",
       "DE",
@@ -9229,6 +9254,9 @@
       "Uk"
     ],
     "gauge_house": [
+      ""
+    ],
+    "gazebo": [
       ""
     ],
     "ger": [
@@ -9386,6 +9414,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "JA",
       "Pl",
       "RU",
@@ -9418,6 +9447,9 @@
       "RU",
       "Uk"
     ],
+    "lean_to": [
+      ""
+    ],
     "library": [
       ""
     ],
@@ -9439,6 +9471,9 @@
       "JA",
       "Pl",
       "RU"
+    ],
+    "marketplace": [
+      ""
     ],
     "marquee": [
       "",
@@ -9561,6 +9596,9 @@
       "RU",
       "Uk"
     ],
+    "prison": [
+      ""
+    ],
     "proposed": [
       "",
       "RU",
@@ -9661,6 +9699,9 @@
       "Pl",
       "RU",
       "Uk"
+    ],
+    "sanitary": [
+      ""
     ],
     "sauna": [
       "",
@@ -10305,7 +10346,8 @@
       ""
     ],
     "yes": [
-      ""
+      "",
+      "RU"
     ]
   },
   "building:parts": {
@@ -11332,6 +11374,11 @@
       "RU"
     ]
   },
+  "categorie_piscicole": {
+    "*": [
+      "FR"
+    ]
+  },
   "category": {
     "*": [
       ""
@@ -12243,7 +12290,8 @@
     "*": [
       "",
       "DE",
-      "JA"
+      "JA",
+      "RU"
     ]
   },
   "communication:amateur_radio": {
@@ -13290,6 +13338,11 @@
   "couplings:type": {
     "*": [
       "",
+      "DE"
+    ]
+  },
+  "course": {
+    "*": [
       "DE"
     ]
   },
@@ -15056,6 +15109,9 @@
       "",
       "ES"
     ],
+    "palestinian": [
+      ""
+    ],
     "pancake": [
       "",
       "ES",
@@ -15245,20 +15301,16 @@
       "RU"
     ]
   },
-  "currency": {
+  "currency:*": {
     "*": [
+      "",
       "Cs",
+      "DE",
       "ES",
       "FR",
       "JA",
       "Pl",
       "RU"
-    ]
-  },
-  "currency:*": {
-    "*": [
-      "",
-      "DE"
     ]
   },
   "currency:XLT": {
@@ -16037,6 +16089,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "IT",
       "JA",
@@ -17210,6 +17263,14 @@
       "Pl"
     ]
   },
+  "drink:babyccino": {
+    "*": [
+      ""
+    ],
+    "yes": [
+      ""
+    ]
+  },
   "drink:beer": {
     "*": [
       "",
@@ -17229,6 +17290,9 @@
   "drink:coffee": {
     "*": [
       ""
+    ],
+    "yes": [
+      ""
     ]
   },
   "drink:coffee:togo": {
@@ -17237,6 +17301,19 @@
     ]
   },
   "drink:espresso": {
+    "*": [
+      ""
+    ],
+    "yes": [
+      ""
+    ]
+  },
+  "drink:filter_coffee": {
+    "*": [
+      ""
+    ]
+  },
+  "drink:hot_chocolate": {
     "*": [
       ""
     ]
@@ -17336,6 +17413,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "RU"
@@ -17347,6 +17425,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Ko",
@@ -20318,6 +20397,9 @@
       "DE",
       "JA"
     ],
+    "cross-flow_turbine": [
+      ""
+    ],
     "francis_turbine": [
       "",
       "Cs",
@@ -22158,7 +22240,8 @@
       "DE",
       "ES",
       "FR",
-      "JA"
+      "JA",
+      "RU"
     ],
     "abortion": [
       "",
@@ -22700,6 +22783,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "IT",
       "JA",
@@ -22748,6 +22832,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fi",
       "IT",
@@ -22777,6 +22862,7 @@
     "cyclist_waiting_aid": [
       "",
       "DE",
+      "El",
       "FR"
     ],
     "disused": [
@@ -22792,6 +22878,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Ko",
@@ -22816,6 +22903,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "IT",
       "JA",
@@ -22875,6 +22963,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fi",
       "JA",
@@ -24572,7 +24661,8 @@
     ],
     "room": [
       "",
-      "FR"
+      "FR",
+      "RU"
     ],
     "wall": [
       "",
@@ -25397,6 +25487,11 @@
       ""
     ]
   },
+  "is_sidepath": {
+    "*": [
+      ""
+    ]
+  },
   "is_sidepath:of:name": {
     "*": [
       ""
@@ -25517,6 +25612,9 @@
       "IT",
       "JA",
       "RU"
+    ],
+    "controlled": [
+      ""
     ],
     "crossing": [
       ""
@@ -26815,6 +26913,19 @@
       "DE"
     ]
   },
+  "laptop": {
+    "*": [
+      ""
+    ],
+    "yes": [
+      ""
+    ]
+  },
+  "laptop:conditional": {
+    "*": [
+      ""
+    ]
+  },
   "lat": {
     "*": [
       ""
@@ -27748,6 +27859,9 @@
       "Uk",
       "Yue"
     ],
+    "water_sports": [
+      ""
+    ],
     "wellness": [
       "",
       "RU"
@@ -28426,6 +28540,11 @@
       "DE"
     ]
   },
+  "loyalty_card": {
+    "*": [
+      ""
+    ]
+  },
   "lpn_ref": {
     "*": [
       ""
@@ -28579,6 +28698,9 @@
       "JA"
     ],
     "basin": [
+      ""
+    ],
+    "beach_pole": [
       ""
     ],
     "beacon": [
@@ -28792,6 +28914,9 @@
       "Pl",
       "Pt",
       "RU"
+    ],
+    "crane_rail": [
+      ""
     ],
     "cross": [
       "",
@@ -29345,6 +29470,9 @@
       "ES",
       "Pl"
     ],
+    "reinforced_slope": [
+      ""
+    ],
     "reservoir_covered": [
       "",
       "Cs",
@@ -29438,6 +29566,9 @@
     "spring_box": [
       "",
       "DE"
+    ],
+    "stele": [
+      ""
     ],
     "stećak": [
       "",
@@ -29542,6 +29673,9 @@
       "JA",
       "Ko",
       "Sk"
+    ],
+    "totem_pole": [
+      ""
     ],
     "tower": [
       "",
@@ -34689,6 +34823,9 @@
       "Pt",
       "RU"
     ],
+    "beaver_dam": [
+      ""
+    ],
     "bedrock": [
       "",
       "Pl",
@@ -38720,7 +38857,13 @@
       "",
       "Da",
       "FR",
+      "RU",
       "Uk"
+    ]
+  },
+  "panoramax:view": {
+    "*": [
+      ""
     ]
   },
   "par": {
@@ -38818,9 +38961,17 @@
       "RU",
       "Zh-hans"
     ],
+    "carports": [
+      "",
+      "FR"
+    ],
     "e_scooter": [
       "",
       "Sk"
+    ],
+    "garage_boxes": [
+      "",
+      "FR"
     ],
     "half_on_kerb": [
       "",
@@ -38859,7 +39010,12 @@
       "",
       "DE",
       "El",
+      "FR",
       "RU"
+    ],
+    "sheds": [
+      "",
+      "FR"
     ],
     "shoulder": [
       ""
@@ -39162,6 +39318,7 @@
       "",
       "DE",
       "FR",
+      "IT",
       "RU"
     ],
     "disabled": [
@@ -39361,14 +39518,17 @@
   },
   "payment": {
     "*": [
-      "Cs",
       "ES",
       "JA"
+    ],
+    "gpn_qris": [
+      ""
     ]
   },
   "payment:*": {
     "*": [
       "",
+      "Cs",
       "DE",
       "ES",
       "FR",
@@ -39376,7 +39536,22 @@
       "RU"
     ]
   },
+  "payment:*/Campus_cards_data": {
+    "*": [
+      ""
+    ]
+  },
   "payment:*/Fuel_cards_data": {
+    "*": [
+      ""
+    ]
+  },
+  "payment:*/Public_transports_data": {
+    "*": [
+      ""
+    ]
+  },
+  "payment:*/Road_tolls_data": {
     "*": [
       ""
     ]
@@ -39442,6 +39617,11 @@
     ]
   },
   "payment:pluxee": {
+    "*": [
+      ""
+    ]
+  },
+  "payment:qris": {
     "*": [
       ""
     ]
@@ -39585,6 +39765,9 @@
   },
   "piercing": {
     "*": [
+      ""
+    ],
+    "yes": [
       ""
     ]
   },
@@ -40500,10 +40683,22 @@
       "Uk",
       "Zh-hant"
     ],
+    "activitypanel": [
+      ""
+    ],
+    "aerialrotator": [
+      ""
+    ],
     "agility_trail": [
       ""
     ],
+    "archimedes_screw": [
+      ""
+    ],
     "baby_swing": [
+      ""
+    ],
+    "balance": [
       ""
     ],
     "balancebeam": [
@@ -40511,13 +40706,40 @@
       "Pl",
       "RU"
     ],
+    "ball_pool": [
+      ""
+    ],
+    "bannister_bars": [
+      ""
+    ],
+    "basketrotator": [
+      ""
+    ],
     "basketswing": [
+      ""
+    ],
+    "belt_bridge": [
+      ""
+    ],
+    "blackboard": [
       ""
     ],
     "bridge": [
       "",
       "Pl",
       "RU"
+    ],
+    "chute": [
+      ""
+    ],
+    "climbing": [
+      ""
+    ],
+    "climbing_pole": [
+      ""
+    ],
+    "climbing_slope": [
+      ""
     ],
     "climbingframe": [
       "",
@@ -40533,9 +40755,21 @@
       "",
       "RU"
     ],
+    "dome": [
+      ""
+    ],
+    "excavator": [
+      ""
+    ],
     "funnel_ball": [
       "",
       "RU"
+    ],
+    "hammock": [
+      ""
+    ],
+    "hamster_wheel": [
+      ""
     ],
     "hopscotch": [
       "",
@@ -40547,6 +40781,9 @@
     "horizontal_bar": [
       "",
       "RU"
+    ],
+    "ladder": [
+      ""
     ],
     "map": [
       "",
@@ -40562,15 +40799,57 @@
       "",
       "DE"
     ],
+    "monkey_bars": [
+      ""
+    ],
+    "mound": [
+      ""
+    ],
+    "musical_instrument": [
+      ""
+    ],
+    "parallel_bars": [
+      ""
+    ],
+    "platform": [
+      ""
+    ],
     "playhouse": [
       "",
       "Pl",
       "RU"
     ],
+    "pump": [
+      ""
+    ],
+    "ride_on": [
+      ""
+    ],
     "rope_swing": [
       ""
     ],
+    "rope_traverse": [
+      ""
+    ],
     "rotating_seesaw": [
+      ""
+    ],
+    "rotator": [
+      ""
+    ],
+    "roundabout": [
+      ""
+    ],
+    "sand": [
+      ""
+    ],
+    "sand_pulley": [
+      ""
+    ],
+    "sand_seesaw": [
+      ""
+    ],
+    "sand_wheel": [
       ""
     ],
     "sandpit": [
@@ -40578,7 +40857,13 @@
       "Pl",
       "RU"
     ],
+    "seat": [
+      ""
+    ],
     "seesaw": [
+      ""
+    ],
+    "sieve": [
       ""
     ],
     "sledding": [
@@ -40591,7 +40876,34 @@
       "Pl",
       "RU"
     ],
+    "speaking_tube": [
+      ""
+    ],
+    "spinner": [
+      ""
+    ],
+    "spinner_bowl": [
+      ""
+    ],
+    "spinning_circle": [
+      ""
+    ],
+    "spinning_disc": [
+      ""
+    ],
+    "spring_board": [
+      ""
+    ],
     "springy": [
+      ""
+    ],
+    "stepping_post": [
+      ""
+    ],
+    "stepping_stone": [
+      ""
+    ],
+    "steps": [
       ""
     ],
     "structure": [
@@ -40604,12 +40916,18 @@
     "swing": [
       ""
     ],
+    "table": [
+      ""
+    ],
     "teenshelter": [
       "",
       "Pl",
       "RU"
     ],
     "tire_swing": [
+      ""
+    ],
+    "track": [
       ""
     ],
     "trampoline": [
@@ -40619,6 +40937,36 @@
     "tunnel_tube": [
       "",
       "RU"
+    ],
+    "water": [
+      ""
+    ],
+    "water_barrier": [
+      ""
+    ],
+    "water_basin": [
+      ""
+    ],
+    "water_cannon": [
+      ""
+    ],
+    "water_channel": [
+      ""
+    ],
+    "water_seesaw": [
+      ""
+    ],
+    "water_sprayer": [
+      ""
+    ],
+    "water_stream": [
+      ""
+    ],
+    "water_wheel": [
+      ""
+    ],
+    "wobble_bridge": [
+      ""
     ],
     "youth_bench": [
       "",
@@ -40794,6 +41142,15 @@
       ""
     ],
     "NL:statenkieskring": [
+      ""
+    ],
+    "SG:CDC": [
+      ""
+    ],
+    "SG:GRC": [
+      ""
+    ],
+    "SG:SMC": [
       ""
     ],
     "TR:TBMM": [
@@ -41095,7 +41452,8 @@
       "Zh-hans"
     ],
     "line_section": [
-      ""
+      "",
+      "FR"
     ],
     "marker": [
       "",
@@ -42708,6 +43066,11 @@
       "FR"
     ]
   },
+  "railway:shp": {
+    "*": [
+      ""
+    ]
+  },
   "railway:signal:*": {
     "*": [
       ""
@@ -43126,6 +43489,12 @@
       "Cs"
     ]
   },
+  "railway:signal:traversable": {
+    "*": [
+      "",
+      "DE"
+    ]
+  },
   "railway:signal_box": {
     "*": [
       ""
@@ -43363,6 +43732,11 @@
       "DE",
       "ES",
       "FR"
+    ]
+  },
+  "recreation": {
+    "*": [
+      ""
     ]
   },
   "recreation_ground": {
@@ -46123,7 +46497,8 @@
   "roof:height": {
     "*": [
       "",
-      "DE"
+      "DE",
+      "RU"
     ]
   },
   "roof:levels": {
@@ -46223,7 +46598,8 @@
       "Sk"
     ],
     "hipped": [
-      ""
+      "",
+      "DE"
     ],
     "hipped-and-gabled": [
       "",
@@ -47087,11 +47463,6 @@
     ]
   },
   "scuba_diving:repair": {
-    "*": [
-      ""
-    ]
-  },
-  "scuba_diving:sales": {
     "*": [
       ""
     ]
@@ -48161,6 +48532,9 @@
     ]
   },
   "seamark:notice:category": {
+    "*": [
+      ""
+    ],
     "ferry_independent": [
       ""
     ],
@@ -48204,6 +48578,16 @@
     ]
   },
   "seamark:notice:impact": {
+    "*": [
+      ""
+    ]
+  },
+  "seamark:notice:information": {
+    "*": [
+      ""
+    ]
+  },
+  "seamark:notice:national_information": {
     "*": [
       ""
     ]
@@ -49088,7 +49472,8 @@
   },
   "sells": {
     "*": [
-      ""
+      "",
+      "IT"
     ]
   },
   "sells:tobacco": {
@@ -52246,6 +52631,7 @@
       "",
       "ES",
       "JA",
+      "RU",
       "Uk"
     ]
   },
@@ -52940,7 +53326,8 @@
     "*": [
       "",
       "DE",
-      "FR"
+      "FR",
+      "IT"
     ]
   },
   "soliciting": {
@@ -55476,6 +55863,9 @@
     "*": [
       "",
       "RU"
+    ],
+    "rainbow": [
+      ""
     ]
   },
   "surface:grade": {
@@ -55841,6 +56231,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Pl",
@@ -57301,6 +57692,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "Fi",
@@ -57318,6 +57710,7 @@
       "Bg",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "JA"
@@ -57325,6 +57718,7 @@
     "chicane": [
       "",
       "DE",
+      "El",
       "FR",
       "Fa",
       "JA"
@@ -57332,18 +57726,21 @@
     "choked_island": [
       "",
       "DE",
+      "El",
       "FR",
       "Fa"
     ],
     "choked_table": [
       "",
       "DE",
+      "El",
       "FR",
       "Fa"
     ],
     "choker": [
       "",
       "DE",
+      "El",
       "FR",
       "Fa",
       "JA"
@@ -57352,6 +57749,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "JA"
@@ -57360,6 +57758,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "Sk"
@@ -57367,12 +57766,14 @@
     "double_dip": [
       "",
       "DE",
+      "El",
       "FR",
       "Fa"
     ],
     "dynamic_bump": [
       "",
       "DE",
+      "El",
       "FR",
       "Fa"
     ],
@@ -57380,6 +57781,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "JA",
@@ -57389,6 +57791,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "JA",
@@ -57404,23 +57807,27 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "JA"
     ],
     "painted_island": [
       "",
+      "El",
       "FR",
       "Fa"
     ],
     "painted_table": [
       "",
+      "El",
       "Fa"
     ],
     "rumble_strip": [
       "",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "JA",
@@ -57430,6 +57837,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "JA",
@@ -57441,6 +57849,7 @@
     "yes": [
       "",
       "DE",
+      "El",
       "FR",
       "Fa",
       "Ko"
@@ -58227,10 +58636,12 @@
     ],
     "generator": [
       "",
+      "DE",
       "FR"
     ],
     "main": [
       "",
+      "DE",
       "FR",
       "RU"
     ],
@@ -58537,6 +58948,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Hu",
       "JA",
@@ -59296,6 +59708,9 @@
       "Pl",
       "RU"
     ],
+    "clothes": [
+      ""
+    ],
     "coffee": [
       "",
       "Cs",
@@ -59604,6 +60019,9 @@
       "RU",
       "Sk"
     ],
+    "snacks": [
+      ""
+    ],
     "stamps": [
       "",
       "Cs",
@@ -59620,6 +60038,9 @@
       "FR",
       "Pl",
       "RU"
+    ],
+    "swimming_items": [
+      ""
     ],
     "syringes": [
       "",
@@ -59674,6 +60095,9 @@
     ]
   },
   "vending_machine": {
+    "*": [
+      ""
+    ],
     "fuel": [
       "",
       "DE",
@@ -59704,6 +60128,7 @@
   "via": {
     "*": [
       "",
+      "DE",
       "ES"
     ]
   },
@@ -60010,6 +60435,11 @@
       ""
     ]
   },
+  "warm_water": {
+    "*": [
+      ""
+    ]
+  },
   "was:*": {
     "*": [
       "",
@@ -60062,6 +60492,7 @@
     ],
     "dog_excrement": [
       "",
+      "Cs",
       "DE",
       "ES",
       "FR",
@@ -60420,6 +60851,7 @@
       "Fi",
       "Hu",
       "IT",
+      "Id",
       "JA",
       "Ko",
       "NL",
@@ -60672,6 +61104,7 @@
       "Fi",
       "Gcf",
       "IT",
+      "Id",
       "JA",
       "Pl",
       "Pt",
@@ -60731,6 +61164,7 @@
       "Fi",
       "Gcf",
       "IT",
+      "Id",
       "JA",
       "Pl",
       "Pt",
@@ -61102,6 +61536,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fi",
       "Hu",
@@ -61255,6 +61690,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "JA",
       "Pl",
       "Pt",
