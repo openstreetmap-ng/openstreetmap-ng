@@ -41,6 +41,7 @@ runs:
           ${{ steps.cache-dirs.outputs.BUN_CACHE }}
           .venv
           node_modules
+          app/static/img/browser
           app/static/img/element/_generated
           config/locale/gnu
           config/locale/i18next
