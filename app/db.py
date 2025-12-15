@@ -1,16 +1,17 @@
 import logging
-from asyncio import TaskGroup, sleep
+from asyncio import Future, TaskGroup, sleep
 from collections.abc import Callable
 from contextlib import asynccontextmanager, contextmanager
 from functools import wraps
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from time import monotonic
 from weakref import WeakSet
 
 import cython
 import duckdb
 import orjson
-from psycopg import AsyncConnection, IsolationLevel, postgres
+from psycopg import AsyncConnection, IsolationLevel, OperationalError, postgres
 from psycopg.abc import AdaptContext
 from psycopg.pq import Format
 from psycopg.sql import SQL, Identifier
@@ -21,6 +22,7 @@ from psycopg.types.hstore import register_hstore
 from psycopg.types.json import set_json_dumps, set_json_loads
 from psycopg.types.shapely import register_shapely
 from psycopg_pool import AsyncConnectionPool
+from sentry_sdk import capture_exception
 
 from app.config import (
     DUCKDB_MEMORY_LIMIT,
@@ -328,18 +330,22 @@ async def without_indexes(conn: AsyncConnection, /, *tables: str, analyze: bool 
 
     yield
 
-    logging.info(
-        'Recreating indexes and constraints on %s (analyze=%s)',
-        tables_text,
-        analyze,
-    )
-
     # Recreate indexes first
-    for sql in all_indexes.values():
-        await conn.execute(sql)
+    for name, sql in all_indexes.items():
+        start = monotonic()
+        logging.info('Recreating index %s...', name)
+        try:
+            await conn.execute(sql)
+        except OperationalError as e:
+            capture_exception(e)
+            logging.exception('Unable to recreate index %s; paused indefinitely', name)
+            await Future()
+        logging.info('Recreated index %s in %.1fs', name, monotonic() - start)
 
     # Then recreate constraints
     for table, constraints in table_constraints.items():
+        start = monotonic()
+        logging.info('Recreating constraints on %s...', table)
         await conn.execute(
             SQL('ALTER TABLE {} {}').format(
                 Identifier(table),
@@ -349,12 +355,16 @@ async def without_indexes(conn: AsyncConnection, /, *tables: str, analyze: bool 
                 ),
             )
         )
+        logging.info('Recreated constraints on %s in %.1fs', table, monotonic() - start)
 
     # Update statistics for query planner
     if analyze:
+        start = monotonic()
+        logging.info('Analyzing %s...', tables_text)
         await conn.execute(
             SQL('ANALYZE {}').format(SQL(', ').join(map(Identifier, tables)))
         )
+        logging.info('Analyzed %s in %.1fs', tables_text, monotonic() - start)
 
     logging.info('Recreated indexes and constraints on %s', tables_text)
 

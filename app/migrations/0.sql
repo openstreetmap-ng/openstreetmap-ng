@@ -529,6 +529,8 @@ CREATE UNLOGGED TABLE element_spatial_staging_batch (batch_id integer PRIMARY KE
 
 CREATE UNLOGGED TABLE element_spatial_pending_rels (typed_id bigint PRIMARY KEY);
 
+CREATE UNLOGGED TABLE element_spatial_pending_rels_batch (batch_id integer PRIMARY KEY, typed_ids BIGINT[]);
+
 CREATE TABLE element_spatial (
     typed_id bigint PRIMARY KEY,
     sequence_id bigint NOT NULL,

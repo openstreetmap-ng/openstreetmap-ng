@@ -34,7 +34,9 @@ class ElementSpatialQuery:
                         e.tags,
                         es.bounds_area AS sort_key
                     FROM element_spatial es
-                    INNER JOIN element e ON e.typed_id = es.typed_id AND e.latest
+                    INNER JOIN element e ON e.typed_id = es.typed_id
+                        AND e.typed_id >= 1152921504606846976
+                        AND e.latest
                     WHERE h3_geometry_to_compact_cells(es.geom, 11) && %(h3_cells)s::h3index[]
                         AND ST_Intersects(es.geom, %(area)s)
 

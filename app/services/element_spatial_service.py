@@ -23,6 +23,7 @@ from app.models.types import SequenceId
 from app.utils import calc_num_workers
 
 _MAX_RELATION_NESTING_DEPTH = 15
+_AVG_MEMBERS_PER_RELATION = 15
 
 _PROCESS_REQUEST_EVENT = Event()
 _PROCESS_DONE_EVENT = Event()
@@ -31,17 +32,17 @@ _PROCESS_DONE_EVENT = Event()
 # - m node_point: avg nodes per way (LEFT JOIN hint unsupported: github.com/ossc-db/pg_hint_plan/issues/217)
 _BATCH_QUERY_WAYS = """
 /*+ NoSeqScan(w) Rows(w n #{ways_per_batch}) Rows(m node_point #10) */
-WITH nodes AS (
+WITH changed_node_ids AS (
     SELECT array_agg(typed_id) AS ids
     FROM element
     WHERE sequence_id BETWEEN {start_seq} AND {end_seq}
       AND typed_id <= 1152921504606846975
       AND latest
 ),
-ways AS (
+candidate_ways AS (
     SELECT w.typed_id, w.sequence_id, w.members, w.visible
     FROM element w
-    CROSS JOIN nodes n
+    CROSS JOIN changed_node_ids n
     WHERE w.typed_id BETWEEN 1152921504606846976 AND 2305843009213693951
       AND w.latest
       AND (
@@ -49,153 +50,170 @@ ways AS (
         OR w.members && n.ids
       )
 ),
-ways_computed AS (
+ways_with_geom AS (
     SELECT
         w.typed_id,
         w.sequence_id,
-        ST_RemoveRepeatedPoints(
-            CASE
-                WHEN ST_IsClosed(line_geom) AND ST_NPoints(line_geom) >= 4 AND ST_IsSimple(line_geom)
-                THEN ST_MakePolygon(line_geom)
-                ELSE line_geom
-            END
-        ) AS geom
-    FROM ways w
+        CASE
+            WHEN way_geom.npoints >= 4
+             AND ST_IsClosed(way_geom.line_geom)
+             AND ST_IsSimple(way_geom.line_geom)
+            THEN ST_MakePolygon(way_geom.line_geom)
+
+            WHEN way_geom.npoints >= 2
+            THEN way_geom.line_geom
+
+            ELSE NULL
+        END AS geom
+    FROM candidate_ways w
     LEFT JOIN LATERAL (
-        SELECT ST_MakeLine(node_point.point ORDER BY m.ord) AS line_geom
-        FROM UNNEST(w.members) WITH ORDINALITY AS m(node_id, ord)
-        LEFT JOIN LATERAL (
-            SELECT point
-            FROM element n
-            WHERE n.typed_id = m.node_id
-            ORDER BY n.sequence_id DESC
-            LIMIT 1
-        ) node_point ON true
-        WHERE w.visible
-          AND w.members IS NOT NULL
+        SELECT COALESCE(ST_NPoints(line_geom), 0) AS npoints, line_geom
+        FROM (
+            SELECT ST_RemoveRepeatedPoints(
+                ST_MakeLine(node_point.point ORDER BY m.ord)
+                    FILTER (WHERE node_point.point IS NOT NULL)
+            ) AS line_geom
+            FROM UNNEST(w.members) WITH ORDINALITY AS m(node_id, ord)
+            LEFT JOIN LATERAL (
+                SELECT point
+                FROM element n
+                WHERE n.typed_id = m.node_id
+                  AND n.typed_id <= 1152921504606846975
+                ORDER BY n.sequence_id DESC
+                LIMIT 1
+            ) node_point ON true
+            WHERE w.visible
+              AND w.members IS NOT NULL
+        ) AS computed
     ) AS way_geom ON true
 )
 INSERT INTO element_spatial_staging (typed_id, sequence_id, updated_sequence_id, depth, geom)
-SELECT typed_id, sequence_id, {end_seq}, 0, geom FROM ways_computed
+SELECT typed_id, sequence_id, {end_seq}, 0, geom FROM ways_with_geom
 """
 
-# - r rels_batch: 1 row per relation
+# - r batch_rel_ids: 1 row per relation
 # - r m: avg members per batch
-# - mr glr: avg child relations per relation
-# - mw glw: avg ways/nodes per relation (LEFT JOIN hint unsupported: github.com/ossc-db/pg_hint_plan/issues/217)
+# - mw gl: avg members per relation (LEFT JOIN hint unsupported: github.com/ossc-db/pg_hint_plan/issues/217)
 _BATCH_QUERY_RELATIONS = """
-/*+ Rows(r rels_batch #{batch_limit}) Rows(r m #{members_per_batch}) Rows(mr glr #1) Rows(mw glw #30) */
+/*+ Rows(r batch_rel_ids #{batch_items}) Rows(r m #{members_per_batch}) Rows(rm rr #{members_per_batch}) Rows(mw gl #{members_per_rel}) */
 WITH
-rels_batch AS (
-    SELECT typed_id
-    FROM element_spatial_pending_rels
-    ORDER BY typed_id
-    OFFSET {batch_offset}
-    LIMIT {batch_limit}
+batch_rel_ids AS (
+    SELECT UNNEST(typed_ids) AS typed_id
+    FROM element_spatial_pending_rels_batch
+    WHERE batch_id = {batch_id}
 ),
-rels AS (
-    SELECT r.typed_id, r.sequence_id, r.members, r.visible, r.tags
+rels_rows AS (
+    SELECT
+        r.typed_id,
+        r.sequence_id,
+        r.members,
+        r.visible,
+        r.tags,
+        (r.visible AND r.members IS NOT NULL AND r.tags IS NOT NULL) AS eligible
     FROM element r
-    INNER JOIN rels_batch ON rels_batch.typed_id = r.typed_id
+    INNER JOIN batch_rel_ids ON batch_rel_ids.typed_id = r.typed_id
     WHERE r.latest
+      AND r.typed_id >= 2305843009213693952
 ),
-rels_members AS (
+eligible_rel_members AS (
     SELECT r.typed_id AS parent_id, m.member_id
-    FROM rels r
+    FROM rels_rows r
     CROSS JOIN LATERAL UNNEST(r.members) AS m(member_id)
+    WHERE r.eligible
 ),
-needed_ids AS (
-    SELECT DISTINCT member_id AS typed_id
-    FROM rels_members
-    WHERE member_id >= 1152921504606846976
+blocked_rel_ids AS (
+    SELECT DISTINCT rm.parent_id
+    FROM eligible_rel_members rm
+    INNER JOIN element_spatial_pending_rels pr ON pr.typed_id = rm.member_id
+    WHERE rm.member_id >= 2305843009213693952
 ),
-geom_lookup AS MATERIALIZED (
-    -- Priority 1: Staging (current cycle, most recent)
-    (
-        SELECT DISTINCT ON (s.typed_id) s.typed_id, s.geom
+ready_rels AS (
+    SELECT r.* FROM rels_rows r
+    LEFT JOIN blocked_rel_ids b ON b.parent_id = r.typed_id
+    WHERE NOT r.eligible
+       OR {depth} >= {max_depth}
+       OR b.parent_id IS NULL
+),
+needed_member_ids AS (
+    SELECT DISTINCT rm.member_id AS typed_id
+    FROM eligible_rel_members rm
+    INNER JOIN ready_rels rr ON rr.typed_id = rm.parent_id
+    WHERE rm.member_id >= 1152921504606846976
+),
+staging_latest_geom AS (
+    SELECT n.typed_id, s.typed_id AS staged_typed_id, s.geom
+    FROM needed_member_ids n
+    LEFT JOIN LATERAL (
+        SELECT s.typed_id, s.geom
         FROM element_spatial_staging s
-        INNER JOIN needed_ids n ON n.typed_id = s.typed_id
-        WHERE s.depth < {depth}
-        ORDER BY s.typed_id, s.updated_sequence_id DESC
-    )
+        WHERE s.typed_id = n.typed_id
+          AND s.depth < {depth}
+        ORDER BY s.updated_sequence_id DESC
+        LIMIT 1
+    ) s ON true
+),
+geom_lookup AS (
+    -- Priority 1: Staging (current cycle, most recent)
+    SELECT typed_id, geom
+    FROM staging_latest_geom
+    WHERE staged_typed_id IS NOT NULL
+      AND geom IS NOT NULL
 
     UNION ALL
 
     -- Priority 2: Production table (previous cycles, fallback only)
-    (
-        SELECT es.typed_id, es.geom
-        FROM element_spatial es
-        INNER JOIN needed_ids n ON n.typed_id = es.typed_id
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM element_spatial_staging s
-            WHERE s.typed_id = es.typed_id
-              AND s.depth < {depth}
-        )
-    )
-),
-blocked_rels AS (
-    SELECT DISTINCT rm.parent_id
-    FROM rels_members rm
-    LEFT JOIN geom_lookup gl ON gl.typed_id = rm.member_id
-    LEFT JOIN element_spatial_pending_rels pr ON pr.typed_id = rm.member_id
-    WHERE rm.member_id >= 2305843009213693952
-      AND (pr.typed_id IS NOT NULL OR gl.typed_id IS NULL)
-),
-rels_ready AS (
-    SELECT r.*
-    FROM rels r
-    LEFT JOIN blocked_rels b ON b.parent_id = r.typed_id
-    WHERE {depth} >= {max_depth} OR b.parent_id IS NULL
+    SELECT es.typed_id, es.geom
+    FROM staging_latest_geom sl
+    INNER JOIN element_spatial es ON es.typed_id = sl.typed_id
+    WHERE sl.staged_typed_id IS NULL
 ),
 rels_computed AS (
     SELECT
         rr.typed_id,
         rr.sequence_id,
+        NULL::geometry AS geom
+    FROM ready_rels rr
+    WHERE NOT rr.eligible
+
+    UNION ALL
+
+    SELECT
+        rr.typed_id,
+        rr.sequence_id,
         rel_geom.geom
-    FROM rels_ready rr
+    FROM ready_rels rr
     LEFT JOIN LATERAL (
-        WITH member_geoms AS (
-            SELECT ST_Union(geom_val) AS geom
-            FROM (
-                SELECT glr.geom AS geom_val
-                FROM UNNEST(rr.members) AS mr(child_rel_id)
-                INNER JOIN geom_lookup glr ON glr.typed_id = mr.child_rel_id
-                WHERE mr.child_rel_id >= 2305843009213693952
-                  AND glr.geom IS NOT NULL
-
-                UNION ALL
-
-                SELECT COALESCE(glw.geom, node_point.point) AS geom_val
-                FROM UNNEST(rr.members) AS mw(member_id)
-                LEFT JOIN geom_lookup glw ON glw.typed_id = mw.member_id
-                LEFT JOIN LATERAL (
-                    SELECT point
-                    FROM element n
-                    WHERE n.typed_id = mw.member_id
-                    ORDER BY n.sequence_id DESC
-                    LIMIT 1
-                ) node_point ON mw.member_id <= 1152921504606846975
-                WHERE mw.member_id <= 2305843009213693951
-            )
+        WITH members_union_geom AS (
+            SELECT ST_Union(COALESCE(gl.geom, node_point.point)) AS geom
+            FROM UNNEST(rr.members) AS mw(member_id)
+            LEFT JOIN geom_lookup gl ON gl.typed_id = mw.member_id
+            LEFT JOIN LATERAL (
+                SELECT point
+                FROM element n
+                WHERE n.typed_id = mw.member_id
+                  AND n.typed_id <= 1152921504606846975
+                  AND mw.member_id <= 1152921504606846975
+                ORDER BY n.sequence_id DESC
+                LIMIT 1
+            ) node_point ON true
         ),
-        extracted AS (
+        extracted_geoms AS (
             SELECT
                 ST_CollectionExtract(geom, 1) AS points,
                 ST_CollectionExtract(geom, 2) AS lines,
                 ST_CollectionExtract(geom, 3) AS polys
-            FROM member_geoms
+            FROM members_union_geom
         ),
         lines_geom AS (
             SELECT ST_Union(
-                (SELECT lines FROM extracted),
-                ST_Boundary((SELECT polys FROM extracted))
+                (SELECT lines FROM extracted_geoms),
+                ST_Boundary((SELECT polys FROM extracted_geoms))
             ) AS geom
         ),
         polys_geom AS (
             SELECT ST_Union(
                 (SELECT ST_Polygonize(geom) FROM lines_geom),
-                (SELECT polys FROM extracted)
+                (SELECT polys FROM extracted_geoms)
             ) AS geom
         )
         SELECT ST_RemoveRepeatedPoints(
@@ -210,16 +228,14 @@ rels_computed AS (
                     )
                 END,
                 CASE
-                    WHEN ST_IsEmpty((SELECT points FROM extracted))
+                    WHEN ST_IsEmpty((SELECT points FROM extracted_geoms))
                     THEN NULL
-                    ELSE (SELECT points FROM extracted)
+                    ELSE (SELECT points FROM extracted_geoms)
                 END
             )
         ) AS geom
-        WHERE rr.visible
-          AND rr.members IS NOT NULL
-          AND rr.tags IS NOT NULL
     ) AS rel_geom ON true
+    WHERE rr.eligible
 )
 INSERT INTO element_spatial_staging (typed_id, sequence_id, updated_sequence_id, depth, geom)
 SELECT typed_id, sequence_id, {end_seq}, {depth}, geom FROM rels_computed
@@ -343,6 +359,7 @@ async def _update(
         await conn.execute('TRUNCATE element_spatial_staging')
         await conn.execute('TRUNCATE element_spatial_staging_batch')
         await conn.execute('TRUNCATE element_spatial_pending_rels')
+        await conn.execute('TRUNCATE element_spatial_pending_rels_batch')
 
     parallelism = calc_num_workers(parallelism if last_sequence else parallelism_init)
     logging.debug(
@@ -403,9 +420,13 @@ async def _process_depth(
             return False
 
         logging.debug('Depth %d: Processing %d relations', depth, num_items)
+        rels_num_batches = await _materialize_pending_rels_batches(batch_size)
+        rels_last_batch_size = num_items - (batch_size * (rels_num_batches - 1))
     else:
         num_items = max_sequence - last_sequence
         logging.debug('Depth 0: Processing %d changes', num_items)
+        rels_num_batches = 0
+        rels_last_batch_size = 0
 
     semaphore = Semaphore(parallelism)
 
@@ -427,20 +448,21 @@ async def _process_depth(
             if advance is not None:
                 advance(end_seq - start_seq + 1)
 
-        async def process_rels_batch(batch_offset: int):
+        async def process_rels_batch(batch_id: int, batch_items: int):
             async with semaphore, db(True) as conn:
                 await conn.execute(
                     _BATCH_QUERY_RELATIONS.format(  # type: ignore
-                        members_per_batch=batch_size * 30,
+                        members_per_rel=_AVG_MEMBERS_PER_RELATION,
+                        members_per_batch=batch_items * _AVG_MEMBERS_PER_RELATION,
                         depth=depth,
                         max_depth=_MAX_RELATION_NESTING_DEPTH,
                         end_seq=max_sequence,
-                        batch_offset=batch_offset,
-                        batch_limit=batch_size,
+                        batch_id=batch_id,
+                        batch_items=batch_items,
                     )
                 )
             if advance is not None:
-                advance(min(batch_size, num_items - batch_offset))
+                advance(batch_items)
 
         async with TaskGroup() as tg:
             if not depth:
@@ -449,9 +471,14 @@ async def _process_depth(
                     end_seq = min(start_seq + batch_size - 1, max_sequence)
                     tg.create_task(process_ways_batch(start_seq, end_seq))
             else:
-                # Depth 1+: Batch by offset into pending_rels
-                for batch_offset in range(0, num_items, batch_size):
-                    tg.create_task(process_rels_batch(batch_offset))
+                # Depth 1+: Batch by pre-materialized batch_id
+                for batch_id in range(rels_num_batches):
+                    batch_items = (
+                        rels_last_batch_size
+                        if batch_id == (rels_num_batches - 1)
+                        else batch_size
+                    )
+                    tg.create_task(process_rels_batch(batch_id, batch_items))
 
     async with db(True) as conn:
         if num_items >= 10_000:
@@ -533,9 +560,7 @@ async def _seed_pending_relations(
                     tg.create_task(seed_from_element_batch_task(seq_start, seq_end))
 
             # Ways and relations from staging
-            num_batches = await _materialize_staging_batches(
-                depth=depth, batch_size=batch_size
-            )
+            num_batches = await _materialize_staging_batches(batch_size, depth=depth)
             for batch_id in range(num_batches):
                 tg.create_task(_seed_from_staging_batch(batch_id, semaphore))
 
@@ -567,11 +592,7 @@ async def _seed_from_element_batch(
         )
 
 
-async def _materialize_staging_batches(
-    *,
-    depth: int,
-    batch_size: int,
-) -> int:
+async def _materialize_staging_batches(batch_size: int, *, depth: int) -> int:
     """Materialize staging batches. Returns number of batches."""
     async with db(True) as conn:
         await conn.execute('TRUNCATE element_spatial_staging_batch')
@@ -600,6 +621,39 @@ async def _materialize_staging_batches(
 
         async with await conn.execute(
             'SELECT COUNT(*) FROM element_spatial_staging_batch'
+        ) as r:
+            (num_batches,) = await r.fetchone()  # type: ignore
+            return num_batches
+
+
+async def _materialize_pending_rels_batches(batch_size: int) -> int:
+    """Materialize pending relation batches. Returns number of batches."""
+    async with db(True) as conn:
+        await conn.execute('TRUNCATE element_spatial_pending_rels_batch')
+        await conn.execute(
+            """
+            WITH pending_rows AS (
+                SELECT
+                    typed_id,
+                    ROW_NUMBER() OVER (ORDER BY typed_id) AS rn
+                FROM element_spatial_pending_rels
+            ),
+            batched AS (
+                SELECT
+                    ((rn - 1) / %(batch_size)s)::INTEGER AS batch_id,
+                    ARRAY_AGG(typed_id) AS typed_ids
+                FROM pending_rows
+                GROUP BY batch_id
+            )
+            INSERT INTO element_spatial_pending_rels_batch (batch_id, typed_ids)
+            SELECT batch_id, typed_ids FROM batched
+            """,
+            {'batch_size': batch_size},
+        )
+        await conn.execute('ANALYZE element_spatial_pending_rels_batch')
+
+        async with await conn.execute(
+            'SELECT COUNT(*) FROM element_spatial_pending_rels_batch'
         ) as r:
             (num_batches,) = await r.fetchone()  # type: ignore
             return num_batches
@@ -679,5 +733,6 @@ async def _finalize_staging(*, max_sequence: int, last_sequence: int) -> None:
         await conn.execute('TRUNCATE element_spatial_staging')
         await conn.execute('TRUNCATE element_spatial_staging_batch')
         await conn.execute('TRUNCATE element_spatial_pending_rels')
+        await conn.execute('TRUNCATE element_spatial_pending_rels_batch')
 
     logging.debug('Finished updating element_spatial')
