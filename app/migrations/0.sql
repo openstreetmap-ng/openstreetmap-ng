@@ -338,6 +338,7 @@ CREATE TYPE audit_type AS enum(
 );
 
 CREATE TABLE audit (
+    id bigint PRIMARY KEY,
     type audit_type NOT NULL,
     ip inet NOT NULL,
     user_agent text,
@@ -349,21 +350,23 @@ CREATE TABLE audit (
     created_at timestamptz NOT NULL DEFAULT statement_timestamp()
 );
 
-CREATE INDEX audit_created_at_idx ON audit (created_at) INCLUDE (type)
+CREATE INDEX audit_created_at_idx ON audit (created_at)
 WITH
     (fillfactor = 100);
 
-CREATE INDEX audit_ip_created_at_idx ON audit (ip, created_at) INCLUDE (type, user_id, application_id);
+CREATE INDEX audit_type_created_at_idx ON audit (type, created_at);
 
-CREATE INDEX audit_user_created_at_idx ON audit (user_id, created_at) INCLUDE (type, ip, application_id)
+CREATE INDEX audit_ip_created_at_idx ON audit (ip, created_at);
+
+CREATE INDEX audit_user_created_at_idx ON audit (user_id, created_at)
 WHERE
     user_id IS NOT NULL;
 
-CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id, created_at) INCLUDE (type)
+CREATE INDEX audit_target_user_created_at_idx ON audit (target_user_id, created_at)
 WHERE
     target_user_id IS NOT NULL;
 
-CREATE INDEX audit_application_created_at_idx ON audit (application_id, created_at) INCLUDE (type, ip)
+CREATE INDEX audit_application_created_at_idx ON audit (application_id, created_at)
 WHERE
     application_id IS NOT NULL;
 
@@ -377,6 +380,7 @@ CREATE INDEX audit_discard_repeated_idx ON audit (
     user_id,
     target_user_id,
     application_id,
+    token_id,
     hashtext (extra::text),
     created_at
 );

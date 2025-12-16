@@ -1,88 +1,16 @@
-from typing import Any, Literal, overload
+from typing import Any
 
 import cython
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
-from app.config import DIARY_COMMENTS_PAGE_SIZE
 from app.db import db
-from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.diary import Diary
 from app.models.db.diary_comment import DiaryComment
-from app.models.types import DiaryCommentId, DiaryId, UserId
+from app.models.types import DiaryCommentId, UserId
 
 
 class DiaryCommentQuery:
-    @overload
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['count'],
-        /,
-        diary_id: DiaryId,
-    ) -> int: ...
-
-    @overload
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['page'],
-        /,
-        diary_id: DiaryId,
-        *,
-        page: int,
-        num_items: int,
-    ) -> list[DiaryComment]: ...
-
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['count', 'page'],
-        /,
-        diary_id: DiaryId,
-        *,
-        page: int | None = None,
-        num_items: int | None = None,
-    ) -> int | list[DiaryComment]:
-        """Get comments for the given diary comments page."""
-        if mode == 'count':
-            async with (
-                db() as conn,
-                await conn.execute(
-                    """
-                    SELECT COUNT(*)
-                    FROM diary_comment
-                    WHERE diary_id = %s
-                    """,
-                    (diary_id,),
-                ) as r,
-            ):
-                return (await r.fetchone())[0]  # type: ignore
-
-        # mode == 'page'
-        assert page is not None
-        assert num_items is not None
-        stmt_limit, stmt_offset = standard_pagination_range(
-            page,
-            page_size=DIARY_COMMENTS_PAGE_SIZE,
-            num_items=num_items,
-        )
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM (
-                    SELECT * FROM diary_comment
-                    WHERE diary_id = %s
-                    ORDER BY id DESC
-                    OFFSET %s
-                    LIMIT %s
-                ) AS subquery
-                ORDER BY id ASC
-                """,
-                (diary_id, stmt_offset, stmt_limit),
-            ) as r,
-        ):
-            return await r.fetchall()  # type: ignore
-
     @staticmethod
     async def count_by_user(user_id: UserId) -> int:
         """Count diary comments by user id (for profile stats)."""

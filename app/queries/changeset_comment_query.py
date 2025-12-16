@@ -1,11 +1,7 @@
-from typing import Literal, overload
-
 from psycopg.abc import Params, Query
 from psycopg.rows import dict_row
 
-from app.config import CHANGESET_COMMENTS_PAGE_SIZE
 from app.db import db
-from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import (
     ChangesetComment,
@@ -15,76 +11,6 @@ from app.models.types import ChangesetId
 
 
 class ChangesetCommentQuery:
-    @overload
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['count'],
-        /,
-        changeset_id: ChangesetId,
-    ) -> int: ...
-
-    @overload
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['page'],
-        /,
-        changeset_id: ChangesetId,
-        *,
-        page: int,
-        num_items: int,
-    ) -> list[ChangesetComment]: ...
-
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['count', 'page'],
-        /,
-        changeset_id: ChangesetId,
-        *,
-        page: int | None = None,
-        num_items: int | None = None,
-    ) -> int | list[ChangesetComment]:
-        """Get comments for the given changeset comments page."""
-        if mode == 'count':
-            async with (
-                db() as conn,
-                await conn.execute(
-                    """
-                    SELECT COUNT(*)
-                    FROM changeset_comment
-                    WHERE changeset_id = %s
-                    """,
-                    (changeset_id,),
-                ) as r,
-            ):
-                return (await r.fetchone())[0]  # type: ignore
-
-        # mode == 'page'
-        assert page is not None
-        assert num_items is not None
-        limit, offset = standard_pagination_range(
-            page,
-            page_size=CHANGESET_COMMENTS_PAGE_SIZE,
-            num_items=num_items,
-        )
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM (
-                    SELECT * FROM changeset_comment
-                    WHERE changeset_id = %s
-                    ORDER BY id DESC
-                    OFFSET %s
-                    LIMIT %s
-                )
-                ORDER BY id ASC
-                """,
-                (changeset_id, offset, limit),
-            ) as r,
-        ):
-            return await r.fetchall()  # type: ignore
-
     @staticmethod
     async def resolve_num_comments(changesets: list[Changeset]) -> None:
         """Resolve the number of comments for each changeset."""

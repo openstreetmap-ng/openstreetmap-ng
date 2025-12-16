@@ -15,6 +15,7 @@ Longitude = Annotated[float, Interval(ge=-180, le=180)]
 Latitude = Annotated[float, Interval(ge=-90, le=90)]
 Zoom = Annotated[int, Interval(ge=0, le=25)]
 
+AuditId = NewType('AuditId', int)
 ApplicationId = NewType('ApplicationId', int)
 ChangesetCommentId = NewType('ChangesetCommentId', int)
 ChangesetId = NewType('ChangesetId', int)

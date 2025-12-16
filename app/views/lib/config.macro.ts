@@ -12,6 +12,8 @@ from app.lib.sentry import *
 print(json.dumps({
     'API_URL': API_URL,
     'ENV': ENV,
+    'STANDARD_PAGINATION_DISTANCE': STANDARD_PAGINATION_DISTANCE,
+    'STANDARD_PAGINATION_MAX_FULL_PAGES': STANDARD_PAGINATION_MAX_FULL_PAGES,
     'MAP_QUERY_AREA_MAX_SIZE': MAP_QUERY_AREA_MAX_SIZE,
     'NOTE_QUERY_AREA_MAX_SIZE': NOTE_QUERY_AREA_MAX_SIZE,
     'SENTRY_DSN': SENTRY_DSN,
@@ -25,6 +27,10 @@ print(json.dumps({
 
 export const _API_URL: string = pythonConfig.API_URL
 export const _ENV: "dev" | "test" | "prod" = pythonConfig.ENV
+export const _STANDARD_PAGINATION_DISTANCE: number =
+    pythonConfig.STANDARD_PAGINATION_DISTANCE
+export const _STANDARD_PAGINATION_MAX_FULL_PAGES: number =
+    pythonConfig.STANDARD_PAGINATION_MAX_FULL_PAGES
 export const _MAP_QUERY_AREA_MAX_SIZE: number = pythonConfig.MAP_QUERY_AREA_MAX_SIZE
 export const _NOTE_QUERY_AREA_MAX_SIZE: number = pythonConfig.NOTE_QUERY_AREA_MAX_SIZE
 export const _SENTRY_DSN: string = pythonConfig.SENTRY_DSN

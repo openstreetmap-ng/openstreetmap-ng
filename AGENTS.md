@@ -100,8 +100,11 @@ static-precompress    # Produce .zst/.br for large static assets
 
 - StandardForm (client): `configureStandardForm(form, onSuccess, options)` wires Bootstrap validation, handles pending state, posts via fetch, maps backend `detail` into field tooltips or a form alert, and integrates client‑side password hashing. Use it for all interactive forms (examples across `app/views/**`).
 - StandardFeedback (server): build JSON responses that StandardForm understands using `StandardFeedback`. For simple success/info messages, return `StandardFeedback.success_result(None, '...')`/`info_result(...)`; for validation failures, call `StandardFeedback.raise_error(field, '...')`.
-- StandardPagination (client + server): use `configureStandardPagination(container, opts)` to drive list/table pagination. Markup needs a render container (`ul.list-unstyled` or `tbody`) and a trailing `ul.pagination` with `data-action="/api/..."`, `data-pages`, and `data-num-items`. Server endpoints return partial HTML; optionally set `X-SP-NumItems` and `X-SP-NumPages` to sync counts. On the server, compute ranges with `app/lib/standard_pagination.py:standard_pagination_range`.
-  - Rule of thumb: for interactive form flows, prefer `StandardFeedback` for success/info/errors; reserve `raise_for` for exceptional conditions that should abort the flow entirely (e.g., unauthorized, not found).
+- StandardPagination (client + server): use `configureStandardPagination(container, opts)` to drive list/table pagination.
+  - Markup: a render container (`ul.list-unstyled` or `tbody`) and a trailing `ul.pagination` with `data-action="/api/..."`.
+  - Requests: browser POSTs a raw `StandardPaginationState` protobuf body (`application/x-protobuf`) with `requested_page` set; the server loads that page using anchors from `current_page`, clears `requested_page`, and returns the updated state in the `X-StandardPagination` response header (base64url‑encoded).
+  - Backend helpers: `app/lib/standard_pagination.py` (common SQL, query planning, limited counting, header encoding). For the common “table + WHERE” case, use `sp_paginate_table(...)`.
+- Rule of thumb: for interactive form flows, prefer `StandardFeedback` for success/info/errors; reserve `raise_for` for exceptional conditions that should abort the flow entirely (e.g., unauthorized, not found).
 
 ## Localization Workflow (frontend + backend)
 

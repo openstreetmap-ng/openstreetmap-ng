@@ -1,19 +1,17 @@
 from datetime import datetime
 from ipaddress import ip_address, ip_network
-from typing import Any, Literal, TypedDict, Unpack, overload
+from typing import Any, Literal, TypedDict
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from shapely import Point
 
 from app.config import (
-    ADMIN_USER_LIST_PAGE_SIZE,
     DELETED_USER_EMAIL_SUFFIX,
     NEARBY_USERS_RADIUS_METERS,
 )
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.standard_pagination import standard_pagination_range
 from app.lib.user_name_blacklist import is_user_name_blacklisted
 from app.models.db.element import Element
 from app.models.db.user import User, UserDisplay, UserRole
@@ -312,59 +310,19 @@ class UserQuery:
 
         await UserQuery.resolve_users(elements)
 
-    class _FindParams(TypedDict, total=False):
-        search: str | None
-        unverified: Literal[True] | None
-        roles: list[UserRole] | None
-        created_after: datetime | None
-        created_before: datetime | None
-        application_id: ApplicationId | None
-        sort: Literal['created_asc', 'created_desc', 'name_asc', 'name_desc']
-
-    @overload
     @staticmethod
-    async def find(
-        mode: Literal['count'],
-        /,
-        **kwargs: Unpack[_FindParams],
-    ) -> int: ...
-
-    @overload
-    @staticmethod
-    async def find(
-        mode: Literal['ids'],
-        /,
+    def where_clause(
         *,
-        limit: int,
-        **kwargs: Unpack[_FindParams],
-    ) -> list[UserId]: ...
-
-    @overload
-    @staticmethod
-    async def find(
-        mode: Literal['page'],
-        /,
-        *,
-        page: int,
-        num_items: int,
-        **kwargs: Unpack[_FindParams],
-    ) -> list[User]: ...
-
-    @staticmethod
-    async def find(
-        mode: Literal['count', 'ids', 'page'],
-        /,
-        *,
-        page: int | None = None,
-        num_items: int | None = None,
-        limit: int | None = None,
-        **kwargs: Unpack[_FindParams],
-    ) -> int | list[User] | list[UserId]:
-        """Find users matching filters in different modes."""
+        search: str | None = None,
+        unverified: bool | None = None,
+        roles: list[UserRole] | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
+        application_id: ApplicationId | None = None,
+    ) -> tuple[Composable, tuple[Any, ...]]:
         conditions: list[Composable] = []
         params: list[Any] = []
 
-        search = kwargs.get('search')
         if search:
             try:
                 search_ip = ip_address(search)
@@ -394,26 +352,21 @@ class UserQuery:
                     pattern = f'%{search}%'
                     params.extend((pattern, pattern))
 
-        unverified = kwargs.get('unverified')
         if unverified:
             conditions.append(SQL('NOT email_verified'))
 
-        roles = kwargs.get('roles')
         if roles:
             conditions.append(SQL('roles && %s'))
             params.append(roles)
 
-        created_after = kwargs.get('created_after')
         if created_after:
             conditions.append(SQL('created_at >= %s'))
             params.append(created_after)
 
-        created_before = kwargs.get('created_before')
         if created_before:
             conditions.append(SQL('created_at <= %s'))
             params.append(created_before)
 
-        application_id = kwargs.get('application_id')
         if application_id is not None:
             conditions.append(
                 SQL("""
@@ -428,59 +381,47 @@ class UserQuery:
             params.append(application_id)
 
         where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        return where_clause, tuple(params)
 
-        if mode == 'count':
-            query = SQL('SELECT COUNT(*) FROM "user" WHERE {}').format(where_clause)
-            async with db() as conn, await conn.execute(query, params) as r:
-                return (await r.fetchone())[0]  # type: ignore
+    @staticmethod
+    async def find_ids(
+        *,
+        limit: int,
+        search: str | None = None,
+        unverified: bool | None = None,
+        roles: list[UserRole] | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
+        application_id: ApplicationId | None = None,
+        sort: Literal['created_asc', 'created_desc'] = 'created_desc',
+    ) -> list[UserId]:
+        where_clause, params = UserQuery.where_clause(
+            search=search,
+            unverified=unverified,
+            roles=roles,
+            created_after=created_after,
+            created_before=created_before,
+            application_id=application_id,
+        )
 
-        sort = kwargs.get('sort', 'created_desc')
-        if sort == 'created_asc':
-            order_clause = SQL('created_at')
-        elif sort == 'created_desc':
-            order_clause = SQL('created_at DESC')
-        elif sort == 'name_asc':
-            order_clause = SQL('display_name')
-        elif sort == 'name_desc':
-            order_clause = SQL('display_name DESC')
+        order_dir: SQL
+        if sort == 'created_desc':
+            order_dir = SQL('DESC')
+        elif sort == 'created_asc':
+            order_dir = SQL('ASC')
         else:
             raise NotImplementedError(f'Unsupported sort {sort!r}')
 
-        if mode == 'ids':
-            query = SQL("""
-                SELECT id FROM "user"
-                WHERE {}
-                ORDER BY {}
-                LIMIT %s
-            """).format(where_clause, order_clause)
-            params.append(limit)
-            async with db() as conn, await conn.execute(query, params) as r:
-                return [row[0] for row in await r.fetchall()]
-
-        # mode == 'page'
-        assert page is not None, "Page number must be provided in 'page' mode"
-        assert num_items is not None, "Number of items must be provided in 'page' mode"
-
-        limit, offset = standard_pagination_range(
-            page,
-            page_size=ADMIN_USER_LIST_PAGE_SIZE,
-            num_items=num_items,
-            start_from_end=False,  # Page 1 = start of ordered set
-        )
-
         query = SQL("""
-            SELECT * FROM "user"
-            WHERE {}
-            ORDER BY {}
-            LIMIT %s OFFSET %s
-        """).format(where_clause, order_clause)
-        params.extend((limit, offset))
+            SELECT id FROM "user"
+            WHERE {where}
+            ORDER BY created_at {dir}, id {dir}
+            LIMIT %s
+        """).format(where=where_clause, dir=order_dir)
+        params = (*params, limit)
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        async with db() as conn, await conn.execute(query, params) as r:
+            return [c for (c,) in await r.fetchall()]
 
     @staticmethod
     async def get_2fa_status(user_ids: list[UserId]) -> dict[UserId, _2FAStatus]:

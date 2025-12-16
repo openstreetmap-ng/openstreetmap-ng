@@ -9,6 +9,45 @@ message IdResponse {
 }
 
 // =============================================
+// Pagination
+// =============================================
+
+message StandardPaginationState {
+    message U64Cursors {
+        uint64 snapshot = 1;
+        uint64 page_first = 2;
+        uint64 page_last = 3;
+    }
+
+    message TextCursors {
+        string snapshot = 1;
+        string page_first = 2;
+        string page_last = 3;
+    }
+
+    // Cursor anchors for the stable snapshot and the current page boundaries.
+    // - `u64`: id- and datetime-based cursors
+    // - `text`: string cursors (e.g. display_name)
+    oneof cursors {
+        U64Cursors u64 = 1;
+        TextCursors text = 2;
+    }
+
+    uint32 page_size = 3;
+    uint32 current_page = 4;
+    optional uint32 requested_page = 5;
+
+    optional uint32 num_pages = 6;
+    optional uint32 num_items = 7;
+    uint32 max_known_page = 8;
+
+    // Maximum id in the stable snapshot (used to exclude newly inserted rows).
+    uint64 snapshot_max_id = 9;
+    uint64 page_first_id = 10;
+    uint64 page_last_id = 11;
+}
+
+// =============================================
 // Configuration
 // =============================================
 
@@ -22,10 +61,10 @@ message WebConfig {
             float lat = 2;
         }
 
-        uint64 id = 1;  // User ID
-        string display_name = 2;  // User display name
-        bool activity_tracking = 3;  // Enable usage analytics
-        bool crash_reporting = 4;  // Enable automatic error reports
+        uint64 id = 1; // User ID
+        string display_name = 2; // User display name
+        bool activity_tracking = 3; // Enable usage analytics
+        bool crash_reporting = 4; // Enable automatic error reports
         optional HomePoint home_point = 5;  // User's home point
     }
 
@@ -86,22 +125,22 @@ message LoginResponse {
 // Message read response
 message MessageRead {
     message Sender {
-        uint64 id = 1;  // User ID
-        string display_name = 2;  // Display name
-        string avatar_url = 3;  // Profile image URL
+        uint64 id = 1; // User ID
+        string display_name = 2; // Display name
+        string avatar_url = 3; // Profile image URL
     }
 
     message Recipient {
-        string display_name = 1;  // Display name
-        string avatar_url = 2;  // Profile image URL
+        string display_name = 1; // Display name
+        string avatar_url = 2; // Profile image URL
     }
 
-    Sender sender = 1;  // Message author
-    repeated Recipient recipients = 2;  // Message recipients
-    bool is_recipient = 3;  // Whether current user is a recipient
-    string time = 4;  // HTML time element
-    string subject = 5;  // Message subject
-    string body_rich = 6;  // Rich text HTML body
+    Sender sender = 1; // Message author
+    repeated Recipient recipients = 2; // Message recipients
+    bool is_recipient = 3; // Whether current user is a recipient
+    string time = 4; // HTML time element
+    string subject = 5; // Message subject
+    string body_rich = 6; // Rich text HTML body
 }
 
 // =============================================
@@ -110,10 +149,10 @@ message MessageRead {
 
 // Axis-aligned geographical bounding box
 message SharedBounds {
-    float min_lon = 1;  // Minimum longitude
-    float min_lat = 2;  // Minimum latitude
-    float max_lon = 3;  // Maximum longitude
-    float max_lat = 4;  // Maximum latitude
+    float min_lon = 1; // Minimum longitude
+    float min_lat = 2; // Minimum latitude
+    float max_lon = 3; // Maximum longitude
+    float max_lat = 4; // Maximum latitude
 }
 
 // =============================================
@@ -124,20 +163,20 @@ message SharedBounds {
 message RenderElementsData {
     // Node representation
     message Node {
-        uint64 id = 1;  // Node ID
-        float lon = 2;  // Longitude
-        float lat = 3;  // Latitude
+        uint64 id = 1; // Node ID
+        float lon = 2; // Longitude
+        float lat = 3; // Latitude
     }
 
     // Way representation
     message Way {
-        uint64 id = 1;  // Way ID
-        string line = 2;  // Encoded polyline coordinates
-        bool area = 3;  // Whether to render as closed area
+        uint64 id = 1; // Way ID
+        string line = 2; // Encoded polyline coordinates
+        bool area = 3; // Whether to render as closed area
     }
 
-    repeated Node nodes = 1;  // Nodes in current query
-    repeated Way ways = 2;  // Ways in current query
+    repeated Node nodes = 1; // Nodes in current query
+    repeated Way ways = 2; // Ways in current query
     optional bool too_much_data = 3;  // Error flag for too large responses
 }
 
@@ -147,37 +186,37 @@ message RenderChangesetsData {
     message Changeset {
         // User attribution information
         message User {
-            string name = 1;  // Display name
-            string avatar_url = 2;  // Profile image URL
+            string name = 1; // Display name
+            string avatar_url = 2; // Profile image URL
         }
 
-        uint64 id = 1;  // Changeset ID
+        uint64 id = 1; // Changeset ID
         optional User user = 2;  // Author information
-        repeated SharedBounds bounds = 3;  // Affected map areas
-        bool closed = 4;  // Whether changeset is closed
-        string timeago = 5;  // Human-readable timestamp HTML
+        repeated SharedBounds bounds = 3; // Affected map areas
+        bool closed = 4; // Whether changeset is closed
+        string timeago = 5; // Human-readable timestamp HTML
         optional string comment = 6;  // Commit message
-        uint32 num_create = 7;  // Number of created elements
-        uint32 num_modify = 8;  // Number of modified elements
-        uint32 num_delete = 9;  // Number of deleted elements
-        uint64 num_comments = 10;  // Associated discussion count
+        uint32 num_create = 7; // Number of created elements
+        uint32 num_modify = 8; // Number of modified elements
+        uint32 num_delete = 9; // Number of deleted elements
+        uint64 num_comments = 10; // Associated discussion count
     }
 
-    repeated Changeset changesets = 1;  // Changesets in current query
+    repeated Changeset changesets = 1; // Changesets in current query
 }
 
 // OpenStreetMap notes for rendering on map
 message RenderNotesData {
     // Single map note representation
     message Note {
-        uint64 id = 1;  // Note ID
-        float lon = 2;  // Longitude
-        float lat = 3;  // Latitude
-        string text = 4;  // Plain-text content
-        string status = 5;  // Current status (open, closed, hidden)
+        uint64 id = 1; // Note ID
+        float lon = 2; // Longitude
+        float lat = 3; // Latitude
+        string text = 4; // Plain-text content
+        string status = 5; // Current status (open, closed, hidden)
     }
 
-    repeated Note notes = 1;  // Notes in current query
+    repeated Note notes = 1; // Notes in current query
 }
 
 // =============================================
@@ -188,33 +227,33 @@ message RenderNotesData {
 message RoutingResult {
     // Start/end location metadata
     message Endpoint {
-        string name = 1;  // Location display name
-        SharedBounds bounds = 2;  // Approximate endpoint area
-        float lon = 3;  // Precise longitude
-        float lat = 4;  // Precise latitude
+        string name = 1; // Location display name
+        SharedBounds bounds = 2; // Approximate endpoint area
+        float lon = 3; // Precise longitude
+        float lat = 4; // Precise latitude
     }
 
     // Single navigation instruction step
     message Step {
-        uint32 num_coords = 1;  // Number of coordinates in the polyline (incl. overlapping ends)
-        float distance = 2;  // Meters
-        float time = 3;  // Seconds
-        uint32 icon_num = 4;  // Icon code for this instruction
-        string text = 5;  // Human-readable instruction
+        uint32 num_coords = 1; // Number of coordinates in the polyline (incl. overlapping ends)
+        float distance = 2; // Meters
+        float time = 3; // Seconds
+        uint32 icon_num = 4; // Icon code for this instruction
+        string text = 5; // Human-readable instruction
     }
 
     // Elevation profile summary
     message Elevation {
-        float ascend = 1;  // Total meters climbed
-        float descend = 2;  // Total meters descended
+        float ascend = 1; // Total meters climbed
+        float descend = 2; // Total meters descended
     }
 
     optional Endpoint start = 1;  // Route origin
     optional Endpoint end = 2;  // Route destination
-    string attribution = 3;  // Data provider attribution
-    repeated Step steps = 4;  // Navigation steps
-    uint32 line_quality = 5;  // Quality of the polyline encoding
-    string line = 6;  // Encoded polyline for the route
+    string attribution = 3; // Data provider attribution
+    repeated Step steps = 4; // Navigation steps
+    uint32 line_quality = 5; // Quality of the polyline encoding
+    string line = 6; // Encoded polyline for the route
     optional Elevation elevation = 7;  // Terrain metrics
 }
 
@@ -224,15 +263,15 @@ message RoutingResult {
 
 // Icon with tooltip for map elements
 message ElementIcon {
-    string icon = 1;  // Icon URL
-    string title = 2;  // Accessible tooltip text
+    string icon = 1; // Icon URL
+    string title = 2; // Accessible tooltip text
 }
 
 // Encoded user activity heatmap data
 message UserActivityChart {
-    string start_date = 1;  // ISO date (YYYY-MM-DD) of the first cell (UTC)
-    repeated uint32 values = 2;  // Raw activity count per day, chronological
-    bytes levels = 3;  // Intensity levels per day (0-19) aligned with values
+    string start_date = 1; // ISO date (YYYY-MM-DD) of the first cell (UTC)
+    repeated uint32 values = 2; // Raw activity count per day, chronological
+    bytes levels = 3; // Intensity levels per day (0-19) aligned with values
 }
 
 // =============================================
@@ -243,18 +282,18 @@ message UserActivityChart {
 message PartialChangesetParams {
     // Versioned OSM element reference
     message Element {
-        uint64 id = 1;  // Object ID
-        uint64 version = 2;  // Object version
-        bool visible = 3;  // Whether element is visible
+        uint64 id = 1; // Object ID
+        uint64 version = 2; // Object version
+        bool visible = 3; // Whether element is visible
         optional string name = 4;  // Localized display name
         optional ElementIcon icon = 5;  // Associated icon visualization
     }
 
-    uint64 id = 1;  // Changeset ID
-    repeated SharedBounds bounds = 2;  // Geographical scope
-    repeated Element nodes = 3;  // Modified nodes
-    repeated Element ways = 4;  // Modified ways
-    repeated Element relations = 5;  // Modified relations
+    uint64 id = 1; // Changeset ID
+    repeated SharedBounds bounds = 2; // Geographical scope
+    repeated Element nodes = 3; // Modified nodes
+    repeated Element ways = 4; // Modified ways
+    repeated Element relations = 5; // Modified relations
 }
 
 // Partial element response params
@@ -267,35 +306,35 @@ message PartialElementParams {
 
     // Hierarchical element relationship entry
     message Entry {
-        ElementType type = 1;  // Element type
-        uint64 id = 2;  // OSM ID
+        ElementType type = 1; // Element type
+        uint64 id = 2; // OSM ID
         optional string role = 3;  // Relation member role
         optional string name = 4;  // Localized display name
         optional ElementIcon icon = 5;  // Associated visualization
     }
 
-    ElementType type = 1;  // Primary element type
-    repeated Entry members = 2;  // Child elements (for ways and relations)
-    repeated Entry parents = 3;  // Parent elements
-    RenderElementsData render = 4;  // Visual representation data
+    ElementType type = 1; // Primary element type
+    repeated Entry members = 2; // Child elements (for ways and relations)
+    repeated Entry parents = 3; // Parent elements
+    RenderElementsData render = 4; // Visual representation data
 }
 
 // Partial note response params
 message PartialNoteParams {
-    uint64 id = 1;  // Note ID
-    float lon = 2;  // Longitude
-    float lat = 3;  // Latitude
-    string status = 4;  // Current status (open, closed, hidden)
+    uint64 id = 1; // Note ID
+    float lon = 2; // Longitude
+    float lat = 3; // Latitude
+    string status = 4; // Current status (open, closed, hidden)
 }
 
 // Partial query features response params
 message PartialQueryFeaturesParams {
-    repeated RenderElementsData renders = 1;  // Visual representation data
+    repeated RenderElementsData renders = 1; // Visual representation data
 }
 
 // Partial search response params
 message PartialSearchParams {
     optional string bounds_str = 1;  // Bounding box in "minlon,minlat,maxlon,maxlat" format
-    repeated RenderElementsData renders = 2;  // Search results visual representation
-    bool where_is_this = 3;  // Whether the search was performed in "Where is this?" mode
+    repeated RenderElementsData renders = 2; // Search results visual representation
+    bool where_is_this = 3; // Whether the search was performed in "Where is this?" mode
 }

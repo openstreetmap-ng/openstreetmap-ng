@@ -6,11 +6,9 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
 
-from app.config import NOTE_USER_PAGE_SIZE
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
-from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, NoteEvent
 from app.models.db.user import user_is_moderator
@@ -18,6 +16,65 @@ from app.models.types import NoteId, UserId
 
 
 class NoteQuery:
+    @staticmethod
+    def user_page_where(
+        user_id: UserId,
+        *,
+        commented_other: bool,
+        open: bool | None,
+    ) -> tuple[Composable, tuple[Any, ...]]:
+        conditions: list[Composable] = []
+        params: list[Any] = []
+
+        if commented_other:
+            # Notes where user commented but didn't open them.
+            conditions.append(
+                SQL("""
+                    EXISTS (
+                        SELECT 1 FROM note_comment
+                        WHERE note_id = note.id
+                        AND user_id = %s
+                        AND event = 'commented'
+                    )
+                """)
+            )
+            conditions.append(
+                SQL("""
+                    NOT EXISTS (
+                        SELECT 1 FROM note_comment
+                        WHERE note_id = note.id
+                        AND user_id = %s
+                        AND event = 'opened'
+                    )
+                """)
+            )
+            params.extend((user_id, user_id))
+        else:
+            # Notes opened by the user.
+            conditions.append(
+                SQL("""
+                    EXISTS (
+                        SELECT 1 FROM note_comment
+                        WHERE note_id = note.id
+                        AND user_id = %s
+                        AND event = 'opened'
+                    )
+                """)
+            )
+            params.append(user_id)
+
+        # Only show hidden notes to moderators.
+        if not user_is_moderator(auth_user()):
+            conditions.append(SQL('hidden_at IS NULL'))
+
+        if open is not None:
+            conditions.append(
+                SQL('closed_at IS NULL' if open else 'closed_at IS NOT NULL')
+            )
+
+        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        return where_clause, tuple(params)
+
     @staticmethod
     async def count_by_user(
         user_id: UserId,
@@ -29,136 +86,15 @@ class NoteQuery:
         Count the notes interacted with by the given user.
         If commented_other is True, it will count activity on non-own notes.
         """
-        conditions: list[Composable] = []
-        params: list[Any] = []
-
-        if commented_other:
-            # Count notes where user commented but didn't open them
-            query = SQL("""
-                SELECT COUNT(*) FROM note
-                WHERE EXISTS (
-                    SELECT 1 FROM note_comment
-                    WHERE note_id = note.id
-                    AND user_id = %s
-                    AND event = 'commented'
-                )
-                AND NOT EXISTS (
-                    SELECT 1 FROM note_comment
-                    WHERE note_id = note.id
-                    AND user_id = %s
-                    AND event = 'opened'
-                )
-            """)
-            params.extend((user_id, user_id))
-        else:
-            # Count notes opened by the user
-            query = SQL("""
-                SELECT COUNT(*) FROM note
-                WHERE EXISTS (
-                    SELECT 1 FROM note_comment
-                    WHERE note_id = note.id
-                    AND user_id = %s
-                    AND event = 'opened'
-                )
-            """)
-            params.append(user_id)
-
-        # Only show hidden notes to moderators
-        if not user_is_moderator(auth_user()):
-            conditions.append(SQL('note.hidden_at IS NULL'))
-
-        if open is not None:
-            conditions.append(
-                SQL('note.closed_at IS NULL' if open else 'note.closed_at IS NOT NULL')
-            )
-
-        # Add conditions to the query
-        if conditions:
-            query = SQL('{} AND {}').format(query, SQL(' AND ').join(conditions))
+        where_clause, params = NoteQuery.user_page_where(
+            user_id,
+            commented_other=commented_other,
+            open=open,
+        )
+        query = SQL('SELECT COUNT(*) FROM note WHERE {}').format(where_clause)
 
         async with db() as conn, await conn.execute(query, params) as r:
             return (await r.fetchone())[0]  # type: ignore
-
-    @staticmethod
-    async def find_user_page(
-        user_id: UserId,
-        *,
-        page: int,
-        num_items: int,
-        commented_other: bool,
-        open: bool | None,
-    ) -> list[Note]:
-        """Get notes for the given user notes page."""
-        stmt_limit, stmt_offset = standard_pagination_range(
-            page,
-            page_size=NOTE_USER_PAGE_SIZE,
-            num_items=num_items,
-        )
-
-        conditions: list[Composable] = []
-        params: list[Any] = []
-
-        if commented_other:
-            # Find notes where user commented but didn't open them
-            query = SQL("""
-                SELECT note.* FROM note
-                WHERE EXISTS (
-                    SELECT 1 FROM note_comment
-                    WHERE note_id = note.id
-                    AND user_id = %s
-                    AND event = 'commented'
-                )
-                AND NOT EXISTS (
-                    SELECT 1 FROM note_comment
-                    WHERE note_id = note.id
-                    AND user_id = %s
-                    AND event = 'opened'
-                )
-            """)
-            params.extend((user_id, user_id))
-        else:
-            # Find notes opened by the user
-            query = SQL("""
-                SELECT note.* FROM note
-                WHERE EXISTS (
-                    SELECT 1 FROM note_comment
-                    WHERE note_id = note.id
-                    AND user_id = %s
-                    AND event = 'opened'
-                )
-            """)
-            params.append(user_id)
-
-        # Only show hidden notes to moderators
-        if not user_is_moderator(auth_user()):
-            conditions.append(SQL('note.hidden_at IS NULL'))
-
-        if open is not None:
-            conditions.append(
-                SQL('note.closed_at IS NULL' if open else 'note.closed_at IS NOT NULL')
-            )
-
-        # Add conditions to the query
-        if conditions:
-            query = SQL('{} AND {}').format(query, SQL(' AND ').join(conditions))
-
-        # Add pagination and ordering
-        # Get results in DESC order, then reverse for final result
-        query = SQL("""
-            SELECT * FROM (
-                {}
-                ORDER BY note.updated_at DESC
-                OFFSET %s
-                LIMIT %s
-            ) ORDER BY updated_at ASC
-        """).format(query)
-        params.extend((stmt_offset, stmt_limit))
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def find(

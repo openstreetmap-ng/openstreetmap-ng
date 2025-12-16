@@ -12,18 +12,12 @@ async def test_note_comments_resolve_rich_text():
         note_id = await NoteService.create(
             0, 0, test_note_comments_resolve_rich_text.__qualname__
         )
-        comments = await NoteCommentQuery.find_comments_page(
-            'page', note_id, page=1, num_items=1, skip_header=False
-        )
-        header = next(iter(comments), None)
+        header = await NoteCommentQuery.find_header(note_id)
         assert header is not None
         assert header['event'] == 'opened'
         assert header['body_rich_hash'] is None
         await note_comments_resolve_rich_text([header])
-        comments = await NoteCommentQuery.find_comments_page(
-            'page', note_id, page=1, num_items=1, skip_header=False
-        )
-        header = next(iter(comments), None)
+        header = await NoteCommentQuery.find_header(note_id)
         assert header is not None
         assert header['event'] == 'opened'
         assert header['body_rich_hash'] is not None

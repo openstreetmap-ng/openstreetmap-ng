@@ -3,7 +3,7 @@ from datetime import date, datetime, time, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, Query, Response
-from pydantic import NonNegativeInt
+from psycopg.sql import SQL
 from starlette import status
 
 from app.config import (
@@ -14,9 +14,15 @@ from app.config import (
 from app.format import FormatRender
 from app.lib.auth_context import web_user
 from app.lib.geo_utils import parse_bbox
-from app.lib.render_response import render_response
-from app.lib.standard_pagination import sp_apply_headers, sp_resolve_page
-from app.models.db.changeset_comment import changeset_comments_resolve_rich_text
+from app.lib.standard_pagination import (
+    StandardPaginationStateBody,
+    sp_paginate_table,
+    sp_render_response,
+)
+from app.models.db.changeset_comment import (
+    ChangesetComment,
+    changeset_comments_resolve_rich_text,
+)
 from app.models.db.user import User
 from app.models.types import ChangesetId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
@@ -88,36 +94,28 @@ async def get_map(
     )
 
 
-@router.get('/{changeset_id:int}/comments')
+@router.post('/{changeset_id:int}/comments')
 async def comments_page(
     changeset_id: ChangesetId,
-    page: Annotated[NonNegativeInt, Query()],
-    num_items: Annotated[int | None, Query()] = None,
+    sp_state: StandardPaginationStateBody = b'',
 ):
-    sp_request_headers = num_items is None
-    if sp_request_headers:
-        num_items = await ChangesetCommentQuery.find_comments_page(
-            'count', changeset_id
-        )
-
-    assert num_items is not None
-    page = sp_resolve_page(
-        page=page, num_items=num_items, page_size=CHANGESET_COMMENTS_PAGE_SIZE
-    )
-
-    comments = await ChangesetCommentQuery.find_comments_page(
-        'page', changeset_id, page=page, num_items=num_items
+    comments, state = await sp_paginate_table(
+        ChangesetComment,
+        sp_state,
+        table='changeset_comment',
+        where=SQL('changeset_id = %s'),
+        params=(changeset_id,),
+        page_size=CHANGESET_COMMENTS_PAGE_SIZE,
+        order_dir='desc',
+        display_dir='asc',
     )
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(changeset_comments_resolve_rich_text(comments))
 
-    response = await render_response('changesets/comments-page', {'comments': comments})
-    if sp_request_headers:
-        sp_apply_headers(
-            response,
-            num_items=num_items,
-            page_size=CHANGESET_COMMENTS_PAGE_SIZE,
-        )
-    return response
+    return await sp_render_response(
+        'changesets/comments-page',
+        {'comments': comments},
+        state,
+    )

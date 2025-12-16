@@ -4,12 +4,14 @@ from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from typing import Annotated
 
 from fastapi import APIRouter, Query
-from pydantic import NonNegativeInt
 
 from app.config import AUDIT_LIST_PAGE_SIZE
 from app.lib.auth_context import web_user
-from app.lib.render_response import render_response
-from app.lib.standard_pagination import sp_apply_headers, sp_resolve_page
+from app.lib.standard_pagination import (
+    StandardPaginationStateBody,
+    sp_paginate_table,
+    sp_render_response,
+)
 from app.models.db.audit import AuditEvent, AuditType
 from app.models.db.user import User
 from app.models.types import ApplicationId
@@ -20,11 +22,9 @@ from app.queries.user_query import UserQuery
 router = APIRouter(prefix='/api/web/audit')
 
 
-@router.get('')
+@router.post('')
 async def audit_page(
     _: Annotated[User, web_user('role_administrator')],
-    page: Annotated[NonNegativeInt, Query()],
-    num_items: Annotated[int | None, Query()] = None,
     ip: Annotated[
         IPv4Address | IPv6Address | IPv4Network | IPv6Network | None, Query()
     ] = None,
@@ -33,34 +33,27 @@ async def audit_page(
     type: Annotated[AuditType | None, Query()] = None,
     created_after: Annotated[datetime | None, Query()] = None,
     created_before: Annotated[datetime | None, Query()] = None,
+    sp_state: StandardPaginationStateBody = b'',
 ):
-    sp_request_headers = num_items is None
-    if sp_request_headers:
-        num_items = await AuditQuery.find(
-            'count',
-            ip=ip,
-            user=user,
-            application_id=application_id,
-            type=type,
-            created_after=created_after,
-            created_before=created_before,
-        )
-
-    assert num_items is not None
-    page = sp_resolve_page(
-        page=page, num_items=num_items, page_size=AUDIT_LIST_PAGE_SIZE
-    )
-
-    events: list[AuditEvent] = await AuditQuery.find(
-        'page',
-        page=page,
-        num_items=num_items,
+    where_clause, params = await AuditQuery.where_clause(
         ip=ip,
         user=user,
         application_id=application_id,
         type=type,
         created_after=created_after,
         created_before=created_before,
+    )
+
+    events, state = await sp_paginate_table(
+        AuditEvent,
+        sp_state,
+        table='audit',
+        where=where_clause,
+        params=params,
+        page_size=AUDIT_LIST_PAGE_SIZE,
+        cursor_column='created_at',
+        cursor_kind='datetime',
+        order_dir='desc',
     )
 
     async with TaskGroup() as tg:
@@ -73,12 +66,10 @@ async def audit_page(
         apps = await OAuth2ApplicationQuery.resolve_applications(events)
         tg.create_task(UserQuery.resolve_users(apps))
 
-    response = await render_response(
+    return await sp_render_response(
         'audit/page',
         {
             'events': events,
         },
+        state,
     )
-    if sp_request_headers:
-        sp_apply_headers(response, num_items=num_items, page_size=AUDIT_LIST_PAGE_SIZE)
-    return response

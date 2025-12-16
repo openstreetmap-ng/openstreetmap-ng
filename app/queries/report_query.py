@@ -4,9 +4,7 @@ import cython
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
-from app.config import REPORT_LIST_PAGE_SIZE
 from app.db import db
-from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.report import Report
 from app.models.db.user import UserRole
 from app.models.types import ReportId
@@ -47,37 +45,6 @@ class ReportQuery:
             ) as r,
         ):
             return (await r.fetchone())[0]  # type: ignore
-
-    @staticmethod
-    async def find_reports_page(
-        *,
-        page: int,
-        num_items: int,
-        open: bool | None = None,
-    ) -> list[Report]:
-        """Get a page of reports for the list view."""
-        if not num_items:
-            return []
-
-        limit, offset = standard_pagination_range(
-            page,
-            page_size=REPORT_LIST_PAGE_SIZE,
-            num_items=num_items,
-        )
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                SQL("""
-                    SELECT * FROM report
-                    WHERE {}
-                    ORDER BY updated_at DESC
-                    LIMIT %s OFFSET %s
-                """).format(_where_open(open)),
-                (limit, offset),
-            ) as r,
-        ):
-            return await r.fetchall()  # type: ignore
 
     @staticmethod
     async def count_requiring_attention(visible_to: UserRole) -> _ReportCountResult:

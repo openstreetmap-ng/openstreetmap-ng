@@ -2,7 +2,7 @@ from asyncio import TaskGroup
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, Query, Response
-from pydantic import NonNegativeInt
+from psycopg.sql import SQL
 from starlette import status
 
 from app.config import (
@@ -17,9 +17,17 @@ from app.format import FormatRender
 from app.lib.auth_context import web_user
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.lib.render_response import render_response
-from app.lib.standard_pagination import sp_apply_headers, sp_resolve_page
-from app.models.db.note_comment import NoteEvent, note_comments_resolve_rich_text
+from app.lib.standard_pagination import (
+    StandardPaginationStateBody,
+    sp_paginate_table,
+    sp_render_response,
+)
+from app.models.db.note import Note
+from app.models.db.note_comment import (
+    NoteComment,
+    NoteEvent,
+    note_comments_resolve_rich_text,
+)
 from app.models.db.user import User
 from app.models.types import Latitude, Longitude, NoteId, UserId
 from app.queries.note_comment_query import NoteCommentQuery
@@ -76,67 +84,61 @@ async def get_map(bbox: Annotated[str, Query()]):
     )
 
 
-@router.get('/{note_id:int}/comments')
+@router.post('/{note_id:int}/comments')
 async def comments_page(
     note_id: NoteId,
-    page: Annotated[NonNegativeInt, Query()],
-    num_items: Annotated[int | None, Query()] = None,
+    sp_state: StandardPaginationStateBody = b'',
 ):
     notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     if not notes:
         raise_for.note_not_found(note_id)
 
-    sp_request_headers = num_items is None
-    if sp_request_headers:
-        num_items = await NoteCommentQuery.find_comments_page('count', note_id)
-
-    assert num_items is not None
-    page = sp_resolve_page(
-        page=page, num_items=num_items, page_size=NOTE_COMMENTS_PAGE_SIZE
-    )
-    comments = await NoteCommentQuery.find_comments_page(
-        'page', note_id, page=page, num_items=num_items
+    comments, state = await sp_paginate_table(
+        NoteComment,
+        sp_state,
+        table='note_comment',
+        where=SQL("note_id = %s AND event != 'opened'"),
+        params=(note_id,),
+        page_size=NOTE_COMMENTS_PAGE_SIZE,
+        order_dir='desc',
+        display_dir='asc',
     )
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(note_comments_resolve_rich_text(comments))
 
-    response = await render_response('notes/comments-page', {'comments': comments})
-    if sp_request_headers:
-        sp_apply_headers(
-            response,
-            num_items=num_items,
-            page_size=NOTE_COMMENTS_PAGE_SIZE,
-        )
-    return response
+    return await sp_render_response(
+        'notes/comments-page',
+        {'comments': comments},
+        state,
+    )
 
 
-@router.get('/user/{user_id:int}')
+@router.post('/user/{user_id:int}')
 async def user_notes_page(
     user_id: UserId,
-    page: Annotated[NonNegativeInt, Query()],
     commented: Annotated[bool, Query()],
     status: Annotated[Literal['', 'open', 'closed'], Query()],
-    num_items: Annotated[int | None, Query()] = None,
+    sp_state: StandardPaginationStateBody = b'',
 ):
     open = status == 'open' if status else None
-    sp_request_headers = num_items is None
-    if sp_request_headers:
-        num_items = await NoteQuery.count_by_user(
-            user_id, commented_other=commented, open=open
-        )
 
-    assert num_items is not None
-    page = sp_resolve_page(
-        page=page, num_items=num_items, page_size=NOTE_USER_PAGE_SIZE
-    )
-    notes = await NoteQuery.find_user_page(
+    where_clause, params = NoteQuery.user_page_where(
         user_id,
-        page=page,
-        num_items=num_items,
         commented_other=commented,
         open=open,
+    )
+    notes, state = await sp_paginate_table(
+        Note,
+        sp_state,
+        table='note',
+        where=where_clause,
+        params=params,
+        page_size=NOTE_USER_PAGE_SIZE,
+        cursor_column='updated_at',
+        cursor_kind='datetime',
+        order_dir='desc',
     )
 
     async with TaskGroup() as tg:
@@ -147,7 +149,8 @@ async def user_notes_page(
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(note_comments_resolve_rich_text(comments))
 
-    response = await render_response('notes/user-page', {'notes': notes})
-    if sp_request_headers:
-        sp_apply_headers(response, num_items=num_items, page_size=NOTE_USER_PAGE_SIZE)
-    return response
+    return await sp_render_response(
+        'notes/user-page',
+        {'notes': notes},
+        state,
+    )

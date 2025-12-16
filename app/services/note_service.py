@@ -244,17 +244,7 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
     async with TaskGroup() as tg:
         tg.create_task(note_comments_resolve_rich_text([comment]))
         place_t = tg.create_task(place_task())
-
-        # Fetch the first comment (which is the opening comment)
-        first_comments_t = tg.create_task(
-            NoteCommentQuery.find_comments_page(
-                'page',
-                note['id'],
-                page=1,
-                num_items=1,
-                skip_header=False,
-            )
-        )
+        header_t = tg.create_task(NoteCommentQuery.find_header(note['id']))
 
         users = await UserSubscriptionQuery.get_subscribed_users(
             'note', comment['note_id']
@@ -263,9 +253,9 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
             return
 
     place = place_t.result()
-    first_comments = first_comments_t.result()
-    assert first_comments, 'Note must have at least one comment'
-    first_comment_user_id: cython.size_t = first_comments[0]['user_id'] or 0
+    header = header_t.result()
+    assert header is not None, 'Note must have at least one comment'
+    header_user_id: cython.size_t = header['user_id'] or 0
 
     assert comment['user_id'] is not None, (
         'Anonymous note comments are no longer supported'
@@ -283,7 +273,7 @@ async def _send_activity_email(note: Note, comment: NoteComment) -> None:
                 continue
 
             with translation_context(subscribed_user['language']):
-                is_note_owner: cython.bint = subscribed_user_id == first_comment_user_id
+                is_note_owner: cython.bint = subscribed_user_id == header_user_id
                 subject = _get_activity_email_subject(
                     comment_user_name, comment_event, is_note_owner
                 )

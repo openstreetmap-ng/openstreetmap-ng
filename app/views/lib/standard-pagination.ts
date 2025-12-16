@@ -1,15 +1,23 @@
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf"
+import { base64Decode } from "@bufbuild/protobuf/wire"
+import {
+    STANDARD_PAGINATION_DISTANCE,
+    STANDARD_PAGINATION_MAX_FULL_PAGES,
+} from "@lib/config"
 import { resolveDatetimeLazy } from "@lib/datetime-inputs"
-import { qsEncode, qsParse } from "@lib/qs"
+import {
+    type StandardPaginationState,
+    StandardPaginationStateSchema,
+} from "@lib/proto/shared_pb"
 import { batch, effect, signal } from "@preact/signals-core"
+import { assertExists } from "@std/assert"
 import i18next from "i18next"
 
-const PAGINATION_DISTANCE = 2
-const PAGINATION_MAX_FULL_PAGES = 15
+const SP_HEADER = "X-StandardPagination"
 
 export const configureStandardPagination = (
     container: ParentNode | null,
     options?: {
-        startFromEnd?: boolean
         initialPage?: number
         customLoader?: (renderContainer: HTMLElement, page: number) => void
         loadCallback?: (renderContainer: HTMLElement, page: number) => void
@@ -22,44 +30,24 @@ export const configureStandardPagination = (
     const paginationContainers = Array.from(container.querySelectorAll("ul.pagination"))
     if (!(renderContainer && paginationContainers.length)) return () => {}
 
+    const customLoader = options?.customLoader
     const dataset = paginationContainers.at(-1)!.dataset
-    const parsedPages = dataset.pages ? Number.parseInt(dataset.pages, 10) : Number.NaN
-    const initialPages = Number.isFinite(parsedPages) ? Math.max(1, parsedPages) : 1
-    const pageSize = dataset.pageSize ? Number.parseInt(dataset.pageSize, 10) : null // optional
-    const startFromEnd = options?.startFromEnd ?? true
+    const fetchUrl = dataset.action
+    const pageSize = dataset.pageSize ? Number.parseInt(dataset.pageSize, 10) : null
+    const customNumPages = dataset.pages ? Number.parseInt(dataset.pages, 10) : null
 
-    const endpointPattern = dataset.action
-    if (!(endpointPattern || options?.customLoader)) return () => {}
-    console.debug(
-        "Pagination: Initializing",
-        options?.customLoader ? "<custom>" : endpointPattern,
-    )
+    if (!(fetchUrl || customLoader)) return () => {}
+    console.debug("Pagination: Initializing", customLoader ? "<custom>" : fetchUrl)
 
-    const parsedNumItems = dataset.numItems
-        ? Number.parseInt(dataset.numItems, 10)
-        : Number.NaN
-    const initialNumItems = Number.isFinite(parsedNumItems) ? parsedNumItems : -1
-    const numItems = signal(initialNumItems)
-    const totalPages = signal(initialPages)
-    const initialCurrentPage =
-        options?.initialPage ??
-        (startFromEnd
-            ? initialPages > 1
-                ? initialPages
-                : initialNumItems < 0
-                  ? 0
-                  : 1
-            : 1)
-    const currentPage = signal(initialCurrentPage)
-    const parsedSnapshotId = dataset.snapshotId
-        ? Number.parseInt(dataset.snapshotId, 10)
-        : Number.NaN
-    const snapshotId = signal<number | null>(
-        Number.isFinite(parsedSnapshotId) ? parsedSnapshotId : null,
-    )
-    const fetchCache = new Map<string, string>()
-    let lastRenderedUrl: string | null = null
+    const initialPage = options?.initialPage ?? 1
+    const requestedPage = signal(initialPage)
+    const activePage = signal(initialPage)
+    const state = signal<StandardPaginationState | null>(null)
+
+    const cache = new Map<string, { html: string; state: StandardPaginationState }>()
+    let lastRenderedKey: string | null = null
     let firstLoad = true
+    let didInitialJump = false
 
     const numItemsTargets = Array.from(
         container.querySelectorAll<HTMLElement>("[data-sp-num-items]"),
@@ -68,11 +56,11 @@ export const configureStandardPagination = (
         container.querySelectorAll<HTMLElement>("[data-sp-num-pages]"),
     )
 
-    const setPendingState = (state: boolean) => {
-        renderContainer.style.opacity = !firstLoad && state ? "0.5" : ""
+    const setPendingState = (pending: boolean) => {
+        renderContainer.style.opacity = !firstLoad && pending ? "0.5" : ""
 
         // Only show spinner during initial load
-        if (firstLoad && state) {
+        if (firstLoad && pending) {
             firstLoad = false
             const spinner = document.createElement("div")
             spinner.className = "text-center pagination-spinner"
@@ -92,58 +80,97 @@ export const configureStandardPagination = (
         }
     }
 
-    const onLoad = (html: string) => {
+    const onLoad = (html: string, page: number) => {
         renderContainer.innerHTML = html
         resolveDatetimeLazy(renderContainer)
-        options?.loadCallback?.(renderContainer, currentPage.peek())
+        options?.loadCallback?.(renderContainer, page)
     }
 
-    const buildUrl = (
-        page: number,
-        numItemsValue: number,
-        snapshotIdValue: number | null,
+    const snapshotKeyFromState = (value: StandardPaginationState) => {
+        const cursor = value.cursors
+        const cursorKey =
+            cursor.case === "u64"
+                ? `u64:${cursor.value.snapshot.toString()}`
+                : cursor.case === "text"
+                  ? `text:${cursor.value.snapshot}`
+                  : ""
+        return `${cursorKey}:${value.snapshotMaxId.toString()}`
+    }
+
+    const cacheKey = (url: string, snapshotKey: string, page: number) =>
+        `${url}#${snapshotKey}#${page}`
+
+    const applyState = (value: StandardPaginationState) => {
+        batch(() => {
+            state.value = value
+            activePage.value = value.currentPage
+        })
+    }
+
+    const computePagesToRender = (
+        currentPageValue: number,
+        maxKnownPageValue: number,
+        numPagesValue: number | undefined,
     ) => {
-        if (!endpointPattern) throw new Error("Pagination: Missing data-action")
-        const [path, q = ""] = endpointPattern.split("?")
-        const params: Record<string, string | undefined> = qsParse(q)
-        params.page = page.toString()
-        if (numItemsValue >= 0) {
-            params.num_items = numItemsValue.toString()
-        } else {
-            params.num_items = undefined
+        const resolvedMaxPage = numPagesValue ?? maxKnownPageValue
+        const pagesToRender: number[] = []
+
+        if (resolvedMaxPage <= STANDARD_PAGINATION_MAX_FULL_PAGES) {
+            for (let i = 1; i <= resolvedMaxPage; i++) pagesToRender.push(i)
+            return pagesToRender
         }
-        if (snapshotIdValue !== null) params.snapshot_id = snapshotIdValue.toString()
-        return `${path}${qsEncode(params)}`
+
+        pagesToRender.push(1)
+
+        const windowStart = Math.max(2, currentPageValue - STANDARD_PAGINATION_DISTANCE)
+        const windowEnd = Math.min(
+            resolvedMaxPage,
+            currentPageValue + STANDARD_PAGINATION_DISTANCE,
+        )
+        for (let i = windowStart; i <= windowEnd; i++) pagesToRender.push(i)
+
+        if (numPagesValue !== undefined) pagesToRender.push(numPagesValue)
+
+        pagesToRender.sort((a, b) => a - b)
+        const unique: number[] = []
+        for (const p of pagesToRender) {
+            if (unique.at(-1) !== p) unique.push(p)
+        }
+        return unique
     }
 
-    // Effect: Load and render page content when currentPage changes (fetches or uses cache)
+    // Effect: Load and render page content when requestedPage changes (fetches or uses cache)
     const disposeCollectionEffect = effect(() => {
-        const requestedPage = currentPage.value
-        if (requestedPage < 0) return
-        const requestedPageString = currentPage.toString()
+        const requestedPageValue = requestedPage.value
+        const requestedPageString = requestedPageValue.toString()
 
-        if (options?.customLoader) {
-            options.customLoader(renderContainer, requestedPage)
+        if (customLoader) {
+            const resolvedPage = Math.min(
+                requestedPageValue,
+                customNumPages ?? requestedPageValue,
+            )
+            if (activePage.peek() !== resolvedPage) activePage.value = resolvedPage
+            customLoader(renderContainer, resolvedPage)
+            resolveDatetimeLazy(renderContainer)
+            options?.loadCallback?.(renderContainer, resolvedPage)
             console.debug("Pagination: Page loaded (custom)", requestedPageString)
             return
         }
 
-        if (requestedPage === 0 && numItems.value >= 0) {
-            currentPage.value = totalPages.value
-            return
-        }
+        assertExists(fetchUrl)
 
-        // Build the endpoint
-        const snapshotIdValue = snapshotId.peek()
-        const url = buildUrl(requestedPage, numItems.peek(), snapshotIdValue)
+        const currentSnapshotKey = state.peek()
+            ? snapshotKeyFromState(state.peek()!)
+            : ""
+        const requestKey = cacheKey(fetchUrl, currentSnapshotKey, requestedPageValue)
 
-        // Serve from cache when available
-        const cached = fetchCache.get(url)
-        if (cached !== undefined) {
+        const cached = cache.get(requestKey)
+        if (cached) {
             console.debug("Pagination: Page loaded (cached)", requestedPageString)
-            if (lastRenderedUrl !== url) {
-                lastRenderedUrl = url
-                onLoad(cached)
+            if (lastRenderedKey !== requestKey) {
+                applyState(cached.state)
+                lastRenderedKey = requestKey
+                onLoad(cached.html, cached.state.currentPage)
             }
             return () => {}
         }
@@ -154,67 +181,81 @@ export const configureStandardPagination = (
 
         const fetchPage = async () => {
             try {
-                const resp = await fetch(url, {
+                const baseState = state.peek()
+                const fetchInit: RequestInit = {
                     signal: abortController.signal,
                     priority: "high",
-                })
-                const text = await resp.text()
-                console.debug("Pagination: Page loaded", requestedPageString)
-                fetchCache.set(url, text)
-                let renderUrl = url
+                    method: "POST",
+                }
 
-                // Sync headers for total items/pages
-                if (numItems.value < 0) {
-                    const serverNumItems = Number.parseInt(
-                        resp.headers.get("X-SP-NumItems")!,
-                        10,
+                // For the initial request (no state yet), omit the body entirely.
+                // The backend defaults `sp_state` to `b''`, so missing body and empty body are equivalent.
+                if (baseState !== null) {
+                    const requestBytes = toBinary(
+                        StandardPaginationStateSchema,
+                        create(StandardPaginationStateSchema, {
+                            ...baseState,
+                            requestedPage: requestedPageValue,
+                        }),
                     )
-                    const serverTotalPages = Math.max(
-                        1,
-                        Number.parseInt(resp.headers.get("X-SP-NumPages")!, 10),
-                    )
-
-                    const snapshotHeader = resp.headers.get("X-SP-SnapshotId")
-                    const parsedHeaderSnapshotId = snapshotHeader
-                        ? Number.parseInt(snapshotHeader, 10)
-                        : Number.NaN
-                    const serverSnapshotId = Number.isFinite(parsedHeaderSnapshotId)
-                        ? parsedHeaderSnapshotId
-                        : snapshotId.peek()
-
-                    const resolvedPage = Math.min(
-                        requestedPage === 0
-                            ? serverTotalPages
-                            : Math.max(1, requestedPage),
-                        serverTotalPages,
-                    )
-
-                    const resolvedUrl = buildUrl(
-                        resolvedPage,
-                        serverNumItems,
-                        serverSnapshotId,
-                    )
-                    fetchCache.set(resolvedUrl, text)
-                    renderUrl = resolvedUrl
-
-                    batch(() => {
-                        numItems.value = serverNumItems
-                        totalPages.value = serverTotalPages
-                        snapshotId.value = serverSnapshotId
-                        currentPage.value = resolvedPage
+                    fetchInit.body = new Blob([requestBytes], {
+                        type: "application/x-protobuf",
                     })
                 }
 
-                if (lastRenderedUrl !== renderUrl) {
-                    lastRenderedUrl = renderUrl
-                    onLoad(text)
+                const resp = await fetch(fetchUrl, fetchInit)
+                const text = await resp.text()
+                let renderKey = requestKey
+                let renderedPage = requestedPageValue
+                let skipRender = false
+
+                const newStateHeader = resp.headers.get(SP_HEADER)
+                if (newStateHeader) {
+                    const parsed = fromBinary(
+                        StandardPaginationStateSchema,
+                        base64Decode(newStateHeader),
+                    )
+                    const newSnapshotKey = snapshotKeyFromState(parsed)
+                    const resolvedKey = cacheKey(
+                        fetchUrl,
+                        newSnapshotKey,
+                        parsed.currentPage,
+                    )
+                    renderKey = resolvedKey
+                    renderedPage = parsed.currentPage
+
+                    applyState(parsed)
+
+                    // Cache only when we have a state header, since it defines the snapshot key.
+                    if (resp.ok) cache.set(resolvedKey, { html: text, state: parsed })
+
+                    if (!didInitialJump && initialPage !== 1) {
+                        didInitialJump = true
+                        const maxPage = parsed.numPages ?? parsed.maxKnownPage
+                        const resolvedInitialPage = Math.min(initialPage, maxPage)
+                        if (resolvedInitialPage !== parsed.currentPage) {
+                            // Avoid rendering an intermediate "page 1" snapshot when we immediately
+                            // jump to another page after receiving the initial pagination state.
+                            activePage.value = resolvedInitialPage
+                            requestedPage.value = resolvedInitialPage
+                            skipRender = true
+                        }
+                    }
+                } else {
+                    console.warn("Pagination: Missing state header", fetchUrl)
                 }
+
+                if (!skipRender && lastRenderedKey !== renderKey) {
+                    lastRenderedKey = renderKey
+                    onLoad(text, renderedPage)
+                }
+                console.debug("Pagination: Page loaded", requestedPageString)
             } catch (error) {
                 if (error.name === "AbortError") return
                 console.error(
                     "Pagination: Failed to load page",
                     requestedPageString,
-                    endpointPattern,
+                    fetchUrl,
                     error,
                 )
                 renderContainer.textContent = error.message
@@ -227,33 +268,26 @@ export const configureStandardPagination = (
         return () => abortController.abort()
     })
 
-    // Effect: Rebuild pagination UI buttons when page count or current page changes
+    // Effect: Rebuild pagination UI buttons when page counts or current page changes
     const disposePaginationEffect = effect(() => {
-        const numItemsValue = numItems.value
-        const totalPagesValue = totalPages.value
-        const currentPageValue = currentPage.value
+        const currentPageValue = activePage.value
+        const currentState = state.value
+        const numPagesValue = customNumPages ?? currentState?.numPages
+        const maxKnownPageValue = customNumPages ?? currentState?.maxKnownPage ?? 1
 
-        if (totalPagesValue <= 1) {
+        const resolvedMaxPage = numPagesValue ?? maxKnownPageValue
+        if (resolvedMaxPage <= 1) {
             for (const paginationContainer of paginationContainers) {
                 paginationContainer.classList.add("d-none")
             }
             return
         }
 
-        const pagesToRender: number[] = []
-        if (totalPagesValue <= PAGINATION_MAX_FULL_PAGES) {
-            for (let i = 1; i <= totalPagesValue; i++) pagesToRender.push(i)
-        } else {
-            pagesToRender.push(1)
-            for (
-                let i = currentPageValue - PAGINATION_DISTANCE;
-                i <= currentPageValue + PAGINATION_DISTANCE;
-                i++
-            ) {
-                if (i > 1 && i < totalPagesValue) pagesToRender.push(i)
-            }
-            pagesToRender.push(totalPagesValue)
-        }
+        const pagesToRender = computePagesToRender(
+            currentPageValue,
+            maxKnownPageValue,
+            numPagesValue,
+        )
 
         for (const paginationContainer of paginationContainers) {
             paginationContainer.classList.remove("d-none")
@@ -276,15 +310,13 @@ export const configureStandardPagination = (
                 button.type = "button"
                 button.classList.add("page-link")
 
-                if (pageSize && numItemsValue > 0) {
-                    const [limit, offset] = standardPaginationRange(
+                const numItemsValue = currentState?.numItems
+                if (pageSize && numItemsValue !== undefined) {
+                    const [itemMin, itemMax] = standardPaginationItemRange(
                         pageNumber,
                         pageSize,
                         numItemsValue,
-                        startFromEnd,
                     )
-                    const itemMax = numItemsValue - offset
-                    const itemMin = itemMax - limit + 1
                     button.textContent =
                         itemMax !== itemMin
                             ? `${itemMin}...${itemMax}`
@@ -300,7 +332,7 @@ export const configureStandardPagination = (
                     li.ariaCurrent = "page"
                 } else {
                     button.addEventListener("click", () => {
-                        currentPage.value = pageNumber
+                        requestedPage.value = pageNumber
                     })
                 }
 
@@ -314,17 +346,18 @@ export const configureStandardPagination = (
     })
 
     const disposeMetaEffect = effect(() => {
-        const numItemsValue = numItems.value
-        const totalPagesValue = totalPages.value
+        const currentState = state.value
+        const numItemsValue = currentState?.numItems
+        const numPagesValue = customNumPages ?? currentState?.numPages
 
-        if (numItemsValue >= 0) {
+        if (numItemsValue !== undefined) {
             for (const element of numItemsTargets) {
                 element.textContent = numItemsValue.toString()
             }
         }
-        if (numItemsValue >= 0 && totalPagesValue >= 1) {
+        if (numPagesValue !== undefined) {
             for (const element of numPagesTargets) {
-                element.textContent = totalPagesValue.toString()
+                element.textContent = numPagesValue.toString()
             }
         }
     })
@@ -337,17 +370,16 @@ export const configureStandardPagination = (
 }
 
 /**
- * Get the range of items for the given page.
- * Returns a tuple of (limit, offset).
+ * Item range labels for a 1-based "newest page is 1" pagination scheme.
+ * Returns a tuple of (itemMin, itemMax), inclusive.
  */
-const standardPaginationRange = (
+const standardPaginationItemRange = (
     page: number,
     pageSize: number,
     numItems: number,
-    startFromEnd: boolean,
 ) => {
-    const numPages = Math.ceil(numItems / pageSize)
-    const offset = startFromEnd ? (numPages - page) * pageSize : (page - 1) * pageSize
-    const limit = Math.min(pageSize, numItems - offset)
-    return [limit, offset]
+    const offset = (page - 1) * pageSize
+    const itemMax = numItems - offset
+    const itemMin = itemMax - Math.min(pageSize, itemMax) + 1
+    return [itemMin, itemMax]
 }

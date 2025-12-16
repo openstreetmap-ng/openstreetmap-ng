@@ -250,6 +250,11 @@ MAIL_UNPROCESSED_EXPIRE = timedelta(days=3)
 
 # -------------------- Content and Map Features --------------------
 
+# Standard pagination
+STANDARD_PAGINATION_DISTANCE = 2
+STANDARD_PAGINATION_MAX_FULL_PAGES = 15
+STANDARD_PAGINATION_COUNT_MAX_PAGES = 20
+
 # Elements
 ELEMENT_HISTORY_PAGE_SIZE = 10
 ELEMENT_WAY_MEMBERS_LIMIT = 2_000

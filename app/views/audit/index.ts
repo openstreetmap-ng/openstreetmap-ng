@@ -18,7 +18,6 @@ mount("audit-body", (body) => {
     })
 
     configureStandardPagination(body, {
-        startFromEnd: false,
         loadCallback: (renderContainer) => {
             resolveUserAgentIconsLazy(renderContainer)
 

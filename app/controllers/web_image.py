@@ -25,19 +25,16 @@ router = APIRouter(prefix='/api/web/img')
 @router.get('/avatar/anonymous_note/{note_id:int}')
 @cache_control(STATIC_CACHE_MAX_AGE, STATIC_CACHE_STALE)
 async def anonymous_note_avatar(note_id: NoteId) -> Response:
-    comments = await NoteCommentQuery.find_comments_page(
-        'page', note_id, page=1, num_items=1, skip_header=False
-    )
-    comment = next(iter(comments), None)
+    header = await NoteCommentQuery.find_header(note_id)
     if (
-        comment is None
-        or comment['event'] != 'opened'
-        or comment['user_id'] is not None
-        or comment['user_ip'] is None
+        header is None
+        or header['event'] != 'opened'
+        or header['user_id'] is not None
+        or header['user_ip'] is None
     ):
         return Response(None, status.HTTP_404_NOT_FOUND)
 
-    text = f'{comment["created_at"].year}/{comment["user_ip"]}'
+    text = f'{header["created_at"].year}/{header["user_ip"]}'
     file = generate_avatar('shapes', text)
     content_type = 'image/svg+xml'
     return Response(file, media_type=content_type)

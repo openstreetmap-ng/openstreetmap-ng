@@ -1,12 +1,10 @@
 from datetime import datetime
-from typing import Any, Literal, TypedDict, Unpack, overload
+from typing import Any, Literal
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
-from app.config import ADMIN_APPLICATION_LIST_PAGE_SIZE
 from app.db import db
-from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.types import ApplicationId, ClientId, DisplayName, UserId
 from app.queries.user_query import UserQuery
@@ -101,57 +99,18 @@ class OAuth2ApplicationQuery:
 
         return apps
 
-    class _FindParams(TypedDict, total=False):
-        search: str | None
-        owner: str | None
-        interacted_user: str | None
-        created_after: datetime | None
-        created_before: datetime | None
-        sort: Literal['created_asc', 'created_desc']
-
-    @overload
     @staticmethod
-    async def find(
-        mode: Literal['count'],
-        /,
-        **kwargs: Unpack[_FindParams],
-    ) -> int: ...
-
-    @overload
-    @staticmethod
-    async def find(
-        mode: Literal['ids'],
-        /,
+    async def where_clause(
         *,
-        limit: int,
-        **kwargs: Unpack[_FindParams],
-    ) -> list[ApplicationId]: ...
-
-    @overload
-    @staticmethod
-    async def find(
-        mode: Literal['page'],
-        /,
-        *,
-        page: int,
-        num_items: int,
-        **kwargs: Unpack[_FindParams],
-    ) -> list[OAuth2Application]: ...
-
-    @staticmethod
-    async def find(
-        mode: Literal['count', 'ids', 'page'],
-        /,
-        *,
-        page: int | None = None,
-        num_items: int | None = None,
-        limit: int | None = None,
-        **kwargs: Unpack[_FindParams],
-    ) -> int | list[OAuth2Application] | list[ApplicationId]:
+        search: str | None = None,
+        owner: str | None = None,
+        interacted_user: str | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
+    ) -> tuple[Composable, tuple[Any, ...]]:
         conditions: list[Composable] = []
         params: list[Any] = []
 
-        search = kwargs.get('search')
         if search:
             ors: list[Composable] = [SQL('name ILIKE %s'), SQL('client_id = %s')]
             params.extend((f'%{search}%', search))
@@ -162,7 +121,6 @@ class OAuth2ApplicationQuery:
 
             conditions.append(SQL('({})').format(SQL(' OR ').join(ors)))
 
-        owner = kwargs.get('owner')
         if owner:
             owner_ids: list[UserId] = []
 
@@ -178,15 +136,11 @@ class OAuth2ApplicationQuery:
                 owner_ids.append(user_by_name['id'])
 
             if not owner_ids:
-                # No matching user found, return empty results
-                if mode == 'count':
-                    return 0
-                return []
+                return SQL('FALSE'), ()
 
             conditions.append(SQL('user_id = ANY(%s)'))
             params.append(owner_ids)
 
-        interacted_user = kwargs.get('interacted_user')
         if interacted_user:
             interactor_ids: list[UserId] = []
 
@@ -204,10 +158,7 @@ class OAuth2ApplicationQuery:
                 interactor_ids.append(user_by_name['id'])
 
             if not interactor_ids:
-                # No matching user found, return empty results
-                if mode == 'count':
-                    return 0
-                return []
+                return SQL('FALSE'), ()
 
             conditions.append(
                 SQL(
@@ -223,65 +174,50 @@ class OAuth2ApplicationQuery:
             )
             params.append(interactor_ids)
 
-        created_after = kwargs.get('created_after')
         if created_after:
             conditions.append(SQL('created_at >= %s'))
             params.append(created_after)
 
-        created_before = kwargs.get('created_before')
         if created_before:
             conditions.append(SQL('created_at <= %s'))
             params.append(created_before)
 
         where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        return where_clause, tuple(params)
 
-        if mode == 'count':
-            query = SQL('SELECT COUNT(*) FROM oauth2_application WHERE {}').format(
-                where_clause
-            )
-            async with db() as conn, await conn.execute(query, params) as r:
-                return (await r.fetchone())[0]  # type: ignore
+    @staticmethod
+    async def find_ids(
+        *,
+        limit: int,
+        search: str | None = None,
+        owner: str | None = None,
+        interacted_user: str | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
+        sort: Literal['created_asc', 'created_desc'] = 'created_desc',
+    ) -> list[ApplicationId]:
+        where_clause, params = await OAuth2ApplicationQuery.where_clause(
+            search=search,
+            owner=owner,
+            interacted_user=interacted_user,
+            created_after=created_after,
+            created_before=created_before,
+        )
 
-        sort = kwargs.get('sort', 'created_desc')
         if sort == 'created_desc':
-            order_clause = SQL('created_at DESC')
+            order_dir = SQL('DESC')
         elif sort == 'created_asc':
-            order_clause = SQL('created_at')
+            order_dir = SQL('ASC')
         else:
             raise NotImplementedError(f'Unsupported sort {sort!r}')
 
-        if mode == 'ids':
-            query = SQL("""
-                SELECT id FROM oauth2_application
-                WHERE {}
-                ORDER BY {}
-                LIMIT %s
-            """).format(where_clause, order_clause)
-            params.append(limit)
-            async with db() as conn, await conn.execute(query, params) as r:
-                return [row[0] for row in await r.fetchall()]
-
-        # mode == 'page'
-        assert page is not None, "Page number must be provided in 'page' mode"
-        assert num_items is not None, "Number of items must be provided in 'page' mode"
-
-        limit, offset = standard_pagination_range(
-            page,
-            page_size=ADMIN_APPLICATION_LIST_PAGE_SIZE,
-            num_items=num_items,
-            start_from_end=False,  # Page 1 = most recent
-        )
-
         query = SQL("""
-            SELECT * FROM oauth2_application
-            WHERE {}
-            ORDER BY {}
-            LIMIT %s OFFSET %s
-        """).format(where_clause, order_clause)
-        params.extend((limit, offset))
+            SELECT id FROM oauth2_application
+            WHERE {where}
+            ORDER BY created_at {dir}, id {dir}
+            LIMIT %s
+        """).format(where=where_clause, dir=order_dir)
+        params = (*params, limit)
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        async with db() as conn, await conn.execute(query, params) as r:
+            return [c for (c,) in await r.fetchall()]

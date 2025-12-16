@@ -25,26 +25,22 @@ async def test_follow_unfollow_flow(client: AsyncClient):
         follow_status = await UserFollowQuery.get_follow_status(user2['id'])
         assert follow_status.is_following
 
-    # Verify user1's following list contains user2
-    with auth_context(user1):
-        following = await UserFollowQuery.list_user_follows(
-            user1['id'], followers=False, page=1, num_items=100
-        )
-        user2_follow = next((f for f in following if f['id'] == user2['id']), None)
-        assert user2_follow is not None
-        assert user2_follow['display_name'] == user2['display_name']
-        assert 'created_at' in user2_follow
+    # Verify user1's following page contains user2
+    r = await client.post('/api/web/follows/following')
+    assert r.status_code == status.HTTP_200_OK
+    assert f'/user/{user2["display_name"]}' in r.text
+    assert user2['display_name'] in r.text
+    assert '<time datetime="' in r.text
 
     # Verify user2's followers list contains user1
-    with auth_context(user2):
-        followers = await UserFollowQuery.list_user_follows(
-            user2['id'], followers=True, page=1, num_items=100
-        )
-        user1_follower = next((f for f in followers if f['id'] == user1['id']), None)
-        assert user1_follower is not None
-        assert user1_follower['display_name'] == user1['display_name']
+    client.headers['Authorization'] = 'User user2'
+    r = await client.post('/api/web/follows/followers')
+    assert r.status_code == status.HTTP_200_OK
+    assert f'/user/{user1["display_name"]}' in r.text
+    assert user1['display_name'] in r.text
 
     # Unfollow user2
+    client.headers['Authorization'] = 'User user1'
     r = await client.post(f'/api/web/follows/{user2["id"]}/unfollow')
     assert r.status_code == status.HTTP_204_NO_CONTENT
 
@@ -53,16 +49,13 @@ async def test_follow_unfollow_flow(client: AsyncClient):
         follow_status = await UserFollowQuery.get_follow_status(user2['id'])
         assert not follow_status.is_following
 
-    # Verify user2 is no longer in user1's following list
-    with auth_context(user1):
-        following = await UserFollowQuery.list_user_follows(
-            user1['id'], followers=False, page=1, num_items=100
-        )
-        assert not any(f['id'] == user2['id'] for f in following)
+    # Verify user2 is no longer in user1's following page
+    r = await client.post('/api/web/follows/following')
+    assert r.status_code == status.HTTP_200_OK
+    assert f'/user/{user2["display_name"]}' not in r.text
 
     # Verify user1 is no longer in user2's followers list
-    with auth_context(user2):
-        followers = await UserFollowQuery.list_user_follows(
-            user2['id'], followers=True, page=1, num_items=100
-        )
-        assert not any(f['id'] == user1['id'] for f in followers)
+    client.headers['Authorization'] = 'User user2'
+    r = await client.post('/api/web/follows/followers')
+    assert r.status_code == status.HTTP_200_OK
+    assert f'/user/{user1["display_name"]}' not in r.text

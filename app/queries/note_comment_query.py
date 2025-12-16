@@ -1,14 +1,12 @@
-from typing import Any, Literal, TypedDict, Unpack, overload
+from typing import Any, Literal
 
 from psycopg.abc import Params, Query
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from shapely.geometry.base import BaseGeometry
 
-from app.config import NOTE_COMMENTS_PAGE_SIZE
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.db.user import user_is_moderator
@@ -57,96 +55,21 @@ class NoteCommentQuery:
         ):
             return await r.fetchall()  # type: ignore
 
-    class _FindParams(TypedDict, total=False):
-        skip_header: bool
-
-    @overload
     @staticmethod
-    async def find_comments_page(
-        mode: Literal['count'],
-        /,
-        note_id: NoteId,
-        **kwargs: Unpack[_FindParams],
-    ) -> int: ...
-
-    @overload
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['page'],
-        /,
-        note_id: NoteId,
-        *,
-        page: int,
-        num_items: int,
-        **kwargs: Unpack[_FindParams],
-    ) -> list[NoteComment]: ...
-
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['count', 'page'],
-        /,
-        note_id: NoteId,
-        *,
-        page: int | None = None,
-        num_items: int | None = None,
-        **kwargs: Unpack[_FindParams],
-    ) -> int | list[NoteComment]:
-        """
-        Get comments for the given note comments page.
-        The header comment is omitted from count and from page 1.
-        """
-        if mode == 'count':
-            async with (
-                db() as conn,
-                await conn.execute(
-                    """
-                    SELECT GREATEST(COUNT(*) - 1, 0)
-                    FROM note_comment
-                    WHERE note_id = %s
-                    """,
-                    (note_id,),
-                ) as r,
-            ):
-                return (await r.fetchone())[0]  # type: ignore
-
-        # mode == 'page'
-        assert page is not None
-        assert num_items is not None
-        stmt_limit, stmt_offset = standard_pagination_range(
-            page,
-            page_size=NOTE_COMMENTS_PAGE_SIZE,
-            num_items=num_items,
-        )
-
+    async def find_header(note_id: NoteId) -> NoteComment | None:
         async with (
             db() as conn,
             await conn.cursor(row_factory=dict_row).execute(
                 """
-                SELECT * FROM (
-                    SELECT * FROM note_comment
-                    WHERE note_id = %s
-                    ORDER BY id DESC
-                    OFFSET %s
-                    LIMIT %s
-                ) AS subquery
-                ORDER BY id ASC
+                SELECT * FROM note_comment
+                WHERE note_id = %s
+                ORDER BY id
+                LIMIT 1
                 """,
-                (note_id, stmt_offset, stmt_limit),
+                (note_id,),
             ) as r,
         ):
-            comments: list[NoteComment] = await r.fetchall()  # type: ignore
-
-            # Skip the header comment
-            skip_header = kwargs.get('skip_header', True)
-            if (
-                skip_header
-                and page == 1
-                and comments
-                and comments[0]['event'] == 'opened'
-            ):
-                return comments[1:]
-
-            return comments
+            return await r.fetchone()  # type: ignore
 
     @staticmethod
     async def resolve_num_comments(notes: list[Note]) -> None:

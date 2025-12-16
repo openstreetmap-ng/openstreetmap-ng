@@ -44,7 +44,6 @@ mount("admin-users-body", (body) => {
     })
 
     configureStandardPagination(body, {
-        startFromEnd: false,
         loadCallback: (renderContainer) => {
             for (const element of renderContainer.querySelectorAll(
                 "[data-bs-toggle=tooltip]",

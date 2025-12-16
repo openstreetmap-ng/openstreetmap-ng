@@ -4,15 +4,18 @@ from typing import Annotated, Literal
 
 import orjson
 from fastapi import APIRouter, Cookie, File, Form, HTTPException, Query, Response
-from pydantic import NonNegativeInt, SecretStr
+from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import ADMIN_USER_EXPORT_LIMIT, ADMIN_USER_LIST_PAGE_SIZE, ENV
 from app.lib.auth_context import web_user
-from app.lib.render_response import render_response
 from app.lib.standard_feedback import StandardFeedback
-from app.lib.standard_pagination import sp_apply_headers, sp_resolve_page
+from app.lib.standard_pagination import (
+    StandardPaginationStateBody,
+    sp_paginate_table,
+    sp_render_response,
+)
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User, UserRole
 from app.models.types import ApplicationId, Password, UserId
@@ -31,11 +34,9 @@ from app.validators.email import EmailValidating
 router = APIRouter(prefix='/api/web/admin/users')
 
 
-@router.get('')
+@router.post('')
 async def users_page(
     _: Annotated[User, web_user('role_administrator')],
-    page: Annotated[NonNegativeInt, Query()],
-    num_items: Annotated[int | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
     unverified: Annotated[bool | None, Query()] = None,
     roles: Annotated[list[UserRole] | None, Query()] = None,
@@ -45,36 +46,49 @@ async def users_page(
     sort: Annotated[
         Literal['created_asc', 'created_desc', 'name_asc', 'name_desc'], Query()
     ] = 'created_desc',
+    sp_state: StandardPaginationStateBody = b'',
 ):
-    sp_request_headers = num_items is None
-    if sp_request_headers:
-        num_items = await UserQuery.find(
-            'count',
-            search=search,
-            unverified=True if unverified else None,
-            roles=roles,
-            created_after=created_after,
-            created_before=created_before,
-            application_id=application_id,
-            sort=sort,
-        )
-
-    assert num_items is not None
-    page = sp_resolve_page(
-        page=page, num_items=num_items, page_size=ADMIN_USER_LIST_PAGE_SIZE
-    )
-
-    users: list[User] = await UserQuery.find(
-        'page',
-        page=page,
-        num_items=num_items,
+    where_clause, params = UserQuery.where_clause(
         search=search,
         unverified=True if unverified else None,
         roles=roles,
         created_after=created_after,
         created_before=created_before,
         application_id=application_id,
-        sort=sort,
+    )
+
+    cursor_column: Literal['created_at', 'display_name']
+    cursor_kind: Literal['datetime', 'text']
+    order_dir: Literal['asc', 'desc']
+    if sort == 'created_desc':
+        cursor_column = 'created_at'
+        cursor_kind = 'datetime'
+        order_dir = 'desc'
+    elif sort == 'created_asc':
+        cursor_column = 'created_at'
+        cursor_kind = 'datetime'
+        order_dir = 'asc'
+    elif sort == 'name_asc':
+        cursor_column = 'display_name'
+        cursor_kind = 'text'
+        order_dir = 'asc'
+    elif sort == 'name_desc':
+        cursor_column = 'display_name'
+        cursor_kind = 'text'
+        order_dir = 'desc'
+    else:
+        raise NotImplementedError(f'Unsupported sort {sort!r}')
+
+    users, state = await sp_paginate_table(
+        User,
+        sp_state,
+        table='user',
+        where=where_clause,
+        params=params,
+        page_size=ADMIN_USER_LIST_PAGE_SIZE,
+        cursor_column=cursor_column,
+        cursor_kind=cursor_kind,
+        order_dir=order_dir,
     )
 
     user_ids = [user['id'] for user in users]
@@ -86,19 +100,15 @@ async def users_page(
             )
         )
 
-    response = await render_response(
+    return await sp_render_response(
         'admin/users/page',
         {
             'users': users,
             'two_fa_status': two_fa_status_t.result(),
             'ip_counts': ip_counts_t.result(),
         },
+        state,
     )
-    if sp_request_headers:
-        sp_apply_headers(
-            response, num_items=num_items, page_size=ADMIN_USER_LIST_PAGE_SIZE
-        )
-    return response
 
 
 @router.get('/export')
@@ -111,15 +121,15 @@ async def export_ids(
     created_before: Annotated[datetime | None, Query()] = None,
     application_id: Annotated[ApplicationId | None, Query()] = None,
 ):
-    user_ids: list[UserId] = await UserQuery.find(
-        'ids',
+    user_ids = await UserQuery.find_ids(
+        limit=ADMIN_USER_EXPORT_LIMIT,
         search=search,
         unverified=True if unverified else None,
         roles=roles,
         created_after=created_after,
         created_before=created_before,
         application_id=application_id,
-        limit=ADMIN_USER_EXPORT_LIMIT,
+        sort='created_desc',
     )
 
     return Response(

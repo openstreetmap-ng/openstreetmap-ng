@@ -1,13 +1,10 @@
 from asyncio import TaskGroup
-from typing import Literal, overload
 
 import cython
 from psycopg.rows import dict_row
 
-from app.config import REPORT_COMMENTS_PAGE_SIZE
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.standard_pagination import standard_pagination_range
 from app.models.db.diary import Diary
 from app.models.db.message import Message
 from app.models.db.oauth2_application import OAuth2Application
@@ -46,89 +43,6 @@ class ReportCommentQuery:
             ) as r,
         ):
             return await r.fetchone()  # type: ignore
-
-    @overload
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['count'],
-        /,
-        report_id: ReportId,
-    ) -> int: ...
-
-    @overload
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['page'],
-        /,
-        report_id: ReportId,
-        *,
-        page: int,
-        num_items: int,
-    ) -> list[ReportComment]: ...
-
-    @staticmethod
-    async def find_comments_page(
-        mode: Literal['count', 'page'],
-        /,
-        report_id: ReportId,
-        *,
-        page: int | None = None,
-        num_items: int | None = None,
-    ) -> int | list[ReportComment]:
-        """Get comments for the given report comments page."""
-        if mode == 'count':
-            async with (
-                db() as conn,
-                await conn.execute(
-                    """
-                    SELECT COUNT(*)
-                    FROM report_comment
-                    WHERE report_id = %s
-                    """,
-                    (report_id,),
-                ) as r,
-            ):
-                return (await r.fetchone())[0]  # type: ignore
-
-        # mode == 'page'
-        assert page is not None
-        assert num_items is not None
-        limit, offset = standard_pagination_range(
-            page,
-            page_size=REPORT_COMMENTS_PAGE_SIZE,
-            num_items=num_items,
-        )
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM (
-                    SELECT * FROM report_comment
-                    WHERE report_id = %s
-                    ORDER BY created_at DESC
-                    OFFSET %s
-                    LIMIT %s
-                ) AS subquery
-                ORDER BY created_at
-                """,
-                (report_id, offset, limit),
-            ) as r,
-        ):
-            comments: list[ReportComment] = await r.fetchall()  # type: ignore
-
-        user = auth_user()
-        is_moderator: cython.bint = user_is_moderator(user)
-        is_admin: cython.bint = user_is_admin(user)
-
-        for comment in comments:
-            # Mark if comment is restricted from current user
-            comment['has_access'] = (
-                (comment['visible_to'] == 'moderator' and is_moderator)  #
-                or (comment['visible_to'] == 'administrator' and is_admin)
-            )
-
-        return comments
 
     @staticmethod
     async def resolve_comments(

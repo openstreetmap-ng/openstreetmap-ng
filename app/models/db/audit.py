@@ -5,7 +5,7 @@ from typing import Any, Literal, NotRequired, TypedDict, get_args
 from app.config import AUDIT_POLICY
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import UserDisplay
-from app.models.types import ApplicationId, OAuth2TokenId, UserId
+from app.models.types import ApplicationId, AuditId, OAuth2TokenId, UserId
 
 AuditType = Literal[
     'add_connected_account',
@@ -66,6 +66,7 @@ for t in AUDIT_TYPE_VALUES:
 
 
 class AuditEventInit(TypedDict):
+    id: AuditId
     type: AuditType
     ip: IPv4Address | IPv6Address
     user_agent: str | None

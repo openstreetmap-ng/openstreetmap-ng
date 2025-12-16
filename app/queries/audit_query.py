@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
-from typing import Literal, TypedDict, Unpack, overload
+from typing import Any
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
-from app.config import AUDIT_LIST_PAGE_SIZE
 from app.db import db
-from app.lib.standard_pagination import standard_pagination_range
-from app.models.db.audit import AuditEvent, AuditType
+from app.models.db.audit import AuditType
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.types import ApplicationId, DisplayName, OAuth2TokenId, UserId
 from app.queries.user_query import UserQuery
@@ -133,47 +131,20 @@ class AuditQuery:
 
         return result
 
-    class _FindParams(TypedDict, total=False):
-        ip: IPv4Address | IPv6Address | IPv4Network | IPv6Network | None
-        user: str | None
-        application_id: ApplicationId | None
-        type: AuditType | None
-        created_after: datetime | None
-        created_before: datetime | None
-
-    @overload
     @staticmethod
-    async def find(
-        mode: Literal['count'],
-        /,
-        **kwargs: Unpack[_FindParams],
-    ) -> int: ...
-
-    @overload
-    @staticmethod
-    async def find(
-        mode: Literal['page'],
-        /,
+    async def where_clause(
         *,
-        page: int,
-        num_items: int,
-        **kwargs: Unpack[_FindParams],
-    ) -> list[AuditEvent]: ...
-
-    @staticmethod
-    async def find(
-        mode: Literal['count', 'page'],
-        /,
-        *,
-        page: int | None = None,
-        num_items: int | None = None,
-        **kwargs: Unpack[_FindParams],
-    ) -> int | list[AuditEvent]:
-        """Find audit logs. Results are always sorted by created_at DESC (most recent first)."""
+        ip: IPv4Address | IPv6Address | IPv4Network | IPv6Network | None = None,
+        user: str | None = None,
+        application_id: ApplicationId | None = None,
+        type: AuditType | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
+    ) -> tuple[Composable, tuple[Any, ...]]:
+        """Build the WHERE clause for audit log filters."""
         conditions: list[Composable] = []
-        params: list = []
+        params: list[Any] = []
 
-        ip = kwargs.get('ip')
         if ip is not None:
             if isinstance(ip, IPv4Network | IPv6Network):
                 conditions.append(SQL('ip >= %s AND ip <= %s'))
@@ -183,7 +154,6 @@ class AuditQuery:
                 conditions.append(SQL('ip = %s'))
                 params.append(ip)
 
-        user = kwargs.get('user')
         if user is not None:
             user_ids: list[UserId] = []
 
@@ -199,66 +169,30 @@ class AuditQuery:
                 user_ids.append(user_by_name['id'])
 
             if not user_ids:
-                # No matching user found, return empty results
-                if mode == 'count':
-                    return 0
-                return []
+                return SQL('FALSE'), ()
 
             conditions.append(SQL('(user_id = ANY(%s) OR target_user_id = ANY(%s))'))
             params.append(user_ids)
             params.append(user_ids)
 
-        application_id = kwargs.get('application_id')
         if application_id is not None:
             conditions.append(SQL('application_id = %s'))
             params.append(application_id)
 
-        type = kwargs.get('type')
         if type is not None:
             conditions.append(SQL('type = %s'))
             params.append(type)
 
-        created_after = kwargs.get('created_after')
         if created_after is not None:
             conditions.append(SQL('created_at >= %s'))
             params.append(created_after)
 
-        created_before = kwargs.get('created_before')
         if created_before is not None:
             conditions.append(SQL('created_at <= %s'))
             params.append(created_before)
 
         where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
-
-        if mode == 'count':
-            query = SQL('SELECT COUNT(*) FROM audit WHERE {}').format(where_clause)
-            async with db() as conn, await conn.execute(query, params) as r:
-                return (await r.fetchone())[0]  # type: ignore
-
-        # mode == 'page'
-        assert page is not None, "Page number must be provided in 'page' mode"
-        assert num_items is not None, "Number of items must be provided in 'page' mode"
-
-        limit, offset = standard_pagination_range(
-            page,
-            page_size=AUDIT_LIST_PAGE_SIZE,
-            num_items=num_items,
-            start_from_end=False,  # Page 1 = most recent
-        )
-
-        query = SQL("""
-            SELECT * FROM audit
-            WHERE {}
-            ORDER BY created_at DESC
-            LIMIT %s OFFSET %s
-        """).format(where_clause)
-        params.extend((limit, offset))
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        return where_clause, tuple(params)
 
     @staticmethod
     async def resolve_last_activity(tokens: list[OAuth2Token]) -> None:
@@ -275,7 +209,7 @@ class AuditQuery:
                 SELECT DISTINCT ON (token_id) *
                 FROM audit
                 WHERE token_id = ANY(%s)
-                ORDER BY token_id DESC, created_at DESC
+                ORDER BY token_id DESC, created_at DESC, id DESC
                 """,
                 (list(id_map),),
             ) as r,

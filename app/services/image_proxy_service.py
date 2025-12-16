@@ -122,7 +122,7 @@ class ImageProxyService:
         )
 
         cache = ImageProxyCache.FromString(raw)
-        which: str = cache.WhichOneof('result')
+        which = cache.WhichOneof('result')
 
         if which == 'normalized':
             return cache.normalized, 'image/webp'

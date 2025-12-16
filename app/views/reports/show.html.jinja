@@ -73,7 +73,7 @@ Reported anonymous <a href="/note/{{ report.type_id }}">note {{ report.type_id }
         </div>
 
         <h3 class="mb-3">Moderation Actions</h3>
-        <form class="comment-form" method="POST" action="/api/web/reports/{{ report.id }}/comments">
+        <form class="comment-form" method="POST" action="/api/web/reports/{{ report.id }}/comment">
             <textarea class="form-control mb-3" name="body" rows="3" placeholder="Enter your comment..."></textarea>
             <div class="text-end">
                 {%- if report.closed_at -%}

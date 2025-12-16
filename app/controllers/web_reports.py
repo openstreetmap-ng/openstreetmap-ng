@@ -2,7 +2,7 @@ from asyncio import TaskGroup
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, Query, Response
-from pydantic import NonNegativeInt
+from psycopg.sql import SQL
 from starlette import status
 
 from app.config import (
@@ -10,19 +10,23 @@ from app.config import (
     REPORT_COMMENTS_PAGE_SIZE,
     REPORT_LIST_PAGE_SIZE,
 )
-from app.lib.auth_context import web_user
-from app.lib.render_response import render_response
+from app.lib.auth_context import auth_user, web_user
 from app.lib.standard_feedback import StandardFeedback
-from app.lib.standard_pagination import sp_apply_headers, sp_resolve_page
+from app.lib.standard_pagination import (
+    StandardPaginationStateBody,
+    sp_paginate_table,
+    sp_render_response,
+)
 from app.lib.translation import t
-from app.models.db.report import ReportType, ReportTypeId
+from app.models.db.report import Report, ReportType, ReportTypeId
 from app.models.db.report_comment import (
     ReportAction,
     ReportActionId,
     ReportCategory,
+    ReportComment,
     report_comments_resolve_rich_text,
 )
-from app.models.db.user import User, UserRole
+from app.models.db.user import User, UserRole, user_is_admin, user_is_moderator
 from app.models.types import ReportCommentId, ReportId
 from app.queries.report_comment_query import ReportCommentQuery
 from app.queries.report_query import ReportQuery
@@ -76,7 +80,7 @@ async def reopen_report(
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 
-@router.post('/{report_id:int}/comments')
+@router.post('/{report_id:int}/comment')
 async def add_comment(
     _: Annotated[User, web_user('role_moderator')],
     report_id: ReportId,
@@ -97,29 +101,32 @@ async def change_comment_visibility(
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 
-@router.get('')
+@router.post('/page')
 async def reports_page(
     _: Annotated[User, web_user('role_moderator')],
-    page: Annotated[NonNegativeInt, Query()],
-    num_items: Annotated[int | None, Query()] = None,
     status: Annotated[Literal['', 'open', 'closed'], Query()] = '',
+    sp_state: StandardPaginationStateBody = b'',
 ):
     """Get a page of reports for the moderation interface."""
     # Convert status to boolean for query
     open = None if not status else status == 'open'
 
-    sp_request_headers = num_items is None
-    if sp_request_headers:
-        num_items = await ReportQuery.count_all(open=open)
+    if open is True:
+        where = SQL('closed_at IS NULL')
+    elif open is False:
+        where = SQL('closed_at IS NOT NULL')
+    else:
+        where = SQL('TRUE')
 
-    assert num_items is not None
-    page = sp_resolve_page(
-        page=page, num_items=num_items, page_size=REPORT_LIST_PAGE_SIZE
-    )
-    reports = await ReportQuery.find_reports_page(
-        page=page,
-        num_items=num_items,
-        open=open,
+    reports, state = await sp_paginate_table(
+        Report,
+        sp_state,
+        table='report',
+        where=where,
+        page_size=REPORT_LIST_PAGE_SIZE,
+        cursor_column='updated_at',
+        cursor_kind='datetime',
+        order_dir='desc',
     )
 
     # Resolve comments and metadata
@@ -144,39 +151,49 @@ async def reports_page(
         tg.create_task(report_comments_resolve_rich_text(comments))
         tg.create_task(ReportCommentQuery.resolve_objects(comments))
 
-    response = await render_response('reports/reports-page', {'reports': reports})
-    if sp_request_headers:
-        sp_apply_headers(response, num_items=num_items, page_size=REPORT_LIST_PAGE_SIZE)
-    return response
+    return await sp_render_response(
+        'reports/reports-page',
+        {'reports': reports},
+        state,
+    )
 
 
-@router.get('/{report_id:int}/comments')
+@router.post('/{report_id:int}/comments')
 async def comments_page(
     _: Annotated[User, web_user('role_moderator')],
     report_id: ReportId,
-    page: Annotated[NonNegativeInt, Query()],
-    num_items: Annotated[int | None, Query()] = None,
+    sp_state: StandardPaginationStateBody = b'',
 ):
     """Get a page of comments for a specific report."""
-    sp_request_headers = num_items is None
-    if sp_request_headers:
-        num_items = await ReportCommentQuery.find_comments_page('count', report_id)
-
-    assert num_items is not None
-    page = sp_resolve_page(
-        page=page, num_items=num_items, page_size=REPORT_COMMENTS_PAGE_SIZE
-    )
     async with TaskGroup() as tg:
         report_task = tg.create_task(ReportQuery.find_by_id(report_id))
         comments_task = tg.create_task(
-            ReportCommentQuery.find_comments_page(
-                'page', report_id, page=page, num_items=num_items
+            sp_paginate_table(
+                ReportComment,
+                sp_state,
+                table='report_comment',
+                where=SQL('report_id = %s'),
+                params=(report_id,),
+                page_size=REPORT_COMMENTS_PAGE_SIZE,
+                cursor_column='created_at',
+                cursor_kind='datetime',
+                order_dir='desc',
+                display_dir='asc',
             )
         )
 
     report = await report_task
     assert report is not None
-    comments = await comments_task
+    comments, state = await comments_task
+
+    user = auth_user()
+    is_moderator = user_is_moderator(user)
+    is_admin = user_is_admin(user)
+    for comment in comments:
+        comment['has_access'] = (
+            (comment['visible_to'] == 'moderator' and is_moderator)  #
+            or (comment['visible_to'] == 'administrator' and is_admin)
+        )
 
     async with TaskGroup() as tg:
         if report['type'] == 'user':
@@ -191,17 +208,11 @@ async def comments_page(
         tg.create_task(report_comments_resolve_rich_text(comments))
         tg.create_task(ReportCommentQuery.resolve_objects(comments))
 
-    response = await render_response(
+    return await sp_render_response(
         'reports/comments-page',
         {
             'report': report,
             'comments': comments,
         },
+        state,
     )
-    if sp_request_headers:
-        sp_apply_headers(
-            response,
-            num_items=num_items,
-            page_size=REPORT_COMMENTS_PAGE_SIZE,
-        )
-    return response

@@ -1,8 +1,8 @@
 from asyncio import TaskGroup
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Query, Response
-from pydantic import NonNegativeInt
+from fastapi import APIRouter, Form, Response
+from psycopg.sql import SQL
 from shapely import Point
 from starlette import status
 
@@ -14,14 +14,16 @@ from app.config import (
     LOCALE_CODE_MAX_LENGTH,
 )
 from app.lib.auth_context import web_user
-from app.lib.render_response import render_response
 from app.lib.standard_feedback import StandardFeedback
-from app.lib.standard_pagination import sp_apply_headers, sp_resolve_page
+from app.lib.standard_pagination import (
+    StandardPaginationStateBody,
+    sp_paginate_table,
+    sp_render_response,
+)
 from app.lib.translation import t
-from app.models.db.diary_comment import diary_comments_resolve_rich_text
+from app.models.db.diary_comment import DiaryComment, diary_comments_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import DiaryId, Latitude, LocaleCode, Longitude
-from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.user_query import UserQuery
 from app.services.diary_comment_service import DiaryCommentService
 from app.services.diary_service import DiaryService
@@ -78,36 +80,31 @@ async def delete(
     return {'redirect_url': f'/user/{user["display_name"]}/diary'}
 
 
-@router.get('/{diary_id:int}/comments')
+@router.post('/{diary_id:int}/comments')
 async def comments_page(
     diary_id: DiaryId,
-    page: Annotated[NonNegativeInt, Query()],
-    num_items: Annotated[int | None, Query()] = None,
+    sp_state: StandardPaginationStateBody = b'',
 ):
-    sp_request_headers = num_items is None
-    if sp_request_headers:
-        num_items = await DiaryCommentQuery.find_comments_page('count', diary_id)
-
-    assert num_items is not None
-    page = sp_resolve_page(
-        page=page, num_items=num_items, page_size=DIARY_COMMENTS_PAGE_SIZE
-    )
-    comments = await DiaryCommentQuery.find_comments_page(
-        'page', diary_id, page=page, num_items=num_items
+    comments, state = await sp_paginate_table(
+        DiaryComment,
+        sp_state,
+        table='diary_comment',
+        where=SQL('diary_id = %s'),
+        params=(diary_id,),
+        page_size=DIARY_COMMENTS_PAGE_SIZE,
+        order_dir='desc',
+        display_dir='asc',
     )
 
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(diary_comments_resolve_rich_text(comments))
 
-    response = await render_response('diary/comments-page', {'comments': comments})
-    if sp_request_headers:
-        sp_apply_headers(
-            response,
-            num_items=num_items,
-            page_size=DIARY_COMMENTS_PAGE_SIZE,
-        )
-    return response
+    return await sp_render_response(
+        'diary/comments-page',
+        {'comments': comments},
+        state,
+    )
 
 
 # TODO: delete comment

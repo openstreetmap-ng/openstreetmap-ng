@@ -13,6 +13,7 @@ from psycopg import AsyncConnection
 from psycopg.sql import SQL
 from psycopg.types.json import Jsonb
 from sentry_sdk.api import start_transaction
+from zid import zid
 
 from app.config import AUDIT_POLICY, AUDIT_USER_AGENT_MAX_LENGTH, ENV
 from app.db import db, db_lock
@@ -118,6 +119,7 @@ def audit(
         req_ip = anonymize_ip(req_ip)
 
     event_init: AuditEventInit = {
+        'id': zid(),  # type: ignore
         'type': type,
         'ip': req_ip,
         'user_agent': (
@@ -157,11 +159,11 @@ async def _audit_task(
 ) -> None:
     query = SQL("""
         INSERT INTO audit (
-            type, ip, user_agent, user_id,
+            id, type, ip, user_agent, user_id,
             target_user_id, application_id, token_id, extra
         )
         SELECT
-            %(type)s, %(ip)s, %(user_agent)s, %(user_id)s,
+            %(id)s, %(type)s, %(ip)s, %(user_agent)s, %(user_id)s,
             %(target_user_id)s, %(application_id)s, %(token_id)s, %(extra)s::jsonb
         {}
     """).format(
