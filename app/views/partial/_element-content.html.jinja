@@ -56,7 +56,7 @@
 
 {# Tags #}
 {% if tags %}
-<div class="tags" {% if tags_old %} data-tags-old="{{ tags_old | tojson }}" {% endif %}>
+<div class="tags" {% if tags_old %} data-tags-old="{{ tags_old | tojson | forceescape }}"{% endif %}>
     <table class="table table-sm">
         <tbody dir="auto">
             {%- for key, value in tags | dictsort -%}

@@ -274,9 +274,15 @@ export const configureTagsFormat = (container: HTMLElement | null) => {
 
         // Add previous values for modified tags
         if (oldValue !== undefined && oldValue !== value) {
-            row.cells[1].appendChild(
+            const currentValues = row.cells[1].firstElementChild
+            if (!(currentValues instanceof HTMLDivElement)) continue
+
+            const wrapper = document.createElement("div")
+            wrapper.appendChild(currentValues)
+            wrapper.appendChild(
                 renderValueList(key, key.split(":"), oldValue, "tag-previous"),
             )
+            row.cells[1].replaceChildren(wrapper)
         }
     }
 
