@@ -10,7 +10,7 @@ dependencies = [
   "arrow",
   "beautifulsoup4[charset-normalizer,lxml]",
   "blake3",
-  "blurhash-python",
+  "blurhash-rs",
   "brotli",
   "cbor2",
   "cython",

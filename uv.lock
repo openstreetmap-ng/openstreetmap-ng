@@ -353,15 +353,29 @@ wheels = [
 ]
 
 [[package]]
-name = "blurhash-python"
-version = "1.2.2"
+name = "blurhash-rs"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cffi" },
     { name = "pillow" },
-    { name = "six" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/77/a3/9a94cb58332bf0ca76176389f818f37521515ce82acd7d7fed5d15e27150/blurhash-python-1.2.2.tar.gz", hash = "sha256:f2dbb8a58c5a299c8fca81112e52471a15cff38020ca9a65dae96a777609b8d4", size = 178331, upload-time = "2024-01-24T12:09:08.004Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/bd/303a80ec0c2d0ed5fed2cb51594b9fde19065017a2528dacb9e9baa364a7/blurhash_rs-1.0.0.tar.gz", hash = "sha256:784ab5c1e6c6a4469ae207cb95e6cb9fff49f3ea1c98bd273d8e9221658c8db2", size = 12524, upload-time = "2025-12-16T06:03:46.307Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/17/25/db698492b73185132bca3ddf72be95b942239eb931c1577746e969440b4d/blurhash_rs-1.0.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:f2077b6b9d0ae5b970536b8e0c210c6c5c2c46f195df5d3a4e91aae27e39f0cd", size = 195130, upload-time = "2025-12-16T06:02:59.008Z" },
+    { url = "https://files.pythonhosted.org/packages/52/49/277ff1f3bfc9b28eda89fb810fae50fa52d6307b7e3047eeee182d935b7d/blurhash_rs-1.0.0-cp313-cp313-macosx_11_0_x86_64.whl", hash = "sha256:8d3fd55ec7d798425c700c06faa16a95ea66e983d9cee36b036b40823463587f", size = 204386, upload-time = "2025-12-16T06:03:00.521Z" },
+    { url = "https://files.pythonhosted.org/packages/8e/c3/74e1cd2b882256a5ffac49684d77f7cc816d5a91ea0af0982d4dc6fe9571/blurhash_rs-1.0.0-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:b8ce8807f4d6ae963a945ba54b72f56b760a352d91bcca7cbf6f7674a76092ac", size = 209860, upload-time = "2025-12-16T06:03:01.936Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/57/7c2c6e3754272a6d186e556bbaa9dbf46efebd4c75ab85de2a02a1f19599/blurhash_rs-1.0.0-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:de912188baf5c37c8667178c2e58d4e297218b5d82cb132c05ac5bb81b927874", size = 213307, upload-time = "2025-12-16T06:03:03.046Z" },
+    { url = "https://files.pythonhosted.org/packages/38/b5/07f3a115f5d2f54dc37b0067acb1d5482b5401bf5270b3b53058a0b5eeff/blurhash_rs-1.0.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:242f44045651ffb1c947aa1ae697db8917811e593dae8a3b0ed9d126c62e506c", size = 275484, upload-time = "2025-12-16T06:03:04.164Z" },
+    { url = "https://files.pythonhosted.org/packages/9e/db/0a22cf1d120374c7f2abc95122df99465cbea2f80107fc7468aa5a5aa78e/blurhash_rs-1.0.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:868bed125e4d7a2604ef0fee8cb3524514ba0e8c4788de08294f00d324e66b04", size = 293766, upload-time = "2025-12-16T06:03:05.782Z" },
+    { url = "https://files.pythonhosted.org/packages/52/54/4e6f153c96aae10bb69acd79fae10bff9e23335c0daaad2a7d782d7d0788/blurhash_rs-1.0.0-cp313-cp313-win_amd64.whl", hash = "sha256:4483f7e9ff0e3cec5026458fda28e03c32dd1a216b38e3c6b07be5bb690b2765", size = 106820, upload-time = "2025-12-16T06:03:06.903Z" },
+    { url = "https://files.pythonhosted.org/packages/ce/27/e08ef1931a91e617f349932ab9f43c8d0ca641dd1206afc5caf723cb52b9/blurhash_rs-1.0.0-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:8e34f613bb3968d8e9843375ec8958d091545c3489aba101342d9ecd8581bc5b", size = 193060, upload-time = "2025-12-16T06:03:07.874Z" },
+    { url = "https://files.pythonhosted.org/packages/39/6e/55ea58207081698e79a732c2353925d09a7395f57bf7501486314baa3225/blurhash_rs-1.0.0-cp313-cp313t-macosx_11_0_x86_64.whl", hash = "sha256:719b5bcadb13084785e8dcc36ea751ebacdd974c8d94928fc3632dc04f83f1fb", size = 202423, upload-time = "2025-12-16T06:03:08.939Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/f1/52bd54d7e8b76ead86e1def3fed457273a4a34ccd888fe10e20254093145/blurhash_rs-1.0.0-cp313-cp313t-manylinux_2_28_aarch64.whl", hash = "sha256:1b91e76535a9b27d3af97961a90d085836528d167eb0789759c4fa780d47ab63", size = 208887, upload-time = "2025-12-16T06:03:10.05Z" },
+    { url = "https://files.pythonhosted.org/packages/88/d4/994ce5bc5dd9506b8fbeff084a36f996ada1587e94c8111194870b6d6e56/blurhash_rs-1.0.0-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:67ce0eaa8f8f547a7d015e4117e9ad18d58a06a4347fceb5af2462c05dc3c366", size = 212125, upload-time = "2025-12-16T06:03:11.483Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/d4/66db0c2719b6f16632abd3ebe020b2d7da736e9fc4754e05d6b37b019ca5/blurhash_rs-1.0.0-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:8b2986d42717162b1922229ab53e914047e2798a8e1f3b71b9d321cd3c2a9d45", size = 274587, upload-time = "2025-12-16T06:03:12.607Z" },
+    { url = "https://files.pythonhosted.org/packages/39/f9/54fe580f162b919bbe371e6d7fdfa4d5273fff0949b00fe056f0ec1e47e9/blurhash_rs-1.0.0-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:8d01836645faba518911e9c7120f832321c81735a64007cdac95511f067912c1", size = 292539, upload-time = "2025-12-16T06:03:14.105Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/e7/790003a9ae3cf779f3412cb8bf1bf2ebd328544c4e58121fb16834bfeca4/blurhash_rs-1.0.0-cp313-cp313t-win_amd64.whl", hash = "sha256:ba1b0737ffe1ceae4aba7754f1cd99fc0efffe4851915fb36606763c0bef7af3", size = 105493, upload-time = "2025-12-16T06:03:15.249Z" },
+]
 
 [[package]]
 name = "boto3"
@@ -1297,7 +1311,7 @@ dependencies = [
     { name = "arrow" },
     { name = "beautifulsoup4", extra = ["charset-normalizer", "lxml"] },
     { name = "blake3" },
-    { name = "blurhash-python" },
+    { name = "blurhash-rs" },
     { name = "brotli" },
     { name = "cbor2" },
     { name = "cython" },
@@ -1378,7 +1392,7 @@ requires-dist = [
     { name = "arrow" },
     { name = "beautifulsoup4", extras = ["charset-normalizer", "lxml"] },
     { name = "blake3" },
-    { name = "blurhash-python" },
+    { name = "blurhash-rs" },
     { name = "brotli" },
     { name = "cbor2" },
     { name = "cython" },

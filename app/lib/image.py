@@ -7,8 +7,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, NamedTuple, overload
 
-import blurhash
 import cython
+from blurhash_rs import blurhash_encode
 from PIL import ImageOps, ImageSequence
 from PIL.Image import Image as PILImage
 from PIL.Image import Resampling
@@ -172,15 +172,7 @@ class Image:
                 Resampling.NEAREST,
             )
 
-        # Encode to BlurHash
-        loop = get_running_loop()
-        return await loop.run_in_executor(
-            None,
-            blurhash.encode,
-            img,
-            x_comp,
-            y_comp,
-        )
+        return blurhash_encode(img, x_comp, y_comp)
 
 
 @asynccontextmanager
