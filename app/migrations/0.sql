@@ -13,17 +13,15 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 CREATE OR REPLACE FUNCTION h3_points_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
-WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
+WITH RECURSIVE hierarchy(cell, res) AS (
     -- Base case: cells at finest resolution
-    SELECT h3_latlng_to_cell((dp).geom, resolution), resolution
-    FROM ST_DumpPoints(geom) AS dp
-    GROUP BY 1
+    SELECT DISTINCT h3_latlng_to_cell(dp.geom, resolution), resolution
+    FROM ST_DumpPoints(geom) AS dp(path, geom)
     UNION ALL
     -- Recursive case: parent cells at coarser resolutions
-    SELECT h3_cell_to_parent(cell), res - 1
+    SELECT DISTINCT h3_cell_to_parent(cell, res - 1), res - 1
     FROM hierarchy
-    WHERE res > 0
-    GROUP BY 1, 2)
+    WHERE res > 0)
 SELECT array_agg(cell)
 FROM hierarchy
 $$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
@@ -31,16 +29,16 @@ SET
     search_path = public;
 
 CREATE OR REPLACE FUNCTION h3_geometry_to_cells_range (geom geometry, resolution integer) RETURNS h3index[] AS $$
-WITH RECURSIVE hierarchy(cell, res) AS MATERIALIZED (
+WITH RECURSIVE hierarchy(cell, res) AS (
     -- Base case: cells at finest resolution
-    SELECT h3_cell, resolution
+    SELECT DISTINCT h3_cell, resolution
     FROM h3_polygon_to_cells_experimental(geom, resolution, 'overlapping') AS t(h3_cell)
     UNION ALL
     -- Recursive case: parent cells at coarser resolutions
-    SELECT h3_cell_to_parent(cell), res - 1
+    SELECT DISTINCT h3_cell_to_parent(cell, res - 1), res - 1
     FROM hierarchy
     WHERE res > 0
-    GROUP BY 1, 2)
+)
 SELECT array_agg(cell)
 FROM hierarchy
 $$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
@@ -48,61 +46,64 @@ SET
     search_path = public;
 
 CREATE OR REPLACE FUNCTION h3_geometry_to_compact_cells (geom geometry, resolution integer) RETURNS h3index[] AS $$
-WITH extent AS (
+WITH settings AS (
     SELECT
-        ST_NumGeometries(geom) > 1 AS is_multi,
-        GREATEST(
-            ST_XMax(geom) - ST_XMin(geom),
-            ST_YMax(geom) - ST_YMin(geom)
-        ) AS size
-),
-parts AS (
-    SELECT
-        (d).geom AS g,
-        ST_Dimension((d).geom) AS dim,
+        geom,
         GREATEST(
             3,
             LEAST(
                 resolution,
                 9 - FLOOR(LN(GREATEST(
-                    CASE WHEN (SELECT is_multi FROM extent)
-                        THEN (SELECT size FROM extent)
-                        ELSE GREATEST(
-                            ST_XMax((d).geom) - ST_XMin((d).geom),
-                            ST_YMax((d).geom) - ST_YMin((d).geom)
-                        )
-                    END,
+                    GREATEST(
+                        ST_XMax(bbox) - ST_XMin(bbox),
+                        ST_YMax(bbox) - ST_YMin(bbox)
+                    ),
                     0.18
                 )) / LN(2))::int
             )
         ) AS res
-    FROM extent, ST_Dump(geom) d
+    FROM (SELECT box3d(geom) AS bbox) bbox
+),
+extracted AS (
+    SELECT
+        ST_CollectionExtract(settings.geom, 3) AS polys,
+        ST_CollectionExtract(settings.geom, 2) AS lines,
+        ST_CollectionExtract(settings.geom, 1) AS points,
+        settings.res AS res
+    FROM settings
 )
-SELECT array_agg(cell)
-FROM h3_compact_cells(ARRAY(
-    SELECT DISTINCT h3_cell
-    FROM (
-        SELECT h3_polygon_to_cells_experimental(g, res, 'overlapping') AS h3_cell
-        FROM parts
-        WHERE dim = 2
+    SELECT array_agg(cell)
+    FROM h3_compact_cells(ARRAY(
+        SELECT DISTINCT h3_cell
+        FROM (
+            SELECT h3_polygon_to_cells_experimental(polys, res, 'overlapping') AS h3_cell
+            FROM extracted
+            WHERE NOT ST_IsEmpty(polys)
 
-        UNION ALL
+            UNION ALL
 
-        SELECT h3_grid_path_cells(
-            h3_latlng_to_cell(ST_PointN(g, i), res),
-            h3_latlng_to_cell(ST_PointN(g, i + 1), res)
-        ) AS h3_cell
-        FROM parts,
-             generate_series(1, ST_NPoints(g) - 1) i
-        WHERE dim = 1
+            -- H3 gridPath relies on local-IJ unfoldings and can fail (multi-face/pentagon cases).
+            -- For correct coverage, buffer the line into a very thin polygon corridor and polyfill it.
+            -- Any cell intersecting the line must overlap that corridor.
+            SELECT h3_cell
+            FROM extracted
+            CROSS JOIN LATERAL h3_polygon_to_cells_experimental(
+                -- 1e-7° (~1cm at equator): non-zero for a polygon corridor, tiny to limit false positives.
+                ST_Buffer(lines, 0.0000001, 'endcap=flat join=bevel'),
+                res,
+                'overlapping'
+            ) AS cells(h3_cell)
+            WHERE NOT ST_IsEmpty(lines)
 
-        UNION ALL
+            UNION ALL
 
-        SELECT h3_latlng_to_cell(g, res) AS h3_cell
-        FROM parts
-        WHERE dim = 0
-    ) cells
-)) AS cell
+            SELECT h3_latlng_to_cell((dp).geom, res) AS h3_cell
+            FROM extracted
+            CROSS JOIN LATERAL ST_DumpPoints(points) dp
+            WHERE NOT ST_IsEmpty(points)
+        ) cells
+    )
+) AS cell
 $$ LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
 SET
     search_path = public;
