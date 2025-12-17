@@ -111,21 +111,21 @@ async def _get_response(
     i: cython.size_t
     for i, result in enumerate(results):
         full_data: list[Element] = [result.element]
-        for member in result.element['members'] or ():
-            member_element = members_map.get(member)
-            if member_element is None:
+        for member_tid in result.element['members'] or ():
+            member = members_map.get(member_tid)
+            if member is None:
                 continue
-            full_data.append(member_element)
+            full_data.append(member)
 
             # Recurse ways
-            typed_id: cython.size_t = member_element['typed_id']
+            typed_id: cython.size_t = member_tid
             if (
                 typed_id >= TYPED_ELEMENT_ID_WAY_MIN
                 and typed_id <= TYPED_ELEMENT_ID_WAY_MAX
             ):
                 full_data.extend(
                     e
-                    for mm in member_element['members'] or ()
+                    for mm in member['members'] or ()
                     if (e := members_map.get(mm)) is not None
                 )
 

@@ -136,25 +136,27 @@ class Search:
                 continue
 
             element = result.element
-            members = element['members']
-            assert members is not None, 'Relation members must be set'
+            members_tids = element['members']
+            assert members_tids is not None, 'Relation members must be set'
             members_roles = element['members_roles']
             assert members_roles is not None, 'Relation members roles must be set'
 
             success: cython.bint = False
-            for member, member_type_id, role in zip(
-                members,
-                split_typed_element_ids(members),
+            for member_tid, type_id, role in zip(
+                members_tids,
+                split_typed_element_ids(members_tids),
                 members_roles,
                 strict=True,
             ):
-                if member_type_id[0] != 'node' or (success and role != 'admin_centre'):
+                if type_id[0] != 'node' or (success and role != 'admin_centre'):
                     continue
 
-                point = members_map[member]['point']
-                if point is not None:
-                    result.point = point
-                    success = True
+                member = members_map.get(member_tid)
+                if member is None or (point := member['point']) is None:
+                    continue
+
+                result.point = point
+                success = True
 
     @staticmethod
     def remove_overlapping_points(results: list[SearchResult]) -> None:

@@ -1,5 +1,3 @@
-import logging
-
 import cython
 from polyline_rs import encode_lonlat
 from shapely import Point, get_coordinates, prepare
@@ -120,22 +118,11 @@ def _render_ways(
 
         for node_ref in way_members:
             node = node_id_map.get(node_ref)
-            if node is None:
+            if node is None or (point := node['point']) is None:
                 # split way on gap
                 if current_segment:
                     segments.append(current_segment)
                     current_segment = []
-                continue
-
-            point = node['point']
-            if point is None:
-                logging.warning(
-                    'Missing point for node %d version %d (part of way %d version %d)',
-                    node['typed_id'],
-                    node['version'],
-                    way_id,
-                    way['version'],
-                )
                 continue
 
             current_segment.append(point)

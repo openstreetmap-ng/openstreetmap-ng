@@ -69,7 +69,6 @@ let
         export ENV=test \
         && export APP_URL=https://test.openstreetmap.ng \
         && export API_URL=https://api.openstreetmap.ng \
-        && export LEGACY_GEOM_SKIP_MISSING_NODES=1 \
         && export MAP_QUERY_LEGACY_NODES_LIMIT=2000 \
         && export SENTRY_PROFILE_SESSION_SAMPLE_RATE=0.3 \
         && ${script}"
