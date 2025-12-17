@@ -9,8 +9,9 @@ import {
     type StandardPaginationState,
     StandardPaginationStateSchema,
 } from "@lib/proto/shared_pb"
+import { range } from "@lib/utils"
 import { batch, effect, signal } from "@preact/signals-core"
-import { assertExists } from "@std/assert"
+import { assert, assertExists } from "@std/assert"
 import i18next from "i18next"
 
 const SP_HEADER = "X-StandardPagination"
@@ -25,18 +26,38 @@ export const configureStandardPagination = (
 ) => {
     if (!container) return () => {}
 
-    const renderContainer =
-        container.querySelector("ul.list-unstyled") ?? container.querySelector("tbody")
-    const paginationContainers = Array.from(container.querySelectorAll("ul.pagination"))
-    if (!(renderContainer && paginationContainers.length)) return () => {}
+    const actionCandidates = Array.from(
+        container.querySelectorAll("ul.pagination"),
+    ).filter((ul) => ul.dataset.action || ul.dataset.pages)
+    assert(actionCandidates.length, "Pagination: Missing action pagination")
+
+    const directCandidates =
+        actionCandidates.length === 1
+            ? actionCandidates
+            : actionCandidates.filter(
+                  (ul) => ul.closest("nav")?.parentNode === container,
+              )
+
+    const actionPagination = directCandidates[0]
+    const actionNav = actionPagination.closest("nav")!
+    const paginationRoot = actionNav.parentNode as ParentNode
+
+    const paginationContainers = Array.from(
+        paginationRoot.querySelectorAll("ul.pagination"),
+    ).filter((ul) => ul.closest("nav")?.parentNode === paginationRoot)
+    assert(paginationContainers.length, "Pagination: Missing pagination controls")
+
+    const renderSibling = actionNav.previousElementSibling! as HTMLElement
+    const renderContainer = renderSibling.querySelector("tbody") ?? renderSibling
 
     const customLoader = options?.customLoader
-    const dataset = paginationContainers.at(-1)!.dataset
+    const dataset = actionPagination.dataset
     const fetchUrl = dataset.action
     const pageSize = dataset.pageSize ? Number.parseInt(dataset.pageSize, 10) : null
     const customNumPages = dataset.pages ? Number.parseInt(dataset.pages, 10) : null
+    if (customLoader)
+        assert(dataset.pages, "Pagination: Missing data-pages for custom loader")
 
-    if (!(fetchUrl || customLoader)) return () => {}
     console.debug("Pagination: Initializing", customLoader ? "<custom>" : fetchUrl)
 
     const initialPage = options?.initialPage ?? 1
@@ -45,15 +66,15 @@ export const configureStandardPagination = (
     const state = signal<StandardPaginationState | null>(null)
 
     const cache = new Map<string, { html: string; state: StandardPaginationState }>()
-    let lastRenderedKey: string | null = null
+    let lastRenderedKey: string | undefined
     let firstLoad = true
     let didInitialJump = false
 
     const numItemsTargets = Array.from(
-        container.querySelectorAll<HTMLElement>("[data-sp-num-items]"),
+        container.querySelectorAll("[data-sp-num-items]"),
     )
     const numPagesTargets = Array.from(
-        container.querySelectorAll<HTMLElement>("[data-sp-num-pages]"),
+        container.querySelectorAll("[data-sp-num-pages]"),
     )
 
     const setPendingState = (pending: boolean) => {
@@ -80,20 +101,23 @@ export const configureStandardPagination = (
         }
     }
 
-    const onLoad = (html: string, page: number) => {
-        renderContainer.innerHTML = html
+    const afterLoad = (page: number) => {
         resolveDatetimeLazy(renderContainer)
         options?.loadCallback?.(renderContainer, page)
     }
 
+    const onLoad = (html: string, page: number) => {
+        renderContainer.innerHTML = html
+        afterLoad(page)
+    }
+
     const snapshotKeyFromState = (value: StandardPaginationState) => {
         const cursor = value.cursors
+        assertExists(cursor.case, "Pagination: Missing cursor snapshot")
         const cursorKey =
             cursor.case === "u64"
                 ? `u64:${cursor.value.snapshot.toString()}`
-                : cursor.case === "text"
-                  ? `text:${cursor.value.snapshot}`
-                  : ""
+                : `text:${cursor.value.snapshot}`
         return `${cursorKey}:${value.snapshotMaxId.toString()}`
     }
 
@@ -113,30 +137,23 @@ export const configureStandardPagination = (
         numPagesValue: number | undefined,
     ) => {
         const resolvedMaxPage = numPagesValue ?? maxKnownPageValue
-        const pagesToRender: number[] = []
 
         if (resolvedMaxPage <= STANDARD_PAGINATION_MAX_FULL_PAGES) {
-            for (let i = 1; i <= resolvedMaxPage; i++) pagesToRender.push(i)
-            return pagesToRender
+            return range(1, resolvedMaxPage + 1)
         }
 
-        pagesToRender.push(1)
+        const pages = new Set<number>()
+        pages.add(1)
 
         const windowStart = Math.max(2, currentPageValue - STANDARD_PAGINATION_DISTANCE)
         const windowEnd = Math.min(
             resolvedMaxPage,
             currentPageValue + STANDARD_PAGINATION_DISTANCE,
         )
-        for (let i = windowStart; i <= windowEnd; i++) pagesToRender.push(i)
+        for (let i = windowStart; i <= windowEnd; i++) pages.add(i)
 
-        if (numPagesValue !== undefined) pagesToRender.push(numPagesValue)
-
-        pagesToRender.sort((a, b) => a - b)
-        const unique: number[] = []
-        for (const p of pagesToRender) {
-            if (unique.at(-1) !== p) unique.push(p)
-        }
-        return unique
+        if (numPagesValue !== undefined) pages.add(numPagesValue)
+        return Array.from(pages).sort((a, b) => a - b)
     }
 
     // Effect: Load and render page content when requestedPage changes (fetches or uses cache)
@@ -145,24 +162,25 @@ export const configureStandardPagination = (
         const requestedPageString = requestedPageValue.toString()
 
         if (customLoader) {
-            const resolvedPage = Math.min(
-                requestedPageValue,
-                customNumPages ?? requestedPageValue,
-            )
+            const resolvedPage = Math.min(requestedPageValue, customNumPages!)
             if (activePage.peek() !== resolvedPage) activePage.value = resolvedPage
             customLoader(renderContainer, resolvedPage)
-            resolveDatetimeLazy(renderContainer)
-            options?.loadCallback?.(renderContainer, resolvedPage)
+            afterLoad(resolvedPage)
             console.debug("Pagination: Page loaded (custom)", requestedPageString)
             return
         }
 
-        assertExists(fetchUrl)
+        const fetchUrlResolved = fetchUrl!
 
-        const currentSnapshotKey = state.peek()
-            ? snapshotKeyFromState(state.peek()!)
+        const currentState = state.peek()
+        const currentSnapshotKey = currentState
+            ? snapshotKeyFromState(currentState)
             : ""
-        const requestKey = cacheKey(fetchUrl, currentSnapshotKey, requestedPageValue)
+        const requestKey = cacheKey(
+            fetchUrlResolved,
+            currentSnapshotKey,
+            requestedPageValue,
+        )
 
         const cached = cache.get(requestKey)
         if (cached) {
@@ -203,51 +221,46 @@ export const configureStandardPagination = (
                     })
                 }
 
-                const resp = await fetch(fetchUrl, fetchInit)
+                const resp = await fetch(fetchUrlResolved, fetchInit)
                 const text = await resp.text()
-                let renderKey = requestKey
-                let renderedPage = requestedPageValue
-                let skipRender = false
+                assert(resp.ok, `Pagination: ${resp.status} ${resp.statusText}`)
 
                 const newStateHeader = resp.headers.get(SP_HEADER)
-                if (newStateHeader) {
-                    const parsed = fromBinary(
-                        StandardPaginationStateSchema,
-                        base64Decode(newStateHeader),
-                    )
-                    const newSnapshotKey = snapshotKeyFromState(parsed)
-                    const resolvedKey = cacheKey(
-                        fetchUrl,
-                        newSnapshotKey,
-                        parsed.currentPage,
-                    )
-                    renderKey = resolvedKey
-                    renderedPage = parsed.currentPage
+                assert(newStateHeader, `Pagination: Missing ${SP_HEADER} header`)
 
-                    applyState(parsed)
+                const parsed = fromBinary(
+                    StandardPaginationStateSchema,
+                    base64Decode(newStateHeader),
+                )
+                const newSnapshotKey = snapshotKeyFromState(parsed)
+                const resolvedKey = cacheKey(
+                    fetchUrlResolved,
+                    newSnapshotKey,
+                    parsed.currentPage,
+                )
 
-                    // Cache only when we have a state header, since it defines the snapshot key.
-                    if (resp.ok) cache.set(resolvedKey, { html: text, state: parsed })
+                applyState(parsed)
+                cache.set(resolvedKey, { html: text, state: parsed })
 
-                    if (!didInitialJump && initialPage !== 1) {
-                        didInitialJump = true
-                        const maxPage = parsed.numPages ?? parsed.maxKnownPage
-                        const resolvedInitialPage = Math.min(initialPage, maxPage)
-                        if (resolvedInitialPage !== parsed.currentPage) {
-                            // Avoid rendering an intermediate "page 1" snapshot when we immediately
-                            // jump to another page after receiving the initial pagination state.
+                let skipRender = false
+                if (!didInitialJump && initialPage !== 1) {
+                    didInitialJump = true
+                    const maxPage = parsed.numPages ?? parsed.maxKnownPage
+                    const resolvedInitialPage = Math.min(initialPage, maxPage)
+                    if (resolvedInitialPage !== parsed.currentPage) {
+                        // Avoid rendering an intermediate "page 1" snapshot when we immediately
+                        // jump to another page after receiving the initial pagination state.
+                        batch(() => {
                             activePage.value = resolvedInitialPage
                             requestedPage.value = resolvedInitialPage
-                            skipRender = true
-                        }
+                        })
+                        skipRender = true
                     }
-                } else {
-                    console.warn("Pagination: Missing state header", fetchUrl)
                 }
 
-                if (!skipRender && lastRenderedKey !== renderKey) {
-                    lastRenderedKey = renderKey
-                    onLoad(text, renderedPage)
+                if (!skipRender && lastRenderedKey !== resolvedKey) {
+                    lastRenderedKey = resolvedKey
+                    onLoad(text, parsed.currentPage)
                 }
                 console.debug("Pagination: Page loaded", requestedPageString)
             } catch (error) {
@@ -255,7 +268,7 @@ export const configureStandardPagination = (
                 console.error(
                     "Pagination: Failed to load page",
                     requestedPageString,
-                    fetchUrl,
+                    fetchUrlResolved,
                     error,
                 )
                 renderContainer.textContent = error.message
@@ -274,6 +287,7 @@ export const configureStandardPagination = (
         const currentState = state.value
         const numPagesValue = customNumPages ?? currentState?.numPages
         const maxKnownPageValue = customNumPages ?? currentState?.maxKnownPage ?? 1
+        const showTailEllipsis = currentState !== null && numPagesValue === undefined
 
         const resolvedMaxPage = numPagesValue ?? maxKnownPageValue
         if (resolvedMaxPage <= 1) {
@@ -338,6 +352,14 @@ export const configureStandardPagination = (
 
                 paginationFragment.appendChild(li)
                 previousPage = pageNumber
+            }
+
+            if (showTailEllipsis) {
+                const gap = document.createElement("li")
+                gap.classList.add("page-item", "disabled")
+                gap.ariaDisabled = "true"
+                gap.innerHTML = `<span class="page-link">...</span>`
+                paginationFragment.appendChild(gap)
             }
 
             paginationContainer.innerHTML = ""
