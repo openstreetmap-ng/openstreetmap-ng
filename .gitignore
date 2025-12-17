@@ -23,7 +23,7 @@ CMakeUserPresets.json
 
 ### direnv ###
 .direnv
-# .envrc
+.envrc
 
 ### dotenv ###
 .env
@@ -365,6 +365,8 @@ pyrightconfig.json
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
 
+!.envrc
+
 config/locale/en.yaml
 config/locale/gnu
 config/locale/i18next
@@ -384,6 +386,7 @@ typings/app
 _generated
 temp
 tmp
+.tmp
 
 # Data files
 /data

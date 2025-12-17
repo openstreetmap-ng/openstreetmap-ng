@@ -133,6 +133,11 @@ writeText "postgres.conf" (
     # reason: reduce checkpoint frequency
     max_wal_size = ${toString postgresMaxWalSizeGb}GB
 
+    # increase JIT thresholds
+    jit_above_cost = 500000
+    jit_inline_above_cost = 2500000
+    jit_optimize_above_cost = 2500000
+
     # adjust configuration for SSDs
     # reason: improved performance on expected hardware
     random_page_cost = ${toString postgresRandomPageCost}
